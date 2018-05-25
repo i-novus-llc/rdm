@@ -9,10 +9,16 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
+    <parent>
+        <groupId>net.n2oapp.platform</groupId>
+        <artifactId>n2o-platform-bom</artifactId>
+        <version>0.5</version>
+        <relativePath/>
+    </parent>
+
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <rdm.version>1.0-SNAPSHOT</rdm.version>
         <encoding>UTF-8</encoding>
     </properties>
 
@@ -34,13 +40,26 @@
             <dependency>
                 <groupId>ru.inovus.ms.rdm</groupId>
                 <artifactId>rdm-api</artifactId>
-                <version>${rdm.version}</version>
+                <version>1.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
                 <groupId>ru.inovus.ms.rdm</groupId>
                 <artifactId>rdm-impl</artifactId>
-                <version>${rdm.version}</version>
+                <version>1.0-SNAPSHOT</version>
+                <scope>runtime</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.ws.rs</groupId>
+                <artifactId>javax.ws.rs-api</artifactId>
+                <version>2.0.1</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.swagger</groupId>
+                <artifactId>swagger-annotations</artifactId>
+                <version>1.5.12</version>
             </dependency>
 
         </dependencies>
