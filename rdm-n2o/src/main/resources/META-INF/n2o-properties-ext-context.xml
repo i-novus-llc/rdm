@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd     http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <bean id="n2oProperties" class="net.n2oapp.properties.web.WebApplicationProperties" primary="true">
+        <constructor-arg name="defaultPropertiesName" value="META-INF/n2o.properties"/>
+        <constructor-arg name="buildPropertiesName" value="META-INF/n2o-build.properties"/>
+        <constructor-arg name="environmentPropertiesName" value="placeholders.properties"/>
+        <property name="webAppEnvironment" ref="n2oWebAppEnvironment"/>
+        <property name="filesystemFolder" value="#{systemProperties['user.home'] + '/.n2o'}"/>
+    </bean>
+
+    <context:property-placeholder location="file:${user.home}/.n2o/placeholders.properties" ignore-unresolvable="true" ignore-resource-not-found="true" order="0" />
+
+
+</beans>

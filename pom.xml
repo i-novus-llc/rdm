@@ -26,6 +26,7 @@
         <module>rdm-api</module>
         <module>rdm-rest</module>
         <module>rdm-impl</module>
+        <module>rdm-n2o</module>
     </modules>
 
     <dependencyManagement>
