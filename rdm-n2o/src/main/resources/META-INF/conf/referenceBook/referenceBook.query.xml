@@ -1,0 +1,127 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<query xmlns:n2o="http://n2oapp.net/framework/config/schema/n2o-query-executions-1.0"
+       xmlns="http://n2oapp.net/framework/config/schema/query-3.0">
+    <object-id>referenceBook</object-id>
+    <name>Перечень справочников</name>
+    <execution>
+        <n2o:sql>
+            <n2o:items-query>
+                select :select
+                from (
+                    select 1 as id, '001' as code, 'Справочник полов' as shortName, 'Полный справочник полов' as fullName,
+                        '2.1' as version, '2018-06-01'::date as publishDate, 1 as groupId, 'Группа 1' as groupName
+                    union
+                    select 2 as id, '002' as code, 'Справочник организаций' as shortName, 'Полный справочник организаций' as fullName,
+                        'Архив' as version, '2018-10-10'::date as publishDate, 2 as groupId, 'Группа 2' as groupName
+                    union
+                    select 3 as id, '003' as code, 'Справочник специальностей' as shortName, 'Полный справочник специальностей' as fullName,
+                        '1.0' as version, '2018-05-10'::date as publishDate, 2 as groupId, 'Группа 2' as groupName
+                ) r
+                where :where
+                order by :order
+            </n2o:items-query>
+            <n2o:count-query>
+                select count(r)
+                from (
+                    select 1 as id
+                    union
+                    select 2 as id
+                ) r
+                where :where
+            </n2o:count-query>
+            <n2o:alias>r</n2o:alias>
+        </n2o:sql>
+    </execution>
+
+    <fields>
+        <field>
+            <id>id</id>
+            <domain>integer</domain>
+            <display/>
+            <filters auto-generate="true"/>
+        </field>
+
+        <field>
+            <id>code</id>
+            <domain>string</domain>
+            <display/>
+            <filters>
+                <filter type="eq" filter-field="code">
+                    lower(code) like '%' || lower(trim(:code))
+                </filter>
+            </filters>
+        </field>
+
+        <field>
+            <id>name</id>
+            <domain>string</domain>
+            <filters>
+                <filter type="eq" filter-field="name">
+                    (lower(shortName) like '%' || lower(trim(:name)) || '%' or lower(fullName) like '%' || lower(trim(:name)) || '%')
+                </filter>
+            </filters>
+        </field>
+
+        <field>
+            <id>shortName</id>
+            <domain>string</domain>
+            <display/>
+            <filters auto-generate="true"/>
+        </field>
+
+        <field>
+            <id>fullName</id>
+            <domain>string</domain>
+            <display/>
+            <filters auto-generate="true"/>
+        </field>
+
+        <field>
+            <id>groupId</id>
+            <domain>integer</domain>
+            <display/>
+            <filters>
+                <filter type="eq" filter-field="group.id">
+                    :expression = :group.id
+                </filter>
+            </filters>
+        </field>
+
+        <field>
+            <id>groupName</id>
+            <domain>string</domain>
+            <display/>
+        </field>
+        
+        <field>
+            <id>publishDate</id>
+            <domain>date</domain>
+            <display/>
+            <filters>
+                <filter type="more" filter-field="publishDate.begin">
+                    r.publishDate >= :publishDate.begin
+                </filter>
+                <filter type="less" filter-field="publishDate.end">
+                    :publishDate.end >= r.publishDate
+                </filter>
+            </filters>
+        </field>
+
+        <field>
+            <id>version</id>
+            <domain>string</domain>
+            <display/>
+        </field>
+
+        <field>
+            <id>showArchives</id>
+            <domain>boolean</domain>
+            <filters>
+                <filter type="eq" filter-field="showArchives" default-value="false">
+                    (:showArchives is true or version != 'Архив')
+                </filter>
+            </filters>
+        </field>
+
+    </fields>
+</query>

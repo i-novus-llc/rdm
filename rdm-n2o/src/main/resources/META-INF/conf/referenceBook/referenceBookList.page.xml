@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<page xmlns="http://n2oapp.net/framework/config/schema/page-1.0"
+      xmlns:wgt="http://n2oapp.net/framework/config/schema/n2o-widget-3.0"
+      xmlns:ctrl="http://n2oapp.net/framework/config/schema/n2o-control-1.0">
+    <object-id>referenceBook</object-id>
+    <layout>n2o/layout/single</layout>
+    <name>Перечень справочников</name>
+
+    <regions>
+        <region place="single" type="none">
+            <container id="main">
+                <wgt:table>
+                    <wgt:query-id>referenceBook</wgt:query-id>
+
+                    <wgt:filters opened="true">
+                        <ctrl:input-text id="name" label="Наименование справочника"/>
+                        <ctrl:input-text id="code" label="Код" control-style="width:100px"/>
+                        <ctrl:classifier id="group" label="Группа справочника">
+                            <ctrl:query query-id="group"/>
+                        </ctrl:classifier>
+                        <ctrl:date-interval id="publishDate" label="Дата последней публикации" control-style="width:230px"/>
+                        <ctrl:checkbox id="showArchives" label="Отображать архивные" default-value="false"/>
+                    </wgt:filters>
+
+                    <wgt:action-menu>
+                        <wgt:menu-item id="download" label="Скачать пакет">
+                            <wgt:event>
+                                <!--todo form-->
+                                <wgt:show-modal-form form-id="blank"/>
+                            </wgt:event>
+                        </wgt:menu-item>
+                    </wgt:action-menu>
+
+                    <wgt:columns>
+                        <wgt:column column-field-id="code" name="Код" width="100px"/>
+                        <wgt:column column-field-id="shortName" name="Краткое наименование">
+                            <wgt:link id="readVersion">
+                                <!--todo open page-->
+                                <wgt:a href="https://www.google.ru/" target="newWindow"/>
+                            </wgt:link>
+                        </wgt:column>
+                        <wgt:column column-field-id="fullName" name="Полное наименование">
+                            <wgt:link id="readVersion">
+                                <!--todo open page-->
+                                <wgt:a href="https://www.google.ru/" target="newWindow"/>
+                            </wgt:link>
+                        </wgt:column>
+                        <wgt:column column-field-id="groupName" name="Группа"/>
+                        <wgt:column column-field-id="version" name="Версия"/>
+                        <wgt:column column-field-id="publishDate" name="Последняя публикация"/>
+                    </wgt:columns>
+
+                </wgt:table>
+            </container>
+        </region>
+    </regions>
+</page>
