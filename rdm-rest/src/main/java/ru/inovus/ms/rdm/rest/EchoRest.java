@@ -8,7 +8,7 @@ import ru.inovus.ms.rdm.service.EchoService;
 /**
  * Created by tnurdinov on 30.05.2018.
  */
-@Controller
+@Controller("EchoRest")
 public class EchoRest implements EchoService {
 
     @Autowired
