@@ -82,4 +82,8 @@
 
     </dependencies>
 
+    <build>
+        <finalName>rdm-rest</finalName>
+    </build>
+
 </project>
