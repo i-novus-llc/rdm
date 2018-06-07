@@ -38,6 +38,7 @@ public class ApplicationTest {
 
     @Test
     public void testIsRunning() throws Exception {
+
        Assert.assertEquals("SYSTEM RUNNING",echoService.getEcho().getValue());
     }
 }
