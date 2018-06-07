@@ -20,6 +20,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <encoding>UTF-8</encoding>
+        <liquibase.version>3.6.1.inovus</liquibase.version>
     </properties>
 
     <modules>
@@ -71,6 +72,8 @@
                 <version>0.12.0</version>
                 <scope>test</scope>
             </dependency>
+
+
 
 
         </dependencies>
