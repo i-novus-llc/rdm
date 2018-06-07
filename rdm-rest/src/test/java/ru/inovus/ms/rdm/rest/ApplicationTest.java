@@ -13,7 +13,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import ru.inovus.ms.rdm.model.ReferenceBook;
 import ru.inovus.ms.rdm.model.ReferenceBookCreateRequest;
 import ru.inovus.ms.rdm.model.ReferenceBookCriteria;
-import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.EchoService;
 import ru.inovus.ms.rdm.service.ReferenceBookService;
 
@@ -42,7 +41,7 @@ public class ApplicationTest {
 
     @BeforeClass
     public static void startDb() throws IOException {
-        EmbeddedPostgres.builder().setPort(5444).start();
+        EmbeddedPostgres.builder().setCleanDataDirectory(true).setPort(5444).start();
     }
 
     @Test
@@ -52,20 +51,12 @@ public class ApplicationTest {
     }
 
 
-
     @Autowired
     @Qualifier("rest")
     private ReferenceBookService referenceBookService;
 
-    @Autowired
-    private RefBookVersionRepository refBookVersionRepository;
-
     @Test
     public void testLifecycle() {
-
-        refBookVersionRepository.deleteAllInBatch();
-
-        assertEquals(0, refBookVersionRepository.count());
 
         ReferenceBookCreateRequest referenceBookCreateRequest = new ReferenceBookCreateRequest();
         referenceBookCreateRequest.setCode("awesome");

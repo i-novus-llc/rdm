@@ -14,7 +14,6 @@ import ru.inovus.ms.rdm.model.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.ReferenceBook;
 import ru.inovus.ms.rdm.model.ReferenceBookCreateRequest;
 import ru.inovus.ms.rdm.model.ReferenceBookCriteria;
-import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 
 import java.util.ArrayList;
@@ -28,8 +27,6 @@ import java.util.List;
 public class ReferenceBookServiceImpl implements ReferenceBookService {
 
     private RefBookVersionRepository repository;
-
-    private RefBookRepository refBookRepository;
 
     @Autowired
     public ReferenceBookServiceImpl(RefBookVersionRepository repository) {
@@ -45,6 +42,7 @@ public class ReferenceBookServiceImpl implements ReferenceBookService {
         Predicate predicate = null;
         if (!StringUtils.isEmpty(referenceBookCriteria.getCode()))
             predicate = QRefBookVersionEntity.refBookVersionEntity.refBook.code.equalsIgnoreCase(referenceBookCriteria.getCode());
+
 
         Iterable<RefBookVersionEntity> list;
         if (predicate == null)
