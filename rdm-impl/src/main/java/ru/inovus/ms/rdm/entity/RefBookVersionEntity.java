@@ -1,5 +1,7 @@
 package ru.inovus.ms.rdm.entity;
 
+import ru.inovus.ms.rdm.model.RefBookVersionStatus;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -12,7 +14,7 @@ public class RefBookVersionEntity extends AbstractEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "ref_book_id", nullable = false)
     private RefBookEntity refBook;
 
@@ -26,6 +28,7 @@ public class RefBookVersionEntity extends AbstractEntity {
     private String annotation;
 
     @Column(name = "structure")
+    @Transient//todo
     private String structure;
 
     @Column(name = "version")
@@ -35,7 +38,8 @@ public class RefBookVersionEntity extends AbstractEntity {
     private String comment;
 
     @Column(name = "status", nullable = false)
-    private String status;
+    @Enumerated
+    private RefBookVersionStatus status;
 
     @Column(name = "from_date")
     private Date fromDate;
@@ -115,11 +119,11 @@ public class RefBookVersionEntity extends AbstractEntity {
         this.comment = comment;
     }
 
-    public String getStatus() {
+    public RefBookVersionStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(RefBookVersionStatus status) {
         this.status = status;
     }
 
