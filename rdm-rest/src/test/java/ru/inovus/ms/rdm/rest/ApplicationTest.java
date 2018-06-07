@@ -10,11 +10,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.test.context.junit4.SpringRunner;
-import ru.inovus.ms.rdm.model.ReferenceBook;
-import ru.inovus.ms.rdm.model.ReferenceBookCreateRequest;
-import ru.inovus.ms.rdm.model.ReferenceBookCriteria;
+import ru.inovus.ms.rdm.model.RefBook;
+import ru.inovus.ms.rdm.model.RefBookCreateRequest;
+import ru.inovus.ms.rdm.model.RefBookCriteria;
 import ru.inovus.ms.rdm.service.EchoService;
-import ru.inovus.ms.rdm.service.ReferenceBookService;
+import ru.inovus.ms.rdm.service.RefBookService;
 
 import java.io.IOException;
 
@@ -47,33 +47,33 @@ public class ApplicationTest {
     @Test
     public void testIsRunning() throws Exception {
 
-       Assert.assertEquals("SYSTEM RUNNING",echoService.getEcho().getValue());
+       Assert.assertEquals("SYSTEM RUNNING", echoService.getEcho().getValue());
     }
 
 
     @Autowired
     @Qualifier("rest")
-    private ReferenceBookService referenceBookService;
+    private RefBookService refBookService;
 
     @Test
     public void testLifecycle() {
 
-        ReferenceBookCreateRequest referenceBookCreateRequest = new ReferenceBookCreateRequest();
-        referenceBookCreateRequest.setCode("awesome");
-        ReferenceBook referenceBook = referenceBookService.create(referenceBookCreateRequest);
-        assertNotNull(referenceBook.getCode());
+        RefBookCreateRequest refBookCreateRequest = new RefBookCreateRequest();
+        refBookCreateRequest.setCode("awesome");
+        RefBook refBook = refBookService.create(refBookCreateRequest);
+        assertNotNull(refBook.getCode());
 
-        Page<ReferenceBook> search = referenceBookService.search(new ReferenceBookCriteria());
+        Page<RefBook> search = refBookService.search(new RefBookCriteria());
         assertEquals(1, search.getTotalElements());
 
-        ReferenceBookCriteria referenceBookCriteria = new ReferenceBookCriteria();
-        referenceBookCriteria.setCode("awesome");
-        search = referenceBookService.search(referenceBookCriteria);
+        RefBookCriteria refBookCriteria = new RefBookCriteria();
+        refBookCriteria.setCode("awesome");
+        search = refBookService.search(refBookCriteria);
         assertEquals(1, search.getTotalElements());
 
-        referenceBookCriteria = new ReferenceBookCriteria();
-        referenceBookCriteria.setCode("notawesome");
-        search = referenceBookService.search(referenceBookCriteria);
+        refBookCriteria = new RefBookCriteria();
+        refBookCriteria.setCode("notawesome");
+        search = refBookService.search(refBookCriteria);
         assertEquals(0, search.getTotalElements());
 
 

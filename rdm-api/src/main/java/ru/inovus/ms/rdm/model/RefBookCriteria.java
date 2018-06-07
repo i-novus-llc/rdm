@@ -3,8 +3,8 @@ package ru.inovus.ms.rdm.model;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
-@ApiModel("Справочник")
-public class ReferenceBook {
+@ApiModel("Критерий поиска справочника")
+public class RefBookCriteria {
 
     @ApiModelProperty("Код справочника")
     private String code;

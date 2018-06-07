@@ -11,9 +11,9 @@ import ru.inovus.ms.rdm.entity.QRefBookVersionEntity;
 import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.model.RefBookVersionStatus;
-import ru.inovus.ms.rdm.model.ReferenceBook;
-import ru.inovus.ms.rdm.model.ReferenceBookCreateRequest;
-import ru.inovus.ms.rdm.model.ReferenceBookCriteria;
+import ru.inovus.ms.rdm.model.RefBook;
+import ru.inovus.ms.rdm.model.RefBookCreateRequest;
+import ru.inovus.ms.rdm.model.RefBookCriteria;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 
 import java.util.ArrayList;
@@ -24,24 +24,24 @@ import java.util.List;
  */
 @Service
 @Qualifier("impl")
-public class ReferenceBookServiceImpl implements ReferenceBookService {
+public class RefBookServiceImpl implements RefBookService {
 
     private RefBookVersionRepository repository;
 
     @Autowired
-    public ReferenceBookServiceImpl(RefBookVersionRepository repository) {
+    public RefBookServiceImpl(RefBookVersionRepository repository) {
         this.repository = repository;
     }
 
 
     @Override
-    public Page<ReferenceBook> search(ReferenceBookCriteria referenceBookCriteria) {
+    public Page<RefBook> search(RefBookCriteria refBookCriteria) {
 
-        List<ReferenceBook> res = new ArrayList<>();
+        List<RefBook> res = new ArrayList<>();
 
         Predicate predicate = null;
-        if (!StringUtils.isEmpty(referenceBookCriteria.getCode()))
-            predicate = QRefBookVersionEntity.refBookVersionEntity.refBook.code.equalsIgnoreCase(referenceBookCriteria.getCode());
+        if (!StringUtils.isEmpty(refBookCriteria.getCode()))
+            predicate = QRefBookVersionEntity.refBookVersionEntity.refBook.code.equalsIgnoreCase(refBookCriteria.getCode());
 
 
         Iterable<RefBookVersionEntity> list;
@@ -50,23 +50,23 @@ public class ReferenceBookServiceImpl implements ReferenceBookService {
         else
             list = repository.findAll(predicate);
         for (RefBookVersionEntity refBookVersionEntity : list) {
-            ReferenceBook referenceBook = new ReferenceBook();
-            referenceBook.setCode(refBookVersionEntity.getRefBook().getCode());
-            res.add(referenceBook);
+            RefBook refBook = new RefBook();
+            refBook.setCode(refBookVersionEntity.getRefBook().getCode());
+            res.add(refBook);
         }
 
         return new PageImpl<>(res);
     }
 
     @Override
-    public ReferenceBook create(ReferenceBookCreateRequest referenceBookCreateRequest) {
+    public RefBook create(RefBookCreateRequest refBookCreateRequest) {
         RefBookVersionEntity rbv = new RefBookVersionEntity();
         rbv.setStatus(RefBookVersionStatus.DRAFT);
 
         RefBookEntity rb =new RefBookEntity();
         rb.setRemovable(false);
         rb.setArchived(false);
-        rb.setCode(referenceBookCreateRequest.getCode());
+        rb.setCode(refBookCreateRequest.getCode());
         rbv.setRefBook(rb);
 
 
@@ -75,8 +75,8 @@ public class ReferenceBookServiceImpl implements ReferenceBookService {
 
         rbv = repository.save(rbv);
 
-        ReferenceBook referenceBook = new ReferenceBook();
-        referenceBook.setCode(rbv.getRefBook().getCode());
-        return referenceBook;
+        RefBook refBook = new RefBook();
+        refBook.setCode(rbv.getRefBook().getCode());
+        return refBook;
     }
 }
