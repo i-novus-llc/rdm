@@ -26,7 +26,7 @@ import static org.junit.Assert.assertNotNull;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = {
-        "spring.datasource.url=jdbc:postgresql://localhost:5444/postgres",
+        "spring.datasource.url=jdbc:postgresql://localhost:5444/app",
         "spring.datasource.username=postgres",
         "spring.datasource.password=postgres",
         "cxf.jaxrs.client.classes-scan=true",
@@ -41,7 +41,7 @@ public class ApplicationTest {
 
     @BeforeClass
     public static void startDb() throws IOException {
-        EmbeddedPostgres.builder().setCleanDataDirectory(true).setPort(5444).start();
+       DbServer.startDb(5444, "app");
     }
 
     @Test
