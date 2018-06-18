@@ -26,23 +26,18 @@ import static org.junit.Assert.assertNotNull;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = {
-        "spring.datasource.url=jdbc:postgresql://localhost:5444/app",
+        "spring.datasource.url=jdbc:postgresql://localhost:5444/rdm_test",
         "spring.datasource.username=postgres",
         "spring.datasource.password=postgres",
         "cxf.jaxrs.client.classes-scan=true",
         "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm",
         "cxf.jaxrs.client.address=http://localhost:8080/rdm/api"
 } )
-public class ApplicationTest {
+public class ApplicationTest extends AbstractIntegrationTest{
 
     @Autowired
     @Qualifier("EchoRest")
     private EchoService echoService;
-
-    @BeforeClass
-    public static void startDb() throws IOException {
-       DbServer.startDb(5444, "app");
-    }
 
     @Test
     public void testIsRunning() throws Exception {
