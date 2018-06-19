@@ -55,14 +55,7 @@
 
             <dependency>
                 <groupId>ru.i-novus.platform</groupId>
-                <artifactId>versioned-data-storage-api</artifactId>
-                <version>1.0-SNAPSHOT</version>
-            </dependency>
-
-
-            <dependency>
-                <groupId>ru.i-novus.platform</groupId>
-                <artifactId>versioned-data-storage-pg-impl</artifactId>
+                <artifactId>versioned-data-storage-spring-adapter</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
 
