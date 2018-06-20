@@ -5,12 +5,12 @@ import ru.inovus.ms.rdm.model.Result;
 
 import java.util.Iterator;
 
-public abstract class FilePerRowValidator implements FileProcessor, Iterator<Row> {
+public abstract class FilePerRowProcessor implements FileProcessor, Iterator<Row> {
 
     private RowMapper rowMapper;
     private RowsProcessor rowsProcessor;
 
-    public FilePerRowValidator(RowMapper rowMapper, RowsProcessor rowsProcessor) {
+    public FilePerRowProcessor(RowMapper rowMapper, RowsProcessor rowsProcessor) {
         this.rowMapper = rowMapper;
         this.rowsProcessor = rowsProcessor;
     }
