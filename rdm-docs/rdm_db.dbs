@@ -41,6 +41,9 @@
 			<column name="structure" type="json" jt="2000" mandatory="y" >
 				<comment><![CDATA[Страктура справочника: список полей]]></comment>
 			</column>
+			<column name="storage_code" type="varchar" jt="12" >
+				<comment><![CDATA[Код хранилища данных]]></comment>
+			</column>
 			<column name="version" type="varchar" jt="12" >
 				<comment><![CDATA[Номер версии, при публикации обязательно]]></comment>
 			</column>
