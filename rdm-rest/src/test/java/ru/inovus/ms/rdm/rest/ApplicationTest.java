@@ -36,7 +36,6 @@ import static org.junit.Assert.assertNotNull;
 public class ApplicationTest extends AbstractIntegrationTest{
 
     @Autowired
-    @Qualifier("EchoRest")
     private EchoService echoService;
 
     @Test
