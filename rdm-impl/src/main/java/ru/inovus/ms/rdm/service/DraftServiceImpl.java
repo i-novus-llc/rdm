@@ -1,16 +1,20 @@
 package ru.inovus.ms.rdm.service;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 
 import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.List;
+
+import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
 
 /**
  * Created by tnurdinov on 24.05.2018.
@@ -50,8 +54,10 @@ public class DraftServiceImpl implements DraftService {
     @Override
     public void publish(Integer draftId, String versionName, OffsetDateTime versionDate) {
         RefBookVersionEntity draftVersion = versionRepository.findOne(draftId);
-        List<RefBookVersionEntity> lastPublishedVersions = versionRepository.findByStatusAndRefBook_Id(RefBookVersionStatus.PUBLISHED, draftVersion.getRefBook().getId(), new PageRequest(1, 1, new Sort(Sort.Direction.ASC, "title")));
-        RefBookVersionEntity lastPublishedVersion = lastPublishedVersions != null && !lastPublishedVersions.isEmpty() ? lastPublishedVersions.get(0) : null;
+        Page<RefBookVersionEntity> lastPublishedVersions = versionRepository
+                .findAll(isPublished().and(isVersionOfRefBook(draftVersion.getRefBook().getId()))
+                        , new PageRequest(1, 1, new Sort(Sort.Direction.ASC, "title")));
+        RefBookVersionEntity lastPublishedVersion = lastPublishedVersions != null && !lastPublishedVersions.hasContent() ? lastPublishedVersions.getContent().get(0) : null;
         String storageCode = draftDataService.applyDraft(
                 lastPublishedVersion != null ? lastPublishedVersion.getStorageCode() : null,
                 draftVersion.getStorageCode(),

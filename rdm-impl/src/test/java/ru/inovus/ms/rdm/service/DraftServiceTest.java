@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.service;
 
+import com.querydsl.core.types.Predicate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -8,6 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.data.domain.Pageable;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
@@ -57,7 +59,7 @@ public class DraftServiceTest {
 
 
         when(versionRepository.findOne(eq(testDraftVersion.getId()))).thenReturn(testDraftVersion);
-        when(versionRepository.findByStatusAndRefBook_Id(eq(RefBookVersionStatus.PUBLISHED), any(), any())).thenReturn(null);
+        when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(null);
         OffsetDateTime now = OffsetDateTime.now();
         draftService.publish(testDraftVersion.getId(), "1.0", now);
 

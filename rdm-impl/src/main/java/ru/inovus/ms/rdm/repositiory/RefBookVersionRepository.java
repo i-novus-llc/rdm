@@ -13,7 +13,6 @@ public interface RefBookVersionRepository extends
         JpaRepository<RefBookVersionEntity, Integer>,
         QueryDslPredicateExecutor <RefBookVersionEntity> {
 
-        List<RefBookVersionEntity> findByStatusAndRefBook_Id(RefBookVersionStatus status, Integer refBookId, Pageable pageable);
 
 
 }
