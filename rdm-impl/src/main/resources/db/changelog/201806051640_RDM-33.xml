@@ -82,4 +82,16 @@
         </sql>
     </changeSet>
 
+    <changeSet id="201806051640_RDM-33_4" author="tnurdinov" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="ref_book_version" columnName="storage_code" schemaName="n2o_rdm_management"/>
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE n2o_rdm_management.ref_book_version ADD COLUMN storage_code char(100);
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_version.storage_code IS 'Код хранилища данных';
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
