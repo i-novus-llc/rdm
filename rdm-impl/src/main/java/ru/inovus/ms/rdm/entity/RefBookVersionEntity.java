@@ -1,9 +1,11 @@
 package ru.inovus.ms.rdm.entity;
 
+import ru.inovus.ms.rdm.model.Metadata;
 import ru.inovus.ms.rdm.model.RefBookVersionStatus;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.Objects;
 
 @Entity
 @Table(name = "ref_book_version", schema = "n2o_rdm_management")
@@ -29,7 +31,10 @@ public class RefBookVersionEntity extends AbstractEntity {
 
     @Column(name = "structure")
     @Transient//todo
-    private String structure;
+    private Metadata structure;
+
+    @Column(name = "storage_code")
+    private String storageCode;
 
     @Column(name = "version")
     private String version;
@@ -95,11 +100,11 @@ public class RefBookVersionEntity extends AbstractEntity {
         this.annotation = annotation;
     }
 
-    public String getStructure() {
+    public Metadata getStructure() {
         return structure;
     }
 
-    public void setStructure(String structure) {
+    public void setStructure(Metadata structure) {
         this.structure = structure;
     }
 
@@ -163,6 +168,14 @@ public class RefBookVersionEntity extends AbstractEntity {
         this.lastActionDate = lastActionDate;
     }
 
+    public String getStorageCode() {
+        return storageCode;
+    }
+
+    public void setStorageCode(String storageCode) {
+        this.storageCode = storageCode;
+    }
+
     @PrePersist
     public void prePersist() {
         Date now = new Date();
@@ -172,5 +185,31 @@ public class RefBookVersionEntity extends AbstractEntity {
 
         if (lastActionDate == null)
             lastActionDate = now;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RefBookVersionEntity that = (RefBookVersionEntity) o;
+        return Objects.equals(id, that.id) &&
+                Objects.equals(refBook, that.refBook) &&
+                Objects.equals(fullName, that.fullName) &&
+                Objects.equals(shortName, that.shortName) &&
+                Objects.equals(annotation, that.annotation) &&
+                Objects.equals(structure, that.structure) &&
+                Objects.equals(storageCode, that.storageCode) &&
+                Objects.equals(version, that.version) &&
+                Objects.equals(comment, that.comment) &&
+                Objects.equals(status, that.status) &&
+                Objects.equals(fromDate, that.fromDate) &&
+                Objects.equals(toDate, that.toDate) &&
+                Objects.equals(creationDate, that.creationDate) &&
+                Objects.equals(lastActionDate, that.lastActionDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, refBook, fullName, shortName, annotation, structure, storageCode, version, comment, status, fromDate, toDate, creationDate, lastActionDate);
     }
 }

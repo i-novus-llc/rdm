@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.entity;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @Entity
 @Table(name = "ref_book", schema = "n2o_rdm_management")
@@ -50,5 +51,21 @@ public class RefBookEntity {
 
     public void setArchived(Boolean archived) {
         this.archived = archived;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RefBookEntity that = (RefBookEntity) o;
+        return Objects.equals(id, that.id) &&
+                Objects.equals(code, that.code) &&
+                Objects.equals(removable, that.removable) &&
+                Objects.equals(archived, that.archived);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, code, removable, archived);
     }
 }

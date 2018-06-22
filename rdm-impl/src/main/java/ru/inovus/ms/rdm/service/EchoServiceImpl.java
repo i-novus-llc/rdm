@@ -13,7 +13,6 @@ import ru.inovus.ms.rdm.repositiory.EchoRepository;
  */
 @Service
 @Transactional
-@Primary
 public class EchoServiceImpl implements EchoService {
 
     @Autowired

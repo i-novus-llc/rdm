@@ -1,15 +1,26 @@
 package ru.inovus.ms.rdm.service;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 
 import java.time.OffsetDateTime;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Created by tnurdinov on 24.05.2018.
  */
 @Service
 public class DraftServiceImpl implements DraftService {
+
+    private DraftDataService draftDataService;
+
+    private RefBookVersionRepository versionRepository;
 
     @Override
     public Draft create(Long dictionaryId, Metadata metadata) {
@@ -37,8 +48,22 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
-    public void publish(Long draftId, String versionName, OffsetDateTime versionDate) {
-
+    public void publish(Integer draftId, String versionName, OffsetDateTime versionDate) {
+        RefBookVersionEntity draftVersion = versionRepository.findOne(draftId);
+        List<RefBookVersionEntity> lastPublishedVersions = versionRepository.findByStatusAndRefBook_Id(RefBookVersionStatus.PUBLISHED, draftVersion.getRefBook().getId(), new PageRequest(1, 1, new Sort(Sort.Direction.ASC, "title")));
+        RefBookVersionEntity lastPublishedVersion = lastPublishedVersions != null && !lastPublishedVersions.isEmpty() ? lastPublishedVersions.get(0) : null;
+        String storageCode = draftDataService.applyDraft(
+                lastPublishedVersion != null ? lastPublishedVersion.getStorageCode() : null,
+                draftVersion.getStorageCode(),
+                new Date(versionDate.toInstant().toEpochMilli())
+        );
+        if(lastPublishedVersion == null) {
+            draftVersion.setVersion("1.0");
+        }
+        draftVersion.setStorageCode(storageCode);
+        draftVersion.setVersion(versionName);
+        draftVersion.setStatus(RefBookVersionStatus.PUBLISHED);
+        versionRepository.save(draftVersion);
     }
 
     @Override
