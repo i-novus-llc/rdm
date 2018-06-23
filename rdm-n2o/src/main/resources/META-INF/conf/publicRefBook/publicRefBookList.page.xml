@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<page xmlns="http://n2oapp.net/framework/config/schema/page-1.0"
+      xmlns:wgt="http://n2oapp.net/framework/config/schema/n2o-widget-3.0"
+      xmlns:ctrl="http://n2oapp.net/framework/config/schema/n2o-control-1.0">
+    <object-id>publicRefBook</object-id>
+    <layout>n2o/layout/single</layout>
+    <name>Перечень справочников</name>
+
+    <regions>
+        <region place="single" type="none">
+            <container id="main">
+                <wgt:table>
+                    <wgt:query-id>publicRefBook</wgt:query-id>
+
+                    <wgt:filters opened="true">
+                        <ctrl:input-text id="name" label="Наименование справочника"/>
+                        <ctrl:input-text id="code" label="Код" control-style="width:100px"/>
+                        <ctrl:date-interval id="fromDate" label="Дата публикации" control-style="width:230px" format="DD.MM.YYYY"/>
+                        <ctrl:checkbox id="withArchived" label="Отображать архивные" default-value="false"/>
+                    </wgt:filters>
+
+                    <wgt:action-menu>
+                        <wgt:menu-item id="download" label="Скачать пакет" color="btn-primary">
+                            <wgt:event>
+                                <wgt:show-modal-form form-id="blank"/>
+                            </wgt:event>
+                        </wgt:menu-item>
+                    </wgt:action-menu>
+
+                    <wgt:columns>
+                        <wgt:column column-field-id="code" name="Код" width="100px"/>
+                        <wgt:column column-field-id="shortName" name="Краткое наименование">
+                            <wgt:link id="shortName_readVersion">
+                                <wgt:show-modal page-id="passportRead" master-field-id="id" detail-field-id="id"
+                                                page-name="Паспорт справочника - {main.code} {main.shortName}"/>
+                            </wgt:link>
+                        </wgt:column>
+                        <wgt:column column-field-id="fullName" name="Полное наименование">
+                            <wgt:link id="fullName_readVersion">
+                                <wgt:show-modal page-id="passportRead" master-field-id="id" detail-field-id="id"
+                                                page-name="Паспорт справочника - {main.code} {main.shortName}"/>
+                            </wgt:link>
+                        </wgt:column>
+                        <wgt:column column-field-id="version" name="Версия"/>
+                        <wgt:column column-field-id="fromDate" name="Дата публикации"/>
+                    </wgt:columns>
+
+                    <wgt:sortings>
+                        <wgt:sorting sorting-field-id="code" direction="ASC"/>
+                    </wgt:sortings>
+
+                </wgt:table>
+            </container>
+        </region>
+    </regions>
+</page>

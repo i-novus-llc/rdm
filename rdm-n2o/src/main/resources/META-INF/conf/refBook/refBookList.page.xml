@@ -4,7 +4,7 @@
       xmlns:ctrl="http://n2oapp.net/framework/config/schema/n2o-control-1.0">
     <object-id>refBook</object-id>
     <layout>n2o/layout/single</layout>
-    <name>Перечень справочников</name>
+    <name>Администрирование/Справочники</name>
 
     <regions>
         <region place="single" type="none">
@@ -13,20 +13,29 @@
                     <wgt:query-id>refBook</wgt:query-id>
 
                     <wgt:filters opened="true">
-                        <ctrl:input-text id="name" label="Наименование справочника"/>
+                        <ctrl:input-text id="name" label="Наименование справочникаe"/>
                         <ctrl:input-text id="code" label="Код" control-style="width:100px"/>
-                        <ctrl:classifier id="group" label="Группа справочника">
-                            <ctrl:query query-id="group"/>
-                        </ctrl:classifier>
-                        <ctrl:date-interval id="publishDate" label="Дата последней публикации" control-style="width:230px"/>
-                        <ctrl:checkbox id="showArchives" label="Отображать архивные" default-value="false"/>
+                        <ctrl:date-interval id="fromDate" label="Дата последней публикации" control-style="width:230px"/>
+                        <ctrl:input-select id="status" label="Статус справочника">
+                            <ctrl:query query-id="enum">
+                                <ctrl:pre-filters>
+                                    <ctrl:pre-filter field-id="enumClass" value="ru.inovus.ms.rdm.enumeration.RefBookStatus"/>
+                                </ctrl:pre-filters>
+                            </ctrl:query>
+                        </ctrl:input-select>
                     </wgt:filters>
 
                     <wgt:action-menu>
-                        <wgt:menu-item id="download" label="Скачать пакет">
+                        <wgt:menu-item id="create" label="Добавить" context="false">
                             <wgt:event>
-                                <!--todo form-->
-                                <wgt:show-modal-form form-id="blank"/>
+                                <wgt:open-page page-id="passport" action-id="create" after-submit="closeModal"
+                                               create-more="false" page-name="Добавление справочника"
+                                               refresh-after-submit="true"/>
+                            </wgt:event>
+                        </wgt:menu-item>
+                        <wgt:menu-item id="update" label="Изменить" default="false" color="btn-primary">
+                            <wgt:event>
+                                <wgt:open-page page-id="blank" page-name="Список версий справочника {main.code} {main.shortName}"/>
                             </wgt:event>
                         </wgt:menu-item>
                     </wgt:action-menu>
@@ -34,21 +43,24 @@
                     <wgt:columns>
                         <wgt:column column-field-id="code" name="Код" width="100px"/>
                         <wgt:column column-field-id="shortName" name="Краткое наименование">
-                            <wgt:link id="readVersion">
-                                <!--todo open page-->
-                                <wgt:a href="https://www.google.ru/" target="newWindow"/>
+                            <wgt:link id="shortName_readVersion">
+                                <wgt:show-modal page-id="passportRead" master-field-id="id" detail-field-id="id"
+                                        page-name="Паспорт справочника - {main.code} {main.shortName}"/>
                             </wgt:link>
                         </wgt:column>
                         <wgt:column column-field-id="fullName" name="Полное наименование">
-                            <wgt:link id="readVersion">
-                                <!--todo open page-->
-                                <wgt:a href="https://www.google.ru/" target="newWindow"/>
+                            <wgt:link id="fullName_readVersion">
+                                <wgt:show-modal page-id="passportRead" master-field-id="id" detail-field-id="id"
+                                        page-name="Паспорт справочника - {main.code} {main.shortName}"/>
                             </wgt:link>
                         </wgt:column>
-                        <wgt:column column-field-id="groupName" name="Группа"/>
                         <wgt:column column-field-id="version" name="Версия"/>
-                        <wgt:column column-field-id="publishDate" name="Последняя публикация"/>
+                        <wgt:column column-field-id="fromDate" name="Последняя публикация"/>
                     </wgt:columns>
+
+                    <wgt:sortings>
+                        <wgt:sorting sorting-field-id="code" direction="ASC"/>
+                    </wgt:sortings>
 
                 </wgt:table>
             </container>

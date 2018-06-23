@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<query xmlns:n2o="http://n2oapp.net/framework/config/schema/n2o-query-executions-1.0"
+       xmlns="http://n2oapp.net/framework/config/schema/query-3.0">
+    <object-id>classifier</object-id>
+    <name>Перечисления</name>
+    <execution>
+        <n2o:rest>
+            <n2o:query>${rdm.backend.path}/enum</n2o:query>
+            <n2o:response-mapping collection="content" count="totalElements"/>
+            <n2o:size param-name="size"/>
+            <n2o:page param-name="page"/>
+        </n2o:rest>
+    </execution>
+
+    <fields>
+        <field>
+            <id>id</id>
+            <domain>integer</domain>
+            <display/>
+            <filters auto-generate="true"/>
+        </field>
+
+        <field>
+            <id>enumClass</id>
+            <domain>string</domain>
+            <filters auto-generate="true"/>
+        </field>
+
+        <field>
+            <id>name</id>
+            <domain>string</domain>
+            <display/>
+            <filters auto-generate="true"/>
+        </field>
+    </fields>
+</query>

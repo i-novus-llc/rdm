@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="201806211100_RDM-45_1.0" author="ekrasulina" dbms="postgresql">
+        <comment>Добавление справочника "A078 Справочник должностей"</comment>
+        <sql>
+            INSERT INTO n2o_rdm_management.ref_book(code, removable) VALUES ('A078', TRUE);
+
+            INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
+                VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник должностей', 'Справочник должностей', '1', 2, '2018-01-01', '2018-02-02');
+
+            INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
+                VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник должностей', 'Справочник должностей', '2', 2, '2018-02-03', null);
+        </sql>
+    </changeSet>
+
+    <changeSet id="201806211100_RDM-45_2.0" author="ekrasulina" dbms="postgresql">
+        <comment>Добавление справочника "A079 Справочник-архив"</comment>
+        <sql>
+            INSERT INTO n2o_rdm_management.ref_book(code, archived) VALUES ('A079', TRUE);
+
+            INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
+            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник архив', 'Справочник архив', '1', 2, '2017-01-01', null);
+
+            INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
+            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник архив', 'Справочник архив', null, 0, null, null);
+        </sql>
+    </changeSet>
+
+    <changeSet id="201806211100_RDM-45_3.0" author="ekrasulina" dbms="postgresql">
+        <comment>Добавление справочника "A080 Справочник должностей"</comment>
+        <sql>
+            INSERT INTO n2o_rdm_management.ref_book(code, removable) VALUES ('A080', TRUE);
+
+            INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
+            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник медицинских организаций (отличное от последней версии)', 'Справочник МО', '1', 2, '2018-02-03', '2018-05-02');
+
+            INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
+            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник медицинских организаций', 'Справочник МО', '2', 2, '2018-05-02', null);
+
+            INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
+            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник медицинских организаций', 'Справочник МО', null, 0, null, null);
+        </sql>
+    </changeSet>
+
+    <changeSet id="201806211100_RDM-45_4.0" author="ekrasulina" dbms="postgresql">
+        <comment>Добавление справочника "A081 Справочник оборудования"</comment>
+        <sql>
+            INSERT INTO n2o_rdm_management.ref_book(code, removable) VALUES ('A081', TRUE);
+
+            INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
+            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник оборудования', 'Справочник оборудования', null, 0, null, null);
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

@@ -2,12 +2,38 @@ package ru.inovus.ms.rdm.model;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import net.n2oapp.platform.jaxrs.RestCriteria;
+import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 
-@ApiModel("Критерий поиска справочника")
-public class RefBookCriteria {
+import javax.ws.rs.QueryParam;
+import java.time.LocalDateTime;
 
-    @ApiModelProperty("Код справочника")
+@ApiModel("Критерии поиска справочника")
+public class RefBookCriteria extends RestCriteria {
+
+    @ApiModelProperty("Код")
+    @QueryParam("code")
     private String code;
+
+    @ApiModelProperty("Наименование")
+    @QueryParam("name")
+    private String name;
+
+    @ApiModelProperty("Дата последней публикации")
+    @QueryParam("fromDateBegin")
+    private LocalDateTime fromDateBegin;
+
+    @ApiModelProperty("Дата последней публикации")
+    @QueryParam("fromDateEnd")
+    private LocalDateTime fromDateEnd;
+
+    @ApiModelProperty("Статус справочника")
+    @QueryParam("status.id")
+    private RefBookStatus status;
+
+    public RefBookCriteria() {
+        super(1, 10);
+    }
 
     public String getCode() {
         return code;
@@ -15,5 +41,37 @@ public class RefBookCriteria {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public LocalDateTime getFromDateBegin() {
+        return fromDateBegin;
+    }
+
+    public void setFromDateBegin(LocalDateTime fromDateBegin) {
+        this.fromDateBegin = fromDateBegin;
+    }
+
+    public LocalDateTime getFromDateEnd() {
+        return fromDateEnd;
+    }
+
+    public void setFromDateEnd(LocalDateTime fromDateEnd) {
+        this.fromDateEnd = fromDateEnd;
+    }
+
+    public RefBookStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(RefBookStatus status) {
+        this.status = status;
     }
 }
