@@ -16,10 +16,7 @@ import org.springframework.util.CollectionUtils;
 import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
-import ru.inovus.ms.rdm.model.RefBook;
-import ru.inovus.ms.rdm.model.RefBookCreateRequest;
-import ru.inovus.ms.rdm.model.RefBookCriteria;
-import ru.inovus.ms.rdm.model.RefBookVersionStatus;
+import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 
 import java.util.Collections;
@@ -72,6 +69,11 @@ public class RefBookServiceImpl implements RefBookService {
         refBookVersionEntity.setStatus(RefBookVersionStatus.DRAFT);
 
         return model(repository.save(refBookVersionEntity));
+    }
+
+    @Override
+    public Page<RefBookVersion> getVersions(String refBookId) {
+        throw new UnsupportedOperationException();
     }
 
     private Predicate toPredicate(RefBookCriteria criteria) {
