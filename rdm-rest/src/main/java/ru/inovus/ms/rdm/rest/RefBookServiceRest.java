@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller;
 import ru.inovus.ms.rdm.model.RefBook;
 import ru.inovus.ms.rdm.model.RefBookCreateRequest;
 import ru.inovus.ms.rdm.model.RefBookCriteria;
+import ru.inovus.ms.rdm.model.RefBookVersion;
 import ru.inovus.ms.rdm.service.RefBookService;
 
 @Controller
@@ -30,4 +31,8 @@ public class RefBookServiceRest implements RefBookService {
         return refBookService.create(refBookCreateRequest);
     }
 
+    @Override
+    public Page<RefBookVersion> getVersions(String refBookId) {
+        throw new UnsupportedOperationException();
+    }
 }
