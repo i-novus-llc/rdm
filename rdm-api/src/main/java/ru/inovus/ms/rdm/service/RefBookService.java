@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import ru.inovus.ms.rdm.model.RefBook;
 import ru.inovus.ms.rdm.model.RefBookCreateRequest;
 import ru.inovus.ms.rdm.model.RefBookCriteria;
+import ru.inovus.ms.rdm.model.RefBookVersion;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -39,5 +40,7 @@ public interface RefBookService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     RefBook create(RefBookCreateRequest refBookCreateRequest);
+
+    Page<RefBookVersion> getVersions(String refBookId);
 
 }
