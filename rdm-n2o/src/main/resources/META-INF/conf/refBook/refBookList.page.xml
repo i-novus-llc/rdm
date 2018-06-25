@@ -6,6 +6,8 @@
     <layout>n2o/layout/single</layout>
     <name>Администрирование/Справочники</name>
 
+    <!--NSI-M-4-->
+
     <regions>
         <region place="single" type="none">
             <container id="main">

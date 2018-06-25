@@ -6,6 +6,8 @@
     <layout>n2o/layout/single</layout>
     <name>Перечень справочников</name>
 
+    <!--NSI-M-1-->
+
     <regions>
         <region place="single" type="none">
             <container id="main">

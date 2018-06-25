@@ -7,6 +7,8 @@
     <layout>n2o/layout/single</layout>
     <name>Просмотр паспорта справочника</name>
 
+    <!--NSI-M-3-->
+
     <regions>
         <region place="single" type="none">
             <container id="main">
