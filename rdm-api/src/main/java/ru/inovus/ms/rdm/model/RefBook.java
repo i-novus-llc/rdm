@@ -142,25 +142,4 @@ public class RefBook {
     public void setArchived(Boolean archived) {
         this.archived = archived;
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        RefBook refBook = (RefBook) o;
-
-        if (!id.equals(refBook.id)) return false;
-        if (!refBookId.equals(refBook.refBookId)) return false;
-        if (!code.equals(refBook.code)) return false;
-        if (!shortName.equals(refBook.shortName)) return false;
-        if (!fullName.equals(refBook.fullName)) return false;
-        if (version != null ? !version.equals(refBook.version) : refBook.version != null) return false;
-        if (fromDate != null ? !fromDate.equals(refBook.fromDate) : refBook.fromDate != null) return false;
-        if (annotation != null ? !annotation.equals(refBook.annotation) : refBook.annotation != null) return false;
-        if (comment != null ? !comment.equals(refBook.comment) : refBook.comment != null) return false;
-        if (!removable.equals(refBook.removable)) return false;
-        if (status != refBook.status) return false;
-        return archived.equals(refBook.archived);
-    }
 }

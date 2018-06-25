@@ -73,7 +73,7 @@
 
         <field>
             <id>status.id</id>
-            <domain>integer</domain>
+            <domain>string</domain>
             <display/>
             <filters>
                 <filter type="eq" filter-field="status.id"/>

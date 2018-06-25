@@ -23,7 +23,6 @@ public class RefBookEntity {
     private Boolean archived;
 
     @OneToMany(mappedBy="refBook", cascade = CascadeType.ALL)
-    @OrderBy(value="from_date desc nulls first")
     List<RefBookVersionEntity> versionList = new ArrayList<>();
 
     public Integer getId() {

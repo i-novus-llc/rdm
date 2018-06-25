@@ -38,7 +38,7 @@ public class RefBookVersionEntity {
     private String comment;
 
     @Column(name = "status", nullable = false)
-    @Enumerated
+    @Enumerated(value = EnumType.STRING)
     private RefBookVersionStatus status;
 
     @Column(name = "from_date")

@@ -17,11 +17,11 @@
                         <ctrl:input-text id="code" label="Код" control-style="width:100px"/>
                         <ctrl:date-interval id="fromDate" label="Дата последней публикации" control-style="width:230px"/>
                         <ctrl:input-select id="status" label="Статус справочника">
-                            <ctrl:query query-id="enum">
-                                <ctrl:pre-filters>
-                                    <ctrl:pre-filter field-id="enumClass" value="ru.inovus.ms.rdm.enumeration.RefBookStatus"/>
-                                </ctrl:pre-filters>
-                            </ctrl:query>
+                            <ctrl:options>
+                                <ctrl:option>{"id":"PUBLISHED", "name":"Опубликован"}</ctrl:option>
+                                <ctrl:option>{"id":"DRAFT", "name":"Черновик"}</ctrl:option>
+                                <ctrl:option>{"id":"ARCHIVED", "name":"Архив"}</ctrl:option>
+                            </ctrl:options>
                         </ctrl:input-select>
                     </wgt:filters>
 

@@ -9,9 +9,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-/**
- * Created by tnurdinov on 18.06.2018.
- */
 public class AbstractIntegrationTest {
 
     public static final int PORT = 5444;

@@ -10,10 +10,10 @@
             INSERT INTO n2o_rdm_management.ref_book(code, removable) VALUES ('A078', TRUE);
 
             INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
-                VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник должностей', 'Справочник должностей', '1', 2, '2018-01-01', '2018-02-02');
+                VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник должностей', 'Справочник должностей', '1', 'PUBLISHED', '2018-01-01', '2018-02-02');
 
             INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
-                VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник должностей', 'Справочник должностей', '2', 2, '2018-02-03', null);
+                VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник должностей', 'Справочник должностей', '2', 'PUBLISHED', '2018-02-03', null);
         </sql>
     </changeSet>
 
@@ -23,10 +23,10 @@
             INSERT INTO n2o_rdm_management.ref_book(code, archived) VALUES ('A079', TRUE);
 
             INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
-            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник архив', 'Справочник архив', '1', 2, '2017-01-01', null);
+            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник архив', 'Справочник архив', '1', 'PUBLISHED', '2017-01-01', null);
 
             INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
-            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник архив', 'Справочник архив', null, 0, null, null);
+            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник архив', 'Справочник архив', null, 'DRAFT', null, null);
         </sql>
     </changeSet>
 
@@ -36,13 +36,13 @@
             INSERT INTO n2o_rdm_management.ref_book(code, removable) VALUES ('A080', TRUE);
 
             INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
-            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник медицинских организаций (отличное от последней версии)', 'Справочник МО', '1', 2, '2018-02-03', '2018-05-02');
+            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник медицинских организаций (отличное от последней версии)', 'Справочник МО', '1', 'PUBLISHED', '2018-02-03', '2018-05-02');
 
             INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
-            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник медицинских организаций', 'Справочник МО', '2', 2, '2018-05-02', null);
+            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник медицинских организаций', 'Справочник МО', '2', 'PUBLISHED', '2018-05-02', null);
 
             INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
-            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник медицинских организаций', 'Справочник МО', null, 0, null, null);
+            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник медицинских организаций', 'Справочник МО', null, 'DRAFT', null, null);
         </sql>
     </changeSet>
 
@@ -52,7 +52,7 @@
             INSERT INTO n2o_rdm_management.ref_book(code, removable) VALUES ('A081', TRUE);
 
             INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
-            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник оборудования', 'Справочник оборудования', null, 0, null, null);
+            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник оборудования', 'Справочник оборудования', null, 'DRAFT', null, null);
         </sql>
     </changeSet>
 

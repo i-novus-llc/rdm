@@ -22,9 +22,6 @@ import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.junit.Assert.*;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
 
-/**
- * Created by tnurdinov on 31.05.2018.
- */
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = {
         "spring.datasource.url=jdbc:postgresql://localhost:5444/rdm_test",
@@ -70,19 +67,22 @@ public class ApplicationTest extends AbstractIntegrationTest {
 
         // создание справочника
         RefBook refBook = refBookService.create(refBookCreateRequest);
+        assertNotNull(refBook.getId());
         assertNotNull(refBook.getRefBookId());
-        assertTrue(refBook.getRemovable());
-        assertFalse(refBook.getArchived());
         assertEquals(refBookCreateRequest.getCode(), refBook.getCode());
         assertEquals(refBookCreateRequest.getFullName(), refBook.getFullName());
         assertEquals(refBookCreateRequest.getShortName(), refBook.getShortName());
         assertEquals(refBookCreateRequest.getAnnotation(), refBook.getAnnotation());
         assertEquals(RefBookVersionStatus.DRAFT, refBook.getStatus());
         assertEquals(RefBookStatus.DRAFT.getName(), refBook.getVersion());
+        assertNull(refBook.getComment());
+        assertTrue(refBook.getRemovable());
+        assertFalse(refBook.getArchived());
+        assertNull(refBook.getFromDate());
 
         // получение по идентификатору версии
         RefBook refBookById = refBookService.getById(refBook.getId());
-        assertEquals(refBook, refBookById);
+        assertRefBooksEqual(refBook, refBookById);
     }
 
     /**
@@ -169,5 +169,20 @@ public class ApplicationTest extends AbstractIntegrationTest {
         search.getContent().forEach(r ->
                 assertTrue(r.getFromDate().equals(onlyFromDateBegin)
                         || r.getFromDate().isAfter(onlyFromDateBegin)));
+    }
+
+    private void assertRefBooksEqual(RefBook expected, RefBook actual) {
+        assertEquals(expected.getId(), actual.getId());
+        assertEquals(expected.getRefBookId(), actual.getRefBookId());
+        assertEquals(expected.getCode(), actual.getCode());
+        assertEquals(expected.getFullName(), actual.getFullName());
+        assertEquals(expected.getShortName(), actual.getShortName());
+        assertEquals(expected.getAnnotation(), actual.getAnnotation());
+        assertEquals(expected.getStatus(), actual.getStatus());
+        assertEquals(expected.getVersion(), actual.getVersion());
+        assertEquals(expected.getComment(), actual.getComment());
+        assertEquals(expected.getRemovable(), actual.getRemovable());
+        assertEquals(expected.getArchived(), actual.getArchived());
+        assertEquals(expected.getFromDate(), actual.getFromDate());
     }
 }

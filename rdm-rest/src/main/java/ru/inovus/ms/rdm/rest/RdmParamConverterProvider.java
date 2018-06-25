@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.rest;
 
-import ru.inovus.ms.rdm.service.Identifiable;
 import ru.inovus.ms.rdm.util.TimeUtils;
 
 import javax.ws.rs.ext.ParamConverter;
@@ -21,7 +20,7 @@ public class RdmParamConverterProvider implements javax.ws.rs.ext.ParamConverter
         if (LocalDateTime.class.equals(rawType))
             //noinspection unchecked
             return (ParamConverter<T>) localDateParamConverter;
-        else if (rawType.isEnum() && Identifiable.class.isAssignableFrom(rawType))
+        else if (rawType.isEnum())
             //noinspection unchecked
             return (ParamConverter<T>) new EnumParamConverter(rawType);
         return null;
@@ -40,7 +39,7 @@ public class RdmParamConverterProvider implements javax.ws.rs.ext.ParamConverter
         }
     }
 
-    private static class EnumParamConverter<T extends Enum & Identifiable> implements ParamConverter<T> {
+    private static class EnumParamConverter<T extends Enum> implements ParamConverter<T> {
 
         private Class<T> type;
 
@@ -52,14 +51,14 @@ public class RdmParamConverterProvider implements javax.ws.rs.ext.ParamConverter
         public T fromString(String value) {
             if (value == null) return null;
             return Arrays.stream(type.getEnumConstants())
-                    .filter(c -> Integer.valueOf(value).equals(c.getId()))
+                    .filter(c -> value.equals(c.name()))
                     .findAny().orElse(null);
         }
 
         @Override
         public String toString(T value) {
             if (value == null) return null;
-            return String.valueOf(value.getId());
+            return value.name();
         }
     }
 }

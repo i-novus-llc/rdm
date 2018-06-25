@@ -2,14 +2,13 @@ package ru.inovus.ms.rdm.model;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import net.n2oapp.platform.jaxrs.RestCriteria;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 
 import javax.ws.rs.QueryParam;
 import java.time.LocalDateTime;
 
 @ApiModel("Критерии поиска справочника")
-public class RefBookCriteria extends RestCriteria {
+public class RefBookCriteria extends AbstractCriteria {
 
     @ApiModelProperty("Код")
     @QueryParam("code")
@@ -30,10 +29,6 @@ public class RefBookCriteria extends RestCriteria {
     @ApiModelProperty("Статус справочника")
     @QueryParam("status.id")
     private RefBookStatus status;
-
-    public RefBookCriteria() {
-        super(1, 10);
-    }
 
     public String getCode() {
         return code;
