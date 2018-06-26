@@ -1,8 +1,6 @@
 package ru.inovus.ms.rdm.rest;
 
-import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,10 +11,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import ru.inovus.ms.rdm.model.RefBook;
 import ru.inovus.ms.rdm.model.RefBookCreateRequest;
 import ru.inovus.ms.rdm.model.RefBookCriteria;
-import ru.inovus.ms.rdm.service.EchoService;
 import ru.inovus.ms.rdm.service.RefBookService;
-
-import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -34,16 +29,6 @@ import static org.junit.Assert.assertNotNull;
         "cxf.jaxrs.client.address=http://localhost:8080/rdm/api"
 } )
 public class ApplicationTest extends AbstractIntegrationTest{
-
-    @Autowired
-    private EchoService echoService;
-
-    @Test
-    public void testIsRunning() throws Exception {
-
-       Assert.assertEquals("SYSTEM RUNNING", echoService.getEcho().getValue());
-    }
-
 
     @Autowired
     @Qualifier("rest")
@@ -69,7 +54,6 @@ public class ApplicationTest extends AbstractIntegrationTest{
         refBookCriteria.setCode("notawesome");
         search = refBookService.search(refBookCriteria);
         assertEquals(0, search.getTotalElements());
-
 
     }
 }
