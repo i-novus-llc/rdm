@@ -18,17 +18,17 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     public void updateMetadata(Long draftId, MetadataDiff metadataDiff) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void updateData(Long draftId, DataDiff dataDiff) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void updateData(Long draftId, FileData file) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -38,12 +38,12 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     public void publish(Long draftId, String versionName, OffsetDateTime versionDate) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void remove(Long draftId) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override

@@ -15,7 +15,7 @@ public class PassportServiceImpl implements PassportService {
 
     @Override
     public void update(Long passportId, Passport passport) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
