@@ -1,12 +1,16 @@
 package ru.inovus.ms.rdm.entity;
 
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 import ru.inovus.ms.rdm.model.RefBookVersionStatus;
+import ru.inovus.ms.rdm.model.Structure;
 
 import javax.persistence.*;
 import java.util.Date;
 
 @Entity
 @Table(name = "ref_book_version", schema = "n2o_rdm_management")
+@TypeDef(name = "structure", typeClass = StructureType.class)
 public class RefBookVersionEntity extends AbstractEntity {
 
     @Id
@@ -27,9 +31,9 @@ public class RefBookVersionEntity extends AbstractEntity {
     @Column(name = "annotation")
     private String annotation;
 
-    @Column(name = "structure")
-    @Transient//todo
-    private String structure;
+    @Column(name = "structure", columnDefinition = "structure")
+    @Type(type = "structure")
+    private Structure structure;
 
     @Column(name = "version")
     private String version;
@@ -95,11 +99,11 @@ public class RefBookVersionEntity extends AbstractEntity {
         this.annotation = annotation;
     }
 
-    public String getStructure() {
+    public Structure getStructure() {
         return structure;
     }
 
-    public void setStructure(String structure) {
+    public void setStructure(Structure structure) {
         this.structure = structure;
     }
 

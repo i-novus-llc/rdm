@@ -2,7 +2,7 @@ package ru.inovus.ms.rdm.service;
 
 import org.springframework.stereotype.Service;
 import ru.inovus.ms.rdm.model.Data;
-import ru.inovus.ms.rdm.model.Metadata;
+import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.model.VersionCriteria;
 
 /**
@@ -16,7 +16,7 @@ public class VersionServiceImpl implements VersionService {
     }
 
     @Override
-    public Metadata getMetadata(Long versionId) {
+    public Structure getMetadata(Long versionId) {
         return null;
     }
 }
