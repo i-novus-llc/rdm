@@ -19,19 +19,35 @@ public class Structure {
                 .orElse(null);
     }
 
-    public static class Attribute {
+    public List<Attribute> getAttributes() {
+        return attributes;
+    }
 
-        public Attribute(String attributeName, FieldType type, boolean isPrimary) {
-            this.attributeName = attributeName;
-            this.type = type;
-            this.isPrimary = isPrimary;
-        }
+    public void setAttributes(List<Attribute> attributes) {
+        this.attributes = attributes;
+    }
+
+    public List<Reference> getReferences() {
+        return references;
+    }
+
+    public void setReferences(List<Reference> references) {
+        this.references = references;
+    }
+
+    public static class Attribute {
 
         private String attributeName;
 
         private FieldType type;
 
         private boolean isPrimary;
+
+        public Attribute(String attributeName, FieldType type, boolean isPrimary) {
+            this.attributeName = attributeName;
+            this.type = type;
+            this.isPrimary = isPrimary;
+        }
 
         public String getAttributeName() {
             return attributeName;
@@ -76,13 +92,6 @@ public class Structure {
 
     public static class Reference {
 
-        public Reference(String attribute, Integer referenceVersion, String referenceAttribute, String displayAttribute) {
-            this.attribute = attribute;
-            this.referenceVersion = referenceVersion;
-            this.referenceAttribute = referenceAttribute;
-            this.displayAttribute = displayAttribute;
-        }
-
         /**
          * Поле которое ссылается
          */
@@ -99,6 +108,14 @@ public class Structure {
         String referenceAttribute;
 
         String displayAttribute;
+
+        public Reference(String attribute, Integer referenceVersion, String referenceAttribute, String displayAttribute) {
+            this.attribute = attribute;
+            this.referenceVersion = referenceVersion;
+            this.referenceAttribute = referenceAttribute;
+            this.displayAttribute = displayAttribute;
+        }
+
 
         public String getAttribute() {
             return attribute;
@@ -147,21 +164,5 @@ public class Structure {
         public int hashCode() {
             return Objects.hash(attribute, referenceVersion, referenceAttribute, displayAttribute);
         }
-    }
-
-    public List<Attribute> getAttributes() {
-        return attributes;
-    }
-
-    public void setAttributes(List<Attribute> attributes) {
-        this.attributes = attributes;
-    }
-
-    public List<Reference> getReferences() {
-        return references;
-    }
-
-    public void setReferences(List<Reference> references) {
-        this.references = references;
     }
 }

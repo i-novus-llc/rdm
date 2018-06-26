@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.UserType;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -35,17 +34,17 @@ public class StructureType implements UserType {
     }
 
     @Override
-    public boolean equals(Object x, Object y) throws HibernateException {
+    public boolean equals(Object x, Object y) {
         return x == y || x.equals(y);
     }
 
     @Override
-    public int hashCode(Object x) throws HibernateException {
+    public int hashCode(Object x) {
         return Objects.hashCode(x);
     }
 
     @Override
-    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner) throws HibernateException, SQLException {
+    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner) throws SQLException {
         final String cellContent = rs.getString(names[0]);
         if (cellContent == null) {
             return null;
@@ -84,7 +83,7 @@ public class StructureType implements UserType {
 
 
     @Override
-    public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor session) throws HibernateException, SQLException {
+    public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor session) throws  SQLException {
         if (value == null) {
             st.setNull(index, Types.OTHER);
             return;
@@ -119,7 +118,7 @@ public class StructureType implements UserType {
     }
 
     @Override
-    public Object deepCopy(Object value) throws HibernateException {
+    public Object deepCopy(Object value) {
         Object copy = null;
         if (value != null) {
             copy = jsonToStructure(valueToJson(value));
@@ -133,17 +132,17 @@ public class StructureType implements UserType {
     }
 
     @Override
-    public Serializable disassemble(Object value) throws HibernateException {
+    public Serializable disassemble(Object value) {
         return (Serializable) this.deepCopy(value);
     }
 
     @Override
-    public Object assemble(Serializable cached, Object owner) throws HibernateException {
+    public Object assemble(Serializable cached, Object owner) {
         return deepCopy(cached);
     }
 
     @Override
-    public Object replace(Object original, Object target, Object owner) throws HibernateException {
+    public Object replace(Object original, Object target, Object owner) {
         return deepCopy(original);
     }
 
