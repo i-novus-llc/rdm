@@ -12,7 +12,7 @@ import java.sql.SQLException;
 /**
  * Created by tnurdinov on 18.06.2018.
  */
-public class AbstractIntegrationTest {
+public class TestableDbEnv {
 
     public static final int PORT = 5444;
     public static final String DB_NAME = "rdm_test";

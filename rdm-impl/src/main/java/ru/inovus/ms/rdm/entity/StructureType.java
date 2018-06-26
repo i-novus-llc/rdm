@@ -11,6 +11,7 @@ import org.hibernate.usertype.UserType;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.model.Structure;
 
+import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.sql.PreparedStatement;
@@ -54,7 +55,7 @@ public class StructureType implements UserType {
             JsonNode attributesJson = MAPPER.readTree(cellContent).get("attributes");
             return jsonToStructure(attributesJson);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new PersistenceException(e);
         }
     }
 
@@ -92,7 +93,7 @@ public class StructureType implements UserType {
             ObjectNode structure = valueToJson(value);
             st.setObject(index, MAPPER.writeValueAsString(structure), Types.OTHER);
         } catch (IOException ex) {
-            throw new RuntimeException("Failed to convert Invoice to String: " + ex.getMessage(), ex);
+            throw new PersistenceException("Failed to convert Invoice to String: " + ex.getMessage(), ex);
         }
     }
 

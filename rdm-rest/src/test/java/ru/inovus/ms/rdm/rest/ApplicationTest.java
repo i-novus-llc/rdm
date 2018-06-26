@@ -1,8 +1,6 @@
 package ru.inovus.ms.rdm.rest;
 
-import com.opentable.db.postgres.embedded.EmbeddedPostgres;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +13,6 @@ import ru.inovus.ms.rdm.model.RefBookCreateRequest;
 import ru.inovus.ms.rdm.model.RefBookCriteria;
 import ru.inovus.ms.rdm.service.EchoService;
 import ru.inovus.ms.rdm.service.RefBookService;
-
-import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -33,7 +29,7 @@ import static org.junit.Assert.assertNotNull;
         "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm",
         "cxf.jaxrs.client.address=http://localhost:8080/rdm/api"
 } )
-public class ApplicationTest extends AbstractIntegrationTest{
+public class ApplicationTest extends TestableDbEnv {
 
     @Autowired
     private EchoService echoService;
