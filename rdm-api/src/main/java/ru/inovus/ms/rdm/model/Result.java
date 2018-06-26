@@ -28,7 +28,4 @@ public class Result {
         return errors;
     }
 
-    void append(Result anotherResult) {
-
-    }
 }
