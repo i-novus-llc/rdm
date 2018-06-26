@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.rest;
 
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,7 +12,6 @@ import ru.inovus.ms.rdm.model.RefBook;
 import ru.inovus.ms.rdm.model.RefBookCreateRequest;
 import ru.inovus.ms.rdm.model.RefBookCriteria;
 import ru.inovus.ms.rdm.model.RefBookVersionStatus;
-import ru.inovus.ms.rdm.service.EchoService;
 import ru.inovus.ms.rdm.service.RefBookService;
 
 import java.time.LocalDateTime;
@@ -21,8 +19,6 @@ import java.time.LocalDateTime;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.junit.Assert.*;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = {
@@ -39,9 +35,6 @@ public class ApplicationTest extends TestableDbEnv {
     private static RefBookCreateRequest refBookCreateRequest;
 
     @Autowired
-    private EchoService echoService;
-
-    @Autowired
     private RefBookService refBookService;
 
     @BeforeClass
@@ -52,13 +45,6 @@ public class ApplicationTest extends TestableDbEnv {
         refBookCreateRequest.setShortName("СПРВЧНК СПЦЛНСТЙ");
         refBookCreateRequest.setAnnotation("Аннотация для справочника специальностей");
     }
-
-    @Test
-    public void testIsRunning() throws Exception {
-
-        Assert.assertEquals("SYSTEM RUNNING", echoService.getEcho().getValue());
-    }
-
     /**
      * Создание справочника.
      * Получение справоника по идентификатору версии.
