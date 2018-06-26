@@ -72,10 +72,13 @@
             <version>1.0.0.Final</version>
         </dependency>
 
+
         <dependency>
             <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-java8</artifactId>
+            <artifactId>hibernate-core</artifactId>
         </dependency>
+
+
     </dependencies>
 
 

@@ -1,7 +1,6 @@
 package ru.inovus.ms.rdm.rest;
 
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +20,8 @@ import java.time.LocalDateTime;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.junit.Assert.*;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = {
