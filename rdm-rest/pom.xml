@@ -79,12 +79,6 @@
             <artifactId>n2o-platform-starter-jaxrs-client</artifactId>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>org.modelmapper.extensions</groupId>
-            <artifactId>modelmapper-spring</artifactId>
-        </dependency>
-
     </dependencies>
 
     <build>

@@ -6,7 +6,10 @@ import ru.inovus.ms.rdm.model.RefBookVersionStatus;
 
 import java.time.LocalDateTime;
 
-public class RefBookVersionPredicates {
+public final class RefBookVersionPredicates {
+
+    private RefBookVersionPredicates() {
+    }
 
     public static BooleanExpression isVersionOfRefBook(Integer refBookId) {
         return QRefBookVersionEntity.refBookVersionEntity.refBook.id.eq(refBookId);

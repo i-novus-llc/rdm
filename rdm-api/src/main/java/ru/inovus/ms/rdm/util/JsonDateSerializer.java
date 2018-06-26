@@ -9,9 +9,6 @@ import java.time.LocalDateTime;
 
 public class JsonDateSerializer extends JsonSerializer<LocalDateTime> {
 
-    public JsonDateSerializer() {
-    }
-
     public void serialize(LocalDateTime value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeString(TimeUtils.format(value));
     }

@@ -8,6 +8,9 @@ import java.time.format.DateTimeFormatter;
 
 public final class TimeUtils {
 
+    private TimeUtils() {
+    }
+
     public static final String DATE_TIME_PATTERN = "dd.MM.yyyy HH:mm:ss";
     public static final DateTimeFormatter DATE_TIME_PATTERN_FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
 
@@ -17,7 +20,7 @@ public final class TimeUtils {
         try {
             return LocalDateTime.parse(str, DATE_TIME_PATTERN_FORMATTER).atOffset(ZoneOffset.UTC);
         } catch (DateTimeException e) {
-            logger.debug("Failed to parse Date&Time using format: {}", DATE_TIME_PATTERN);
+            logger.debug("Failed to parse Date&Time using format: " + DATE_TIME_PATTERN, e);
         }
 
         throw new IllegalArgumentException("Failed to parse Date&Time: " + str);

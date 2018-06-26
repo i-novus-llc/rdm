@@ -2,7 +2,6 @@ package ru.inovus.ms.rdm.service;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
-import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +34,6 @@ public class RefBookServiceImpl implements RefBookService {
     private RefBookVersionRepository repository;
 
     @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
     public RefBookServiceImpl(RefBookVersionRepository repository) {
         this.repository = repository;
     }
@@ -64,7 +60,8 @@ public class RefBookServiceImpl implements RefBookService {
         refBookEntity.setRemovable(Boolean.TRUE);
         refBookEntity.setCode(request.getCode());
 
-        RefBookVersionEntity refBookVersionEntity = entity(request);
+        RefBookVersionEntity refBookVersionEntity = new RefBookVersionEntity();
+        refBookVersionEntity.populateFrom(request);
         refBookVersionEntity.setRefBook(refBookEntity);
         refBookVersionEntity.setStatus(RefBookVersionStatus.DRAFT);
 
@@ -146,8 +143,16 @@ public class RefBookServiceImpl implements RefBookService {
 
     private RefBook model(RefBookVersionEntity entity) {
         if (entity == null) return null;
-        RefBook model = modelMapper.map(entity, RefBook.class);
+        RefBook model = new RefBook();
+        model.setId(entity.getId());
+        model.setRefBookId(entity.getRefBook().getId());
         model.setCode(entity.getRefBook().getCode());
+        model.setFullName(entity.getFullName());
+        model.setShortName(entity.getShortName());
+        model.setVersion(entity.getVersion());
+        model.setAnnotation(entity.getAnnotation());
+        model.setStatus(entity.getStatus());
+        model.setComment(entity.getComment());
         model.setArchived(entity.getRefBook().getArchived());
         model.setRemovable(isRefBookRemovable(entity.getRefBook().getId()));
         if (RefBookVersionStatus.DRAFT.equals(entity.getStatus()) || RefBookVersionStatus.PUBLISHING.equals(entity.getStatus()))
@@ -157,14 +162,9 @@ public class RefBookServiceImpl implements RefBookService {
         if (isNull(model.getFromDate())) {
             RefBookVersionEntity lastPublishedVersion = getLastPublishedVersion(entity.getRefBook().getId());
             model.setFromDate(nonNull(lastPublishedVersion) ? lastPublishedVersion.getFromDate() : null);
+        } else {
+            model.setFromDate(entity.getFromDate());
         }
         return model;
-    }
-
-    private RefBookVersionEntity entity(RefBookCreateRequest request) {
-        if (request == null) return null;
-        RefBookVersionEntity entity = new RefBookVersionEntity();
-        modelMapper.map(request, entity);
-        return entity;
     }
 }

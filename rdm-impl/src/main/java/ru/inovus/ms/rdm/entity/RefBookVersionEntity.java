@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.entity;
 
+import ru.inovus.ms.rdm.model.RefBookCreateRequest;
 import ru.inovus.ms.rdm.model.RefBookVersionStatus;
 
 import javax.persistence.*;
@@ -166,5 +167,11 @@ public class RefBookVersionEntity {
 
         if (lastActionDate == null)
             lastActionDate = now;
+    }
+
+    public void populateFrom(RefBookCreateRequest model) {
+        this.setFullName(model.getFullName());
+        this.setShortName(model.getShortName());
+        this.setAnnotation(model.getAnnotation());
     }
 }
