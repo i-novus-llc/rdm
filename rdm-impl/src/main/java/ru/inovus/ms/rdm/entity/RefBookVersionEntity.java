@@ -163,7 +163,6 @@ public class RefBookVersionEntity {
     }
 
     @PrePersist
-    @Override
     public void prePersist() {
         LocalDateTime now = LocalDateTime.now();
 

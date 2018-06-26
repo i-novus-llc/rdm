@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.rest;
 
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,7 @@ import static org.junit.Assert.assertNotNull;
         "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
         "server.port=8899"
 })
-public class ApplicationTest extends AbstractIntegrationTest {
+public class ApplicationTest extends TestableDbEnv {
 
     private static RefBookCreateRequest refBookCreateRequest;
 
