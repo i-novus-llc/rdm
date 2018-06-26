@@ -168,6 +168,7 @@ public class RefBookVersionEntity extends AbstractEntity {
     }
 
     @PrePersist
+    @Override
     public void prePersist() {
         Date now = new Date();
 
