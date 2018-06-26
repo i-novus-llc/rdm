@@ -33,6 +33,8 @@ public class RefBookServiceImpl implements RefBookService {
 
     private RefBookVersionRepository repository;
 
+    private static final Logger logger = LoggerFactory.getLogger(RefBookServiceImpl.class);
+
     @Autowired
     public RefBookServiceImpl(RefBookVersionRepository repository) {
         this.repository = repository;
@@ -44,9 +46,6 @@ public class RefBookServiceImpl implements RefBookService {
         Page<RefBookVersionEntity> list = repository.findAll(toPredicate(criteria), pageable);
         return list.map(this::model);
     }
-
-    private static final Logger logger = LoggerFactory.getLogger(RefBookServiceImpl.class);
-
 
     @Override
     public RefBook getById(Integer versionId) {
