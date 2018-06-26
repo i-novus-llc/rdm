@@ -16,16 +16,20 @@ public class AbstractIntegrationTest {
 
     public static final int PORT = 5444;
     public static final String DB_NAME = "rdm_test";
+    private static volatile boolean isDbCreated = false;
 
     @BeforeClass
     public static void startDb() throws IOException {
         DataSource dataSource = EmbeddedPostgres.builder().setCleanDataDirectory(true).setPort(PORT).start().getPostgresDatabase();
-        try(Connection connection = dataSource.getConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement("CREATE DATABASE " + DB_NAME);
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        if (!isDbCreated) {
+            try(Connection connection = dataSource.getConnection()) {
+                PreparedStatement preparedStatement = connection.prepareStatement("CREATE DATABASE " + DB_NAME);
+                preparedStatement.executeUpdate();
+                isDbCreated = true;
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
 
+            }
         }
     }
 }

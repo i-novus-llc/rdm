@@ -31,7 +31,7 @@ public class RefBookVersionEntity extends AbstractEntity {
     @Column(name = "annotation")
     private String annotation;
 
-    @Column(name = "structure", columnDefinition = "structure")
+    @Column(name = "structure", columnDefinition = "json")
     @Type(type = "structure")
     private Structure structure;
 

@@ -35,7 +35,7 @@ public class StructureType implements UserType {
 
     @Override
     public boolean equals(Object x, Object y) throws HibernateException {
-        return x.equals(y);
+        return x == y || x.equals(y);
     }
 
     @Override
