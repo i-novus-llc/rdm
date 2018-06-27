@@ -10,10 +10,7 @@ import org.springframework.stereotype.Service;
 import ru.inovus.ms.rdm.entity.QRefBookVersionEntity;
 import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
-import ru.inovus.ms.rdm.model.RefBookVersionStatus;
-import ru.inovus.ms.rdm.model.RefBook;
-import ru.inovus.ms.rdm.model.RefBookCreateRequest;
-import ru.inovus.ms.rdm.model.RefBookCriteria;
+import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 
 import java.util.ArrayList;
@@ -78,5 +75,10 @@ public class RefBookServiceImpl implements RefBookService {
         RefBook refBook = new RefBook();
         refBook.setCode(rbv.getRefBook().getCode());
         return refBook;
+    }
+
+    @Override
+    public Page<RefBookVersion> getVersions(String refBookId) {
+        throw new UnsupportedOperationException();
     }
 }

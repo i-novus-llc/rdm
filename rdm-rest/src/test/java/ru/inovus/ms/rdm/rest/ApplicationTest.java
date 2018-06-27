@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.rest;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +10,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import ru.inovus.ms.rdm.model.RefBook;
 import ru.inovus.ms.rdm.model.RefBookCreateRequest;
 import ru.inovus.ms.rdm.model.RefBookCriteria;
-import ru.inovus.ms.rdm.service.EchoService;
 import ru.inovus.ms.rdm.service.RefBookService;
 
 import static org.junit.Assert.assertEquals;
@@ -29,17 +27,7 @@ import static org.junit.Assert.assertNotNull;
         "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm",
         "cxf.jaxrs.client.address=http://localhost:8080/rdm/api"
 } )
-public class ApplicationTest extends TestableDbEnv {
-
-    @Autowired
-    private EchoService echoService;
-
-    @Test
-    public void testIsRunning() throws Exception {
-
-       Assert.assertEquals("SYSTEM RUNNING", echoService.getEcho().getValue());
-    }
-
+public class ApplicationTest extends AbstractIntegrationTest{
 
     @Autowired
     @Qualifier("rest")
@@ -65,7 +53,6 @@ public class ApplicationTest extends TestableDbEnv {
         refBookCriteria.setCode("notawesome");
         search = refBookService.search(refBookCriteria);
         assertEquals(0, search.getTotalElements());
-
 
     }
 }

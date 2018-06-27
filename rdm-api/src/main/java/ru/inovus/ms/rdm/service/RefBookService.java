@@ -1,10 +1,14 @@
 package ru.inovus.ms.rdm.service;
 
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.data.domain.Page;
 import ru.inovus.ms.rdm.model.RefBook;
 import ru.inovus.ms.rdm.model.RefBookCreateRequest;
 import ru.inovus.ms.rdm.model.RefBookCriteria;
+import ru.inovus.ms.rdm.model.RefBookVersion;
 
 import javax.ws.rs.*;
 
@@ -25,5 +29,7 @@ public interface RefBookService {
     @POST
     @ApiOperation("Создание нового справочника")
     RefBook create(@BeanParam RefBookCreateRequest refBookCreateRequest);
+
+    Page<RefBookVersion> getVersions(String refBookId);
 
 }
