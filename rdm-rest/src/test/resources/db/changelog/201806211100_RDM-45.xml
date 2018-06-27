@@ -56,4 +56,14 @@
         </sql>
     </changeSet>
 
+    <changeSet id="201806211100_RDM-45_5.0" author="ekrasulina" dbms="postgresql">
+        <comment>Добавление справочника "A082 Справочник для удаления"</comment>
+        <sql>
+            INSERT INTO n2o_rdm_management.ref_book(id, code, removable) VALUES (501, 'A082', TRUE);
+
+            INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
+            VALUES (501, 'Справочник для удаления', 'Справочник для удаления', null, 'DRAFT', null, null);
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

@@ -40,9 +40,26 @@
                                                page-name="Список версий справочника {main.code} {main.shortName}">
                                     <wgt:pre-filters>
                                         <wgt:pre-filter field-id="archived" ref="archived"/>
+                                        <wgt:pre-filter field-id="refBookHasPublishingVersion" ref="refBookHasPublishingVersion"/>
                                     </wgt:pre-filters>
                                 </wgt:open-page>
                             </wgt:event>
+                        </wgt:menu-item>
+                        <wgt:menu-item id="delete" label="Удалить">
+                            <wgt:event>
+                                <wgt:invoke-action action-id="delete" confirmation="true"/>
+                            </wgt:event>
+                            <wgt:conditions>
+                                <wgt:visibility-condition>
+                                    <wgt:expression><![CDATA[
+                                        !archived && (typeof fromDate == 'undefined' || fromDate == null)
+                                    ]]></wgt:expression>
+                                </wgt:visibility-condition>
+                                <wgt:enabling-condition>
+                                    <wgt:expression>!refBookHasPublishingVersion</wgt:expression>
+                                    <wgt:tooltip>Недоступно во время публикации версии. Процесс может занять длительное время</wgt:tooltip>
+                                </wgt:enabling-condition>
+                            </wgt:conditions>
                         </wgt:menu-item>
                         <wgt:menu-item id="archived" label="В архив" context="true" icon="icomoon-file-zip">
                             <wgt:event>
@@ -50,8 +67,14 @@
                             </wgt:event>
                             <wgt:conditions>
                                 <wgt:visibility-condition>
-                                    <wgt:expression>!archived</wgt:expression>
+                                    <wgt:expression><![CDATA[
+                                        !archived && typeof fromDate != 'undefined' && fromDate != null
+                                    ]]></wgt:expression>
                                 </wgt:visibility-condition>
+                                <wgt:enabling-condition>
+                                    <wgt:expression>!refBookHasPublishingVersion</wgt:expression>
+                                    <wgt:tooltip>Недоступно во время публикации версии. Процесс может занять длительное время. Обновите страницу</wgt:tooltip>
+                                </wgt:enabling-condition>
                             </wgt:conditions>
                         </wgt:menu-item>
                     </wgt:action-menu>

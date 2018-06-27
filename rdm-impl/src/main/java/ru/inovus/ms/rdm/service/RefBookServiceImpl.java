@@ -82,6 +82,12 @@ public class RefBookServiceImpl implements RefBookService {
     }
 
     @Override
+    public void delete(int refBookId) {
+        // удалить наполнение
+       refBookRepository.delete(refBookId);
+    }
+
+    @Override
     public void archive(int refBookId) {
         RefBookEntity refBookEntity = refBookRepository.findOne(refBookId);
         refBookEntity.setArchived(Boolean.TRUE);
@@ -219,7 +225,9 @@ public class RefBookServiceImpl implements RefBookService {
         model.setStatus(entity.getStatus());
         model.setRemovable(isRefBookRemovable(entity.getRefBook().getId()));
 
-        String displayVersion = nonNull(entity.getVersion()) ? entity.getVersion() : entity.getStatus().getName();
+        String displayVersion = nonNull(entity.getVersion()) ? entity.getVersion() :
+                RefBookVersionStatus.PUBLISHING.equals(entity.getStatus()) ? RefBookVersionStatus.DRAFT.getName() :
+                        entity.getStatus().getName();
         model.setDisplayVersion(entity.getRefBook().getArchived() ? RefBookStatus.ARCHIVED.getName() : displayVersion);
         if (isNull(entity.getFromDate())) {
             RefBookVersionEntity lastPublishedVersion = getLastPublishedVersion(entity.getRefBook().getId());

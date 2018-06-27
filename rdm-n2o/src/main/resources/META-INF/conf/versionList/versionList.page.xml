@@ -17,7 +17,7 @@
 
                     <wgt:action-menu>
                         <wgt:group>
-                            <wgt:sub-menu id="actions" label="Действия">
+                            <wgt:sub-menu id="actions" label="Действия" color="btn-primary">
                                 <wgt:menu-item id="updatePassport" label="Изменить паспорт" context="true">
                                     <wgt:event>
                                         <wgt:open-page page-id="passport" refresh-after-submit="true"
@@ -26,11 +26,11 @@
                                     <wgt:conditions>
                                         <wgt:enabling-condition>
                                             <wgt:expression>!archived</wgt:expression>
-                                            <wgt:tooltip>Справочник помещен в архив</wgt:tooltip>
+                                            <wgt:tooltip>Недоступно для архива</wgt:tooltip>
                                         </wgt:enabling-condition>
                                         <wgt:enabling-condition>
                                             <wgt:expression>status == 'DRAFT'</wgt:expression>
-                                            <wgt:tooltip>Действие доступно только для черновика</wgt:tooltip>
+                                            <wgt:tooltip>Доступно только для черновика</wgt:tooltip>
                                         </wgt:enabling-condition>
                                     </wgt:conditions>
                                 </wgt:menu-item>
@@ -47,7 +47,11 @@
                             <wgt:conditions>
                                 <wgt:enabling-condition>
                                     <wgt:expression>!archived</wgt:expression>
-                                    <wgt:tooltip>Справочник помещен в архив</wgt:tooltip>
+                                    <wgt:tooltip>Недоступно для архива</wgt:tooltip>
+                                </wgt:enabling-condition>
+                                <wgt:enabling-condition>
+                                    <wgt:expression>!refBookHasPublishingVersion</wgt:expression>
+                                    <wgt:tooltip>Недоступно во время публикации версии. Процесс может занять длительное время. Обновите страницу</wgt:tooltip>
                                 </wgt:enabling-condition>
                             </wgt:conditions>
                         </wgt:menu-item>
@@ -60,15 +64,11 @@
                             <wgt:conditions>
                                 <wgt:enabling-condition>
                                     <wgt:expression>!archived</wgt:expression>
-                                    <wgt:tooltip>Справочник помещен в архив</wgt:tooltip>
+                                    <wgt:tooltip>Недоступно для архива</wgt:tooltip>
                                 </wgt:enabling-condition>
                                 <wgt:enabling-condition>
                                     <wgt:expression>status == 'DRAFT'</wgt:expression>
-                                    <wgt:tooltip>Действие доступно только для черновика</wgt:tooltip>
-                                </wgt:enabling-condition>
-                                <wgt:enabling-condition>
-                                    <wgt:expression>refBookHasPublishingVersion</wgt:expression>
-                                    <wgt:tooltip>Дейсвие недоступно. Справочник содержить версию со статусом 'Публикуется'</wgt:tooltip>
+                                    <wgt:tooltip>Доступно только для черновика</wgt:tooltip>
                                 </wgt:enabling-condition>
                             </wgt:conditions>
                         </wgt:menu-item>

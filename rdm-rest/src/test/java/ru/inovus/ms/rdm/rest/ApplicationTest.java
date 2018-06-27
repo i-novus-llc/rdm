@@ -32,15 +32,15 @@ import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
 })
 public class ApplicationTest extends TestableDbEnv {
 
+    private static final int REMOVABLE_REF_BOOK_ID = 501;
+    private static final String REMOVABLE_REF_BOOK_CODE = "A082";
+    private static final String SEARCH_CODE_STR = "78 ";
+    private static final String SEARCH_BY_NAME_STR = "отличное от последней версии ";
+    private static final String SEARCH_BY_NAME_STR_ASSERT_CODE = "A080";
+
     private static RefBookCreateRequest refBookCreateRequest;
     private static RefBookUpdateRequest refBookUpdateRequest;
-
     private static List<RefBookVersion> versionList;
-    private static Integer refBookId = 500;
-    private static RefBookVersion version0;
-    private static RefBookVersion version1;
-    private static RefBookVersion version2;
-    private static RefBookVersion version3;
 
     @Autowired
     private RefBookService refBookService;
@@ -56,24 +56,24 @@ public class ApplicationTest extends TestableDbEnv {
 
         refBookCreateRequest = refBookUpdateRequest;
 
-        version0 = new RefBookVersion();
-        version0.setRefBookId(refBookId);
+        RefBookVersion version0 = new RefBookVersion();
+        version0.setRefBookId(500);
         version0.setStatus(RefBookVersionStatus.DRAFT);
         version0.setDisplayStatus(RefBookVersionStatus.DRAFT.name());
 
-        version1 = new RefBookVersion();
-        version1.setRefBookId(refBookId);
+        RefBookVersion version1 = new RefBookVersion();
+        version1.setRefBookId(version0.getRefBookId());
         version1.setStatus(RefBookVersionStatus.PUBLISHED);
         version1.setVersion("3");
 
-        version2 = new RefBookVersion();
-        version2.setRefBookId(refBookId);
+        RefBookVersion version2 = new RefBookVersion();
+        version2.setRefBookId(version0.getRefBookId());
         version2.setStatus(RefBookVersionStatus.PUBLISHED);
         version2.setDisplayStatus(RefBookVersionStatus.PUBLISHED.name());
         version2.setVersion("2");
 
-        version3 = new RefBookVersion();
-        version3.setRefBookId(refBookId);
+        RefBookVersion version3 = new RefBookVersion();
+        version3.setRefBookId(version0.getRefBookId());
         version3.setStatus(RefBookVersionStatus.PUBLISHED);
         version3.setVersion("1");
 
@@ -121,6 +121,12 @@ public class ApplicationTest extends TestableDbEnv {
         refBook.setRemovable(Boolean.FALSE);
         refBook.setDisplayVersion(RefBookStatus.ARCHIVED.getName());
         assertRefBooksEqual(refBook, refBookById);
+
+        // удаление
+        refBookService.delete(REMOVABLE_REF_BOOK_ID);
+        RefBookCriteria criteria = new RefBookCriteria();
+        criteria.setCode(REMOVABLE_REF_BOOK_CODE);
+        assertEquals(0, refBookService.search(criteria).getTotalElements());
     }
 
     /**
@@ -135,17 +141,17 @@ public class ApplicationTest extends TestableDbEnv {
 
         // поиск по коду (по подстроке без учета регистра, крайние пробелы)
         RefBookCriteria codeCriteria = new RefBookCriteria();
-        codeCriteria.setCode("78 ");
+        codeCriteria.setCode(SEARCH_CODE_STR);
         Page<RefBook> search = refBookService.search(codeCriteria);
         assertTrue(search.getTotalElements() > 0);
         search.getContent().forEach(r -> assertTrue(containsIgnoreCase(r.getCode(), codeCriteria.getCode().trim())));
 
         // поиск по наименованию
         RefBookCriteria nameCriteria = new RefBookCriteria();
-        nameCriteria.setName("отличное от последней версии ".toUpperCase());
+        nameCriteria.setName(SEARCH_BY_NAME_STR.toUpperCase());
         search = refBookService.search(nameCriteria);
         assertEquals(1, search.getTotalElements());
-        assertEquals("A080", search.getContent().get(0).getCode());
+        assertEquals(SEARCH_BY_NAME_STR_ASSERT_CODE, search.getContent().get(0).getCode());
 
         // поиск по статусу 'Черновик'
         RefBookCriteria statusCriteria = new RefBookCriteria();
@@ -216,7 +222,7 @@ public class ApplicationTest extends TestableDbEnv {
     @Test
     public void testGetVersions() {
         VersionCriteria criteria = new VersionCriteria();
-        criteria.setRefBookId(refBookId);
+        criteria.setRefBookId(versionList.get(0).getRefBookId());
         Page<RefBookVersion> search = refBookService.getVersions(criteria);
 
         assertEquals(versionList.size(), search.getTotalElements());

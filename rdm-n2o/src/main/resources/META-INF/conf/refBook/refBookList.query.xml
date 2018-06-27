@@ -97,5 +97,11 @@
             <domain>boolean</domain>
             <display/>
         </field>
+
+        <field>
+            <id>refBookHasPublishingVersion</id>
+            <domain>boolean</domain>
+            <display/>
+        </field>
     </fields>
 </query>

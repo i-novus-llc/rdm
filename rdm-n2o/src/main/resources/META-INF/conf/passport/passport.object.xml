@@ -15,7 +15,7 @@
         <action id="create" form-submit-label="Сохранить">
             <invocation>
                 <n2o:rest method="POST">
-                    <n2o:query>${rdm.backend.path}/refBook/create</n2o:query>
+                    <n2o:query>${rdm.backend.path}/refBook</n2o:query>
                 </n2o:rest>
             </invocation>
             <in-parameters>
@@ -35,8 +35,8 @@
 
         <action id="update" form-submit-label="Сохранить">
             <invocation>
-                <n2o:rest method="POST">
-                    <n2o:query>${rdm.backend.path}/refBook/update</n2o:query>
+                <n2o:rest method="PUT">
+                    <n2o:query>${rdm.backend.path}/refBook</n2o:query>
                 </n2o:rest>
             </invocation>
             <in-parameters>

@@ -15,7 +15,8 @@
                 <wgt:form style="width:900px">
                     <wgt:query-id>passport</wgt:query-id>
 
-                    <wgt:edit refresh-after-submit="true" after-submit="closeModal" create-more="false">
+                    <wgt:edit refresh-after-submit="true" after-submit="closeModal"
+                              create-more="false" form-submit-label="Сохранить">
                         <wgt:create-or-update create-action-id="create" update-action-id="update"/>
                     </wgt:edit>
 

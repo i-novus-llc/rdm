@@ -31,7 +31,6 @@ public interface RefBookService {
     Passport getById(@PathParam("id") @ApiParam("Идентификатор версии") Integer versionId);
 
     @POST
-    @Path("/create")
     @ApiOperation("Создание нового справочника")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Справочник"),
@@ -39,8 +38,7 @@ public interface RefBookService {
     })
     RefBook create(RefBookCreateRequest refBookCreateRequest);
 
-    @POST
-    @Path("/update")
+    @PUT
     @ApiOperation("Изменение метаданных справочника")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Справочник"),
@@ -48,11 +46,19 @@ public interface RefBookService {
     })
     RefBook update(RefBookUpdateRequest refBookCreateRequest);
 
+    @DELETE
+    @ApiOperation("Удаление справочника")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Справочник удален"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void delete(@QueryParam("refBookId") int refBookId);
+
     @POST
     @Path("/archive/{refBookId}")
     @ApiOperation("В архив")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Справочник"),
+            @ApiResponse(code = 200, message = "Справочник в врхиве"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     void archive(@PathParam("refBookId") @ApiParam("Идентификатор справочника") int refBookId);
