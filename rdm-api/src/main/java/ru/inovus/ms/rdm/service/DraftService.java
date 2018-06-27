@@ -13,7 +13,7 @@ import java.time.OffsetDateTime;
 @Consumes("application/json")
 @Api("Методы работы с черновиками")
 public interface DraftService {
-    Draft create(Long dictionaryId, Metadata metadata);
+    Draft create(Long dictionaryId, Structure structure);
     void updateMetadata(Long draftId, MetadataDiff metadataDiff);
     void updateData(Long draftId, DataDiff dataDiff);
     void updateData(Long draftId, FileData file);
@@ -28,7 +28,7 @@ public interface DraftService {
 
     void remove(Long draftId);
 
-    Metadata getMetadata(Long draftId);
+    Structure getMetadata(Long draftId);
 
 
 }

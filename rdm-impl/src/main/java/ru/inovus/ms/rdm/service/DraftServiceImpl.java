@@ -27,23 +27,23 @@ public class DraftServiceImpl implements DraftService {
     private RefBookVersionRepository versionRepository;
 
     @Override
-    public Draft create(Long dictionaryId, Metadata metadata) {
+    public Draft create(Long dictionaryId, Structure structure) {
         return null;
     }
 
     @Override
     public void updateMetadata(Long draftId, MetadataDiff metadataDiff) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void updateData(Long draftId, DataDiff dataDiff) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void updateData(Long draftId, FileData file) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -74,11 +74,11 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     public void remove(Long draftId) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public Metadata getMetadata(Long draftId) {
+    public Structure getMetadata(Long draftId) {
         return null;
     }
 }

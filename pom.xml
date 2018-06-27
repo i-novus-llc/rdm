@@ -12,7 +12,7 @@
     <parent>
         <groupId>net.n2oapp.platform</groupId>
         <artifactId>n2o-platform-bom</artifactId>
-        <version>0.5</version>
+        <version>1.1</version>
         <relativePath/>
     </parent>
 
@@ -33,13 +33,6 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>net.n2oapp.platform</groupId>
-                <artifactId>n2o-platform-bom</artifactId>
-                <version>1.0-SNAPSHOT</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
                 <groupId>ru.inovus.ms.rdm</groupId>
                 <artifactId>rdm-api</artifactId>
                 <version>1.0-SNAPSHOT</version>
@@ -52,6 +45,12 @@
                 <scope>runtime</scope>
             </dependency>
 
+            <dependency>
+                <groupId>ru.i-novus.platform</groupId>
+                <artifactId>versioned-data-storage-api</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+
 
             <dependency>
                 <groupId>ru.i-novus.platform</groupId>
@@ -60,15 +59,17 @@
             </dependency>
 
             <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-core</artifactId>
+                <version>5.2.12.Final</version>
+            </dependency>
+
+            <dependency>
                 <groupId>com.opentable.components</groupId>
                 <artifactId>otj-pg-embedded</artifactId>
                 <version>0.12.0</version>
                 <scope>test</scope>
             </dependency>
-
-
-
-
         </dependencies>
     </dependencyManagement>
 </project>

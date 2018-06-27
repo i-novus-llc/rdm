@@ -21,6 +21,9 @@ public class RefBookEntity {
     @Column(name = "archived", nullable = false)
     private Boolean archived;
 
+    @OneToMany(mappedBy="refBook", cascade = CascadeType.ALL)
+    List<RefBookVersionEntity> versionList = new ArrayList<>();
+
     public Integer getId() {
         return id;
     }
@@ -51,6 +54,14 @@ public class RefBookEntity {
 
     public void setArchived(Boolean archived) {
         this.archived = archived;
+    }
+
+    public List<RefBookVersionEntity> getVersionList() {
+        return versionList;
+    }
+
+    public void setVersionList(List<RefBookVersionEntity> versionList) {
+        this.versionList = versionList;
     }
 
     @Override

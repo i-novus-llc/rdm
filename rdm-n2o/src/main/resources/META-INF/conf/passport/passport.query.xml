@@ -1,17 +1,11 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <query xmlns:n2o="http://n2oapp.net/framework/config/schema/n2o-query-executions-1.0"
        xmlns="http://n2oapp.net/framework/config/schema/query-3.0">
-    <object-id>refBook</object-id>
-    <name>Администрирование/Справчники</name>
+    <object-id>passport</object-id>
+    <name>Паспорт справочника</name>
     <execution>
         <n2o:rest>
-            <n2o:query>${rdm.backend.path}/refbook</n2o:query>
             <n2o:query-by-id>${rdm.backend.path}/refbook/{id}</n2o:query-by-id>
-            <n2o:date-format>dd.MM.yyyy HH:mm:ss</n2o:date-format>
-            <n2o:response-mapping collection="content" count="totalElements"/>
-            <n2o:size param-name="size"/>
-            <n2o:page param-name="page"/>
-            <n2o:sorting param-name="sort" separator=","/>
         </n2o:rest>
     </execution>
 
@@ -20,64 +14,69 @@
             <id>id</id>
             <domain>integer</domain>
             <display>id</display>
-            <filters>
+            <filters auto-generate="true">
                 <filter type="eq" filter-field="id">:id</filter>
             </filters>
-            <expression>id</expression>
         </field>
 
         <field>
             <id>code</id>
             <domain>string</domain>
             <display/>
-            <filters auto-generate="true"/>
-            <sorting>refBook.code,:direction</sorting>
         </field>
 
         <field>
             <id>name</id>
             <domain>string</domain>
-            <filters auto-generate="true"/>
         </field>
 
         <field>
             <id>shortName</id>
             <domain>string</domain>
             <display/>
-            <sorting>shortName,:direction</sorting>
         </field>
 
         <field>
             <id>fullName</id>
             <domain>string</domain>
             <display/>
-            <sorting>fullName,:direction</sorting>
         </field>
 
         <field>
             <id>fromDate</id>
             <domain>date</domain>
             <display/>
-            <filters>
-                <filter type="more" filter-field="fromDate.begin">fromDateBegin=:fromDate.begin</filter>
-                <filter type="less" filter-field="fromDate.end">fromDateEnd=:fromDate.end</filter>
-            </filters>
+        </field>
+
+        <field>
+            <id>firstPublicVersionFromDate</id>
+            <domain>date</domain>
+            <display/>
         </field>
 
         <field>
             <id>version</id>
             <domain>string</domain>
             <display/>
-            <sorting>version,:direction</sorting>
         </field>
 
         <field>
-            <id>status.id</id>
+            <id>annotation</id>
             <domain>string</domain>
             <display/>
-            <filters>
-                <filter type="eq" filter-field="status.id"/>
-            </filters>
         </field>
+
+        <field>
+            <id>comment</id>
+            <domain>string</domain>
+            <display/>
+        </field>
+
+        <field>
+            <id>recordsCount</id>
+            <domain>integer</domain>
+            <display/>
+        </field>
+
     </fields>
 </query>
