@@ -117,11 +117,15 @@ public class Structure {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             Attribute attribute = (Attribute) o;
-            return Objects.equals(isPrimary, attribute.isPrimary) &&
-                    Objects.equals(isDisplay, attribute.isDisplay) &&
-                    Objects.equals(isRequired, attribute.isRequired) &&
+            return equalsByFlags(attribute) &&
                     Objects.equals(attributeName, attribute.attributeName) &&
                     Objects.equals(type, attribute.type);
+        }
+
+        private boolean equalsByFlags(Attribute attribute) {
+            return Objects.equals(isPrimary, attribute.isPrimary) &&
+                    Objects.equals(isDisplay, attribute.isDisplay) &&
+                    Objects.equals(isRequired, attribute.isRequired);
         }
 
         @Override
