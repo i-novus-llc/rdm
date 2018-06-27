@@ -15,9 +15,12 @@ import org.springframework.util.CollectionUtils;
 import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
+import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,23 +36,26 @@ public class RefBookServiceImpl implements RefBookService {
 
     private RefBookVersionRepository repository;
 
+    private RefBookRepository refBookRepository;
+
     private static final Logger logger = LoggerFactory.getLogger(RefBookServiceImpl.class);
 
     @Autowired
-    public RefBookServiceImpl(RefBookVersionRepository repository) {
+    public RefBookServiceImpl(RefBookVersionRepository repository, RefBookRepository refBookRepository) {
         this.repository = repository;
+        this.refBookRepository = refBookRepository;
     }
 
     @Override
     public Page<RefBook> search(RefBookCriteria criteria) {
         Pageable pageable = new PageRequest(criteria.getPageNumber() - 1, criteria.getPageSize(), toSort(criteria));
         Page<RefBookVersionEntity> list = repository.findAll(toPredicate(criteria), pageable);
-        return list.map(this::model);
+        return list.map(this::refBookModel);
     }
 
     @Override
-    public RefBook getById(Integer versionId) {
-        return model(repository.findOne(versionId));
+    public Passport getById(Integer versionId) {
+        return passportModel(repository.findOne(versionId));
     }
 
     @Override
@@ -64,12 +70,31 @@ public class RefBookServiceImpl implements RefBookService {
         refBookVersionEntity.setRefBook(refBookEntity);
         refBookVersionEntity.setStatus(RefBookVersionStatus.DRAFT);
 
-        return model(repository.save(refBookVersionEntity));
+        return refBookModel(repository.save(refBookVersionEntity));
     }
 
     @Override
-    public Page<RefBookVersion> getVersions(String refBookId) {
-        throw new UnsupportedOperationException();
+    public RefBook update(RefBookUpdateRequest request) {
+        RefBookVersionEntity refBookVersionEntity = repository.findOne(request.getId());
+        refBookVersionEntity.getRefBook().setCode(request.getCode());
+        refBookVersionEntity.populateFrom(request);
+        return refBookModel(repository.save(refBookVersionEntity));
+    }
+
+    @Override
+    public void archive(int refBookId) {
+        RefBookEntity refBookEntity = refBookRepository.findOne(refBookId);
+        refBookEntity.setArchived(Boolean.TRUE);
+        refBookRepository.save(refBookEntity);
+    }
+
+    @Override
+    public Page<RefBookVersion> getVersions(VersionCriteria criteria) {
+        Sort sort = new Sort(new Sort.Order(Sort.Direction.DESC, "fromDate", Sort.NullHandling.NULLS_FIRST));
+        Predicate predicate = isVersionOfRefBook(criteria.getRefBookId()).and(isDraftExcluded(criteria.getExcludeDraft()));
+        Pageable pageable = new PageRequest(criteria.getPageNumber() - 1, criteria.getPageSize(), sort);
+        Page<RefBookVersionEntity> list = repository.findAll(predicate, pageable);
+        return list.map(this::versionModel);
     }
 
     private Predicate toPredicate(RefBookCriteria criteria) {
@@ -129,8 +154,22 @@ public class RefBookServiceImpl implements RefBookService {
             return new Sort(direction, property);
     }
 
+    private boolean hasPublishing(Integer refBookId) {
+        return repository.exists(isVersionOfRefBook(refBookId).and(isPublishing()));
+    }
+
     private RefBookVersionEntity getLastPublishedVersion(Integer refBookId) {
         return repository.findOne(isVersionOfRefBook(refBookId).and(isLastPublished()));
+    }
+
+    private RefBookVersion getFirstPublishedVersion(Integer refBookId) {
+        VersionCriteria versionCriteria = new VersionCriteria();
+        versionCriteria.setRefBookId(refBookId);
+        versionCriteria.noPagination();
+        versionCriteria.setExcludeDraft(Boolean.TRUE);
+        Page<RefBookVersion> search = getVersions(versionCriteria);
+        if (search.getTotalElements() == 0) return null;
+        return search.getContent().get(search.getContent().size() - 1);
     }
 
     private boolean isRefBookRemovable(Integer refBookId) {
@@ -140,30 +179,63 @@ public class RefBookServiceImpl implements RefBookService {
         return !repository.exists(where.getValue());
     }
 
-    private RefBook model(RefBookVersionEntity entity) {
+    private boolean isVersionActual(LocalDateTime fromDate, LocalDateTime toDate) {
+        LocalDateTime now = LocalDateTime.now();
+        return !isNull(fromDate)
+                && !fromDate.isAfter(now)
+                && fromDate.isBefore(now) && (isNull(toDate) || toDate.isAfter(now));
+    }
+
+    private RefBookVersion versionModel(RefBookVersionEntity entity) {
         if (entity == null) return null;
-        RefBook model = new RefBook();
+        RefBookVersion model = new RefBookVersion();
         model.setId(entity.getId());
         model.setRefBookId(entity.getRefBook().getId());
         model.setCode(entity.getRefBook().getCode());
-        model.setFullName(entity.getFullName());
         model.setShortName(entity.getShortName());
-        model.setVersion(entity.getVersion());
+        model.setFullName(entity.getFullName());
         model.setAnnotation(entity.getAnnotation());
-        model.setStatus(entity.getStatus());
         model.setComment(entity.getComment());
+        model.setVersion(entity.getVersion());
+        model.setFromDate(entity.getFromDate());
+        model.setToDate(entity.getToDate());
         model.setArchived(entity.getRefBook().getArchived());
-        model.setRemovable(isRefBookRemovable(entity.getRefBook().getId()));
-        if (RefBookVersionStatus.DRAFT.equals(entity.getStatus()) || RefBookVersionStatus.PUBLISHING.equals(entity.getStatus()))
-            model.setVersion(RefBookStatus.DRAFT.getName());
+        model.setStatus(entity.getStatus());
+        model.setRefBookHasPublishingVersion(hasPublishing(entity.getRefBook().getId()));
+
         if (entity.getRefBook().getArchived())
-            model.setVersion(RefBookStatus.ARCHIVED.getName());
-        if (isNull(model.getFromDate())) {
+            model.setDisplayStatus(RefBookStatus.ARCHIVED.name());
+        else if (RefBookVersionStatus.PUBLISHED.equals(entity.getStatus()))
+            model.setDisplayStatus(isVersionActual(entity.getFromDate(), entity.getToDate()) ? entity.getStatus().name() : null);
+        else
+            model.setDisplayStatus(entity.getStatus().name());
+
+        return model;
+    }
+
+    private RefBook refBookModel(RefBookVersionEntity entity) {
+        if (entity == null) return null;
+        RefBook model = new RefBook(versionModel(entity));
+        model.setStatus(entity.getStatus());
+        model.setRemovable(isRefBookRemovable(entity.getRefBook().getId()));
+
+        String displayVersion = nonNull(entity.getVersion()) ? entity.getVersion() : entity.getStatus().getName();
+        model.setDisplayVersion(entity.getRefBook().getArchived() ? RefBookStatus.ARCHIVED.getName() : displayVersion);
+        if (isNull(entity.getFromDate())) {
             RefBookVersionEntity lastPublishedVersion = getLastPublishedVersion(entity.getRefBook().getId());
             model.setFromDate(nonNull(lastPublishedVersion) ? lastPublishedVersion.getFromDate() : null);
         } else {
             model.setFromDate(entity.getFromDate());
         }
+        return model;
+    }
+
+    private Passport passportModel(RefBookVersionEntity entity) {
+        if (entity == null) return null;
+        Passport model = new Passport(refBookModel(entity));
+        RefBookVersion firstPublishedVersion = getFirstPublishedVersion(entity.getRefBook().getId());
+        model.setFirstPublishedVersionFromDate(nonNull(firstPublishedVersion) ? firstPublishedVersion.getFromDate() : null);
+        // setRecordsCount
         return model;
     }
 }

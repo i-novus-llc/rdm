@@ -12,7 +12,7 @@
         <region place="single" type="none">
             <container id="main">
                 <wgt:table>
-                    <wgt:query-id>refBook</wgt:query-id>
+                    <wgt:query-id>refBookList</wgt:query-id>
 
                     <wgt:filters opened="true">
                         <ctrl:input-text id="name" label="Наименование справочникаe"/>
@@ -30,15 +30,29 @@
                     <wgt:action-menu>
                         <wgt:menu-item id="create" label="Добавить" context="false">
                             <wgt:event>
-                                <wgt:open-page page-id="passport" action-id="create" after-submit="closeModal"
-                                               create-more="false" page-name="Добавление справочника"
+                                <wgt:open-page page-id="passport" page-name="Добавление справочника"
                                                refresh-after-submit="true"/>
                             </wgt:event>
                         </wgt:menu-item>
                         <wgt:menu-item id="update" label="Изменить" default="false" color="btn-primary">
                             <wgt:event>
-                                <wgt:open-page page-id="blank" page-name="Список версий справочника {main.code} {main.shortName}"/>
+                                <wgt:open-page page-id="versionList" master-field-id="refBookId" detail-field-id="refBookId"
+                                               page-name="Список версий справочника {main.code} {main.shortName}">
+                                    <wgt:pre-filters>
+                                        <wgt:pre-filter field-id="archived" ref="archived"/>
+                                    </wgt:pre-filters>
+                                </wgt:open-page>
                             </wgt:event>
+                        </wgt:menu-item>
+                        <wgt:menu-item id="archived" label="В архив" context="true" icon="icomoon-file-zip">
+                            <wgt:event>
+                                <wgt:invoke-action action-id="archived"/>
+                            </wgt:event>
+                            <wgt:conditions>
+                                <wgt:visibility-condition>
+                                    <wgt:expression>!archived</wgt:expression>
+                                </wgt:visibility-condition>
+                            </wgt:conditions>
                         </wgt:menu-item>
                     </wgt:action-menu>
 
@@ -56,7 +70,7 @@
                                         page-name="Паспорт справочника - {main.code} {main.shortName}"/>
                             </wgt:link>
                         </wgt:column>
-                        <wgt:column column-field-id="version" name="Версия"/>
+                        <wgt:column column-field-id="displayVersion" name="Версия"/>
                         <wgt:column column-field-id="fromDate" name="Последняя публикация"/>
                     </wgt:columns>
 

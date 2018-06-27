@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.model;
 
 public class RefBookCreateRequest {
+
     private String code;
     private String shortName;
     private String fullName;

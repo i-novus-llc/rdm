@@ -2,7 +2,7 @@ package ru.inovus.ms.rdm.repositiory;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import ru.inovus.ms.rdm.entity.QRefBookVersionEntity;
-import ru.inovus.ms.rdm.model.RefBookVersionStatus;
+import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 
 import java.time.LocalDateTime;
 
@@ -30,6 +30,12 @@ public final class RefBookVersionPredicates {
 
     public static BooleanExpression isDraft() {
         return QRefBookVersionEntity.refBookVersionEntity.status.eq(RefBookVersionStatus.DRAFT);
+    }
+
+    public static BooleanExpression isDraftExcluded(boolean excludeDraft) {
+        if (excludeDraft)
+            return QRefBookVersionEntity.refBookVersionEntity.status.eq(RefBookVersionStatus.DRAFT).not();
+        return null;
     }
 
     public static BooleanExpression isArchived() {

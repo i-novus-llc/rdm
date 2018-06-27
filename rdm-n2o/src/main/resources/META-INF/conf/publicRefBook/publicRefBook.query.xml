@@ -5,8 +5,8 @@
     <name>Перечень справочников</name>
     <execution>
         <n2o:rest>
-            <n2o:query>${rdm.backend.path}/refbook</n2o:query>
-            <n2o:query-by-id>${rdm.backend.path}/refbook/{id}</n2o:query-by-id>
+            <n2o:query>${rdm.backend.path}/refBook</n2o:query>
+            <n2o:query-by-id>${rdm.backend.path}/refBook/{id}</n2o:query-by-id>
             <n2o:date-format>dd.MM.yyyy HH:mm:ss</n2o:date-format>
             <n2o:response-mapping collection="content" count="totalElements"/>
             <n2o:size param-name="size"/>
@@ -63,6 +63,13 @@
 
         <field>
             <id>version</id>
+            <domain>string</domain>
+            <display/>
+            <sorting>version,:direction</sorting>
+        </field>
+
+        <field>
+            <id>displayVersion</id>
             <domain>string</domain>
             <display/>
             <sorting>version,:direction</sorting>

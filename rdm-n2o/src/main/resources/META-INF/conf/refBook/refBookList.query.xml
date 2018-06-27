@@ -5,8 +5,8 @@
     <name>Администрирование/Справчники</name>
     <execution>
         <n2o:rest>
-            <n2o:query>${rdm.backend.path}/refbook</n2o:query>
-            <n2o:query-by-id>${rdm.backend.path}/refbook/{id}</n2o:query-by-id>
+            <n2o:query>${rdm.backend.path}/refBook</n2o:query>
+            <n2o:query-by-id>${rdm.backend.path}/refBook/{id}</n2o:query-by-id>
             <n2o:date-format>dd.MM.yyyy HH:mm:ss</n2o:date-format>
             <n2o:response-mapping collection="content" count="totalElements"/>
             <n2o:size param-name="size"/>
@@ -24,6 +24,12 @@
                 <filter type="eq" filter-field="id">:id</filter>
             </filters>
             <expression>id</expression>
+        </field>
+
+        <field>
+            <id>refBookId</id>
+            <domain>integer</domain>
+            <display/>
         </field>
 
         <field>
@@ -68,6 +74,12 @@
             <id>version</id>
             <domain>string</domain>
             <display/>
+        </field>
+
+        <field>
+            <id>displayVersion</id>
+            <domain>string</domain>
+            <display/>
             <sorting>version,:direction</sorting>
         </field>
 
@@ -78,6 +90,12 @@
             <filters>
                 <filter type="eq" filter-field="status.id"/>
             </filters>
+        </field>
+
+        <field>
+            <id>archived</id>
+            <domain>boolean</domain>
+            <display/>
         </field>
     </fields>
 </query>
