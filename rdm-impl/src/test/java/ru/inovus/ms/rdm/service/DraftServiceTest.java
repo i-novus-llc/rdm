@@ -7,18 +7,16 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.Pageable;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
-import ru.inovus.ms.rdm.model.Metadata;
 import ru.inovus.ms.rdm.model.RefBookVersionStatus;
+import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 
 import java.time.OffsetDateTime;
-import java.util.Arrays;
 import java.util.Date;
 
 import static org.mockito.Mockito.*;
@@ -74,7 +72,7 @@ public class DraftServiceTest {
         testDraftVersion.setStorageCode("testDraftCode");
         testDraftVersion.setRefBook(createTestRefBook());
         testDraftVersion.setStatus(RefBookVersionStatus.DRAFT);
-        testDraftVersion.setStructure(new Metadata());
+        testDraftVersion.setStructure(new Structure());
         return testDraftVersion;
     }
 
@@ -84,7 +82,7 @@ public class DraftServiceTest {
         testDraftVersion.setStorageCode("testVersionStorageCode");
         testDraftVersion.setRefBook(createTestRefBook());
         testDraftVersion.setStatus(RefBookVersionStatus.PUBLISHED);
-        testDraftVersion.setStructure(new Metadata());
+        testDraftVersion.setStructure(new Structure());
         return testDraftVersion;
     }
 

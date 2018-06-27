@@ -74,12 +74,4 @@ public final class RefBookVersionPredicates {
         return anyVersion.fromDate.eq(dateTime).or(anyVersion.fromDate.before(dateTime))
                 .and(anyVersion.fromDate.after(dateTime).not());
     }
-
-    public static BooleanExpression isVersionOfRefBook(Integer refBookId) {
-        return QRefBookVersionEntity.refBookVersionEntity.refBook.id.eq(refBookId);
-    }
-
-    public static BooleanExpression isPublished() {
-        return QRefBookVersionEntity.refBookVersionEntity.status.eq(RefBookVersionStatus.PUBLISHED);
-    }
 }

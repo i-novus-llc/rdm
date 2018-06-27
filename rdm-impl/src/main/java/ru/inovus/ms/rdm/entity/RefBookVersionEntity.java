@@ -1,11 +1,13 @@
 package ru.inovus.ms.rdm.entity;
 
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import ru.inovus.ms.rdm.model.RefBookCreateRequest;
 import ru.inovus.ms.rdm.model.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.Structure;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.Objects;
 
 @Entity
