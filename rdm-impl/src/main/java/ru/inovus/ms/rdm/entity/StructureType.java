@@ -127,7 +127,7 @@ public class StructureType implements UserType {
             attributeJson.put("referenceVersion", reference.getReferenceVersion());
             attributeJson.put("referenceAttribute", reference.getReferenceAttribute());
             ArrayNode arrayNode = attributeJson.putArray("displayFields");
-            reference.getDisplayAttributes().forEach(display -> arrayNode.add(display));
+            reference.getDisplayAttributes().forEach(arrayNode::add);
         }
 
         return attributeJson;
