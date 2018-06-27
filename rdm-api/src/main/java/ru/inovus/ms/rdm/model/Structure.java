@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.model;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.util.List;
-import java.util.Objects;
 
 public class Structure {
 
@@ -43,27 +42,23 @@ public class Structure {
 
         private boolean isPrimary;
 
-        private boolean isDisplay;
-
         private boolean isRequired;
 
-        public static Attribute buildPrimary(String attributeName, FieldType type, boolean isDisplay) {
+        public static Attribute buildPrimary(String attributeName, FieldType type) {
             Attribute attribute = new Attribute();
             attribute.setPrimary(true);
             attribute.setIsRequired(true);
             attribute.setAttributeName(attributeName);
             attribute.setType(type);
-            attribute.setIsDisplay(isDisplay);
             return attribute;
         }
 
-        public static Attribute build(String attributeName, FieldType type, boolean isDisplay, boolean isRequired) {
+        public static Attribute build(String attributeName, FieldType type, boolean isRequired) {
             Attribute attribute = new Attribute();
             attribute.setPrimary(false);
             attribute.setIsRequired(isRequired);
             attribute.setAttributeName(attributeName);
             attribute.setType(type);
-            attribute.setIsDisplay(isDisplay);
             return attribute;
         }
 
@@ -96,14 +91,6 @@ public class Structure {
             this.isPrimary = isPrimary;
         }
 
-        public boolean isDisplay() {
-            return isDisplay;
-        }
-
-        public void setIsDisplay(boolean isDisplay) {
-            this.isDisplay = isDisplay;
-        }
-
         public boolean isRequired() {
             return isRequired;
         }
@@ -116,21 +103,24 @@ public class Structure {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            Attribute attribute = (Attribute) o;
-            return equalsByFlags(attribute) &&
-                    Objects.equals(attributeName, attribute.attributeName) &&
-                    Objects.equals(type, attribute.type);
-        }
 
-        private boolean equalsByFlags(Attribute attribute) {
-            return Objects.equals(isPrimary, attribute.isPrimary) &&
-                    Objects.equals(isDisplay, attribute.isDisplay) &&
-                    Objects.equals(isRequired, attribute.isRequired);
+            Attribute attribute = (Attribute) o;
+
+            if (isPrimary != attribute.isPrimary) return false;
+            if (isRequired != attribute.isRequired) return false;
+            if (attributeName != null ? !attributeName.equals(attribute.attributeName) : attribute.attributeName != null)
+                return false;
+            return type == attribute.type;
+
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(attributeName, type, isPrimary, isDisplay, isRequired);
+            int result = attributeName != null ? attributeName.hashCode() : 0;
+            result = 31 * result + (type != null ? type.hashCode() : 0);
+            result = 31 * result + (isPrimary ? 1 : 0);
+            result = 31 * result + (isRequired ? 1 : 0);
+            return result;
         }
     }
 
@@ -151,10 +141,13 @@ public class Structure {
          */
         String referenceAttribute;
 
-        public Reference(String attribute, Integer referenceVersion, String referenceAttribute) {
+        List<String> displayAttributes;
+
+        public Reference(String attribute, Integer referenceVersion, String referenceAttribute, List<String> displayAttributes) {
             this.attribute = attribute;
             this.referenceVersion = referenceVersion;
             this.referenceAttribute = referenceAttribute;
+            this.displayAttributes = displayAttributes;
         }
 
 
@@ -183,19 +176,56 @@ public class Structure {
         }
 
 
+        public List<String> getDisplayAttributes() {
+            return displayAttributes;
+        }
+
+        public void setDisplayAttributes(List<String> displayAttributes) {
+            this.displayAttributes = displayAttributes;
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
+
             Reference reference = (Reference) o;
-            return Objects.equals(attribute, reference.attribute) &&
-                    Objects.equals(referenceVersion, reference.referenceVersion) &&
-                    Objects.equals(referenceAttribute, reference.referenceAttribute);
+
+            if (attribute != null ? !attribute.equals(reference.attribute) : reference.attribute != null) return false;
+            if (referenceVersion != null ? !referenceVersion.equals(reference.referenceVersion) : reference.referenceVersion != null)
+                return false;
+            if (referenceAttribute != null ? !referenceAttribute.equals(reference.referenceAttribute) : reference.referenceAttribute != null)
+                return false;
+            return !(displayAttributes != null ? !displayAttributes.equals(reference.displayAttributes) : reference.displayAttributes != null);
+
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(attribute, referenceVersion, referenceAttribute);
+            int result = attribute != null ? attribute.hashCode() : 0;
+            result = 31 * result + (referenceVersion != null ? referenceVersion.hashCode() : 0);
+            result = 31 * result + (referenceAttribute != null ? referenceAttribute.hashCode() : 0);
+            result = 31 * result + (displayAttributes != null ? displayAttributes.hashCode() : 0);
+            return result;
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Structure structure = (Structure) o;
+
+        if (attributes != null ? !attributes.equals(structure.attributes) : structure.attributes != null) return false;
+        return !(references != null ? !references.equals(structure.references) : structure.references != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = attributes != null ? attributes.hashCode() : 0;
+        result = 31 * result + (references != null ? references.hashCode() : 0);
+        return result;
     }
 }

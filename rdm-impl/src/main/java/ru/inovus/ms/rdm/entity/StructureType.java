@@ -66,17 +66,23 @@ public class StructureType implements UserType {
                 String name = getByKey(attributeJson, "name", JsonNode::asText);
                 String type = getByKey(attributeJson, "type", JsonNode::asText);
                 boolean isPrimary = getByKey(attributeJson, "isPrimary", JsonNode::asBoolean);
-                boolean isDisplay = getByKey(attributeJson, "isDisplay", JsonNode::asBoolean);
                 boolean isRequired = getByKey(attributeJson, "isRequired", JsonNode::asBoolean);
                 Integer referenceVersion = getByKey(attributeJson, "referenceVersion", JsonNode::asInt);
                 String referenceAttribute = getByKey(attributeJson, "referenceAttribute", JsonNode::asText);
+                Function<JsonNode, List<String>> asList = jsonNode -> {
+                    List<String> values = new ArrayList<>();
+                    ArrayNode arrayNode = ((ArrayNode) jsonNode);
+                    arrayNode.forEach(node -> values.add(node.asText()));
+                    return values;
+                };
+                List<String> displayAttributes = getByKey(attributeJson, "displayAttribute", asList);
                 Structure.Attribute attribute;
                 if(isPrimary){
-                    attribute = Structure.Attribute.buildPrimary(name, FieldType.valueOf(type), isDisplay);
+                    attribute = Structure.Attribute.buildPrimary(name, FieldType.valueOf(type));
                 } else {
-                    attribute = Structure.Attribute.build(name, FieldType.valueOf(type), isDisplay, isRequired);
+                    attribute = Structure.Attribute.build(name, FieldType.valueOf(type), isRequired);
                 }
-                Structure.Reference reference = new Structure.Reference(name, referenceVersion, referenceAttribute);
+                Structure.Reference reference = new Structure.Reference(name, referenceVersion, referenceAttribute, displayAttributes);
                 attributes.add(attribute);
                 references.add(reference);
             }
@@ -116,11 +122,12 @@ public class StructureType implements UserType {
         attributeJson.put("type", attribute.getType().name());
         attributeJson.put("isPrimary", attribute.isPrimary());
         attributeJson.put("isRequired", attribute.isRequired());
-        attributeJson.put("isDisplay", attribute.isDisplay());
         Structure.Reference reference = structure.getReference(attribute.getAttributeName());
         if (reference != null) {
             attributeJson.put("referenceVersion", reference.getReferenceVersion());
             attributeJson.put("referenceAttribute", reference.getReferenceAttribute());
+            ArrayNode arrayNode = attributeJson.putArray("displayFields");
+            reference.getDisplayAttributes().forEach(arrayNode::add);
         }
 
         return attributeJson;
