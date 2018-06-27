@@ -1,17 +1,18 @@
 package ru.inovus.ms.rdm.entity;
 
+import ru.inovus.ms.rdm.model.RefBookCreateRequest;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import ru.inovus.ms.rdm.model.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.Structure;
 
 import javax.persistence.*;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "ref_book_version", schema = "n2o_rdm_management")
 @TypeDef(name = "structure", typeClass = StructureType.class)
-public class RefBookVersionEntity extends AbstractEntity {
+public class RefBookVersionEntity {
 
     @Id
     @Column(name = "id", nullable = false)
@@ -42,27 +43,25 @@ public class RefBookVersionEntity extends AbstractEntity {
     private String comment;
 
     @Column(name = "status", nullable = false)
-    @Enumerated
+    @Enumerated(value = EnumType.STRING)
     private RefBookVersionStatus status;
 
     @Column(name = "from_date")
-    private Date fromDate;
+    private LocalDateTime fromDate;
 
     @Column(name = "to_date")
-    private Date toDate;
+    private LocalDateTime toDate;
 
     @Column(name = "creation_date")
-    private Date creationDate;
+    private LocalDateTime creationDate;
 
     @Column(name = "last_action_date")
-    private Date lastActionDate;
+    private LocalDateTime lastActionDate;
 
-    @Override
     public Integer getId() {
         return id;
     }
 
-    @Override
     public void setId(Integer id) {
         this.id = id;
     }
@@ -131,51 +130,52 @@ public class RefBookVersionEntity extends AbstractEntity {
         this.status = status;
     }
 
-    public Date getFromDate() {
+    public LocalDateTime getFromDate() {
         return fromDate;
     }
 
-    public void setFromDate(Date fromDate) {
+    public void setFromDate(LocalDateTime fromDate) {
         this.fromDate = fromDate;
     }
 
-    public Date getToDate() {
+    public LocalDateTime getToDate() {
         return toDate;
     }
 
-    public void setToDate(Date toDate) {
+    public void setToDate(LocalDateTime toDate) {
         this.toDate = toDate;
     }
 
-    @Override
-    public Date getCreationDate() {
+    public LocalDateTime getCreationDate() {
         return creationDate;
     }
 
-    @Override
-    public void setCreationDate(Date creationDate) {
+    public void setCreationDate(LocalDateTime creationDate) {
         this.creationDate = creationDate;
     }
 
-    @Override
-    public Date getLastActionDate() {
+    public LocalDateTime getLastActionDate() {
         return lastActionDate;
     }
 
-    @Override
-    public void setLastActionDate(Date lastActionDate) {
+    public void setLastActionDate(LocalDateTime lastActionDate) {
         this.lastActionDate = lastActionDate;
     }
 
     @PrePersist
-    @Override
     public void prePersist() {
-        Date now = new Date();
+        LocalDateTime now = LocalDateTime.now();
 
         if (creationDate == null)
             creationDate = now;
 
         if (lastActionDate == null)
             lastActionDate = now;
+    }
+
+    public void populateFrom(RefBookCreateRequest model) {
+        this.setFullName(model.getFullName());
+        this.setShortName(model.getShortName());
+        this.setAnnotation(model.getAnnotation());
     }
 }

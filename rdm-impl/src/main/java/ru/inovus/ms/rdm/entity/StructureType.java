@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.entity;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -99,22 +98,25 @@ public class StructureType implements UserType {
     private ObjectNode valueToJson(Object value) {
         Structure structure = (Structure) value;
         ArrayNode attributesJson = MAPPER.createArrayNode();
-        structure.getAttributes().forEach(attribute -> {
-            ObjectNode attributeJson = MAPPER.createObjectNode();
-            attributeJson.put("fieldName", attribute.getAttributeName());
-            attributeJson.put("type", attribute.getType().name());
-            attributeJson.put("isPrimary", attribute.isPrimary());
-            Structure.Reference reference = structure.getReference(attribute.getAttributeName());
-            if (reference != null) {
-                attributeJson.put("referenceVersion", reference.getReferenceVersion());
-                attributeJson.put("referenceAttribute", reference.getReferenceAttribute());
-                attributeJson.put("displayAttribute", reference.getDisplayAttribute());
-            }
-            attributesJson.add(attributeJson);
-        });
+        structure.getAttributes().forEach(attribute -> attributesJson.add(createAttributeJson(attribute, structure)));
         ObjectNode jsonStructure = MAPPER.createObjectNode();
         jsonStructure.set("attributes", attributesJson);
         return jsonStructure;
+    }
+
+    private ObjectNode createAttributeJson(Structure.Attribute attribute, Structure structure){
+        ObjectNode attributeJson = MAPPER.createObjectNode();
+        attributeJson.put("fieldName", attribute.getAttributeName());
+        attributeJson.put("type", attribute.getType().name());
+        attributeJson.put("isPrimary", attribute.isPrimary());
+        Structure.Reference reference = structure.getReference(attribute.getAttributeName());
+        if (reference != null) {
+            attributeJson.put("referenceVersion", reference.getReferenceVersion());
+            attributeJson.put("referenceAttribute", reference.getReferenceAttribute());
+            attributeJson.put("displayAttribute", reference.getDisplayAttribute());
+        }
+
+        return attributeJson;
     }
 
     @Override

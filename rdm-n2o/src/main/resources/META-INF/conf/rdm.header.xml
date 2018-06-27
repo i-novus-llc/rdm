@@ -3,7 +3,10 @@
     <project-name>НСИ</project-name>
 
     <menu>
-        <page page-id="refBookList" label="Перечень справочников"/>
+        <page page-id="publicRefBookList" label="Перечень справочников"/>
+        <sub-menu label="Администрирование">
+            <page page-id="refBookList" label="Справочники"/>
+        </sub-menu>
     </menu>
 
 </header>
