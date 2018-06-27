@@ -94,4 +94,10 @@
         </sql>
     </changeSet>
 
+    <changeSet id="201806051640_RDM-33_5" author="ekrasulina" dbms="postgresql">
+        <sql>
+            ALTER TABLE n2o_rdm_management.ref_book_version ALTER COLUMN status TYPE varchar(10);
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

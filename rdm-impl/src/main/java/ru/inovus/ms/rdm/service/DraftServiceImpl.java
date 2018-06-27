@@ -12,7 +12,7 @@ import java.time.OffsetDateTime;
 public class DraftServiceImpl implements DraftService {
 
     @Override
-    public Draft create(Long dictionaryId, Metadata metadata) {
+    public Draft create(Long dictionaryId, Structure structure) {
         return null;
     }
 
@@ -47,7 +47,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
-    public Metadata getMetadata(Long draftId) {
+    public Structure getMetadata(Long draftId) {
         return null;
     }
 }
