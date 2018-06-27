@@ -43,11 +43,30 @@ public class Structure {
 
         private boolean isPrimary;
 
-        public Attribute(String attributeName, FieldType type, boolean isPrimary) {
-            this.attributeName = attributeName;
-            this.type = type;
-            this.isPrimary = isPrimary;
+        private boolean isDisplay;
+
+        private boolean isRequired;
+
+        public static Attribute buildPrimary(String attributeName, FieldType type, boolean isDisplay) {
+            Attribute attribute = new Attribute();
+            attribute.setPrimary(true);
+            attribute.setIsRequired(true);
+            attribute.setAttributeName(attributeName);
+            attribute.setType(type);
+            attribute.setIsDisplay(isDisplay);
+            return attribute;
         }
+
+        public static Attribute build(String attributeName, FieldType type, boolean isDisplay, boolean isRequired) {
+            Attribute attribute = new Attribute();
+            attribute.setPrimary(false);
+            attribute.setIsRequired(isRequired);
+            attribute.setAttributeName(attributeName);
+            attribute.setType(type);
+            attribute.setIsDisplay(isDisplay);
+            return attribute;
+        }
+
 
         public String getAttributeName() {
             return attributeName;
@@ -73,6 +92,25 @@ public class Structure {
             isPrimary = primary;
         }
 
+        public void setIsPrimary(boolean isPrimary) {
+            this.isPrimary = isPrimary;
+        }
+
+        public boolean isDisplay() {
+            return isDisplay;
+        }
+
+        public void setIsDisplay(boolean isDisplay) {
+            this.isDisplay = isDisplay;
+        }
+
+        public boolean isRequired() {
+            return isRequired;
+        }
+
+        public void setIsRequired(boolean isRequired) {
+            this.isRequired = isRequired;
+        }
 
         @Override
         public boolean equals(Object o) {
@@ -80,13 +118,15 @@ public class Structure {
             if (o == null || getClass() != o.getClass()) return false;
             Attribute attribute = (Attribute) o;
             return Objects.equals(isPrimary, attribute.isPrimary) &&
+                    Objects.equals(isDisplay, attribute.isDisplay) &&
+                    Objects.equals(isRequired, attribute.isRequired) &&
                     Objects.equals(attributeName, attribute.attributeName) &&
                     Objects.equals(type, attribute.type);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(attributeName, type, isPrimary);
+            return Objects.hash(attributeName, type, isPrimary, isDisplay, isRequired);
         }
     }
 
@@ -107,13 +147,10 @@ public class Structure {
          */
         String referenceAttribute;
 
-        String displayAttribute;
-
-        public Reference(String attribute, Integer referenceVersion, String referenceAttribute, String displayAttribute) {
+        public Reference(String attribute, Integer referenceVersion, String referenceAttribute) {
             this.attribute = attribute;
             this.referenceVersion = referenceVersion;
             this.referenceAttribute = referenceAttribute;
-            this.displayAttribute = displayAttribute;
         }
 
 
@@ -141,13 +178,6 @@ public class Structure {
             this.referenceAttribute = referenceAttribute;
         }
 
-        public String getDisplayAttribute() {
-            return displayAttribute;
-        }
-
-        public void setDisplayAttribute(String displayAttribute) {
-            this.displayAttribute = displayAttribute;
-        }
 
         @Override
         public boolean equals(Object o) {
@@ -156,13 +186,12 @@ public class Structure {
             Reference reference = (Reference) o;
             return Objects.equals(attribute, reference.attribute) &&
                     Objects.equals(referenceVersion, reference.referenceVersion) &&
-                    Objects.equals(referenceAttribute, reference.referenceAttribute) &&
-                    Objects.equals(displayAttribute, reference.displayAttribute);
+                    Objects.equals(referenceAttribute, reference.referenceAttribute);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(attribute, referenceVersion, referenceAttribute, displayAttribute);
+            return Objects.hash(attribute, referenceVersion, referenceAttribute);
         }
     }
 }

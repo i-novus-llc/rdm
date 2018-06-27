@@ -66,11 +66,17 @@ public class StructureType implements UserType {
                 String fieldName = getByKey(attributeJson, "fieldName", JsonNode::asText);
                 String type = getByKey(attributeJson, "type", JsonNode::asText);
                 boolean isPrimary = getByKey(attributeJson, "isPrimary", JsonNode::asBoolean);
+                boolean isDisplay = getByKey(attributeJson, "isDisplay", JsonNode::asBoolean);
+                boolean isRequired = getByKey(attributeJson, "isRequired", JsonNode::asBoolean);
                 Integer referenceVersion = getByKey(attributeJson, "referenceVersion", JsonNode::asInt);
                 String referenceAttribute = getByKey(attributeJson, "referenceAttribute", JsonNode::asText);
-                String displayAttribute = getByKey(attributeJson, "displayAttribute", JsonNode::asText);
-                Structure.Attribute attribute = new Structure.Attribute(fieldName, FieldType.valueOf(type), isPrimary);
-                Structure.Reference reference = new Structure.Reference(fieldName, referenceVersion, referenceAttribute, displayAttribute);
+                Structure.Attribute attribute;
+                if(isPrimary){
+                    attribute = Structure.Attribute.buildPrimary(fieldName, FieldType.valueOf(type), isDisplay);
+                } else {
+                    attribute = Structure.Attribute.build(fieldName, FieldType.valueOf(type), isDisplay, isRequired);
+                }
+                Structure.Reference reference = new Structure.Reference(fieldName, referenceVersion, referenceAttribute);
                 attributes.add(attribute);
                 references.add(reference);
             }
@@ -109,11 +115,13 @@ public class StructureType implements UserType {
         attributeJson.put("fieldName", attribute.getAttributeName());
         attributeJson.put("type", attribute.getType().name());
         attributeJson.put("isPrimary", attribute.isPrimary());
+        attributeJson.put("isPrimary", attribute.isPrimary());
+        attributeJson.put("isRequired", attribute.isRequired());
+        attributeJson.put("isDisplay", attribute.isDisplay());
         Structure.Reference reference = structure.getReference(attribute.getAttributeName());
         if (reference != null) {
             attributeJson.put("referenceVersion", reference.getReferenceVersion());
             attributeJson.put("referenceAttribute", reference.getReferenceAttribute());
-            attributeJson.put("displayAttribute", reference.getDisplayAttribute());
         }
 
         return attributeJson;
