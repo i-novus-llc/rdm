@@ -1,20 +1,27 @@
 package ru.inovus.ms.rdm.service;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import net.n2oapp.criteria.api.CollectionPage;
+import org.springframework.data.domain.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
+import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates;
+import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 
 import java.time.OffsetDateTime;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
+
+import ru.i_novus.platform.datastorage.temporal.model.Field;
+import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
+import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 
 /**
  * Created by tnurdinov on 24.05.2018.
@@ -26,44 +33,122 @@ public class DraftServiceImpl implements DraftService {
 
     private RefBookVersionRepository versionRepository;
 
+    private FieldFactory fieldFactory;
+
+    private SearchDataService searchDataService;
+
+    private DropDataService dropDataService;
+
+    private RefBookRepository refBookRepository;
+
+    @Autowired
+    public DraftServiceImpl(DraftDataService draftDataService, RefBookVersionRepository versionRepository, FieldFactory fieldFactory,
+                            RefBookRepository refBookRepository, SearchDataService searchDataService, DropDataService dropDataService) {
+        this.draftDataService = draftDataService;
+        this.versionRepository = versionRepository;
+        this.fieldFactory = fieldFactory;
+        this.searchDataService = searchDataService;
+        this.dropDataService = dropDataService;
+        this.refBookRepository = refBookRepository;
+    }
+
+
     @Override
-    public Draft create(Long dictionaryId, Structure structure) {
-        return null;
+    @Transactional
+    public Draft create(Integer refBookId, Structure structure) {
+        // достать существующий draftVersion по refBookId  и проапдейтить и если старая и новая метада отличается то удалить старый draftCode DropDataService.
+        // А если совпадают то удалить данные в нем через ru.i_novus.platform.datastorage.temporal.service.DraftDataService.deleteAllRows
+
+        RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
+        RefBookVersionEntity draftVersion = getDraftByRefbook(refBookId);
+        if (draftVersion == null && lastRefBookVersion == null) {
+            throw new RuntimeException("invalid refbook");
+        }
+        if (draftVersion == null) {
+            // create
+            draftVersion = new RefBookVersionEntity();
+            draftVersion.setStatus(RefBookVersionStatus.DRAFT);
+            draftVersion.setFullName(lastRefBookVersion.getFullName());
+            draftVersion.setShortName(lastRefBookVersion.getShortName());
+            draftVersion.setAnnotation(lastRefBookVersion.getAnnotation());
+            draftVersion.setStructure(structure);
+            List<Field> fields = structureToFields(structure);
+            draftVersion.setRefBook(refBookRepository.findOne(refBookId));
+            String draftCode = draftDataService.createDraft(fields);
+            draftVersion.setStorageCode(draftCode);
+        } else {
+            updateDraft(structure, draftVersion);
+        }
+        RefBookVersionEntity savedDraftVersion = versionRepository.save(draftVersion);
+        return new Draft(savedDraftVersion.getId(), savedDraftVersion.getStorageCode());
+    }
+
+    private RefBookVersionEntity getDraftByRefbook(Integer refBookId) {
+        return versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
+    }
+
+    private void updateDraft(Structure structure, RefBookVersionEntity draftVersion) {
+        List<Field> fields = structureToFields(structure);
+        String draftCode = draftVersion.getStorageCode();
+        if (!structure.equals(draftVersion.getStructure())) {
+            dropDataService.drop(Collections.singleton(draftCode));
+            draftCode = draftDataService.createDraft(fields);
+            draftVersion.setStorageCode(draftCode);
+        } else {
+            draftDataService.deleteAllRows(draftCode);
+        }
+        draftVersion.setStructure(structure);
+    }
+
+    private List<Field> structureToFields(Structure structure) {
+        List<Field> fields = new ArrayList<>();
+        Optional.ofNullable(structure.getAttributes()).ifPresent(s -> {
+            s.forEach(metaField -> {
+                Field field = fieldFactory.createField(metaField.getAttributeName(), metaField.getType());
+                fields.add(field);
+            });
+        });
+
+        return fields;
     }
 
     @Override
-    public void updateMetadata(Long draftId, MetadataDiff metadataDiff) {
+    public void updateMetadata(Integer draftId, MetadataDiff metadataDiff) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void updateData(Long draftId, DataDiff dataDiff) {
+    public void updateData(Integer draftId, DataDiff dataDiff) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void updateData(Long draftId, FileData file) {
+    public void updateData(Integer draftId, FileData file) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Data search(Long draftId, DraftCriteria criteria) {
-        return null;
+    public Page<RowValue> search(Integer draftId, DraftCriteria criteria) {
+        RefBookVersionEntity draft = versionRepository.findOne(draftId);
+        String storageCode = draft.getStorageCode();
+        DataCriteria dataCriteria = new DataCriteria(storageCode, null, null,
+                structureToFields(draft.getStructure()), criteria.getFieldFilter(), criteria.getCommonFilter());
+        //fields - все поля из draft. fieldFilter и commonFilter из DraftCriteria
+        CollectionPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
+        Pageable pageable = new PageRequest(pagedData.getCriteria().getPage(), pagedData.getCriteria().getSize());
+        return new PageImpl<>((List<RowValue>) pagedData.getCollection(), pageable, pagedData.getCount());
     }
 
     @Override
     public void publish(Integer draftId, String versionName, OffsetDateTime versionDate) {
         RefBookVersionEntity draftVersion = versionRepository.findOne(draftId);
-        Page<RefBookVersionEntity> lastPublishedVersions = versionRepository
-                .findAll(isPublished().and(isVersionOfRefBook(draftVersion.getRefBook().getId()))
-                        , new PageRequest(1, 1, new Sort(Sort.Direction.ASC, "title")));
-        RefBookVersionEntity lastPublishedVersion = lastPublishedVersions != null && !lastPublishedVersions.hasContent() ? lastPublishedVersions.getContent().get(0) : null;
+        RefBookVersionEntity lastPublishedVersion = getLastRefBookVersion(draftVersion.getRefBook().getId());
         String storageCode = draftDataService.applyDraft(
                 lastPublishedVersion != null ? lastPublishedVersion.getStorageCode() : null,
                 draftVersion.getStorageCode(),
                 new Date(versionDate.toInstant().toEpochMilli())
         );
-        if(lastPublishedVersion == null) {
+        if (lastPublishedVersion == null) {
             draftVersion.setVersion("1.0");
         }
         draftVersion.setStorageCode(storageCode);
@@ -72,13 +157,26 @@ public class DraftServiceImpl implements DraftService {
         versionRepository.save(draftVersion);
     }
 
+    private RefBookVersionEntity getLastRefBookVersion(Integer refBookId) {
+        Page<RefBookVersionEntity> lastPublishedVersions = versionRepository
+                .findAll(isPublished().and(isVersionOfRefBook(refBookId))
+                        , new PageRequest(1, 1, new Sort(Sort.Direction.DESC, "fromDate")));
+        return lastPublishedVersions != null && lastPublishedVersions.hasContent() ? lastPublishedVersions.getContent().get(0) : null;
+    }
+
     @Override
-    public void remove(Long draftId) {
+    public void remove(Integer draftId) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Structure getMetadata(Long draftId) {
+    public Structure getMetadata(Integer draftId) {
         return null;
+    }
+
+    @Override
+    public Draft getDraft(Integer draftId) {
+        RefBookVersionEntity versionEntity = versionRepository.findOne(draftId);
+        return new Draft(versionEntity.getId(), versionEntity.getStorageCode());
     }
 }

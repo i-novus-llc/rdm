@@ -7,17 +7,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.test.context.junit4.SpringRunner;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
-import ru.inovus.ms.rdm.model.RefBook;
-import ru.inovus.ms.rdm.model.RefBookCreateRequest;
-import ru.inovus.ms.rdm.model.RefBookCriteria;
-import ru.inovus.ms.rdm.model.RefBookVersionStatus;
+import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.service.DraftService;
 import ru.inovus.ms.rdm.service.RefBookService;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
 
 @RunWith(SpringRunner.class)
@@ -37,6 +41,9 @@ public class ApplicationTest extends TestableDbEnv {
     @Autowired
     private RefBookService refBookService;
 
+    @Autowired
+    private DraftService draftService;
+
     @BeforeClass
     public static void initialize() {
         refBookCreateRequest = new RefBookCreateRequest();
@@ -45,6 +52,7 @@ public class ApplicationTest extends TestableDbEnv {
         refBookCreateRequest.setShortName("СПРВЧНК СПЦЛНСТЙ");
         refBookCreateRequest.setAnnotation("Аннотация для справочника специальностей");
     }
+
     /**
      * Создание справочника.
      * Получение справоника по идентификатору версии.
@@ -172,5 +180,14 @@ public class ApplicationTest extends TestableDbEnv {
         assertEquals(expected.getRemovable(), actual.getRemovable());
         assertEquals(expected.getArchived(), actual.getArchived());
         assertEquals(expected.getFromDate(), actual.getFromDate());
+    }
+
+    @Test
+    public void testDraftCreate() {
+        Structure structure = new Structure();
+        structure.setAttributes(Collections.singletonList(Structure.Attribute.build("name", FieldType.STRING, true)));
+        Draft expected = draftService.create(1, structure);
+        Draft actual = draftService.getDraft(expected.getId());
+        assertEquals(expected.getId(), actual.getId());
     }
 }
