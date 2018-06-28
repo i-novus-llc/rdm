@@ -38,8 +38,7 @@ public class ApplicationTest extends TestableDbEnv {
     private static final String SEARCH_BY_NAME_STR = "отличное от последней версии ";
     private static final String SEARCH_BY_NAME_STR_ASSERT_CODE = "A080";
 
-    private static RefBookCreateRequest refBookCreateRequest;
-    private static RefBookUpdateRequest refBookUpdateRequest;
+    private static RefBookUpdateRequest refBookRequest;
     private static List<RefBookVersion> versionList;
 
     @Autowired
@@ -47,14 +46,12 @@ public class ApplicationTest extends TestableDbEnv {
 
     @BeforeClass
     public static void initialize() {
-        refBookUpdateRequest = new RefBookUpdateRequest();
-        refBookUpdateRequest.setCode("T001");
-        refBookUpdateRequest.setFullName("Справочник специальностей");
-        refBookUpdateRequest.setShortName("СПРВЧНК СПЦЛНСТЙ");
-        refBookUpdateRequest.setAnnotation("Аннотация для справочника специальностей");
-        refBookUpdateRequest.setComment("обновленное наполнение");
-
-        refBookCreateRequest = refBookUpdateRequest;
+        refBookRequest = new RefBookUpdateRequest();
+        refBookRequest.setCode("T001");
+        refBookRequest.setFullName("Справочник специальностей");
+        refBookRequest.setShortName("СПРВЧНК СПЦЛНСТЙ");
+        refBookRequest.setAnnotation("Аннотация для справочника специальностей");
+        refBookRequest.setComment("обновленное наполнение");
 
         RefBookVersion version0 = new RefBookVersion();
         version0.setRefBookId(500);
@@ -91,13 +88,13 @@ public class ApplicationTest extends TestableDbEnv {
     public void testLifecycle() {
 
         // создание справочника
-        RefBook refBook = refBookService.create(refBookCreateRequest);
+        RefBook refBook = refBookService.create(refBookRequest);
         assertNotNull(refBook.getId());
         assertNotNull(refBook.getRefBookId());
-        assertEquals(refBookCreateRequest.getCode(), refBook.getCode());
-        assertEquals(refBookCreateRequest.getFullName(), refBook.getFullName());
-        assertEquals(refBookCreateRequest.getShortName(), refBook.getShortName());
-        assertEquals(refBookCreateRequest.getAnnotation(), refBook.getAnnotation());
+        assertEquals(refBookRequest.getCode(), refBook.getCode());
+        assertEquals(refBookRequest.getFullName(), refBook.getFullName());
+        assertEquals(refBookRequest.getShortName(), refBook.getShortName());
+        assertEquals(refBookRequest.getAnnotation(), refBook.getAnnotation());
         assertEquals(RefBookVersionStatus.DRAFT, refBook.getStatus());
         assertEquals(RefBookStatus.DRAFT.getName(), refBook.getDisplayVersion());
         assertNull(refBook.getVersion());
@@ -107,9 +104,9 @@ public class ApplicationTest extends TestableDbEnv {
         assertNull(refBook.getFromDate());
 
         // изменение метеданных справочника
-        refBookUpdateRequest.setId(refBook.getId());
-        refBook.setComment(refBookUpdateRequest.getComment());
-        RefBook updatedRefBook = refBookService.update(refBookUpdateRequest);
+        refBookRequest.setId(refBook.getId());
+        refBook.setComment(refBookRequest.getComment());
+        RefBook updatedRefBook = refBookService.update(refBookRequest);
         assertRefBooksEqual(refBook, updatedRefBook);
 
         // в архив
