@@ -21,11 +21,11 @@ import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.util.TimeUtils;
 
+import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.springframework.util.StringUtils.isEmpty;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
@@ -71,20 +71,25 @@ public class RefBookServiceImpl implements RefBookService {
         refBookVersionEntity.setRefBook(refBookEntity);
         refBookVersionEntity.setStatus(RefBookVersionStatus.DRAFT);
 
-        return refBookModel(repository.save(refBookVersionEntity));
+        refBookEntity.setVersionList(Collections.singletonList(refBookVersionEntity));
+        return refBookModel(refBookRepository.save(refBookEntity).getVersionList().get(0));
     }
 
     @Override
+    @Transactional
     public RefBook update(RefBookUpdateRequest request) {
         RefBookVersionEntity refBookVersionEntity = repository.findOne(request.getId());
-        refBookVersionEntity.getRefBook().setCode(request.getCode());
+        RefBookEntity refBookEntity = refBookVersionEntity.getRefBook();
+        if (!refBookEntity.getCode().equals(request.getCode())) {
+            refBookEntity.setCode(request.getCode());
+        }
         refBookVersionEntity.populateFrom(request);
-        return refBookModel(repository.save(refBookVersionEntity));
+        return refBookModel(refBookVersionEntity);
     }
 
     @Override
     public void delete(int refBookId) {
-        // удалить наполнение
+        // todo drop data table after RDM-37
        refBookRepository.delete(refBookId);
     }
 
@@ -98,10 +103,18 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     public Page<RefBookVersion> getVersions(VersionCriteria criteria) {
         Sort sort = new Sort(new Sort.Order(Sort.Direction.DESC, "fromDate", Sort.NullHandling.NULLS_FIRST));
-        Predicate predicate = isVersionOfRefBook(criteria.getRefBookId()).and(isDraftExcluded(criteria.getExcludeDraft()));
         Pageable pageable = new PageRequest(criteria.getPageNumber() - 1, criteria.getPageSize(), sort);
-        Page<RefBookVersionEntity> list = repository.findAll(predicate, pageable);
+        Page<RefBookVersionEntity> list = repository.findAll(toPredicate(criteria), pageable);
         return list.map(this::versionModel);
+    }
+
+    private Predicate toPredicate(VersionCriteria criteria) {
+        BooleanBuilder where = new BooleanBuilder();
+        where.and(isVersionOfRefBook(criteria.getRefBookId()));
+        if (criteria.getExcludeDraft())
+            where.andNot(isDraft());
+
+        return where.getValue();
     }
 
     private Predicate toPredicate(RefBookCriteria criteria) {
@@ -169,6 +182,13 @@ public class RefBookServiceImpl implements RefBookService {
         return repository.findOne(isVersionOfRefBook(refBookId).and(isLastPublished()));
     }
 
+    private LocalDateTime getLastPublishedVersionFromDate(RefBookVersionEntity entity) {
+        if (nonNull(entity.getFromDate()))
+            entity.getFromDate();
+        RefBookVersionEntity lastPublishedVersion = getLastPublishedVersion(entity.getRefBook().getId());
+        return nonNull(lastPublishedVersion) ? lastPublishedVersion.getFromDate() : null;
+    }
+
     private RefBookVersion getFirstPublishedVersion(Integer refBookId) {
         VersionCriteria versionCriteria = new VersionCriteria();
         versionCriteria.setRefBookId(refBookId);
@@ -177,6 +197,11 @@ public class RefBookServiceImpl implements RefBookService {
         Page<RefBookVersion> search = getVersions(versionCriteria);
         if (search.getTotalElements() == 0) return null;
         return search.getContent().get(search.getContent().size() - 1);
+    }
+
+    private LocalDateTime getFirstPublishedVersionFromDate(RefBookVersionEntity entity) {
+        RefBookVersion firstPublishedVersion = getFirstPublishedVersion(entity.getRefBook().getId());
+        return nonNull(firstPublishedVersion) ? firstPublishedVersion.getFromDate() : null;
     }
 
     private boolean isRefBookRemovable(Integer refBookId) {
@@ -207,13 +232,6 @@ public class RefBookServiceImpl implements RefBookService {
             return entity.getStatus().name();
     }
 
-    private LocalDateTime getLastFromDate(RefBookVersionEntity entity) {
-        if (nonNull(entity.getFromDate()))
-            entity.getFromDate();
-        RefBookVersionEntity lastPublishedVersion = getLastPublishedVersion(entity.getRefBook().getId());
-        return nonNull(lastPublishedVersion) ? lastPublishedVersion.getFromDate() : null;
-    }
-
     private RefBookVersion versionModel(RefBookVersionEntity entity) {
         if (entity == null) return null;
         RefBookVersion model = new RefBookVersion();
@@ -240,16 +258,16 @@ public class RefBookServiceImpl implements RefBookService {
         model.setStatus(entity.getStatus());
         model.setRemovable(isRefBookRemovable(entity.getRefBook().getId()));
         model.setDisplayVersion(getDisplayVersion(entity));
-        model.setFromDate(getLastFromDate(entity));
+        model.setLastPublishedVersionFromDate(getLastPublishedVersionFromDate(entity));
         return model;
     }
 
     private Passport passportModel(RefBookVersionEntity entity) {
         if (entity == null) return null;
         Passport model = new Passport(refBookModel(entity));
-        RefBookVersion firstPublishedVersion = getFirstPublishedVersion(entity.getRefBook().getId());
-        model.setFirstPublishedVersionFromDate(nonNull(firstPublishedVersion) ? firstPublishedVersion.getFromDate() : null);
-        // setRecordsCount
+        model.setFirstPublishedVersionFromDate(getFirstPublishedVersionFromDate(entity));
+        // todo set after RDM-37
+        model.setRecordsCount(null);
         return model;
     }
 }

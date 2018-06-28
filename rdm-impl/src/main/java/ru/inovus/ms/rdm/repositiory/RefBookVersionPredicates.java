@@ -32,12 +32,6 @@ public final class RefBookVersionPredicates {
         return QRefBookVersionEntity.refBookVersionEntity.status.eq(RefBookVersionStatus.DRAFT);
     }
 
-    public static BooleanExpression isDraftExcluded(boolean excludeDraft) {
-        if (excludeDraft)
-            return QRefBookVersionEntity.refBookVersionEntity.status.eq(RefBookVersionStatus.DRAFT).not();
-        return null;
-    }
-
     public static BooleanExpression isArchived() {
         return QRefBookVersionEntity.refBookVersionEntity.refBook.archived.isTrue();
     }
@@ -69,9 +63,9 @@ public final class RefBookVersionPredicates {
                 .or(qEntity.refBook.versionList.any().shortName.containsIgnoreCase(name.trim()));
     }
 
-    public static BooleanExpression isMaxFromDateEqOrAfter(LocalDateTime dateTime){
-        QRefBookVersionEntity qEntity = QRefBookVersionEntity.refBookVersionEntity;
-        return qEntity.refBook.versionList.any().fromDate.eq(dateTime).or(qEntity.fromDate.after(dateTime));
+    public static BooleanExpression isMaxFromDateEqOrAfter(LocalDateTime dateTime) {
+        QRefBookVersionEntity anyVersion =  QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
+        return anyVersion.fromDate.eq(dateTime).or(anyVersion.fromDate.after(dateTime));
     }
 
     public static BooleanExpression isMaxFromDateEqOrBefore(LocalDateTime dateTime) {

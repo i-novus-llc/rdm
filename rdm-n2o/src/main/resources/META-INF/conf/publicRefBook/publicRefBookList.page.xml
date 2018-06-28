@@ -17,7 +17,8 @@
                     <wgt:filters opened="true">
                         <ctrl:input-text id="name" label="Наименование справочника"/>
                         <ctrl:input-text id="code" label="Код" control-style="width:100px"/>
-                        <ctrl:date-interval id="fromDate" label="Дата публикации" control-style="width:230px" format="DD.MM.YYYY"/>
+                        <ctrl:date-interval id="lastPublishedVersionFromDate" label="Дата публикации"
+                                            control-style="width:230px" begin-default-time="00:00" end-default-time="23:59"/>
                         <ctrl:checkbox id="withArchived" label="Отображать архивные" default-value="false"/>
                     </wgt:filters>
 
@@ -44,7 +45,7 @@
                             </wgt:link>
                         </wgt:column>
                         <wgt:column column-field-id="displayVersion" name="Версия"/>
-                        <wgt:column column-field-id="fromDate" name="Дата публикации"/>
+                        <wgt:column column-field-id="lastPublishedVersionFromDate" name="Дата публикации"/>
                     </wgt:columns>
 
                     <wgt:sortings>

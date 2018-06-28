@@ -20,7 +20,7 @@ public class RefBookVersionEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "ref_book_id", nullable = false)
     private RefBookEntity refBook;
 

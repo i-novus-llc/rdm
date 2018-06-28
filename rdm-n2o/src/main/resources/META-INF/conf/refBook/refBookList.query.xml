@@ -61,13 +61,13 @@
         </field>
 
         <field>
-            <id>fromDate</id>
+            <id>lastPublishedVersionFromDate</id>
             <domain>date</domain>
-            <display/>
             <filters>
-                <filter type="more" filter-field="fromDate.begin">fromDateBegin=:fromDate.begin</filter>
-                <filter type="less" filter-field="fromDate.end">fromDateEnd=:fromDate.end</filter>
+                <filter type="more" filter-field="lastPublishedVersionFromDate.begin">fromDateBegin=:lastPublishedVersionFromDate.begin</filter>
+                <filter type="less" filter-field="lastPublishedVersionFromDate.end">fromDateEnd=:lastPublishedVersionFromDate.end</filter>
             </filters>
+            <display/>
         </field>
 
         <field>
