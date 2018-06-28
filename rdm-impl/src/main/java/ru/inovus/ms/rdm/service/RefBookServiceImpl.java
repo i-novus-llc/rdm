@@ -185,11 +185,35 @@ public class RefBookServiceImpl implements RefBookService {
         return !repository.exists(where.getValue());
     }
 
-    private boolean isVersionActual(LocalDateTime fromDate, LocalDateTime toDate) {
+    private boolean isActualVersion(LocalDateTime fromDate, LocalDateTime toDate) {
         LocalDateTime now = LocalDateTime.now();
         return !isNull(fromDate)
                 && !fromDate.isAfter(now)
                 && fromDate.isBefore(now) && (isNull(toDate) || toDate.isAfter(now));
+    }
+
+    private String getDisplayVersion(RefBookVersionEntity entity) {
+        if (entity.getRefBook().getArchived())
+            return RefBookStatus.ARCHIVED.getName();
+        if (RefBookVersionStatus.PUBLISHED.equals(entity.getStatus()))
+            return entity.getVersion();
+        return RefBookVersionStatus.DRAFT.getName();
+    }
+
+    private String getDisplayStatus(RefBookVersionEntity entity) {
+        if (entity.getRefBook().getArchived())
+            return RefBookStatus.ARCHIVED.name();
+        if (RefBookVersionStatus.PUBLISHED.equals(entity.getStatus()))
+            return isActualVersion(entity.getFromDate(), entity.getToDate()) ? entity.getStatus().name() : null;
+        else
+            return entity.getStatus().name();
+    }
+
+    private LocalDateTime getLastFromDate(RefBookVersionEntity entity) {
+        if (nonNull(entity.getFromDate()))
+            entity.getFromDate();
+        RefBookVersionEntity lastPublishedVersion = getLastPublishedVersion(entity.getRefBook().getId());
+        return nonNull(lastPublishedVersion) ? lastPublishedVersion.getFromDate() : null;
     }
 
     private RefBookVersion versionModel(RefBookVersionEntity entity) {
@@ -208,14 +232,7 @@ public class RefBookServiceImpl implements RefBookService {
         model.setArchived(entity.getRefBook().getArchived());
         model.setStatus(entity.getStatus());
         model.setRefBookHasPublishingVersion(hasPublishing(entity.getRefBook().getId()));
-
-        if (entity.getRefBook().getArchived())
-            model.setDisplayStatus(RefBookStatus.ARCHIVED.name());
-        else if (RefBookVersionStatus.PUBLISHED.equals(entity.getStatus()))
-            model.setDisplayStatus(isVersionActual(entity.getFromDate(), entity.getToDate()) ? entity.getStatus().name() : null);
-        else
-            model.setDisplayStatus(entity.getStatus().name());
-
+        model.setDisplayStatus(getDisplayStatus(entity));
         return model;
     }
 
@@ -224,17 +241,8 @@ public class RefBookServiceImpl implements RefBookService {
         RefBook model = new RefBook(versionModel(entity));
         model.setStatus(entity.getStatus());
         model.setRemovable(isRefBookRemovable(entity.getRefBook().getId()));
-
-        String displayVersion = nonNull(entity.getVersion()) ? entity.getVersion() :
-                RefBookVersionStatus.PUBLISHING.equals(entity.getStatus()) ? RefBookVersionStatus.DRAFT.getName() :
-                        entity.getStatus().getName();
-        model.setDisplayVersion(entity.getRefBook().getArchived() ? RefBookStatus.ARCHIVED.getName() : displayVersion);
-        if (isNull(entity.getFromDate())) {
-            RefBookVersionEntity lastPublishedVersion = getLastPublishedVersion(entity.getRefBook().getId());
-            model.setFromDate(nonNull(lastPublishedVersion) ? lastPublishedVersion.getFromDate() : null);
-        } else {
-            model.setFromDate(entity.getFromDate());
-        }
+        model.setDisplayVersion(getDisplayVersion(entity));
+        model.setFromDate(getLastFromDate(entity));
         return model;
     }
 
