@@ -166,7 +166,7 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     public void remove(Integer draftId) {
-        throw new UnsupportedOperationException();
+        versionRepository.delete(draftId);
     }
 
     @Override
@@ -177,6 +177,6 @@ public class DraftServiceImpl implements DraftService {
     @Override
     public Draft getDraft(Integer draftId) {
         RefBookVersionEntity versionEntity = versionRepository.findOne(draftId);
-        return new Draft(versionEntity.getId(), versionEntity.getStorageCode());
+        return versionEntity != null ? new Draft(versionEntity.getId(), versionEntity.getStorageCode()) : null;
     }
 }

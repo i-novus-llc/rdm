@@ -184,10 +184,23 @@ public class ApplicationTest extends TestableDbEnv {
 
     @Test
     public void testDraftCreate() {
-        Structure structure = new Structure();
-        structure.setAttributes(Collections.singletonList(Structure.Attribute.build("name", FieldType.STRING, true)));
+        Structure structure = createStructure();
         Draft expected = draftService.create(1, structure);
         Draft actual = draftService.getDraft(expected.getId());
         assertEquals(expected.getId(), actual.getId());
+    }
+
+    @Test
+    public void testDraftRemove() {
+        Structure structure = createStructure();
+        Draft draft = draftService.create(1, structure);
+        draftService.remove(draft.getId());
+        assertNull(draftService.getDraft(draft.getId()));
+    }
+
+    private Structure createStructure() {
+        Structure structure = new Structure();
+        structure.setAttributes(Collections.singletonList(Structure.Attribute.build("name", FieldType.STRING, true)));
+        return structure;
     }
 }

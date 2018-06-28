@@ -131,11 +131,17 @@ public class DraftServiceTest {
         RefBookVersionEntity lastRefBookVersion = createTestPublishedVersion();
         Page<RefBookVersionEntity> lastRefBookVersionPage = new PageImpl<>(Collections.singletonList(lastRefBookVersion));
         when(versionRepository
-                        .findAll(isPublished().and(isVersionOfRefBook(2))
-                                , new PageRequest(1, 1, new Sort(Sort.Direction.DESC, "fromDate")))).thenReturn(lastRefBookVersionPage);
+                .findAll(isPublished().and(isVersionOfRefBook(2))
+                        , new PageRequest(1, 1, new Sort(Sort.Direction.DESC, "fromDate")))).thenReturn(lastRefBookVersionPage);
         draftService.create(2, structure);
         verify(versionRepository).save(eq(expectedRefBookVersion));
         reset(versionRepository);
+    }
+
+    @Test
+    public void testRemoveDraft() {
+        draftService.remove(1);
+        verify(versionRepository).delete(anyInt());
     }
 
     private RefBookVersionEntity createTestDraftVersion() {
