@@ -178,8 +178,8 @@ public class ApplicationTest extends TestableDbEnv {
         search.getContent().forEach(r -> {
             assertFalse(r.getArchived());
             assertNotNull(r.getFromDate());
-            assertNotNull(r.getDisplayVersion());
             assertFalse(r.getRemovable());
+            assertNotNull(r.getDisplayVersion());
         });
 
         // поиск по дате публикации (дата начала, дата окончания)
