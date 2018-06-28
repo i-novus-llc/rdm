@@ -188,8 +188,8 @@ public class RefBookServiceImpl implements RefBookService {
     private boolean isActualVersion(LocalDateTime fromDate, LocalDateTime toDate) {
         LocalDateTime now = LocalDateTime.now();
         return !isNull(fromDate)
-                && !fromDate.isAfter(now)
-                && fromDate.isBefore(now) && (isNull(toDate) || toDate.isAfter(now));
+                && (fromDate.equals(now) || fromDate.isBefore(now))
+                && (isNull(toDate) || toDate.isAfter(now));
     }
 
     private String getDisplayVersion(RefBookVersionEntity entity) {
