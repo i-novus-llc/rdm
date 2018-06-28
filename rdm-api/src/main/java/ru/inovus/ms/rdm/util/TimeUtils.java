@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 
+import static java.util.Objects.isNull;
+
 public final class TimeUtils {
 
     public static final String DATE_TIME_PATTERN = "dd.MM.yyyy HH:mm:ss";
@@ -32,5 +34,14 @@ public final class TimeUtils {
 
     public static String format(LocalDateTime localDateTime) {
         return localDateTime.format(DATE_TIME_PATTERN_FORMATTER);
+    }
+
+    public static boolean isSameOrBeforeNow(LocalDateTime localDateTime) {
+        LocalDateTime now = LocalDateTime.now();
+        return !isNull(localDateTime) && (localDateTime.equals(now) || localDateTime.isBefore(now));
+    }
+
+    public static boolean isNullOrAfterNow(LocalDateTime localDateTime) {
+        return isNull(localDateTime) || localDateTime.isAfter(LocalDateTime.now());
     }
 }

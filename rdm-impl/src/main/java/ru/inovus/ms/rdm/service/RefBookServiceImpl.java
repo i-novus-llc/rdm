@@ -19,6 +19,7 @@ import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
+import ru.inovus.ms.rdm.util.TimeUtils;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -185,11 +186,8 @@ public class RefBookServiceImpl implements RefBookService {
         return !repository.exists(where.getValue());
     }
 
-    private boolean isActualVersion(LocalDateTime fromDate, LocalDateTime toDate) {
-        LocalDateTime now = LocalDateTime.now();
-        return !isNull(fromDate)
-                && (fromDate.equals(now) || fromDate.isBefore(now))
-                && (isNull(toDate) || toDate.isAfter(now));
+    private boolean isActualVersion(RefBookVersionEntity entity) {
+        return TimeUtils.isSameOrBeforeNow(entity.getFromDate()) && TimeUtils.isNullOrAfterNow(entity.getToDate());
     }
 
     private String getDisplayVersion(RefBookVersionEntity entity) {
@@ -204,7 +202,7 @@ public class RefBookServiceImpl implements RefBookService {
         if (entity.getRefBook().getArchived())
             return RefBookStatus.ARCHIVED.name();
         if (RefBookVersionStatus.PUBLISHED.equals(entity.getStatus()))
-            return isActualVersion(entity.getFromDate(), entity.getToDate()) ? entity.getStatus().name() : null;
+            return isActualVersion(entity) ? entity.getStatus().name() : null;
         else
             return entity.getStatus().name();
     }
