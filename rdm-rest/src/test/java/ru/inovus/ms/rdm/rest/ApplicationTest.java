@@ -32,7 +32,7 @@ import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
 })
 public class ApplicationTest extends TestableDbEnv {
 
-    private static final int REMOVABLE_REF_BOOK_ID = 501;
+    private static final int REMOVABLE_REFBOOK_ID = 501;
     private static final String REMOVABLE_REF_BOOK_CODE = "A082";
     private static final String SEARCH_CODE_STR = "78 ";
     private static final String SEARCH_BY_NAME_STR = "отличное от последней версии ";
@@ -120,7 +120,7 @@ public class ApplicationTest extends TestableDbEnv {
         assertRefBooksEqual(refBook, refBookById);
 
         // удаление
-        refBookService.delete(REMOVABLE_REF_BOOK_ID);
+        refBookService.delete(REMOVABLE_REFBOOK_ID);
         RefBookCriteria criteria = new RefBookCriteria();
         criteria.setCode(REMOVABLE_REF_BOOK_CODE);
         assertEquals(0, refBookService.search(criteria).getTotalElements());
