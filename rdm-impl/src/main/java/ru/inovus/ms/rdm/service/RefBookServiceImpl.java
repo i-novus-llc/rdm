@@ -89,7 +89,7 @@ public class RefBookServiceImpl implements RefBookService {
 
     @Override
     public void delete(int refBookId) {
-        // todo drop data table after RDM-37
+        // drop data table after RDM-37
        refBookRepository.delete(refBookId);
     }
 
@@ -266,7 +266,7 @@ public class RefBookServiceImpl implements RefBookService {
         if (entity == null) return null;
         Passport model = new Passport(refBookModel(entity));
         model.setFirstPublishedVersionFromDate(getFirstPublishedVersionFromDate(entity));
-        // todo set after RDM-37
+        // set after RDM-37
         model.setRecordsCount(null);
         return model;
     }

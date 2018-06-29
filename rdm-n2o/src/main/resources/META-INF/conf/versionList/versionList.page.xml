@@ -29,8 +29,8 @@
                                             <wgt:tooltip>Недоступно для архива</wgt:tooltip>
                                         </wgt:enabling-condition>
                                         <wgt:enabling-condition>
-                                            <wgt:expression>status == 'DRAFT'</wgt:expression>
-                                            <wgt:tooltip>Доступно только для черновика</wgt:tooltip>
+                                            <wgt:expression>displayStatus == 'DRAFT' || displayStatus == 'PUBLISHED'</wgt:expression>
+                                            <wgt:tooltip>Доступно для черновика и актуальной версии</wgt:tooltip>
                                         </wgt:enabling-condition>
                                     </wgt:conditions>
                                 </wgt:menu-item>

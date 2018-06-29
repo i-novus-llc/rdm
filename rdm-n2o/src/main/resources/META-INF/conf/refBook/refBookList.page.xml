@@ -15,7 +15,7 @@
                     <wgt:query-id>refBookList</wgt:query-id>
 
                     <wgt:filters opened="true">
-                        <ctrl:input-text id="name" label="Наименование справочникаe"/>
+                        <ctrl:input-text id="name" label="Наименование справочника"/>
                         <ctrl:input-text id="code" label="Код" control-style="width:100px"/>
                         <ctrl:date-interval id="lastPublishedVersionFromDate" label="Дата последней публикации"
                                             control-style="width:230px" begin-default-time="00:00" end-default-time="23:59"/>
