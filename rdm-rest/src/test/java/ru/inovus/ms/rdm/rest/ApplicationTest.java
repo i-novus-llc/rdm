@@ -8,13 +8,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
-import ru.inovus.ms.rdm.model.RefBook;
-import ru.inovus.ms.rdm.model.RefBookCreateRequest;
-import ru.inovus.ms.rdm.model.RefBookCriteria;
-import ru.inovus.ms.rdm.model.RefBookVersionStatus;
+import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.service.RefBookService;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.junit.Assert.*;
@@ -32,7 +32,15 @@ import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
 })
 public class ApplicationTest extends TestableDbEnv {
 
+    private static final int REMOVABLE_REF_BOOK_ID = 501;
+    private static final String REMOVABLE_REF_BOOK_CODE = "A082";
+    private static final String SEARCH_CODE_STR = "78 ";
+    private static final String SEARCH_BY_NAME_STR = "отличное от последней версии ";
+    private static final String SEARCH_BY_NAME_STR_ASSERT_CODE = "A080";
+
     private static RefBookCreateRequest refBookCreateRequest;
+    private static RefBookUpdateRequest refBookUpdateRequest;
+    private static List<RefBookVersion> versionList;
 
     @Autowired
     private RefBookService refBookService;
@@ -40,13 +48,46 @@ public class ApplicationTest extends TestableDbEnv {
     @BeforeClass
     public static void initialize() {
         refBookCreateRequest = new RefBookCreateRequest();
-        refBookCreateRequest.setCode("T001");
+        refBookCreateRequest.setCode("T1");
         refBookCreateRequest.setFullName("Справочник специальностей");
         refBookCreateRequest.setShortName("СПРВЧНК СПЦЛНСТЙ");
         refBookCreateRequest.setAnnotation("Аннотация для справочника специальностей");
+
+        refBookUpdateRequest = new RefBookUpdateRequest();
+        refBookUpdateRequest.setCode(refBookCreateRequest.getCode() + "_upd");
+        refBookUpdateRequest.setFullName(refBookCreateRequest.getFullName() + "_upd");
+        refBookUpdateRequest.setShortName(refBookCreateRequest.getShortName() + "_upd");
+        refBookUpdateRequest.setAnnotation(refBookCreateRequest.getAnnotation() + "_upd");
+        refBookUpdateRequest.setComment("обновленное наполнение");
+
+        RefBookVersion version0 = new RefBookVersion();
+        version0.setRefBookId(500);
+        version0.setStatus(RefBookVersionStatus.DRAFT);
+        version0.setDisplayStatus(RefBookVersionStatus.DRAFT.name());
+
+        RefBookVersion version1 = new RefBookVersion();
+        version1.setRefBookId(version0.getRefBookId());
+        version1.setStatus(RefBookVersionStatus.PUBLISHED);
+        version1.setVersion("3");
+
+        RefBookVersion version2 = new RefBookVersion();
+        version2.setRefBookId(version0.getRefBookId());
+        version2.setStatus(RefBookVersionStatus.PUBLISHED);
+        version2.setDisplayStatus(RefBookVersionStatus.PUBLISHED.name());
+        version2.setVersion("2");
+
+        RefBookVersion version3 = new RefBookVersion();
+        version3.setRefBookId(version0.getRefBookId());
+        version3.setStatus(RefBookVersionStatus.PUBLISHED);
+        version3.setVersion("1");
+
+        versionList = Arrays.asList(version0, version1, version2, version3);
     }
+
     /**
      * Создание справочника.
+     * В архив.
+     * Изменение метеданных справочника
      * Получение справоника по идентификатору версии.
      */
 
@@ -62,15 +103,39 @@ public class ApplicationTest extends TestableDbEnv {
         assertEquals(refBookCreateRequest.getShortName(), refBook.getShortName());
         assertEquals(refBookCreateRequest.getAnnotation(), refBook.getAnnotation());
         assertEquals(RefBookVersionStatus.DRAFT, refBook.getStatus());
-        assertEquals(RefBookStatus.DRAFT.getName(), refBook.getVersion());
+        assertEquals(RefBookStatus.DRAFT.getName(), refBook.getDisplayVersion());
+        assertNull(refBook.getVersion());
         assertNull(refBook.getComment());
         assertTrue(refBook.getRemovable());
         assertFalse(refBook.getArchived());
         assertNull(refBook.getFromDate());
 
+        // изменение метеданных справочника
+        refBookUpdateRequest.setId(refBook.getId());
+        RefBook updatedRefBook = refBookService.update(refBookUpdateRequest);
+        refBook.setCode(refBookUpdateRequest.getCode());
+        refBook.setFullName(refBookUpdateRequest.getFullName());
+        refBook.setShortName(refBookUpdateRequest.getShortName());
+        refBook.setAnnotation(refBookUpdateRequest.getAnnotation());
+        refBook.setComment(refBookUpdateRequest.getComment());
+        refBook.setComment(refBookUpdateRequest.getComment());
+        assertRefBooksEqual(refBook, updatedRefBook);
+
+        // в архив
+        refBookService.archive(refBook.getRefBookId());
+
         // получение по идентификатору версии
         RefBook refBookById = refBookService.getById(refBook.getId());
+        refBook.setArchived(Boolean.TRUE);
+        refBook.setRemovable(Boolean.FALSE);
+        refBook.setDisplayVersion(RefBookStatus.ARCHIVED.getName());
         assertRefBooksEqual(refBook, refBookById);
+
+        // удаление
+        refBookService.delete(REMOVABLE_REF_BOOK_ID);
+        RefBookCriteria criteria = new RefBookCriteria();
+        criteria.setCode(REMOVABLE_REF_BOOK_CODE);
+        assertEquals(0, refBookService.search(criteria).getTotalElements());
     }
 
     /**
@@ -85,17 +150,17 @@ public class ApplicationTest extends TestableDbEnv {
 
         // поиск по коду (по подстроке без учета регистра, крайние пробелы)
         RefBookCriteria codeCriteria = new RefBookCriteria();
-        codeCriteria.setCode("78 ");
+        codeCriteria.setCode(SEARCH_CODE_STR);
         Page<RefBook> search = refBookService.search(codeCriteria);
         assertTrue(search.getTotalElements() > 0);
         search.getContent().forEach(r -> assertTrue(containsIgnoreCase(r.getCode(), codeCriteria.getCode().trim())));
 
         // поиск по наименованию
         RefBookCriteria nameCriteria = new RefBookCriteria();
-        nameCriteria.setName("отличное от последней версии ".toUpperCase());
+        nameCriteria.setName(SEARCH_BY_NAME_STR.toUpperCase());
         search = refBookService.search(nameCriteria);
         assertEquals(1, search.getTotalElements());
-        assertEquals("A080", search.getContent().get(0).getCode());
+        assertEquals(SEARCH_BY_NAME_STR_ASSERT_CODE, search.getContent().get(0).getCode());
 
         // поиск по статусу 'Черновик'
         RefBookCriteria statusCriteria = new RefBookCriteria();
@@ -104,8 +169,9 @@ public class ApplicationTest extends TestableDbEnv {
         assertTrue(search.getTotalElements() > 0);
         search.getContent().forEach(r -> {
             assertFalse(r.getArchived());
-            assertTrue(RefBookVersionStatus.DRAFT.equals(r.getStatus()) || RefBookVersionStatus.PUBLISHING.equals(r.getStatus()));
-            assertEquals(RefBookStatus.DRAFT.getName(), r.getVersion());
+            assertTrue(RefBookVersionStatus.DRAFT.equals(r.getStatus())
+                    || RefBookVersionStatus.PUBLISHING.equals(r.getStatus()));
+            assertEquals(RefBookStatus.DRAFT.getName(), r.getDisplayVersion());
         });
 
         // поиск по статусу 'Архив'
@@ -114,8 +180,8 @@ public class ApplicationTest extends TestableDbEnv {
         assertTrue(search.getTotalElements() > 0);
         search.getContent().forEach(r -> {
             assertTrue(r.getArchived());
-            assertEquals(RefBookStatus.ARCHIVED.getName(), r.getVersion());
             assertFalse(r.getRemovable());
+            assertEquals(RefBookStatus.ARCHIVED.getName(), r.getDisplayVersion());
         });
 
         // поиск по статусу 'Опубликован'
@@ -124,9 +190,9 @@ public class ApplicationTest extends TestableDbEnv {
         assertTrue(search.getTotalElements() > 0);
         search.getContent().forEach(r -> {
             assertFalse(r.getArchived());
-            assertNotNull(r.getFromDate());
-            assertNotNull(r.getVersion());
+            assertNotNull(r.getLastPublishedVersionFromDate());
             assertFalse(r.getRemovable());
+            assertNotNull(r.getDisplayVersion());
         });
 
         // поиск по дате публикации (дата начала, дата окончания)
@@ -138,8 +204,10 @@ public class ApplicationTest extends TestableDbEnv {
         search = refBookService.search(fromDateCriteria);
         assertTrue(search.getTotalElements() > 0);
         search.getContent().forEach(r -> {
-            assertTrue(r.getFromDate().equals(fromDateBegin) || r.getFromDate().isAfter(fromDateBegin));
-            assertTrue(r.getFromDate().equals(fromDateEnd) || r.getFromDate().isBefore(fromDateEnd));
+            assertTrue(r.getLastPublishedVersionFromDate().equals(fromDateBegin)
+                    || r.getLastPublishedVersionFromDate().isAfter(fromDateBegin));
+            assertTrue(r.getLastPublishedVersionFromDate().equals(fromDateEnd)
+                    || r.getLastPublishedVersionFromDate().isBefore(fromDateEnd));
         });
 
         // поиск по дате последней публикации (дата начала и дата окончания вне диапазона действия сущесвующих записей)
@@ -155,8 +223,25 @@ public class ApplicationTest extends TestableDbEnv {
         search = refBookService.search(onlyFromDateBeginCriteria);
         assertTrue(search.getTotalElements() > 0);
         search.getContent().forEach(r ->
-                assertTrue(r.getFromDate().equals(onlyFromDateBegin)
-                        || r.getFromDate().isAfter(onlyFromDateBegin)));
+                assertTrue(r.getLastPublishedVersionFromDate().equals(onlyFromDateBegin)
+                        || r.getLastPublishedVersionFromDate().isAfter(onlyFromDateBegin)));
+    }
+
+    /**
+     * Получение списка версий справочника
+     */
+
+    @Test
+    public void testGetVersions() {
+        VersionCriteria criteria = new VersionCriteria();
+        criteria.setRefBookId(versionList.get(0).getRefBookId());
+        Page<RefBookVersion> search = refBookService.getVersions(criteria);
+
+        assertEquals(versionList.size(), search.getTotalElements());
+        for (int i = 0; i < versionList.size(); i++) {
+            RefBookVersion actual = search.getContent().get(i);
+            assertVersion(versionList.get(i), actual);
+        }
     }
 
     private void assertRefBooksEqual(RefBook expected, RefBook actual) {
@@ -168,9 +253,18 @@ public class ApplicationTest extends TestableDbEnv {
         assertEquals(expected.getAnnotation(), actual.getAnnotation());
         assertEquals(expected.getStatus(), actual.getStatus());
         assertEquals(expected.getVersion(), actual.getVersion());
+        assertEquals(expected.getDisplayVersion(), actual.getDisplayVersion());
         assertEquals(expected.getComment(), actual.getComment());
         assertEquals(expected.getRemovable(), actual.getRemovable());
         assertEquals(expected.getArchived(), actual.getArchived());
         assertEquals(expected.getFromDate(), actual.getFromDate());
+        assertEquals(expected.getLastPublishedVersionFromDate(), actual.getLastPublishedVersionFromDate());
+    }
+
+    private void assertVersion(RefBookVersion expected, RefBookVersion actual) {
+        assertEquals(expected.getRefBookId(), actual.getRefBookId());
+        assertEquals(expected.getVersion(), actual.getVersion());
+        assertEquals(expected.getStatus(), actual.getStatus());
+        assertEquals(expected.getDisplayStatus(), actual.getDisplayStatus());
     }
 }

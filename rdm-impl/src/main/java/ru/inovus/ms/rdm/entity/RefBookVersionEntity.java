@@ -3,7 +3,8 @@ package ru.inovus.ms.rdm.entity;
 import ru.inovus.ms.rdm.model.RefBookCreateRequest;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import ru.inovus.ms.rdm.model.RefBookVersionStatus;
+import ru.inovus.ms.rdm.model.RefBookUpdateRequest;
+import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.Structure;
 
 import javax.persistence.*;
@@ -19,7 +20,7 @@ public class RefBookVersionEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "ref_book_id", nullable = false)
     private RefBookEntity refBook;
 
@@ -173,9 +174,19 @@ public class RefBookVersionEntity {
             lastActionDate = now;
     }
 
+    @PreUpdate
+    public void preUpdate() {
+        lastActionDate = LocalDateTime.now();
+    }
+
     public void populateFrom(RefBookCreateRequest model) {
         this.setFullName(model.getFullName());
         this.setShortName(model.getShortName());
         this.setAnnotation(model.getAnnotation());
+    }
+
+    public void populateFrom(RefBookUpdateRequest model) {
+        populateFrom((RefBookCreateRequest) model);
+        this.setComment(model.getComment());
     }
 }

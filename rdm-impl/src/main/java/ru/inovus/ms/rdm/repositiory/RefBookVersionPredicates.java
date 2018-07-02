@@ -2,7 +2,7 @@ package ru.inovus.ms.rdm.repositiory;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import ru.inovus.ms.rdm.entity.QRefBookVersionEntity;
-import ru.inovus.ms.rdm.model.RefBookVersionStatus;
+import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 
 import java.time.LocalDateTime;
 
@@ -63,9 +63,9 @@ public final class RefBookVersionPredicates {
                 .or(qEntity.refBook.versionList.any().shortName.containsIgnoreCase(name.trim()));
     }
 
-    public static BooleanExpression isMaxFromDateEqOrAfter(LocalDateTime dateTime){
-        QRefBookVersionEntity qEntity = QRefBookVersionEntity.refBookVersionEntity;
-        return qEntity.refBook.versionList.any().fromDate.eq(dateTime).or(qEntity.fromDate.after(dateTime));
+    public static BooleanExpression isMaxFromDateEqOrAfter(LocalDateTime dateTime) {
+        QRefBookVersionEntity anyVersion =  QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
+        return anyVersion.fromDate.eq(dateTime).or(anyVersion.fromDate.after(dateTime));
     }
 
     public static BooleanExpression isMaxFromDateEqOrBefore(LocalDateTime dateTime) {
