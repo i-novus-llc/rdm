@@ -15,10 +15,20 @@
                 <wgt:form style="width:900px">
                     <wgt:query-id>passport</wgt:query-id>
 
+                    <wgt:edit refresh-after-submit="true" after-submit="closeModal"
+                              create-more="false" form-submit-label="Сохранить">
+                        <wgt:create-or-update create-action-id="create" update-action-id="update"/>
+                    </wgt:edit>
+
                     <fs:field-set field-label-location="top">
                         <fs:row>
-                            <ctrl:input-text id="code" label="Код" required="true"
-                                             control-style="width:280px" length="5"/>
+                            <ctrl:input-text id="code" label="Код" required="true" control-style="width:280px" length="5">
+                                <ctrl:dependencies>
+                                    <ctrl:enabling-condition on="firstPublishedVersionFromDate">
+                                        typeof firstPublishedVersionFromDate == 'undefined' || firstPublishedVersionFromDate == null
+                                    </ctrl:enabling-condition>
+                                </ctrl:dependencies>
+                            </ctrl:input-text>
                             <ctrl:input-text id="fullName" label="Полное наименование" required="true"
                                              control-style="width:300px" length="250"/>
                             <ctrl:input-text id="shortName" label="Краткое наименование" required="true"
@@ -33,9 +43,9 @@
                     <fs:field-set field-label-location="top"
                                   dependency-condition="typeof id != 'undefined' &amp;&amp; id != null">
                         <fs:row>
-                            <ctrl:date-time id="firstPublicVersionFromDate" label="Дата публикации первой верси"
+                            <ctrl:date-time id="firstPublishedVersionFromDate" label="Дата публикации первой верси"
                                             css-class="n2o-label-9" control-style="width:445px" readonly="true"/>
-                            <ctrl:date-time id="fromDate" label="Дата публикации текущей верси"
+                            <ctrl:date-time id="fromDate" label="Дата публикации текущей версии"
                                             css-class="n2o-label-9" control-style="width:445px" readonly="true"/>
                         </fs:row>
 

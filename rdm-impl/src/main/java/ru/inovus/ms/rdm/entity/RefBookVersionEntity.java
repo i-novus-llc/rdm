@@ -2,8 +2,9 @@ package ru.inovus.ms.rdm.entity;
 
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
+import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.RefBookCreateRequest;
-import ru.inovus.ms.rdm.model.RefBookVersionStatus;
+import ru.inovus.ms.rdm.model.RefBookUpdateRequest;
 import ru.inovus.ms.rdm.model.Structure;
 
 import javax.persistence.*;
@@ -211,9 +212,19 @@ public class RefBookVersionEntity {
         return Objects.hash(id, refBook, fullName, shortName, annotation, structure, storageCode, version, comment, status, fromDate, toDate, creationDate, lastActionDate);
     }
 
+    @PreUpdate
+    public void preUpdate() {
+        lastActionDate = LocalDateTime.now();
+    }
+
     public void populateFrom(RefBookCreateRequest model) {
         this.setFullName(model.getFullName());
         this.setShortName(model.getShortName());
         this.setAnnotation(model.getAnnotation());
+    }
+
+    public void populateFrom(RefBookUpdateRequest model) {
+        populateFrom((RefBookCreateRequest) model);
+        this.setComment(model.getComment());
     }
 }

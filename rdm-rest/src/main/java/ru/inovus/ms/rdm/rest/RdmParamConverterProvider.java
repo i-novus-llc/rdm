@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.rest;
 import ru.inovus.ms.rdm.util.TimeUtils;
 
 import javax.ws.rs.ext.ParamConverter;
+import javax.ws.rs.ext.ParamConverterProvider;
 import javax.ws.rs.ext.Provider;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -10,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 
 @Provider
-public class RdmParamConverterProvider implements javax.ws.rs.ext.ParamConverterProvider {
+public class RdmParamConverterProvider implements ParamConverterProvider {
 
     private LocalDateTimeParamConverter localDateParamConverter = new LocalDateTimeParamConverter();
 

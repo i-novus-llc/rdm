@@ -1,0 +1,66 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<query xmlns:n2o="http://n2oapp.net/framework/config/schema/n2o-query-executions-1.0"
+       xmlns="http://n2oapp.net/framework/config/schema/query-3.0">
+    <object-id>refBook</object-id>
+    <name>Список версий справочника</name>
+    <execution>
+        <n2o:rest>
+            <n2o:query>${rdm.backend.path}/refBook/versions</n2o:query>
+            <n2o:date-format>dd.MM.yyyy HH:mm:ss</n2o:date-format>
+            <n2o:response-mapping collection="content" count="totalElements"/>
+            <n2o:size param-name="size"/>
+            <n2o:page param-name="page"/>
+        </n2o:rest>
+    </execution>
+
+    <fields>
+        <field>
+            <id>id</id>
+            <domain>integer</domain>
+            <display/>
+        </field>
+
+        <field>
+            <id>refBookId</id>
+            <domain>integer</domain>
+            <display/>
+            <filters auto-generate="true"/>
+        </field>
+
+        <field>
+            <id>fromDate</id>
+            <domain>date</domain>
+            <display/>
+        </field>
+
+        <field>
+            <id>version</id>
+            <domain>string</domain>
+            <display/>
+        </field>
+
+        <field>
+            <id>status</id>
+            <domain>string</domain>
+            <display/>
+        </field>
+
+        <field>
+            <id>displayStatus</id>
+            <domain>string</domain>
+            <display/>
+        </field>
+
+        <field>
+            <id>archived</id>
+            <domain>boolean</domain>
+            <display/>
+        </field>
+        
+        <field>
+            <id>refBookHasPublishingVersion</id>
+            <domain>boolean</domain>
+            <display/>
+        </field>
+    </fields>
+</query>
