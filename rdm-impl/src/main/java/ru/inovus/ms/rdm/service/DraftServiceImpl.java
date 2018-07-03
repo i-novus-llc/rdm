@@ -20,6 +20,7 @@ import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.util.RowValuePage;
+import ru.kirkazan.common.exception.CodifiedException;
 
 import java.time.OffsetDateTime;
 import java.util.Collections;
@@ -62,14 +63,14 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public Draft create(Integer refBookId, Structure structure) {
+    public Draft create(Integer refBookId, Structure structure){
         // достать существующий draftVersion по refBookId  и проапдейтить и если старая и новая метада отличается то удалить старый draftCode DropDataService.
         // А если совпадают то удалить данные в нем через ru.i_novus.platform.datastorage.temporal.service.DraftDataService.deleteAllRows
 
         RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
         RefBookVersionEntity draftVersion = getDraftByRefbook(refBookId);
         if (draftVersion == null && lastRefBookVersion == null) {
-            throw new RuntimeException("invalid refbook");
+            throw new CodifiedException("invalid refbook");
         }
         if (draftVersion == null) {
             // create

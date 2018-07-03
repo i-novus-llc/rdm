@@ -190,26 +190,42 @@ public class RefBookVersionEntity {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         RefBookVersionEntity that = (RefBookVersionEntity) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(refBook, that.refBook) &&
-                Objects.equals(fullName, that.fullName) &&
-                Objects.equals(shortName, that.shortName) &&
-                Objects.equals(annotation, that.annotation) &&
-                Objects.equals(structure, that.structure) &&
-                Objects.equals(storageCode, that.storageCode) &&
-                Objects.equals(version, that.version) &&
-                Objects.equals(comment, that.comment) &&
-                Objects.equals(status, that.status) &&
-                Objects.equals(fromDate, that.fromDate) &&
-                Objects.equals(toDate, that.toDate) &&
-                Objects.equals(creationDate, that.creationDate) &&
-                Objects.equals(lastActionDate, that.lastActionDate);
+
+        if (id != null ? !id.equals(that.id) : that.id != null) return false;
+        if (refBook != null ? !refBook.equals(that.refBook) : that.refBook != null) return false;
+        if (fullName != null ? !fullName.equals(that.fullName) : that.fullName != null) return false;
+        if (shortName != null ? !shortName.equals(that.shortName) : that.shortName != null) return false;
+        if (annotation != null ? !annotation.equals(that.annotation) : that.annotation != null) return false;
+        if (structure != null ? !structure.equals(that.structure) : that.structure != null) return false;
+        if (storageCode != null ? !storageCode.equals(that.storageCode) : that.storageCode != null) return false;
+        if (version != null ? !version.equals(that.version) : that.version != null) return false;
+        if (comment != null ? !comment.equals(that.comment) : that.comment != null) return false;
+        if (status != that.status) return false;
+        if (fromDate != null ? !fromDate.equals(that.fromDate) : that.fromDate != null) return false;
+        if (toDate != null ? !toDate.equals(that.toDate) : that.toDate != null) return false;
+        if (creationDate != null ? !creationDate.equals(that.creationDate) : that.creationDate != null) return false;
+        return lastActionDate != null ? lastActionDate.equals(that.lastActionDate) : that.lastActionDate == null;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, refBook, fullName, shortName, annotation, structure, storageCode, version, comment, status, fromDate, toDate, creationDate, lastActionDate);
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (refBook != null ? refBook.hashCode() : 0);
+        result = 31 * result + (fullName != null ? fullName.hashCode() : 0);
+        result = 31 * result + (shortName != null ? shortName.hashCode() : 0);
+        result = 31 * result + (annotation != null ? annotation.hashCode() : 0);
+        result = 31 * result + (structure != null ? structure.hashCode() : 0);
+        result = 31 * result + (storageCode != null ? storageCode.hashCode() : 0);
+        result = 31 * result + (version != null ? version.hashCode() : 0);
+        result = 31 * result + (comment != null ? comment.hashCode() : 0);
+        result = 31 * result + (status != null ? status.hashCode() : 0);
+        result = 31 * result + (fromDate != null ? fromDate.hashCode() : 0);
+        result = 31 * result + (toDate != null ? toDate.hashCode() : 0);
+        result = 31 * result + (creationDate != null ? creationDate.hashCode() : 0);
+        result = 31 * result + (lastActionDate != null ? lastActionDate.hashCode() : 0);
+        return result;
     }
 
     @PreUpdate

@@ -9,15 +9,18 @@ import java.util.List;
 import java.util.Optional;
 
 public class ConverterUtil {
+    private ConverterUtil() {
+    }
+
     public static List<Field> structureToFields(Structure structure, FieldFactory fieldFactory) {
         List<Field> fields = new ArrayList<>();
         if (structure != null) {
-            Optional.ofNullable(structure).ofNullable(structure.getAttributes()).ifPresent(s -> {
-                s.forEach(metaField -> {
-                    Field field = fieldFactory.createField(metaField.getAttributeName(), metaField.getType());
-                    fields.add(field);
-                });
-            });
+            Optional.ofNullable(structure.getAttributes()).ifPresent(s ->
+                    s.forEach(metaField -> {
+                        Field field = fieldFactory.createField(metaField.getAttributeName(), metaField.getType());
+                        fields.add(field);
+                    })
+            );
         }
         return fields;
     }
