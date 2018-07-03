@@ -12,7 +12,7 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriter
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
-import ru.inovus.ms.rdm.model.RefBookVersionStatus;
+import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.model.VersionCriteria;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
