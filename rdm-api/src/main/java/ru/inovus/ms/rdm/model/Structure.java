@@ -4,6 +4,8 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.util.List;
 
+import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+
 public class Structure {
 
     private List<Attribute> attributes;
@@ -11,7 +13,7 @@ public class Structure {
     private List<Reference> references;
 
     public Reference getReference(String attributeName) {
-        if(references == null) {
+        if (isEmpty(references)) {
             return null;
         }
         return references.stream().filter(reference -> reference.getAttribute().equals(attributeName)).findAny()

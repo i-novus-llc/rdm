@@ -8,13 +8,19 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.service.DraftService;
 import ru.inovus.ms.rdm.service.RefBookService;
+import ru.inovus.ms.rdm.service.VersionService;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.List;
 
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.junit.Assert.assertEquals;
@@ -43,6 +49,9 @@ public class ApplicationTest extends TestableDbEnv {
 
     @Autowired
     private DraftService draftService;
+
+    @Autowired
+    private VersionService versionService;
 
     @BeforeClass
     public static void initialize() {
@@ -202,5 +211,16 @@ public class ApplicationTest extends TestableDbEnv {
         Structure structure = new Structure();
         structure.setAttributes(Collections.singletonList(Structure.Attribute.build("name", FieldType.STRING, true)));
         return structure;
+    }
+
+    @Test
+    public void testVersionSearch() {
+        VersionCriteria versionCriteria = new VersionCriteria();
+        Page<RowValue> rowValues = versionService.search(-1, versionCriteria);
+        List fieldValues = rowValues.getContent().get(0).getFieldValues();
+        FieldValue name = new StringFieldValue("name", "name");
+        FieldValue count = new IntegerFieldValue("count", 2);
+        assertEquals(fieldValues.get(0), name);
+        assertEquals(fieldValues.get(1), count);
     }
 }

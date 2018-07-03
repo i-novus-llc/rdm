@@ -1,27 +1,33 @@
 package ru.inovus.ms.rdm.service;
 
 import net.n2oapp.criteria.api.CollectionPage;
-import org.springframework.data.domain.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
+import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
+import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
+import ru.inovus.ms.rdm.util.RowValuePage;
 
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
-import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
-
-import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
-import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
+import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.isPublished;
+import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.isVersionOfRefBook;
+import static ru.inovus.ms.rdm.util.ConverterUtil.structureToFields;
 
 /**
  * Created by tnurdinov on 24.05.2018.
@@ -72,7 +78,7 @@ public class DraftServiceImpl implements DraftService {
             draftVersion.setShortName(lastRefBookVersion.getShortName());
             draftVersion.setAnnotation(lastRefBookVersion.getAnnotation());
             draftVersion.setStructure(structure);
-            List<Field> fields = structureToFields(structure);
+            List<Field> fields = structureToFields(structure, fieldFactory);
             draftVersion.setRefBook(refBookRepository.findOne(refBookId));
             String draftCode = draftDataService.createDraft(fields);
             draftVersion.setStorageCode(draftCode);
@@ -88,7 +94,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private void updateDraft(Structure structure, RefBookVersionEntity draftVersion) {
-        List<Field> fields = structureToFields(structure);
+        List<Field> fields = structureToFields(structure, fieldFactory);
         String draftCode = draftVersion.getStorageCode();
         if (!structure.equals(draftVersion.getStructure())) {
             dropDataService.drop(Collections.singleton(draftCode));
@@ -100,17 +106,6 @@ public class DraftServiceImpl implements DraftService {
         draftVersion.setStructure(structure);
     }
 
-    private List<Field> structureToFields(Structure structure) {
-        List<Field> fields = new ArrayList<>();
-        Optional.ofNullable(structure.getAttributes()).ifPresent(s -> {
-            s.forEach(metaField -> {
-                Field field = fieldFactory.createField(metaField.getAttributeName(), metaField.getType());
-                fields.add(field);
-            });
-        });
-
-        return fields;
-    }
 
     @Override
     public void updateMetadata(Integer draftId, MetadataDiff metadataDiff) {
@@ -131,13 +126,15 @@ public class DraftServiceImpl implements DraftService {
     public Page<RowValue> search(Integer draftId, DraftCriteria criteria) {
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
         String storageCode = draft.getStorageCode();
+        List<Field> fields = structureToFields(draft.getStructure(), fieldFactory);
         DataCriteria dataCriteria = new DataCriteria(storageCode, null, null,
-                structureToFields(draft.getStructure()), criteria.getFieldFilter(), criteria.getCommonFilter());
+                fields, criteria.getFieldFilter(), criteria.getCommonFilter());
         //fields - все поля из draft. fieldFilter и commonFilter из DraftCriteria
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
-        Pageable pageable = new PageRequest(pagedData.getCriteria().getPage(), pagedData.getCriteria().getSize());
-        return new PageImpl<>((List<RowValue>) pagedData.getCollection(), pageable, pagedData.getCount());
+        return new RowValuePage(pagedData);
     }
+
+
 
     @Override
     public void publish(Integer draftId, String versionName, OffsetDateTime versionDate) {

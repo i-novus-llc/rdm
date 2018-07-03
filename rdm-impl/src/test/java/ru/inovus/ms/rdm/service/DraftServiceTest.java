@@ -61,7 +61,6 @@ public class DraftServiceTest {
 
     @Before
     public void setUp() throws Exception {
-        reset(draftDataService);
         when(draftDataService.applyDraft(any(), any(), any())).thenReturn(TEST_STORAGE_CODE);
         when(draftDataService.createDraft(anyList())).thenReturn(TEST_DRAFT_CODE_NEW);
     }
@@ -85,6 +84,7 @@ public class DraftServiceTest {
         verify(draftDataService).applyDraft(isNull(String.class), eq(expectedDraftStorageCode), eq(new Date(now.toInstant().toEpochMilli())));
         verify(versionRepository).save(eq(expectedVersionEntity));
         reset(versionRepository);
+        reset(draftDataService);
     }
 
 
@@ -94,7 +94,6 @@ public class DraftServiceTest {
         when(versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, 2)).thenReturn(testDraftVersion);
         when(versionRepository.save(any(RefBookVersionEntity.class))).thenReturn(testDraftVersion);
         assertEquals(new Draft(1, TEST_DRAFT_CODE), draftService.create(2, testDraftVersion.getStructure()));
-        reset(versionRepository);
     }
 
     @Test
@@ -110,7 +109,6 @@ public class DraftServiceTest {
         Draft draftActual = draftService.create(2, structure);
         assertEquals(testDraftVersion.getId(), draftActual.getId());
         assertNotEquals(TEST_DRAFT_CODE, draftActual.getStorageCode());
-        reset(versionRepository);
     }
 
     @Test
@@ -135,7 +133,6 @@ public class DraftServiceTest {
                         , new PageRequest(1, 1, new Sort(Sort.Direction.DESC, "fromDate")))).thenReturn(lastRefBookVersionPage);
         draftService.create(2, structure);
         verify(versionRepository).save(eq(expectedRefBookVersion));
-        reset(versionRepository);
     }
 
     @Test

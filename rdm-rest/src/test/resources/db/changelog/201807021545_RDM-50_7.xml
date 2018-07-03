@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="201807021545_RDM-50_7_1.0" author="lsharipova" dbms="postgresql">
+        <comment>Создание storage'a</comment>
+        <sql>
+            CREATE SCHEMA IF NOT EXISTS data;
+            CREATE TABLE data.test_storage (
+            name VARCHAR,
+            count INTEGER,
+            "SYS_RECORDID" BIGINT,
+            "FTS" tsvector,
+            "SYS_HASH" char(32),
+            "SYS_PUBLISHTIME" timestamp with time zone,
+            "SYS_CLOSETIME" timestamp with time zone,
+            CONSTRAINT s_pkey PRIMARY KEY ("SYS_RECORDID")
+            );
+            INSERT INTO data.test_storage("SYS_RECORDID", name, count, "SYS_PUBLISHTIME") VALUES (1, 'name', 2, '2018-01-01');
+        </sql>
+    </changeSet>
+    <changeSet id="201807021545_RDM-50_7_2.0" author="lsharipova" dbms="postgresql">
+        <comment>Добавление справочника</comment>
+        <sql>
+            INSERT INTO n2o_rdm_management.ref_book(code, removable) VALUES ('test_ref_book', TRUE);
+
+            INSERT INTO n2o_rdm_management.ref_book_version(id, storage_code, ref_book_id, full_name, short_name,
+            version, status,
+            from_date, to_date, structure)
+            VALUES (-1, 'test_storage', currval('n2o_rdm_management.ref_book_id_seq'), 'Тестовый справочник', 'Тестовый
+            справочник',
+            '1', 'PUBLISHED', '2018-01-01', '2018-02-02', '{"attributes" : [{"attributeName" : "name", "type" :
+            "STRING", "isPrimary" : null, "isRequired" : null },
+            {"attributeName": "count", "type": "INTEGER", "isPrimary" : null, "isRequired" : null}]}');
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

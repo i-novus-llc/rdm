@@ -18,18 +18,19 @@
         </preConditions>
         <sql>
             CREATE TABLE n2o_rdm_management.ref_book (
-                id                   serial  NOT NULL,
-                code                 varchar  NOT NULL,
-                removable            boolean DEFAULT false NOT NULL,
-                archived             boolean DEFAULT false NOT NULL,
+            id serial NOT NULL,
+            code varchar NOT NULL,
+            removable boolean DEFAULT false NOT NULL,
+            archived boolean DEFAULT false NOT NULL,
 
-                CONSTRAINT pk_ref_book_id PRIMARY KEY ( id )
+            CONSTRAINT pk_ref_book_id PRIMARY KEY ( id )
             );
 
             COMMENT ON TABLE n2o_rdm_management.ref_book IS 'Справочник';
             COMMENT ON COLUMN n2o_rdm_management.ref_book.id IS 'Идентификатор';
             COMMENT ON COLUMN n2o_rdm_management.ref_book.code IS 'Код';
-            COMMENT ON COLUMN n2o_rdm_management.ref_book.removable IS 'Признак возможности удаления для справочников, поставляемых разработчиком';
+            COMMENT ON COLUMN n2o_rdm_management.ref_book.removable IS 'Признак возможности удаления для справочников,
+            поставляемых разработчиком';
             COMMENT ON COLUMN n2o_rdm_management.ref_book.archived IS 'Признак архивности';
         </sql>
     </changeSet>
@@ -42,22 +43,23 @@
         </preConditions>
         <sql>
             CREATE TABLE n2o_rdm_management.ref_book_version (
-                id                   serial NOT NULL,
-                ref_book_id          integer NOT NULL,
-                full_name            varchar NOT NULL,
-                short_name           varchar NOT NULL,
-                annotation           varchar,
-                structure            jsonb,
-                version              varchar,
-                comment              varchar,
-                status               smallint NOT NULL,
-                from_date            timestamp,
-                to_date              timestamp,
-                creation_date        timestamp DEFAULT current_timestamp,
-                last_action_date     timestamp DEFAULT current_timestamp,
+            id serial NOT NULL,
+            ref_book_id integer NOT NULL,
+            full_name varchar NOT NULL,
+            short_name varchar NOT NULL,
+            annotation varchar,
+            structure jsonb,
+            version varchar,
+            comment varchar,
+            status smallint NOT NULL,
+            from_date timestamp,
+            to_date timestamp,
+            creation_date timestamp DEFAULT current_timestamp,
+            last_action_date timestamp DEFAULT current_timestamp,
 
-                CONSTRAINT pk_ref_book_version_id PRIMARY KEY ( id ),
-                CONSTRAINT fk_ref_book_version_ref_book_id FOREIGN KEY ( ref_book_id ) REFERENCES n2o_rdm_management.ref_book( id ) ON DELETE RESTRICT ON UPDATE RESTRICT
+            CONSTRAINT pk_ref_book_version_id PRIMARY KEY ( id ),
+            CONSTRAINT fk_ref_book_version_ref_book_id FOREIGN KEY ( ref_book_id ) REFERENCES
+            n2o_rdm_management.ref_book( id ) ON DELETE RESTRICT ON UPDATE RESTRICT
             );
 
             CREATE INDEX ix_ref_book_version_ref_book_id ON n2o_rdm_management.ref_book_version ( ref_book_id );
@@ -69,16 +71,18 @@
             COMMENT ON COLUMN n2o_rdm_management.ref_book_version.short_name IS 'Краткое наименование';
             COMMENT ON COLUMN n2o_rdm_management.ref_book_version.annotation IS 'Аннотация';
             COMMENT ON COLUMN n2o_rdm_management.ref_book_version.structure IS 'Страктура справочника: поля, ключи';
-            COMMENT ON COLUMN n2o_rdm_management.ref_book_version.version IS 'Номер версии (при публикации обязательно)';
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_version.version IS 'Номер версии (при публикации
+            обязательно)';
             COMMENT ON COLUMN n2o_rdm_management.ref_book_version.comment IS 'Комментарий к версии';
             COMMENT ON COLUMN n2o_rdm_management.ref_book_version.status IS 'Статус справочника
-                0 DRAFT		Черновик
-                1 PUBLISHING	Публикуется
-                2 PUBLISHED	Опубликовано';
+            0 DRAFT Черновик
+            1 PUBLISHING Публикуется
+            2 PUBLISHED Опубликовано';
             COMMENT ON COLUMN n2o_rdm_management.ref_book_version.from_date IS 'Дата начала активности записи';
             COMMENT ON COLUMN n2o_rdm_management.ref_book_version.to_date IS 'Дата окончания активности записи';
             COMMENT ON COLUMN n2o_rdm_management.ref_book_version.creation_date IS 'Дата создания записи';
-            COMMENT ON COLUMN n2o_rdm_management.ref_book_version.last_action_date IS 'Дата последнего действия над записью. Можно использовать для оптимистичной блокировки';
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_version.last_action_date IS 'Дата последнего действия над
+            записью. Можно использовать для оптимистичной блокировки';
         </sql>
     </changeSet>
 
@@ -97,6 +101,15 @@
     <changeSet id="201806051640_RDM-33_5" author="ekrasulina" dbms="postgresql">
         <sql>
             ALTER TABLE n2o_rdm_management.ref_book_version ALTER COLUMN status TYPE varchar(10);
+        </sql>
+    </changeSet>
+
+    <changeSet id="201807031455_RDM-50_7" author="lsharipova" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="ref_book_version" columnName="storage_code" schemaName="n2o_rdm_management"/>
+        </preConditions>
+        <sql>
+            ALTER TABLE n2o_rdm_management.ref_book_version ALTER COLUMN storage_code TYPE VARCHAR(100);
         </sql>
     </changeSet>
 
