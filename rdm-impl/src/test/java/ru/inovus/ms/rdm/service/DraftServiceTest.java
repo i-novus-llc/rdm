@@ -99,7 +99,6 @@ public class DraftServiceTest {
     @Test
     public void testCreateWithExistingDraftDifferentStructure() throws Exception {
         RefBookVersionEntity testDraftVersion = createTestDraftVersion();
-        String oldStorageCode = testDraftVersion.getStorageCode();
         when(versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, 2)).thenReturn(testDraftVersion);
         when(versionRepository.save(any(RefBookVersionEntity.class))).thenReturn(testDraftVersion);
         when(fieldFactory.createField(any(), any())).thenReturn(null);
