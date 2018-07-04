@@ -185,6 +185,7 @@ public class RefBookVersionEntity {
             lastActionDate = now;
     }
 
+    @SuppressWarnings(value = "all")
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
