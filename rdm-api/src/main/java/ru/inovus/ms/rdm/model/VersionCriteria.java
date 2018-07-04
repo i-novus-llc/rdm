@@ -2,10 +2,8 @@ package ru.inovus.ms.rdm.model;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
 
 import javax.ws.rs.QueryParam;
-import java.util.List;
 
 @ApiModel("Критерии поиска версий справочника")
 public class VersionCriteria extends AbstractCriteria {
