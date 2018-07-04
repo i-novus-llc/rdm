@@ -185,9 +185,7 @@ public class RefBookVersionEntity {
             lastActionDate = now;
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
-            value = "COGNITIVE_COMPLEXITY",
-            justification = "equals method can not be shorter")
+    @SuppressWarnings("all")
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
