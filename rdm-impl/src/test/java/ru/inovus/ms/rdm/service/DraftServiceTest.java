@@ -45,19 +45,19 @@ public class DraftServiceTest {
     private DraftServiceImpl draftService;
 
     @Mock
-    RefBookVersionRepository versionRepository;
+    private RefBookVersionRepository versionRepository;
 
     @Mock
-    DraftDataService draftDataService;
+    private DraftDataService draftDataService;
 
     @Mock
-    FieldFactory fieldFactory;
+    private FieldFactory fieldFactory;
 
     @Mock
-    DropDataService dropDataService;
+    private DropDataService dropDataService;
 
     @Mock
-    RefBookRepository refBookRepository;
+    private RefBookRepository refBookRepository;
 
     @Before
     public void setUp() throws Exception {

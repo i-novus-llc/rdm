@@ -32,14 +32,14 @@ public class VersionServiceTest {
     private static final String TEST_STORAGE_CODE = "test_storage_code";
 
     @InjectMocks
-    VersionServiceImpl versionService;
+    private VersionServiceImpl versionService;
 
 
     @Mock
-    RefBookVersionRepository versionRepository;
+    private RefBookVersionRepository versionRepository;
 
     @Mock
-    SearchDataService searchDataService;
+    private SearchDataService searchDataService;
 
     @Test
     public void testSearchVersion() {
