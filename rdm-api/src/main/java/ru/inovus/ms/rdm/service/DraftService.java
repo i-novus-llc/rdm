@@ -15,6 +15,10 @@ import java.time.OffsetDateTime;
 public interface DraftService {
     @POST
     @ApiOperation("Создание нового черновика")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Черновик создан"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
     Draft create(Integer refBookId, Structure structure);
 
     void updateMetadata(Integer draftId, MetadataDiff metadataDiff);
@@ -29,7 +33,7 @@ public interface DraftService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет черновика")
     })
-    Page<RowValue> search(Integer draftId, DraftCriteria criteria);
+    Page<RowValue> search(Integer draftId, SearchDataCriteria criteria);
 
     @POST
     @Path("{draftId}/publish")

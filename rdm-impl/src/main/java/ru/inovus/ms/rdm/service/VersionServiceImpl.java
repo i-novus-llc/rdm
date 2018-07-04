@@ -10,8 +10,8 @@ import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
+import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.model.VersionCriteria;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 import ru.inovus.ms.rdm.util.RowValuePage;
@@ -38,7 +38,7 @@ public class VersionServiceImpl implements VersionService {
     }
 
     @Override
-    public Page<RowValue> search(Integer versionId, VersionCriteria criteria) {
+    public Page<RowValue> search(Integer versionId, SearchDataCriteria criteria) {
         RefBookVersionEntity version = versionRepository.findOne(versionId);
         List<Field> fields = ConverterUtil.structureToFields(version.getStructure(), fieldFactory);
         Date bdate = version.getFromDate() != null ? Date.from(version.getFromDate().atZone(ZoneOffset.UTC).toInstant()) : null;

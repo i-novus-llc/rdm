@@ -312,8 +312,8 @@ public class ApplicationTest extends TestableDbEnv {
 
     @Test
     public void testVersionSearch() {
-        VersionCriteria versionCriteria = new VersionCriteria();
-        Page<RowValue> rowValues = versionService.search(-1, versionCriteria);
+        SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
+        Page<RowValue> rowValues = versionService.search(-1, searchDataCriteria);
         List fieldValues = rowValues.getContent().get(0).getFieldValues();
         FieldValue name = new StringFieldValue("name", "name");
         FieldValue count = new IntegerFieldValue("count", 2);

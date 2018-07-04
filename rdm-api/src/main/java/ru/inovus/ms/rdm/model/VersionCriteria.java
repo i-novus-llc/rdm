@@ -18,9 +18,6 @@ public class VersionCriteria extends AbstractCriteria {
     @QueryParam("excludeDraft")
     private Boolean excludeDraft;
 
-    private List<FieldSearchCriteria> fieldFilter;
-    private String commonFilter;
-
     public VersionCriteria() {
         super();
     }
@@ -39,20 +36,5 @@ public class VersionCriteria extends AbstractCriteria {
 
     public void setExcludeDraft(Boolean excludeDraft) {
         this.excludeDraft = excludeDraft;
-    }
-    public List<FieldSearchCriteria> getFieldFilter() {
-        return fieldFilter;
-    }
-
-    public void setFieldFilter(List<FieldSearchCriteria> fieldFilter) {
-        this.fieldFilter = fieldFilter;
-    }
-
-    public String getCommonFilter() {
-        return commonFilter;
-    }
-
-    public void setCommonFilter(String commonFilter) {
-        this.commonFilter = commonFilter;
     }
 }

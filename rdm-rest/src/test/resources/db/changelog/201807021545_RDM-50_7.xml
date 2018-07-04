@@ -31,9 +31,9 @@
             from_date, to_date, structure)
             VALUES (-1, 'test_storage', currval('n2o_rdm_management.ref_book_id_seq'), 'Тестовый справочник', 'Тестовый
             справочник',
-            '1', 'PUBLISHED', '2018-01-01', '2018-02-02', '{"attributes" : [{"attributeName" : "name", "type" :
+            '1', 'PUBLISHED', '2018-01-01', '2018-02-02', '{"attributes" : [{"name" : "name", "type" :
             "STRING", "isPrimary" : null, "isRequired" : null },
-            {"attributeName": "count", "type": "INTEGER", "isPrimary" : null, "isRequired" : null}]}');
+            {"name": "count", "type": "INTEGER", "isPrimary" : null, "isRequired" : null}]}');
         </sql>
     </changeSet>
 

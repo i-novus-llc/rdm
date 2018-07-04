@@ -63,40 +63,37 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public Draft create(Integer refBookId, Structure structure){
-        // достать существующий draftVersion по refBookId  и проапдейтить и если старая и новая метада отличается то удалить старый draftCode DropDataService.
-        // А если совпадают то удалить данные в нем через ru.i_novus.platform.datastorage.temporal.service.DraftDataService.deleteAllRows
-
+    public Draft create(Integer refBookId, Structure structure) {
         RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
         RefBookVersionEntity draftVersion = getDraftByRefbook(refBookId);
         if (draftVersion == null && lastRefBookVersion == null) {
             throw new CodifiedException("invalid refbook");
         }
+        List<Field> fields = structureToFields(structure, fieldFactory);
         if (draftVersion == null) {
-            // create
-            draftVersion = new RefBookVersionEntity();
-            draftVersion.setStatus(RefBookVersionStatus.DRAFT);
-            draftVersion.setFullName(lastRefBookVersion.getFullName());
-            draftVersion.setShortName(lastRefBookVersion.getShortName());
-            draftVersion.setAnnotation(lastRefBookVersion.getAnnotation());
-            draftVersion.setStructure(structure);
-            List<Field> fields = structureToFields(structure, fieldFactory);
+            draftVersion = newDraftVersion(structure, lastRefBookVersion);
             draftVersion.setRefBook(refBookRepository.findOne(refBookId));
             String draftCode = draftDataService.createDraft(fields);
             draftVersion.setStorageCode(draftCode);
         } else {
-            updateDraft(structure, draftVersion);
+            updateDraft(structure, draftVersion, fields);
         }
         RefBookVersionEntity savedDraftVersion = versionRepository.save(draftVersion);
         return new Draft(savedDraftVersion.getId(), savedDraftVersion.getStorageCode());
     }
 
-    private RefBookVersionEntity getDraftByRefbook(Integer refBookId) {
-        return versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
+    private RefBookVersionEntity newDraftVersion(Structure structure, RefBookVersionEntity lastRefBookVersion) {
+        RefBookVersionEntity draftVersion;
+        draftVersion = new RefBookVersionEntity();
+        draftVersion.setStatus(RefBookVersionStatus.DRAFT);
+        draftVersion.setFullName(lastRefBookVersion.getFullName());
+        draftVersion.setShortName(lastRefBookVersion.getShortName());
+        draftVersion.setAnnotation(lastRefBookVersion.getAnnotation());
+        draftVersion.setStructure(structure);
+        return draftVersion;
     }
 
-    private void updateDraft(Structure structure, RefBookVersionEntity draftVersion) {
-        List<Field> fields = structureToFields(structure, fieldFactory);
+    private void updateDraft(Structure structure, RefBookVersionEntity draftVersion, List<Field> fields) {
         String draftCode = draftVersion.getStorageCode();
         if (!structure.equals(draftVersion.getStructure())) {
             dropDataService.drop(Collections.singleton(draftCode));
@@ -106,6 +103,10 @@ public class DraftServiceImpl implements DraftService {
             draftDataService.deleteAllRows(draftCode);
         }
         draftVersion.setStructure(structure);
+    }
+
+    private RefBookVersionEntity getDraftByRefbook(Integer refBookId) {
+        return versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
     }
 
 
@@ -125,17 +126,15 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
-    public Page<RowValue> search(Integer draftId, DraftCriteria criteria) {
+    public Page<RowValue> search(Integer draftId, SearchDataCriteria criteria) {
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
         String storageCode = draft.getStorageCode();
         List<Field> fields = structureToFields(draft.getStructure(), fieldFactory);
         DataCriteria dataCriteria = new DataCriteria(storageCode, null, null,
                 fields, criteria.getFieldFilter(), criteria.getCommonFilter());
-        //fields - все поля из draft. fieldFilter и commonFilter из DraftCriteria
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
         return new RowValuePage(pagedData);
     }
-
 
 
     @Override

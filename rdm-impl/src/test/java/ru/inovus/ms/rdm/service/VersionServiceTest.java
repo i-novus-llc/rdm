@@ -6,22 +6,18 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
-import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.model.VersionCriteria;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
@@ -45,23 +41,19 @@ public class VersionServiceTest {
     @Mock
     SearchDataService searchDataService;
 
-    @Mock
-    FieldFactory fieldFactory;
-
     @Test
     public void testSearchVersion() {
         RefBookVersionEntity testVersion = createTestVersion();
         when(versionRepository.findOne(anyInt())).thenReturn(testVersion);
-        when(fieldFactory.createField(any(), any())).thenReturn(null);
         when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>());
         Date bdate = testVersion.getFromDate() != null ? Date.from(testVersion.getFromDate().atZone(ZoneOffset.UTC).toInstant()) : null;
         Date edate = testVersion.getToDate() != null ? Date.from(testVersion.getToDate().atZone(ZoneOffset.UTC).toInstant()) : null;
-        VersionCriteria versionCriteria = new VersionCriteria();
-        versionCriteria.setFieldFilter(new ArrayList<FieldSearchCriteria>());
-        versionCriteria.setCommonFilter("commonFilter");
-        DataCriteria dataCriteria = new DataCriteria(TEST_STORAGE_CODE, bdate, edate, new ArrayList<Field>(),
-                versionCriteria.getFieldFilter(), versionCriteria.getCommonFilter());
-        versionService.search(1, versionCriteria);
+        SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
+        searchDataCriteria.setFieldFilter(new ArrayList<>());
+        searchDataCriteria.setCommonFilter("commonFilter");
+        DataCriteria dataCriteria = new DataCriteria(TEST_STORAGE_CODE, bdate, edate, new ArrayList<>(),
+                searchDataCriteria.getFieldFilter(), searchDataCriteria.getCommonFilter());
+        versionService.search(1, searchDataCriteria);
         verify(searchDataService).getPagedData(eq(dataCriteria));
     }
 

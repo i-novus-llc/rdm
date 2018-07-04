@@ -63,7 +63,7 @@ public class StructureType implements UserType {
         List<Structure.Reference> references = new ArrayList<>();
         if (attributesJson.isArray()) {
             for (JsonNode attributeJson : attributesJson) {
-                String name = getByKey(attributeJson, "attributeName", JsonNode::asText);
+                String name = getByKey(attributeJson, "name", JsonNode::asText);
                 String type = getByKey(attributeJson, "type", JsonNode::asText);
                 boolean isPrimary = getByKey(attributeJson, "isPrimary", JsonNode::asBoolean);
                 boolean isRequired = getByKey(attributeJson, "isRequired", JsonNode::asBoolean);
@@ -120,11 +120,11 @@ public class StructureType implements UserType {
 
     private ObjectNode createAttributeJson(Structure.Attribute attribute, Structure structure) {
         ObjectNode attributeJson = MAPPER.createObjectNode();
-        attributeJson.put("attributeName", attribute.getAttributeName());
+        attributeJson.put("name", attribute.getName());
         attributeJson.put("type", attribute.getType().name());
         attributeJson.put("isPrimary", attribute.isPrimary());
         attributeJson.put("isRequired", attribute.isRequired());
-        Structure.Reference reference = structure.getReference(attribute.getAttributeName());
+        Structure.Reference reference = structure.getReference(attribute.getName());
         if (reference != null) {
             attributeJson.put("referenceVersion", reference.getReferenceVersion());
             attributeJson.put("referenceAttribute", reference.getReferenceAttribute());

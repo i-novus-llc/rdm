@@ -16,8 +16,8 @@ public class ConverterUtil {
         List<Field> fields = new ArrayList<>();
         if (structure != null) {
             Optional.ofNullable(structure.getAttributes()).ifPresent(s ->
-                    s.forEach(metaField -> {
-                        Field field = fieldFactory.createField(metaField.getAttributeName(), metaField.getType());
+                    s.forEach(attribute -> {
+                        Field field = fieldFactory.createField(attribute.getName(), attribute.getType());
                         fields.add(field);
                     })
             );
