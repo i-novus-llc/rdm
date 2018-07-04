@@ -9,7 +9,6 @@ import ru.inovus.ms.rdm.model.Structure;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Entity
 @Table(name = "ref_book_version", schema = "n2o_rdm_management")
