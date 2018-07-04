@@ -15,7 +15,7 @@
         <action id="create" form-submit-label="Сохранить">
             <invocation>
                 <n2o:rest method="POST">
-                    <n2o:query>${rdm.backend.path}/refbook</n2o:query>
+                    <n2o:query>${rdm.backend.path}/refBook</n2o:query>
                 </n2o:rest>
             </invocation>
             <in-parameters>
@@ -31,6 +31,28 @@
                 <validation ref-id="checkCode"/>
             </validations>
             <success-text>Справочник успешно сохранен</success-text>
+        </action>
+
+        <action id="update" form-submit-label="Сохранить">
+            <invocation>
+                <n2o:rest method="PUT">
+                    <n2o:query>${rdm.backend.path}/refBook</n2o:query>
+                </n2o:rest>
+            </invocation>
+            <in-parameters>
+                <param name="id"/>
+                <param name="code"/>
+                <param name="fullName"/>
+                <param name="shortName"/>
+                <param name="annotation"/>
+                <param name="comment"/>
+            </in-parameters>
+            <out-parameters>
+                <param name="id" mapping="['id']" domain="integer"/>
+            </out-parameters>
+            <validations activate="whiteList">
+                <validation ref-id="checkCode"/>
+            </validations>
         </action>
     </actions>
 

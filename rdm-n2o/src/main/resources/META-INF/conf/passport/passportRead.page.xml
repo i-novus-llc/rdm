@@ -24,7 +24,7 @@
                         <ctrl:output-text id="annotation" label="4.Аннотация" label-style="font-weight:bold" control-style="width:700px">
                             <ctrl:set-value-expression><![CDATA[ annotation.replace('<p>', '').replace('</p>', '');]]></ctrl:set-value-expression>
                         </ctrl:output-text>
-                        <ctrl:output-text id="firstPublicVersionFromDate" label="5.Дата публикации первой версии" label-style="font-weight:bold"/>
+                        <ctrl:output-text id="firstPublishedVersionFromDate" label="5.Дата публикации первой версии" label-style="font-weight:bold"/>
                         <ctrl:output-text id="fromDate" label="6.Дата публикации текущей версии" label-style="font-weight:bold"/>
                         <ctrl:output-text id="version" label="7.Номер текущей версии" label-style="font-weight:bold"/>
                         <ctrl:output-text id="recordsCount" label="8.Количество записей в текущей версии" label-style="font-weight:bold"/>

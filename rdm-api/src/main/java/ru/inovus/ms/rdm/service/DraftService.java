@@ -1,8 +1,8 @@
 package ru.inovus.ms.rdm.service;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.*;
+import org.springframework.data.domain.Page;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.model.*;
 
 import javax.ws.rs.*;
@@ -13,22 +13,37 @@ import java.time.OffsetDateTime;
 @Consumes("application/json")
 @Api("Методы работы с черновиками")
 public interface DraftService {
-    Draft create(Long dictionaryId, Structure structure);
-    void updateMetadata(Long draftId, MetadataDiff metadataDiff);
-    void updateData(Long draftId, DataDiff dataDiff);
-    void updateData(Long draftId, FileData file);
+    @POST
+    @ApiOperation("Создание нового черновика")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Черновик создан"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    Draft create(Integer refBookId, Structure structure);
 
+    void updateMetadata(Integer draftId, MetadataDiff metadataDiff);
 
-    Data search(Long draftId, DraftCriteria criteria);
+    void updateData(Integer draftId, DataDiff dataDiff);
+
+    void updateData(Integer draftId, FileData file);
+
+    @GET
+    @ApiOperation("Получения записей черновика, с фильтрацией")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет черновика")
+    })
+    Page<RowValue> search(Integer draftId, SearchDataCriteria criteria);
 
     @POST
     @Path("{draftId}/publish")
     @ApiOperation("Публикация черновика")
     void publish(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId, @ApiParam("Версия") @QueryParam("version") String version, @ApiParam("Дата публикации") @QueryParam("date") OffsetDateTime versionDate);
 
-    void remove(Long draftId);
+    void remove(Integer draftId);
 
-    Structure getMetadata(Long draftId);
+    Structure getMetadata(Integer draftId);
 
+    Draft getDraft(Integer draftId);
 
 }
