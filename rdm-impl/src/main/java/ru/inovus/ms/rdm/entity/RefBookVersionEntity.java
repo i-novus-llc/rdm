@@ -215,7 +215,7 @@ public class RefBookVersionEntity {
 
     @Override
     public String toString() {
-        final StringBuffer sb = new StringBuffer("RefBookVersionEntity{");
+        final StringBuilder sb = new StringBuilder("RefBookVersionEntity{");
         sb.append("id=").append(id);
         sb.append(", refBook=").append(refBook);
         sb.append(", fullName='").append(fullName).append('\'');
