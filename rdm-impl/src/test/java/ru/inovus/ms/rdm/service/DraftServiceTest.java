@@ -1,6 +1,9 @@
 package ru.inovus.ms.rdm.service;
 
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import net.n2oapp.platform.i18n.UserException;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,9 +24,11 @@ import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
+import java.time.OffsetDateTime;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -31,9 +36,7 @@ import static org.mockito.Mockito.*;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.isPublished;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.isVersionOfRefBook;
 
-/**
- * Created by tnurdinov on 21.06.2018.
- */
+
 @RunWith(MockitoJUnitRunner.class)
 public class DraftServiceTest {
 
@@ -78,13 +81,12 @@ public class DraftServiceTest {
 
         when(versionRepository.findOne(eq(testDraftVersion.getId()))).thenReturn(testDraftVersion);
         when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(null);
-        OffsetDateTime now = OffsetDateTime.now();
-        draftService.publish(testDraftVersion.getId(), "1.0", now);
+        LocalDateTime now = LocalDateTime.now();
+        draftService.publish(testDraftVersion.getId(), "1.0", now, null);
 
-        verify(draftDataService).applyDraft(isNull(String.class), eq(expectedDraftStorageCode), eq(new Date(now.toInstant().toEpochMilli())));
+        verify(draftDataService).applyDraft(isNull(String.class), eq(expectedDraftStorageCode), eq(Date.from(now.atZone(ZoneId.systemDefault()).toInstant())));
         verify(versionRepository).save(eq(expectedVersionEntity));
         reset(versionRepository);
-        reset(draftDataService);
     }
 
 

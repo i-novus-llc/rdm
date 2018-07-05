@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.repositiory;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import ru.inovus.ms.rdm.entity.QRefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 
@@ -73,5 +74,28 @@ public final class RefBookVersionPredicates {
 
         return anyVersion.fromDate.eq(dateTime).or(anyVersion.fromDate.before(dateTime))
                 .and(anyVersion.fromDate.after(dateTime).not());
+    }
+
+    public static BooleanExpression hasOverlappingPeriods(LocalDateTime fromDate, LocalDateTime toDate) {
+
+        return QRefBookVersionEntity.refBookVersionEntity.fromDate.coalesce(LocalDateTime.MIN).asDateTime().before(toDate)
+                .and(QRefBookVersionEntity.refBookVersionEntity.toDate.coalesce(LocalDateTime.MAX).asDateTime().after(fromDate));
+    }
+
+    public static BooleanExpression hasOverlappingPeriodsInFuture(LocalDateTime fromDate, LocalDateTime toDate, LocalDateTime now) {
+
+        if(fromDate == null || fromDate.isBefore(now)) {
+            fromDate = now;
+        }
+
+        if(toDate != null && toDate.isAfter(now)) {
+            return QRefBookVersionEntity.refBookVersionEntity.fromDate.coalesce(LocalDateTime.MIN).asDateTime().before(toDate)
+                    .and(QRefBookVersionEntity.refBookVersionEntity.toDate.coalesce(LocalDateTime.MAX).asDateTime().after(fromDate))
+                    .and(QRefBookVersionEntity.refBookVersionEntity.toDate.coalesce(LocalDateTime.MAX).asDateTime().after(now));
+        } else {
+            return Expressions.asBoolean(true).isFalse();
+        }
+
+
     }
 }

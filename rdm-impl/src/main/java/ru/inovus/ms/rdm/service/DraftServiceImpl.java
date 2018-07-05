@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.service;
 
 import net.n2oapp.criteria.api.CollectionPage;
+import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,18 +23,15 @@ import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.util.RowValuePage;
 import ru.kirkazan.common.exception.CodifiedException;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.isPublished;
-import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.isVersionOfRefBook;
+import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
 import static ru.inovus.ms.rdm.util.ConverterUtil.structureToFields;
 
-/**
- * Created by tnurdinov on 24.05.2018.
- */
 @Service
 public class DraftServiceImpl implements DraftService {
 
@@ -138,21 +136,82 @@ public class DraftServiceImpl implements DraftService {
 
 
     @Override
-    public void publish(Integer draftId, String versionName, OffsetDateTime versionDate) {
+    public void publish(Integer draftId, String versionName, LocalDateTime fromDate, LocalDateTime toDate) {
         RefBookVersionEntity draftVersion = versionRepository.findOne(draftId);
-        RefBookVersionEntity lastPublishedVersion = getLastRefBookVersion(draftVersion.getRefBook().getId());
+        validateOverlappingPeriodsInLast(fromDate, toDate, draftVersion.getRefBook().getId());
+        RefBookVersionEntity lastPublishedVersion = getLastPublishedVersion(draftVersion);
         String storageCode = draftDataService.applyDraft(
                 lastPublishedVersion != null ? lastPublishedVersion.getStorageCode() : null,
                 draftVersion.getStorageCode(),
-                new Date(versionDate.toInstant().toEpochMilli())
+                Date.from(fromDate.atZone(ZoneId.systemDefault()).toInstant())
         );
-        if (lastPublishedVersion == null) {
-            draftVersion.setVersion("1.0");
-        }
         draftVersion.setStorageCode(storageCode);
         draftVersion.setVersion(versionName);
         draftVersion.setStatus(RefBookVersionStatus.PUBLISHED);
+        resolveOverlappingPeriodsInFuture(fromDate, toDate, draftVersion.getRefBook().getId());
         versionRepository.save(draftVersion);
+    }
+
+    protected RefBookVersionEntity getLastPublishedVersion(RefBookVersionEntity draftVersion) {
+        Page<RefBookVersionEntity> lastPublishedVersions = versionRepository
+                .findAll(isPublished().and(isVersionOfRefBook(draftVersion.getRefBook().getId()))
+                        , new PageRequest(1, 1, new Sort(Sort.Direction.DESC, "fromDate")));
+        return lastPublishedVersions != null && lastPublishedVersions.hasContent() ? lastPublishedVersions.getContent().get(0) : null;
+    }
+
+
+
+    private void validateOverlappingPeriodsInLast(LocalDateTime fromDate, LocalDateTime toDate, Integer refBookId) {
+        LocalDateTime now = LocalDateTime.now();
+        if(fromDate == null || fromDate.isAfter(now)) {
+            return;
+        }
+        if(toDate == null || toDate.isAfter(now)) {
+            toDate = now;
+        }
+
+        RefBookVersionEntity refBookVersion = versionRepository.findOne(
+                hasOverlappingPeriods(fromDate, toDate)
+                        .and(isVersionOfRefBook(refBookId))
+                        .and(isPublished())
+        );
+        if(refBookVersion != null) {
+            throw new UserException("overlapping.version.err");
+        }
+
+    }
+
+    private void resolveOverlappingPeriodsInFuture(LocalDateTime fromDate, LocalDateTime toDate, Integer refBookId) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime newFromDate;
+        if(toDate == null) {
+            toDate = LocalDateTime.MAX;
+        }
+        if(!toDate.isAfter(now)) {
+            return;
+        }
+
+        if(fromDate == null || fromDate.isBefore(now)) {
+            newFromDate = now;
+        } else {
+            newFromDate = fromDate;
+        }
+
+        Iterable<RefBookVersionEntity> versions = versionRepository.findAll(
+                hasOverlappingPeriods(newFromDate, toDate)
+                        .and(isVersionOfRefBook(refBookId))
+                        .and(isPublished())
+        );
+        if(versions != null) {
+            versions.forEach(version -> {
+                if(fromDate != null && fromDate.isAfter(version.getFromDate())) {
+                   version.setToDate(fromDate);
+                } else {
+                    version.setToDate(version.getFromDate());
+                }
+                versionRepository.save(version);
+            });
+        }
     }
 
     private RefBookVersionEntity getLastRefBookVersion(Integer refBookId) {

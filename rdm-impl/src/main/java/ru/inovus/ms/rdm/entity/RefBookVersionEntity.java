@@ -213,6 +213,27 @@ public class RefBookVersionEntity {
         return Objects.hash(id, refBook, fullName, shortName, annotation, structure, storageCode, version, comment, status, fromDate, toDate, creationDate, lastActionDate);
     }
 
+    @Override
+    public String toString() {
+        final StringBuffer sb = new StringBuffer("RefBookVersionEntity{");
+        sb.append("id=").append(id);
+        sb.append(", refBook=").append(refBook);
+        sb.append(", fullName='").append(fullName).append('\'');
+        sb.append(", shortName='").append(shortName).append('\'');
+        sb.append(", annotation='").append(annotation).append('\'');
+        sb.append(", structure=").append(structure);
+        sb.append(", storageCode='").append(storageCode).append('\'');
+        sb.append(", version='").append(version).append('\'');
+        sb.append(", comment='").append(comment).append('\'');
+        sb.append(", status=").append(status);
+        sb.append(", fromDate=").append(fromDate);
+        sb.append(", toDate=").append(toDate);
+        sb.append(", creationDate=").append(creationDate);
+        sb.append(", lastActionDate=").append(lastActionDate);
+        sb.append('}');
+        return sb.toString();
+    }
+
     public void populateFrom(RefBookCreateRequest model) {
         this.setFullName(model.getFullName());
         this.setShortName(model.getShortName());

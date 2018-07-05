@@ -6,7 +6,7 @@ import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.model.*;
 
 import javax.ws.rs.*;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 
 @Path("/draft")
 @Produces("application/json")
@@ -38,7 +38,10 @@ public interface DraftService {
     @POST
     @Path("{draftId}/publish")
     @ApiOperation("Публикация черновика")
-    void publish(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId, @ApiParam("Версия") @QueryParam("version") String version, @ApiParam("Дата публикации") @QueryParam("date") OffsetDateTime versionDate);
+    void publish(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
+                 @ApiParam("Версия") @QueryParam("version") String version,
+                 @ApiParam("Дата начала действия версии") @QueryParam("fromDate") LocalDateTime fromDate,
+                 @ApiParam("Дата окончания действия версии") @QueryParam("toDate") LocalDateTime toDate);
 
     void remove(Integer draftId);
 
