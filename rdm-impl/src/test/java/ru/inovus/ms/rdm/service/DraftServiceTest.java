@@ -28,7 +28,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
-import java.time.OffsetDateTime;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -87,6 +86,75 @@ public class DraftServiceTest {
         verify(draftDataService).applyDraft(isNull(String.class), eq(expectedDraftStorageCode), eq(Date.from(now.atZone(ZoneId.systemDefault()).toInstant())));
         verify(versionRepository).save(eq(expectedVersionEntity));
         reset(versionRepository);
+    }
+
+    @Test
+    public void testPublishOverlappingInLast() throws Exception {
+        RefBookVersionEntity versionEntity = createTestPublishedVersion();
+        RefBookVersionEntity draftVersion = createTestDraftVersion();
+        LocalDateTime publishDate = LocalDateTime.now();
+
+        when(versionRepository.findOne(eq(draftVersion.getId()))).thenReturn(draftVersion);
+        when(versionRepository.findOne(any( BooleanExpression.class))).thenReturn(versionEntity);
+        when(versionRepository.findAll(any(Predicate.class))).thenReturn(new PageImpl(Collections.singletonList(versionEntity)));
+        try {
+            draftService.publish(draftVersion.getId(), "1.0", publishDate, null);
+            Assert.fail("publish overlapping version");
+        } catch (UserException e) {
+            Assert.assertEquals("overlapping.version.err", e.getCode());
+        }
+
+        reset(versionRepository);
+
+    }
+
+    @Test
+    public void testPublishNextVersionWithSameStructure() throws Exception {
+
+        RefBookVersionEntity versionEntity = createTestPublishedVersion();
+        versionEntity.setVersion("2.1");
+
+        RefBookVersionEntity draft = createTestDraftVersion();
+        draft.setStructure(versionEntity.getStructure());
+
+        String expectedDraftStorageCode = draft.getStorageCode();
+
+        RefBookVersionEntity expectedVersionEntity = createTestDraftVersion();
+        expectedVersionEntity.setVersion("2.2");
+        expectedVersionEntity.setStatus(RefBookVersionStatus.PUBLISHED);
+        expectedVersionEntity.setStorageCode(TEST_STORAGE_CODE);
+
+
+        when(versionRepository.findOne(eq(draft.getId()))).thenReturn(draft);
+        when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(new PageImpl(Collections.singletonList(versionEntity)));
+
+
+        LocalDateTime now = LocalDateTime.now();
+        draftService.publish(draft.getId(), expectedVersionEntity.getVersion(), now, null);
+
+        verify(draftDataService).applyDraft(eq(versionEntity.getStorageCode()), eq(expectedDraftStorageCode), eq(Date.from(now.atZone(ZoneId.systemDefault()).toInstant())));
+        verify(versionRepository).save(eq(expectedVersionEntity));
+        reset(versionRepository);
+    }
+
+    @Test
+    public void testPublishNextVersionWithSameStructureWithPeriodsOverlappingInFuture() throws Exception {
+
+        LocalDateTime publishDate = LocalDateTime.now();
+
+        RefBookVersionEntity overlappingVersionEntity = createTestPublishedVersion();
+        overlappingVersionEntity.setFromDate(LocalDateTime.of(2017, 1, 1, 1, 1));
+        RefBookVersionEntity expectedVersionEntity = createTestPublishedVersion();
+        expectedVersionEntity.setToDate(publishDate);
+        expectedVersionEntity.setFromDate(overlappingVersionEntity.getFromDate());
+        RefBookVersionEntity draftVersion = createTestDraftVersion();
+
+        when(versionRepository.findOne(eq(draftVersion.getId()))).thenReturn(draftVersion);
+        when(versionRepository.findAll(any(Predicate.class))).thenReturn(new PageImpl(Collections.singletonList(overlappingVersionEntity)));
+
+        draftService.publish(draftVersion.getId(), "2.4", publishDate, null);
+        verify(versionRepository, times(1)).save(eq(expectedVersionEntity));
+
     }
 
 

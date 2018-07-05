@@ -4,7 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
 
-    <changeSet id="201807021545_RDM-50_7_1.0" author="lsharipova" dbms="postgresql">
+    <changeSet id="201807021545_RDM-50_1.0" author="lsharipova" dbms="postgresql">
         <comment>Создание storage'a</comment>
         <sql>
             CREATE SCHEMA IF NOT EXISTS data;
@@ -21,7 +21,8 @@
             INSERT INTO data.test_storage("SYS_RECORDID", name, count, "SYS_PUBLISHTIME") VALUES (1, 'name', 2, '2018-01-01');
         </sql>
     </changeSet>
-    <changeSet id="201807021545_RDM-50_7_2.0" author="lsharipova" dbms="postgresql">
+
+    <changeSet id="201807021545_RDM-50_2.0" author="lsharipova" dbms="postgresql">
         <comment>Добавление справочника</comment>
         <sql>
             INSERT INTO n2o_rdm_management.ref_book(code, removable) VALUES ('test_ref_book', TRUE);

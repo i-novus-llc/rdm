@@ -15,23 +15,17 @@ import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.service.DraftService;
 import ru.inovus.ms.rdm.service.RefBookService;
 import ru.inovus.ms.rdm.service.VersionService;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Collections;
 import java.util.List;
 
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
 
 @RunWith(SpringRunner.class)
@@ -319,5 +313,10 @@ public class ApplicationTest extends TestableDbEnv {
         FieldValue count = new IntegerFieldValue("count", 2);
         assertEquals(fieldValues.get(0), name);
         assertEquals(fieldValues.get(1), count);
+    }
+
+    @Test
+    public void testPublishFirstDraft() throws Exception {
+
     }
 }
