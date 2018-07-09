@@ -5,9 +5,15 @@ import com.querydsl.core.types.dsl.Expressions;
 import ru.inovus.ms.rdm.entity.QRefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.TimeZone;
 
 public final class RefBookVersionPredicates {
+    public static LocalDateTime MAX_TIMESTAMP = LocalDateTime.ofInstant(Instant.ofEpochMilli(Integer.MAX_VALUE * 1000L),
+            TimeZone.getDefault().toZoneId());
+    public static LocalDateTime MIN_TIMESTAMP = LocalDateTime.ofInstant(Instant.ofEpochMilli(0L),
+            TimeZone.getDefault().toZoneId());
 
     private RefBookVersionPredicates() {
     }
@@ -78,8 +84,8 @@ public final class RefBookVersionPredicates {
 
     public static BooleanExpression hasOverlappingPeriods(LocalDateTime fromDate, LocalDateTime toDate) {
 
-        return QRefBookVersionEntity.refBookVersionEntity.fromDate.coalesce(LocalDateTime.MIN).asDateTime().before(toDate)
-                .and(QRefBookVersionEntity.refBookVersionEntity.toDate.coalesce(LocalDateTime.MAX).asDateTime().after(fromDate));
+        return QRefBookVersionEntity.refBookVersionEntity.fromDate.coalesce(MIN_TIMESTAMP).asDateTime().before(toDate)
+                .and(QRefBookVersionEntity.refBookVersionEntity.toDate.coalesce(MAX_TIMESTAMP).asDateTime().after(fromDate));
     }
 
     public static BooleanExpression hasOverlappingPeriodsInFuture(LocalDateTime fromDate, LocalDateTime toDate, LocalDateTime now) {

@@ -64,7 +64,7 @@ public class ApplicationTest extends TestableDbEnv {
         refBookCreateRequest = new RefBookCreateRequest();
         refBookCreateRequest.setCode("T1");
         refBookCreateRequest.setFullName("Справочник специальностей");
-        refBookCreateRequest.setShortName("СПРВЧНК СПЦЛНСТЙ");
+        refBookCreateRequest.setShortName("СПРВЧНК СПЦЛНСТЙ  ");
         refBookCreateRequest.setAnnotation("Аннотация для справочника специальностей");
 
         refBookUpdateRequest = new RefBookUpdateRequest();
@@ -317,6 +317,8 @@ public class ApplicationTest extends TestableDbEnv {
 
     @Test
     public void testPublishFirstDraft() throws Exception {
+        draftService.publish(-2, "1.0", LocalDateTime.now().minusDays(1), null);
 
+        Page<RowValue> actualRowValues = versionService.search(-2, null);
     }
 }

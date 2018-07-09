@@ -14,11 +14,9 @@
             "SYS_RECORDID" BIGINT,
             "FTS" tsvector,
             "SYS_HASH" char(32),
-            "SYS_PUBLISHTIME" timestamp with time zone,
-            "SYS_CLOSETIME" timestamp with time zone,
             CONSTRAINT s_pkey PRIMARY KEY ("SYS_RECORDID")
             );
-            INSERT INTO data.test_storage("SYS_RECORDID", name, count, "SYS_PUBLISHTIME") VALUES (1, 'name', 2, '2018-01-01');
+            INSERT INTO data.test_storage("SYS_RECORDID", name, count) VALUES (1, 'name', 2);
         </sql>
     </changeSet>
 

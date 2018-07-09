@@ -9,6 +9,7 @@ import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
 
 import javax.ws.rs.GET;
+import java.time.OffsetDateTime;
 
 public interface VersionService {
 
@@ -19,5 +20,14 @@ public interface VersionService {
             @ApiResponse(code = 404, message = "Нет версии")
     })
     Page<RowValue> search(Integer versionId, SearchDataCriteria criteria);
+
+    @GET
+    @ApiOperation("Получения записей версии актуальных на дату, с фильтрацией ")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет версии")
+    })
+    Page<RowValue> search(Integer refbookId, OffsetDateTime date, SearchDataCriteria criteria);
+
     Structure getMetadata(Integer versionId);
 }

@@ -185,7 +185,7 @@ public class DraftServiceImpl implements DraftService {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime newFromDate;
         if(toDate == null) {
-            toDate = LocalDateTime.MAX;
+            toDate = MAX_TIMESTAMP;
         }
         if(!toDate.isAfter(now)) {
             return;
