@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Result {
@@ -26,6 +27,20 @@ public class Result {
 
     public List<String> getErrors() {
         return errors;
+    }
+
+    public Result addResult(Result result) {
+        List<String> errors = null;
+        if(this.errors == null && result.getErrors() != null) {
+            errors = result.getErrors();
+        } else if (this.errors != null && result.getErrors() == null) {
+            errors = this.errors;
+        } else if(this.errors != null && result.getErrors() != null) {
+            errors = new ArrayList<>();
+            errors.addAll(this.errors);
+            errors.addAll(result.getErrors());
+        }
+        return  new Result(this.successCount + result.getSuccessCount(), this.getAllCount() + result.getAllCount(), errors);
     }
 
 }
