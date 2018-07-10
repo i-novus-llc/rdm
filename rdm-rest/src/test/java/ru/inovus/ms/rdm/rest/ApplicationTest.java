@@ -6,6 +6,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
@@ -330,6 +331,6 @@ public class ApplicationTest extends TestableDbEnv {
         assertEquals(fieldValues.get(0), name);
         assertEquals(fieldValues.get(1), count);
         Page<RowValue> rowValuesOutVersion = versionService.search(-1, OffsetDateTime.now().minusDays(1), null);
-        assertNull(rowValuesOutVersion);
+        assertEquals(new PageImpl<RowValue>(Collections.emptyList()), rowValuesOutVersion);
     }
 }
