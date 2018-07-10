@@ -12,6 +12,18 @@ public class Structure {
 
     private List<Reference> references;
 
+    public Structure() {
+    }
+
+    public Structure(List<Attribute> attributes, List<Reference> references) {
+        this.attributes = attributes;
+        this.references = references;
+    }
+
+    public Structure(Structure other){
+        this(other.getAttributes(), other.getReferences());
+    }
+
     public Reference getReference(String attributeName) {
         if (isEmpty(references)) {
             return null;
@@ -63,7 +75,6 @@ public class Structure {
             attribute.setType(type);
             return attribute;
         }
-
 
         public String getName() {
             return name;

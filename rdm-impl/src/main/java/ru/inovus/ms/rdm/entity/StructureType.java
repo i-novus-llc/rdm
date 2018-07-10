@@ -16,10 +16,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 
 public class StructureType implements UserType {
+
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Override
@@ -139,7 +143,7 @@ public class StructureType implements UserType {
     public Object deepCopy(Object value) {
         Object copy = null;
         if (value != null) {
-            copy = jsonToStructure(valueToJson(value));
+            copy = new Structure((Structure) value);
         }
         return copy;
     }

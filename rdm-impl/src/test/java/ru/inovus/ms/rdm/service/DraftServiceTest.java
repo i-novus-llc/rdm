@@ -76,11 +76,10 @@ public class DraftServiceTest {
         expectedVersionEntity.setVersion("1.0");
         expectedVersionEntity.setStatus(RefBookVersionStatus.PUBLISHED);
         expectedVersionEntity.setStorageCode(TEST_STORAGE_CODE);
-
-
+        LocalDateTime now = LocalDateTime.now();
+        expectedVersionEntity.setFromDate(now);
         when(versionRepository.findOne(eq(testDraftVersion.getId()))).thenReturn(testDraftVersion);
         when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(null);
-        LocalDateTime now = LocalDateTime.now();
         draftService.publish(testDraftVersion.getId(), "1.0", now, null);
 
         verify(draftDataService).applyDraft(isNull(String.class), eq(expectedDraftStorageCode), eq(Date.from(now.atZone(ZoneId.systemDefault()).toInstant())));
@@ -123,13 +122,12 @@ public class DraftServiceTest {
         expectedVersionEntity.setVersion("2.2");
         expectedVersionEntity.setStatus(RefBookVersionStatus.PUBLISHED);
         expectedVersionEntity.setStorageCode(TEST_STORAGE_CODE);
-
-
+        LocalDateTime now = LocalDateTime.now();
+        expectedVersionEntity.setFromDate(now);
         when(versionRepository.findOne(eq(draft.getId()))).thenReturn(draft);
         when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(new PageImpl(Collections.singletonList(versionEntity)));
 
 
-        LocalDateTime now = LocalDateTime.now();
         draftService.publish(draft.getId(), expectedVersionEntity.getVersion(), now, null);
 
         verify(draftDataService).applyDraft(eq(versionEntity.getStorageCode()), eq(expectedDraftStorageCode), eq(Date.from(now.atZone(ZoneId.systemDefault()).toInstant())));
