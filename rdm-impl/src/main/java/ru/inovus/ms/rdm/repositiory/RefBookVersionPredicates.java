@@ -10,9 +10,9 @@ import java.time.LocalDateTime;
 import java.util.TimeZone;
 
 public final class RefBookVersionPredicates {
-    public static LocalDateTime MAX_TIMESTAMP = LocalDateTime.ofInstant(Instant.ofEpochMilli(Integer.MAX_VALUE * 1000L),
+    public static final LocalDateTime MAX_TIMESTAMP = LocalDateTime.ofInstant(Instant.ofEpochMilli(Integer.MAX_VALUE * 1000L),
             TimeZone.getDefault().toZoneId());
-    public static LocalDateTime MIN_TIMESTAMP = LocalDateTime.ofInstant(Instant.ofEpochMilli(0L),
+    public static final LocalDateTime MIN_TIMESTAMP = LocalDateTime.ofInstant(Instant.ofEpochMilli(0L),
             TimeZone.getDefault().toZoneId());
 
     private RefBookVersionPredicates() {
@@ -27,7 +27,7 @@ public final class RefBookVersionPredicates {
     }
 
     public static BooleanExpression isAnyPublished() {
-        QRefBookVersionEntity anyVersion =  QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
+        QRefBookVersionEntity anyVersion = QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
         return anyVersion.status.eq(RefBookVersionStatus.PUBLISHED);
     }
 
@@ -71,12 +71,12 @@ public final class RefBookVersionPredicates {
     }
 
     public static BooleanExpression isMaxFromDateEqOrAfter(LocalDateTime dateTime) {
-        QRefBookVersionEntity anyVersion =  QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
+        QRefBookVersionEntity anyVersion = QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
         return anyVersion.fromDate.eq(dateTime).or(anyVersion.fromDate.after(dateTime));
     }
 
     public static BooleanExpression isMaxFromDateEqOrBefore(LocalDateTime dateTime) {
-        QRefBookVersionEntity anyVersion =  QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
+        QRefBookVersionEntity anyVersion = QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
 
         return anyVersion.fromDate.eq(dateTime).or(anyVersion.fromDate.before(dateTime))
                 .and(anyVersion.fromDate.after(dateTime).not());
@@ -90,11 +90,11 @@ public final class RefBookVersionPredicates {
 
     public static BooleanExpression hasOverlappingPeriodsInFuture(LocalDateTime fromDate, LocalDateTime toDate, LocalDateTime now) {
 
-        if(fromDate == null || fromDate.isBefore(now)) {
+        if (fromDate == null || fromDate.isBefore(now)) {
             fromDate = now;
         }
 
-        if(toDate != null && toDate.isAfter(now)) {
+        if (toDate != null && toDate.isAfter(now)) {
             return QRefBookVersionEntity.refBookVersionEntity.fromDate.coalesce(LocalDateTime.MIN).asDateTime().before(toDate)
                     .and(QRefBookVersionEntity.refBookVersionEntity.toDate.coalesce(LocalDateTime.MAX).asDateTime().after(fromDate))
                     .and(QRefBookVersionEntity.refBookVersionEntity.toDate.coalesce(LocalDateTime.MAX).asDateTime().after(now));

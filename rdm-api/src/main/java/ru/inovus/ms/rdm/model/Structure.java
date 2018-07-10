@@ -1,21 +1,28 @@
 package ru.inovus.ms.rdm.model;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.inovus.ms.rdm.util.TimeUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 
-public class Structure implements Cloneable {
-    private static final Logger logger = LoggerFactory.getLogger(TimeUtils.class);
+public class Structure {
 
     private List<Attribute> attributes;
 
     private List<Reference> references;
+
+    public Structure() {
+    }
+
+    public Structure(List<Attribute> attributes, List<Reference> references) {
+        this.attributes = attributes;
+        this.references = references;
+    }
+
+    public Structure(Structure other){
+        this(other.getAttributes(), other.getReferences());
+    }
 
     public Reference getReference(String attributeName) {
         if (isEmpty(references)) {
@@ -41,7 +48,7 @@ public class Structure implements Cloneable {
         this.references = references;
     }
 
-    public static class Attribute implements Cloneable {
+    public static class Attribute {
 
         private String name;
 
@@ -67,16 +74,6 @@ public class Structure implements Cloneable {
             attribute.setName(attributeName);
             attribute.setType(type);
             return attribute;
-        }
-
-        @Override
-        protected Object clone() {
-            try {
-                return super.clone();
-            } catch (CloneNotSupportedException e) {
-                logger.debug("failed to clone attribute");
-            }
-            return null;
         }
 
         public String getName() {
@@ -140,7 +137,7 @@ public class Structure implements Cloneable {
         }
     }
 
-    public static class Reference implements Cloneable {
+    public static class Reference {
 
         /**
          * Поле которое ссылается
@@ -224,16 +221,6 @@ public class Structure implements Cloneable {
             result = 31 * result + (displayAttributes != null ? displayAttributes.hashCode() : 0);
             return result;
         }
-
-        @Override
-        protected Object clone() {
-            try {
-                return super.clone();
-            } catch (CloneNotSupportedException e) {
-                logger.debug("failed to clone attribute");
-            }
-            return null;
-        }
     }
 
     @Override
@@ -253,21 +240,5 @@ public class Structure implements Cloneable {
         int result = attributes != null ? attributes.hashCode() : 0;
         result = 31 * result + (references != null ? references.hashCode() : 0);
         return result;
-    }
-
-    @Override
-    public Object clone() throws CloneNotSupportedException {
-        Structure clonedObj = (Structure) super.clone();
-        List<Attribute> attributes = new ArrayList<>();
-        List<Reference> references = new ArrayList<>();
-        if (this.attributes != null) {
-            this.attributes.forEach(attribute -> attributes.add((Attribute) attribute.clone()));
-            clonedObj.setAttributes(attributes);
-        }
-        if (this.references != null) {
-            this.references.forEach(reference -> references.add((Reference) reference.clone()));
-            clonedObj.setReferences(references);
-        }
-        return clonedObj;
     }
 }
