@@ -20,12 +20,17 @@ import ru.inovus.ms.rdm.service.RefBookService;
 import ru.inovus.ms.rdm.service.VersionService;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
 
 @RunWith(SpringRunner.class)
@@ -317,8 +322,14 @@ public class ApplicationTest extends TestableDbEnv {
 
     @Test
     public void testPublishFirstDraft() throws Exception {
-        draftService.publish(-2, "1.0", LocalDateTime.now().minusDays(1), null);
-
-        Page<RowValue> actualRowValues = versionService.search(-2, null);
+        draftService.publish(-2, "1.0", LocalDateTime.now(), null);
+        Page<RowValue> rowValuesInVersion = versionService.search(-1, OffsetDateTime.now(), null);
+        List fieldValues = rowValuesInVersion.getContent().get(0).getFieldValues();
+        FieldValue name = new StringFieldValue("name", "name");
+        FieldValue count = new IntegerFieldValue("count", 2);
+        assertEquals(fieldValues.get(0), name);
+        assertEquals(fieldValues.get(1), count);
+        Page<RowValue> rowValuesOutVersion = versionService.search(-1, OffsetDateTime.now().minusDays(1), null);
+        assertNull(rowValuesOutVersion);
     }
 }

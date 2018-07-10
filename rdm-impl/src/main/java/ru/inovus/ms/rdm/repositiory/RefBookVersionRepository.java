@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.repositiory;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
@@ -12,5 +13,8 @@ public interface RefBookVersionRepository extends
         QueryDslPredicateExecutor<RefBookVersionEntity> {
 
     RefBookVersionEntity findByStatusAndRefBookId(RefBookVersionStatus status, Integer refBookId);
-    RefBookVersionEntity findByFromDateBeforeAndToDateAfter(LocalDateTime date);
+
+    @Query("select v from RefBookVersionEntity v where v.refBook.id = ?1 and v.fromDate <= ?2 and (v.toDate > ?2 or v.toDate is null)")
+    RefBookVersionEntity findActualOnDate(Integer refBookId, LocalDateTime date);
+
 }

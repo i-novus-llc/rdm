@@ -148,6 +148,7 @@ public class DraftServiceImpl implements DraftService {
         draftVersion.setStorageCode(storageCode);
         draftVersion.setVersion(versionName);
         draftVersion.setStatus(RefBookVersionStatus.PUBLISHED);
+        draftVersion.setFromDate(fromDate);
         resolveOverlappingPeriodsInFuture(fromDate, toDate, draftVersion.getRefBook().getId());
         versionRepository.save(draftVersion);
     }
@@ -160,13 +161,12 @@ public class DraftServiceImpl implements DraftService {
     }
 
 
-
     private void validateOverlappingPeriodsInLast(LocalDateTime fromDate, LocalDateTime toDate, Integer refBookId) {
         LocalDateTime now = LocalDateTime.now();
-        if(fromDate == null || fromDate.isAfter(now)) {
+        if (fromDate == null || fromDate.isAfter(now)) {
             return;
         }
-        if(toDate == null || toDate.isAfter(now)) {
+        if (toDate == null || toDate.isAfter(now)) {
             toDate = now;
         }
 
@@ -175,7 +175,7 @@ public class DraftServiceImpl implements DraftService {
                         .and(isVersionOfRefBook(refBookId))
                         .and(isPublished())
         );
-        if(refBookVersion != null) {
+        if (refBookVersion != null) {
             throw new UserException("overlapping.version.err");
         }
 
@@ -184,14 +184,14 @@ public class DraftServiceImpl implements DraftService {
     private void resolveOverlappingPeriodsInFuture(LocalDateTime fromDate, LocalDateTime toDate, Integer refBookId) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime newFromDate;
-        if(toDate == null) {
+        if (toDate == null) {
             toDate = MAX_TIMESTAMP;
         }
-        if(!toDate.isAfter(now)) {
+        if (!toDate.isAfter(now)) {
             return;
         }
 
-        if(fromDate == null || fromDate.isBefore(now)) {
+        if (fromDate == null || fromDate.isBefore(now)) {
             newFromDate = now;
         } else {
             newFromDate = fromDate;
@@ -202,10 +202,10 @@ public class DraftServiceImpl implements DraftService {
                         .and(isVersionOfRefBook(refBookId))
                         .and(isPublished())
         );
-        if(versions != null) {
+        if (versions != null) {
             versions.forEach(version -> {
-                if(fromDate != null && fromDate.isAfter(version.getFromDate())) {
-                   version.setToDate(fromDate);
+                if (fromDate != null && fromDate.isAfter(version.getFromDate())) {
+                    version.setToDate(fromDate);
                 } else {
                     version.setToDate(version.getFromDate());
                 }

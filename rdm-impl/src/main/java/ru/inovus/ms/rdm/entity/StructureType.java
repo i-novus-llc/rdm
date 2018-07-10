@@ -139,7 +139,11 @@ public class StructureType implements UserType {
     public Object deepCopy(Object value) {
         Object copy = null;
         if (value != null) {
-            copy = jsonToStructure(valueToJson(value));
+            try {
+                copy = ((Structure) value).clone();
+            } catch (CloneNotSupportedException e) {
+                e.printStackTrace();
+            }
         }
         return copy;
     }

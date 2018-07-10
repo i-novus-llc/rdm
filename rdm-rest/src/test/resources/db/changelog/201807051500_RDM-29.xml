@@ -70,11 +70,11 @@
     <changeSet id="201807051500_RDM-29_5.0" author="lsharipova" dbms="postgresql">
         <comment>Добавление справочника со статусом черновик</comment>
         <sql>
-            INSERT INTO n2o_rdm_management.ref_book(code, removable) VALUES ('test_ref_book_for_draft', TRUE);
+            INSERT INTO n2o_rdm_management.ref_book(id, code, removable) VALUES (-1, 'test_ref_book_for_draft', TRUE);
 
             INSERT INTO n2o_rdm_management.ref_book_version(id, storage_code, ref_book_id, full_name, short_name,
             version, status, structure)
-            VALUES (-2, 'test-storage-for-draft', currval('n2o_rdm_management.ref_book_id_seq'), 'Тестовый справочник',
+            VALUES (-2, 'test-storage-for-draft', -1, 'Тестовый справочник',
             'Тестовый справочник',
             '1', 'DRAFT', '{"attributes" : [{"name" : "name", "type" :
             "STRING", "isPrimary" : null, "isRequired" : null },

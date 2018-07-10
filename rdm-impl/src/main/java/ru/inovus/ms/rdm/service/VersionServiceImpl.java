@@ -16,7 +16,6 @@ import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 import ru.inovus.ms.rdm.util.RowValuePage;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
@@ -43,6 +42,10 @@ public class VersionServiceImpl implements VersionService {
     @Override
     public Page<RowValue> search(Integer versionId, SearchDataCriteria criteria) {
         RefBookVersionEntity version = versionRepository.findOne(versionId);
+        return getRowValuesOfVersion(criteria, version);
+    }
+
+    private Page<RowValue> getRowValuesOfVersion(SearchDataCriteria criteria, RefBookVersionEntity version) {
         List<Field> fields = ConverterUtil.structureToFields(version.getStructure(), fieldFactory);
         Date bdate = version.getFromDate() != null ? Date.from(version.getFromDate().atZone(ZoneOffset.UTC).toInstant()) : null;
         Date edate = version.getToDate() != null ? Date.from(version.getToDate().atZone(ZoneOffset.UTC).toInstant()) : null;
@@ -55,9 +58,8 @@ public class VersionServiceImpl implements VersionService {
 
     @Override
     public Page<RowValue> search(Integer refbookId, OffsetDateTime date, SearchDataCriteria criteria) {
-        LocalDateTime localDateTime;
-        versionRepository.findByFromDateBeforeAndToDateAfter(date.toLocalDateTime());
-        return null;
+        RefBookVersionEntity version = versionRepository.findActualOnDate(refbookId, date.toLocalDateTime());
+        return version != null ? getRowValuesOfVersion(criteria, version) : null;
     }
 
     @Override
