@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="201807051500_RDM-29_1.0" author="lsharipova" dbms="postgresql">
+        <comment>Создание storage'a для черновика</comment>
+        <sql>
+            CREATE SCHEMA IF NOT EXISTS data;
+            CREATE TABLE data."test-storage-for-draft" (
+            name VARCHAR,
+            count INTEGER,
+            "SYS_RECORDID" BIGINT,
+            "FTS" tsvector,
+            "SYS_HASH" character(32),
+            CONSTRAINT "test-storage-for-draft_pkey" PRIMARY KEY ("SYS_RECORDID")
+            );
+        </sql>
+    </changeSet>
+    <changeSet id="201807051500_RDM-29_2.0" author="lsharipova" dbms="postgresql">
+        <comment>Создание индекса для storage'a</comment>
+        <sql>
+            CREATE INDEX "test-storage-for-draft_sys_hash_ix" ON data."test-storage-for-draft"("SYS_HASH");
+        </sql>
+    </changeSet>
+
+    <changeSet id="201807051500_RDM-29_3.0" author="lsharipova">
+        <comment>Создание триггера SYS_HASH</comment>
+        <sql splitStatements="false">
+            CREATE OR REPLACE FUNCTION data."test-storage-for-draft_hash_tf"()
+                RETURNS trigger AS
+            $BODY$
+            BEGIN
+                NEW."SYS_HASH" = md5(ROW(NEW.name, NEW.count)||'');
+                RETURN NEW;
+            END;
+            $BODY$
+            LANGUAGE plpgsql
+            COST 100;
+
+            CREATE TRIGGER hash_tg
+            BEFORE INSERT OR UPDATE OF name, count
+            ON data."test-storage-for-draft"
+            FOR EACH ROW
+            EXECUTE PROCEDURE data."test-storage-for-draft_hash_tf"();
+        </sql>
+    </changeSet>
+    <changeSet id="201807051500_RDM-29_4.0" author="lsharipova">
+        <comment>Создание триггера fts</comment>
+        <sql splitStatements="false">
+            CREATE OR REPLACE FUNCTION data."test-storage-for-draft_fts_vector_tf"()
+             RETURNS trigger AS
+            $BODY$
+             BEGIN
+                NEW."FTS" = coalesce( to_tsvector('russian', NEW."name"::text),'')  || ' ' || coalesce( to_tsvector('russian', NEW."count"::text),'')  ;
+                RETURN NEW;
+             END;
+             $BODY$
+             LANGUAGE plpgsql;
+
+             CREATE TRIGGER fts_vector_tg
+             BEFORE INSERT OR UPDATE OF "name", "count"
+             ON data."test-storage-for-draft"
+             FOR EACH ROW
+             EXECUTE PROCEDURE data."test-storage-for-draft_fts_vector_tf"();
+        </sql>
+    </changeSet>
+
+    <changeSet id="201807051500_RDM-29_5.0" author="lsharipova" dbms="postgresql">
+        <comment>Добавление справочника со статусом черновик</comment>
+        <sql>
+            INSERT INTO n2o_rdm_management.ref_book(id, code, removable) VALUES (-1, 'test_ref_book_for_draft', TRUE);
+
+            INSERT INTO n2o_rdm_management.ref_book_version(id, storage_code, ref_book_id, full_name, short_name,
+            version, status, structure)
+            VALUES (-2, 'test-storage-for-draft', -1, 'Тестовый справочник',
+            'Тестовый справочник',
+            '1', 'DRAFT', '{"attributes" : [{"name" : "name", "type" :
+            "STRING", "isPrimary" : null, "isRequired" : null },
+            {"name": "count", "type": "INTEGER", "isPrimary" : null, "isRequired" : null}]}');
+        </sql>
+    </changeSet>
+    <changeSet id="201807051500_RDM-29_6.0" author="lsharipova" dbms="postgresql">
+        <comment>Добавление данных storage'a</comment>
+        <sql>
+            INSERT INTO data."test-storage-for-draft"("SYS_RECORDID", name, count) VALUES (1, 'name', 2);
+        </sql>
+    </changeSet>
+
+
+</databaseChangeLog>

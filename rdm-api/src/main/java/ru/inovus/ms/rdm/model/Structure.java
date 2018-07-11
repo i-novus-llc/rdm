@@ -4,14 +4,28 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.util.List;
 
+import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+
 public class Structure {
 
     private List<Attribute> attributes;
 
     private List<Reference> references;
 
+    public Structure() {
+    }
+
+    public Structure(List<Attribute> attributes, List<Reference> references) {
+        this.attributes = attributes;
+        this.references = references;
+    }
+
+    public Structure(Structure other){
+        this(other.getAttributes(), other.getReferences());
+    }
+
     public Reference getReference(String attributeName) {
-        if(references == null) {
+        if (isEmpty(references)) {
             return null;
         }
         return references.stream().filter(reference -> reference.getAttribute().equals(attributeName)).findAny()
@@ -36,7 +50,7 @@ public class Structure {
 
     public static class Attribute {
 
-        private String attributeName;
+        private String name;
 
         private FieldType type;
 
@@ -48,7 +62,7 @@ public class Structure {
             Attribute attribute = new Attribute();
             attribute.setPrimary(true);
             attribute.setIsRequired(true);
-            attribute.setAttributeName(attributeName);
+            attribute.setName(attributeName);
             attribute.setType(type);
             return attribute;
         }
@@ -57,18 +71,17 @@ public class Structure {
             Attribute attribute = new Attribute();
             attribute.setPrimary(false);
             attribute.setIsRequired(isRequired);
-            attribute.setAttributeName(attributeName);
+            attribute.setName(attributeName);
             attribute.setType(type);
             return attribute;
         }
 
-
-        public String getAttributeName() {
-            return attributeName;
+        public String getName() {
+            return name;
         }
 
-        public void setAttributeName(String attributeName) {
-            this.attributeName = attributeName;
+        public void setName(String name) {
+            this.name = name;
         }
 
         public FieldType getType() {
@@ -108,7 +121,7 @@ public class Structure {
 
             if (isPrimary != attribute.isPrimary) return false;
             if (isRequired != attribute.isRequired) return false;
-            if (attributeName != null ? !attributeName.equals(attribute.attributeName) : attribute.attributeName != null)
+            if (name != null ? !name.equals(attribute.name) : attribute.name != null)
                 return false;
             return type == attribute.type;
 
@@ -116,7 +129,7 @@ public class Structure {
 
         @Override
         public int hashCode() {
-            int result = attributeName != null ? attributeName.hashCode() : 0;
+            int result = name != null ? name.hashCode() : 0;
             result = 31 * result + (type != null ? type.hashCode() : 0);
             result = 31 * result + (isPrimary ? 1 : 0);
             result = 31 * result + (isRequired ? 1 : 0);

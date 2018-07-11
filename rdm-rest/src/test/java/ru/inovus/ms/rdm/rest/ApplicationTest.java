@@ -6,18 +6,32 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.test.context.junit4.SpringRunner;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.service.DraftService;
 import ru.inovus.ms.rdm.service.RefBookService;
+import ru.inovus.ms.rdm.service.VersionService;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
 
 @RunWith(SpringRunner.class)
@@ -45,12 +59,18 @@ public class ApplicationTest extends TestableDbEnv {
     @Autowired
     private RefBookService refBookService;
 
+    @Autowired
+    private DraftService draftService;
+
+    @Autowired
+    private VersionService versionService;
+
     @BeforeClass
     public static void initialize() {
         refBookCreateRequest = new RefBookCreateRequest();
         refBookCreateRequest.setCode("T1");
         refBookCreateRequest.setFullName("Справочник специальностей");
-        refBookCreateRequest.setShortName("СПРВЧНК СПЦЛНСТЙ");
+        refBookCreateRequest.setShortName("СПРВЧНК СПЦЛНСТЙ  ");
         refBookCreateRequest.setAnnotation("Аннотация для справочника специальностей");
 
         refBookUpdateRequest = new RefBookUpdateRequest();
@@ -266,5 +286,51 @@ public class ApplicationTest extends TestableDbEnv {
         assertEquals(expected.getVersion(), actual.getVersion());
         assertEquals(expected.getStatus(), actual.getStatus());
         assertEquals(expected.getDisplayStatus(), actual.getDisplayStatus());
+    }
+
+    @Test
+    public void testDraftCreate() {
+        Structure structure = createStructure();
+        Draft expected = draftService.create(1, structure);
+        Draft actual = draftService.getDraft(expected.getId());
+        assertEquals(expected.getId(), actual.getId());
+    }
+
+    @Test
+    public void testDraftRemove() {
+        Structure structure = createStructure();
+        Draft draft = draftService.create(1, structure);
+        draftService.remove(draft.getId());
+        assertNull(draftService.getDraft(draft.getId()));
+    }
+
+    private Structure createStructure() {
+        Structure structure = new Structure();
+        structure.setAttributes(Collections.singletonList(Structure.Attribute.build("name", FieldType.STRING, true)));
+        return structure;
+    }
+
+    @Test
+    public void testVersionSearch() {
+        SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
+        Page<RowValue> rowValues = versionService.search(-1, searchDataCriteria);
+        List fieldValues = rowValues.getContent().get(0).getFieldValues();
+        FieldValue name = new StringFieldValue("name", "name");
+        FieldValue count = new IntegerFieldValue("count", 2);
+        assertEquals(fieldValues.get(0), name);
+        assertEquals(fieldValues.get(1), count);
+    }
+
+    @Test
+    public void testPublishFirstDraft() throws Exception {
+        draftService.publish(-2, "1.0", LocalDateTime.now(), null);
+        Page<RowValue> rowValuesInVersion = versionService.search(-1, OffsetDateTime.now(), null);
+        List fieldValues = rowValuesInVersion.getContent().get(0).getFieldValues();
+        FieldValue name = new StringFieldValue("name", "name");
+        FieldValue count = new IntegerFieldValue("count", 2);
+        assertEquals(fieldValues.get(0), name);
+        assertEquals(fieldValues.get(1), count);
+        Page<RowValue> rowValuesOutVersion = versionService.search(-1, OffsetDateTime.now().minusDays(1), null);
+        assertEquals(new PageImpl<RowValue>(Collections.emptyList()), rowValuesOutVersion);
     }
 }
