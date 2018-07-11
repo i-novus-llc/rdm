@@ -20,7 +20,7 @@ public class TestableDbEnv {
         DataSource dataSource = EmbeddedPostgres.builder().setCleanDataDirectory(true).setPort(PORT).start().getPostgresDatabase();
         if (!isDbCreated) {
             try(Connection connection = dataSource.getConnection()) {
-                PreparedStatement preparedStatement = connection.prepareStatement("CREATE DATABASE " + DB_NAME);
+                PreparedStatement preparedStatement = connection.prepareStatement("DROP DATABASE IF EXISTS "+DB_NAME+"; CREATE DATABASE " + DB_NAME);
                 preparedStatement.executeUpdate();
                 isDbCreated = true;
             } catch (SQLException e) {

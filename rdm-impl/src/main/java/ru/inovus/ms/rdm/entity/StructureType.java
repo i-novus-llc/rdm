@@ -16,10 +16,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 
 public class StructureType implements UserType {
+
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Override
@@ -77,14 +81,16 @@ public class StructureType implements UserType {
                 };
                 List<String> displayAttributes = getByKey(attributeJson, "displayAttribute", asList);
                 Structure.Attribute attribute;
-                if(isPrimary){
+                if (isPrimary) {
                     attribute = Structure.Attribute.buildPrimary(name, FieldType.valueOf(type));
                 } else {
                     attribute = Structure.Attribute.build(name, FieldType.valueOf(type), isRequired);
                 }
-                Structure.Reference reference = new Structure.Reference(name, referenceVersion, referenceAttribute, displayAttributes);
+                if (FieldType.valueOf(type).equals(FieldType.REFERENCE)) {
+                    Structure.Reference reference = new Structure.Reference(name, referenceVersion, referenceAttribute, displayAttributes);
+                    references.add(reference);
+                }
                 attributes.add(attribute);
-                references.add(reference);
             }
         }
         structure.setAttributes(attributes);
@@ -94,7 +100,7 @@ public class StructureType implements UserType {
 
 
     @Override
-    public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor session) throws  SQLException {
+    public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor session) throws SQLException {
         if (value == null) {
             st.setNull(index, Types.OTHER);
             return;
@@ -116,18 +122,18 @@ public class StructureType implements UserType {
         return jsonStructure;
     }
 
-    private ObjectNode createAttributeJson(Structure.Attribute attribute, Structure structure){
+    private ObjectNode createAttributeJson(Structure.Attribute attribute, Structure structure) {
         ObjectNode attributeJson = MAPPER.createObjectNode();
-        attributeJson.put("name", attribute.getAttributeName());
+        attributeJson.put("name", attribute.getName());
         attributeJson.put("type", attribute.getType().name());
         attributeJson.put("isPrimary", attribute.isPrimary());
         attributeJson.put("isRequired", attribute.isRequired());
-        Structure.Reference reference = structure.getReference(attribute.getAttributeName());
+        Structure.Reference reference = structure.getReference(attribute.getName());
         if (reference != null) {
             attributeJson.put("referenceVersion", reference.getReferenceVersion());
             attributeJson.put("referenceAttribute", reference.getReferenceAttribute());
             ArrayNode arrayNode = attributeJson.putArray("displayFields");
-            reference.getDisplayAttributes().forEach(arrayNode::add);
+            Optional.ofNullable(reference.getDisplayAttributes()).ifPresent(d -> d.forEach(arrayNode::add));
         }
 
         return attributeJson;
@@ -137,7 +143,7 @@ public class StructureType implements UserType {
     public Object deepCopy(Object value) {
         Object copy = null;
         if (value != null) {
-            copy = jsonToStructure(valueToJson(value));
+            copy = new Structure((Structure) value);
         }
         return copy;
     }

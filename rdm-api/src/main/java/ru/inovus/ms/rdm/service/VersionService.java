@@ -1,11 +1,33 @@
 package ru.inovus.ms.rdm.service;
 
-import ru.inovus.ms.rdm.model.Data;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import org.springframework.data.domain.Page;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.model.VersionCriteria;
+
+import javax.ws.rs.GET;
+import java.time.OffsetDateTime;
 
 public interface VersionService {
 
-    Data search(Long versionId, VersionCriteria criteria);
-    Structure getMetadata(Long versionId);
+    @GET
+    @ApiOperation("Получения записей версии, с фильтрацией")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет версии")
+    })
+    Page<RowValue> search(Integer versionId, SearchDataCriteria criteria);
+
+    @GET
+    @ApiOperation("Получения записей версии актуальных на дату, с фильтрацией ")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет версии")
+    })
+    Page<RowValue> search(Integer refbookId, OffsetDateTime date, SearchDataCriteria criteria);
+
+    Structure getMetadata(Integer versionId);
 }

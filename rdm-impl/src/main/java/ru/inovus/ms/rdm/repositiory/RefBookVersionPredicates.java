@@ -1,12 +1,19 @@
 package ru.inovus.ms.rdm.repositiory;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import ru.inovus.ms.rdm.entity.QRefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.TimeZone;
 
 public final class RefBookVersionPredicates {
+    public static final LocalDateTime MAX_TIMESTAMP = LocalDateTime.ofInstant(Instant.ofEpochMilli(Integer.MAX_VALUE * 1000L),
+            TimeZone.getDefault().toZoneId());
+    public static final LocalDateTime MIN_TIMESTAMP = LocalDateTime.ofInstant(Instant.ofEpochMilli(0L),
+            TimeZone.getDefault().toZoneId());
 
     private RefBookVersionPredicates() {
     }
@@ -20,7 +27,7 @@ public final class RefBookVersionPredicates {
     }
 
     public static BooleanExpression isAnyPublished() {
-        QRefBookVersionEntity anyVersion =  QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
+        QRefBookVersionEntity anyVersion = QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
         return anyVersion.status.eq(RefBookVersionStatus.PUBLISHED);
     }
 
@@ -64,14 +71,37 @@ public final class RefBookVersionPredicates {
     }
 
     public static BooleanExpression isMaxFromDateEqOrAfter(LocalDateTime dateTime) {
-        QRefBookVersionEntity anyVersion =  QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
+        QRefBookVersionEntity anyVersion = QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
         return anyVersion.fromDate.eq(dateTime).or(anyVersion.fromDate.after(dateTime));
     }
 
     public static BooleanExpression isMaxFromDateEqOrBefore(LocalDateTime dateTime) {
-        QRefBookVersionEntity anyVersion =  QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
+        QRefBookVersionEntity anyVersion = QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
 
         return anyVersion.fromDate.eq(dateTime).or(anyVersion.fromDate.before(dateTime))
                 .and(anyVersion.fromDate.after(dateTime).not());
+    }
+
+    public static BooleanExpression hasOverlappingPeriods(LocalDateTime fromDate, LocalDateTime toDate) {
+
+        return QRefBookVersionEntity.refBookVersionEntity.fromDate.coalesce(MIN_TIMESTAMP).asDateTime().before(toDate)
+                .and(QRefBookVersionEntity.refBookVersionEntity.toDate.coalesce(MAX_TIMESTAMP).asDateTime().after(fromDate));
+    }
+
+    public static BooleanExpression hasOverlappingPeriodsInFuture(LocalDateTime fromDate, LocalDateTime toDate, LocalDateTime now) {
+
+        if (fromDate == null || fromDate.isBefore(now)) {
+            fromDate = now;
+        }
+
+        if (toDate != null && toDate.isAfter(now)) {
+            return QRefBookVersionEntity.refBookVersionEntity.fromDate.coalesce(LocalDateTime.MIN).asDateTime().before(toDate)
+                    .and(QRefBookVersionEntity.refBookVersionEntity.toDate.coalesce(LocalDateTime.MAX).asDateTime().after(fromDate))
+                    .and(QRefBookVersionEntity.refBookVersionEntity.toDate.coalesce(LocalDateTime.MAX).asDateTime().after(now));
+        } else {
+            return Expressions.asBoolean(true).isFalse();
+        }
+
+
     }
 }
