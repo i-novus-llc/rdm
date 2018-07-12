@@ -65,8 +65,8 @@
             </dependency>
 
             <dependency>
-                <groupId>com.opentable.components</groupId>
-                <artifactId>otj-pg-embedded</artifactId>
+                <groupId>ru.i-novus.util</groupId>
+                <artifactId>pg-embeded</artifactId>
                 <version>0.12.0</version>
                 <scope>test</scope>
             </dependency>
