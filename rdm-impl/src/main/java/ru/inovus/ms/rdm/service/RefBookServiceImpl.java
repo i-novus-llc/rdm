@@ -5,13 +5,14 @@ import com.querydsl.core.types.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
@@ -25,26 +26,28 @@ import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
 import static org.springframework.util.StringUtils.isEmpty;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
 
-
 @Service
-@Qualifier("impl")
 public class RefBookServiceImpl implements RefBookService {
 
-    private RefBookVersionRepository repository;
-
-    private RefBookRepository refBookRepository;
-
     private static final Logger logger = LoggerFactory.getLogger(RefBookServiceImpl.class);
+    private RefBookVersionRepository repository;
+    private RefBookRepository refBookRepository;
+    private DraftDataService draftDataService;
+    private DropDataService dropDataService;
 
     @Autowired
-    public RefBookServiceImpl(RefBookVersionRepository repository, RefBookRepository refBookRepository) {
+    public RefBookServiceImpl(RefBookVersionRepository repository, RefBookRepository refBookRepository,
+                              DraftDataService draftDataService, DropDataService dropDataService) {
         this.repository = repository;
         this.refBookRepository = refBookRepository;
+        this.draftDataService = draftDataService;
+        this.dropDataService = dropDataService;
     }
 
     @Override
@@ -60,19 +63,26 @@ public class RefBookServiceImpl implements RefBookService {
     }
 
     @Override
+    @Transactional
     public RefBook create(RefBookCreateRequest request) {
         RefBookEntity refBookEntity = new RefBookEntity();
         refBookEntity.setArchived(Boolean.FALSE);
         refBookEntity.setRemovable(Boolean.TRUE);
         refBookEntity.setCode(request.getCode());
+        refBookEntity = refBookRepository.save(refBookEntity);
 
         RefBookVersionEntity refBookVersionEntity = new RefBookVersionEntity();
         refBookVersionEntity.populateFrom(request);
         refBookVersionEntity.setRefBook(refBookEntity);
         refBookVersionEntity.setStatus(RefBookVersionStatus.DRAFT);
 
-        refBookEntity.setVersionList(Collections.singletonList(refBookVersionEntity));
-        return refBookModel(refBookRepository.save(refBookEntity).getVersionList().get(0));
+        String storageCode = draftDataService.createDraft(Collections.emptyList());
+        refBookVersionEntity.setStorageCode(storageCode);
+        Structure structure = new Structure();
+        structure.setAttributes(Collections.emptyList());
+        refBookVersionEntity.setStructure(structure);
+
+        return refBookModel(repository.save(refBookVersionEntity));
     }
 
     @Override
@@ -88,9 +98,13 @@ public class RefBookServiceImpl implements RefBookService {
     }
 
     @Override
+    @Transactional
     public void delete(int refBookId) {
-        // drop data table after RDM-37
-       refBookRepository.delete(refBookId);
+        refBookRepository.getOne(refBookId).getVersionList().forEach(v ->
+                dropDataService.drop(refBookRepository.getOne(refBookId).getVersionList().stream()
+                        .map(RefBookVersionEntity::getStorageCode)
+                        .collect(Collectors.toSet())));
+        refBookRepository.delete(refBookId);
     }
 
     @Override
@@ -113,7 +127,8 @@ public class RefBookServiceImpl implements RefBookService {
         where.and(isVersionOfRefBook(criteria.getRefBookId()));
         if (criteria.getExcludeDraft())
             where.andNot(isDraft());
-
+        if(nonNull(criteria.getVersion()))
+            where.and(isVersionNumberContains(criteria.getVersion()));
         return where.getValue();
     }
 
@@ -134,6 +149,13 @@ public class RefBookServiceImpl implements RefBookService {
         if (!isEmpty(criteria.getName())) {
             where.and(isShortNameOrFullNameContains(criteria.getName()));
         }
+        if (!isEmpty(criteria.getRefBookId()))
+            where.and(isVersionOfRefBook(criteria.getRefBookId()));
+
+        if (!isEmpty(criteria.getCodeName())) {
+            where.and(isShortNameOrFullNameContains(criteria.getCodeName()).or(isCodeContains(criteria.getCodeName())));
+        }
+
         if (nonNull(criteria.getStatus())) {
             switch (criteria.getStatus()) {
                 case PUBLISHED:

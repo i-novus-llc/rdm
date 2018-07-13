@@ -1,0 +1,99 @@
+<form xmlns="http://n2oapp.net/framework/config/schema/n2o-widget-3.0"
+      xmlns:ctrl="http://n2oapp.net/framework/config/schema/n2o-control-1.0"
+      xmlns:fs="http://n2oapp.net/framework/config/schema/fieldset-3.0">
+    <query-id>attribute</query-id>
+    <name>Атрибут</name>
+
+    <!--NSI-M-43-->
+
+    <edit form-submit-label="Сохранить" after-cancel="closeModal" after-submit="closeModal"
+          create-more="true" refresh-after-submit="true">
+        <create-or-update create-action-id="create" update-action-id="update"/>
+    </edit>
+
+    <fs:field-set>
+        <ctrl:input-text id="code" label="Код" required="true"/>
+        <ctrl:input-text id="name" label="Наименование" required="true"/>
+        <ctrl:input-select id="attrType" label="Тип" required="true">
+            <ctrl:options>
+                <ctrl:option>{"id":"STRING", "name":"Строковый"}</ctrl:option>
+                <ctrl:option>{"id":"INTEGER", "name":"Целочисленный"}</ctrl:option>
+                <ctrl:option>{"id":"FLOAT", "name":"Дробный"}</ctrl:option>
+                <ctrl:option>{"id":"DATE", "name":"Дата"}</ctrl:option>
+                <ctrl:option>{"id":"BOOLEAN", "name":"Логический"}</ctrl:option>
+                <ctrl:option>{"id":"REFERENCE", "name":"Ссылочный"}</ctrl:option>
+            </ctrl:options>
+            <ctrl:dependencies>
+                <ctrl:enabling-condition on="savedCode">
+                    typeof savedCode == 'undefined' || !savedCode
+                </ctrl:enabling-condition>
+            </ctrl:dependencies>
+        </ctrl:input-select>
+    </fs:field-set>
+
+    <fs:field-set>
+        <ctrl:input-select id="referenceRefBook" label="Выбор справочника" dependency-condition="isReference">
+            <ctrl:query query-id="refBook" value-field-id="id" label-field-id="codeName"/>
+            <ctrl:dependencies>
+                <ctrl:required-condition on="isReference">isReference</ctrl:required-condition>
+            </ctrl:dependencies>
+            <ctrl:set-value-expression on="isReference">if (!isReference) undefined; else throw '!';</ctrl:set-value-expression>
+        </ctrl:input-select>
+        <ctrl:input-select id="referenceVersion" label="Версия" depends-on="referenceRefBook"
+                           dependency-condition="isReference" cache="off">
+            <ctrl:query query-id="versionList" value-field-id="id" label-field-id="version"
+                        master-field-id="id" detail-field-id="refBookId">
+                <ctrl:pre-filters>
+                    <ctrl:pre-filter field-id="excludeDraft" value="true"/>
+                </ctrl:pre-filters>
+            </ctrl:query>
+            <ctrl:dependencies>
+                <ctrl:required-condition on="isReference">isReference</ctrl:required-condition>
+            </ctrl:dependencies>
+            <ctrl:set-value-expression on="isReference">if (!isReference) undefined; else throw '!';</ctrl:set-value-expression>
+        </ctrl:input-select>
+        <ctrl:input-select id="referenceAttribute" label="Связанный атрибут" depends-on="referenceVersion" cache="off"
+                           dependency-condition="isReference">
+            <ctrl:query query-id="attribute" value-field-id="code" label-field-id="name"
+                        master-field-id="id" detail-field-id="versionId">
+            </ctrl:query>
+            <ctrl:dependencies>
+                <ctrl:required-condition on="isReference">isReference</ctrl:required-condition>
+            </ctrl:dependencies>
+            <ctrl:set-value-expression on="isReference">if (!isReference) undefined; else throw '!';</ctrl:set-value-expression>
+        </ctrl:input-select>
+
+        <ctrl:input-select id="referenceDisplayAttribute" label="Отображаемый атрибут" depends-on="referenceVersion" cache="off"
+                           dependency-condition="isReference">
+            <ctrl:query query-id="attribute" value-field-id="code" label-field-id="name"
+                        master-field-id="id" detail-field-id="versionId">
+            </ctrl:query>
+            <ctrl:set-value-expression on="isReference">if (!isReference) undefined; else throw '!';</ctrl:set-value-expression>
+        </ctrl:input-select>
+
+        <ctrl:checkbox id="isReference" default-value="false" visible="false">
+            <ctrl:set-value-expression on="attrType">
+                if (typeof attrType != 'undefined' &amp;&amp; attrType &amp;&amp; attrType.id == 'REFERENCE') true;
+                else false;
+            </ctrl:set-value-expression>
+        </ctrl:checkbox>
+    </fs:field-set>
+
+    <fs:field-set>
+        <ctrl:checkbox id="isPrimary" label="Первичный ключ"/>
+        <ctrl:checkbox id="isRequired" label="Обязательный атрибут">
+            <ctrl:dependencies>
+                <ctrl:enabling-condition on="isPrimary"><![CDATA[
+                    typeof isPrimary == 'undefined' || isPrimary == null || !isPrimary
+                ]]></ctrl:enabling-condition>
+            </ctrl:dependencies>
+            <ctrl:set-value-expression on="isPrimary"><![CDATA[
+                if (typeof isPrimary != 'undefined' && isPrimary != null && isPrimary)
+                    true;
+                else throw '!'
+            ]]></ctrl:set-value-expression>
+        </ctrl:checkbox>
+        <ctrl:text-area id="description" label="Описание" rows="2"/>
+    </fs:field-set>
+
+</form>

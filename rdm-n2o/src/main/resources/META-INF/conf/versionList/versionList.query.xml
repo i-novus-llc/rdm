@@ -6,6 +6,7 @@
     <execution>
         <n2o:rest>
             <n2o:query>${rdm.backend.path}/refBook/versions</n2o:query>
+            <n2o:query-by-id>${rdm.backend.path}/refBook/{id}</n2o:query-by-id>
             <n2o:date-format>dd.MM.yyyy HH:mm:ss</n2o:date-format>
             <n2o:response-mapping collection="content" count="totalElements"/>
             <n2o:size param-name="size"/>
@@ -17,6 +18,10 @@
         <field>
             <id>id</id>
             <domain>integer</domain>
+            <expression>id</expression>
+            <filters>
+                <filter type="eq" filter-field="id">:id</filter>
+            </filters>
             <display/>
         </field>
 
@@ -36,6 +41,7 @@
         <field>
             <id>version</id>
             <domain>string</domain>
+            <filters auto-generate="true"/>
             <display/>
         </field>
 
@@ -61,6 +67,12 @@
             <id>refBookHasPublishingVersion</id>
             <domain>boolean</domain>
             <display/>
+        </field>
+
+        <field>
+            <id>excludeDraft</id>
+            <domain>boolean</domain>
+            <filters auto-generate="true"/>
         </field>
     </fields>
 </query>

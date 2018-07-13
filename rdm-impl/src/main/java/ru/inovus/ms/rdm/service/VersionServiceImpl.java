@@ -24,9 +24,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Created by tnurdinov on 24.05.2018.
- */
 @Service
 public class VersionServiceImpl implements VersionService {
 
@@ -65,7 +62,7 @@ public class VersionServiceImpl implements VersionService {
     }
 
     @Override
-    public Structure getMetadata(Integer versionId) {
-        return null;
+    public Structure getStructure(Integer versionId) {
+        return versionRepository.findOne(versionId).getStructure();
     }
 }

@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<query xmlns:n2o="http://n2oapp.net/framework/config/schema/n2o-query-executions-1.0"
+       xmlns="http://n2oapp.net/framework/config/schema/query-3.0">
+    <object-id>refBook</object-id>
+    <name>Администрирование/Справчники</name>
+    <execution>
+        <n2o:rest>
+            <n2o:query>${rdm.backend.path}/refBook</n2o:query>
+            <n2o:date-format>dd.MM.yyyy HH:mm:ss</n2o:date-format>
+            <n2o:response-mapping collection="content" count="totalElements"/>
+            <n2o:size param-name="size"/>
+            <n2o:page param-name="page"/>
+            <n2o:sorting param-name="sort" separator=","/>
+        </n2o:rest>
+    </execution>
+
+    <fields>
+        <field>
+            <id>id</id>
+            <domain>integer</domain>
+            <filters>
+                <filter type="eq" filter-field="id">refBookId=:id</filter>
+            </filters>
+            <expression>refBookId</expression>
+            <display/>
+        </field>
+
+        <field>
+            <id>versionId</id>
+            <domain>integer</domain>
+            <expression>id</expression>
+            <display/>
+        </field>
+
+        <field>
+            <id>codeName</id>
+            <domain>string</domain>
+            <display/>
+            <filters auto-generate="true"/>
+        </field>
+    </fields>
+</query>
