@@ -34,13 +34,14 @@ public class Structure implements Serializable {
                 .orElse(null);
     }
 
-    public Attribute getAttribute(String attributeName) {
-        return Optional.ofNullable(attributes)
-                .map(attributeList -> attributeList.stream()
-                        .filter(attribute -> attribute.getName().equals(attributeName))
-                        .findAny().orElse(null))
+    public Attribute getAttribute(String code) {
+        if (isEmpty(attributes)) {
+            return null;
+        }
+        return attributes.stream().filter(attribute -> attribute.getCode().equals(code)).findAny()
                 .orElse(null);
     }
+
 
     public void clearPrimary() {
         if (isEmpty(attributes)) {
@@ -68,7 +69,7 @@ public class Structure implements Serializable {
         this.references = references;
     }
 
-    public static class Attribute implements Serializable{
+    public static class Attribute implements Serializable {
 
         private String code;
 

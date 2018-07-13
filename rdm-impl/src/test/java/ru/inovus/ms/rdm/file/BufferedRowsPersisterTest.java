@@ -106,7 +106,7 @@ public class BufferedRowsPersisterTest {
     }
 
     @Test
-    public void processFailureTest(){
+    public void processFailureTest() {
         Row rowFirst = createTestRow(1);
         List<RowValue> rowValues = new ArrayList() {{
             add(new LongRowValue(name.valueOf("name1"), count.valueOf(1)));
@@ -123,8 +123,8 @@ public class BufferedRowsPersisterTest {
     public static Structure createTestStructure() {
         Structure structure = new Structure();
         structure.setAttributes(new LinkedList() {{
-            add(Structure.Attribute.build("name", FieldType.STRING, false));
-            add(Structure.Attribute.build("count", FieldType.INTEGER, false));
+            add(Structure.Attribute.build("name", "name", FieldType.STRING, false, "description"));
+            add(Structure.Attribute.build("count", "count", FieldType.INTEGER, false, "description"));
         }});
         return structure;
     }

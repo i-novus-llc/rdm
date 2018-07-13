@@ -51,7 +51,7 @@ public class RowsValidatorTest {
     public void setUp() {
         rowsValidator = new RowsValidatorImpl(versionService, fieldFactory, createTestStructureWithReference());
         when(fieldFactory.createField(eq(REFERENCE_ATTRIBUTE), eq(FieldType.STRING))).thenReturn(new StringField(REFERENCE_ATTRIBUTE));
-        when(versionService.getMetadata(eq(REFERENCE_VERSION))).thenReturn(createTestStructure());
+        when(versionService.getStructure(eq(REFERENCE_VERSION))).thenReturn(createTestStructure());
         StringField fieldFilter = new StringField(REFERENCE_ATTRIBUTE);
         FieldSearchCriteria searchCriteria = new FieldSearchCriteria(fieldFilter, SearchTypeEnum.EXACT, Collections.singletonList(ATTRIBUTE_VALUE));
         searchDataCriteria = new SearchDataCriteria(Collections.singletonList(searchCriteria), null);
@@ -93,7 +93,7 @@ public class RowsValidatorTest {
 
     private Structure createTestStructureWithReference() {
         Structure structure = new Structure();
-        structure.setAttributes(Collections.singletonList(Structure.Attribute.build(ATTRIBUTE_NAME, FieldType.REFERENCE, false)));
+        structure.setAttributes(Collections.singletonList(Structure.Attribute.build(ATTRIBUTE_NAME , ATTRIBUTE_NAME, FieldType.REFERENCE, false, "description")));
         structure.setReferences(Collections.singletonList(new Structure.Reference(ATTRIBUTE_NAME, REFERENCE_VERSION, REFERENCE_ATTRIBUTE, null)));
         return structure;
     }
