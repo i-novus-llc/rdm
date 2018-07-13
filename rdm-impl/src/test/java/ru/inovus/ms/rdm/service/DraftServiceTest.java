@@ -173,7 +173,7 @@ public class DraftServiceTest {
         when(versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, 2)).thenReturn(testDraftVersion);
         when(versionRepository.save(eq(testDraftVersion))).thenReturn(testDraftVersion);
         Structure structure = new Structure();
-        structure.setAttributes(Collections.singletonList(Structure.Attribute.build("name", FieldType.STRING, true)));
+        structure.setAttributes(Collections.singletonList(Structure.Attribute.build("name", "name", FieldType.STRING, true, "description")));
         Draft draftActual = draftService.create(2, structure);
         assertEquals(testDraftVersion.getId(), draftActual.getId());
         assertNotEquals(TEST_DRAFT_CODE, draftActual.getStorageCode());

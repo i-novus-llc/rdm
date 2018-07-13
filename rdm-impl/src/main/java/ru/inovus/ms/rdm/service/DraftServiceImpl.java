@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
@@ -30,7 +31,10 @@ import java.util.Date;
 import java.util.List;
 
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
-import static ru.inovus.ms.rdm.util.ConverterUtil.structureToFields;
+import static ru.inovus.ms.rdm.util.ConverterUtil.*;
+import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.emptyList;
 
 @Service
 public class DraftServiceImpl implements DraftService {
@@ -235,5 +239,74 @@ public class DraftServiceImpl implements DraftService {
     public Draft getDraft(Integer draftId) {
         RefBookVersionEntity versionEntity = versionRepository.findOne(draftId);
         return versionEntity != null ? new Draft(versionEntity.getId(), versionEntity.getStorageCode()) : null;
+    }
+
+    @Override
+    @Transactional
+    public void createAttribute(Integer versionId, Structure.Attribute attribute, Integer referenceVersion,
+                                String referenceAttribute, List<String> referenceDisplayAttributes) {
+        RefBookVersionEntity draftEntity = versionRepository.findOne(versionId);
+        draftDataService.addField(draftEntity.getStorageCode(), attributeToField(attribute, fieldFactory));
+
+        Structure structure = draftEntity.getStructure();
+        if (structure == null) {
+            structure = new Structure();
+            structure.setAttributes(emptyList());
+        }
+        if (attribute.getIsPrimary())
+            structure.clearPrimary();
+
+        structure.getAttributes().add(attribute);
+
+        if (FieldType.REFERENCE.equals(attribute.getType())) {
+            if (structure.getReferences() == null)
+                structure.setReferences(emptyList());
+            Structure.Reference reference = buildReference(referenceVersion, attribute.getCode(),
+                    referenceAttribute, referenceDisplayAttributes);
+            structure.getReferences().add(reference);
+        }
+        draftEntity.setStructure(structure);
+    }
+
+    @Override
+    @Transactional
+    public void updateAttribute(Integer versionId, Structure.Attribute attribute, Integer referenceVersion,
+                                String referenceAttribute, List<String> referenceDisplayAttributes) {
+        RefBookVersionEntity draftEntity = versionRepository.findOne(versionId);
+        draftDataService.updateField(draftEntity.getStorageCode(), attributeToField(attribute, fieldFactory));
+
+        Structure structure = draftEntity.getStructure();
+        if (attribute.getIsPrimary())
+            structure.clearPrimary();
+
+        if (FieldType.REFERENCE.equals(attribute.getType())) {
+            Integer updatableReferenceIndex = structure.getReferences().indexOf(structure.getReference(attribute.getCode()));
+            Structure.Reference reference = buildReference(referenceVersion, attribute.getCode(),
+                    referenceAttribute, referenceDisplayAttributes);
+            structure.getReferences().set(updatableReferenceIndex, reference);
+        }
+        Integer updatableAttributeIndex = structure.getAttributes().indexOf(structure.getAttribute(attribute.getCode()));
+        structure.getAttributes().set(updatableAttributeIndex, attribute);
+
+    }
+
+    @Override
+    @Transactional
+    public void deleteAttribute(Integer versionId, String attributeCode) {
+        RefBookVersionEntity draftEntity = versionRepository.findOne(versionId);
+        Structure.Attribute attribute = draftEntity.getStructure().getAttribute(attributeCode);
+
+        if (FieldType.REFERENCE.equals(attribute.getType()))
+            draftEntity.getStructure().getReferences().remove(draftEntity.getStructure().getReference(attributeCode));
+        draftEntity.getStructure().getAttributes().remove(attribute);
+
+        draftDataService.deleteField(draftEntity.getStorageCode(), attributeCode);
+    }
+
+    private Structure.Reference buildReference(Integer referenceVersion, String attributeCode,
+                                               String referenceAttribute, List<String> referenceDisplayAttributes) {
+        List<String> displayAttributes = isEmpty(referenceDisplayAttributes) ?
+                singletonList(referenceAttribute): referenceDisplayAttributes;
+        return new Structure.Reference(attributeCode, referenceVersion, referenceAttribute, displayAttributes);
     }
 }

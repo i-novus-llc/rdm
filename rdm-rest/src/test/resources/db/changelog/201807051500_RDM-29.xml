@@ -76,9 +76,9 @@
             version, status, structure)
             VALUES (-2, 'test-storage-for-draft', -1, 'Тестовый справочник',
             'Тестовый справочник',
-            '1', 'DRAFT', '{"attributes" : [{"name" : "name", "type" :
+            '1', 'DRAFT', '{"attributes" : [{"code" : "name", "name" : "Наименование", "type" :
             "STRING", "isPrimary" : null, "isRequired" : null },
-            {"name": "count", "type": "INTEGER", "isPrimary" : null, "isRequired" : null}]}');
+            {"code" : "count", "name": "Количество", "type": "INTEGER", "isPrimary" : null, "isRequired" : null}]}');
         </sql>
     </changeSet>
     <changeSet id="201807051500_RDM-29_6.0" author="lsharipova" dbms="postgresql">

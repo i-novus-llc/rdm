@@ -70,6 +70,10 @@ public final class RefBookVersionPredicates {
                 .or(qEntity.refBook.versionList.any().shortName.containsIgnoreCase(name.trim()));
     }
 
+    public static BooleanExpression isVersionNumberContains(String version) {
+        return QRefBookVersionEntity.refBookVersionEntity.version.containsIgnoreCase(version.trim());
+    }
+
     public static BooleanExpression isMaxFromDateEqOrAfter(LocalDateTime dateTime) {
         QRefBookVersionEntity anyVersion = QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
         return anyVersion.fromDate.eq(dateTime).or(anyVersion.fromDate.after(dateTime));

@@ -10,6 +10,10 @@ import java.time.LocalDateTime;
 @ApiModel("Критерии поиска справочника")
 public class RefBookCriteria extends AbstractCriteria {
 
+    @ApiModelProperty("Идентификатор справочника")
+    @QueryParam("refBookId")
+    private Integer refBookId;
+
     @ApiModelProperty("Код")
     @QueryParam("code")
     private String code;
@@ -17,6 +21,10 @@ public class RefBookCriteria extends AbstractCriteria {
     @ApiModelProperty("Наименование")
     @QueryParam("name")
     private String name;
+
+    @ApiModelProperty("Код, наименвоание")
+    @QueryParam("codeName")
+    private String codeName;
 
     @ApiModelProperty("Дата последней публикации")
     @QueryParam("fromDateBegin")
@@ -29,6 +37,14 @@ public class RefBookCriteria extends AbstractCriteria {
     @ApiModelProperty("Статус справочника")
     @QueryParam("status.id")
     private RefBookStatus status;
+
+    public Integer getRefBookId() {
+        return refBookId;
+    }
+
+    public void setRefBookId(Integer refBookId) {
+        this.refBookId = refBookId;
+    }
 
     public String getCode() {
         return code;
@@ -44,6 +60,14 @@ public class RefBookCriteria extends AbstractCriteria {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getCodeName() {
+        return codeName;
+    }
+
+    public void setCodeName(String codeName) {
+        this.codeName = codeName;
     }
 
     public LocalDateTime getFromDateBegin() {

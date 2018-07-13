@@ -51,9 +51,15 @@ public class ApplicationTest extends TestableDbEnv {
     private static final String SEARCH_CODE_STR = "78 ";
     private static final String SEARCH_BY_NAME_STR = "отличное от последней версии ";
     private static final String SEARCH_BY_NAME_STR_ASSERT_CODE = "A080";
+    private static final String SEARCH_BY_CODE_AND_NAME = "A080 Справочник МО";
 
     private static RefBookCreateRequest refBookCreateRequest;
     private static RefBookUpdateRequest refBookUpdateRequest;
+    private static Structure.Attribute createAttribute;
+    private static Structure.Reference createReference;
+
+    private static Structure.Attribute updateAttribute;
+    private static Structure.Attribute deleteAttribute;
     private static List<RefBookVersion> versionList;
 
     @Autowired
@@ -79,6 +85,12 @@ public class ApplicationTest extends TestableDbEnv {
         refBookUpdateRequest.setShortName(refBookCreateRequest.getShortName() + "_upd");
         refBookUpdateRequest.setAnnotation(refBookCreateRequest.getAnnotation() + "_upd");
         refBookUpdateRequest.setComment("обновленное наполнение");
+
+        createAttribute = Structure.Attribute.buildPrimary("name", "Наименование", FieldType.REFERENCE, "описание");
+        createReference = new Structure.Reference(createAttribute.getCode(), 801, "code", null);
+        updateAttribute = Structure.Attribute.buildPrimary(createAttribute.getCode(),
+                createAttribute.getName() + "_upd", createAttribute.getType(), createAttribute.getDescription() + "_upd");
+        deleteAttribute = Structure.Attribute.build("code", "Код", FieldType.STRING, false, "на удаление");
 
         RefBookVersion version0 = new RefBookVersion();
         version0.setRefBookId(500);
@@ -108,6 +120,7 @@ public class ApplicationTest extends TestableDbEnv {
      * Создание справочника.
      * В архив.
      * Изменение метеданных справочника
+     * Добавление/изменение/удаление атрибута
      * Получение справоника по идентификатору версии.
      */
 
@@ -129,6 +142,7 @@ public class ApplicationTest extends TestableDbEnv {
         assertTrue(refBook.getRemovable());
         assertFalse(refBook.getArchived());
         assertNull(refBook.getFromDate());
+        assertNotNull(draftService.getDraft(refBook.getId()).getStorageCode());
 
         // изменение метеданных справочника
         refBookUpdateRequest.setId(refBook.getId());
@@ -140,6 +154,33 @@ public class ApplicationTest extends TestableDbEnv {
         refBook.setComment(refBookUpdateRequest.getComment());
         refBook.setComment(refBookUpdateRequest.getComment());
         assertRefBooksEqual(refBook, updatedRefBook);
+
+        // добавление атрибута
+        draftService.createAttribute(refBook.getId(), createAttribute,
+                createReference.getReferenceVersion(), createReference.getReferenceAttribute(), null);
+
+        // получение структуры
+        Structure structure = versionService.getStructure(refBook.getId());
+
+        // проверка добавленного атрибута
+        assertEquals(1, structure.getAttributes().size());
+        assertEquals(createAttribute, structure.getAttributes().get(0));
+        createReference.setDisplayAttributes(Collections.singletonList(createReference.getReferenceAttribute()));
+        assertEquals(createReference, structure.getReference(createAttribute.getCode()));
+
+        // изменение атрибута и проверка
+        draftService.updateAttribute(refBook.getId(), updateAttribute, createReference.getReferenceVersion(),
+                createReference.getReferenceAttribute(), createReference.getDisplayAttributes());
+        structure = versionService.getStructure(refBook.getId());
+        assertEquals(updateAttribute, structure.getAttributes().get(0));
+        assertEquals(createReference, structure.getReference(updateAttribute.getCode()));
+
+        // удадение атрибута и проверка
+        draftService.createAttribute(refBook.getId(), deleteAttribute, null, null, null);
+
+        draftService.deleteAttribute(refBook.getId(), deleteAttribute.getCode());
+        structure = versionService.getStructure(refBook.getId());
+        assertEquals(1, structure.getAttributes().size());
 
         // в архив
         refBookService.archive(refBook.getRefBookId());
@@ -159,8 +200,10 @@ public class ApplicationTest extends TestableDbEnv {
     }
 
     /**
+     * Поиск по идентификатору справочника
      * Поиск по наименованию.
      * Поиск по коду.
+     * Поиск по коду и наименованию
      * Поиск по статусу.
      * Поиск по дате последней публикации.
      */
@@ -168,10 +211,16 @@ public class ApplicationTest extends TestableDbEnv {
     @Test
     public void testRefBookSearch() {
 
+        // поиск по идентификатору справочника
+        RefBookCriteria refBookCriteria = new RefBookCriteria();
+        refBookCriteria.setRefBookId(500);
+        Page<RefBook> search = refBookService.search(refBookCriteria);
+        assertEquals(1, search.getTotalElements());
+
         // поиск по коду (по подстроке без учета регистра, крайние пробелы)
         RefBookCriteria codeCriteria = new RefBookCriteria();
         codeCriteria.setCode(SEARCH_CODE_STR);
-        Page<RefBook> search = refBookService.search(codeCriteria);
+        search = refBookService.search(codeCriteria);
         assertTrue(search.getTotalElements() > 0);
         search.getContent().forEach(r -> assertTrue(containsIgnoreCase(r.getCode(), codeCriteria.getCode().trim())));
 
@@ -181,6 +230,13 @@ public class ApplicationTest extends TestableDbEnv {
         search = refBookService.search(nameCriteria);
         assertEquals(1, search.getTotalElements());
         assertEquals(SEARCH_BY_NAME_STR_ASSERT_CODE, search.getContent().get(0).getCode());
+
+        // поиск по коду и наименованию
+        RefBookCriteria codeNameCriteria = new RefBookCriteria();
+        codeNameCriteria.setName(SEARCH_BY_CODE_AND_NAME.toUpperCase());
+        search = refBookService.search(nameCriteria);
+        assertEquals(1, search.getTotalElements());
+        assertEquals(SEARCH_BY_CODE_AND_NAME, search.getContent().get(0).getCodeName());
 
         // поиск по статусу 'Черновик'
         RefBookCriteria statusCriteria = new RefBookCriteria();
@@ -249,6 +305,8 @@ public class ApplicationTest extends TestableDbEnv {
 
     /**
      * Получение списка версий справочника
+     * Получение списка версий без черновика
+     * Поиск по номеру версии
      */
 
     @Test
@@ -262,6 +320,16 @@ public class ApplicationTest extends TestableDbEnv {
             RefBookVersion actual = search.getContent().get(i);
             assertVersion(versionList.get(i), actual);
         }
+
+        // поиск с исключанием справочников
+        criteria.setExcludeDraft(Boolean.TRUE);
+        search = refBookService.getVersions(criteria);
+        assertEquals(versionList.size() - 1, search.getTotalElements());
+
+        // поиск по номеру версии
+        criteria.setVersion(versionList.get(1).getVersion());
+        search = refBookService.getVersions(criteria);
+        assertEquals(1, search.getTotalElements());
     }
 
     private void assertRefBooksEqual(RefBook expected, RefBook actual) {
@@ -306,7 +374,7 @@ public class ApplicationTest extends TestableDbEnv {
 
     private Structure createStructure() {
         Structure structure = new Structure();
-        structure.setAttributes(Collections.singletonList(Structure.Attribute.build("name", FieldType.STRING, true)));
+        structure.setAttributes(Collections.singletonList(Structure.Attribute.build("name", "name", FieldType.STRING, true, "description")));
         return structure;
     }
 
