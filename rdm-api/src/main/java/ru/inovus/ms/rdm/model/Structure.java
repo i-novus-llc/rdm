@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.model;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 
@@ -20,7 +21,7 @@ public class Structure {
         this.references = references;
     }
 
-    public Structure(Structure other){
+    public Structure(Structure other) {
         this(other.getAttributes(), other.getReferences());
     }
 
@@ -29,6 +30,14 @@ public class Structure {
             return null;
         }
         return references.stream().filter(reference -> reference.getAttribute().equals(attributeName)).findAny()
+                .orElse(null);
+    }
+
+    public Attribute getAttribute(String attributeName) {
+        return Optional.ofNullable(attributes)
+                .map(attributeList -> attributeList.stream()
+                        .filter(attribute -> attribute.getName().equals(attributeName))
+                        .findAny().orElse(null))
                 .orElse(null);
     }
 

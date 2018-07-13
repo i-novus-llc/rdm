@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.file;
 
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.Structure;
 
@@ -9,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static ru.inovus.ms.rdm.util.ConverterUtil.rowValue;
 
 public class BufferedRowsPersister implements RowsProcessor {
 
@@ -24,17 +27,21 @@ public class BufferedRowsPersister implements RowsProcessor {
 
     private Result result = new Result(0, 0, null);
 
-    public BufferedRowsPersister(DraftDataService draftDataService, String storageCode, Structure structure) {
+    private FieldFactory fieldFactory;
+
+    public BufferedRowsPersister(DraftDataService draftDataService, String storageCode, Structure structure, FieldFactory fieldFactory) {
         this.draftDataService = draftDataService;
         this.storageCode = storageCode;
         this.structure = structure;
+        this.fieldFactory = fieldFactory;
     }
 
-    public BufferedRowsPersister(int size, DraftDataService draftDataService, String storageCode, Structure structure) {
+    public BufferedRowsPersister(int size, DraftDataService draftDataService, String storageCode, Structure structure, FieldFactory fieldFactory) {
         this.size = size;
         this.draftDataService = draftDataService;
         this.storageCode = storageCode;
         this.structure = structure;
+        this.fieldFactory = fieldFactory;
     }
 
     @Override
@@ -42,13 +49,7 @@ public class BufferedRowsPersister implements RowsProcessor {
         buffer.add(row);
 
         if (buffer.size() == size) {
-            //todo
-            try {
-                save();
-                this.result.addResult(new Result(buffer.size(), buffer.size(), null));
-            } catch (Exception e) {
-                this.result.addResult(new Result(0, buffer.size(), Collections.singletonList(e.getMessage())));
-            }
+            save();
             buffer.clear();
         }
         return this.result;
@@ -56,7 +57,6 @@ public class BufferedRowsPersister implements RowsProcessor {
 
     @Override
     public Result process() {
-        Result result = this.result.addResult(new Result(buffer.size(), buffer.size(), null));
         save();
         return result;
     }
@@ -65,13 +65,14 @@ public class BufferedRowsPersister implements RowsProcessor {
         if (buffer.isEmpty()) {
             return;
         }
-
-        List<RowValue> rowValues = buffer.stream().map(this::rowValue).collect(Collectors.toList());
-        draftDataService.addRows(storageCode, rowValues);
+        List<RowValue> rowValues = buffer.stream().map(row -> rowValue(row, structure, fieldFactory)).collect(Collectors.toList());
+        try {
+            draftDataService.addRows(storageCode, rowValues);
+            this.result = this.result.addResult(new Result(buffer.size(), buffer.size(), null));
+        } catch (Exception e) {
+            this.result = this.result.addResult(new Result(0, buffer.size(), Collections.singletonList(e.getMessage())));
+        }
     }
 
-    private RowValue rowValue(Row row) {
-//      todo
-        return null;
-    }
+
 }

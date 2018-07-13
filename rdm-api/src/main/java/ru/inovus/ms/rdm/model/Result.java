@@ -43,4 +43,23 @@ public class Result {
         return  new Result(this.successCount + result.getSuccessCount(), this.getAllCount() + result.getAllCount(), errors);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Result result = (Result) o;
+
+        if (successCount != result.successCount) return false;
+        if (allCount != result.allCount) return false;
+        return errors != null ? errors.equals(result.errors) : result.errors == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = successCount;
+        result = 31 * result + allCount;
+        result = 31 * result + (errors != null ? errors.hashCode() : 0);
+        return result;
+    }
 }

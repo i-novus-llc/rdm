@@ -18,11 +18,12 @@ import ru.inovus.ms.rdm.util.ConverterUtil;
 import ru.inovus.ms.rdm.util.RowValuePage;
 
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+
+import static ru.inovus.ms.rdm.util.ConverterUtil.localDateTimeToDate;
 
 /**
  * Created by tnurdinov on 24.05.2018.
@@ -55,8 +56,8 @@ public class VersionServiceImpl implements VersionService {
 
     private Page<RowValue> getRowValuesOfVersion(SearchDataCriteria criteria, RefBookVersionEntity version) {
         List<Field> fields = ConverterUtil.structureToFields(version.getStructure(), fieldFactory);
-        Date bdate = version.getFromDate() != null ? Date.from(version.getFromDate().atZone(ZoneOffset.UTC).toInstant()) : null;
-        Date edate = version.getToDate() != null ? Date.from(version.getToDate().atZone(ZoneOffset.UTC).toInstant()) : null;
+        Date bdate = localDateTimeToDate(version.getFromDate());
+        Date edate = localDateTimeToDate(version.getToDate());
         criteria = Optional.ofNullable(criteria).orElse(new SearchDataCriteria());
         DataCriteria dataCriteria = new DataCriteria(version.getStorageCode(), bdate, edate,
                 fields, criteria.getFieldFilter(), criteria.getCommonFilter());
@@ -66,6 +67,6 @@ public class VersionServiceImpl implements VersionService {
 
     @Override
     public Structure getMetadata(Integer versionId) {
-        return null;
+        return versionRepository.findOne(versionId).getStructure();
     }
 }
