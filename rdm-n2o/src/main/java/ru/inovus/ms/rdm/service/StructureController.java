@@ -4,17 +4,20 @@ import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.criteria.api.CollectionPageService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Controller;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.Attribute;
+import ru.inovus.ms.rdm.model.AttributeCriteria;
+import ru.inovus.ms.rdm.model.ReadAttribute;
+import ru.inovus.ms.rdm.model.Structure;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-@Service
+@Controller
 public class StructureController implements CollectionPageService<AttributeCriteria, ReadAttribute> {
 
     @Autowired
