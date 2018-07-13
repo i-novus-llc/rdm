@@ -1,0 +1,125 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<object xmlns="http://n2oapp.net/framework/config/schema/object-1.0"
+        xmlns:n2o="http://n2oapp.net/framework/config/schema/action-invocation-1.0"
+        xmlns:sql="http://n2oapp.net/framework/config/schema/action-sql-1.0">
+    <name>Атрибут</name>
+
+    <actions>
+        <action id="create" form-submit-label="Сохранить" name="Добавление атрибута">
+            <invocation>
+                <n2o:java-method bean="structureController" name="createAttribute">
+                    <n2o:arguments>
+                        <n2o:argument class="java.lang.Integer"/>
+                        <n2o:argument class="ru.inovus.ms.rdm.model.Attribute"/>
+                    </n2o:arguments>
+                </n2o:java-method>
+            </invocation>
+            <in-parameters>
+                <param name="versionId" mapping="[0]" domain="integer"/>
+                <param name="code" mapping="[1].code" domain="string"/>
+                <param name="name" mapping="[1].name" domain="string"/>
+                <param name="attrType.id" mapping="[1].type" domain="string"/>
+                <param name="isPrimary" mapping="[1].isPrimary" domain="boolean"/>
+                <param name="isRequired" mapping="[1].isRequired" domain="boolean"/>
+                <param name="description" mapping="[1].description" domain="string"/>
+                <param name="referenceVersion.id" mapping="[1].referenceVersion"/>
+                <param name="referenceAttribute.code" mapping="[1].referenceAttribute"/>
+                <param name="referenceDisplayAttribute.code" mapping="[1].referenceDisplayAttribute"/>
+            </in-parameters>
+            <validations activate="whiteList">
+                <validation ref-id="checkCode"/>
+                <validation ref-id="checkAttributeCodeNotExists"/>
+            </validations>
+            <success-text>Атрибут успешо сохранен</success-text>
+        </action>
+
+        <action id="update" form-submit-label="Сохранить" name="Изменение атрибута">
+            <invocation>
+                <n2o:java-method bean="structureController" name="updateAttribute">
+                    <n2o:arguments>
+                        <n2o:argument class="java.lang.Integer"/>
+                        <n2o:argument class="ru.inovus.ms.rdm.model.Attribute"/>
+                    </n2o:arguments>
+                </n2o:java-method>
+            </invocation>
+            <in-parameters>
+                <param name="versionId" mapping="[0]" domain="integer"/>
+                <param name="code" mapping="[1].code" domain="string"/>
+                <param name="name" mapping="[1].name" domain="string"/>
+                <param name="attrType.id" mapping="[1].type" domain="string"/>
+                <param name="isPrimary" mapping="[1].isPrimary" domain="boolean"/>
+                <param name="isRequired" mapping="[1].isRequired" domain="boolean"/>
+                <param name="description" mapping="[1].description" domain="string"/>
+                <param name="referenceVersion.id" mapping="[1].referenceVersion"/>
+                <param name="referenceAttribute.code" mapping="[1].referenceAttribute"/>
+                <param name="referenceDisplayAttribute.code" mapping="[1].referenceDisplayAttribute"/>
+            </in-parameters>
+            <validations activate="whiteList">
+                <validation ref-id="checkCode"/>
+            </validations>
+            <success-text>Атрибут успешо сохранен</success-text>
+        </action>
+
+        <action id="delete" name="Удаление атрибута">
+            <invocation>
+                <n2o:rest method="DELETE">
+                    <n2o:query>${rdm.backend.path}/draft/attribute</n2o:query>
+                </n2o:rest>
+            </invocation>
+            <in-parameters>
+                <param name="versionId" mapping="['versionId']"/>
+                <param name="code" mapping="['code']"/>
+            </in-parameters>
+            <confirmation-text>Вы действительно хотите удалить атрибут справочника?</confirmation-text>
+            <success-text>Атрибут успешно удален</success-text>
+            <validations activate="whiteList">
+                <validation ref-id="checkAttributeDeletable"/>
+            </validations>
+        </action>
+    </actions>
+
+    <validations>
+        <constraint id="checkCode" level="error" moment="before-action">
+            <message>
+                Поле 'Код' содержит недопустимые символы. Допустимыми являются: a-z,A-Z, _, 0-9(кроме первого символа). Пожалуйста, отредактируйте код и повторите сохранение.
+            </message>
+            <invocation>
+                <sql:sql>
+                    SELECT :code SIMILAR TO '[_,A-Z,a-z]{1}[_,A-Z,a-z,0-9]*'
+                </sql:sql>
+            </invocation>
+            <in-parameters>
+                <param name="code" mapping="['code']" domain="string"/>
+            </in-parameters>
+            <result expression="[0][0][0]"/>
+        </constraint>
+
+        <constraint id="checkAttributeDeletable" level="error">
+            <invocation>
+                <n2o:java-method bean="validationController" name="checkAttributeDeletable"/>
+            </invocation>
+            <in-parameters>
+                <param name="versionId" mapping="[0]" domain="integer"/>
+            </in-parameters>
+            <result expression="#this == true"/>
+            <message>Единственное поле не может быть удалено. Пожалуйста, удалите черновик и добавьте заново</message>
+        </constraint>
+
+        <constraint id="checkAttributeCodeNotExists" level="error">
+            <invocation>
+                <n2o:java-method bean="validationController" name="checkAttributeCodeNotExists">
+                    <n2o:arguments>
+                        <n2o:argument class="java.lang.Integer"/>
+                        <n2o:argument class="java.lang.String"/>
+                    </n2o:arguments>
+                </n2o:java-method>
+            </invocation>
+            <in-parameters>
+                <param name="versionId" mapping="[0]" domain="integer"/>
+                <param name="code" mapping="[1]" domain="string"/>
+            </in-parameters>
+            <result expression="#this == true"/>
+            <message>Атрибут с указанным кодом уже существует. Задайте другой код и повторите сохранение, пожалуйста</message>
+        </constraint>
+    </validations>
+</object>

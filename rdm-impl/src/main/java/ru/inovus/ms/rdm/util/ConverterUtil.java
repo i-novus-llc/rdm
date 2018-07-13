@@ -23,17 +23,14 @@ public class ConverterUtil {
         List<Field> fields = new ArrayList<>();
         if (structure != null) {
             Optional.ofNullable(structure.getAttributes()).ifPresent(s ->
-                    s.forEach(attribute -> {
-                        Field field = attributeToField(attribute, fieldFactory);
-                        fields.add(field);
-                    })
+                    s.forEach(attribute ->  fields.add(attributeToField(attribute, fieldFactory)))
             );
         }
         return fields;
     }
 
     public static Field attributeToField(Structure.Attribute attribute, FieldFactory fieldFactory) {
-        return fieldFactory.createField(attribute.getName(), attribute.getType());
+        return fieldFactory.createField(attribute.getCode(), attribute.getType());
     }
 
     public static RowValue rowValue(Row row, Structure structure, FieldFactory fieldFactory) {

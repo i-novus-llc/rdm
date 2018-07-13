@@ -38,8 +38,9 @@
             INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
             VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник медицинских организаций (отличное от последней версии)', 'Справочник МО', '1', 'PUBLISHED', '2018-02-03', '2018-05-02');
 
-            INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
-            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник медицинских организаций', 'Справочник МО', '2', 'PUBLISHED', '2018-05-02', null);
+            INSERT INTO n2o_rdm_management.ref_book_version(id, ref_book_id, full_name, short_name, version, status, from_date, to_date, structure)
+            VALUES (801, currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник медицинских организаций', 'Справочник МО', '2', 'PUBLISHED', '2018-05-02', null,
+            '{"attributes": [{"code": "code", "name": "Код", "type": "STRING", "isPrimary": true, "isRequired": true, "description": "описание"}]}');
 
             INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
             VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник медицинских организаций', 'Справочник МО', null, 'DRAFT', null, null);

@@ -25,9 +25,6 @@ import java.util.Optional;
 
 import static ru.inovus.ms.rdm.util.ConverterUtil.localDateTimeToDate;
 
-/**
- * Created by tnurdinov on 24.05.2018.
- */
 @Service
 public class VersionServiceImpl implements VersionService {
 
@@ -66,7 +63,7 @@ public class VersionServiceImpl implements VersionService {
     }
 
     @Override
-    public Structure getMetadata(Integer versionId) {
+    public Structure getStructure(Integer versionId) {
         return versionRepository.findOne(versionId).getStructure();
     }
 }

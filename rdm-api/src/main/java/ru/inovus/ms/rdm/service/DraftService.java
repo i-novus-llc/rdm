@@ -6,11 +6,13 @@ import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.model.*;
 
 import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Path("/draft")
-@Produces("application/json")
-@Consumes("application/json")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 @Api("Методы работы с черновиками")
 public interface DraftService {
     @POST
@@ -49,4 +51,43 @@ public interface DraftService {
 
     Draft getDraft(Integer draftId);
 
+    @POST
+    @Path("/attribute")
+    @ApiOperation("Добавление атрибута справочника")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void createAttribute(
+            @ApiParam("Идентификатор версии") @QueryParam("versionId") Integer versionId,
+            @ApiParam("Модель данных атрибута") Structure.Attribute attribute,
+            @ApiParam("Версия ссылки") @QueryParam("referenceVersion") Integer referenceVersion,
+            @ApiParam("Атрибут ссылки") @QueryParam("referenceAttribute") String referenceAttribute,
+            @ApiParam("Отображаемый атрибут") @QueryParam("referenceDisplayAttribute")
+            List<String> referenceDisplayAttributes);
+
+    @PUT
+    @Path("/attribute")
+    @ApiOperation("Изменение атрибута справочника")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void updateAttribute(
+            @ApiParam("Идентификатор версии") @QueryParam("versionId") Integer versionId,
+            @ApiParam("Модель данных атрибута") Structure.Attribute attribute,
+            @ApiParam("Версия ссылки") @QueryParam("referenceVersion") Integer referenceVersion,
+            @ApiParam("Атрибут ссылки") @QueryParam("referenceAttribute") String referenceAttribute,
+            @ApiParam("Отображаемый атрибут") @QueryParam("referenceDisplayAttribute")
+            List<String> referenceDisplayAttributes);
+
+    @DELETE
+    @Path("/attribute")
+    @ApiOperation("Удаление атрибута справочника")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void deleteAttribute(@ApiParam("Идентификатор версии") @QueryParam("versionId") Integer versionId,
+                         @ApiParam("Код атрибута") @QueryParam("code") String attributeCode);
 }
