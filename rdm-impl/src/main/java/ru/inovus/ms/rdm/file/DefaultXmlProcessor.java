@@ -1,7 +1,9 @@
 package ru.inovus.ms.rdm.file;
 
-import ru.inovus.ms.rdm.model.FileData;
 import ru.inovus.ms.rdm.model.Result;
+
+import java.io.InputStream;
+import java.util.function.Supplier;
 
 /**
  * Created by tnurdinov on 24.05.2018.
@@ -9,7 +11,7 @@ import ru.inovus.ms.rdm.model.Result;
 public class DefaultXmlProcessor implements FileProcessor {
 
     @Override
-    public Result process(FileData file) {
+    public Result process(Supplier<InputStream> fileSource) {
         return null;
     }
 }

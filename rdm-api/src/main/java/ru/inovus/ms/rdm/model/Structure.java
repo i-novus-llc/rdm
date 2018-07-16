@@ -21,7 +21,7 @@ public class Structure implements Serializable {
         this.references = references;
     }
 
-    public Structure(Structure other){
+    public Structure(Structure other) {
         this(other.getAttributes(), other.getReferences());
     }
 
@@ -40,6 +40,7 @@ public class Structure implements Serializable {
         return attributes.stream().filter(attribute -> attribute.getCode().equals(code)).findAny()
                 .orElse(null);
     }
+
 
     public void clearPrimary() {
         if (isEmpty(attributes)) {
@@ -67,7 +68,7 @@ public class Structure implements Serializable {
         this.references = references;
     }
 
-    public static class Attribute implements Serializable{
+    public static class Attribute implements Serializable {
 
         private String code;
 
