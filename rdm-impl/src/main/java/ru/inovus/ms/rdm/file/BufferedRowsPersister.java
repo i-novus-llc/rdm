@@ -1,5 +1,7 @@
 package ru.inovus.ms.rdm.file;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
@@ -14,6 +16,8 @@ import java.util.stream.Collectors;
 import static ru.inovus.ms.rdm.util.ConverterUtil.rowValue;
 
 public class BufferedRowsPersister implements RowsProcessor {
+
+    private static final Logger logger = LoggerFactory.getLogger(BufferedRowsPersister.class);
 
     private int size = 100;
 
@@ -71,6 +75,7 @@ public class BufferedRowsPersister implements RowsProcessor {
             this.result = this.result.addResult(new Result(buffer.size(), buffer.size(), null));
         } catch (Exception e) {
             this.result = this.result.addResult(new Result(0, buffer.size(), Collections.singletonList(e.getMessage())));
+            logger.info(e.getMessage());
         }
     }
 

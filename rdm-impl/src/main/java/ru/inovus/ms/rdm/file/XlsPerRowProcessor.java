@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 
@@ -67,6 +68,9 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
 
     @Override
     public Row next() {
+        if (!hasNext()) {
+            throw new NoSuchElementException();
+        }
         org.apache.poi.ss.usermodel.Row row = null;
         while (row == null && index < sheet.getPhysicalNumberOfRows()) {
             index++;
@@ -82,7 +86,7 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
                         cell.setCellStyle(dateCellStyle);
                     }
                     params.put(numberToNameParam.get(j), Optional.of(formatter.formatCellValue(cell).trim())
-                            .filter(val -> !val.equals(""))
+                            .filter(val -> !"".equals(val))
                             .orElse(null));
                 }
             }

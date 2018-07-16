@@ -30,17 +30,17 @@ public class Result {
     }
 
     public Result addResult(Result result) {
-        List<String> errors = null;
+        List<String> totalErrors = null;
         if(this.errors == null && result.getErrors() != null) {
-            errors = result.getErrors();
+            totalErrors = result.getErrors();
         } else if (this.errors != null && result.getErrors() == null) {
-            errors = this.errors;
+            totalErrors = this.errors;
         } else if(this.errors != null && result.getErrors() != null) {
-            errors = new ArrayList<>();
-            errors.addAll(this.errors);
-            errors.addAll(result.getErrors());
+            totalErrors = new ArrayList<>();
+            totalErrors.addAll(this.errors);
+            totalErrors.addAll(result.getErrors());
         }
-        return  new Result(this.successCount + result.getSuccessCount(), this.getAllCount() + result.getAllCount(), errors);
+        return  new Result(this.successCount + result.getSuccessCount(), this.getAllCount() + result.getAllCount(), totalErrors);
     }
 
     @Override

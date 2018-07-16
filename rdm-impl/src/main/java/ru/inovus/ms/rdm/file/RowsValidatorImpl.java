@@ -62,8 +62,8 @@ public class RowsValidatorImpl implements RowsValidator {
 
     private boolean validateReference(Structure.Reference reference, Object referenceValue) {
         Integer versionId = reference.getReferenceVersion();
-        Structure structure = versionService.getStructure(versionId);
-        Field fieldFilter = createFieldFilter(structure, reference);
+        Structure referenceStructure = versionService.getStructure(versionId);
+        Field fieldFilter = createFieldFilter(referenceStructure, reference);
         FieldSearchCriteria searchCriteria = new FieldSearchCriteria(fieldFilter, SearchTypeEnum.EXACT, Collections.singletonList(referenceValue));
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria(Collections.singletonList(searchCriteria), null);
         Page<RowValue> pagedData = versionService.search(versionId, searchDataCriteria);

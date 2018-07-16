@@ -17,8 +17,6 @@ public abstract class FilePerRowProcessor implements FileProcessor, Iterator<Row
     private RowMapper rowMapper;
     private RowsProcessor rowsProcessor;
 
-    protected abstract void setFile(InputStream inputStream);
-
     public FilePerRowProcessor(RowMapper rowMapper, RowsProcessor rowsProcessor) {
         this.rowMapper = rowMapper;
         this.rowsProcessor = rowsProcessor;
@@ -29,8 +27,10 @@ public abstract class FilePerRowProcessor implements FileProcessor, Iterator<Row
         this.rowsProcessor = rowsProcessor;
     }
 
+    protected abstract void setFile(InputStream inputStream);
+
     public Result process(Supplier<InputStream> fileSource) {
-        try(InputStream inputStream = fileSource.get()) {
+        try (InputStream inputStream = fileSource.get()) {
             setFile(inputStream);
         } catch (IOException e) {
             logger.error("cannot get InputStream", e);
