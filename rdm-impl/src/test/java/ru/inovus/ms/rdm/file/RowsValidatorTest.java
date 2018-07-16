@@ -60,27 +60,31 @@ public class RowsValidatorTest {
     }
 
     @Test
-    public void appendAndProcessSuccessTest() {
+    public void testAppendAndProcess() {
         Row row = createTestRowWithReference();
+        Result expected = new Result(1, 1, null);
+
         Result appendActual = rowsValidator.append(row);
         Result processActual = rowsValidator.process();
-        Result expected = new Result(1, 1, null);
+
         Assert.assertEquals(expected, appendActual);
         Assert.assertEquals(expected, processActual);
     }
 
     @Test
-    public void appendAndProcessFailureTest() {
+    public void testAppendAndProcessWithErrors() {
         Row validRow = createTestRowWithReference();
         Row notValidRow = new Row(new HashMap() {{
             put("count", 1);
         }});
+        Result expected = new Result(1, 2, Collections.singletonList("Reference in row is not valid"));
         when(versionService.search(AdditionalMatchers.not(eq(REFERENCE_VERSION)), AdditionalMatchers.not(eq(searchDataCriteria))))
                 .thenReturn(new PageImpl<>(Collections.emptyList()));
+
         rowsValidator.append(validRow);
         Result appendActual = rowsValidator.append(notValidRow);
         Result processActual = rowsValidator.process();
-        Result expected = new Result(1, 2, Collections.singletonList("Reference in row is not valid"));
+
         Assert.assertEquals(expected, appendActual);
         Assert.assertEquals(expected, processActual);
     }

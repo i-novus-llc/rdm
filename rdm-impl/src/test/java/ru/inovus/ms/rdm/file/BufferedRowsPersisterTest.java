@@ -54,15 +54,17 @@ public class BufferedRowsPersisterTest {
     }
 
     @Test
-    public void appendSuccessTest() {
+    public void testAppend() {
         Row rowFirst = createTestRow(1);
         Row rowSecond = createTestRow(2);
         List<RowValue> rowValues = new ArrayList() {{
             add(new LongRowValue(name.valueOf("name1"), count.valueOf(1)));
             add(new LongRowValue(name.valueOf("name2"), count.valueOf(2)));
         }};
+
         bufferedRowsPersister.append(rowFirst);
         Result actual = bufferedRowsPersister.append(rowSecond);
+
         verify(draftDataService, times(1)).addRows(eq(TEST_STORAGE_CODE), eq(rowValues));
         Result expected = new Result(2, 2, null);
         Assert.assertEquals(expected, actual);
@@ -76,20 +78,22 @@ public class BufferedRowsPersisterTest {
     }
 
     @Test
-    public void processTest() {
+    public void testProcess() {
         Row rowFirst = createTestRow(1);
         List<RowValue> rowValues = new ArrayList() {{
             add(new LongRowValue(name.valueOf("name1"), count.valueOf(1)));
         }};
+
         bufferedRowsPersister.append(rowFirst);
         Result actual = bufferedRowsPersister.process();
+
         verify(draftDataService, times(1)).addRows(eq(TEST_STORAGE_CODE), eq(rowValues));
         Result expected = new Result(1, 1, null);
         Assert.assertEquals(expected, actual);
     }
 
     @Test
-    public void appendFailureTest() {
+    public void testAppendWithErrors() {
         Row rowFirst = createTestRow(1);
         Row rowSecond = createTestRow(2);
         List<RowValue> rowValues = new ArrayList() {{
@@ -98,23 +102,27 @@ public class BufferedRowsPersisterTest {
         }};
         String message = "something wrong";
         doThrow(new RuntimeException(message)).when(draftDataService).addRows(eq(TEST_STORAGE_CODE), eq(rowValues));
+
         bufferedRowsPersister.append(rowFirst);
         Result actual = bufferedRowsPersister.append(rowSecond);
+
         verify(draftDataService, times(1)).addRows(eq(TEST_STORAGE_CODE), eq(rowValues));
         Result expected = new Result(0, 2, Collections.singletonList(message));
         Assert.assertEquals(expected, actual);
     }
 
     @Test
-    public void processFailureTest() {
+    public void testProcessWithErrors() {
         Row rowFirst = createTestRow(1);
         List<RowValue> rowValues = new ArrayList() {{
             add(new LongRowValue(name.valueOf("name1"), count.valueOf(1)));
         }};
         String message = "something wrong";
         doThrow(new RuntimeException(message)).when(draftDataService).addRows(eq(TEST_STORAGE_CODE), eq(rowValues));
+
         bufferedRowsPersister.append(rowFirst);
         Result actual = bufferedRowsPersister.process();
+
         verify(draftDataService, times(1)).addRows(eq(TEST_STORAGE_CODE), eq(rowValues));
         Result expected = new Result(0, 1, Collections.singletonList(message));
         Assert.assertEquals(expected, actual);

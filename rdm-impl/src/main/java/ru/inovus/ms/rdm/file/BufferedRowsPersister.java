@@ -75,7 +75,7 @@ public class BufferedRowsPersister implements RowsProcessor {
             this.result = this.result.addResult(new Result(buffer.size(), buffer.size(), null));
         } catch (Exception e) {
             this.result = this.result.addResult(new Result(0, buffer.size(), Collections.singletonList(e.getMessage())));
-            logger.info(String.valueOf(e));
+            logger.error("can not add rows", e);
         }
     }
 
