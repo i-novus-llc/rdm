@@ -53,7 +53,7 @@ public class StructureController implements CollectionPageService<AttributeCrite
         draftService.createAttribute(versionId, structureAttribute,
                 attribute.getReferenceVersion(),
                 attribute.getReferenceAttribute(),
-                Collections.singletonList(getReferenceDisplayAttribute(attribute)));
+                getReferenceDisplayAttributes(attribute));
     }
 
     public void updateAttribute(Integer versionId, Attribute attribute) {
@@ -61,7 +61,7 @@ public class StructureController implements CollectionPageService<AttributeCrite
         draftService.updateAttribute(versionId, structureAttribute,
                 attribute.getReferenceVersion(),
                 attribute.getReferenceAttribute(),
-                Collections.singletonList(getReferenceDisplayAttribute(attribute)));
+                getReferenceDisplayAttributes(attribute));
     }
 
     private void enrich(ReadAttribute attribute, Structure.Reference reference) {
@@ -79,9 +79,11 @@ public class StructureController implements CollectionPageService<AttributeCrite
         }
     }
 
-    private String getReferenceDisplayAttribute(Attribute attribute) {
-        return StringUtils.isBlank(attribute.getReferenceDisplayAttribute()) ?
-                attribute.getReferenceAttribute() : attribute.getReferenceDisplayAttribute();
+    private List<String> getReferenceDisplayAttributes(Attribute attribute) {
+        if (!FieldType.REFERENCE.equals(attribute.getType()))
+            return Collections.emptyList();
+        return Collections.singletonList(StringUtils.isBlank(attribute.getReferenceDisplayAttribute()) ?
+                attribute.getReferenceAttribute() : attribute.getReferenceDisplayAttribute());
     }
 
     private String getAttributeName(String attributeCode, Integer versionId) {

@@ -4,7 +4,7 @@
       xmlns:ctrl="http://n2oapp.net/framework/config/schema/n2o-control-1.0">
     <object-id>refBook</object-id>
     <layout>n2o/layout/single</layout>
-    <name>Администрирование/Справочники</name>
+    <name>Администрирование / Справочники</name>
 
     <!--NSI-M-4-->
 
