@@ -26,9 +26,9 @@ public class DefaultRowMapper implements RowMapper {
 
     @Override
     public Row map(Row inputRow) {
-        inputRow.getData().forEach((name, value) -> {
-            inputRow.getData().put(name, castValue(structure.getAttribute(name), (String) value));
-        });
+        inputRow.getData().forEach((name, value) ->
+            inputRow.getData().put(name, castValue(structure.getAttribute(name), (String) value))
+        );
         return inputRow;
     }
 
