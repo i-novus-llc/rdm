@@ -26,13 +26,11 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
 
     private int index = 0;
 
+
     public XlsPerRowProcessor(RowMapper rowMapper, RowsProcessor rowsProcessor) {
         super(rowMapper, rowsProcessor);
     }
 
-    public XlsPerRowProcessor(RowsProcessor rowsProcessor) {
-        super(rowsProcessor);
-    }
 
     @Override
     protected void setFile(InputStream inputStream) {

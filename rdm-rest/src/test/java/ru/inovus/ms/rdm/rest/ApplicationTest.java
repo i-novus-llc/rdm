@@ -1,5 +1,7 @@
 package ru.inovus.ms.rdm.rest;
 
+import org.apache.commons.io.IOUtils;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -7,12 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.multipart.MultipartFile;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
@@ -20,8 +23,15 @@ import ru.inovus.ms.rdm.service.DraftService;
 import ru.inovus.ms.rdm.service.RefBookService;
 import ru.inovus.ms.rdm.service.VersionService;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -360,7 +370,9 @@ public class ApplicationTest extends TestableDbEnv {
     public void testDraftCreate() {
         Structure structure = createStructure();
         Draft expected = draftService.create(1, structure);
+
         Draft actual = draftService.getDraft(expected.getId());
+
         assertEquals(expected.getId(), actual.getId());
     }
 
@@ -380,25 +392,77 @@ public class ApplicationTest extends TestableDbEnv {
 
     @Test
     public void testVersionSearch() {
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
-        Page<RowValue> rowValues = versionService.search(-1, searchDataCriteria);
-        List fieldValues = rowValues.getContent().get(0).getFieldValues();
         FieldValue name = new StringFieldValue("name", "name");
-        FieldValue count = new IntegerFieldValue("count", 2);
+        FieldValue count = new IntegerFieldValue("count", new BigInteger("2"));
+        SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
+
+        Page<RowValue> rowValues = versionService.search(-1, searchDataCriteria);
+
+        List fieldValues = rowValues.getContent().get(0).getFieldValues();
         assertEquals(fieldValues.get(0), name);
         assertEquals(fieldValues.get(1), count);
     }
 
     @Test
-    public void testPublishFirstDraft() throws Exception {
+    public void testDraftPublishFirst() throws Exception {
+        FieldValue name = new StringFieldValue("name", "name");
+        FieldValue count = new IntegerFieldValue("count", new BigInteger("2"));
+
         draftService.publish(-2, "1.0", LocalDateTime.now(), null);
+
         Page<RowValue> rowValuesInVersion = versionService.search(-1, OffsetDateTime.now(), null);
         List fieldValues = rowValuesInVersion.getContent().get(0).getFieldValues();
-        FieldValue name = new StringFieldValue("name", "name");
-        FieldValue count = new IntegerFieldValue("count", 2);
         assertEquals(fieldValues.get(0), name);
         assertEquals(fieldValues.get(1), count);
+
         Page<RowValue> rowValuesOutVersion = versionService.search(-1, OffsetDateTime.now().minusDays(1), null);
         assertEquals(new PageImpl<RowValue>(Collections.emptyList()), rowValuesOutVersion);
     }
+
+    /**
+     * Публикуем черновик, на который будем ссылаться
+     * Создаем новый черновик с ссылкой
+     * Обновляем его данные
+     */
+    @Test
+    public void testDraftUpdateData() {
+        int referenceVersion = -3;
+        draftService.publish(referenceVersion, "1.0", LocalDateTime.now(), null);
+        Structure structure = createStructure();
+        structure.setAttributes(Arrays.asList(
+            Structure.Attribute.build("string", "string", FieldType.STRING, true, "string"),
+            Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, true, "count"),
+            Structure.Attribute.build("float", "float", FieldType.FLOAT, true, "float"),
+            Structure.Attribute.build("date", "date", FieldType.DATE, true, "date"),
+            Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, true, "boolean")
+        ));
+        structure.setReferences(Collections.singletonList(new Structure.Reference("reference", referenceVersion, "count", Collections.singletonList("count"))));
+        Draft draft = draftService.create(1, structure);
+
+        draftService.updateData(draft.getId(), createMultipartFile());
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        LocalDate date =  LocalDate.parse("01.01.2011", formatter);
+        List<FieldValue> expected = new ArrayList(){{
+            add(new StringFieldValue("string", "Иван"));
+            add(new ReferenceFieldValue("reference", new Reference("2", "2")));
+            add(new FloatFieldValue("float", new BigDecimal("1.0")));
+            add(new DateFieldValue("date", date));
+            add(new BooleanFieldValue("boolean", Boolean.TRUE));
+        }};
+        Page<RowValue> search = draftService.search(draft.getId(), new SearchDataCriteria());
+        List actual = search.getContent().get(0).getFieldValues();
+        Assert.assertEquals(expected, actual);
+    }
+
+    private MultipartFile createMultipartFile() {
+        try (InputStream input = ApplicationTest.class.getResourceAsStream("/testUpload.xlsx")) {
+            return new MockMultipartFile("testUpload",
+                    "testUpload.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", IOUtils.toByteArray(input));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 }

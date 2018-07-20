@@ -174,7 +174,9 @@ public class DraftServiceTest {
         when(versionRepository.save(eq(testDraftVersion))).thenReturn(testDraftVersion);
         Structure structure = new Structure();
         structure.setAttributes(Collections.singletonList(Structure.Attribute.build("name", "name", FieldType.STRING, true, "description")));
+
         Draft draftActual = draftService.create(2, structure);
+
         assertEquals(testDraftVersion.getId(), draftActual.getId());
         assertNotEquals(TEST_DRAFT_CODE, draftActual.getStorageCode());
     }
@@ -194,13 +196,16 @@ public class DraftServiceTest {
         when(versionRepository
                 .findAll(isPublished().and(isVersionOfRefBook(2))
                         , new PageRequest(1, 1, new Sort(Sort.Direction.DESC, "fromDate")))).thenReturn(lastRefBookVersionPage);
+
         draftService.create(2, new Structure());
+
         verify(versionRepository).save(eq(expectedRefBookVersion));
     }
 
     @Test
     public void testRemoveDraft() {
         draftService.remove(1);
+
         verify(versionRepository).delete(eq(1));
     }
 

@@ -2,39 +2,52 @@ package ru.inovus.ms.rdm.service;
 
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.UserException;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
-import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.exception.NsiException;
+import ru.inovus.ms.rdm.file.BufferedRowsPersister;
+import ru.inovus.ms.rdm.file.FileProcessor;
+import ru.inovus.ms.rdm.file.ProcessorFactory;
+import ru.inovus.ms.rdm.file.RowsValidatorImpl;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
+import ru.inovus.ms.rdm.util.ConverterUtil;
 import ru.inovus.ms.rdm.util.RowValuePage;
 import ru.kirkazan.common.exception.CodifiedException;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Supplier;
 
-import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
-import static ru.inovus.ms.rdm.util.ConverterUtil.*;
-import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
-import static java.util.Collections.singletonList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.MAX_TIMESTAMP;
+import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.hasOverlappingPeriods;
+import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.isPublished;
+import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.isVersionOfRefBook;
+import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
 
 @Service
 public class DraftServiceImpl implements DraftService {
@@ -43,7 +56,7 @@ public class DraftServiceImpl implements DraftService {
 
     private RefBookVersionRepository versionRepository;
 
-    private FieldFactory fieldFactory;
+    private VersionService versionService;
 
     private SearchDataService searchDataService;
 
@@ -52,11 +65,11 @@ public class DraftServiceImpl implements DraftService {
     private RefBookRepository refBookRepository;
 
     @Autowired
-    public DraftServiceImpl(DraftDataService draftDataService, RefBookVersionRepository versionRepository, FieldFactory fieldFactory,
+    public DraftServiceImpl(DraftDataService draftDataService, RefBookVersionRepository versionRepository, VersionService versionService,
                             RefBookRepository refBookRepository, SearchDataService searchDataService, DropDataService dropDataService) {
         this.draftDataService = draftDataService;
         this.versionRepository = versionRepository;
-        this.fieldFactory = fieldFactory;
+        this.versionService = versionService;
         this.searchDataService = searchDataService;
         this.dropDataService = dropDataService;
         this.refBookRepository = refBookRepository;
@@ -71,7 +84,7 @@ public class DraftServiceImpl implements DraftService {
         if (draftVersion == null && lastRefBookVersion == null) {
             throw new CodifiedException("invalid refbook");
         }
-        List<Field> fields = structureToFields(structure, fieldFactory);
+        List<Field> fields = fields(structure);
         if (draftVersion == null) {
             draftVersion = newDraftVersion(structure, lastRefBookVersion);
             draftVersion.setRefBook(refBookRepository.findOne(refBookId));
@@ -123,15 +136,36 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
-    public void updateData(Integer draftId, FileData file) {
-        throw new UnsupportedOperationException();
+    public void updateData(Integer draftId, MultipartFile file) {
+        RefBookVersionEntity draft = versionRepository.findOne(draftId);
+        String storageCode = draft.getStorageCode();
+        Structure structure = draft.getStructure();
+        String extension = FilenameUtils.getExtension(file.getOriginalFilename()).toUpperCase();
+        FileProcessor validator = ProcessorFactory.createProcessor(extension,
+                new RowsValidatorImpl(versionService, structure), structure, versionRepository);
+        Supplier<InputStream> inputStreamSupplier = () -> {
+            try {
+                return file.getInputStream();
+            } catch (IOException e) {
+                throw new NsiException("invalid file: ", e);
+            }
+        };
+        Result validationResult = validator.process(inputStreamSupplier);
+        if (isEmpty(validationResult.getErrors())) {
+            FileProcessor persister = ProcessorFactory.createProcessor(extension,
+                     new BufferedRowsPersister(draftDataService, storageCode, structure), structure, versionRepository);
+            persister.process(inputStreamSupplier);
+        } else {
+            throw new NsiException("file contains invalid reference");
+        }
+
     }
 
     @Override
     public Page<RowValue> search(Integer draftId, SearchDataCriteria criteria) {
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
         String storageCode = draft.getStorageCode();
-        List<Field> fields = structureToFields(draft.getStructure(), fieldFactory);
+        List<Field> fields = fields(draft.getStructure());
         DataCriteria dataCriteria = new DataCriteria(storageCode, null, null,
                 fields, criteria.getFieldFilter(), criteria.getCommonFilter());
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
@@ -246,7 +280,7 @@ public class DraftServiceImpl implements DraftService {
     public void createAttribute(Integer versionId, Structure.Attribute attribute, Integer referenceVersion,
                                 String referenceAttribute, List<String> referenceDisplayAttributes) {
         RefBookVersionEntity draftEntity = versionRepository.findOne(versionId);
-        draftDataService.addField(draftEntity.getStorageCode(), attributeToField(attribute, fieldFactory));
+        draftDataService.addField(draftEntity.getStorageCode(), ConverterUtil.field(attribute));
 
         Structure structure = draftEntity.getStructure();
         if (structure == null) {
@@ -273,7 +307,7 @@ public class DraftServiceImpl implements DraftService {
     public void updateAttribute(Integer versionId, Structure.Attribute attribute, Integer referenceVersion,
                                 String referenceAttribute, List<String> referenceDisplayAttributes) {
         RefBookVersionEntity draftEntity = versionRepository.findOne(versionId);
-        draftDataService.updateField(draftEntity.getStorageCode(), attributeToField(attribute, fieldFactory));
+        draftDataService.updateField(draftEntity.getStorageCode(), ConverterUtil.field(attribute));
 
         Structure structure = draftEntity.getStructure();
         if (attribute.getIsPrimary())
@@ -306,7 +340,7 @@ public class DraftServiceImpl implements DraftService {
     private Structure.Reference buildReference(Integer referenceVersion, String attributeCode,
                                                String referenceAttribute, List<String> referenceDisplayAttributes) {
         List<String> displayAttributes = isEmpty(referenceDisplayAttributes) ?
-                singletonList(referenceAttribute): referenceDisplayAttributes;
+                singletonList(referenceAttribute) : referenceDisplayAttributes;
         return new Structure.Reference(attributeCode, referenceVersion, referenceAttribute, displayAttributes);
     }
 }

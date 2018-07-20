@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.model.SearchDataCriteria;
@@ -23,20 +22,18 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static ru.inovus.ms.rdm.util.ConverterUtil.localDateTimeToDate;
+import static ru.inovus.ms.rdm.util.ConverterUtil.date;
 
 @Service
 public class VersionServiceImpl implements VersionService {
 
     private RefBookVersionRepository versionRepository;
     private SearchDataService searchDataService;
-    private FieldFactory fieldFactory;
 
     @Autowired
-    public VersionServiceImpl(RefBookVersionRepository versionRepository, SearchDataService searchDataService, FieldFactory fieldFactory) {
+    public VersionServiceImpl(RefBookVersionRepository versionRepository, SearchDataService searchDataService) {
         this.versionRepository = versionRepository;
         this.searchDataService = searchDataService;
-        this.fieldFactory = fieldFactory;
     }
 
     @Override
@@ -52,9 +49,9 @@ public class VersionServiceImpl implements VersionService {
     }
 
     private Page<RowValue> getRowValuesOfVersion(SearchDataCriteria criteria, RefBookVersionEntity version) {
-        List<Field> fields = ConverterUtil.structureToFields(version.getStructure(), fieldFactory);
-        Date bdate = localDateTimeToDate(version.getFromDate());
-        Date edate = localDateTimeToDate(version.getToDate());
+        List<Field> fields = ConverterUtil.fields(version.getStructure());
+        Date bdate = date(version.getFromDate());
+        Date edate = date(version.getToDate());
         criteria = Optional.ofNullable(criteria).orElse(new SearchDataCriteria());
         DataCriteria dataCriteria = new DataCriteria(version.getStorageCode(), bdate, edate,
                 fields, criteria.getFieldFilter(), criteria.getCommonFilter());

@@ -10,6 +10,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
@@ -49,7 +50,7 @@ public class RowsValidatorTest {
 
     @Before
     public void setUp() {
-        rowsValidator = new RowsValidatorImpl(versionService, fieldFactory, createTestStructureWithReference());
+        rowsValidator = new RowsValidatorImpl(versionService, createTestStructureWithReference());
         when(fieldFactory.createField(eq(REFERENCE_ATTRIBUTE), eq(FieldType.STRING))).thenReturn(new StringField(REFERENCE_ATTRIBUTE));
         when(versionService.getStructure(eq(REFERENCE_VERSION))).thenReturn(createTestStructure());
         StringField fieldFilter = new StringField(REFERENCE_ATTRIBUTE);
@@ -75,7 +76,7 @@ public class RowsValidatorTest {
     public void testAppendAndProcessWithErrors() {
         Row validRow = createTestRowWithReference();
         Row notValidRow = new Row(new HashMap() {{
-            put("count", 1);
+            put(ATTRIBUTE_NAME, new Reference(ATTRIBUTE_VALUE  + "_1", ATTRIBUTE_VALUE + "_1"));
         }});
         Result expected = new Result(1, 2, Collections.singletonList("Reference in row is not valid"));
         when(versionService.search(AdditionalMatchers.not(eq(REFERENCE_VERSION)), AdditionalMatchers.not(eq(searchDataCriteria))))
@@ -91,7 +92,7 @@ public class RowsValidatorTest {
 
     private Row createTestRowWithReference() {
         return new Row(new HashMap() {{
-            put(ATTRIBUTE_NAME, ATTRIBUTE_VALUE);
+            put(ATTRIBUTE_NAME, new Reference(ATTRIBUTE_VALUE, ATTRIBUTE_VALUE));
         }});
     }
 

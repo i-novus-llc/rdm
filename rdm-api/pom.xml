@@ -40,6 +40,12 @@
             <artifactId>n2o-platform-jaxrs-commons</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>5.0.1.RELEASE</version>
+        </dependency>
+
     </dependencies>
 
 </project>
