@@ -10,16 +10,14 @@ import ru.inovus.ms.rdm.util.ConverterUtil;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-/**
- * Created by tnurdinov on 06.07.2018.
- */
-public class DefaultRowMapper implements RowMapper {
+
+public class StructureRowMapper implements RowMapper {
 
     private Structure structure;
 
     private RefBookVersionRepository versionRepository;
 
-    public DefaultRowMapper(Structure structure, RefBookVersionRepository versionRepository) {
+    public StructureRowMapper(Structure structure, RefBookVersionRepository versionRepository) {
         this.structure = structure;
         this.versionRepository = versionRepository;
     }

@@ -12,7 +12,7 @@ public class ProcessorFactory {
                                                 Structure structure, RefBookVersionRepository versionRepository) {
         switch (extension) {
             case "XLSX":
-                return new XlsPerRowProcessor(new DefaultRowMapper(structure, versionRepository), rowsProcessor);
+                return new XlsPerRowProcessor(new StructureRowMapper(structure, versionRepository), rowsProcessor);
             case "XML":
                 return null;
             default:
