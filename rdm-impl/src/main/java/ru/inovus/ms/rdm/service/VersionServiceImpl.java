@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static ru.inovus.ms.rdm.util.ConverterUtil.date;
+import static ru.inovus.ms.rdm.util.ConverterUtil.sortings;
 
 @Service
 public class VersionServiceImpl implements VersionService {
@@ -55,6 +56,9 @@ public class VersionServiceImpl implements VersionService {
         criteria = Optional.ofNullable(criteria).orElse(new SearchDataCriteria());
         DataCriteria dataCriteria = new DataCriteria(version.getStorageCode(), bdate, edate,
                 fields, criteria.getFieldFilter(), criteria.getCommonFilter());
+        dataCriteria.setPage(criteria.getPageNumber());
+        dataCriteria.setSize(criteria.getPageSize());
+        Optional.ofNullable(criteria.getSort()).ifPresent(sort -> dataCriteria.setSortings(sortings(sort)));
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
         return pagedData.getCollection() != null ? new RowValuePage(pagedData) : null;
     }
