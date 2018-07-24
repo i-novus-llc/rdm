@@ -15,11 +15,11 @@
     <packaging>war</packaging>
 
     <dependencies>
-        <!--<dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+        <dependency>
+            <groupId>ru.inovus.ms.rdm</groupId>
+            <artifactId>rdm-api</artifactId>
         </dependency>
--->
+
         <dependency>
             <groupId>net.n2oapp.framework</groupId>
             <artifactId>n2o-api</artifactId>
@@ -36,12 +36,12 @@
             <groupId>net.n2oapp.framework</groupId>
             <artifactId>n2o-engine-rest</artifactId>
         </dependency>
-<!--
+
         <dependency>
-            <groupId>net.n2oapp.framework</groupId>
-            <artifactId>n2o-context</artifactId>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-rs-client</artifactId>
         </dependency>
--->
+
     </dependencies>
 
     <build>

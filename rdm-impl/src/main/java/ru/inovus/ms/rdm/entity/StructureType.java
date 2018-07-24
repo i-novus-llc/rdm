@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang.SerializationUtils;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.UserType;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -16,10 +17,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 
 public class StructureType implements UserType {
+
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Override
@@ -63,7 +68,9 @@ public class StructureType implements UserType {
         List<Structure.Reference> references = new ArrayList<>();
         if (attributesJson.isArray()) {
             for (JsonNode attributeJson : attributesJson) {
+                String code = getByKey(attributeJson, "code", JsonNode::asText);
                 String name = getByKey(attributeJson, "name", JsonNode::asText);
+                String description = getByKey(attributeJson, "description", JsonNode::asText);
                 String type = getByKey(attributeJson, "type", JsonNode::asText);
                 boolean isPrimary = getByKey(attributeJson, "isPrimary", JsonNode::asBoolean);
                 boolean isRequired = getByKey(attributeJson, "isRequired", JsonNode::asBoolean);
@@ -75,16 +82,18 @@ public class StructureType implements UserType {
                     arrayNode.forEach(node -> values.add(node.asText()));
                     return values;
                 };
-                List<String> displayAttributes = getByKey(attributeJson, "displayAttribute", asList);
+                List<String> displayAttributes = getByKey(attributeJson, "displayAttributes", asList);
                 Structure.Attribute attribute;
-                if(isPrimary){
-                    attribute = Structure.Attribute.buildPrimary(name, FieldType.valueOf(type));
+                if (isPrimary) {
+                    attribute = Structure.Attribute.buildPrimary(code, name, FieldType.valueOf(type), description);
                 } else {
-                    attribute = Structure.Attribute.build(name, FieldType.valueOf(type), isRequired);
+                    attribute = Structure.Attribute.build(code, name, FieldType.valueOf(type), isRequired, description);
                 }
-                Structure.Reference reference = new Structure.Reference(name, referenceVersion, referenceAttribute, displayAttributes);
+                if (FieldType.valueOf(type).equals(FieldType.REFERENCE)) {
+                    Structure.Reference reference = new Structure.Reference(code, referenceVersion, referenceAttribute, displayAttributes);
+                    references.add(reference);
+                }
                 attributes.add(attribute);
-                references.add(reference);
             }
         }
         structure.setAttributes(attributes);
@@ -94,7 +103,7 @@ public class StructureType implements UserType {
 
 
     @Override
-    public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor session) throws  SQLException {
+    public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor session) throws SQLException {
         if (value == null) {
             st.setNull(index, Types.OTHER);
             return;
@@ -116,18 +125,20 @@ public class StructureType implements UserType {
         return jsonStructure;
     }
 
-    private ObjectNode createAttributeJson(Structure.Attribute attribute, Structure structure){
+    private ObjectNode createAttributeJson(Structure.Attribute attribute, Structure structure) {
         ObjectNode attributeJson = MAPPER.createObjectNode();
-        attributeJson.put("name", attribute.getAttributeName());
+        attributeJson.put("code", attribute.getCode());
+        attributeJson.put("name", attribute.getName());
         attributeJson.put("type", attribute.getType().name());
-        attributeJson.put("isPrimary", attribute.isPrimary());
-        attributeJson.put("isRequired", attribute.isRequired());
-        Structure.Reference reference = structure.getReference(attribute.getAttributeName());
+        attributeJson.put("isPrimary", attribute.getIsPrimary());
+        attributeJson.put("isRequired", attribute.getIsRequired());
+        Optional.ofNullable(attribute.getDescription()).ifPresent(d -> attributeJson.put("description", attribute.getDescription()));
+        Structure.Reference reference = structure.getReference(attribute.getCode());
         if (reference != null) {
             attributeJson.put("referenceVersion", reference.getReferenceVersion());
             attributeJson.put("referenceAttribute", reference.getReferenceAttribute());
-            ArrayNode arrayNode = attributeJson.putArray("displayFields");
-            reference.getDisplayAttributes().forEach(arrayNode::add);
+            ArrayNode arrayNode = attributeJson.putArray("displayAttributes");
+            Optional.ofNullable(reference.getDisplayAttributes()).ifPresent(d -> d.forEach(arrayNode::add));
         }
 
         return attributeJson;
@@ -137,7 +148,7 @@ public class StructureType implements UserType {
     public Object deepCopy(Object value) {
         Object copy = null;
         if (value != null) {
-            copy = jsonToStructure(valueToJson(value));
+            copy = SerializationUtils.clone((Structure) value);
         }
         return copy;
     }

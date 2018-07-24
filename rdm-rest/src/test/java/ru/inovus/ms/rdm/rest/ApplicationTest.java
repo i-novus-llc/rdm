@@ -6,18 +6,32 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.test.context.junit4.SpringRunner;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.service.DraftService;
 import ru.inovus.ms.rdm.service.RefBookService;
+import ru.inovus.ms.rdm.service.VersionService;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
 
 @RunWith(SpringRunner.class)
@@ -37,20 +51,32 @@ public class ApplicationTest extends TestableDbEnv {
     private static final String SEARCH_CODE_STR = "78 ";
     private static final String SEARCH_BY_NAME_STR = "отличное от последней версии ";
     private static final String SEARCH_BY_NAME_STR_ASSERT_CODE = "A080";
+    private static final String SEARCH_BY_CODE_AND_NAME = "A080 Справочник МО";
 
     private static RefBookCreateRequest refBookCreateRequest;
     private static RefBookUpdateRequest refBookUpdateRequest;
+    private static Structure.Attribute createAttribute;
+    private static Structure.Reference createReference;
+
+    private static Structure.Attribute updateAttribute;
+    private static Structure.Attribute deleteAttribute;
     private static List<RefBookVersion> versionList;
 
     @Autowired
     private RefBookService refBookService;
+
+    @Autowired
+    private DraftService draftService;
+
+    @Autowired
+    private VersionService versionService;
 
     @BeforeClass
     public static void initialize() {
         refBookCreateRequest = new RefBookCreateRequest();
         refBookCreateRequest.setCode("T1");
         refBookCreateRequest.setFullName("Справочник специальностей");
-        refBookCreateRequest.setShortName("СПРВЧНК СПЦЛНСТЙ");
+        refBookCreateRequest.setShortName("СПРВЧНК СПЦЛНСТЙ  ");
         refBookCreateRequest.setAnnotation("Аннотация для справочника специальностей");
 
         refBookUpdateRequest = new RefBookUpdateRequest();
@@ -59,6 +85,12 @@ public class ApplicationTest extends TestableDbEnv {
         refBookUpdateRequest.setShortName(refBookCreateRequest.getShortName() + "_upd");
         refBookUpdateRequest.setAnnotation(refBookCreateRequest.getAnnotation() + "_upd");
         refBookUpdateRequest.setComment("обновленное наполнение");
+
+        createAttribute = Structure.Attribute.buildPrimary("name", "Наименование", FieldType.REFERENCE, "описание");
+        createReference = new Structure.Reference(createAttribute.getCode(), 801, "code", null);
+        updateAttribute = Structure.Attribute.buildPrimary(createAttribute.getCode(),
+                createAttribute.getName() + "_upd", createAttribute.getType(), createAttribute.getDescription() + "_upd");
+        deleteAttribute = Structure.Attribute.build("code", "Код", FieldType.STRING, false, "на удаление");
 
         RefBookVersion version0 = new RefBookVersion();
         version0.setRefBookId(500);
@@ -88,6 +120,7 @@ public class ApplicationTest extends TestableDbEnv {
      * Создание справочника.
      * В архив.
      * Изменение метеданных справочника
+     * Добавление/изменение/удаление атрибута
      * Получение справоника по идентификатору версии.
      */
 
@@ -109,6 +142,7 @@ public class ApplicationTest extends TestableDbEnv {
         assertTrue(refBook.getRemovable());
         assertFalse(refBook.getArchived());
         assertNull(refBook.getFromDate());
+        assertNotNull(draftService.getDraft(refBook.getId()).getStorageCode());
 
         // изменение метеданных справочника
         refBookUpdateRequest.setId(refBook.getId());
@@ -120,6 +154,33 @@ public class ApplicationTest extends TestableDbEnv {
         refBook.setComment(refBookUpdateRequest.getComment());
         refBook.setComment(refBookUpdateRequest.getComment());
         assertRefBooksEqual(refBook, updatedRefBook);
+
+        // добавление атрибута
+        draftService.createAttribute(refBook.getId(), createAttribute,
+                createReference.getReferenceVersion(), createReference.getReferenceAttribute(), null);
+
+        // получение структуры
+        Structure structure = versionService.getStructure(refBook.getId());
+
+        // проверка добавленного атрибута
+        assertEquals(1, structure.getAttributes().size());
+        assertEquals(createAttribute, structure.getAttributes().get(0));
+        createReference.setDisplayAttributes(Collections.singletonList(createReference.getReferenceAttribute()));
+        assertEquals(createReference, structure.getReference(createAttribute.getCode()));
+
+        // изменение атрибута и проверка
+        draftService.updateAttribute(refBook.getId(), updateAttribute, createReference.getReferenceVersion(),
+                createReference.getReferenceAttribute(), createReference.getDisplayAttributes());
+        structure = versionService.getStructure(refBook.getId());
+        assertEquals(updateAttribute, structure.getAttributes().get(0));
+        assertEquals(createReference, structure.getReference(updateAttribute.getCode()));
+
+        // удадение атрибута и проверка
+        draftService.createAttribute(refBook.getId(), deleteAttribute, null, null, null);
+
+        draftService.deleteAttribute(refBook.getId(), deleteAttribute.getCode());
+        structure = versionService.getStructure(refBook.getId());
+        assertEquals(1, structure.getAttributes().size());
 
         // в архив
         refBookService.archive(refBook.getRefBookId());
@@ -139,8 +200,10 @@ public class ApplicationTest extends TestableDbEnv {
     }
 
     /**
+     * Поиск по идентификатору справочника
      * Поиск по наименованию.
      * Поиск по коду.
+     * Поиск по коду и наименованию
      * Поиск по статусу.
      * Поиск по дате последней публикации.
      */
@@ -148,10 +211,16 @@ public class ApplicationTest extends TestableDbEnv {
     @Test
     public void testRefBookSearch() {
 
+        // поиск по идентификатору справочника
+        RefBookCriteria refBookCriteria = new RefBookCriteria();
+        refBookCriteria.setRefBookId(500);
+        Page<RefBook> search = refBookService.search(refBookCriteria);
+        assertEquals(1, search.getTotalElements());
+
         // поиск по коду (по подстроке без учета регистра, крайние пробелы)
         RefBookCriteria codeCriteria = new RefBookCriteria();
         codeCriteria.setCode(SEARCH_CODE_STR);
-        Page<RefBook> search = refBookService.search(codeCriteria);
+        search = refBookService.search(codeCriteria);
         assertTrue(search.getTotalElements() > 0);
         search.getContent().forEach(r -> assertTrue(containsIgnoreCase(r.getCode(), codeCriteria.getCode().trim())));
 
@@ -161,6 +230,13 @@ public class ApplicationTest extends TestableDbEnv {
         search = refBookService.search(nameCriteria);
         assertEquals(1, search.getTotalElements());
         assertEquals(SEARCH_BY_NAME_STR_ASSERT_CODE, search.getContent().get(0).getCode());
+
+        // поиск по коду и наименованию
+        RefBookCriteria codeNameCriteria = new RefBookCriteria();
+        codeNameCriteria.setName(SEARCH_BY_CODE_AND_NAME.toUpperCase());
+        search = refBookService.search(nameCriteria);
+        assertEquals(1, search.getTotalElements());
+        assertEquals(SEARCH_BY_CODE_AND_NAME, search.getContent().get(0).getCodeName());
 
         // поиск по статусу 'Черновик'
         RefBookCriteria statusCriteria = new RefBookCriteria();
@@ -229,6 +305,8 @@ public class ApplicationTest extends TestableDbEnv {
 
     /**
      * Получение списка версий справочника
+     * Получение списка версий без черновика
+     * Поиск по номеру версии
      */
 
     @Test
@@ -242,6 +320,16 @@ public class ApplicationTest extends TestableDbEnv {
             RefBookVersion actual = search.getContent().get(i);
             assertVersion(versionList.get(i), actual);
         }
+
+        // поиск с исключанием справочников
+        criteria.setExcludeDraft(Boolean.TRUE);
+        search = refBookService.getVersions(criteria);
+        assertEquals(versionList.size() - 1, search.getTotalElements());
+
+        // поиск по номеру версии
+        criteria.setVersion(versionList.get(1).getVersion());
+        search = refBookService.getVersions(criteria);
+        assertEquals(1, search.getTotalElements());
     }
 
     private void assertRefBooksEqual(RefBook expected, RefBook actual) {
@@ -266,5 +354,51 @@ public class ApplicationTest extends TestableDbEnv {
         assertEquals(expected.getVersion(), actual.getVersion());
         assertEquals(expected.getStatus(), actual.getStatus());
         assertEquals(expected.getDisplayStatus(), actual.getDisplayStatus());
+    }
+
+    @Test
+    public void testDraftCreate() {
+        Structure structure = createStructure();
+        Draft expected = draftService.create(1, structure);
+        Draft actual = draftService.getDraft(expected.getId());
+        assertEquals(expected.getId(), actual.getId());
+    }
+
+    @Test
+    public void testDraftRemove() {
+        Structure structure = createStructure();
+        Draft draft = draftService.create(1, structure);
+        draftService.remove(draft.getId());
+        assertNull(draftService.getDraft(draft.getId()));
+    }
+
+    private Structure createStructure() {
+        Structure structure = new Structure();
+        structure.setAttributes(Collections.singletonList(Structure.Attribute.build("name", "name", FieldType.STRING, true, "description")));
+        return structure;
+    }
+
+    @Test
+    public void testVersionSearch() {
+        SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
+        Page<RowValue> rowValues = versionService.search(-1, searchDataCriteria);
+        List fieldValues = rowValues.getContent().get(0).getFieldValues();
+        FieldValue name = new StringFieldValue("name", "name");
+        FieldValue count = new IntegerFieldValue("count", 2);
+        assertEquals(fieldValues.get(0), name);
+        assertEquals(fieldValues.get(1), count);
+    }
+
+    @Test
+    public void testPublishFirstDraft() throws Exception {
+        draftService.publish(-2, "1.0", LocalDateTime.now(), null);
+        Page<RowValue> rowValuesInVersion = versionService.search(-1, OffsetDateTime.now(), null);
+        List fieldValues = rowValuesInVersion.getContent().get(0).getFieldValues();
+        FieldValue name = new StringFieldValue("name", "name");
+        FieldValue count = new IntegerFieldValue("count", 2);
+        assertEquals(fieldValues.get(0), name);
+        assertEquals(fieldValues.get(1), count);
+        Page<RowValue> rowValuesOutVersion = versionService.search(-1, OffsetDateTime.now().minusDays(1), null);
+        assertEquals(new PageImpl<RowValue>(Collections.emptyList()), rowValuesOutVersion);
     }
 }

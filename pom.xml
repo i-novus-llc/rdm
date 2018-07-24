@@ -21,6 +21,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <encoding>UTF-8</encoding>
         <liquibase.version>3.6.1.inovus</liquibase.version>
+        <apache.poi.version>3.14</apache.poi.version>
     </properties>
 
     <modules>
@@ -65,11 +66,24 @@
             </dependency>
 
             <dependency>
-                <groupId>com.opentable.components</groupId>
-                <artifactId>otj-pg-embedded</artifactId>
+                <groupId>ru.i-novus.util</groupId>
+                <artifactId>pg-embeded</artifactId>
                 <version>0.12.0</version>
                 <scope>test</scope>
             </dependency>
+
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi</artifactId>
+                <version>${apache.poi.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${apache.poi.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 </project>

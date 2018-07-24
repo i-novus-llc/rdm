@@ -34,6 +34,23 @@
                                         </wgt:enabling-condition>
                                     </wgt:conditions>
                                 </wgt:menu-item>
+                                <wgt:menu-item id="structure" label="Изменить структуру">
+                                    <wgt:event>
+                                        <wgt:open-page page-id="attributeList"
+                                                       master-field-id="id" detail-field-id="versionId"
+                                                       page-name="Изменение структуры"/>
+                                    </wgt:event>
+                                    <wgt:conditions>
+                                        <wgt:enabling-condition>
+                                            <wgt:expression>!archived</wgt:expression>
+                                            <wgt:tooltip>Недоступно для архива</wgt:tooltip>
+                                        </wgt:enabling-condition>
+                                        <wgt:enabling-condition>
+                                            <wgt:expression>displayStatus == 'DRAFT' || displayStatus == 'PUBLISHED'</wgt:expression>
+                                            <wgt:tooltip>Доступно для черновика и актуальной версии</wgt:tooltip>
+                                        </wgt:enabling-condition>
+                                    </wgt:conditions>
+                                </wgt:menu-item>
                             </wgt:sub-menu>
                         </wgt:group>
 

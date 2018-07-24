@@ -2,20 +2,54 @@ package ru.inovus.ms.rdm.model;
 
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class Structure {
+import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+
+public class Structure implements Serializable {
 
     private List<Attribute> attributes;
 
     private List<Reference> references;
 
+    public Structure() {
+    }
+
+    public Structure(List<Attribute> attributes, List<Reference> references) {
+        this.attributes = attributes;
+        this.references = references;
+    }
+
+    public Structure(Structure other) {
+        this(other.getAttributes(), other.getReferences());
+    }
+
     public Reference getReference(String attributeName) {
-        if(references == null) {
+        if (isEmpty(references)) {
             return null;
         }
         return references.stream().filter(reference -> reference.getAttribute().equals(attributeName)).findAny()
                 .orElse(null);
+    }
+
+    public Attribute getAttribute(String code) {
+        if (isEmpty(attributes)) {
+            return null;
+        }
+        return attributes.stream().filter(attribute -> attribute.getCode().equals(code)).findAny()
+                .orElse(null);
+    }
+
+
+    public void clearPrimary() {
+        if (isEmpty(attributes)) {
+            return;
+        }
+        attributes.forEach(a -> {
+            if (a.getIsPrimary())
+                a.setPrimary(false);
+        });
     }
 
     public List<Attribute> getAttributes() {
@@ -34,9 +68,11 @@ public class Structure {
         this.references = references;
     }
 
-    public static class Attribute {
+    public static class Attribute implements Serializable {
 
-        private String attributeName;
+        private String code;
+
+        private String name;
 
         private FieldType type;
 
@@ -44,31 +80,44 @@ public class Structure {
 
         private boolean isRequired;
 
-        public static Attribute buildPrimary(String attributeName, FieldType type) {
+        private String description;
+
+        public static Attribute buildPrimary(String code, String name, FieldType type, String description) {
             Attribute attribute = new Attribute();
             attribute.setPrimary(true);
             attribute.setIsRequired(true);
-            attribute.setAttributeName(attributeName);
+            attribute.setCode(code);
+            attribute.setName(name);
             attribute.setType(type);
+            attribute.setDescription(description);
             return attribute;
         }
 
-        public static Attribute build(String attributeName, FieldType type, boolean isRequired) {
+        public static Attribute build(String code, String name, FieldType type, boolean isRequired, String description) {
             Attribute attribute = new Attribute();
             attribute.setPrimary(false);
             attribute.setIsRequired(isRequired);
-            attribute.setAttributeName(attributeName);
+            attribute.setCode(code);
+            attribute.setName(name);
             attribute.setType(type);
+            attribute.setDescription(description);
             return attribute;
         }
 
-
-        public String getAttributeName() {
-            return attributeName;
+        public String getCode() {
+            return code;
         }
 
-        public void setAttributeName(String attributeName) {
-            this.attributeName = attributeName;
+        public void setCode(String code) {
+            this.code = code;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
         }
 
         public FieldType getType() {
@@ -79,7 +128,7 @@ public class Structure {
             this.type = type;
         }
 
-        public boolean isPrimary() {
+        public boolean getIsPrimary() {
             return isPrimary;
         }
 
@@ -91,12 +140,20 @@ public class Structure {
             this.isPrimary = isPrimary;
         }
 
-        public boolean isRequired() {
+        public boolean getIsRequired() {
             return isRequired;
         }
 
         public void setIsRequired(boolean isRequired) {
             this.isRequired = isRequired;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
         }
 
         @Override
@@ -108,7 +165,11 @@ public class Structure {
 
             if (isPrimary != attribute.isPrimary) return false;
             if (isRequired != attribute.isRequired) return false;
-            if (attributeName != null ? !attributeName.equals(attribute.attributeName) : attribute.attributeName != null)
+            if (code != null ? !code.equals(attribute.code) : attribute.code != null)
+                return false;
+            if (name != null ? !name.equals(attribute.name) : attribute.name != null)
+                return false;
+            if (description != null ? !description.equals(attribute.description) : attribute.description != null)
                 return false;
             return type == attribute.type;
 
@@ -116,7 +177,8 @@ public class Structure {
 
         @Override
         public int hashCode() {
-            int result = attributeName != null ? attributeName.hashCode() : 0;
+            int result = code != null ? code.hashCode() : 0;
+            result = 31 * result + (name != null ? name.hashCode() : 0);
             result = 31 * result + (type != null ? type.hashCode() : 0);
             result = 31 * result + (isPrimary ? 1 : 0);
             result = 31 * result + (isRequired ? 1 : 0);
@@ -124,7 +186,7 @@ public class Structure {
         }
     }
 
-    public static class Reference {
+    public static class Reference implements Serializable {
 
         /**
          * Поле которое ссылается
@@ -141,7 +203,10 @@ public class Structure {
          */
         String referenceAttribute;
 
-        List<String> displayAttributes;
+        transient List<String> displayAttributes;
+
+        public Reference() {
+        }
 
         public Reference(String attribute, Integer referenceVersion, String referenceAttribute, List<String> displayAttributes) {
             this.attribute = attribute;

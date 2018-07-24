@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<page xmlns="http://n2oapp.net/framework/config/schema/page-1.0"
+      xmlns:wgt="http://n2oapp.net/framework/config/schema/n2o-widget-3.0">
+    <object-id>attribute</object-id>
+    <layout>n2o/layout/single</layout>
+    <name>Список атрибутов</name>
+
+    <regions>
+        <region place="single" type="none">
+            <container id="main">
+                <wgt:table>
+                    <wgt:size>100</wgt:size>
+                    <wgt:query-id>attribute</wgt:query-id>
+
+                    <wgt:settings>
+                        <wgt:size visible="false"/>
+                    </wgt:settings>
+
+                    <wgt:action-menu>
+                        <wgt:menu-item id="create" label="Добавить" context="false">
+                            <wgt:event>
+                                <wgt:show-modal-form form-id="attribute"
+                                                     master-field-id="versionId" detail-field-id="versionId"
+                                                     page-name="Добавление атрибута" refresh-on-close="true"/>
+                            </wgt:event>
+                        </wgt:menu-item>
+                        <wgt:menu-item id="update" label="Изменить" context="true">
+                            <wgt:event>
+                                <wgt:show-modal-form form-id="attribute" master-field-id="versionId" detail-field-id="versionId"
+                                                     page-name="Изменение атрибута" refresh-on-close="true">
+                                    <wgt:pre-filters>
+                                        <wgt:pre-filter field-id="code" ref="code"/>
+                                    </wgt:pre-filters>
+                                </wgt:show-modal-form>
+                            </wgt:event>
+                        </wgt:menu-item>
+                        <wgt:menu-item id="delete" label="Удалить" bulk="false">
+                            <wgt:event>
+                                <wgt:invoke-action action-id="delete" confirmation="true"/>
+                            </wgt:event>
+                        </wgt:menu-item>
+                    </wgt:action-menu>
+
+                    <wgt:columns>
+                        <wgt:column column-field-id="code" name="Код" width="100px"/>
+                        <wgt:column column-field-id="name" name="Наименование"/>
+                        <wgt:column column-field-id="attrType.id" name="Тип"
+                                    format="switcher 'STRING:Строковый;INTEGER:Целочисленный;FLOAT:Дробный;DATE:Дата;BOOLEAN:Логический;REFERENCE:Ссылочный'"/>
+                        <wgt:column column-field-id="isPrimary" name="Первичный ключ">
+                            <wgt:checkbox/>
+                        </wgt:column>
+                        <wgt:column column-field-id="isRequired" name="Обязательный">
+                            <wgt:checkbox/>
+                        </wgt:column>
+                        <wgt:column column-field-id="description" name="Описание"/>
+                    </wgt:columns>
+
+                    <wgt:paging always-show-count="true"/>
+                </wgt:table>
+            </container>
+        </region>
+    </regions>
+</page>

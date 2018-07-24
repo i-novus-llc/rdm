@@ -16,6 +16,10 @@ public class VersionCriteria extends AbstractCriteria {
     @QueryParam("excludeDraft")
     private Boolean excludeDraft;
 
+    @ApiModelProperty("Номер версии")
+    @QueryParam("version")
+    private String version;
+
     public VersionCriteria() {
         super();
     }
@@ -34,5 +38,13 @@ public class VersionCriteria extends AbstractCriteria {
 
     public void setExcludeDraft(Boolean excludeDraft) {
         this.excludeDraft = excludeDraft;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
     }
 }
