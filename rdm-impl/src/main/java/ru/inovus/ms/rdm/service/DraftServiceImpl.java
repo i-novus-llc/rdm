@@ -272,10 +272,10 @@ public class DraftServiceImpl implements DraftService {
     @Override
     public Draft getDraft(Integer draftId) {
         RefBookVersionEntity versionEntity = versionRepository.findOne(draftId);
-        if (!versionEntity.getStatus().equals(RefBookVersionStatus.DRAFT)) {
+        if (versionEntity == null || versionEntity.getStatus().equals(RefBookVersionStatus.DRAFT)) {
             return null;
         }
-        return versionEntity != null ? new Draft(versionEntity.getId(), versionEntity.getStorageCode()) : null;
+        return new Draft(versionEntity.getId(), versionEntity.getStorageCode());
     }
 
     @Override
