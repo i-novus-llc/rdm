@@ -153,7 +153,7 @@ public class DraftServiceImpl implements DraftService {
         Result validationResult = validator.process(inputStreamSupplier);
         if (isEmpty(validationResult.getErrors())) {
             FileProcessor persister = ProcessorFactory.createProcessor(extension,
-                     new BufferedRowsPersister(draftDataService, storageCode, structure), structure, versionRepository);
+                    new BufferedRowsPersister(draftDataService, storageCode, structure), structure, versionRepository);
             persister.process(inputStreamSupplier);
         } else {
             throw new NsiException("file contains invalid reference");
@@ -271,7 +271,10 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     public Draft getDraft(Integer draftId) {
-        RefBookVersionEntity versionEntity = versionRepository.findByIdAndStatus(draftId, RefBookVersionStatus.DRAFT);
+        RefBookVersionEntity versionEntity = versionRepository.findOne(draftId);
+        if (!versionEntity.getStatus().equals(RefBookVersionStatus.DRAFT)) {
+            return null;
+        }
         return versionEntity != null ? new Draft(versionEntity.getId(), versionEntity.getStorageCode()) : null;
     }
 
