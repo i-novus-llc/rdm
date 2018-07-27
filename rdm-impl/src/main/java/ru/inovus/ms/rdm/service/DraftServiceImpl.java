@@ -21,8 +21,8 @@ import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
-import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.model.RowValuePage;
+import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.kirkazan.common.exception.CodifiedException;
 
 import java.time.LocalDateTime;
