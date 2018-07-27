@@ -20,6 +20,7 @@ import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
+import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.util.TimeUtils;
 
 import javax.transaction.Transactional;

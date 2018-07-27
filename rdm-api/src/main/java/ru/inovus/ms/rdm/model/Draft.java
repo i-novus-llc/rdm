@@ -9,6 +9,9 @@ public class Draft {
         this.storageCode = storageCode;
     }
 
+    public Draft() {
+    }
+
     public Integer getId() {
         return id;
     }

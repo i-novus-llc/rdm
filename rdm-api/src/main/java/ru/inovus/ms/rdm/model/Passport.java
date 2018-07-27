@@ -2,7 +2,7 @@ package ru.inovus.ms.rdm.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.annotations.ApiModelProperty;
-import ru.inovus.ms.rdm.util.JsonDateSerializer;
+import ru.inovus.ms.rdm.util.JsonLocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
 
@@ -12,7 +12,7 @@ public class Passport extends RefBook {
     private Integer recordsCount;
 
     @ApiModelProperty("Дата публикации первой версии")
-    @JsonSerialize(using = JsonDateSerializer.class)
+    @JsonSerialize(using = JsonLocalDateTimeSerializer.class)
     private LocalDateTime firstPublishedVersionFromDate;
 
     public Passport() {
