@@ -10,7 +10,7 @@ import ru.inovus.ms.rdm.exception.NsiException;
 import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.service.VersionService;
+import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

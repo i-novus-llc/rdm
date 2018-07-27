@@ -11,6 +11,9 @@ import ru.inovus.ms.rdm.model.Attribute;
 import ru.inovus.ms.rdm.model.AttributeCriteria;
 import ru.inovus.ms.rdm.model.ReadAttribute;
 import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.service.api.DraftService;
+import ru.inovus.ms.rdm.service.api.RefBookService;
+import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.util.ArrayList;
 import java.util.Collections;

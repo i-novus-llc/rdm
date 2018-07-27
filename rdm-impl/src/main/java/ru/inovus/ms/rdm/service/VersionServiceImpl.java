@@ -13,8 +13,9 @@ import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
+import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ConverterUtil;
-import ru.inovus.ms.rdm.util.RowValuePage;
+import ru.inovus.ms.rdm.model.RowValuePage;
 
 import java.time.OffsetDateTime;
 import java.util.Collections;
