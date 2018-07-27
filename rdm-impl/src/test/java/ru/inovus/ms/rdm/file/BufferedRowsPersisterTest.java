@@ -71,7 +71,7 @@ public class BufferedRowsPersisterTest {
     }
 
     private Row createTestRow(int number) {
-        return new Row(new HashMap() {{
+        return new Row(new LinkedHashMap() {{
             put("name", "name" + number);
             put("count", number);
         }});

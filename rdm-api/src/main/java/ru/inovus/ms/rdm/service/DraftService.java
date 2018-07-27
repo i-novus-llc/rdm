@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.service;
 
+import com.sun.rowset.internal.Row;
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,14 +25,28 @@ public interface DraftService {
     })
     Draft create(Integer refBookId, Structure structure);
 
+    @POST
+    @ApiOperation("Создание нового черновика из файла")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Черновик создан"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    Draft create(Integer refBookId, MultipartFile file);
+
     void updateMetadata(Integer draftId, MetadataDiff metadataDiff);
 
     void updateData(Integer draftId, DataDiff dataDiff);
 
+    void addData(List<Row> rows);
+
+    void updateData(Long rowId, Row newRow);
+
+    void deleteData(Long rowId);
+
     @POST
-    @ApiOperation("Загрузка файла")
+    @ApiOperation("Обновления черновика из файла")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Файл загружен"),
+            @ApiResponse(code = 200, message = "Черновик обновлен"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     void updateData(Integer draftId, MultipartFile file);

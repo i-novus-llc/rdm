@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="201807241900_RDM-65_1.0" author="lsharipova" dbms="postgresql">
+        <comment>Создание refbook'a</comment>
+        <sql>
+            INSERT INTO n2o_rdm_management.ref_book(id, code, removable) VALUES (-3, 'test_ref_book_for_creating_draft_from_file', TRUE);
+            INSERT INTO n2o_rdm_management.ref_book_version(id, storage_code, ref_book_id, full_name, short_name,
+            version, status, structure)
+            VALUES (-4, 'test-storage-for-draft-reference', -3, 'Тестовый справочник',
+            'Тестовый справочник',
+            '1', 'DRAFT', '{"attributes" : [{"code" : "name", "name" : "Наименование", "type" :
+            "STRING", "isPrimary" : null, "isRequired" : null },
+            {"code" : "count", "name": "Количество", "type": "INTEGER", "isPrimary" : null, "isRequired" : null}]}');
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

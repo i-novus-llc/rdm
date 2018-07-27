@@ -1,18 +1,15 @@
 package ru.inovus.ms.rdm.file;
 
 import ru.inovus.ms.rdm.exception.NsiException;
-import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 
 public class ProcessorFactory {
     private ProcessorFactory() {
     }
 
-    public static FileProcessor createProcessor(String extension, RowsProcessor rowsProcessor,
-                                                Structure structure, RefBookVersionRepository versionRepository) {
+    public static FileProcessor createProcessor(String extension, RowsProcessor rowsProcessor, RowMapper rowMapper) {
         switch (extension) {
             case "XLSX":
-                return new XlsPerRowProcessor(new StructureRowMapper(structure, versionRepository), rowsProcessor);
+                return new XlsPerRowProcessor(rowMapper, rowsProcessor);
             case "XML":
                 return null;
             default:

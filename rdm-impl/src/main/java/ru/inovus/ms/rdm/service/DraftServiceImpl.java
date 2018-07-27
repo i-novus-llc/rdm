@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.service;
 
+import com.sun.rowset.internal.Row;
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.UserException;
 import org.apache.commons.io.FilenameUtils;
@@ -20,10 +21,7 @@ import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.NsiException;
-import ru.inovus.ms.rdm.file.BufferedRowsPersister;
-import ru.inovus.ms.rdm.file.FileProcessor;
-import ru.inovus.ms.rdm.file.ProcessorFactory;
-import ru.inovus.ms.rdm.file.RowsValidatorImpl;
+import ru.inovus.ms.rdm.file.*;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
@@ -38,6 +36,7 @@ import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 import static java.util.Collections.emptyList;
@@ -75,6 +74,40 @@ public class DraftServiceImpl implements DraftService {
         this.refBookRepository = refBookRepository;
     }
 
+    @Override
+    @Transactional
+    public Draft create(Integer refBookId, MultipartFile file) {
+        Supplier<InputStream> inputStreamSupplier = getInputStreamSupplier(file);
+        BiConsumer<String, Structure> consumer = getSaveDraftConsumer(refBookId);
+        String extension = getExtension(file);
+        CreateDraftBufferedRowsPersister rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, consumer);
+        FileProcessor persister = ProcessorFactory.createProcessor(extension,
+                rowsProcessor, new PlainRowMapper());
+        persister.process(inputStreamSupplier);
+        RefBookVersionEntity createdDraft = getDraftByRefbook(refBookId);
+        return new Draft(createdDraft.getId(), createdDraft.getStorageCode());
+    }
+
+    private BiConsumer<String, Structure> getSaveDraftConsumer(Integer refBookId) {
+        return (storageCode, structure) -> {
+                RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
+                RefBookVersionEntity draftVersion = getDraftByRefbook(refBookId);
+                if (draftVersion == null && lastRefBookVersion == null) {
+                    throw new CodifiedException("invalid refbook");
+                }
+                if (draftVersion != null) {
+                    dropDataService.drop(Collections.singleton(draftVersion.getStorageCode()));
+                    remove(draftVersion.getId());
+                    draftVersion = newDraftVersion(structure, draftVersion);
+                } else {
+                    draftVersion = newDraftVersion(structure, lastRefBookVersion);
+                }
+                draftVersion.setRefBook(refBookRepository.findOne(refBookId));
+                draftVersion.setStorageCode(storageCode);
+                versionRepository.save(draftVersion);
+            };
+    }
+
 
     @Override
     @Transactional
@@ -97,17 +130,6 @@ public class DraftServiceImpl implements DraftService {
         return new Draft(savedDraftVersion.getId(), savedDraftVersion.getStorageCode());
     }
 
-    private RefBookVersionEntity newDraftVersion(Structure structure, RefBookVersionEntity lastRefBookVersion) {
-        RefBookVersionEntity draftVersion;
-        draftVersion = new RefBookVersionEntity();
-        draftVersion.setStatus(RefBookVersionStatus.DRAFT);
-        draftVersion.setFullName(lastRefBookVersion.getFullName());
-        draftVersion.setShortName(lastRefBookVersion.getShortName());
-        draftVersion.setAnnotation(lastRefBookVersion.getAnnotation());
-        draftVersion.setStructure(structure);
-        return draftVersion;
-    }
-
     private void updateDraft(Structure structure, RefBookVersionEntity draftVersion, List<Field> fields) {
         String draftCode = draftVersion.getStorageCode();
         if (!structure.equals(draftVersion.getStructure())) {
@@ -119,6 +141,18 @@ public class DraftServiceImpl implements DraftService {
         }
         draftVersion.setStructure(structure);
     }
+
+    private RefBookVersionEntity newDraftVersion(Structure structure, RefBookVersionEntity original) {
+        RefBookVersionEntity draftVersion;
+        draftVersion = new RefBookVersionEntity();
+        draftVersion.setStatus(RefBookVersionStatus.DRAFT);
+        draftVersion.setFullName(original.getFullName());
+        draftVersion.setShortName(original.getShortName());
+        draftVersion.setAnnotation(original.getAnnotation());
+        draftVersion.setStructure(structure);
+        return draftVersion;
+    }
+
 
     private RefBookVersionEntity getDraftByRefbook(Integer refBookId) {
         return versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
@@ -135,31 +169,57 @@ public class DraftServiceImpl implements DraftService {
         throw new UnsupportedOperationException();
     }
 
+
+    @Override
+    public void addData(List<Row> rows) {
+
+    }
+
+    @Override
+    public void updateData(Long rowId, Row newRow) {
+
+    }
+
+    @Override
+    public void deleteData(Long rowId) {
+
+    }
+
     @Override
     public void updateData(Integer draftId, MultipartFile file) {
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
         String storageCode = draft.getStorageCode();
         Structure structure = draft.getStructure();
-        String extension = FilenameUtils.getExtension(file.getOriginalFilename()).toUpperCase();
+        String extension = getExtension(file);
+        RowMapper rowMapper = new StructureRowMapper(structure, versionRepository);
         FileProcessor validator = ProcessorFactory.createProcessor(extension,
-                new RowsValidatorImpl(versionService, structure), structure, versionRepository);
-        Supplier<InputStream> inputStreamSupplier = () -> {
-            try {
-                return file.getInputStream();
-            } catch (IOException e) {
-                throw new NsiException("invalid file: ", e);
-            }
-        };
+                new RowsValidatorImpl(versionService, structure), rowMapper);
+        Supplier<InputStream> inputStreamSupplier = getInputStreamSupplier(file);
         Result validationResult = validator.process(inputStreamSupplier);
         if (isEmpty(validationResult.getErrors())) {
             FileProcessor persister = ProcessorFactory.createProcessor(extension,
-                    new BufferedRowsPersister(draftDataService, storageCode, structure), structure, versionRepository);
+                    new BufferedRowsPersister(draftDataService, storageCode, structure), rowMapper);
             persister.process(inputStreamSupplier);
         } else {
             throw new NsiException("file contains invalid reference");
         }
 
     }
+
+    private String getExtension(MultipartFile file) {
+        return FilenameUtils.getExtension(file.getOriginalFilename()).toUpperCase();
+    }
+
+    private Supplier<InputStream> getInputStreamSupplier(MultipartFile file) {
+        return () -> {
+            try {
+                return file.getInputStream();
+            } catch (IOException e) {
+                throw new NsiException("invalid file: ", e);
+            }
+        };
+    }
+
 
     @Override
     public Page<RowValue> search(Integer draftId, SearchDataCriteria criteria) {

@@ -8,10 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 
 
 public class XlsPerRowProcessor extends FilePerRowProcessor {
@@ -75,7 +72,7 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
             row = sheet.getRow(index);
         }
         if (row != null) {
-            Map<String, Object> params = new HashMap<>();
+            LinkedHashMap<String, Object> params = new LinkedHashMap<>();
             for (int j = 0; j < numberToNameParam.size(); j++) {
                 Cell cell = row.getCell(j);
                 if (cell != null) {

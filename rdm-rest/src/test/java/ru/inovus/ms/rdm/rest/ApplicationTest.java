@@ -430,11 +430,11 @@ public class ApplicationTest extends TestableDbEnv {
         draftService.publish(referenceVersion, "1.0", LocalDateTime.now(), null);
         Structure structure = createStructure();
         structure.setAttributes(Arrays.asList(
-            Structure.Attribute.build("string", "string", FieldType.STRING, true, "string"),
-            Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, true, "count"),
-            Structure.Attribute.build("float", "float", FieldType.FLOAT, true, "float"),
-            Structure.Attribute.build("date", "date", FieldType.DATE, true, "date"),
-            Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, true, "boolean")
+            Structure.Attribute.build("string", "string", FieldType.STRING, false, "string"),
+            Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, false, "count"),
+            Structure.Attribute.build("float", "float", FieldType.FLOAT, false, "float"),
+            Structure.Attribute.build("date", "date", FieldType.DATE, false, "date"),
+            Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, false, "boolean")
         ));
         structure.setReferences(Collections.singletonList(new Structure.Reference("reference", referenceVersion, "count", Collections.singletonList("count"))));
         Draft draft = draftService.create(1, structure);
@@ -463,6 +463,27 @@ public class ApplicationTest extends TestableDbEnv {
             e.printStackTrace();
             return null;
         }
+    }
+
+    @Test
+    public void testDraftCreateFromFile(){
+        List<FieldValue> expectedData = new ArrayList(){{
+            add(new StringFieldValue("string", "Иван"));
+            add(new StringFieldValue("reference", "2"));
+            add(new StringFieldValue("float", "1.0"));
+            add(new StringFieldValue("date", "01.01.2011"));
+            add(new StringFieldValue("boolean", "true"));
+        }};
+        Draft expected = draftService.create(-3, createMultipartFile());
+        Draft actual = draftService.getDraft(expected.getId());
+
+        Assert.assertEquals(expected, actual);
+
+        Page<RowValue> search = draftService.search(expected.getId(), new SearchDataCriteria());
+        List actualData = search.getContent().get(0).getFieldValues();
+
+        Assert.assertEquals(expectedData, actualData);
+
     }
 
 }

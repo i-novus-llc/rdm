@@ -21,7 +21,7 @@ import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.service.VersionService;
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
@@ -75,7 +75,7 @@ public class RowsValidatorTest {
     @Test
     public void testAppendAndProcessWithErrors() {
         Row validRow = createTestRowWithReference();
-        Row notValidRow = new Row(new HashMap() {{
+        Row notValidRow = new Row(new LinkedHashMap() {{
             put(ATTRIBUTE_NAME, new Reference(ATTRIBUTE_VALUE  + "_1", ATTRIBUTE_VALUE + "_1"));
         }});
         Result expected = new Result(1, 2, Collections.singletonList("Reference in row is not valid"));
@@ -91,7 +91,7 @@ public class RowsValidatorTest {
     }
 
     private Row createTestRowWithReference() {
-        return new Row(new HashMap() {{
+        return new Row(new LinkedHashMap() {{
             put(ATTRIBUTE_NAME, new Reference(ATTRIBUTE_VALUE, ATTRIBUTE_VALUE));
         }});
     }
