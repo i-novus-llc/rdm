@@ -36,6 +36,10 @@ public final class TimeUtils {
         return localDateTime.format(DATE_TIME_PATTERN_FORMATTER);
     }
 
+    public static String format(OffsetDateTime offsetDateTime) {
+        return offsetDateTime.format(DATE_TIME_PATTERN_FORMATTER);
+    }
+
     public static boolean isSameOrBeforeNow(LocalDateTime localDateTime) {
         LocalDateTime now = LocalDateTime.now();
         return !isNull(localDateTime) && (localDateTime.equals(now) || localDateTime.isBefore(now));

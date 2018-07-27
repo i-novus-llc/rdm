@@ -20,6 +20,12 @@
         </dependency>
 
         <dependency>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-jaxrs-commons</artifactId>
+        </dependency>
+
+
+        <dependency>
             <groupId>ru.inovus.ms.rdm</groupId>
             <artifactId>rdm-impl</artifactId>
         </dependency>
@@ -79,6 +85,15 @@
             <artifactId>n2o-platform-starter-jaxrs-client</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+
+
     </dependencies>
 
     <build>

@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.service;
+package ru.inovus.ms.rdm.service.api;
 
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;

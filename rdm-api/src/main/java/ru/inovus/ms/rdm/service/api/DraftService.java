@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.service;
+package ru.inovus.ms.rdm.service.api;
 
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
@@ -21,7 +21,8 @@ public interface DraftService {
             @ApiResponse(code = 200, message = "Черновик создан"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Draft create(Integer refBookId, Structure structure);
+    @Path("/create/{refBookId}")
+    Draft create(@ApiParam("Идентификатор справочника") @PathParam("refBookId") Integer refBookId, Structure structure);
 
     void updateMetadata(Integer draftId, MetadataDiff metadataDiff);
 
@@ -45,11 +46,21 @@ public interface DraftService {
                  @ApiParam("Дата начала действия версии") @QueryParam("fromDate") LocalDateTime fromDate,
                  @ApiParam("Дата окончания действия версии") @QueryParam("toDate") LocalDateTime toDate);
 
-    void remove(Integer draftId);
+    @POST
+    @Path("{draftId}/remove")
+    @ApiOperation("Удаление черновика")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Черновик удален"),
+            @ApiResponse(code = 404, message = "Нет черновика")
+    })
+    void remove(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId);
 
     Structure getMetadata(Integer draftId);
 
-    Draft getDraft(Integer draftId);
+    @GET
+    @Path("/{draftId}")
+    @ApiOperation("Получение черновика по идентификатору")
+    Draft getDraft(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId);
 
     @POST
     @Path("/attribute")

@@ -8,12 +8,15 @@ import javax.ws.rs.ext.Provider;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 
 @Provider
 public class RdmParamConverterProvider implements ParamConverterProvider {
 
     private LocalDateTimeParamConverter localDateParamConverter = new LocalDateTimeParamConverter();
+
+    private OffsetDateTimeParamConverter offsetDateTimeParamConverter = new OffsetDateTimeParamConverter();
 
     @Override
     public <T> ParamConverter<T> getConverter(Class<T> rawType, Type genericType, Annotation[] annotations) {
@@ -24,6 +27,9 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
         else if (rawType.isEnum())
             //noinspection unchecked
             return (ParamConverter<T>) new EnumParamConverter(rawType);
+        else if (OffsetDateTime.class.equals(rawType))
+            //noinspection unchecked
+            return (ParamConverter<T>) offsetDateTimeParamConverter;
         return null;
     }
 
@@ -36,6 +42,20 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
 
         @Override
         public String toString(LocalDateTime value) {
+            return TimeUtils.format(value);
+        }
+    }
+
+
+    private static class OffsetDateTimeParamConverter implements ParamConverter<OffsetDateTime> {
+
+        @Override
+        public OffsetDateTime fromString(String str) {
+            return TimeUtils.parseOffsetDateTime(str);
+        }
+
+        @Override
+        public String toString(OffsetDateTime value) {
             return TimeUtils.format(value);
         }
     }

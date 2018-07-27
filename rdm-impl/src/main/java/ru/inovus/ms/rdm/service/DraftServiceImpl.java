@@ -21,7 +21,8 @@ import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
-import ru.inovus.ms.rdm.util.RowValuePage;
+import ru.inovus.ms.rdm.service.api.DraftService;
+import ru.inovus.ms.rdm.model.RowValuePage;
 import ru.kirkazan.common.exception.CodifiedException;
 
 import java.time.LocalDateTime;
@@ -30,11 +31,12 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
-import static ru.inovus.ms.rdm.util.ConverterUtil.*;
-import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
-import static java.util.Collections.singletonList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
+import static ru.inovus.ms.rdm.util.ConverterUtil.attributeToField;
+import static ru.inovus.ms.rdm.util.ConverterUtil.structureToFields;
 
 @Service
 public class DraftServiceImpl implements DraftService {
