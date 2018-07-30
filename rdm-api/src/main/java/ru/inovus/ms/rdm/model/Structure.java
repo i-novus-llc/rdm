@@ -191,21 +191,21 @@ public class Structure implements Serializable {
         /**
          * Поле которое ссылается
          */
-        String attribute;
+        private String attribute;
 
         /**
          * Веррсия на которую ссылаемся
          */
-        Integer referenceVersion;
+        private Integer referenceVersion;
 
         /**
          * Поле на которое ссылаемся
          */
-        String referenceAttribute;
+        private String referenceAttribute;
 
-        List<String> displayAttributes;
+        private List<String> displayAttributes;
 
-        List<String> sortingAttributes;
+        private List<String> sortingAttributes;
 
         public Reference() {
         }
