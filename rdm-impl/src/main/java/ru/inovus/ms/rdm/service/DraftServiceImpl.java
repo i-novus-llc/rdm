@@ -21,7 +21,6 @@ import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
-import ru.inovus.ms.rdm.model.RowValuePage;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.kirkazan.common.exception.CodifiedException;
 
@@ -31,9 +30,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import static cz.atria.common.lang.Util.isEmpty;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
 import static ru.inovus.ms.rdm.util.ConverterUtil.attributeToField;
 import static ru.inovus.ms.rdm.util.ConverterUtil.structureToFields;
@@ -245,9 +244,11 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void createAttribute(Integer versionId, Structure.Attribute attribute, Integer referenceVersion,
-                                String referenceAttribute, List<String> referenceDisplayAttributes) {
-        RefBookVersionEntity draftEntity = versionRepository.findOne(versionId);
+    public void createAttribute(CreateAttribute createAttribute) {
+
+        RefBookVersionEntity draftEntity = versionRepository.findOne(createAttribute.getVersionId());
+        Structure.Attribute attribute = createAttribute.getAttribute();
+        Structure.Reference reference = createAttribute.getReference();
         draftDataService.addField(draftEntity.getStorageCode(), attributeToField(attribute, fieldFactory));
 
         Structure structure = draftEntity.getStructure();
@@ -263,8 +264,6 @@ public class DraftServiceImpl implements DraftService {
         if (FieldType.REFERENCE.equals(attribute.getType())) {
             if (structure.getReferences() == null)
                 structure.setReferences(emptyList());
-            Structure.Reference reference = buildReference(referenceVersion, attribute.getCode(),
-                    referenceAttribute, referenceDisplayAttributes);
             structure.getReferences().add(reference);
         }
         draftEntity.setStructure(structure);
@@ -273,7 +272,8 @@ public class DraftServiceImpl implements DraftService {
     @Override
     @Transactional
     public void updateAttribute(Integer versionId, Structure.Attribute attribute, Integer referenceVersion,
-                                String referenceAttribute, List<String> referenceDisplayAttributes) {
+                                String referenceAttribute,
+                                List<String> referenceDisplayAttributes, List<String> referenceSortingAttributes) {
         RefBookVersionEntity draftEntity = versionRepository.findOne(versionId);
         draftDataService.updateField(draftEntity.getStorageCode(), attributeToField(attribute, fieldFactory));
 
@@ -284,7 +284,7 @@ public class DraftServiceImpl implements DraftService {
         if (FieldType.REFERENCE.equals(attribute.getType())) {
             Integer updatableReferenceIndex = structure.getReferences().indexOf(structure.getReference(attribute.getCode()));
             Structure.Reference reference = buildReference(referenceVersion, attribute.getCode(),
-                    referenceAttribute, referenceDisplayAttributes);
+                    referenceAttribute, referenceDisplayAttributes, referenceSortingAttributes);
             structure.getReferences().set(updatableReferenceIndex, reference);
         }
         Integer updatableAttributeIndex = structure.getAttributes().indexOf(structure.getAttribute(attribute.getCode()));
@@ -306,9 +306,10 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private Structure.Reference buildReference(Integer referenceVersion, String attributeCode,
-                                               String referenceAttribute, List<String> referenceDisplayAttributes) {
+                                               String referenceAttribute,
+                                               List<String> referenceDisplayAttributes, List<String> referenceSortingAttributes) {
         List<String> displayAttributes = isEmpty(referenceDisplayAttributes) ?
                 singletonList(referenceAttribute): referenceDisplayAttributes;
-        return new Structure.Reference(attributeCode, referenceVersion, referenceAttribute, displayAttributes);
+        return new Structure.Reference(attributeCode, referenceVersion, referenceAttribute, displayAttributes, referenceSortingAttributes);
     }
 }

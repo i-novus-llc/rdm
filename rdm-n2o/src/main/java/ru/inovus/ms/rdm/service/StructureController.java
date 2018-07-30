@@ -5,20 +5,19 @@ import net.n2oapp.criteria.api.CollectionPageService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.inovus.ms.rdm.model.Attribute;
-import ru.inovus.ms.rdm.model.AttributeCriteria;
-import ru.inovus.ms.rdm.model.ReadAttribute;
-import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Controller
 public class StructureController implements CollectionPageService<AttributeCriteria, ReadAttribute> {
@@ -52,11 +51,11 @@ public class StructureController implements CollectionPageService<AttributeCrite
     }
 
     public void createAttribute(Integer versionId, Attribute attribute) {
-        Structure.Attribute structureAttribute = buildAttribute(attribute);
-        draftService.createAttribute(versionId, structureAttribute,
-                attribute.getReferenceVersion(),
-                attribute.getReferenceAttribute(),
-                getReferenceDisplayAttributes(attribute));
+        CreateAttribute attributeModel = new CreateAttribute();
+        attributeModel.setVersionId(versionId);
+        attributeModel.setAttribute(buildAttribute(attribute));
+        attributeModel.setReference(buildReference(attribute));
+        draftService.createAttribute(attributeModel);
     }
 
     public void updateAttribute(Integer versionId, Attribute attribute) {
@@ -64,7 +63,8 @@ public class StructureController implements CollectionPageService<AttributeCrite
         draftService.updateAttribute(versionId, structureAttribute,
                 attribute.getReferenceVersion(),
                 attribute.getReferenceAttribute(),
-                getReferenceDisplayAttributes(attribute));
+                getReferenceDisplayAttributes(attribute),
+                null);
     }
 
     private void enrich(ReadAttribute attribute, Structure.Reference reference) {
@@ -75,7 +75,7 @@ public class StructureController implements CollectionPageService<AttributeCrite
         attribute.setReferenceAttributeName(attributeName);
 
         List<String> displayAttributes = reference.getDisplayAttributes();
-        if (!CollectionUtils.isEmpty(displayAttributes)) {
+        if (!isEmpty(displayAttributes)) {
             String referenceDisplayAttributeName =
                     getAttributeName(reference.getDisplayAttributes().get(0), attribute.getReferenceVersion());
             attribute.setReferenceDisplayAttributeName(referenceDisplayAttributeName);
@@ -84,8 +84,8 @@ public class StructureController implements CollectionPageService<AttributeCrite
 
     private List<String> getReferenceDisplayAttributes(Attribute attribute) {
         if (!FieldType.REFERENCE.equals(attribute.getType()))
-            return Collections.emptyList();
-        return Collections.singletonList(StringUtils.isBlank(attribute.getReferenceDisplayAttribute()) ?
+            return emptyList();
+        return singletonList(StringUtils.isBlank(attribute.getReferenceDisplayAttribute()) ?
                 attribute.getReferenceAttribute() : attribute.getReferenceDisplayAttribute());
     }
 
@@ -103,6 +103,11 @@ public class StructureController implements CollectionPageService<AttributeCrite
                     request.getIsRequired(), request.getDescription());
         }
     }
+    private Structure.Reference buildReference(Attribute request) {
+        return new Structure.Reference(request.getCode(),
+                request.getReferenceVersion(), request.getReferenceAttribute(),
+                getReferenceDisplayAttributes(request), emptyList());
+    }
 
     private ReadAttribute model(Structure.Attribute structureAttribute, Structure.Reference reference) {
         ReadAttribute attribute = new ReadAttribute();
@@ -116,7 +121,7 @@ public class StructureController implements CollectionPageService<AttributeCrite
             attribute.setReferenceVersion(reference.getReferenceVersion());
             attribute.setReferenceAttribute(reference.getReferenceAttribute());
             List<String> displayAttributes = reference.getDisplayAttributes();
-            attribute.setReferenceDisplayAttribute(CollectionUtils.isEmpty(displayAttributes) ? null : displayAttributes.get(0));
+            attribute.setReferenceDisplayAttribute(isEmpty(displayAttributes) ? null : displayAttributes.get(0));
         }
         return attribute;
     }
