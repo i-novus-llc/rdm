@@ -69,13 +69,7 @@ public interface DraftService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void createAttribute(
-            @ApiParam("Идентификатор версии") @QueryParam("versionId") Integer versionId,
-            @ApiParam("Модель данных атрибута") Structure.Attribute attribute,
-            @ApiParam("Версия ссылки") @QueryParam("referenceVersion") Integer referenceVersion,
-            @ApiParam("Атрибут ссылки") @QueryParam("referenceAttribute") String referenceAttribute,
-            @ApiParam("Отображаемый атрибут") @QueryParam("referenceDisplayAttribute")
-            List<String> referenceDisplayAttributes);
+    void createAttribute(@ApiParam("Модель атрибута справочника") CreateAttribute createAttribute);
 
     @PUT
     @Path("/attribute")
@@ -90,7 +84,9 @@ public interface DraftService {
             @ApiParam("Версия ссылки") @QueryParam("referenceVersion") Integer referenceVersion,
             @ApiParam("Атрибут ссылки") @QueryParam("referenceAttribute") String referenceAttribute,
             @ApiParam("Отображаемый атрибут") @QueryParam("referenceDisplayAttribute")
-            List<String> referenceDisplayAttributes);
+                    List<String> referenceDisplayAttributes,
+            @ApiParam("Сортируемый атрибут") @QueryParam("referenceSortingAttribute")
+                    List<String> referenceSortingAttributes);
 
     @DELETE
     @Path("/attribute")

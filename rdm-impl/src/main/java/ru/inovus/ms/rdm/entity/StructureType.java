@@ -83,6 +83,7 @@ public class StructureType implements UserType {
                     return values;
                 };
                 List<String> displayAttributes = getByKey(attributeJson, "displayAttributes", asList);
+                List<String> sortingAttributes = getByKey(attributeJson, "sortingAttributes", asList);
                 Structure.Attribute attribute;
                 if (isPrimary) {
                     attribute = Structure.Attribute.buildPrimary(code, name, FieldType.valueOf(type), description);
@@ -90,7 +91,7 @@ public class StructureType implements UserType {
                     attribute = Structure.Attribute.build(code, name, FieldType.valueOf(type), isRequired, description);
                 }
                 if (FieldType.valueOf(type).equals(FieldType.REFERENCE)) {
-                    Structure.Reference reference = new Structure.Reference(code, referenceVersion, referenceAttribute, displayAttributes);
+                    Structure.Reference reference = new Structure.Reference(code, referenceVersion, referenceAttribute, displayAttributes, sortingAttributes);
                     references.add(reference);
                 }
                 attributes.add(attribute);
