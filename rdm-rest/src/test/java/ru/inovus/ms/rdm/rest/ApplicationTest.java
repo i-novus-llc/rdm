@@ -461,7 +461,7 @@ public class ApplicationTest {
         ));
         structure.setReferences(Collections.singletonList(new Structure.Reference("reference", referenceVersion, "count", Collections.singletonList("count"), null)));
         Draft draft = draftService.create(1, structure);
-        FileModel fileModel = createFileModel();
+        FileModel fileModel = createFileModel("update");
 
         draftService.updateData(draft.getId(), fileModel);
 
@@ -488,7 +488,7 @@ public class ApplicationTest {
             add(new StringFieldValue("date", "01.01.2011"));
             add(new StringFieldValue("boolean", "true"));
         }};
-        FileModel fileModel = createFileModel();
+        FileModel fileModel = createFileModel("create");
         Draft expected = draftService.create(-3, fileModel);
         Draft actual = draftService.getDraft(expected.getId());
 
@@ -501,10 +501,10 @@ public class ApplicationTest {
 
     }
 
-    private FileModel createFileModel() {
+    private FileModel createFileModel(String path) {
         try(InputStream input = ApplicationTest.class.getResourceAsStream("/testUpload.xlsx")){
-            FileModel fileModel = new FileModel("testUpload", "testUpload.xlsx");
-            String fullPath = fileStorage.saveContent(input, fileModel.getPath());
+            FileModel fileModel = new FileModel(path, "testUpload.xlsx");
+            String fullPath = fileStorage.saveContent(input, path);
             fileModel.setPath(fullPath);
             return fileModel;
         } catch (IOException e) {
