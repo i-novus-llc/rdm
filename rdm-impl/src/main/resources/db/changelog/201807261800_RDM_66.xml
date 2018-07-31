@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="201807261800_RDM_66_passport_attribute" author="znurgaliev" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="passport_attribute" schemaName="n2o_rdm_management"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE TABLE IF NOT EXISTS n2o_rdm_management.passport_attribute
+            (
+                code VARCHAR NOT NULL,
+
+                CONSTRAINT pk_passport_attribute_code PRIMARY KEY ( code )
+            );
+
+            COMMENT ON TABLE n2o_rdm_management.passport_attribute IS 'Возможные атрибуты паспортов';
+            COMMENT ON COLUMN n2o_rdm_management.passport_attribute.code IS 'Атрибут паспорта';
+        </sql>
+    </changeSet>
+
+    <changeSet id="201807261800_RDM_66_passport_value" author="znurgaliev" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="passport_value" schemaName="n2o_rdm_management"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE TABLE IF NOT EXISTS n2o_rdm_management.passport_value
+            (
+                id SERIAL NOT NULL,
+                code VARCHAR NOT NULL,
+                value TEXT,
+                version_id INTEGER NOT NULL,
+
+                CONSTRAINT pk_passport_value_id PRIMARY KEY ( id ),
+                CONSTRAINT fk_passport_value_passport_attribute_code FOREIGN KEY ( code ) REFERENCES n2o_rdm_management.passport_attribute( code ) ON DELETE RESTRICT ON UPDATE CASCADE,
+                CONSTRAINT fk_passport_value_ref_book_version_id FOREIGN KEY ( version_id ) REFERENCES n2o_rdm_management.ref_book_version( id ) ON DELETE CASCADE ON UPDATE RESTRICT,
+                CONSTRAINT uq_passport_value_code_version_id UNIQUE ( code, version_id)
+            );
+
+            COMMENT ON TABLE n2o_rdm_management.passport_value IS 'Значение атрибута паспорта справочника';
+            COMMENT ON COLUMN n2o_rdm_management.passport_value.id IS 'Идентификатор значения атрибута';
+            COMMENT ON COLUMN n2o_rdm_management.passport_value.code IS 'Атрибут пасспорта';
+            COMMENT ON COLUMN n2o_rdm_management.passport_value.value IS 'Значение атрибута';
+            COMMENT ON COLUMN n2o_rdm_management.passport_value.version_id IS 'Ссылка на версию справочника';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
