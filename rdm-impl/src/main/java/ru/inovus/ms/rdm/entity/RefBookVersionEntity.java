@@ -10,6 +10,7 @@ import ru.inovus.ms.rdm.model.Structure;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "ref_book_version", schema = "n2o_rdm_management")
@@ -62,6 +63,10 @@ public class RefBookVersionEntity {
 
     @Column(name = "last_action_date")
     private LocalDateTime lastActionDate;
+
+    @OneToMany
+    @JoinColumn(name = "version_id")
+    private Set<PassportValueEntity> passportValues;
 
     public Integer getId() {
         return id;
@@ -173,6 +178,14 @@ public class RefBookVersionEntity {
 
     public void setStorageCode(String storageCode) {
         this.storageCode = storageCode;
+    }
+
+    public Set<PassportValueEntity> getPassportValues() {
+        return passportValues;
+    }
+
+    public void setPassportValues(Set<PassportValueEntity> passportValues) {
+        this.passportValues = passportValues;
     }
 
     @PrePersist

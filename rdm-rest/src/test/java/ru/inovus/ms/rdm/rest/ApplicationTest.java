@@ -39,6 +39,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -74,6 +76,7 @@ public class ApplicationTest {
     private static Structure.Reference createReference;
 
     private static Structure.Attribute updateAttribute;
+    private static Structure.Reference updateReference;
     private static Structure.Attribute deleteAttribute;
     private static List<RefBookVersion> versionList;
 
@@ -108,9 +111,10 @@ public class ApplicationTest {
         refBookUpdateRequest.setComment("обновленное наполнение");
 
         createAttribute = Structure.Attribute.buildPrimary("name", "Наименование", FieldType.REFERENCE, "описание");
-        createReference = new Structure.Reference(createAttribute.getCode(), 801, "code", null);
+        createReference = new Structure.Reference(createAttribute.getCode(), 801, "code", emptyList(), emptyList());
         updateAttribute = Structure.Attribute.buildPrimary(createAttribute.getCode(),
                 createAttribute.getName() + "_upd", createAttribute.getType(), createAttribute.getDescription() + "_upd");
+        updateReference = new Structure.Reference(createAttribute.getCode(), 801, "code", singletonList("code"), singletonList("code"));
         deleteAttribute = Structure.Attribute.build("code", "Код", FieldType.STRING, false, "на удаление");
 
         RefBookVersion version0 = new RefBookVersion();
@@ -177,8 +181,11 @@ public class ApplicationTest {
         assertRefBooksEqual(refBook, updatedRefBook);
 
         // добавление атрибута
-        draftService.createAttribute(refBook.getId(), createAttribute,
-                createReference.getReferenceVersion(), createReference.getReferenceAttribute(), null);
+        CreateAttribute attributeModel = new CreateAttribute();
+        attributeModel.setVersionId(refBook.getId());
+        attributeModel.setAttribute(createAttribute);
+        attributeModel.setReference(createReference);
+        draftService.createAttribute(attributeModel);
 
         // получение структуры
         Structure structure = versionService.getStructure(refBook.getId());
@@ -186,18 +193,28 @@ public class ApplicationTest {
         // проверка добавленного атрибута
         assertEquals(1, structure.getAttributes().size());
         assertEquals(createAttribute, structure.getAttributes().get(0));
-        createReference.setDisplayAttributes(Collections.singletonList(createReference.getReferenceAttribute()));
         assertEquals(createReference, structure.getReference(createAttribute.getCode()));
+        createReference.setDisplayAttributes(Collections.singletonList(createReference.getReferenceAttribute()));
+        createReference.setSortingAttributes(createReference.getDisplayAttributes());
 
         // изменение атрибута и проверка
         draftService.updateAttribute(refBook.getId(), updateAttribute, createReference.getReferenceVersion(),
-                createReference.getReferenceAttribute(), createReference.getDisplayAttributes());
+                createReference.getReferenceAttribute(), createReference.getDisplayAttributes(), null);
         structure = versionService.getStructure(refBook.getId());
         assertEquals(updateAttribute, structure.getAttributes().get(0));
         assertEquals(createReference, structure.getReference(updateAttribute.getCode()));
 
-        // удадение атрибута и проверка
-        draftService.createAttribute(refBook.getId(), deleteAttribute, null, null, null);
+        // изменение displayAttributes и sortingAttributes у атрибута и проверка
+        attributeModel.setReference(updateReference);
+        draftService.updateAttribute(refBook.getId(), updateAttribute, updateReference.getReferenceVersion(),
+                updateReference.getReferenceAttribute(), updateReference.getDisplayAttributes(), updateReference.getSortingAttributes());
+        structure = versionService.getStructure(refBook.getId());
+        assertEquals(updateReference, structure.getReference(updateAttribute.getCode()));
+
+        // удаление атрибута и проверка
+        attributeModel.setAttribute(deleteAttribute);
+        attributeModel.setReference(new Structure.Reference(null, null, null, null, null));
+        draftService.createAttribute(attributeModel);
 
         draftService.deleteAttribute(refBook.getId(), deleteAttribute.getCode());
         structure = versionService.getStructure(refBook.getId());
@@ -422,7 +439,7 @@ public class ApplicationTest {
         assertEquals(fieldValues.get(0), name);
         assertEquals(fieldValues.get(1), count);
         Page<RowValue> rowValuesOutVersion = versionService.search(-1, OffsetDateTime.now().minusDays(1), new SearchDataCriteria());
-        assertEquals(new PageImpl<RowValue>(Collections.emptyList()), rowValuesOutVersion);
+        assertEquals(new PageImpl<RowValue>(emptyList()), rowValuesOutVersion);
     }
 
     /**

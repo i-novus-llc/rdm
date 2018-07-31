@@ -191,30 +191,32 @@ public class Structure implements Serializable {
         /**
          * Поле которое ссылается
          */
-        String attribute;
+        private String attribute;
 
         /**
          * Веррсия на которую ссылаемся
          */
-        Integer referenceVersion;
+        private Integer referenceVersion;
 
         /**
          * Поле на которое ссылаемся
          */
-        String referenceAttribute;
+        private String referenceAttribute;
 
-        transient List<String> displayAttributes;
+        private List<String> displayAttributes;
+
+        private List<String> sortingAttributes;
 
         public Reference() {
         }
 
-        public Reference(String attribute, Integer referenceVersion, String referenceAttribute, List<String> displayAttributes) {
+        public Reference(String attribute, Integer referenceVersion, String referenceAttribute, List<String> displayAttributes, List<String> sortingAttributes) {
             this.attribute = attribute;
             this.referenceVersion = referenceVersion;
             this.referenceAttribute = referenceAttribute;
             this.displayAttributes = displayAttributes;
+            this.sortingAttributes = sortingAttributes != null ? sortingAttributes : displayAttributes;
         }
-
 
         public String getAttribute() {
             return attribute;
@@ -240,13 +242,20 @@ public class Structure implements Serializable {
             this.referenceAttribute = referenceAttribute;
         }
 
-
         public List<String> getDisplayAttributes() {
             return displayAttributes;
         }
 
         public void setDisplayAttributes(List<String> displayAttributes) {
             this.displayAttributes = displayAttributes;
+        }
+
+        public List<String> getSortingAttributes() {
+            return sortingAttributes;
+        }
+
+        public void setSortingAttributes(List<String> sortingAttributes) {
+            this.sortingAttributes = sortingAttributes;
         }
 
         @Override
@@ -261,6 +270,8 @@ public class Structure implements Serializable {
                 return false;
             if (referenceAttribute != null ? !referenceAttribute.equals(reference.referenceAttribute) : reference.referenceAttribute != null)
                 return false;
+            if (sortingAttributes != null ? !sortingAttributes.equals(reference.sortingAttributes) : reference.sortingAttributes != null)
+                return false;
             return !(displayAttributes != null ? !displayAttributes.equals(reference.displayAttributes) : reference.displayAttributes != null);
 
         }
@@ -271,6 +282,7 @@ public class Structure implements Serializable {
             result = 31 * result + (referenceVersion != null ? referenceVersion.hashCode() : 0);
             result = 31 * result + (referenceAttribute != null ? referenceAttribute.hashCode() : 0);
             result = 31 * result + (displayAttributes != null ? displayAttributes.hashCode() : 0);
+            result = 31 * result + (sortingAttributes != null ? sortingAttributes.hashCode() : 0);
             return result;
         }
     }
