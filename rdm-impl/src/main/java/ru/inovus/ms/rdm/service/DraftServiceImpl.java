@@ -4,12 +4,12 @@ import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.UserException;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
@@ -19,10 +19,8 @@ import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
-import ru.inovus.ms.rdm.file.BufferedRowsPersister;
-import ru.inovus.ms.rdm.file.FileProcessor;
-import ru.inovus.ms.rdm.file.ProcessorFactory;
-import ru.inovus.ms.rdm.file.RowsValidatorImpl;
+import ru.inovus.ms.rdm.exception.RdmException;
+import ru.inovus.ms.rdm.file.*;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
@@ -31,7 +29,6 @@ import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 import ru.kirkazan.common.exception.CodifiedException;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -49,6 +46,7 @@ import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.isPublished;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.isVersionOfRefBook;
 import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
 
+@Primary
 @Service
 public class DraftServiceImpl implements DraftService {
 
@@ -64,15 +62,18 @@ public class DraftServiceImpl implements DraftService {
 
     private RefBookRepository refBookRepository;
 
+    private FileStorage fileStorage;
+
     @Autowired
     public DraftServiceImpl(DraftDataService draftDataService, RefBookVersionRepository versionRepository, VersionService versionService,
-                            RefBookRepository refBookRepository, SearchDataService searchDataService, DropDataService dropDataService) {
+                            RefBookRepository refBookRepository, SearchDataService searchDataService, DropDataService dropDataService, FileStorage fileStorage) {
         this.draftDataService = draftDataService;
         this.versionRepository = versionRepository;
         this.versionService = versionService;
         this.searchDataService = searchDataService;
         this.dropDataService = dropDataService;
         this.refBookRepository = refBookRepository;
+        this.fileStorage = fileStorage;
     }
 
 
@@ -136,27 +137,21 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
-    public void updateData(Integer draftId, MultipartFile file) {
+    public void updateData(Integer draftId, FileModel fileModel) {
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
         String storageCode = draft.getStorageCode();
         Structure structure = draft.getStructure();
-        String extension = FilenameUtils.getExtension(file.getOriginalFilename()).toUpperCase();
+        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
         FileProcessor validator = ProcessorFactory.createProcessor(extension,
                 new RowsValidatorImpl(versionService, structure), structure, versionRepository);
-        Supplier<InputStream> inputStreamSupplier = () -> {
-            try {
-                return file.getInputStream();
-            } catch (IOException e) {
-                throw new NsiException("invalid file: ", e);
-            }
-        };
+        Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
         Result validationResult = validator.process(inputStreamSupplier);
         if (isEmpty(validationResult.getErrors())) {
             FileProcessor persister = ProcessorFactory.createProcessor(extension,
                     new BufferedRowsPersister(draftDataService, storageCode, structure), structure, versionRepository);
             persister.process(inputStreamSupplier);
         } else {
-            throw new NsiException("file contains invalid reference");
+            throw new RdmException("file contains invalid reference");
         }
 
     }

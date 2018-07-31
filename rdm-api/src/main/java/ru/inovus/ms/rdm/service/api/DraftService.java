@@ -2,7 +2,6 @@ package ru.inovus.ms.rdm.service.api;
 
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
-import org.springframework.web.multipart.MultipartFile;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.model.*;
 
@@ -35,15 +34,17 @@ public interface DraftService {
             @ApiResponse(code = 200, message = "Файл загружен"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void updateData(Integer draftId, MultipartFile file);
+    @Path("/update/{draftId}")
+    void updateData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId, FileModel fileModel);
 
     @GET
+    @Path("/{draftId}/data")
     @ApiOperation("Получения записей черновика, с фильтрацией")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет черновика")
     })
-    Page<RowValue> search(Integer draftId, SearchDataCriteria criteria);
+    Page<RowValue> search(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId, @BeanParam SearchDataCriteria criteria);
 
     @POST
     @Path("{draftId}/publish")

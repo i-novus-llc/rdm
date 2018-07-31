@@ -22,6 +22,7 @@ import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
@@ -89,6 +90,9 @@ public class ApplicationTest {
     @Autowired
     @Qualifier("versionServiceJaxRsProxyClient")
     private VersionService versionService;
+
+    @Autowired
+    private FileStorage fileStorage;
 
     @BeforeClass
     public static void initialize() {
@@ -401,8 +405,7 @@ public class ApplicationTest {
 
     @Test
     public void testVersionSearch() {
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
-        Page<RowValue> rowValues = versionService.search(-1, searchDataCriteria);
+        Page<RowValue> rowValues = versionService.search(-1, new SearchDataCriteria());
         List<FieldValue> fieldValues = rowValues.getContent().get(0).getFieldValues();
         StringFieldValue name = new StringFieldValue("name", "name");
         IntegerFieldValue count = new IntegerFieldValue("count", 2);
@@ -443,19 +446,26 @@ public class ApplicationTest {
         ));
         structure.setReferences(Collections.singletonList(new Structure.Reference("reference", referenceVersion, "count", Collections.singletonList("count"))));
         Draft draft = draftService.create(1, structure);
+        FileModel fileModel = new FileModel("testUpload.xlsx", "testUpload.xlsx");
+        try(InputStream input = ApplicationTest.class.getResourceAsStream("/testUpload.xlsx")){
+            String fullPath = fileStorage.saveContent(input, fileModel.getPath());
+            fileModel.setPath(fullPath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-        draftService.updateData(draft.getId(), createMultipartFile());
+        draftService.updateData(draft.getId(), fileModel);
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         LocalDate date =  LocalDate.parse("01.01.2011", formatter);
         List<FieldValue> expected = new ArrayList(){{
             add(new StringFieldValue("string", "Иван"));
             add(new ReferenceFieldValue("reference", new Reference("2", "2")));
-            add(new FloatFieldValue("float", new BigDecimal("1.0")));
+            add(new FloatFieldValue("float", new Double("1.0")));
             add(new DateFieldValue("date", date));
             add(new BooleanFieldValue("boolean", Boolean.TRUE));
         }};
-        Page<RowValue> search = draftService.search(draft.getId(), new SearchDataCriteria());
+        Page<RowValue> search = draftService.search(draft.getId(), new SearchDataCriteria(null, null));
         List actual = search.getContent().get(0).getFieldValues();
         Assert.assertEquals(expected, actual);
     }

@@ -23,7 +23,7 @@ public interface VersionService {
             @ApiResponse(code = 404, message = "Нет версии")
     })
     @Path("/{versionId}")
-    Page<RowValue> search(@PathParam("versionId")Integer versionId, SearchDataCriteria criteria);
+    Page<RowValue> search(@PathParam("versionId")Integer versionId, @BeanParam SearchDataCriteria criteria);
 
     @GET
     @Path(("/refbook/{refbookId}/{date}"))
