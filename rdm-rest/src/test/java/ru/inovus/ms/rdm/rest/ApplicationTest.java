@@ -461,7 +461,7 @@ public class ApplicationTest {
         ));
         structure.setReferences(Collections.singletonList(new Structure.Reference("reference", referenceVersion, "count", Collections.singletonList("count"), null)));
         Draft draft = draftService.create(1, structure);
-        FileModel fileModel = createFileModel("update");
+        FileModel fileModel = createFileModel("update_testUpload.xlsx");
 
         draftService.updateData(draft.getId(), fileModel);
 
@@ -488,7 +488,7 @@ public class ApplicationTest {
             add(new StringFieldValue("date", "01.01.2011"));
             add(new StringFieldValue("boolean", "true"));
         }};
-        FileModel fileModel = createFileModel("create");
+        FileModel fileModel = createFileModel("create_testUpload.xlsx");
         Draft expected = draftService.create(-3, fileModel);
         Draft actual = draftService.getDraft(expected.getId());
 
