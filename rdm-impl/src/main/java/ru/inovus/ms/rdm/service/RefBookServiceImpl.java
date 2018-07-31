@@ -28,6 +28,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
@@ -276,10 +277,10 @@ public class RefBookServiceImpl implements RefBookService {
         model.setStatus(entity.getStatus());
         model.setRefBookHasPublishingVersion(hasPublishing(entity.getRefBook().getId()));
         model.setDisplayStatus(getDisplayStatus(entity));
-        model.setPassport(new HashMap<String, String>() {{
-            if (entity.getPassportValues() != null)
-                entity.getPassportValues().forEach(value -> put(value.getAttribute().getCode(), value.getValue()));
-        }});
+        Map<String, String> passport = new HashMap<>();
+        if (entity.getPassportValues() != null)
+            entity.getPassportValues().forEach(value -> passport.put(value.getAttribute().getCode(), value.getValue()));
+        model.setPassport(passport);
         return model;
     }
 
