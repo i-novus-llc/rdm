@@ -276,8 +276,9 @@ public class RefBookServiceImpl implements RefBookService {
         model.setStatus(entity.getStatus());
         model.setRefBookHasPublishingVersion(hasPublishing(entity.getRefBook().getId()));
         model.setDisplayStatus(getDisplayStatus(entity));
-        model.setPassport(new HashMap<String, String>(){{
-            entity.getPassportValues().forEach(value -> put(value.getAttribute().getCode(), value.getValue()));
+        model.setPassport(new HashMap<String, String>() {{
+            if (entity.getPassportValues() != null)
+                entity.getPassportValues().forEach(value -> put(value.getAttribute().getCode(), value.getValue()));
         }});
         return model;
     }
