@@ -1,16 +1,17 @@
 package ru.inovus.ms.rdm.file;
 
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class Row {
 
-    private LinkedHashMap<String, Object> data;
+    private Map<String, Object> data = new LinkedHashMap<>();
 
-    public Row(LinkedHashMap<String, Object> data) {
+    public Row(Map<String, Object> data) {
         this.data = data;
     }
 
-    public LinkedHashMap<String, Object> getData() {
+    public Map<String, Object> getData() {
         return data;
     }
 }
