@@ -459,7 +459,7 @@ public class ApplicationTest {
             Structure.Attribute.build("date", "date", FieldType.DATE, false, "date"),
             Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, false, "boolean")
         ));
-        structure.setReferences(Collections.singletonList(new Structure.Reference("reference", referenceVersion, "count", Collections.singletonList("count"))));
+        structure.setReferences(Collections.singletonList(new Structure.Reference("reference", referenceVersion, "count", Collections.singletonList("count"), null)));
         Draft draft = draftService.create(1, structure);
         FileModel fileModel = createFileModel();
 
