@@ -9,6 +9,7 @@ import ru.inovus.ms.rdm.util.JsonLocalDateTimeDeserializer;
 import ru.inovus.ms.rdm.util.JsonLocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @ApiModel("Версия справочника")
 public class RefBookVersion {
@@ -61,6 +62,9 @@ public class RefBookVersion {
 
     @ApiModelProperty("Справочник содержит версию со статусом 'Публикуется'")
     private Boolean refBookHasPublishingVersion;
+
+    @ApiModelProperty("Паспорт справочника")
+    private Map<String, String> passport;
 
 
     public RefBookVersion() {
@@ -202,5 +206,13 @@ public class RefBookVersion {
 
     public void setRefBookHasPublishingVersion(Boolean refBookHasPublishingVersion) {
         this.refBookHasPublishingVersion = refBookHasPublishingVersion;
+    }
+
+    public Map<String, String> getPassport() {
+        return passport;
+    }
+
+    public void setPassport(Map<String, String> passport) {
+        this.passport = passport;
     }
 }

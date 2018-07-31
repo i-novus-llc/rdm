@@ -26,6 +26,7 @@ import ru.inovus.ms.rdm.util.TimeUtils;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,6 +53,7 @@ public class RefBookServiceImpl implements RefBookService {
     }
 
     @Override
+    @Transactional
     public Page<RefBook> search(RefBookCriteria criteria) {
         Pageable pageable = new PageRequest(criteria.getPageNumber() - 1, criteria.getPageSize(), toSort(criteria));
         Page<RefBookVersionEntity> list = repository.findAll(toPredicate(criteria), pageable);
@@ -59,6 +61,7 @@ public class RefBookServiceImpl implements RefBookService {
     }
 
     @Override
+    @Transactional
     public Passport getById(Integer versionId) {
         return passportModel(repository.findOne(versionId));
     }
@@ -116,6 +119,7 @@ public class RefBookServiceImpl implements RefBookService {
     }
 
     @Override
+    @Transactional
     public Page<RefBookVersion> getVersions(VersionCriteria criteria) {
         Sort sort = new Sort(new Sort.Order(Sort.Direction.DESC, "fromDate", Sort.NullHandling.NULLS_FIRST));
         Pageable pageable = new PageRequest(criteria.getPageNumber() - 1, criteria.getPageSize(), sort);
@@ -272,6 +276,9 @@ public class RefBookServiceImpl implements RefBookService {
         model.setStatus(entity.getStatus());
         model.setRefBookHasPublishingVersion(hasPublishing(entity.getRefBook().getId()));
         model.setDisplayStatus(getDisplayStatus(entity));
+        model.setPassport(new HashMap<String, String>(){{
+            entity.getPassportValues().forEach(value -> put(value.getAttribute().getCode(), value.getValue()));
+        }});
         return model;
     }
 
