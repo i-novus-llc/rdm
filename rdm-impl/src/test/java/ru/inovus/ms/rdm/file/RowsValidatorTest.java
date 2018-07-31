@@ -18,7 +18,7 @@ import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.service.VersionService;
+import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;

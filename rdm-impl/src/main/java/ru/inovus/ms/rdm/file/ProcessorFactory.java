@@ -1,6 +1,6 @@
 package ru.inovus.ms.rdm.file;
 
-import ru.inovus.ms.rdm.exception.NsiException;
+import ru.inovus.ms.rdm.exception.RdmException;
 
 public class ProcessorFactory {
     private ProcessorFactory() {
@@ -13,7 +13,7 @@ public class ProcessorFactory {
             case "XML":
                 return null;
             default:
-                throw new NsiException("invalid file extension");
+                throw new RdmException("invalid file extension");
         }
     }
 }

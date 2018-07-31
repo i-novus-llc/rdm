@@ -1,12 +1,16 @@
 package ru.inovus.ms.rdm.rest;
 
+import net.n2oapp.platform.test.autoconfigure.DefinePort;
+import net.n2oapp.platform.test.autoconfigure.EnableEmbeddedPg;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.mock.web.MockMultipartFile;
@@ -18,10 +22,11 @@ import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.service.DraftService;
-import ru.inovus.ms.rdm.service.RefBookService;
-import ru.inovus.ms.rdm.service.VersionService;
+import ru.inovus.ms.rdm.service.api.DraftService;
+import ru.inovus.ms.rdm.service.api.RefBookService;
+import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,16 +50,18 @@ import static org.junit.Assert.assertTrue;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(properties = {
-        "spring.datasource.url=jdbc:postgresql://localhost:5444/rdm_test",
-        "spring.datasource.username=postgres",
-        "spring.datasource.password=postgres",
+@SpringBootTest(
+        classes = Application.class,
+        webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
+        properties = {
         "cxf.jaxrs.client.classes-scan=true",
-        "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.service",
-        "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
-        "server.port=8899"
+        "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.service.api",
+        "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api"
 })
-public class ApplicationTest extends TestableDbEnv {
+@DefinePort
+@EnableEmbeddedPg
+@Import(BackendConfiguration.class)
+public class ApplicationTest {
 
     private static final int REMOVABLE_REF_BOOK_ID = 501;
     private static final String REMOVABLE_REF_BOOK_CODE = "A082";
@@ -73,13 +80,19 @@ public class ApplicationTest extends TestableDbEnv {
     private static List<RefBookVersion> versionList;
 
     @Autowired
+    @Qualifier("refBookServiceJaxRsProxyClient")
     private RefBookService refBookService;
 
     @Autowired
+    @Qualifier("draftServiceJaxRsProxyClient")
     private DraftService draftService;
 
     @Autowired
+    @Qualifier("versionServiceJaxRsProxyClient")
     private VersionService versionService;
+
+    @Autowired
+    private FileStorage fileStorage;
 
     @BeforeClass
     public static void initialize() {
@@ -392,30 +405,25 @@ public class ApplicationTest extends TestableDbEnv {
 
     @Test
     public void testVersionSearch() {
-        FieldValue name = new StringFieldValue("name", "name");
-        FieldValue count = new IntegerFieldValue("count", new BigInteger("2"));
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
-
-        Page<RowValue> rowValues = versionService.search(-1, searchDataCriteria);
-
-        List fieldValues = rowValues.getContent().get(0).getFieldValues();
-        assertEquals(fieldValues.get(0), name);
-        assertEquals(fieldValues.get(1), count);
+        Page<RowValue> rowValues = versionService.search(-1, new SearchDataCriteria());
+        List<FieldValue> fieldValues = rowValues.getContent().get(0).getFieldValues();
+        StringFieldValue name = new StringFieldValue("name", "name");
+        IntegerFieldValue count = new IntegerFieldValue("count", 2);
+        assertEquals(name.getValue(), fieldValues.get(0).getValue());
+        assertEquals(count.getValue(), fieldValues.get(1).getValue());
     }
 
     @Test
-    public void testDraftPublishFirst() throws Exception {
-        FieldValue name = new StringFieldValue("name", "name");
-        FieldValue count = new IntegerFieldValue("count", new BigInteger("2"));
-
+    public void testPublishFirstDraft() throws Exception {
+        new StringFieldValue();
         draftService.publish(-2, "1.0", LocalDateTime.now(), null);
-
-        Page<RowValue> rowValuesInVersion = versionService.search(-1, OffsetDateTime.now(), null);
+        Page<RowValue> rowValuesInVersion = versionService.search(-1, OffsetDateTime.now(), new SearchDataCriteria());
         List fieldValues = rowValuesInVersion.getContent().get(0).getFieldValues();
+        FieldValue name = new StringFieldValue("name", "name");
+        FieldValue count = new IntegerFieldValue("count", 2);
         assertEquals(fieldValues.get(0), name);
         assertEquals(fieldValues.get(1), count);
-
-        Page<RowValue> rowValuesOutVersion = versionService.search(-1, OffsetDateTime.now().minusDays(1), null);
+        Page<RowValue> rowValuesOutVersion = versionService.search(-1, OffsetDateTime.now().minusDays(1), new SearchDataCriteria());
         assertEquals(new PageImpl<RowValue>(Collections.emptyList()), rowValuesOutVersion);
     }
 
@@ -438,19 +446,26 @@ public class ApplicationTest extends TestableDbEnv {
         ));
         structure.setReferences(Collections.singletonList(new Structure.Reference("reference", referenceVersion, "count", Collections.singletonList("count"))));
         Draft draft = draftService.create(1, structure);
+        FileModel fileModel = new FileModel("testUpload.xlsx", "testUpload.xlsx");
+        try(InputStream input = ApplicationTest.class.getResourceAsStream("/testUpload.xlsx")){
+            String fullPath = fileStorage.saveContent(input, fileModel.getPath());
+            fileModel.setPath(fullPath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-        draftService.updateData(draft.getId(), createMultipartFile());
+        draftService.updateData(draft.getId(), fileModel);
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         LocalDate date =  LocalDate.parse("01.01.2011", formatter);
         List<FieldValue> expected = new ArrayList(){{
             add(new StringFieldValue("string", "Иван"));
             add(new ReferenceFieldValue("reference", new Reference("2", "2")));
-            add(new FloatFieldValue("float", new BigDecimal("1.0")));
+            add(new FloatFieldValue("float", new Double("1.0")));
             add(new DateFieldValue("date", date));
             add(new BooleanFieldValue("boolean", Boolean.TRUE));
         }};
-        Page<RowValue> search = draftService.search(draft.getId(), new SearchDataCriteria());
+        Page<RowValue> search = draftService.search(draft.getId(), new SearchDataCriteria(null, null));
         List actual = search.getContent().get(0).getFieldValues();
         Assert.assertEquals(expected, actual);
     }

@@ -12,7 +12,7 @@
     <parent>
         <groupId>net.n2oapp.platform</groupId>
         <artifactId>n2o-platform-parent</artifactId>
-        <version>1.1</version>
+        <version>1.2</version>
         <relativePath/>
     </parent>
 
@@ -22,6 +22,7 @@
         <encoding>UTF-8</encoding>
         <liquibase.version>3.6.1.inovus</liquibase.version>
         <apache.poi.version>3.14</apache.poi.version>
+        <filestorage.version>2.0-SNAPSHOT</filestorage.version>
     </properties>
 
     <modules>
@@ -82,6 +83,12 @@
                 <groupId>org.apache.poi</groupId>
                 <artifactId>poi-ooxml</artifactId>
                 <version>${apache.poi.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.i-novus.common</groupId>
+                <artifactId>fs-file-storage</artifactId>
+                <version>${filestorage.version}</version>
             </dependency>
 
         </dependencies>

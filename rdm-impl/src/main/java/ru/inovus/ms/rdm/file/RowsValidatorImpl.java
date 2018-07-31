@@ -6,11 +6,11 @@ import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.inovus.ms.rdm.exception.NsiException;
+import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.service.VersionService;
+import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -92,7 +92,7 @@ public class RowsValidatorImpl implements RowsValidator {
             case "ltree":
                 return value;
             default:
-                throw new NsiException("invalid field type");
+                throw new RdmException("invalid field type");
         }
     }
 

@@ -2,7 +2,7 @@ package ru.inovus.ms.rdm.file;
 
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
-import ru.inovus.ms.rdm.exception.NsiException;
+import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.util.ConverterUtil;
@@ -30,7 +30,7 @@ public class StructureRowMapper implements RowMapper {
         return inputRow;
     }
 
-    public Object castValue(Structure.Attribute attribute, String value) {
+    private Object castValue(Structure.Attribute attribute, String value) {
         switch (attribute.getType()) {
             case STRING:
                 return value;
@@ -48,7 +48,7 @@ public class StructureRowMapper implements RowMapper {
             case TREE:
                 return value;
             default:
-                throw new NsiException("invalid type: " + attribute.getType());
+                throw new RdmException("invalid type: " + attribute.getType());
         }
     }
 

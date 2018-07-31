@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.service;
 
 import net.n2oapp.criteria.api.CollectionPage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
@@ -10,11 +11,12 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
+import ru.inovus.ms.rdm.model.RowValuePage;
 import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
+import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ConverterUtil;
-import ru.inovus.ms.rdm.util.RowValuePage;
 
 import java.time.OffsetDateTime;
 import java.util.Collections;
@@ -26,6 +28,7 @@ import static ru.inovus.ms.rdm.util.ConverterUtil.date;
 import static ru.inovus.ms.rdm.util.ConverterUtil.sortings;
 
 @Service
+@Primary
 public class VersionServiceImpl implements VersionService {
 
     private RefBookVersionRepository versionRepository;
@@ -53,7 +56,6 @@ public class VersionServiceImpl implements VersionService {
         List<Field> fields = ConverterUtil.fields(version.getStructure());
         Date bdate = date(version.getFromDate());
         Date edate = date(version.getToDate());
-        criteria = Optional.ofNullable(criteria).orElse(new SearchDataCriteria());
         DataCriteria dataCriteria = new DataCriteria(version.getStorageCode(), bdate, edate,
                 fields, criteria.getFieldFilter(), criteria.getCommonFilter());
         dataCriteria.setPage(criteria.getPageNumber());

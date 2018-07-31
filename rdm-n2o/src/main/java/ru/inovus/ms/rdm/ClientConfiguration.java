@@ -15,9 +15,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Page;
-import ru.inovus.ms.rdm.service.DraftService;
-import ru.inovus.ms.rdm.service.RefBookService;
-import ru.inovus.ms.rdm.service.VersionService;
+import ru.inovus.ms.rdm.service.api.DraftService;
+import ru.inovus.ms.rdm.service.api.RefBookService;
+import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.TimeUtils;
 
 import java.time.LocalDateTime;

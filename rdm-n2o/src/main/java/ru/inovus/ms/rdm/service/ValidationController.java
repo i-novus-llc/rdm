@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.util.Objects;
 

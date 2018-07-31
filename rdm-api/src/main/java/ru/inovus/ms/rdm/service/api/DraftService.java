@@ -1,9 +1,8 @@
-package ru.inovus.ms.rdm.service;
+package ru.inovus.ms.rdm.service.api;
 
 import com.sun.rowset.internal.Row;
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
-import org.springframework.web.multipart.MultipartFile;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.model.*;
 
@@ -23,7 +22,8 @@ public interface DraftService {
             @ApiResponse(code = 200, message = "Черновик создан"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Draft create(Integer refBookId, Structure structure);
+    @Path("/create/{refBookId}")
+    Draft create(@ApiParam("Идентификатор справочника") @PathParam("refBookId") Integer refBookId, Structure structure);
 
     @POST
     @ApiOperation("Создание нового черновика из файла")
@@ -49,15 +49,17 @@ public interface DraftService {
             @ApiResponse(code = 200, message = "Черновик обновлен"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void updateData(Integer draftId, MultipartFile file);
+    @Path("/update/{draftId}")
+    void updateData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId, FileModel fileModel);
 
     @GET
+    @Path("/{draftId}/data")
     @ApiOperation("Получения записей черновика, с фильтрацией")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет черновика")
     })
-    Page<RowValue> search(Integer draftId, SearchDataCriteria criteria);
+    Page<RowValue> search(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId, @BeanParam SearchDataCriteria criteria);
 
     @POST
     @Path("{draftId}/publish")
@@ -67,11 +69,21 @@ public interface DraftService {
                  @ApiParam("Дата начала действия версии") @QueryParam("fromDate") LocalDateTime fromDate,
                  @ApiParam("Дата окончания действия версии") @QueryParam("toDate") LocalDateTime toDate);
 
-    void remove(Integer draftId);
+    @POST
+    @Path("{draftId}/remove")
+    @ApiOperation("Удаление черновика")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Черновик удален"),
+            @ApiResponse(code = 404, message = "Нет черновика")
+    })
+    void remove(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId);
 
     Structure getMetadata(Integer draftId);
 
-    Draft getDraft(Integer draftId);
+    @GET
+    @Path("/{draftId}")
+    @ApiOperation("Получение черновика по идентификатору")
+    Draft getDraft(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId);
 
     @POST
     @Path("/attribute")
