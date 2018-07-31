@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.service;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import net.n2oapp.platform.i18n.UserException;
-import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,8 +12,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.*;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
@@ -22,12 +19,13 @@ import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.model.Draft;
+import ru.inovus.ms.rdm.model.FileModel;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -76,6 +74,9 @@ public class DraftServiceTest {
     @Mock
     private RefBookRepository refBookRepository;
 
+    @Mock
+    private FileStorage fileStorage;
+
     @Before
     public void setUp() throws Exception {
         when(draftDataService.applyDraft(any(), any(), any())).thenReturn(TEST_STORAGE_CODE);
@@ -109,7 +110,7 @@ public class DraftServiceTest {
         LocalDateTime publishDate = LocalDateTime.now();
 
         when(versionRepository.findOne(eq(draftVersion.getId()))).thenReturn(draftVersion);
-        when(versionRepository.findOne(any( BooleanExpression.class))).thenReturn(versionEntity);
+        when(versionRepository.findOne(any(BooleanExpression.class))).thenReturn(versionEntity);
         when(versionRepository.findAll(any(Predicate.class))).thenReturn(new PageImpl(Collections.singletonList(versionEntity)));
         try {
             draftService.publish(draftVersion.getId(), "1.0", publishDate, null);
@@ -218,8 +219,9 @@ public class DraftServiceTest {
 
         verify(versionRepository).save(eq(expectedRefBookVersion));
     }
+
     @Test
-    public void testCreateDraftFromFileWithDraft(){
+    public void testCreateDraftFromFileWithDraft() {
         RefBookVersionEntity testDraftVersion = createTestDraftVersion();
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(testDraftVersion);
         RefBookEntity refBook = new RefBookEntity();
@@ -229,21 +231,26 @@ public class DraftServiceTest {
         expectedRefBookVersion.setStorageCode(TEST_DRAFT_CODE_NEW);
         expectedRefBookVersion.setRefBook(refBook);
         Structure structure = new Structure();
-        structure.setAttributes(Arrays.asList(
-                Structure.Attribute.build("Kod", "Kod", FieldType.STRING, false, "Kod"),
-                Structure.Attribute.build("Opis", "Opis", FieldType.STRING, false, "Opis"),
-                Structure.Attribute.build("DATEBEG", "DATEBEG", FieldType.STRING, false, "DATEBEG")
-        ));
+        setTestStructure(structure);
         expectedRefBookVersion.setStructure(structure);
 
-        draftService.create(REFBOOK_ID, createTestMultipartFile());
+        draftService.create(REFBOOK_ID, createTestFileModel());
 
         verify(dropDataService).drop(eq(Collections.singleton(TEST_DRAFT_CODE)));
         verify(versionRepository).delete(eq(testDraftVersion.getId()));
         verify(versionRepository).save(eq(expectedRefBookVersion));
     }
+
+    private void setTestStructure(Structure structure) {
+        structure.setAttributes(Arrays.asList(
+                Structure.Attribute.build("Kod", "Kod", FieldType.STRING, false, "Kod"),
+                Structure.Attribute.build("Opis", "Opis", FieldType.STRING, false, "Opis"),
+                Structure.Attribute.build("DATEBEG", "DATEBEG", FieldType.STRING, false, "DATEBEG")
+        ));
+    }
+
     @Test
-    public void testCreateDraftFromFileWithPublishedVersion(){
+    public void testCreateDraftFromFileWithPublishedVersion() {
         RefBookVersionEntity lastRefBookVersion = createTestPublishedVersion();
         Page<RefBookVersionEntity> lastRefBookVersionPage = new PageImpl<>(Collections.singletonList(lastRefBookVersion));
         when(versionRepository
@@ -256,18 +263,15 @@ public class DraftServiceTest {
         expectedRefBookVersion.setStorageCode(TEST_DRAFT_CODE_NEW);
         expectedRefBookVersion.setRefBook(refBook);
         Structure structure = new Structure();
-        structure.setAttributes(Arrays.asList(
-                Structure.Attribute.build("Kod", "Kod", FieldType.STRING, false, "Kod"),
-                Structure.Attribute.build("Opis", "Opis", FieldType.STRING, false, "Opis"),
-                Structure.Attribute.build("DATEBEG", "DATEBEG", FieldType.STRING, false, "DATEBEG")
-        ));
+        setTestStructure(structure);
         expectedRefBookVersion.setStructure(structure);
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(null).thenReturn(expectedRefBookVersion);
 
-        draftService.create(REFBOOK_ID, createTestMultipartFile());
+        draftService.create(REFBOOK_ID, createTestFileModel());
 
         verify(versionRepository).save(eq(expectedRefBookVersion));
     }
+
     @Test
     public void testRemoveDraft() {
         draftService.remove(1);
@@ -287,14 +291,16 @@ public class DraftServiceTest {
         testDraftVersion.setStructure(new Structure());
         return testDraftVersion;
     }
-    private MultipartFile createTestMultipartFile(){
-        try(InputStream resourceAsStream = DraftServiceTest.class.getResourceAsStream("/R002.xlsx");) {
-            return new MockMultipartFile("R002.xlsx", "R002.xlsx",
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", IOUtils.toByteArray(resourceAsStream));
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+
+    private FileModel createTestFileModel() {
+        InputStream input = DraftServiceTest.class.getResourceAsStream("/R002.xlsx");
+        String path = "R002";
+        FileModel fileModel = new FileModel(path, "R002.xlsx");
+        when(fileStorage.saveContent(eq(input), eq(path))).thenReturn(fileModel.generateFullPath());
+        when(fileStorage.getContent(eq(fileModel.generateFullPath()))).thenReturn(input);
+        String fullPath = fileStorage.saveContent(input, fileModel.getPath());
+        fileModel.setPath(fullPath);
+        return fileModel;
     }
 
     private RefBookVersionEntity createTestPublishedVersion() {

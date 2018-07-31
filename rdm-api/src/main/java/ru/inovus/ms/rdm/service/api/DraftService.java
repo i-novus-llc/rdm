@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.service.api;
 
-import com.sun.rowset.internal.Row;
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
@@ -31,17 +30,12 @@ public interface DraftService {
             @ApiResponse(code = 200, message = "Черновик создан"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Draft create(Integer refBookId, MultipartFile file);
+    @Path("/createByFile/{refBookId}")
+    Draft create(@ApiParam("Идентификатор справочника") @PathParam("refBookId")Integer refBookId, FileModel fileModel);
 
     void updateMetadata(Integer draftId, MetadataDiff metadataDiff);
 
     void updateData(Integer draftId, DataDiff dataDiff);
-
-    void addData(List<Row> rows);
-
-    void updateData(Long rowId, Row newRow);
-
-    void deleteData(Long rowId);
 
     @POST
     @ApiOperation("Обновления черновика из файла")

@@ -30,8 +30,6 @@ import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -446,13 +444,7 @@ public class ApplicationTest {
         ));
         structure.setReferences(Collections.singletonList(new Structure.Reference("reference", referenceVersion, "count", Collections.singletonList("count"))));
         Draft draft = draftService.create(1, structure);
-        FileModel fileModel = new FileModel("testUpload.xlsx", "testUpload.xlsx");
-        try(InputStream input = ApplicationTest.class.getResourceAsStream("/testUpload.xlsx")){
-            String fullPath = fileStorage.saveContent(input, fileModel.getPath());
-            fileModel.setPath(fullPath);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        FileModel fileModel = createFileModel();
 
         draftService.updateData(draft.getId(), fileModel);
 
@@ -470,16 +462,6 @@ public class ApplicationTest {
         Assert.assertEquals(expected, actual);
     }
 
-    private MultipartFile createMultipartFile() {
-        try (InputStream input = ApplicationTest.class.getResourceAsStream("/testUpload.xlsx")) {
-            return new MockMultipartFile("testUpload",
-                    "testUpload.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", IOUtils.toByteArray(input));
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
     @Test
     public void testDraftCreateFromFile(){
         List<FieldValue> expectedData = new ArrayList(){{
@@ -489,7 +471,8 @@ public class ApplicationTest {
             add(new StringFieldValue("date", "01.01.2011"));
             add(new StringFieldValue("boolean", "true"));
         }};
-        Draft expected = draftService.create(-3, createMultipartFile());
+        FileModel fileModel = createFileModel();
+        Draft expected = draftService.create(-3, fileModel);
         Draft actual = draftService.getDraft(expected.getId());
 
         Assert.assertEquals(expected, actual);
@@ -499,6 +482,18 @@ public class ApplicationTest {
 
         Assert.assertEquals(expectedData, actualData);
 
+    }
+
+    private FileModel createFileModel() {
+        try(InputStream input = ApplicationTest.class.getResourceAsStream("/testUpload.xlsx")){
+            FileModel fileModel = new FileModel("testUpload", "testUpload.xlsx");
+            String fullPath = fileStorage.saveContent(input, fileModel.getPath());
+            fileModel.setPath(fullPath);
+            return fileModel;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 }

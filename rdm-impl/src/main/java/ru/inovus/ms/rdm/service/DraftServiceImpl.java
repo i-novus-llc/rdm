@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.service;
 
-import com.sun.rowset.internal.Row;
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.UserException;
 import org.apache.commons.io.FilenameUtils;
@@ -11,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
@@ -20,7 +20,6 @@ import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
-import ru.inovus.ms.rdm.exception.NsiException;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.file.*;
 import ru.inovus.ms.rdm.model.*;
@@ -31,6 +30,7 @@ import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 import ru.kirkazan.common.exception.CodifiedException;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -81,10 +81,10 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public Draft create(Integer refBookId, MultipartFile file) {
-        Supplier<InputStream> inputStreamSupplier = getInputStreamSupplier(file);
+    public Draft create(Integer refBookId, FileModel fileModel) {
+        Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
         BiConsumer<String, Structure> consumer = getSaveDraftConsumer(refBookId);
-        String extension = getExtension(file);
+        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
         CreateDraftBufferedRowsPersister rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, consumer);
         FileProcessor persister = ProcessorFactory.createProcessor(extension,
                 rowsProcessor, new PlainRowMapper());
@@ -174,20 +174,6 @@ public class DraftServiceImpl implements DraftService {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public void addData(List<Row> rows) {
-
-    }
-
-    @Override
-    public void updateData(Long rowId, Row newRow) {
-
-    }
-
-    @Override
-    public void deleteData(Long rowId) {
-
-    }
 
     @Override
     public void updateData(Integer draftId, FileModel fileModel) {
@@ -195,13 +181,14 @@ public class DraftServiceImpl implements DraftService {
         String storageCode = draft.getStorageCode();
         Structure structure = draft.getStructure();
         String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
+        StructureRowMapper rowMapper = new StructureRowMapper(structure, versionRepository);
         FileProcessor validator = ProcessorFactory.createProcessor(extension,
-                new RowsValidatorImpl(versionService, structure), structure, versionRepository);
+                new RowsValidatorImpl(versionService, structure), rowMapper);
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
         Result validationResult = validator.process(inputStreamSupplier);
         if (isEmpty(validationResult.getErrors())) {
             FileProcessor persister = ProcessorFactory.createProcessor(extension,
-                    new BufferedRowsPersister(draftDataService, storageCode, structure), structure, versionRepository);
+                    new BufferedRowsPersister(draftDataService, storageCode, structure), rowMapper);
             persister.process(inputStreamSupplier);
         } else {
             throw new RdmException("file contains invalid reference");
@@ -214,7 +201,7 @@ public class DraftServiceImpl implements DraftService {
             try {
                 return file.getInputStream();
             } catch (IOException e) {
-                throw new NsiException("invalid file: ", e);
+                throw new RdmException("invalid file: ", e);
             }
         };
     }
