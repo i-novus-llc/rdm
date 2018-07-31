@@ -20,7 +20,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <encoding>UTF-8</encoding>
-        <liquibase.version>3.6.1.inovus</liquibase.version>
+        <liquibase.version>3.6.3-SNAPSHOT</liquibase.version>
         <apache.poi.version>3.14</apache.poi.version>
     </properties>
 
