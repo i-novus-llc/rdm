@@ -75,10 +75,11 @@ public class RowsValidatorTest {
     @Test
     public void testAppendAndProcessWithErrors() {
         Row validRow = createTestRowWithReference();
+        String newAttributeValue = ATTRIBUTE_VALUE + "_1";
         Row notValidRow = new Row(new LinkedHashMap() {{
-            put(ATTRIBUTE_NAME, new Reference(ATTRIBUTE_VALUE  + "_1", ATTRIBUTE_VALUE + "_1"));
+            put(ATTRIBUTE_NAME, new Reference(newAttributeValue, newAttributeValue));
         }});
-        Result expected = new Result(1, 2, Collections.singletonList("Reference in row is not valid"));
+        Result expected = new Result(1, 2, Collections.singletonList(ATTRIBUTE_NAME + ": " + newAttributeValue));
         when(versionService.search(AdditionalMatchers.not(eq(REFERENCE_VERSION)), AdditionalMatchers.not(eq(searchDataCriteria))))
                 .thenReturn(new PageImpl<>(Collections.emptyList()));
 
@@ -98,7 +99,7 @@ public class RowsValidatorTest {
 
     private Structure createTestStructureWithReference() {
         Structure structure = new Structure();
-        structure.setAttributes(Collections.singletonList(Structure.Attribute.build(ATTRIBUTE_NAME , ATTRIBUTE_NAME, FieldType.REFERENCE, false, "description")));
+        structure.setAttributes(Collections.singletonList(Structure.Attribute.build(ATTRIBUTE_NAME, ATTRIBUTE_NAME, FieldType.REFERENCE, false, "description")));
         structure.setReferences(Collections.singletonList(new Structure.Reference(ATTRIBUTE_NAME, REFERENCE_VERSION, REFERENCE_ATTRIBUTE, null, null)));
         return structure;
     }

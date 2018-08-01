@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -188,7 +189,7 @@ public class DraftServiceImpl implements DraftService {
                     new BufferedRowsPersister(draftDataService, storageCode, structure), rowMapper);
             persister.process(inputStreamSupplier);
         } else {
-            throw new RdmException("file contains invalid reference");
+            throw new UserException("invalid.reference.err", new RdmException(validationResult.getErrors().stream().collect(Collectors.joining("  "))));
         }
 
     }

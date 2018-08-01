@@ -16,7 +16,7 @@ public class CreateDraftBufferedRowsPersister implements RowsProcessor {
 
     private DraftDataService draftDataService;
 
-    private boolean isFirst = true;
+    private boolean isFirstRowAppended;
 
     private int size = 100;
 
@@ -35,12 +35,12 @@ public class CreateDraftBufferedRowsPersister implements RowsProcessor {
 
     @Override
     public Result append(Row row) {
-        if (isFirst) {
+        if (!isFirstRowAppended) {
             Structure structure = fields(row);
             String storageCode = draftDataService.createDraft(ConverterUtil.fields(structure));
             consumer.accept(storageCode, structure);
             this.bufferedRowsPersister = new BufferedRowsPersister(size, draftDataService, storageCode, structure);
-            isFirst = false;
+            isFirstRowAppended = true;
         }
         return bufferedRowsPersister.append(row);
     }

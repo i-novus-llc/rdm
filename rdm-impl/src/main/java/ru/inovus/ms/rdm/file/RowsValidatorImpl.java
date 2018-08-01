@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.util.ConverterUtil.field;
@@ -46,21 +47,25 @@ public class RowsValidatorImpl implements RowsValidator {
 
     private void validateReferences(Row row) {
         List<Structure.Reference> references = structure.getReferences();
-        boolean isRowValid = true;
+        List<Structure.Reference> invalidReferences = null;
         if (!isEmpty(references)) {
-            isRowValid = references.stream().allMatch(reference -> {
-                Reference referenceValue = (Reference) row.getData().get((reference).getAttribute());
-                return validateReference(reference, referenceValue.getValue());
-            });
+            invalidReferences = references.stream()
+                    .filter(reference -> {
+                        String referenceValue = ((Reference) row.getData().get((reference).getAttribute())).getValue();
+                        return !isReferenceValid(reference, referenceValue);
+                    }).collect(Collectors.toList());
         }
-        if (isRowValid) {
+        if (isEmpty(invalidReferences)) {
             this.result = this.result.addResult(new Result(1, 1, null));
         } else {
-            this.result = this.result.addResult(new Result(0, 1, Collections.singletonList("Reference in row is not valid")));
+            String message = invalidReferences.stream()
+                    .map(invalidReference -> invalidReference.getAttribute() + ": " + ((Reference) row.getData().get((invalidReference).getAttribute())).getValue())
+                    .collect(Collectors.joining(", "));
+            this.result = this.result.addResult(new Result(0, 1, Collections.singletonList(message)));
         }
     }
 
-    private boolean validateReference(Structure.Reference reference, String referenceValue) {
+    private boolean isReferenceValid(Structure.Reference reference, String referenceValue) {
         Integer versionId = reference.getReferenceVersion();
         Structure referenceStructure = versionService.getStructure(versionId);
         Field fieldFilter = createFieldFilter(referenceStructure, reference);

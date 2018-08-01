@@ -10,7 +10,7 @@
             INSERT INTO n2o_rdm_management.ref_book(id, code, removable) VALUES (-3, 'test_ref_book_for_creating_draft_from_file', TRUE);
             INSERT INTO n2o_rdm_management.ref_book_version(id, storage_code, ref_book_id, full_name, short_name,
             version, status, structure)
-            VALUES (-4, 'test-storage-for-draft-reference', -3, 'Тестовый справочник',
+            VALUES (-5, 'test-storage-for-draft-reference', -3, 'Тестовый справочник',
             'Тестовый справочник',
             '1', 'DRAFT', '{"attributes" : [{"code" : "name", "name" : "Наименование", "type" :
             "STRING", "isPrimary" : null, "isRequired" : null },
