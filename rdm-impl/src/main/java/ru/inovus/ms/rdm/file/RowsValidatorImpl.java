@@ -14,6 +14,7 @@ import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,7 +48,7 @@ public class RowsValidatorImpl implements RowsValidator {
 
     private void validateReferences(Row row) {
         List<Structure.Reference> references = structure.getReferences();
-        List<Structure.Reference> invalidReferences = null;
+        List<Structure.Reference> invalidReferences = new ArrayList<>();
         if (!isEmpty(references)) {
             invalidReferences = references.stream()
                     .filter(reference -> {
