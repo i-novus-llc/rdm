@@ -440,7 +440,7 @@ public class ApplicationTest {
 
     /**
      * Создаем новый черновик с ссылкой на опубликованную версию
-     * Обновляем его данные
+     * Обновляем его данные из файла
      */
     @Test
     public void testDraftUpdateData() {
@@ -473,6 +473,10 @@ public class ApplicationTest {
         assertEquals(expected, actual);
     }
 
+    /**
+     * Создаем новый черновик с ссылкой на опубликованную версию
+     * Обновляем его данные из файла, который содержит невалидную ссылку
+     */
     @Test()
     public void testDraftUpdateDataWithInvalidReference() {
         int referenceVersion = -1;
