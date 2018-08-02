@@ -25,11 +25,11 @@ public class Structure implements Serializable {
         this(other.getAttributes(), other.getReferences());
     }
 
-    public Reference getReference(String attributeName) {
+    public Reference getReference(String attributeCode) {
         if (isEmpty(references)) {
             return null;
         }
-        return references.stream().filter(reference -> reference.getAttribute().equals(attributeName)).findAny()
+        return references.stream().filter(reference -> reference.getAttribute().equals(attributeCode)).findAny()
                 .orElse(null);
     }
 

@@ -22,11 +22,6 @@ public abstract class FilePerRowProcessor implements FileProcessor, Iterator<Row
         this.rowsProcessor = rowsProcessor;
     }
 
-    public FilePerRowProcessor(RowsProcessor rowsProcessor) {
-        this.rowMapper = new DefaultRowMapper();
-        this.rowsProcessor = rowsProcessor;
-    }
-
     protected abstract void setFile(InputStream inputStream);
 
     public Result process(Supplier<InputStream> fileSource) {

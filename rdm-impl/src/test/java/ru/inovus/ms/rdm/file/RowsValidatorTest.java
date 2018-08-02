@@ -10,6 +10,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
@@ -20,7 +21,7 @@ import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
@@ -49,7 +50,7 @@ public class RowsValidatorTest {
 
     @Before
     public void setUp() {
-        rowsValidator = new RowsValidatorImpl(versionService, fieldFactory, createTestStructureWithReference());
+        rowsValidator = new RowsValidatorImpl(versionService, createTestStructureWithReference());
         when(fieldFactory.createField(eq(REFERENCE_ATTRIBUTE), eq(FieldType.STRING))).thenReturn(new StringField(REFERENCE_ATTRIBUTE));
         when(versionService.getStructure(eq(REFERENCE_VERSION))).thenReturn(createTestStructure());
         StringField fieldFilter = new StringField(REFERENCE_ATTRIBUTE);
@@ -74,10 +75,11 @@ public class RowsValidatorTest {
     @Test
     public void testAppendAndProcessWithErrors() {
         Row validRow = createTestRowWithReference();
-        Row notValidRow = new Row(new HashMap() {{
-            put("count", 1);
+        String newAttributeValue = ATTRIBUTE_VALUE + "_1";
+        Row notValidRow = new Row(new LinkedHashMap() {{
+            put(ATTRIBUTE_NAME, new Reference(newAttributeValue, newAttributeValue));
         }});
-        Result expected = new Result(1, 2, Collections.singletonList("Reference in row is not valid"));
+        Result expected = new Result(1, 2, Collections.singletonList(ATTRIBUTE_NAME + ": " + newAttributeValue));
         when(versionService.search(AdditionalMatchers.not(eq(REFERENCE_VERSION)), AdditionalMatchers.not(eq(searchDataCriteria))))
                 .thenReturn(new PageImpl<>(Collections.emptyList()));
 
@@ -90,14 +92,14 @@ public class RowsValidatorTest {
     }
 
     private Row createTestRowWithReference() {
-        return new Row(new HashMap() {{
-            put(ATTRIBUTE_NAME, ATTRIBUTE_VALUE);
+        return new Row(new LinkedHashMap() {{
+            put(ATTRIBUTE_NAME, new Reference(ATTRIBUTE_VALUE, ATTRIBUTE_VALUE));
         }});
     }
 
     private Structure createTestStructureWithReference() {
         Structure structure = new Structure();
-        structure.setAttributes(Collections.singletonList(Structure.Attribute.build(ATTRIBUTE_NAME , ATTRIBUTE_NAME, FieldType.REFERENCE, false, "description")));
+        structure.setAttributes(Collections.singletonList(Structure.Attribute.build(ATTRIBUTE_NAME, ATTRIBUTE_NAME, FieldType.REFERENCE, false, "description")));
         structure.setReferences(Collections.singletonList(new Structure.Reference(ATTRIBUTE_NAME, REFERENCE_VERSION, REFERENCE_ATTRIBUTE, null, null)));
         return structure;
     }
