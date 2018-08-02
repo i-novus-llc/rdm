@@ -13,8 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
-import ru.inovus.ms.rdm.entity.PassportAttributeEntity;
-import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
@@ -27,7 +25,10 @@ import ru.inovus.ms.rdm.util.TimeUtils;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
@@ -62,8 +63,8 @@ public class RefBookServiceImpl implements RefBookService {
 
     @Override
     @Transactional
-    public RefBook getById(Integer versionId) {
-        return refBookModel(repository.findOne(versionId));
+    public Passport getById(Integer versionId) {
+        return passportModel(repository.findOne(versionId));
     }
 
     @Override
@@ -76,7 +77,7 @@ public class RefBookServiceImpl implements RefBookService {
         refBookEntity = refBookRepository.save(refBookEntity);
 
         RefBookVersionEntity refBookVersionEntity = new RefBookVersionEntity();
-        populateVersionFromPassport(refBookVersionEntity, request.getPassport());
+        refBookVersionEntity.populateFrom(request);
         refBookVersionEntity.setRefBook(refBookEntity);
         refBookVersionEntity.setStatus(RefBookVersionStatus.DRAFT);
 
@@ -97,8 +98,7 @@ public class RefBookServiceImpl implements RefBookService {
         if (!refBookEntity.getCode().equals(request.getCode())) {
             refBookEntity.setCode(request.getCode());
         }
-        updeteVersionFromPassport(refBookVersionEntity, request.getPassport());
-        refBookVersionEntity.setComment(request.getComment());
+        refBookVersionEntity.populateFrom(request);
         return refBookModel(refBookVersionEntity);
     }
 
@@ -152,14 +152,15 @@ public class RefBookServiceImpl implements RefBookService {
         if (!isEmpty(criteria.getCode()))
             where.and(isCodeContains(criteria.getCode()));
 
-        if (!isEmpty(criteria.getPassport())){
-            criteria.getPassport().getAttributes().entrySet().forEach(e -> {
-                where.and(hasAttributeValue(e.getKey(), e.getValue()));
-            });
+        if (!isEmpty(criteria.getName())) {
+            where.and(isShortNameOrFullNameContains(criteria.getName()));
         }
-
         if (!isEmpty(criteria.getRefBookId()))
             where.and(isVersionOfRefBook(criteria.getRefBookId()));
+
+        if (!isEmpty(criteria.getCodeName())) {
+            where.and(isShortNameOrFullNameContains(criteria.getCodeName()).or(isCodeContains(criteria.getCodeName())));
+        }
 
         if (nonNull(criteria.getStatus())) {
             switch (criteria.getStatus()) {
@@ -265,6 +266,9 @@ public class RefBookServiceImpl implements RefBookService {
         model.setId(entity.getId());
         model.setRefBookId(entity.getRefBook().getId());
         model.setCode(entity.getRefBook().getCode());
+        model.setShortName(entity.getShortName());
+        model.setFullName(entity.getFullName());
+        model.setAnnotation(entity.getAnnotation());
         model.setComment(entity.getComment());
         model.setVersion(entity.getVersion());
         model.setFromDate(entity.getFromDate());
@@ -276,7 +280,7 @@ public class RefBookServiceImpl implements RefBookService {
         Map<String, String> passport = new HashMap<>();
         if (entity.getPassportValues() != null)
             entity.getPassportValues().forEach(value -> passport.put(value.getAttribute().getCode(), value.getValue()));
-        model.setPassport(new Passport(passport));
+        model.setPassport(passport);
         return model;
     }
 
@@ -290,39 +294,12 @@ public class RefBookServiceImpl implements RefBookService {
         return model;
     }
 
-    private void populateVersionFromPassport(RefBookVersionEntity versionEntity, Passport passport) {
-        if (passport != null && passport.getAttributes() != null && versionEntity != null) {
-            versionEntity.setPassportValues(passport.getAttributes().entrySet().stream()
-                    .filter(e -> e.getValue() != null)
-                    .map(e -> new PassportValueEntity(new PassportAttributeEntity(e.getKey()), e.getValue(), versionEntity))
-                    .collect(Collectors.toSet()));
-        }
+    private Passport passportModel(RefBookVersionEntity entity) {
+        if (entity == null) return null;
+        Passport model = new Passport(refBookModel(entity));
+        model.setFirstPublishedVersionFromDate(getFirstPublishedVersionFromDate(entity));
+        // set after RDM-37
+        model.setRecordsCount(null);
+        return model;
     }
-
-    private void updeteVersionFromPassport(RefBookVersionEntity versionEntity, Passport passport){
-        if (passport == null || passport.getAttributes() == null || versionEntity == null) {
-            return;
-        }
-
-        Map<String, String> newPassport = passport.getAttributes();
-
-        Set<PassportValueEntity> newPassportValues = versionEntity.getPassportValues() != null ?
-                versionEntity.getPassportValues() : new HashSet<>();
-
-        newPassportValues.removeIf(v -> newPassport.keySet().contains(v.getAttribute().getCode())
-                && newPassport.get(v.getAttribute().getCode()) == null);
-        newPassportValues.forEach(v -> v.setValue(newPassport.get(v.getAttribute().getCode())));
-
-        Set<String> existAttributes = newPassportValues.stream()
-                .map(v -> v.getAttribute().getCode()).collect(Collectors.toSet());
-
-        newPassportValues.addAll(newPassport.entrySet().stream()
-                .filter(e -> e.getValue() != null)
-                .filter(e -> !existAttributes.contains(e.getKey()))
-                .map(e -> new PassportValueEntity(new PassportAttributeEntity(e.getKey()), e.getValue(), versionEntity))
-                .collect(Collectors.toSet()));
-
-        versionEntity.setPassportValues(newPassportValues);
-    }
-
 }

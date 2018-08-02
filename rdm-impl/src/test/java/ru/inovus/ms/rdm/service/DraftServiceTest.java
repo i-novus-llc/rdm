@@ -16,8 +16,6 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
-import ru.inovus.ms.rdm.entity.PassportAttributeEntity;
-import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
@@ -34,8 +32,6 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -289,8 +285,10 @@ public class DraftServiceTest {
         testDraftVersion.setStorageCode(TEST_DRAFT_CODE);
         testDraftVersion.setRefBook(createTestRefBook());
         testDraftVersion.setStatus(RefBookVersionStatus.DRAFT);
+        testDraftVersion.setShortName("short_name");
+        testDraftVersion.setFullName("full_name");
+        testDraftVersion.setAnnotation("annotation");
         testDraftVersion.setStructure(new Structure());
-        testDraftVersion.setPassportValues(createTestPassportValues(testDraftVersion));
         return testDraftVersion;
     }
 
@@ -312,16 +310,10 @@ public class DraftServiceTest {
         testDraftVersion.setRefBook(createTestRefBook());
         testDraftVersion.setStatus(RefBookVersionStatus.PUBLISHED);
         testDraftVersion.setStructure(new Structure());
-        testDraftVersion.setPassportValues(createTestPassportValues(testDraftVersion));
+        testDraftVersion.setShortName("short_name");
+        testDraftVersion.setFullName("full_name");
+        testDraftVersion.setAnnotation("annotation");
         return testDraftVersion;
-    }
-
-    private Set<PassportValueEntity> createTestPassportValues(RefBookVersionEntity version){
-        Set<PassportValueEntity> passportValues = new HashSet<>();
-        passportValues.add(new PassportValueEntity(new PassportAttributeEntity("fullName"), "full_name", version));
-        passportValues.add(new PassportValueEntity(new PassportAttributeEntity("shortName"), "short_name", version));
-        passportValues.add(new PassportValueEntity(new PassportAttributeEntity("annotation"), "annotation", version));
-        return passportValues;
     }
 
     private RefBookEntity createTestRefBook() {

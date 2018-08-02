@@ -16,13 +16,6 @@ public class PassportAttributeEntity {
     @Column(name = "code", nullable = false)
     private String code;
 
-    public PassportAttributeEntity() {
-    }
-
-    public PassportAttributeEntity(String code) {
-        this.code = code;
-    }
-
     public String getCode() {
         return code;
     }

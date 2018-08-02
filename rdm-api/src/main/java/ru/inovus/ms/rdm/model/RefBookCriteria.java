@@ -18,6 +18,14 @@ public class RefBookCriteria extends AbstractCriteria {
     @QueryParam("code")
     private String code;
 
+    @ApiModelProperty("Наименование")
+    @QueryParam("name")
+    private String name;
+
+    @ApiModelProperty("Код, наименвоание")
+    @QueryParam("codeName")
+    private String codeName;
+
     @ApiModelProperty("Дата последней публикации")
     @QueryParam("fromDateBegin")
     private LocalDateTime fromDateBegin;
@@ -29,10 +37,6 @@ public class RefBookCriteria extends AbstractCriteria {
     @ApiModelProperty("Статус справочника")
     @QueryParam("status.id")
     private RefBookStatus status;
-
-    @ApiModelProperty("Паспорт справочника")
-    @QueryParam("passport")
-    private Passport passport;
 
     public Integer getRefBookId() {
         return refBookId;
@@ -48,6 +52,22 @@ public class RefBookCriteria extends AbstractCriteria {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getCodeName() {
+        return codeName;
+    }
+
+    public void setCodeName(String codeName) {
+        this.codeName = codeName;
     }
 
     public LocalDateTime getFromDateBegin() {
@@ -72,13 +92,5 @@ public class RefBookCriteria extends AbstractCriteria {
 
     public void setStatus(RefBookStatus status) {
         this.status = status;
-    }
-
-    public Passport getPassport() {
-        return passport;
-    }
-
-    public void setPassport(Passport passport) {
-        this.passport = passport;
     }
 }

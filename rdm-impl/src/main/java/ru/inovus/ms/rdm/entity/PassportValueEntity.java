@@ -25,15 +25,6 @@ public class PassportValueEntity {
     @JoinColumn(name = "version_id", referencedColumnName = "id", nullable = false)
     private RefBookVersionEntity version;
 
-    public PassportValueEntity(PassportAttributeEntity attribute, String value, RefBookVersionEntity version) {
-        this.attribute = attribute;
-        this.value = value;
-        this.version = version;
-    }
-
-    public PassportValueEntity() {
-    }
-
     public Integer getId() {
         return id;
     }

@@ -3,6 +3,8 @@ package ru.inovus.ms.rdm.entity;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.model.RefBookCreateRequest;
+import ru.inovus.ms.rdm.model.RefBookUpdateRequest;
 import ru.inovus.ms.rdm.model.Structure;
 
 import javax.persistence.*;
@@ -23,6 +25,15 @@ public class RefBookVersionEntity {
     @ManyToOne
     @JoinColumn(name = "ref_book_id", nullable = false)
     private RefBookEntity refBook;
+
+    @Column(name = "full_name", nullable = false)
+    private String fullName;
+
+    @Column(name = "short_name", nullable = false)
+    private String shortName;
+
+    @Column(name = "annotation")
+    private String annotation;
 
     @Column(name = "structure", columnDefinition = "json")
     @Type(type = "structure")
@@ -53,7 +64,8 @@ public class RefBookVersionEntity {
     @Column(name = "last_action_date")
     private LocalDateTime lastActionDate;
 
-    @OneToMany(mappedBy="version", orphanRemoval = true, cascade = CascadeType.ALL)
+    @OneToMany
+    @JoinColumn(name = "version_id")
     private Set<PassportValueEntity> passportValues;
 
     public Integer getId() {
@@ -70,6 +82,30 @@ public class RefBookVersionEntity {
 
     public void setRefBook(RefBookEntity refBook) {
         this.refBook = refBook;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public String getShortName() {
+        return shortName;
+    }
+
+    public void setShortName(String shortName) {
+        this.shortName = shortName;
+    }
+
+    public String getAnnotation() {
+        return annotation;
+    }
+
+    public void setAnnotation(String annotation) {
+        this.annotation = annotation;
     }
 
     public Structure getStructure() {
@@ -171,6 +207,9 @@ public class RefBookVersionEntity {
         RefBookVersionEntity that = (RefBookVersionEntity) o;
         return Objects.equals(id, that.id) &&
                 Objects.equals(refBook, that.refBook) &&
+                Objects.equals(fullName, that.fullName) &&
+                Objects.equals(shortName, that.shortName) &&
+                Objects.equals(annotation, that.annotation) &&
                 Objects.equals(structure, that.structure) &&
                 Objects.equals(storageCode, that.storageCode) &&
                 Objects.equals(version, that.version) &&
@@ -184,7 +223,7 @@ public class RefBookVersionEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, refBook, structure, storageCode, version, comment, status, fromDate, toDate, creationDate, lastActionDate);
+        return Objects.hash(id, refBook, fullName, shortName, annotation, structure, storageCode, version, comment, status, fromDate, toDate, creationDate, lastActionDate);
     }
 
     @Override
@@ -192,6 +231,9 @@ public class RefBookVersionEntity {
         final StringBuilder sb = new StringBuilder("RefBookVersionEntity{");
         sb.append("id=").append(id);
         sb.append(", refBook=").append(refBook);
+        sb.append(", fullName='").append(fullName).append('\'');
+        sb.append(", shortName='").append(shortName).append('\'');
+        sb.append(", annotation='").append(annotation).append('\'');
         sb.append(", structure=").append(structure);
         sb.append(", storageCode='").append(storageCode).append('\'');
         sb.append(", version='").append(version).append('\'');
@@ -203,5 +245,16 @@ public class RefBookVersionEntity {
         sb.append(", lastActionDate=").append(lastActionDate);
         sb.append('}');
         return sb.toString();
+    }
+
+    public void populateFrom(RefBookCreateRequest model) {
+        this.setFullName(model.getFullName());
+        this.setShortName(model.getShortName());
+        this.setAnnotation(model.getAnnotation());
+    }
+
+    public void populateFrom(RefBookUpdateRequest model) {
+        populateFrom((RefBookCreateRequest) model);
+        this.setComment(model.getComment());
     }
 }

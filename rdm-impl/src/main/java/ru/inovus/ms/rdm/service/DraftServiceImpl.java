@@ -18,7 +18,6 @@ import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.*;
@@ -42,7 +41,10 @@ import java.util.stream.Collectors;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
-import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
+import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.MAX_TIMESTAMP;
+import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.hasOverlappingPeriods;
+import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.isPublished;
+import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.isVersionOfRefBook;
 import static ru.inovus.ms.rdm.util.ConverterUtil.field;
 import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
 
@@ -148,12 +150,13 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draftVersion;
         draftVersion = new RefBookVersionEntity();
         draftVersion.setStatus(RefBookVersionStatus.DRAFT);
-        draftVersion.setPassportValues(original.getPassportValues().stream()
-                .map(v -> new PassportValueEntity(v.getAttribute(), v.getValue(), draftVersion))
-                .collect(Collectors.toSet()));
+        draftVersion.setFullName(original.getFullName());
+        draftVersion.setShortName(original.getShortName());
+        draftVersion.setAnnotation(original.getAnnotation());
         draftVersion.setStructure(structure);
         return draftVersion;
     }
+
 
     private RefBookVersionEntity getDraftByRefbook(Integer refBookId) {
         return versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
