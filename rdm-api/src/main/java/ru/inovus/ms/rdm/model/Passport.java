@@ -13,6 +13,19 @@ public class Passport {
     public Passport() {
     }
 
+    public Passport(Map<String, String> attributes) {
+        this.attributes = attributes;
+    }
+
+    public Map<String, String> getAttributes() {
+        return attributes;
+    }
+
+    public void setAttributes(Map<String, String> attributes) {
+        this.attributes = attributes;
+    }
+
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -24,17 +37,5 @@ public class Passport {
     @Override
     public int hashCode() {
         return Objects.hash(attributes);
-    }
-
-    public Passport(Map<String, String> pasport) {
-        this.attributes = pasport;
-    }
-
-    public Map<String, String> getAttributes() {
-        return attributes;
-    }
-
-    public void setAttributes(Map<String, String> attributes) {
-        this.attributes = attributes;
     }
 }

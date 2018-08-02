@@ -153,9 +153,8 @@ public class RefBookServiceImpl implements RefBookService {
             where.and(isCodeContains(criteria.getCode()));
 
         if (!isEmpty(criteria.getPassport())){
-            criteria.getPassport().getAttributes().entrySet().forEach(e -> {
-                where.and(hasAttributeValue(e.getKey(), e.getValue()));
-            });
+            criteria.getPassport().getAttributes().entrySet()
+                    .forEach(e -> where.and(hasAttributeValue(e.getKey(), e.getValue())));
         }
 
         if (!isEmpty(criteria.getRefBookId()))
@@ -224,11 +223,6 @@ public class RefBookServiceImpl implements RefBookService {
         Page<RefBookVersion> search = getVersions(versionCriteria);
         if (search.getTotalElements() == 0) return null;
         return search.getContent().get(search.getContent().size() - 1);
-    }
-
-    private LocalDateTime getFirstPublishedVersionFromDate(RefBookVersionEntity entity) {
-        RefBookVersion firstPublishedVersion = getFirstPublishedVersion(entity.getRefBook().getId());
-        return nonNull(firstPublishedVersion) ? firstPublishedVersion.getFromDate() : null;
     }
 
     private boolean isRefBookRemovable(Integer refBookId) {

@@ -98,7 +98,7 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
             try {
                 return new ObjectMapper().readValue(value, Passport.class);
             } catch (IOException e) {
-                throw new IllegalArgumentException("Failed to convert from json to Passport");
+                throw new IllegalArgumentException("Failed to convert from json to Passport", e);
             }
         }
 
@@ -107,7 +107,7 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
             try {
                 return new ObjectMapper().writeValueAsString(value);
             } catch (JsonProcessingException e) {
-                throw new IllegalArgumentException("Failed to convert from Passport to json");
+                throw new IllegalArgumentException("Failed to convert from Passport to json", e);
             }
         }
     }
