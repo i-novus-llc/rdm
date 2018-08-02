@@ -2,12 +2,13 @@ package ru.inovus.ms.rdm.file;
 
 import org.junit.Assert;
 import org.junit.Test;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.model.Result;
+import ru.inovus.ms.rdm.model.Structure;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 /**
  * Created by tnurdinov on 06.07.2018.
@@ -18,32 +19,43 @@ public class XlsPerRowProcessorTest {
     @Test
     public void testSimpleProcessFile() throws Exception {
         List<Map<String, Object>> expected = new ArrayList<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        LocalDate date =  LocalDate.parse("01.01.2011", formatter);
         expected.add(new HashMap() {{
-            put("Kod", "0");
+            put("Kod", 0);
             put("Opis", "Не требует изготовления полиса");
-            put("DATEBEG", "01.01.2011");
+            put("DATEBEG", date);
         }});
         expected.add(new HashMap() {{
-            put("Kod", "1");
+            put("Kod", 1);
             put("Opis", "Бумажный полис ОМС");
-            put("DATEBEG", "01.01.2011");
+            put("DATEBEG", date);
         }});
         expected.add(new HashMap() {{
-            put("Kod", "2");
+            put("Kod", 2);
             put("Opis", "Электронный полис ОМС");
-            put("DATEBEG", "01.01.2011");
+            put("DATEBEG", date);
         }});
         expected.add(new HashMap() {{
-            put("Kod", "3");
+            put("Kod", 3);
             put("Opis", "Электронный полис ОМС в составе УЭК");
-            put("DATEBEG", "01.01.2011");
+            put("DATEBEG", date);
         }});
         RowsProcessor testRowsProcessor = getTestRowsProcessor(expected);
-        Result result = new XlsPerRowProcessor(testRowsProcessor).process(() -> XlsPerRowProcessorTest.class.getResourceAsStream("/R002.xlsx"));
+        Result result = new XlsPerRowProcessor(new StructureRowMapper(createTestStructure(), null), testRowsProcessor)
+                .process(() -> XlsPerRowProcessorTest.class.getResourceAsStream("/R002.xlsx"));
         Assert.assertEquals(4, result.getAllCount());
         Assert.assertEquals(4, result.getSuccessCount());
         Assert.assertNull(result.getErrors());
+    }
 
+    private Structure createTestStructure() {
+        Structure structure = new Structure();
+        structure.setAttributes(Arrays.asList(
+                Structure.Attribute.build("Kod", "Kod", FieldType.INTEGER, false, "Kod"),
+                Structure.Attribute.build("Opis", "Opis", FieldType.STRING, false, "Opis"),
+                Structure.Attribute.build("DATEBEG", "DATEBEG", FieldType.DATE, false, "DATEBEG")));
+        return structure;
     }
 
     private RowsProcessor getTestRowsProcessor(List<Map<String, Object>> expected) {
@@ -59,8 +71,8 @@ public class XlsPerRowProcessorTest {
                 Assert.assertTrue(row.getData().containsKey("Kod"));
                 Assert.assertTrue(row.getData().containsKey("Opis"));
                 Assert.assertTrue(row.getData().containsKey("DATEBEG"));
-                successCount ++;
-                allCount ++;
+                successCount++;
+                allCount++;
                 expected.remove(row.getData());
                 return new Result(1, 1, null);
             }

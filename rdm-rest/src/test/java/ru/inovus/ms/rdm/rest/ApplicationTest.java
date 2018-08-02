@@ -14,18 +14,23 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -40,10 +45,10 @@ import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
         classes = Application.class,
         webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
         properties = {
-        "cxf.jaxrs.client.classes-scan=true",
-        "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.service.api",
-        "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api"
-})
+                "cxf.jaxrs.client.classes-scan=true",
+                "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.service.api",
+                "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api"
+        })
 @DefinePort
 @EnableEmbeddedPg
 @Import(BackendConfiguration.class)
@@ -76,6 +81,9 @@ public class ApplicationTest {
     @Autowired
     @Qualifier("versionServiceJaxRsProxyClient")
     private VersionService versionService;
+
+    @Autowired
+    private FileStorage fileStorage;
 
     @BeforeClass
     public static void initialize() {
@@ -369,7 +377,9 @@ public class ApplicationTest {
     public void testDraftCreate() {
         Structure structure = createStructure();
         Draft expected = draftService.create(1, structure);
+
         Draft actual = draftService.getDraft(expected.getId());
+
         assertEquals(expected.getId(), actual.getId());
     }
 
@@ -389,8 +399,7 @@ public class ApplicationTest {
 
     @Test
     public void testVersionSearch() {
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
-        Page<RowValue> rowValues = versionService.search(-1, searchDataCriteria);
+        Page<RowValue> rowValues = versionService.search(-1, new SearchDataCriteria());
         List<FieldValue> fieldValues = rowValues.getContent().get(0).getFieldValues();
         StringFieldValue name = new StringFieldValue("name", "name");
         IntegerFieldValue count = new IntegerFieldValue("count", 2);
@@ -411,4 +420,102 @@ public class ApplicationTest {
         Page<RowValue> rowValuesOutVersion = versionService.search(-1, OffsetDateTime.now().minusDays(1), new SearchDataCriteria());
         assertEquals(new PageImpl<RowValue>(emptyList()), rowValuesOutVersion);
     }
+
+    /**
+     * Создаем новый черновик с ссылкой на опубликованную версию
+     * Обновляем его данные из файла
+     */
+    @Test
+    public void testDraftUpdateData() {
+        int referenceVersion = -1;
+        Structure structure = createStructure();
+        structure.setAttributes(Arrays.asList(
+                Structure.Attribute.build("string", "string", FieldType.STRING, false, "string"),
+                Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, false, "count"),
+                Structure.Attribute.build("float", "float", FieldType.FLOAT, false, "float"),
+                Structure.Attribute.build("date", "date", FieldType.DATE, false, "date"),
+                Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, false, "boolean")
+        ));
+        structure.setReferences(Collections.singletonList(new Structure.Reference("reference", referenceVersion, "count", Collections.singletonList("count"), null)));
+        Draft draft = draftService.create(1, structure);
+        FileModel fileModel = createFileModel("update_testUpload.xlsx", "testUpload.xlsx");
+
+        draftService.updateData(draft.getId(), fileModel);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        LocalDate date = LocalDate.parse("01.01.2011", formatter);
+        List<FieldValue> expected = new ArrayList() {{
+            add(new StringFieldValue("string", "Иван"));
+            add(new ReferenceFieldValue("reference", new Reference("2", "2")));
+            add(new FloatFieldValue("float", new Double("1.0")));
+            add(new DateFieldValue("date", date));
+            add(new BooleanFieldValue("boolean", Boolean.TRUE));
+        }};
+        Page<RowValue> search = draftService.search(draft.getId(), new SearchDataCriteria(null, null));
+        List actual = search.getContent().get(0).getFieldValues();
+        assertEquals(expected, actual);
+    }
+
+    /**
+     * Создаем новый черновик с ссылкой на опубликованную версию
+     * Обновляем его данные из файла, который содержит невалидную ссылку
+     */
+    @Test()
+    public void testDraftUpdateDataWithInvalidReference() {
+        int referenceVersion = -1;
+        Structure structure = createStructure();
+        structure.setAttributes(Arrays.asList(
+                Structure.Attribute.build("string", "string", FieldType.STRING, false, "string"),
+                Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, false, "count"),
+                Structure.Attribute.build("float", "float", FieldType.FLOAT, false, "float"),
+                Structure.Attribute.build("date", "date", FieldType.DATE, false, "date"),
+                Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, false, "boolean")
+        ));
+        structure.setReferences(Collections.singletonList(new Structure.Reference("reference", referenceVersion, "count", Collections.singletonList("count"), null)));
+        Draft draft = draftService.create(1, structure);
+        FileModel fileModel = createFileModel("update_testUploadInvalidReference.xlsx", "testUploadInvalidReference.xlsx");
+
+        try {
+            draftService.updateData(draft.getId(), fileModel);
+        } catch (Exception e) {
+            assertEquals("invalid.reference.err", e.getMessage());
+        }
+
+    }
+
+    @Test
+    public void testDraftCreateFromFile() {
+        List<FieldValue> expectedData = new ArrayList() {{
+            add(new StringFieldValue("string", "Иван"));
+            add(new StringFieldValue("reference", "2"));
+            add(new StringFieldValue("float", "1.0"));
+            add(new StringFieldValue("date", "01.01.2011"));
+            add(new StringFieldValue("boolean", "true"));
+        }};
+        FileModel fileModel = createFileModel("create_testUpload.xlsx", "testUpload.xlsx");
+        Draft expected = draftService.create(-3, fileModel);
+        Draft actual = draftService.getDraft(expected.getId());
+
+        assertEquals(expected, actual);
+
+        Page<RowValue> search = draftService.search(expected.getId(), new SearchDataCriteria());
+        List actualData = search.getContent().get(0).getFieldValues();
+
+        assertEquals(expectedData, actualData);
+
+    }
+
+    private FileModel createFileModel(String path, String name) {
+        fileStorage.setRoot("src/test/resources/rdm");
+        try (InputStream input = ApplicationTest.class.getResourceAsStream("/" + name)) {
+            FileModel fileModel = new FileModel(path, name);
+            String fullPath = fileStorage.saveContent(input, path);
+            fileModel.setPath(fullPath);
+            return fileModel;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }

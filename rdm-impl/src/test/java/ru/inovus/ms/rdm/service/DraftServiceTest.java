@@ -20,16 +20,17 @@ import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
-import ru.inovus.ms.rdm.model.CreateAttribute;
-import ru.inovus.ms.rdm.model.Draft;
-import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.model.UpdateAttribute;
+import ru.inovus.ms.rdm.file.FileStorage;
+import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 
 import static java.util.Collections.emptyList;
@@ -50,6 +51,7 @@ public class DraftServiceTest {
     private static final String TEST_STORAGE_CODE = "test_storage_code";
     private static final String TEST_DRAFT_CODE = "test_draft_code";
     private static final String TEST_DRAFT_CODE_NEW = "test_draft_code_new";
+    private static final int REFBOOK_ID = 2;
 
     @InjectMocks
     private DraftServiceImpl draftService;
@@ -71,6 +73,9 @@ public class DraftServiceTest {
 
     @Mock
     private RefBookRepository refBookRepository;
+
+    @Mock
+    private FileStorage fileStorage;
 
     private static final String UPD_SUFFIX = "_upd";
     private static final String PK_SUFFIX = "_pk";
@@ -130,7 +135,7 @@ public class DraftServiceTest {
         LocalDateTime publishDate = LocalDateTime.now();
 
         when(versionRepository.findOne(eq(draftVersion.getId()))).thenReturn(draftVersion);
-        when(versionRepository.findOne(any( BooleanExpression.class))).thenReturn(versionEntity);
+        when(versionRepository.findOne(any(BooleanExpression.class))).thenReturn(versionEntity);
         when(versionRepository.findAll(any(Predicate.class))).thenReturn(new PageImpl(singletonList(versionEntity)));
         try {
             draftService.publish(draftVersion.getId(), "1.0", publishDate, null);
@@ -195,10 +200,11 @@ public class DraftServiceTest {
     @Test
     public void testCreateWithExistingDraftSameStructure() throws Exception {
         RefBookVersionEntity testDraftVersion = createTestDraftVersion();
-        when(versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, 2)).thenReturn(testDraftVersion);
+        when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(testDraftVersion);
         when(versionRepository.save(any(RefBookVersionEntity.class))).thenReturn(testDraftVersion);
-        Draft actual = draftService.create(2, testDraftVersion.getStructure());
         Draft expected = new Draft(1, TEST_DRAFT_CODE);
+        Draft actual = draftService.create(REFBOOK_ID, testDraftVersion.getStructure());
+
         verify(draftDataService).deleteAllRows(eq(TEST_DRAFT_CODE));
         assertEquals(expected, actual);
     }
@@ -206,37 +212,93 @@ public class DraftServiceTest {
     @Test
     public void testCreateWithExistingDraftDifferentStructure() throws Exception {
         RefBookVersionEntity testDraftVersion = createTestDraftVersion();
-        when(versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, 2)).thenReturn(testDraftVersion);
+        when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(testDraftVersion);
         when(versionRepository.save(eq(testDraftVersion))).thenReturn(testDraftVersion);
         Structure structure = new Structure();
         structure.setAttributes(singletonList(Structure.Attribute.build("name", "name", FieldType.STRING, true, "description")));
-        Draft draftActual = draftService.create(2, structure);
+        Draft draftActual = draftService.create(REFBOOK_ID, structure);
+
         assertEquals(testDraftVersion.getId(), draftActual.getId());
         assertNotEquals(TEST_DRAFT_CODE, draftActual.getStorageCode());
     }
 
     @Test
     public void testCreateWithoutDraftWithPublishedVersion() throws Exception {
-        when(versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, 2)).thenReturn(null);
+        when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(null);
+        RefBookVersionEntity lastRefBookVersion = createTestPublishedVersion();
+        Page<RefBookVersionEntity> lastRefBookVersionPage = new PageImpl<>(Collections.singletonList(lastRefBookVersion));
+        when(versionRepository
+                .findAll(eq(isPublished().and(isVersionOfRefBook(REFBOOK_ID)))
+                        , eq(new PageRequest(1, 1, new Sort(Sort.Direction.DESC, "fromDate"))))).thenReturn(lastRefBookVersionPage);
         RefBookEntity refBook = new RefBookEntity();
-        when(refBookRepository.findOne(anyInt())).thenReturn(refBook);
+        when(refBookRepository.findOne(REFBOOK_ID)).thenReturn(refBook);
         RefBookVersionEntity expectedRefBookVersion = createTestDraftVersion();
         expectedRefBookVersion.setId(null);
         expectedRefBookVersion.setStorageCode(TEST_DRAFT_CODE_NEW);
         expectedRefBookVersion.setRefBook(refBook);
         when(versionRepository.save(eq(expectedRefBookVersion))).thenReturn(expectedRefBookVersion);
+
+        draftService.create(REFBOOK_ID, new Structure());
+
+        verify(versionRepository).save(eq(expectedRefBookVersion));
+    }
+
+    @Test
+    public void testCreateDraftFromFileWithDraft() {
+        RefBookVersionEntity testDraftVersion = createTestDraftVersion();
+        when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(testDraftVersion);
+        RefBookEntity refBook = new RefBookEntity();
+        when(refBookRepository.findOne(REFBOOK_ID)).thenReturn(refBook);
+        RefBookVersionEntity expectedRefBookVersion = createTestDraftVersion();
+        expectedRefBookVersion.setId(null);
+        expectedRefBookVersion.setStorageCode(TEST_DRAFT_CODE_NEW);
+        expectedRefBookVersion.setRefBook(refBook);
+        Structure structure = new Structure();
+        setTestStructure(structure);
+        expectedRefBookVersion.setStructure(structure);
+
+        draftService.create(REFBOOK_ID, createTestFileModel());
+
+        verify(dropDataService).drop(eq(Collections.singleton(TEST_DRAFT_CODE)));
+        verify(versionRepository).delete(eq(testDraftVersion.getId()));
+        verify(versionRepository).save(eq(expectedRefBookVersion));
+    }
+
+    private void setTestStructure(Structure structure) {
+        structure.setAttributes(Arrays.asList(
+                Structure.Attribute.build("Kod", "Kod", FieldType.STRING, false, "Kod"),
+                Structure.Attribute.build("Opis", "Opis", FieldType.STRING, false, "Opis"),
+                Structure.Attribute.build("DATEBEG", "DATEBEG", FieldType.STRING, false, "DATEBEG")
+        ));
+    }
+
+    @Test
+    public void testCreateDraftFromFileWithPublishedVersion() {
         RefBookVersionEntity lastRefBookVersion = createTestPublishedVersion();
         Page<RefBookVersionEntity> lastRefBookVersionPage = new PageImpl<>(singletonList(lastRefBookVersion));
         when(versionRepository
-                .findAll(isPublished().and(isVersionOfRefBook(2))
-                        , new PageRequest(1, 1, new Sort(Sort.Direction.DESC, "fromDate")))).thenReturn(lastRefBookVersionPage);
-        draftService.create(2, new Structure());
+                .findAll(eq(isPublished().and(isVersionOfRefBook(REFBOOK_ID)))
+                        , eq(new PageRequest(1, 1, new Sort(Sort.Direction.DESC, "fromDate"))))).thenReturn(lastRefBookVersionPage);
+        RefBookEntity refBook = new RefBookEntity();
+        when(refBookRepository.findOne(REFBOOK_ID)).thenReturn(refBook);
+        RefBookVersionEntity expectedRefBookVersion = createTestDraftVersion();
+        expectedRefBookVersion.setId(null);
+        expectedRefBookVersion.setStorageCode(TEST_DRAFT_CODE_NEW);
+        expectedRefBookVersion.setRefBook(refBook);
+        Structure structure = new Structure();
+        setTestStructure(structure);
+        expectedRefBookVersion.setStructure(structure);
+        when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(null).thenReturn(expectedRefBookVersion);
+
+        draftService.create(REFBOOK_ID, createTestFileModel());
+
         verify(versionRepository).save(eq(expectedRefBookVersion));
     }
 
     @Test
     public void testRemoveDraft() {
         draftService.remove(1);
+
         verify(versionRepository).delete(eq(1));
     }
 
@@ -341,6 +403,17 @@ public class DraftServiceTest {
         return testDraftVersion;
     }
 
+    private FileModel createTestFileModel() {
+        InputStream input = DraftServiceTest.class.getResourceAsStream("/R002.xlsx");
+        String path = "R002";
+        FileModel fileModel = new FileModel(path, "R002.xlsx");
+        when(fileStorage.saveContent(eq(input), eq(path))).thenReturn(fileModel.generateFullPath());
+        when(fileStorage.getContent(eq(fileModel.generateFullPath()))).thenReturn(input);
+        String fullPath = fileStorage.saveContent(input, fileModel.getPath());
+        fileModel.setPath(fullPath);
+        return fileModel;
+    }
+
     private RefBookVersionEntity createTestPublishedVersion() {
         RefBookVersionEntity testDraftVersion = new RefBookVersionEntity();
         testDraftVersion.setId(3);
@@ -356,7 +429,7 @@ public class DraftServiceTest {
 
     private RefBookEntity createTestRefBook() {
         RefBookEntity testRefBook = new RefBookEntity();
-        testRefBook.setId(2);
+        testRefBook.setId(REFBOOK_ID);
         testRefBook.setCode("test_ref_book");
         return testRefBook;
     }

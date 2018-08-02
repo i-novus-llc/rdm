@@ -24,19 +24,36 @@ public interface DraftService {
     @Path("/create/{refBookId}")
     Draft create(@ApiParam("Идентификатор справочника") @PathParam("refBookId") Integer refBookId, Structure structure);
 
+    @POST
+    @ApiOperation("Создание нового черновика из файла")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Черновик создан"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    @Path("/createByFile/{refBookId}")
+    Draft create(@ApiParam("Идентификатор справочника") @PathParam("refBookId")Integer refBookId, FileModel fileModel);
+
     void updateMetadata(Integer draftId, MetadataDiff metadataDiff);
 
     void updateData(Integer draftId, DataDiff dataDiff);
 
-    void updateData(Integer draftId, FileData file);
+    @POST
+    @ApiOperation("Обновления черновика из файла")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Черновик обновлен"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    @Path("/update/{draftId}")
+    void updateData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId, FileModel fileModel);
 
     @GET
+    @Path("/{draftId}/data")
     @ApiOperation("Получения записей черновика, с фильтрацией")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет черновика")
     })
-    Page<RowValue> search(Integer draftId, SearchDataCriteria criteria);
+    Page<RowValue> search(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId, @BeanParam SearchDataCriteria criteria);
 
     @POST
     @Path("{draftId}/publish")

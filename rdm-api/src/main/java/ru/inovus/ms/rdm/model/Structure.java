@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.model;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
@@ -16,7 +15,6 @@ public class Structure implements Serializable {
     private List<Reference> references;
 
     public Structure() {
-        this(new ArrayList<>(), new ArrayList<>());
     }
 
     public Structure(List<Attribute> attributes, List<Reference> references) {
@@ -28,11 +26,11 @@ public class Structure implements Serializable {
         this(other.getAttributes(), other.getReferences());
     }
 
-    public Reference getReference(String attributeName) {
+    public Reference getReference(String attributeCode) {
         if (isEmpty(references)) {
             return null;
         }
-        return references.stream().filter(reference -> reference.getAttribute().equals(attributeName)).findAny()
+        return references.stream().filter(reference -> reference.getAttribute().equals(attributeCode)).findAny()
                 .orElse(null);
     }
 
