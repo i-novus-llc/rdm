@@ -29,10 +29,11 @@ import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-import static cz.atria.common.lang.Util.isEmpty;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
 import static ru.inovus.ms.rdm.util.ConverterUtil.attributeToField;
 import static ru.inovus.ms.rdm.util.ConverterUtil.structureToFields;
@@ -51,6 +52,8 @@ public class DraftServiceImpl implements DraftService {
     private DropDataService dropDataService;
 
     private RefBookRepository refBookRepository;
+
+    private static final String ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE = "Невозможно обновить атрибут";
 
     @Autowired
     public DraftServiceImpl(DraftDataService draftDataService, RefBookVersionRepository versionRepository, FieldFactory fieldFactory,
@@ -271,25 +274,86 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void updateAttribute(Integer versionId, Structure.Attribute attribute, Integer referenceVersion,
-                                String referenceAttribute,
-                                List<String> referenceDisplayAttributes, List<String> referenceSortingAttributes) {
-        RefBookVersionEntity draftEntity = versionRepository.findOne(versionId);
-        draftDataService.updateField(draftEntity.getStorageCode(), attributeToField(attribute, fieldFactory));
-
+    public void updateAttribute(UpdateAttribute updateAttribute) {
+        RefBookVersionEntity draftEntity = versionRepository.findOne(updateAttribute.getVersionId());
         Structure structure = draftEntity.getStructure();
-        if (attribute.getIsPrimary())
+        Structure.Attribute attribute = structure.getAttribute(updateAttribute.getCode());
+        validateUpdateAttribute(updateAttribute, attribute);
+
+        //clear previous primary keys
+        if (updateAttribute.getIsPrimary() != null
+                && updateAttribute.getIsPrimary().isPresent()
+                && updateAttribute.getIsPrimary().get())
             structure.clearPrimary();
 
-        if (FieldType.REFERENCE.equals(attribute.getType())) {
-            Integer updatableReferenceIndex = structure.getReferences().indexOf(structure.getReference(attribute.getCode()));
-            Structure.Reference reference = buildReference(referenceVersion, attribute.getCode(),
-                    referenceAttribute, referenceDisplayAttributes, referenceSortingAttributes);
-            structure.getReferences().set(updatableReferenceIndex, reference);
-        }
-        Integer updatableAttributeIndex = structure.getAttributes().indexOf(structure.getAttribute(attribute.getCode()));
-        structure.getAttributes().set(updatableAttributeIndex, attribute);
+        setValueIfPresent(updateAttribute::getName, attribute::setName);
+        setValueIfPresent(updateAttribute::getDescription, attribute::setDescription);
+        setValueIfPresent(updateAttribute::getIsRequired, attribute::setIsRequired);
+        setValueIfPresent(updateAttribute::getIsPrimary, attribute::setPrimary);
 
+        draftDataService.updateField(draftEntity.getStorageCode(), attributeToField(attribute, fieldFactory));
+
+        if (FieldType.REFERENCE.equals(updateAttribute.getType())) {
+            Structure.Reference reference;
+            if (FieldType.REFERENCE.equals(attribute.getType())) {
+                reference = structure.getReference(updateAttribute.getCode());
+            } else {
+                reference = new Structure.Reference();
+            }
+            Integer updatableReferenceIndex = structure.getReferences().indexOf(reference);
+            updateReference(updateAttribute, reference);
+            if (updatableReferenceIndex >= 0)
+                structure.getReferences().set(updatableReferenceIndex, reference);
+            else
+                structure.getReferences().add(reference);
+        } else if (FieldType.REFERENCE.equals(attribute.getType())) {
+            structure.getReferences().remove(structure.getReference(updateAttribute.getCode()));
+        }
+        attribute.setType(updateAttribute.getType());
+    }
+
+    private void updateReference(UpdateAttribute updateAttribute, Structure.Reference updatableReference) {
+        setValueIfPresent(updateAttribute::getAttribute, updatableReference::setAttribute);
+        setValueIfPresent(updateAttribute::getReferenceVersion, updatableReference::setReferenceVersion);
+        setValueIfPresent(updateAttribute::getReferenceAttribute, updatableReference::setReferenceAttribute);
+        setValueIfPresent(updateAttribute::getDisplayAttributes, updatableReference::setDisplayAttributes);
+        setValueIfPresent(updateAttribute::getSortingAttributes, updatableReference::setSortingAttributes);
+    }
+
+    private <T> void setValueIfPresent(Supplier<UpdateValue<T>> updAttrValueGetter, Consumer<T> attrValueSetter) {
+        UpdateValue<T> value = updAttrValueGetter.get();
+        if (value != null) {
+            if (value.isPresent()) {
+                attrValueSetter.accept(value.get());
+            } else {
+                attrValueSetter.accept(null);
+            }
+        }
+    }
+
+    private void validateUpdateAttribute(UpdateAttribute updateAttribute, Structure.Attribute attribute) {
+        if (attribute == null
+                || updateAttribute.getVersionId() == null
+                || updateAttribute.getType() == null)
+            throw new IllegalArgumentException(ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE);
+        if (FieldType.REFERENCE.equals(updateAttribute.getType()) &&
+                (FieldType.REFERENCE.equals(attribute.getType()) && validateReferenceValues(updateAttribute, this::isUpdateValueNotNullAndEmpty)
+                || (!FieldType.REFERENCE.equals(attribute.getType()) && validateReferenceValues(updateAttribute, this::isUpdateValueNullOrEmpty))))
+            throw new IllegalArgumentException(ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE);
+    }
+
+    private boolean validateReferenceValues(UpdateAttribute updateAttribute, Function<UpdateValue, Boolean> valueValidateFunc) {
+        return valueValidateFunc.apply(updateAttribute.getReferenceVersion())
+                || valueValidateFunc.apply(updateAttribute.getAttribute())
+                || valueValidateFunc.apply(updateAttribute.getReferenceAttribute());
+    }
+
+    private boolean isUpdateValueNotNullAndEmpty(UpdateValue updateValue) {
+        return updateValue != null && !updateValue.isPresent();
+    }
+
+    private boolean isUpdateValueNullOrEmpty(UpdateValue updateValue) {
+        return updateValue == null || !updateValue.isPresent();
     }
 
     @Override
@@ -305,11 +369,4 @@ public class DraftServiceImpl implements DraftService {
         draftDataService.deleteField(draftEntity.getStorageCode(), attributeCode);
     }
 
-    private Structure.Reference buildReference(Integer referenceVersion, String attributeCode,
-                                               String referenceAttribute,
-                                               List<String> referenceDisplayAttributes, List<String> referenceSortingAttributes) {
-        List<String> displayAttributes = isEmpty(referenceDisplayAttributes) ?
-                singletonList(referenceAttribute): referenceDisplayAttributes;
-        return new Structure.Reference(attributeCode, referenceVersion, referenceAttribute, displayAttributes, referenceSortingAttributes);
-    }
 }

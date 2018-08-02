@@ -81,6 +81,7 @@ public class RefBookServiceImpl implements RefBookService {
         refBookVersionEntity.setStorageCode(storageCode);
         Structure structure = new Structure();
         structure.setAttributes(Collections.emptyList());
+        structure.setReferences(Collections.emptyList());
         refBookVersionEntity.setStructure(structure);
 
         return refBookModel(repository.save(refBookVersionEntity));
