@@ -50,8 +50,4 @@ public class RefBook extends RefBookVersion {
     public void setLastPublishedVersionFromDate(LocalDateTime lastPublishedVersionFromDate) {
         this.lastPublishedVersionFromDate = lastPublishedVersionFromDate;
     }
-
-    public String getCodeName() {
-        return getCode() + " " + getShortName();
-    }
 }

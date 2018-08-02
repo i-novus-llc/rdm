@@ -9,7 +9,6 @@ import ru.inovus.ms.rdm.util.JsonLocalDateTimeDeserializer;
 import ru.inovus.ms.rdm.util.JsonLocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
 @ApiModel("Версия справочника")
 public class RefBookVersion {
@@ -22,15 +21,6 @@ public class RefBookVersion {
 
     @ApiModelProperty("Код")
     private String code;
-
-    @ApiModelProperty("Краткое наименование")
-    private String shortName;
-
-    @ApiModelProperty("Полное наименование")
-    private String fullName;
-
-    @ApiModelProperty("Аннотация")
-    private String annotation;
 
     @ApiModelProperty("Комментарий к версии")
     private String comment;
@@ -64,7 +54,7 @@ public class RefBookVersion {
     private Boolean refBookHasPublishingVersion;
 
     @ApiModelProperty("Паспорт справочника")
-    private Map<String, String> passport;
+    private Passport passport;
 
 
     public RefBookVersion() {
@@ -74,9 +64,6 @@ public class RefBookVersion {
         this.id = refBookVersion.getId();
         this.refBookId = refBookVersion.getRefBookId();
         this.code = refBookVersion.getCode();
-        this.shortName = refBookVersion.getShortName();
-        this.fullName = refBookVersion.getFullName();
-        this.annotation = refBookVersion.getAnnotation();
         this.comment = refBookVersion.getComment();
         this.version = refBookVersion.getVersion();
         this.displayVersion = refBookVersion.getDisplayVersion();
@@ -86,6 +73,7 @@ public class RefBookVersion {
         this.displayStatus = refBookVersion.getDisplayStatus();
         this.archived = refBookVersion.getArchived();
         this.refBookHasPublishingVersion = refBookVersion.getRefBookHasPublishingVersion();
+        this.passport = refBookVersion.getPassport();
     }
 
     public Integer getId() {
@@ -110,30 +98,6 @@ public class RefBookVersion {
 
     public void setCode(String code) {
         this.code = code;
-    }
-
-    public String getShortName() {
-        return shortName;
-    }
-
-    public void setShortName(String shortName) {
-        this.shortName = shortName;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
-    public String getAnnotation() {
-        return annotation;
-    }
-
-    public void setAnnotation(String annotation) {
-        this.annotation = annotation;
     }
 
     public String getComment() {
@@ -208,11 +172,11 @@ public class RefBookVersion {
         this.refBookHasPublishingVersion = refBookHasPublishingVersion;
     }
 
-    public Map<String, String> getPassport() {
+    public Passport getPassport() {
         return passport;
     }
 
-    public void setPassport(Map<String, String> passport) {
+    public void setPassport(Passport passport) {
         this.passport = passport;
     }
 }

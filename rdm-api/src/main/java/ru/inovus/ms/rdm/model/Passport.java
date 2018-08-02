@@ -1,40 +1,40 @@
 package ru.inovus.ms.rdm.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import io.swagger.annotations.ApiModelProperty;
-import ru.inovus.ms.rdm.util.JsonLocalDateTimeSerializer;
+import java.util.Map;
+import java.util.Objects;
 
-import java.time.LocalDateTime;
+/**
+ * Created by znurgaliev on 02.08.2018.
+ */
+public class Passport {
 
-public class Passport extends RefBook {
-
-    @ApiModelProperty("Количество записей в версии")
-    private Integer recordsCount;
-
-    @ApiModelProperty("Дата публикации первой версии")
-    @JsonSerialize(using = JsonLocalDateTimeSerializer.class)
-    private LocalDateTime firstPublishedVersionFromDate;
+    Map<String, String> attributes;
 
     public Passport() {
     }
 
-    public Passport(RefBook refBook) {
-        super(refBook);
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Passport passport = (Passport) o;
+        return Objects.equals(attributes, passport.attributes);
     }
 
-    public Integer getRecordsCount() {
-        return recordsCount;
+    @Override
+    public int hashCode() {
+        return Objects.hash(attributes);
     }
 
-    public void setRecordsCount(Integer recordsCount) {
-        this.recordsCount = recordsCount;
+    public Passport(Map<String, String> pasport) {
+        this.attributes = pasport;
     }
 
-    public LocalDateTime getFirstPublishedVersionFromDate() {
-        return firstPublishedVersionFromDate;
+    public Map<String, String> getAttributes() {
+        return attributes;
     }
 
-    public void setFirstPublishedVersionFromDate(LocalDateTime firstPublishedVersionFromDate) {
-        this.firstPublishedVersionFromDate = firstPublishedVersionFromDate;
+    public void setAttributes(Map<String, String> attributes) {
+        this.attributes = attributes;
     }
 }
