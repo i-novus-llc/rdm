@@ -215,16 +215,6 @@ public class RefBookServiceImpl implements RefBookService {
         return nonNull(lastPublishedVersion) ? lastPublishedVersion.getFromDate() : null;
     }
 
-    private RefBookVersion getFirstPublishedVersion(Integer refBookId) {
-        VersionCriteria versionCriteria = new VersionCriteria();
-        versionCriteria.setRefBookId(refBookId);
-        versionCriteria.noPagination();
-        versionCriteria.setExcludeDraft(Boolean.TRUE);
-        Page<RefBookVersion> search = getVersions(versionCriteria);
-        if (search.getTotalElements() == 0) return null;
-        return search.getContent().get(search.getContent().size() - 1);
-    }
-
     private boolean isRefBookRemovable(Integer refBookId) {
         BooleanBuilder where = new BooleanBuilder();
         where.and(isVersionOfRefBook(refBookId));
