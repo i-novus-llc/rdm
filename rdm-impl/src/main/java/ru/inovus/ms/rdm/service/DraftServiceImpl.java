@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.service;
 
 import net.n2oapp.criteria.api.CollectionPage;
+import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,6 @@ import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
-import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.file.*;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
@@ -189,7 +189,7 @@ public class DraftServiceImpl implements DraftService {
                     new BufferedRowsPersister(draftDataService, storageCode, structure), rowMapper);
             persister.process(inputStreamSupplier);
         } else {
-            throw new UserException("invalid.reference.err", new RdmException(validationResult.getErrors().stream().collect(Collectors.joining("  "))));
+            throw new UserException(new Message("invalid.reference.err", validationResult.getErrors().stream().collect(Collectors.joining("  "))));
         }
 
     }

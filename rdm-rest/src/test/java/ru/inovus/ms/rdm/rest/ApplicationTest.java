@@ -519,6 +519,7 @@ public class ApplicationTest {
     }
 
     private FileModel createFileModel(String path, String name) {
+        fileStorage.setRoot("src/test/resources/rdm");
         try (InputStream input = ApplicationTest.class.getResourceAsStream("/" + name)) {
             FileModel fileModel = new FileModel(path, name);
             String fullPath = fileStorage.saveContent(input, path);
