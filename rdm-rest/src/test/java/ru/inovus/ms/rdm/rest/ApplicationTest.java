@@ -21,6 +21,7 @@ import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.service.api.DraftService;
+import ru.inovus.ms.rdm.service.api.FileStorageService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
@@ -84,6 +85,10 @@ public class ApplicationTest {
     @Autowired
     @Qualifier("versionServiceJaxRsProxyClient")
     private VersionService versionService;
+
+    @Autowired
+    @Qualifier("fileStorageServiceJaxRsProxyClient")
+    private FileStorageService fileStorageService;
 
     @Autowired
     private FileStorage fileStorage;
@@ -512,7 +517,7 @@ public class ApplicationTest {
         fileStorage.setRoot("src/test/resources/rdm");
         try (InputStream input = ApplicationTest.class.getResourceAsStream("/" + name)) {
             FileModel fileModel = new FileModel(path, name);
-            String fullPath = fileStorage.saveContent(input, path);
+            String fullPath = fileStorageService.save(input, path);
             fileModel.setPath(fullPath);
             return fileModel;
         } catch (IOException e) {
