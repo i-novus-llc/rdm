@@ -51,4 +51,13 @@
         </sql>
     </changeSet>
 
+    <changeSet id="201808021330_RDM-66_passport_attribute_name" author="znurgaliev" dbms="postgresql">
+        <preConditions onFail="CONTINUE">
+            <tableExists tableName="passport_attribute" schemaName="n2o_rdm_management"/>
+        </preConditions>
+        <sql>
+            ALTER TABLE n2o_rdm_management.passport_attribute ADD COLUMN "name" VARCHAR;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
