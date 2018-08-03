@@ -11,6 +11,9 @@ import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -18,6 +21,7 @@ import java.util.Objects;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.springframework.util.CollectionUtils.isEmpty;
+import static ru.inovus.ms.rdm.model.UpdateValue.of;
 
 @Controller
 public class StructureController implements CollectionPageService<AttributeCriteria, ReadAttribute> {
@@ -59,12 +63,7 @@ public class StructureController implements CollectionPageService<AttributeCrite
     }
 
     public void updateAttribute(Integer versionId, Attribute attribute) {
-        Structure.Attribute structureAttribute = buildAttribute(attribute);
-        draftService.updateAttribute(versionId, structureAttribute,
-                attribute.getReferenceVersion(),
-                attribute.getReferenceAttribute(),
-                getReferenceDisplayAttributes(attribute),
-                null);
+        draftService.updateAttribute(getUpdateAttribute(versionId, attribute));
     }
 
     private void enrich(ReadAttribute attribute, Structure.Reference reference) {
@@ -107,6 +106,30 @@ public class StructureController implements CollectionPageService<AttributeCrite
         return new Structure.Reference(request.getCode(),
                 request.getReferenceVersion(), request.getReferenceAttribute(),
                 getReferenceDisplayAttributes(request), emptyList());
+    }
+
+    private UpdateAttribute getUpdateAttribute(Integer versionId, Attribute attribute) {
+        UpdateAttribute updateAttribute = new UpdateAttribute();
+        updateAttribute.setLastActionDate(LocalDateTime.of(LocalDate.now(), LocalTime.now()));
+        updateAttribute.setVersionId(versionId);
+        updateAttribute.setCode(attribute.getCode());
+        if (attribute.getName() != null)
+            updateAttribute.setName(of(attribute.getName()));
+        updateAttribute.setType(attribute.getType());
+        if (attribute.getIsRequired() != null)
+            updateAttribute.setIsRequired(of(attribute.getIsRequired()));
+        if (attribute.getIsPrimary() != null)
+            updateAttribute.setIsPrimary(of(attribute.getIsPrimary()));
+        if (attribute.getDescription() != null)
+            updateAttribute.setDescription(of(attribute.getDescription()));
+        updateAttribute.setAttribute(of(attribute.getCode()));
+        if (attribute.getReferenceVersion() != null)
+            updateAttribute.setReferenceVersion(of(attribute.getReferenceVersion()));
+        if (attribute.getReferenceAttribute() != null)
+            updateAttribute.setReferenceAttribute(of(attribute.getReferenceAttribute()));
+        if (attribute.getReferenceDisplayAttribute() != null)
+            updateAttribute.setDisplayAttributes(of(getReferenceDisplayAttributes(attribute)));
+        return updateAttribute;
     }
 
     private ReadAttribute model(Structure.Attribute structureAttribute, Structure.Reference reference) {

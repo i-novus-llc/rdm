@@ -8,6 +8,14 @@ public class CreateAttribute {
 
     private Structure.Reference reference;
 
+    public CreateAttribute() {}
+
+    public CreateAttribute(Integer versionId, Structure.Attribute attribute, Structure.Reference reference) {
+        this.versionId = versionId;
+        this.attribute = attribute;
+        this.reference = reference;
+    }
+
     public Integer getVersionId() {
         return versionId;
     }

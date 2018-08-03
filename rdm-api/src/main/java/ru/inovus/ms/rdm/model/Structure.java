@@ -5,6 +5,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import java.io.Serializable;
 import java.util.List;
 
+import static java.util.Collections.singletonList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 
 public class Structure implements Serializable {
@@ -76,9 +77,9 @@ public class Structure implements Serializable {
 
         private FieldType type;
 
-        private boolean isPrimary;
+        private Boolean isPrimary;
 
-        private boolean isRequired;
+        private Boolean isRequired;
 
         private String description;
 
@@ -128,24 +129,20 @@ public class Structure implements Serializable {
             this.type = type;
         }
 
-        public boolean getIsPrimary() {
+        public Boolean getIsPrimary() {
             return isPrimary;
         }
 
-        public void setPrimary(boolean primary) {
-            isPrimary = primary;
+        public void setPrimary(Boolean isPrimary) {
+            this.isPrimary = isPrimary != null ? isPrimary : false;
         }
 
-        public void setIsPrimary(boolean isPrimary) {
-            this.isPrimary = isPrimary;
-        }
-
-        public boolean getIsRequired() {
+        public Boolean getIsRequired() {
             return isRequired;
         }
 
-        public void setIsRequired(boolean isRequired) {
-            this.isRequired = isRequired;
+        public void setIsRequired(Boolean isRequired) {
+            this.isRequired = isRequired != null ? isRequired : false;
         }
 
         public String getDescription() {
@@ -243,7 +240,7 @@ public class Structure implements Serializable {
         }
 
         public List<String> getDisplayAttributes() {
-            return displayAttributes;
+            return displayAttributes != null ? displayAttributes : singletonList(referenceAttribute);
         }
 
         public void setDisplayAttributes(List<String> displayAttributes) {
@@ -251,7 +248,7 @@ public class Structure implements Serializable {
         }
 
         public List<String> getSortingAttributes() {
-            return sortingAttributes;
+            return sortingAttributes != null ? sortingAttributes : getDisplayAttributes();
         }
 
         public void setSortingAttributes(List<String> sortingAttributes) {
