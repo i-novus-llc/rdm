@@ -398,7 +398,7 @@ public class DraftServiceImpl implements DraftService {
         }
     }
 
-    @SuppressWarnings(value = "all")
+    @SuppressWarnings("all")
     private void validateUpdateAttribute(UpdateAttribute updateAttribute, Structure.Attribute attribute) {
         if (attribute == null
                 || updateAttribute.getVersionId() == null
