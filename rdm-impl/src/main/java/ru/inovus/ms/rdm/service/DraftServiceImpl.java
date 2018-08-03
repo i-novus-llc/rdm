@@ -18,6 +18,7 @@ import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
+import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.*;
@@ -150,9 +151,9 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draftVersion;
         draftVersion = new RefBookVersionEntity();
         draftVersion.setStatus(RefBookVersionStatus.DRAFT);
-        draftVersion.setFullName(original.getFullName());
-        draftVersion.setShortName(original.getShortName());
-        draftVersion.setAnnotation(original.getAnnotation());
+        draftVersion.setPassportValues(original.getPassportValues().stream()
+                .map(v -> new PassportValueEntity(v.getAttribute(), v.getValue(), draftVersion))
+                .collect(Collectors.toSet()));
         draftVersion.setStructure(structure);
         return draftVersion;
     }

@@ -6,6 +6,7 @@
 			<column name="code" type="varchar" decimal="0" jt="12" mandatory="y" >
 				<comment><![CDATA[Атрибут паспорта]]></comment>
 			</column>
+			<column name="name" type="varchar" decimal="0" jt="12" />
 			<index name="pk_passport_attribute_code" unique="PRIMARY_KEY" >
 				<column name="code" />
 			</index>
@@ -65,15 +66,6 @@
 			</column>
 			<column name="ref_book_id" type="integer" jt="4" mandatory="y" >
 				<comment><![CDATA[Код справочника]]></comment>
-			</column>
-			<column name="full_name" type="varchar" jt="12" mandatory="y" >
-				<comment><![CDATA[Полное наименование]]></comment>
-			</column>
-			<column name="short_name" type="varchar" jt="12" mandatory="y" >
-				<comment><![CDATA[Краткое наименование]]></comment>
-			</column>
-			<column name="annotation" type="varchar" jt="12" >
-				<comment><![CDATA[Аннотация]]></comment>
 			</column>
 			<column name="structure" type="jsonb" decimal="0" jt="1111" >
 				<comment><![CDATA[Страктура справочника: поля, ключи]]></comment>

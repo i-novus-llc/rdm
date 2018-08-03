@@ -28,7 +28,7 @@ public interface RefBookService {
             @ApiResponse(code = 200, message = "Справочник"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Passport getById(@PathParam("id") @ApiParam("Идентификатор версии") Integer versionId);
+    RefBook getById(@PathParam("id") @ApiParam("Идентификатор версии") Integer versionId);
 
     @POST
     @ApiOperation("Создание нового справочника")
