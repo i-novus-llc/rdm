@@ -8,7 +8,6 @@ import ru.inovus.ms.rdm.model.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Path("/draft")
 @Produces(MediaType.APPLICATION_JSON)
