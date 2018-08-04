@@ -34,13 +34,7 @@ public class ConverterUtil {
     }
 
     public static Field field(Structure.Attribute attribute) {
-        Field field = null;
-        if (attribute.getIsPrimary()) {
-            field = fieldFactory.createSearchField(attribute.getCode(), attribute.getType());
-        } else {
-            field = fieldFactory.createField(attribute.getCode(), attribute.getType());
-        }
-        return field;
+        return fieldFactory.createSearchField(attribute.getCode(), attribute.getType());
     }
 
     public static RowValue rowValue(Row row, Structure structure) {
