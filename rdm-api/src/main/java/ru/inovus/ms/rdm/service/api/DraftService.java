@@ -8,7 +8,6 @@ import ru.inovus.ms.rdm.model.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Path("/draft")
 @Produces(MediaType.APPLICATION_JSON)
@@ -95,15 +94,7 @@ public interface DraftService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void updateAttribute(
-            @ApiParam("Идентификатор версии") @QueryParam("versionId") Integer versionId,
-            @ApiParam("Модель данных атрибута") Structure.Attribute attribute,
-            @ApiParam("Версия ссылки") @QueryParam("referenceVersion") Integer referenceVersion,
-            @ApiParam("Атрибут ссылки") @QueryParam("referenceAttribute") String referenceAttribute,
-            @ApiParam("Отображаемый атрибут") @QueryParam("referenceDisplayAttribute")
-                    List<String> referenceDisplayAttributes,
-            @ApiParam("Сортируемый атрибут") @QueryParam("referenceSortingAttribute")
-                    List<String> referenceSortingAttributes);
+    void updateAttribute(@ApiParam("Модель атрибута справочника") UpdateAttribute updateAttribute);
 
     @DELETE
     @Path("/attribute")

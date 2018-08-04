@@ -34,15 +34,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.*;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
 
 @RunWith(SpringRunner.class)
@@ -63,8 +59,10 @@ public class ApplicationTest {
     private static final String REMOVABLE_REF_BOOK_CODE = "A082";
     private static final String SEARCH_CODE_STR = "78 ";
     private static final String SEARCH_BY_NAME_STR = "отличное от последней версии ";
-    private static final String SEARCH_BY_NAME_STR_ASSERT_CODE = "A080";
-    private static final String SEARCH_BY_CODE_AND_NAME = "A080 Справочник МО";
+    private static final String SEARCH_BY_NAME_STR_ASSERT_CODE = "Z001";
+    private static final String PASSPORT_ATTRIBUTE_FULL_NAME = "fullName";
+    private static final String PASSPORT_ATTRIBUTE_SHORT_NAME = "shortName";
+    private static final String PASSPORT_ATTRIBUTE_ANNOTATION = "annotation";
 
     private static RefBookCreateRequest refBookCreateRequest;
     private static RefBookUpdateRequest refBookUpdateRequest;
@@ -72,7 +70,6 @@ public class ApplicationTest {
     private static Structure.Reference createReference;
 
     private static Structure.Attribute updateAttribute;
-    private static Structure.Reference updateReference;
     private static Structure.Attribute deleteAttribute;
     private static List<RefBookVersion> versionList;
 
@@ -95,22 +92,24 @@ public class ApplicationTest {
     public static void initialize() {
         refBookCreateRequest = new RefBookCreateRequest();
         refBookCreateRequest.setCode("T1");
-        refBookCreateRequest.setFullName("Справочник специальностей");
-        refBookCreateRequest.setShortName("СПРВЧНК СПЦЛНСТЙ  ");
-        refBookCreateRequest.setAnnotation("Аннотация для справочника специальностей");
+        Map<String, String> createPassport = new HashMap<>();
+        createPassport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "Справочник специальностей");
+        createPassport.put(PASSPORT_ATTRIBUTE_ANNOTATION, "Аннотация для справочника специальностей");
+        refBookCreateRequest.setPassport(new Passport(createPassport));
 
         refBookUpdateRequest = new RefBookUpdateRequest();
         refBookUpdateRequest.setCode(refBookCreateRequest.getCode() + "_upd");
-        refBookUpdateRequest.setFullName(refBookCreateRequest.getFullName() + "_upd");
-        refBookUpdateRequest.setShortName(refBookCreateRequest.getShortName() + "_upd");
-        refBookUpdateRequest.setAnnotation(refBookCreateRequest.getAnnotation() + "_upd");
+        Map<String, String> updatePassport = new HashMap<>(createPassport);
+        updatePassport.put(PASSPORT_ATTRIBUTE_SHORT_NAME, "СПРВЧНК СПЦЛНСТЙ  ");
+        updatePassport.entrySet().forEach(e -> e.setValue(e.getValue() + "_upd"));
+        updatePassport.put(PASSPORT_ATTRIBUTE_ANNOTATION, null);
+        refBookUpdateRequest.setPassport(new Passport(updatePassport));
         refBookUpdateRequest.setComment("обновленное наполнение");
 
         createAttribute = Structure.Attribute.buildPrimary("name", "Наименование", FieldType.REFERENCE, "описание");
         createReference = new Structure.Reference(createAttribute.getCode(), 801, "code", emptyList(), emptyList());
         updateAttribute = Structure.Attribute.buildPrimary(createAttribute.getCode(),
                 createAttribute.getName() + "_upd", createAttribute.getType(), createAttribute.getDescription() + "_upd");
-        updateReference = new Structure.Reference(createAttribute.getCode(), 801, "code", singletonList("code"), singletonList("code"));
         deleteAttribute = Structure.Attribute.build("code", "Код", FieldType.STRING, false, "на удаление");
 
         RefBookVersion version0 = new RefBookVersion();
@@ -153,9 +152,7 @@ public class ApplicationTest {
         assertNotNull(refBook.getId());
         assertNotNull(refBook.getRefBookId());
         assertEquals(refBookCreateRequest.getCode(), refBook.getCode());
-        assertEquals(refBookCreateRequest.getFullName(), refBook.getFullName());
-        assertEquals(refBookCreateRequest.getShortName(), refBook.getShortName());
-        assertEquals(refBookCreateRequest.getAnnotation(), refBook.getAnnotation());
+        assertEquals(refBookCreateRequest.getPassport(), refBook.getPassport());
         assertEquals(RefBookVersionStatus.DRAFT, refBook.getStatus());
         assertEquals(RefBookStatus.DRAFT.getName(), refBook.getDisplayVersion());
         assertNull(refBook.getVersion());
@@ -163,57 +160,49 @@ public class ApplicationTest {
         assertTrue(refBook.getRemovable());
         assertFalse(refBook.getArchived());
         assertNull(refBook.getFromDate());
-        assertNotNull(draftService.getDraft(refBook.getId()).getStorageCode());
+        Draft draft = draftService.getDraft(refBook.getId());
+        assertNotNull(draft);
+        assertNotNull(draft.getStorageCode());
 
         // изменение метеданных справочника
         refBookUpdateRequest.setId(refBook.getId());
         RefBook updatedRefBook = refBookService.update(refBookUpdateRequest);
         refBook.setCode(refBookUpdateRequest.getCode());
-        refBook.setFullName(refBookUpdateRequest.getFullName());
-        refBook.setShortName(refBookUpdateRequest.getShortName());
-        refBook.setAnnotation(refBookUpdateRequest.getAnnotation());
+        Map<String, String> expectedAttributesAfterUpdate = new HashMap<>();
+        expectedAttributesAfterUpdate.putAll(refBookCreateRequest.getPassport().getAttributes());
+        expectedAttributesAfterUpdate.putAll(refBookUpdateRequest.getPassport().getAttributes());
+        expectedAttributesAfterUpdate.entrySet().removeIf(e -> e.getValue() == null);
+        refBook.setPassport(new Passport(expectedAttributesAfterUpdate));
         refBook.setComment(refBookUpdateRequest.getComment());
         refBook.setComment(refBookUpdateRequest.getComment());
         assertRefBooksEqual(refBook, updatedRefBook);
 
         // добавление атрибута
-        CreateAttribute attributeModel = new CreateAttribute();
-        attributeModel.setVersionId(refBook.getId());
-        attributeModel.setAttribute(createAttribute);
-        attributeModel.setReference(createReference);
-        draftService.createAttribute(attributeModel);
+        CreateAttribute createAttributeModel = new CreateAttribute(draft.getId(), createAttribute, createReference);
+        draftService.createAttribute(createAttributeModel);
 
         // получение структуры
-        Structure structure = versionService.getStructure(refBook.getId());
+        Structure structure = versionService.getStructure(draft.getId());
 
         // проверка добавленного атрибута
         assertEquals(1, structure.getAttributes().size());
-        assertEquals(createAttribute, structure.getAttributes().get(0));
+        assertEquals(createAttribute, structure.getAttribute(createAttribute.getCode()));
         assertEquals(createReference, structure.getReference(createAttribute.getCode()));
-        createReference.setDisplayAttributes(Collections.singletonList(createReference.getReferenceAttribute()));
-        createReference.setSortingAttributes(createReference.getDisplayAttributes());
 
         // изменение атрибута и проверка
-        draftService.updateAttribute(refBook.getId(), updateAttribute, createReference.getReferenceVersion(),
-                createReference.getReferenceAttribute(), createReference.getDisplayAttributes(), null);
-        structure = versionService.getStructure(refBook.getId());
-        assertEquals(updateAttribute, structure.getAttributes().get(0));
-        assertEquals(createReference, structure.getReference(updateAttribute.getCode()));
-
-        // изменение displayAttributes и sortingAttributes у атрибута и проверка
-        attributeModel.setReference(updateReference);
-        draftService.updateAttribute(refBook.getId(), updateAttribute, updateReference.getReferenceVersion(),
-                updateReference.getReferenceAttribute(), updateReference.getDisplayAttributes(), updateReference.getSortingAttributes());
-        structure = versionService.getStructure(refBook.getId());
-        assertEquals(updateReference, structure.getReference(updateAttribute.getCode()));
+        UpdateAttribute updateAttributeModel = new UpdateAttribute(draft.getId(), updateAttribute, createReference);
+        draftService.updateAttribute(updateAttributeModel);
+        structure = versionService.getStructure(draft.getId());
+        assertEquals(updateAttribute, structure.getAttribute(updateAttributeModel.getCode()));
+        assertEquals(createReference, structure.getReference(updateAttributeModel.getCode()));
 
         // удаление атрибута и проверка
-        attributeModel.setAttribute(deleteAttribute);
-        attributeModel.setReference(new Structure.Reference(null, null, null, null, null));
-        draftService.createAttribute(attributeModel);
+        createAttributeModel.setAttribute(deleteAttribute);
+        createAttributeModel.setReference(new Structure.Reference(null, null, null, null, null));
+        draftService.createAttribute(createAttributeModel);
 
-        draftService.deleteAttribute(refBook.getId(), deleteAttribute.getCode());
-        structure = versionService.getStructure(refBook.getId());
+        draftService.deleteAttribute(draft.getId(), deleteAttribute.getCode());
+        structure = versionService.getStructure(draft.getId());
         assertEquals(1, structure.getAttributes().size());
 
         // в архив
@@ -258,19 +247,18 @@ public class ApplicationTest {
         assertTrue(search.getTotalElements() > 0);
         search.getContent().forEach(r -> assertTrue(containsIgnoreCase(r.getCode(), codeCriteria.getCode().trim())));
 
-        // поиск по наименованию
+        // поиск по атрибуту паспорта
         RefBookCriteria nameCriteria = new RefBookCriteria();
-        nameCriteria.setName(SEARCH_BY_NAME_STR.toUpperCase());
-        search = refBookService.search(nameCriteria);
-        assertEquals(1, search.getTotalElements());
-        assertEquals(SEARCH_BY_NAME_STR_ASSERT_CODE, search.getContent().get(0).getCode());
+        Map<String, String> passportMap = new HashMap<>();
+        passportMap.put(PASSPORT_ATTRIBUTE_FULL_NAME, SEARCH_BY_NAME_STR);
+        nameCriteria.setPassport(new Passport(passportMap));
+        Passport passport = new Passport(passportMap);
+        RefBook refBook = refBookService.create(
+                new RefBookCreateRequest(SEARCH_BY_NAME_STR_ASSERT_CODE, passport));
 
-        // поиск по коду и наименованию
-        RefBookCriteria codeNameCriteria = new RefBookCriteria();
-        codeNameCriteria.setName(SEARCH_BY_CODE_AND_NAME.toUpperCase());
         search = refBookService.search(nameCriteria);
         assertEquals(1, search.getTotalElements());
-        assertEquals(SEARCH_BY_CODE_AND_NAME, search.getContent().get(0).getCodeName());
+        assertEquals(refBook.getPassport(), search.getContent().get(0).getPassport());
 
         // поиск по статусу 'Черновик'
         RefBookCriteria statusCriteria = new RefBookCriteria();
@@ -370,9 +358,7 @@ public class ApplicationTest {
         assertEquals(expected.getId(), actual.getId());
         assertEquals(expected.getRefBookId(), actual.getRefBookId());
         assertEquals(expected.getCode(), actual.getCode());
-        assertEquals(expected.getFullName(), actual.getFullName());
-        assertEquals(expected.getShortName(), actual.getShortName());
-        assertEquals(expected.getAnnotation(), actual.getAnnotation());
+        assertEquals(expected.getPassport(), actual.getPassport());
         assertEquals(expected.getStatus(), actual.getStatus());
         assertEquals(expected.getVersion(), actual.getVersion());
         assertEquals(expected.getDisplayVersion(), actual.getDisplayVersion());
