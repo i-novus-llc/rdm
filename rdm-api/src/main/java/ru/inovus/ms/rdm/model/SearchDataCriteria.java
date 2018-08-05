@@ -8,7 +8,7 @@ import javax.ws.rs.QueryParam;
 import java.util.List;
 
 @ApiModel("Критерии поиска данных справочника")
-public class SearchDataCriteria {
+public class SearchDataCriteria extends AbstractCriteria{
     @ApiModelProperty("Фильтр по отдельным полям")
     @QueryParam("fieldFilter")
     private List<FieldSearchCriteria> fieldFilter;

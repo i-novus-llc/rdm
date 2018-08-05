@@ -46,7 +46,7 @@ public class BufferedRowsPersisterTest {
 
     @Before
     public void setUp() {
-        bufferedRowsPersister = new BufferedRowsPersister(BUFFER_SIZE, draftDataService, TEST_STORAGE_CODE, createTestStructure(), fieldFactory);
+        bufferedRowsPersister = new BufferedRowsPersister(BUFFER_SIZE, draftDataService, TEST_STORAGE_CODE, createTestStructure());
         when(fieldFactory.createField(eq("name"), eq(FieldType.STRING))).thenReturn(new StringField("name"));
         when(fieldFactory.createField(eq("count"), eq(FieldType.INTEGER))).thenReturn(new IntegerField("count"));
         name = fieldFactory.createField("name", FieldType.STRING);
@@ -71,7 +71,7 @@ public class BufferedRowsPersisterTest {
     }
 
     private Row createTestRow(int number) {
-        return new Row(new HashMap() {{
+        return new Row(new LinkedHashMap() {{
             put("name", "name" + number);
             put("count", number);
         }});

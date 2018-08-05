@@ -5,6 +5,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import java.io.Serializable;
 import java.util.List;
 
+import static java.util.Collections.singletonList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 
 public class Structure implements Serializable {
@@ -25,11 +26,11 @@ public class Structure implements Serializable {
         this(other.getAttributes(), other.getReferences());
     }
 
-    public Reference getReference(String attributeName) {
+    public Reference getReference(String attributeCode) {
         if (isEmpty(references)) {
             return null;
         }
-        return references.stream().filter(reference -> reference.getAttribute().equals(attributeName)).findAny()
+        return references.stream().filter(reference -> reference.getAttribute().equals(attributeCode)).findAny()
                 .orElse(null);
     }
 
@@ -76,9 +77,9 @@ public class Structure implements Serializable {
 
         private FieldType type;
 
-        private boolean isPrimary;
+        private Boolean isPrimary;
 
-        private boolean isRequired;
+        private Boolean isRequired;
 
         private String description;
 
@@ -128,24 +129,20 @@ public class Structure implements Serializable {
             this.type = type;
         }
 
-        public boolean getIsPrimary() {
+        public Boolean getIsPrimary() {
             return isPrimary;
         }
 
-        public void setPrimary(boolean primary) {
-            isPrimary = primary;
+        public void setPrimary(Boolean isPrimary) {
+            this.isPrimary = isPrimary != null ? isPrimary : false;
         }
 
-        public void setIsPrimary(boolean isPrimary) {
-            this.isPrimary = isPrimary;
-        }
-
-        public boolean getIsRequired() {
+        public Boolean getIsRequired() {
             return isRequired;
         }
 
-        public void setIsRequired(boolean isRequired) {
-            this.isRequired = isRequired;
+        public void setIsRequired(Boolean isRequired) {
+            this.isRequired = isRequired != null ? isRequired : false;
         }
 
         public String getDescription() {
@@ -191,30 +188,32 @@ public class Structure implements Serializable {
         /**
          * Поле которое ссылается
          */
-        String attribute;
+        private String attribute;
 
         /**
          * Веррсия на которую ссылаемся
          */
-        Integer referenceVersion;
+        private Integer referenceVersion;
 
         /**
          * Поле на которое ссылаемся
          */
-        String referenceAttribute;
+        private String referenceAttribute;
 
-        transient List<String> displayAttributes;
+        private List<String> displayAttributes;
+
+        private List<String> sortingAttributes;
 
         public Reference() {
         }
 
-        public Reference(String attribute, Integer referenceVersion, String referenceAttribute, List<String> displayAttributes) {
+        public Reference(String attribute, Integer referenceVersion, String referenceAttribute, List<String> displayAttributes, List<String> sortingAttributes) {
             this.attribute = attribute;
             this.referenceVersion = referenceVersion;
             this.referenceAttribute = referenceAttribute;
             this.displayAttributes = displayAttributes;
+            this.sortingAttributes = sortingAttributes != null ? sortingAttributes : displayAttributes;
         }
-
 
         public String getAttribute() {
             return attribute;
@@ -240,13 +239,20 @@ public class Structure implements Serializable {
             this.referenceAttribute = referenceAttribute;
         }
 
-
         public List<String> getDisplayAttributes() {
-            return displayAttributes;
+            return displayAttributes != null ? displayAttributes : singletonList(referenceAttribute);
         }
 
         public void setDisplayAttributes(List<String> displayAttributes) {
             this.displayAttributes = displayAttributes;
+        }
+
+        public List<String> getSortingAttributes() {
+            return sortingAttributes != null ? sortingAttributes : getDisplayAttributes();
+        }
+
+        public void setSortingAttributes(List<String> sortingAttributes) {
+            this.sortingAttributes = sortingAttributes;
         }
 
         @Override
@@ -261,6 +267,8 @@ public class Structure implements Serializable {
                 return false;
             if (referenceAttribute != null ? !referenceAttribute.equals(reference.referenceAttribute) : reference.referenceAttribute != null)
                 return false;
+            if (sortingAttributes != null ? !sortingAttributes.equals(reference.sortingAttributes) : reference.sortingAttributes != null)
+                return false;
             return !(displayAttributes != null ? !displayAttributes.equals(reference.displayAttributes) : reference.displayAttributes != null);
 
         }
@@ -271,6 +279,7 @@ public class Structure implements Serializable {
             result = 31 * result + (referenceVersion != null ? referenceVersion.hashCode() : 0);
             result = 31 * result + (referenceAttribute != null ? referenceAttribute.hashCode() : 0);
             result = 31 * result + (displayAttributes != null ? displayAttributes.hashCode() : 0);
+            result = 31 * result + (sortingAttributes != null ? sortingAttributes.hashCode() : 0);
             return result;
         }
     }

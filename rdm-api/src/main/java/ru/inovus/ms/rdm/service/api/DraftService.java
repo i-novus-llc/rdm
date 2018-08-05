@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.service;
+package ru.inovus.ms.rdm.service.api;
 
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
@@ -8,7 +8,6 @@ import ru.inovus.ms.rdm.model.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Path("/draft")
 @Produces(MediaType.APPLICATION_JSON)
@@ -21,21 +20,39 @@ public interface DraftService {
             @ApiResponse(code = 200, message = "Черновик создан"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Draft create(Integer refBookId, Structure structure);
+    @Path("/create/{refBookId}")
+    Draft create(@ApiParam("Идентификатор справочника") @PathParam("refBookId") Integer refBookId, Structure structure);
+
+    @POST
+    @ApiOperation("Создание нового черновика из файла")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Черновик создан"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    @Path("/createByFile/{refBookId}")
+    Draft create(@ApiParam("Идентификатор справочника") @PathParam("refBookId")Integer refBookId, FileModel fileModel);
 
     void updateMetadata(Integer draftId, MetadataDiff metadataDiff);
 
     void updateData(Integer draftId, DataDiff dataDiff);
 
-    void updateData(Integer draftId, FileData file);
+    @POST
+    @ApiOperation("Обновления черновика из файла")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Черновик обновлен"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    @Path("/update/{draftId}")
+    void updateData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId, FileModel fileModel);
 
     @GET
+    @Path("/{draftId}/data")
     @ApiOperation("Получения записей черновика, с фильтрацией")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет черновика")
     })
-    Page<RowValue> search(Integer draftId, SearchDataCriteria criteria);
+    Page<RowValue> search(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId, @BeanParam SearchDataCriteria criteria);
 
     @POST
     @Path("{draftId}/publish")
@@ -45,11 +62,21 @@ public interface DraftService {
                  @ApiParam("Дата начала действия версии") @QueryParam("fromDate") LocalDateTime fromDate,
                  @ApiParam("Дата окончания действия версии") @QueryParam("toDate") LocalDateTime toDate);
 
-    void remove(Integer draftId);
+    @POST
+    @Path("{draftId}/remove")
+    @ApiOperation("Удаление черновика")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Черновик удален"),
+            @ApiResponse(code = 404, message = "Нет черновика")
+    })
+    void remove(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId);
 
     Structure getMetadata(Integer draftId);
 
-    Draft getDraft(Integer draftId);
+    @GET
+    @Path("/{draftId}")
+    @ApiOperation("Получение черновика по идентификатору")
+    Draft getDraft(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId);
 
     @POST
     @Path("/attribute")
@@ -58,13 +85,7 @@ public interface DraftService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void createAttribute(
-            @ApiParam("Идентификатор версии") @QueryParam("versionId") Integer versionId,
-            @ApiParam("Модель данных атрибута") Structure.Attribute attribute,
-            @ApiParam("Версия ссылки") @QueryParam("referenceVersion") Integer referenceVersion,
-            @ApiParam("Атрибут ссылки") @QueryParam("referenceAttribute") String referenceAttribute,
-            @ApiParam("Отображаемый атрибут") @QueryParam("referenceDisplayAttribute")
-            List<String> referenceDisplayAttributes);
+    void createAttribute(@ApiParam("Модель атрибута справочника") CreateAttribute createAttribute);
 
     @PUT
     @Path("/attribute")
@@ -73,13 +94,7 @@ public interface DraftService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void updateAttribute(
-            @ApiParam("Идентификатор версии") @QueryParam("versionId") Integer versionId,
-            @ApiParam("Модель данных атрибута") Structure.Attribute attribute,
-            @ApiParam("Версия ссылки") @QueryParam("referenceVersion") Integer referenceVersion,
-            @ApiParam("Атрибут ссылки") @QueryParam("referenceAttribute") String referenceAttribute,
-            @ApiParam("Отображаемый атрибут") @QueryParam("referenceDisplayAttribute")
-            List<String> referenceDisplayAttributes);
+    void updateAttribute(@ApiParam("Модель атрибута справочника") UpdateAttribute updateAttribute);
 
     @DELETE
     @Path("/attribute")

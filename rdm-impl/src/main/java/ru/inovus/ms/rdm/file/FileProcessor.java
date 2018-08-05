@@ -7,5 +7,4 @@ import java.util.function.Supplier;
 
 public interface FileProcessor {
     Result process(Supplier<InputStream> fileSource);
-
 }

@@ -104,6 +104,15 @@
             <artifactId>poi-ooxml</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>ru.i-novus.common</groupId>
+            <artifactId>fs-file-storage</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ru.i-novus.platform</groupId>
+            <artifactId>versioned-data-storage-api</artifactId>
+        </dependency>
+
     </dependencies>
 
 

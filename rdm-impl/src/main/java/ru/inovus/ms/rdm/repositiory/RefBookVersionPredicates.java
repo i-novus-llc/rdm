@@ -2,6 +2,8 @@ package ru.inovus.ms.rdm.repositiory;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
+import ru.inovus.ms.rdm.entity.QPassportValueEntity;
 import ru.inovus.ms.rdm.entity.QRefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 
@@ -63,13 +65,6 @@ public final class RefBookVersionPredicates {
         return QRefBookVersionEntity.refBookVersionEntity.refBook.code.containsIgnoreCase(code.trim());
     }
 
-    public static BooleanExpression isShortNameOrFullNameContains(String name) {
-        QRefBookVersionEntity qEntity = QRefBookVersionEntity.refBookVersionEntity;
-
-        return qEntity.refBook.versionList.any().fullName.containsIgnoreCase(name.trim())
-                .or(qEntity.refBook.versionList.any().shortName.containsIgnoreCase(name.trim()));
-    }
-
     public static BooleanExpression isVersionNumberContains(String version) {
         return QRefBookVersionEntity.refBookVersionEntity.version.containsIgnoreCase(version.trim());
     }
@@ -107,5 +102,12 @@ public final class RefBookVersionPredicates {
         }
 
 
+    }
+
+    public static BooleanExpression hasAttributeValue(String attribute, String value) {
+        return JPAExpressions.selectFrom(QPassportValueEntity.passportValueEntity).where(
+                QPassportValueEntity.passportValueEntity.attribute.code.eq(attribute)
+                        .and(QPassportValueEntity.passportValueEntity.value.containsIgnoreCase(value))
+                        .and(QPassportValueEntity.passportValueEntity.version.eq(QRefBookVersionEntity.refBookVersionEntity))).exists();
     }
 }

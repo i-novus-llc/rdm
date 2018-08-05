@@ -1,57 +1,68 @@
 package ru.inovus.ms.rdm.rest;
 
+import net.n2oapp.platform.test.autoconfigure.DefinePort;
+import net.n2oapp.platform.test.autoconfigure.EnableEmbeddedPg;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.service.DraftService;
-import ru.inovus.ms.rdm.service.RefBookService;
-import ru.inovus.ms.rdm.service.VersionService;
+import ru.inovus.ms.rdm.service.api.DraftService;
+import ru.inovus.ms.rdm.service.api.RefBookService;
+import ru.inovus.ms.rdm.service.api.VersionService;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.*;
 
+import static java.util.Collections.emptyList;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(properties = {
-        "spring.datasource.url=jdbc:postgresql://localhost:5444/rdm_test",
-        "spring.datasource.username=postgres",
-        "spring.datasource.password=postgres",
-        "cxf.jaxrs.client.classes-scan=true",
-        "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.service",
-        "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
-        "server.port=8899"
-})
-public class ApplicationTest extends TestableDbEnv {
+@SpringBootTest(
+        classes = Application.class,
+        webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
+        properties = {
+                "cxf.jaxrs.client.classes-scan=true",
+                "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.service.api",
+                "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api"
+        })
+@DefinePort
+@EnableEmbeddedPg
+@Import(BackendConfiguration.class)
+public class ApplicationTest {
 
     private static final int REMOVABLE_REF_BOOK_ID = 501;
     private static final String REMOVABLE_REF_BOOK_CODE = "A082";
     private static final String SEARCH_CODE_STR = "78 ";
     private static final String SEARCH_BY_NAME_STR = "отличное от последней версии ";
-    private static final String SEARCH_BY_NAME_STR_ASSERT_CODE = "A080";
-    private static final String SEARCH_BY_CODE_AND_NAME = "A080 Справочник МО";
+    private static final String SEARCH_BY_NAME_STR_ASSERT_CODE = "Z001";
+    private static final String PASSPORT_ATTRIBUTE_FULL_NAME = "fullName";
+    private static final String PASSPORT_ATTRIBUTE_SHORT_NAME = "shortName";
+    private static final String PASSPORT_ATTRIBUTE_ANNOTATION = "annotation";
 
     private static RefBookCreateRequest refBookCreateRequest;
     private static RefBookUpdateRequest refBookUpdateRequest;
@@ -63,31 +74,40 @@ public class ApplicationTest extends TestableDbEnv {
     private static List<RefBookVersion> versionList;
 
     @Autowired
+    @Qualifier("refBookServiceJaxRsProxyClient")
     private RefBookService refBookService;
 
     @Autowired
+    @Qualifier("draftServiceJaxRsProxyClient")
     private DraftService draftService;
 
     @Autowired
+    @Qualifier("versionServiceJaxRsProxyClient")
     private VersionService versionService;
+
+    @Autowired
+    private FileStorage fileStorage;
 
     @BeforeClass
     public static void initialize() {
         refBookCreateRequest = new RefBookCreateRequest();
         refBookCreateRequest.setCode("T1");
-        refBookCreateRequest.setFullName("Справочник специальностей");
-        refBookCreateRequest.setShortName("СПРВЧНК СПЦЛНСТЙ  ");
-        refBookCreateRequest.setAnnotation("Аннотация для справочника специальностей");
+        Map<String, String> createPassport = new HashMap<>();
+        createPassport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "Справочник специальностей");
+        createPassport.put(PASSPORT_ATTRIBUTE_ANNOTATION, "Аннотация для справочника специальностей");
+        refBookCreateRequest.setPassport(new Passport(createPassport));
 
         refBookUpdateRequest = new RefBookUpdateRequest();
         refBookUpdateRequest.setCode(refBookCreateRequest.getCode() + "_upd");
-        refBookUpdateRequest.setFullName(refBookCreateRequest.getFullName() + "_upd");
-        refBookUpdateRequest.setShortName(refBookCreateRequest.getShortName() + "_upd");
-        refBookUpdateRequest.setAnnotation(refBookCreateRequest.getAnnotation() + "_upd");
+        Map<String, String> updatePassport = new HashMap<>(createPassport);
+        updatePassport.put(PASSPORT_ATTRIBUTE_SHORT_NAME, "СПРВЧНК СПЦЛНСТЙ  ");
+        updatePassport.entrySet().forEach(e -> e.setValue(e.getValue() + "_upd"));
+        updatePassport.put(PASSPORT_ATTRIBUTE_ANNOTATION, null);
+        refBookUpdateRequest.setPassport(new Passport(updatePassport));
         refBookUpdateRequest.setComment("обновленное наполнение");
 
         createAttribute = Structure.Attribute.buildPrimary("name", "Наименование", FieldType.REFERENCE, "описание");
-        createReference = new Structure.Reference(createAttribute.getCode(), 801, "code", null);
+        createReference = new Structure.Reference(createAttribute.getCode(), 801, "code", emptyList(), emptyList());
         updateAttribute = Structure.Attribute.buildPrimary(createAttribute.getCode(),
                 createAttribute.getName() + "_upd", createAttribute.getType(), createAttribute.getDescription() + "_upd");
         deleteAttribute = Structure.Attribute.build("code", "Код", FieldType.STRING, false, "на удаление");
@@ -132,9 +152,7 @@ public class ApplicationTest extends TestableDbEnv {
         assertNotNull(refBook.getId());
         assertNotNull(refBook.getRefBookId());
         assertEquals(refBookCreateRequest.getCode(), refBook.getCode());
-        assertEquals(refBookCreateRequest.getFullName(), refBook.getFullName());
-        assertEquals(refBookCreateRequest.getShortName(), refBook.getShortName());
-        assertEquals(refBookCreateRequest.getAnnotation(), refBook.getAnnotation());
+        assertEquals(refBookCreateRequest.getPassport(), refBook.getPassport());
         assertEquals(RefBookVersionStatus.DRAFT, refBook.getStatus());
         assertEquals(RefBookStatus.DRAFT.getName(), refBook.getDisplayVersion());
         assertNull(refBook.getVersion());
@@ -142,44 +160,49 @@ public class ApplicationTest extends TestableDbEnv {
         assertTrue(refBook.getRemovable());
         assertFalse(refBook.getArchived());
         assertNull(refBook.getFromDate());
-        assertNotNull(draftService.getDraft(refBook.getId()).getStorageCode());
+        Draft draft = draftService.getDraft(refBook.getId());
+        assertNotNull(draft);
+        assertNotNull(draft.getStorageCode());
 
         // изменение метеданных справочника
         refBookUpdateRequest.setId(refBook.getId());
         RefBook updatedRefBook = refBookService.update(refBookUpdateRequest);
         refBook.setCode(refBookUpdateRequest.getCode());
-        refBook.setFullName(refBookUpdateRequest.getFullName());
-        refBook.setShortName(refBookUpdateRequest.getShortName());
-        refBook.setAnnotation(refBookUpdateRequest.getAnnotation());
+        Map<String, String> expectedAttributesAfterUpdate = new HashMap<>();
+        expectedAttributesAfterUpdate.putAll(refBookCreateRequest.getPassport().getAttributes());
+        expectedAttributesAfterUpdate.putAll(refBookUpdateRequest.getPassport().getAttributes());
+        expectedAttributesAfterUpdate.entrySet().removeIf(e -> e.getValue() == null);
+        refBook.setPassport(new Passport(expectedAttributesAfterUpdate));
         refBook.setComment(refBookUpdateRequest.getComment());
         refBook.setComment(refBookUpdateRequest.getComment());
         assertRefBooksEqual(refBook, updatedRefBook);
 
         // добавление атрибута
-        draftService.createAttribute(refBook.getId(), createAttribute,
-                createReference.getReferenceVersion(), createReference.getReferenceAttribute(), null);
+        CreateAttribute createAttributeModel = new CreateAttribute(draft.getId(), createAttribute, createReference);
+        draftService.createAttribute(createAttributeModel);
 
         // получение структуры
-        Structure structure = versionService.getStructure(refBook.getId());
+        Structure structure = versionService.getStructure(draft.getId());
 
         // проверка добавленного атрибута
         assertEquals(1, structure.getAttributes().size());
-        assertEquals(createAttribute, structure.getAttributes().get(0));
-        createReference.setDisplayAttributes(Collections.singletonList(createReference.getReferenceAttribute()));
+        assertEquals(createAttribute, structure.getAttribute(createAttribute.getCode()));
         assertEquals(createReference, structure.getReference(createAttribute.getCode()));
 
         // изменение атрибута и проверка
-        draftService.updateAttribute(refBook.getId(), updateAttribute, createReference.getReferenceVersion(),
-                createReference.getReferenceAttribute(), createReference.getDisplayAttributes());
-        structure = versionService.getStructure(refBook.getId());
-        assertEquals(updateAttribute, structure.getAttributes().get(0));
-        assertEquals(createReference, structure.getReference(updateAttribute.getCode()));
+        UpdateAttribute updateAttributeModel = new UpdateAttribute(draft.getId(), updateAttribute, createReference);
+        draftService.updateAttribute(updateAttributeModel);
+        structure = versionService.getStructure(draft.getId());
+        assertEquals(updateAttribute, structure.getAttribute(updateAttributeModel.getCode()));
+        assertEquals(createReference, structure.getReference(updateAttributeModel.getCode()));
 
-        // удадение атрибута и проверка
-        draftService.createAttribute(refBook.getId(), deleteAttribute, null, null, null);
+        // удаление атрибута и проверка
+        createAttributeModel.setAttribute(deleteAttribute);
+        createAttributeModel.setReference(new Structure.Reference(null, null, null, null, null));
+        draftService.createAttribute(createAttributeModel);
 
-        draftService.deleteAttribute(refBook.getId(), deleteAttribute.getCode());
-        structure = versionService.getStructure(refBook.getId());
+        draftService.deleteAttribute(draft.getId(), deleteAttribute.getCode());
+        structure = versionService.getStructure(draft.getId());
         assertEquals(1, structure.getAttributes().size());
 
         // в архив
@@ -224,19 +247,18 @@ public class ApplicationTest extends TestableDbEnv {
         assertTrue(search.getTotalElements() > 0);
         search.getContent().forEach(r -> assertTrue(containsIgnoreCase(r.getCode(), codeCriteria.getCode().trim())));
 
-        // поиск по наименованию
+        // поиск по атрибуту паспорта
         RefBookCriteria nameCriteria = new RefBookCriteria();
-        nameCriteria.setName(SEARCH_BY_NAME_STR.toUpperCase());
-        search = refBookService.search(nameCriteria);
-        assertEquals(1, search.getTotalElements());
-        assertEquals(SEARCH_BY_NAME_STR_ASSERT_CODE, search.getContent().get(0).getCode());
+        Map<String, String> passportMap = new HashMap<>();
+        passportMap.put(PASSPORT_ATTRIBUTE_FULL_NAME, SEARCH_BY_NAME_STR);
+        nameCriteria.setPassport(new Passport(passportMap));
+        Passport passport = new Passport(passportMap);
+        RefBook refBook = refBookService.create(
+                new RefBookCreateRequest(SEARCH_BY_NAME_STR_ASSERT_CODE, passport));
 
-        // поиск по коду и наименованию
-        RefBookCriteria codeNameCriteria = new RefBookCriteria();
-        codeNameCriteria.setName(SEARCH_BY_CODE_AND_NAME.toUpperCase());
         search = refBookService.search(nameCriteria);
         assertEquals(1, search.getTotalElements());
-        assertEquals(SEARCH_BY_CODE_AND_NAME, search.getContent().get(0).getCodeName());
+        assertEquals(refBook.getPassport(), search.getContent().get(0).getPassport());
 
         // поиск по статусу 'Черновик'
         RefBookCriteria statusCriteria = new RefBookCriteria();
@@ -336,9 +358,7 @@ public class ApplicationTest extends TestableDbEnv {
         assertEquals(expected.getId(), actual.getId());
         assertEquals(expected.getRefBookId(), actual.getRefBookId());
         assertEquals(expected.getCode(), actual.getCode());
-        assertEquals(expected.getFullName(), actual.getFullName());
-        assertEquals(expected.getShortName(), actual.getShortName());
-        assertEquals(expected.getAnnotation(), actual.getAnnotation());
+        assertEquals(expected.getPassport(), actual.getPassport());
         assertEquals(expected.getStatus(), actual.getStatus());
         assertEquals(expected.getVersion(), actual.getVersion());
         assertEquals(expected.getDisplayVersion(), actual.getDisplayVersion());
@@ -360,7 +380,9 @@ public class ApplicationTest extends TestableDbEnv {
     public void testDraftCreate() {
         Structure structure = createStructure();
         Draft expected = draftService.create(1, structure);
+
         Draft actual = draftService.getDraft(expected.getId());
+
         assertEquals(expected.getId(), actual.getId());
     }
 
@@ -380,25 +402,123 @@ public class ApplicationTest extends TestableDbEnv {
 
     @Test
     public void testVersionSearch() {
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
-        Page<RowValue> rowValues = versionService.search(-1, searchDataCriteria);
-        List fieldValues = rowValues.getContent().get(0).getFieldValues();
-        FieldValue name = new StringFieldValue("name", "name");
-        FieldValue count = new IntegerFieldValue("count", 2);
-        assertEquals(fieldValues.get(0), name);
-        assertEquals(fieldValues.get(1), count);
+        Page<RowValue> rowValues = versionService.search(-1, new SearchDataCriteria());
+        List<FieldValue> fieldValues = rowValues.getContent().get(0).getFieldValues();
+        StringFieldValue name = new StringFieldValue("name", "name");
+        IntegerFieldValue count = new IntegerFieldValue("count", 2);
+        assertEquals(name.getValue(), fieldValues.get(0).getValue());
+        assertEquals(count.getValue(), fieldValues.get(1).getValue());
     }
 
     @Test
     public void testPublishFirstDraft() throws Exception {
+        new StringFieldValue();
         draftService.publish(-2, "1.0", LocalDateTime.now(), null);
-        Page<RowValue> rowValuesInVersion = versionService.search(-1, OffsetDateTime.now(), null);
+        Page<RowValue> rowValuesInVersion = versionService.search(-1, OffsetDateTime.now(), new SearchDataCriteria());
         List fieldValues = rowValuesInVersion.getContent().get(0).getFieldValues();
         FieldValue name = new StringFieldValue("name", "name");
         FieldValue count = new IntegerFieldValue("count", 2);
         assertEquals(fieldValues.get(0), name);
         assertEquals(fieldValues.get(1), count);
-        Page<RowValue> rowValuesOutVersion = versionService.search(-1, OffsetDateTime.now().minusDays(1), null);
-        assertEquals(new PageImpl<RowValue>(Collections.emptyList()), rowValuesOutVersion);
+        Page<RowValue> rowValuesOutVersion = versionService.search(-1, OffsetDateTime.now().minusDays(1), new SearchDataCriteria());
+        assertEquals(new PageImpl<RowValue>(emptyList()), rowValuesOutVersion);
     }
+
+    /**
+     * Создаем новый черновик с ссылкой на опубликованную версию
+     * Обновляем его данные из файла
+     */
+    @Test
+    public void testDraftUpdateData() {
+        int referenceVersion = -1;
+        Structure structure = createStructure();
+        structure.setAttributes(Arrays.asList(
+                Structure.Attribute.build("string", "string", FieldType.STRING, false, "string"),
+                Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, false, "count"),
+                Structure.Attribute.build("float", "float", FieldType.FLOAT, false, "float"),
+                Structure.Attribute.build("date", "date", FieldType.DATE, false, "date"),
+                Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, false, "boolean")
+        ));
+        structure.setReferences(Collections.singletonList(new Structure.Reference("reference", referenceVersion, "count", Collections.singletonList("count"), null)));
+        Draft draft = draftService.create(1, structure);
+        FileModel fileModel = createFileModel("update_testUpload.xlsx", "testUpload.xlsx");
+
+        draftService.updateData(draft.getId(), fileModel);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        LocalDate date = LocalDate.parse("01.01.2011", formatter);
+        List<FieldValue> expected = new ArrayList() {{
+            add(new StringFieldValue("string", "Иван"));
+            add(new ReferenceFieldValue("reference", new Reference("2", "2")));
+            add(new FloatFieldValue("float", new Double("1.0")));
+            add(new DateFieldValue("date", date));
+            add(new BooleanFieldValue("boolean", Boolean.TRUE));
+        }};
+        Page<RowValue> search = draftService.search(draft.getId(), new SearchDataCriteria(null, null));
+        List actual = search.getContent().get(0).getFieldValues();
+        assertEquals(expected, actual);
+    }
+
+    /**
+     * Создаем новый черновик с ссылкой на опубликованную версию
+     * Обновляем его данные из файла, который содержит невалидную ссылку
+     */
+    @Test()
+    public void testDraftUpdateDataWithInvalidReference() {
+        int referenceVersion = -1;
+        Structure structure = createStructure();
+        structure.setAttributes(Arrays.asList(
+                Structure.Attribute.build("string", "string", FieldType.STRING, false, "string"),
+                Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, false, "count"),
+                Structure.Attribute.build("float", "float", FieldType.FLOAT, false, "float"),
+                Structure.Attribute.build("date", "date", FieldType.DATE, false, "date"),
+                Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, false, "boolean")
+        ));
+        structure.setReferences(Collections.singletonList(new Structure.Reference("reference", referenceVersion, "count", Collections.singletonList("count"), null)));
+        Draft draft = draftService.create(1, structure);
+        FileModel fileModel = createFileModel("update_testUploadInvalidReference.xlsx", "testUploadInvalidReference.xlsx");
+
+        try {
+            draftService.updateData(draft.getId(), fileModel);
+        } catch (Exception e) {
+            assertEquals("invalid.reference.err", e.getMessage());
+        }
+
+    }
+
+    @Test
+    public void testDraftCreateFromFile() {
+        List<FieldValue> expectedData = new ArrayList() {{
+            add(new StringFieldValue("string", "Иван"));
+            add(new StringFieldValue("reference", "2"));
+            add(new StringFieldValue("float", "1.0"));
+            add(new StringFieldValue("date", "01.01.2011"));
+            add(new StringFieldValue("boolean", "true"));
+        }};
+        FileModel fileModel = createFileModel("create_testUpload.xlsx", "testUpload.xlsx");
+        Draft expected = draftService.create(-3, fileModel);
+        Draft actual = draftService.getDraft(expected.getId());
+
+        assertEquals(expected, actual);
+
+        Page<RowValue> search = draftService.search(expected.getId(), new SearchDataCriteria());
+        List actualData = search.getContent().get(0).getFieldValues();
+
+        assertEquals(expectedData, actualData);
+
+    }
+
+    private FileModel createFileModel(String path, String name) {
+        fileStorage.setRoot("src/test/resources/rdm");
+        try (InputStream input = ApplicationTest.class.getResourceAsStream("/" + name)) {
+            FileModel fileModel = new FileModel(path, name);
+            String fullPath = fileStorage.saveContent(input, path);
+            fileModel.setPath(fullPath);
+            return fileModel;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }

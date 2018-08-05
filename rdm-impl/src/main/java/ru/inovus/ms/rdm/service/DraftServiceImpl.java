@@ -1,8 +1,11 @@
 package ru.inovus.ms.rdm.service;
 
 import net.n2oapp.criteria.api.CollectionPage;
+import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -14,28 +17,37 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
-import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
+import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.file.*;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
-import ru.inovus.ms.rdm.util.RowValuePage;
+import ru.inovus.ms.rdm.service.api.DraftService;
+import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.kirkazan.common.exception.CodifiedException;
 
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
-import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
-import static ru.inovus.ms.rdm.util.ConverterUtil.*;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
-import static java.util.Collections.singletonList;
-import static java.util.Collections.emptyList;
+import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
+import static ru.inovus.ms.rdm.util.ConverterUtil.field;
+import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
 
+@Primary
 @Service
 public class DraftServiceImpl implements DraftService {
 
@@ -43,7 +55,7 @@ public class DraftServiceImpl implements DraftService {
 
     private RefBookVersionRepository versionRepository;
 
-    private FieldFactory fieldFactory;
+    private VersionService versionService;
 
     private SearchDataService searchDataService;
 
@@ -51,15 +63,54 @@ public class DraftServiceImpl implements DraftService {
 
     private RefBookRepository refBookRepository;
 
+    private FileStorage fileStorage;
+
+    private static final String ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE = "Невозможно обновить атрибут";
+
     @Autowired
-    public DraftServiceImpl(DraftDataService draftDataService, RefBookVersionRepository versionRepository, FieldFactory fieldFactory,
-                            RefBookRepository refBookRepository, SearchDataService searchDataService, DropDataService dropDataService) {
+    public DraftServiceImpl(DraftDataService draftDataService, RefBookVersionRepository versionRepository, VersionService versionService,
+                            RefBookRepository refBookRepository, SearchDataService searchDataService, DropDataService dropDataService, FileStorage fileStorage) {
         this.draftDataService = draftDataService;
         this.versionRepository = versionRepository;
-        this.fieldFactory = fieldFactory;
+        this.versionService = versionService;
         this.searchDataService = searchDataService;
         this.dropDataService = dropDataService;
         this.refBookRepository = refBookRepository;
+        this.fileStorage = fileStorage;
+    }
+
+    @Override
+    @Transactional
+    public Draft create(Integer refBookId, FileModel fileModel) {
+        Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
+        BiConsumer<String, Structure> consumer = getSaveDraftConsumer(refBookId);
+        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
+        CreateDraftBufferedRowsPersister rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, consumer);
+        FileProcessor persister = ProcessorFactory.createProcessor(extension,
+                rowsProcessor, new PlainRowMapper());
+        persister.process(inputStreamSupplier);
+        RefBookVersionEntity createdDraft = getDraftByRefbook(refBookId);
+        return new Draft(createdDraft.getId(), createdDraft.getStorageCode());
+    }
+
+    private BiConsumer<String, Structure> getSaveDraftConsumer(Integer refBookId) {
+        return (storageCode, structure) -> {
+            RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
+            RefBookVersionEntity draftVersion = getDraftByRefbook(refBookId);
+            if (draftVersion == null && lastRefBookVersion == null) {
+                throw new CodifiedException("invalid refbook");
+            }
+            if (draftVersion != null) {
+                dropDataService.drop(Collections.singleton(draftVersion.getStorageCode()));
+                remove(draftVersion.getId());
+                draftVersion = newDraftVersion(structure, draftVersion);
+            } else {
+                draftVersion = newDraftVersion(structure, lastRefBookVersion);
+            }
+            draftVersion.setRefBook(refBookRepository.findOne(refBookId));
+            draftVersion.setStorageCode(storageCode);
+            versionRepository.save(draftVersion);
+        };
     }
 
 
@@ -71,7 +122,7 @@ public class DraftServiceImpl implements DraftService {
         if (draftVersion == null && lastRefBookVersion == null) {
             throw new CodifiedException("invalid refbook");
         }
-        List<Field> fields = structureToFields(structure, fieldFactory);
+        List<Field> fields = fields(structure);
         if (draftVersion == null) {
             draftVersion = newDraftVersion(structure, lastRefBookVersion);
             draftVersion.setRefBook(refBookRepository.findOne(refBookId));
@@ -84,17 +135,6 @@ public class DraftServiceImpl implements DraftService {
         return new Draft(savedDraftVersion.getId(), savedDraftVersion.getStorageCode());
     }
 
-    private RefBookVersionEntity newDraftVersion(Structure structure, RefBookVersionEntity lastRefBookVersion) {
-        RefBookVersionEntity draftVersion;
-        draftVersion = new RefBookVersionEntity();
-        draftVersion.setStatus(RefBookVersionStatus.DRAFT);
-        draftVersion.setFullName(lastRefBookVersion.getFullName());
-        draftVersion.setShortName(lastRefBookVersion.getShortName());
-        draftVersion.setAnnotation(lastRefBookVersion.getAnnotation());
-        draftVersion.setStructure(structure);
-        return draftVersion;
-    }
-
     private void updateDraft(Structure structure, RefBookVersionEntity draftVersion, List<Field> fields) {
         String draftCode = draftVersion.getStorageCode();
         if (!structure.equals(draftVersion.getStructure())) {
@@ -105,6 +145,17 @@ public class DraftServiceImpl implements DraftService {
             draftDataService.deleteAllRows(draftCode);
         }
         draftVersion.setStructure(structure);
+    }
+
+    private RefBookVersionEntity newDraftVersion(Structure structure, RefBookVersionEntity original) {
+        RefBookVersionEntity draftVersion;
+        draftVersion = new RefBookVersionEntity();
+        draftVersion.setStatus(RefBookVersionStatus.DRAFT);
+        draftVersion.setPassportValues(original.getPassportValues().stream()
+                .map(v -> new PassportValueEntity(v.getAttribute(), v.getValue(), draftVersion))
+                .collect(Collectors.toSet()));
+        draftVersion.setStructure(structure);
+        return draftVersion;
     }
 
     private RefBookVersionEntity getDraftByRefbook(Integer refBookId) {
@@ -123,15 +174,31 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
-    public void updateData(Integer draftId, FileData file) {
-        throw new UnsupportedOperationException();
+    public void updateData(Integer draftId, FileModel fileModel) {
+        RefBookVersionEntity draft = versionRepository.findOne(draftId);
+        String storageCode = draft.getStorageCode();
+        Structure structure = draft.getStructure();
+        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
+        StructureRowMapper rowMapper = new StructureRowMapper(structure, versionRepository);
+        FileProcessor validator = ProcessorFactory.createProcessor(extension,
+                new RowsValidatorImpl(versionService, structure), rowMapper);
+        Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
+        Result validationResult = validator.process(inputStreamSupplier);
+        if (isEmpty(validationResult.getErrors())) {
+            FileProcessor persister = ProcessorFactory.createProcessor(extension,
+                    new BufferedRowsPersister(draftDataService, storageCode, structure), rowMapper);
+            persister.process(inputStreamSupplier);
+        } else {
+            throw new UserException(new Message("invalid.reference.err", validationResult.getErrors().stream().collect(Collectors.joining("  "))));
+        }
+
     }
 
     @Override
     public Page<RowValue> search(Integer draftId, SearchDataCriteria criteria) {
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
         String storageCode = draft.getStorageCode();
-        List<Field> fields = structureToFields(draft.getStructure(), fieldFactory);
+        List<Field> fields = fields(draft.getStructure());
         DataCriteria dataCriteria = new DataCriteria(storageCode, null, null,
                 fields, criteria.getFieldFilter(), criteria.getCommonFilter());
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
@@ -238,21 +305,27 @@ public class DraftServiceImpl implements DraftService {
     @Override
     public Draft getDraft(Integer draftId) {
         RefBookVersionEntity versionEntity = versionRepository.findOne(draftId);
-        return versionEntity != null ? new Draft(versionEntity.getId(), versionEntity.getStorageCode()) : null;
+        if (versionEntity == null || !versionEntity.getStatus().equals(RefBookVersionStatus.DRAFT)) {
+            return null;
+        }
+        return new Draft(versionEntity.getId(), versionEntity.getStorageCode());
     }
 
     @Override
     @Transactional
-    public void createAttribute(Integer versionId, Structure.Attribute attribute, Integer referenceVersion,
-                                String referenceAttribute, List<String> referenceDisplayAttributes) {
-        RefBookVersionEntity draftEntity = versionRepository.findOne(versionId);
-        draftDataService.addField(draftEntity.getStorageCode(), attributeToField(attribute, fieldFactory));
+    public void createAttribute(CreateAttribute createAttribute) {
+
+        RefBookVersionEntity draftEntity = versionRepository.findOne(createAttribute.getVersionId());
+        Structure.Attribute attribute = createAttribute.getAttribute();
+        Structure.Reference reference = createAttribute.getReference();
+        draftDataService.addField(draftEntity.getStorageCode(), field(attribute));
 
         Structure structure = draftEntity.getStructure();
         if (structure == null) {
             structure = new Structure();
-            structure.setAttributes(emptyList());
         }
+        if (structure.getAttributes() == null)
+            structure.setAttributes(new ArrayList<>());
         if (attribute.getIsPrimary())
             structure.clearPrimary();
 
@@ -260,9 +333,7 @@ public class DraftServiceImpl implements DraftService {
 
         if (FieldType.REFERENCE.equals(attribute.getType())) {
             if (structure.getReferences() == null)
-                structure.setReferences(emptyList());
-            Structure.Reference reference = buildReference(referenceVersion, attribute.getCode(),
-                    referenceAttribute, referenceDisplayAttributes);
+                structure.setReferences(new ArrayList<>());
             structure.getReferences().add(reference);
         }
         draftEntity.setStructure(structure);
@@ -270,24 +341,87 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void updateAttribute(Integer versionId, Structure.Attribute attribute, Integer referenceVersion,
-                                String referenceAttribute, List<String> referenceDisplayAttributes) {
-        RefBookVersionEntity draftEntity = versionRepository.findOne(versionId);
-        draftDataService.updateField(draftEntity.getStorageCode(), attributeToField(attribute, fieldFactory));
-
+    public void updateAttribute(UpdateAttribute updateAttribute) {
+        RefBookVersionEntity draftEntity = versionRepository.findOne(updateAttribute.getVersionId());
         Structure structure = draftEntity.getStructure();
-        if (attribute.getIsPrimary())
+        Structure.Attribute attribute = structure.getAttribute(updateAttribute.getCode());
+        validateUpdateAttribute(updateAttribute, attribute);
+
+        //clear previous primary keys
+        if (updateAttribute.getIsPrimary() != null
+                && updateAttribute.getIsPrimary().isPresent()
+                && updateAttribute.getIsPrimary().get())
             structure.clearPrimary();
 
-        if (FieldType.REFERENCE.equals(attribute.getType())) {
-            Integer updatableReferenceIndex = structure.getReferences().indexOf(structure.getReference(attribute.getCode()));
-            Structure.Reference reference = buildReference(referenceVersion, attribute.getCode(),
-                    referenceAttribute, referenceDisplayAttributes);
-            structure.getReferences().set(updatableReferenceIndex, reference);
-        }
-        Integer updatableAttributeIndex = structure.getAttributes().indexOf(structure.getAttribute(attribute.getCode()));
-        structure.getAttributes().set(updatableAttributeIndex, attribute);
+        setValueIfPresent(updateAttribute::getName, attribute::setName);
+        setValueIfPresent(updateAttribute::getDescription, attribute::setDescription);
+        setValueIfPresent(updateAttribute::getIsRequired, attribute::setIsRequired);
+        setValueIfPresent(updateAttribute::getIsPrimary, attribute::setPrimary);
 
+        draftDataService.updateField(draftEntity.getStorageCode(), field(attribute));
+
+        if (FieldType.REFERENCE.equals(updateAttribute.getType())) {
+            Structure.Reference reference;
+            if (FieldType.REFERENCE.equals(attribute.getType())) {
+                reference = structure.getReference(updateAttribute.getCode());
+            } else {
+                reference = new Structure.Reference();
+            }
+            Integer updatableReferenceIndex = structure.getReferences().indexOf(reference);
+            updateReference(updateAttribute, reference);
+            if (updatableReferenceIndex >= 0)
+                structure.getReferences().set(updatableReferenceIndex, reference);
+            else
+                structure.getReferences().add(reference);
+        } else if (FieldType.REFERENCE.equals(attribute.getType())) {
+            structure.getReferences().remove(structure.getReference(updateAttribute.getCode()));
+        }
+        attribute.setType(updateAttribute.getType());
+    }
+
+    private void updateReference(UpdateAttribute updateAttribute, Structure.Reference updatableReference) {
+        setValueIfPresent(updateAttribute::getAttribute, updatableReference::setAttribute);
+        setValueIfPresent(updateAttribute::getReferenceVersion, updatableReference::setReferenceVersion);
+        setValueIfPresent(updateAttribute::getReferenceAttribute, updatableReference::setReferenceAttribute);
+        setValueIfPresent(updateAttribute::getDisplayAttributes, updatableReference::setDisplayAttributes);
+        setValueIfPresent(updateAttribute::getSortingAttributes, updatableReference::setSortingAttributes);
+    }
+
+    private <T> void setValueIfPresent(Supplier<UpdateValue<T>> updAttrValueGetter, Consumer<T> attrValueSetter) {
+        UpdateValue<T> value = updAttrValueGetter.get();
+        if (value != null) {
+            if (value.isPresent()) {
+                attrValueSetter.accept(value.get());
+            } else {
+                attrValueSetter.accept(null);
+            }
+        }
+    }
+
+    @SuppressWarnings("all")
+    private void validateUpdateAttribute(UpdateAttribute updateAttribute, Structure.Attribute attribute) {
+        if (attribute == null
+                || updateAttribute.getVersionId() == null
+                || updateAttribute.getType() == null)
+            throw new IllegalArgumentException(ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE);
+        if (FieldType.REFERENCE.equals(updateAttribute.getType()) &&
+                (FieldType.REFERENCE.equals(attribute.getType()) && validateReferenceValues(updateAttribute, this::isUpdateValueNotNullAndEmpty)
+                || (!FieldType.REFERENCE.equals(attribute.getType()) && validateReferenceValues(updateAttribute, this::isUpdateValueNullOrEmpty))))
+            throw new IllegalArgumentException(ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE);
+    }
+
+    private boolean validateReferenceValues(UpdateAttribute updateAttribute, Function<UpdateValue, Boolean> valueValidateFunc) {
+        return valueValidateFunc.apply(updateAttribute.getReferenceVersion())
+                || valueValidateFunc.apply(updateAttribute.getAttribute())
+                || valueValidateFunc.apply(updateAttribute.getReferenceAttribute());
+    }
+
+    private boolean isUpdateValueNotNullAndEmpty(UpdateValue updateValue) {
+        return updateValue != null && !updateValue.isPresent();
+    }
+
+    private boolean isUpdateValueNullOrEmpty(UpdateValue updateValue) {
+        return updateValue == null || !updateValue.isPresent();
     }
 
     @Override
@@ -303,10 +437,4 @@ public class DraftServiceImpl implements DraftService {
         draftDataService.deleteField(draftEntity.getStorageCode(), attributeCode);
     }
 
-    private Structure.Reference buildReference(Integer referenceVersion, String attributeCode,
-                                               String referenceAttribute, List<String> referenceDisplayAttributes) {
-        List<String> displayAttributes = isEmpty(referenceDisplayAttributes) ?
-                singletonList(referenceAttribute): referenceDisplayAttributes;
-        return new Structure.Reference(attributeCode, referenceVersion, referenceAttribute, displayAttributes);
-    }
 }
