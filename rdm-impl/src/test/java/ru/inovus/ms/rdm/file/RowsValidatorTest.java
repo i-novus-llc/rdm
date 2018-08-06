@@ -54,6 +54,7 @@ public class RowsValidatorTest {
         when(fieldFactory.createField(eq(REFERENCE_ATTRIBUTE), eq(FieldType.STRING))).thenReturn(new StringField(REFERENCE_ATTRIBUTE));
         when(versionService.getStructure(eq(REFERENCE_VERSION))).thenReturn(createTestStructure());
         StringField fieldFilter = new StringField(REFERENCE_ATTRIBUTE);
+        fieldFilter.setSearchEnabled(true);
         FieldSearchCriteria searchCriteria = new FieldSearchCriteria(fieldFilter, SearchTypeEnum.EXACT, Collections.singletonList(ATTRIBUTE_VALUE));
         searchDataCriteria = new SearchDataCriteria(Collections.singletonList(searchCriteria), null);
         when(versionService.search(eq(REFERENCE_VERSION), eq(searchDataCriteria)))
