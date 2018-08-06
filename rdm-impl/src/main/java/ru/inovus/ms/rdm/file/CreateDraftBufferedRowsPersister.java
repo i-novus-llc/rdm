@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.file;
 
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.util.ConverterUtil;
@@ -16,19 +17,23 @@ public class CreateDraftBufferedRowsPersister implements RowsProcessor {
 
     private DraftDataService draftDataService;
 
+    private FieldFactory fieldFactory;
+
     private boolean isFirstRowAppended;
 
     private int size = 100;
 
     private BiConsumer consumer;
 
-    public CreateDraftBufferedRowsPersister(DraftDataService draftDataService,  BiConsumer<String, Structure> consumer) {
+    public CreateDraftBufferedRowsPersister(DraftDataService draftDataService, FieldFactory fieldFactory, BiConsumer<String, Structure> consumer) {
         this.draftDataService = draftDataService;
+        this.fieldFactory = fieldFactory;
         this.consumer = consumer;
     }
 
-    public CreateDraftBufferedRowsPersister(DraftDataService draftDataService, int size,  BiConsumer<String, Structure> consumer) {
+    public CreateDraftBufferedRowsPersister(DraftDataService draftDataService, int size, FieldFactory fieldFactory, BiConsumer<String, Structure> consumer) {
         this.draftDataService = draftDataService;
+        this.fieldFactory = fieldFactory;
         this.size = size;
         this.consumer = consumer;
     }
@@ -37,9 +42,9 @@ public class CreateDraftBufferedRowsPersister implements RowsProcessor {
     public Result append(Row row) {
         if (!isFirstRowAppended) {
             Structure structure = fields(row);
-            String storageCode = draftDataService.createDraft(ConverterUtil.fields(structure));
+            String storageCode = draftDataService.createDraft(ConverterUtil.fields(structure, fieldFactory));
             consumer.accept(storageCode, structure);
-            this.bufferedRowsPersister = new BufferedRowsPersister(size, draftDataService, storageCode, structure);
+            this.bufferedRowsPersister = new BufferedRowsPersister(size, draftDataService, fieldFactory, storageCode, structure);
             isFirstRowAppended = true;
         }
         return bufferedRowsPersister.append(row);

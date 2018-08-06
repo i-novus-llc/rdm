@@ -11,10 +11,10 @@ import org.springframework.data.domain.PageImpl;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
+import ru.inovus.ms.rdm.model.AttributeFilter;
 import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
@@ -50,13 +50,12 @@ public class RowsValidatorTest {
 
     @Before
     public void setUp() {
-        rowsValidator = new RowsValidatorImpl(versionService, createTestStructureWithReference());
+        rowsValidator = new RowsValidatorImpl(versionService, createTestStructureWithReference(), fieldFactory);
         when(fieldFactory.createField(eq(REFERENCE_ATTRIBUTE), eq(FieldType.STRING))).thenReturn(new StringField(REFERENCE_ATTRIBUTE));
         when(versionService.getStructure(eq(REFERENCE_VERSION))).thenReturn(createTestStructure());
-        StringField fieldFilter = new StringField(REFERENCE_ATTRIBUTE);
-        fieldFilter.setSearchEnabled(true);
-        FieldSearchCriteria searchCriteria = new FieldSearchCriteria(fieldFilter, SearchTypeEnum.EXACT, Collections.singletonList(ATTRIBUTE_VALUE));
-        searchDataCriteria = new SearchDataCriteria(Collections.singletonList(searchCriteria), null);
+        when(fieldFactory.createSearchField(eq("name"), eq(FieldType.STRING))).thenReturn(new StringField("name"));
+        AttributeFilter attributeFilter = new AttributeFilter(REFERENCE_ATTRIBUTE, ATTRIBUTE_VALUE, FieldType.STRING, SearchTypeEnum.EXACT);
+        searchDataCriteria = new SearchDataCriteria(Collections.singletonList(attributeFilter), null);
         when(versionService.search(eq(REFERENCE_VERSION), eq(searchDataCriteria)))
                 .thenReturn(new PageImpl<>(Collections.singletonList(new LongRowValue())));
     }

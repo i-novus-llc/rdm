@@ -3,10 +3,11 @@ package ru.inovus.ms.rdm.file;
 import org.springframework.data.domain.Page;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.inovus.ms.rdm.exception.RdmException;
+import ru.inovus.ms.rdm.model.AttributeFilter;
 import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
@@ -30,9 +31,12 @@ public class RowsValidatorImpl implements RowsValidator {
 
     private VersionService versionService;
 
-    public RowsValidatorImpl(VersionService versionService, Structure structure) {
+    private FieldFactory fieldFactory;
+
+    public RowsValidatorImpl(VersionService versionService, Structure structure, FieldFactory fieldFactory) {
         this.versionService = versionService;
         this.structure = structure;
+        this.fieldFactory = fieldFactory;
     }
 
     @Override
@@ -71,15 +75,16 @@ public class RowsValidatorImpl implements RowsValidator {
         Structure referenceStructure = versionService.getStructure(versionId);
         Field fieldFilter = createFieldFilter(referenceStructure, reference);
         Object referenceValueCasted = castReferenceValue(fieldFilter, referenceValue);
-        FieldSearchCriteria searchCriteria = new FieldSearchCriteria(fieldFilter, SearchTypeEnum.EXACT, Collections.singletonList(referenceValueCasted));
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(Collections.singletonList(searchCriteria), null);
+        AttributeFilter attributeFilter = new AttributeFilter(reference.getReferenceAttribute(), referenceValueCasted,
+                referenceStructure.getAttribute(reference.getReferenceAttribute()).getType(), SearchTypeEnum.EXACT);
+        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(Collections.singletonList(attributeFilter), null);
         Page<RowValue> pagedData = versionService.search(versionId, searchDataCriteria);
         return (pagedData != null && !isEmpty(pagedData.getContent()));
     }
 
     private Field createFieldFilter(Structure structure, Structure.Reference reference) {
         Structure.Attribute referenceAttribute = structure.getAttribute(reference.getReferenceAttribute());
-        return field(referenceAttribute);
+        return field(referenceAttribute, fieldFactory);
     }
 
     private Object castReferenceValue(Field field, String value) {

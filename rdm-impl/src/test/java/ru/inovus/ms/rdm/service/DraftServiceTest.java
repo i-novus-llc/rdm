@@ -17,6 +17,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
+import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 import ru.inovus.ms.rdm.entity.PassportAttributeEntity;
 import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookEntity;
@@ -31,11 +32,7 @@ import ru.inovus.ms.rdm.service.api.VersionService;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -261,6 +258,10 @@ public class DraftServiceTest {
         setTestStructure(structure);
         expectedRefBookVersion.setStructure(structure);
 
+        when(fieldFactory.createSearchField(eq("Kod"), eq(FieldType.STRING))).thenReturn(new StringField("Kod"));
+        when(fieldFactory.createSearchField(eq("Opis"), eq(FieldType.STRING))).thenReturn(new StringField("Opis"));
+        when(fieldFactory.createSearchField(eq("DATEBEG"), eq(FieldType.STRING))).thenReturn(new StringField("DATEBEG"));
+
         draftService.create(REFBOOK_ID, createTestFileModel());
 
         verify(dropDataService).drop(eq(Collections.singleton(TEST_DRAFT_CODE)));
@@ -293,6 +294,10 @@ public class DraftServiceTest {
         setTestStructure(structure);
         expectedRefBookVersion.setStructure(structure);
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(null).thenReturn(expectedRefBookVersion);
+
+        when(fieldFactory.createSearchField(eq("Kod"), eq(FieldType.STRING))).thenReturn(new StringField("Kod"));
+        when(fieldFactory.createSearchField(eq("Opis"), eq(FieldType.STRING))).thenReturn(new StringField("Opis"));
+        when(fieldFactory.createSearchField(eq("DATEBEG"), eq(FieldType.STRING))).thenReturn(new StringField("DATEBEG"));
 
         draftService.create(REFBOOK_ID, createTestFileModel());
 

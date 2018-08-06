@@ -1,9 +1,10 @@
-package ru.inovus.ms.rdm.rest;
+package ru.inovus.ms.rdm.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import ru.inovus.ms.rdm.model.AttributeFilter;
 import ru.inovus.ms.rdm.model.Passport;
-import ru.inovus.ms.rdm.util.TimeUtils;
 
 import javax.ws.rs.ext.ParamConverter;
 import javax.ws.rs.ext.ParamConverterProvider;
@@ -24,6 +25,8 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
 
     private PassportConverter passportConverter = new PassportConverter();
 
+    private AttributeFilterConverter attributeFilterConverter = new AttributeFilterConverter();
+
     @Override
     public <T> ParamConverter<T> getConverter(Class<T> rawType, Type genericType, Annotation[] annotations) {
 
@@ -39,6 +42,9 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
         else if (Passport.class.equals(rawType))
             //noinspection unchecked
             return (ParamConverter<T>) passportConverter;
+        else if (AttributeFilter.class.equals(rawType))
+            //noinspection unchecked
+            return (ParamConverter<T>) attributeFilterConverter;
         return null;
     }
 
@@ -108,6 +114,33 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
                 return new ObjectMapper().writeValueAsString(value);
             } catch (JsonProcessingException e) {
                 throw new IllegalArgumentException("Failed to convert from Passport to json", e);
+            }
+        }
+    }
+
+    private static class AttributeFilterConverter implements ParamConverter<AttributeFilter> {
+
+        @Override
+        public AttributeFilter fromString(String value) {
+            ObjectMapper mapper = new ObjectMapper();
+            JavaTimeModule jtm = new JavaTimeModule();
+            mapper.registerModule(jtm);
+            try {
+                return mapper.readValue(value, AttributeFilter.class);
+            } catch (IOException ex) {
+                throw new IllegalArgumentException(String.format("Failed to convert string '%s' to AttributeFilter", value));
+            }
+        }
+
+        @Override
+        public String toString(AttributeFilter value) {
+            ObjectMapper mapper = new ObjectMapper();
+            JavaTimeModule jtm = new JavaTimeModule();
+            mapper.registerModule(jtm);
+            try {
+                return mapper.writeValueAsString(value);
+            } catch (JsonProcessingException ex) {
+                throw new IllegalArgumentException("Failed to convert from AttributeFilter to string");
             }
         }
     }

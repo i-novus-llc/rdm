@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.Structure;
 
@@ -30,16 +31,19 @@ public class BufferedRowsPersister implements RowsProcessor {
 
     private Result result = new Result(0, 0, null);
 
+    private FieldFactory fieldFactory;
 
-    public BufferedRowsPersister(DraftDataService draftDataService, String storageCode, Structure structure) {
+    public BufferedRowsPersister(DraftDataService draftDataService, FieldFactory fieldFactory, String storageCode, Structure structure) {
         this.draftDataService = draftDataService;
+        this.fieldFactory = fieldFactory;
         this.storageCode = storageCode;
         this.structure = structure;
     }
 
-    public BufferedRowsPersister(int size, DraftDataService draftDataService, String storageCode, Structure structure) {
+    public BufferedRowsPersister(int size, DraftDataService draftDataService, FieldFactory fieldFactory, String storageCode, Structure structure) {
         this.size = size;
         this.draftDataService = draftDataService;
+        this.fieldFactory = fieldFactory;
         this.storageCode = storageCode;
         this.structure = structure;
     }
@@ -65,7 +69,7 @@ public class BufferedRowsPersister implements RowsProcessor {
         if (buffer.isEmpty()) {
             return;
         }
-        List<RowValue> rowValues = buffer.stream().map(row -> rowValue(row, structure)).collect(Collectors.toList());
+        List<RowValue> rowValues = buffer.stream().map(row -> rowValue(row, structure, fieldFactory)).collect(Collectors.toList());
         try {
             draftDataService.addRows(storageCode, rowValues);
             this.result = this.result.addResult(new Result(buffer.size(), buffer.size(), null));

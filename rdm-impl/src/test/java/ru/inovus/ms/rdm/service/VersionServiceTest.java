@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
@@ -41,6 +42,9 @@ public class VersionServiceTest {
     @Mock
     private SearchDataService searchDataService;
 
+    @Mock
+    private FieldFactory fieldFactory;
+
     @Test
     public void testSearchVersion() {
         RefBookVersionEntity testVersion = createTestVersion();
@@ -49,10 +53,10 @@ public class VersionServiceTest {
         Date bdate = testVersion.getFromDate() != null ? Date.from(testVersion.getFromDate().atZone(ZoneOffset.UTC).toInstant()) : null;
         Date edate = testVersion.getToDate() != null ? Date.from(testVersion.getToDate().atZone(ZoneOffset.UTC).toInstant()) : null;
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
-        searchDataCriteria.setFieldFilter(new ArrayList<>());
+        searchDataCriteria.setAttributeFilter(new ArrayList<>());
         searchDataCriteria.setCommonFilter("commonFilter");
         DataCriteria dataCriteria = new DataCriteria(TEST_STORAGE_CODE, bdate, edate, new ArrayList<>(),
-                searchDataCriteria.getFieldFilter(), searchDataCriteria.getCommonFilter());
+                searchDataCriteria.getFieldSearchCriteriaList(fieldFactory), searchDataCriteria.getCommonFilter());
         versionService.search(1, searchDataCriteria);
         verify(searchDataService).getPagedData(eq(dataCriteria));
     }

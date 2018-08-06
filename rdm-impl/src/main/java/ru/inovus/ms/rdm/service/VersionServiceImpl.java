@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.model.RowValuePage;
@@ -33,11 +34,13 @@ public class VersionServiceImpl implements VersionService {
 
     private RefBookVersionRepository versionRepository;
     private SearchDataService searchDataService;
+    private FieldFactory fieldFactory;
 
     @Autowired
-    public VersionServiceImpl(RefBookVersionRepository versionRepository, SearchDataService searchDataService) {
+    public VersionServiceImpl(RefBookVersionRepository versionRepository, SearchDataService searchDataService, FieldFactory fieldFactory) {
         this.versionRepository = versionRepository;
         this.searchDataService = searchDataService;
+        this.fieldFactory = fieldFactory;
     }
 
     @Override
@@ -53,11 +56,11 @@ public class VersionServiceImpl implements VersionService {
     }
 
     private Page<RowValue> getRowValuesOfVersion(SearchDataCriteria criteria, RefBookVersionEntity version) {
-        List<Field> fields = ConverterUtil.fields(version.getStructure());
+        List<Field> fields = ConverterUtil.fields(version.getStructure(), fieldFactory);
         Date bdate = date(version.getFromDate());
         Date edate = date(version.getToDate());
         DataCriteria dataCriteria = new DataCriteria(version.getStorageCode(), bdate, edate,
-                fields, criteria.getFieldFilter(), criteria.getCommonFilter());
+                fields, criteria.getFieldSearchCriteriaList(fieldFactory), criteria.getCommonFilter());
         dataCriteria.setPage(criteria.getPageNumber());
         dataCriteria.setSize(criteria.getPageSize());
         Optional.ofNullable(criteria.getSort()).ifPresent(sort -> dataCriteria.setSortings(sortings(sort)));
