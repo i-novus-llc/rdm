@@ -4,8 +4,6 @@ import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.apache.commons.io.FilenameUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
@@ -53,8 +51,6 @@ import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
 @Primary
 @Service
 public class DraftServiceImpl implements DraftService {
-
-    private static final Logger logger = LoggerFactory.getLogger(DraftServiceImpl.class);
 
     private DraftDataService draftDataService;
 

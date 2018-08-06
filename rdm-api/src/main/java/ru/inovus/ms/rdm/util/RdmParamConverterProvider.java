@@ -127,8 +127,8 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
             mapper.registerModule(jtm);
             try {
                 return mapper.readValue(value, AttributeFilter.class);
-            } catch (IOException ex) {
-                throw new IllegalArgumentException(String.format("Failed to convert string '%s' to AttributeFilter", value));
+            } catch (IOException e) {
+                throw new IllegalArgumentException(String.format("Failed to convert string '%s' to AttributeFilter", value), e);
             }
         }
 
@@ -139,8 +139,8 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
             mapper.registerModule(jtm);
             try {
                 return mapper.writeValueAsString(value);
-            } catch (JsonProcessingException ex) {
-                throw new IllegalArgumentException("Failed to convert from AttributeFilter to string");
+            } catch (JsonProcessingException e) {
+                throw new IllegalArgumentException("Failed to convert from AttributeFilter to string", e);
             }
         }
     }

@@ -70,13 +70,10 @@ public class AttributeFilter {
     public SearchTypeEnum getSearchType() {
         if (searchType != null)
             return searchType;
+        else if (FieldType.STRING.equals(fieldType))
+            return SearchTypeEnum.LIKE;
         else
-            switch (fieldType) {
-                case STRING:
-                    return SearchTypeEnum.LIKE;
-                default:
-                    return SearchTypeEnum.EXACT;
-            }
+            return SearchTypeEnum.EXACT;
     }
 
     public void setSearchType(SearchTypeEnum searchType) {
@@ -96,5 +93,14 @@ public class AttributeFilter {
         if (fieldType != that.fieldType) return false;
         return searchType == that.searchType;
 
+    }
+
+    @Override
+    public int hashCode() {
+        int result = attributeName != null ? attributeName.hashCode() : 0;
+        result = 31 * result + (value != null ? value.hashCode() : 0);
+        result = 31 * result + (fieldType != null ? fieldType.hashCode() : 0);
+        result = 31 * result + (searchType != null ? searchType.hashCode() : 0);
+        return result;
     }
 }
