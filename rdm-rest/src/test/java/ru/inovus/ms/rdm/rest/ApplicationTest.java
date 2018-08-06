@@ -31,15 +31,15 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
 
 @RunWith(SpringRunner.class)
@@ -524,6 +524,16 @@ public class ApplicationTest {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Test
+    public void testCreateRequiredAttributeWithNotEmptyData(){
+        CreateAttribute createAttributeModel = new CreateAttribute(-2, createAttribute, createReference);
+        try {
+            draftService.createAttribute(createAttributeModel);
+        } catch (Exception e) {
+            assertEquals("required.attribute.err", e.getMessage());
+        }
     }
 
 }
