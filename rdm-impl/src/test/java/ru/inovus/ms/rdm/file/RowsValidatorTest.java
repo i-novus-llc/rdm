@@ -50,10 +50,9 @@ public class RowsValidatorTest {
 
     @Before
     public void setUp() {
-        rowsValidator = new RowsValidatorImpl(versionService, createTestStructureWithReference(), fieldFactory);
+        rowsValidator = new RowsValidatorImpl(versionService, createTestStructureWithReference());
         when(fieldFactory.createField(eq(REFERENCE_ATTRIBUTE), eq(FieldType.STRING))).thenReturn(new StringField(REFERENCE_ATTRIBUTE));
         when(versionService.getStructure(eq(REFERENCE_VERSION))).thenReturn(createTestStructure());
-        when(fieldFactory.createSearchField(eq("name"), eq(FieldType.STRING))).thenReturn(new StringField("name"));
         AttributeFilter attributeFilter = new AttributeFilter(REFERENCE_ATTRIBUTE, ATTRIBUTE_VALUE, FieldType.STRING, SearchTypeEnum.EXACT);
         searchDataCriteria = new SearchDataCriteria(Collections.singletonList(attributeFilter), null);
         when(versionService.search(eq(REFERENCE_VERSION), eq(searchDataCriteria)))

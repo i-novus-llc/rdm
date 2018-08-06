@@ -17,7 +17,6 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
-import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
@@ -28,6 +27,7 @@ import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.util.ConverterUtil;
 import ru.kirkazan.common.exception.CodifiedException;
 
 import java.io.InputStream;
@@ -58,8 +58,6 @@ public class DraftServiceImpl implements DraftService {
 
     private VersionService versionService;
 
-    private FieldFactory fieldFactory;
-
     private SearchDataService searchDataService;
 
     private DropDataService dropDataService;
@@ -71,12 +69,11 @@ public class DraftServiceImpl implements DraftService {
     private static final String ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE = "Невозможно обновить атрибут";
 
     @Autowired
-    public DraftServiceImpl(DraftDataService draftDataService, RefBookVersionRepository versionRepository, FieldFactory fieldFactory, VersionService versionService,
+    public DraftServiceImpl(DraftDataService draftDataService, RefBookVersionRepository versionRepository, VersionService versionService,
                             RefBookRepository refBookRepository, SearchDataService searchDataService, DropDataService dropDataService, FileStorage fileStorage) {
         this.draftDataService = draftDataService;
         this.versionRepository = versionRepository;
         this.versionService = versionService;
-        this.fieldFactory = fieldFactory;
         this.searchDataService = searchDataService;
         this.dropDataService = dropDataService;
         this.refBookRepository = refBookRepository;
@@ -89,7 +86,7 @@ public class DraftServiceImpl implements DraftService {
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
         BiConsumer<String, Structure> consumer = getSaveDraftConsumer(refBookId);
         String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
-        CreateDraftBufferedRowsPersister rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, fieldFactory, consumer);
+        CreateDraftBufferedRowsPersister rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, consumer);
         FileProcessor persister = ProcessorFactory.createProcessor(extension,
                 rowsProcessor, new PlainRowMapper());
         persister.process(inputStreamSupplier);
@@ -126,7 +123,7 @@ public class DraftServiceImpl implements DraftService {
         if (draftVersion == null && lastRefBookVersion == null) {
             throw new CodifiedException("invalid refbook");
         }
-        List<Field> fields = fields(structure, fieldFactory);
+        List<Field> fields = fields(structure);
         if (draftVersion == null) {
             draftVersion = newDraftVersion(structure, lastRefBookVersion);
             draftVersion.setRefBook(refBookRepository.findOne(refBookId));
@@ -185,12 +182,12 @@ public class DraftServiceImpl implements DraftService {
         String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
         StructureRowMapper rowMapper = new StructureRowMapper(structure, versionRepository);
         FileProcessor validator = ProcessorFactory.createProcessor(extension,
-                new RowsValidatorImpl(versionService, structure, fieldFactory), rowMapper);
+                new RowsValidatorImpl(versionService, structure), rowMapper);
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
         Result validationResult = validator.process(inputStreamSupplier);
         if (isEmpty(validationResult.getErrors())) {
             FileProcessor persister = ProcessorFactory.createProcessor(extension,
-                    new BufferedRowsPersister(draftDataService, fieldFactory, storageCode, structure), rowMapper);
+                    new BufferedRowsPersister(draftDataService, storageCode, structure), rowMapper);
             persister.process(inputStreamSupplier);
         } else {
             throw new UserException(new Message("invalid.reference.err", validationResult.getErrors().stream().collect(Collectors.joining("  "))));
@@ -202,9 +199,9 @@ public class DraftServiceImpl implements DraftService {
     public Page<RowValue> search(Integer draftId, SearchDataCriteria criteria) {
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
         String storageCode = draft.getStorageCode();
-        List<Field> fields = fields(draft.getStructure(), fieldFactory);
+        List<Field> fields = fields(draft.getStructure());
         DataCriteria dataCriteria = new DataCriteria(storageCode, null, null,
-                fields, criteria.getFieldSearchCriteriaList(fieldFactory), criteria.getCommonFilter());
+                fields, ConverterUtil.getFieldSearchCriteriaList(criteria.getAttributeFilter()), criteria.getCommonFilter());
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
         return new RowValuePage(pagedData);
     }
@@ -322,7 +319,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draftEntity = versionRepository.findOne(createAttribute.getVersionId());
         Structure.Attribute attribute = createAttribute.getAttribute();
         Structure.Reference reference = createAttribute.getReference();
-        draftDataService.addField(draftEntity.getStorageCode(), field(attribute, fieldFactory));
+        draftDataService.addField(draftEntity.getStorageCode(), field(attribute));
 
         Structure structure = draftEntity.getStructure();
         if (structure == null) {
@@ -362,7 +359,7 @@ public class DraftServiceImpl implements DraftService {
         setValueIfPresent(updateAttribute::getIsRequired, attribute::setIsRequired);
         setValueIfPresent(updateAttribute::getIsPrimary, attribute::setPrimary);
 
-        draftDataService.updateField(draftEntity.getStorageCode(), field(attribute, fieldFactory));
+        draftDataService.updateField(draftEntity.getStorageCode(), field(attribute));
 
         if (FieldType.REFERENCE.equals(updateAttribute.getType())) {
             Structure.Reference reference;

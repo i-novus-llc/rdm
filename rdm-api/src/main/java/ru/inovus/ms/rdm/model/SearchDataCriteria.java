@@ -2,13 +2,9 @@ package ru.inovus.ms.rdm.model;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
-import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 
 import javax.ws.rs.QueryParam;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @ApiModel("Критерии поиска данных справочника")
 public class SearchDataCriteria extends AbstractCriteria{
@@ -36,13 +32,13 @@ public class SearchDataCriteria extends AbstractCriteria{
         this.attributeFilter = attributeFilter;
     }
 
-    public List<FieldSearchCriteria> getFieldSearchCriteriaList(FieldFactory fieldFactory) {
-        return attributeFilter.stream().map(attrFilter -> new FieldSearchCriteria(
-                        fieldFactory.createField(attrFilter.getAttributeName(), attrFilter.getFieldType()),
-                        attrFilter.getSearchType(),
-                        Collections.singletonList(attrFilter.getValue()))
-        ).collect(Collectors.toList());
-    }
+//    public List<FieldSearchCriteria> getFieldSearchCriteriaList(FieldFactory fieldFactory) {
+//        return attributeFilter.stream().map(attrFilter -> new FieldSearchCriteria(
+//                        fieldFactory.createField(attrFilter.getAttributeName(), attrFilter.getFieldType()),
+//                        attrFilter.getSearchType(),
+//                        Collections.singletonList(attrFilter.getValue()))
+//        ).collect(Collectors.toList());
+//    }
 
     public String getCommonFilter() {
         return commonFilter;

@@ -21,7 +21,6 @@ import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.FileStorage;
@@ -100,9 +99,6 @@ public class ApplicationTest {
 
     @Autowired
     private DraftDataService draftDataService;
-
-    @Autowired
-    private FieldFactory fieldFactory;
 
     @BeforeClass
     public static void initialize() {
@@ -470,10 +466,10 @@ public class ApplicationTest {
         rowMap1.put(codes.get(2), 1.0);
         rowMap1.put(codes.get(3), date);
         rowMap1.put(codes.get(4), true);
-        List<RowValue> expected = Collections.singletonList(ConverterUtil.rowValue(new Row(rowMap1), structure, fieldFactory));
+        List<RowValue> expected = Collections.singletonList(ConverterUtil.rowValue(new Row(rowMap1), structure));
 
         Page<RowValue> search = draftService.search(draft.getId(), new SearchDataCriteria(null, null));
-        assertRows(ConverterUtil.fields(structure, fieldFactory), expected, search.getContent());
+        assertRows(ConverterUtil.fields(structure), expected, search.getContent());
     }
 
     /**
@@ -571,13 +567,13 @@ public class ApplicationTest {
         rowMap2.put(codes.get(5), null);
 
         List<RowValue> rowValues = Arrays.asList(
-                ConverterUtil.rowValue(new Row(rowMap1), structure, fieldFactory),
-                ConverterUtil.rowValue(new Row(rowMap2), structure, fieldFactory));
+                ConverterUtil.rowValue(new Row(rowMap1), structure),
+                ConverterUtil.rowValue(new Row(rowMap2), structure));
         draftDataService.addRows(draft.getStorageCode(), rowValues);
 
         List<RowValue> expectedRowValues = Collections.singletonList(rowValues.get(0));
 
-        List<Field> fields = ConverterUtil.fields(structure, fieldFactory);
+        List<Field> fields = ConverterUtil.fields(structure);
 
         codes.forEach(attributeCode -> {
             String fullTextSearchValue = FieldType.REFERENCE.equals(structure.getAttribute(attributeCode).getType()) ?
@@ -636,7 +632,7 @@ public class ApplicationTest {
         rowMap1.put(structure.getAttributes().get(1).getCode(), "запись для ссылки");
 
         draftDataService.addRows(draft.getStorageCode(),
-                Collections.singletonList(ConverterUtil.rowValue(new Row(rowMap1), structure, fieldFactory)));
+                Collections.singletonList(ConverterUtil.rowValue(new Row(rowMap1), structure)));
 
         draftService.publish(draft.getId(), "1", LocalDateTime.of(2017, 9, 1, 0, 0), null);
 

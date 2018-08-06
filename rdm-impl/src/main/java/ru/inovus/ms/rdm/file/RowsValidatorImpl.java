@@ -5,7 +5,6 @@ import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.AttributeFilter;
 import ru.inovus.ms.rdm.model.Result;
@@ -31,12 +30,9 @@ public class RowsValidatorImpl implements RowsValidator {
 
     private VersionService versionService;
 
-    private FieldFactory fieldFactory;
-
-    public RowsValidatorImpl(VersionService versionService, Structure structure, FieldFactory fieldFactory) {
+    public RowsValidatorImpl(VersionService versionService, Structure structure) {
         this.versionService = versionService;
         this.structure = structure;
-        this.fieldFactory = fieldFactory;
     }
 
     @Override
@@ -84,7 +80,7 @@ public class RowsValidatorImpl implements RowsValidator {
 
     private Field createFieldFilter(Structure structure, Structure.Reference reference) {
         Structure.Attribute referenceAttribute = structure.getAttribute(reference.getReferenceAttribute());
-        return field(referenceAttribute, fieldFactory);
+        return field(referenceAttribute);
     }
 
     private Object castReferenceValue(Field field, String value) {
