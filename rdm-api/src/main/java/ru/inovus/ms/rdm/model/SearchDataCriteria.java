@@ -32,14 +32,6 @@ public class SearchDataCriteria extends AbstractCriteria{
         this.attributeFilter = attributeFilter;
     }
 
-//    public List<FieldSearchCriteria> getFieldSearchCriteriaList(FieldFactory fieldFactory) {
-//        return attributeFilter.stream().map(attrFilter -> new FieldSearchCriteria(
-//                        fieldFactory.createField(attrFilter.getAttributeName(), attrFilter.getFieldType()),
-//                        attrFilter.getSearchType(),
-//                        Collections.singletonList(attrFilter.getValue()))
-//        ).collect(Collectors.toList());
-//    }
-
     public String getCommonFilter() {
         return commonFilter;
     }
