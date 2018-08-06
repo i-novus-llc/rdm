@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.model;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 
 import javax.ws.rs.QueryParam;
@@ -17,8 +16,7 @@ public class AttributeFilter {
     @QueryParam("value")
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "type")
     @JsonSubTypes({
-            @JsonSubTypes.Type(value = LocalDate.class, name = "DATE"),
-            @JsonSubTypes.Type(value = Reference.class, name = "REFERENCE")
+            @JsonSubTypes.Type(value = LocalDate.class, name = "DATE")
     })
     private Object value;
 
