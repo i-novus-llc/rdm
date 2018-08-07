@@ -15,7 +15,7 @@ import java.util.List;
  */
 public class VersionDataIterator implements Iterator<Row> {
 
-    private final static int MAX_BUFFER_SIZE = 1000;
+    private final int BUFFER_SIZE = 1000;
     private int currentPage = 0;
     private Iterator<Integer> versionIdIterator;
     private Integer currentVersionId;
@@ -43,7 +43,7 @@ public class VersionDataIterator implements Iterator<Row> {
 
     private boolean nextPage() {
         SearchDataCriteria criteria = new SearchDataCriteria();
-        criteria.setPageSize(MAX_BUFFER_SIZE);
+        criteria.setPageSize(BUFFER_SIZE);
         criteria.setPageNumber(++currentPage);
         Page<RowValue> page = versionService.search(currentVersionId, criteria);
         if (page != null && page.getContent() != null && !page.getContent().isEmpty()){

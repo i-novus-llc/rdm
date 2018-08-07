@@ -174,12 +174,13 @@ public class XlsFileGenerator extends PerRowFileGenerator {
 
         @Override
         public void close() throws IOException {
+            //disable close for outputStream
         }
     }
 
     private class CellStileFactory {
 
-        private final String XLSX_DATE_FORMAT = "dd.MM.yyyy";
+        private final static String XLSX_DATE_FORMAT = "dd.MM.yyyy";
 
         private CellStyle firstRowStile;
         private CellStyle defaultStyle;
