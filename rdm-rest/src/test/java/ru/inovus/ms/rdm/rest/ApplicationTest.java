@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.rest;
 
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
 import net.n2oapp.platform.test.autoconfigure.EnableEmbeddedPg;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,17 +14,23 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.i_novus.platform.datastorage.temporal.model.value.*;
+import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
+import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.FileStorage;
+import ru.inovus.ms.rdm.file.Row;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.FileStorageService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.util.ConverterUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,11 +38,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
@@ -92,6 +96,9 @@ public class ApplicationTest {
 
     @Autowired
     private FileStorage fileStorage;
+
+    @Autowired
+    private DraftDataService draftDataService;
 
     @BeforeClass
     public static void initialize() {
@@ -452,16 +459,17 @@ public class ApplicationTest {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         LocalDate date = LocalDate.parse("01.01.2011", formatter);
-        List<FieldValue> expected = new ArrayList() {{
-            add(new StringFieldValue("string", "Иван"));
-            add(new ReferenceFieldValue("reference", new Reference("2", "2")));
-            add(new FloatFieldValue("float", new Double("1.0")));
-            add(new DateFieldValue("date", date));
-            add(new BooleanFieldValue("boolean", Boolean.TRUE));
-        }};
+        List<String> codes = structure.getAttributes().stream().map(Structure.Attribute::getCode).collect(Collectors.toList());
+        Map<String, Object> rowMap1 = new HashMap<>();
+        rowMap1.put(codes.get(0), "Иван");
+        rowMap1.put(codes.get(1), new Reference("2", "2"));
+        rowMap1.put(codes.get(2), 1.0);
+        rowMap1.put(codes.get(3), date);
+        rowMap1.put(codes.get(4), true);
+        List<RowValue> expected = Collections.singletonList(ConverterUtil.rowValue(new Row(rowMap1), structure));
+
         Page<RowValue> search = draftService.search(draft.getId(), new SearchDataCriteria(null, null));
-        List actual = search.getContent().get(0).getFieldValues();
-        assertEquals(expected, actual);
+        assertRows(ConverterUtil.fields(structure), expected, search.getContent());
     }
 
     /**
@@ -526,4 +534,146 @@ public class ApplicationTest {
         return null;
     }
 
+    @Test
+    public void testSearchInDraft() throws Exception {
+        RefBookCreateRequest createRequest = new RefBookCreateRequest();
+        createRequest.setCode("myTestCodeRefBook");
+        Map<String, String> createPassport = new HashMap<>();
+        createPassport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "Справочник для тестирования версий");
+        createRequest.setPassport(new Passport(createPassport));
+
+        RefBook refBook = refBookService.create(createRequest);
+        Structure structure = getTestStructureWithoutTreeFieldType();
+        Draft draft = draftService.create(refBook.getRefBookId(), structure);
+
+        LocalDate localDateTime1 = LocalDate.of(2014, 9, 1);
+        LocalDate localDateTime2 = LocalDate.of(2014, 10, 1);
+
+        List<String> codes = structure.getAttributes().stream().map(Structure.Attribute::getCode).collect(Collectors.toList());
+        Map<String, Object> rowMap1 = new HashMap<>();
+        rowMap1.put(codes.get(0), 1);
+        rowMap1.put(codes.get(1), 2.4);
+        rowMap1.put(codes.get(2), "Первое тестовое наименование");
+        rowMap1.put(codes.get(3), true);
+        rowMap1.put(codes.get(4), localDateTime1);
+        rowMap1.put(codes.get(5), new Reference("5", null));
+
+        Map<String, Object> rowMap2 = new HashMap<>();
+        rowMap2.put(codes.get(0), 2);
+        rowMap2.put(codes.get(1), 0.4);
+        rowMap2.put(codes.get(2), "Второе тестовое наименование");
+        rowMap2.put(codes.get(3), false);
+        rowMap2.put(codes.get(4), localDateTime2);
+        rowMap2.put(codes.get(5), null);
+
+        List<RowValue> rowValues = Arrays.asList(
+                ConverterUtil.rowValue(new Row(rowMap1), structure),
+                ConverterUtil.rowValue(new Row(rowMap2), structure));
+        draftDataService.addRows(draft.getStorageCode(), rowValues);
+
+        List<RowValue> expectedRowValues = Collections.singletonList(rowValues.get(0));
+
+        List<Field> fields = ConverterUtil.fields(structure);
+
+        codes.forEach(attributeCode -> {
+            String fullTextSearchValue = FieldType.REFERENCE.equals(structure.getAttribute(attributeCode).getType()) ?
+                    ((Reference) rowMap1.get(attributeCode)).getValue() : rowMap1.get(attributeCode).toString();
+            Page<RowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(null, fullTextSearchValue));
+            Assert.assertEquals("Full text search failed", 1, actualPage.getContent().size());
+            assertRows(fields, expectedRowValues, actualPage.getContent());
+        });
+
+        List<AttributeFilter> attributeFilters = new ArrayList<>();
+        codes.forEach(attributeCode -> {
+            Object searchValue = FieldType.REFERENCE.equals(structure.getAttribute(attributeCode).getType()) ?
+                    ((Reference) rowMap1.get(attributeCode)).getValue() : rowMap1.get(attributeCode);
+            attributeFilters.add(new AttributeFilter(attributeCode, searchValue, structure.getAttribute(attributeCode).getType()));
+        });
+
+        attributeFilters.forEach(attributeFilter -> {
+            Page<RowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(Collections.singletonList(attributeFilter), null));
+            assertRows(fields, expectedRowValues, actualPage.getContent());
+        });
+
+        Page<RowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(attributeFilters, null));
+        assertRows(fields, expectedRowValues, actualPage.getContent());
+    }
+
+    private Structure getTestStructureWithoutTreeFieldType() {
+        return new Structure(
+                Arrays.asList(
+                        Structure.Attribute.buildPrimary("id", "idAttrName", FieldType.INTEGER, "idAttrDesc"),
+                        Structure.Attribute.build("floatAttribute", "floatAttributeName", FieldType.FLOAT, false, "floatAttributeDesc"),
+                        Structure.Attribute.build("name", "nameAttrName", FieldType.STRING, true, "nameAttrDesc"),
+                        Structure.Attribute.build("booleanAttribute", "booleanAttributeName", FieldType.BOOLEAN, false, "booleanAttributeDesc"),
+                        Structure.Attribute.build("dateAttribute", "dateAttributeName", FieldType.DATE, false, "dateAttributeDesc"),
+                        Structure.Attribute.build("referenceAttribute", "referenceAttributeName", FieldType.REFERENCE, false, "referenceAttributeNameDesc")
+                ),
+                Collections.singletonList(createReference("referenceAttribute"))
+        );
+    }
+
+    private Structure.Reference createReference(String attributeCode) {
+        RefBookCreateRequest createRequest = new RefBookCreateRequest();
+        createRequest.setCode("myTestCodeRefBookForRef");
+
+
+        RefBook refBook = refBookService.create(createRequest);
+        Structure structure = new Structure(
+                Arrays.asList(
+                        Structure.Attribute.buildPrimary("id", "idAttrName", FieldType.INTEGER, null),
+                        Structure.Attribute.build("name", "nameAttrName", FieldType.STRING, false, null)
+                ), null
+        );
+        Draft draft = draftService.create(refBook.getRefBookId(), structure);
+
+        Map<String, Object> rowMap1 = new HashMap<>();
+        rowMap1.put(structure.getAttributes().get(0).getCode(), 5);
+        rowMap1.put(structure.getAttributes().get(1).getCode(), "запись для ссылки");
+
+        draftDataService.addRows(draft.getStorageCode(),
+                Collections.singletonList(ConverterUtil.rowValue(new Row(rowMap1), structure)));
+
+        draftService.publish(draft.getId(), "1", LocalDateTime.of(2017, 9, 1, 0, 0), null);
+
+        return new Structure.Reference(attributeCode, draft.getId(), structure.getAttributes().get(0).getCode(),
+                Arrays.asList(structure.getAttributes().get(0).getCode(), structure.getAttributes().get(1).getCode()), null);
+    }
+
+    private void assertRows(List<Field> fields, List<RowValue> expectedRows, List<RowValue> actualRows) {
+        Assert.assertEquals("result size not equals", expectedRows.size(), actualRows.size());
+        String expectedRowsStr = expectedRows.stream().map(RowValue::toString).collect(Collectors.joining(", "));
+        String actualRowsStr = actualRows.stream().map(RowValue::toString).collect(Collectors.joining(", "));
+        Assert.assertTrue(
+                "not equals actualRows: \n" + actualRowsStr + " \n and expected rows: \n" + expectedRowsStr
+                , actualRows.stream().filter(actualRow ->
+                                expectedRows.stream().filter(expectedRow ->
+                                                equalsFieldValues(fields, expectedRow.getFieldValues(), actualRow.getFieldValues())
+                                ).findAny().isPresent()
+                ).findAny().isPresent()
+        );
+    }
+
+    private boolean equalsFieldValues(List<Field> fields, List<FieldValue> values1, List<FieldValue> values2) {
+        if (values1 == values2) return true;
+        if (values1 == null || values2 == null || values1.size() != values2.size()) return false;
+
+        for (FieldValue val1 : values1) {
+            boolean isPresent = values2.stream().filter(val2 -> {
+                if (val2 == val1) return true;
+                if (val2.getField().equals(val1.getField())) {
+                    Field field = fields.stream().filter(f -> f.getName().equals(val2.getField())).findFirst().get();
+                    //noinspection unchecked
+                    return field.valueOf(val2.getValue()).equals(val1);
+                }
+                return false;
+
+            }).findAny().isPresent();
+
+            if (!isPresent) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

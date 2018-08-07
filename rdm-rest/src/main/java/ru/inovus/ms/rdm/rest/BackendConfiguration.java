@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
+import ru.inovus.ms.rdm.util.RdmParamConverterProvider;
 import ru.inovus.ms.rdm.util.RowValueMapperPreparer;
 
 @Configuration

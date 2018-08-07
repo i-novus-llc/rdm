@@ -22,12 +22,12 @@ public class CreateDraftBufferedRowsPersister implements RowsProcessor {
 
     private BiConsumer consumer;
 
-    public CreateDraftBufferedRowsPersister(DraftDataService draftDataService,  BiConsumer<String, Structure> consumer) {
+    public CreateDraftBufferedRowsPersister(DraftDataService draftDataService, BiConsumer<String, Structure> consumer) {
         this.draftDataService = draftDataService;
         this.consumer = consumer;
     }
 
-    public CreateDraftBufferedRowsPersister(DraftDataService draftDataService, int size,  BiConsumer<String, Structure> consumer) {
+    public CreateDraftBufferedRowsPersister(DraftDataService draftDataService, int size, BiConsumer<String, Structure> consumer) {
         this.draftDataService = draftDataService;
         this.size = size;
         this.consumer = consumer;
