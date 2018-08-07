@@ -31,11 +31,7 @@ import ru.inovus.ms.rdm.service.api.VersionService;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -55,6 +51,7 @@ public class DraftServiceTest {
     private static final String TEST_STORAGE_CODE = "test_storage_code";
     private static final String TEST_DRAFT_CODE = "test_draft_code";
     private static final String TEST_DRAFT_CODE_NEW = "test_draft_code_new";
+    private static final String TEST_REF_BOOK = "test_ref_book";
     private static final int REFBOOK_ID = 2;
 
     @InjectMocks
@@ -438,7 +435,7 @@ public class DraftServiceTest {
     private RefBookEntity createTestRefBook() {
         RefBookEntity testRefBook = new RefBookEntity();
         testRefBook.setId(REFBOOK_ID);
-        testRefBook.setCode("test_ref_book");
+        testRefBook.setCode(TEST_REF_BOOK);
         return testRefBook;
     }
 

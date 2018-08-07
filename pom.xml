@@ -23,6 +23,7 @@
         <liquibase.version>3.6.3-SNAPSHOT</liquibase.version>
         <apache.poi.version>3.14</apache.poi.version>
         <filestorage.version>2.0-SNAPSHOT</filestorage.version>
+        <vds.version>1.3-SNAPSHOT</vds.version>
     </properties>
 
     <modules>
@@ -58,14 +59,14 @@
             <dependency>
                 <groupId>ru.i-novus.platform</groupId>
                 <artifactId>versioned-data-storage-api</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${vds.version}</version>
             </dependency>
 
 
             <dependency>
                 <groupId>ru.i-novus.platform</groupId>
                 <artifactId>versioned-data-storage-spring-adapter</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${vds.version}</version>
             </dependency>
 
             <dependency>

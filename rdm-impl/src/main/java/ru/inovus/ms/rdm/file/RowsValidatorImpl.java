@@ -66,7 +66,7 @@ public class RowsValidatorImpl implements RowsValidator {
         }
     }
 
-    private boolean isReferenceValid(Structure.Reference reference, String referenceValue) {
+    public boolean isReferenceValid(Structure.Reference reference, String referenceValue) {
         Integer versionId = reference.getReferenceVersion();
         Structure referenceStructure = versionService.getStructure(versionId);
         Field fieldFilter = createFieldFilter(referenceStructure, reference);

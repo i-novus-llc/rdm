@@ -65,7 +65,9 @@ public class DraftServiceImpl implements DraftService {
 
     private FileStorage fileStorage;
 
-    private static final String ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE = "Невозможно обновить атрибут";
+    private static final String ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE = "Невозможно обновить атрибут.";
+    private static final String INCOMPATIBLE_NEW_DATA_TYPE_EXCEPTION_CODE = "Новая структура поля \"%s\" несовместима с данными.";
+    private static final String INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE = "Новый тип атрибута \"%s\" несовместим с данными.";
 
     @Autowired
     public DraftServiceImpl(DraftDataService draftDataService, RefBookVersionRepository versionRepository, VersionService versionService,
@@ -345,7 +347,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draftEntity = versionRepository.findOne(updateAttribute.getVersionId());
         Structure structure = draftEntity.getStructure();
         Structure.Attribute attribute = structure.getAttribute(updateAttribute.getCode());
-        validateUpdateAttribute(updateAttribute, attribute);
+        validateUpdateAttribute(updateAttribute, attribute, draftEntity.getStorageCode());
 
         //clear previous primary keys
         if (updateAttribute.getIsPrimary() != null
@@ -353,16 +355,22 @@ public class DraftServiceImpl implements DraftService {
                 && updateAttribute.getIsPrimary().get())
             structure.clearPrimary();
 
+        FieldType oldType = attribute.getType();
         setValueIfPresent(updateAttribute::getName, attribute::setName);
         setValueIfPresent(updateAttribute::getDescription, attribute::setDescription);
         setValueIfPresent(updateAttribute::getIsRequired, attribute::setIsRequired);
         setValueIfPresent(updateAttribute::getIsPrimary, attribute::setPrimary);
+        attribute.setType(updateAttribute.getType());
 
-        draftDataService.updateField(draftEntity.getStorageCode(), field(attribute));
+        try {
+            draftDataService.updateField(draftEntity.getStorageCode(), field(attribute));
+        } catch (CodifiedException ce) {
+            throw new UserException(ce.getMessage(), ce);
+        }
 
         if (FieldType.REFERENCE.equals(updateAttribute.getType())) {
             Structure.Reference reference;
-            if (FieldType.REFERENCE.equals(attribute.getType())) {
+            if (FieldType.REFERENCE.equals(oldType)) {
                 reference = structure.getReference(updateAttribute.getCode());
             } else {
                 reference = new Structure.Reference();
@@ -373,10 +381,9 @@ public class DraftServiceImpl implements DraftService {
                 structure.getReferences().set(updatableReferenceIndex, reference);
             else
                 structure.getReferences().add(reference);
-        } else if (FieldType.REFERENCE.equals(attribute.getType())) {
+        } else if (FieldType.REFERENCE.equals(oldType)) {
             structure.getReferences().remove(structure.getReference(updateAttribute.getCode()));
         }
-        attribute.setType(updateAttribute.getType());
     }
 
     private void updateReference(UpdateAttribute updateAttribute, Structure.Reference updatableReference) {
@@ -399,18 +406,53 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @SuppressWarnings("all")
-    private void validateUpdateAttribute(UpdateAttribute updateAttribute, Structure.Attribute attribute) {
+    private void validateUpdateAttribute(UpdateAttribute updateAttribute, Structure.Attribute attribute, String storageCode) {
         if (attribute == null
                 || updateAttribute.getVersionId() == null
                 || updateAttribute.getType() == null)
             throw new IllegalArgumentException(ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE);
+
+        // проверка отсутствия пустых значений в поле при установке обязательности поля
+        if (!isUpdateValueNullOrEmpty(updateAttribute.getIsRequired()) && updateAttribute.getIsRequired().get() && draftDataService.isFieldContainEmptyValues(storageCode, updateAttribute.getCode()))
+            throw new UserException(String.format(INCOMPATIBLE_NEW_DATA_TYPE_EXCEPTION_CODE, attribute.getDescription()));
+
         if (FieldType.REFERENCE.equals(updateAttribute.getType()) &&
-                (FieldType.REFERENCE.equals(attribute.getType()) && validateReferenceValues(updateAttribute, this::isUpdateValueNotNullAndEmpty)
-                || (!FieldType.REFERENCE.equals(attribute.getType()) && validateReferenceValues(updateAttribute, this::isUpdateValueNullOrEmpty))))
+                (FieldType.REFERENCE.equals(attribute.getType()) && isValidUpdateReferenceValues(updateAttribute, this::isUpdateValueNotNullAndEmpty)
+                        || (!FieldType.REFERENCE.equals(attribute.getType()) && isValidUpdateReferenceValues(updateAttribute, this::isUpdateValueNullOrEmpty))))
             throw new IllegalArgumentException(ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE);
+
+        // проверка совместимости типов, если столбец не пустой и изменяется тип. Если пустой - можно изменить тип
+        if (draftDataService.isFieldNotEmpty(storageCode, updateAttribute.getCode())) {
+            boolean isCompatible = isCompatibleTypes(attribute.getType(), updateAttribute.getType());
+            if (!isCompatible) {
+                throw new UserException(String.format(INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE, attribute.getDescription()));
+            }
+        } else
+            return;
+
+        if (FieldType.REFERENCE.equals(updateAttribute.getType()) && !FieldType.REFERENCE.equals(attribute.getType())) {
+            RefBookVersionEntity refVersion = versionRepository.findOne(updateAttribute.getReferenceVersion().get());
+            RowsValidatorImpl rowsValidator = new RowsValidatorImpl(versionService, refVersion.getStructure());
+            StructureRowMapper rowMapper = new StructureRowMapper(versionService.getStructure(updateAttribute.getVersionId()), versionRepository);
+            Structure.Attribute referenceAttribute = refVersion.getStructure().getAttribute(updateAttribute.getReferenceAttribute().get());
+            List<RowValue> rowValues = versionService.search(updateAttribute.getVersionId(), new SearchDataCriteria()).getContent();
+            try {
+                Boolean invalidRef = rowValues.stream().filter(rowValue -> !rowsValidator.isReferenceValid(
+                        new Structure.Reference(updateAttribute.getAttribute().get(), updateAttribute.getReferenceVersion().get(), updateAttribute.getReferenceAttribute().get(), updateAttribute.getDisplayAttributes().get(), updateAttribute.getSortingAttributes().get()),
+                        String.valueOf(rowValue.getFieldValue(updateAttribute.getAttribute().get()).getValue()))).findFirst().isPresent();
+                if (invalidRef)
+                    throw new UserException(String.format(INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE, attribute.getDescription()));
+            } catch (RuntimeException e) {
+                throw new UserException(String.format(INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE, attribute.getDescription()), e);
+            }
+        }
     }
 
-    private boolean validateReferenceValues(UpdateAttribute updateAttribute, Function<UpdateValue, Boolean> valueValidateFunc) {
+    private boolean isCompatibleTypes(FieldType realDataType, FieldType newDataType) {
+        return realDataType.equals(newDataType) || FieldType.STRING.equals(realDataType) || FieldType.STRING.equals(newDataType);
+    }
+
+    private boolean isValidUpdateReferenceValues(UpdateAttribute updateAttribute, Function<UpdateValue, Boolean> valueValidateFunc) {
         return valueValidateFunc.apply(updateAttribute.getReferenceVersion())
                 || valueValidateFunc.apply(updateAttribute.getAttribute())
                 || valueValidateFunc.apply(updateAttribute.getReferenceAttribute());
