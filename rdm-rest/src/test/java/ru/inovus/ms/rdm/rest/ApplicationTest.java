@@ -676,4 +676,14 @@ public class ApplicationTest {
         }
         return true;
     }
+    @Test
+    public void testCreateRequiredAttributeWithNotEmptyData(){
+        CreateAttribute createAttributeModel = new CreateAttribute(-2, createAttribute, createReference);
+        try {
+            draftService.createAttribute(createAttributeModel);
+        } catch (Exception e) {
+            assertEquals("required.attribute.err", e.getMessage());
+        }
+    }
+
 }
