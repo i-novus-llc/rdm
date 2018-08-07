@@ -28,12 +28,16 @@ import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ConverterUtil;
+import ru.inovus.ms.rdm.validation.PrimaryKeyUniqueValidation;
 import ru.kirkazan.common.exception.CodifiedException;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -354,6 +358,8 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draftEntity = versionRepository.findOne(updateAttribute.getVersionId());
         Structure structure = draftEntity.getStructure();
         Structure.Attribute attribute = structure.getAttribute(updateAttribute.getCode());
+
+        validatePrimaryKeyUnique(draftEntity.getStorageCode(), updateAttribute);
         validateUpdateAttribute(updateAttribute, attribute);
 
         //clear previous primary keys
@@ -417,6 +423,16 @@ public class DraftServiceImpl implements DraftService {
                 (FieldType.REFERENCE.equals(attribute.getType()) && validateReferenceValues(updateAttribute, this::isUpdateValueNotNullAndEmpty)
                         || (!FieldType.REFERENCE.equals(attribute.getType()) && validateReferenceValues(updateAttribute, this::isUpdateValueNullOrEmpty))))
             throw new IllegalArgumentException(ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE);
+    }
+
+    private void validatePrimaryKeyUnique(String storageCode, UpdateAttribute updateAttribute) {
+        UpdateValue<Boolean> isPrimary = updateAttribute.getIsPrimary();
+        if (isPrimary != null && isPrimary.isPresent() && isPrimary.get()) {
+            Message pkValidationMessage = new PrimaryKeyUniqueValidation(draftDataService, storageCode,
+                    Collections.singletonList(updateAttribute.getCode())).validate();
+            if (pkValidationMessage != null)
+                throw new UserException(pkValidationMessage);
+        }
     }
 
     private boolean validateReferenceValues(UpdateAttribute updateAttribute, Function<UpdateValue, Boolean> valueValidateFunc) {

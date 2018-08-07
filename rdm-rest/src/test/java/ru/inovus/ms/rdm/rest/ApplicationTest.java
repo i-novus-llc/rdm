@@ -535,7 +535,7 @@ public class ApplicationTest {
     }
 
     @Test
-    public void testSearchInDraft() throws Exception {
+    public void testSearchInDraft() {
         RefBookCreateRequest createRequest = new RefBookCreateRequest();
         createRequest.setCode("myTestCodeRefBook");
         Map<String, String> createPassport = new HashMap<>();
@@ -686,4 +686,50 @@ public class ApplicationTest {
         }
     }
 
+    @Test
+    public void testValidatePrimaryKeyOnUpdateAttribute() {
+        RefBookCreateRequest createRequest = new RefBookCreateRequest();
+        createRequest.setCode("testValidatePrimaryKeyOnUpdateAttribute");
+        Map<String, String> createPassport = new HashMap<>();
+        createPassport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "Справочник для тестирования проверки изменения первичного ключа");
+        createRequest.setPassport(new Passport(createPassport));
+
+        RefBook refBook = refBookService.create(createRequest);
+        Structure structure = new Structure(
+                Arrays.asList(
+                        Structure.Attribute.buildPrimary("id", "Идентификатор", FieldType.INTEGER, null),
+                        Structure.Attribute.build("name", "Наименование", FieldType.STRING, false, null),
+                        Structure.Attribute.build("code", "Код", FieldType.STRING, false, null)),
+                null);
+        Draft draft = draftService.create(refBook.getRefBookId(), structure);
+
+        List<String> codes = structure.getAttributes().stream().map(Structure.Attribute::getCode).collect(Collectors.toList());
+        Map<String, Object> rowMap1 = new HashMap<>();
+        rowMap1.put(codes.get(0), 1);
+        rowMap1.put(codes.get(1), "Дублирующееся имя");
+        rowMap1.put(codes.get(2), "001");
+
+        Map<String, Object> rowMap2 = new HashMap<>();
+        rowMap2.put(codes.get(0), 2);
+        rowMap2.put(codes.get(1), "Дублирующееся имя");
+        rowMap2.put(codes.get(2), "0021");
+
+        List<RowValue> rowValues = Arrays.asList(
+                ConverterUtil.rowValue(new Row(rowMap1), structure),
+                ConverterUtil.rowValue(new Row(rowMap2), structure));
+
+        draftDataService.addRows(draft.getStorageCode(), rowValues);
+
+        structure.getAttribute("code").setPrimary(Boolean.TRUE);
+        UpdateAttribute updateAttribute = new UpdateAttribute(draft.getId(), structure.getAttribute("name"), new Structure.Reference());
+        draftService.updateAttribute(updateAttribute);
+
+        structure.getAttribute("name").setPrimary(Boolean.TRUE);
+        updateAttribute = new UpdateAttribute(draft.getId(), structure.getAttribute("name"), new Structure.Reference());
+        try {
+            draftService.updateAttribute(updateAttribute);
+        } catch (Exception e) {
+            assertEquals("primary.key.not.unique", e.getMessage());
+        }
+    }
 }
