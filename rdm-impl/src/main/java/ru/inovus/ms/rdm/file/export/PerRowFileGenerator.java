@@ -1,15 +1,11 @@
 package ru.inovus.ms.rdm.file.export;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ru.inovus.ms.rdm.file.Row;
 
 import java.io.OutputStream;
 import java.util.Iterator;
 
 public abstract class PerRowFileGenerator implements FileGenerator {
-
-    private static final Logger logger = LoggerFactory.getLogger(PerRowFileGenerator.class);
 
     private OutputStream outputStream;
 

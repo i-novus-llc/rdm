@@ -8,6 +8,8 @@ import org.apache.poi.xssf.streaming.SXSSFCell;
 import org.apache.poi.xssf.streaming.SXSSFRow;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.inovus.ms.rdm.file.Row;
 import ru.inovus.ms.rdm.model.Structure;
 
@@ -22,6 +24,9 @@ import java.util.*;
  * Created by znurgaliev on 24.07.2018.
  */
 public class XlsFileGenerator extends PerRowFileGenerator {
+
+    private static final Logger logger = LoggerFactory.getLogger(XlsFileGenerator.class);
+
 
     private Map<String, Integer> fieldColumn = new HashMap<>();
     private SXSSFWorkbook workbook;
@@ -47,6 +52,7 @@ public class XlsFileGenerator extends PerRowFileGenerator {
 
     @Override
     protected void startWrite() {
+        logger.info("Start generate XLSX");
         workbook = new SXSSFWorkbook(500);
         stileFactory = new CellStileFactory();
         SXSSFSheet activeSheet = workbook.createSheet("Страница 1");
@@ -71,7 +77,9 @@ public class XlsFileGenerator extends PerRowFileGenerator {
             workbook.close();
             ncos.flush();
             getOutputStream().flush();
+            logger.info("XLSX generate finished");
         } catch (IOException e) {
+            logger.error("cannot generate XLSX");
             throw new RuntimeException(e);
         }
     }
