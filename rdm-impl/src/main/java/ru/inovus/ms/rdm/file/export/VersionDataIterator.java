@@ -15,7 +15,7 @@ import java.util.List;
  */
 public class VersionDataIterator implements Iterator<Row> {
 
-    private final int BUFFER_SIZE = 1000;
+    private static final int BUFFER_SIZE = 1000;
     private int currentPage = 0;
     private Iterator<Integer> versionIdIterator;
     private Integer currentVersionId;
