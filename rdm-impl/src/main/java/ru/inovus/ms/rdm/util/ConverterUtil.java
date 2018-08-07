@@ -17,7 +17,6 @@ import ru.inovus.ms.rdm.model.Structure;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
-import java.util.*;
 import java.util.stream.Collectors;
 
 public class ConverterUtil {
@@ -57,6 +56,16 @@ public class ConverterUtil {
             sortings.add(new Sorting(order.getProperty(), Direction.valueOf(order.getDirection().name())));
         }
         return sortings;
+    }
+
+    public static List<FieldSearchCriteria> getFieldSearchCriteriaList(List<AttributeFilter> attributeFilters) {
+        if (Objects.isNull(attributeFilters))
+            return null;
+        return attributeFilters.stream().map(attrFilter -> new FieldSearchCriteria(
+                        fieldFactory.createField(attrFilter.getAttributeName(), attrFilter.getFieldType()),
+                        attrFilter.getSearchType(),
+                        Collections.singletonList(attrFilter.getValue()))
+        ).collect(Collectors.toList());
     }
 
     public static Row toRow(RowValue rowValue) {
