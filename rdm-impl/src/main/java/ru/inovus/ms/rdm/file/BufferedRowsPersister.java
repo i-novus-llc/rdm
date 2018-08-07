@@ -30,7 +30,6 @@ public class BufferedRowsPersister implements RowsProcessor {
 
     private Result result = new Result(0, 0, null);
 
-
     public BufferedRowsPersister(DraftDataService draftDataService, String storageCode, Structure structure) {
         this.draftDataService = draftDataService;
         this.storageCode = storageCode;

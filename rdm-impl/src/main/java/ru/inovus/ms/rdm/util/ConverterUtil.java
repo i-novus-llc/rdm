@@ -6,18 +6,18 @@ import org.springframework.data.domain.Sort;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.service.FieldFactoryImpl;
 import ru.inovus.ms.rdm.file.Row;
+import ru.inovus.ms.rdm.model.AttributeFilter;
 import ru.inovus.ms.rdm.model.Structure;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ConverterUtil {
 
@@ -37,13 +37,7 @@ public class ConverterUtil {
     }
 
     public static Field field(Structure.Attribute attribute) {
-        Field field = null;
-        if (attribute.getIsPrimary()) {
-            field = fieldFactory.createSearchField(attribute.getCode(), attribute.getType());
-        } else {
-            field = fieldFactory.createField(attribute.getCode(), attribute.getType());
-        }
-        return field;
+        return fieldFactory.createSearchField(attribute.getCode(), attribute.getType());
     }
 
     public static RowValue rowValue(Row row, Structure structure) {
@@ -62,6 +56,14 @@ public class ConverterUtil {
             sortings.add(new Sorting(order.getProperty(), Direction.valueOf(order.getDirection().name())));
         }
         return sortings;
+    }
+
+    public static List<FieldSearchCriteria> getFieldSearchCriteriaList(List<AttributeFilter> attributeFilters) {
+        return attributeFilters.stream().map(attrFilter -> new FieldSearchCriteria(
+                        fieldFactory.createField(attrFilter.getAttributeName(), attrFilter.getFieldType()),
+                        attrFilter.getSearchType(),
+                        Collections.singletonList(attrFilter.getValue()))
+        ).collect(Collectors.toList());
     }
 
 }

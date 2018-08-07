@@ -57,7 +57,7 @@ public class VersionServiceImpl implements VersionService {
         Date bdate = date(version.getFromDate());
         Date edate = date(version.getToDate());
         DataCriteria dataCriteria = new DataCriteria(version.getStorageCode(), bdate, edate,
-                fields, criteria.getFieldFilter(), criteria.getCommonFilter());
+                fields, ConverterUtil.getFieldSearchCriteriaList(criteria.getAttributeFilter()), criteria.getCommonFilter());
         dataCriteria.setPage(criteria.getPageNumber());
         dataCriteria.setSize(criteria.getPageSize());
         Optional.ofNullable(criteria.getSort()).ifPresent(sort -> dataCriteria.setSortings(sortings(sort)));
