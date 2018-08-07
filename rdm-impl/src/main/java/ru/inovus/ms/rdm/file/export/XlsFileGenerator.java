@@ -79,7 +79,7 @@ public class XlsFileGenerator extends PerRowFileGenerator {
             getOutputStream().flush();
             logger.info("XLSX generate finished");
         } catch (IOException e) {
-            logger.error("cannot generate XLSX");
+            logger.error("cannot generate XLSX", e);
             throw new RdmException("cannot generate XLSX");
         }
     }
