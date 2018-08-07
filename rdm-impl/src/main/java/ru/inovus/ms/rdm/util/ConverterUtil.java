@@ -59,6 +59,8 @@ public class ConverterUtil {
     }
 
     public static List<FieldSearchCriteria> getFieldSearchCriteriaList(List<AttributeFilter> attributeFilters) {
+        if (Objects.isNull(attributeFilters))
+            return null;
         return attributeFilters.stream().map(attrFilter -> new FieldSearchCriteria(
                         fieldFactory.createField(attrFilter.getAttributeName(), attrFilter.getFieldType()),
                         attrFilter.getSearchType(),
