@@ -6,15 +6,19 @@ import org.springframework.data.domain.Sort;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.service.FieldFactoryImpl;
 import ru.inovus.ms.rdm.file.Row;
+import ru.inovus.ms.rdm.model.AttributeFilter;
 import ru.inovus.ms.rdm.model.Structure;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ConverterUtil {
 
@@ -27,7 +31,7 @@ public class ConverterUtil {
         List<Field> fields = new ArrayList<>();
         if (structure != null) {
             Optional.ofNullable(structure.getAttributes()).ifPresent(s ->
-                    s.forEach(attribute -> fields.add(field(attribute)))
+                    s.forEach(attribute ->  fields.add(field(attribute)))
             );
         }
         return fields;

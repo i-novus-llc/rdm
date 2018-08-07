@@ -27,15 +27,13 @@ import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.util.ConverterUtil;
 import ru.kirkazan.common.exception.CodifiedException;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -200,7 +198,7 @@ public class DraftServiceImpl implements DraftService {
         String storageCode = draft.getStorageCode();
         List<Field> fields = fields(draft.getStructure());
         DataCriteria dataCriteria = new DataCriteria(storageCode, null, null,
-                fields, criteria.getFieldFilter(), criteria.getCommonFilter());
+                fields, ConverterUtil.getFieldSearchCriteriaList(criteria.getAttributeFilter()), criteria.getCommonFilter());
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
         return new RowValuePage(pagedData);
     }
@@ -317,10 +315,11 @@ public class DraftServiceImpl implements DraftService {
 
         RefBookVersionEntity draftEntity = versionRepository.findOne(createAttribute.getVersionId());
         Structure.Attribute attribute = createAttribute.getAttribute();
+        Structure structure = draftEntity.getStructure();
+        validateRequired(attribute, draftEntity.getStorageCode(), structure);
         Structure.Reference reference = createAttribute.getReference();
         draftDataService.addField(draftEntity.getStorageCode(), field(attribute));
 
-        Structure structure = draftEntity.getStructure();
         if (structure == null) {
             structure = new Structure();
         }
@@ -337,6 +336,16 @@ public class DraftServiceImpl implements DraftService {
             structure.getReferences().add(reference);
         }
         draftEntity.setStructure(structure);
+    }
+
+    private void validateRequired(Structure.Attribute attribute, String storageCode, Structure structure) {
+        if (structure != null && structure.getAttributes() != null
+                && (attribute.getIsPrimary() || attribute.getIsRequired())) {
+            List<RowValue> data = searchDataService.getData(new DataCriteria(storageCode, null, null, fields(structure), null, null));
+            if (!isEmpty(data)) {
+                throw new UserException("required.attribute.err");
+            }
+        }
     }
 
     @Override
@@ -406,7 +415,7 @@ public class DraftServiceImpl implements DraftService {
             throw new IllegalArgumentException(ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE);
         if (FieldType.REFERENCE.equals(updateAttribute.getType()) &&
                 (FieldType.REFERENCE.equals(attribute.getType()) && validateReferenceValues(updateAttribute, this::isUpdateValueNotNullAndEmpty)
-                || (!FieldType.REFERENCE.equals(attribute.getType()) && validateReferenceValues(updateAttribute, this::isUpdateValueNullOrEmpty))))
+                        || (!FieldType.REFERENCE.equals(attribute.getType()) && validateReferenceValues(updateAttribute, this::isUpdateValueNullOrEmpty))))
             throw new IllegalArgumentException(ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE);
     }
 
