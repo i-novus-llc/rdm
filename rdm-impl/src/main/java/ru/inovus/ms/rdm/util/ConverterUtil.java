@@ -14,10 +14,7 @@ import ru.inovus.ms.rdm.model.Structure;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class ConverterUtil {
 
@@ -56,6 +53,15 @@ public class ConverterUtil {
             sortings.add(new Sorting(order.getProperty(), Direction.valueOf(order.getDirection().name())));
         }
         return sortings;
+    }
+
+    public static Row toRow(RowValue rowValue) {
+        Map<String, Object> data = new HashMap<>();
+        rowValue.getFieldValues().forEach(fieldValue -> {
+            FieldValue fv = (FieldValue) fieldValue;
+            data.put(fv.getField(), fv.getValue());
+        });
+        return new Row(data);
     }
 
 }
