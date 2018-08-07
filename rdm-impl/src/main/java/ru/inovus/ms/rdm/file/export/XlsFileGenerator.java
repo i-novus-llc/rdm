@@ -10,6 +10,7 @@ import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.file.Row;
 import ru.inovus.ms.rdm.model.Structure;
@@ -150,6 +151,9 @@ public class XlsFileGenerator extends PerRowFileGenerator {
         } else if (value instanceof Number) {
             cell.setCellStyle(stileFactory.getDefaultStyle());
             cell.setCellValue(((Number) value).doubleValue());
+        } else if (value instanceof Reference) {
+            cell.setCellStyle(stileFactory.getDefaultStyle());
+            cell.setCellValue(((Reference)value).getValue());
         } else {
             cell.setCellStyle(stileFactory.getDefaultStyle());
             cell.setCellValue(Optional.ofNullable(value).orElse("").toString());
