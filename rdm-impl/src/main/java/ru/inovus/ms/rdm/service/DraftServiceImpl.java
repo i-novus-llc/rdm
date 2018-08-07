@@ -27,6 +27,7 @@ import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.util.ConverterUtil;
 import ru.kirkazan.common.exception.CodifiedException;
 
 import java.io.InputStream;
@@ -197,7 +198,7 @@ public class DraftServiceImpl implements DraftService {
         String storageCode = draft.getStorageCode();
         List<Field> fields = fields(draft.getStructure());
         DataCriteria dataCriteria = new DataCriteria(storageCode, null, null,
-                fields, criteria.getFieldFilter(), criteria.getCommonFilter());
+                fields, ConverterUtil.getFieldSearchCriteriaList(criteria.getAttributeFilter()), criteria.getCommonFilter());
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
         return new RowValuePage(pagedData);
     }
