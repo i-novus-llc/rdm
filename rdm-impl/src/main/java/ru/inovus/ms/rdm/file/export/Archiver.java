@@ -1,5 +1,9 @@
 package ru.inovus.ms.rdm.file.export;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.inovus.ms.rdm.exception.RdmException;
+
 import java.io.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -9,6 +13,8 @@ import java.util.zip.ZipOutputStream;
  */
 public class Archiver implements Closeable {
 
+
+    private static final Logger logger = LoggerFactory.getLogger(Archiver.class);
     private static final String TEMP_FILE_NAME_PREFIX = "zip_temp";
 
     private File zipFile;
@@ -20,7 +26,8 @@ public class Archiver implements Closeable {
             zipFile.deleteOnExit();
             this.zos = new ZipOutputStream(new FileOutputStream(zipFile));
         } catch (IOException e) {
-            throw new IllegalArgumentException("Can not create archive", e);
+            logger.error("Can not create archive", e);
+            throw new RdmException("Can not create archive");
         }
     }
 
@@ -30,7 +37,8 @@ public class Archiver implements Closeable {
             fileGenerator.generate(zos);
             zos.closeEntry();
         } catch (IOException e) {
-            throw new IllegalStateException("Can not add generate file " + fileName, e);
+            logger.error("Can not add generate file " + fileName, e);
+            throw new RdmException("Can not add generate file " + fileName);
         }
         return this;
     }
@@ -41,7 +49,7 @@ public class Archiver implements Closeable {
             close();
             return new FileInputStream(zipFile);
         } catch (IOException e) {
-            throw new IllegalStateException(e);
+            throw new RdmException("Archiver is closed", e);
         }
     }
 
