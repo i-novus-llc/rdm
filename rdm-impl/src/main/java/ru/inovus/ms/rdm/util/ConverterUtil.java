@@ -10,12 +10,15 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriter
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.service.FieldFactoryImpl;
+import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.file.Row;
 import ru.inovus.ms.rdm.model.AttributeFilter;
 import ru.inovus.ms.rdm.model.Structure;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -68,4 +71,22 @@ public class ConverterUtil {
         ).collect(Collectors.toList());
     }
 
-}
+    public static Object castReferenceValue(Field field, String value) {
+        switch (field.getType()) {
+            case "boolean":
+                return Boolean.valueOf(value);
+            case "date":
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+                return LocalDate.parse(value, formatter);
+            case "numeric":
+                return Float.parseFloat(value);
+            case "bigint":
+                return Integer.parseInt(value);
+            case "varchar":
+                return value;
+            case "ltree":
+                return value;
+            default:
+                throw new RdmException("invalid field type");
+        }
+    }}

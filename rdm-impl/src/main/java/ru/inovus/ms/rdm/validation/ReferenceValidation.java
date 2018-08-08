@@ -1,11 +1,96 @@
 package ru.inovus.ms.rdm.validation;
 
+import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
+import ru.i_novus.platform.datastorage.temporal.model.Field;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
+import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
+import ru.inovus.ms.rdm.exception.RdmException;
+import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
+import ru.inovus.ms.rdm.util.ConverterUtil;
+
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Collections.singletonList;
+import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+import static ru.inovus.ms.rdm.util.ConverterUtil.date;
+import static ru.inovus.ms.rdm.util.ConverterUtil.field;
 
 public class ReferenceValidation implements RdmValidation {
 
+    private SearchDataService searchDataService;
+    private RefBookVersionRepository versionRepository;
+    private Structure.Reference reference;
+    private Integer draftId;
+
+    private static final int BUF_SIZE = 100;
+    private static final String INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE = "inconvertible.new.type";
+
+    public ReferenceValidation(SearchDataService searchDataService, RefBookVersionRepository versionRepository, Structure.Reference reference, Integer draftId) {
+        this.searchDataService = searchDataService;
+        this.versionRepository = versionRepository;
+        this.reference = reference;
+        this.draftId = draftId;
+    }
+
     @Override
     public Message validate() {
+        RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
+        RefBookVersionEntity refVersion = versionRepository.getOne(reference.getReferenceVersion());
+        Field draftField = field(draftVersion.getStructure().getAttribute(reference.getAttribute()));
+        Field refField = field(refVersion.getStructure().getAttribute(reference.getReferenceAttribute()));
+
+        // значения, которые невозможно привести к типу атрибута, на который ссылаемся
+        List<String> incorrectValues = new ArrayList<>();
+        List<Message> messages = new ArrayList<>();
+
+        DataCriteria draftDataCriteria = new DataCriteria(draftVersion.getStorageCode(), date(draftVersion.getFromDate()), date(draftVersion.getToDate()), singletonList(draftField), null, null);
+        draftDataCriteria.setPage(1);
+        draftDataCriteria.setSize(BUF_SIZE);
+        validateData(draftDataCriteria, incorrectValues, refField, refVersion);
+
+        if (!isEmpty(incorrectValues)) {
+            incorrectValues.forEach(incorrectValue ->
+                    messages.add(new Message(INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE, draftVersion.getStructure().getAttribute(reference.getAttribute()).getDescription(), incorrectValue))
+            );
+            return messages.get(0);
+        }
         return null;
+    }
+
+    private void validateData(DataCriteria draftDataCriteria, List<String> incorrectValues, Field refField, RefBookVersionEntity refVersion) {
+        CollectionPage<RowValue> draftRowValues = searchDataService.getPagedData(draftDataCriteria);
+        // значения, которые приведены к типу атрибута из ссылки
+        List<Object> castedValues = new ArrayList<>();
+
+        (draftRowValues.getCollection()).forEach(rowValue -> {
+            Object castedValue;
+            try {
+                castedValue = ConverterUtil.castReferenceValue(refField, String.valueOf(rowValue.getFieldValue(reference.getAttribute()).getValue()));
+                castedValues.add(castedValue);
+            } catch (NumberFormatException | DateTimeParseException | RdmException e) {
+                incorrectValues.add(String.valueOf(rowValue.getFieldValue(reference.getAttribute()).getValue()));
+            }
+        });
+        if (!isEmpty(castedValues)) {
+            FieldSearchCriteria refFieldSearchCriteria = new FieldSearchCriteria(refField, SearchTypeEnum.EXACT, castedValues);
+            DataCriteria refDataCriteria = new DataCriteria(refVersion.getStorageCode(), date(refVersion.getFromDate()), date(refVersion.getToDate()), singletonList(refField), singletonList(refFieldSearchCriteria), null);
+            CollectionPage<RowValue> refRowValues = searchDataService.getPagedData(refDataCriteria);
+            castedValues.forEach(castedValue -> {
+                if (refRowValues.getCollection().stream().noneMatch(rowValue -> String.valueOf(castedValue).equals(String.valueOf(rowValue.getFieldValue(reference.getReferenceAttribute()).getValue()))))
+                    incorrectValues.add(String.valueOf(castedValue));
+            });
+        }
+        int remainCount = draftRowValues.getCount() - (draftDataCriteria.getPage() - 1) * BUF_SIZE - draftDataCriteria.getSize();
+        if (remainCount <= 0)
+            return;
+        draftDataCriteria.setPage(draftDataCriteria.getPage() + 1);
+        draftDataCriteria.setSize((remainCount >= BUF_SIZE) ? BUF_SIZE : remainCount);
+        validateData(draftDataCriteria, incorrectValues, refField, refVersion);
     }
 }

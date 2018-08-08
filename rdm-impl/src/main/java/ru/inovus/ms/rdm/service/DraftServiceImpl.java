@@ -28,12 +28,16 @@ import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ConverterUtil;
+import ru.inovus.ms.rdm.validation.ReferenceValidation;
 import ru.kirkazan.common.exception.CodifiedException;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -440,20 +444,13 @@ public class DraftServiceImpl implements DraftService {
             return;
 
         if (FieldType.REFERENCE.equals(updateAttribute.getType()) && !FieldType.REFERENCE.equals(attribute.getType())) {
-            RefBookVersionEntity refVersion = versionRepository.findOne(updateAttribute.getReferenceVersion().get());
-            RowsValidatorImpl rowsValidator = new RowsValidatorImpl(versionService, refVersion.getStructure());
-            StructureRowMapper rowMapper = new StructureRowMapper(versionService.getStructure(updateAttribute.getVersionId()), versionRepository);
-            Structure.Attribute referenceAttribute = refVersion.getStructure().getAttribute(updateAttribute.getReferenceAttribute().get());
-            List<RowValue> rowValues = versionService.search(updateAttribute.getVersionId(), new SearchDataCriteria()).getContent();
-            try {
-                Boolean invalidRef = rowValues.stream().filter(rowValue -> !rowsValidator.isReferenceValid(
-                        new Structure.Reference(updateAttribute.getAttribute().get(), updateAttribute.getReferenceVersion().get(), updateAttribute.getReferenceAttribute().get(), updateAttribute.getDisplayAttributes().get(), updateAttribute.getSortingAttributes().get()),
-                        String.valueOf(rowValue.getFieldValue(updateAttribute.getAttribute().get()).getValue()))).findFirst().isPresent();
-                if (invalidRef)
-                    throw new UserException(String.format(INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE, attribute.getDescription()));
-            } catch (RuntimeException e) {
-                throw new UserException(String.format(INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE, attribute.getDescription()), e);
-            }
+            Message message = new ReferenceValidation(
+                    searchDataService,
+                    versionRepository,
+                    new Structure.Reference(updateAttribute.getAttribute().get(), updateAttribute.getReferenceVersion().get(), updateAttribute.getReferenceAttribute().get(), updateAttribute.getDisplayAttributes().get(), updateAttribute.getSortingAttributes().get()),
+                    updateAttribute.getVersionId()).validate();
+            if (message != null )
+                throw new UserException(message);
         }
     }
 
