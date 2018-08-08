@@ -1,8 +1,10 @@
 package ru.inovus.ms.rdm.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import ru.inovus.ms.rdm.file.FileStorage;
+import ru.inovus.ms.rdm.model.FileModel;
 import ru.inovus.ms.rdm.service.api.FileStorageService;
 
 import java.io.InputStream;
@@ -11,6 +13,7 @@ import java.io.InputStream;
  * Created by znurgaliev on 03.08.2018.
  */
 @Service
+@Primary
 public class FileStorageServiceImpl implements FileStorageService {
 
     private FileStorage fileStorage;
@@ -21,9 +24,9 @@ public class FileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
-    public String save(InputStream is, String fileName) {
+    public FileModel save(InputStream is, String fileName) {
 
-        return fileStorage.saveContent(is, fileName);
+        return new FileModel(fileStorage.saveContent(is, fileName), fileName);
 
     }
 }

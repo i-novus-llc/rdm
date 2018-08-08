@@ -21,6 +21,7 @@ import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.FileStorage;
@@ -40,6 +41,8 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import static java.util.Collections.emptyList;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
@@ -221,7 +224,7 @@ public class ApplicationTest {
         refBookService.archive(refBook.getRefBookId());
 
         // получение по идентификатору версии
-        RefBook refBookById = refBookService.getById(refBook.getId());
+        RefBook refBookById = refBookService.getByVersionId(refBook.getId());
         refBook.setArchived(Boolean.TRUE);
         refBook.setRemovable(Boolean.FALSE);
         refBook.setDisplayVersion(RefBookStatus.ARCHIVED.getName());
@@ -524,10 +527,7 @@ public class ApplicationTest {
     private FileModel createFileModel(String path, String name) {
         fileStorage.setRoot("src/test/resources/rdm");
         try (InputStream input = ApplicationTest.class.getResourceAsStream("/" + name)) {
-            FileModel fileModel = new FileModel(path, name);
-            String fullPath = fileStorageService.save(input, path);
-            fileModel.setPath(fullPath);
-            return fileModel;
+            return fileStorageService.save(input, path);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -676,6 +676,7 @@ public class ApplicationTest {
         }
         return true;
     }
+
     @Test
     public void testCreateRequiredAttributeWithNotEmptyData(){
         CreateAttribute createAttributeModel = new CreateAttribute(-2, createAttribute, createReference);
@@ -685,5 +686,30 @@ public class ApplicationTest {
             assertEquals("required.attribute.err", e.getMessage());
         }
     }
+
+    @Test
+    public void testExportImportDraftFile() throws IOException {
+        //создание справочника из файла
+        RefBook refBook = refBookService.create(new RefBookCreateRequest("Z002", null));
+        FileModel fileModel = createFileModel("create_testUpload.xlsx", "testUpload.xlsx");
+        Draft draft1 = draftService.create(refBook.getRefBookId(), fileModel);
+        Page<RowValue> expectedPage = draftService.search(draft1.getId(), new SearchDataCriteria());
+
+        //выгрузка файла
+        ExportFile exportFile = draftService.getDraftFile(draft1.getId(), FileType.XLSX);
+        ZipInputStream zis = new ZipInputStream(exportFile.getInputStream());
+        ZipEntry zipEntry = zis.getNextEntry();
+        fileModel = fileStorageService.save(zis, zipEntry.getName());
+
+        //создание нового черновика
+        Draft draft2 = draftService.create(refBook.getRefBookId(), fileModel);
+        Assert.assertNotEquals(draft1, draft2);
+        Page<RowValue> actualPage = draftService.search(draft2.getId(), new SearchDataCriteria());
+
+        //сравнение двух черновиков
+        Assert.assertEquals(expectedPage, actualPage);
+
+    }
+
 
 }

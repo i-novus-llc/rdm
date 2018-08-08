@@ -20,20 +20,30 @@ import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
+import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.*;
+import ru.inovus.ms.rdm.file.export.Archiver;
+import ru.inovus.ms.rdm.file.export.FileGenerator;
+import ru.inovus.ms.rdm.file.export.PerRowFileGeneratorFactory;
+import ru.inovus.ms.rdm.file.export.VersionDataIterator;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.DraftService;
+import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ConverterUtil;
+import ru.inovus.ms.rdm.util.FileNameGenerator;
 import ru.kirkazan.common.exception.CodifiedException;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -63,11 +73,16 @@ public class DraftServiceImpl implements DraftService {
 
     private FileStorage fileStorage;
 
+    private RefBookService refBookService;
+
+    private FileNameGenerator fileNameGenerator;
+
     private static final String ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE = "Невозможно обновить атрибут";
 
     @Autowired
     public DraftServiceImpl(DraftDataService draftDataService, RefBookVersionRepository versionRepository, VersionService versionService,
-                            RefBookRepository refBookRepository, SearchDataService searchDataService, DropDataService dropDataService, FileStorage fileStorage) {
+                            RefBookRepository refBookRepository, SearchDataService searchDataService, DropDataService dropDataService, FileStorage fileStorage,
+                            RefBookService refBookService, FileNameGenerator fileNameGenerator) {
         this.draftDataService = draftDataService;
         this.versionRepository = versionRepository;
         this.versionService = versionService;
@@ -75,6 +90,8 @@ public class DraftServiceImpl implements DraftService {
         this.dropDataService = dropDataService;
         this.refBookRepository = refBookRepository;
         this.fileStorage = fileStorage;
+        this.refBookService = refBookService;
+        this.fileNameGenerator = fileNameGenerator;
     }
 
     @Override
@@ -444,6 +461,22 @@ public class DraftServiceImpl implements DraftService {
         draftEntity.getStructure().getAttributes().remove(attribute);
 
         draftDataService.deleteField(draftEntity.getStorageCode(), attributeCode);
+    }
+
+    @Override
+    public ExportFile getDraftFile(Integer draftId, FileType fileType) {
+        RefBookVersion versionModel = refBookService.getByVersionId(draftId);
+        if (versionModel == null || !RefBookVersionStatus.DRAFT.equals(versionModel.getStatus())) return null;
+
+        VersionDataIterator dataIterator = new VersionDataIterator(versionService, Collections.singletonList(draftId));
+        FileGenerator fileGenerator = PerRowFileGeneratorFactory
+                .getFileGenerator(dataIterator, versionService.getStructure(draftId), fileType);
+
+        InputStream is = new Archiver()
+                .addEntry(fileGenerator, fileNameGenerator.generateName(versionModel, FileType.XLSX))
+                .getArchive();
+
+        return new ExportFile(is, fileNameGenerator.generateZipName(versionModel, FileType.XLSX));
     }
 
 }

@@ -67,7 +67,7 @@ public class StructureController implements CollectionPageService<AttributeCrite
     }
 
     private void enrich(ReadAttribute attribute, Structure.Reference reference) {
-        Integer refRefBookId = refBookService.getById(reference.getReferenceVersion()).getRefBookId();
+        Integer refRefBookId = refBookService.getByVersionId(reference.getReferenceVersion()).getRefBookId();
         attribute.setReferenceRefBookId(refRefBookId);
 
         String attributeName = getAttributeName(reference.getReferenceAttribute(), attribute.getReferenceVersion());

@@ -5,6 +5,7 @@ import com.querydsl.core.types.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +35,7 @@ import static java.util.Objects.nonNull;
 import static org.springframework.util.StringUtils.isEmpty;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
 
+@Primary
 @Service
 public class RefBookServiceImpl implements RefBookService {
 
@@ -62,7 +64,7 @@ public class RefBookServiceImpl implements RefBookService {
 
     @Override
     @Transactional
-    public RefBook getById(Integer versionId) {
+    public RefBook getByVersionId(Integer versionId) {
         return refBookModel(repository.findOne(versionId));
     }
 
