@@ -11,7 +11,7 @@ import java.util.zip.ZipOutputStream;
 /**
  * Created by znurgaliev on 06.08.2018.
  */
-public class Archiver implements Closeable {
+public class Archiver {
 
 
     private static final Logger logger = LoggerFactory.getLogger(Archiver.class);
@@ -46,15 +46,11 @@ public class Archiver implements Closeable {
     public InputStream getArchive(){
         try {
             zos.flush();
-            close();
+            zos.close();
             return new FileInputStream(zipFile);
         } catch (IOException e) {
             throw new RdmException("Archiver is closed", e);
         }
     }
 
-    @Override
-    public void close() throws IOException {
-        zos.close();
-    }
 }

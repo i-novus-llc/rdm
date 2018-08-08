@@ -12,12 +12,16 @@ import java.util.Iterator;
  */
 public class PerRowFileGeneratorFactory {
 
+    private PerRowFileGeneratorFactory() {
+    }
+
     public static PerRowFileGenerator getFileGenerator(Iterator<Row> rowIterator, Structure structure, FileType fileType) {
-        switch (fileType){
-            case XLSX:
-                return new XlsFileGenerator(rowIterator, structure);
-            default:
-                throw new RdmException("no generator for " + fileType + " type");
-        }
+
+
+        if (FileType.XLSX.equals(fileType))
+            return new XlsFileGenerator(rowIterator, structure);
+
+        throw new RdmException("no generator for " + fileType + " type");
     }
 }
+

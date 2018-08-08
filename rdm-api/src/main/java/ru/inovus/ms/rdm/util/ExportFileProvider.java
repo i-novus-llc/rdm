@@ -4,7 +4,6 @@ import org.apache.cxf.helpers.IOUtils;
 import ru.inovus.ms.rdm.model.ExportFile;
 
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyReader;
@@ -15,7 +14,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -35,8 +34,8 @@ public class ExportFileProvider implements MessageBodyWriter<ExportFile>, Messag
     }
 
     @Override
-    public void writeTo(ExportFile exportFile, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
-        httpHeaders.put("Content-Disposition", Arrays.asList("attachment; filename=" + exportFile.getFileName()));
+    public void writeTo(ExportFile exportFile, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException {
+        httpHeaders.put("Content-Disposition", Collections.singletonList("attachment; filename=" + exportFile.getFileName()));
         IOUtils.copy(exportFile.getInputStream(), entityStream);
         exportFile.getInputStream().close();
         entityStream.close();
@@ -49,7 +48,7 @@ public class ExportFileProvider implements MessageBodyWriter<ExportFile>, Messag
     }
 
     @Override
-    public ExportFile readFrom(Class<ExportFile> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException, WebApplicationException {
+    public ExportFile readFrom(Class<ExportFile> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException {
 
         String name = null;
         List<String> contentDisposition = httpHeaders.get("Content-Disposition");
