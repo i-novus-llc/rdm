@@ -2,8 +2,12 @@ package ru.inovus.ms.rdm.validation;
 
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
@@ -28,6 +32,7 @@ public class ReferenceValidation implements RdmValidation {
     private Structure.Reference reference;
     private Integer draftId;
 
+    private static final Logger logger = LoggerFactory.getLogger(ReferenceValidation.class);
     private static final int BUF_SIZE = 100;
     private static final String INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE = "inconvertible.new.type";
 
@@ -39,7 +44,7 @@ public class ReferenceValidation implements RdmValidation {
     }
 
     @Override
-    public Message validate() {
+    public List<Message> validate() {
         RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
         RefBookVersionEntity refVersion = versionRepository.getOne(reference.getReferenceVersion());
         Field draftField = field(draftVersion.getStructure().getAttribute(reference.getAttribute()));
@@ -54,13 +59,10 @@ public class ReferenceValidation implements RdmValidation {
         draftDataCriteria.setSize(BUF_SIZE);
         validateData(draftDataCriteria, incorrectValues, refField, refVersion);
 
-        if (!isEmpty(incorrectValues)) {
-            incorrectValues.forEach(incorrectValue ->
-                    messages.add(new Message(INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE, draftVersion.getStructure().getAttribute(reference.getAttribute()).getDescription(), incorrectValue))
-            );
-            return messages.get(0);
-        }
-        return null;
+        incorrectValues.forEach(incorrectValue ->
+                messages.add(new Message(INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE, draftVersion.getStructure().getAttribute(reference.getAttribute()).getDescription(), incorrectValue))
+        );
+        return messages;
     }
 
     private void validateData(DataCriteria draftDataCriteria, List<String> incorrectValues, Field refField, RefBookVersionEntity refVersion) {
@@ -69,12 +71,14 @@ public class ReferenceValidation implements RdmValidation {
         List<Object> castedValues = new ArrayList<>();
 
         (draftRowValues.getCollection()).forEach(rowValue -> {
+            String value = String.valueOf(rowValue.getFieldValue(reference.getAttribute()).getValue());
             Object castedValue;
             try {
-                castedValue = ConverterUtil.castReferenceValue(refField, String.valueOf(rowValue.getFieldValue(reference.getAttribute()).getValue()));
+                castedValue = ConverterUtil.castReferenceValue(refField, value);
                 castedValues.add(castedValue);
             } catch (NumberFormatException | DateTimeParseException | RdmException e) {
-                incorrectValues.add(String.valueOf(rowValue.getFieldValue(reference.getAttribute()).getValue()));
+                incorrectValues.add(value);
+                logger.error("Can not parse value " + value, e);
             }
         });
         if (!isEmpty(castedValues)) {
@@ -82,7 +86,7 @@ public class ReferenceValidation implements RdmValidation {
             DataCriteria refDataCriteria = new DataCriteria(refVersion.getStorageCode(), date(refVersion.getFromDate()), date(refVersion.getToDate()), singletonList(refField), singletonList(refFieldSearchCriteria), null);
             CollectionPage<RowValue> refRowValues = searchDataService.getPagedData(refDataCriteria);
             castedValues.forEach(castedValue -> {
-                if (refRowValues.getCollection().stream().noneMatch(rowValue -> String.valueOf(castedValue).equals(String.valueOf(rowValue.getFieldValue(reference.getReferenceAttribute()).getValue()))))
+                if (refRowValues.getCollection().stream().noneMatch(rowValue -> castedValue.equals(rowValue.getFieldValue(reference.getReferenceAttribute()).getValue())))
                     incorrectValues.add(String.valueOf(castedValue));
             });
         }

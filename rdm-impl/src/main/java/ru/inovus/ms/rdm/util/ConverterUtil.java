@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.util;
 import net.n2oapp.criteria.api.Direction;
 import net.n2oapp.criteria.api.Sorting;
 import org.springframework.data.domain.Sort;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
@@ -15,6 +16,7 @@ import ru.inovus.ms.rdm.file.Row;
 import ru.inovus.ms.rdm.model.AttributeFilter;
 import ru.inovus.ms.rdm.model.Structure;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -71,6 +73,15 @@ public class ConverterUtil {
         ).collect(Collectors.toList());
     }
 
+    public static Row toRow(RowValue rowValue) {
+        Map<String, Object> data = new HashMap<>();
+        rowValue.getFieldValues().forEach(fieldValue -> {
+            FieldValue fv = (FieldValue) fieldValue;
+            data.put(fv.getField(), fv.getValue());
+        });
+        return new Row(data);
+    }
+
     public static Object castReferenceValue(Field field, String value) {
         switch (field.getType()) {
             case "boolean":
@@ -81,7 +92,7 @@ public class ConverterUtil {
             case "numeric":
                 return Float.parseFloat(value);
             case "bigint":
-                return Integer.parseInt(value);
+                return BigInteger.valueOf(Long.parseLong(value));
             case "varchar":
                 return value;
             case "ltree":
@@ -89,4 +100,24 @@ public class ConverterUtil {
             default:
                 throw new RdmException("invalid field type");
         }
-    }}
+    }
+
+    public static String getFieldTypeName(FieldType type) {
+        switch (type) {
+            case STRING:
+                return "Строчный";
+            case FLOAT:
+                return "Дробный";
+            case REFERENCE:
+                return "Ссылочный";
+            case INTEGER:
+                return "Целочисленный";
+            case BOOLEAN:
+                return "Логический";
+            case DATE:
+                return "Дата";
+            default:
+                return null;
+        }
+    }
+}

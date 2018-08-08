@@ -30,6 +30,7 @@ import ru.inovus.ms.rdm.util.ConverterUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -41,6 +42,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.junit.Assert.*;
+import static ru.inovus.ms.rdm.util.ConverterUtil.getFieldTypeName;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
 
 @RunWith(SpringRunner.class)
@@ -468,7 +470,7 @@ public class ApplicationTest {
         rowMap1.put(codes.get(2), 1.0);
         rowMap1.put(codes.get(3), date);
         rowMap1.put(codes.get(4), true);
-        rowMap1.put(codes.get(5), 4);
+        rowMap1.put(codes.get(5), BigInteger.valueOf(4));
         List<RowValue> expected = Collections.singletonList(ConverterUtil.rowValue(new Row(rowMap1), structure));
 
         Page<RowValue> search = draftService.search(draft.getId(), new SearchDataCriteria(null, null));
@@ -555,7 +557,7 @@ public class ApplicationTest {
 
         List<String> codes = structure.getAttributes().stream().map(Structure.Attribute::getCode).collect(Collectors.toList());
         Map<String, Object> rowMap1 = new HashMap<>();
-        rowMap1.put(codes.get(0), 1);
+        rowMap1.put(codes.get(0), BigInteger.valueOf(1));
         rowMap1.put(codes.get(1), 2.4);
         rowMap1.put(codes.get(2), "Первое тестовое наименование");
         rowMap1.put(codes.get(3), true);
@@ -563,7 +565,7 @@ public class ApplicationTest {
         rowMap1.put(codes.get(5), new Reference("5", null));
 
         Map<String, Object> rowMap2 = new HashMap<>();
-        rowMap2.put(codes.get(0), 2);
+        rowMap2.put(codes.get(0), BigInteger.valueOf(2));
         rowMap2.put(codes.get(1), 0.4);
         rowMap2.put(codes.get(2), "Второе тестовое наименование");
         rowMap2.put(codes.get(3), false);
@@ -632,7 +634,7 @@ public class ApplicationTest {
         Draft draft = draftService.create(refBook.getRefBookId(), structure);
 
         Map<String, Object> rowMap1 = new HashMap<>();
-        rowMap1.put(structure.getAttributes().get(0).getCode(), 5);
+        rowMap1.put(structure.getAttributes().get(0).getCode(), BigInteger.valueOf(5));
         rowMap1.put(structure.getAttributes().get(1).getCode(), "запись для ссылки");
 
         draftDataService.addRows(draft.getStorageCode(),
@@ -691,6 +693,8 @@ public class ApplicationTest {
     }
 
     /**
+     * Тест на изменение структуры черновика без данных
+     *
      * Создаем новый черновик с ссылкой на опубликованную версию
      * Обновляем тип атрибута с любого на любой
      * Обновление без ошибок, так как в версии нет данных
@@ -704,8 +708,8 @@ public class ApplicationTest {
 
         Draft draft = draftService.create(refBook.getRefBookId(), structure);
 
-        reference.setAttribute("string");
         // string -> integer, boolean, reference, float и обратно. Без ошибок
+        reference.setAttribute("string");
         validateUpdateTypeWithoutException(draft.getId(), "string", structure, FieldType.INTEGER, null);
         validateUpdateTypeWithoutException(draft.getId(), "string", structure, FieldType.STRING, null);
         validateUpdateTypeWithoutException(draft.getId(), "string", structure, FieldType.BOOLEAN, null);
@@ -715,8 +719,8 @@ public class ApplicationTest {
         validateUpdateTypeWithoutException(draft.getId(), "string", structure, FieldType.FLOAT, null);
         validateUpdateTypeWithoutException(draft.getId(), "string", structure, FieldType.STRING, null);
 
-        reference.setAttribute("integer");
         // integer -> string, boolean, reference, float и обратно. Без ошибок
+        reference.setAttribute("integer");
         validateUpdateTypeWithoutException(draft.getId(), "integer", structure, FieldType.STRING, null);
         validateUpdateTypeWithoutException(draft.getId(), "integer", structure, FieldType.INTEGER, null);
         validateUpdateTypeWithoutException(draft.getId(), "integer", structure, FieldType.BOOLEAN, null);
@@ -726,8 +730,8 @@ public class ApplicationTest {
         validateUpdateTypeWithoutException(draft.getId(), "integer", structure, FieldType.FLOAT, null);
         validateUpdateTypeWithoutException(draft.getId(), "integer", structure, FieldType.INTEGER, null);
 
-        reference.setAttribute("boolean");
         // boolean -> string, integer, reference, float и обратно. Без ошибок
+        reference.setAttribute("boolean");
         validateUpdateTypeWithoutException(draft.getId(), "boolean", structure, FieldType.STRING, null);
         validateUpdateTypeWithoutException(draft.getId(), "boolean", structure, FieldType.BOOLEAN, null);
         validateUpdateTypeWithoutException(draft.getId(), "boolean", structure, FieldType.INTEGER, null);
@@ -737,8 +741,8 @@ public class ApplicationTest {
         validateUpdateTypeWithoutException(draft.getId(), "boolean", structure, FieldType.FLOAT, null);
         validateUpdateTypeWithoutException(draft.getId(), "boolean", structure, FieldType.BOOLEAN, null);
 
-        reference.setAttribute("reference");
         // reference -> string, integer, boolean, float и обратно. Без ошибок
+        reference.setAttribute("reference");
         validateUpdateTypeWithoutException(draft.getId(), "reference", structure, FieldType.STRING, null);
         validateUpdateTypeWithoutException(draft.getId(), "reference", structure, FieldType.REFERENCE, reference);
         validateUpdateTypeWithoutException(draft.getId(), "reference", structure, FieldType.INTEGER, null);
@@ -748,8 +752,8 @@ public class ApplicationTest {
         validateUpdateTypeWithoutException(draft.getId(), "reference", structure, FieldType.FLOAT, null);
         validateUpdateTypeWithoutException(draft.getId(), "reference", structure, FieldType.REFERENCE, reference);
 
-        reference.setAttribute("float");
         // float -> string, integer, boolean, reference и обратно. Без ошибок
+        reference.setAttribute("float");
         validateUpdateTypeWithoutException(draft.getId(), "float", structure, FieldType.STRING, null);
         validateUpdateTypeWithoutException(draft.getId(), "float", structure, FieldType.FLOAT, null);
         validateUpdateTypeWithoutException(draft.getId(), "float", structure, FieldType.INTEGER, null);
@@ -766,11 +770,13 @@ public class ApplicationTest {
     }
 
     /**
+     * Тест на изменение структуры черновика с данными
+     *
      * Создаем новый черновик с ссылкой на опубликованную версию
      * Добавляем в версию наполнение
      * Пытаемся изменить тип атрибута с любого на любой
      * Без ошибок изменяется только тип поля string -> любой -> string. Возвращаются данные измененного типа
-     * В остальных случаях ожидается ошибкы
+     * В остальных случаях ожидается ошибка
      */
     @Test
     public void testUpdateAttributeTypeWithData() {
@@ -878,27 +884,8 @@ public class ApplicationTest {
         try {
             draftService.updateAttribute(new UpdateAttribute(draftId, structure.getAttribute(attributeName), reference));
             fail();
-        } catch (Exception ignored) {
+        } catch (Exception e) {
             logger.info("Тип " + getFieldTypeName(oldType) + " невозможно привести к типу " + getFieldTypeName(newType));
-        }
-    }
-
-    private String getFieldTypeName(FieldType type) {
-        switch (type) {
-            case STRING:
-                return "Строчный";
-            case FLOAT:
-                return "Дробный";
-            case REFERENCE:
-                return "Ссылочный";
-            case INTEGER:
-                return "Целочисленный";
-            case BOOLEAN:
-                return "Логический";
-            case DATE:
-                return "Дата";
-            default:
-                return null;
         }
     }
 

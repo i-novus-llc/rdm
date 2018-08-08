@@ -67,9 +67,9 @@ public class DraftServiceImpl implements DraftService {
 
     private FileStorage fileStorage;
 
-    private static final String ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE = "Невозможно обновить атрибут.";
-    private static final String INCOMPATIBLE_NEW_DATA_TYPE_EXCEPTION_CODE = "Новая структура поля \"%s\" несовместима с данными.";
-    private static final String INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE = "Новый тип атрибута \"%s\" несовместим с данными.";
+    private static final String ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE = "illegal.update.attribute";
+    private static final String INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE = "incompatible.new.structure";
+    private static final String INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE = "incompatible.new.type";
 
     @Autowired
     public DraftServiceImpl(DraftDataService draftDataService, RefBookVersionRepository versionRepository, VersionService versionService,
@@ -427,7 +427,7 @@ public class DraftServiceImpl implements DraftService {
 
         // проверка отсутствия пустых значений в поле при установке обязательности поля
         if (!isUpdateValueNullOrEmpty(updateAttribute.getIsRequired()) && updateAttribute.getIsRequired().get() && draftDataService.isFieldContainEmptyValues(storageCode, updateAttribute.getCode()))
-            throw new UserException(String.format(INCOMPATIBLE_NEW_DATA_TYPE_EXCEPTION_CODE, attribute.getDescription()));
+            throw new UserException(String.format(INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE, attribute.getDescription()));
 
         if (FieldType.REFERENCE.equals(updateAttribute.getType()) &&
                 (FieldType.REFERENCE.equals(attribute.getType()) && isValidUpdateReferenceValues(updateAttribute, this::isUpdateValueNotNullAndEmpty)
@@ -438,19 +438,20 @@ public class DraftServiceImpl implements DraftService {
         if (draftDataService.isFieldNotEmpty(storageCode, updateAttribute.getCode())) {
             boolean isCompatible = isCompatibleTypes(attribute.getType(), updateAttribute.getType());
             if (!isCompatible) {
-                throw new UserException(String.format(INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE, attribute.getDescription()));
+                throw new UserException(String.format(INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE, attribute.getDescription()));
             }
         } else
             return;
 
         if (FieldType.REFERENCE.equals(updateAttribute.getType()) && !FieldType.REFERENCE.equals(attribute.getType())) {
-            Message message = new ReferenceValidation(
+            List<Message> messages = new ReferenceValidation(
                     searchDataService,
                     versionRepository,
                     new Structure.Reference(updateAttribute.getAttribute().get(), updateAttribute.getReferenceVersion().get(), updateAttribute.getReferenceAttribute().get(), updateAttribute.getDisplayAttributes().get(), updateAttribute.getSortingAttributes().get()),
                     updateAttribute.getVersionId()).validate();
-            if (message != null )
-                throw new UserException(message);
+            //TODO: исправить на конструктор UserException, принимающий список Message
+            if (!isEmpty(messages))
+                throw new UserException(messages.get(0));
         }
     }
 
