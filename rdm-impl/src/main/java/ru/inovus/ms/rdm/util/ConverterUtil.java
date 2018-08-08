@@ -68,4 +68,13 @@ public class ConverterUtil {
         ).collect(Collectors.toList());
     }
 
+    public static Row toRow(RowValue rowValue) {
+        Map<String, Object> data = new HashMap<>();
+        rowValue.getFieldValues().forEach(fieldValue -> {
+            FieldValue fv = (FieldValue) fieldValue;
+            data.put(fv.getField(), fv.getValue());
+        });
+        return new Row(data);
+    }
+
 }
