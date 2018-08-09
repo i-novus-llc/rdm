@@ -107,6 +107,7 @@ public class UpdateAttribute extends UpdatableDto {
     }
 
     public void setIsRequired(UpdateValue<Boolean> isRequired) {
+        // noinspection
         if (isPrimary != null && isPrimary.isPresent() && isPrimary.get() && isRequired != null && isRequired.isPresent() && !isRequired.get())
             throw new IllegalStateException("primary attribute must be required");
         this.isRequired = isRequired;
