@@ -10,17 +10,17 @@ public class PrimaryKeyUniqueValidation implements RdmValidation {
 
     private DraftDataService draftDataService;
     private String storageCode;
-    private List<String> fieldNames;
+    private List<String> primaryAttributeNames;
 
-    public PrimaryKeyUniqueValidation(DraftDataService draftDataService, String storageCode, List<String> fieldNames) {
+    public PrimaryKeyUniqueValidation(DraftDataService draftDataService, String storageCode, List<String> primaryAttributeNames) {
         this.draftDataService = draftDataService;
         this.storageCode = storageCode;
-        this.fieldNames = fieldNames;
+        this.primaryAttributeNames = primaryAttributeNames;
     }
 
     @Override
     public List<Message> validate() {
-        if(!draftDataService.isUnique(storageCode, fieldNames))
+        if(!draftDataService.isUnique(storageCode, primaryAttributeNames))
             return Collections.singletonList(new Message("primary.key.not.unique"));
         return Collections.emptyList();
     }
