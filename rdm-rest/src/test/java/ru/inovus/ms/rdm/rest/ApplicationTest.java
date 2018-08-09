@@ -42,7 +42,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.junit.Assert.*;
-import static ru.inovus.ms.rdm.util.ConverterUtil.getFieldTypeName;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
 
 @RunWith(SpringRunner.class)
@@ -900,5 +899,24 @@ public class ApplicationTest {
         attributes.add(Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, false, "ссылка"));
         references.add(new Structure.Reference("reference", -1, "count", singletonList("count"), singletonList("count")));
         return new Structure(attributes, references);
+    }
+
+    private String getFieldTypeName(FieldType type) {
+        switch (type) {
+            case STRING:
+                return "Строчный";
+            case FLOAT:
+                return "Дробный";
+            case REFERENCE:
+                return "Ссылочный";
+            case INTEGER:
+                return "Целочисленный";
+            case BOOLEAN:
+                return "Логический";
+            case DATE:
+                return "Дата";
+            default:
+                return null;
+        }
     }
 }

@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.util;
 import net.n2oapp.criteria.api.Direction;
 import net.n2oapp.criteria.api.Sorting;
 import org.springframework.data.domain.Sort;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
@@ -99,25 +98,6 @@ public class ConverterUtil {
                 return value;
             default:
                 throw new RdmException("invalid field type");
-        }
-    }
-
-    public static String getFieldTypeName(FieldType type) {
-        switch (type) {
-            case STRING:
-                return "Строчный";
-            case FLOAT:
-                return "Дробный";
-            case REFERENCE:
-                return "Ссылочный";
-            case INTEGER:
-                return "Целочисленный";
-            case BOOLEAN:
-                return "Логический";
-            case DATE:
-                return "Дата";
-            default:
-                return null;
         }
     }
 }

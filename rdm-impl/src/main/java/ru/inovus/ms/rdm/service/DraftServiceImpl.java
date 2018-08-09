@@ -67,7 +67,7 @@ public class DraftServiceImpl implements DraftService {
 
     private FileStorage fileStorage;
 
-    private static final String ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE = "illegal.update.attribute";
+    private static final String ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE = "Can not update structure, illegal update attribute";
     private static final String INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE = "incompatible.new.structure";
     private static final String INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE = "incompatible.new.type";
 
@@ -425,32 +425,26 @@ public class DraftServiceImpl implements DraftService {
                 || updateAttribute.getType() == null)
             throw new IllegalArgumentException(ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE);
 
-        // проверка отсутствия пустых значений в поле при установке обязательности поля
-        if (!isUpdateValueNullOrEmpty(updateAttribute.getIsRequired()) && updateAttribute.getIsRequired().get() && draftDataService.isFieldContainEmptyValues(storageCode, updateAttribute.getCode()))
-            throw new UserException(String.format(INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE, attribute.getDescription()));
-
         if (FieldType.REFERENCE.equals(updateAttribute.getType()) &&
                 (FieldType.REFERENCE.equals(attribute.getType()) && isValidUpdateReferenceValues(updateAttribute, this::isUpdateValueNotNullAndEmpty)
                         || (!FieldType.REFERENCE.equals(attribute.getType()) && isValidUpdateReferenceValues(updateAttribute, this::isUpdateValueNullOrEmpty))))
             throw new IllegalArgumentException(ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE);
 
+        // проверка отсутствия пустых значений в поле при установке обязательности поля
+        if (!isUpdateValueNullOrEmpty(updateAttribute.getIsRequired()) && updateAttribute.getIsRequired().get() && draftDataService.isFieldContainEmptyValues(storageCode, updateAttribute.getCode()))
+            throw new UserException(new Message(INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE, attribute.getDescription()));
+
         // проверка совместимости типов, если столбец не пустой и изменяется тип. Если пустой - можно изменить тип
         if (draftDataService.isFieldNotEmpty(storageCode, updateAttribute.getCode())) {
             boolean isCompatible = isCompatibleTypes(attribute.getType(), updateAttribute.getType());
             if (!isCompatible) {
-                throw new UserException(String.format(INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE, attribute.getDescription()));
+                throw new UserException(new Message(INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE, attribute.getDescription()));
             }
         } else
             return;
 
         if (FieldType.REFERENCE.equals(updateAttribute.getType()) && !FieldType.REFERENCE.equals(attribute.getType())) {
-            List<Message> messages = new ReferenceValidation(
-                    searchDataService,
-                    versionRepository,
-                    new Structure.Reference(updateAttribute.getAttribute().get(), updateAttribute.getReferenceVersion().get(), updateAttribute.getReferenceAttribute().get(), updateAttribute.getDisplayAttributes().get(), updateAttribute.getSortingAttributes().get()),
-                    updateAttribute.getVersionId()).validate();
-            if (!isEmpty(messages))
-                throw new UserException(messages);
+            validateReferenceValues(updateAttribute);
         }
     }
 
@@ -470,6 +464,16 @@ public class DraftServiceImpl implements DraftService {
 
     private boolean isUpdateValueNullOrEmpty(UpdateValue updateValue) {
         return updateValue == null || !updateValue.isPresent();
+    }
+
+    private void validateReferenceValues(UpdateAttribute updateAttribute) {
+        List<Message> messages = new ReferenceValidation(
+                searchDataService,
+                versionRepository,
+                new Structure.Reference(updateAttribute.getAttribute().get(), updateAttribute.getReferenceVersion().get(), updateAttribute.getReferenceAttribute().get(), updateAttribute.getDisplayAttributes().get(), updateAttribute.getSortingAttributes().get()),
+                updateAttribute.getVersionId()).validate();
+        if (!isEmpty(messages))
+            throw new UserException(messages);
     }
 
     @Override
