@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.file;
 
+import net.n2oapp.platform.i18n.Message;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -78,7 +79,7 @@ public class RowsValidatorTest {
         Row notValidRow = new Row(new LinkedHashMap() {{
             put(ATTRIBUTE_NAME, new Reference(newAttributeValue, newAttributeValue));
         }});
-        Result expected = new Result(1, 2, Collections.singletonList(ATTRIBUTE_NAME + ": " + newAttributeValue));
+        Result expected = new Result(1, 2, Collections.singletonList(new Message("validation.reference.err", ATTRIBUTE_NAME + ": " + newAttributeValue)));
         when(versionService.search(AdditionalMatchers.not(eq(REFERENCE_VERSION)), AdditionalMatchers.not(eq(searchDataCriteria))))
                 .thenReturn(new PageImpl<>(Collections.emptyList()));
 

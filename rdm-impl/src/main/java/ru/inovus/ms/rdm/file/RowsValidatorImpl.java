@@ -1,25 +1,26 @@
 package ru.inovus.ms.rdm.file;
 
+import net.n2oapp.platform.i18n.Message;
 import org.springframework.data.domain.Page;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.AttributeFilter;
 import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.validation.TypeValidation;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+import static ru.inovus.ms.rdm.util.ConverterUtil.castReferenceValue;
 import static ru.inovus.ms.rdm.util.ConverterUtil.field;
 
 public class RowsValidatorImpl implements RowsValidator {
@@ -30,6 +31,8 @@ public class RowsValidatorImpl implements RowsValidator {
 
     private VersionService versionService;
 
+    private List<Message> messages = new ArrayList<>();
+
     public RowsValidatorImpl(VersionService versionService, Structure structure) {
         this.versionService = versionService;
         this.structure = structure;
@@ -37,16 +40,24 @@ public class RowsValidatorImpl implements RowsValidator {
 
     @Override
     public Result append(Row row) {
-        validateReferences(row);
+        Optional.ofNullable(validateReferences(row)).ifPresent(referenceMessages -> messages.addAll(referenceMessages));
+        TypeValidation typeValidation = new TypeValidation(row.getData(), structure);
+        Optional.ofNullable(typeValidation.validate()).ifPresent(typeMessages -> messages.addAll(typeMessages));
+        if (!isEmpty(messages)) {
+            this.result = this.result.addResult(new Result(0, 1, messages));
+        } else {
+            this.result = this.result.addResult(new Result(1, 1, null));
+        }
         return this.result;
     }
+
 
     @Override
     public Result process() {
         return this.result;
     }
 
-    private void validateReferences(Row row) {
+    private List<Message> validateReferences(Row row) {
         List<Structure.Reference> references = structure.getReferences();
         List<Structure.Reference> invalidReferences = new ArrayList<>();
         if (!isEmpty(references)) {
@@ -56,14 +67,12 @@ public class RowsValidatorImpl implements RowsValidator {
                         return !isReferenceValid(reference, referenceValue);
                     }).collect(Collectors.toList());
         }
-        if (isEmpty(invalidReferences)) {
-            this.result = this.result.addResult(new Result(1, 1, null));
-        } else {
-            String message = invalidReferences.stream()
-                    .map(invalidReference -> invalidReference.getAttribute() + ": " + ((Reference) row.getData().get((invalidReference).getAttribute())).getValue())
-                    .collect(Collectors.joining(", "));
-            this.result = this.result.addResult(new Result(0, 1, Collections.singletonList(message)));
+        if (!isEmpty(invalidReferences)) {
+            return invalidReferences.stream()
+                    .map(invalidReference -> new Message("validation.reference.err", invalidReference.getAttribute() + ": " + ((Reference) row.getData().get((invalidReference).getAttribute())).getValue()))
+                    .collect(Collectors.toList());
         }
+        return Collections.emptyList();
     }
 
     private boolean isReferenceValid(Structure.Reference reference, String referenceValue) {
@@ -81,26 +90,6 @@ public class RowsValidatorImpl implements RowsValidator {
     private Field createFieldFilter(Structure structure, Structure.Reference reference) {
         Structure.Attribute referenceAttribute = structure.getAttribute(reference.getReferenceAttribute());
         return field(referenceAttribute);
-    }
-
-    private Object castReferenceValue(Field field, String value) {
-        switch (field.getType()) {
-            case "boolean":
-                return Boolean.valueOf(value);
-            case "date":
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-                return LocalDate.parse(value, formatter);
-            case "numeric":
-                return Float.parseFloat(value);
-            case "bigint":
-                return Integer.parseInt(value);
-            case "varchar":
-                return value;
-            case "ltree":
-                return value;
-            default:
-                throw new RdmException("invalid field type");
-        }
     }
 
 }

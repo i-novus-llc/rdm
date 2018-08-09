@@ -7,13 +7,14 @@ import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 
 public class StructureRowMapper implements RowMapper {
 
-    private Structure structure;
+    protected Structure structure;
 
     private RefBookVersionRepository versionRepository;
 
@@ -25,23 +26,26 @@ public class StructureRowMapper implements RowMapper {
     @Override
     public Row map(Row inputRow) {
         inputRow.getData().forEach((name, value) ->
-            inputRow.getData().put(name, castValue(structure.getAttribute(name), (String) value))
+                inputRow.getData().put(name, castValue(structure.getAttribute(name), (String) value))
         );
         return inputRow;
     }
 
-    private Object castValue(Structure.Attribute attribute, String value) {
+    protected Object castValue(Structure.Attribute attribute, String value) {
         switch (attribute.getType()) {
             case STRING:
                 return value;
             case INTEGER:
-                return Integer.parseInt(value);
+                return BigInteger.valueOf(Long.parseLong(value));
             case FLOAT:
                 return Float.parseFloat(value);
             case DATE:
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
                 return LocalDate.parse(value, formatter);
             case BOOLEAN:
+                String lowerCase = value.toLowerCase();
+                if (!"true".equals(lowerCase) && !"false".equals(lowerCase))
+                    throw new RdmException("value is not boolean");
                 return Boolean.valueOf(value);
             case REFERENCE:
                 return createReference(attribute.getCode(), value);
@@ -55,7 +59,11 @@ public class StructureRowMapper implements RowMapper {
     private Reference createReference(String attributeCode, String value) {
         Structure.Reference reference = structure.getReference(attributeCode);
         RefBookVersionEntity version = versionRepository.findOne(reference.getReferenceVersion());
-        version.getStructure().getAttribute(reference.getReferenceAttribute());
+        try {
+            castValue(version.getStructure().getAttribute(reference.getReferenceAttribute()), value);
+        } catch (Exception e) {
+            throw new RdmException("reference value has a wrong type", e);
+        }
         return new Reference(version.getStorageCode(), ConverterUtil.date(version.getFromDate()),
                 reference.getReferenceAttribute(), reference.getDisplayAttributes().get(0), value);
     }

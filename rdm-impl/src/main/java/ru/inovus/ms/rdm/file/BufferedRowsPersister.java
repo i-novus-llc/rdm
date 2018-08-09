@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.file;
 
+import net.n2oapp.platform.i18n.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
@@ -69,7 +70,7 @@ public class BufferedRowsPersister implements RowsProcessor {
             draftDataService.addRows(storageCode, rowValues);
             this.result = this.result.addResult(new Result(buffer.size(), buffer.size(), null));
         } catch (Exception e) {
-            this.result = this.result.addResult(new Result(0, buffer.size(), Collections.singletonList(e.getMessage())));
+            this.result = this.result.addResult(new Result(0, buffer.size(), Collections.singletonList(new Message("rows.error", e.getMessage()))));
             logger.error("can not add rows", e);
         }
     }
