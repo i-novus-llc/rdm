@@ -29,6 +29,7 @@ import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 import ru.inovus.ms.rdm.validation.ReferenceValidation;
+import ru.inovus.ms.rdm.validation.PrimaryKeyUniqueValidation;
 import ru.kirkazan.common.exception.CodifiedException;
 
 import java.io.InputStream;
@@ -363,6 +364,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draftEntity = versionRepository.findOne(updateAttribute.getVersionId());
         Structure structure = draftEntity.getStructure();
         Structure.Attribute attribute = structure.getAttribute(updateAttribute.getCode());
+        validatePrimaryKeyUnique(draftEntity.getStorageCode(), updateAttribute);
         validateUpdateAttribute(updateAttribute, attribute, draftEntity.getStorageCode());
 
         //clear previous primary keys
@@ -448,6 +450,16 @@ public class DraftServiceImpl implements DraftService {
 
         if (FieldType.REFERENCE.equals(updateAttribute.getType()) && !FieldType.REFERENCE.equals(attribute.getType())) {
             validateReferenceValues(updateAttribute);
+        }
+    }
+
+    private void validatePrimaryKeyUnique(String storageCode, UpdateAttribute updateAttribute) {
+        UpdateValue<Boolean> isPrimary = updateAttribute.getIsPrimary();
+        if (isPrimary != null && isPrimary.isPresent() && isPrimary.get()) {
+            List<Message> pkValidationMessages = new PrimaryKeyUniqueValidation(draftDataService, storageCode,
+                    Collections.singletonList(updateAttribute.getCode())).validate();
+            if (pkValidationMessages != null && !pkValidationMessages.isEmpty())
+                throw new UserException(pkValidationMessages);
         }
     }
 
