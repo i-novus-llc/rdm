@@ -44,9 +44,11 @@ public class RowsValidatorImpl implements RowsValidator {
         TypeValidation typeValidation = new TypeValidation(row.getData(), structure);
         Optional.ofNullable(typeValidation.validate()).ifPresent(typeMessages -> messages.addAll(typeMessages));
         if (!isEmpty(messages)) {
-            return this.result = this.result.addResult(new Result(0, 1, messages));
+            this.result = this.result.addResult(new Result(0, 1, messages))
+        } else {
+            this.result = this.result.addResult(new Result(1, 1, null));
         }
-        return this.result = this.result.addResult(new Result(1, 1, null));
+        return this.result;
     }
 
 
@@ -70,7 +72,7 @@ public class RowsValidatorImpl implements RowsValidator {
                     .map(invalidReference -> new Message("validation.reference.err", invalidReference.getAttribute() + ": " + ((Reference) row.getData().get((invalidReference).getAttribute())).getValue()))
                     .collect(Collectors.toList());
         }
-        return null;
+        return Collections.emptyList();
     }
 
     private boolean isReferenceValid(Structure.Reference reference, String referenceValue) {
