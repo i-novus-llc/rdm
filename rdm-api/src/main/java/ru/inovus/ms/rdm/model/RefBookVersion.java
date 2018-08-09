@@ -50,9 +50,6 @@ public class RefBookVersion {
     @ApiModelProperty("В архиве")
     private Boolean archived;
 
-    @ApiModelProperty("Справочник содержит версию со статусом 'Публикуется'")
-    private Boolean refBookHasPublishingVersion;
-
     @ApiModelProperty("Паспорт справочника")
     private Passport passport;
 
@@ -72,7 +69,6 @@ public class RefBookVersion {
         this.status = refBookVersion.getStatus();
         this.displayStatus = refBookVersion.getDisplayStatus();
         this.archived = refBookVersion.getArchived();
-        this.refBookHasPublishingVersion = refBookVersion.getRefBookHasPublishingVersion();
         this.passport = refBookVersion.getPassport();
     }
 
@@ -162,14 +158,6 @@ public class RefBookVersion {
 
     public void setArchived(Boolean archived) {
         this.archived = archived;
-    }
-
-    public Boolean getRefBookHasPublishingVersion() {
-        return refBookHasPublishingVersion;
-    }
-
-    public void setRefBookHasPublishingVersion(Boolean refBookHasPublishingVersion) {
-        this.refBookHasPublishingVersion = refBookHasPublishingVersion;
     }
 
     public Passport getPassport() {
