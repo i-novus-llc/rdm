@@ -17,7 +17,6 @@ public class PerRowFileGeneratorFactory {
 
     public static PerRowFileGenerator getFileGenerator(Iterator<Row> rowIterator, Structure structure, FileType fileType) {
 
-
         if (FileType.XLSX.equals(fileType))
             return new XlsFileGenerator(rowIterator, structure);
 

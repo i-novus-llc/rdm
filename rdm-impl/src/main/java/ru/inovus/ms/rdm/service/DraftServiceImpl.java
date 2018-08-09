@@ -21,6 +21,7 @@ import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
+import ru.inovus.ms.rdm.entity.VersionFileEntity;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.RdmException;
@@ -31,6 +32,7 @@ import ru.inovus.ms.rdm.file.export.PerRowFileGeneratorFactory;
 import ru.inovus.ms.rdm.file.export.VersionDataIterator;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
+import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ConverterUtil;
@@ -77,6 +79,8 @@ public class DraftServiceImpl implements DraftService {
 
     private FileNameGenerator fileNameGenerator;
 
+    private VersionFileRepository versionFileRepository;
+
     private static final String ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE = "Can not update structure, illegal update attribute";
     private static final String INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE = "incompatible.new.structure";
     private static final String INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE = "incompatible.new.type";
@@ -84,7 +88,7 @@ public class DraftServiceImpl implements DraftService {
     @Autowired
     public DraftServiceImpl(DraftDataService draftDataService, RefBookVersionRepository versionRepository, VersionService versionService,
                             SearchDataService searchDataService, DropDataService dropDataService, FileStorage fileStorage,
-                            FileNameGenerator fileNameGenerator) {
+                            FileNameGenerator fileNameGenerator, VersionFileRepository versionFileRepository) {
         this.draftDataService = draftDataService;
         this.versionRepository = versionRepository;
         this.versionService = versionService;
@@ -92,6 +96,7 @@ public class DraftServiceImpl implements DraftService {
         this.dropDataService = dropDataService;
         this.fileStorage = fileStorage;
         this.fileNameGenerator = fileNameGenerator;
+        this.versionFileRepository = versionFileRepository;
     }
 
     @Override
@@ -241,6 +246,10 @@ public class DraftServiceImpl implements DraftService {
         draftVersion.setFromDate(fromDate);
         resolveOverlappingPeriodsInFuture(fromDate, toDate, draftVersion.getRefBook().getId());
         versionRepository.save(draftVersion);
+
+        RefBookVersion versionModel = ModelGenerator.versionModel(draftVersion);
+        for (FileType fileType: FileType.values())
+            saveVersionFile(versionModel, fileType, generateVersionFile(versionModel, fileType));
     }
 
     protected RefBookVersionEntity getLastPublishedVersion(RefBookVersionEntity draftVersion) {
@@ -521,17 +530,33 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersion versionModel = ModelGenerator.versionModel(versionRepository.findOne(draftId));
         if (versionModel == null || !RefBookVersionStatus.DRAFT.equals(versionModel.getStatus())) return null;
 
-        VersionDataIterator dataIterator = new VersionDataIterator(versionService, Collections.singletonList(draftId));
-        FileGenerator fileGenerator = PerRowFileGeneratorFactory
-                .getFileGenerator(dataIterator, versionService.getStructure(draftId), fileType);
-        try (Archiver archiver = new Archiver()) {
-            String zipName = fileNameGenerator.generateZipName(versionModel, FileType.XLSX);
-            InputStream is = archiver
-                    .addEntry(fileGenerator, fileNameGenerator.generateName(versionModel, FileType.XLSX))
+        return new ExportFile(
+                generateVersionFile(versionModel, fileType),
+                fileNameGenerator.generateZipName(versionModel, FileType.XLSX));
+    }
+
+    private InputStream generateVersionFile(RefBookVersion versionModel, FileType fileType) {
+        VersionDataIterator dataIterator = new VersionDataIterator(versionService, Collections.singletonList(versionModel.getId()));
+        try (FileGenerator fileGenerator = PerRowFileGeneratorFactory
+                        .getFileGenerator(dataIterator, versionService.getStructure(versionModel.getId()), fileType);
+             Archiver archiver = new Archiver()) {
+            return archiver
+                    .addEntry(fileGenerator, fileNameGenerator.generateName(versionModel, fileType))
                     .getArchive();
-            return new ExportFile(is, zipName);
         } catch (IOException e) {
             throw new RdmException(e);
+        }
+    }
+
+    private void saveVersionFile(RefBookVersion version, FileType fileType, InputStream is) {
+        try (InputStream inputStream = is) {
+            if (inputStream == null) return;
+            RefBookVersionEntity versionEntity = new RefBookVersionEntity();
+            versionEntity.setId(version.getId());
+            versionFileRepository.save(new VersionFileEntity(versionEntity, fileType,
+                    fileStorage.saveContent(inputStream, fileNameGenerator.generateZipName(version, fileType))));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
