@@ -449,9 +449,8 @@ public class DraftServiceImpl implements DraftService {
                     versionRepository,
                     new Structure.Reference(updateAttribute.getAttribute().get(), updateAttribute.getReferenceVersion().get(), updateAttribute.getReferenceAttribute().get(), updateAttribute.getDisplayAttributes().get(), updateAttribute.getSortingAttributes().get()),
                     updateAttribute.getVersionId()).validate();
-            //TODO: исправить на конструктор UserException, принимающий список Message
             if (!isEmpty(messages))
-                throw new UserException(messages.get(0));
+                throw new UserException(messages);
         }
     }
 
