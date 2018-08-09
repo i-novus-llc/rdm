@@ -53,6 +53,8 @@ public class RefBookVersion {
     @ApiModelProperty("Паспорт справочника")
     private Passport passport;
 
+    @ApiModelProperty("Структура версии")
+    private Structure structure;
 
     public RefBookVersion() {
     }
@@ -166,5 +168,13 @@ public class RefBookVersion {
 
     public void setPassport(Passport passport) {
         this.passport = passport;
+    }
+
+    public Structure getStructure() {
+        return structure;
+    }
+
+    public void setStructure(Structure structure) {
+        this.structure = structure;
     }
 }

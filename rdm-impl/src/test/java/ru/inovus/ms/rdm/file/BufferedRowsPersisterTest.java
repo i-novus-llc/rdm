@@ -17,6 +17,7 @@ import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.Structure;
 
+import java.math.BigInteger;
 import java.util.*;
 
 import static org.mockito.Matchers.eq;
@@ -58,8 +59,8 @@ public class BufferedRowsPersisterTest {
         Row rowFirst = createTestRow(1);
         Row rowSecond = createTestRow(2);
         List<RowValue> rowValues = new ArrayList() {{
-            add(new LongRowValue(name.valueOf("name1"), count.valueOf(1)));
-            add(new LongRowValue(name.valueOf("name2"), count.valueOf(2)));
+            add(new LongRowValue(name.valueOf("name1"), count.valueOf(BigInteger.valueOf(1))));
+            add(new LongRowValue(name.valueOf("name2"), count.valueOf(BigInteger.valueOf(2))));
         }};
 
         bufferedRowsPersister.append(rowFirst);
@@ -73,7 +74,7 @@ public class BufferedRowsPersisterTest {
     private Row createTestRow(int number) {
         return new Row(new LinkedHashMap() {{
             put("name", "name" + number);
-            put("count", number);
+            put("count", BigInteger.valueOf(number));
         }});
     }
 
@@ -81,7 +82,7 @@ public class BufferedRowsPersisterTest {
     public void testProcess() {
         Row rowFirst = createTestRow(1);
         List<RowValue> rowValues = new ArrayList() {{
-            add(new LongRowValue(name.valueOf("name1"), count.valueOf(1)));
+            add(new LongRowValue(name.valueOf("name1"), count.valueOf(BigInteger.valueOf(1))));
         }};
 
         bufferedRowsPersister.append(rowFirst);
@@ -97,8 +98,8 @@ public class BufferedRowsPersisterTest {
         Row rowFirst = createTestRow(1);
         Row rowSecond = createTestRow(2);
         List<RowValue> rowValues = new ArrayList() {{
-            add(new LongRowValue(name.valueOf("name1"), count.valueOf(1)));
-            add(new LongRowValue(name.valueOf("name2"), count.valueOf(2)));
+            add(new LongRowValue(name.valueOf("name1"), count.valueOf(BigInteger.valueOf(1))));
+            add(new LongRowValue(name.valueOf("name2"), count.valueOf(BigInteger.valueOf(2))));
         }};
         String message = "something wrong";
         doThrow(new RuntimeException(message)).when(draftDataService).addRows(eq(TEST_STORAGE_CODE), eq(rowValues));
@@ -115,7 +116,7 @@ public class BufferedRowsPersisterTest {
     public void testProcessWithErrors() {
         Row rowFirst = createTestRow(1);
         List<RowValue> rowValues = new ArrayList() {{
-            add(new LongRowValue(name.valueOf("name1"), count.valueOf(1)));
+            add(new LongRowValue(name.valueOf("name1"), count.valueOf(BigInteger.valueOf(1))));
         }};
         String message = "something wrong";
         doThrow(new RuntimeException(message)).when(draftDataService).addRows(eq(TEST_STORAGE_CODE), eq(rowValues));

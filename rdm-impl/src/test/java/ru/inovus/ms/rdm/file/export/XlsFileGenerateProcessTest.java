@@ -17,6 +17,7 @@ import ru.inovus.ms.rdm.util.ConverterUtil;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,7 +48,7 @@ public class XlsFileGenerateProcessTest {
         List<Row> d_a_rows = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
             d_a_rows.add(ConverterUtil.toRow(new LongRowValue(
-                    d_a_id.valueOf(i),
+                    d_a_id.valueOf(BigInteger.valueOf(i)),
                     d_a_name.valueOf("test" + i),
                     d_a_dateCol.valueOf(LocalDate.ofYearDay(2000, i+1)),
                     d_a_boolCol.valueOf(i % 2 == 0),
