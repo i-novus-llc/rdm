@@ -48,6 +48,7 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
             logger.error("cannot parse xls", e);
             throw new IllegalArgumentException("invalid file");
         }
+
     }
 
     @Override
