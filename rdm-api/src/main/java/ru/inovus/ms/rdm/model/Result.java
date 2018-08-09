@@ -43,6 +43,7 @@ public class Result {
             totalErrors.addAll(this.errors);
             totalErrors.addAll(result.getErrors());
         }
+
         return  new Result(this.successCount + result.getSuccessCount(), this.getAllCount() + result.getAllCount(), totalErrors);
     }
 
