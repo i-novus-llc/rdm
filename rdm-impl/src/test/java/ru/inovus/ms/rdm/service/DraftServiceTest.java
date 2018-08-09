@@ -52,6 +52,7 @@ public class DraftServiceTest {
     private static final String TEST_STORAGE_CODE = "test_storage_code";
     private static final String TEST_DRAFT_CODE = "test_draft_code";
     private static final String TEST_DRAFT_CODE_NEW = "test_draft_code_new";
+    private static final String TEST_REF_BOOK = "test_ref_book";
     private static final int REFBOOK_ID = 2;
 
     @InjectMocks
@@ -439,7 +440,7 @@ public class DraftServiceTest {
     private RefBookEntity createTestRefBook() {
         RefBookEntity testRefBook = new RefBookEntity();
         testRefBook.setId(REFBOOK_ID);
-        testRefBook.setCode("test_ref_book");
+        testRefBook.setCode(TEST_REF_BOOK);
         return testRefBook;
     }
 

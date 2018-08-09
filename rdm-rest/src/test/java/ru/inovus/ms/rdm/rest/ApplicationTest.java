@@ -6,6 +6,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,23 +18,19 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.file.Row;
 import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.service.api.DraftService;
-import ru.inovus.ms.rdm.service.api.FileStorageService;
-import ru.inovus.ms.rdm.service.api.RefBookService;
-import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.service.api.*;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -42,6 +39,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.junit.Assert.*;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
@@ -60,8 +58,12 @@ import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
 @Import(BackendConfiguration.class)
 public class ApplicationTest {
 
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ApplicationTest.class);
+
+    private static final int REF_BOOK_ID = 500;
     private static final int REMOVABLE_REF_BOOK_ID = 501;
     private static final String REMOVABLE_REF_BOOK_CODE = "A082";
+    private static final String ALL_TYPES_REF_BOOK_CODE = "all_types_ref_book";
     private static final String SEARCH_CODE_STR = "78 ";
     private static final String SEARCH_BY_NAME_STR = "отличное от последней версии ";
     private static final String SEARCH_BY_NAME_STR_ASSERT_CODE = "Z001";
@@ -125,23 +127,23 @@ public class ApplicationTest {
         deleteAttribute = Structure.Attribute.build("code", "Код", FieldType.STRING, false, "на удаление");
 
         RefBookVersion version0 = new RefBookVersion();
-        version0.setRefBookId(500);
+        version0.setRefBookId(REF_BOOK_ID);
         version0.setStatus(RefBookVersionStatus.DRAFT);
         version0.setDisplayStatus(RefBookVersionStatus.DRAFT.name());
 
         RefBookVersion version1 = new RefBookVersion();
-        version1.setRefBookId(version0.getRefBookId());
+        version1.setRefBookId(REF_BOOK_ID);
         version1.setStatus(RefBookVersionStatus.PUBLISHED);
         version1.setVersion("3");
 
         RefBookVersion version2 = new RefBookVersion();
-        version2.setRefBookId(version0.getRefBookId());
+        version2.setRefBookId(REF_BOOK_ID);
         version2.setStatus(RefBookVersionStatus.PUBLISHED);
         version2.setDisplayStatus(RefBookVersionStatus.PUBLISHED.name());
         version2.setVersion("2");
 
         RefBookVersion version3 = new RefBookVersion();
-        version3.setRefBookId(version0.getRefBookId());
+        version3.setRefBookId(REF_BOOK_ID);
         version3.setStatus(RefBookVersionStatus.PUBLISHED);
         version3.setVersion("1");
 
@@ -449,7 +451,8 @@ public class ApplicationTest {
                 Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, false, "count"),
                 Structure.Attribute.build("float", "float", FieldType.FLOAT, false, "float"),
                 Structure.Attribute.build("date", "date", FieldType.DATE, false, "date"),
-                Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, false, "boolean")
+                Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, false, "boolean"),
+                Structure.Attribute.build("integer", "integer", FieldType.INTEGER, false, "integer")
         ));
         structure.setReferences(Collections.singletonList(new Structure.Reference("reference", referenceVersion, "count", Collections.singletonList("count"), null)));
         Draft draft = draftService.create(1, structure);
@@ -466,6 +469,7 @@ public class ApplicationTest {
         rowMap1.put(codes.get(2), 1.0);
         rowMap1.put(codes.get(3), date);
         rowMap1.put(codes.get(4), true);
+        rowMap1.put(codes.get(5), BigInteger.valueOf(4));
         List<RowValue> expected = Collections.singletonList(ConverterUtil.rowValue(new Row(rowMap1), structure));
 
         Page<RowValue> search = draftService.search(draft.getId(), new SearchDataCriteria(null, null));
@@ -507,6 +511,7 @@ public class ApplicationTest {
             add(new StringFieldValue("float", "1.0"));
             add(new StringFieldValue("date", "01.01.2011"));
             add(new StringFieldValue("boolean", "true"));
+            add(new StringFieldValue("integer", "4"));
         }};
         FileModel fileModel = createFileModel("create_testUpload.xlsx", "testUpload.xlsx");
         Draft expected = draftService.create(-3, fileModel);
@@ -551,7 +556,7 @@ public class ApplicationTest {
 
         List<String> codes = structure.getAttributes().stream().map(Structure.Attribute::getCode).collect(Collectors.toList());
         Map<String, Object> rowMap1 = new HashMap<>();
-        rowMap1.put(codes.get(0), 1);
+        rowMap1.put(codes.get(0), BigInteger.valueOf(1));
         rowMap1.put(codes.get(1), 2.4);
         rowMap1.put(codes.get(2), "Первое тестовое наименование");
         rowMap1.put(codes.get(3), true);
@@ -559,7 +564,7 @@ public class ApplicationTest {
         rowMap1.put(codes.get(5), new Reference("5", null));
 
         Map<String, Object> rowMap2 = new HashMap<>();
-        rowMap2.put(codes.get(0), 2);
+        rowMap2.put(codes.get(0), BigInteger.valueOf(2));
         rowMap2.put(codes.get(1), 0.4);
         rowMap2.put(codes.get(2), "Второе тестовое наименование");
         rowMap2.put(codes.get(3), false);
@@ -628,7 +633,7 @@ public class ApplicationTest {
         Draft draft = draftService.create(refBook.getRefBookId(), structure);
 
         Map<String, Object> rowMap1 = new HashMap<>();
-        rowMap1.put(structure.getAttributes().get(0).getCode(), 5);
+        rowMap1.put(structure.getAttributes().get(0).getCode(), BigInteger.valueOf(5));
         rowMap1.put(structure.getAttributes().get(1).getCode(), "запись для ссылки");
 
         draftDataService.addRows(draft.getStorageCode(),
@@ -730,6 +735,234 @@ public class ApplicationTest {
             draftService.updateAttribute(updateAttribute);
         } catch (Exception e) {
             assertEquals("primary.key.not.unique", e.getMessage());
+        }
+    }
+    /**
+     * Тест на изменение структуры черновика без данных
+     *
+     * Создаем новый черновик с ссылкой на опубликованную версию
+     * Обновляем тип атрибута с любого на любой
+     * Обновление без ошибок, так как в версии нет данных
+     */
+    @Test
+    public void testUpdateAttributeTypeWithoutData() {
+        RefBookCreateRequest refBookCreate = new RefBookCreateRequest(ALL_TYPES_REF_BOOK_CODE, new Passport());
+        RefBook refBook = refBookService.create(refBookCreate);
+        Structure structure = createAllTypesStructure();
+        Structure.Reference reference = structure.getReference("reference");
+
+        Draft draft = draftService.create(refBook.getRefBookId(), structure);
+
+        // string -> integer, boolean, reference, float и обратно. Без ошибок
+        reference.setAttribute("string");
+        validateUpdateTypeWithoutException(draft.getId(), "string", structure, FieldType.INTEGER, null);
+        validateUpdateTypeWithoutException(draft.getId(), "string", structure, FieldType.STRING, null);
+        validateUpdateTypeWithoutException(draft.getId(), "string", structure, FieldType.BOOLEAN, null);
+        validateUpdateTypeWithoutException(draft.getId(), "string", structure, FieldType.STRING, null);
+        validateUpdateTypeWithoutException(draft.getId(), "string", structure, FieldType.REFERENCE, reference);
+        validateUpdateTypeWithoutException(draft.getId(), "string", structure, FieldType.STRING, null);
+        validateUpdateTypeWithoutException(draft.getId(), "string", structure, FieldType.FLOAT, null);
+        validateUpdateTypeWithoutException(draft.getId(), "string", structure, FieldType.STRING, null);
+
+        // integer -> string, boolean, reference, float и обратно. Без ошибок
+        reference.setAttribute("integer");
+        validateUpdateTypeWithoutException(draft.getId(), "integer", structure, FieldType.STRING, null);
+        validateUpdateTypeWithoutException(draft.getId(), "integer", structure, FieldType.INTEGER, null);
+        validateUpdateTypeWithoutException(draft.getId(), "integer", structure, FieldType.BOOLEAN, null);
+        validateUpdateTypeWithoutException(draft.getId(), "integer", structure, FieldType.INTEGER, null);
+        validateUpdateTypeWithoutException(draft.getId(), "integer", structure, FieldType.REFERENCE, reference);
+        validateUpdateTypeWithoutException(draft.getId(), "integer", structure, FieldType.INTEGER, null);
+        validateUpdateTypeWithoutException(draft.getId(), "integer", structure, FieldType.FLOAT, null);
+        validateUpdateTypeWithoutException(draft.getId(), "integer", structure, FieldType.INTEGER, null);
+
+        // boolean -> string, integer, reference, float и обратно. Без ошибок
+        reference.setAttribute("boolean");
+        validateUpdateTypeWithoutException(draft.getId(), "boolean", structure, FieldType.STRING, null);
+        validateUpdateTypeWithoutException(draft.getId(), "boolean", structure, FieldType.BOOLEAN, null);
+        validateUpdateTypeWithoutException(draft.getId(), "boolean", structure, FieldType.INTEGER, null);
+        validateUpdateTypeWithoutException(draft.getId(), "boolean", structure, FieldType.BOOLEAN, null);
+        validateUpdateTypeWithoutException(draft.getId(), "boolean", structure, FieldType.REFERENCE, reference);
+        validateUpdateTypeWithoutException(draft.getId(), "boolean", structure, FieldType.BOOLEAN, null);
+        validateUpdateTypeWithoutException(draft.getId(), "boolean", structure, FieldType.FLOAT, null);
+        validateUpdateTypeWithoutException(draft.getId(), "boolean", structure, FieldType.BOOLEAN, null);
+
+        // reference -> string, integer, boolean, float и обратно. Без ошибок
+        reference.setAttribute("reference");
+        validateUpdateTypeWithoutException(draft.getId(), "reference", structure, FieldType.STRING, null);
+        validateUpdateTypeWithoutException(draft.getId(), "reference", structure, FieldType.REFERENCE, reference);
+        validateUpdateTypeWithoutException(draft.getId(), "reference", structure, FieldType.INTEGER, null);
+        validateUpdateTypeWithoutException(draft.getId(), "reference", structure, FieldType.REFERENCE, reference);
+        validateUpdateTypeWithoutException(draft.getId(), "reference", structure, FieldType.BOOLEAN, null);
+        validateUpdateTypeWithoutException(draft.getId(), "reference", structure, FieldType.REFERENCE, reference);
+        validateUpdateTypeWithoutException(draft.getId(), "reference", structure, FieldType.FLOAT, null);
+        validateUpdateTypeWithoutException(draft.getId(), "reference", structure, FieldType.REFERENCE, reference);
+
+        // float -> string, integer, boolean, reference и обратно. Без ошибок
+        reference.setAttribute("float");
+        validateUpdateTypeWithoutException(draft.getId(), "float", structure, FieldType.STRING, null);
+        validateUpdateTypeWithoutException(draft.getId(), "float", structure, FieldType.FLOAT, null);
+        validateUpdateTypeWithoutException(draft.getId(), "float", structure, FieldType.INTEGER, null);
+        validateUpdateTypeWithoutException(draft.getId(), "float", structure, FieldType.FLOAT, null);
+        validateUpdateTypeWithoutException(draft.getId(), "float", structure, FieldType.BOOLEAN, null);
+        validateUpdateTypeWithoutException(draft.getId(), "float", structure, FieldType.FLOAT, null);
+        validateUpdateTypeWithoutException(draft.getId(), "float", structure, FieldType.REFERENCE, reference);
+        validateUpdateTypeWithoutException(draft.getId(), "float", structure, FieldType.FLOAT, null);
+    }
+
+    private void validateUpdateTypeWithoutException(Integer draftId, String attributeName, Structure structure, FieldType newType, Structure.Reference reference) {
+        structure.getAttribute(attributeName).setType(newType);
+        draftService.updateAttribute(new UpdateAttribute(draftId, structure.getAttribute(attributeName), reference));
+    }
+
+    /**
+     * Тест на изменение структуры черновика с данными
+     *
+     * Создаем новый черновик с ссылкой на опубликованную версию
+     * Добавляем в версию наполнение
+     * Пытаемся изменить тип атрибута с любого на любой
+     * Без ошибок изменяется только тип поля string -> любой -> string. Возвращаются данные измененного типа
+     * В остальных случаях ожидается ошибка
+     */
+    @Test
+    public void testUpdateAttributeTypeWithData() {
+        RefBookCreateRequest refBookCreate = new RefBookCreateRequest(ALL_TYPES_REF_BOOK_CODE, new Passport());
+        RefBook refBook = refBookService.create(refBookCreate);
+        Structure structure = createAllTypesStructure();
+        Structure.Reference reference = structure.getReference("reference");
+
+        Draft draft = draftService.create(refBook.getRefBookId(), structure);
+        draftService.updateData(draft.getId(), createFileModel("update_testUpdateStr.xlsx", "testUpload.xlsx"));
+
+        // string -> integer, boolean, reference, float и обратно. Ожидается ошибка, так как данные неприводимы к другому типу
+        reference.setAttribute("string");
+        validateUpdateTypeWithException(draft.getId(), "string", FieldType.STRING, FieldType.INTEGER, null);
+        validateUpdateTypeWithException(draft.getId(), "string", FieldType.STRING, FieldType.REFERENCE, reference);
+        validateUpdateTypeWithException(draft.getId(), "string", FieldType.STRING, FieldType.BOOLEAN, null);
+        validateUpdateTypeWithException(draft.getId(), "string", FieldType.STRING, FieldType.FLOAT, null);
+
+        //float -> reference, date, boolean, integer. Ожидается ошибка (несовместимые типы)
+        reference.setAttribute("float");
+        validateUpdateTypeWithException(draft.getId(), "float", FieldType.FLOAT, FieldType.REFERENCE, reference);
+        validateUpdateTypeWithException(draft.getId(), "float", FieldType.FLOAT, FieldType.DATE, null);
+        validateUpdateTypeWithException(draft.getId(), "float", FieldType.FLOAT, FieldType.BOOLEAN, null);
+        validateUpdateTypeWithException(draft.getId(), "float", FieldType.FLOAT, FieldType.INTEGER, null);
+
+        //reference -> float, date, boolean, integer. Ожидается ошибка (несовместимые типы)
+        validateUpdateTypeWithException(draft.getId(), "reference", FieldType.REFERENCE, FieldType.FLOAT, null);
+        validateUpdateTypeWithException(draft.getId(), "reference", FieldType.REFERENCE, FieldType.DATE, null);
+        validateUpdateTypeWithException(draft.getId(), "reference", FieldType.REFERENCE, FieldType.BOOLEAN, null);
+        validateUpdateTypeWithException(draft.getId(), "reference", FieldType.REFERENCE, FieldType.INTEGER, null);
+
+        //date -> float, reference, boolean, integer. Ожидается ошибка (несовместимые типы)
+        reference.setAttribute("date");
+        validateUpdateTypeWithException(draft.getId(), "date", FieldType.DATE, FieldType.FLOAT, null);
+        validateUpdateTypeWithException(draft.getId(), "date", FieldType.DATE, FieldType.REFERENCE, reference);
+        validateUpdateTypeWithException(draft.getId(), "date", FieldType.DATE, FieldType.BOOLEAN, null);
+        validateUpdateTypeWithException(draft.getId(), "date", FieldType.DATE, FieldType.INTEGER, null);
+
+        //boolean -> float, reference, date, integer. Ожидается ошибка (несовместимые типы)
+        reference.setAttribute("boolean");
+        validateUpdateTypeWithException(draft.getId(), "boolean", FieldType.BOOLEAN, FieldType.FLOAT, null);
+        validateUpdateTypeWithException(draft.getId(), "boolean", FieldType.BOOLEAN, FieldType.REFERENCE, reference);
+        validateUpdateTypeWithException(draft.getId(), "boolean", FieldType.BOOLEAN, FieldType.DATE, null);
+        validateUpdateTypeWithException(draft.getId(), "boolean", FieldType.BOOLEAN, FieldType.INTEGER, null);
+
+        //integer -> float, reference, date, boolean. Ожидается ошибка (несовместимые типы)
+        reference.setAttribute("integer");
+        validateUpdateTypeWithException(draft.getId(), "integer", FieldType.INTEGER, FieldType.FLOAT, null);
+        validateUpdateTypeWithException(draft.getId(), "integer", FieldType.INTEGER, FieldType.REFERENCE, reference);
+        validateUpdateTypeWithException(draft.getId(), "integer", FieldType.INTEGER, FieldType.DATE, null);
+        validateUpdateTypeWithException(draft.getId(), "integer", FieldType.INTEGER, FieldType.BOOLEAN, null);
+
+        // Все типы в string и обратно. Без ошибок
+        List<RowValue> rowValues;
+        // integer -> string -> integer
+        structure.getAttribute("integer").setType(FieldType.STRING);
+        draftService.updateAttribute(new UpdateAttribute(draft.getId(), structure.getAttribute("integer"), null));
+        rowValues = versionService.search(draft.getId(), new SearchDataCriteria(null, null)).getContent();
+        assertTrue(rowValues.get(0).getFieldValue("integer") instanceof StringFieldValue);
+
+        structure.getAttribute("integer").setType(FieldType.INTEGER);
+        draftService.updateAttribute(new UpdateAttribute(draft.getId(), structure.getAttribute("integer"), null));
+        rowValues = versionService.search(draft.getId(), new SearchDataCriteria(null, null)).getContent();
+        assertTrue(rowValues.get(0).getFieldValue("integer") instanceof IntegerFieldValue);
+
+        // boolean -> string -> boolean
+        structure.getAttribute("boolean").setType(FieldType.STRING);
+        draftService.updateAttribute(new UpdateAttribute(draft.getId(), structure.getAttribute("boolean"), null));
+        rowValues = versionService.search(draft.getId(), new SearchDataCriteria(null, null)).getContent();
+        assertTrue(rowValues.get(0).getFieldValue("boolean") instanceof StringFieldValue);
+
+        structure.getAttribute("boolean").setType(FieldType.BOOLEAN);
+        draftService.updateAttribute(new UpdateAttribute(draft.getId(), structure.getAttribute("boolean"), null));
+        rowValues = versionService.search(draft.getId(), new SearchDataCriteria(null, null)).getContent();
+        assertTrue(rowValues.get(0).getFieldValue("boolean") instanceof BooleanFieldValue);
+
+        reference.setAttribute("reference");
+        // reference -> string -> reference
+        structure.getAttribute("reference").setType(FieldType.STRING);
+        draftService.updateAttribute(new UpdateAttribute(draft.getId(), structure.getAttribute("reference"), null));
+        rowValues = versionService.search(draft.getId(), new SearchDataCriteria(null, null)).getContent();
+        assertTrue(rowValues.get(0).getFieldValue("reference") instanceof StringFieldValue);
+
+        structure.getAttribute("reference").setType(FieldType.REFERENCE);
+        draftService.updateAttribute(new UpdateAttribute(draft.getId(), structure.getAttribute("reference"), reference));
+        rowValues = versionService.search(draft.getId(), new SearchDataCriteria(null, null)).getContent();
+        assertTrue(rowValues.get(0).getFieldValue("reference") instanceof ReferenceFieldValue);
+
+        // float -> string -> float
+        structure.getAttribute("float").setType(FieldType.STRING);
+        draftService.updateAttribute(new UpdateAttribute(draft.getId(), structure.getAttribute("float"), null));
+        rowValues = versionService.search(draft.getId(), new SearchDataCriteria(null, null)).getContent();
+        assertTrue(rowValues.get(0).getFieldValue("float") instanceof StringFieldValue);
+
+        structure.getAttribute("float").setType(FieldType.FLOAT);
+        draftService.updateAttribute(new UpdateAttribute(draft.getId(), structure.getAttribute("float"), reference));
+        rowValues = versionService.search(draft.getId(), new SearchDataCriteria(null, null)).getContent();
+        assertTrue(rowValues.get(0).getFieldValue("float") instanceof FloatFieldValue);
+
+    }
+
+    private void validateUpdateTypeWithException(Integer draftId, String attributeName, FieldType oldType, FieldType newType, Structure.Reference reference) {
+        Structure structure = versionService.getStructure(draftId);
+        structure.getAttribute(attributeName).setType(newType);
+        try {
+            draftService.updateAttribute(new UpdateAttribute(draftId, structure.getAttribute(attributeName), reference));
+            fail();
+        } catch (Exception e) {
+            logger.info("Тип " + getFieldTypeName(oldType) + " невозможно привести к типу " + getFieldTypeName(newType));
+        }
+    }
+
+    private Structure createAllTypesStructure() {
+        List<Structure.Attribute> attributes = new ArrayList<>();
+        List<Structure.Reference> references = new ArrayList<>();
+        attributes.add(Structure.Attribute.build("string", "string", FieldType.STRING, false, "строка"));
+        attributes.add(Structure.Attribute.build("integer", "integer", FieldType.INTEGER, false, "число"));
+        attributes.add(Structure.Attribute.build("date", "date", FieldType.DATE, false, "дата"));
+        attributes.add(Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, false, "булево"));
+        attributes.add(Structure.Attribute.build("float", "float", FieldType.FLOAT, false, "дробное"));
+        attributes.add(Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, false, "ссылка"));
+        references.add(new Structure.Reference("reference", -1, "count", singletonList("count"), singletonList("count")));
+        return new Structure(attributes, references);
+    }
+
+    private String getFieldTypeName(FieldType type) {
+        switch (type) {
+            case STRING:
+                return "Строчный";
+            case FLOAT:
+                return "Дробный";
+            case REFERENCE:
+                return "Ссылочный";
+            case INTEGER:
+                return "Целочисленный";
+            case BOOLEAN:
+                return "Логический";
+            case DATE:
+                return "Дата";
+            default:
+                return null;
         }
     }
 }

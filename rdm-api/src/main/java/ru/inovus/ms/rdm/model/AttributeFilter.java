@@ -6,6 +6,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 
 import javax.ws.rs.QueryParam;
+import java.math.BigInteger;
 import java.time.LocalDate;
 
 public class AttributeFilter {
@@ -16,7 +17,8 @@ public class AttributeFilter {
     @QueryParam("value")
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "type")
     @JsonSubTypes({
-            @JsonSubTypes.Type(value = LocalDate.class, name = "DATE")
+            @JsonSubTypes.Type(value = LocalDate.class, name = "DATE"),
+            @JsonSubTypes.Type(value = BigInteger.class, name = "INTEGER")
     })
     private Object value;
 
