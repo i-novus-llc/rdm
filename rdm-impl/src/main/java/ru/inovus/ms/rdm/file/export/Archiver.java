@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import ru.inovus.ms.rdm.exception.RdmException;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -66,8 +67,8 @@ public class Archiver implements Closeable {
 
         @Override
         public void close() throws IOException {
-            zipFile.delete();
             super.close();
+            Files.delete(zipFile.toPath());
         }
     }
 }
