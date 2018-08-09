@@ -263,6 +263,7 @@ public class DraftServiceTest {
         RefBookVersionEntity testDraftVersion = createTestDraftVersion();
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(testDraftVersion);
         RefBookEntity refBook = new RefBookEntity();
+        refBook.setId(REFBOOK_ID);
         when(refBookRepository.findOne(REFBOOK_ID)).thenReturn(refBook);
         RefBookVersionEntity expectedRefBookVersion = createTestDraftVersion();
         expectedRefBookVersion.setId(null);

@@ -170,7 +170,7 @@ public class RefBookVersionEntity {
         if (o == null || getClass() != o.getClass()) return false;
         RefBookVersionEntity that = (RefBookVersionEntity) o;
         return Objects.equals(id, that.id) &&
-                Objects.equals(refBook.getId(), that.refBook.getId()) &&
+                Objects.equals(refBook, that.refBook) &&
                 Objects.equals(structure, that.structure) &&
                 Objects.equals(storageCode, that.storageCode) &&
                 Objects.equals(version, that.version) &&
