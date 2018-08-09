@@ -190,7 +190,8 @@ public class DraftServiceImpl implements DraftService {
                     new BufferedRowsPersister(draftDataService, storageCode, structure), rowMapper);
             persister.process(inputStreamSupplier);
         } else {
-            throw new UserException(new Message("invalid.reference.err", validationResult.getErrors().stream().collect(Collectors.joining("  "))));
+//            todo new UserException(validationResult.getErrors())
+            throw new UserException(new Message("invalid.reference.err", validationResult.getErrors()));
         }
 
     }

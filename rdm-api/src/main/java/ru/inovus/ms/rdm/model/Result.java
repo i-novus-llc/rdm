@@ -1,5 +1,8 @@
 package ru.inovus.ms.rdm.model;
 
+
+import net.n2oapp.platform.i18n.Message;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,9 +12,9 @@ public class Result {
 
     private int allCount;
 
-    private List<String> errors;
+    private List<Message> errors;
 
-    public Result(int successCount, int allCount, List<String> errors) {
+    public Result(int successCount, int allCount, List<Message> errors) {
         this.successCount = successCount;
         this.allCount = allCount;
         this.errors = errors;
@@ -25,12 +28,12 @@ public class Result {
         return allCount;
     }
 
-    public List<String> getErrors() {
+    public List<Message> getErrors() {
         return errors;
     }
 
     public Result addResult(Result result) {
-        List<String> totalErrors = null;
+        List<Message> totalErrors = null;
         if(this.errors == null && result.getErrors() != null) {
             totalErrors = result.getErrors();
         } else if (this.errors != null && result.getErrors() == null) {

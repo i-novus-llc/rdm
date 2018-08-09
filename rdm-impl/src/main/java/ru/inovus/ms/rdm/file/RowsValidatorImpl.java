@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.file;
 
+import net.n2oapp.platform.i18n.Message;
 import org.springframework.data.domain.Page;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
@@ -11,6 +12,7 @@ import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.validation.TypeValidation;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -38,6 +40,8 @@ public class RowsValidatorImpl implements RowsValidator {
     @Override
     public Result append(Row row) {
         validateReferences(row);
+        TypeValidation typeValidation = new TypeValidation(row.getData(), structure);
+        typeValidation.validate();
         return this.result;
     }
 
@@ -59,10 +63,10 @@ public class RowsValidatorImpl implements RowsValidator {
         if (isEmpty(invalidReferences)) {
             this.result = this.result.addResult(new Result(1, 1, null));
         } else {
-            String message = invalidReferences.stream()
-                    .map(invalidReference -> invalidReference.getAttribute() + ": " + ((Reference) row.getData().get((invalidReference).getAttribute())).getValue())
-                    .collect(Collectors.joining(", "));
-            this.result = this.result.addResult(new Result(0, 1, Collections.singletonList(message)));
+            List<Message> messages = invalidReferences.stream()
+                    .map(invalidReference -> new Message("validation.reference.err", invalidReference.getAttribute() + ": " + ((Reference) row.getData().get((invalidReference).getAttribute())).getValue()))
+                    .collect(Collectors.toList());
+            this.result = this.result.addResult(new Result(0, 1, messages));
         }
     }
 

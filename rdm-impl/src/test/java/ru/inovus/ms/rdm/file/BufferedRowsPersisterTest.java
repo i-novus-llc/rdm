@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.file;
 
+import net.n2oapp.platform.i18n.Message;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -100,6 +101,7 @@ public class BufferedRowsPersisterTest {
             add(new LongRowValue(name.valueOf("name1"), count.valueOf(1)));
             add(new LongRowValue(name.valueOf("name2"), count.valueOf(2)));
         }};
+        String code = "rows.error";
         String message = "something wrong";
         doThrow(new RuntimeException(message)).when(draftDataService).addRows(eq(TEST_STORAGE_CODE), eq(rowValues));
 
@@ -107,7 +109,7 @@ public class BufferedRowsPersisterTest {
         Result actual = bufferedRowsPersister.append(rowSecond);
 
         verify(draftDataService, times(1)).addRows(eq(TEST_STORAGE_CODE), eq(rowValues));
-        Result expected = new Result(0, 2, Collections.singletonList(message));
+        Result expected = new Result(0, 2, Collections.singletonList(new Message(code, message)));
         Assert.assertEquals(expected, actual);
     }
 
@@ -117,6 +119,7 @@ public class BufferedRowsPersisterTest {
         List<RowValue> rowValues = new ArrayList() {{
             add(new LongRowValue(name.valueOf("name1"), count.valueOf(1)));
         }};
+        String code = "rows.error";
         String message = "something wrong";
         doThrow(new RuntimeException(message)).when(draftDataService).addRows(eq(TEST_STORAGE_CODE), eq(rowValues));
 
@@ -124,7 +127,7 @@ public class BufferedRowsPersisterTest {
         Result actual = bufferedRowsPersister.process();
 
         verify(draftDataService, times(1)).addRows(eq(TEST_STORAGE_CODE), eq(rowValues));
-        Result expected = new Result(0, 1, Collections.singletonList(message));
+        Result expected = new Result(0, 1, Collections.singletonList(new Message(code, message)));
         Assert.assertEquals(expected, actual);
     }
 

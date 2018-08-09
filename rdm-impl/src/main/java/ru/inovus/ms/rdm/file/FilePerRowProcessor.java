@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.file;
 
+import net.n2oapp.platform.i18n.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inovus.ms.rdm.model.Result;
@@ -29,7 +30,7 @@ public abstract class FilePerRowProcessor implements FileProcessor, Iterator<Row
             setFile(inputStream);
         } catch (IOException e) {
             logger.error("cannot get InputStream", e);
-            return new Result(0, 0, Collections.singletonList(e.getMessage()));
+            return new Result(0, 0, Collections.singletonList(new Message("io.error", e.getMessage())));
         }
         while (hasNext()) {
             rowsProcessor.append(rowMapper.map(next()));
