@@ -6,6 +6,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.Structure;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -22,22 +23,22 @@ public class XlsPerRowProcessorTest {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         LocalDate date =  LocalDate.parse("01.01.2011", formatter);
         expected.add(new HashMap() {{
-            put("Kod", 0);
+            put("Kod", BigInteger.valueOf(0));
             put("Opis", "Не требует изготовления полиса");
             put("DATEBEG", date);
         }});
         expected.add(new HashMap() {{
-            put("Kod", 1);
+            put("Kod", BigInteger.valueOf(1));
             put("Opis", "Бумажный полис ОМС");
             put("DATEBEG", date);
         }});
         expected.add(new HashMap() {{
-            put("Kod", 2);
+            put("Kod", BigInteger.valueOf(2));
             put("Opis", "Электронный полис ОМС");
             put("DATEBEG", date);
         }});
         expected.add(new HashMap() {{
-            put("Kod", 3);
+            put("Kod", BigInteger.valueOf(3));
             put("Opis", "Электронный полис ОМС в составе УЭК");
             put("DATEBEG", date);
         }});

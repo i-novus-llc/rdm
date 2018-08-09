@@ -6,7 +6,6 @@ import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.AttributeFilter;
 import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.SearchDataCriteria;
@@ -14,14 +13,13 @@ import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.validation.TypeValidation;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+import static ru.inovus.ms.rdm.util.ConverterUtil.castReferenceValue;
 import static ru.inovus.ms.rdm.util.ConverterUtil.field;
 
 public class RowsValidatorImpl implements RowsValidator {
@@ -85,26 +83,6 @@ public class RowsValidatorImpl implements RowsValidator {
     private Field createFieldFilter(Structure structure, Structure.Reference reference) {
         Structure.Attribute referenceAttribute = structure.getAttribute(reference.getReferenceAttribute());
         return field(referenceAttribute);
-    }
-
-    private Object castReferenceValue(Field field, String value) {
-        switch (field.getType()) {
-            case "boolean":
-                return Boolean.valueOf(value);
-            case "date":
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-                return LocalDate.parse(value, formatter);
-            case "numeric":
-                return Float.parseFloat(value);
-            case "bigint":
-                return Integer.parseInt(value);
-            case "varchar":
-                return value;
-            case "ltree":
-                return value;
-            default:
-                throw new RdmException("invalid field type");
-        }
     }
 
 }

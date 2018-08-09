@@ -46,6 +46,8 @@ public class UpdateAttribute extends UpdatableDto {
         if (attribute.getDescription() != null)
             setDescription(of(attribute.getDescription()));
         //reference fields
+        if (reference == null)
+            return;
         if (reference.getAttribute() != null)
             this.attribute = of(reference.getAttribute());
         if (reference.getReferenceVersion() != null)

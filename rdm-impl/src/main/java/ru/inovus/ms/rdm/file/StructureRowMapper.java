@@ -7,6 +7,7 @@ import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -35,7 +36,7 @@ public class StructureRowMapper implements RowMapper {
             case STRING:
                 return value;
             case INTEGER:
-                return Integer.parseInt(value);
+                return BigInteger.valueOf(Long.parseLong(value));
             case FLOAT:
                 return Float.parseFloat(value);
             case DATE:
