@@ -20,7 +20,7 @@ public class TypeValidationTest {
             put("name", "name");
             put("count", "wrong type");
         }};
-        List<Message> expected = Collections.singletonList(new Message("validation.type.error", "count: wrong type"));
+        List<Message> expected = Collections.singletonList(new Message("validation.type.error", "count",  "wrong type"));
 
         TypeValidation typeValidation = new TypeValidation(row, createTestStructure());
         List<Message> actual = typeValidation.validate();

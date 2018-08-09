@@ -14,7 +14,7 @@ import java.util.Optional;
 
 public class TypeValidation implements RdmValidation {
 
-    private static final String MESSAGE_CODE = "validation.type.error";
+    private static final String VALIDATION_TYPE_EXCEPTION_CODE = "validation.type.error";
 
     private Map<String, Object> row;
 
@@ -58,7 +58,7 @@ public class TypeValidation implements RdmValidation {
 
     private Message checkInstance(String name, Object value, Class cls) {
         if (!(cls.isInstance(value))) {
-            return new Message(MESSAGE_CODE, name + ": " + value);
+            return new Message(VALIDATION_TYPE_EXCEPTION_CODE, name, value);
         }
         return null;
     }
