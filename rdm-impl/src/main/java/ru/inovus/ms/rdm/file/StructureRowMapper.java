@@ -1,7 +1,5 @@
 package ru.inovus.ms.rdm.file;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.exception.RdmException;
@@ -14,8 +12,6 @@ import java.time.format.DateTimeFormatter;
 
 
 public class StructureRowMapper implements RowMapper {
-
-    private static final Logger logger = LoggerFactory.getLogger(NonStrictOnTypeRowMapper.class);
 
     protected Structure structure;
 
