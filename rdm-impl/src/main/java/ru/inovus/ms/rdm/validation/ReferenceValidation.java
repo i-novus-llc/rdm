@@ -34,14 +34,14 @@ public class ReferenceValidation implements RdmValidation {
     private static final String INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE = "inconvertible.new.type";
 
     public ReferenceValidation(SearchDataService searchDataService, RefBookVersionRepository versionRepository, Structure.Reference reference, Integer draftId) {
+        this(searchDataService, versionRepository, reference, draftId, 100);
+    }
+
+    public ReferenceValidation(SearchDataService searchDataService, RefBookVersionRepository versionRepository, Structure.Reference reference, Integer draftId, Integer bufSize) {
         this.searchDataService = searchDataService;
         this.versionRepository = versionRepository;
         this.reference = reference;
         this.draftId = draftId;
-    }
-
-    public ReferenceValidation(SearchDataService searchDataService, RefBookVersionRepository versionRepository, Structure.Reference reference, Integer draftId, Integer bufSize) {
-        this(searchDataService, versionRepository, reference, draftId);
         this.bufSize = bufSize;
     }
 
