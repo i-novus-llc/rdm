@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.util;
 
 import org.apache.cxf.helpers.IOUtils;
+import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.ExportFile;
 
 import javax.ws.rs.Produces;
@@ -35,10 +36,11 @@ public class ExportFileProvider implements MessageBodyWriter<ExportFile>, Messag
 
     @Override
     public void writeTo(ExportFile exportFile, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException {
-        httpHeaders.put("Content-Disposition", Collections.singletonList("attachment; filename=" + exportFile.getFileName()));
-        IOUtils.copy(exportFile.getInputStream(), entityStream);
-        exportFile.getInputStream().close();
-        entityStream.close();
+        try (InputStream inputStream = exportFile.getInputStream();
+             OutputStream outputStream = entityStream) {
+            httpHeaders.put("Content-Disposition", Collections.singletonList("attachment; filename=" + exportFile.getFileName()));
+            IOUtils.copy(inputStream, outputStream);
+        }
     }
 
 
@@ -51,12 +53,18 @@ public class ExportFileProvider implements MessageBodyWriter<ExportFile>, Messag
     public ExportFile readFrom(Class<ExportFile> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException {
 
         String name = null;
-        List<String> contentDisposition = httpHeaders.get("Content-Disposition");
-        String[] parts = new String[0];
-        if (contentDisposition != null && !contentDisposition.isEmpty())
-            parts = contentDisposition.get(0).split("filename[\\s]*=[\\s]*");
-        if (parts.length > 1)
-            name = parts[1].split(";")[0];
-        return new ExportFile(entityStream, name);
+        try {
+            name = null;
+            List<String> contentDisposition = httpHeaders.get("Content-Disposition");
+            String[] parts = new String[0];
+            if (contentDisposition != null && !contentDisposition.isEmpty())
+                parts = contentDisposition.get(0).split("filename[\\s]*=[\\s]*");
+            if (parts.length > 1)
+                name = parts[1].split(";")[0];
+            return new ExportFile(entityStream, name);
+        } catch (Exception e) {
+            entityStream.close();
+            throw new RdmException(e);
+        }
     }
 }

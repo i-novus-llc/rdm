@@ -23,6 +23,7 @@ import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.file.*;
 import ru.inovus.ms.rdm.file.export.Archiver;
 import ru.inovus.ms.rdm.file.export.FileGenerator;
@@ -38,6 +39,7 @@ import ru.inovus.ms.rdm.util.ModelGenerator;
 import ru.inovus.ms.rdm.validation.ReferenceValidation;
 import ru.kirkazan.common.exception.CodifiedException;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -510,12 +512,15 @@ public class DraftServiceImpl implements DraftService {
         VersionDataIterator dataIterator = new VersionDataIterator(versionService, Collections.singletonList(draftId));
         FileGenerator fileGenerator = PerRowFileGeneratorFactory
                 .getFileGenerator(dataIterator, versionService.getStructure(draftId), fileType);
-
-        InputStream is = new Archiver()
-                .addEntry(fileGenerator, fileNameGenerator.generateName(versionModel, FileType.XLSX))
-                .getArchive();
-
-        return new ExportFile(is, fileNameGenerator.generateZipName(versionModel, FileType.XLSX));
+        try (Archiver archiver = new Archiver()) {
+            String zipName = fileNameGenerator.generateZipName(versionModel, FileType.XLSX);
+            InputStream is = archiver
+                    .addEntry(fileGenerator, fileNameGenerator.generateName(versionModel, FileType.XLSX))
+                    .getArchive();
+            return new ExportFile(is, zipName);
+        } catch (IOException e) {
+            throw new RdmException(e);
+        }
     }
 
 }

@@ -11,7 +11,7 @@ import java.util.zip.ZipOutputStream;
 /**
  * Created by znurgaliev on 06.08.2018.
  */
-public class Archiver {
+public class Archiver implements Closeable {
 
 
     private static final Logger logger = LoggerFactory.getLogger(Archiver.class);
@@ -32,9 +32,9 @@ public class Archiver {
     }
 
     public Archiver addEntry(FileGenerator fileGenerator, String fileName){
-        try {
+        try(FileGenerator fg = fileGenerator) {
             zos.putNextEntry(new ZipEntry(fileName));
-            fileGenerator.generate(zos);
+            fg.generate(zos);
             zos.closeEntry();
         } catch (IOException e) {
             logger.error("Can not add generate file " + fileName, e);
@@ -47,10 +47,27 @@ public class Archiver {
         try {
             zos.flush();
             zos.close();
-            return new FileInputStream(zipFile);
+            return new CleanTempFileInputStream(zipFile);
         } catch (IOException e) {
             throw new RdmException("Archiver is closed", e);
         }
     }
 
+    @Override
+    public void close() throws IOException {
+        zos.close();
+    }
+
+    private class CleanTempFileInputStream extends FileInputStream{
+
+        public CleanTempFileInputStream(File file) throws FileNotFoundException {
+            super(file);
+        }
+
+        @Override
+        public void close() throws IOException {
+            zipFile.delete();
+            super.close();
+        }
+    }
 }

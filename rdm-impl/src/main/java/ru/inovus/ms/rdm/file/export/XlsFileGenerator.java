@@ -78,11 +78,10 @@ public class XlsFileGenerator extends PerRowFileGenerator {
         try {
             autoSizeAllSheet();
             workbook.write(ncos);
-            fieldColumn.clear();
-            stileFactory = null;
             workbook.close();
             ncos.flush();
-            getOutputStream().flush();
+            fieldColumn.clear();
+            stileFactory = null;
             logger.info("XLSX generate finished");
         } catch (IOException e) {
             logger.error("cannot generate XLSX", e);
@@ -172,6 +171,11 @@ public class XlsFileGenerator extends PerRowFileGenerator {
             sheet.getTrackedColumnsForAutoSizing()
                     .forEach(sheet::autoSizeColumn);
         }
+    }
+
+    @Override
+    public void close() throws IOException {
+        workbook.close();
     }
 
 
