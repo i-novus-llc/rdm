@@ -22,6 +22,6 @@ public class PrimaryKeyUniqueValidation implements RdmValidation {
     public List<Message> validate() {
         if(!draftDataService.isUnique(storageCode, fieldNames))
             return Collections.singletonList(new Message("primary.key.not.unique"));
-        return null;
+        return Collections.emptyList();
     }
 }
