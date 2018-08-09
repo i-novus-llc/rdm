@@ -26,6 +26,7 @@ public class NonStrictOnTypeRowMapper extends StructureRowMapper {
         return inputRow;
     }
 
+    @Override
     protected Object castValue(Structure.Attribute attribute, String value) {
         try {
             return super.castValue(attribute, value);

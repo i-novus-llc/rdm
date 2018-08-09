@@ -13,7 +13,9 @@ import java.util.Map;
 import java.util.Optional;
 
 public class TypeValidation implements RdmValidation {
-    private final static String code = "validation.type.error";
+
+    private static final String MESSAGE_CODE = "validation.type.error";
+
     private Map<String, Object> row;
 
     private Structure structure;
@@ -56,7 +58,7 @@ public class TypeValidation implements RdmValidation {
 
     private Message checkInstance(String name, Object value, Class cls) {
         if (!(cls.isInstance(value))) {
-            return new Message(code, name + ": " + value);
+            return new Message(MESSAGE_CODE, name + ": " + value);
         }
         return null;
     }
