@@ -14,6 +14,9 @@ import java.util.Map;
  */
 public class ModelGenerator {
 
+    private ModelGenerator() {
+    }
+
     public static RefBookVersion versionModel(RefBookVersionEntity entity) {
         if (entity == null) return null;
         RefBookVersion model = new RefBookVersion();
