@@ -16,6 +16,7 @@ import ru.inovus.ms.rdm.validation.TypeValidation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
@@ -30,6 +31,8 @@ public class RowsValidatorImpl implements RowsValidator {
 
     private VersionService versionService;
 
+    private List<Message> messages = new ArrayList<>();
+
     public RowsValidatorImpl(VersionService versionService, Structure structure) {
         this.versionService = versionService;
         this.structure = structure;
@@ -37,27 +40,22 @@ public class RowsValidatorImpl implements RowsValidator {
 
     @Override
     public Result append(Row row) {
-        validateReferences(row);
+        Optional.ofNullable(validateReferences(row)).ifPresent(referenceMessages -> messages.addAll(referenceMessages));
         TypeValidation typeValidation = new TypeValidation(row.getData(), structure);
-        addToResult(typeValidation.validate());
-        return this.result;
+        Optional.ofNullable(typeValidation.validate()).ifPresent(typeMessages -> messages.addAll(typeMessages));
+        if (!isEmpty(messages)) {
+            return this.result = this.result.addResult(new Result(0, 1, messages));
+        }
+        return this.result = this.result.addResult(new Result(1, 1, null));
     }
 
-    private void addToResult(List<Message> messages) {
-        if (!isEmpty(messages)){
-            this.result = this.result.addResult(new Result(0, 1, messages));
-        }
-        else {
-            this.result = this.result.addResult(new Result(1, 1, null));
-        }
-    }
 
     @Override
     public Result process() {
         return this.result;
     }
 
-    private void validateReferences(Row row) {
+    private List<Message> validateReferences(Row row) {
         List<Structure.Reference> references = structure.getReferences();
         List<Structure.Reference> invalidReferences = new ArrayList<>();
         if (!isEmpty(references)) {
@@ -67,14 +65,12 @@ public class RowsValidatorImpl implements RowsValidator {
                         return !isReferenceValid(reference, referenceValue);
                     }).collect(Collectors.toList());
         }
-        if (isEmpty(invalidReferences)) {
-            this.result = this.result.addResult(new Result(1, 1, null));
-        } else {
-            List<Message> messages = invalidReferences.stream()
+        if (!isEmpty(invalidReferences)) {
+            return invalidReferences.stream()
                     .map(invalidReference -> new Message("validation.reference.err", invalidReference.getAttribute() + ": " + ((Reference) row.getData().get((invalidReference).getAttribute())).getValue()))
                     .collect(Collectors.toList());
-            this.result = this.result.addResult(new Result(0, 1, messages));
         }
+        return null;
     }
 
     private boolean isReferenceValid(Structure.Reference reference, String referenceValue) {
