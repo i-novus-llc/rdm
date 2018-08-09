@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.rest;
 
+import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
 import net.n2oapp.platform.test.autoconfigure.EnableEmbeddedPg;
 import org.junit.Assert;
@@ -493,8 +494,8 @@ public class ApplicationTest {
 
         try {
             draftService.updateData(draft.getId(), fileModel);
-        } catch (Exception e) {
-            assertEquals("invalid.reference.err", e.getMessage());
+        } catch (RestException e) {
+            assertEquals("validation.reference.err", e.getErrors().get(0).getMessage());
         }
 
     }
