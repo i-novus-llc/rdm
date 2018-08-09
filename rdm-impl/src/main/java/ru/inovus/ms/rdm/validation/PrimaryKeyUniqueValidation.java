@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.validation;
 import net.n2oapp.platform.i18n.Message;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 
+import java.util.Collections;
 import java.util.List;
 
 public class PrimaryKeyUniqueValidation implements RdmValidation {
@@ -18,9 +19,9 @@ public class PrimaryKeyUniqueValidation implements RdmValidation {
     }
 
     @Override
-    public Message validate() {
+    public List<Message> validate() {
         if(!draftDataService.isUnique(storageCode, fieldNames))
-            return new Message("primary.key.not.unique");
+            return Collections.singletonList(new Message("primary.key.not.unique"));
         return null;
     }
 }

@@ -453,10 +453,10 @@ public class DraftServiceImpl implements DraftService {
     private void validatePrimaryKeyUnique(String storageCode, UpdateAttribute updateAttribute) {
         UpdateValue<Boolean> isPrimary = updateAttribute.getIsPrimary();
         if (isPrimary != null && isPrimary.isPresent() && isPrimary.get()) {
-            Message pkValidationMessage = new PrimaryKeyUniqueValidation(draftDataService, storageCode,
+            List<Message> pkValidationMessages = new PrimaryKeyUniqueValidation(draftDataService, storageCode,
                     Collections.singletonList(updateAttribute.getCode())).validate();
-            if (pkValidationMessage != null)
-                throw new UserException(pkValidationMessage);
+            if (pkValidationMessages != null && !pkValidationMessages.isEmpty())
+                throw new UserException(pkValidationMessages);
         }
     }
 

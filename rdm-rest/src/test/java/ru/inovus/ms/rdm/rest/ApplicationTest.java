@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.rest;
 
+import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
 import net.n2oapp.platform.test.autoconfigure.EnableEmbeddedPg;
 import org.junit.Assert;
@@ -25,7 +26,10 @@ import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.file.Row;
 import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.service.api.*;
+import ru.inovus.ms.rdm.service.api.DraftService;
+import ru.inovus.ms.rdm.service.api.FileStorageService;
+import ru.inovus.ms.rdm.service.api.RefBookService;
+import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 
 import java.io.IOException;
@@ -710,12 +714,12 @@ public class ApplicationTest {
 
         List<String> codes = structure.getAttributes().stream().map(Structure.Attribute::getCode).collect(Collectors.toList());
         Map<String, Object> rowMap1 = new HashMap<>();
-        rowMap1.put(codes.get(0), 1);
+        rowMap1.put(codes.get(0), BigInteger.valueOf(1));
         rowMap1.put(codes.get(1), "Дублирующееся имя");
         rowMap1.put(codes.get(2), "001");
 
         Map<String, Object> rowMap2 = new HashMap<>();
-        rowMap2.put(codes.get(0), 2);
+        rowMap2.put(codes.get(0), BigInteger.valueOf(2));
         rowMap2.put(codes.get(1), "Дублирующееся имя");
         rowMap2.put(codes.get(2), "0021");
 
@@ -734,7 +738,8 @@ public class ApplicationTest {
         try {
             draftService.updateAttribute(updateAttribute);
         } catch (Exception e) {
-            assertEquals("primary.key.not.unique", e.getMessage());
+            assertTrue(e instanceof RestException);
+            assertEquals("primary.key.not.unique", ((RestException) e).getErrors().get(0).getMessage());
         }
     }
     /**
