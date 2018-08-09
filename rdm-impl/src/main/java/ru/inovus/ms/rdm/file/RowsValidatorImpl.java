@@ -39,8 +39,17 @@ public class RowsValidatorImpl implements RowsValidator {
     public Result append(Row row) {
         validateReferences(row);
         TypeValidation typeValidation = new TypeValidation(row.getData(), structure);
-        typeValidation.validate();
+        addToResult(typeValidation.validate());
         return this.result;
+    }
+
+    private void addToResult(List<Message> messages) {
+        if (!isEmpty(messages)){
+            this.result = this.result.addResult(new Result(0, 1, messages));
+        }
+        else {
+            this.result = this.result.addResult(new Result(1, 1, null));
+        }
     }
 
     @Override

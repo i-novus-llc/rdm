@@ -6,6 +6,7 @@ import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.Structure;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +41,7 @@ public class TypeValidation implements RdmValidation {
             case STRING:
                 return checkInstance(name, value, String.class);
             case INTEGER:
-                return checkInstance(name, value, Integer.class);
+                return checkInstance(name, value, BigInteger.class);
             case FLOAT:
                 return checkInstance(name, value, Float.class);
             case DATE:
