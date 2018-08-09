@@ -44,7 +44,7 @@ public class RowsValidatorImpl implements RowsValidator {
         TypeValidation typeValidation = new TypeValidation(row.getData(), structure);
         Optional.ofNullable(typeValidation.validate()).ifPresent(typeMessages -> messages.addAll(typeMessages));
         if (!isEmpty(messages)) {
-            this.result = this.result.addResult(new Result(0, 1, messages))
+            this.result = this.result.addResult(new Result(0, 1, messages));
         } else {
             this.result = this.result.addResult(new Result(1, 1, null));
         }
