@@ -59,11 +59,22 @@ public class ConverterUtil {
     }
 
     public static List<FieldSearchCriteria> getFieldSearchCriteriaList(List<AttributeFilter> attributeFilters) {
+        if (Objects.isNull(attributeFilters))
+            return Collections.emptyList();
         return attributeFilters.stream().map(attrFilter -> new FieldSearchCriteria(
                         fieldFactory.createField(attrFilter.getAttributeName(), attrFilter.getFieldType()),
                         attrFilter.getSearchType(),
                         Collections.singletonList(attrFilter.getValue()))
         ).collect(Collectors.toList());
+    }
+
+    public static Row toRow(RowValue rowValue) {
+        Map<String, Object> data = new HashMap<>();
+        rowValue.getFieldValues().forEach(fieldValue -> {
+            FieldValue fv = (FieldValue) fieldValue;
+            data.put(fv.getField(), fv.getValue());
+        });
+        return new Row(data);
     }
 
 }

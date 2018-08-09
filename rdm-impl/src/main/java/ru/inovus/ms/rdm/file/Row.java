@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.file;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class Row {
 
@@ -19,14 +20,12 @@ public class Row {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
         Row row = (Row) o;
-
-        return data != null ? data.equals(row.data) : row.data == null;
+        return Objects.equals(data, row.data);
     }
 
     @Override
     public int hashCode() {
-        return data != null ? data.hashCode() : 0;
+        return Objects.hash(data);
     }
 }
