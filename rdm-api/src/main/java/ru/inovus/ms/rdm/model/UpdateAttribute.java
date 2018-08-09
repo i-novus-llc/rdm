@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.model;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.time.LocalDate;
@@ -106,8 +107,8 @@ public class UpdateAttribute extends UpdatableDto {
         return isRequired;
     }
 
+    @SuppressWarnings("all")
     public void setIsRequired(UpdateValue<Boolean> isRequired) {
-        // noinspection
         if (isPrimary != null && isPrimary.isPresent() && isPrimary.get() && isRequired != null && isRequired.isPresent() && !isRequired.get())
             throw new IllegalStateException("primary attribute must be required");
         this.isRequired = isRequired;
