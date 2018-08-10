@@ -556,7 +556,7 @@ public class DraftServiceImpl implements DraftService {
             versionFileRepository.save(new VersionFileEntity(versionEntity, fileType,
                     fileStorage.saveContent(inputStream, fileNameGenerator.generateZipName(version, fileType))));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RdmException(e);
         }
     }
 
