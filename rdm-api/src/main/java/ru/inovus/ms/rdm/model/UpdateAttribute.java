@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.model;
 
-import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.time.LocalDate;
