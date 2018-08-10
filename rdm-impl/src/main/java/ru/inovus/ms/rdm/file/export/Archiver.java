@@ -47,7 +47,6 @@ public class Archiver implements Closeable {
     public InputStream getArchive(){
         try {
             zos.flush();
-            zos.close();
             return new CleanTempFileInputStream(zipFile);
         } catch (IOException e) {
             throw new RdmException("Archiver is closed", e);
