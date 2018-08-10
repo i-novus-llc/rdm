@@ -25,7 +25,7 @@ public interface VersionService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет версии")
     })
-    @Path("/{versionId}")
+    @Path("/{versionId}/data")
     Page<RowValue> search(@PathParam("versionId")Integer versionId, @BeanParam SearchDataCriteria criteria);
 
     @GET
