@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="201808081900_RDM-91_1_1" author="znurgaliev" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="ref_book_version" schemaName="ref_book_version_file"/>
+            </not>
+        </preConditions>
+        <comment>Добавление таблица для файлов версий</comment>
+        <sql>
+            CREATE TABLE IF NOT EXISTS n2o_rdm_management.ref_book_version_file
+            (
+            id SERIAL NOT NULL,
+            version_id INTEGER NOT NULL,
+            path VARCHAR NOT NULL,
+            type VARCHAR NOT NULL,
+
+            CONSTRAINT pk_ref_book_version_file_id PRIMARY KEY ( id ),
+            CONSTRAINT fk_ref_book_version_file_ref_book_version_id FOREIGN KEY ( version_id ) REFERENCES n2o_rdm_management.ref_book_version( id ) ON DELETE CASCADE ON UPDATE RESTRICT
+            );
+
+            COMMENT ON TABLE n2o_rdm_management.ref_book_version_file IS 'Файлы версий';
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_version_file.id IS 'Идентификатор';
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_version_file.version_id IS 'Ссылка на версию справочника';
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_version_file.path IS 'Ссылка на файловое хранилище';
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_version_file.type IS 'Тип файла';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

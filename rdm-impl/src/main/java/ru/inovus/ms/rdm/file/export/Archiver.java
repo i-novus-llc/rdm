@@ -31,10 +31,10 @@ public class Archiver implements Closeable {
         }
     }
 
-    public Archiver addEntry(FileGenerator fileGenerator, String fileName){
-        try {
-            zos.putNextEntry(new ZipEntry(fileName));
-            fileGenerator.generate(zos);
+    public Archiver addEntry(FileGenerator fileGenerator, String fileName) {
+        try (FileGenerator fg = fileGenerator) {
+            zos.putNextEntry(new ZipEntry(String.valueOf(fileName)));
+            fg.generate(zos);
             zos.closeEntry();
         } catch (IOException e) {
             logger.error("Can not add generate file " + fileName, e);
@@ -43,10 +43,9 @@ public class Archiver implements Closeable {
         return this;
     }
 
-    public InputStream getArchive(){
+    public InputStream getArchive() {
         try {
             zos.flush();
-            close();
             return new FileInputStream(zipFile);
         } catch (IOException e) {
             throw new RdmException("Archiver is closed", e);

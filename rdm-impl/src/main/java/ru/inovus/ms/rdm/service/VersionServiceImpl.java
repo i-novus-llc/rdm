@@ -11,13 +11,25 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
-import ru.inovus.ms.rdm.model.RowValuePage;
-import ru.inovus.ms.rdm.model.SearchDataCriteria;
-import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.entity.VersionFileEntity;
+import ru.inovus.ms.rdm.enumeration.FileType;
+import ru.inovus.ms.rdm.exception.RdmException;
+import ru.inovus.ms.rdm.file.FileStorage;
+import ru.inovus.ms.rdm.file.export.Archiver;
+import ru.inovus.ms.rdm.file.export.FileGenerator;
+import ru.inovus.ms.rdm.file.export.PerRowFileGeneratorFactory;
+import ru.inovus.ms.rdm.file.export.VersionDataIterator;
+import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
+import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ConverterUtil;
+import ru.inovus.ms.rdm.util.FileNameGenerator;
+import ru.inovus.ms.rdm.util.ModelGenerator;
 
+import javax.transaction.Transactional;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.Date;
@@ -33,17 +45,31 @@ public class VersionServiceImpl implements VersionService {
 
     private RefBookVersionRepository versionRepository;
     private SearchDataService searchDataService;
+    private FileNameGenerator fileNameGenerator;
+    private VersionFileRepository versionFileRepository;
+    private FileStorage fileStorage;
 
     @Autowired
-    public VersionServiceImpl(RefBookVersionRepository versionRepository, SearchDataService searchDataService) {
+    public VersionServiceImpl(RefBookVersionRepository versionRepository, SearchDataService searchDataService,
+                              FileNameGenerator fileNameGenerator, VersionFileRepository versionFileRepository,
+                              FileStorage fileStorage) {
         this.versionRepository = versionRepository;
         this.searchDataService = searchDataService;
+        this.fileNameGenerator = fileNameGenerator;
+        this.versionFileRepository = versionFileRepository;
+        this.fileStorage = fileStorage;
     }
 
     @Override
     public Page<RowValue> search(Integer versionId, SearchDataCriteria criteria) {
         RefBookVersionEntity version = versionRepository.findOne(versionId);
         return getRowValuesOfVersion(criteria, version);
+    }
+
+    @Override
+    @Transactional
+    public RefBookVersion getById(Integer versionId) {
+        return ModelGenerator.versionModel(versionRepository.findOne(versionId));
     }
 
     @Override
@@ -68,5 +94,55 @@ public class VersionServiceImpl implements VersionService {
     @Override
     public Structure getStructure(Integer versionId) {
         return versionRepository.findOne(versionId).getStructure();
+    }
+
+
+    @Override
+    @Transactional
+    public ExportFile getVersionFile(Integer versionId, FileType fileType) {
+        RefBookVersionEntity versionEntity = versionRepository.findOne(versionId);
+        if (versionEntity == null || fileType == null) return null;
+
+        VersionFileEntity fileEntity = versionFileRepository.findByVersionIdAndType(versionId, fileType);
+        String path = null;
+        if (fileEntity != null)
+            path = fileEntity.getPath();
+        if (fileEntity == null || !fileStorage.isExistContent(fileEntity.getPath())) {
+            path = generateVersionFile(versionEntity, fileType);
+        }
+
+        return new ExportFile(
+                fileStorage.getContent(path),
+                fileNameGenerator.generateZipName(ModelGenerator.versionModel(versionEntity), FileType.XLSX));
+    }
+
+    private String generateVersionFile(RefBookVersionEntity version, FileType fileType) {
+
+        RefBookVersion versionModel = ModelGenerator.versionModel(version);
+
+        VersionDataIterator dataIterator = new VersionDataIterator(this, Collections.singletonList(versionModel.getId()));
+        String path;
+        try (FileGenerator fileGenerator = PerRowFileGeneratorFactory
+                .getFileGenerator(dataIterator, this.getStructure(versionModel.getId()), fileType);
+             Archiver archiver = new Archiver();
+             InputStream is = archiver
+                     .addEntry(fileGenerator, fileNameGenerator.generateName(versionModel, fileType))
+                     .getArchive()) {
+            path = fileStorage.saveContent(is, fileNameGenerator.generateZipName(versionModel, fileType));
+
+            VersionFileEntity fileEntity = versionFileRepository.findByVersionIdAndType(versionModel.getId(), fileType);
+            if (fileEntity == null) {
+                RefBookVersionEntity versionEntity = new RefBookVersionEntity();
+                versionEntity.setId(versionModel.getId());
+                fileEntity = new VersionFileEntity(versionEntity, fileType, path);
+            }
+            versionFileRepository.save(fileEntity);
+
+            if (!fileStorage.isExistContent(path))
+                throw new RdmException("cannot generate file");
+        } catch (IOException e) {
+            throw new RdmException(e);
+        }
+        return path;
     }
 }

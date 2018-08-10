@@ -33,7 +33,6 @@ public class XlsFileGenerator extends PerRowFileGenerator {
     private SXSSFWorkbook workbook;
     private int pageSize = 500;
     private CellStileFactory stileFactory;
-    private Structure structure;
 
 
     public XlsFileGenerator(Iterator<Row> rowIterator) {
@@ -41,14 +40,20 @@ public class XlsFileGenerator extends PerRowFileGenerator {
     }
 
     public XlsFileGenerator(Iterator<Row> rowIterator, Structure structure) {
-        super(rowIterator);
-        this.structure = structure;
+        super(rowIterator, structure);
     }
 
     public XlsFileGenerator(Iterator<Row> rowIterator, int pageSize) {
         super(rowIterator);
         this.pageSize = pageSize;
     }
+
+    public XlsFileGenerator(Iterator<Row> rowIterator, Structure structure, int pageSize) {
+        super(rowIterator, structure);
+        this.pageSize = pageSize;
+    }
+
+
 
 
     @Override
@@ -73,11 +78,10 @@ public class XlsFileGenerator extends PerRowFileGenerator {
         try {
             autoSizeAllSheet();
             workbook.write(ncos);
-            fieldColumn.clear();
-            stileFactory = null;
             workbook.close();
             ncos.flush();
-            getOutputStream().flush();
+            fieldColumn.clear();
+            stileFactory = null;
             logger.info("XLSX generate finished");
         } catch (IOException e) {
             logger.error("cannot generate XLSX", e);
@@ -111,8 +115,8 @@ public class XlsFileGenerator extends PerRowFileGenerator {
 
     private SXSSFRow createFirstRow(SXSSFSheet sheet) {
         SXSSFRow row = sheet.createRow(0);
-        if (structure != null)
-            structure.getAttributes().forEach(a -> getColumnIndex(a.getCode()));
+        if (getStructure() != null)
+            getStructure().getAttributes().forEach(a -> getColumnIndex(a.getCode()));
         return row;
     }
 
@@ -167,6 +171,11 @@ public class XlsFileGenerator extends PerRowFileGenerator {
             sheet.getTrackedColumnsForAutoSizing()
                     .forEach(sheet::autoSizeColumn);
         }
+    }
+
+    @Override
+    public void close() throws IOException {
+        workbook.close();
     }
 
 

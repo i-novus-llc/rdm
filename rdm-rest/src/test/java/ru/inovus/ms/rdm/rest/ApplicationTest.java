@@ -3,9 +3,7 @@ package ru.inovus.ms.rdm.rest;
 import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
 import net.n2oapp.platform.test.autoconfigure.EnableEmbeddedPg;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +19,7 @@ import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.FileStorage;
@@ -32,6 +31,7 @@ import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
@@ -41,6 +41,8 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -55,7 +57,8 @@ import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
         properties = {
                 "cxf.jaxrs.client.classes-scan=true",
                 "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.service.api",
-                "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api"
+                "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
+                "fileStorage.root=src/test/resources/rdm/temp"
         })
 @DefinePort
 @EnableEmbeddedPg
@@ -154,6 +157,25 @@ public class ApplicationTest {
         versionList = Arrays.asList(version0, version1, version2, version3);
     }
 
+    @AfterClass
+    public static void cleanTemp() {
+        File file = new File("src/test/resources/rdm/temp");
+        deleteFile(file);
+
+    }
+
+    private static void deleteFile(File file){
+        if (!file.exists())
+            return;
+        if (file.isDirectory()) {
+            for (File f : file.listFiles())
+                deleteFile(f);
+            file.delete();
+        } else {
+            file.delete();
+        }
+    }
+
     /**
      * Создание справочника.
      * В архив.
@@ -227,7 +249,7 @@ public class ApplicationTest {
         refBookService.archive(refBook.getRefBookId());
 
         // получение по идентификатору версии
-        RefBook refBookById = refBookService.getById(refBook.getId());
+        RefBook refBookById = refBookService.getByVersionId(refBook.getId());
         refBook.setArchived(Boolean.TRUE);
         refBook.setRemovable(Boolean.FALSE);
         refBook.setDisplayVersion(RefBookStatus.ARCHIVED.getName());
@@ -531,12 +553,8 @@ public class ApplicationTest {
     }
 
     private FileModel createFileModel(String path, String name) {
-        fileStorage.setRoot("src/test/resources/rdm");
         try (InputStream input = ApplicationTest.class.getResourceAsStream("/" + name)) {
-            FileModel fileModel = new FileModel(path, name);
-            String fullPath = fileStorageService.save(input, path);
-            fileModel.setPath(fullPath);
-            return fileModel;
+            return fileStorageService.save(input, path);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -685,6 +703,7 @@ public class ApplicationTest {
         }
         return true;
     }
+
     @Test
     public void testCreateRequiredAttributeWithNotEmptyData(){
         CreateAttribute createAttributeModel = new CreateAttribute(-2, createAttribute, createReference);
@@ -694,6 +713,31 @@ public class ApplicationTest {
             assertEquals("required.attribute.err", e.getMessage());
         }
     }
+
+    @Test
+    public void testExportImportDraftFile() throws IOException {
+        //создание справочника из файла
+        RefBook refBook = refBookService.create(new RefBookCreateRequest("Z002", null));
+        FileModel fileModel = createFileModel("create_testUpload.xlsx", "testUpload.xlsx");
+        Draft draft1 = draftService.create(refBook.getRefBookId(), fileModel);
+        Page<RowValue> expectedPage = draftService.search(draft1.getId(), new SearchDataCriteria());
+
+        //выгрузка файла
+        ExportFile exportFile = draftService.getDraftFile(draft1.getId(), FileType.XLSX);
+        ZipInputStream zis = new ZipInputStream(exportFile.getInputStream());
+        ZipEntry zipEntry = zis.getNextEntry();
+        fileModel = fileStorageService.save(zis, zipEntry.getName());
+
+        //создание нового черновика из выгруженного
+        Draft draft2 = draftService.create(refBook.getRefBookId(), fileModel);
+        Assert.assertNotEquals(draft1, draft2);
+        Page<RowValue> actualPage = draftService.search(draft2.getId(), new SearchDataCriteria());
+
+        //сравнение двух черновиков
+        Assert.assertEquals(expectedPage, actualPage);
+
+    }
+
 
     @Test
     public void testValidatePrimaryKeyOnUpdateAttribute() {
