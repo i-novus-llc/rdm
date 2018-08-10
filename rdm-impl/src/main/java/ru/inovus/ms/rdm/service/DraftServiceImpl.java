@@ -361,7 +361,6 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draftEntity = versionRepository.findOne(updateAttribute.getVersionId());
         Structure structure = draftEntity.getStructure();
         Structure.Attribute attribute = structure.getAttribute(updateAttribute.getCode());
-        validatePrimaryKeyUnique(draftEntity.getStorageCode(), updateAttribute);
         validateUpdateAttribute(updateAttribute, attribute, draftEntity.getStorageCode());
 
         //clear previous primary keys
@@ -436,10 +435,13 @@ public class DraftServiceImpl implements DraftService {
         if (!isUpdateValueNullOrEmpty(updateAttribute.getIsRequired()) && updateAttribute.getIsRequired().get() && draftDataService.isFieldContainEmptyValues(storageCode, updateAttribute.getCode()))
             throw new UserException(new Message(INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE, attribute.getDescription()));
 
+        if (!isUpdateValueNullOrEmpty(updateAttribute.getIsPrimary()) && updateAttribute.getIsPrimary().get()) {
+            validatePrimaryKeyUnique(storageCode, updateAttribute);
+        }
+
         // проверка совместимости типов, если столбец не пустой и изменяется тип. Если пустой - можно изменить тип
         if (draftDataService.isFieldNotEmpty(storageCode, updateAttribute.getCode())) {
-            boolean isCompatible = isCompatibleTypes(attribute.getType(), updateAttribute.getType());
-            if (!isCompatible) {
+            if (!isCompatibleTypes(attribute.getType(), updateAttribute.getType())) {
                 throw new UserException(new Message(INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE, attribute.getDescription()));
             }
         } else
@@ -451,13 +453,20 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private void validatePrimaryKeyUnique(String storageCode, UpdateAttribute updateAttribute) {
-        UpdateValue<Boolean> isPrimary = updateAttribute.getIsPrimary();
-        if (isPrimary != null && isPrimary.isPresent() && isPrimary.get()) {
-            List<Message> pkValidationMessages = new PrimaryKeyUniqueValidation(draftDataService, storageCode,
-                    Collections.singletonList(updateAttribute.getCode())).validate();
-            if (pkValidationMessages != null && !pkValidationMessages.isEmpty())
-                throw new UserException(pkValidationMessages);
-        }
+        List<Message> pkValidationMessages = new PrimaryKeyUniqueValidation(draftDataService, storageCode,
+                Collections.singletonList(updateAttribute.getCode())).validate();
+        if (pkValidationMessages != null && !pkValidationMessages.isEmpty())
+            throw new UserException(pkValidationMessages);
+    }
+
+    private void validateReferenceValues(UpdateAttribute updateAttribute) {
+        List<Message> referenceValidationMessages = new ReferenceValidation(
+                searchDataService,
+                versionRepository,
+                new Structure.Reference(updateAttribute.getAttribute().get(), updateAttribute.getReferenceVersion().get(), updateAttribute.getReferenceAttribute().get(), updateAttribute.getDisplayAttributes().get(), updateAttribute.getSortingAttributes().get()),
+                updateAttribute.getVersionId()).validate();
+        if (!isEmpty(referenceValidationMessages))
+            throw new UserException(referenceValidationMessages);
     }
 
     private boolean isCompatibleTypes(FieldType realDataType, FieldType newDataType) {
@@ -476,16 +485,6 @@ public class DraftServiceImpl implements DraftService {
 
     private boolean isUpdateValueNullOrEmpty(UpdateValue updateValue) {
         return updateValue == null || !updateValue.isPresent();
-    }
-
-    private void validateReferenceValues(UpdateAttribute updateAttribute) {
-        List<Message> messages = new ReferenceValidation(
-                searchDataService,
-                versionRepository,
-                new Structure.Reference(updateAttribute.getAttribute().get(), updateAttribute.getReferenceVersion().get(), updateAttribute.getReferenceAttribute().get(), updateAttribute.getDisplayAttributes().get(), updateAttribute.getSortingAttributes().get()),
-                updateAttribute.getVersionId()).validate();
-        if (!isEmpty(messages))
-            throw new UserException(messages);
     }
 
     @Override
