@@ -57,7 +57,8 @@ import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
         properties = {
                 "cxf.jaxrs.client.classes-scan=true",
                 "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.service.api",
-                "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api"
+                "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
+                "fileStorage.root=src/test/resources/rdm/temp"
         })
 @DefinePort
 @EnableEmbeddedPg
@@ -156,19 +157,14 @@ public class ApplicationTest {
         versionList = Arrays.asList(version0, version1, version2, version3);
     }
 
-    @Before
-    public void setStoragePath(){
-        fileStorage.setRoot("src/test/resources/rdm/temp");
-    }
-
-    @After
-    public void cleanTemp() {
+    @AfterClass
+    public static void cleanTemp() {
         File file = new File("src/test/resources/rdm/temp");
         deleteFile(file);
 
     }
 
-    private void deleteFile(File file){
+    private static void deleteFile(File file){
         if (!file.exists())
             return;
         if (file.isDirectory()) {
