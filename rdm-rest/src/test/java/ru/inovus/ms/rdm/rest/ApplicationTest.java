@@ -553,7 +553,6 @@ public class ApplicationTest {
     }
 
     private FileModel createFileModel(String path, String name) {
-        fileStorage.setRoot("src/test/resources/rdm");
         try (InputStream input = ApplicationTest.class.getResourceAsStream("/" + name)) {
             return fileStorageService.save(input, path);
         } catch (IOException e) {
