@@ -19,19 +19,28 @@ import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.PassportValueEntity;
+import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
+import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.file.*;
+import ru.inovus.ms.rdm.file.export.Archiver;
+import ru.inovus.ms.rdm.file.export.FileGenerator;
+import ru.inovus.ms.rdm.file.export.PerRowFileGeneratorFactory;
+import ru.inovus.ms.rdm.file.export.VersionDataIterator;
 import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ConverterUtil;
+import ru.inovus.ms.rdm.util.FileNameGenerator;
+import ru.inovus.ms.rdm.util.ModelGenerator;
 import ru.inovus.ms.rdm.validation.ReferenceValidation;
 import ru.inovus.ms.rdm.validation.PrimaryKeyUniqueValidation;
 import ru.kirkazan.common.exception.CodifiedException;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -64,9 +73,9 @@ public class DraftServiceImpl implements DraftService {
 
     private DropDataService dropDataService;
 
-    private RefBookRepository refBookRepository;
-
     private FileStorage fileStorage;
+
+    private FileNameGenerator fileNameGenerator;
 
     private static final String ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE = "Can not update structure, illegal update attribute";
     private static final String INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE = "incompatible.new.structure";
@@ -74,14 +83,15 @@ public class DraftServiceImpl implements DraftService {
 
     @Autowired
     public DraftServiceImpl(DraftDataService draftDataService, RefBookVersionRepository versionRepository, VersionService versionService,
-                            RefBookRepository refBookRepository, SearchDataService searchDataService, DropDataService dropDataService, FileStorage fileStorage) {
+                            SearchDataService searchDataService, DropDataService dropDataService, FileStorage fileStorage,
+                            FileNameGenerator fileNameGenerator) {
         this.draftDataService = draftDataService;
         this.versionRepository = versionRepository;
         this.versionService = versionService;
         this.searchDataService = searchDataService;
         this.dropDataService = dropDataService;
-        this.refBookRepository = refBookRepository;
         this.fileStorage = fileStorage;
+        this.fileNameGenerator = fileNameGenerator;
     }
 
     @Override
@@ -112,7 +122,9 @@ public class DraftServiceImpl implements DraftService {
             } else {
                 draftVersion = newDraftVersion(structure, lastRefBookVersion);
             }
-            draftVersion.setRefBook(refBookRepository.findOne(refBookId));
+            RefBookEntity refBookEntity = new RefBookEntity();
+            refBookEntity.setId(refBookId);
+            draftVersion.setRefBook(refBookEntity);
             draftVersion.setStorageCode(storageCode);
             versionRepository.save(draftVersion);
         };
@@ -130,7 +142,9 @@ public class DraftServiceImpl implements DraftService {
         List<Field> fields = fields(structure);
         if (draftVersion == null) {
             draftVersion = newDraftVersion(structure, lastRefBookVersion);
-            draftVersion.setRefBook(refBookRepository.findOne(refBookId));
+            RefBookEntity refBookEntity = new RefBookEntity();
+            refBookEntity.setId(refBookId);
+            draftVersion.setRefBook(refBookEntity);
             String draftCode = draftDataService.createDraft(fields);
             draftVersion.setStorageCode(draftCode);
         } else {
@@ -293,7 +307,7 @@ public class DraftServiceImpl implements DraftService {
     private RefBookVersionEntity getLastRefBookVersion(Integer refBookId) {
         Page<RefBookVersionEntity> lastPublishedVersions = versionRepository
                 .findAll(isPublished().and(isVersionOfRefBook(refBookId))
-                        , new PageRequest(1, 1, new Sort(Sort.Direction.DESC, "fromDate")));
+                        , new PageRequest(0, 1, new Sort(Sort.Direction.DESC, "fromDate")));
         return lastPublishedVersions != null && lastPublishedVersions.hasContent() ? lastPublishedVersions.getContent().get(0) : null;
     }
 
@@ -498,6 +512,26 @@ public class DraftServiceImpl implements DraftService {
         draftEntity.getStructure().getAttributes().remove(attribute);
 
         draftDataService.deleteField(draftEntity.getStorageCode(), attributeCode);
+    }
+
+    @Override
+    @Transactional
+    public ExportFile getDraftFile(Integer draftId, FileType fileType) {
+        RefBookVersion versionModel = ModelGenerator.versionModel(versionRepository.findOne(draftId));
+        if (versionModel == null || !RefBookVersionStatus.DRAFT.equals(versionModel.getStatus())) return null;
+
+        VersionDataIterator dataIterator = new VersionDataIterator(versionService, Collections.singletonList(draftId));
+        FileGenerator fileGenerator = PerRowFileGeneratorFactory
+                .getFileGenerator(dataIterator, versionService.getStructure(draftId), fileType);
+        try (Archiver archiver = new Archiver()) {
+            String zipName = fileNameGenerator.generateZipName(versionModel, FileType.XLSX);
+            InputStream is = archiver
+                    .addEntry(fileGenerator, fileNameGenerator.generateName(versionModel, FileType.XLSX))
+                    .getArchive();
+            return new ExportFile(is, zipName);
+        } catch (IOException e) {
+            throw new RdmException(e);
+        }
     }
 
 }

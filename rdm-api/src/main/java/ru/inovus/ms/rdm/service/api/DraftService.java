@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.service.api;
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.model.*;
 
 import javax.ws.rs.*;
@@ -105,4 +106,19 @@ public interface DraftService {
     })
     void deleteAttribute(@ApiParam("Идентификатор версии") @QueryParam("versionId") Integer versionId,
                          @ApiParam("Код атрибута") @QueryParam("code") String attributeCode);
+
+    @GET
+    @Path("/{draftId}/getFile")
+    @Produces("application/zip")
+    @ApiOperation("Выгрузка черновика")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    ExportFile getDraftFile(@ApiParam("Идентификатор версии")
+                          @PathParam("draftId")
+                          Integer draftId,
+                          @ApiParam(value = "Тип файла", required = true)
+                          @QueryParam("type")
+                          FileType fileType);
 }

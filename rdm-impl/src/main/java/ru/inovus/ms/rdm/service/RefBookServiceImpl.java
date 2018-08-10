@@ -5,6 +5,7 @@ import com.querydsl.core.types.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,7 +24,7 @@ import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.RefBookService;
-import ru.inovus.ms.rdm.util.TimeUtils;
+import ru.inovus.ms.rdm.util.ModelGenerator;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
@@ -34,6 +35,7 @@ import static java.util.Objects.nonNull;
 import static org.springframework.util.StringUtils.isEmpty;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
 
+@Primary
 @Service
 public class RefBookServiceImpl implements RefBookService {
 
@@ -62,7 +64,7 @@ public class RefBookServiceImpl implements RefBookService {
 
     @Override
     @Transactional
-    public RefBook getById(Integer versionId) {
+    public RefBook getByVersionId(Integer versionId) {
         return refBookModel(repository.findOne(versionId));
     }
 
@@ -126,7 +128,7 @@ public class RefBookServiceImpl implements RefBookService {
         Sort sort = new Sort(new Sort.Order(Sort.Direction.DESC, "fromDate", Sort.NullHandling.NULLS_FIRST));
         Pageable pageable = new PageRequest(criteria.getPageNumber() - 1, criteria.getPageSize(), sort);
         Page<RefBookVersionEntity> list = repository.findAll(toPredicate(criteria), pageable);
-        return list.map(this::versionModel);
+        return list.map(ModelGenerator::versionModel);
     }
 
     private Predicate toPredicate(VersionCriteria criteria) {
@@ -201,10 +203,6 @@ public class RefBookServiceImpl implements RefBookService {
             return new Sort(direction, property);
     }
 
-    private boolean hasPublishing(Integer refBookId) {
-        return repository.exists(isVersionOfRefBook(refBookId).and(isPublishing()));
-    }
-
     private RefBookVersionEntity getLastPublishedVersion(Integer refBookId) {
         return repository.findOne(isVersionOfRefBook(refBookId).and(isLastPublished()));
     }
@@ -223,10 +221,6 @@ public class RefBookServiceImpl implements RefBookService {
         return !repository.exists(where.getValue());
     }
 
-    private boolean isActualVersion(RefBookVersionEntity entity) {
-        return TimeUtils.isSameOrBeforeNow(entity.getFromDate()) && TimeUtils.isNullOrAfterNow(entity.getToDate());
-    }
-
     private String getDisplayVersion(RefBookVersionEntity entity) {
         if (entity.getRefBook().getArchived())
             return RefBookStatus.ARCHIVED.getName();
@@ -235,39 +229,9 @@ public class RefBookServiceImpl implements RefBookService {
         return RefBookVersionStatus.DRAFT.getName();
     }
 
-    private String getDisplayStatus(RefBookVersionEntity entity) {
-        if (entity.getRefBook().getArchived())
-            return RefBookStatus.ARCHIVED.name();
-        if (RefBookVersionStatus.PUBLISHED.equals(entity.getStatus()))
-            return isActualVersion(entity) ? entity.getStatus().name() : null;
-        else
-            return entity.getStatus().name();
-    }
-
-    private RefBookVersion versionModel(RefBookVersionEntity entity) {
-        if (entity == null) return null;
-        RefBookVersion model = new RefBookVersion();
-        model.setId(entity.getId());
-        model.setRefBookId(entity.getRefBook().getId());
-        model.setCode(entity.getRefBook().getCode());
-        model.setComment(entity.getComment());
-        model.setVersion(entity.getVersion());
-        model.setFromDate(entity.getFromDate());
-        model.setToDate(entity.getToDate());
-        model.setArchived(entity.getRefBook().getArchived());
-        model.setStatus(entity.getStatus());
-        model.setRefBookHasPublishingVersion(hasPublishing(entity.getRefBook().getId()));
-        model.setDisplayStatus(getDisplayStatus(entity));
-        Map<String, String> passport = new HashMap<>();
-        if (entity.getPassportValues() != null)
-            entity.getPassportValues().forEach(value -> passport.put(value.getAttribute().getCode(), value.getValue()));
-        model.setPassport(new Passport(passport));
-        return model;
-    }
-
     private RefBook refBookModel(RefBookVersionEntity entity) {
         if (entity == null) return null;
-        RefBook model = new RefBook(versionModel(entity));
+        RefBook model = new RefBook(ModelGenerator.versionModel(entity));
         model.setStatus(entity.getStatus());
         model.setRemovable(isRefBookRemovable(entity.getRefBook().getId()));
         model.setDisplayVersion(getDisplayVersion(entity));

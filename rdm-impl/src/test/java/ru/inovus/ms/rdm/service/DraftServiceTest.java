@@ -234,8 +234,9 @@ public class DraftServiceTest {
         Page<RefBookVersionEntity> lastRefBookVersionPage = new PageImpl<>(Collections.singletonList(lastRefBookVersion));
         when(versionRepository
                 .findAll(eq(isPublished().and(isVersionOfRefBook(REFBOOK_ID)))
-                        , eq(new PageRequest(1, 1, new Sort(Sort.Direction.DESC, "fromDate"))))).thenReturn(lastRefBookVersionPage);
+                        , eq(new PageRequest(0, 1, new Sort(Sort.Direction.DESC, "fromDate"))))).thenReturn(lastRefBookVersionPage);
         RefBookEntity refBook = new RefBookEntity();
+        refBook.setId(REFBOOK_ID);
         when(refBookRepository.findOne(REFBOOK_ID)).thenReturn(refBook);
         RefBookVersionEntity expectedRefBookVersion = createTestDraftVersion();
         expectedRefBookVersion.setId(null);
@@ -253,6 +254,7 @@ public class DraftServiceTest {
         RefBookVersionEntity testDraftVersion = createTestDraftVersion();
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(testDraftVersion);
         RefBookEntity refBook = new RefBookEntity();
+        refBook.setId(REFBOOK_ID);
         when(refBookRepository.findOne(REFBOOK_ID)).thenReturn(refBook);
         RefBookVersionEntity expectedRefBookVersion = createTestDraftVersion();
         expectedRefBookVersion.setId(null);
@@ -283,8 +285,9 @@ public class DraftServiceTest {
         Page<RefBookVersionEntity> lastRefBookVersionPage = new PageImpl<>(singletonList(lastRefBookVersion));
         when(versionRepository
                 .findAll(eq(isPublished().and(isVersionOfRefBook(REFBOOK_ID)))
-                        , eq(new PageRequest(1, 1, new Sort(Sort.Direction.DESC, "fromDate"))))).thenReturn(lastRefBookVersionPage);
+                        , eq(new PageRequest(0, 1, new Sort(Sort.Direction.DESC, "fromDate"))))).thenReturn(lastRefBookVersionPage);
         RefBookEntity refBook = new RefBookEntity();
+        refBook.setId(REFBOOK_ID);
         when(refBookRepository.findOne(REFBOOK_ID)).thenReturn(refBook);
         RefBookVersionEntity expectedRefBookVersion = createTestDraftVersion();
         expectedRefBookVersion.setId(null);

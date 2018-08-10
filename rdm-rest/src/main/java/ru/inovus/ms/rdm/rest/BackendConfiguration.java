@@ -6,9 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
-import ru.inovus.ms.rdm.util.RdmParamConverterProvider;
-import ru.inovus.ms.rdm.util.FileNameGenerator;
-import ru.inovus.ms.rdm.util.RowValueMapperPreparer;
+import ru.inovus.ms.rdm.util.*;
 
 @Configuration
 public class BackendConfiguration {
@@ -19,6 +17,11 @@ public class BackendConfiguration {
     @Bean
     RdmParamConverterProvider rdmParamConverterProvider() {
         return new RdmParamConverterProvider();
+    }
+
+    @Bean
+    ExportFileProvider exportFileProvider(){
+        return new ExportFileProvider();
     }
 
     @Bean

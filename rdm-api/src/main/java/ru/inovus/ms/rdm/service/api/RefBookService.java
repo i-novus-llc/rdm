@@ -22,13 +22,13 @@ public interface RefBookService {
     Page<RefBook> search(@BeanParam RefBookCriteria criteria);
 
     @GET
-    @Path("/{id}")
+    @Path("/version/{id}")
     @ApiOperation("Поиск по идентификатору версии")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Справочник"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    RefBook getById(@PathParam("id") @ApiParam("Идентификатор версии") Integer versionId);
+    RefBook getByVersionId(@PathParam("id") @ApiParam("Идентификатор версии") Integer versionId);
 
     @POST
     @ApiOperation("Создание нового справочника")

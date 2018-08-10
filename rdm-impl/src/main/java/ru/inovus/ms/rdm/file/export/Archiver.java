@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import ru.inovus.ms.rdm.exception.RdmException;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -32,9 +33,9 @@ public class Archiver implements Closeable {
     }
 
     public Archiver addEntry(FileGenerator fileGenerator, String fileName){
-        try {
+        try(FileGenerator fg = fileGenerator) {
             zos.putNextEntry(new ZipEntry(fileName));
-            fileGenerator.generate(zos);
+            fg.generate(zos);
             zos.closeEntry();
         } catch (IOException e) {
             logger.error("Can not add generate file " + fileName, e);
@@ -46,8 +47,7 @@ public class Archiver implements Closeable {
     public InputStream getArchive(){
         try {
             zos.flush();
-            close();
-            return new FileInputStream(zipFile);
+            return new CleanTempFileInputStream(zipFile);
         } catch (IOException e) {
             throw new RdmException("Archiver is closed", e);
         }
@@ -56,5 +56,18 @@ public class Archiver implements Closeable {
     @Override
     public void close() throws IOException {
         zos.close();
+    }
+
+    private class CleanTempFileInputStream extends FileInputStream{
+
+        public CleanTempFileInputStream(File file) throws FileNotFoundException {
+            super(file);
+        }
+
+        @Override
+        public void close() throws IOException {
+            super.close();
+            Files.delete(zipFile.toPath());
+        }
     }
 }
