@@ -3,9 +3,7 @@ package ru.inovus.ms.rdm.rest;
 import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
 import net.n2oapp.platform.test.autoconfigure.EnableEmbeddedPg;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +31,7 @@ import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
@@ -155,6 +154,30 @@ public class ApplicationTest {
         version3.setVersion("1");
 
         versionList = Arrays.asList(version0, version1, version2, version3);
+    }
+
+    @Before
+    public void setStoragePath(){
+        fileStorage.setRoot("src/test/resources/rdm/temp");
+    }
+
+    @After
+    public void cleanTemp() {
+        File file = new File("src/test/resources/rdm/temp");
+        deleteFile(file);
+
+    }
+
+    private void deleteFile(File file){
+        if (!file.exists())
+            return;
+        if (file.isDirectory()) {
+            for (File f : file.listFiles())
+                deleteFile(f);
+            file.delete();
+        } else {
+            file.delete();
+        }
     }
 
     /**
