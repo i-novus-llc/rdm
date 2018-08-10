@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.model.ExportFile;
+import ru.inovus.ms.rdm.model.RefBookVersion;
 import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
 
@@ -26,6 +27,18 @@ public interface VersionService {
     })
     @Path("/{versionId}")
     Page<RowValue> search(@PathParam("versionId")Integer versionId, @BeanParam SearchDataCriteria criteria);
+
+    @GET
+    @ApiOperation("Получение версии по идентификатору")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет версии")
+    })
+    @Path("/{versionId}")
+    RefBookVersion getById(@ApiParam("Идентификатор версии")
+                           @PathParam("versionId")
+                           Integer versionId);
+
 
     @GET
     @Path(("/refbook/{refbookId}/{date}"))

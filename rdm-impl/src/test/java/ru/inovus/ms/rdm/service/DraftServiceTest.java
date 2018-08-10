@@ -18,16 +18,16 @@ import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.inovus.ms.rdm.entity.PassportAttributeEntity;
-import ru.inovus.ms.rdm.entity.PassportValueEntity;
-import ru.inovus.ms.rdm.entity.RefBookEntity;
-import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
+import ru.inovus.ms.rdm.entity.*;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
+import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.util.FileNameGenerator;
+import ru.inovus.ms.rdm.util.ModelGenerator;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
@@ -82,6 +82,12 @@ public class DraftServiceTest {
     @Mock
     private FileStorage fileStorage;
 
+    @Mock
+    private FileNameGenerator fileNameGenerator;
+
+    @Mock
+    private VersionFileRepository versionFileRepository;
+
     private static final String UPD_SUFFIX = "_upd";
     private static final String PK_SUFFIX = "_pk";
 
@@ -126,10 +132,13 @@ public class DraftServiceTest {
         expectedVersionEntity.setFromDate(now);
         when(versionRepository.findOne(eq(testDraftVersion.getId()))).thenReturn(testDraftVersion);
         when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(null);
+        when(versionService.getById(eq(testDraftVersion.getId())))
+                .thenReturn(ModelGenerator.versionModel(testDraftVersion));
         draftService.publish(testDraftVersion.getId(), "1.0", now, null);
 
         verify(draftDataService).applyDraft(isNull(String.class), eq(expectedDraftStorageCode), eq(Date.from(now.atZone(ZoneId.systemDefault()).toInstant())));
         verify(versionRepository).save(eq(expectedVersionEntity));
+        verify(fileStorage).saveContent(any(InputStream.class), anyString());
         reset(versionRepository);
     }
 
@@ -172,7 +181,8 @@ public class DraftServiceTest {
         expectedVersionEntity.setFromDate(now);
         when(versionRepository.findOne(eq(draft.getId()))).thenReturn(draft);
         when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(new PageImpl(singletonList(versionEntity)));
-
+        when(versionService.getById(eq(draft.getId())))
+                .thenReturn(ModelGenerator.versionModel(draft));
 
         draftService.publish(draft.getId(), expectedVersionEntity.getVersion(), now, null);
 
@@ -195,6 +205,8 @@ public class DraftServiceTest {
 
         when(versionRepository.findOne(eq(draftVersion.getId()))).thenReturn(draftVersion);
         when(versionRepository.findAll(any(Predicate.class))).thenReturn(new PageImpl(singletonList(overlappingVersionEntity)));
+        when(versionService.getById(eq(draftVersion.getId())))
+                .thenReturn(ModelGenerator.versionModel(draftVersion));
 
         draftService.publish(draftVersion.getId(), "2.4", publishDate, null);
         verify(versionRepository, times(1)).save(eq(expectedVersionEntity));

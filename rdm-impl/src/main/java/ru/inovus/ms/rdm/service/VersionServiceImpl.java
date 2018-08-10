@@ -67,6 +67,12 @@ public class VersionServiceImpl implements VersionService {
     }
 
     @Override
+    @Transactional
+    public RefBookVersion getById(Integer versionId) {
+        return ModelGenerator.versionModel(versionRepository.findOne(versionId));
+    }
+
+    @Override
     public Page<RowValue> search(Integer refbookId, OffsetDateTime date, SearchDataCriteria criteria) {
         RefBookVersionEntity version = versionRepository.findActualOnDate(refbookId, date.toLocalDateTime());
         return version != null ? getRowValuesOfVersion(criteria, version) : new PageImpl<>(Collections.emptyList());

@@ -86,6 +86,7 @@ public class DraftServiceImpl implements DraftService {
     private static final String INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE = "incompatible.new.type";
 
     @Autowired
+    @SuppressWarnings("all")
     public DraftServiceImpl(DraftDataService draftDataService, RefBookVersionRepository versionRepository, VersionService versionService,
                             SearchDataService searchDataService, DropDataService dropDataService, FileStorage fileStorage,
                             FileNameGenerator fileNameGenerator, VersionFileRepository versionFileRepository) {
@@ -247,7 +248,7 @@ public class DraftServiceImpl implements DraftService {
         resolveOverlappingPeriodsInFuture(fromDate, toDate, draftVersion.getRefBook().getId());
         versionRepository.save(draftVersion);
 
-        RefBookVersion versionModel = ModelGenerator.versionModel(draftVersion);
+        RefBookVersion versionModel = versionService.getById(draftId);
         for (FileType fileType: FileType.values())
             saveVersionFile(versionModel, fileType, generateVersionFile(versionModel, fileType));
     }

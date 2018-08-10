@@ -39,7 +39,7 @@ public class ModelGenerator {
 
 
     private static String getDisplayStatus(RefBookVersionEntity entity) {
-        if (entity.getRefBook().getArchived())
+        if (Boolean.TRUE.equals(entity.getRefBook().getArchived()))
             return RefBookStatus.ARCHIVED.name();
         if (RefBookVersionStatus.PUBLISHED.equals(entity.getStatus()))
             return isActualVersion(entity) ? entity.getStatus().name() : null;
