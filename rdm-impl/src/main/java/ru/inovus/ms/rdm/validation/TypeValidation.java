@@ -21,6 +21,8 @@ public class TypeValidation implements RdmValidation {
 
     private Structure structure;
 
+    private List<String> errorAttributes;
+
     public TypeValidation(Map<String, Object> row, Structure structure) {
         this.row = row;
         this.structure = structure;
@@ -31,9 +33,19 @@ public class TypeValidation implements RdmValidation {
         List<Message> messages = new ArrayList<>();
         row.forEach((name, value) -> {
             FieldType type = structure.getAttribute(name).getType();
-            Optional.ofNullable(checkType(type, name, value)).ifPresent(messages::add);
+            Optional.ofNullable(checkType(type, name, value)).ifPresent(message -> {
+                messages.add(message);
+                if(errorAttributes == null) {
+                    errorAttributes = new ArrayList<String>();
+                }
+                errorAttributes.add(name);
+            });
         });
         return messages;
+    }
+
+    public List<String> getErrorAttributes() {
+        return errorAttributes;
     }
 
     private Message checkType(FieldType type, String name, Object value) {

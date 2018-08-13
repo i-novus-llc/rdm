@@ -41,7 +41,11 @@ public class RowsValidatorTest {
 
     private static final String ATTRIBUTE_NAME = "ref_name";
 
+    private static final String ATTRIBUTE_NAME_WITH_WRONG_TYPE = "ref_name_wrong";
+
     private static final String ATTRIBUTE_VALUE = "ref_value";
+
+    private static final String WRONG_ATTRIBUTE_VALUE = "ref_value_wrong";
 
     private static final String REFERENCE_ATTRIBUTE = "name";
 
@@ -79,7 +83,7 @@ public class RowsValidatorTest {
         Row notValidRow = new Row(new LinkedHashMap() {{
             put(ATTRIBUTE_NAME, new Reference(newAttributeValue, newAttributeValue));
         }});
-        Result expected = new Result(1, 2, Collections.singletonList(new Message("validation.reference.err", ATTRIBUTE_NAME + ": " + newAttributeValue)));
+        Result expected = new Result(1, 2, Collections.singletonList(new Message("validation.reference.err", ATTRIBUTE_NAME, newAttributeValue)));
         when(versionService.search(AdditionalMatchers.not(eq(REFERENCE_VERSION)), AdditionalMatchers.not(eq(searchDataCriteria))))
                 .thenReturn(new PageImpl<>(Collections.emptyList()));
 
@@ -89,6 +93,15 @@ public class RowsValidatorTest {
 
         Assert.assertEquals(expected, appendActual);
         Assert.assertEquals(expected, processActual);
+    }
+
+    /**
+     * Проверка если у значения атритбута недопустимый тип, то остальные проверки игнорируются
+     * @throws Exception
+     */
+    @Test
+    public void testIgnoreAttributeIfIsHasInvalidType() throws Exception {
+        //todo
     }
 
     private Row createTestRowWithReference() {

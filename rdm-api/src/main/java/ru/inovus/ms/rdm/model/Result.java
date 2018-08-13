@@ -66,4 +66,14 @@ public class Result {
         result = 31 * result + (errors != null ? errors.hashCode() : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Result{");
+        sb.append("successCount=").append(successCount);
+        sb.append(", allCount=").append(allCount);
+        sb.append(", errors=").append(errors);
+        sb.append('}');
+        return sb.toString();
+    }
 }

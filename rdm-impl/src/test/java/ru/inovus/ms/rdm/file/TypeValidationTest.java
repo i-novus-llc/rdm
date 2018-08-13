@@ -24,8 +24,11 @@ public class TypeValidationTest {
 
         TypeValidation typeValidation = new TypeValidation(row, createTestStructure());
         List<Message> actual = typeValidation.validate();
+        List<String> errorAttributes = typeValidation.getErrorAttributes();
 
         Assert.assertEquals(expected, actual);
+        Assert.assertEquals(1, errorAttributes.size());
+        Assert.assertTrue(errorAttributes.contains("count"));
     }
 
 
