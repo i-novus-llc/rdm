@@ -10,7 +10,7 @@ public abstract class ErrorAttributeHolderValidator implements RdmValidation {
     private Set<String> errorAttributes;
 
     public Set<String> getErrorAttributes() {
-        return errorAttributes == null ? Collections.EMPTY_SET : errorAttributes;
+        return errorAttributes == null ? Collections.emptySet(): errorAttributes;
     }
 
     public void setErrorAttributes(Set<String> errorAttributes) {
