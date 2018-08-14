@@ -13,6 +13,11 @@
 
     <artifactId>rdm-n2o</artifactId>
 
+    <properties>
+        <backend.default.path>http://localhost:8080/rdm/api</backend.default.path>
+        <frontend.default.port>8081</frontend.default.port>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>ru.inovus.ms.rdm</groupId>
@@ -41,8 +46,18 @@
 
     </dependencies>
 
+
+
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
         <finalName>rdm</finalName>
+
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -60,6 +75,10 @@
     <profiles>
         <profile>
             <id>prod</id>
+            <properties>
+                <backend.default.path>http://backend:8080/rdm/api</backend.default.path>
+                <frontend.default.port>8080</frontend.default.port>
+            </properties>
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
