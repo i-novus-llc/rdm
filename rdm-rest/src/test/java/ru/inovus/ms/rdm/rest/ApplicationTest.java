@@ -3,7 +3,10 @@ package ru.inovus.ms.rdm.rest;
 import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
 import net.n2oapp.platform.test.autoconfigure.EnableEmbeddedPg;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -523,6 +526,7 @@ public class ApplicationTest {
 
         try {
             draftService.updateData(draft.getId(), fileModel);
+            fail();
         } catch (Exception e) {
             assertEquals("invalid.reference.err", e.getMessage());
         }
@@ -536,7 +540,7 @@ public class ApplicationTest {
             add(new StringFieldValue("reference", "2"));
             add(new StringFieldValue("float", "1.0"));
             add(new StringFieldValue("date", "01.01.2011"));
-            add(new StringFieldValue("boolean", "true"));
+            add(new StringFieldValue("boolean", "TRUE"));
             add(new StringFieldValue("integer", "4"));
         }};
         FileModel fileModel = createFileModel("create_testUpload.xlsx", "testUpload.xlsx");
@@ -709,6 +713,7 @@ public class ApplicationTest {
         CreateAttribute createAttributeModel = new CreateAttribute(-2, createAttribute, createReference);
         try {
             draftService.createAttribute(createAttributeModel);
+            fail();
         } catch (Exception e) {
             assertEquals("required.attribute.err", e.getMessage());
         }
@@ -781,6 +786,7 @@ public class ApplicationTest {
         updateAttribute = new UpdateAttribute(draft.getId(), structure.getAttribute("name"), new Structure.Reference());
         try {
             draftService.updateAttribute(updateAttribute);
+            fail();
         } catch (Exception e) {
             assertTrue(e instanceof RestException);
             assertEquals("primary.key.not.unique", ((RestException) e).getErrors().get(0).getMessage());

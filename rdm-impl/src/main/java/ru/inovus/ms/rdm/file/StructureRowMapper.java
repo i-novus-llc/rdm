@@ -26,7 +26,8 @@ public class StructureRowMapper implements RowMapper {
     @Override
     public Row map(Row inputRow) {
         inputRow.getData().forEach((name, value) ->
-            inputRow.getData().put(name, castValue(structure.getAttribute(name), (String) value))
+            inputRow.getData().put(name,
+                    value == null ? null : castValue(structure.getAttribute(name), (String) value))
         );
         return inputRow;
     }
