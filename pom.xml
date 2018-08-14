@@ -100,6 +100,12 @@
                 <version>${filestorage.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.monitorjbl</groupId>
+                <artifactId>xlsx-streamer</artifactId>
+                <version>1.2.0</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 </project>

@@ -70,7 +70,7 @@ public class BufferedRowsPersister implements RowsProcessor {
                 .map(row -> rowValue(row, structure)).collect(Collectors.toList());
         try {
             draftDataService.addRows(storageCode, rowValues);
-            this.result = this.result.addResult(new Result(buffer.size(), buffer.size(), null));
+            this.result = this.result.addResult(new Result(rowValues.size(), buffer.size(), null));
         } catch (Exception e) {
             this.result = this.result.addResult(new Result(0, buffer.size(), Collections.singletonList(e.getMessage())));
             logger.error("can not add rows", e);
