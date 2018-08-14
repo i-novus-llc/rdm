@@ -18,9 +18,6 @@ import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Created by znurgaliev on 08.08.2018.
- */
 @Provider
 @Produces("application/zip")
 public class ExportFileProvider implements MessageBodyWriter<ExportFile>, MessageBodyReader<ExportFile> {
