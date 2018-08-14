@@ -1,19 +1,15 @@
 package ru.inovus.ms.rdm.file;
 
 import net.n2oapp.platform.i18n.Message;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.validation.ErrorAttributeHolderValidator;
 import ru.inovus.ms.rdm.validation.ReferenceValueValidation;
+import ru.inovus.ms.rdm.validation.RequiredValidation;
 import ru.inovus.ms.rdm.validation.TypeValidation;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.stream.Collectors;
+import java.util.*;
 
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 
@@ -33,10 +29,22 @@ public class RowsValidatorImpl implements RowsValidator {
     @Override
     public Result append(Row row) {
         List<Message> errors = new ArrayList<>();
-        TypeValidation typeValidation = new TypeValidation(row.getData(), structure);
-        //noinspection unchecked
-        errors.addAll(executeValidations(row, Collections.<String>emptyList(), (unusedRowArg, unusedExcludeAttributes) -> typeValidation.validate()));
-        errors.addAll(executeValidations(row, typeValidation.getErrorAttributes(), this::validateReferences));
+        Set<String> errorAttributes = new HashSet<>();
+
+        List<ErrorAttributeHolderValidator> validators = Arrays.asList(
+                new RequiredValidation(row, structure),
+                new TypeValidation(row.getData(), structure),
+                new ReferenceValueValidation(versionService, row, structure)
+        );
+
+        for (ErrorAttributeHolderValidator validator : validators){
+            validator.setErrorAttributes(errorAttributes);
+            errors.addAll(validator.validate());
+            errorAttributes.addAll(validator.getErrorAttributes());
+        }
+
+
+
         if(isEmpty(errors)){
             this.result = this.result.addResult(new Result(1, 1, null));
         } else {
@@ -49,24 +57,5 @@ public class RowsValidatorImpl implements RowsValidator {
     @Override
     public Result process() {
         return this.result;
-    }
-
-    private List<Message> executeValidations(Row row, List<String> excludeAttributes, BiFunction<Row, List<String>, List<Message>>... validationFunction ) {
-        List<Message> messages = new ArrayList<>();
-        for (BiFunction<Row, List<String>, List<Message>> validate : validationFunction) {
-            messages.addAll(validate.apply(row, excludeAttributes));
-        }
-
-        return messages;
-    }
-    private List<Message> validateReferences(Row row, List<String> excludeAttributes) {
-        Map<Structure.Reference, String> referencesWithValueMap = structure.getReferences().stream()
-                .filter(reference -> row.getData().get(reference.getAttribute()) != null)
-                .collect(Collectors.toMap(reference -> reference, reference -> getReferenceStringValue(row, reference)));
-        return new ReferenceValueValidation(versionService, referencesWithValueMap, structure, excludeAttributes).validate();
-    }
-
-    private String getReferenceStringValue(Row row, Structure.Reference reference) {
-        return ((Reference) row.getData().get(reference.getAttribute())).getValue();
     }
 }

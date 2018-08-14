@@ -71,7 +71,7 @@ public class ReferenceValueValidationTest {
     public void testValidate() throws Exception {
         when(versionService.getStructure(eq(VERSION_ID))).thenReturn(referenceStructure);
         when(versionService.search(eq(VERSION_ID), any(SearchDataCriteria.class))).thenReturn(new PageImpl<RowValue>(Collections.<RowValue>emptyList()));
-        List<Message> messages = new ReferenceValueValidation(versionService, referenceWithValueMap, structure, Collections.singletonList(REF_ATTRIBUTE_CODE2)).validate();
+        List<Message> messages = new ReferenceValueValidation(versionService, referenceWithValueMap, structure, Collections.singleton(REF_ATTRIBUTE_CODE2)).validate();
         Assert.assertTrue(messages.size() == 1);
         Message expected1 = new Message(ReferenceValueValidation.ERROR_CODE, REF_ATTRIBUTE_NAME1, REFERENCE_VAL1);
         Assert.assertTrue(messages.contains(expected1));

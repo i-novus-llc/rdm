@@ -3,8 +3,10 @@ package ru.inovus.ms.rdm.validation;
 import net.n2oapp.platform.i18n.Message;
 import org.springframework.data.domain.Page;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.inovus.ms.rdm.file.Row;
 import ru.inovus.ms.rdm.model.AttributeFilter;
 import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
@@ -13,6 +15,7 @@ import ru.inovus.ms.rdm.service.api.VersionService;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ru.inovus.ms.rdm.util.ConverterUtil.castReferenceValue;
@@ -21,7 +24,7 @@ import static ru.inovus.ms.rdm.util.ConverterUtil.field;
 /**
  * Проверка конкретного строкового значения на ссылочную целостность
  */
-public class ReferenceValueValidation implements RdmValidation {
+public class ReferenceValueValidation extends ErrorAttributeHolderValidator {
 
     public static final String ERROR_CODE = "validation.reference.err";
 
@@ -31,21 +34,42 @@ public class ReferenceValueValidation implements RdmValidation {
 
     private Structure structure;
 
-    private List<String> excludeAttributes;
-
-    public ReferenceValueValidation(VersionService versionService, Map<Structure.Reference, String> referenceWithValueMap, Structure structure, List<String> excludeAttributes) {
+    public ReferenceValueValidation(VersionService versionService, Map<Structure.Reference, String> referenceWithValueMap, Structure structure) {
         this.versionService = versionService;
         this.referenceWithValueMap = referenceWithValueMap;
         this.structure = structure;
-        this.excludeAttributes = excludeAttributes == null ? Collections.emptyList() : excludeAttributes;
+    }
+
+    public ReferenceValueValidation(VersionService versionService, Map<Structure.Reference, String> referenceWithValueMap, Structure structure, Set<String> excludeAttributes) {
+        this(versionService, referenceWithValueMap, structure);
+        setErrorAttributes(excludeAttributes);
+    }
+
+    public ReferenceValueValidation(VersionService versionService, Row row, Structure structure) {
+        this(versionService,
+                structure.getReferences().stream()
+                        .filter(reference -> row.getData().get(reference.getAttribute()) != null)
+                        .collect(Collectors.toMap(reference -> reference, reference -> getReferenceStringValue(row, reference))),
+                structure);
+    }
+
+    public ReferenceValueValidation(VersionService versionService, Row row, Structure structure, Set<String> excludeAttributes) {
+        this(versionService, row, structure);
+        setErrorAttributes(excludeAttributes);
     }
 
     @Override
     public List<Message> validate() {
         return referenceWithValueMap.entrySet().stream()
+                .filter(entry -> getErrorAttributes() == null || !getErrorAttributes().contains(entry.getKey().getAttribute()))
                 .filter(this::isReferenceNotValid)
+                .peek(this::addErrorAttribute)
                 .map(this::createMessage)
                 .collect(Collectors.toList());
+    }
+
+    private void addErrorAttribute(Map.Entry<Structure.Reference, String> referenceStringEntry) {
+        addErrorAttribute(referenceStringEntry.getKey().getAttribute());
     }
 
     private Message createMessage(Map.Entry<Structure.Reference, String> entry) {
@@ -61,7 +85,7 @@ public class ReferenceValueValidation implements RdmValidation {
     }
 
     private boolean isReferenceNotValid(Map.Entry<Structure.Reference, String> entry) {
-        if(excludeAttributes.contains(entry.getKey().getAttribute()) || entry.getValue() == null) {
+        if(getErrorAttributes().contains(entry.getKey().getAttribute()) || entry.getValue() == null) {
             return false;
         }
         Structure.Reference reference = entry.getKey();
@@ -75,6 +99,10 @@ public class ReferenceValueValidation implements RdmValidation {
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria(Collections.singletonList(attributeFilter), null);
         Page<RowValue> pagedData = versionService.search(versionId, searchDataCriteria);
         return (pagedData == null || !pagedData.hasContent());
+    }
+
+    private static String getReferenceStringValue(Row row, Structure.Reference reference) {
+        return ((Reference) row.getData().get(reference.getAttribute())).getValue();
     }
 
 }
