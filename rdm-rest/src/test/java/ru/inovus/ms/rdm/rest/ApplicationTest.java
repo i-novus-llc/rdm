@@ -74,9 +74,9 @@ public class ApplicationTest {
     private static final String SEARCH_CODE_STR = "78 ";
     private static final String SEARCH_BY_NAME_STR = "отличное от последней версии ";
     private static final String SEARCH_BY_NAME_STR_ASSERT_CODE = "Z001";
-    private static final String PASSPORT_ATTRIBUTE_FULL_NAME = "fullName";
-    private static final String PASSPORT_ATTRIBUTE_SHORT_NAME = "shortName";
-    private static final String PASSPORT_ATTRIBUTE_ANNOTATION = "annotation";
+    private static final String PASSPORT_ATTRIBUTE_FULL_NAME = "TEST_fullName";
+    private static final String PASSPORT_ATTRIBUTE_SHORT_NAME = "TEST_shortName";
+    private static final String PASSPORT_ATTRIBUTE_ANNOTATION = "TEST_annotation";
 
     private static RefBookCreateRequest refBookCreateRequest;
     private static RefBookUpdateRequest refBookUpdateRequest;

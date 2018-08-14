@@ -31,11 +31,6 @@
         </dependency>
 
         <dependency>
-            <groupId>ru.inovus.ms.rdm</groupId>
-            <artifactId>rdm-fnsi-env</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>net.n2oapp.platform</groupId>
             <artifactId>n2o-platform-starter-jaxrs-server</artifactId>
         </dependency>
@@ -97,8 +92,6 @@
             <scope>test</scope>
         </dependency>
 
-
-
     </dependencies>
 
     <build>
@@ -122,6 +115,19 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <id>fnsi</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>ru.inovus.ms.rdm</groupId>
+                    <artifactId>rdm-fnsi-env</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
         </profile>
     </profiles>
 
