@@ -4,13 +4,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inovus.ms.rdm.model.Result;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.function.Supplier;
 
-public abstract class FilePerRowProcessor implements FileProcessor, Iterator<Row> {
+public abstract class FilePerRowProcessor implements FileProcessor, Iterator<Row>, Closeable {
 
     private static final Logger logger = LoggerFactory.getLogger(FilePerRowProcessor.class);
 

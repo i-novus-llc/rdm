@@ -205,7 +205,7 @@ public class XlsFileGenerator extends PerRowFileGenerator {
                 Font nameFont = workbook.createFont();
                 nameFont.setFontHeightInPoints((short) 12);
                 nameFont.setFontName("Times New Roman");
-                nameFont.setBoldweight(Font.BOLDWEIGHT_BOLD);
+                nameFont.setBold(true);
                 firstRowStile = workbook.createCellStyle();
                 firstRowStile.setFont(nameFont);
             }
