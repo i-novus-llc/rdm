@@ -103,6 +103,13 @@
             <groupId>ru.i-novus.platform</groupId>
             <artifactId>versioned-data-storage-api</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>com.monitorjbl</groupId>
+            <artifactId>xlsx-streamer</artifactId>
+            <version>1.2.0</version>
+        </dependency>
+
     </dependencies>
 
 

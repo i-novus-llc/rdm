@@ -10,6 +10,7 @@ import ru.inovus.ms.rdm.model.Structure;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static ru.inovus.ms.rdm.util.ConverterUtil.rowValue;
@@ -64,7 +65,9 @@ public class BufferedRowsPersister implements RowsProcessor {
         if (buffer.isEmpty()) {
             return;
         }
-        List<RowValue> rowValues = buffer.stream().map(row -> rowValue(row, structure)).collect(Collectors.toList());
+        List<RowValue> rowValues = buffer.stream()
+                .filter(row -> row.getData().values().stream().anyMatch(Objects::nonNull))
+                .map(row -> rowValue(row, structure)).collect(Collectors.toList());
         try {
             draftDataService.addRows(storageCode, rowValues);
             this.result = this.result.addResult(new Result(buffer.size(), buffer.size(), null));
