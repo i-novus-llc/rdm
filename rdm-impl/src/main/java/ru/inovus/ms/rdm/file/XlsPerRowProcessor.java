@@ -48,7 +48,7 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
     private void processFirstRow(org.apache.poi.ss.usermodel.Row row) {
         if (row == null) return;
         for (Cell cell : row) {
-            if (cell.getStringCellValue() != null && !cell.getStringCellValue().trim().equals(""))
+            if (cell.getStringCellValue() != null && !"".equals(cell.getStringCellValue().trim()))
             numberToNameParam.put(cell.getColumnIndex(), cell.getStringCellValue());
         }
     }
