@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.util;
 
-import junit.framework.TestCase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,7 +22,7 @@ import static org.mockito.Mockito.when;
  * Created by znurgaliev on 13.08.2018.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SequenceVersionNumberStrategyTest extends TestCase {
+public class SequenceVersionNumberStrategyTest {
 
     @InjectMocks
     SequenceVersionNumberStrategy versionNumberStrategy;
