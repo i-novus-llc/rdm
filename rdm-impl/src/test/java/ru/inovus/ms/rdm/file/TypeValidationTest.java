@@ -5,10 +5,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import ru.inovus.ms.rdm.validation.TypeValidation;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static ru.inovus.ms.rdm.file.BufferedRowsPersisterTest.createTestStructure;
 
@@ -24,7 +21,7 @@ public class TypeValidationTest {
 
         TypeValidation typeValidation = new TypeValidation(row, createTestStructure());
         List<Message> actual = typeValidation.validate();
-        List<String> errorAttributes = typeValidation.getErrorAttributes();
+        Set<String> errorAttributes = typeValidation.getErrorAttributes();
 
         Assert.assertEquals(expected, actual);
         Assert.assertEquals(1, errorAttributes.size());

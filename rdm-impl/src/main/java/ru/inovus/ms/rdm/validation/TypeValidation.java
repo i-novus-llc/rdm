@@ -13,15 +13,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class TypeValidation implements RdmValidation {
+public class TypeValidation extends ErrorAttributeHolderValidation {
 
     private static final String VALIDATION_TYPE_EXCEPTION_CODE = "validation.type.error";
 
     private Map<String, Object> row;
 
     private Structure structure;
-
-    private List<String> errorAttributes;
 
     public TypeValidation(Map<String, Object> row, Structure structure) {
         this.row = row;
@@ -31,21 +29,16 @@ public class TypeValidation implements RdmValidation {
     @Override
     public List<Message> validate() {
         List<Message> messages = new ArrayList<>();
-        row.forEach((name, value) -> {
-            FieldType type = structure.getAttribute(name).getType();
-            Optional.ofNullable(checkType(type, name, value)).ifPresent(message -> {
-                messages.add(message);
-                if(errorAttributes == null) {
-                    errorAttributes = new ArrayList<String>();
-                }
-                errorAttributes.add(name);
-            });
-        });
+        row.entrySet().stream()
+                .filter(entry -> getErrorAttributes() == null || !getErrorAttributes().contains(entry.getKey()))
+                .forEach(entry -> {
+                    FieldType type = structure.getAttribute(entry.getKey()).getType();
+                    Optional.ofNullable(checkType(type, entry.getKey(), entry.getValue())).ifPresent(message -> {
+                        messages.add(message);
+                        addErrorAttribute(entry.getKey());
+                    });
+                });
         return messages;
-    }
-
-    public List<String> getErrorAttributes() {
-        return errorAttributes;
     }
 
     private Message checkType(FieldType type, String name, Object value) {
