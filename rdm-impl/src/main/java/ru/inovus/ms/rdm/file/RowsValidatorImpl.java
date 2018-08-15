@@ -4,7 +4,7 @@ import net.n2oapp.platform.i18n.Message;
 import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.service.api.VersionService;
-import ru.inovus.ms.rdm.validation.ErrorAttributeHolderValidator;
+import ru.inovus.ms.rdm.validation.ErrorAttributeHolderValidation;
 import ru.inovus.ms.rdm.validation.ReferenceValueValidation;
 import ru.inovus.ms.rdm.validation.RequiredValidation;
 import ru.inovus.ms.rdm.validation.TypeValidation;
@@ -31,13 +31,13 @@ public class RowsValidatorImpl implements RowsValidator {
         List<Message> errors = new ArrayList<>();
         Set<String> errorAttributes = new HashSet<>();
 
-        List<ErrorAttributeHolderValidator> validators = Arrays.asList(
+        List<ErrorAttributeHolderValidation> validators = Arrays.asList(
                 new RequiredValidation(row, structure),
                 new TypeValidation(row.getData(), structure),
                 new ReferenceValueValidation(versionService, row, structure)
         );
 
-        for (ErrorAttributeHolderValidator validator : validators){
+        for (ErrorAttributeHolderValidation validator : validators){
             validator.setErrorAttributes(errorAttributes);
             errors.addAll(validator.validate());
             errorAttributes.addAll(validator.getErrorAttributes());

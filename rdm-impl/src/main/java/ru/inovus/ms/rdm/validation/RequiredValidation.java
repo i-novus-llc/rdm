@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 /**
  * Created by znurgaliev on 14.08.2018.
  */
-public class RequiredValidation extends ErrorAttributeHolderValidator {
+public class RequiredValidation extends ErrorAttributeHolderValidation {
 
     public static final String ERROR_CODE = "validation.required.err";
 

@@ -24,7 +24,7 @@ import static ru.inovus.ms.rdm.util.ConverterUtil.field;
 /**
  * Проверка конкретного строкового значения на ссылочную целостность
  */
-public class ReferenceValueValidation extends ErrorAttributeHolderValidator {
+public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
 
     public static final String ERROR_CODE = "validation.reference.err";
 

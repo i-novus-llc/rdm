@@ -5,7 +5,7 @@ import java.util.*;
 /**
  * Created by znurgaliev on 14.08.2018.
  */
-public abstract class ErrorAttributeHolderValidator implements RdmValidation {
+public abstract class ErrorAttributeHolderValidation implements RdmValidation {
 
     private Set<String> errorAttributes;
 

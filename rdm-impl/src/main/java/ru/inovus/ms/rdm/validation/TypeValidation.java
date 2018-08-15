@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class TypeValidation extends ErrorAttributeHolderValidator {
+public class TypeValidation extends ErrorAttributeHolderValidation {
 
     private static final String VALIDATION_TYPE_EXCEPTION_CODE = "validation.type.error";
 
