@@ -43,7 +43,7 @@ public class DBPrimaryKeyValidation extends ErrorAttributeHolderValidation {
             List<String> primaryKeyAttributes = primaryKey.keySet().stream()
                     .map(Structure.Attribute::getCode)
                     .collect(Collectors.toList());
-            if (!primaryKeyAttributes.stream().filter(a -> getErrorAttributes().contains(a)).findAny().isPresent() &&
+            if (!primaryKeyAttributes.stream().anyMatch(a -> getErrorAttributes().contains(a)) &&
                     !searchDataService.getPagedData(criteria).getCollection().isEmpty()) {
                 primaryKeyAttributes.forEach(this::addErrorAttribute);
                 return Collections.singletonList(new Message(ERROR_CODE,
