@@ -7,10 +7,7 @@ import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.service.FieldFactoryImpl;
-import ru.inovus.ms.rdm.file.Row;
-import ru.inovus.ms.rdm.file.RowsProcessor;
-import ru.inovus.ms.rdm.file.StructureRowMapper;
-import ru.inovus.ms.rdm.file.XlsPerRowProcessor;
+import ru.inovus.ms.rdm.file.*;
 import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.util.ConverterUtil;
@@ -35,6 +32,7 @@ public class XlsFileGenerateProcessTest {
         FieldFactory fieldFactory = new FieldFactoryImpl();
         List<Field> d_a_fields = new ArrayList<>();
         Field d_a_id = fieldFactory.createField("ID", FieldType.INTEGER);
+        Field d_a_id_null = fieldFactory.createField("ID_NULL", FieldType.INTEGER);
         Field d_a_name = fieldFactory.createField("NAME", FieldType.STRING);
         Field d_a_dateCol = fieldFactory.createField("DATE_COL", FieldType.DATE);
         Field d_a_boolCol = fieldFactory.createField("BOOL_COL", FieldType.BOOLEAN);
@@ -49,6 +47,7 @@ public class XlsFileGenerateProcessTest {
         for (int i = 0; i < 100; i++) {
             d_a_rows.add(ConverterUtil.toRow(new LongRowValue(
                     d_a_id.valueOf(BigInteger.valueOf(i)),
+                    d_a_id_null.valueOf(null),
                     d_a_name.valueOf("test" + i),
                     d_a_dateCol.valueOf(LocalDate.ofYearDay(2000, i+1)),
                     d_a_boolCol.valueOf(i % 2 == 0),
@@ -57,11 +56,13 @@ public class XlsFileGenerateProcessTest {
         Structure structure = createTestStructure();
         List<Row> actual = new ArrayList<>();
 
-        Archiver archiver = new Archiver();
-        archiver.addEntry(new XlsFileGenerator(d_a_rows.iterator(), structure), "Z001.xlsx");
-        ZipInputStream zis = new ZipInputStream(archiver.getArchive());
-        zis.getNextEntry();
-        new XlsPerRowProcessor(new StructureRowMapper(structure, null), getTestRowsProcessor(actual)).process(() -> zis);
+        try (Archiver archiver = new Archiver().addEntry(new XlsFileGenerator(d_a_rows.iterator(), structure, 50), "Z001.xlsx");
+            ZipInputStream zis = new ZipInputStream(archiver.getArchive());){
+            zis.getNextEntry();
+            try (FilePerRowProcessor processor = new XlsPerRowProcessor(new StructureRowMapper(structure, null), getTestRowsProcessor(actual))) {
+                processor.process(() -> zis);
+            }
+        }
 
         //Костыль, т.к. нет нет соглашений по типам внутри системы(
         actual.forEach(row -> row.getData().entrySet().forEach(e -> {

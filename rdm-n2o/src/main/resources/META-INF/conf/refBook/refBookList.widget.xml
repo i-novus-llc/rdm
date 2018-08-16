@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<table xmlns="http://n2oapp.net/framework/config/schema/n2o-widget-3.0">
+    <query-id>refBookList</query-id>
+    <columns>
+        <column column-field-id="code" name="Код" width="100px"/>
+        <column column-field-id="shortName" name="Краткое наименование"/>
+        <column column-field-id="fullName" name="Полное наименование"/>
+        <column column-field-id="displayVersion" name="Версия"/>
+        <column column-field-id="lastPublishedVersionFromDate" name="Последняя публикация"/>
+    </columns>
+
+</table>
