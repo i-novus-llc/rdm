@@ -39,6 +39,7 @@ import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 import ru.inovus.ms.rdm.util.FileNameGenerator;
 import ru.inovus.ms.rdm.util.ModelGenerator;
+import ru.inovus.ms.rdm.validation.ReferenceValidation;
 import ru.inovus.ms.rdm.validation.PrimaryKeyUniqueValidation;
 import ru.inovus.ms.rdm.validation.ReferenceValidation;
 import ru.kirkazan.common.exception.CodifiedException;
@@ -115,9 +116,12 @@ public class DraftServiceImpl implements DraftService {
         BiConsumer<String, Structure> consumer = getSaveDraftConsumer(refBookId);
         String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
         CreateDraftBufferedRowsPersister rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, consumer);
-        FileProcessor persister = ProcessorFactory.createProcessor(extension,
-                rowsProcessor, new PlainRowMapper());
-        persister.process(inputStreamSupplier);
+        try (FilePerRowProcessor persister = FileProcessorFactory.createProcessor(extension,
+                rowsProcessor, new PlainRowMapper())) {
+            persister.process(inputStreamSupplier);
+        } catch (IOException e) {
+            throw new RdmException(e);
+        }
         RefBookVersionEntity createdDraft = getDraftByRefbook(refBookId);
         return new Draft(createdDraft.getId(), createdDraft.getStorageCode());
     }
@@ -221,6 +225,21 @@ public class DraftServiceImpl implements DraftService {
         FileProcessor persister = ProcessorFactory.createProcessor(extension,
                 new BufferedRowsPersister(draftDataService, storageCode, structure), rowMapper);
         persister.process(inputStreamSupplier);
+        StructureRowMapper rowMapper = new StructureRowMapper(structure, versionRepository);
+        try (FilePerRowProcessor validator = FileProcessorFactory.createProcessor(extension,
+                new RowsValidatorImpl(versionService, structure), rowMapper);
+             FilePerRowProcessor persister = FileProcessorFactory.createProcessor(extension,
+                     new BufferedRowsPersister(draftDataService, storageCode, structure), rowMapper)) {
+            Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
+            Result validationResult = validator.process(inputStreamSupplier);
+            if (isEmpty(validationResult.getErrors())) {
+                persister.process(inputStreamSupplier);
+            } else {
+                throw new UserException(new Message("invalid.reference.err", validationResult.getErrors().stream().collect(Collectors.joining("  "))));
+            }
+        } catch (IOException e) {
+            throw new RdmException(e);
+        }
 
     }
 

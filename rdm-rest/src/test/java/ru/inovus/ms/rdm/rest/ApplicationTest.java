@@ -78,9 +78,9 @@ public class ApplicationTest {
     private static final String SEARCH_CODE_STR = "78 ";
     private static final String SEARCH_BY_NAME_STR = "отличное от последней версии ";
     private static final String SEARCH_BY_NAME_STR_ASSERT_CODE = "Z001";
-    private static final String PASSPORT_ATTRIBUTE_FULL_NAME = "fullName";
-    private static final String PASSPORT_ATTRIBUTE_SHORT_NAME = "shortName";
-    private static final String PASSPORT_ATTRIBUTE_ANNOTATION = "annotation";
+    private static final String PASSPORT_ATTRIBUTE_FULL_NAME = "TEST_fullName";
+    private static final String PASSPORT_ATTRIBUTE_SHORT_NAME = "TEST_shortName";
+    private static final String PASSPORT_ATTRIBUTE_ANNOTATION = "TEST_annotation";
 
     private static RefBookCreateRequest refBookCreateRequest;
     private static RefBookUpdateRequest refBookUpdateRequest;
@@ -527,6 +527,7 @@ public class ApplicationTest {
 
         try {
             draftService.updateData(draft.getId(), fileModel);
+            fail();
         } catch (RestException e) {
             assertEquals("validation.reference.err", e.getErrors().get(0).getMessage());
         }
@@ -540,7 +541,7 @@ public class ApplicationTest {
             add(new StringFieldValue("reference", "2"));
             add(new StringFieldValue("float", "1.0"));
             add(new StringFieldValue("date", "01.01.2011"));
-            add(new StringFieldValue("boolean", "true"));
+            add(new StringFieldValue("boolean", "TRUE"));
             add(new StringFieldValue("integer", "4"));
         }};
         FileModel fileModel = createFileModel("create_testUpload.xlsx", "testUpload.xlsx");
@@ -713,6 +714,7 @@ public class ApplicationTest {
         CreateAttribute createAttributeModel = new CreateAttribute(-2, createAttribute, createReference);
         try {
             draftService.createAttribute(createAttributeModel);
+            fail();
         } catch (Exception e) {
             assertEquals("required.attribute.err", e.getMessage());
         }
@@ -785,6 +787,7 @@ public class ApplicationTest {
         updateAttribute = new UpdateAttribute(draft.getId(), structure.getAttribute("name"), new Structure.Reference());
         try {
             draftService.updateAttribute(updateAttribute);
+            fail();
         } catch (Exception e) {
             assertTrue(e instanceof RestException);
             assertEquals("primary.key.not.unique", ((RestException) e).getErrors().get(0).getMessage());

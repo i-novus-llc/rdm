@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="201808021400_RDM-67_1_0" author="znurgaliev" dbms="postgresql">
+        <preConditions onFail="CONTINUE">
+            <tableExists tableName="passport_attribute" schemaName="n2o_rdm_management"/>
+        </preConditions>
+        <comment>Ввод возможных атрибутов паспорта справочника для фнси</comment>
+        <sql>
+            INSERT INTO n2o_rdm_management.passport_attribute(code, name) VALUES
+                ('TEST_OID', 'Уникальный идентификатор справочника в формате OID (основной)'),
+                ('TEST_OID2', 'Уникальный идентификатор в формате OID2'),
+                ('TEST_fullName', 'Полное название'),
+                ('TEST_shortName', 'Краткое название'),
+                ('TEST_group', 'Группа'),
+                ('TEST_type', 'Тип'),
+                ('TEST_annotation', 'Аннотация'),
+                ('TEST_changes', 'Изменения в текущей версии'),
+                ('TEST_structure', 'Описание структуры'),
+                ('TEST_responsible', 'Ответственная организация'),
+                ('TEST_appointed', 'Уполномоченная организация'),
+                ('TEST_legalAct', 'Нормативно-правовой акт'),
+                ('TEST_verificationDate', 'Срок подтверждения актуальности');
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

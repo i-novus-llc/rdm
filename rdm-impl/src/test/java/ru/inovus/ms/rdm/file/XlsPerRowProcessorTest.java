@@ -43,11 +43,12 @@ public class XlsPerRowProcessorTest {
             put("DATEBEG", date);
         }});
         RowsProcessor testRowsProcessor = getTestRowsProcessor(expected);
-        Result result = new XlsPerRowProcessor(new StructureRowMapper(createTestStructure(), null), testRowsProcessor)
-                .process(() -> XlsPerRowProcessorTest.class.getResourceAsStream("/R002.xlsx"));
-        Assert.assertEquals(4, result.getAllCount());
-        Assert.assertEquals(4, result.getSuccessCount());
-        Assert.assertNull(result.getErrors());
+        try (FilePerRowProcessor processor = new XlsPerRowProcessor(new StructureRowMapper(createTestStructure(), null), testRowsProcessor)) {
+            Result result = processor.process(() -> XlsPerRowProcessorTest.class.getResourceAsStream("/R002.xlsx"));
+            Assert.assertEquals(4, result.getAllCount());
+            Assert.assertEquals(4, result.getSuccessCount());
+            Assert.assertNull(result.getErrors());
+        }
     }
 
     private Structure createTestStructure() {

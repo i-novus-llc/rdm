@@ -69,10 +69,12 @@ public class BufferedRowsPersister implements RowsProcessor {
         if (buffer.isEmpty()) {
             return;
         }
-        List<RowValue> rowValues = buffer.stream().map(row -> rowValue(row, structure)).collect(Collectors.toList());
+        List<RowValue> rowValues = buffer.stream()
+                .filter(row -> row.getData().values().stream().anyMatch(Objects::nonNull))
+                .map(row -> rowValue(row, structure)).collect(Collectors.toList());
         try {
             draftDataService.addRows(storageCode, rowValues);
-            this.result = this.result.addResult(new Result(buffer.size(), buffer.size(), null));
+            this.result = this.result.addResult(new Result(rowValues.size(), buffer.size(), null));
         } catch (Exception e) {
             this.result = this.result.addResult(new Result(0, buffer.size(), Collections.singletonList(new Message("rows.error", e.getMessage()))));
             logger.error("can not add rows", e);

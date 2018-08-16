@@ -1,13 +1,13 @@
 package ru.inovus.ms.rdm.file;
 
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import com.monitorjbl.xlsx.StreamingReader;
+import net.n2oapp.platform.i18n.UserException;
 import org.apache.poi.ss.usermodel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.util.*;
 
 
@@ -17,11 +17,9 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
 
     private Map<Integer, String> numberToNameParam = new HashMap<>();
 
-    private Sheet sheet;
-
-    private CellStyle dateCellStyle;
-
-    private int index = 0;
+    Workbook workbook;
+    Iterator<Sheet> sheetIterator;
+    Iterator<org.apache.poi.ss.usermodel.Row> rowIterator;
 
 
     public XlsPerRowProcessor(RowMapper rowMapper, RowsProcessor rowsProcessor) {
@@ -31,65 +29,73 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
 
     @Override
     protected void setFile(InputStream inputStream) {
-        try (Workbook wb = WorkbookFactory.create(inputStream)) {
-            this.numberToNameParam = new HashMap<>();
-            this.sheet = wb.getSheetAt(0);
-            this.dateCellStyle = wb.createCellStyle();
-            dateCellStyle.setDataFormat(wb.createDataFormat().getFormat("dd.MM.yyyy"));
-
-
-            org.apache.poi.ss.usermodel.Row firstRow = sheet.getRow(0);
-            for (int i = 0; i < firstRow.getPhysicalNumberOfCells(); i++) {
-                String cellFieldName = new String(firstRow.getCell(i).getStringCellValue().getBytes(Charset.forName("UTF-8")));
-                if (!"".equals(cellFieldName))
-                    numberToNameParam.put(i, cellFieldName);
-            }
-        } catch (InvalidFormatException | IOException e) {
-            logger.error("cannot parse xls", e);
-            throw new IllegalArgumentException("invalid file");
+        try {
+            workbook = StreamingReader.builder()
+                    .rowCacheSize(100)
+                    .bufferSize(4096)
+                    .open(inputStream);
+            sheetIterator = workbook.sheetIterator();
+            if (sheetIterator != null && sheetIterator.hasNext())
+                rowIterator = sheetIterator.next().rowIterator();
+            if (rowIterator != null && rowIterator.hasNext())
+                processFirstRow(rowIterator.next());
+        } catch (Exception e){
+            logger.error("cannot read xlsx", e);
+            throw new UserException("cannot read xlsx");
         }
 
     }
+
+    private void processFirstRow(org.apache.poi.ss.usermodel.Row row) {
+        if (row == null) return;
+        for (Cell cell : row) {
+            if (cell.getStringCellValue() != null && !"".equals(cell.getStringCellValue().trim()))
+            numberToNameParam.put(cell.getColumnIndex(), cell.getStringCellValue());
+        }
+    }
+
 
     @Override
     public boolean hasNext() {
-        int i = index + 1;
-        org.apache.poi.ss.usermodel.Row row = null;
-        while (row == null && i < sheet.getPhysicalNumberOfRows()) {
-            row = sheet.getRow(index);
-            i++;
-        }
-        return row != null;
+        if (rowIterator.hasNext()) {
+            return true;
+        } else if (sheetIterator.hasNext()) {
+            rowIterator = sheetIterator.next().rowIterator();
+            if (rowIterator.hasNext())
+                processFirstRow(rowIterator.next());
+        } else return false;
+        return hasNext();
     }
+
 
     @Override
     public Row next() {
-        if (!hasNext()) {
-            throw new NoSuchElementException();
+        if (hasNext()) {
+            return parseFromXlsx(rowIterator.next());
         }
-        org.apache.poi.ss.usermodel.Row row = null;
-        while (row == null && index < sheet.getPhysicalNumberOfRows()) {
-            index++;
-            row = sheet.getRow(index);
-        }
-        if (row != null) {
-            LinkedHashMap<String, Object> params = new LinkedHashMap<>();
-            for (int j = 0; j < numberToNameParam.size(); j++) {
-                Cell cell = row.getCell(j);
-                if (cell != null) {
-                    DataFormatter formatter = new DataFormatter();
-                    if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC && DateUtil.isCellDateFormatted(cell)) {
-                        cell.setCellStyle(dateCellStyle);
-                    }
-                    params.put(numberToNameParam.get(j), Optional.of(formatter.formatCellValue(cell).trim())
-                            .filter(val -> !"".equals(val))
-                            .orElse(null));
-                }
-            }
-            return new Row(params);
-        } else {
-            return null;
-        }
+        return null;
+    }
 
+    private Row parseFromXlsx(org.apache.poi.ss.usermodel.Row row) {
+        LinkedHashMap<String, Object> params = new LinkedHashMap<>();
+        DataFormatter formatter = new DataFormatter();
+
+        for (Cell cell : row) {
+            String nameParam = numberToNameParam.get(cell.getColumnIndex());
+            if (nameParam != null) {
+                if (cell.getCellTypeEnum().equals(CellType.NUMERIC) && DateUtil.isCellDateFormatted(cell)) {
+                    params.put(nameParam, new ExcelStyleDateFormatter("dd.MM.yyyy").format(cell.getDateCellValue()));
+                } else params.put(nameParam, Optional.of(formatter.formatCellValue(cell).trim())
+                        .filter(val -> !"".equals(val))
+                        .orElse(null));
+            }
+        }
+        return new Row(params);
+    }
+
+    @Override
+    public void close() throws IOException {
+        if (workbook != null)
+            workbook.close();
     }
 }
