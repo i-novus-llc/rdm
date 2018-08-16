@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.ui.test;
 
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selectors;
 import com.codeborne.selenide.Selenide;
@@ -24,8 +25,8 @@ public class UiTest {
     @Test
     public void testOpenStartPage() throws Exception {
         Selenide.open(appUrl);
-        Selenide.$(Selectors.byText("Код")).shouldHave();
-        Selenide.$(Selectors.byText("Версия")).shouldHave();
+        Selenide.$(Selectors.byText("Код")).shouldHave(Condition.exist);
+        Selenide.$(Selectors.byText("Версия")).shouldHave(Condition.exist);
 
     }
 }
