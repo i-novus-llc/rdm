@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.file;
 
 import net.n2oapp.platform.i18n.Message;
+import net.n2oapp.platform.i18n.UserException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,6 +22,7 @@ import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.validation.ReferenceValueValidation;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -59,7 +61,7 @@ public class RowsValidatorTest {
 
     @Before
     public void setUp() {
-        rowsValidator = new RowsValidatorImpl(versionService, searchDataService, createTestStructureWithReference(), "");
+        rowsValidator = new RowsValidatorImpl(versionService, searchDataService, createTestStructureWithReference(), "", 100);
         when(fieldFactory.createField(eq(REFERENCE_ATTRIBUTE), eq(FieldType.STRING))).thenReturn(new StringField(REFERENCE_ATTRIBUTE));
         when(versionService.getStructure(eq(REFERENCE_VERSION))).thenReturn(createTestStructure());
         AttributeFilter attributeFilter = new AttributeFilter(REFERENCE_ATTRIBUTE, ATTRIBUTE_VALUE, FieldType.STRING, SearchTypeEnum.EXACT);
@@ -71,7 +73,7 @@ public class RowsValidatorTest {
     @Test
     public void testAppendAndProcess() {
         Row row = createTestRowWithReference();
-        Result expected = new Result(1, 1, null);
+        Result expected = new Result(1, 1, Collections.emptyList());
 
         Result appendActual = rowsValidator.append(row);
         Result processActual = rowsValidator.process();
@@ -93,10 +95,16 @@ public class RowsValidatorTest {
 
         rowsValidator.append(validRow);
         Result appendActual = rowsValidator.append(notValidRow);
-        Result processActual = rowsValidator.process();
+
+        try {
+            rowsValidator.process();
+            Assert.fail();
+        } catch (UserException e) {
+            Assert.assertEquals(1, e.getMessages().size());
+            Assert.assertEquals(new Message(ReferenceValueValidation.ERROR_CODE, ATTRIBUTE_NAME, ATTRIBUTE_VALUE + "_1"), e.getMessages().get(0));
+        }
 
         Assert.assertEquals(expected, appendActual);
-        Assert.assertEquals(expected, processActual);
     }
 
     /**

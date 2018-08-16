@@ -4,6 +4,7 @@ package ru.inovus.ms.rdm.model;
 import net.n2oapp.platform.i18n.Message;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 public class Result {
@@ -33,18 +34,17 @@ public class Result {
     }
 
     public Result addResult(Result result) {
-        List<Message> totalErrors = null;
+        LinkedHashSet<Message> totalErrors = new LinkedHashSet<>();
         if(this.errors == null && result.getErrors() != null) {
-            totalErrors = result.getErrors();
+            totalErrors.addAll(result.getErrors());
         } else if (this.errors != null && result.getErrors() == null) {
-            totalErrors = this.errors;
+            totalErrors.addAll(this.errors);
         } else if(this.errors != null && result.getErrors() != null) {
-            totalErrors = new ArrayList<>();
             totalErrors.addAll(this.errors);
             totalErrors.addAll(result.getErrors());
         }
 
-        return  new Result(this.successCount + result.getSuccessCount(), this.getAllCount() + result.getAllCount(), totalErrors);
+        return  new Result(this.successCount + result.getSuccessCount(), this.getAllCount() + result.getAllCount(), new ArrayList<>(totalErrors));
     }
 
     @Override

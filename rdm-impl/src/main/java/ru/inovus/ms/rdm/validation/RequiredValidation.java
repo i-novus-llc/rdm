@@ -36,7 +36,7 @@ public class RequiredValidation extends ErrorAttributeHolderValidation {
                 .filter(attribute -> getErrorAttributes() == null || !getErrorAttributes().contains(attribute.getCode()))
                 .filter(this::isValueInvalid)
                 .peek(this::addErrorAttribute)
-                .map(attribute -> new Message(ERROR_CODE, attribute.getCode()))
+                .map(attribute -> new Message(ERROR_CODE, attribute.getName()))
                 .collect(Collectors.toList());
     }
 

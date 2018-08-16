@@ -68,7 +68,7 @@ public class BufferedRowsPersisterTest {
         Result actual = bufferedRowsPersister.append(rowSecond);
 
         verify(draftDataService, times(1)).addRows(eq(TEST_STORAGE_CODE), eq(rowValues));
-        Result expected = new Result(2, 2, null);
+        Result expected = new Result(2, 2, Collections.emptyList());
         Assert.assertEquals(expected, actual);
     }
 
@@ -90,7 +90,7 @@ public class BufferedRowsPersisterTest {
         Result actual = bufferedRowsPersister.process();
 
         verify(draftDataService, times(1)).addRows(eq(TEST_STORAGE_CODE), eq(rowValues));
-        Result expected = new Result(1, 1, null);
+        Result expected = new Result(1, 1, Collections.emptyList());
         Assert.assertEquals(expected, actual);
     }
 

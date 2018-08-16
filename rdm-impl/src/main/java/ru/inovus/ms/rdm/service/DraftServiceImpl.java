@@ -5,6 +5,7 @@ import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -38,8 +39,8 @@ import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 import ru.inovus.ms.rdm.util.FileNameGenerator;
 import ru.inovus.ms.rdm.util.ModelGenerator;
-import ru.inovus.ms.rdm.validation.ReferenceValidation;
 import ru.inovus.ms.rdm.validation.PrimaryKeyUniqueValidation;
+import ru.inovus.ms.rdm.validation.ReferenceValidation;
 import ru.kirkazan.common.exception.CodifiedException;
 
 import java.io.IOException;
@@ -57,10 +58,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
-import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.MAX_TIMESTAMP;
-import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.hasOverlappingPeriods;
-import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.isPublished;
-import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.isVersionOfRefBook;
+import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
 import static ru.inovus.ms.rdm.util.ConverterUtil.field;
 import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
 
@@ -84,6 +82,8 @@ public class DraftServiceImpl implements DraftService {
 
     private VersionFileRepository versionFileRepository;
 
+    private int errorCountLimit = 100;
+
     private static final String ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE = "Can not update structure, illegal update attribute";
     private static final String INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE = "incompatible.new.structure";
     private static final String INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE = "incompatible.new.type";
@@ -101,6 +101,11 @@ public class DraftServiceImpl implements DraftService {
         this.fileStorage = fileStorage;
         this.fileNameGenerator = fileNameGenerator;
         this.versionFileRepository = versionFileRepository;
+    }
+
+    @Value( "${rdm.validation-errors-count}" )
+    public void setErrorCountLimit(int errorCountLimit) {
+        this.errorCountLimit = errorCountLimit;
     }
 
     @Override
@@ -208,18 +213,14 @@ public class DraftServiceImpl implements DraftService {
         String storageCode = draft.getStorageCode();
         Structure structure = draft.getStructure();
         String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
-        StructureRowMapper rowMapper = new StructureRowMapper(structure, versionRepository);
+        StructureRowMapper rowMapper = new NonStrictOnTypeRowMapper(structure, versionRepository);
         FileProcessor validator = ProcessorFactory.createProcessor(extension,
-                new RowsValidatorImpl(versionService, searchDataService, structure, storageCode), rowMapper);
+                new RowsValidatorImpl(versionService, searchDataService, structure, storageCode, errorCountLimit), rowMapper);
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
-        Result validationResult = validator.process(inputStreamSupplier);
-        if (isEmpty(validationResult.getErrors())) {
-            FileProcessor persister = ProcessorFactory.createProcessor(extension,
-                    new BufferedRowsPersister(draftDataService, storageCode, structure), rowMapper);
-            persister.process(inputStreamSupplier);
-        } else {
-            throw new UserException(validationResult.getErrors());
-        }
+        validator.process(inputStreamSupplier);
+        FileProcessor persister = ProcessorFactory.createProcessor(extension,
+                new BufferedRowsPersister(draftDataService, storageCode, structure), rowMapper);
+        persister.process(inputStreamSupplier);
 
     }
 
@@ -253,7 +254,7 @@ public class DraftServiceImpl implements DraftService {
         versionRepository.save(draftVersion);
 
         RefBookVersion versionModel = versionService.getById(draftId);
-        for (FileType fileType: FileType.values())
+        for (FileType fileType : FileType.values())
             saveVersionFile(versionModel, fileType, generateVersionFile(versionModel, fileType));
     }
 
@@ -360,8 +361,6 @@ public class DraftServiceImpl implements DraftService {
         }
         if (structure.getAttributes() == null)
             structure.setAttributes(new ArrayList<>());
-        if (attribute.getIsPrimary())
-            structure.clearPrimary();
 
         structure.getAttributes().add(attribute);
 
@@ -542,7 +541,7 @@ public class DraftServiceImpl implements DraftService {
     private InputStream generateVersionFile(RefBookVersion versionModel, FileType fileType) {
         VersionDataIterator dataIterator = new VersionDataIterator(versionService, Collections.singletonList(versionModel.getId()));
         try (FileGenerator fileGenerator = PerRowFileGeneratorFactory
-                        .getFileGenerator(dataIterator, versionService.getStructure(versionModel.getId()), fileType);
+                .getFileGenerator(dataIterator, versionService.getStructure(versionModel.getId()), fileType);
              Archiver archiver = new Archiver()) {
             return archiver
                     .addEntry(fileGenerator, fileNameGenerator.generateName(versionModel, fileType))

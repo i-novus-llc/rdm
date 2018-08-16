@@ -50,27 +50,29 @@ public class XlsFileGenerateProcessTest {
             d_a_rows.add(ConverterUtil.toRow(new LongRowValue(
                     d_a_id.valueOf(BigInteger.valueOf(i)),
                     d_a_name.valueOf("test" + i),
-                    d_a_dateCol.valueOf(LocalDate.ofYearDay(2000, i+1)),
+                    d_a_dateCol.valueOf(LocalDate.ofYearDay(2000, i + 1)),
                     d_a_boolCol.valueOf(i % 2 == 0),
-                    d_a_floatCol.valueOf(new BigDecimal((float)i)))));
+                    d_a_floatCol.valueOf(new BigDecimal((float) i)))));
         }
         Structure structure = createTestStructure();
         List<Row> actual = new ArrayList<>();
 
-        Archiver archiver = new Archiver();
-        archiver.addEntry(new XlsFileGenerator(d_a_rows.iterator(), structure), "Z001.xlsx");
-        ZipInputStream zis = new ZipInputStream(archiver.getArchive());
-        zis.getNextEntry();
-        new XlsPerRowProcessor(new StructureRowMapper(structure, null), getTestRowsProcessor(actual)).process(() -> zis);
-
-        //Костыль, т.к. нет нет соглашений по типам внутри системы(
-        actual.forEach(row -> row.getData().entrySet().forEach(e -> {
-            if (e.getValue() instanceof Float){
-                e.setValue(new BigDecimal((float)e.getValue()));
+        try (Archiver archiver = new Archiver();
+             PerRowFileGenerator fileGenerator = new XlsFileGenerator(d_a_rows.iterator(), structure)) {
+            archiver.addEntry(fileGenerator, "Z001.xlsx");
+            try (ZipInputStream zis = new ZipInputStream(archiver.getArchive());) {
+                zis.getNextEntry();
+                new XlsPerRowProcessor(new StructureRowMapper(structure, null), getTestRowsProcessor(actual)).process(() -> zis);
             }
-        }));
+            //Костыль, т.к. нет нет соглашений по типам внутри системы(
+            actual.forEach(row -> row.getData().entrySet().forEach(e -> {
+                if (e.getValue() instanceof Float) {
+                    e.setValue(new BigDecimal((float) e.getValue()));
+                }
+            }));
 
-        Assert.assertEquals(d_a_rows, actual);
+            Assert.assertEquals(d_a_rows, actual);
+        }
     }
 
 

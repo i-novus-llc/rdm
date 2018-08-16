@@ -6,6 +6,7 @@ import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.Structure;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -48,7 +49,7 @@ public class TypeValidation extends ErrorAttributeHolderValidation {
             case INTEGER:
                 return checkInstance(name, value, BigInteger.class);
             case FLOAT:
-                return checkInstance(name, value, Float.class);
+                return checkInstance(name, value, BigDecimal.class);
             case DATE:
                 return checkInstance(name, value, LocalDate.class);
             case BOOLEAN:
@@ -63,7 +64,7 @@ public class TypeValidation extends ErrorAttributeHolderValidation {
     }
 
     private Message checkInstance(String name, Object value, Class cls) {
-        if (!(cls.isInstance(value))) {
+        if (value != null && !(cls.isInstance(value))) {
             return new Message(VALIDATION_TYPE_EXCEPTION_CODE, name, value);
         }
         return null;

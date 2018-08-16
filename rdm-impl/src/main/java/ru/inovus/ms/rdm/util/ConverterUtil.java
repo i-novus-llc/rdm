@@ -16,6 +16,7 @@ import ru.inovus.ms.rdm.file.Row;
 import ru.inovus.ms.rdm.model.AttributeFilter;
 import ru.inovus.ms.rdm.model.Structure;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -105,6 +106,8 @@ public class ConverterUtil {
     public static Object toSearchType(Object value){
         if (value instanceof Reference){
             return ((Reference) value).getValue();
+        } else if (value instanceof Float){
+            return new BigDecimal((Float) value);
         }
         return value;
     }

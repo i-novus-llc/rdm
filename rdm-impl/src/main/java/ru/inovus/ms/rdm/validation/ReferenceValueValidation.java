@@ -12,10 +12,7 @@ import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static ru.inovus.ms.rdm.util.ConverterUtil.castReferenceValue;
@@ -46,11 +43,7 @@ public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
     }
 
     public ReferenceValueValidation(VersionService versionService, Row row, Structure structure) {
-        this(versionService,
-                structure.getReferences().stream()
-                        .filter(reference -> row.getData().get(reference.getAttribute()) != null)
-                        .collect(Collectors.toMap(reference -> reference, reference -> getReferenceStringValue(row, reference))),
-                structure);
+        this(versionService, getReferenceWithValueMap(row, structure), structure);
     }
 
     public ReferenceValueValidation(VersionService versionService, Row row, Structure structure, Set<String> excludeAttributes) {
@@ -101,8 +94,12 @@ public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
         return (pagedData == null || !pagedData.hasContent());
     }
 
-    private static String getReferenceStringValue(Row row, Structure.Reference reference) {
-        return ((Reference) row.getData().get(reference.getAttribute())).getValue();
+    private static Map<Structure.Reference, String> getReferenceWithValueMap(Row row, Structure structure) {
+        Map<Structure.Reference, String> map = new HashMap<>();
+        structure.getReferences().stream()
+                .filter(reference -> row.getData().get(reference.getAttribute()) != null)
+                .forEach(ref -> map.put(ref, ((Reference) row.getData().get(ref.getAttribute())).getValue()));
+        return map;
     }
 
 }
