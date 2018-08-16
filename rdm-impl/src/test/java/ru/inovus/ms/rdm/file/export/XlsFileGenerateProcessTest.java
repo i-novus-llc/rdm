@@ -62,20 +62,7 @@ public class XlsFileGenerateProcessTest {
             try (ZipInputStream zis = new ZipInputStream(archiver.getArchive());) {
                 zis.getNextEntry();
                 new XlsPerRowProcessor(new StructureRowMapper(structure, null), getTestRowsProcessor(actual)).process(() -> zis);
-        try (Archiver archiver = new Archiver().addEntry(new XlsFileGenerator(d_a_rows.iterator(), structure, 50), "Z001.xlsx");
-            ZipInputStream zis = new ZipInputStream(archiver.getArchive());){
-            zis.getNextEntry();
-            try (FilePerRowProcessor processor = new XlsPerRowProcessor(new StructureRowMapper(structure, null), getTestRowsProcessor(actual))) {
-                processor.process(() -> zis);
             }
-        }
-
-        //Костыль, т.к. нет нет соглашений по типам внутри системы(
-        actual.forEach(row -> row.getData().entrySet().forEach(e -> {
-            if (e.getValue() instanceof Float){
-                e.setValue(new BigDecimal((float)e.getValue()));
-            }
-        }));
 
             Assert.assertEquals(d_a_rows, actual);
         }

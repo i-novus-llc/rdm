@@ -39,7 +39,6 @@ import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 import ru.inovus.ms.rdm.util.FileNameGenerator;
 import ru.inovus.ms.rdm.util.ModelGenerator;
-import ru.inovus.ms.rdm.validation.ReferenceValidation;
 import ru.inovus.ms.rdm.validation.PrimaryKeyUniqueValidation;
 import ru.inovus.ms.rdm.validation.ReferenceValidation;
 import ru.kirkazan.common.exception.CodifiedException;
@@ -218,28 +217,22 @@ public class DraftServiceImpl implements DraftService {
         Structure structure = draft.getStructure();
         String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
         StructureRowMapper rowMapper = new NonStrictOnTypeRowMapper(structure, versionRepository);
-        FileProcessor validator = ProcessorFactory.createProcessor(extension,
-                new RowsValidatorImpl(versionService, searchDataService, structure, storageCode, errorCountLimit), rowMapper);
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
-        validator.process(inputStreamSupplier);
-        FileProcessor persister = ProcessorFactory.createProcessor(extension,
-                new BufferedRowsPersister(draftDataService, storageCode, structure), rowMapper);
-        persister.process(inputStreamSupplier);
-        StructureRowMapper rowMapper = new StructureRowMapper(structure, versionRepository);
+
         try (FilePerRowProcessor validator = FileProcessorFactory.createProcessor(extension,
-                new RowsValidatorImpl(versionService, structure), rowMapper);
-             FilePerRowProcessor persister = FileProcessorFactory.createProcessor(extension,
-                     new BufferedRowsPersister(draftDataService, storageCode, structure), rowMapper)) {
-            Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
-            Result validationResult = validator.process(inputStreamSupplier);
-            if (isEmpty(validationResult.getErrors())) {
-                persister.process(inputStreamSupplier);
-            } else {
-                throw new UserException(new Message("invalid.reference.err", validationResult.getErrors().stream().collect(Collectors.joining("  "))));
-            }
+                new RowsValidatorImpl(versionService, searchDataService, structure, storageCode, errorCountLimit), rowMapper);) {
+            validator.process(inputStreamSupplier);
         } catch (IOException e) {
             throw new RdmException(e);
         }
+
+        try (FilePerRowProcessor persister = FileProcessorFactory.createProcessor(extension,
+                new BufferedRowsPersister(draftDataService, storageCode, structure), rowMapper);) {
+            persister.process(inputStreamSupplier);
+        } catch (IOException e) {
+            throw new RdmException(e);
+        }
+
 
     }
 
