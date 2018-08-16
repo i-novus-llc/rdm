@@ -1,13 +1,11 @@
 package ru.inovus.ms.rdm.file;
 
 import net.n2oapp.platform.i18n.Message;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.service.api.VersionService;
-import ru.inovus.ms.rdm.validation.ErrorAttributeHolderValidation;
-import ru.inovus.ms.rdm.validation.ReferenceValueValidation;
-import ru.inovus.ms.rdm.validation.RequiredValidation;
-import ru.inovus.ms.rdm.validation.TypeValidation;
+import ru.inovus.ms.rdm.validation.*;
 
 import java.util.*;
 
@@ -21,9 +19,16 @@ public class RowsValidatorImpl implements RowsValidator {
 
     private VersionService versionService;
 
-    public RowsValidatorImpl(VersionService versionService, Structure structure) {
+    private SearchDataService searchDataService;
+
+    String storageCode;
+
+
+    public RowsValidatorImpl(VersionService versionService, SearchDataService searchDataService, Structure structure, String storageCode) {
         this.versionService = versionService;
         this.structure = structure;
+        this.searchDataService = searchDataService;
+        this.storageCode = storageCode;
     }
 
     @Override
@@ -34,7 +39,8 @@ public class RowsValidatorImpl implements RowsValidator {
         List<ErrorAttributeHolderValidation> validators = Arrays.asList(
                 new RequiredValidation(row, structure),
                 new TypeValidation(row.getData(), structure),
-                new ReferenceValueValidation(versionService, row, structure)
+                new ReferenceValueValidation(versionService, row, structure),
+                new DBPrimaryKeyValidation(searchDataService, structure, row, storageCode)
         );
 
         for (ErrorAttributeHolderValidation validator : validators){

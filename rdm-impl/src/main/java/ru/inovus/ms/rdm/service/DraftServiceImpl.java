@@ -104,7 +104,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
-    @Transactional
+    @Transactional(timeout = 600000)
     public Draft create(Integer refBookId, FileModel fileModel) {
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
         BiConsumer<String, Structure> consumer = getSaveDraftConsumer(refBookId);
@@ -202,6 +202,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
+    @Transactional(timeout = 600000)
     public void updateData(Integer draftId, FileModel fileModel) {
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
         String storageCode = draft.getStorageCode();
@@ -209,7 +210,7 @@ public class DraftServiceImpl implements DraftService {
         String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
         StructureRowMapper rowMapper = new StructureRowMapper(structure, versionRepository);
         FileProcessor validator = ProcessorFactory.createProcessor(extension,
-                new RowsValidatorImpl(versionService, structure), rowMapper);
+                new RowsValidatorImpl(versionService, searchDataService, structure, storageCode), rowMapper);
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
         Result validationResult = validator.process(inputStreamSupplier);
         if (isEmpty(validationResult.getErrors())) {

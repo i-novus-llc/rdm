@@ -14,6 +14,7 @@ import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 import ru.inovus.ms.rdm.model.AttributeFilter;
 import ru.inovus.ms.rdm.model.Result;
@@ -39,6 +40,9 @@ public class RowsValidatorTest {
     @Mock
     private VersionService versionService;
 
+    @Mock
+    private SearchDataService searchDataService;
+
     private static final String ATTRIBUTE_NAME = "ref_name";
 
     private static final String ATTRIBUTE_NAME_WITH_WRONG_TYPE = "ref_name_wrong";
@@ -55,7 +59,7 @@ public class RowsValidatorTest {
 
     @Before
     public void setUp() {
-        rowsValidator = new RowsValidatorImpl(versionService, createTestStructureWithReference());
+        rowsValidator = new RowsValidatorImpl(versionService, searchDataService, createTestStructureWithReference(), "");
         when(fieldFactory.createField(eq(REFERENCE_ATTRIBUTE), eq(FieldType.STRING))).thenReturn(new StringField(REFERENCE_ATTRIBUTE));
         when(versionService.getStructure(eq(REFERENCE_VERSION))).thenReturn(createTestStructure());
         AttributeFilter attributeFilter = new AttributeFilter(REFERENCE_ATTRIBUTE, ATTRIBUTE_VALUE, FieldType.STRING, SearchTypeEnum.EXACT);
