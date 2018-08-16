@@ -44,7 +44,7 @@ public class StructureRowMapper implements RowMapper {
             case INTEGER:
                 return BigInteger.valueOf(Long.parseLong(value));
             case FLOAT:
-                return BigDecimal.valueOf(Double.parseDouble(value.replace(",", ".")));
+                return new BigDecimal(value.replace(",","."));
             case DATE:
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
                 return LocalDate.parse(value, formatter);

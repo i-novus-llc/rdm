@@ -51,7 +51,7 @@ public class XlsFileGenerateProcessTest {
                     d_a_name.valueOf("test" + i),
                     d_a_dateCol.valueOf(LocalDate.ofYearDay(2000, i + 1)),
                     d_a_boolCol.valueOf(i % 2 == 0),
-                    d_a_floatCol.valueOf(BigDecimal.valueOf(0.0)))));
+                    d_a_floatCol.valueOf(new BigDecimal((float) i)))));
         }
         Structure structure = createTestStructure();
         List<Row> actual = new ArrayList<>();
