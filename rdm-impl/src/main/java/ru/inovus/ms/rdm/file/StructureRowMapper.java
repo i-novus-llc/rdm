@@ -25,9 +25,11 @@ public class StructureRowMapper implements RowMapper {
 
     @Override
     public Row map(Row inputRow) {
-        inputRow.getData().forEach((name, value) ->
-                inputRow.getData().put(name, castValue(structure.getAttribute(name), (String) value))
-        );
+        inputRow.getData().entrySet().stream()
+                .filter(entry -> entry.getValue() != null)
+                .forEach(entry ->
+                                inputRow.getData().put(entry.getKey(), castValue(structure.getAttribute(entry.getKey()), (String) entry.getValue()))
+                );
         return inputRow;
     }
 
