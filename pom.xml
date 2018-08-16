@@ -37,17 +37,6 @@
         <module>rdm-fnsi-n2o</module>
     </modules>
 
-    <profiles>
-        <profile>
-            <id>ui-test</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <modules>
-                <module>rdm-ui-test</module>
-            </modules>
-        </profile>
-    </profiles>
 
     <dependencyManagement>
         <dependencies>
@@ -139,14 +128,6 @@
                 <artifactId>n2o-web</artifactId>
                 <version>${n2o.version}</version>
             </dependency>
-
-            <dependency>
-                <groupId>com.codeborne</groupId>
-                <artifactId>selenide</artifactId>
-                <version>4.11.1</version>
-                <scope>test</scope>
-            </dependency>
-
 
         </dependencies>
     </dependencyManagement>
