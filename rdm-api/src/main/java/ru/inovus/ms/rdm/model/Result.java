@@ -1,6 +1,10 @@
 package ru.inovus.ms.rdm.model;
 
+
+import net.n2oapp.platform.i18n.Message;
+
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 public class Result {
@@ -9,9 +13,9 @@ public class Result {
 
     private int allCount;
 
-    private List<String> errors;
+    private List<Message> errors;
 
-    public Result(int successCount, int allCount, List<String> errors) {
+    public Result(int successCount, int allCount, List<Message> errors) {
         this.successCount = successCount;
         this.allCount = allCount;
         this.errors = errors;
@@ -25,22 +29,22 @@ public class Result {
         return allCount;
     }
 
-    public List<String> getErrors() {
+    public List<Message> getErrors() {
         return errors;
     }
 
     public Result addResult(Result result) {
-        List<String> totalErrors = null;
+        LinkedHashSet<Message> totalErrors = new LinkedHashSet<>();
         if(this.errors == null && result.getErrors() != null) {
-            totalErrors = result.getErrors();
+            totalErrors.addAll(result.getErrors());
         } else if (this.errors != null && result.getErrors() == null) {
-            totalErrors = this.errors;
+            totalErrors.addAll(this.errors);
         } else if(this.errors != null && result.getErrors() != null) {
-            totalErrors = new ArrayList<>();
             totalErrors.addAll(this.errors);
             totalErrors.addAll(result.getErrors());
         }
-        return  new Result(this.successCount + result.getSuccessCount(), this.getAllCount() + result.getAllCount(), totalErrors);
+
+        return  new Result(this.successCount + result.getSuccessCount(), this.getAllCount() + result.getAllCount(), new ArrayList<>(totalErrors));
     }
 
     @Override
@@ -61,5 +65,15 @@ public class Result {
         result = 31 * result + allCount;
         result = 31 * result + (errors != null ? errors.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Result{");
+        sb.append("successCount=").append(successCount);
+        sb.append(", allCount=").append(allCount);
+        sb.append(", errors=").append(errors);
+        sb.append('}');
+        return sb.toString();
     }
 }

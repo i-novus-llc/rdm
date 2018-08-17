@@ -8,3 +8,4 @@ public interface RdmValidation {
 
     List<Message> validate();
 }
+
