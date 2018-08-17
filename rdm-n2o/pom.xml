@@ -74,7 +74,7 @@
 
     <profiles>
         <profile>
-            <id>prod</id>
+            <id>production</id>
             <properties>
                 <backend.default.path>http://backend:8080/rdm/api</backend.default.path>
                 <frontend.default.port>8080</frontend.default.port>

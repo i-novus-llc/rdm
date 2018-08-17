@@ -100,7 +100,7 @@
 
     <profiles>
         <profile>
-            <id>prod</id>
+            <id>production</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
