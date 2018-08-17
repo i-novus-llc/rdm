@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.rest;
 
 import net.n2oapp.platform.jaxrs.RestException;
+import net.n2oapp.platform.jaxrs.RestMessage;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
 import net.n2oapp.platform.test.autoconfigure.EnableEmbeddedPg;
 import org.junit.AfterClass;
@@ -167,7 +168,7 @@ public class ApplicationTest {
 
     }
 
-    private static void deleteFile(File file){
+    private static void deleteFile(File file) {
         if (!file.exists())
             return;
         if (file.isDirectory()) {
@@ -709,7 +710,7 @@ public class ApplicationTest {
     }
 
     @Test
-    public void testCreateRequiredAttributeWithNotEmptyData(){
+    public void testCreateRequiredAttributeWithNotEmptyData() {
         CreateAttribute createAttributeModel = new CreateAttribute(-2, createAttribute, createReference);
         try {
             draftService.createAttribute(createAttributeModel);
@@ -792,9 +793,10 @@ public class ApplicationTest {
             assertEquals("primary.key.not.unique", ((RestException) e).getErrors().get(0).getMessage());
         }
     }
+
     /**
      * Тест на изменение структуры черновика без данных
-     *
+     * <p>
      * Создаем новый черновик с ссылкой на опубликованную версию
      * Обновляем тип атрибута с любого на любой
      * Обновление без ошибок, так как в версии нет данных
@@ -871,7 +873,7 @@ public class ApplicationTest {
 
     /**
      * Тест на изменение структуры черновика с данными
-     *
+     * <p>
      * Создаем новый черновик с ссылкой на опубликованную версию
      * Добавляем в версию наполнение
      * Пытаемся изменить тип атрибута с любого на любой
@@ -1019,5 +1021,68 @@ public class ApplicationTest {
             default:
                 return null;
         }
+    }
+
+    @Test
+    public void testUpdateFromFileValidation() throws IOException {
+
+        final String RELATION_REFBOOK_CODE = "Z003";
+        final String RELATION_FILENAME = "Z003.xlsx";
+        final String REFBOOK_CODE = "Z004";
+        final String REFBOOK_FILENAME = "Z004.xlsx";
+        final String REFBOOK_FILENAME_1 = "Z004_1.xlsx";
+        final String RELATION_ATTR_CODE = "rel_string";
+        final String PK_STRING = "pks";
+        final String PK_REFERENCE = "pkr";
+        final String PK_FLOAT = "pkf";
+        final String PK_DATE = "pkd";
+        final String PK_BOOL = "pkb";
+        final String PK_INTEGER = "pki";
+        final String NOT_PK_STRING = "npks";
+        final String NOT_PK_REFERENCE = "npkr";
+        final String NOT_PK_FLOAT = "npkf";
+        final String NOT_PK_DATE = "npkd";
+        final String NOT_PK_BOOL = "npkb";
+        final String NOT_PK_INTEGER = "npki";
+
+
+        //create new refbook
+        RefBook relRefBook = refBookService.create(new RefBookCreateRequest(RELATION_REFBOOK_CODE, null));
+        draftService.createAttribute(new CreateAttribute(relRefBook.getId(), Structure.Attribute.buildPrimary(RELATION_ATTR_CODE, "string", FieldType.STRING, "string"), null));
+        draftService.updateData(relRefBook.getId(), createFileModel(RELATION_FILENAME, RELATION_FILENAME));
+        draftService.publish(relRefBook.getId(), "1.0", LocalDateTime.now(), null);
+
+        //create new refbook
+        RefBook refBook = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE, null));
+
+        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.buildPrimary(PK_STRING, PK_STRING, FieldType.STRING, "string"), null));
+        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.buildPrimary(PK_REFERENCE, PK_REFERENCE, FieldType.REFERENCE, "count"),
+                new Structure.Reference(PK_REFERENCE, relRefBook.getId(), RELATION_ATTR_CODE, null, null)));
+        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.buildPrimary(PK_FLOAT, PK_FLOAT, FieldType.FLOAT, "float"), null));
+        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.buildPrimary(PK_DATE, PK_DATE, FieldType.DATE, "date"), null));
+        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.buildPrimary(PK_BOOL, PK_BOOL, FieldType.BOOLEAN, "boolean"), null));
+        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.buildPrimary(PK_INTEGER, PK_INTEGER, FieldType.INTEGER, "integer"), null));
+
+        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_STRING, NOT_PK_STRING, FieldType.STRING, false, "string"), null));
+        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_REFERENCE, NOT_PK_REFERENCE, FieldType.REFERENCE, false, "count"),
+                new Structure.Reference(NOT_PK_REFERENCE, relRefBook.getId(), RELATION_ATTR_CODE, null, null)));
+        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_FLOAT, NOT_PK_FLOAT, FieldType.FLOAT, false, "float"), null));
+        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_DATE, NOT_PK_DATE, FieldType.DATE, false, "date"), null));
+        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_BOOL, NOT_PK_BOOL, FieldType.BOOLEAN, false, "boolean"), null));
+        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_INTEGER, NOT_PK_INTEGER, FieldType.INTEGER, false, "integer"), null));
+        draftService.updateData(refBook.getId(), createFileModel(REFBOOK_FILENAME_1, REFBOOK_FILENAME_1));
+        try {
+            draftService.updateData(refBook.getId(), createFileModel(REFBOOK_FILENAME, REFBOOK_FILENAME));
+            fail();
+        } catch (RestException re) {
+            Assert.assertEquals(15, re.getErrors().size());
+            Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.db.contains.pk.err"::equals).count());
+            Assert.assertEquals(6, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.required.err"::equals).count());
+            Assert.assertEquals(4, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.type.error"::equals).count());
+            Assert.assertEquals(2, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.reference.err"::equals).count());
+            Assert.assertEquals(2, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.not.unique.pk.err"::equals).count());
+        }
+
+
     }
 }

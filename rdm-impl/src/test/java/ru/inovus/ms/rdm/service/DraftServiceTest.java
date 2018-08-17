@@ -33,9 +33,11 @@ import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertTrue;
@@ -389,12 +391,25 @@ public class DraftServiceTest {
         CreateAttribute primaryCreateAttributeModel = new CreateAttribute(draftVersion.getId(), pkAttribute, nullReference);
         draftService.createAttribute(primaryCreateAttributeModel);
         structure = versionService.getStructure(draftVersion.getId());
-        assertEquals(pkAttribute, structure.getAttributes().stream().filter(Structure.Attribute::getIsPrimary).findFirst().orElse(null));
+        Set<Structure.Attribute> pks = structure.getAttributes().stream().filter(Structure.Attribute::getIsPrimary).collect(Collectors.toSet());
+        assertEquals(2, pks.size());
+        assertTrue(pks.contains(pkAttribute));
+        assertTrue(pks.contains(updateNameAttribute));
 
-        // удаление первичности атрибута и проверка, что первичных нет
+        // удаление первичности атрибута и проверка
         assertTrue(structure.getAttributes().stream().anyMatch(Structure.Attribute::getIsPrimary));
         pkAttribute.setPrimary(false);
         updateAttributeModel = new UpdateAttribute(updateAttributeModel.getVersionId(), pkAttribute, nullReference);
+        draftService.updateAttribute(updateAttributeModel);
+        structure = versionService.getStructure(draftVersion.getId());
+        pks = structure.getAttributes().stream().filter(Structure.Attribute::getIsPrimary).collect(Collectors.toSet());
+        assertEquals(1, pks.size());
+        assertTrue(pks.contains(updateNameAttribute));
+
+        // удаление первичности второго атрибута и проверка, что первичных нет
+        assertTrue(structure.getAttributes().stream().anyMatch(Structure.Attribute::getIsPrimary));
+        updateNameAttribute.setPrimary(false);
+        updateAttributeModel = new UpdateAttribute(updateAttributeModel.getVersionId(), updateNameAttribute, nullReference);
         draftService.updateAttribute(updateAttributeModel);
         structure = versionService.getStructure(draftVersion.getId());
         assertFalse(structure.getAttributes().stream().anyMatch(Structure.Attribute::getIsPrimary));

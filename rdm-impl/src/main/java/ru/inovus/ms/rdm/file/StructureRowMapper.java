@@ -7,6 +7,7 @@ import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -34,13 +35,16 @@ public class StructureRowMapper implements RowMapper {
     }
 
     protected Object castValue(Structure.Attribute attribute, String value) {
+
+        if (value == null || "".equals(value)) return null;
+
         switch (attribute.getType()) {
             case STRING:
                 return value;
             case INTEGER:
                 return BigInteger.valueOf(Long.parseLong(value));
             case FLOAT:
-                return Float.parseFloat(value);
+                return new BigDecimal(value.replace(",","."));
             case DATE:
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
                 return LocalDate.parse(value, formatter);

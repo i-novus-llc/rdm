@@ -11,6 +11,7 @@ import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,9 +30,7 @@ public class DBPrimaryKeyValidation extends ErrorAttributeHolderValidation {
     public DBPrimaryKeyValidation(SearchDataService searchDataService, Structure structure, Row row, String storageCode) {
         this.searchDataService = searchDataService;
         this.storageCode = storageCode;
-        this.primaryKey = structure.getAttributes().stream()
-                .filter(Structure.Attribute::getIsPrimary)
-                .collect(Collectors.toMap(attribute -> attribute, attribute -> row.getData().get(attribute.getCode())));
+        this.primaryKey = getPrimaryKeyMap(structure, row);
 
 
     }
@@ -47,9 +46,9 @@ public class DBPrimaryKeyValidation extends ErrorAttributeHolderValidation {
                     !searchDataService.getPagedData(criteria).getCollection().isEmpty()) {
                 primaryKeyAttributes.forEach(this::addErrorAttribute);
                 return Collections.singletonList(new Message(ERROR_CODE,
-                        criteria.getFieldFilter().stream()
-                                .map(filter -> filter.getField() + "\" - \"" + filter.getValues().get(0))
-                                .collect(Collectors.joining(", "))));
+                        primaryKey.entrySet().stream()
+                                .map(entry -> entry.getKey().getName() + "\" - \"" + entry.getValue())
+                                .collect(Collectors.joining("\", \""))));
             }
         }
         return Collections.emptyList();
@@ -67,5 +66,13 @@ public class DBPrimaryKeyValidation extends ErrorAttributeHolderValidation {
         criteria.setPage(1);
         criteria.setSize(1);
         return criteria;
+    }
+
+    private static Map<Structure.Attribute, Object> getPrimaryKeyMap(Structure structure, Row row){
+        Map<Structure.Attribute, Object> map = new HashMap<>();
+        structure.getAttributes().stream()
+                .filter(Structure.Attribute::getIsPrimary)
+                .forEach(attribute -> map.put(attribute, row.getData().get(attribute.getCode())));
+        return map;
     }
 }

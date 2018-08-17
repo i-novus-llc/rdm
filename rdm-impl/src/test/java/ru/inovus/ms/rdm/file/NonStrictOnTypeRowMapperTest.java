@@ -12,6 +12,7 @@ import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -48,7 +49,7 @@ public class NonStrictOnTypeRowMapperTest {
         Map<String, Object> expectedData = new LinkedHashMap() {{
             put("string", "abc");
             put("reference", new Reference(versionEntity.getStorageCode(), ConverterUtil.date(versionEntity.getFromDate()), "count", "count", "2"));
-            put("float", new Float(2.1));
+            put("float", new BigDecimal("2.1"));
             put("date", date);
             put("boolean", Boolean.valueOf(true));
         }};

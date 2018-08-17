@@ -47,11 +47,14 @@ public class BufferedRowsPersister implements RowsProcessor {
 
     @Override
     public Result append(Row row) {
-        buffer.add(row);
 
-        if (buffer.size() == size) {
-            save();
-            buffer.clear();
+        if (row.getData().values().stream().anyMatch(Objects::nonNull)) {
+            buffer.add(row);
+
+            if (buffer.size() == size) {
+                save();
+                buffer.clear();
+            }
         }
         return this.result;
     }
