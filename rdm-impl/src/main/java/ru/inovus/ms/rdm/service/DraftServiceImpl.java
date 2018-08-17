@@ -216,18 +216,20 @@ public class DraftServiceImpl implements DraftService {
         String storageCode = draft.getStorageCode();
         Structure structure = draft.getStructure();
         String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
-        StructureRowMapper rowMapper = new NonStrictOnTypeRowMapper(structure, versionRepository);
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
 
+        StructureRowMapper nonStrictOnTypeRowMapper = new NonStrictOnTypeRowMapper(structure, versionRepository);
         try (FilePerRowProcessor validator = FileProcessorFactory.createProcessor(extension,
-                new RowsValidatorImpl(versionService, searchDataService, structure, storageCode, errorCountLimit), rowMapper);) {
+                new RowsValidatorImpl(versionService, searchDataService, structure, storageCode, errorCountLimit), nonStrictOnTypeRowMapper)) {
             validator.process(inputStreamSupplier);
         } catch (IOException e) {
             throw new RdmException(e);
         }
 
+
+        StructureRowMapper structureRowMapper = new StructureRowMapper(structure, versionRepository);
         try (FilePerRowProcessor persister = FileProcessorFactory.createProcessor(extension,
-                new BufferedRowsPersister(draftDataService, storageCode, structure), rowMapper);) {
+                new BufferedRowsPersister(draftDataService, storageCode, structure), structureRowMapper)) {
             persister.process(inputStreamSupplier);
         } catch (IOException e) {
             throw new RdmException(e);

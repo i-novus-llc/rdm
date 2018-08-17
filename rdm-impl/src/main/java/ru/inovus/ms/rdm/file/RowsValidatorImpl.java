@@ -45,7 +45,7 @@ public class RowsValidatorImpl implements RowsValidator {
         List<Message> errors = new ArrayList<>();
         Set<String> errorAttributes = new HashSet<>();
         if (row.getData().values().stream().filter(Objects::nonNull).anyMatch(v -> !"".equals(v))) {
-            List<ErrorAttributeHolderValidation> validators = Arrays.asList(
+            List<ErrorAttributeHolderValidation> validations = Arrays.asList(
                     new RequiredValidation(row, structure),
                     new TypeValidation(row.getData(), structure),
                     new ReferenceValueValidation(versionService, row, structure),
@@ -54,10 +54,10 @@ public class RowsValidatorImpl implements RowsValidator {
             );
             uniqueRowAppendValidation.appendRow(row);
 
-            for (ErrorAttributeHolderValidation validator : validators) {
-                validator.setErrorAttributes(errorAttributes);
-                errors.addAll(validator.validate());
-                errorAttributes.addAll(validator.getErrorAttributes());
+            for (ErrorAttributeHolderValidation validation : validations) {
+                validation.setErrorAttributes(errorAttributes);
+                errors.addAll(validation.validate());
+                errorAttributes.addAll(validation.getErrorAttributes());
             }
         }
 
