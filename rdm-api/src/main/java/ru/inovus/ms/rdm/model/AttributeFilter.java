@@ -9,6 +9,9 @@ import javax.ws.rs.QueryParam;
 import java.math.BigInteger;
 import java.time.LocalDate;
 
+/**
+ * Если fieldType REFERENCE то в value = Reference.getValue
+ */
 public class AttributeFilter {
 
     @QueryParam("attribute")

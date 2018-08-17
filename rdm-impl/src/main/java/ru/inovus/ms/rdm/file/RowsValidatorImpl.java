@@ -1,26 +1,22 @@
 package ru.inovus.ms.rdm.file;
 
-import org.springframework.data.domain.Page;
-import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.inovus.ms.rdm.model.AttributeFilter;
+import net.n2oapp.platform.i18n.Message;
+import net.n2oapp.platform.i18n.UserException;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.model.Result;
-import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.validation.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.*;
 
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
-import static ru.inovus.ms.rdm.util.ConverterUtil.castReferenceValue;
-import static ru.inovus.ms.rdm.util.ConverterUtil.field;
 
 public class RowsValidatorImpl implements RowsValidator {
+
+    public static final String ERROR_COUNT_EXCEEDED = "validation.error.count.exceeded";
+
+    private Integer errorCountLimit = 100;
 
     private Result result = new Result(0, 0, null);
 
@@ -28,57 +24,64 @@ public class RowsValidatorImpl implements RowsValidator {
 
     private VersionService versionService;
 
-    public RowsValidatorImpl(VersionService versionService, Structure structure) {
+    private SearchDataService searchDataService;
+
+    private String storageCode;
+
+    private UniqueRowAppendValidation uniqueRowAppendValidation;
+
+
+    public RowsValidatorImpl(VersionService versionService, SearchDataService searchDataService, Structure structure, String storageCode, int errorCountLimit) {
         this.versionService = versionService;
         this.structure = structure;
+        this.searchDataService = searchDataService;
+        this.storageCode = storageCode;
+        this.uniqueRowAppendValidation = new UniqueRowAppendValidation(structure);
+        if (errorCountLimit > 0) this.errorCountLimit = errorCountLimit;
     }
 
     @Override
     public Result append(Row row) {
-        validateReferences(row);
+        List<Message> errors = new ArrayList<>();
+        Set<String> errorAttributes = new HashSet<>();
+        if (row.getData().values().stream().filter(Objects::nonNull).anyMatch(v -> !"".equals(v))) {
+            List<ErrorAttributeHolderValidation> validations = Arrays.asList(
+                    new RequiredValidation(row, structure),
+                    new TypeValidation(row.getData(), structure),
+                    new ReferenceValueValidation(versionService, row, structure),
+                    new DBPrimaryKeyValidation(searchDataService, structure, row, storageCode),
+                    uniqueRowAppendValidation
+            );
+            uniqueRowAppendValidation.appendRow(row);
+
+            for (ErrorAttributeHolderValidation validation : validations) {
+                validation.setErrorAttributes(errorAttributes);
+                errors.addAll(validation.validate());
+                errorAttributes.addAll(validation.getErrorAttributes());
+            }
+        }
+
+        if (isEmpty(errors)) {
+            addResult(new Result(1, 1, null));
+        } else {
+            addResult(new Result(0, 1, errors));
+        }
         return this.result;
     }
+
 
     @Override
     public Result process() {
-        return this.result;
+        if (!result.getErrors().isEmpty())
+            throw new UserException(result.getErrors());
+        return result;
     }
 
-    private void validateReferences(Row row) {
-        List<Structure.Reference> references = structure.getReferences();
-        List<Structure.Reference> invalidReferences = new ArrayList<>();
-        if (!isEmpty(references)) {
-            invalidReferences = references.stream()
-                    .filter(reference -> {
-                        String referenceValue = ((Reference) row.getData().get((reference).getAttribute())).getValue();
-                        return !isReferenceValid(reference, referenceValue);
-                    }).collect(Collectors.toList());
-        }
-        if (isEmpty(invalidReferences)) {
-            this.result = this.result.addResult(new Result(1, 1, null));
-        } else {
-            String message = invalidReferences.stream()
-                    .map(invalidReference -> invalidReference.getAttribute() + ": " + ((Reference) row.getData().get((invalidReference).getAttribute())).getValue())
-                    .collect(Collectors.joining(", "));
-            this.result = this.result.addResult(new Result(0, 1, Collections.singletonList(message)));
+    private void addResult(Result result) {
+        this.result = this.result == null ? result : this.result.addResult(result);
+        if (this.result != null && this.result.getErrors().size() > errorCountLimit) {
+            this.result.addResult(new Result(0, 0, Collections.singletonList(new Message(ERROR_COUNT_EXCEEDED, errorCountLimit))));
+            throw new UserException(this.result.getErrors());
         }
     }
-
-    private boolean isReferenceValid(Structure.Reference reference, String referenceValue) {
-        Integer versionId = reference.getReferenceVersion();
-        Structure referenceStructure = versionService.getStructure(versionId);
-        Field fieldFilter = createFieldFilter(referenceStructure, reference);
-        Object referenceValueCasted = castReferenceValue(fieldFilter, referenceValue);
-        AttributeFilter attributeFilter = new AttributeFilter(reference.getReferenceAttribute(), referenceValueCasted,
-                referenceStructure.getAttribute(reference.getReferenceAttribute()).getType(), SearchTypeEnum.EXACT);
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(Collections.singletonList(attributeFilter), null);
-        Page<RowValue> pagedData = versionService.search(versionId, searchDataCriteria);
-        return (pagedData != null && !isEmpty(pagedData.getContent()));
-    }
-
-    private Field createFieldFilter(Structure structure, Structure.Reference reference) {
-        Structure.Attribute referenceAttribute = structure.getAttribute(reference.getReferenceAttribute());
-        return field(referenceAttribute);
-    }
-
 }

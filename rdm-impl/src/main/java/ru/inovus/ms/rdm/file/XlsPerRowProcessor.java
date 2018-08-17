@@ -43,6 +43,7 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
             logger.error("cannot read xlsx", e);
             throw new UserException("cannot read xlsx");
         }
+
     }
 
     private void processFirstRow(org.apache.poi.ss.usermodel.Row row) {

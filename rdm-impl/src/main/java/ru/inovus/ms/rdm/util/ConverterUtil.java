@@ -6,6 +6,7 @@ import org.springframework.data.domain.Sort;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
@@ -99,5 +100,12 @@ public class ConverterUtil {
             default:
                 throw new RdmException("invalid field type");
         }
+    }
+
+    public static Object toSearchType(Object value){
+        if (value instanceof Reference){
+            return ((Reference) value).getValue();
+        }
+        return value;
     }
 }
