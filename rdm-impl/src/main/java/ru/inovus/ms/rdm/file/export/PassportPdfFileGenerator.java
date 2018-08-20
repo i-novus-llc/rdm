@@ -30,7 +30,7 @@ public class PassportPdfFileGenerator implements FileGenerator {
         RefBookVersion version = versionService.getById(versionId);
         if (version == null) return;
 
-        Map<String, Object> passportToWrite = new LinkedHashMap<>();
+        Map<String, String> passportToWrite = new LinkedHashMap<>();
         version.getPassport().stream()
                 .forEach(attribute -> passportToWrite.put(String.valueOf(attribute.getName()), attribute.getValue()));
         String paragraph = version.getPassport().stream()
