@@ -49,6 +49,6 @@ public class PassportPdfFileGenerator implements FileGenerator {
 
     @Override
     public void close() throws IOException {
-
+        //not close for generator
     }
 }

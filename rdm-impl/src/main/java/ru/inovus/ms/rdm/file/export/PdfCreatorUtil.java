@@ -14,6 +14,7 @@ import com.itextpdf.tool.xml.pipeline.css.CssResolverPipeline;
 import com.itextpdf.tool.xml.pipeline.end.ElementHandlerPipeline;
 import com.itextpdf.tool.xml.pipeline.html.HtmlPipeline;
 import com.itextpdf.tool.xml.pipeline.html.HtmlPipelineContext;
+import ru.inovus.ms.rdm.exception.RdmException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -21,7 +22,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -38,15 +38,15 @@ public class PdfCreatorUtil {
         try {
             font = BaseFont.createFont("fonts/calibri.ttf", "cp1251", BaseFont.EMBEDDED);
         } catch (IOException | DocumentException e) {
-            throw new RuntimeException(e);
+            throw new RdmException(e);
         }
         baseFont = new Font(font, 14);
         baseFontSmall = new Font(font, 7);
         archFont = new Font(font, 16, Font.BOLD);
     }
 
-    public void writeDocument(OutputStream out, Map<String, Object> keyValue, String paragraphName) throws DocumentException, IOException {
-        try(ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+    public void writeDocument(OutputStream out, Map<String, String> keyValue, String paragraphName) throws DocumentException, IOException {
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
             Document document = new Document();
             PdfWriter.getInstance(document, byteArrayOutputStream);
             document.open();
@@ -54,7 +54,7 @@ public class PdfCreatorUtil {
             Paragraph elements = new Paragraph(paragraphName, archFont);
             elements.setAlignment(Element.ALIGN_CENTER);
             elements.add(new Paragraph(" "));
-            for (Map.Entry<String, Object> entry : keyValue.entrySet()) {
+            for (Map.Entry<String, String> entry : keyValue.entrySet()) {
                 createParagraph(elements, entry.getKey(), entry.getValue());
             }
             document.add(elements);
@@ -64,34 +64,23 @@ public class PdfCreatorUtil {
     }
 
 
+    private void createParagraph(Paragraph elements, String message, String field) throws IOException {
+        if (field != null && !field.isEmpty()) {
+            elements.add(new Paragraph(message, archFont));
+            int size = elements.size();
+            XMLWorkerFontProvider fontImp = new XMLWorkerFontProvider(XMLWorkerFontProvider.DONTLOOKFORFONTS);
+            fontImp.register("fonts/calibri.ttf");
+            FontFactory.setFontImp(fontImp);
 
-    private void createParagraph(Paragraph elements, String message, Object field) throws IOException {
-        if (field != null) {
-            if (field instanceof Date) {
-                Date date = (Date) field;
-                elements.add(new Paragraph(message, archFont));
-                elements.add(new Paragraph(getFormat().format(date), baseFont));
-            }
-            if (field instanceof String) {
-                String param = (String) field;
-                if (!param.isEmpty()) {
-                    elements.add(new Paragraph(message, archFont));
-                    int size = elements.size();
-                    XMLWorkerFontProvider fontImp = new XMLWorkerFontProvider(XMLWorkerFontProvider.DONTLOOKFORFONTS);
-                    fontImp.register("fonts/calibri.ttf");
-                    FontFactory.setFontImp(fontImp);
-
-                    for (Element e : parseToElementList(param, "table, p, ol, ul, span {font-family:Helvetica, Calibri, Arial, sans-serif; font-size: 14px}")) {
-                        for (Chunk chunk : e.getChunks()) {
-                            if (chunk.getAttributes() == null || !chunk.getAttributes().containsKey("SUBSUPSCRIPT"))
-                                chunk.getFont().setSize(14);
-                        }
-                        elements.add(e);
-                    }
-                    if (elements.size() == size)
-                        elements.add(new Paragraph(param, baseFont));
+            for (Element e : parseToElementList(field, "table, p, ol, ul, span {font-family:Helvetica, Calibri, Arial, sans-serif; font-size: 14px}")) {
+                for (Chunk chunk : e.getChunks()) {
+                    if (chunk.getAttributes() == null || !chunk.getAttributes().containsKey("SUBSUPSCRIPT"))
+                        chunk.getFont().setSize(14);
                 }
+                elements.add(e);
             }
+            if (elements.size() == size)
+                elements.add(new Paragraph(field, baseFont));
         }
     }
 
@@ -111,7 +100,7 @@ public class PdfCreatorUtil {
                 new Span() {
                     @Override
                     public List<Element> end(WorkerContext ctx, Tag tag, List<Element> l) {
-                        List<Element> list = new ArrayList<Element>(1);
+                        List<Element> list = new ArrayList<>(1);
                         String value = ((Chunk) l.get(0)).getContent();
                         Chunk chunk = new Chunk(value, baseFontSmall);
                         chunk.setTextRise(6);
