@@ -62,4 +62,18 @@
         </sql>
     </changeSet>
 
+    <changeSet id="201808171600_RDM-97" author="znurgaliev" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="passport_attribute" columnName="position" schemaName="n2o_rdm_management"/>
+            </not>
+        </preConditions>
+        <comment>Сортировка атрибутов паспорта</comment>
+        <sql>
+            ALTER TABLE n2o_rdm_management.passport_attribute ADD COLUMN "position" SERIAL;
+
+            COMMENT ON COLUMN n2o_rdm_management.passport_attribute.position IS 'Сортировка атрибутов паспорта';
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

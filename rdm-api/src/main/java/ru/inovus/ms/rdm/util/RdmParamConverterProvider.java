@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import ru.inovus.ms.rdm.model.AttributeFilter;
-import ru.inovus.ms.rdm.model.Passport;
+import ru.inovus.ms.rdm.model.PassportAttribute;
 
 import javax.ws.rs.ext.ParamConverter;
 import javax.ws.rs.ext.ParamConverterProvider;
@@ -23,9 +23,9 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
 
     private OffsetDateTimeParamConverter offsetDateTimeParamConverter = new OffsetDateTimeParamConverter();
 
-    private PassportConverter passportConverter = new PassportConverter();
-
     private AttributeFilterConverter attributeFilterConverter = new AttributeFilterConverter();
+
+    private PassportAttributeConverter passportAttributeConverter = new PassportAttributeConverter();
 
     @Override
     public <T> ParamConverter<T> getConverter(Class<T> rawType, Type genericType, Annotation[] annotations) {
@@ -39,12 +39,12 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
         else if (OffsetDateTime.class.equals(rawType))
             //noinspection unchecked
             return (ParamConverter<T>) offsetDateTimeParamConverter;
-        else if (Passport.class.equals(rawType))
-            //noinspection unchecked
-            return (ParamConverter<T>) passportConverter;
         else if (AttributeFilter.class.equals(rawType))
             //noinspection unchecked
             return (ParamConverter<T>) attributeFilterConverter;
+        else if (PassportAttribute.class.equals(rawType))
+            //noinspection unchecked
+            return (ParamConverter<T>) passportAttributeConverter;
         return null;
     }
 
@@ -98,26 +98,6 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
         }
     }
 
-    private static class PassportConverter implements ParamConverter<Passport> {
-        @Override
-        public Passport fromString(String value) {
-            try {
-                return new ObjectMapper().readValue(value, Passport.class);
-            } catch (IOException e) {
-                throw new IllegalArgumentException("Failed to convert from json to Passport", e);
-            }
-        }
-
-        @Override
-        public String toString(Passport value) {
-            try {
-                return new ObjectMapper().writeValueAsString(value);
-            } catch (JsonProcessingException e) {
-                throw new IllegalArgumentException("Failed to convert from Passport to json", e);
-            }
-        }
-    }
-
     private static class AttributeFilterConverter implements ParamConverter<AttributeFilter> {
 
         @Override
@@ -141,6 +121,33 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
                 return mapper.writeValueAsString(value);
             } catch (JsonProcessingException e) {
                 throw new IllegalArgumentException("Failed to convert from AttributeFilter to string", e);
+            }
+        }
+    }
+
+    private static class PassportAttributeConverter implements ParamConverter<PassportAttribute> {
+
+        @Override
+        public PassportAttribute fromString(String value) {
+            ObjectMapper mapper = new ObjectMapper();
+            JavaTimeModule jtm = new JavaTimeModule();
+            mapper.registerModule(jtm);
+            try {
+                return mapper.readValue(value, PassportAttribute.class);
+            } catch (IOException e) {
+                throw new IllegalArgumentException(String.format("Failed to convert string '%s' to PassportAttribute", value), e);
+            }
+        }
+
+        @Override
+        public String toString(PassportAttribute value) {
+            ObjectMapper mapper = new ObjectMapper();
+            JavaTimeModule jtm = new JavaTimeModule();
+            mapper.registerModule(jtm);
+            try {
+                return mapper.writeValueAsString(value);
+            } catch (JsonProcessingException e) {
+                throw new IllegalArgumentException("Failed to convert from PassportAttribute to string", e);
             }
         }
     }

@@ -19,6 +19,7 @@ import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.*;
+import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.model.*;
@@ -119,6 +120,8 @@ public class DraftServiceTest {
     public void setUp() throws Exception {
         when(draftDataService.applyDraft(any(), any(), any())).thenReturn(TEST_STORAGE_CODE);
         when(draftDataService.createDraft(anyList())).thenReturn(TEST_DRAFT_CODE_NEW);
+        when(fileNameGenerator.generateName(any(), eq(FileType.XLSX))).thenReturn("version.xlsx");
+        when(fileNameGenerator.generateName(any(), eq(FileType.PDF))).thenReturn("version.pdf");
     }
 
     @Test
@@ -459,8 +462,8 @@ public class DraftServiceTest {
         return testDraftVersion;
     }
 
-    private Set<PassportValueEntity> createTestPassportValues(RefBookVersionEntity version){
-        Set<PassportValueEntity> passportValues = new HashSet<>();
+    private List<PassportValueEntity> createTestPassportValues(RefBookVersionEntity version){
+        List<PassportValueEntity> passportValues = new ArrayList<>();
         passportValues.add(new PassportValueEntity(new PassportAttributeEntity("fullName"), "full_name", version));
         passportValues.add(new PassportValueEntity(new PassportAttributeEntity("shortName"), "short_name", version));
         passportValues.add(new PassportValueEntity(new PassportAttributeEntity("annotation"), "annotation", version));

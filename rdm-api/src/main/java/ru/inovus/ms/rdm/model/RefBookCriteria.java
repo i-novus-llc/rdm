@@ -6,6 +6,7 @@ import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 
 import javax.ws.rs.QueryParam;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @ApiModel("Критерии поиска справочника")
 public class RefBookCriteria extends AbstractCriteria {
@@ -32,7 +33,7 @@ public class RefBookCriteria extends AbstractCriteria {
 
     @ApiModelProperty("Паспорт справочника")
     @QueryParam("passport")
-    private Passport passport;
+    private List<PassportAttribute> passport;
 
     public Integer getRefBookId() {
         return refBookId;
@@ -74,11 +75,11 @@ public class RefBookCriteria extends AbstractCriteria {
         this.status = status;
     }
 
-    public Passport getPassport() {
+    public List<PassportAttribute> getPassport() {
         return passport;
     }
 
-    public void setPassport(Passport passport) {
+    public void setPassport(List<PassportAttribute> passport) {
         this.passport = passport;
     }
 }
