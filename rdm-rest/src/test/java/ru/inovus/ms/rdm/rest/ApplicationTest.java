@@ -81,6 +81,7 @@ public class ApplicationTest {
     private static final String PASSPORT_ATTRIBUTE_FULL_NAME = "TEST_fullName";
     private static final String PASSPORT_ATTRIBUTE_SHORT_NAME = "TEST_shortName";
     private static final String PASSPORT_ATTRIBUTE_ANNOTATION = "TEST_annotation";
+    private static final String PASSPORT_ATTRIBUTE_GROUP = "TEST_group";
 
     private static RefBookCreateRequest refBookCreateRequest;
     private static RefBookUpdateRequest refBookUpdateRequest;
@@ -117,18 +118,19 @@ public class ApplicationTest {
     public static void initialize() {
         refBookCreateRequest = new RefBookCreateRequest();
         refBookCreateRequest.setCode("T1");
-        Map<String, String> createPassport = new HashMap<>();
-        createPassport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "Справочник специальностей");
-        createPassport.put(PASSPORT_ATTRIBUTE_ANNOTATION, "Аннотация для справочника специальностей");
-        refBookCreateRequest.setPassport(new Passport(createPassport));
+        List<PassportAttribute> createPassport = new ArrayList<>();
+        createPassport.add(new PassportAttribute(PASSPORT_ATTRIBUTE_FULL_NAME, null, "Справочник специальностей"));
+        createPassport.add(new PassportAttribute(PASSPORT_ATTRIBUTE_ANNOTATION, null, "Аннотация для справочника специальностей"));
+        createPassport.add(new PassportAttribute(PASSPORT_ATTRIBUTE_GROUP, null, "Группа неизменна"));
+        refBookCreateRequest.setPassport(createPassport);
 
         refBookUpdateRequest = new RefBookUpdateRequest();
         refBookUpdateRequest.setCode(refBookCreateRequest.getCode() + "_upd");
-        Map<String, String> updatePassport = new HashMap<>(createPassport);
-        updatePassport.put(PASSPORT_ATTRIBUTE_SHORT_NAME, "СПРВЧНК СПЦЛНСТЙ  ");
-        updatePassport.entrySet().forEach(e -> e.setValue(e.getValue() + "_upd"));
-        updatePassport.put(PASSPORT_ATTRIBUTE_ANNOTATION, null);
-        refBookUpdateRequest.setPassport(new Passport(updatePassport));
+        List<PassportAttribute> updatePassport = new ArrayList<>();
+        updatePassport.add(new PassportAttribute(PASSPORT_ATTRIBUTE_FULL_NAME, null, "Справочник специальностей_upd"));
+        updatePassport.add(new PassportAttribute(PASSPORT_ATTRIBUTE_SHORT_NAME, null, "СПРВЧНК СПЦЛНСТЙ  "));
+        updatePassport.add(new PassportAttribute(PASSPORT_ATTRIBUTE_ANNOTATION, null, null));
+        refBookUpdateRequest.setPassport(updatePassport);
         refBookUpdateRequest.setComment("обновленное наполнение");
 
         createAttribute = Structure.Attribute.buildPrimary("name", "Наименование", FieldType.REFERENCE, "описание");
@@ -196,7 +198,7 @@ public class ApplicationTest {
         assertNotNull(refBook.getId());
         assertNotNull(refBook.getRefBookId());
         assertEquals(refBookCreateRequest.getCode(), refBook.getCode());
-        assertEquals(refBookCreateRequest.getPassport(), refBook.getPassport());
+        assertPassportEqual(refBookCreateRequest.getPassport(), refBook.getPassport());
         assertEquals(RefBookVersionStatus.DRAFT, refBook.getStatus());
         assertEquals(RefBookStatus.DRAFT.getName(), refBook.getDisplayVersion());
         assertNull(refBook.getVersion());
@@ -212,11 +214,11 @@ public class ApplicationTest {
         refBookUpdateRequest.setId(refBook.getId());
         RefBook updatedRefBook = refBookService.update(refBookUpdateRequest);
         refBook.setCode(refBookUpdateRequest.getCode());
-        Map<String, String> expectedAttributesAfterUpdate = new HashMap<>();
-        expectedAttributesAfterUpdate.putAll(refBookCreateRequest.getPassport().getAttributes());
-        expectedAttributesAfterUpdate.putAll(refBookUpdateRequest.getPassport().getAttributes());
-        expectedAttributesAfterUpdate.entrySet().removeIf(e -> e.getValue() == null);
-        refBook.setPassport(new Passport(expectedAttributesAfterUpdate));
+        List<PassportAttribute> expectedAttributesAfterUpdate = new ArrayList<>();
+        expectedAttributesAfterUpdate.add(new PassportAttribute(PASSPORT_ATTRIBUTE_GROUP, null, "Группа неизменна"));
+        expectedAttributesAfterUpdate.addAll(refBookUpdateRequest.getPassport());
+        expectedAttributesAfterUpdate.removeIf(a -> a.getValue() == null);
+        refBook.setPassport(expectedAttributesAfterUpdate);
         refBook.setComment(refBookUpdateRequest.getComment());
         refBook.setComment(refBookUpdateRequest.getComment());
         assertRefBooksEqual(refBook, updatedRefBook);
@@ -293,16 +295,15 @@ public class ApplicationTest {
 
         // поиск по атрибуту паспорта
         RefBookCriteria nameCriteria = new RefBookCriteria();
-        Map<String, String> passportMap = new HashMap<>();
-        passportMap.put(PASSPORT_ATTRIBUTE_FULL_NAME, SEARCH_BY_NAME_STR);
-        nameCriteria.setPassport(new Passport(passportMap));
-        Passport passport = new Passport(passportMap);
-        RefBook refBook = refBookService.create(
+        List<PassportAttribute> passport = new ArrayList<>();
+        passport.add(new PassportAttribute(PASSPORT_ATTRIBUTE_FULL_NAME, null, SEARCH_BY_NAME_STR));
+        nameCriteria.setPassport(passport);
+        RefBook expectedRefBook = refBookService.create(
                 new RefBookCreateRequest(SEARCH_BY_NAME_STR_ASSERT_CODE, passport));
 
         search = refBookService.search(nameCriteria);
         assertEquals(1, search.getTotalElements());
-        assertEquals(refBook.getPassport(), search.getContent().get(0).getPassport());
+        assertPassportEqual(expectedRefBook.getPassport(), search.getContent().get(0).getPassport());
 
         // поиск по статусу 'Черновик'
         RefBookCriteria statusCriteria = new RefBookCriteria();
@@ -402,7 +403,7 @@ public class ApplicationTest {
         assertEquals(expected.getId(), actual.getId());
         assertEquals(expected.getRefBookId(), actual.getRefBookId());
         assertEquals(expected.getCode(), actual.getCode());
-        assertEquals(expected.getPassport(), actual.getPassport());
+        assertPassportEqual(expected.getPassport(), actual.getPassport());
         assertEquals(expected.getStatus(), actual.getStatus());
         assertEquals(expected.getVersion(), actual.getVersion());
         assertEquals(expected.getDisplayVersion(), actual.getDisplayVersion());
@@ -411,6 +412,15 @@ public class ApplicationTest {
         assertEquals(expected.getArchived(), actual.getArchived());
         assertEquals(expected.getFromDate(), actual.getFromDate());
         assertEquals(expected.getLastPublishedVersionFromDate(), actual.getLastPublishedVersionFromDate());
+    }
+
+    private void assertPassportEqual(List<PassportAttribute> expected, List<PassportAttribute> actual) {
+        if (expected == null) assertNull(actual);
+        else assertNotNull(actual);
+        expected.forEach(exp -> assertEquals(
+                exp.getValue(),
+                actual.stream().filter(act -> exp.getCode().equals(act.getCode()))
+                        .findAny().get().getValue()));
     }
 
     private void assertVersion(RefBookVersion expected, RefBookVersion actual) {
@@ -570,9 +580,9 @@ public class ApplicationTest {
     public void testSearchInDraft() {
         RefBookCreateRequest createRequest = new RefBookCreateRequest();
         createRequest.setCode("myTestCodeRefBook");
-        Map<String, String> createPassport = new HashMap<>();
-        createPassport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "Справочник для тестирования версий");
-        createRequest.setPassport(new Passport(createPassport));
+        List<PassportAttribute> createPassport = new ArrayList<>();
+        createPassport.add(new PassportAttribute(PASSPORT_ATTRIBUTE_FULL_NAME, null, "Справочник для тестирования версий"));
+        createRequest.setPassport(createPassport);
 
         RefBook refBook = refBookService.create(createRequest);
         Structure structure = getTestStructureWithoutTreeFieldType();
@@ -732,6 +742,9 @@ public class ApplicationTest {
         ExportFile exportFile = draftService.getDraftFile(draft1.getId(), FileType.XLSX);
         ZipInputStream zis = new ZipInputStream(exportFile.getInputStream());
         ZipEntry zipEntry = zis.getNextEntry();
+        while (!zipEntry.getName().toLowerCase().contains("xlsx") && zis.available() > 0){
+            zipEntry = zis.getNextEntry();
+        }
         fileModel = fileStorageService.save(zis, zipEntry.getName());
 
         //создание нового черновика из выгруженного
@@ -749,9 +762,9 @@ public class ApplicationTest {
     public void testValidatePrimaryKeyOnUpdateAttribute() {
         RefBookCreateRequest createRequest = new RefBookCreateRequest();
         createRequest.setCode("testValidatePrimaryKeyOnUpdateAttribute");
-        Map<String, String> createPassport = new HashMap<>();
-        createPassport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "Справочник для тестирования проверки изменения первичного ключа");
-        createRequest.setPassport(new Passport(createPassport));
+        List<PassportAttribute> createPassport = new ArrayList<>();
+        createPassport.add(new PassportAttribute(PASSPORT_ATTRIBUTE_FULL_NAME, null, "Справочник для тестирования проверки изменения первичного ключа"));
+        createRequest.setPassport(createPassport);
 
         RefBook refBook = refBookService.create(createRequest);
         Structure structure = new Structure(
@@ -803,7 +816,7 @@ public class ApplicationTest {
      */
     @Test
     public void testUpdateAttributeTypeWithoutData() {
-        RefBookCreateRequest refBookCreate = new RefBookCreateRequest(ALL_TYPES_REF_BOOK_CODE, new Passport());
+        RefBookCreateRequest refBookCreate = new RefBookCreateRequest(ALL_TYPES_REF_BOOK_CODE, new ArrayList<>());
         RefBook refBook = refBookService.create(refBookCreate);
         Structure structure = createAllTypesStructure();
         Structure.Reference reference = structure.getReference("reference");
@@ -882,7 +895,7 @@ public class ApplicationTest {
      */
     @Test
     public void testUpdateAttributeTypeWithData() {
-        RefBookCreateRequest refBookCreate = new RefBookCreateRequest(ALL_TYPES_REF_BOOK_CODE, new Passport());
+        RefBookCreateRequest refBookCreate = new RefBookCreateRequest(ALL_TYPES_REF_BOOK_CODE, new ArrayList<>());
         RefBook refBook = refBookService.create(refBookCreate);
         Structure structure = createAllTypesStructure();
         Structure.Reference reference = structure.getReference("reference");

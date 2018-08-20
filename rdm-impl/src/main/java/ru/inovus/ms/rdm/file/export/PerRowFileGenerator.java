@@ -3,10 +3,11 @@ package ru.inovus.ms.rdm.file.export;
 import ru.inovus.ms.rdm.file.Row;
 import ru.inovus.ms.rdm.model.Structure;
 
+import java.io.Closeable;
 import java.io.OutputStream;
 import java.util.Iterator;
 
-public abstract class PerRowFileGenerator implements FileGenerator {
+public abstract class PerRowFileGenerator implements FileGenerator, Closeable {
 
     private OutputStream outputStream;
 

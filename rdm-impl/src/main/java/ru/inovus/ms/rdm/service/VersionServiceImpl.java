@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.service;
 
 import net.n2oapp.criteria.api.CollectionPage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -15,10 +16,7 @@ import ru.inovus.ms.rdm.entity.VersionFileEntity;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.file.FileStorage;
-import ru.inovus.ms.rdm.file.export.Archiver;
-import ru.inovus.ms.rdm.file.export.FileGenerator;
-import ru.inovus.ms.rdm.file.export.PerRowFileGeneratorFactory;
-import ru.inovus.ms.rdm.file.export.VersionDataIterator;
+import ru.inovus.ms.rdm.file.export.*;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
@@ -49,6 +47,10 @@ public class VersionServiceImpl implements VersionService {
     private VersionFileRepository versionFileRepository;
     private FileStorage fileStorage;
 
+
+    private String passportFileHead;
+    private boolean includePassport;
+
     @Autowired
     public VersionServiceImpl(RefBookVersionRepository versionRepository, SearchDataService searchDataService,
                               FileNameGenerator fileNameGenerator, VersionFileRepository versionFileRepository,
@@ -58,6 +60,16 @@ public class VersionServiceImpl implements VersionService {
         this.fileNameGenerator = fileNameGenerator;
         this.versionFileRepository = versionFileRepository;
         this.fileStorage = fileStorage;
+    }
+
+    @Value("${rdm.download.passport.head}")
+    public void setPassportFileHead(String passportFileHead) {
+        this.passportFileHead = passportFileHead;
+    }
+
+    @Value("${rdm.download.passport-enable}")
+    public void setIncludePassport(boolean includePassport) {
+        this.includePassport = includePassport;
     }
 
     @Override
@@ -113,36 +125,47 @@ public class VersionServiceImpl implements VersionService {
 
         return new ExportFile(
                 fileStorage.getContent(path),
-                fileNameGenerator.generateZipName(ModelGenerator.versionModel(versionEntity), FileType.XLSX));
+                fileNameGenerator.generateZipName(ModelGenerator.versionModel(versionEntity), fileType));
     }
 
     private String generateVersionFile(RefBookVersionEntity version, FileType fileType) {
 
         RefBookVersion versionModel = ModelGenerator.versionModel(version);
 
-        VersionDataIterator dataIterator = new VersionDataIterator(this, Collections.singletonList(versionModel.getId()));
-        String path;
-        try (FileGenerator fileGenerator = PerRowFileGeneratorFactory
-                .getFileGenerator(dataIterator, this.getStructure(versionModel.getId()), fileType);
-             Archiver archiver = new Archiver();
-             InputStream is = archiver
-                     .addEntry(fileGenerator, fileNameGenerator.generateName(versionModel, fileType))
-                     .getArchive()) {
+        String path = null;
+        try (InputStream is = generateVersionFile(versionModel, fileType)) {
             path = fileStorage.saveContent(is, fileNameGenerator.generateZipName(versionModel, fileType));
-
-            VersionFileEntity fileEntity = versionFileRepository.findByVersionIdAndType(versionModel.getId(), fileType);
-            if (fileEntity == null) {
-                RefBookVersionEntity versionEntity = new RefBookVersionEntity();
-                versionEntity.setId(versionModel.getId());
-                fileEntity = new VersionFileEntity(versionEntity, fileType, path);
-            }
-            versionFileRepository.save(fileEntity);
-
-            if (!fileStorage.isExistContent(path))
-                throw new RdmException("cannot generate file");
         } catch (IOException e) {
             throw new RdmException(e);
         }
+        if (path == null || !fileStorage.isExistContent(path))
+            throw new RdmException("cannot generate file");
+        VersionFileEntity fileEntity = versionFileRepository.findByVersionIdAndType(versionModel.getId(), fileType);
+        if (fileEntity == null) {
+            RefBookVersionEntity versionEntity = new RefBookVersionEntity();
+            versionEntity.setId(versionModel.getId());
+            fileEntity = new VersionFileEntity(versionEntity, fileType, path);
+        }
+        versionFileRepository.save(fileEntity);
+
         return path;
+    }
+
+    private InputStream generateVersionFile(RefBookVersion versionModel, FileType fileType) {
+        VersionDataIterator dataIterator = new VersionDataIterator(this, Collections.singletonList(versionModel.getId()));
+        try (PerRowFileGenerator fileGenerator = PerRowFileGeneratorFactory
+                .getFileGenerator(dataIterator, this.getStructure(versionModel.getId()), fileType);
+             Archiver archiver = new Archiver()) {
+            if (includePassport) {
+                try (FileGenerator passportPdfFileGenerator = new PassportPdfFileGenerator(this, versionModel.getId(), passportFileHead)) {
+                    archiver.addEntry(passportPdfFileGenerator, fileNameGenerator.generateName(versionModel, FileType.PDF));
+                }
+            }
+            return archiver
+                    .addEntry(fileGenerator, fileNameGenerator.generateName(versionModel, fileType))
+                    .getArchive();
+        } catch (IOException e) {
+            throw new RdmException(e);
+        }
     }
 }

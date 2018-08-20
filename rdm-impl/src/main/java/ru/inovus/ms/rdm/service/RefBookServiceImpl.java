@@ -21,6 +21,7 @@ import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.repositiory.PassportValueRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.RefBookService;
@@ -44,14 +45,16 @@ public class RefBookServiceImpl implements RefBookService {
     private RefBookRepository refBookRepository;
     private DraftDataService draftDataService;
     private DropDataService dropDataService;
+    private PassportValueRepository passportValueRepository;
 
     @Autowired
     public RefBookServiceImpl(RefBookVersionRepository repository, RefBookRepository refBookRepository,
-                              DraftDataService draftDataService, DropDataService dropDataService) {
+                              DraftDataService draftDataService, DropDataService dropDataService, PassportValueRepository passportValueRepository) {
         this.repository = repository;
         this.refBookRepository = refBookRepository;
         this.draftDataService = draftDataService;
         this.dropDataService = dropDataService;
+        this.passportValueRepository = passportValueRepository;
     }
 
     @Override
@@ -136,7 +139,7 @@ public class RefBookServiceImpl implements RefBookService {
         where.and(isVersionOfRefBook(criteria.getRefBookId()));
         if (criteria.getExcludeDraft())
             where.andNot(isDraft());
-        if(nonNull(criteria.getVersion()))
+        if (nonNull(criteria.getVersion()))
             where.and(isVersionNumberContains(criteria.getVersion()));
         return where.getValue();
     }
@@ -155,9 +158,9 @@ public class RefBookServiceImpl implements RefBookService {
         if (!isEmpty(criteria.getCode()))
             where.and(isCodeContains(criteria.getCode()));
 
-        if (!isEmpty(criteria.getPassport())){
-            criteria.getPassport().getAttributes().entrySet()
-                    .forEach(e -> where.and(hasAttributeValue(e.getKey(), e.getValue())));
+        if (!isEmpty(criteria.getPassport())) {
+            criteria.getPassport()
+                    .forEach(a -> where.and(hasAttributeValue(a.getCode(), a.getValue())));
         }
 
         if (!isEmpty(criteria.getRefBookId()))
@@ -239,37 +242,50 @@ public class RefBookServiceImpl implements RefBookService {
         return model;
     }
 
-    private void populateVersionFromPassport(RefBookVersionEntity versionEntity, Passport passport) {
-        if (passport != null && passport.getAttributes() != null && versionEntity != null) {
-            versionEntity.setPassportValues(passport.getAttributes().entrySet().stream()
+    private void populateVersionFromPassport(RefBookVersionEntity versionEntity, List<PassportAttribute> passport) {
+        if (passport != null && versionEntity != null) {
+            versionEntity.setPassportValues(passport.stream()
                     .filter(e -> e.getValue() != null)
-                    .map(e -> new PassportValueEntity(new PassportAttributeEntity(e.getKey()), e.getValue(), versionEntity))
-                    .collect(Collectors.toSet()));
+                    .map(e -> new PassportValueEntity(new PassportAttributeEntity(e.getCode()), e.getValue(), versionEntity))
+                    .collect(Collectors.toList()));
         }
     }
 
-    private void updeteVersionFromPassport(RefBookVersionEntity versionEntity, Passport passport){
-        if (passport == null || passport.getAttributes() == null || versionEntity == null) {
+    private void updeteVersionFromPassport(RefBookVersionEntity versionEntity, List<PassportAttribute> newPassport) {
+        if (newPassport == null || versionEntity == null) {
             return;
         }
 
-        Map<String, String> newPassport = passport.getAttributes();
+        List<PassportValueEntity> newPassportValues = versionEntity.getPassportValues() != null ?
+                versionEntity.getPassportValues() : new ArrayList<>();
 
-        Set<PassportValueEntity> newPassportValues = versionEntity.getPassportValues() != null ?
-                versionEntity.getPassportValues() : new HashSet<>();
+        List<PassportAttribute> correctUpdatePassport = new ArrayList<>(newPassport.stream()
+                .filter(Objects::nonNull)
+                .filter(a -> Objects.nonNull(a.getCode()))
+                .collect(Collectors.toList()));
 
-        newPassportValues.removeIf(v -> newPassport.keySet().contains(v.getAttribute().getCode())
-                && newPassport.get(v.getAttribute().getCode()) == null);
-        newPassportValues.forEach(v -> v.setValue(newPassport.get(v.getAttribute().getCode())));
+        Set<String> attributeCodesToRemove = correctUpdatePassport.stream()
+                .filter(a -> Objects.isNull(a.getValue()))
+                .map(PassportAttribute::getCode)
+                .collect(Collectors.toSet());
+        List<PassportValueEntity> toRemove = versionEntity.getPassportValues().stream()
+                .filter(v -> attributeCodesToRemove.contains(v.getAttribute().getCode()))
+                .collect(Collectors.toList());
+        versionEntity.getPassportValues().removeAll(toRemove);
+        passportValueRepository.delete(toRemove);
+        correctUpdatePassport.removeIf(a -> attributeCodesToRemove.contains(a.getCode()));
 
-        Set<String> existAttributes = newPassportValues.stream()
-                .map(v -> v.getAttribute().getCode()).collect(Collectors.toSet());
+        List<PassportAttribute> toUpdate = correctUpdatePassport.stream()
+                .filter(a -> newPassportValues.stream().anyMatch(v -> a.getCode().equals(v.getAttribute().getCode())))
+                .peek(a -> newPassportValues.stream()
+                        .filter(v -> a.getCode().equals(v.getAttribute().getCode()))
+                        .findAny().get().setValue(a.getValue()))
+                .collect(Collectors.toList());
+        correctUpdatePassport.removeAll(toUpdate);
 
-        newPassportValues.addAll(newPassport.entrySet().stream()
-                .filter(e -> e.getValue() != null)
-                .filter(e -> !existAttributes.contains(e.getKey()))
-                .map(e -> new PassportValueEntity(new PassportAttributeEntity(e.getKey()), e.getValue(), versionEntity))
-                .collect(Collectors.toSet()));
+        newPassportValues.addAll(correctUpdatePassport.stream()
+                .map(a -> new PassportValueEntity(new PassportAttributeEntity(a.getCode()), a.getValue(), versionEntity))
+                .collect(Collectors.toList()));
 
         versionEntity.setPassportValues(newPassportValues);
     }

@@ -1,9 +1,6 @@
 package ru.inovus.ms.rdm.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 /**
  * Created by znurgaliev on 30.07.2018.
@@ -15,6 +12,12 @@ public class PassportAttributeEntity {
     @Id
     @Column(name = "code", nullable = false)
     private String code;
+
+    @Column(name = "name")
+    private String name;
+
+    @Column(name = "position" )
+    private Integer position;
 
     public PassportAttributeEntity() {
     }
@@ -31,19 +34,19 @@ public class PassportAttributeEntity {
         this.code = code;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        PassportAttributeEntity that = (PassportAttributeEntity) o;
-
-        return !(code != null ? !code.equals(that.code) : that.code != null);
-
+    public String getName() {
+        return name;
     }
 
-    @Override
-    public int hashCode() {
-        return code != null ? code.hashCode() : 0;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Integer getPosition() {
+        return position;
+    }
+
+    public void setPosition(Integer position) {
+        this.position = position;
     }
 }

@@ -3,11 +3,11 @@ package ru.inovus.ms.rdm.util;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
-import ru.inovus.ms.rdm.model.Passport;
+import ru.inovus.ms.rdm.model.PassportAttribute;
 import ru.inovus.ms.rdm.model.RefBookVersion;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Created by znurgaliev on 09.08.2018.
@@ -30,10 +30,15 @@ public class ModelGenerator {
         model.setArchived(entity.getRefBook().getArchived());
         model.setStatus(entity.getStatus());
         model.setDisplayStatus(getDisplayStatus(entity));
-        Map<String, String> passport = new HashMap<>();
         if (entity.getPassportValues() != null)
-            entity.getPassportValues().forEach(value -> passport.put(value.getAttribute().getCode(), value.getValue()));
-        model.setPassport(new Passport(passport));
+            model.setPassport(entity.getPassportValues().stream()
+                    .filter(v -> Objects.nonNull(v.getValue()))
+                    .sorted((o1, o2) -> {
+                        if (o1.getAttribute().getPosition() == null || o2.getAttribute().getPosition() == null) return 0;
+                        return o1.getAttribute().getPosition() - o2.getAttribute().getPosition();
+                    })
+                    .map(v -> new PassportAttribute(v.getAttribute().getCode(), v.getAttribute().getName(), v.getValue()))
+                    .collect(Collectors.toList()));
         return model;
     }
 

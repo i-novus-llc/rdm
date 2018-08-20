@@ -175,6 +175,7 @@ public class XlsFileGenerator extends PerRowFileGenerator {
 
     @Override
     public void close() throws IOException {
+        if (workbook != null)
         workbook.close();
     }
 

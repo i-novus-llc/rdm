@@ -27,10 +27,7 @@ import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.file.*;
-import ru.inovus.ms.rdm.file.export.Archiver;
-import ru.inovus.ms.rdm.file.export.FileGenerator;
-import ru.inovus.ms.rdm.file.export.PerRowFileGeneratorFactory;
-import ru.inovus.ms.rdm.file.export.VersionDataIterator;
+import ru.inovus.ms.rdm.file.export.*;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
@@ -83,6 +80,8 @@ public class DraftServiceImpl implements DraftService {
     private VersionFileRepository versionFileRepository;
 
     private int errorCountLimit = 100;
+    private String passportFileHead = "fullName";
+    private boolean includePassport = false;
 
     private static final String ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE = "Can not update structure, illegal update attribute";
     private static final String INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE = "incompatible.new.structure";
@@ -103,9 +102,19 @@ public class DraftServiceImpl implements DraftService {
         this.versionFileRepository = versionFileRepository;
     }
 
-    @Value( "${rdm.validation-errors-count}" )
+    @Value("${rdm.validation-errors-count}")
     public void setErrorCountLimit(int errorCountLimit) {
         this.errorCountLimit = errorCountLimit;
+    }
+
+    @Value("${rdm.download.passport.head}")
+    public void setPassportFileHead(String passportFileHead) {
+        this.passportFileHead = passportFileHead;
+    }
+
+    @Value("${rdm.download.passport-enable}")
+    public void setIncludePassport(boolean includePassport) {
+        this.includePassport = includePassport;
     }
 
     @Override
@@ -189,7 +198,7 @@ public class DraftServiceImpl implements DraftService {
         draftVersion.setStatus(RefBookVersionStatus.DRAFT);
         draftVersion.setPassportValues(original.getPassportValues().stream()
                 .map(v -> new PassportValueEntity(v.getAttribute(), v.getValue(), draftVersion))
-                .collect(Collectors.toSet()));
+                .collect(Collectors.toList()));
         draftVersion.setStructure(structure);
         return draftVersion;
     }
@@ -268,7 +277,7 @@ public class DraftServiceImpl implements DraftService {
         versionRepository.save(draftVersion);
 
         RefBookVersion versionModel = versionService.getById(draftId);
-        for (FileType fileType : FileType.values())
+        for (FileType fileType : PerRowFileGeneratorFactory.getAvalibleTypes())
             saveVersionFile(versionModel, fileType, generateVersionFile(versionModel, fileType));
     }
 
@@ -557,6 +566,11 @@ public class DraftServiceImpl implements DraftService {
         try (FileGenerator fileGenerator = PerRowFileGeneratorFactory
                 .getFileGenerator(dataIterator, versionService.getStructure(versionModel.getId()), fileType);
              Archiver archiver = new Archiver()) {
+            if (includePassport) {
+                try (FileGenerator passportPdfFileGenerator = new PassportPdfFileGenerator(versionService, versionModel.getId(), passportFileHead)) {
+                    archiver.addEntry(passportPdfFileGenerator, fileNameGenerator.generateName(versionModel, FileType.PDF));
+                }
+            }
             return archiver
                     .addEntry(fileGenerator, fileNameGenerator.generateName(versionModel, fileType))
                     .getArchive();

@@ -1,14 +1,16 @@
 package ru.inovus.ms.rdm.model;
 
+import java.util.List;
+
 public class RefBookCreateRequest {
 
     private String code;
-    private Passport passport;
+    private List<PassportAttribute> passport;
 
     public RefBookCreateRequest() {
     }
 
-    public RefBookCreateRequest(String code, Passport passport) {
+    public RefBookCreateRequest(String code, List<PassportAttribute> passport) {
         this.code = code;
         this.passport = passport;
     }
@@ -21,11 +23,11 @@ public class RefBookCreateRequest {
         this.code = code;
     }
 
-    public Passport getPassport() {
+    public List<PassportAttribute> getPassport() {
         return passport;
     }
 
-    public void setPassport(Passport passport) {
+    public void setPassport(List<PassportAttribute> passport) {
         this.passport = passport;
     }
 }
