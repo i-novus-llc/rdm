@@ -138,13 +138,4 @@ public class PdfCreatorUtil {
 
         return elements;
     }
-
-    private static SimpleDateFormat getFormat() {
-        SimpleDateFormat format = DATE_FORMAT_THREAD_LOCAL.get();
-        if (format == null) {
-            format = new SimpleDateFormat("dd-MM-y");
-            DATE_FORMAT_THREAD_LOCAL.set(format);
-        }
-        return format;
-    }
 }
