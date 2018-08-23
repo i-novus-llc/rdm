@@ -33,9 +33,7 @@ import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.VersionService;
-import ru.inovus.ms.rdm.util.ConverterUtil;
-import ru.inovus.ms.rdm.util.FileNameGenerator;
-import ru.inovus.ms.rdm.util.ModelGenerator;
+import ru.inovus.ms.rdm.util.*;
 import ru.inovus.ms.rdm.validation.PrimaryKeyUniqueValidation;
 import ru.inovus.ms.rdm.validation.ReferenceValidation;
 import ru.kirkazan.common.exception.CodifiedException;
@@ -44,10 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -79,6 +74,10 @@ public class DraftServiceImpl implements DraftService {
 
     private VersionFileRepository versionFileRepository;
 
+    private VersionNumberStrategy versionNumberStrategy;
+
+    private VersionPeriodPublishValidation versionPeriodPublishValidation;
+
     private int errorCountLimit = 100;
     private String passportFileHead = "fullName";
     private boolean includePassport = false;
@@ -91,7 +90,8 @@ public class DraftServiceImpl implements DraftService {
     @SuppressWarnings("all")
     public DraftServiceImpl(DraftDataService draftDataService, RefBookVersionRepository versionRepository, VersionService versionService,
                             SearchDataService searchDataService, DropDataService dropDataService, FileStorage fileStorage,
-                            FileNameGenerator fileNameGenerator, VersionFileRepository versionFileRepository) {
+                            FileNameGenerator fileNameGenerator, VersionFileRepository versionFileRepository, VersionNumberStrategy versionNumberStrategy,
+                            VersionPeriodPublishValidation versionPeriodPublishValidation) {
         this.draftDataService = draftDataService;
         this.versionRepository = versionRepository;
         this.versionService = versionService;
@@ -100,6 +100,8 @@ public class DraftServiceImpl implements DraftService {
         this.fileStorage = fileStorage;
         this.fileNameGenerator = fileNameGenerator;
         this.versionFileRepository = versionFileRepository;
+        this.versionNumberStrategy = versionNumberStrategy;
+        this.versionPeriodPublishValidation = versionPeriodPublishValidation;
     }
 
     @Value("${rdm.validation-errors-count}")
@@ -198,7 +200,7 @@ public class DraftServiceImpl implements DraftService {
         draftVersion.setStatus(RefBookVersionStatus.DRAFT);
         draftVersion.setPassportValues(original.getPassportValues().stream()
                 .map(v -> new PassportValueEntity(v.getAttribute(), v.getValue(), draftVersion))
-                .collect(Collectors.toList()));
+                .collect(Collectors.toSet()));
         draftVersion.setStructure(structure);
         return draftVersion;
     }
@@ -261,20 +263,51 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     public void publish(Integer draftId, String versionName, LocalDateTime fromDate, LocalDateTime toDate) {
+
         RefBookVersionEntity draftVersion = versionRepository.findOne(draftId);
-        validateOverlappingPeriodsInLast(fromDate, toDate, draftVersion.getRefBook().getId());
+        if (draftVersion == null || !draftVersion.getStatus().equals(RefBookVersionStatus.DRAFT)) {
+            throw new UserException(new Message("draft.not.found", draftId));
+        }
+
+        if (versionName == null) {
+            versionName = versionNumberStrategy.next(draftVersion.getRefBook().getId());
+        } else if (!versionNumberStrategy.check(versionName, draftVersion.getRefBook().getId())) {
+            throw new UserException(new Message("invalid.version.name", versionName));
+        }
+
+        if (fromDate == null) fromDate = LocalDateTime.now();
+        if (toDate != null && fromDate.isAfter(toDate)) throw new UserException("invalid.version.period");
+
+        versionPeriodPublishValidation.validate(fromDate, toDate, draftVersion.getRefBook().getId());
+
         RefBookVersionEntity lastPublishedVersion = getLastPublishedVersion(draftVersion);
         String storageCode = draftDataService.applyDraft(
                 lastPublishedVersion != null ? lastPublishedVersion.getStorageCode() : null,
                 draftVersion.getStorageCode(),
-                Date.from(fromDate.atZone(ZoneId.systemDefault()).toInstant())
+                Date.from(fromDate.atZone(ZoneId.systemDefault()).toInstant()),
+                toDate == null ? null : Date.from(toDate.atZone(ZoneId.systemDefault()).toInstant())
         );
+
+        Set<String> dataStorageToDelete = new HashSet<>();
+        dataStorageToDelete.add(draftVersion.getStorageCode());
+
         draftVersion.setStorageCode(storageCode);
         draftVersion.setVersion(versionName);
         draftVersion.setStatus(RefBookVersionStatus.PUBLISHED);
         draftVersion.setFromDate(fromDate);
+        draftVersion.setToDate(toDate);
         resolveOverlappingPeriodsInFuture(fromDate, toDate, draftVersion.getRefBook().getId());
         versionRepository.save(draftVersion);
+
+        if (lastPublishedVersion != null && lastPublishedVersion.getStorageCode() !=null){
+            dataStorageToDelete.add(lastPublishedVersion.getStorageCode());
+            versionRepository.findByStorageCode(lastPublishedVersion.getStorageCode()).stream()
+                    .peek(version -> version.setStorageCode(storageCode))
+                    .forEach(versionRepository::save);
+        }
+
+        dropDataService.drop(dataStorageToDelete);
+
 
         RefBookVersion versionModel = versionService.getById(draftId);
         for (FileType fileType : PerRowFileGeneratorFactory.getAvalibleTypes())
@@ -284,60 +317,26 @@ public class DraftServiceImpl implements DraftService {
     protected RefBookVersionEntity getLastPublishedVersion(RefBookVersionEntity draftVersion) {
         Page<RefBookVersionEntity> lastPublishedVersions = versionRepository
                 .findAll(isPublished().and(isVersionOfRefBook(draftVersion.getRefBook().getId()))
-                        , new PageRequest(1, 1, new Sort(Sort.Direction.DESC, "fromDate")));
+                        , new PageRequest(0, 1, new Sort(Sort.Direction.DESC, "fromDate")));
         return lastPublishedVersions != null && lastPublishedVersions.hasContent() ? lastPublishedVersions.getContent().get(0) : null;
     }
 
-
-    private void validateOverlappingPeriodsInLast(LocalDateTime fromDate, LocalDateTime toDate, Integer refBookId) {
-        LocalDateTime now = LocalDateTime.now();
-        if (fromDate == null || fromDate.isAfter(now)) {
-            return;
-        }
-        if (toDate == null || toDate.isAfter(now)) {
-            toDate = now;
-        }
-
-        RefBookVersionEntity refBookVersion = versionRepository.findOne(
-                hasOverlappingPeriods(fromDate, toDate)
-                        .and(isVersionOfRefBook(refBookId))
-                        .and(isPublished())
-        );
-        if (refBookVersion != null) {
-            throw new UserException("overlapping.version.err");
-        }
-
-    }
-
     private void resolveOverlappingPeriodsInFuture(LocalDateTime fromDate, LocalDateTime toDate, Integer refBookId) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime newFromDate;
-        if (toDate == null) {
-            toDate = MAX_TIMESTAMP;
-        }
-        if (!toDate.isAfter(now)) {
-            return;
-        }
 
-        if (fromDate == null || fromDate.isBefore(now)) {
-            newFromDate = now;
-        } else {
-            newFromDate = fromDate;
-        }
-
+        if (toDate == null) toDate = MAX_TIMESTAMP;
         Iterable<RefBookVersionEntity> versions = versionRepository.findAll(
-                hasOverlappingPeriods(newFromDate, toDate)
+                hasOverlappingPeriods(fromDate, toDate)
                         .and(isVersionOfRefBook(refBookId))
                         .and(isPublished())
         );
         if (versions != null) {
             versions.forEach(version -> {
-                if (fromDate != null && fromDate.isAfter(version.getFromDate())) {
+                if (fromDate.isAfter(version.getFromDate())) {
                     version.setToDate(fromDate);
+                    versionRepository.save(version);
                 } else {
-                    version.setToDate(version.getFromDate());
+                    versionRepository.delete(version.getId());
                 }
-                versionRepository.save(version);
             });
         }
     }

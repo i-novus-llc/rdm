@@ -1,6 +1,8 @@
 package ru.inovus.ms.rdm.service;
 
 import net.n2oapp.criteria.api.CollectionPage;
+import net.n2oapp.platform.i18n.Message;
+import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
@@ -75,6 +77,8 @@ public class VersionServiceImpl implements VersionService {
     @Override
     public Page<RowValue> search(Integer versionId, SearchDataCriteria criteria) {
         RefBookVersionEntity version = versionRepository.findOne(versionId);
+        if (version == null)
+            throw new UserException(new Message("version.not.found", versionId));
         return getRowValuesOfVersion(criteria, version);
     }
 

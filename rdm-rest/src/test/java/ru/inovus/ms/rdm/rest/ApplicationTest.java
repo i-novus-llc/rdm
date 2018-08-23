@@ -20,9 +20,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
@@ -35,6 +37,7 @@ import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 
+import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -103,6 +106,9 @@ public class ApplicationTest {
     @Autowired
     @Qualifier("versionServiceJaxRsProxyClient")
     private VersionService versionService;
+
+    @Autowired
+    private DataSource dataSource;
 
     @Autowired
     @Qualifier("fileStorageServiceJaxRsProxyClient")
@@ -676,7 +682,7 @@ public class ApplicationTest {
         draftDataService.addRows(draft.getStorageCode(),
                 Collections.singletonList(ConverterUtil.rowValue(new Row(rowMap1), structure)));
 
-        draftService.publish(draft.getId(), "1", LocalDateTime.of(2017, 9, 1, 0, 0), null);
+        draftService.publish(draft.getId(), "1.0", LocalDateTime.of(2017, 9, 1, 0, 0), null);
 
         return new Structure.Reference(attributeCode, draft.getId(), structure.getAttributes().get(0).getCode(),
                 Arrays.asList(structure.getAttributes().get(0).getCode(), structure.getAttributes().get(1).getCode()), null);
@@ -742,7 +748,7 @@ public class ApplicationTest {
         ExportFile exportFile = draftService.getDraftFile(draft1.getId(), FileType.XLSX);
         ZipInputStream zis = new ZipInputStream(exportFile.getInputStream());
         ZipEntry zipEntry = zis.getNextEntry();
-        while (!zipEntry.getName().toLowerCase().contains("xlsx") && zis.available() > 0){
+        while (!zipEntry.getName().toLowerCase().contains("xlsx") && zis.available() > 0) {
             zipEntry = zis.getNextEntry();
         }
         fileModel = fileStorageService.save(zis, zipEntry.getName());
@@ -1095,7 +1101,118 @@ public class ApplicationTest {
             Assert.assertEquals(2, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.reference.err"::equals).count());
             Assert.assertEquals(2, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.not.unique.pk.err"::equals).count());
         }
-
-
     }
+
+    /**
+     * Тест публикации версии со всеми случаями пересечения с предыдущими (включая разные комбинации пересечения данных)<br/>
+     */
+    @Test
+    public void testPublicationAllCases() {
+        final String REF_BOOK_CODE = "testPublisAllCases";
+        final String FIELD_NAME = "testFieldString";
+        final String LEFT_FILE = "testPublishLeftIntersection.xlsx";
+        final String MID_FILE = "testPublishMiddleIntersection.xlsx";
+        final String RIGHT_FILE = "testPublishRightIntersection.xlsx";
+        final String ALL_DATA = "testPublishAllDataIntersection.xlsx";
+        final String NO_DATA = "testPublishNoDataIntersection.xlsx";
+
+        List<RowValue> expectedLeft = createOneStringFieldRow(FIELD_NAME, "a", "b", "c", "f");
+        List<RowValue> expectedMid = createOneStringFieldRow(FIELD_NAME, "b", "c", "d", "g");
+        List<RowValue> expectedRight = createOneStringFieldRow(FIELD_NAME, "a", "b", "d", "e");
+        List<RowValue> expectedAllData = createOneStringFieldRow(FIELD_NAME, "a", "b", "c", "d", "e", "f", "g");
+        List<RowValue> expectedNoData = createOneStringFieldRow(FIELD_NAME, "h");
+
+        RefBook refBook = refBookService.create(new RefBookCreateRequest(REF_BOOK_CODE, null));
+
+        //Публикация левой версии
+        Integer leftId = draftService.create(refBook.getRefBookId(), createFileModel(LEFT_FILE, "testPublishing/" + LEFT_FILE)).getId();
+        draftService.publish(leftId, null, parseLocalDateTime("01.02.2018 00:00:00"), null);
+
+        List<RowValue> actual = versionService.search(leftId, new SearchDataCriteria(null, null)).getContent();
+        assertEqualRow(expectedLeft, actual);
+
+        //Публикация средней версии
+        Integer midId = draftService.create(refBook.getRefBookId(), createFileModel(MID_FILE, "testPublishing/" + MID_FILE)).getId();
+        draftService.publish(midId, null, parseLocalDateTime("05.02.2018 00:00:00"),null);
+
+        actual = versionService.search(leftId, new SearchDataCriteria(null, null)).getContent();
+        assertEqualRow(expectedLeft, actual);
+        actual = versionService.search(midId, new SearchDataCriteria(null, null)).getContent();
+        assertEqualRow(expectedMid, actual);
+
+        //Публикация правой версии
+        Integer rightId = draftService.create(refBook.getRefBookId(), createFileModel(RIGHT_FILE, "testPublishing/" + RIGHT_FILE)).getId();
+        draftService.publish(rightId, null, parseLocalDateTime("11.02.2018 00:00:00"), null);
+
+        actual = versionService.search(leftId, new SearchDataCriteria(null, null)).getContent();
+        assertEqualRow(expectedLeft, actual);
+        actual = versionService.search(midId, new SearchDataCriteria(null, null)).getContent();
+        assertEqualRow(expectedMid, actual);
+        actual = versionService.search(rightId, new SearchDataCriteria(null, null)).getContent();
+        assertEqualRow(expectedRight, actual);
+
+        //Перекрывание конца левой и целиком средней версии новой, содержащей все прошлые данные
+        //Ожидается:
+        //Левая - правая гранится сместится влево до левой границы новой
+        //Средняя - удалится
+        //Правая - останется неизменной
+        Integer allDataId = draftService.create(refBook.getRefBookId(), createFileModel(ALL_DATA, "testPublishing/" + ALL_DATA)).getId();
+        draftService.publish(allDataId, null, parseLocalDateTime("02.02.2018 00:00:00"), parseLocalDateTime("10.02.2018 00:00:00"));
+
+        actual = versionService.search(leftId, new SearchDataCriteria(null, null)).getContent();
+        assertEqualRow(expectedLeft, actual);
+        try {
+            versionService.search(midId, new SearchDataCriteria(null, null)).getContent();
+            fail();
+        } catch (RestException e) {
+            assertEquals("version.not.found", e.getMessage());
+        }
+        actual = versionService.search(rightId, new SearchDataCriteria(null, null)).getContent();
+        assertEqualRow(expectedRight, actual);
+        actual = versionService.search(allDataId, new SearchDataCriteria(null, null)).getContent();
+        assertEqualRow(expectedAllData, actual);
+
+        //Перекрывание предыдущей версии новой, не содержащей предыдущие данные
+        //Ожидается: последняя версия удалится
+        Integer noDataId = draftService.create(refBook.getRefBookId(), createFileModel(NO_DATA, "testPublishing/" + NO_DATA)).getId();
+        draftService.publish(noDataId, null, parseLocalDateTime("02.02.2018 00:00:00"), parseLocalDateTime("10.02.2018 00:00:00"));
+
+        actual = versionService.search(leftId, new SearchDataCriteria(null, null)).getContent();
+        assertEqualRow(expectedLeft, actual);
+        try {
+            versionService.search(midId, new SearchDataCriteria(null, null)).getContent();
+            fail();
+        } catch (RestException e) {
+            assertEquals("version.not.found", e.getMessage());
+        }
+        actual = versionService.search(rightId, new SearchDataCriteria(null, null)).getContent();
+        assertEqualRow(expectedRight, actual);
+        try {
+            versionService.search(allDataId, new SearchDataCriteria(null, null)).getContent();
+            fail();
+        } catch (RestException e) {
+            assertEquals("version.not.found", e.getMessage());
+        }
+        actual = versionService.search(noDataId, new SearchDataCriteria(null, null)).getContent();
+        assertEqualRow(expectedNoData, actual);
+    }
+
+    private List<RowValue> createOneStringFieldRow(String fieldName, String... values) {
+        StringField stringField = new StringField(fieldName);
+
+        List<RowValue> rows = new ArrayList<>();
+        for (String s : values) {
+            rows.add(new LongRowValue(stringField.valueOf(s)));
+        }
+        return rows;
+    }
+
+    private void assertEqualRow(List<RowValue> expected, List<RowValue> actual) {
+        assertEquals(expected.size(), actual.size());
+        Set<List> expectedStrings = expected.stream().map(RowValue::getFieldValues).collect(Collectors.toSet());
+        Set<List> actualStrings = actual.stream().map(RowValue::getFieldValues).collect(Collectors.toSet());
+        assertEquals(expectedStrings, actualStrings);
+    }
+
+
 }

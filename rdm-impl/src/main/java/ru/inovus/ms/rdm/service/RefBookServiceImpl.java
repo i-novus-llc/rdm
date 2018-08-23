@@ -247,7 +247,7 @@ public class RefBookServiceImpl implements RefBookService {
             versionEntity.setPassportValues(passport.stream()
                     .filter(e -> e.getValue() != null)
                     .map(e -> new PassportValueEntity(new PassportAttributeEntity(e.getCode()), e.getValue(), versionEntity))
-                    .collect(Collectors.toList()));
+                    .collect(Collectors.toSet()));
         }
     }
 
@@ -256,8 +256,8 @@ public class RefBookServiceImpl implements RefBookService {
             return;
         }
 
-        List<PassportValueEntity> newPassportValues = versionEntity.getPassportValues() != null ?
-                versionEntity.getPassportValues() : new ArrayList<>();
+        Set<PassportValueEntity> newPassportValues = versionEntity.getPassportValues() != null ?
+                versionEntity.getPassportValues() : new HashSet<>();
 
         List<PassportAttribute> correctUpdatePassport = new ArrayList<>(newPassport.stream()
                 .filter(Objects::nonNull)
