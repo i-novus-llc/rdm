@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.util;
 
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
@@ -18,6 +19,11 @@ public class SequenceVersionNumberStrategy implements VersionNumberStrategy {
 
 
     RefBookVersionRepository versionRepository;
+
+    @Autowired
+    public SequenceVersionNumberStrategy(RefBookVersionRepository versionRepository) {
+        this.versionRepository = versionRepository;
+    }
 
     @Override
     @Transactional

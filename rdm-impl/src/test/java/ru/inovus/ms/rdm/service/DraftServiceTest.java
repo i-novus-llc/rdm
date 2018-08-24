@@ -1,7 +1,6 @@
 package ru.inovus.ms.rdm.service;
 
 import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import net.n2oapp.platform.i18n.UserException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -18,7 +17,10 @@ import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.inovus.ms.rdm.entity.*;
+import ru.inovus.ms.rdm.entity.PassportAttributeEntity;
+import ru.inovus.ms.rdm.entity.PassportValueEntity;
+import ru.inovus.ms.rdm.entity.RefBookEntity;
+import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.FileStorage;
@@ -29,6 +31,8 @@ import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.FileNameGenerator;
 import ru.inovus.ms.rdm.util.ModelGenerator;
+import ru.inovus.ms.rdm.util.VersionNumberStrategy;
+import ru.inovus.ms.rdm.util.VersionPeriodPublishValidation;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
@@ -42,7 +46,8 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.*;
 import static ru.inovus.ms.rdm.model.UpdateValue.of;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.isPublished;
@@ -91,6 +96,12 @@ public class DraftServiceTest {
     @Mock
     private VersionFileRepository versionFileRepository;
 
+    @Mock
+    private VersionNumberStrategy versionNumberStrategy;
+
+    @Mock
+    private VersionPeriodPublishValidation versionPeriodPublishValidation;
+
     private static final String UPD_SUFFIX = "_upd";
     private static final String PK_SUFFIX = "_pk";
 
@@ -109,7 +120,7 @@ public class DraftServiceTest {
         nameAttribute = Structure.Attribute.buildPrimary("name", "Наименование", FieldType.REFERENCE, "описание");
         updateNameAttribute = Structure.Attribute.buildPrimary(nameAttribute.getCode(), nameAttribute.getName() + UPD_SUFFIX, FieldType.REFERENCE, nameAttribute.getDescription() + UPD_SUFFIX);
         codeAttribute = Structure.Attribute.buildPrimary("code", "Код", FieldType.STRING, "описание code");
-        pkAttribute = Structure.Attribute.buildPrimary(nameAttribute.getCode() + PK_SUFFIX,nameAttribute.getName() + PK_SUFFIX, FieldType.STRING, nameAttribute.getDescription() + PK_SUFFIX);
+        pkAttribute = Structure.Attribute.buildPrimary(nameAttribute.getCode() + PK_SUFFIX, nameAttribute.getName() + PK_SUFFIX, FieldType.STRING, nameAttribute.getDescription() + PK_SUFFIX);
 
         nameReference = new Structure.Reference(nameAttribute.getCode(), 801, codeAttribute.getCode(), emptyList(), emptyList());
         updateNameReference = new Structure.Reference(nameAttribute.getCode(), 802, codeAttribute.getCode(), singletonList(codeAttribute.getCode()), singletonList(codeAttribute.getCode()));
@@ -118,7 +129,7 @@ public class DraftServiceTest {
 
     @Before
     public void setUp() throws Exception {
-        when(draftDataService.applyDraft(any(), any(), any())).thenReturn(TEST_STORAGE_CODE);
+        when(draftDataService.applyDraft(any(), any(), any(), any())).thenReturn(TEST_STORAGE_CODE);
         when(draftDataService.createDraft(anyList())).thenReturn(TEST_DRAFT_CODE_NEW);
         when(fileNameGenerator.generateName(any(), eq(FileType.XLSX))).thenReturn("version.xlsx");
         when(fileNameGenerator.generateName(any(), eq(FileType.PDF))).thenReturn("version.pdf");
@@ -130,7 +141,7 @@ public class DraftServiceTest {
         RefBookVersionEntity testDraftVersion = createTestDraftVersion();
         String expectedDraftStorageCode = testDraftVersion.getStorageCode();
         RefBookVersionEntity expectedVersionEntity = createTestDraftVersion();
-        expectedVersionEntity.setVersion("1.0");
+        expectedVersionEntity.setVersion("1.1");
         expectedVersionEntity.setStatus(RefBookVersionStatus.PUBLISHED);
         expectedVersionEntity.setStorageCode(TEST_STORAGE_CODE);
         LocalDateTime now = LocalDateTime.now();
@@ -139,32 +150,43 @@ public class DraftServiceTest {
         when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(null);
         when(versionService.getById(eq(testDraftVersion.getId())))
                 .thenReturn(ModelGenerator.versionModel(testDraftVersion));
-        draftService.publish(testDraftVersion.getId(), "1.0", now, null);
+        when(versionNumberStrategy.next(eq(REFBOOK_ID))).thenReturn("1.1");
+        when(versionNumberStrategy.check(eq("1.1"), eq(REFBOOK_ID))).thenReturn(false);
 
-        verify(draftDataService).applyDraft(isNull(String.class), eq(expectedDraftStorageCode), eq(Date.from(now.atZone(ZoneId.systemDefault()).toInstant())));
-        verify(versionRepository).save(eq(expectedVersionEntity));
-        verify(fileStorage).saveContent(any(InputStream.class), anyString());
-        reset(versionRepository);
-    }
-
-    @Test
-    public void testPublishOverlappingInLast() throws Exception {
-        RefBookVersionEntity versionEntity = createTestPublishedVersion();
-        RefBookVersionEntity draftVersion = createTestDraftVersion();
-        LocalDateTime publishDate = LocalDateTime.now();
-
-        when(versionRepository.findOne(eq(draftVersion.getId()))).thenReturn(draftVersion);
-        when(versionRepository.findOne(any(BooleanExpression.class))).thenReturn(versionEntity);
-        when(versionRepository.findAll(any(Predicate.class))).thenReturn(new PageImpl(singletonList(versionEntity)));
+        //invalid draftId
         try {
-            draftService.publish(draftVersion.getId(), "1.0", publishDate, null);
-            Assert.fail("publish overlapping version");
+            draftService.publish(0, "1.0", now, null);
+            fail();
         } catch (UserException e) {
-            Assert.assertEquals("overlapping.version.err", e.getCode());
+            Assert.assertEquals(0, e.getArgs()[0]);
+            Assert.assertEquals("draft.not.found", e.getCode());
         }
 
-        reset(versionRepository);
+        //invalid versionName
+        try {
+            draftService.publish(testDraftVersion.getId(), "1.1", now, null);
+            fail();
+        } catch (UserException e) {
+            Assert.assertEquals("1.1", e.getArgs()[0]);
+            Assert.assertEquals("invalid.version.name", e.getCode());
+        }
 
+        //invalid version period
+        try {
+            draftService.publish(testDraftVersion.getId(), null, now, LocalDateTime.MIN);
+            fail();
+        } catch (UserException e) {
+            Assert.assertEquals("invalid.version.period", e.getCode());
+        }
+
+        //valid publishing, null version name
+        draftService.publish(testDraftVersion.getId(), null, now, null);
+        assertEquals("1.1", testDraftVersion.getVersion());
+        verify(draftDataService).applyDraft(isNull(String.class), eq(expectedDraftStorageCode), eq(Date.from(now.atZone(ZoneId.systemDefault()).toInstant())), any());
+        verify(versionRepository).save(eq(expectedVersionEntity));
+        verify(fileStorage).saveContent(any(InputStream.class), anyString());
+        verify(fileStorage).saveContent(any(InputStream.class), anyString());
+        reset(versionRepository);
     }
 
     @Test
@@ -188,35 +210,65 @@ public class DraftServiceTest {
         when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(new PageImpl(singletonList(versionEntity)));
         when(versionService.getById(eq(draft.getId())))
                 .thenReturn(ModelGenerator.versionModel(draft));
+        when(versionNumberStrategy.check("2.2", REFBOOK_ID)).thenReturn(true);
 
         draftService.publish(draft.getId(), expectedVersionEntity.getVersion(), now, null);
 
-        verify(draftDataService).applyDraft(eq(versionEntity.getStorageCode()), eq(expectedDraftStorageCode), eq(Date.from(now.atZone(ZoneId.systemDefault()).toInstant())));
+        verify(draftDataService).applyDraft(eq(versionEntity.getStorageCode()), eq(expectedDraftStorageCode), eq(Date.from(now.atZone(ZoneId.systemDefault()).toInstant())), any());
         verify(versionRepository).save(eq(expectedVersionEntity));
         reset(versionRepository);
     }
 
     @Test
-    public void testPublishNextVersionWithSameStructureWithPeriodsOverlappingInFuture() throws Exception {
+    public void testPublishWithAllOverlappingCases() throws Exception {
 
-        LocalDateTime publishDate = LocalDateTime.now();
+        List<RefBookVersionEntity> actual = getVersionsForOverlappingPublish();
+        List<RefBookVersionEntity> expected = getExpectedAfterOverlappingPublish();
 
-        RefBookVersionEntity overlappingVersionEntity = createTestPublishedVersion();
-        overlappingVersionEntity.setFromDate(LocalDateTime.of(2017, 1, 1, 1, 1));
-        RefBookVersionEntity expectedVersionEntity = createTestPublishedVersion();
-        expectedVersionEntity.setToDate(publishDate);
-        expectedVersionEntity.setFromDate(overlappingVersionEntity.getFromDate());
         RefBookVersionEntity draftVersion = createTestDraftVersion();
 
         when(versionRepository.findOne(eq(draftVersion.getId()))).thenReturn(draftVersion);
-        when(versionRepository.findAll(any(Predicate.class))).thenReturn(new PageImpl(singletonList(overlappingVersionEntity)));
+        when(versionRepository.findAll(any(Predicate.class))).thenReturn(new PageImpl(actual));
         when(versionService.getById(eq(draftVersion.getId())))
                 .thenReturn(ModelGenerator.versionModel(draftVersion));
+        when(versionNumberStrategy.check(eq("2.4"), eq(REFBOOK_ID))).thenReturn(true);
+        doAnswer(invocation -> actual.removeIf(e -> e.getId().equals((invocation.getArguments()[0]))))
+                .when(versionRepository).delete(anyInt());
 
-        draftService.publish(draftVersion.getId(), "2.4", publishDate, null);
-        verify(versionRepository, times(1)).save(eq(expectedVersionEntity));
+        draftService.publish(draftVersion.getId(), "2.4", LocalDateTime.of(2017, 1, 4, 1, 1), LocalDateTime.of(2017, 1, 9, 1, 1));
+        assertEquals(expected, actual);
+        reset(versionRepository, versionService, versionNumberStrategy);
 
     }
+
+    private List<RefBookVersionEntity> getVersionsForOverlappingPublish() {
+        return new ArrayList<>(Arrays.asList(
+                createVersionEntity(REFBOOK_ID, 2, RefBookVersionStatus.PUBLISHED, LocalDateTime.of(2017, 1, 3, 1, 1), LocalDateTime.of(2017, 1, 5, 1, 1)),
+                createVersionEntity(REFBOOK_ID, 3, RefBookVersionStatus.PUBLISHED, LocalDateTime.of(2017, 1, 6, 1, 1), LocalDateTime.of(2017, 1, 7, 1, 1)),
+                createVersionEntity(REFBOOK_ID, 4, RefBookVersionStatus.PUBLISHED, LocalDateTime.of(2017, 1, 8, 1, 1), LocalDateTime.of(2017, 1, 10, 1, 1))
+        ));
+    }
+
+    private List<RefBookVersionEntity> getExpectedAfterOverlappingPublish() {
+        return Collections.singletonList(
+                createVersionEntity(REFBOOK_ID, 2, RefBookVersionStatus.PUBLISHED, LocalDateTime.of(2017, 1, 3, 1, 1), LocalDateTime.of(2017, 1, 4, 1, 1))
+        );
+    }
+
+    private RefBookVersionEntity createVersionEntity(Integer refBookId, Integer versionId, RefBookVersionStatus status,
+                                                     LocalDateTime fromDate, LocalDateTime toDate) {
+        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
+        RefBookEntity refBookEntity = new RefBookEntity();
+        refBookEntity.setId(refBookId);
+        versionEntity.setRefBook(refBookEntity);
+        versionEntity.setId(versionId);
+        versionEntity.setStatus(status);
+        versionEntity.setFromDate(fromDate);
+        versionEntity.setToDate(toDate);
+        return versionEntity;
+    }
+
+
 
 
     @Test
@@ -462,8 +514,8 @@ public class DraftServiceTest {
         return testDraftVersion;
     }
 
-    private List<PassportValueEntity> createTestPassportValues(RefBookVersionEntity version){
-        List<PassportValueEntity> passportValues = new ArrayList<>();
+    private Set<PassportValueEntity> createTestPassportValues(RefBookVersionEntity version) {
+        Set<PassportValueEntity> passportValues = new HashSet<>();
         passportValues.add(new PassportValueEntity(new PassportAttributeEntity("fullName"), "full_name", version));
         passportValues.add(new PassportValueEntity(new PassportAttributeEntity("shortName"), "short_name", version));
         passportValues.add(new PassportValueEntity(new PassportAttributeEntity("annotation"), "annotation", version));

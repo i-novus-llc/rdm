@@ -160,8 +160,7 @@ public class RefBookServiceImpl implements RefBookService {
 
         if (!isEmpty(criteria.getPassport())) {
             criteria.getPassport()
-                    .forEach((k, v) -> where.and(hasAttributeValue(k, v!=null ? v.getValue() : null)));
-        }
+                    .forEach((k, v) -> where.and(hasAttributeValue(k, v!=null ? v.getValue() : null)));        }
 
         if (!isEmpty(criteria.getRefBookId()))
             where.and(isVersionOfRefBook(criteria.getRefBookId()));
@@ -247,7 +246,7 @@ public class RefBookServiceImpl implements RefBookService {
             versionEntity.setPassportValues(passport.entrySet().stream()
                     .filter(e -> e.getValue() != null && e.getValue().getValue() != null)
                     .map(e -> new PassportValueEntity(new PassportAttributeEntity(e.getKey()), e.getValue().getValue(), versionEntity))
-                    .collect(Collectors.toList()));
+                    .collect(Collectors.toSet()));
         }
     }
 
@@ -256,8 +255,8 @@ public class RefBookServiceImpl implements RefBookService {
             return;
         }
 
-        List<PassportValueEntity> newPassportValues = versionEntity.getPassportValues() != null ?
-                versionEntity.getPassportValues() : new ArrayList<>();
+        Set<PassportValueEntity> newPassportValues = versionEntity.getPassportValues() != null ?
+                versionEntity.getPassportValues() : new HashSet<>();
 
         Map<String, PassportAttributeValue> correctUpdatePassport = new HashMap<>(newPassport);
 

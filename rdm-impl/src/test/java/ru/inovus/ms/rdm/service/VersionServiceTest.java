@@ -16,7 +16,7 @@ import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -45,8 +45,8 @@ public class VersionServiceTest {
         RefBookVersionEntity testVersion = createTestVersion();
         when(versionRepository.findOne(anyInt())).thenReturn(testVersion);
         when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>());
-        Date bdate = testVersion.getFromDate() != null ? Date.from(testVersion.getFromDate().atZone(ZoneOffset.UTC).toInstant()) : null;
-        Date edate = testVersion.getToDate() != null ? Date.from(testVersion.getToDate().atZone(ZoneOffset.UTC).toInstant()) : null;
+        Date bdate = testVersion.getFromDate() != null ? Date.from(testVersion.getFromDate().atZone(ZoneId.systemDefault()).toInstant()) : null;
+        Date edate = testVersion.getToDate() != null ? Date.from(testVersion.getToDate().atZone(ZoneId.systemDefault()).toInstant()) : null;
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
         searchDataCriteria.setAttributeFilter(new ArrayList<>());
         searchDataCriteria.setCommonFilter("commonFilter");

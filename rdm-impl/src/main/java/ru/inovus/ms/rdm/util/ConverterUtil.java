@@ -19,7 +19,7 @@ import ru.inovus.ms.rdm.model.Structure;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -52,7 +52,7 @@ public class ConverterUtil {
     }
 
     public static Date date(LocalDateTime date) {
-        return date != null ? Date.from(date.atZone(ZoneOffset.UTC).toInstant()) : null;
+        return date != null ? Date.from(date.atZone(ZoneId.systemDefault()).toInstant()) : null;
     }
 
     public static List<Sorting> sortings(Sort sort) {
