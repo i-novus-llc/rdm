@@ -1,10 +1,11 @@
 package ru.inovus.ms.rdm.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import ru.inovus.ms.rdm.model.AttributeFilter;
-import ru.inovus.ms.rdm.model.PassportAttribute;
+import ru.inovus.ms.rdm.model.PassportAttributeValue;
 
 import javax.ws.rs.ext.ParamConverter;
 import javax.ws.rs.ext.ParamConverterProvider;
@@ -15,6 +16,7 @@ import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
+import java.util.Map;
 
 @Provider
 public class RdmParamConverterProvider implements ParamConverterProvider {
@@ -25,7 +27,7 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
 
     private AttributeFilterConverter attributeFilterConverter = new AttributeFilterConverter();
 
-    private PassportAttributeConverter passportAttributeConverter = new PassportAttributeConverter();
+    private PassportConverter passportConverter = new PassportConverter();
 
     @Override
     public <T> ParamConverter<T> getConverter(Class<T> rawType, Type genericType, Annotation[] annotations) {
@@ -42,9 +44,10 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
         else if (AttributeFilter.class.equals(rawType))
             //noinspection unchecked
             return (ParamConverter<T>) attributeFilterConverter;
-        else if (PassportAttribute.class.equals(rawType))
+        else if (Map.class.isAssignableFrom(rawType)){
             //noinspection unchecked
-            return (ParamConverter<T>) passportAttributeConverter;
+            return (ParamConverter<T>) passportConverter;
+        }
         return null;
     }
 
@@ -125,29 +128,26 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
         }
     }
 
-    private static class PassportAttributeConverter implements ParamConverter<PassportAttribute> {
+
+    private static class PassportConverter<T extends Map> implements ParamConverter<T> {
 
         @Override
-        public PassportAttribute fromString(String value) {
+        public T fromString(String value) {
             ObjectMapper mapper = new ObjectMapper();
-            JavaTimeModule jtm = new JavaTimeModule();
-            mapper.registerModule(jtm);
             try {
-                return mapper.readValue(value, PassportAttribute.class);
+                return mapper.readValue(value, new TypeReference<Map<String, PassportAttributeValue>>() {});
             } catch (IOException e) {
-                throw new IllegalArgumentException(String.format("Failed to convert string '%s' to PassportAttribute", value), e);
+                throw new IllegalArgumentException(String.format("Failed to convert string '%s' to Map<String, PassportAttributeValue>", value), e);
             }
         }
 
         @Override
-        public String toString(PassportAttribute value) {
+        public String toString(T value) {
             ObjectMapper mapper = new ObjectMapper();
-            JavaTimeModule jtm = new JavaTimeModule();
-            mapper.registerModule(jtm);
             try {
                 return mapper.writeValueAsString(value);
             } catch (JsonProcessingException e) {
-                throw new IllegalArgumentException("Failed to convert from PassportAttribute to string", e);
+                throw new IllegalArgumentException("Failed to convert from Map<String, PassportAttributeValue> to string", e);
             }
         }
     }
