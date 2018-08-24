@@ -9,7 +9,7 @@ import ru.inovus.ms.rdm.util.JsonLocalDateTimeDeserializer;
 import ru.inovus.ms.rdm.util.JsonLocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Map;
 
 @ApiModel("Версия справочника")
 public class RefBookVersion {
@@ -52,7 +52,7 @@ public class RefBookVersion {
     private Boolean archived;
 
     @ApiModelProperty("Паспорт справочника")
-    private List<PassportAttribute> passport;
+    private Map<String, PassportAttributeValue> passport;
 
     @ApiModelProperty("Структура версии")
     private Structure structure;
@@ -163,11 +163,11 @@ public class RefBookVersion {
         this.archived = archived;
     }
 
-    public List<PassportAttribute> getPassport() {
+    public Map<String, PassportAttributeValue> getPassport() {
         return passport;
     }
 
-    public void setPassport(List<PassportAttribute> passport) {
+    public void setPassport(Map<String, PassportAttributeValue> passport) {
         this.passport = passport;
     }
 

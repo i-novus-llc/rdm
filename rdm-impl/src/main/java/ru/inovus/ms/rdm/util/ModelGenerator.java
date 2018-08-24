@@ -3,7 +3,7 @@ package ru.inovus.ms.rdm.util;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
-import ru.inovus.ms.rdm.model.PassportAttribute;
+import ru.inovus.ms.rdm.model.PassportAttributeValue;
 import ru.inovus.ms.rdm.model.RefBookVersion;
 
 import java.util.Objects;
@@ -34,11 +34,13 @@ public class ModelGenerator {
             model.setPassport(entity.getPassportValues().stream()
                     .filter(v -> Objects.nonNull(v.getValue()))
                     .sorted((o1, o2) -> {
-                        if (o1.getAttribute().getPosition() == null || o2.getAttribute().getPosition() == null) return 0;
+                        if (o1.getAttribute().getPosition() == null || o2.getAttribute().getPosition() == null)
+                            return 0;
                         return o1.getAttribute().getPosition() - o2.getAttribute().getPosition();
                     })
-                    .map(v -> new PassportAttribute(v.getAttribute().getCode(), v.getAttribute().getName(), v.getValue()))
-                    .collect(Collectors.toList()));
+                    .collect(Collectors.toMap(
+                            v -> v.getAttribute().getCode(),
+                            v -> new PassportAttributeValue(v.getValue(), v.getAttribute().getName()))));
         return model;
     }
 
