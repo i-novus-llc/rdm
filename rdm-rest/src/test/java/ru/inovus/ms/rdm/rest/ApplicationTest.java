@@ -260,7 +260,7 @@ public class ApplicationTest {
         assertEquals(1, structure.getAttributes().size());
 
         // в архив
-        refBookService.archive(refBook.getRefBookId());
+        refBookService.toArchive(refBook.getRefBookId());
 
         // получение по идентификатору версии
         RefBook refBookById = refBookService.getByVersionId(refBook.getId());
@@ -454,7 +454,11 @@ public class ApplicationTest {
         Structure structure = createStructure();
         Draft draft = draftService.create(1, structure);
         draftService.remove(draft.getId());
-        assertNull(draftService.getDraft(draft.getId()));
+        try{
+            draftService.getDraft(draft.getId());
+        } catch (RestException e) {
+            assertEquals("draft.not.found", e.getMessage());
+        }
     }
 
     private Structure createStructure() {
@@ -730,7 +734,7 @@ public class ApplicationTest {
 
     @Test
     public void testCreateRequiredAttributeWithNotEmptyData() {
-        CreateAttribute createAttributeModel = new CreateAttribute(-2, createAttribute, createReference);
+        CreateAttribute createAttributeModel = new CreateAttribute(-3, createAttribute, createReference);
         try {
             draftService.createAttribute(createAttributeModel);
             fail();
@@ -1217,5 +1221,18 @@ public class ApplicationTest {
         assertEquals(expectedStrings, actualStrings);
     }
 
+    @Test
+    public void toArchiveTest() {
+        RefBook refBook = refBookService.create(new RefBookCreateRequest("testArchive", null));
+        assertFalse(refBookService.getByVersionId(refBook.getId()).getArchived());
+
+        refBookService.toArchive(refBook.getRefBookId());
+        assertTrue(refBookService.getByVersionId(refBook.getId()).getArchived());
+
+        refBookService.fromArchive(refBook.getRefBookId());
+        assertFalse(refBookService.getByVersionId(refBook.getId()).getArchived());
+
+
+    }
 
 }

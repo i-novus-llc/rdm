@@ -122,6 +122,10 @@ public class DraftServiceImpl implements DraftService {
     @Override
     @Transactional(timeout = 600000)
     public Draft create(Integer refBookId, FileModel fileModel) {
+
+        validateRefBookExists(refBookId);
+        validateRefBookNotArchived(refBookId);
+
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
         BiConsumer<String, Structure> consumer = getSaveDraftConsumer(refBookId);
         String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
@@ -141,7 +145,7 @@ public class DraftServiceImpl implements DraftService {
             RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
             RefBookVersionEntity draftVersion = getDraftByRefbook(refBookId);
             if (draftVersion == null && lastRefBookVersion == null) {
-                throw new CodifiedException("invalid refbook");
+                throw new UserException("refbook.not.found");
             }
             if (draftVersion != null) {
                 dropDataService.drop(Collections.singleton(draftVersion.getStorageCode()));
@@ -162,6 +166,10 @@ public class DraftServiceImpl implements DraftService {
     @Override
     @Transactional
     public Draft create(Integer refBookId, Structure structure) {
+
+        validateRefBookExists(refBookId);
+        validateRefBookNotArchived(refBookId);
+
         RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
         RefBookVersionEntity draftVersion = getDraftByRefbook(refBookId);
         if (draftVersion == null && lastRefBookVersion == null) {
@@ -212,17 +220,29 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     public void updateMetadata(Integer draftId, MetadataDiff metadataDiff) {
+
+        validateDraftExists(draftId);
+        validateDraftNotArchived(draftId);
+
         throw new UnsupportedOperationException();
     }
 
     @Override
     public void updateData(Integer draftId, DataDiff dataDiff) {
+
+        validateDraftExists(draftId);
+        validateDraftNotArchived(draftId);
+
         throw new UnsupportedOperationException();
     }
 
     @Override
     @Transactional(timeout = 600000)
     public void updateData(Integer draftId, FileModel fileModel) {
+
+        validateDraftExists(draftId);
+        validateDraftNotArchived(draftId);
+
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
         String storageCode = draft.getStorageCode();
         Structure structure = draft.getStructure();
@@ -251,6 +271,9 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     public Page<RowValue> search(Integer draftId, SearchDataCriteria criteria) {
+
+        validateDraftExists(draftId);
+
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
         String storageCode = draft.getStorageCode();
         List<Field> fields = fields(draft.getStructure());
@@ -264,11 +287,10 @@ public class DraftServiceImpl implements DraftService {
     @Override
     public void publish(Integer draftId, String versionName, LocalDateTime fromDate, LocalDateTime toDate) {
 
-        RefBookVersionEntity draftVersion = versionRepository.findOne(draftId);
-        if (draftVersion == null || !draftVersion.getStatus().equals(RefBookVersionStatus.DRAFT)) {
-            throw new UserException(new Message("draft.not.found", draftId));
-        }
+        validateDraftExists(draftId);
+        validateDraftNotArchived(draftId);
 
+        RefBookVersionEntity draftVersion = versionRepository.findOne(draftId);
         if (versionName == null) {
             versionName = versionNumberStrategy.next(draftVersion.getRefBook().getId());
         } else if (!versionNumberStrategy.check(versionName, draftVersion.getRefBook().getId())) {
@@ -350,26 +372,32 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     public void remove(Integer draftId) {
+
+        validateDraftExists(draftId);
+        validateDraftNotArchived(draftId);
+
         versionRepository.delete(draftId);
     }
 
     @Override
     public Structure getMetadata(Integer draftId) {
+        validateDraftExists(draftId);
         return null;
     }
 
     @Override
     public Draft getDraft(Integer draftId) {
+        validateDraftExists(draftId);
         RefBookVersionEntity versionEntity = versionRepository.findOne(draftId);
-        if (versionEntity == null || !versionEntity.getStatus().equals(RefBookVersionStatus.DRAFT)) {
-            return null;
-        }
         return new Draft(versionEntity.getId(), versionEntity.getStorageCode());
     }
 
     @Override
     @Transactional
     public void createAttribute(CreateAttribute createAttribute) {
+
+        validateDraftExists(createAttribute.getVersionId());
+        validateDraftNotArchived(createAttribute.getVersionId());
 
         RefBookVersionEntity draftEntity = versionRepository.findOne(createAttribute.getVersionId());
         Structure.Attribute attribute = createAttribute.getAttribute();
@@ -407,6 +435,10 @@ public class DraftServiceImpl implements DraftService {
     @Override
     @Transactional
     public void updateAttribute(UpdateAttribute updateAttribute) {
+
+        validateDraftExists(updateAttribute.getVersionId());
+        validateDraftNotArchived(updateAttribute.getVersionId());
+
         RefBookVersionEntity draftEntity = versionRepository.findOne(updateAttribute.getVersionId());
         Structure structure = draftEntity.getStructure();
         Structure.Attribute attribute = structure.getAttribute(updateAttribute.getCode());
@@ -538,8 +570,12 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void deleteAttribute(Integer versionId, String attributeCode) {
-        RefBookVersionEntity draftEntity = versionRepository.findOne(versionId);
+    public void deleteAttribute(Integer draftId, String attributeCode) {
+
+        validateDraftExists(draftId);
+        validateDraftNotArchived(draftId);
+
+        RefBookVersionEntity draftEntity = versionRepository.findOne(draftId);
         Structure.Attribute attribute = draftEntity.getStructure().getAttribute(attributeCode);
 
         if (FieldType.REFERENCE.equals(attribute.getType()))
@@ -552,8 +588,10 @@ public class DraftServiceImpl implements DraftService {
     @Override
     @Transactional
     public ExportFile getDraftFile(Integer draftId, FileType fileType) {
+
+        validateDraftExists(draftId);
+
         RefBookVersion versionModel = ModelGenerator.versionModel(versionRepository.findOne(draftId));
-        if (versionModel == null || !RefBookVersionStatus.DRAFT.equals(versionModel.getStatus())) return null;
 
         return new ExportFile(
                 generateVersionFile(versionModel, fileType),
@@ -589,5 +627,31 @@ public class DraftServiceImpl implements DraftService {
             throw new RdmException(e);
         }
     }
+
+    private void validateRefBookNotArchived(Integer refBookId) {
+        if (refBookId != null && versionRepository.exists(isVersionOfRefBook(refBookId).and(isArchived()))) {
+            throw new UserException("refbook.is.archived");
+        }
+    }
+
+    private void validateDraftNotArchived(Integer draftId) {
+        if (draftId != null && versionRepository.exists(hasVersionId(draftId).and(isArchived()))) {
+            throw new UserException("refbook.is.archived");
+        }
+    }
+
+    private void validateRefBookExists(Integer refBookId) {
+        if (refBookId == null || !versionRepository.exists(isVersionOfRefBook(refBookId))) {
+            throw new UserException("refbook.not.found");
+        }
+    }
+
+    private void validateDraftExists(Integer draftId) {
+        if (draftId == null || !versionRepository.exists(hasVersionId(draftId).and(isDraft()))) {
+            throw new UserException(new Message("draft.not.found", draftId));
+        }
+    }
+
+
 
 }
