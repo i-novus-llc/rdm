@@ -9,5 +9,6 @@ import java.time.LocalDateTime;
 public class VersionPeriodPublishValidationImpl implements VersionPeriodPublishValidation {
 
     public void validate(LocalDateTime fromDate, LocalDateTime toDate, Integer refBookId){
+        //redefine if necessary
     }
 }
