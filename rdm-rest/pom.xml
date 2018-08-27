@@ -124,7 +124,7 @@
             <dependencies>
                 <dependency>
                     <groupId>ru.inovus.ms.rdm</groupId>
-                    <artifactId>rdm-fnsi-env</artifactId>
+                    <artifactId>rdm-fnsi-impl</artifactId>
                     <version>${project.version}</version>
                 </dependency>
             </dependencies>
