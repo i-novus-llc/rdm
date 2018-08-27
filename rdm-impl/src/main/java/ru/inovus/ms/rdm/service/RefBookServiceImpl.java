@@ -26,6 +26,7 @@ import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.util.ModelGenerator;
+import ru.inovus.ms.rdm.util.PassportPredicateProducer;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
@@ -46,15 +47,18 @@ public class RefBookServiceImpl implements RefBookService {
     private DraftDataService draftDataService;
     private DropDataService dropDataService;
     private PassportValueRepository passportValueRepository;
+    private PassportPredicateProducer passportPredicateProducer;
 
     @Autowired
     public RefBookServiceImpl(RefBookVersionRepository repository, RefBookRepository refBookRepository,
-                              DraftDataService draftDataService, DropDataService dropDataService, PassportValueRepository passportValueRepository) {
+                              DraftDataService draftDataService, DropDataService dropDataService,
+                              PassportValueRepository passportValueRepository, PassportPredicateProducer passportPredicateProducer) {
         this.repository = repository;
         this.refBookRepository = refBookRepository;
         this.draftDataService = draftDataService;
         this.dropDataService = dropDataService;
         this.passportValueRepository = passportValueRepository;
+        this.passportPredicateProducer = passportPredicateProducer;
     }
 
     @Override
@@ -159,8 +163,8 @@ public class RefBookServiceImpl implements RefBookService {
             where.and(isCodeContains(criteria.getCode()));
 
         if (!isEmpty(criteria.getPassport())) {
-            criteria.getPassport()
-                    .forEach((k, v) -> where.and(hasAttributeValue(k, v!=null ? v.getValue() : null)));        }
+            where.and(passportPredicateProducer.toPredicate(criteria.getPassport()));
+        }
 
         if (!isEmpty(criteria.getRefBookId()))
             where.and(isVersionOfRefBook(criteria.getRefBookId()));

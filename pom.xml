@@ -34,7 +34,7 @@
         <module>rdm-rest</module>
         <module>rdm-impl</module>
         <module>rdm-n2o</module>
-        <module>rdm-fnsi-env</module>
+        <module>rdm-fnsi-impl</module>
         <module>rdm-fnsi-n2o</module>
     </modules>
 
@@ -56,7 +56,7 @@
 
             <dependency>
                 <groupId>ru.inovus.ms.rdm</groupId>
-                <artifactId>rdm-fnsi-env</artifactId>
+                <artifactId>rdm-fnsi-impl</artifactId>
                 <version>${project.version}</version>
                 <scope>runtime</scope>
             </dependency>

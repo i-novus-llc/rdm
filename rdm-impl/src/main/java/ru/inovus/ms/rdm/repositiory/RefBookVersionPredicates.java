@@ -2,8 +2,6 @@ package ru.inovus.ms.rdm.repositiory;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.jpa.JPAExpressions;
-import ru.inovus.ms.rdm.entity.QPassportValueEntity;
 import ru.inovus.ms.rdm.entity.QRefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 
@@ -100,14 +98,5 @@ public final class RefBookVersionPredicates {
         } else {
             return Expressions.asBoolean(true).isFalse();
         }
-
-
-    }
-
-    public static BooleanExpression hasAttributeValue(String attribute, String value) {
-        return JPAExpressions.selectFrom(QPassportValueEntity.passportValueEntity).where(
-                QPassportValueEntity.passportValueEntity.attribute.code.eq(attribute)
-                        .and(QPassportValueEntity.passportValueEntity.value.containsIgnoreCase(value))
-                        .and(QPassportValueEntity.passportValueEntity.version.eq(QRefBookVersionEntity.refBookVersionEntity))).exists();
     }
 }
