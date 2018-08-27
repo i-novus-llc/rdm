@@ -36,7 +36,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
 import static ru.inovus.ms.rdm.util.ConverterUtil.date;
 import static ru.inovus.ms.rdm.util.ConverterUtil.sortings;
 
@@ -173,29 +172,4 @@ public class VersionServiceImpl implements VersionService {
             throw new RdmException(e);
         }
     }
-    
-    private void validateRefBookNotArchived(Integer refBookId) {
-        if (refBookId != null && versionRepository.exists(isVersionOfRefBook(refBookId).and(isArchived()))) {
-            throw new UserException("refbook.is.archived");
-        }
-    }
-
-    private void validateVersionNotArchived(Integer versionId) {
-        if (versionId != null && versionRepository.exists(hasVersionId(versionId).and(isArchived()))) {
-            throw new UserException("refbook.is.archived");
-        }
-    }
-
-    private void validateRefBookExists(Integer refBookId) {
-        if (refBookId == null || !versionRepository.exists(isVersionOfRefBook(refBookId))) {
-            throw new UserException("refbook.not.found");
-        }
-    }
-
-    private void validateVersionExists(Integer versionId) {
-        if (versionId == null || !versionRepository.exists(hasVersionId(versionId).and(isDraft()))) {
-            throw new UserException("version.not.found");
-        }
-    }
-
 }

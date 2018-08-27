@@ -315,14 +315,6 @@ public class RefBookServiceImpl implements RefBookService {
         }
     }
 
-    private void validateRefBookNotArchived(Integer refBookId) {
-        if (refBookId == null) return;
-        RefBookEntity refBookEntity = refBookRepository.findOne(refBookId);
-        if (refBookEntity != null && refBookEntity.getArchived()) {
-            throw new UserException("refbook.is.archived");
-        }
-    }
-
     private void validateVersionNotArchived(Integer versionId) {
         if (versionId != null && repository.exists(hasVersionId(versionId).and(isArchived()))) {
             throw new UserException("refbook.is.archived");
