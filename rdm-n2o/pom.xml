@@ -102,7 +102,7 @@
             <dependencies>
                 <dependency>
                     <groupId>ru.inovus.ms.rdm</groupId>
-                    <artifactId>rdm-n2o-fnsi</artifactId>
+                    <artifactId>rdm-fnsi-n2o</artifactId>
                     <version>${project.version}</version>
                 </dependency>
             </dependencies>
