@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import ru.inovus.ms.rdm.model.AttributeFilter;
@@ -12,10 +13,12 @@ import javax.ws.rs.ext.ParamConverterProvider;
 import javax.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 @Provider
@@ -26,8 +29,6 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
     private OffsetDateTimeParamConverter offsetDateTimeParamConverter = new OffsetDateTimeParamConverter();
 
     private AttributeFilterConverter attributeFilterConverter = new AttributeFilterConverter();
-
-    private PassportConverter passportConverter = new PassportConverter();
 
     @Override
     public <T> ParamConverter<T> getConverter(Class<T> rawType, Type genericType, Annotation[] annotations) {
@@ -45,8 +46,14 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
             //noinspection unchecked
             return (ParamConverter<T>) attributeFilterConverter;
         else if (Map.class.isAssignableFrom(rawType)){
+            MapConverter mapConverter;
+            if (genericType instanceof ParameterizedType &&
+                    ((ParameterizedType) genericType).getActualTypeArguments().length >= 2 &&
+                    ((ParameterizedType) genericType).getActualTypeArguments()[1] instanceof Class)
+                mapConverter = new MapConverter((Class) ((ParameterizedType) genericType).getActualTypeArguments()[1]);
+            else mapConverter = new MapConverter(String.class);
             //noinspection unchecked
-            return (ParamConverter<T>) passportConverter;
+            return (ParamConverter<T>) mapConverter;
         }
         return null;
     }
@@ -129,25 +136,31 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
     }
 
 
-    private static class PassportConverter<T extends Map> implements ParamConverter<T> {
+    private static class MapConverter implements ParamConverter<Map> {
+
+        JavaType type;
+        ObjectMapper mapper;
+
+        public MapConverter(Class valueClass) {
+            this.mapper = new ObjectMapper();
+            this.type = mapper.getTypeFactory().constructMapType(HashMap.class, String.class, valueClass);
+        }
 
         @Override
-        public T fromString(String value) {
-            ObjectMapper mapper = new ObjectMapper();
+        public Map fromString(String value) {
             try {
                 return mapper.readValue(value, new TypeReference<Map<String, PassportAttributeValue>>() {});
             } catch (IOException e) {
-                throw new IllegalArgumentException(String.format("Failed to convert string '%s' to Map<String, PassportAttributeValue>", value), e);
+                throw new IllegalArgumentException(String.format("Failed to convert string '%s' to Map", value), e);
             }
         }
 
         @Override
-        public String toString(T value) {
-            ObjectMapper mapper = new ObjectMapper();
+        public String toString(Map value) {
             try {
                 return mapper.writeValueAsString(value);
             } catch (JsonProcessingException e) {
-                throw new IllegalArgumentException("Failed to convert from Map<String, PassportAttributeValue> to string", e);
+                throw new IllegalArgumentException("Failed to convert from Map to string", e);
             }
         }
     }
