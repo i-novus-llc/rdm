@@ -55,13 +55,22 @@ public interface RefBookService {
     void delete(@QueryParam("refBookId") int refBookId);
 
     @POST
-    @Path("/archive/{refBookId}")
+    @Path("/{refBookId}/toArchive")
     @ApiOperation("В архив")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Справочник в врхиве"),
+            @ApiResponse(code = 200, message = "Справочник в архиве"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void archive(@PathParam("refBookId") @ApiParam("Идентификатор справочника") int refBookId);
+    void toArchive(@PathParam("refBookId") @ApiParam("Идентификатор справочника") int refBookId);
+
+    @POST
+    @Path("/{refBookId}/fromArchive")
+    @ApiOperation("Вернуть из архива")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Справочник возвращен из архива"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void fromArchive(@PathParam("refBookId") @ApiParam("Идентификатор справочника") int refBookId);
 
     @GET
     @Path("/versions")

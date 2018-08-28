@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.service;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
+import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +73,9 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     @Transactional
     public RefBook getByVersionId(Integer versionId) {
+
+        validateVersionExists(versionId);
+
         return refBookModel(repository.findOne(versionId));
     }
 
@@ -102,6 +106,10 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     @Transactional
     public RefBook update(RefBookUpdateRequest request) {
+
+        validateVersionExists(request.getId());
+        validateVersionNotArchived(request.getId());
+
         RefBookVersionEntity refBookVersionEntity = repository.findOne(request.getId());
         RefBookEntity refBookEntity = refBookVersionEntity.getRefBook();
         if (!refBookEntity.getCode().equals(request.getCode())) {
@@ -123,9 +131,18 @@ public class RefBookServiceImpl implements RefBookService {
     }
 
     @Override
-    public void archive(int refBookId) {
+    public void toArchive(int refBookId) {
+        validateRefBookExists(refBookId);
         RefBookEntity refBookEntity = refBookRepository.findOne(refBookId);
         refBookEntity.setArchived(Boolean.TRUE);
+        refBookRepository.save(refBookEntity);
+    }
+
+    @Override
+    public void fromArchive(int refBookId) {
+        validateRefBookExists(refBookId);
+        RefBookEntity refBookEntity = refBookRepository.findOne(refBookId);
+        refBookEntity.setArchived(Boolean.FALSE);
         refBookRepository.save(refBookEntity);
     }
 
@@ -288,6 +305,24 @@ public class RefBookServiceImpl implements RefBookService {
                 .collect(Collectors.toList()));
 
         versionEntity.setPassportValues(newPassportValues);
+    }
+
+    private void validateRefBookExists(Integer refBookId) {
+        if (refBookId == null || !refBookRepository.exists(refBookId)) {
+            throw new UserException("refbook.not.found");
+        }
+    }
+
+    private void validateVersionExists(Integer versionId) {
+        if (versionId == null || !repository.exists(versionId)) {
+            throw new UserException("version.not.found");
+        }
+    }
+
+    private void validateVersionNotArchived(Integer versionId) {
+        if (versionId != null && repository.exists(hasVersionId(versionId).and(isArchived()))) {
+            throw new UserException("refbook.is.archived");
+        }
     }
 
 }

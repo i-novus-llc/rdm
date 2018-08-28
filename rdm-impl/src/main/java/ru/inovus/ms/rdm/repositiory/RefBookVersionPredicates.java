@@ -24,6 +24,10 @@ public final class RefBookVersionPredicates {
         return QRefBookVersionEntity.refBookVersionEntity.refBook.id.eq(refBookId);
     }
 
+    public static BooleanExpression hasVersionId(Integer versionId) {
+        return QRefBookVersionEntity.refBookVersionEntity.id.eq(versionId);
+    }
+
     public static BooleanExpression isPublished() {
         return QRefBookVersionEntity.refBookVersionEntity.status.eq(RefBookVersionStatus.PUBLISHED);
     }

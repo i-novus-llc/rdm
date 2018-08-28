@@ -89,4 +89,42 @@
     </changeSet>
 
 
+    <changeSet id="201807051500_RDM-29_7.0" author="lsharipova" dbms="postgresql">
+        <comment>Создание storage'a для черновика</comment>
+        <sql>
+            CREATE SCHEMA IF NOT EXISTS data;
+            CREATE TABLE data."test-storage-for-draft_2" (
+            name VARCHAR,
+            count INTEGER,
+            "SYS_RECORDID" BIGINT,
+            "FTS" tsvector,
+            "SYS_HASH" character(32),
+            CONSTRAINT "test-storage-for-draft_2_pkey" PRIMARY KEY ("SYS_RECORDID")
+            );
+        </sql>
+    </changeSet>
+
+    <changeSet id="201807051500_RDM-29_7.1" author="znurgaliev" dbms="postgresql">
+        <comment>Добавление справочника со статусом черновик</comment>
+        <sql>
+            INSERT INTO n2o_rdm_management.ref_book(id, code, removable) VALUES (-2, 'test_ref_book_for_draft', TRUE);
+
+            INSERT INTO n2o_rdm_management.ref_book_version(id, storage_code, ref_book_id, full_name, short_name,
+            version, status, structure)
+            VALUES (-3, 'test-storage-for-draft_2', -2, 'Тестовый справочник',
+            'Тестовый справочник',
+            '1', 'DRAFT', '{"attributes" : [{"code" : "name", "name" : "Наименование", "type" :
+            "STRING", "isPrimary" : null, "isRequired" : null },
+            {"code" : "count", "name": "Количество", "type": "INTEGER", "isPrimary" : null, "isRequired" : null}]}');
+        </sql>
+    </changeSet>
+
+    <changeSet id="201807051500_RDM-29_7.2" author="znurgaliev" dbms="postgresql">
+        <comment>Добавление данных storage'a</comment>
+        <sql>
+            INSERT INTO data."test-storage-for-draft_2"("SYS_RECORDID", name, count) VALUES (1, 'name', 2);
+        </sql>
+    </changeSet>
+
+
 </databaseChangeLog>
