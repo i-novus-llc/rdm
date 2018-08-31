@@ -54,11 +54,9 @@ public final class RefBookVersionPredicates {
     }
 
     public static BooleanExpression isLast() {
-        QRefBookVersionEntity qEntity = QRefBookVersionEntity.refBookVersionEntity;
-
-        return isDraft().
-                or(qEntity.refBook.versionList.any().status.eq(RefBookVersionStatus.DRAFT).not()
-                        .and(qEntity.toDate.isNull()));
+        return isAnyPublished().not()
+                .and(isDraft().or(isPublishing()))
+                .or(isLastPublished());
     }
 
     public static BooleanExpression isLastPublished() {
