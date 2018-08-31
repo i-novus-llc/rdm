@@ -52,20 +52,19 @@ public class RefBookServiceImpl implements RefBookService {
     private DropDataService dropDataService;
     private PassportValueRepository passportValueRepository;
     private PassportPredicateProducer passportPredicateProducer;
-
-    @Autowired
-    EntityManager entityManager;
+    private EntityManager entityManager;
 
     @Autowired
     public RefBookServiceImpl(RefBookVersionRepository repository, RefBookRepository refBookRepository,
                               DraftDataService draftDataService, DropDataService dropDataService,
-                              PassportValueRepository passportValueRepository, PassportPredicateProducer passportPredicateProducer) {
+                              PassportValueRepository passportValueRepository, PassportPredicateProducer passportPredicateProducer, EntityManager entityManager) {
         this.repository = repository;
         this.refBookRepository = refBookRepository;
         this.draftDataService = draftDataService;
         this.dropDataService = dropDataService;
         this.passportValueRepository = passportValueRepository;
         this.passportPredicateProducer = passportPredicateProducer;
+        this.entityManager = entityManager;
     }
 
     @Override
