@@ -40,10 +40,10 @@ import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
 @Service
 public class RefBookServiceImpl implements RefBookService {
 
-    private final static String PASSPORT_SORT_PREFIX = "passport";
-    private final static String VERSION_ID_SORT_PROPERTY = "id";
-    private final static String REF_BOOK_ID_SORT_PROPERTY = "refbookId";
-    private final static String REF_BOOK_CODE_SORT_PROPERTY = "code";
+    private static final String PASSPORT_SORT_PREFIX = "passport";
+    private static final String VERSION_ID_SORT_PROPERTY = "id";
+    private static final String REF_BOOK_ID_SORT_PROPERTY = "refbookId";
+    private static final String REF_BOOK_CODE_SORT_PROPERTY = "code";
 
     private static final Logger logger = LoggerFactory.getLogger(RefBookServiceImpl.class);
     private RefBookVersionRepository repository;
