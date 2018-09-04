@@ -2,23 +2,20 @@ package ru.inovus.ms.rdm.service;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.ComparableExpressionBase;
+import com.querydsl.jpa.impl.JPAQuery;
+import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
-import ru.inovus.ms.rdm.entity.PassportAttributeEntity;
-import ru.inovus.ms.rdm.entity.PassportValueEntity;
-import ru.inovus.ms.rdm.entity.RefBookEntity;
-import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
+import ru.inovus.ms.rdm.entity.*;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
@@ -29,6 +26,7 @@ import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.util.ModelGenerator;
 import ru.inovus.ms.rdm.util.PassportPredicateProducer;
 
+import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -42,6 +40,11 @@ import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
 @Service
 public class RefBookServiceImpl implements RefBookService {
 
+    private static final String PASSPORT_SORT_PREFIX = "passport";
+    private static final String VERSION_ID_SORT_PROPERTY = "id";
+    private static final String REF_BOOK_ID_SORT_PROPERTY = "refbookId";
+    private static final String REF_BOOK_CODE_SORT_PROPERTY = "code";
+
     private static final Logger logger = LoggerFactory.getLogger(RefBookServiceImpl.class);
     private RefBookVersionRepository repository;
     private RefBookRepository refBookRepository;
@@ -49,25 +52,81 @@ public class RefBookServiceImpl implements RefBookService {
     private DropDataService dropDataService;
     private PassportValueRepository passportValueRepository;
     private PassportPredicateProducer passportPredicateProducer;
+    private EntityManager entityManager;
 
     @Autowired
     public RefBookServiceImpl(RefBookVersionRepository repository, RefBookRepository refBookRepository,
                               DraftDataService draftDataService, DropDataService dropDataService,
-                              PassportValueRepository passportValueRepository, PassportPredicateProducer passportPredicateProducer) {
+                              PassportValueRepository passportValueRepository, PassportPredicateProducer passportPredicateProducer, EntityManager entityManager) {
         this.repository = repository;
         this.refBookRepository = refBookRepository;
         this.draftDataService = draftDataService;
         this.dropDataService = dropDataService;
         this.passportValueRepository = passportValueRepository;
         this.passportPredicateProducer = passportPredicateProducer;
+        this.entityManager = entityManager;
     }
 
     @Override
     @Transactional
     public Page<RefBook> search(RefBookCriteria criteria) {
-        Pageable pageable = new PageRequest(criteria.getPageNumber() - 1, criteria.getPageSize(), toSort(criteria));
-        Page<RefBookVersionEntity> list = repository.findAll(toPredicate(criteria), pageable);
+        JPAQuery<RefBookVersionEntity> jpaQuery =
+                new JPAQuery<>(entityManager)
+                        .select(QRefBookVersionEntity.refBookVersionEntity)
+                        .from(QRefBookVersionEntity.refBookVersionEntity)
+                        .where(toPredicate(criteria));
+
+        long count = jpaQuery.fetchCount();
+
+        sortQuery(jpaQuery, criteria);
+        List<RefBookVersionEntity> refBookVersionEntityList = jpaQuery
+                .offset(criteria.getOffset())
+                .limit(criteria.getPageSize())
+                .fetch();
+
+        Page<RefBookVersionEntity> list = new PageImpl<>(refBookVersionEntityList, criteria, count);
         return list.map(this::refBookModel);
+    }
+
+    private void sortQuery(JPAQuery<RefBookVersionEntity> jpaQuery, RefBookCriteria criteria) {
+        List<Sort.Order> orders = criteria.getOrders();
+
+        if (CollectionUtils.isEmpty(orders)) {
+            jpaQuery.orderBy(QRefBookVersionEntity.refBookVersionEntity.fromDate.asc());
+        } else {
+            criteria.getOrders().stream()
+                    .filter(order -> order != null && order.getProperty() != null)
+                    .forEach(order -> addOrder(jpaQuery, order));
+        }
+    }
+
+    private void addOrder(JPAQuery<RefBookVersionEntity> jpaQuery, Sort.Order order) {
+        ComparableExpressionBase sortExpression;
+
+        if (order.getProperty().startsWith(PASSPORT_SORT_PREFIX)) {
+            String property = order.getProperty().replaceFirst(PASSPORT_SORT_PREFIX + "\\.", "");
+            QPassportValueEntity qPassportValueEntity = new QPassportValueEntity(PASSPORT_SORT_PREFIX + "_" + property);
+
+            jpaQuery.leftJoin(QRefBookVersionEntity.refBookVersionEntity.passportValues, qPassportValueEntity)
+                    .on(qPassportValueEntity.version.eq(QRefBookVersionEntity.refBookVersionEntity)
+                            .and(qPassportValueEntity.attribute.code.eq(property)));
+            sortExpression = qPassportValueEntity.value;
+        } else {
+            switch (order.getProperty()) {
+                case VERSION_ID_SORT_PROPERTY:
+                    sortExpression = QRefBookVersionEntity.refBookVersionEntity.id;
+                    break;
+                case REF_BOOK_ID_SORT_PROPERTY:
+                    sortExpression = QRefBookVersionEntity.refBookVersionEntity.refBook.id;
+                    break;
+                case REF_BOOK_CODE_SORT_PROPERTY:
+                    sortExpression = QRefBookVersionEntity.refBookVersionEntity.refBook.code;
+                    break;
+                default:
+                    throw new UserException(new Message("cannot.order.by", order.getProperty()));
+            }
+        }
+        jpaQuery.orderBy(order.isAscending() ? sortExpression.asc() : sortExpression.desc());
     }
 
     @Override
@@ -149,9 +208,8 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     @Transactional
     public Page<RefBookVersion> getVersions(VersionCriteria criteria) {
-        Sort sort = new Sort(new Sort.Order(Sort.Direction.DESC, "fromDate", Sort.NullHandling.NULLS_FIRST));
-        Pageable pageable = new PageRequest(criteria.getPageNumber() - 1, criteria.getPageSize(), sort);
-        Page<RefBookVersionEntity> list = repository.findAll(toPredicate(criteria), pageable);
+        criteria.setOrders(Collections.singletonList(new Sort.Order(Sort.Direction.DESC, "fromDate", Sort.NullHandling.NULLS_FIRST)));
+        Page<RefBookVersionEntity> list = repository.findAll(toPredicate(criteria), criteria);
         return list.map(ModelGenerator::versionModel);
     }
 
@@ -202,28 +260,6 @@ public class RefBookServiceImpl implements RefBookService {
             }
         }
         return where.getValue();
-    }
-
-    private Sort toSort(RefBookCriteria criteria) {
-        List<Sort.Order> orders = criteria.getOrders();
-        if (CollectionUtils.isEmpty(orders))
-            orders = Collections.singletonList(new Sort.Order("refBook.code"));
-
-        Sort sort = null;
-        for (Sort.Order order : orders)
-            if (sort == null) sort = sort(order);
-            else sort.and(sort(order));
-        return sort;
-    }
-
-    private Sort sort(Sort.Order order) {
-        String property = order.getProperty();
-        Sort.Direction direction = order.getDirection();
-
-        if ("version".equals(property))
-            return new Sort(direction, "refBook.archived").and(new Sort(direction, property));
-        else
-            return new Sort(direction, property);
     }
 
     private RefBookVersionEntity getLastPublishedVersion(Integer refBookId) {

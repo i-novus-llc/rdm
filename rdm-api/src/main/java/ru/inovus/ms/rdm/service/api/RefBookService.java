@@ -15,6 +15,9 @@ public interface RefBookService {
 
     @GET
     @ApiOperation("Поиск справочников по критериям")
+    @ApiImplicitParams(@ApiImplicitParam(name = "sort", value = "Параметры сортировки", required = false, allowMultiple = true,
+            paramType = "query", dataType = "string"))
+
     @ApiResponses({
             @ApiResponse(code = 200, message = "Список справочников"),
             @ApiResponse(code = 404, message = "Нет ресурса")

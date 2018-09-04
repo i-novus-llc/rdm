@@ -16,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
@@ -1222,7 +1223,7 @@ public class ApplicationTest {
     }
 
     @Test
-    public void toArchiveTest() {
+    public void testToArchive() {
         RefBook refBook = refBookService.create(new RefBookCreateRequest("testArchive", null));
         assertFalse(refBookService.getByVersionId(refBook.getId()).getArchived());
 
@@ -1231,6 +1232,59 @@ public class ApplicationTest {
 
         refBookService.fromArchive(refBook.getRefBookId());
         assertFalse(refBookService.getByVersionId(refBook.getId()).getArchived());
+    }
+
+    @Test
+    public void testSortInRefBookSearch() {
+        final String REFBOOK_CODE = "refbookSortCode";
+        Map<String, PassportAttributeValue> passport = new HashMap<>();
+        passport.put(PASSPORT_ATTRIBUTE_FULL_NAME, new PassportAttributeValue("order1", null));
+        passport.put(PASSPORT_ATTRIBUTE_SHORT_NAME, new PassportAttributeValue("order3", null));
+        RefBook refBook1 = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE + 2, passport));
+        passport.put(PASSPORT_ATTRIBUTE_FULL_NAME, new PassportAttributeValue("order3", null));
+        passport.put(PASSPORT_ATTRIBUTE_SHORT_NAME, new PassportAttributeValue("order2", null));
+        RefBook refBook2 = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE + 3, passport));
+        passport.put(PASSPORT_ATTRIBUTE_FULL_NAME, new PassportAttributeValue("order3", null));
+        passport.put(PASSPORT_ATTRIBUTE_SHORT_NAME, new PassportAttributeValue("order1", null));
+        RefBook refBook3 = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE + 1, passport));
+
+        RefBookCriteria criteria = new RefBookCriteria();
+        criteria.setCode(REFBOOK_CODE);
+        Iterator<RefBook> expected1 = Arrays.asList(
+                refBook1,
+                refBook2,
+                refBook3).iterator();
+        refBookService.search(criteria).getContent().forEach(actual -> assertRefBooksEqual(expected1.next(), actual));
+
+        criteria.setOrders(Collections.singletonList(new Sort.Order(Sort.Direction.ASC, "code")));
+        Iterator<RefBook> expected2 = Arrays.asList(
+                refBook3,
+                refBook1,
+                refBook2).iterator();
+        refBookService.search(criteria).getContent().forEach(actual -> assertRefBooksEqual(expected2.next(), actual));
+
+        criteria.setOrders(Collections.singletonList(new Sort.Order(Sort.Direction.DESC, "code")));
+        Iterator<RefBook> expected3 = Arrays.asList(
+                refBook2,
+                refBook1,
+                refBook3).iterator();
+        refBookService.search(criteria).getContent().forEach(actual -> assertRefBooksEqual(expected3.next(), actual));
+
+        criteria.setOrders(Collections.singletonList(new Sort.Order(Sort.Direction.ASC, "passport." + PASSPORT_ATTRIBUTE_SHORT_NAME)));
+        Iterator<RefBook> expected4 = Arrays.asList(
+                refBook3,
+                refBook2,
+                refBook1).iterator();
+        refBookService.search(criteria).getContent().forEach(actual -> assertRefBooksEqual(expected4.next(), actual));
+
+        criteria.setOrders(Arrays.asList(
+                new Sort.Order(Sort.Direction.ASC, "passport." + PASSPORT_ATTRIBUTE_FULL_NAME),
+                new Sort.Order(Sort.Direction.ASC, "code")));
+        Iterator<RefBook> expected5 = Arrays.asList(
+                refBook1,
+                refBook3,
+                refBook2).iterator();
+        refBookService.search(criteria).getContent().forEach(actual -> assertRefBooksEqual(expected5.next(), actual));
 
 
     }
