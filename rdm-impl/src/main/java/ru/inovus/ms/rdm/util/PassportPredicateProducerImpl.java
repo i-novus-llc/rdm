@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.util;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import org.springframework.stereotype.Component;
-import ru.inovus.ms.rdm.model.PassportAttributeValue;
 
 import java.util.Map;
 
@@ -14,9 +13,9 @@ import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.hasAttribute
 public class PassportPredicateProducerImpl implements PassportPredicateProducer {
 
     @Override
-    public Predicate toPredicate(Map<String, PassportAttributeValue> passportAttributeValues) {
+    public Predicate toPredicate(Map<String, String> passport) {
         BooleanBuilder where = new BooleanBuilder();
-        passportAttributeValues.forEach((k, v) -> where.and(hasAttributeValue(k, v != null ? v.getValue() : null)));
+        passport.forEach((k, v) -> where.and(hasAttributeValue(k, v)));
         return where.getValue();
     }
 

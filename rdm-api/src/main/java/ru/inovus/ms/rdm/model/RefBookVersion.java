@@ -52,7 +52,7 @@ public class RefBookVersion {
     private Boolean archived;
 
     @ApiModelProperty("Паспорт справочника")
-    private Map<String, PassportAttributeValue> passport;
+    private Map<String, String> passport;
 
     @ApiModelProperty("Структура версии")
     private Structure structure;
@@ -163,11 +163,11 @@ public class RefBookVersion {
         this.archived = archived;
     }
 
-    public Map<String, PassportAttributeValue> getPassport() {
+    public Map<String, String> getPassport() {
         return passport;
     }
 
-    public void setPassport(Map<String, PassportAttributeValue> passport) {
+    public void setPassport(Map<String, String> passport) {
         this.passport = passport;
     }
 
