@@ -4,10 +4,7 @@ import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.enumeration.FileType;
-import ru.inovus.ms.rdm.model.ExportFile;
-import ru.inovus.ms.rdm.model.RefBookVersion;
-import ru.inovus.ms.rdm.model.SearchDataCriteria;
-import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.model.*;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -75,4 +72,19 @@ public interface VersionService {
                             @ApiParam(value = "Тип файла", required = true)
                             @QueryParam("type")
                             FileType fileType);
+
+    @GET
+    @Path("/{sourceVersionId}/{targetVersionId}")
+    @ApiOperation("Сравнение метаданных (паспортов) версий")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    PassportDiff comparePassports(@ApiParam("Идентификатор первой версии")
+                                  @PathParam("sourceVersionId")
+                                          Integer sourceVersionId,
+                                  @ApiParam("Идентификатор второй версии")
+                                  @PathParam("targetVersionId")
+                                          Integer targetVersionId);
+
 }

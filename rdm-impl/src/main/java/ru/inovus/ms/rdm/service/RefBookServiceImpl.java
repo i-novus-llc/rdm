@@ -174,7 +174,7 @@ public class RefBookServiceImpl implements RefBookService {
         if (!refBookEntity.getCode().equals(request.getCode())) {
             refBookEntity.setCode(request.getCode());
         }
-        updeteVersionFromPassport(refBookVersionEntity, request.getPassport());
+        updateVersionFromPassport(refBookVersionEntity, request.getPassport());
         refBookVersionEntity.setComment(request.getComment());
         return refBookModel(refBookVersionEntity);
     }
@@ -307,7 +307,7 @@ public class RefBookServiceImpl implements RefBookService {
         }
     }
 
-    private void updeteVersionFromPassport(RefBookVersionEntity versionEntity, Map<String, PassportAttributeValue> newPassport) {
+    private void updateVersionFromPassport(RefBookVersionEntity versionEntity, Map<String, PassportAttributeValue> newPassport) {
         if (newPassport == null || versionEntity == null) {
             return;
         }
