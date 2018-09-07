@@ -298,16 +298,16 @@ public class RefBookServiceImpl implements RefBookService {
         return model;
     }
 
-    private void populateVersionFromPassport(RefBookVersionEntity versionEntity, Map<String, PassportAttributeValue> passport) {
+    private void populateVersionFromPassport(RefBookVersionEntity versionEntity, Map<String, String> passport) {
         if (passport != null && versionEntity != null) {
             versionEntity.setPassportValues(passport.entrySet().stream()
-                    .filter(e -> e.getValue() != null && e.getValue().getValue() != null)
-                    .map(e -> new PassportValueEntity(new PassportAttributeEntity(e.getKey()), e.getValue().getValue(), versionEntity))
+                    .filter(e -> e.getValue() != null)
+                    .map(e -> new PassportValueEntity(new PassportAttributeEntity(e.getKey()), e.getValue(), versionEntity))
                     .collect(Collectors.toSet()));
         }
     }
 
-    private void updeteVersionFromPassport(RefBookVersionEntity versionEntity, Map<String, PassportAttributeValue> newPassport) {
+    private void updeteVersionFromPassport(RefBookVersionEntity versionEntity, Map<String, String> newPassport) {
         if (newPassport == null || versionEntity == null) {
             return;
         }
@@ -315,10 +315,10 @@ public class RefBookServiceImpl implements RefBookService {
         Set<PassportValueEntity> newPassportValues = versionEntity.getPassportValues() != null ?
                 versionEntity.getPassportValues() : new HashSet<>();
 
-        Map<String, PassportAttributeValue> correctUpdatePassport = new HashMap<>(newPassport);
+        Map<String, String> correctUpdatePassport = new HashMap<>(newPassport);
 
         Set<String> attributeCodesToRemove = correctUpdatePassport.entrySet().stream()
-                .filter(e -> e.getValue() == null || e.getValue().getValue() == null)
+                .filter(e -> e.getValue() == null)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toSet());
         List<PassportValueEntity> toRemove = versionEntity.getPassportValues().stream()
@@ -332,12 +332,12 @@ public class RefBookServiceImpl implements RefBookService {
                 .filter(e -> newPassportValues.stream().anyMatch(v -> e.getKey().equals(v.getAttribute().getCode())))
                 .peek(e -> newPassportValues.stream()
                         .filter(v -> e.getKey().equals(v.getAttribute().getCode()))
-                        .findAny().get().setValue(e.getValue().getValue()))
+                        .findAny().get().setValue(e.getValue()))
                 .collect(Collectors.toSet());
         correctUpdatePassport.entrySet().removeAll(toUpdate);
 
         newPassportValues.addAll(correctUpdatePassport.entrySet().stream()
-                .map(a -> new PassportValueEntity(new PassportAttributeEntity(a.getKey()), a.getValue().getValue(), versionEntity))
+                .map(a -> new PassportValueEntity(new PassportAttributeEntity(a.getKey()), a.getValue(), versionEntity))
                 .collect(Collectors.toList()));
 
         versionEntity.setPassportValues(newPassportValues);

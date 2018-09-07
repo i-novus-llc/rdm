@@ -1,12 +1,10 @@
 package ru.inovus.ms.rdm.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import ru.inovus.ms.rdm.model.AttributeFilter;
-import ru.inovus.ms.rdm.model.PassportAttributeValue;
 
 import javax.ws.rs.ext.ParamConverter;
 import javax.ws.rs.ext.ParamConverterProvider;
@@ -51,7 +49,7 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
                     ((ParameterizedType) genericType).getActualTypeArguments().length >= 2 &&
                     ((ParameterizedType) genericType).getActualTypeArguments()[1] instanceof Class)
                 mapConverter = new MapConverter((Class) ((ParameterizedType) genericType).getActualTypeArguments()[1]);
-            else mapConverter = new MapConverter(String.class);
+            else mapConverter = new MapConverter(Object.class);
             //noinspection unchecked
             return (ParamConverter<T>) mapConverter;
         }
@@ -149,7 +147,7 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
         @Override
         public Map fromString(String value) {
             try {
-                return mapper.readValue(value, new TypeReference<Map<String, PassportAttributeValue>>() {});
+                return mapper.readValue(value, type);
             } catch (IOException e) {
                 throw new IllegalArgumentException(String.format("Failed to convert string '%s' to Map", value), e);
             }

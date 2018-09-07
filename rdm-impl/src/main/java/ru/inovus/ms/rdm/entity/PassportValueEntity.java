@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.entity;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 /**
  * Created by znurgaliev on 30.07.2018.
@@ -70,22 +71,15 @@ public class PassportValueEntity {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
-        PassportValueEntity that = (PassportValueEntity) o;
-
-        if (id != null ? !id.equals(that.id) : that.id != null) return false;
-        if (attribute != null ? !attribute.equals(that.attribute) : that.attribute != null) return false;
-        if (value != null ? !value.equals(that.value) : that.value != null) return false;
-        return !(version != null ? !version.equals(that.version) : that.version != null);
-
+        PassportValueEntity entity = (PassportValueEntity) o;
+        return Objects.equals(id, entity.id) &&
+                Objects.equals(attribute, entity.attribute) &&
+                Objects.equals(value, entity.value) &&
+                Objects.equals(version, entity.version);
     }
 
     @Override
     public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + (attribute != null ? attribute.hashCode() : 0);
-        result = 31 * result + (value != null ? value.hashCode() : 0);
-        result = 31 * result + (version != null ? version.hashCode() : 0);
-        return result;
+        return Objects.hash(id, attribute, value, version);
     }
 }
