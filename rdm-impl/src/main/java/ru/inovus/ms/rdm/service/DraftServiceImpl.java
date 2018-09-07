@@ -29,6 +29,7 @@ import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.file.*;
 import ru.inovus.ms.rdm.file.export.*;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.repositiory.PassportValueRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
 import ru.inovus.ms.rdm.service.api.DraftService;
@@ -78,6 +79,8 @@ public class DraftServiceImpl implements DraftService {
 
     private VersionPeriodPublishValidation versionPeriodPublishValidation;
 
+    private PassportValueRepository passportValueRepository;
+
     private int errorCountLimit = 100;
     private String passportFileHead = "fullName";
     private boolean includePassport = false;
@@ -91,7 +94,7 @@ public class DraftServiceImpl implements DraftService {
     public DraftServiceImpl(DraftDataService draftDataService, RefBookVersionRepository versionRepository, VersionService versionService,
                             SearchDataService searchDataService, DropDataService dropDataService, FileStorage fileStorage,
                             FileNameGenerator fileNameGenerator, VersionFileRepository versionFileRepository, VersionNumberStrategy versionNumberStrategy,
-                            VersionPeriodPublishValidation versionPeriodPublishValidation) {
+                            VersionPeriodPublishValidation versionPeriodPublishValidation, PassportValueRepository passportValueRepository) {
         this.draftDataService = draftDataService;
         this.versionRepository = versionRepository;
         this.versionService = versionService;
@@ -102,6 +105,7 @@ public class DraftServiceImpl implements DraftService {
         this.versionFileRepository = versionFileRepository;
         this.versionNumberStrategy = versionNumberStrategy;
         this.versionPeriodPublishValidation = versionPeriodPublishValidation;
+        this.passportValueRepository = passportValueRepository;
     }
 
     @Value("${rdm.validation-errors-count}")
@@ -604,7 +608,7 @@ public class DraftServiceImpl implements DraftService {
                 .getFileGenerator(dataIterator, versionService.getStructure(versionModel.getId()), fileType);
              Archiver archiver = new Archiver()) {
             if (includePassport) {
-                try (FileGenerator passportPdfFileGenerator = new PassportPdfFileGenerator(versionService, versionModel.getId(), passportFileHead)) {
+                try (FileGenerator passportPdfFileGenerator = new PassportPdfFileGenerator(passportValueRepository, versionModel.getId(), passportFileHead)) {
                     archiver.addEntry(passportPdfFileGenerator, fileNameGenerator.generateName(versionModel, FileType.PDF));
                 }
             }

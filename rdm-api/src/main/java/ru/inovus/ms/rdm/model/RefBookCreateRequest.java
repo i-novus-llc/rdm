@@ -5,12 +5,12 @@ import java.util.Map;
 public class RefBookCreateRequest {
 
     private String code;
-    private Map<String, PassportAttributeValue> passport;
+    private Map<String, String> passport;
 
     public RefBookCreateRequest() {
     }
 
-    public RefBookCreateRequest(String code, Map<String, PassportAttributeValue> passport) {
+    public RefBookCreateRequest(String code, Map<String, String> passport) {
         this.code = code;
         this.passport = passport;
     }
@@ -23,11 +23,11 @@ public class RefBookCreateRequest {
         this.code = code;
     }
 
-    public Map<String, PassportAttributeValue> getPassport() {
+    public Map<String, String> getPassport() {
         return passport;
     }
 
-    public void setPassport(Map<String, PassportAttributeValue> passport) {
+    public void setPassport(Map<String, String> passport) {
         this.passport = passport;
     }
 }

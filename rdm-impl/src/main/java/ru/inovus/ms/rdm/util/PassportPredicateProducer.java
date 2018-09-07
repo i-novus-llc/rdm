@@ -1,7 +1,6 @@
 package ru.inovus.ms.rdm.util;
 
 import com.querydsl.core.types.Predicate;
-import ru.inovus.ms.rdm.model.PassportAttributeValue;
 
 import java.util.Map;
 
@@ -10,5 +9,5 @@ import java.util.Map;
  */
 public interface PassportPredicateProducer {
 
-    Predicate toPredicate(Map<String, PassportAttributeValue> passportAttributeValueMap);
+    Predicate toPredicate(Map<String, String> passportAttributeValueMap);
 }

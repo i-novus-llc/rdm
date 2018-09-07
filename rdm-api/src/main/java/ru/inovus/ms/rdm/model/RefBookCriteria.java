@@ -33,7 +33,7 @@ public class RefBookCriteria extends AbstractCriteria {
 
     @ApiModelProperty("Паспорт справочника")
     @QueryParam("passport")
-    private Map<String, PassportAttributeValue> passport;
+    private Map<String, String> passport;
 
     public Integer getRefBookId() {
         return refBookId;
@@ -75,11 +75,11 @@ public class RefBookCriteria extends AbstractCriteria {
         this.status = status;
     }
 
-    public Map<String, PassportAttributeValue> getPassport() {
+    public Map<String, String> getPassport() {
         return passport;
     }
 
-    public void setPassport(Map<String, PassportAttributeValue> passport) {
+    public void setPassport(Map<String, String> passport) {
         this.passport = passport;
     }
 }

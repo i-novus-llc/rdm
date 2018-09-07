@@ -22,6 +22,7 @@ import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.file.export.*;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.repositiory.PassportValueRepository;
 import ru.inovus.ms.rdm.repositiory.PassportAttributeRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
@@ -44,27 +45,30 @@ import static ru.inovus.ms.rdm.util.ConverterUtil.sortings;
 public class VersionServiceImpl implements VersionService {
 
     private RefBookVersionRepository versionRepository;
-    private PassportAttributeRepository passportAttributeRepository;
     private SearchDataService searchDataService;
     private FileNameGenerator fileNameGenerator;
     private VersionFileRepository versionFileRepository;
     private FileStorage fileStorage;
+    private PassportAttributeRepository passportAttributeRepository;
+    private PassportValueRepository passportValueRepository;
 
 
     private String passportFileHead;
     private boolean includePassport;
 
     @Autowired
-    public VersionServiceImpl(RefBookVersionRepository versionRepository, PassportAttributeRepository passportAttributeRepository,
+    public VersionServiceImpl(RefBookVersionRepository versionRepository,
                               SearchDataService searchDataService,
                               FileNameGenerator fileNameGenerator, VersionFileRepository versionFileRepository,
-                              FileStorage fileStorage) {
+                              FileStorage fileStorage,
+                              PassportAttributeRepository passportAttributeRepository, PassportValueRepository passportValueRepository) {
         this.versionRepository = versionRepository;
-        this.passportAttributeRepository = passportAttributeRepository;
         this.searchDataService = searchDataService;
         this.fileNameGenerator = fileNameGenerator;
         this.versionFileRepository = versionFileRepository;
         this.fileStorage = fileStorage;
+        this.passportAttributeRepository = passportAttributeRepository;
+        this.passportValueRepository = passportValueRepository;
     }
 
     @Value("${rdm.download.passport.head}")
@@ -164,7 +168,7 @@ public class VersionServiceImpl implements VersionService {
                 .getFileGenerator(dataIterator, this.getStructure(versionModel.getId()), fileType);
              Archiver archiver = new Archiver()) {
             if (includePassport) {
-                try (FileGenerator passportPdfFileGenerator = new PassportPdfFileGenerator(this, versionModel.getId(), passportFileHead)) {
+                try (FileGenerator passportPdfFileGenerator = new PassportPdfFileGenerator(passportValueRepository, versionModel.getId(), passportFileHead)) {
                     archiver.addEntry(passportPdfFileGenerator, fileNameGenerator.generateName(versionModel, FileType.PDF));
                 }
             }
