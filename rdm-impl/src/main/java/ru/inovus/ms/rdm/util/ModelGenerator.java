@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.util;
 
+import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
@@ -39,7 +40,7 @@ public class ModelGenerator {
                     })
                     .collect(Collectors.toMap(
                             v -> v.getAttribute().getCode(),
-                            v -> v.getValue())));
+                            PassportValueEntity::getValue)));
         return model;
     }
 

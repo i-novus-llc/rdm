@@ -13,17 +13,17 @@ import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.hasAttribute
 
 @Component
 @Primary
-public class RdmPassportSearch implements PassportPredicateProducer {
+public class FnsiPassportSearch implements PassportPredicateProducer {
 
     @Override
     public Predicate toPredicate(Map<String, String> passportAttributeValueMap) {
         Map<String, String> tempMap = new HashMap<>(passportAttributeValueMap);
         String name = tempMap.remove("name");
-        String OID = tempMap.remove("OID");
+        String oid = tempMap.remove("OID");
         BooleanBuilder where = new BooleanBuilder();
         tempMap.forEach((k, v) -> where.and(hasAttributeValue(k, v)));
         if (name != null) where.and(hasAttributeValue("fullName", name).or(hasAttributeValue("shortName", name)));
-        if (OID != null) where.and(hasAttributeValue("OID", OID).or(hasAttributeValue("OID2", OID)));
+        if (oid != null) where.and(hasAttributeValue("OID", oid).or(hasAttributeValue("OID2", oid)));
         return where.getValue();
     }
 
