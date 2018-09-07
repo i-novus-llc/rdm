@@ -4,41 +4,41 @@ import java.util.Objects;
 
 public class PassportAttributeDiff {
 
-    private String attributeName;
-    private String oldValue;
-    private String newValue;
+    private PassportAttribute passportAttribute;
+    private String sourceValue;
+    private String targetValue;
 
     public PassportAttributeDiff() {
     }
 
-    public PassportAttributeDiff(String attributeName, String oldValue, String newValue) {
-        this.attributeName = attributeName;
-        this.oldValue = oldValue;
-        this.newValue = newValue;
+    public PassportAttributeDiff(PassportAttribute passportAttribute, String sourceValue, String targetValue) {
+        this.passportAttribute = passportAttribute;
+        this.sourceValue = sourceValue;
+        this.targetValue = targetValue;
     }
 
-    public String getAttributeName() {
-        return attributeName;
+    public PassportAttribute getPassportAttribute() {
+        return passportAttribute;
     }
 
-    public void setAttributeName(String attributeName) {
-        this.attributeName = attributeName;
+    public void setPassportAttribute(PassportAttribute passportAttribute) {
+        this.passportAttribute = passportAttribute;
     }
 
-    public String getOldValue() {
-        return oldValue;
+    public String getSourceValue() {
+        return sourceValue;
     }
 
-    public void setOldValue(String oldValue) {
-        this.oldValue = oldValue;
+    public void setSourceValue(String sourceValue) {
+        this.sourceValue = sourceValue;
     }
 
-    public String getNewValue() {
-        return newValue;
+    public String getTargetValue() {
+        return targetValue;
     }
 
-    public void setNewValue(String newValue) {
-        this.newValue = newValue;
+    public void setTargetValue(String targetValue) {
+        this.targetValue = targetValue;
     }
 
     @Override
@@ -46,18 +46,18 @@ public class PassportAttributeDiff {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PassportAttributeDiff passportAttributeDiff = (PassportAttributeDiff) o;
-        if (!Objects.equals(attributeName, passportAttributeDiff.attributeName)) return false;
-        if (!(oldValue == null && passportAttributeDiff.oldValue == null || Objects.equals(oldValue, passportAttributeDiff.oldValue)))
+        if (!Objects.equals(passportAttribute, passportAttributeDiff.passportAttribute)) return false;
+        if (!(sourceValue == null && passportAttributeDiff.sourceValue == null || Objects.equals(sourceValue, passportAttributeDiff.sourceValue)))
             return false;
-        return (newValue == null && passportAttributeDiff.newValue == null || Objects.equals(newValue, passportAttributeDiff.newValue));
+        return (targetValue == null && passportAttributeDiff.targetValue == null || Objects.equals(targetValue, passportAttributeDiff.targetValue));
     }
 
     @Override
     public int hashCode() {
         int result = 1;
-        result = 31 * result + (attributeName != null ? attributeName.hashCode() : 0);
-        result = 31 * result + (oldValue != null ? oldValue.hashCode() : 0);
-        result = 31 * result + (newValue != null ? newValue.hashCode() : 0);
+        result = 31 * result + (passportAttribute != null ? passportAttribute.hashCode() : 0);
+        result = 31 * result + (sourceValue != null ? sourceValue.hashCode() : 0);
+        result = 31 * result + (targetValue != null ? targetValue.hashCode() : 0);
         return result;
     }
 

@@ -195,7 +195,7 @@ public class VersionServiceImpl implements VersionService {
             PassportValueEntity targetPassportValue = targetVersion.getPassportValues().stream().filter(passportValue -> passportValue.getAttribute().equals(passportAttribute)).findFirst().orElse(null);
 
             PassportAttributeDiff passportAttributeDiff = new PassportAttributeDiff(
-                    passportAttribute.getName(),
+                    new PassportAttribute(passportAttribute.getCode(), passportAttribute.getName()),
                     sourcePassportValue != null ? sourcePassportValue.getValue() : null,
                     targetPassportValue != null ? targetPassportValue.getValue() : null);
             passportAttributeDiffList.add(passportAttributeDiff);

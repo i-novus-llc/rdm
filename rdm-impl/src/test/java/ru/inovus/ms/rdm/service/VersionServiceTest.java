@@ -121,10 +121,10 @@ public class VersionServiceTest {
 
     private void validatePassportAttributeDiffs(List<PassportAttributeDiff> passportAttributeDiffs, Set<PassportValueEntity> sourcePassportValues, Set<PassportValueEntity> targetPassportValues) {
         passportAttributeDiffs.forEach(passportAttributeDiff -> {
-            PassportValueEntity sourcePassportValue = sourcePassportValues.stream().filter(passportValueEntity -> passportValueEntity.getAttribute().getName().equals(passportAttributeDiff.getAttributeName())).findFirst().orElse(null);
-            PassportValueEntity targetPassportValue = targetPassportValues.stream().filter(passportValueEntity -> passportValueEntity.getAttribute().getName().equals(passportAttributeDiff.getAttributeName())).findFirst().orElse(null);
-            assertTrue(compareValues(sourcePassportValue, passportAttributeDiff.getOldValue()));
-            assertTrue(compareValues(targetPassportValue, passportAttributeDiff.getNewValue()));
+            PassportValueEntity sourcePassportValue = sourcePassportValues.stream().filter(passportValueEntity -> passportValueEntity.getAttribute().getCode().equals(passportAttributeDiff.getPassportAttribute().getCode())).findFirst().orElse(null);
+            PassportValueEntity targetPassportValue = targetPassportValues.stream().filter(passportValueEntity -> passportValueEntity.getAttribute().getCode().equals(passportAttributeDiff.getPassportAttribute().getCode())).findFirst().orElse(null);
+            assertTrue(compareValues(sourcePassportValue, passportAttributeDiff.getSourceValue()));
+            assertTrue(compareValues(targetPassportValue, passportAttributeDiff.getTargetValue()));
         });
     }
 
