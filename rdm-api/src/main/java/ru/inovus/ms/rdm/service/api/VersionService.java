@@ -74,17 +74,17 @@ public interface VersionService {
                             FileType fileType);
 
     @GET
-    @Path("/{sourceVersionId}/{targetVersionId}")
+    @Path("/comparePassports")
     @ApiOperation("Сравнение метаданных (паспортов) версий")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     PassportDiff comparePassports(@ApiParam("Идентификатор первой версии")
-                                  @PathParam("sourceVersionId")
+                                  @QueryParam("sourceVersionId")
                                           Integer sourceVersionId,
                                   @ApiParam("Идентификатор второй версии")
-                                  @PathParam("targetVersionId")
+                                  @QueryParam("targetVersionId")
                                           Integer targetVersionId);
 
 }
