@@ -13,8 +13,6 @@ import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.inovus.ms.rdm.entity.PassportAttributeEntity;
-import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.entity.VersionFileEntity;
 import ru.inovus.ms.rdm.enumeration.FileType;
@@ -23,7 +21,6 @@ import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.file.export.*;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.PassportValueRepository;
-import ru.inovus.ms.rdm.repositiory.PassportAttributeRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
 import ru.inovus.ms.rdm.service.api.VersionService;
@@ -35,7 +32,10 @@ import javax.transaction.Transactional;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 import static ru.inovus.ms.rdm.util.ConverterUtil.date;
 import static ru.inovus.ms.rdm.util.ConverterUtil.sortings;
@@ -49,7 +49,6 @@ public class VersionServiceImpl implements VersionService {
     private FileNameGenerator fileNameGenerator;
     private VersionFileRepository versionFileRepository;
     private FileStorage fileStorage;
-    private PassportAttributeRepository passportAttributeRepository;
     private PassportValueRepository passportValueRepository;
 
 
@@ -60,14 +59,12 @@ public class VersionServiceImpl implements VersionService {
     public VersionServiceImpl(RefBookVersionRepository versionRepository,
                               SearchDataService searchDataService,
                               FileNameGenerator fileNameGenerator, VersionFileRepository versionFileRepository,
-                              FileStorage fileStorage,
-                              PassportAttributeRepository passportAttributeRepository, PassportValueRepository passportValueRepository) {
+                              FileStorage fileStorage, PassportValueRepository passportValueRepository) {
         this.versionRepository = versionRepository;
         this.searchDataService = searchDataService;
         this.fileNameGenerator = fileNameGenerator;
         this.versionFileRepository = versionFileRepository;
         this.fileStorage = fileStorage;
-        this.passportAttributeRepository = passportAttributeRepository;
         this.passportValueRepository = passportValueRepository;
     }
 
@@ -178,29 +175,6 @@ public class VersionServiceImpl implements VersionService {
         } catch (IOException e) {
             throw new RdmException(e);
         }
-    }
-
-    @Override
-    public PassportDiff comparePassports(Integer sourceVersionId, Integer targetVersionId) {
-        RefBookVersionEntity sourceVersion = versionRepository.getOne(sourceVersionId);
-        RefBookVersionEntity targetVersion = versionRepository.getOne(targetVersionId);
-        if (sourceVersion == null || targetVersion == null)
-            throw new UserException(new Message("version.not.found", sourceVersion == null ? sourceVersionId : targetVersionId));
-
-        List<PassportAttributeEntity> passportAttributes = passportAttributeRepository.findAllByComparableIsTrue();
-        List<PassportAttributeDiff> passportAttributeDiffList = new ArrayList<>();
-
-        passportAttributes.forEach(passportAttribute -> {
-            PassportValueEntity sourcePassportValue = sourceVersion.getPassportValues().stream().filter(passportValue -> passportValue.getAttribute().equals(passportAttribute)).findFirst().orElse(null);
-            PassportValueEntity targetPassportValue = targetVersion.getPassportValues().stream().filter(passportValue -> passportValue.getAttribute().equals(passportAttribute)).findFirst().orElse(null);
-
-            PassportAttributeDiff passportAttributeDiff = new PassportAttributeDiff(
-                    new PassportAttribute(passportAttribute.getCode(), passportAttribute.getName()),
-                    sourcePassportValue != null ? sourcePassportValue.getValue() : null,
-                    targetPassportValue != null ? targetPassportValue.getValue() : null);
-            passportAttributeDiffList.add(passportAttributeDiff);
-        });
-        return new PassportDiff(passportAttributeDiffList);
     }
 
 }
