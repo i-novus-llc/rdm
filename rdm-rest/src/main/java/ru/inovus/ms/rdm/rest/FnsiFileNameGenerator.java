@@ -12,7 +12,7 @@ import java.util.Optional;
  */
 public class FnsiFileNameGenerator implements FileNameGenerator {
 
-    private static final String PREFIX_PASSPORT_ATTRIBUTE = "name";
+    private static final String PREFIX_PASSPORT_ATTRIBUTE = "OID.name";
 
     @Override
     public String generateName(RefBookVersion version, FileType fileType) {
