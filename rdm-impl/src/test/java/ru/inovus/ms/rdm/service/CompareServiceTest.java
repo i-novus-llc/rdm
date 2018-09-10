@@ -101,12 +101,12 @@ public class CompareServiceTest {
         rightVersion.setPassportValues(rightPassportValues);
 
         PassportDiff passportDiff = compareService.comparePassports(leftVersion.getId(), rightVersion.getId());
-        validatePassportAttributes(passportDiff.getPassportAttributeDiffs(), asList(
+        assertPassportAttributes(asList(
                 passportAttributeFullName.getCode(),
                 passportAttributeShortName.getCode(),
                 passportAttributeAnnotation.getCode()
-        ));
-        validatePassportAttributeDiffs(passportDiff.getPassportAttributeDiffs(), leftPassportValues, rightPassportValues);
+        ), passportDiff.getPassportAttributeDiffs());
+        assertPassportAttributeDiffs(leftPassportValues, rightPassportValues, passportDiff.getPassportAttributeDiffs());
     }
 
     @Test
@@ -122,8 +122,8 @@ public class CompareServiceTest {
         rightVersion.setPassportValues(rightPassportValues);
 
         PassportDiff passportDiff = compareService.comparePassports(leftVersion.getId(), rightVersion.getId());
-        validatePassportAttributes(passportDiff.getPassportAttributeDiffs(), singletonList(passportAttributeFullName.getCode()));
-        validatePassportAttributeDiffs(passportDiff.getPassportAttributeDiffs(), leftPassportValues, rightPassportValues);
+        assertPassportAttributes(singletonList(passportAttributeFullName.getCode()), passportDiff.getPassportAttributeDiffs());
+        assertPassportAttributeDiffs(leftPassportValues, rightPassportValues, passportDiff.getPassportAttributeDiffs());
     }
 
     @Test
@@ -138,8 +138,8 @@ public class CompareServiceTest {
         rightVersion.setPassportValues(rightPassportValues);
 
         PassportDiff passportDiff = compareService.comparePassports(leftVersion.getId(), rightVersion.getId());
-        validatePassportAttributes(passportDiff.getPassportAttributeDiffs(), singletonList(passportAttributeFullName.getCode()));
-        validatePassportAttributeDiffs(passportDiff.getPassportAttributeDiffs(), leftPassportValues, rightPassportValues);
+        assertPassportAttributes(singletonList(passportAttributeFullName.getCode()), passportDiff.getPassportAttributeDiffs());
+        assertPassportAttributeDiffs(leftPassportValues, rightPassportValues, passportDiff.getPassportAttributeDiffs());
     }
 
     @Test
@@ -154,11 +154,11 @@ public class CompareServiceTest {
         rightVersion.setPassportValues(rightPassportValues);
 
         PassportDiff passportDiff = compareService.comparePassports(leftVersion.getId(), rightVersion.getId());
-        validatePassportAttributes(passportDiff.getPassportAttributeDiffs(), singletonList(passportAttributeFullName.getCode()));
-        validatePassportAttributeDiffs(passportDiff.getPassportAttributeDiffs(), leftPassportValues, rightPassportValues);
+        assertPassportAttributes(singletonList(passportAttributeFullName.getCode()), passportDiff.getPassportAttributeDiffs());
+        assertPassportAttributeDiffs(leftPassportValues, rightPassportValues, passportDiff.getPassportAttributeDiffs());
     }
 
-    private void validatePassportAttributes(List<PassportAttributeDiff> passportAttributeDiffs, List<String> passportAttributeCodes) {
+    private void assertPassportAttributes(List<String> passportAttributeCodes, List<PassportAttributeDiff> passportAttributeDiffs) {
         assertEquals(passportAttributeCodes.size(), passportAttributeDiffs.size());
         passportAttributeCodes.forEach(passportAttributeCode -> {
             if (passportAttributeDiffs.stream().noneMatch(passportAttributeDiff -> passportAttributeCode.equals(passportAttributeDiff.getPassportAttribute().getCode())))
@@ -166,7 +166,7 @@ public class CompareServiceTest {
         });
     }
 
-    private void validatePassportAttributeDiffs(List<PassportAttributeDiff> passportAttributeDiffs, Set<PassportValueEntity> leftPassportValues, Set<PassportValueEntity> rightPassportValues) {
+    private void assertPassportAttributeDiffs(Set<PassportValueEntity> leftPassportValues, Set<PassportValueEntity> rightPassportValues, List<PassportAttributeDiff> passportAttributeDiffs) {
         passportAttributeDiffs.forEach(passportAttributeDiff -> {
             PassportValueEntity leftPassportValue = leftPassportValues.stream().filter(passportValueEntity -> passportValueEntity.getAttribute().getCode().equals(passportAttributeDiff.getPassportAttribute().getCode())).findFirst().orElse(null);
             PassportValueEntity rightPassportValue = rightPassportValues.stream().filter(passportValueEntity -> passportValueEntity.getAttribute().getCode().equals(passportAttributeDiff.getPassportAttribute().getCode())).findFirst().orElse(null);
