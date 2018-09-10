@@ -110,7 +110,7 @@ public class CompareServiceTest {
     }
 
     @Test
-    public void testUpdatePassportAttributeValue() {
+    public void testComparePassportsWhenUpdateAttributeValue() {
         Set<PassportValueEntity> leftPassportValues = new HashSet<>();
         leftPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name", leftVersion));
 
@@ -127,8 +127,7 @@ public class CompareServiceTest {
     }
 
     @Test
-    public void testAddPassportAttributeValue() {
-
+    public void testComparePassportsWhenAddAttributeValue() {
         Set<PassportValueEntity> leftPassportValues = new HashSet<>();
 
         leftVersion.setPassportValues(leftPassportValues);
@@ -144,8 +143,7 @@ public class CompareServiceTest {
     }
 
     @Test
-    public void testDeletePassportAttributeValue() {
-
+    public void testComparePassportsWhenDeleteAttributeValue() {
         Set<PassportValueEntity> leftPassportValues = new HashSet<>();
         leftPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name", leftVersion));
 
