@@ -1116,7 +1116,7 @@ public class ApplicationTest {
      */
     @Test
     public void testPublicationAllCases() {
-        final String REF_BOOK_CODE = "testPublisAllCases";
+        final String REF_BOOK_CODE = "testPublishAllCases";
         final String FIELD_NAME = "testFieldString";
         final String LEFT_FILE = "testPublishLeftIntersection.xlsx";
         final String MID_FILE = "testPublishMiddleIntersection.xlsx";

@@ -56,7 +56,8 @@ public class VersionServiceImpl implements VersionService {
     private boolean includePassport;
 
     @Autowired
-    public VersionServiceImpl(RefBookVersionRepository versionRepository, SearchDataService searchDataService,
+    public VersionServiceImpl(RefBookVersionRepository versionRepository,
+                              SearchDataService searchDataService,
                               FileNameGenerator fileNameGenerator, VersionFileRepository versionFileRepository,
                               FileStorage fileStorage, PassportValueRepository passportValueRepository) {
         this.versionRepository = versionRepository;
@@ -175,4 +176,5 @@ public class VersionServiceImpl implements VersionService {
             throw new RdmException(e);
         }
     }
+
 }
