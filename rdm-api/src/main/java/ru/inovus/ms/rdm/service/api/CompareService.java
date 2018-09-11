@@ -19,10 +19,10 @@ public interface CompareService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     PassportDiff comparePassports(@ApiParam("Идентификатор первой версии")
-                                  @QueryParam("leftVersionId")
-                                          Integer leftVersionId,
+                                  @QueryParam("firstVersionId")
+                                          Integer firstVersionId,
                                   @ApiParam("Идентификатор второй версии")
-                                  @QueryParam("rightVersionId")
-                                          Integer rightVersionId);
+                                  @QueryParam("secondVersionId")
+                                          Integer secondVersionId);
 
 }
