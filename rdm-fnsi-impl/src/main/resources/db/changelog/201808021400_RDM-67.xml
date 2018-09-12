@@ -4,24 +4,35 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
 
-    <changeSet id="201808021400_RDM-67_1_0" author="znurgaliev" dbms="postgresql">
+    <changeSet id="201809071800_RDM-67_2_0" author="znurgaliev" dbms="postgresql">
         <preConditions onFail="CONTINUE">
-            <tableExists tableName="passport_attribute" schemaName="n2o_rdm_management"/>
+            <and>
+                <tableExists tableName="passport_attribute" schemaName="n2o_rdm_management"/>
+                <tableExists tableName="passport_value" schemaName="n2o_rdm_management"/>
+            </and>
         </preConditions>
         <comment>Ввод возможных атрибутов паспорта справочника для фнси</comment>
         <sql>
+            DELETE FROM n2o_rdm_management.passport_value;
+            DELETE FROM n2o_rdm_management.passport_attribute;
             INSERT INTO n2o_rdm_management.passport_attribute(code, name) VALUES
-                ('OID', 'Уникальный идентификатор справочника в формате OID (основной)'),
-                ('OID2', 'Уникальный идентификатор в формате OID2'),
+                ('OID.id', 'Уникальный идентификатор справочника в формате OID (основной)'),
+                ('OID.name', 'Уникальный идентификатор справочника в формате OID (основной)'),
+                ('OID2.id', 'Уникальный идентификатор в формате OID2'),
+                ('OID2.name', 'Уникальный идентификатор в формате OID2'),
                 ('fullName', 'Полное название'),
                 ('shortName', 'Краткое название'),
-                ('group', 'Группа'),
-                ('type', 'Тип'),
+                ('group.id', 'Группа'),
+                ('group.name', 'Группа'),
+                ('type.id', 'Тип'),
+                ('type.name', 'Тип'),
                 ('annotation', 'Аннотация'),
                 ('changes', 'Изменения в текущей версии'),
                 ('structure', 'Описание структуры'),
-                ('responsible', 'Ответственная организация'),
-                ('appointed', 'Уполномоченная организация'),
+                ('respOrg.id', 'Ответственная организация'),
+                ('respOrg.name', 'Ответственная организация'),
+                ('authOrg.id', 'Уполномоченная организация'),
+                ('authOrg.name', 'Уполномоченная организация'),
                 ('legalAct', 'Нормативно-правовой акт'),
                 ('verificationDate', 'Срок подтверждения актуальности');
         </sql>

@@ -20,6 +20,7 @@ import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.file.export.*;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.repositiory.PassportValueRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
 import ru.inovus.ms.rdm.service.api.VersionService;
@@ -48,20 +49,23 @@ public class VersionServiceImpl implements VersionService {
     private FileNameGenerator fileNameGenerator;
     private VersionFileRepository versionFileRepository;
     private FileStorage fileStorage;
+    private PassportValueRepository passportValueRepository;
 
 
     private String passportFileHead;
     private boolean includePassport;
 
     @Autowired
-    public VersionServiceImpl(RefBookVersionRepository versionRepository, SearchDataService searchDataService,
+    public VersionServiceImpl(RefBookVersionRepository versionRepository,
+                              SearchDataService searchDataService,
                               FileNameGenerator fileNameGenerator, VersionFileRepository versionFileRepository,
-                              FileStorage fileStorage) {
+                              FileStorage fileStorage, PassportValueRepository passportValueRepository) {
         this.versionRepository = versionRepository;
         this.searchDataService = searchDataService;
         this.fileNameGenerator = fileNameGenerator;
         this.versionFileRepository = versionFileRepository;
         this.fileStorage = fileStorage;
+        this.passportValueRepository = passportValueRepository;
     }
 
     @Value("${rdm.download.passport.head}")
@@ -161,7 +165,7 @@ public class VersionServiceImpl implements VersionService {
                 .getFileGenerator(dataIterator, this.getStructure(versionModel.getId()), fileType);
              Archiver archiver = new Archiver()) {
             if (includePassport) {
-                try (FileGenerator passportPdfFileGenerator = new PassportPdfFileGenerator(this, versionModel.getId(), passportFileHead)) {
+                try (FileGenerator passportPdfFileGenerator = new PassportPdfFileGenerator(passportValueRepository, versionModel.getId(), passportFileHead)) {
                     archiver.addEntry(passportPdfFileGenerator, fileNameGenerator.generateName(versionModel, FileType.PDF));
                 }
             }
@@ -172,4 +176,5 @@ public class VersionServiceImpl implements VersionService {
             throw new RdmException(e);
         }
     }
+
 }

@@ -125,20 +125,20 @@ public class ApplicationTest {
     public static void initialize() {
         refBookCreateRequest = new RefBookCreateRequest();
         refBookCreateRequest.setCode("T1");
-        Map<String, PassportAttributeValue> createPassport = new HashMap<>();
-        createPassport.put(PASSPORT_ATTRIBUTE_FULL_NAME, new PassportAttributeValue("Справочник специальностей", null));
-        createPassport.put(PASSPORT_ATTRIBUTE_ANNOTATION, new PassportAttributeValue("Аннотация для справочника специальностей", null));
-        createPassport.put(PASSPORT_ATTRIBUTE_GROUP, new PassportAttributeValue("Группа неизменна", null));
+        Map<String, String> createPassport = new HashMap<>();
+        createPassport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "Справочник специальностей");
+        createPassport.put(PASSPORT_ATTRIBUTE_ANNOTATION, "Аннотация для справочника специальностей");
+        createPassport.put(PASSPORT_ATTRIBUTE_GROUP, "Группа неизменна");
         refBookCreateRequest.setPassport(createPassport);
 
         refBookUpdateRequest = new RefBookUpdateRequest();
         refBookUpdateRequest.setCode(refBookCreateRequest.getCode() + "_upd");
-        Map<String, PassportAttributeValue> updatePassport = new HashMap<>(createPassport);
+        Map<String, String> updatePassport = new HashMap<>(createPassport);
         //Добавление
-        updatePassport.put(PASSPORT_ATTRIBUTE_SHORT_NAME, new PassportAttributeValue("СПРВЧНК СПЦЛНСТЙ  ", null));
+        updatePassport.put(PASSPORT_ATTRIBUTE_SHORT_NAME, "СПРВЧНК СПЦЛНСТЙ  ");
         //Изменение
-        updatePassport.put(PASSPORT_ATTRIBUTE_FULL_NAME, new PassportAttributeValue("Справочник специальностей_upd", null));
-        updatePassport.put(PASSPORT_ATTRIBUTE_ANNOTATION, new PassportAttributeValue(null, null));
+        updatePassport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "Справочник специальностей_upd");
+        updatePassport.put(PASSPORT_ATTRIBUTE_ANNOTATION, null);
         refBookUpdateRequest.setPassport(updatePassport);
         refBookUpdateRequest.setComment("обновленное наполнение");
 
@@ -223,10 +223,10 @@ public class ApplicationTest {
         refBookUpdateRequest.setId(refBook.getId());
         RefBook updatedRefBook = refBookService.update(refBookUpdateRequest);
         refBook.setCode(refBookUpdateRequest.getCode());
-        Map<String, PassportAttributeValue> expectedAttributesAfterUpdate = new HashMap<>();
+        Map<String, String> expectedAttributesAfterUpdate = new HashMap<>();
         expectedAttributesAfterUpdate.putAll(refBookCreateRequest.getPassport());
         expectedAttributesAfterUpdate.putAll(refBookUpdateRequest.getPassport());
-        expectedAttributesAfterUpdate.entrySet().removeIf(e -> e.getValue() == null || e.getValue().getValue() == null);
+        expectedAttributesAfterUpdate.entrySet().removeIf(e -> e.getValue() == null);
         refBook.setPassport(expectedAttributesAfterUpdate);
         refBook.setComment(refBookUpdateRequest.getComment());
         refBook.setComment(refBookUpdateRequest.getComment());
@@ -304,8 +304,8 @@ public class ApplicationTest {
 
         // поиск по атрибуту паспорта
         RefBookCriteria nameCriteria = new RefBookCriteria();
-        Map<String, PassportAttributeValue> passportMap = new HashMap<>();
-        passportMap.put(PASSPORT_ATTRIBUTE_FULL_NAME, new PassportAttributeValue(SEARCH_BY_NAME_STR, null));
+        Map<String, String> passportMap = new HashMap<>();
+        passportMap.put(PASSPORT_ATTRIBUTE_FULL_NAME, SEARCH_BY_NAME_STR);
         nameCriteria.setPassport(passportMap);
         RefBook refBook = refBookService.create(
                 new RefBookCreateRequest(SEARCH_BY_NAME_STR_ASSERT_CODE, passportMap));
@@ -423,13 +423,13 @@ public class ApplicationTest {
         assertEquals(expected.getLastPublishedVersionFromDate(), actual.getLastPublishedVersionFromDate());
     }
 
-    private void assertPassportEqual(Map<String, PassportAttributeValue> expected, Map<String, PassportAttributeValue> actual) {
+    private void assertPassportEqual(Map<String, String> expected, Map<String, String> actual) {
         if (expected == null) assertNull(actual);
         else assertNotNull(actual);
         expected.forEach((k, v) -> {
             if (v == null) assertNull(actual.get(k));
             else assertNotNull(actual.get(k));
-            assertEquals(v.getValue(), actual.get(k).getValue());
+            assertEquals(v, actual.get(k));
         });
     }
 
@@ -594,8 +594,8 @@ public class ApplicationTest {
     public void testSearchInDraft() {
         RefBookCreateRequest createRequest = new RefBookCreateRequest();
         createRequest.setCode("myTestCodeRefBook");
-        Map<String, PassportAttributeValue> createPassport = new HashMap<>();
-        createPassport.put(PASSPORT_ATTRIBUTE_FULL_NAME, new PassportAttributeValue("Справочник для тестирования версий", null));
+        Map<String, String> createPassport = new HashMap<>();
+        createPassport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "Справочник для тестирования версий");
         createRequest.setPassport(createPassport);
 
         RefBook refBook = refBookService.create(createRequest);
@@ -776,8 +776,8 @@ public class ApplicationTest {
     public void testValidatePrimaryKeyOnUpdateAttribute() {
         RefBookCreateRequest createRequest = new RefBookCreateRequest();
         createRequest.setCode("testValidatePrimaryKeyOnUpdateAttribute");
-        Map<String, PassportAttributeValue> createPassport = new HashMap<>();
-        createPassport.put(PASSPORT_ATTRIBUTE_FULL_NAME, new PassportAttributeValue("Справочник для тестирования проверки изменения первичного ключа", null));
+        Map<String, String> createPassport = new HashMap<>();
+        createPassport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "Справочник для тестирования проверки изменения первичного ключа");
         createRequest.setPassport(createPassport);
 
         RefBook refBook = refBookService.create(createRequest);
@@ -1116,7 +1116,7 @@ public class ApplicationTest {
      */
     @Test
     public void testPublicationAllCases() {
-        final String REF_BOOK_CODE = "testPublisAllCases";
+        final String REF_BOOK_CODE = "testPublishAllCases";
         final String FIELD_NAME = "testFieldString";
         final String LEFT_FILE = "testPublishLeftIntersection.xlsx";
         final String MID_FILE = "testPublishMiddleIntersection.xlsx";
@@ -1237,15 +1237,15 @@ public class ApplicationTest {
     @Test
     public void testSortInRefBookSearch() {
         final String REFBOOK_CODE = "refbookSortCode";
-        Map<String, PassportAttributeValue> passport = new HashMap<>();
-        passport.put(PASSPORT_ATTRIBUTE_FULL_NAME, new PassportAttributeValue("order1", null));
-        passport.put(PASSPORT_ATTRIBUTE_SHORT_NAME, new PassportAttributeValue("order3", null));
+        Map<String, String> passport = new HashMap<>();
+        passport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "order1");
+        passport.put(PASSPORT_ATTRIBUTE_SHORT_NAME, "order3");
         RefBook refBook1 = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE + 2, passport));
-        passport.put(PASSPORT_ATTRIBUTE_FULL_NAME, new PassportAttributeValue("order3", null));
-        passport.put(PASSPORT_ATTRIBUTE_SHORT_NAME, new PassportAttributeValue("order2", null));
+        passport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "order3");
+        passport.put(PASSPORT_ATTRIBUTE_SHORT_NAME, "order2");
         RefBook refBook2 = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE + 3, passport));
-        passport.put(PASSPORT_ATTRIBUTE_FULL_NAME, new PassportAttributeValue("order3", null));
-        passport.put(PASSPORT_ATTRIBUTE_SHORT_NAME, new PassportAttributeValue("order1", null));
+        passport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "order3");
+        passport.put(PASSPORT_ATTRIBUTE_SHORT_NAME, "order1");
         RefBook refBook3 = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE + 1, passport));
 
         RefBookCriteria criteria = new RefBookCriteria();

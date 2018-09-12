@@ -62,6 +62,20 @@
         </sql>
     </changeSet>
 
+    <changeSet id="201809071602_RDM_85" author="amardanova" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="passport_attribute" columnName="comparable" schemaName="n2o_rdm_management"/>
+            </not>
+        </preConditions>
+        <comment>Сравнение значений атрибута при сравнении метаданных версий</comment>
+        <sql>
+            ALTER TABLE n2o_rdm_management.passport_attribute ADD COLUMN "comparable" BOOLEAN;
+
+            COMMENT ON COLUMN n2o_rdm_management.passport_attribute.comparable IS 'Сравнение значений атрибута при сравнении паспортов версий';
+        </sql>
+    </changeSet>
+
     <changeSet id="201808171600_RDM-97" author="znurgaliev" dbms="postgresql">
         <preConditions onFail="MARK_RAN">
             <not>

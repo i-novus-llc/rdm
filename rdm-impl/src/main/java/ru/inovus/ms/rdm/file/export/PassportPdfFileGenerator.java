@@ -1,25 +1,27 @@
 package ru.inovus.ms.rdm.file.export;
 
 import com.itextpdf.text.DocumentException;
+import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.exception.RdmException;
-import ru.inovus.ms.rdm.model.PassportAttributeValue;
-import ru.inovus.ms.rdm.model.RefBookVersion;
-import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.repositiory.PassportValueRepository;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Objects;
+
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class PassportPdfFileGenerator implements FileGenerator {
 
-    VersionService versionService;
+    PassportValueRepository passportValueRepository;
     Integer versionId;
     String head;
 
-    public PassportPdfFileGenerator(VersionService versionService, Integer versionId, String head) {
-        this.versionService = versionService;
+    public PassportPdfFileGenerator(PassportValueRepository passportValueRepository, Integer versionId, String head) {
+        this.passportValueRepository = passportValueRepository;
         this.versionId = versionId;
         this.head = head;
     }
@@ -28,15 +30,19 @@ public class PassportPdfFileGenerator implements FileGenerator {
     public void generate(OutputStream outputStream) {
 
 
-        RefBookVersion version = versionService.getById(versionId);
-        if (version == null) return;
+        List<PassportValueEntity> values = passportValueRepository.findAllByVersionIdOrderByAttributePosition(versionId);
+        if (isEmpty(values)) return;
 
         Map<String, String> passportToWrite = new LinkedHashMap<>();
-        version.getPassport().entrySet().stream()
-                .forEach(entry -> passportToWrite.put(String.valueOf(entry.getValue().getName()), entry.getValue().getValue()));
-        String paragraph = Optional.ofNullable(version.getPassport().get(head)).map(PassportAttributeValue::getValue).orElse("");
 
+        for (PassportValueEntity value : values) {
+            passportToWrite.put(value.getAttribute().getName(), String.valueOf(value.getValue()));
+        }
 
+        String paragraph = values.stream()
+                .filter(value -> Objects.equals(value.getAttribute().getCode(), head))
+                .map(value -> String.valueOf(value.getValue()))
+                .findFirst().orElse("");
 
         PdfCreatorUtil pdfCreatorUtil = new PdfCreatorUtil();
         try {

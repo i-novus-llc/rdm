@@ -24,7 +24,6 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-
 @RunWith(MockitoJUnitRunner.class)
 public class VersionServiceTest {
 
@@ -32,7 +31,6 @@ public class VersionServiceTest {
 
     @InjectMocks
     private VersionServiceImpl versionService;
-
 
     @Mock
     private RefBookVersionRepository versionRepository;
