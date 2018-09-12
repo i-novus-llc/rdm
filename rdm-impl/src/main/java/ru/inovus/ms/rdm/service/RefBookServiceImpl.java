@@ -216,7 +216,7 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     @Transactional
     public Page<RefBookVersion> getVersions(VersionCriteria criteria) {
-        criteria.setOrders(Collections.singletonList(new Sort.Order(Sort.Direction.DESC, "fromDate", Sort.NullHandling.NULLS_FIRST)));
+        criteria.setOrders(Collections.singletonList(new Sort.Order(Sort.Direction.DESC, REF_BOOK_FROM_DATE_SORT_PROPERTY, Sort.NullHandling.NULLS_FIRST)));
         Page<RefBookVersionEntity> list = repository.findAll(toPredicate(criteria), criteria);
         return list.map(ModelGenerator::versionModel);
     }
