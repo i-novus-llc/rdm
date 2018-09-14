@@ -9,8 +9,8 @@
 
         <preConditions onFail="CONTINUE">
             <and>
-                <tableExists tableName="ref_book" schemaName="n20_rdm_management"/>
-                <tableIsEmpty tableName="ref_book" schemaName="n20_rdm_management"/>
+                <tableExists tableName="ref_book" schemaName="n2o_rdm_management"/>
+                <tableIsEmpty tableName="ref_book" schemaName="n2o_rdm_management"/>
             </and>
         </preConditions>
         <comment>Тестовые данные</comment>
