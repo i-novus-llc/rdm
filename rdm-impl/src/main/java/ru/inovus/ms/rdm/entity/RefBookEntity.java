@@ -77,6 +77,7 @@ public class RefBookEntity {
         return currentOperation;
     }
 
+    @SuppressWarnings("all")
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
