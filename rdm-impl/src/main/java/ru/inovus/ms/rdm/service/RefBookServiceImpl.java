@@ -57,11 +57,14 @@ public class RefBookServiceImpl implements RefBookService {
     private PassportValueRepository passportValueRepository;
     private PassportPredicateProducer passportPredicateProducer;
     private EntityManager entityManager;
+    private RefBookLockService refBookLockService;
 
     @Autowired
+    @SuppressWarnings("all")
     public RefBookServiceImpl(RefBookVersionRepository repository, RefBookRepository refBookRepository,
                               DraftDataService draftDataService, DropDataService dropDataService,
-                              PassportValueRepository passportValueRepository, PassportPredicateProducer passportPredicateProducer, EntityManager entityManager) {
+                              PassportValueRepository passportValueRepository, PassportPredicateProducer passportPredicateProducer,
+                              EntityManager entityManager, RefBookLockService refBookLockService) {
         this.repository = repository;
         this.refBookRepository = refBookRepository;
         this.draftDataService = draftDataService;
@@ -69,6 +72,7 @@ public class RefBookServiceImpl implements RefBookService {
         this.passportValueRepository = passportValueRepository;
         this.passportPredicateProducer = passportPredicateProducer;
         this.entityManager = entityManager;
+        this.refBookLockService = refBookLockService;
     }
 
     @Override
@@ -176,6 +180,7 @@ public class RefBookServiceImpl implements RefBookService {
 
         validateVersionExists(request.getId());
         validateVersionNotArchived(request.getId());
+        refBookLockService.validateRefBookNotBusyByVersionId(request.getId());
 
         RefBookVersionEntity refBookVersionEntity = repository.findOne(request.getId());
         RefBookEntity refBookEntity = refBookVersionEntity.getRefBook();
@@ -190,7 +195,12 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     @Transactional
     public void delete(int refBookId) {
-        refBookRepository.getOne(refBookId).getVersionList().forEach(v ->
+
+        validateRefBookExists(refBookId);
+        RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
+        refBookLockService.validateRefBookNotBusy(refBookEntity);
+
+        refBookEntity.getVersionList().forEach(v ->
                 dropDataService.drop(refBookRepository.getOne(refBookId).getVersionList().stream()
                         .map(RefBookVersionEntity::getStorageCode)
                         .collect(Collectors.toSet())));
