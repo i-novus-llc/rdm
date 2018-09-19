@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import ru.inovus.ms.rdm.enumeration.RefBookOperation;
 import ru.inovus.ms.rdm.util.JsonLocalDateTimeSerializer;
 import ru.inovus.ms.rdm.util.JsonLocalDateTimeDeserializer;
 
@@ -22,6 +23,9 @@ public class RefBook extends RefBookVersion {
     @JsonDeserialize(using = JsonLocalDateTimeDeserializer.class)
     private LocalDateTime lastPublishedVersionFromDate;
 
+    @ApiModelProperty("Текущая операция над справочником")
+    private RefBookOperation currentOperation;
+
     public RefBook() {
     }
 
@@ -33,6 +37,7 @@ public class RefBook extends RefBookVersion {
         super(refBook);
         this.removable = refBook.getRemovable();
         this.lastPublishedVersionFromDate = refBook.getLastPublishedVersionFromDate();
+        this.currentOperation = refBook.getCurrentOperation();
     }
 
     public Boolean getRemovable() {
@@ -49,5 +54,13 @@ public class RefBook extends RefBookVersion {
 
     public void setLastPublishedVersionFromDate(LocalDateTime lastPublishedVersionFromDate) {
         this.lastPublishedVersionFromDate = lastPublishedVersionFromDate;
+    }
+
+    public RefBookOperation getCurrentOperation() {
+        return currentOperation;
+    }
+
+    public void setCurrentOperation(RefBookOperation currentOperation) {
+        this.currentOperation = currentOperation;
     }
 }

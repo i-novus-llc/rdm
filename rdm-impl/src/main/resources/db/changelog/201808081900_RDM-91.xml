@@ -4,10 +4,10 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
 
-    <changeSet id="201808081900_RDM-91_1_1" author="znurgaliev" dbms="postgresql">
+    <changeSet id="201808081900_RDM-91_1_2" author="znurgaliev" dbms="postgresql">
         <preConditions onFail="MARK_RAN">
             <not>
-                <tableExists tableName="ref_book_version" schemaName="ref_book_version_file"/>
+                <tableExists tableName="ref_book_version_file" schemaName="n2o_rdm_management"/>
             </not>
         </preConditions>
         <comment>Добавление таблица для файлов версий</comment>

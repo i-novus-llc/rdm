@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="201809141600_RDM-95_1" author="znurgaliev" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="ref_book_operation" schemaName="n2o_rdm_management"/>
+            </not>
+        </preConditions>
+        <comment>Добавление таблицы действий над справочником</comment>
+        <sql>
+
+            CREATE TABLE IF NOT EXISTS n2o_rdm_management.ref_book_operation (
+            id              SERIAL  PRIMARY KEY NOT NULL,
+            ref_book_id     INTEGER             NOT NULL,
+            operation       VARCHAR             NOT NULL,
+            instance_id     VARCHAR             NOT NULL,
+            user_name       VARCHAR             NOT NULL,
+
+            CONSTRAINT fk_ref_book_operation_ref_book_id FOREIGN KEY (ref_book_id) REFERENCES n2o_rdm_management.ref_book (id) ON DELETE CASCADE ON UPDATE RESTRICT
+            );
+
+            COMMENT ON TABLE n2o_rdm_management.ref_book_operation IS 'Действия над справочниками';
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_operation.id IS 'Идентификатор';
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_operation.ref_book_id IS 'Ссылка на справочник';
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_operation.operation IS 'Текущее действие над справочником';
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_operation.user_name IS 'Имя пользователя запустившего действие';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

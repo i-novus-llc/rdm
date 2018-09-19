@@ -81,6 +81,8 @@ public class DraftServiceImpl implements DraftService {
 
     private PassportValueRepository passportValueRepository;
 
+    private RefBookLockService refBookLockService;
+
     private int errorCountLimit = 100;
     private String passportFileHead = "fullName";
     private boolean includePassport = false;
@@ -94,7 +96,8 @@ public class DraftServiceImpl implements DraftService {
     public DraftServiceImpl(DraftDataService draftDataService, RefBookVersionRepository versionRepository, VersionService versionService,
                             SearchDataService searchDataService, DropDataService dropDataService, FileStorage fileStorage,
                             FileNameGenerator fileNameGenerator, VersionFileRepository versionFileRepository, VersionNumberStrategy versionNumberStrategy,
-                            VersionPeriodPublishValidation versionPeriodPublishValidation, PassportValueRepository passportValueRepository) {
+                            VersionPeriodPublishValidation versionPeriodPublishValidation, PassportValueRepository passportValueRepository,
+                            RefBookLockService refBookLockService) {
         this.draftDataService = draftDataService;
         this.versionRepository = versionRepository;
         this.versionService = versionService;
@@ -106,6 +109,7 @@ public class DraftServiceImpl implements DraftService {
         this.versionNumberStrategy = versionNumberStrategy;
         this.versionPeriodPublishValidation = versionPeriodPublishValidation;
         this.passportValueRepository = passportValueRepository;
+        this.refBookLockService = refBookLockService;
     }
 
     @Value("${rdm.validation-errors-count}")
@@ -129,19 +133,25 @@ public class DraftServiceImpl implements DraftService {
 
         validateRefBookExists(refBookId);
         validateRefBookNotArchived(refBookId);
+        refBookLockService.setRefBookUploading(refBookId);
 
-        Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
-        BiConsumer<String, Structure> consumer = getSaveDraftConsumer(refBookId);
-        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
-        CreateDraftBufferedRowsPersister rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, consumer);
-        try (FilePerRowProcessor persister = FileProcessorFactory.createProcessor(extension,
-                rowsProcessor, new PlainRowMapper())) {
-            persister.process(inputStreamSupplier);
-        } catch (IOException e) {
-            throw new RdmException(e);
+        try {
+            Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
+            BiConsumer<String, Structure> consumer = getSaveDraftConsumer(refBookId);
+            String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
+            CreateDraftBufferedRowsPersister rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, consumer);
+            try (FilePerRowProcessor persister = FileProcessorFactory.createProcessor(extension,
+                    rowsProcessor, new PlainRowMapper())) {
+                persister.process(inputStreamSupplier);
+            } catch (IOException e) {
+                throw new RdmException(e);
+            }
+            RefBookVersionEntity createdDraft = getDraftByRefbook(refBookId);
+            return new Draft(createdDraft.getId(), createdDraft.getStorageCode());
+        } finally {
+            refBookLockService.deleteRefBookAction(refBookId);
         }
-        RefBookVersionEntity createdDraft = getDraftByRefbook(refBookId);
-        return new Draft(createdDraft.getId(), createdDraft.getStorageCode());
+
     }
 
     private BiConsumer<String, Structure> getSaveDraftConsumer(Integer refBookId) {
@@ -153,7 +163,7 @@ public class DraftServiceImpl implements DraftService {
             }
             if (draftVersion != null) {
                 dropDataService.drop(Collections.singleton(draftVersion.getStorageCode()));
-                remove(draftVersion.getId());
+                versionRepository.delete(draftVersion.getId());
                 draftVersion = newDraftVersion(structure, draftVersion);
             } else {
                 draftVersion = newDraftVersion(structure, lastRefBookVersion);
@@ -246,28 +256,34 @@ public class DraftServiceImpl implements DraftService {
 
         validateDraftExists(draftId);
         validateDraftNotArchived(draftId);
-
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
-        String storageCode = draft.getStorageCode();
-        Structure structure = draft.getStructure();
-        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
-        Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
+        Integer refBookId = draft.getRefBook().getId();
+        refBookLockService.setRefBookUploading(refBookId);
 
-        StructureRowMapper nonStrictOnTypeRowMapper = new NonStrictOnTypeRowMapper(structure, versionRepository);
-        try (FilePerRowProcessor validator = FileProcessorFactory.createProcessor(extension,
-                new RowsValidatorImpl(versionService, searchDataService, structure, storageCode, errorCountLimit), nonStrictOnTypeRowMapper)) {
-            validator.process(inputStreamSupplier);
-        } catch (IOException e) {
-            throw new RdmException(e);
-        }
+        try {
+            String storageCode = draft.getStorageCode();
+            Structure structure = draft.getStructure();
+            String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
+            Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
+
+            StructureRowMapper nonStrictOnTypeRowMapper = new NonStrictOnTypeRowMapper(structure, versionRepository);
+            try (FilePerRowProcessor validator = FileProcessorFactory.createProcessor(extension,
+                    new RowsValidatorImpl(versionService, searchDataService, structure, storageCode, errorCountLimit), nonStrictOnTypeRowMapper)) {
+                validator.process(inputStreamSupplier);
+            } catch (IOException e) {
+                throw new RdmException(e);
+            }
 
 
-        StructureRowMapper structureRowMapper = new StructureRowMapper(structure, versionRepository);
-        try (FilePerRowProcessor persister = FileProcessorFactory.createProcessor(extension,
-                new BufferedRowsPersister(draftDataService, storageCode, structure), structureRowMapper)) {
-            persister.process(inputStreamSupplier);
-        } catch (IOException e) {
-            throw new RdmException(e);
+            StructureRowMapper structureRowMapper = new StructureRowMapper(structure, versionRepository);
+            try (FilePerRowProcessor persister = FileProcessorFactory.createProcessor(extension,
+                    new BufferedRowsPersister(draftDataService, storageCode, structure), structureRowMapper)) {
+                persister.process(inputStreamSupplier);
+            } catch (IOException e) {
+                throw new RdmException(e);
+            }
+        } finally {
+            refBookLockService.deleteRefBookAction(refBookId);
         }
 
 
@@ -295,49 +311,57 @@ public class DraftServiceImpl implements DraftService {
         validateDraftNotArchived(draftId);
 
         RefBookVersionEntity draftVersion = versionRepository.findOne(draftId);
-        if (versionName == null) {
-            versionName = versionNumberStrategy.next(draftVersion.getRefBook().getId());
-        } else if (!versionNumberStrategy.check(versionName, draftVersion.getRefBook().getId())) {
-            throw new UserException(new Message("invalid.version.name", versionName));
+        Integer refBookId = draftVersion.getRefBook().getId();
+        refBookLockService.setRefBookPublishing(refBookId);
+        try {
+
+            draftVersion = versionRepository.findOne(draftId);
+            if (versionName == null) {
+                versionName = versionNumberStrategy.next(refBookId);
+            } else if (!versionNumberStrategy.check(versionName, refBookId)) {
+                throw new UserException(new Message("invalid.version.name", versionName));
+            }
+
+            if (fromDate == null) fromDate = LocalDateTime.now();
+            if (toDate != null && fromDate.isAfter(toDate)) throw new UserException("invalid.version.period");
+
+            versionPeriodPublishValidation.validate(fromDate, toDate, refBookId);
+
+            RefBookVersionEntity lastPublishedVersion = getLastPublishedVersion(draftVersion);
+            String storageCode = draftDataService.applyDraft(
+                    lastPublishedVersion != null ? lastPublishedVersion.getStorageCode() : null,
+                    draftVersion.getStorageCode(),
+                    Date.from(fromDate.atZone(ZoneId.systemDefault()).toInstant()),
+                    toDate == null ? null : Date.from(toDate.atZone(ZoneId.systemDefault()).toInstant())
+            );
+
+            Set<String> dataStorageToDelete = new HashSet<>();
+            dataStorageToDelete.add(draftVersion.getStorageCode());
+
+            draftVersion.setStorageCode(storageCode);
+            draftVersion.setVersion(versionName);
+            draftVersion.setStatus(RefBookVersionStatus.PUBLISHED);
+            draftVersion.setFromDate(fromDate);
+            draftVersion.setToDate(toDate);
+            resolveOverlappingPeriodsInFuture(fromDate, toDate, refBookId);
+            versionRepository.save(draftVersion);
+
+            if (lastPublishedVersion != null && lastPublishedVersion.getStorageCode() != null) {
+                dataStorageToDelete.add(lastPublishedVersion.getStorageCode());
+                versionRepository.findByStorageCode(lastPublishedVersion.getStorageCode()).stream()
+                        .peek(version -> version.setStorageCode(storageCode))
+                        .forEach(versionRepository::save);
+            }
+
+            dropDataService.drop(dataStorageToDelete);
+
+
+            RefBookVersion versionModel = versionService.getById(draftId);
+            for (FileType fileType : PerRowFileGeneratorFactory.getAvalibleTypes())
+                saveVersionFile(versionModel, fileType, generateVersionFile(versionModel, fileType));
+        } finally {
+            refBookLockService.deleteRefBookAction(refBookId);
         }
-
-        if (fromDate == null) fromDate = LocalDateTime.now();
-        if (toDate != null && fromDate.isAfter(toDate)) throw new UserException("invalid.version.period");
-
-        versionPeriodPublishValidation.validate(fromDate, toDate, draftVersion.getRefBook().getId());
-
-        RefBookVersionEntity lastPublishedVersion = getLastPublishedVersion(draftVersion);
-        String storageCode = draftDataService.applyDraft(
-                lastPublishedVersion != null ? lastPublishedVersion.getStorageCode() : null,
-                draftVersion.getStorageCode(),
-                Date.from(fromDate.atZone(ZoneId.systemDefault()).toInstant()),
-                toDate == null ? null : Date.from(toDate.atZone(ZoneId.systemDefault()).toInstant())
-        );
-
-        Set<String> dataStorageToDelete = new HashSet<>();
-        dataStorageToDelete.add(draftVersion.getStorageCode());
-
-        draftVersion.setStorageCode(storageCode);
-        draftVersion.setVersion(versionName);
-        draftVersion.setStatus(RefBookVersionStatus.PUBLISHED);
-        draftVersion.setFromDate(fromDate);
-        draftVersion.setToDate(toDate);
-        resolveOverlappingPeriodsInFuture(fromDate, toDate, draftVersion.getRefBook().getId());
-        versionRepository.save(draftVersion);
-
-        if (lastPublishedVersion != null && lastPublishedVersion.getStorageCode() !=null){
-            dataStorageToDelete.add(lastPublishedVersion.getStorageCode());
-            versionRepository.findByStorageCode(lastPublishedVersion.getStorageCode()).stream()
-                    .peek(version -> version.setStorageCode(storageCode))
-                    .forEach(versionRepository::save);
-        }
-
-        dropDataService.drop(dataStorageToDelete);
-
-
-        RefBookVersion versionModel = versionService.getById(draftId);
-        for (FileType fileType : PerRowFileGeneratorFactory.getAvalibleTypes())
-            saveVersionFile(versionModel, fileType, generateVersionFile(versionModel, fileType));
     }
 
     protected RefBookVersionEntity getLastPublishedVersion(RefBookVersionEntity draftVersion) {
@@ -379,6 +403,7 @@ public class DraftServiceImpl implements DraftService {
 
         validateDraftExists(draftId);
         validateDraftNotArchived(draftId);
+        refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
         versionRepository.delete(draftId);
     }
@@ -402,6 +427,8 @@ public class DraftServiceImpl implements DraftService {
 
         validateDraftExists(createAttribute.getVersionId());
         validateDraftNotArchived(createAttribute.getVersionId());
+        refBookLockService.validateRefBookNotBusyByVersionId(createAttribute.getVersionId());
+
 
         RefBookVersionEntity draftEntity = versionRepository.findOne(createAttribute.getVersionId());
         Structure.Attribute attribute = createAttribute.getAttribute();
@@ -442,6 +469,7 @@ public class DraftServiceImpl implements DraftService {
 
         validateDraftExists(updateAttribute.getVersionId());
         validateDraftNotArchived(updateAttribute.getVersionId());
+        refBookLockService.validateRefBookNotBusyByVersionId(updateAttribute.getVersionId());
 
         RefBookVersionEntity draftEntity = versionRepository.findOne(updateAttribute.getVersionId());
         Structure structure = draftEntity.getStructure();
@@ -578,6 +606,7 @@ public class DraftServiceImpl implements DraftService {
 
         validateDraftExists(draftId);
         validateDraftNotArchived(draftId);
+        refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
         RefBookVersionEntity draftEntity = versionRepository.findOne(draftId);
         Structure.Attribute attribute = draftEntity.getStructure().getAttribute(attributeCode);
