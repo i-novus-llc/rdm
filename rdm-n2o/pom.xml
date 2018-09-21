@@ -36,12 +36,17 @@
 
         <dependency>
             <groupId>net.n2oapp.framework</groupId>
+            <artifactId>n2o-header</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>net.n2oapp.framework</groupId>
             <artifactId>n2o-engine-rest</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-rs-client</artifactId>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-jaxrs-client</artifactId>
         </dependency>
 
     </dependencies>
