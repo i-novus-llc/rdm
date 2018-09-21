@@ -96,33 +96,35 @@ public class AttributeDiff {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         AttributeDiff that = (AttributeDiff) o;
-        return Objects.equals(code, that.code) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(type, that.type) &&
-                Objects.equals(isPrimary, that.isPrimary) &&
-                Objects.equals(isRequired, that.isRequired) &&
-                Objects.equals(description, that.description) &&
-                Objects.equals(diffStatus, that.diffStatus);
+
+        if (code != null ? !code.equals(that.code) : that.code != null) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (type != null ? !type.equals(that.type) : that.type != null) return false;
+        if (isPrimary != null ? !isPrimary.equals(that.isPrimary) : that.isPrimary != null) return false;
+        if (isRequired != null ? !isRequired.equals(that.isRequired) : that.isRequired != null) return false;
+        if (description != null ? !description.equals(that.description) : that.description != null) return false;
+        return diffStatus == that.diffStatus;
+
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(code, name, type, isPrimary, isRequired, description, diffStatus);
+        int result = code != null ? code.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + (isPrimary != null ? isPrimary.hashCode() : 0);
+        result = 31 * result + (isRequired != null ? isRequired.hashCode() : 0);
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (diffStatus != null ? diffStatus.hashCode() : 0);
+        return result;
     }
 
     public static class AttributeFieldDiff {
 
-        @Override
-        public String toString() {
-            return "AttributeFieldDiff{" +
-                    "oldValue=" + oldValue +
-                    ", newValue=" + newValue +
-                    '}';
-        }
-
-        Object oldValue;
-        Object newValue;
+        private Object oldValue;
+        private Object newValue;
 
         public AttributeFieldDiff() {
         }
@@ -161,18 +163,5 @@ public class AttributeDiff {
         public int hashCode() {
             return Objects.hash(oldValue, newValue);
         }
-    }
-
-    @Override
-    public String toString() {
-        return "AttributeDiff{" +
-                "code='" + code + '\'' +
-                ", name=" + name +
-                ", type=" + type +
-                ", isPrimary=" + isPrimary +
-                ", isRequired=" + isRequired +
-                ", description=" + description +
-                ", diffStatus=" + diffStatus +
-                '}';
     }
 }

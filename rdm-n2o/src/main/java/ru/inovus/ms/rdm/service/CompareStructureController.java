@@ -41,9 +41,8 @@ public class CompareStructureController {
                         createDiff(null, attribute, null))
                 .collect(Collectors.toList()));
         resultDiffs.addAll(deleted);
-        resultDiffs.removeIf(attrDiff ->{
-                    return criteria.getDiffStatus() != null && !Objects.equals(criteria.getDiffStatus(), attrDiff.getDiffStatus());
-                });
+        resultDiffs.removeIf(attrDiff ->
+                criteria.getDiffStatus() != null && !Objects.equals(criteria.getDiffStatus(), attrDiff.getDiffStatus()));
 
         return getPage(resultDiffs, criteria);
     }
