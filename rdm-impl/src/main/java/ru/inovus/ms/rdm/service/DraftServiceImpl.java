@@ -325,7 +325,7 @@ public class DraftServiceImpl implements DraftService {
         resolveOverlappingPeriodsInFuture(fromDate, toDate, draftVersion.getRefBook().getId());
         versionRepository.save(draftVersion);
 
-        if (lastPublishedVersion != null && lastPublishedVersion.getStorageCode() !=null){
+        if (lastPublishedVersion != null && lastPublishedVersion.getStorageCode() != null && draftVersion.getStructure().storageEquals(lastPublishedVersion.getStructure())) {
             dataStorageToDelete.add(lastPublishedVersion.getStorageCode());
             versionRepository.findByStorageCode(lastPublishedVersion.getStorageCode()).stream()
                     .peek(version -> version.setStorageCode(storageCode))

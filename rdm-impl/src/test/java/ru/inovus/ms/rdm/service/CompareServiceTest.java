@@ -52,8 +52,8 @@ public class CompareServiceTest {
     private static PassportAttributeEntity passportAttributeType;
     private static List<PassportAttributeEntity> passportAttributeEntities;
 
-    private static RefBookVersionEntity firstVersion;
-    private static RefBookVersionEntity secondVersion;
+    private static RefBookVersionEntity oldVersion;
+    private static RefBookVersionEntity newVersion;
 
     @BeforeClass
     public static void initialize() {
@@ -69,36 +69,36 @@ public class CompareServiceTest {
     @Before
     public void setUp() {
 
-        firstVersion = new RefBookVersionEntity();
-        firstVersion.setId(2);
-        firstVersion.setStatus(RefBookVersionStatus.PUBLISHED);
+        oldVersion = new RefBookVersionEntity();
+        oldVersion.setId(2);
+        oldVersion.setStatus(RefBookVersionStatus.PUBLISHED);
 
-        secondVersion = new RefBookVersionEntity();
-        secondVersion.setId(3);
-        secondVersion.setStatus(RefBookVersionStatus.PUBLISHED);
+        newVersion = new RefBookVersionEntity();
+        newVersion.setId(3);
+        newVersion.setStatus(RefBookVersionStatus.PUBLISHED);
 
-        when(versionRepository.getOne(firstVersion.getId())).thenReturn(firstVersion);
-        when(versionRepository.getOne(secondVersion.getId())).thenReturn(secondVersion);
+        when(versionRepository.getOne(oldVersion.getId())).thenReturn(oldVersion);
+        when(versionRepository.getOne(newVersion.getId())).thenReturn(newVersion);
         when(passportAttributeRepository.findAllByComparableIsTrue()).thenReturn(passportAttributeEntities);
     }
 
     @Test
     public void testComparePassports() {
-        Set<PassportValueEntity> firstPassportValues = new HashSet<>();
-        firstPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name", firstVersion));
-        firstPassportValues.add(new PassportValueEntity(passportAttributeShortName, "short_name", firstVersion));
-        firstPassportValues.add(new PassportValueEntity(passportAttributeGroup, "group", firstVersion));
-        firstPassportValues.add(new PassportValueEntity(passportAttributeType, null, firstVersion));
-        firstVersion.setPassportValues(firstPassportValues);
+        Set<PassportValueEntity> oldPassportValues = new HashSet<>();
+        oldPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name", oldVersion));
+        oldPassportValues.add(new PassportValueEntity(passportAttributeShortName, "short_name", oldVersion));
+        oldPassportValues.add(new PassportValueEntity(passportAttributeGroup, "group", oldVersion));
+        oldPassportValues.add(new PassportValueEntity(passportAttributeType, null, oldVersion));
+        oldVersion.setPassportValues(oldPassportValues);
 
-        Set<PassportValueEntity> secondPassportValues = new HashSet<>();
-        secondPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name_upd", secondVersion));
-        secondPassportValues.add(new PassportValueEntity(passportAttributeAnnotation, "annotation", secondVersion));
-        secondPassportValues.add(new PassportValueEntity(passportAttributeGroup, "group", secondVersion));
-        secondPassportValues.add(new PassportValueEntity(passportAttributeType, null, secondVersion));
-        secondVersion.setPassportValues(secondPassportValues);
+        Set<PassportValueEntity> newPassportValues = new HashSet<>();
+        newPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name_upd", newVersion));
+        newPassportValues.add(new PassportValueEntity(passportAttributeAnnotation, "annotation", newVersion));
+        newPassportValues.add(new PassportValueEntity(passportAttributeGroup, "group", newVersion));
+        newPassportValues.add(new PassportValueEntity(passportAttributeType, null, newVersion));
+        newVersion.setPassportValues(newPassportValues);
 
-        PassportDiff actualPassportDiff = compareService.comparePassports(firstVersion.getId(), secondVersion.getId());
+        PassportDiff actualPassportDiff = compareService.comparePassports(oldVersion.getId(), newVersion.getId());
 
         List<PassportAttributeDiff> expectedPassportAttributeDiffList = new ArrayList<>();
         expectedPassportAttributeDiffList.add(new PassportAttributeDiff(
@@ -123,15 +123,15 @@ public class CompareServiceTest {
 
     @Test
     public void testComparePassportsWhenUpdateAttributeValue() {
-        Set<PassportValueEntity> firstPassportValues = new HashSet<>();
-        firstPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name", firstVersion));
-        firstVersion.setPassportValues(firstPassportValues);
+        Set<PassportValueEntity> oldPassportValues = new HashSet<>();
+        oldPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name", oldVersion));
+        oldVersion.setPassportValues(oldPassportValues);
 
-        Set<PassportValueEntity> secondPassportValues = new HashSet<>();
-        secondPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name_upd", secondVersion));
-        secondVersion.setPassportValues(secondPassportValues);
+        Set<PassportValueEntity> newPassportValues = new HashSet<>();
+        newPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name_upd", newVersion));
+        newVersion.setPassportValues(newPassportValues);
 
-        PassportDiff actualPassportDiff = compareService.comparePassports(firstVersion.getId(), secondVersion.getId());
+        PassportDiff actualPassportDiff = compareService.comparePassports(oldVersion.getId(), newVersion.getId());
 
         List<PassportAttributeDiff> expectedPassportAttributeDiffList = new ArrayList<>();
         expectedPassportAttributeDiffList.add(new PassportAttributeDiff(
@@ -146,14 +146,14 @@ public class CompareServiceTest {
 
     @Test
     public void testComparePassportsWhenAddAttributeValue() {
-        Set<PassportValueEntity> firstPassportValues = new HashSet<>();
-        firstVersion.setPassportValues(firstPassportValues);
+        Set<PassportValueEntity> oldPassportValues = new HashSet<>();
+        oldVersion.setPassportValues(oldPassportValues);
 
-        Set<PassportValueEntity> secondPassportValues = new HashSet<>();
-        secondPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name", secondVersion));
-        secondVersion.setPassportValues(secondPassportValues);
+        Set<PassportValueEntity> newPassportValues = new HashSet<>();
+        newPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name", newVersion));
+        newVersion.setPassportValues(newPassportValues);
 
-        PassportDiff actualPassportDiff = compareService.comparePassports(firstVersion.getId(), secondVersion.getId());
+        PassportDiff actualPassportDiff = compareService.comparePassports(oldVersion.getId(), newVersion.getId());
         List<PassportAttributeDiff> expectedPassportAttributeDiffList = new ArrayList<>();
         expectedPassportAttributeDiffList.add(new PassportAttributeDiff(
                 new PassportAttribute(passportAttributeFullName.getCode(), passportAttributeFullName.getName()),
@@ -167,14 +167,14 @@ public class CompareServiceTest {
 
     @Test
     public void testComparePassportsWhenDeleteAttributeValue() {
-        Set<PassportValueEntity> firstPassportValues = new HashSet<>();
-        firstPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name", firstVersion));
-        firstVersion.setPassportValues(firstPassportValues);
+        Set<PassportValueEntity> oldPassportValues = new HashSet<>();
+        oldPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name", oldVersion));
+        oldVersion.setPassportValues(oldPassportValues);
 
-        Set<PassportValueEntity> secondPassportValues = new HashSet<>();
-        secondVersion.setPassportValues(secondPassportValues);
+        Set<PassportValueEntity> newPassportValues = new HashSet<>();
+        newVersion.setPassportValues(newPassportValues);
 
-        PassportDiff actualPassportDiff = compareService.comparePassports(firstVersion.getId(), secondVersion.getId());
+        PassportDiff actualPassportDiff = compareService.comparePassports(oldVersion.getId(), newVersion.getId());
         List<PassportAttributeDiff> expectedPassportAttributeDiffList = new ArrayList<>();
         expectedPassportAttributeDiffList.add(new PassportAttributeDiff(
                 new PassportAttribute(passportAttributeFullName.getCode(), passportAttributeFullName.getName()),
@@ -188,15 +188,15 @@ public class CompareServiceTest {
 
     @Test
     public void testComparePassportsWhenNoDiff() {
-        Set<PassportValueEntity> firstPassportValues = new HashSet<>();
-        firstPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name", firstVersion));
-        firstVersion.setPassportValues(firstPassportValues);
+        Set<PassportValueEntity> oldPassportValues = new HashSet<>();
+        oldPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name", oldVersion));
+        oldVersion.setPassportValues(oldPassportValues);
 
-        Set<PassportValueEntity> secondPassportValues = new HashSet<>();
-        secondPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name", secondVersion));
-        secondVersion.setPassportValues(secondPassportValues);
+        Set<PassportValueEntity> newPassportValues = new HashSet<>();
+        newPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name", newVersion));
+        newVersion.setPassportValues(newPassportValues);
 
-        PassportDiff actualPassportDiff = compareService.comparePassports(firstVersion.getId(), secondVersion.getId());
+        PassportDiff actualPassportDiff = compareService.comparePassports(oldVersion.getId(), newVersion.getId());
         List<PassportAttributeDiff> expectedPassportAttributeDiffList = new ArrayList<>();
         PassportDiff expectedPassportDiff = new PassportDiff(expectedPassportAttributeDiffList);
 
@@ -210,8 +210,8 @@ public class CompareServiceTest {
                     expectedPassportAttributeDiff.getPassportAttribute().getCode().equals(passportAttributeDiff.getPassportAttribute().getCode())).findFirst().orElse(null);
             if (actualPassportAttributeDiff == null)
                 Assert.fail("Attribute \"" + expectedPassportAttributeDiff.getPassportAttribute().getName() + "\" must be in diff");
-            assertEquals(expectedPassportAttributeDiff.getFirstValue(), actualPassportAttributeDiff.getFirstValue());
-            assertEquals(expectedPassportAttributeDiff.getSecondValue(), actualPassportAttributeDiff.getSecondValue());
+            assertEquals(expectedPassportAttributeDiff.getOldValue(), actualPassportAttributeDiff.getOldValue());
+            assertEquals(expectedPassportAttributeDiff.getNewValue(), actualPassportAttributeDiff.getNewValue());
         });
     }
 

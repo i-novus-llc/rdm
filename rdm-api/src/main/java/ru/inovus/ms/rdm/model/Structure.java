@@ -4,6 +4,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
@@ -51,6 +52,10 @@ public class Structure implements Serializable {
             if (a.getIsPrimary())
                 a.setPrimary(false);
         });
+    }
+
+    public List<Attribute> getPrimary() {
+        return attributes.stream().filter(attribute -> attribute.isPrimary).collect(Collectors.toList());
     }
 
     public List<Attribute> getAttributes() {
@@ -157,6 +162,14 @@ public class Structure implements Serializable {
             this.description = description;
         }
 
+        public boolean storageEquals(Attribute a) {
+            if (code != null ? !code.equals(a.code) : a.code != null)
+                return false;
+            if (name != null ? !name.equals(a.name) : a.name != null)
+                return false;
+            return type == a.type;
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -173,7 +186,6 @@ public class Structure implements Serializable {
             if (description != null ? !description.equals(attribute.description) : attribute.description != null)
                 return false;
             return type == attribute.type;
-
         }
 
         @Override
@@ -286,6 +298,12 @@ public class Structure implements Serializable {
             result = 31 * result + (sortingAttributes != null ? sortingAttributes.hashCode() : 0);
             return result;
         }
+    }
+
+    public boolean storageEquals(Structure s) {
+        if (!isEmpty(attributes) && isEmpty(s.getAttributes()))
+            return false;
+        return attributes.stream().noneMatch(attribute -> s.attributes.stream().noneMatch(attribute::storageEquals));
     }
 
     @Override
