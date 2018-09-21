@@ -10,7 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
@@ -44,6 +46,8 @@ public class RefBookServiceImpl implements RefBookService {
     private static final String VERSION_ID_SORT_PROPERTY = "id";
     private static final String REF_BOOK_ID_SORT_PROPERTY = "refbookId";
     private static final String REF_BOOK_CODE_SORT_PROPERTY = "code";
+    private static final String REF_BOOK_LAST_PUBLISH_SORT_PROPERTY = "lastPublishedVersionFromDate";
+    private static final String REF_BOOK_FROM_DATE_SORT_PROPERTY = "fromDate";
 
     private static final Logger logger = LoggerFactory.getLogger(RefBookServiceImpl.class);
     private RefBookVersionRepository repository;
@@ -53,11 +57,14 @@ public class RefBookServiceImpl implements RefBookService {
     private PassportValueRepository passportValueRepository;
     private PassportPredicateProducer passportPredicateProducer;
     private EntityManager entityManager;
+    private RefBookLockService refBookLockService;
 
     @Autowired
+    @SuppressWarnings("all")
     public RefBookServiceImpl(RefBookVersionRepository repository, RefBookRepository refBookRepository,
                               DraftDataService draftDataService, DropDataService dropDataService,
-                              PassportValueRepository passportValueRepository, PassportPredicateProducer passportPredicateProducer, EntityManager entityManager) {
+                              PassportValueRepository passportValueRepository, PassportPredicateProducer passportPredicateProducer,
+                              EntityManager entityManager, RefBookLockService refBookLockService) {
         this.repository = repository;
         this.refBookRepository = refBookRepository;
         this.draftDataService = draftDataService;
@@ -65,6 +72,7 @@ public class RefBookServiceImpl implements RefBookService {
         this.passportValueRepository = passportValueRepository;
         this.passportPredicateProducer = passportPredicateProducer;
         this.entityManager = entityManager;
+        this.refBookLockService = refBookLockService;
     }
 
     @Override
@@ -122,6 +130,10 @@ public class RefBookServiceImpl implements RefBookService {
                 case REF_BOOK_CODE_SORT_PROPERTY:
                     sortExpression = QRefBookVersionEntity.refBookVersionEntity.refBook.code;
                     break;
+                case REF_BOOK_LAST_PUBLISH_SORT_PROPERTY:
+                case REF_BOOK_FROM_DATE_SORT_PROPERTY:
+                    sortExpression = QRefBookVersionEntity.refBookVersionEntity.fromDate;
+                    break;
                 default:
                     throw new UserException(new Message("cannot.order.by", order.getProperty()));
             }
@@ -168,6 +180,7 @@ public class RefBookServiceImpl implements RefBookService {
 
         validateVersionExists(request.getId());
         validateVersionNotArchived(request.getId());
+        refBookLockService.validateRefBookNotBusyByVersionId(request.getId());
 
         RefBookVersionEntity refBookVersionEntity = repository.findOne(request.getId());
         RefBookEntity refBookEntity = refBookVersionEntity.getRefBook();
@@ -182,7 +195,12 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     @Transactional
     public void delete(int refBookId) {
-        refBookRepository.getOne(refBookId).getVersionList().forEach(v ->
+
+        validateRefBookExists(refBookId);
+        RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
+        refBookLockService.validateRefBookNotBusy(refBookEntity);
+
+        refBookEntity.getVersionList().forEach(v ->
                 dropDataService.drop(refBookRepository.getOne(refBookId).getVersionList().stream()
                         .map(RefBookVersionEntity::getStorageCode)
                         .collect(Collectors.toSet())));
@@ -208,7 +226,7 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     @Transactional
     public Page<RefBookVersion> getVersions(VersionCriteria criteria) {
-        criteria.setOrders(Collections.singletonList(new Sort.Order(Sort.Direction.DESC, "fromDate", Sort.NullHandling.NULLS_FIRST)));
+        criteria.setOrders(Collections.singletonList(new Sort.Order(Sort.Direction.DESC, REF_BOOK_FROM_DATE_SORT_PROPERTY, Sort.NullHandling.NULLS_FIRST)));
         Page<RefBookVersionEntity> list = repository.findAll(toPredicate(criteria), criteria);
         return list.map(ModelGenerator::versionModel);
     }

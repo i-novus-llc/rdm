@@ -60,7 +60,10 @@ public final class RefBookVersionPredicates {
     }
 
     public static BooleanExpression isLastPublished() {
-        return isPublished().and(QRefBookVersionEntity.refBookVersionEntity.toDate.isNull());
+        QRefBookVersionEntity whereVersion = new QRefBookVersionEntity("isLastVersion");
+        return isPublished().and(QRefBookVersionEntity.refBookVersionEntity.fromDate.eq(JPAExpressions
+                .select(whereVersion.fromDate.max()).from(whereVersion)
+                .where(whereVersion.refBook.eq(QRefBookVersionEntity.refBookVersionEntity.refBook))));
     }
 
     public static BooleanExpression isCodeContains(String code) {

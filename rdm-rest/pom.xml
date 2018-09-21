@@ -119,7 +119,7 @@
         <profile>
             <id>fnsi</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <activeByDefault>false</activeByDefault>
             </activation>
             <dependencies>
                 <dependency>
