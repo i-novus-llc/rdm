@@ -23,6 +23,8 @@ import java.sql.Date;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static cz.atria.common.lang.Util.isEmpty;
@@ -71,6 +73,37 @@ public class CompareServiceImpl implements CompareService {
             }
         });
         return new PassportDiff(passportAttributeDiffList);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public StructureDiff compareStructures(Integer oldVersionId, Integer newVersionId) {
+
+        RefBookVersionEntity oldVersion = versionRepository.findOne(oldVersionId);
+        RefBookVersionEntity newVersion = versionRepository.findOne(newVersionId);
+        if (oldVersion == null || newVersion == null)
+            throw new IllegalArgumentException("invalid.version.ids");
+
+        List<StructureDiff.AttributeDiff> inserted = new ArrayList<>();
+        List<StructureDiff.AttributeDiff> updated = new ArrayList<>();
+        List<StructureDiff.AttributeDiff> deleted = new ArrayList<>();
+
+        newVersion.getStructure().getAttributes().forEach(newAttribute -> {
+            Optional<Structure.Attribute> oldAttribute = oldVersion.getStructure().getAttributes().stream()
+                    .filter(o -> Objects.equals(newAttribute.getCode(), o.getCode())).findAny();
+            if (!oldAttribute.isPresent()) {
+                inserted.add(new StructureDiff.AttributeDiff(null, newAttribute));
+            } else if (oldAttribute.get().equals(newAttribute)) {
+                updated.add(new StructureDiff.AttributeDiff(oldAttribute.get(), newAttribute));
+            }
+        });
+        oldVersion.getStructure().getAttributes().stream()
+                .filter(oldAttribute -> newVersion.getStructure().getAttributes().stream()
+                        .noneMatch(n -> Objects.equals(oldAttribute.getCode(), n.getCode())))
+                .map(oldAttribute -> new StructureDiff.AttributeDiff(oldAttribute, null))
+                .forEach(deleted::add);
+
+        return new StructureDiff(inserted, updated, deleted);
     }
 
     @Override

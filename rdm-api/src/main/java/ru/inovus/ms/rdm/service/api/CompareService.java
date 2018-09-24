@@ -4,6 +4,7 @@ import io.swagger.annotations.*;
 import ru.inovus.ms.rdm.model.CompareDataCriteria;
 import ru.inovus.ms.rdm.model.PassportDiff;
 import ru.inovus.ms.rdm.model.RefBookDataDiff;
+import ru.inovus.ms.rdm.model.StructureDiff;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -36,5 +37,19 @@ public interface CompareService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     RefBookDataDiff compareData(@BeanParam CompareDataCriteria compareDataCriteria);
+
+    @GET
+    @Path("/structures")
+    @ApiOperation("Сравнение структуры версий")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    StructureDiff compareStructures(@ApiParam("Идентификатор старой версии")
+                                    @QueryParam("oldVersionId")
+                                    Integer oldVersionId,
+                                    @ApiParam("Идентификатор новой версии")
+                                    @QueryParam("newVersionId")
+                                    Integer newVersionId);
 
 }
