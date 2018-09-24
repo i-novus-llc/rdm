@@ -19,4 +19,4 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = CommonField.class, name = "StringField"),
         @JsonSubTypes.Type(value = CommonField.class, name = "TreeField")
 })
-public abstract class FieldMixin {}
+public class FieldMixin {}
