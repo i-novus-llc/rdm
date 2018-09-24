@@ -301,9 +301,9 @@ public class Structure implements Serializable {
     }
 
     public boolean storageEquals(Structure s) {
-        if (!isEmpty(attributes) && isEmpty(s.getAttributes()))
-            return false;
-        return attributes.stream().noneMatch(attribute -> s.attributes.stream().noneMatch(attribute::storageEquals));
+        return isEmpty(attributes)
+                ? isEmpty(s.getAttributes())
+                : attributes.stream().noneMatch(attribute -> s.attributes.stream().noneMatch(attribute::storageEquals));
     }
 
     @Override
