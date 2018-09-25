@@ -2,7 +2,7 @@ package ru.inovus.ms.rdm.criteria;
 
 import net.n2oapp.criteria.api.Sorting;
 import net.n2oapp.framework.api.criteria.N2oPreparedCriteria;
-import net.n2oapp.framework.api.data.CriteriaResolver;
+import net.n2oapp.framework.api.data.CriteriaConstructor;
 import org.springframework.data.domain.Sort;
 import ru.inovus.ms.rdm.model.RefBookCriteria;
 import org.springframework.data.domain.Sort.Order;
@@ -11,13 +11,13 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RefBookCriteriaResolver implements CriteriaResolver, Serializable {
+public class RefBookCriteriaConstructor implements CriteriaConstructor, Serializable {
 
 
     @Override
-    public <T> T resolve(N2oPreparedCriteria criteria, Class<T> criteriaClass) {
+    public <T> T construct(N2oPreparedCriteria criteria, Class<T> criteriaClass) {
 
-        T instance = null;
+        T instance;
         try {
             instance = criteriaClass.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
