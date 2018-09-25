@@ -1,81 +1,57 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<query xmlns:n2o="http://n2oapp.net/framework/config/schema/n2o-query-executions-1.0"
-       xmlns="http://n2oapp.net/framework/config/schema/query-3.0">
-    <object-id>passport</object-id>
-    <name>Паспорт справочника</name>
-    <execution>
-        <n2o:rest>
-            <n2o:query-by-id>${rdm.backend.path}/refBook/{id}</n2o:query-by-id>
-        </n2o:rest>
-    </execution>
+<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0"
+       object-id="passport"
+       name="Паспорт справочника">
+    <unique filters="id" result-mapping="#this">
+        <rest>/refBook/{id}</rest>
+    </unique>
 
     <fields>
-        <field>
-            <id>id</id>
-            <domain>integer</domain>
-            <display>id</display>
-            <filters auto-generate="true">
-                <filter type="eq" filter-field="id">:id</filter>
+        <field id="id" domain="integer">
+            <select mapping="['id']"/>
+            <filters>
+                <eq filter-id="id">id={id}</eq>
             </filters>
         </field>
 
-        <field>
-            <id>code</id>
-            <domain>string</domain>
-            <display/>
+        <field id="code" domain="string">
+            <select mapping="['code']"/>
         </field>
 
-        <field>
-            <id>name</id>
-            <domain>string</domain>
+        <field id="name" domain="string">
+            <select mapping="['name']"/>
         </field>
 
-        <field>
-            <id>shortName</id>
-            <domain>string</domain>
-            <display/>
+        <field id="shortName" domain="string">
+            <select mapping="['shortName']"/>
         </field>
 
-        <field>
-            <id>fullName</id>
-            <domain>string</domain>
-            <display/>
+        <field id="fullName" domain="string">
+            <select mapping="['fullName']"/>
         </field>
 
-        <field>
-            <id>fromDate</id>
-            <domain>date</domain>
-            <display/>
+        <field id="fromDate" domain="date">
+            <select mapping="['fromDate']"/>
         </field>
 
-        <field>
-            <id>firstPublishedVersionFromDate</id>
-            <domain>date</domain>
-            <display/>
+        <field id="firstPublishedVersionFromDate">
+            <select mapping="['firstPublishedVersionFromDate']"/>
         </field>
 
-        <field>
-            <id>version</id>
-            <domain>string</domain>
-            <display/>
+        <field id="version" domain="string">
+            <select mapping="['version']"/>
         </field>
 
-        <field>
-            <id>annotation</id>
-            <domain>string</domain>
-            <display/>
+        <field id="annotation">
+            <select mapping="['annotation']"/>
         </field>
 
-        <field>
-            <id>comment</id>
-            <domain>string</domain>
-            <display/>
+        <field id="comment">
+            <select mapping="['comment']"/>
         </field>
 
-        <field>
-            <id>recordsCount</id>
-            <domain>integer</domain>
-            <display/>
+        <field id="recordsCount">
+            <select mapping="['recordsCount']"/>
         </field>
 
     </fields>

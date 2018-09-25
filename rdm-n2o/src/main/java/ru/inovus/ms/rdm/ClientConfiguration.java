@@ -13,12 +13,8 @@ import ru.inovus.ms.rdm.util.ExportFileProvider;
 import ru.inovus.ms.rdm.util.RdmParamConverterProvider;
 import ru.inovus.ms.rdm.util.RowValueMapperPreparer;
 
-
-
 @Configuration
 public class ClientConfiguration {
-    @Value("${rdm.backend.path}")
-    private String restUrl;
 
     @Bean
     RdmParamConverterProvider rdmParamConverterProvider() {
