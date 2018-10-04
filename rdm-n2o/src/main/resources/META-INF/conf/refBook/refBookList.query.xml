@@ -24,13 +24,13 @@
             <filters>
                 <eq filter-id="code" mapping="code"/>
             </filters>
-            <sorting mapping="codeDir">sort=code,{codeDir}</sorting>
+            <sorting/>
         </field>
 
         <field id="status" domain="string">
             <select mapping="status"/>
             <filters>
-                <eq filter-id="status" mapping="status"/>
+                <eq filter-id="status.id" mapping="status"/>
             </filters>
         </field>
 
@@ -39,7 +39,7 @@
             <filters>
                 <eq filter-id="name" mapping="passport['name']"/>
             </filters>
-            <sorting mapping="nameDir">sort=name,{nameDir}</sorting>
+            <sorting />
         </field>
 
         <field id="displayVersion" domain="string">
@@ -49,10 +49,10 @@
         <field id="lastPublishedVersionFromDate" domain="date">
             <select mapping="['lastPublishedVersionFromDate']"/>
             <filters>
-                <more filter-id="lastPublishedVersionFromDateInterval.begin"/>
-                <less filter-id="lastPublishedVersionFromDateInterval.end"/>
+                <more filter-id="lastPublishedVersionFromDateInterval.begin" mapping="['fromDateBegin']"/>
+                <less filter-id="lastPublishedVersionFromDateInterval.end" mapping="['fromDateEnd']"/>
             </filters>
-            <sorting mapping="lastPublishedVersionFromDateDir">sort=lastPublishedVersionFromDate, {lastPublishedVersionFromDateDir}</sorting>
+            <sorting/>
         </field>
     </fields>
 </query>

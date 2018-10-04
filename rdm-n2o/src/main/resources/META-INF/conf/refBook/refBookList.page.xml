@@ -24,10 +24,5 @@
                 <text format="date DD.MM.YYYY"/>
             </column>
         </columns>
-        <toolbar>
-        <button id="create" label="Создать" icon="fa fa-plus">
-            <a href="test"/>
-        </button>
-        </toolbar>
     </table>
 </simple-page>
