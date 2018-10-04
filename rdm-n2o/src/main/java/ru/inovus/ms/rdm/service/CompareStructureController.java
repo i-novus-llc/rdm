@@ -9,7 +9,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.inovus.ms.rdm.model.AttributeDiff;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.model.StructureDiff;
-import ru.inovus.ms.rdm.model.StructureDiffCriteria;
+import ru.inovus.ms.rdm.model.CompareCriteria;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
@@ -25,7 +25,7 @@ public class CompareStructureController {
     @Autowired
     VersionService versionService;
 
-    public Page<AttributeDiff> getCommonDiff(StructureDiffCriteria criteria) {
+    public Page<AttributeDiff> getCommonDiff(CompareCriteria criteria) {
 
         Structure newStructure = versionService.getStructure(criteria.getNewVersionId());
         StructureDiff structureDiff = compareService.compareStructures(criteria.getOldVersionId(), criteria.getNewVersionId());
@@ -47,7 +47,7 @@ public class CompareStructureController {
         return getPage(resultDiffs, criteria);
     }
 
-    public Page<AttributeDiff> getOldWithDiff(StructureDiffCriteria criteria) {
+    public Page<AttributeDiff> getOldWithDiff(CompareCriteria criteria) {
         Structure oldStructure = versionService.getStructure(criteria.getOldVersionId());
         StructureDiff structureDiff = compareService.compareStructures(criteria.getOldVersionId(), criteria.getNewVersionId());
 
@@ -65,7 +65,7 @@ public class CompareStructureController {
         return getPage(resultDiffs, criteria);
     }
 
-    public Page<AttributeDiff> getNewWithDiff(StructureDiffCriteria criteria) {
+    public Page<AttributeDiff> getNewWithDiff(CompareCriteria criteria) {
         Structure newStructure = versionService.getStructure(criteria.getNewVersionId());
         StructureDiff structureDiff = compareService.compareStructures(criteria.getOldVersionId(), criteria.getNewVersionId());
 

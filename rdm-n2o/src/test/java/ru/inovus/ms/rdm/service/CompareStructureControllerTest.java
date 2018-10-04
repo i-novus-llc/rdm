@@ -14,7 +14,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.model.AttributeDiff;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.model.StructureDiff;
-import ru.inovus.ms.rdm.model.StructureDiffCriteria;
+import ru.inovus.ms.rdm.model.CompareCriteria;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
@@ -96,23 +96,23 @@ public class CompareStructureControllerTest {
                 .limit(2)
                 .collect(Collectors.toList());
 
-        Page<AttributeDiff> actual = compareStructureController.getCommonDiff(new StructureDiffCriteria(oldId, newId, null));
+        Page<AttributeDiff> actual = compareStructureController.getCommonDiff(new CompareCriteria(oldId, newId, null));
         Assert.assertEquals(5, actual.getTotalElements());
         Assert.assertEquals(expectedCommon, actual.getContent());
 
-        actual = compareStructureController.getCommonDiff(new StructureDiffCriteria(oldId, newId, DiffStatusEnum.INSERTED));
+        actual = compareStructureController.getCommonDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.INSERTED));
         Assert.assertEquals(1, actual.getTotalElements());
         Assert.assertEquals(expectedInserted, actual.getContent());
 
-        actual = compareStructureController.getCommonDiff(new StructureDiffCriteria(oldId, newId, DiffStatusEnum.UPDATED));
+        actual = compareStructureController.getCommonDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.UPDATED));
         Assert.assertEquals(1, actual.getTotalElements());
         Assert.assertEquals(expectedUpdated, actual.getContent());
 
-        actual = compareStructureController.getCommonDiff(new StructureDiffCriteria(oldId, newId, DiffStatusEnum.DELETED));
+        actual = compareStructureController.getCommonDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.DELETED));
         Assert.assertEquals(1, actual.getTotalElements());
         Assert.assertEquals(expectedDeleted, actual.getContent());
 
-        StructureDiffCriteria criteria = new StructureDiffCriteria(oldId, newId, null);
+        CompareCriteria criteria = new CompareCriteria(oldId, newId, null);
         criteria.setPageNumber(1);
         criteria.setPageSize(2);
         actual = compareStructureController.getCommonDiff(criteria);
@@ -144,23 +144,23 @@ public class CompareStructureControllerTest {
                 .limit(2)
                 .collect(Collectors.toList());
 
-        Page<AttributeDiff> actual = compareStructureController.getOldWithDiff(new StructureDiffCriteria(oldId, newId, null));
+        Page<AttributeDiff> actual = compareStructureController.getOldWithDiff(new CompareCriteria(oldId, newId, null));
         Assert.assertEquals(4, actual.getTotalElements());
         Assert.assertEquals(expectedCommon, actual.getContent());
 
-        actual = compareStructureController.getOldWithDiff(new StructureDiffCriteria(oldId, newId, DiffStatusEnum.INSERTED));
+        actual = compareStructureController.getOldWithDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.INSERTED));
         Assert.assertEquals(0, actual.getTotalElements());
         Assert.assertEquals(expectedInserted, actual.getContent());
 
-        actual = compareStructureController.getOldWithDiff(new StructureDiffCriteria(oldId, newId, DiffStatusEnum.UPDATED));
+        actual = compareStructureController.getOldWithDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.UPDATED));
         Assert.assertEquals(1, actual.getTotalElements());
         Assert.assertEquals(expectedUpdated, actual.getContent());
 
-        actual = compareStructureController.getOldWithDiff(new StructureDiffCriteria(oldId, newId, DiffStatusEnum.DELETED));
+        actual = compareStructureController.getOldWithDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.DELETED));
         Assert.assertEquals(1, actual.getTotalElements());
         Assert.assertEquals(expectedDeleted, actual.getContent());
 
-        StructureDiffCriteria criteria = new StructureDiffCriteria(oldId, newId, null);
+        CompareCriteria criteria = new CompareCriteria(oldId, newId, null);
         criteria.setPageNumber(1);
         criteria.setPageSize(2);
         actual = compareStructureController.getOldWithDiff(criteria);
@@ -192,23 +192,23 @@ public class CompareStructureControllerTest {
                 .limit(2)
                 .collect(Collectors.toList());
 
-        Page<AttributeDiff> actual = compareStructureController.getNewWithDiff(new StructureDiffCriteria(oldId, newId, null));
+        Page<AttributeDiff> actual = compareStructureController.getNewWithDiff(new CompareCriteria(oldId, newId, null));
         Assert.assertEquals(4, actual.getTotalElements());
         Assert.assertEquals(expectedCommon, actual.getContent());
 
-        actual = compareStructureController.getNewWithDiff(new StructureDiffCriteria(oldId, newId, DiffStatusEnum.INSERTED));
+        actual = compareStructureController.getNewWithDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.INSERTED));
         Assert.assertEquals(1, actual.getTotalElements());
         Assert.assertEquals(expectedInserted, actual.getContent());
 
-        actual = compareStructureController.getNewWithDiff(new StructureDiffCriteria(oldId, newId, DiffStatusEnum.UPDATED));
+        actual = compareStructureController.getNewWithDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.UPDATED));
         Assert.assertEquals(1, actual.getTotalElements());
         Assert.assertEquals(expectedUpdated, actual.getContent());
 
-        actual = compareStructureController.getNewWithDiff(new StructureDiffCriteria(oldId, newId, DiffStatusEnum.DELETED));
+        actual = compareStructureController.getNewWithDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.DELETED));
         Assert.assertEquals(0, actual.getTotalElements());
         Assert.assertEquals(expectedDeleted, actual.getContent());
 
-        StructureDiffCriteria criteria = new StructureDiffCriteria(oldId, newId, null);
+        CompareCriteria criteria = new CompareCriteria(oldId, newId, null);
         criteria.setPageNumber(1);
         criteria.setPageSize(2);
         actual = compareStructureController.getNewWithDiff(criteria);

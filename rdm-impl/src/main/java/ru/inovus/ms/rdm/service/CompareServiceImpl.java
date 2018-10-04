@@ -118,9 +118,7 @@ public class CompareServiceImpl implements CompareService {
         validatePrimaryAttributesEquality(oldStructure.getPrimary(), newStructure.getPrimary());
 
         CompareDataCriteria compareDataCriteria = getCompareDataCriteria(oldVersion, newVersion);
-        compareDataCriteria.setPrimaryFieldsFilters(criteria.getPrimaryFieldsFilters());
-        compareDataCriteria.setPage(criteria.getPageNumber() + 1);
-        compareDataCriteria.setSize(criteria.getPageSize());
+        fillInVdsCompareDataCriteria(compareDataCriteria, criteria);
 
         List<String> newAttributes = new ArrayList<>();
         List<String> oldAttributes = new ArrayList<>();
@@ -136,7 +134,7 @@ public class CompareServiceImpl implements CompareService {
             if (newStructure.getAttribute(oldAttribute.getCode()) == null)
                 oldAttributes.add(oldAttribute.getCode());
         });
-        DataDifference dataDifference = compareDataService.getDataDifferenceForPeriod(compareDataCriteria);
+        DataDifference dataDifference = compareDataService.getDataDifference(compareDataCriteria);
 
         return new RefBookDataDiff(new DiffRowValuePage(dataDifference.getRows()), oldAttributes, newAttributes, updatedAttributes);
     }
@@ -163,6 +161,14 @@ public class CompareServiceImpl implements CompareService {
                 .collect(Collectors.toList()));
         compareDataCriteria.setFields(getCommonFields(oldVersion.getStructure(), newVersion.getStructure()));
         return compareDataCriteria;
+    }
+
+    private void fillInVdsCompareDataCriteria(CompareDataCriteria vdsCriteria, ru.inovus.ms.rdm.model.CompareDataCriteria rdmCriteria) {
+        vdsCriteria.setPrimaryFieldsFilters(rdmCriteria.getPrimaryFieldsFilters());
+        vdsCriteria.setCountOnly(rdmCriteria.getCountOnly() != null ? rdmCriteria.getCountOnly() : false);
+        vdsCriteria.setStatus(rdmCriteria.getDiffStatus());
+        vdsCriteria.setPage(rdmCriteria.getPageNumber() + 1);
+        vdsCriteria.setSize(rdmCriteria.getPageSize());
     }
 
     private List<Field> getCommonFields(Structure structure1, Structure structure2) {

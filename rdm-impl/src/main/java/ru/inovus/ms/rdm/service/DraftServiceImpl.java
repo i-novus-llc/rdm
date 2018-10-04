@@ -54,6 +54,7 @@ import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
 import static ru.inovus.ms.rdm.util.ConverterUtil.field;
 import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
+import static ru.inovus.ms.rdm.util.ConverterUtil.getFieldSearchCriteriaList;
 
 @Primary
 @Service
@@ -299,7 +300,7 @@ public class DraftServiceImpl implements DraftService {
         String storageCode = draft.getStorageCode();
         List<Field> fields = fields(draft.getStructure());
         DataCriteria dataCriteria = new DataCriteria(storageCode, null, null,
-                fields, ConverterUtil.getFieldSearchCriteriaList(criteria.getAttributeFilter()), criteria.getCommonFilter());
+                fields, getFieldSearchCriteriaList(criteria.getAttributeFilter()), criteria.getPrimaryFieldsFilters(), criteria.getCommonFilter());
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
         return new RowValuePage(pagedData);
     }
