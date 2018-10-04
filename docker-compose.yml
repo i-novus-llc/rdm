@@ -12,3 +12,5 @@ services:
     image: "rdm/frontend:${TAG}"
     depends_on:
       - backend
+    ports:
+      - "8080"
