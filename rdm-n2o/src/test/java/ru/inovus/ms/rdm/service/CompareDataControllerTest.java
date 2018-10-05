@@ -79,6 +79,9 @@ public class CompareDataControllerTest {
 
         when(versionService.getStructure(OLD_ID)).thenReturn(new Structure(asList(id, code, common, descr, upd1, typeS), emptyList()));
         when(versionService.getStructure(NEW_ID)).thenReturn(new Structure(asList(id, code, common, name, upd2, typeI), emptyList()));
+
+        when(versionService.getStructure(OLD_ID_1)).thenReturn(new Structure(asList(id, common), emptyList()));
+        when(versionService.getStructure(NEW_ID_1)).thenReturn(new Structure(asList(id, common), emptyList()));
     }
 
     private void initCriterias() {
@@ -249,52 +252,52 @@ public class CompareDataControllerTest {
      */
     @Test
     public void testCommonDataDiffOnePageWithNewAndDeletedRows() {
-        ComparableField idField = new ComparableField(id.getCode(), id.getName(), null);
-        ComparableField codeField = new ComparableField(code.getCode(), code.getName(), null);
-        ComparableField commonField = new ComparableField(common.getCode(), common.getName(), null);
-        ComparableField nameField = new ComparableField(name.getCode(), name.getName(), DiffStatusEnum.INSERTED);
-        ComparableField updField = new ComparableField(upd2.getCode(), upd2.getName(), DiffStatusEnum.UPDATED);
-        ComparableField typeField = new ComparableField(typeI.getCode(), typeI.getName(), DiffStatusEnum.UPDATED);
-        ComparableField descrField = new ComparableField(descr.getCode(), descr.getName(), DiffStatusEnum.DELETED);
+        ComparableField idFieldComp = new ComparableField(id.getCode(), id.getName(), null);
+        ComparableField codeFieldComp = new ComparableField(code.getCode(), code.getName(), null);
+        ComparableField commonFieldComp = new ComparableField(common.getCode(), common.getName(), null);
+        ComparableField nameFieldComp = new ComparableField(name.getCode(), name.getName(), DiffStatusEnum.INSERTED);
+        ComparableField updFieldComp = new ComparableField(upd2.getCode(), upd2.getName(), DiffStatusEnum.UPDATED);
+        ComparableField typeFieldComp = new ComparableField(typeI.getCode(), typeI.getName(), DiffStatusEnum.UPDATED);
+        ComparableField descrFieldComp = new ComparableField(descr.getCode(), descr.getName(), DiffStatusEnum.DELETED);
         Page<ComparableRow> expectedCommonDataDiff = new RestPage<>(asList(
                 new ComparableRow(asList(
-                        new ComparableFieldValue(idField, BigInteger.valueOf(2), BigInteger.valueOf(2)),
-                        new ComparableFieldValue(codeField, "002", "002"),
-                        new ComparableFieldValue(commonField, "c2", "c2"),
-                        new ComparableFieldValue(nameField, null, "name2"),
-                        new ComparableFieldValue(updField, "u2", "u2"),
-                        new ComparableFieldValue(typeField, "2", BigInteger.valueOf(2)),
-                        new ComparableFieldValue(descrField, "descr2", null)
+                        new ComparableFieldValue(idFieldComp, BigInteger.valueOf(2), BigInteger.valueOf(2)),
+                        new ComparableFieldValue(codeFieldComp, "002", "002"),
+                        new ComparableFieldValue(commonFieldComp, "c2", "c2"),
+                        new ComparableFieldValue(nameFieldComp, null, "name2"),
+                        new ComparableFieldValue(updFieldComp, "u2", "u2"),
+                        new ComparableFieldValue(typeFieldComp, "2", BigInteger.valueOf(2)),
+                        new ComparableFieldValue(descrFieldComp, "descr2", null)
                 ),
                         null),
                 new ComparableRow(asList(
-                        new ComparableFieldValue(idField, BigInteger.valueOf(3), BigInteger.valueOf(3)),
-                        new ComparableFieldValue(codeField, "003", "003"),
-                        new ComparableFieldValue(commonField, "c3", "c3_1"),
-                        new ComparableFieldValue(nameField, null, "name3"),
-                        new ComparableFieldValue(updField, "u3", "u3_1"),
-                        new ComparableFieldValue(typeField, "3", BigInteger.valueOf(3)),
-                        new ComparableFieldValue(descrField, "descr3", null)
+                        new ComparableFieldValue(idFieldComp, BigInteger.valueOf(3), BigInteger.valueOf(3)),
+                        new ComparableFieldValue(codeFieldComp, "003", "003"),
+                        new ComparableFieldValue(commonFieldComp, "c3", "c3_1"),
+                        new ComparableFieldValue(nameFieldComp, null, "name3"),
+                        new ComparableFieldValue(updFieldComp, "u3", "u3_1"),
+                        new ComparableFieldValue(typeFieldComp, "3", BigInteger.valueOf(3)),
+                        new ComparableFieldValue(descrFieldComp, "descr3", null)
                 ),
                         DiffStatusEnum.UPDATED),
                 new ComparableRow(asList(
-                        new ComparableFieldValue(idField, null, BigInteger.valueOf(4)),
-                        new ComparableFieldValue(codeField, null, "004"),
-                        new ComparableFieldValue(commonField, null, "c4"),
-                        new ComparableFieldValue(nameField, null, "name4"),
-                        new ComparableFieldValue(updField, null, "u4"),
-                        new ComparableFieldValue(typeField, null, BigInteger.valueOf(4)),
-                        new ComparableFieldValue(descrField, null, null)
+                        new ComparableFieldValue(idFieldComp, null, BigInteger.valueOf(4)),
+                        new ComparableFieldValue(codeFieldComp, null, "004"),
+                        new ComparableFieldValue(commonFieldComp, null, "c4"),
+                        new ComparableFieldValue(nameFieldComp, null, "name4"),
+                        new ComparableFieldValue(updFieldComp, null, "u4"),
+                        new ComparableFieldValue(typeFieldComp, null, BigInteger.valueOf(4)),
+                        new ComparableFieldValue(descrFieldComp, null, null)
                 ),
                         DiffStatusEnum.INSERTED),
                 new ComparableRow(asList(
-                        new ComparableFieldValue(idField, BigInteger.valueOf(1), null),
-                        new ComparableFieldValue(codeField, "001", null),
-                        new ComparableFieldValue(commonField, "c1", null),
-                        new ComparableFieldValue(updField, "u1", null),
-                        new ComparableFieldValue(typeField, "1", null),
-                        new ComparableFieldValue(descrField, "descr1", null),
-                        new ComparableFieldValue(descrField, "descr1", null)
+                        new ComparableFieldValue(idFieldComp, BigInteger.valueOf(1), null),
+                        new ComparableFieldValue(codeFieldComp, "001", null),
+                        new ComparableFieldValue(commonFieldComp, "c1", null),
+                        new ComparableFieldValue(updFieldComp, "u1", null),
+                        new ComparableFieldValue(typeFieldComp, "1", null),
+                        new ComparableFieldValue(descrFieldComp, "descr1", null),
+                        new ComparableFieldValue(descrFieldComp, "descr1", null)
                 ),
                         DiffStatusEnum.DELETED)
         ));
@@ -324,9 +327,6 @@ public class CompareDataControllerTest {
         int DEF_PAGE_SIZE = 4;
         ComparableField idFieldComp = new ComparableField(id.getCode(), id.getName(), null);
         ComparableField commonFieldComp = new ComparableField(common.getCode(), common.getName(), null);
-
-        when(versionService.getStructure(OLD_ID_1)).thenReturn(new Structure(asList(id, common), emptyList()));
-        when(versionService.getStructure(NEW_ID_1)).thenReturn(new Structure(asList(id, common), emptyList()));
 
         List<RowValue> oldVersionRows = Stream.of(5, 6, 7, 8)
                 .map(index -> new LongRowValue(
@@ -422,9 +422,6 @@ public class CompareDataControllerTest {
         int DEF_PAGE_SIZE = 4;
         ComparableField idFieldComp = new ComparableField(id.getCode(), id.getName(), null);
         ComparableField commonFieldComp = new ComparableField(common.getCode(), common.getName(), null);
-
-        when(versionService.getStructure(OLD_ID_1)).thenReturn(new Structure(asList(id, common), emptyList()));
-        when(versionService.getStructure(NEW_ID_1)).thenReturn(new Structure(asList(id, common), emptyList()));
 
         List<RowValue> oldVersionRows = Stream.of(6, 7, 8, 9, 10, 11, 12, 13)
                 .map(index -> new LongRowValue(
@@ -600,38 +597,38 @@ public class CompareDataControllerTest {
      */
     @Test
     public void testGetOldWithDiff() {
-        ComparableField idField = new ComparableField(id.getCode(), id.getName(), null);
-        ComparableField codeField = new ComparableField(code.getCode(), code.getName(), null);
-        ComparableField commonField = new ComparableField(common.getCode(), common.getName(), null);
-        ComparableField descrField = new ComparableField(descr.getCode(), descr.getName(), DiffStatusEnum.DELETED);
-        ComparableField updField = new ComparableField(upd1.getCode(), upd1.getName(), DiffStatusEnum.UPDATED);
-        ComparableField typeField = new ComparableField(typeS.getCode(), typeS.getName(), DiffStatusEnum.UPDATED);
+        ComparableField idFieldComp = new ComparableField(id.getCode(), id.getName(), null);
+        ComparableField codeFieldComp = new ComparableField(code.getCode(), code.getName(), null);
+        ComparableField commonFieldComp = new ComparableField(common.getCode(), common.getName(), null);
+        ComparableField descrFieldComp = new ComparableField(descr.getCode(), descr.getName(), DiffStatusEnum.DELETED);
+        ComparableField updFieldComp = new ComparableField(upd1.getCode(), upd1.getName(), DiffStatusEnum.UPDATED);
+        ComparableField typeFieldComp = new ComparableField(typeS.getCode(), typeS.getName(), DiffStatusEnum.UPDATED);
         Page<ComparableRow> expectedOldRowsWithDiff = new RestPage<>(asList(
                 new ComparableRow(asList(
-                        new ComparableFieldValue(idField, BigInteger.valueOf(1), null),
-                        new ComparableFieldValue(codeField, "001", null),
-                        new ComparableFieldValue(commonField, "c1", null),
-                        new ComparableFieldValue(updField, "u1", null),
-                        new ComparableFieldValue(typeField, "1", null),
-                        new ComparableFieldValue(descrField, "descr1", null)
+                        new ComparableFieldValue(idFieldComp, BigInteger.valueOf(1), null),
+                        new ComparableFieldValue(codeFieldComp, "001", null),
+                        new ComparableFieldValue(commonFieldComp, "c1", null),
+                        new ComparableFieldValue(updFieldComp, "u1", null),
+                        new ComparableFieldValue(typeFieldComp, "1", null),
+                        new ComparableFieldValue(descrFieldComp, "descr1", null)
                 ),
                         DiffStatusEnum.DELETED),
                 new ComparableRow(asList(
-                        new ComparableFieldValue(idField, BigInteger.valueOf(2), BigInteger.valueOf(2)),
-                        new ComparableFieldValue(codeField, "002", "002"),
-                        new ComparableFieldValue(commonField, "c2", "c2"),
-                        new ComparableFieldValue(updField, "u2", "u2"),
-                        new ComparableFieldValue(typeField, "2", BigInteger.valueOf(2)),
-                        new ComparableFieldValue(descrField, "descr2", null)
+                        new ComparableFieldValue(idFieldComp, BigInteger.valueOf(2), BigInteger.valueOf(2)),
+                        new ComparableFieldValue(codeFieldComp, "002", "002"),
+                        new ComparableFieldValue(commonFieldComp, "c2", "c2"),
+                        new ComparableFieldValue(updFieldComp, "u2", "u2"),
+                        new ComparableFieldValue(typeFieldComp, "2", BigInteger.valueOf(2)),
+                        new ComparableFieldValue(descrFieldComp, "descr2", null)
                 ),
                         null),
                 new ComparableRow(asList(
-                        new ComparableFieldValue(idField, BigInteger.valueOf(3), BigInteger.valueOf(3)),
-                        new ComparableFieldValue(codeField, "003", "003"),
-                        new ComparableFieldValue(commonField, "c3", "c3_1"),
-                        new ComparableFieldValue(updField, "u3", null),
-                        new ComparableFieldValue(typeField, "3", null),
-                        new ComparableFieldValue(descrField, "descr3", null)
+                        new ComparableFieldValue(idFieldComp, BigInteger.valueOf(3), BigInteger.valueOf(3)),
+                        new ComparableFieldValue(codeFieldComp, "003", "003"),
+                        new ComparableFieldValue(commonFieldComp, "c3", "c3_1"),
+                        new ComparableFieldValue(updFieldComp, "u3", null),
+                        new ComparableFieldValue(typeFieldComp, "3", null),
+                        new ComparableFieldValue(descrFieldComp, "descr3", null)
                 ),
                         DiffStatusEnum.UPDATED)
         ));
@@ -644,38 +641,38 @@ public class CompareDataControllerTest {
      */
     @Test
     public void testGetNewWithDiff() {
-        ComparableField idField = new ComparableField(id.getCode(), id.getName(), null);
-        ComparableField codeField = new ComparableField(code.getCode(), code.getName(), null);
-        ComparableField commonField = new ComparableField(common.getCode(), common.getName(), null);
-        ComparableField nameField = new ComparableField(name.getCode(), name.getName(), DiffStatusEnum.INSERTED);
-        ComparableField updField = new ComparableField(upd2.getCode(), upd2.getName(), DiffStatusEnum.UPDATED);
-        ComparableField typeField = new ComparableField(typeI.getCode(), typeI.getName(), DiffStatusEnum.UPDATED);
+        ComparableField idFieldComp = new ComparableField(id.getCode(), id.getName(), null);
+        ComparableField codeFieldComp = new ComparableField(code.getCode(), code.getName(), null);
+        ComparableField commonFieldComp = new ComparableField(common.getCode(), common.getName(), null);
+        ComparableField nameFieldComp = new ComparableField(name.getCode(), name.getName(), DiffStatusEnum.INSERTED);
+        ComparableField updFieldComp = new ComparableField(upd2.getCode(), upd2.getName(), DiffStatusEnum.UPDATED);
+        ComparableField typeFieldComp = new ComparableField(typeI.getCode(), typeI.getName(), DiffStatusEnum.UPDATED);
         Page<ComparableRow> expectedNewRowsWithDiff = new RestPage<>(asList(
                 new ComparableRow(asList(
-                        new ComparableFieldValue(idField, BigInteger.valueOf(2), BigInteger.valueOf(2)),
-                        new ComparableFieldValue(codeField, "002", "002"),
-                        new ComparableFieldValue(commonField, "c2", "c2"),
-                        new ComparableFieldValue(nameField, null, "name2"),
-                        new ComparableFieldValue(updField, "u2", "u2"),
-                        new ComparableFieldValue(typeField, "2", BigInteger.valueOf(2))
+                        new ComparableFieldValue(idFieldComp, BigInteger.valueOf(2), BigInteger.valueOf(2)),
+                        new ComparableFieldValue(codeFieldComp, "002", "002"),
+                        new ComparableFieldValue(commonFieldComp, "c2", "c2"),
+                        new ComparableFieldValue(nameFieldComp, null, "name2"),
+                        new ComparableFieldValue(updFieldComp, "u2", "u2"),
+                        new ComparableFieldValue(typeFieldComp, "2", BigInteger.valueOf(2))
                 ),
                         null),
                 new ComparableRow(asList(
-                        new ComparableFieldValue(idField, BigInteger.valueOf(3), BigInteger.valueOf(3)),
-                        new ComparableFieldValue(codeField, "003", "003"),
-                        new ComparableFieldValue(commonField, "c3", "c3_1"),
-                        new ComparableFieldValue(nameField, null, "name3"),
-                        new ComparableFieldValue(updField, null, "u3_1"),
-                        new ComparableFieldValue(typeField, null, BigInteger.valueOf(3))
+                        new ComparableFieldValue(idFieldComp, BigInteger.valueOf(3), BigInteger.valueOf(3)),
+                        new ComparableFieldValue(codeFieldComp, "003", "003"),
+                        new ComparableFieldValue(commonFieldComp, "c3", "c3_1"),
+                        new ComparableFieldValue(nameFieldComp, null, "name3"),
+                        new ComparableFieldValue(updFieldComp, null, "u3_1"),
+                        new ComparableFieldValue(typeFieldComp, null, BigInteger.valueOf(3))
                 ),
                         DiffStatusEnum.UPDATED),
                 new ComparableRow(asList(
-                        new ComparableFieldValue(idField, null, BigInteger.valueOf(4)),
-                        new ComparableFieldValue(codeField, null, "004"),
-                        new ComparableFieldValue(commonField, null, "c4"),
-                        new ComparableFieldValue(nameField, null, "name4"),
-                        new ComparableFieldValue(updField, null, "u4"),
-                        new ComparableFieldValue(typeField, null, BigInteger.valueOf(4))
+                        new ComparableFieldValue(idFieldComp, null, BigInteger.valueOf(4)),
+                        new ComparableFieldValue(codeFieldComp, null, "004"),
+                        new ComparableFieldValue(commonFieldComp, null, "c4"),
+                        new ComparableFieldValue(nameFieldComp, null, "name4"),
+                        new ComparableFieldValue(updFieldComp, null, "u4"),
+                        new ComparableFieldValue(typeFieldComp, null, BigInteger.valueOf(4))
                 ),
                         DiffStatusEnum.INSERTED)
         ));
