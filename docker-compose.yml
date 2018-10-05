@@ -6,6 +6,7 @@ services:
     image: "rdm/backend:${TAG}"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/rdm
+      SERVER_TOMCAT_ACCESSLOG_ENABLED: true
     depends_on:
       - db
   frontend:
