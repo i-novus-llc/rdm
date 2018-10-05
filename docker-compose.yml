@@ -9,6 +9,8 @@ services:
       SERVER_TOMCAT_ACCESSLOG_ENABLED: "true"
     depends_on:
       - db
+    ports:
+      - "8080"
   frontend:
     image: "rdm/frontend:${TAG}"
     depends_on:
