@@ -6,6 +6,7 @@ import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 
 import javax.ws.rs.QueryParam;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @ApiModel("Критерии сравнения данных версий справочника")
@@ -46,4 +47,18 @@ public class CompareDataCriteria extends CompareCriteria {
         this.countOnly = countOnly;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        CompareDataCriteria that = (CompareDataCriteria) o;
+        return Objects.equals(primaryFieldsFilters, that.primaryFieldsFilters) &&
+                Objects.equals(countOnly, that.countOnly);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), countOnly);
+    }
 }

@@ -30,108 +30,9 @@ public class CompareDataController {
     @Autowired
     VersionService versionService;
 
-    public Page<ComparableRow> getCommonDataDiff(CompareCriteria criteria) {
-
-        Structure newStructure = versionService.getStructure(criteria.getNewVersionId());
-        Structure oldStructure = versionService.getStructure(criteria.getOldVersionId());
-
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
-        searchDataCriteria.setPageNumber(criteria.getPageNumber());
-        searchDataCriteria.setPageSize(criteria.getPageSize());
-        List<ComparableRow> comparableRows = new ArrayList<>();
-        Page<RowValue> newData = versionService.search(criteria.getNewVersionId(), searchDataCriteria);
-
-        long totalNewCount = newData.getTotalElements();
-        long totalDeletedCount = getTotalDeletedCount(criteria);
-        long totalCount = totalNewCount + totalDeletedCount;
-
-        Set<List<FieldValue>> primaryFieldsFilters = getPrimaryFieldsFilters(newData, newStructure);
-
-        CompareDataCriteria compareDataCriteria = new CompareDataCriteria(criteria);
-        compareDataCriteria.setPrimaryFieldsFilters(primaryFieldsFilters);
-        RefBookDataDiff refBookDataDiff = compareService.compareData(compareDataCriteria);
-
-        List<ComparableField> comparableFields = getComparableFieldsList(newStructure, refBookDataDiff.getUpdatedAttributes(),
-                refBookDataDiff.getNewAttributes(), DiffStatusEnum.INSERTED);
-        refBookDataDiff.getOldAttributes()
-                .forEach(oldAttribute ->
-                        comparableFields.add(
-                                new ComparableField(oldAttribute, oldStructure.getAttribute(oldAttribute).getName(),
-                                        DiffStatusEnum.DELETED))
-                );
-
-        Boolean hasUpdOrDelAttr = !isEmpty(refBookDataDiff.getUpdatedAttributes()) || !isEmpty(refBookDataDiff.getOldAttributes());
-        if (hasUpdOrDelAttr) {
-            searchDataCriteria.setPrimaryFieldsFilters(primaryFieldsFilters);
-        }
-        Page<RowValue> oldData = hasUpdOrDelAttr
-                ? versionService.search(criteria.getOldVersionId(), searchDataCriteria)
-                : null;
-
-//        add rows in order of new version
-        newData.getContent()
-                .forEach(newRowValue -> {
-                    ComparableRow comparableRow = new ComparableRow();
-                    DiffRowValue diffRowValue = getDiffRowValue(newStructure.getPrimary(), newRowValue,
-                            refBookDataDiff.getRows().getContent());
-                    RowValue oldRowValue = hasUpdOrDelAttr
-                            ? getRowValue(newStructure.getPrimary(), newRowValue, oldData.getContent())
-                            : null;
-
-                    comparableRow.setStatus(diffRowValue != null ? diffRowValue.getStatus() : null);
-                    comparableRow.setFieldValues(comparableFields
-                            .stream()
-                            .map(comparableField -> {
-                                ComparableFieldValue value = new ComparableFieldValue();
-                                value.setComparableField(comparableField);
-                                setOldAndNewValuesForComparableFieldValue(value,
-                                        diffRowValue != null
-                                                ? diffRowValue.getDiffFieldValue(comparableField.getCode())
-                                                : null,
-                                        oldRowValue,
-                                        newRowValue);
-                                return value;
-                            }).collect(Collectors.toList()));
-                    comparableRows.add(comparableRow);
-                });
-
-        if (comparableRows.size() < criteria.getPageSize()) {
-            int skipPageCount = criteria.getPageNumber() - (int) totalNewCount / criteria.getPageSize();
-            long newDataOnLastPageCount = totalNewCount % criteria.getPageSize();
-            long skipDeletedRowsCount = criteria.getPageSize() * skipPageCount - newDataOnLastPageCount;
-            long pageSize = skipDeletedRowsCount + criteria.getPageSize();
-            SearchDataCriteria delSearchDataCriteria = new SearchDataCriteria();
-            delSearchDataCriteria.setPageNumber(0);
-            delSearchDataCriteria.setPageSize((int) pageSize);
-            Page<RowValue> delData = versionService.search(criteria.getOldVersionId(), delSearchDataCriteria);
-            delData.getContent()
-                    .stream()
-                    .skip(skipDeletedRowsCount > 0 ? skipDeletedRowsCount : 0)
-                    .forEach(deletedRowValue -> {
-                        ComparableRow comparableRow = new ComparableRow();
-                        comparableRow.setStatus(DiffStatusEnum.DELETED);
-                        comparableRow.setFieldValues(comparableFields
-                                .stream()
-                                .map(comparableField -> {
-                                    ComparableFieldValue value = new ComparableFieldValue();
-                                    value.setComparableField(comparableField);
-                                    setOldAndNewValuesForComparableFieldValue(value,
-                                            null,
-                                            deletedRowValue,
-                                            null);
-                                    return value;
-                                }).collect(Collectors.toList()));
-                        comparableRows.add(comparableRow);
-                    });
-        }
-        return new RestPage<>(comparableRows, criteria, totalCount);
-    }
-
     public Page<ComparableRow> getOldWithDiff(CompareCriteria criteria) {
         Structure oldStructure = versionService.getStructure(criteria.getOldVersionId());
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
-        searchDataCriteria.setPageNumber(criteria.getPageNumber());
-        searchDataCriteria.setPageSize(criteria.getPageSize());
+        SearchDataCriteria searchDataCriteria = getSearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize(), null);
         Page<RowValue> oldData = versionService.search(criteria.getOldVersionId(), searchDataCriteria);
 
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria(criteria);
@@ -167,9 +68,7 @@ public class CompareDataController {
 
     public Page<ComparableRow> getNewWithDiff(CompareCriteria criteria) {
         Structure newStructure = versionService.getStructure(criteria.getNewVersionId());
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
-        searchDataCriteria.setPageNumber(criteria.getPageNumber());
-        searchDataCriteria.setPageSize(criteria.getPageSize());
+        SearchDataCriteria searchDataCriteria = getSearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize(), null);
         Page<RowValue> newData = versionService.search(criteria.getNewVersionId(), searchDataCriteria);
 
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria(criteria);
@@ -200,6 +99,120 @@ public class CompareDataController {
                 }).collect(Collectors.toList());
 
         return new RestPage<>(comparableRows, criteria, newData.getTotalElements());
+    }
+
+    public Page<ComparableRow> getCommonDataDiff(CompareCriteria criteria) {
+
+        Structure newStructure = versionService.getStructure(criteria.getNewVersionId());
+        Structure oldStructure = versionService.getStructure(criteria.getOldVersionId());
+
+        SearchDataCriteria searchDataCriteria = getSearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize(), null);
+        Page<RowValue> newData = versionService.search(criteria.getNewVersionId(), searchDataCriteria);
+
+        Set<List<FieldValue>> primaryFieldsFilters = getPrimaryFieldsFilters(newData, newStructure);
+
+        CompareDataCriteria compareDataCriteria = new CompareDataCriteria(criteria);
+        compareDataCriteria.setPrimaryFieldsFilters(primaryFieldsFilters);
+        RefBookDataDiff refBookDataDiff = compareService.compareData(compareDataCriteria);
+
+        List<ComparableField> comparableFields = getComparableFieldsList(newStructure, refBookDataDiff.getUpdatedAttributes(),
+                refBookDataDiff.getNewAttributes(), DiffStatusEnum.INSERTED);
+        refBookDataDiff.getOldAttributes()
+                .forEach(oldAttribute ->
+                        comparableFields.add(
+                                new ComparableField(oldAttribute, oldStructure.getAttribute(oldAttribute).getName(),
+                                        DiffStatusEnum.DELETED))
+                );
+
+        List<ComparableRow> comparableRows = new ArrayList<>();
+
+        addNewVersionRows(comparableRows, refBookDataDiff, newData, criteria, newStructure, comparableFields, primaryFieldsFilters);
+        addDeletedRows(comparableRows, criteria, comparableFields, (int) newData.getTotalElements());
+
+        return new RestPage<>(comparableRows, criteria, newData.getTotalElements() + getTotalDeletedCount(criteria));
+    }
+
+    private void addNewVersionRows(List<ComparableRow> comparableRows, RefBookDataDiff refBookDataDiff, Page<RowValue> newData,
+                                   CompareCriteria criteria, Structure newStructure,
+                                   List<ComparableField> comparableFields, Set<List<FieldValue>> primaryFieldsFilters) {
+        if (isEmpty(newData.getContent()))
+            return;
+
+        Boolean hasUpdOrDelAttr = !isEmpty(refBookDataDiff.getUpdatedAttributes()) || !isEmpty(refBookDataDiff.getOldAttributes());
+
+        SearchDataCriteria oldSearchDataCriteria = hasUpdOrDelAttr
+                ? getSearchDataCriteria(0, criteria.getPageSize(), primaryFieldsFilters)
+                : null;
+
+        Page<RowValue> oldData = hasUpdOrDelAttr
+                ? versionService.search(criteria.getOldVersionId(), oldSearchDataCriteria)
+                : null;
+
+//        add rows in order of new version
+        newData.getContent()
+                .forEach(newRowValue -> {
+                    ComparableRow comparableRow = new ComparableRow();
+                    DiffRowValue diffRowValue = getDiffRowValue(newStructure.getPrimary(), newRowValue,
+                            refBookDataDiff.getRows().getContent());
+                    RowValue oldRowValue = oldData != null
+                            ? getRowValue(newStructure.getPrimary(), newRowValue, oldData.getContent())
+                            : null;
+
+                    comparableRow.setStatus(diffRowValue != null ? diffRowValue.getStatus() : null);
+                    comparableRow.setFieldValues(comparableFields
+                            .stream()
+                            .map(comparableField -> {
+                                ComparableFieldValue value = new ComparableFieldValue();
+                                value.setComparableField(comparableField);
+                                setOldAndNewValuesForComparableFieldValue(value,
+                                        diffRowValue != null
+                                                ? diffRowValue.getDiffFieldValue(comparableField.getCode())
+                                                : null,
+                                        oldRowValue,
+                                        newRowValue);
+                                return value;
+                            }).collect(Collectors.toList()));
+                    comparableRows.add(comparableRow);
+                });
+    }
+
+    private void addDeletedRows(List<ComparableRow> comparableRows, CompareCriteria criteria,
+                                List<ComparableField> comparableFields, int totalNewCount) {
+        if (comparableRows.size() < criteria.getPageSize()) {
+            int skipPageCount = criteria.getPageNumber() - totalNewCount / criteria.getPageSize();
+            long newDataOnLastPageCount = totalNewCount % criteria.getPageSize();
+            long skipDeletedRowsCount = criteria.getPageSize() * skipPageCount - newDataOnLastPageCount;
+            long pageSize = skipDeletedRowsCount + criteria.getPageSize();
+            SearchDataCriteria delSearchDataCriteria = getSearchDataCriteria(0, (int) pageSize, null);
+            Page<RowValue> delData = versionService.search(criteria.getOldVersionId(), delSearchDataCriteria);
+            delData.getContent()
+                    .stream()
+                    .skip(skipDeletedRowsCount > 0 ? skipDeletedRowsCount : 0)
+                    .forEach(deletedRowValue -> {
+                        ComparableRow comparableRow = new ComparableRow();
+                        comparableRow.setStatus(DiffStatusEnum.DELETED);
+                        comparableRow.setFieldValues(comparableFields
+                                .stream()
+                                .map(comparableField -> {
+                                    ComparableFieldValue value = new ComparableFieldValue();
+                                    value.setComparableField(comparableField);
+                                    setOldAndNewValuesForComparableFieldValue(value,
+                                            null,
+                                            deletedRowValue,
+                                            null);
+                                    return value;
+                                }).collect(Collectors.toList()));
+                        comparableRows.add(comparableRow);
+                    });
+        }
+    }
+
+    private SearchDataCriteria getSearchDataCriteria(int pageNumber, int pageSize, Set<List<FieldValue>> primaryFieldsFilters) {
+        SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
+        searchDataCriteria.setPageNumber(pageNumber);
+        searchDataCriteria.setPageSize(pageSize);
+        searchDataCriteria.setPrimaryFieldsFilters(primaryFieldsFilters);
+        return searchDataCriteria;
     }
 
     private Object getValueForComparableFieldValue(DiffRowValue diffRowValue, ComparableField comparableField,
@@ -260,7 +273,7 @@ public class CompareDataController {
         deletedCountCriteria.setPrimaryFieldsFilters(emptySet());
         deletedCountCriteria.setCountOnly(true);
         RefBookDataDiff refBookDeletedRows = compareService.compareData(deletedCountCriteria);
-        return refBookDeletedRows.getRows().getContent().size();
+        return refBookDeletedRows.getRows().getTotalElements();
     }
 
     private List<ComparableField> getComparableFieldsList(Structure structure, List<String> commonAttributes,
@@ -317,7 +330,8 @@ public class CompareDataController {
                 .orElse(null);
     }
 
-    private RowValue getRowValue(List<Structure.Attribute> primaries, RowValue rowValue, List<RowValue> rowValues) {
+    private RowValue getRowValue(List<Structure.Attribute> primaries, RowValue rowValue,
+                                 List<RowValue> rowValues) {
         return rowValues
                 .stream()
                 .filter(rowValue1 ->

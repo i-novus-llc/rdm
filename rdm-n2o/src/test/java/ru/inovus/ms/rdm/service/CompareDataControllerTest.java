@@ -50,6 +50,8 @@ public class CompareDataControllerTest {
     private static final Integer OLD_ID_1 = 3;
     private static final Integer NEW_ID_1 = 4;
 
+    private static final Integer DEF_PAGE_SIZE = 4;
+
     private static Criteria criteria;
     private static CompareDataCriteria compareDataCriteria;
     private static CompareDataCriteria deletedCompareDataCriteria;
@@ -67,11 +69,15 @@ public class CompareDataControllerTest {
     private static Field codeField;
     private static Field commonField;
 
+    private static ComparableField idFieldComp;
+    private static ComparableField commonFieldComp;
+
     @Before
     public void init() {
         initCriterias();
         initAttributes();
         initFields();
+
         prepareRefBookDataDiff();
         prepareRefBookDeletedDataDiff();
         prepareOldVersionData();
@@ -89,9 +95,7 @@ public class CompareDataControllerTest {
 
         compareDataCriteria = new CompareDataCriteria(OLD_ID, NEW_ID);
 
-        deletedCompareDataCriteria = new CompareDataCriteria(OLD_ID, NEW_ID);
-        deletedCompareDataCriteria.setDiffStatus(DiffStatusEnum.DELETED);
-        deletedCompareDataCriteria.setCountOnly(true);
+        deletedCompareDataCriteria = getCompareDataCriteriaDeleted(OLD_ID, NEW_ID);
     }
 
     private void initAttributes() {
@@ -110,6 +114,9 @@ public class CompareDataControllerTest {
         idField = new CommonField(id.getCode());
         codeField = new CommonField(code.getCode());
         commonField = new CommonField(common.getCode());
+
+        idFieldComp = new ComparableField(id.getCode(), id.getName(), null);
+        commonFieldComp = new ComparableField(common.getCode(), common.getName(), null);
     }
 
     private void prepareRefBookDataDiff() {
@@ -235,11 +242,58 @@ public class CompareDataControllerTest {
         return compareDataCriteria;
     }
 
+    private CompareDataCriteria getCompareDataCriteriaDeleted(Integer oldId, Integer newId) {
+        CompareDataCriteria compareDataCriteria = getCompareDataCriteria(oldId, newId, 0, 10);
+        compareDataCriteria.setCountOnly(true);
+        compareDataCriteria.setDiffStatus(DiffStatusEnum.DELETED);
+        return compareDataCriteria;
+    }
+
     private SearchDataCriteria getSearchDataCriteria(int pageNumber, int pageSize) {
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
         searchDataCriteria.setPageNumber(pageNumber);
         searchDataCriteria.setPageSize(pageSize);
         return searchDataCriteria;
+    }
+
+    private List<ComparableRow> getListOfNewComparableRows(Integer ... indexes) {
+        return Stream.of(indexes)
+                .map(index ->
+                        new ComparableRow(asList(
+                                new ComparableFieldValue(idFieldComp, null, BigInteger.valueOf(index)),
+                                new ComparableFieldValue(commonFieldComp, null, "new" + index)
+                        ), DiffStatusEnum.INSERTED)
+                )
+                .collect(Collectors.toList());
+    }
+
+    private List<ComparableRow> getListOfOldComparableRows(Integer ... indexes) {
+        return Stream.of(indexes)
+                .map(index ->
+                        new ComparableRow(asList(
+                                new ComparableFieldValue(idFieldComp, BigInteger.valueOf(index), null),
+                                new ComparableFieldValue(commonFieldComp, "old" + index, null)
+                        ), DiffStatusEnum.DELETED)
+                )
+                .collect(Collectors.toList());
+    }
+
+    private List<DiffRowValue> getListOfNewDiffRowValues(Integer ... indexes) {
+        return Stream.of(indexes)
+                .map(index -> new DiffRowValue(asList(
+                        new DiffFieldValue<>(idField, null, BigInteger.valueOf(index), DiffStatusEnum.INSERTED),
+                        new DiffFieldValue<>(commonField, null, "new" + index, DiffStatusEnum.INSERTED)
+                ), DiffStatusEnum.INSERTED))
+                .collect(Collectors.toList());
+    }
+
+    private List<DiffRowValue> getListOfOldDiffRowValues(Integer ... indexes) {
+        return Stream.of(indexes)
+                .map(index -> new DiffRowValue(asList(
+                        new DiffFieldValue<>(idField, BigInteger.valueOf(index), null, DiffStatusEnum.DELETED),
+                        new DiffFieldValue<>(commonField, "old" + index, null, DiffStatusEnum.DELETED)
+                ), DiffStatusEnum.DELETED))
+                .collect(Collectors.toList());
     }
 
     /*
@@ -324,9 +378,6 @@ public class CompareDataControllerTest {
      */
     @Test
     public void testCommonDataDiffExactDivisionOnPagesWithNewAndDeletedRows() {
-        int DEF_PAGE_SIZE = 4;
-        ComparableField idFieldComp = new ComparableField(id.getCode(), id.getName(), null);
-        ComparableField commonFieldComp = new ComparableField(common.getCode(), common.getName(), null);
 
         List<RowValue> oldVersionRows = Stream.of(5, 6, 7, 8)
                 .map(index -> new LongRowValue(
@@ -357,21 +408,9 @@ public class CompareDataControllerTest {
                 .thenReturn(new RowValuePage(new CollectionPage<>(4, oldVersionRows, getCriteria(0, 4, 4))));
 
 //        test first page
-        Page<ComparableRow> expectedCommonDataDiffPage1 = new RestPage<>(Stream.of(1, 2, 3, 4)
-                .map(index ->
-                        new ComparableRow(asList(
-                                new ComparableFieldValue(idFieldComp, null, BigInteger.valueOf(index)),
-                                new ComparableFieldValue(commonFieldComp, null, "new" + index)
-                        ), DiffStatusEnum.INSERTED)
-                )
-                .collect(Collectors.toList()));
+        Page<ComparableRow> expectedCommonDataDiffPage1 = new RestPage<>(getListOfNewComparableRows(1, 2, 3, 4));
 
-        List<DiffRowValue> diffRowValuesListPage1 = Stream.of(1, 2, 3, 4)
-                .map(index -> new DiffRowValue(asList(
-                        new DiffFieldValue<>(idField, null, BigInteger.valueOf(index), DiffStatusEnum.INSERTED),
-                        new DiffFieldValue<>(commonField, null, "new" + index, DiffStatusEnum.INSERTED)
-                ), DiffStatusEnum.INSERTED))
-                .collect(Collectors.toList());
+        List<DiffRowValue> diffRowValuesListPage1 = getListOfNewDiffRowValues(1, 2, 3, 4);
 
         RefBookDataDiff refBookDataDiffPage1 = new RefBookDataDiff(
                 new DiffRowValuePage(new CollectionPage<>(diffRowValuesListPage1.size(), diffRowValuesListPage1, getCriteria(0, DEF_PAGE_SIZE, 8))),
@@ -385,21 +424,9 @@ public class CompareDataControllerTest {
         assertComparableRowsEquals(expectedCommonDataDiffPage1, actualCommonDataDiffPage1);
 
 //        test second page
-        Page<ComparableRow> expectedCommonDataDiffPage2 = new RestPage<>(Stream.of(5, 6, 7, 8)
-                .map(index ->
-                        new ComparableRow(asList(
-                                new ComparableFieldValue(idFieldComp, BigInteger.valueOf(index), null),
-                                new ComparableFieldValue(commonFieldComp, "old" + index, null)
-                        ), DiffStatusEnum.DELETED)
-                )
-                .collect(Collectors.toList()));
+        Page<ComparableRow> expectedCommonDataDiffPage2 = new RestPage<>(getListOfOldComparableRows(5, 6, 7, 8));
 
-        List<DiffRowValue> diffRowValuesListPage2 = Stream.of(5, 6, 7, 8)
-                .map(index -> new DiffRowValue(asList(
-                        new DiffFieldValue<>(idField, BigInteger.valueOf(index), null, DiffStatusEnum.DELETED),
-                        new DiffFieldValue<>(commonField, "old" + index, null, DiffStatusEnum.DELETED)
-                ), DiffStatusEnum.DELETED))
-                .collect(Collectors.toList());
+        List<DiffRowValue> diffRowValuesListPage2 = getListOfOldDiffRowValues(5, 6, 7, 8);
 
         RefBookDataDiff refBookDataDiffPage2 = new RefBookDataDiff(
                 new DiffRowValuePage(new CollectionPage<>(diffRowValuesListPage2.size(), diffRowValuesListPage2, getCriteria(1, DEF_PAGE_SIZE, 8))),
@@ -419,9 +446,6 @@ public class CompareDataControllerTest {
      */
     @Test
     public void testCommonDataDiffSeveralPagesWithNewAndDeletedRows() {
-        int DEF_PAGE_SIZE = 4;
-        ComparableField idFieldComp = new ComparableField(id.getCode(), id.getName(), null);
-        ComparableField commonFieldComp = new ComparableField(common.getCode(), common.getName(), null);
 
         List<RowValue> oldVersionRows = Stream.of(6, 7, 8, 9, 10, 11, 12, 13)
                 .map(index -> new LongRowValue(
@@ -452,30 +476,18 @@ public class CompareDataControllerTest {
                 .thenReturn(new RowValuePage(new CollectionPage<>(8, emptyList(), new Criteria())));
         when(versionService
                 .search(eq(OLD_ID_1), argThat(new SearchDataCriteriaMatcher(getSearchDataCriteria(0, 3)))))
-                .thenReturn(new RowValuePage(new CollectionPage<>(3, oldVersionRows.subList(0, 3), getCriteria(0, 3, 8))));
+                .thenReturn(new RowValuePage(new CollectionPage<>(8, oldVersionRows.subList(0, 3), getCriteria(0, 3, 8))));
         when(versionService
                 .search(eq(OLD_ID_1), argThat(new SearchDataCriteriaMatcher(getSearchDataCriteria(0, 7)))))
-                .thenReturn(new RowValuePage(new CollectionPage<>(7, oldVersionRows.subList(0, 7), getCriteria(0, 7, 8))));
+                .thenReturn(new RowValuePage(new CollectionPage<>(8, oldVersionRows.subList(0, 7), getCriteria(0, 7, 8))));
         when(versionService
                 .search(eq(OLD_ID_1), argThat(new SearchDataCriteriaMatcher(getSearchDataCriteria(0, 11)))))
                 .thenReturn(new RowValuePage(new CollectionPage<>(8, oldVersionRows, getCriteria(0, 11, 8))));
 
 //        test first page
-        Page<ComparableRow> expectedCommonDataDiffPage1 = new RestPage<>(Stream.of(1, 2, 3, 4)
-                .map(index ->
-                        new ComparableRow(asList(
-                                new ComparableFieldValue(idFieldComp, null, BigInteger.valueOf(index)),
-                                new ComparableFieldValue(commonFieldComp, null, "new" + index)
-                        ), DiffStatusEnum.INSERTED)
-                )
-                .collect(Collectors.toList()));
+        Page<ComparableRow> expectedCommonDataDiffPage1 = new RestPage<>(getListOfNewComparableRows(1, 2, 3, 4));
 
-        List<DiffRowValue> diffRowValuesListPage1 = Stream.of(1, 2, 3, 4)
-                .map(index -> new DiffRowValue(asList(
-                        new DiffFieldValue<>(idField, null, BigInteger.valueOf(index), DiffStatusEnum.INSERTED),
-                        new DiffFieldValue<>(commonField, null, "new" + index, DiffStatusEnum.INSERTED)
-                ), DiffStatusEnum.INSERTED))
-                .collect(Collectors.toList());
+        List<DiffRowValue> diffRowValuesListPage1 = getListOfNewDiffRowValues(1, 2, 3, 4);
 
         RefBookDataDiff refBookDataDiffPage1 = new RefBookDataDiff(
                 new DiffRowValuePage(new CollectionPage<>(diffRowValuesListPage1.size(), diffRowValuesListPage1, getCriteria(0, DEF_PAGE_SIZE, 13))),
@@ -484,43 +496,27 @@ public class CompareDataControllerTest {
                 emptyList()
         );
         when(compareService.compareData(any(CompareDataCriteria.class))).thenReturn(refBookDataDiffPage1);
+        when(compareService
+                .compareData(argThat(new CompareDataCriteriaMatcher(getCompareDataCriteriaDeleted(OLD_ID_1, NEW_ID_1)))))
+                .thenReturn(new RefBookDataDiff(
+                        new DiffRowValuePage(new CollectionPage<>(8, emptyList(), getCriteria(0, 10, 8))),
+                        emptyList(),
+                        emptyList(),
+                        emptyList()
+                ));
 
         Page<ComparableRow> actualCommonDataDiffPage1 = compareDataController.getCommonDataDiff(getCompareDataCriteria(OLD_ID_1, NEW_ID_1, 0, DEF_PAGE_SIZE));
         assertComparableRowsEquals(expectedCommonDataDiffPage1, actualCommonDataDiffPage1);
 
 //        test second page
         List<ComparableRow> expectedComparableRowsListPage2 = new ArrayList<>();
-        expectedComparableRowsListPage2.addAll(Stream.of(5)
-                .map(index ->
-                        new ComparableRow(asList(
-                                new ComparableFieldValue(idFieldComp, null, BigInteger.valueOf(index)),
-                                new ComparableFieldValue(commonFieldComp, null, "new" + index)
-                        ), DiffStatusEnum.INSERTED)
-                )
-                .collect(Collectors.toList()));
-        expectedComparableRowsListPage2.addAll(Stream.of(6, 7, 8)
-                .map(index ->
-                        new ComparableRow(asList(
-                                new ComparableFieldValue(idFieldComp, BigInteger.valueOf(index), null),
-                                new ComparableFieldValue(commonFieldComp, "old" + index, null)
-                        ), DiffStatusEnum.DELETED)
-                )
-                .collect(Collectors.toList()));
+        expectedComparableRowsListPage2.addAll(getListOfNewComparableRows(5));
+        expectedComparableRowsListPage2.addAll(getListOfOldComparableRows(6, 7, 8));
         Page<ComparableRow> expectedCommonDataDiffPage2 = new RestPage<>(expectedComparableRowsListPage2);
 
         List<DiffRowValue> diffRowValuesListPage2 = new ArrayList<>();
-        diffRowValuesListPage2.addAll(Stream.of(5)
-                .map(index -> new DiffRowValue(asList(
-                        new DiffFieldValue<>(idField, null, BigInteger.valueOf(index), DiffStatusEnum.INSERTED),
-                        new DiffFieldValue<>(commonField, null, "new" + index, DiffStatusEnum.INSERTED)
-                ), DiffStatusEnum.INSERTED))
-                .collect(Collectors.toList()));
-        diffRowValuesListPage2.addAll(Stream.of(6, 7, 8)
-                .map(index -> new DiffRowValue(asList(
-                        new DiffFieldValue<>(idField, BigInteger.valueOf(index), null, DiffStatusEnum.DELETED),
-                        new DiffFieldValue<>(commonField, "old" + index, null, DiffStatusEnum.DELETED)
-                ), DiffStatusEnum.DELETED))
-                .collect(Collectors.toList()));
+        diffRowValuesListPage2.addAll(getListOfNewDiffRowValues(5));
+        diffRowValuesListPage2.addAll(getListOfOldDiffRowValues(6, 7, 8));
 
         RefBookDataDiff refBookDataDiffPage2 = new RefBookDataDiff(
                 new DiffRowValuePage(new CollectionPage<>(diffRowValuesListPage2.size(), diffRowValuesListPage2, getCriteria(1, DEF_PAGE_SIZE, 13))),
@@ -529,26 +525,22 @@ public class CompareDataControllerTest {
                 emptyList()
         );
         when(compareService.compareData(any(CompareDataCriteria.class))).thenReturn(refBookDataDiffPage2);
+        when(compareService
+                .compareData(argThat(new CompareDataCriteriaMatcher(getCompareDataCriteriaDeleted(OLD_ID_1, NEW_ID_1)))))
+                .thenReturn(new RefBookDataDiff(
+                        new DiffRowValuePage(new CollectionPage<>(8, emptyList(), getCriteria(0, 10, 8))),
+                        emptyList(),
+                        emptyList(),
+                        emptyList()
+                ));
 
         Page<ComparableRow> actualCommonDataDiffPage2 = compareDataController.getCommonDataDiff(getCompareDataCriteria(OLD_ID_1, NEW_ID_1, 1, DEF_PAGE_SIZE));
         assertComparableRowsEquals(expectedCommonDataDiffPage2, actualCommonDataDiffPage2);
 
 //        test third page
-        Page<ComparableRow> expectedCommonDataDiffPage3 = new RestPage<>(Stream.of(9, 10, 11, 12)
-                .map(index ->
-                        new ComparableRow(asList(
-                                new ComparableFieldValue(idFieldComp, BigInteger.valueOf(index), null),
-                                new ComparableFieldValue(commonFieldComp, "old" + index, null)
-                        ), DiffStatusEnum.DELETED)
-                )
-                .collect(Collectors.toList()));
+        Page<ComparableRow> expectedCommonDataDiffPage3 = new RestPage<>(getListOfOldComparableRows(9, 10, 11, 12));
 
-        List<DiffRowValue> diffRowValuesListPage3 = Stream.of(9, 10, 11, 12)
-                .map(index -> new DiffRowValue(asList(
-                        new DiffFieldValue<>(idField, BigInteger.valueOf(index), null, DiffStatusEnum.DELETED),
-                        new DiffFieldValue<>(commonField, "old" + index, null, DiffStatusEnum.DELETED)
-                ), DiffStatusEnum.DELETED))
-                .collect(Collectors.toList());
+        List<DiffRowValue> diffRowValuesListPage3 = getListOfOldDiffRowValues(9, 10, 11, 12);
 
         RefBookDataDiff refBookDataDiffPage3 = new RefBookDataDiff(
                 new DiffRowValuePage(new CollectionPage<>(diffRowValuesListPage3.size(), diffRowValuesListPage3, getCriteria(2, DEF_PAGE_SIZE, 13))),
@@ -557,26 +549,22 @@ public class CompareDataControllerTest {
                 emptyList()
         );
         when(compareService.compareData(any(CompareDataCriteria.class))).thenReturn(refBookDataDiffPage3);
+        when(compareService
+                .compareData(argThat(new CompareDataCriteriaMatcher(getCompareDataCriteriaDeleted(OLD_ID_1, NEW_ID_1)))))
+                .thenReturn(new RefBookDataDiff(
+                        new DiffRowValuePage(new CollectionPage<>(8, emptyList(), getCriteria(0, 10, 8))),
+                        emptyList(),
+                        emptyList(),
+                        emptyList()
+                ));
 
         Page<ComparableRow> actualCommonDataDiffPage3 = compareDataController.getCommonDataDiff(getCompareDataCriteria(OLD_ID_1, NEW_ID_1, 2, DEF_PAGE_SIZE));
         assertComparableRowsEquals(expectedCommonDataDiffPage3, actualCommonDataDiffPage3);
 
 //        test forth page
-        Page<ComparableRow> expectedCommonDataDiffPage4 = new RestPage<>(Stream.of(13)
-                .map(index ->
-                        new ComparableRow(asList(
-                                new ComparableFieldValue(idFieldComp, BigInteger.valueOf(index), null),
-                                new ComparableFieldValue(commonFieldComp, "old" + index, null)
-                        ), DiffStatusEnum.DELETED)
-                )
-                .collect(Collectors.toList()));
+        Page<ComparableRow> expectedCommonDataDiffPage4 = new RestPage<>(getListOfOldComparableRows(13));
 
-        List<DiffRowValue> diffRowValuesListPage4 = Stream.of(13)
-                .map(index -> new DiffRowValue(asList(
-                        new DiffFieldValue<>(idField, BigInteger.valueOf(index), null, DiffStatusEnum.DELETED),
-                        new DiffFieldValue<>(commonField, "old" + index, null, DiffStatusEnum.DELETED)
-                ), DiffStatusEnum.DELETED))
-                .collect(Collectors.toList());
+        List<DiffRowValue> diffRowValuesListPage4 = getListOfOldDiffRowValues(13);
 
         RefBookDataDiff refBookDataDiffPage4 = new RefBookDataDiff(
                 new DiffRowValuePage(new CollectionPage<>(diffRowValuesListPage3.size(), diffRowValuesListPage4, getCriteria(3, DEF_PAGE_SIZE, 13))),
@@ -585,6 +573,14 @@ public class CompareDataControllerTest {
                 emptyList()
         );
         when(compareService.compareData(any(CompareDataCriteria.class))).thenReturn(refBookDataDiffPage4);
+        when(compareService
+                .compareData(argThat(new CompareDataCriteriaMatcher(getCompareDataCriteriaDeleted(OLD_ID_1, NEW_ID_1)))))
+                .thenReturn(new RefBookDataDiff(
+                        new DiffRowValuePage(new CollectionPage<>(8, emptyList(), getCriteria(0, 10, 8))),
+                        emptyList(),
+                        emptyList(),
+                        emptyList()
+                ));
 
         Page<ComparableRow> actualCommonDataDiffPage4 = compareDataController.getCommonDataDiff(getCompareDataCriteria(OLD_ID_1, NEW_ID_1, 3, DEF_PAGE_SIZE));
         assertComparableRowsEquals(expectedCommonDataDiffPage4, actualCommonDataDiffPage4);
@@ -699,6 +695,24 @@ public class CompareDataControllerTest {
         return status1 == null
                 ? status2 == null
                 : status1.equals(status2);
+    }
+
+    private static class CompareDataCriteriaMatcher extends ArgumentMatcher<CompareDataCriteria> {
+
+        private CompareDataCriteria expected;
+
+        CompareDataCriteriaMatcher(CompareDataCriteria criteria) {
+            this.expected = criteria;
+        }
+
+        @Override
+        public boolean matches(Object actual) {
+            return actual instanceof CompareDataCriteria &&
+                    expected.getOldVersionId().equals(((CompareDataCriteria) actual).getOldVersionId()) &&
+                    expected.getNewVersionId().equals(((CompareDataCriteria) actual).getNewVersionId()) &&
+                    expected.getCountOnly() == ((CompareDataCriteria) actual).getCountOnly() &&
+                    expected.getDiffStatus() == ((CompareDataCriteria) actual).getDiffStatus();
+        }
     }
 
     private static class SearchDataCriteriaMatcher extends ArgumentMatcher<SearchDataCriteria> {
