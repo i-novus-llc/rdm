@@ -47,10 +47,10 @@
         </field>
 
         <field id="lastPublishedVersionFromDate" domain="date">
-            <select mapping="['lastPublishedVersionFromDate']"/>
+            <select mapping="lastPublishedVersionFromDate"/>
             <filters>
-                <more filter-id="lastPublishedVersionFromDateInterval.begin" mapping="['fromDateBegin']"/>
-                <less filter-id="lastPublishedVersionFromDateInterval.end" mapping="['fromDateEnd']"/>
+                <more filter-id="lastPublishedVersionFromDateInterval.begin" mapping="fromDateBegin"/>
+                <less filter-id="lastPublishedVersionFromDateInterval.end" mapping="fromDateEnd"/>
             </filters>
             <sorting/>
         </field>

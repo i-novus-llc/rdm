@@ -16,6 +16,11 @@
                 <date-interval id="lastPublishedVersionFromDateInterval" label="Последняя публикация"/>
             </row>
         </filters>
+        <toolbar >
+        <button id="create" label="Добавить справочник" icon="fa fa-plus">
+            <open-page page-id="passport" submit-operation-id="create"  model="filter" focus-after-submit="true"/>
+        </button>
+        </toolbar>
         <columns>
             <column text-field-id="code" label="Код" width="100px"/>
             <column text-field-id="name" label="Наименование"/>

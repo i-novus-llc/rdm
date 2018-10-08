@@ -2,12 +2,6 @@
 <object xmlns="http://n2oapp.net/framework/config/schema/object-3.0"
         name="Паспорт">
 
-    <fields>
-        <field id="code" mapping="['code']" domain="string"/>
-        <field id="fullName" mapping="['fullName']" domain="string"/>
-        <field id="shortName" mapping="['shortName']" domain="string"/>
-        <field id="annotation" mapping="['annotation']" domain="string"/>
-    </fields>
 
     <operations>
         <operation id="create" submit-label="Сохранить">
@@ -15,52 +9,32 @@
                 <rest method="POST">/refBook</rest>
             </invocation>
             <in-parameters>
-                <param id="code"/>
-                <param id="fullName"/>
-                <param id="shortName"/>
-                <param id="annotation"/>
+                <param id="code" mapping="code" domain="string" mapper="spel" />
+                <param id="name" mapping="passport.name" domain="string" mapper="spel"/>
             </in-parameters>
             <out-parameters>
-                <param id="id" mapping="['id']" domain="integer"/>
+                <param id="id" mapping="id" domain="integer"/>
             </out-parameters>
-            <validations white-list="checkCode"/>
+            <!--<validations white-list="checkCode"/>-->
             <success-text>Справочник успешно сохранен</success-text>
-        </operation>
-
-        <operation id="update" submit-label="Сохранить">
-            <invocation>
-                <rest method="PUT">/refBook</rest>
-            </invocation>
-            <in-parameters>
-                <param id="id"/>
-                <param id="code"/>
-                <param id="fullName"/>
-                <param id="shortName"/>
-                <param id="annotation"/>
-                <param id="comment"/>
-            </in-parameters>
-            <out-parameters>
-                <param id="id" mapping="['id']" domain="integer"/>
-            </out-parameters>
-            <validations white-list="checkCode"/>
         </operation>
     </operations>
 
     <validations>
-        <constraint id="checkCode" level="error" moment="before-action">
-            <message>
-                Поле 'Код' содержит недопустимые символы. Допустимыми являются: 0-9, A-Z, a-z, _, -. Пожалуйста,
-                отредактируйте код и повторите сохранение.
-            </message>
-            <invocation>
-                <!--todo переделать на js условие-->
-                <sql>SELECT :code SIMILAR TO '[0-9,-,_,A-Z,a-z]+'</sql>
-            </invocation>
-            <in-parameters>
-                <param id="code" mapping="['code']" domain="string"/>
-            </in-parameters>
-            <result>[0][0][0]</result>
-        </constraint>
+        <!--<constraint id="checkCode" level="error" moment="before-action">-->
+        <!--<message>-->
+        <!--Поле 'Код' содержит недопустимые символы. Допустимыми являются: 0-9, A-Z, a-z, _, -. Пожалуйста,-->
+        <!--отредактируйте код и повторите сохранение.-->
+        <!--</message>-->
+        <!--<invocation>-->
+        <!--&lt;!&ndash;todo переделать на js условие&ndash;&gt;-->
+        <!--<sql>SELECT :code SIMILAR TO '[0-9,-,_,A-Z,a-z]+'</sql>-->
+        <!--</invocation>-->
+        <!--<in-parameters>-->
+        <!--<param id="code" mapping="['code']" domain="string"/>-->
+        <!--</in-parameters>-->
+        <!--<result>[0][0][0]</result>-->
+        <!--</constraint>-->
     </validations>
 
 </object>
