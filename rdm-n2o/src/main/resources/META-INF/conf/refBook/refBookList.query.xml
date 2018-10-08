@@ -6,7 +6,7 @@
             <spring bean="refBookServiceJaxRsProxyClient"/>
         <arguments>
             <argument type="criteria"
-                      class="ru.inovus.ms.rdm.model.RefBookCriteria"/>
+                      class="ru.inovus.ms.rdm.criteria.RefBookCriteriaDate"/>
         </arguments>
         </java>
     </list>
