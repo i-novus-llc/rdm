@@ -13,7 +13,7 @@
                 <param id="name" mapping="passport.name" domain="string" mapper="spel"/>
             </in-parameters>
             <out-parameters>
-                <param id="id" mapping="id" domain="integer"/>
+                <param id="id" mapping="id" domain="integer" />
             </out-parameters>
             <!--<validations white-list="checkCode"/>-->
             <success-text>Справочник успешно сохранен</success-text>

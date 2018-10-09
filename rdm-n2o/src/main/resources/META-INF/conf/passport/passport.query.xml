@@ -1,7 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="passport">
     <unique result-mapping="#this">
-        <!--<rest method="POST">/refBook</rest>-->
         <java class="ru.inovus.ms.rdm.service.api.RefBookService"
               method="create" >
             <spring bean="refBookServiceJaxRsProxyClient"/>
@@ -11,21 +10,7 @@
     <fields>
         <field id="id" domain="integer">
             <select mapping="id"/>
-            <!--<select mapping="['id']"/>-->
         </field>
 
-        <field id="code" domain="string">
-            <select mapping="['code']"/>
-            <!--<select mapping="code"/>-->
-        </field>
-
-        <field id="name" domain="string">
-            <select mapping="['passport.name']"/>
-            <!--<select mapping="passport['name']"/>-->
-        </field>
-
-        <!--<field id="displayVersion" domain="string">-->
-            <!--<select mapping="displayVersion"/>-->
-        <!--</field>-->
     </fields>
 </query>
