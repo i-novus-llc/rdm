@@ -28,6 +28,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static cz.atria.common.lang.Util.isEmpty;
+import static ru.inovus.ms.rdm.util.ConverterUtil.getFieldSearchCriteriaList;
 
 @Service
 @Primary
@@ -117,8 +118,7 @@ public class CompareServiceImpl implements CompareService {
         Structure newStructure = newVersion.getStructure();
         validatePrimaryAttributesEquality(oldStructure.getPrimary(), newStructure.getPrimary());
 
-        CompareDataCriteria compareDataCriteria = getCompareDataCriteria(oldVersion, newVersion);
-        fillInVdsCompareDataCriteria(compareDataCriteria, criteria);
+        CompareDataCriteria compareDataCriteria = createCompareDataCriteria(oldVersion, newVersion, criteria);
 
         List<String> newAttributes = new ArrayList<>();
         List<String> oldAttributes = new ArrayList<>();
@@ -139,7 +139,8 @@ public class CompareServiceImpl implements CompareService {
         return new RefBookDataDiff(new DiffRowValuePage(dataDifference.getRows()), oldAttributes, newAttributes, updatedAttributes);
     }
 
-    private CompareDataCriteria getCompareDataCriteria(RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion) {
+    private CompareDataCriteria createCompareDataCriteria(RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion,
+                                                          ru.inovus.ms.rdm.model.CompareDataCriteria rdmCriteria) {
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria();
         compareDataCriteria.setStorageCode(oldVersion.getStorageCode());
         compareDataCriteria.setNewStorageCode(newVersion.getStorageCode());
@@ -160,15 +161,13 @@ public class CompareServiceImpl implements CompareService {
                 .map(Structure.Attribute::getCode)
                 .collect(Collectors.toList()));
         compareDataCriteria.setFields(getCommonFields(oldVersion.getStructure(), newVersion.getStructure()));
-        return compareDataCriteria;
-    }
 
-    private void fillInVdsCompareDataCriteria(CompareDataCriteria vdsCriteria, ru.inovus.ms.rdm.model.CompareDataCriteria rdmCriteria) {
-        vdsCriteria.setPrimaryFieldsFilters(rdmCriteria.getPrimaryFieldsFilters());
-        vdsCriteria.setCountOnly(rdmCriteria.getCountOnly() != null ? rdmCriteria.getCountOnly() : false);
-        vdsCriteria.setStatus(rdmCriteria.getDiffStatus());
-        vdsCriteria.setPage(rdmCriteria.getPageNumber() + 1);
-        vdsCriteria.setSize(rdmCriteria.getPageSize());
+        compareDataCriteria.setPrimaryFieldsFilters(getFieldSearchCriteriaList(rdmCriteria.getPrimaryAttributesFilters()));
+        compareDataCriteria.setCountOnly(rdmCriteria.getCountOnly() != null ? rdmCriteria.getCountOnly() : false);
+        compareDataCriteria.setStatus(rdmCriteria.getDiffStatus());
+        compareDataCriteria.setPage(rdmCriteria.getPageNumber() + 1);
+        compareDataCriteria.setSize(rdmCriteria.getPageSize());
+        return compareDataCriteria;
     }
 
     private List<Field> getCommonFields(Structure structure1, Structure structure2) {

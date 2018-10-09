@@ -647,11 +647,11 @@ public class ApplicationTest {
         });
 
         attributeFilters.forEach(attributeFilter -> {
-            Page<RowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(Collections.singletonList(attributeFilter), null));
+            Page<RowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(new HashSet<List<AttributeFilter>>(){{add(singletonList(attributeFilter));}}, null));
             assertRows(fields, expectedRowValues, actualPage.getContent());
         });
 
-        Page<RowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(attributeFilters, null));
+        Page<RowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(new HashSet<List<AttributeFilter>>(){{add(attributeFilters);}}, null));
         assertRows(fields, expectedRowValues, actualPage.getContent());
     }
 

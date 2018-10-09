@@ -15,6 +15,7 @@ import ru.inovus.ms.rdm.service.api.VersionService;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.singletonList;
 import static ru.inovus.ms.rdm.util.ConverterUtil.castReferenceValue;
 import static ru.inovus.ms.rdm.util.ConverterUtil.field;
 
@@ -78,7 +79,7 @@ public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
     }
 
     private boolean isReferenceNotValid(Map.Entry<Structure.Reference, String> entry) {
-        if(getErrorAttributes().contains(entry.getKey().getAttribute()) || entry.getValue() == null) {
+        if (getErrorAttributes().contains(entry.getKey().getAttribute()) || entry.getValue() == null) {
             return false;
         }
         Structure.Reference reference = entry.getKey();
@@ -89,7 +90,11 @@ public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
         Object referenceValueCasted = castReferenceValue(fieldFilter, referenceValue);
         AttributeFilter attributeFilter = new AttributeFilter(reference.getReferenceAttribute(), referenceValueCasted,
                 referenceStructure.getAttribute(reference.getReferenceAttribute()).getType(), SearchTypeEnum.EXACT);
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(Collections.singletonList(attributeFilter), null);
+        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(
+                new HashSet<List<AttributeFilter>>() {{
+                    add(singletonList(attributeFilter));
+                }},
+                null);
         Page<RowValue> pagedData = versionService.search(versionId, searchDataCriteria);
         return (pagedData == null || !pagedData.hasContent());
     }

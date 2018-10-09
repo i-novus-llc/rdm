@@ -50,6 +50,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptySet;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
 import static ru.inovus.ms.rdm.util.ConverterUtil.field;
@@ -300,7 +301,7 @@ public class DraftServiceImpl implements DraftService {
         String storageCode = draft.getStorageCode();
         List<Field> fields = fields(draft.getStructure());
         DataCriteria dataCriteria = new DataCriteria(storageCode, null, null,
-                fields, getFieldSearchCriteriaList(criteria.getAttributeFilter()), criteria.getPrimaryFieldsFilters(), criteria.getCommonFilter());
+                fields, getFieldSearchCriteriaList(criteria.getAttributeFilter()), criteria.getCommonFilter());
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
         return new RowValuePage(pagedData);
     }
@@ -458,7 +459,9 @@ public class DraftServiceImpl implements DraftService {
     private void validateRequired(Structure.Attribute attribute, String storageCode, Structure structure) {
         if (structure != null && structure.getAttributes() != null
                 && (attribute.getIsPrimary() || attribute.getIsRequired())) {
-            List<RowValue> data = searchDataService.getData(new DataCriteria(storageCode, null, null, fields(structure), null, null));
+            List<RowValue> data = searchDataService.getData(
+                    new DataCriteria(storageCode, null, null, fields(structure), emptySet(), null)
+            );
             if (!isEmpty(data)) {
                 throw new UserException("required.attribute.err");
             }

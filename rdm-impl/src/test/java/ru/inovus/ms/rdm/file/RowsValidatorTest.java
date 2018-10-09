@@ -25,7 +25,9 @@ import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.validation.ReferenceValueValidation;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
@@ -62,10 +64,16 @@ public class RowsValidatorTest {
     @Before
     public void setUp() {
         rowsValidator = new RowsValidatorImpl(versionService, searchDataService, createTestStructureWithReference(), "", 100);
-        when(fieldFactory.createField(eq(REFERENCE_ATTRIBUTE), eq(FieldType.STRING))).thenReturn(new StringField(REFERENCE_ATTRIBUTE));
-        when(versionService.getStructure(eq(REFERENCE_VERSION))).thenReturn(createTestStructure());
+        when(fieldFactory.createField(eq(REFERENCE_ATTRIBUTE), eq(FieldType.STRING)))
+                .thenReturn(new StringField(REFERENCE_ATTRIBUTE));
+        when(versionService.getStructure(eq(REFERENCE_VERSION)))
+                .thenReturn(createTestStructure());
         AttributeFilter attributeFilter = new AttributeFilter(REFERENCE_ATTRIBUTE, ATTRIBUTE_VALUE, FieldType.STRING, SearchTypeEnum.EXACT);
-        searchDataCriteria = new SearchDataCriteria(Collections.singletonList(attributeFilter), null);
+        searchDataCriteria = new SearchDataCriteria(
+                new HashSet<List<AttributeFilter>>() {{
+                    add(Collections.singletonList(attributeFilter));
+                }},
+                null);
         when(versionService.search(eq(REFERENCE_VERSION), eq(searchDataCriteria)))
                 .thenReturn(new PageImpl<>(Collections.singletonList(new LongRowValue())));
     }

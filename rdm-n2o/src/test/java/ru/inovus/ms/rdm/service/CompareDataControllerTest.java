@@ -70,7 +70,13 @@ public class CompareDataControllerTest {
     private static Field commonField;
 
     private static ComparableField idFieldComp;
+    private static ComparableField codeFieldComp;
     private static ComparableField commonFieldComp;
+    private static ComparableField descrFieldComp;
+    private static ComparableField nameFieldComp;
+    private static ComparableField upd1FieldComp;
+    private static ComparableField upd2FieldComp;
+    private static ComparableField typeFieldComp;
 
     @Before
     public void init() {
@@ -116,7 +122,13 @@ public class CompareDataControllerTest {
         commonField = new CommonField(common.getCode());
 
         idFieldComp = new ComparableField(id.getCode(), id.getName(), null);
+        codeFieldComp = new ComparableField(code.getCode(), code.getName(), null);
         commonFieldComp = new ComparableField(common.getCode(), common.getName(), null);
+        descrFieldComp = new ComparableField(descr.getCode(), descr.getName(), DiffStatusEnum.DELETED);
+        nameFieldComp = new ComparableField(name.getCode(), name.getName(), DiffStatusEnum.INSERTED);
+        upd1FieldComp = new ComparableField(upd1.getCode(), upd1.getName(), DiffStatusEnum.UPDATED);
+        upd2FieldComp = new ComparableField(upd2.getCode(), upd2.getName(), DiffStatusEnum.UPDATED);
+        typeFieldComp = new ComparableField(typeS.getCode(), typeS.getName(), DiffStatusEnum.UPDATED);
     }
 
     private void prepareRefBookDataDiff() {
@@ -227,75 +239,6 @@ public class CompareDataControllerTest {
         when(versionService.search(eq(NEW_ID), any(SearchDataCriteria.class))).thenReturn(new RowValuePage(newVersionRows));
     }
 
-    private Criteria getCriteria(int pageNumber, int pageSize, Integer count) {
-        Criteria criteria = new Criteria();
-        criteria.setPage(pageNumber);
-        criteria.setSize(pageSize);
-        criteria.setCount(count);
-        return criteria;
-    }
-
-    private CompareDataCriteria getCompareDataCriteria(Integer oldId, Integer newId, int pageNumber, int pageSize) {
-        CompareDataCriteria compareDataCriteria = new CompareDataCriteria(oldId, newId);
-        compareDataCriteria.setPageNumber(pageNumber);
-        compareDataCriteria.setPageSize(pageSize);
-        return compareDataCriteria;
-    }
-
-    private CompareDataCriteria getCompareDataCriteriaDeleted(Integer oldId, Integer newId) {
-        CompareDataCriteria compareDataCriteria = getCompareDataCriteria(oldId, newId, 0, 10);
-        compareDataCriteria.setCountOnly(true);
-        compareDataCriteria.setDiffStatus(DiffStatusEnum.DELETED);
-        return compareDataCriteria;
-    }
-
-    private SearchDataCriteria getSearchDataCriteria(int pageNumber, int pageSize) {
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
-        searchDataCriteria.setPageNumber(pageNumber);
-        searchDataCriteria.setPageSize(pageSize);
-        return searchDataCriteria;
-    }
-
-    private List<ComparableRow> getListOfNewComparableRows(Integer ... indexes) {
-        return Stream.of(indexes)
-                .map(index ->
-                        new ComparableRow(asList(
-                                new ComparableFieldValue(idFieldComp, null, BigInteger.valueOf(index)),
-                                new ComparableFieldValue(commonFieldComp, null, "new" + index)
-                        ), DiffStatusEnum.INSERTED)
-                )
-                .collect(Collectors.toList());
-    }
-
-    private List<ComparableRow> getListOfOldComparableRows(Integer ... indexes) {
-        return Stream.of(indexes)
-                .map(index ->
-                        new ComparableRow(asList(
-                                new ComparableFieldValue(idFieldComp, BigInteger.valueOf(index), null),
-                                new ComparableFieldValue(commonFieldComp, "old" + index, null)
-                        ), DiffStatusEnum.DELETED)
-                )
-                .collect(Collectors.toList());
-    }
-
-    private List<DiffRowValue> getListOfNewDiffRowValues(Integer ... indexes) {
-        return Stream.of(indexes)
-                .map(index -> new DiffRowValue(asList(
-                        new DiffFieldValue<>(idField, null, BigInteger.valueOf(index), DiffStatusEnum.INSERTED),
-                        new DiffFieldValue<>(commonField, null, "new" + index, DiffStatusEnum.INSERTED)
-                ), DiffStatusEnum.INSERTED))
-                .collect(Collectors.toList());
-    }
-
-    private List<DiffRowValue> getListOfOldDiffRowValues(Integer ... indexes) {
-        return Stream.of(indexes)
-                .map(index -> new DiffRowValue(asList(
-                        new DiffFieldValue<>(idField, BigInteger.valueOf(index), null, DiffStatusEnum.DELETED),
-                        new DiffFieldValue<>(commonField, "old" + index, null, DiffStatusEnum.DELETED)
-                ), DiffStatusEnum.DELETED))
-                .collect(Collectors.toList());
-    }
-
     /*
      * test getting rows for both versions with applied diff in one structure for merged display
      * deleted rows must be moved to the end of the list
@@ -306,20 +249,13 @@ public class CompareDataControllerTest {
      */
     @Test
     public void testCommonDataDiffOnePageWithNewAndDeletedRows() {
-        ComparableField idFieldComp = new ComparableField(id.getCode(), id.getName(), null);
-        ComparableField codeFieldComp = new ComparableField(code.getCode(), code.getName(), null);
-        ComparableField commonFieldComp = new ComparableField(common.getCode(), common.getName(), null);
-        ComparableField nameFieldComp = new ComparableField(name.getCode(), name.getName(), DiffStatusEnum.INSERTED);
-        ComparableField updFieldComp = new ComparableField(upd2.getCode(), upd2.getName(), DiffStatusEnum.UPDATED);
-        ComparableField typeFieldComp = new ComparableField(typeI.getCode(), typeI.getName(), DiffStatusEnum.UPDATED);
-        ComparableField descrFieldComp = new ComparableField(descr.getCode(), descr.getName(), DiffStatusEnum.DELETED);
         Page<ComparableRow> expectedCommonDataDiff = new RestPage<>(asList(
                 new ComparableRow(asList(
                         new ComparableFieldValue(idFieldComp, BigInteger.valueOf(2), BigInteger.valueOf(2)),
                         new ComparableFieldValue(codeFieldComp, "002", "002"),
                         new ComparableFieldValue(commonFieldComp, "c2", "c2"),
                         new ComparableFieldValue(nameFieldComp, null, "name2"),
-                        new ComparableFieldValue(updFieldComp, "u2", "u2"),
+                        new ComparableFieldValue(upd2FieldComp, "u2", "u2"),
                         new ComparableFieldValue(typeFieldComp, "2", BigInteger.valueOf(2)),
                         new ComparableFieldValue(descrFieldComp, "descr2", null)
                 ),
@@ -329,7 +265,7 @@ public class CompareDataControllerTest {
                         new ComparableFieldValue(codeFieldComp, "003", "003"),
                         new ComparableFieldValue(commonFieldComp, "c3", "c3_1"),
                         new ComparableFieldValue(nameFieldComp, null, "name3"),
-                        new ComparableFieldValue(updFieldComp, "u3", "u3_1"),
+                        new ComparableFieldValue(upd2FieldComp, "u3", "u3_1"),
                         new ComparableFieldValue(typeFieldComp, "3", BigInteger.valueOf(3)),
                         new ComparableFieldValue(descrFieldComp, "descr3", null)
                 ),
@@ -339,7 +275,7 @@ public class CompareDataControllerTest {
                         new ComparableFieldValue(codeFieldComp, null, "004"),
                         new ComparableFieldValue(commonFieldComp, null, "c4"),
                         new ComparableFieldValue(nameFieldComp, null, "name4"),
-                        new ComparableFieldValue(updFieldComp, null, "u4"),
+                        new ComparableFieldValue(upd2FieldComp, null, "u4"),
                         new ComparableFieldValue(typeFieldComp, null, BigInteger.valueOf(4)),
                         new ComparableFieldValue(descrFieldComp, null, null)
                 ),
@@ -348,7 +284,7 @@ public class CompareDataControllerTest {
                         new ComparableFieldValue(idFieldComp, BigInteger.valueOf(1), null),
                         new ComparableFieldValue(codeFieldComp, "001", null),
                         new ComparableFieldValue(commonFieldComp, "c1", null),
-                        new ComparableFieldValue(updFieldComp, "u1", null),
+                        new ComparableFieldValue(upd2FieldComp, "u1", null),
                         new ComparableFieldValue(typeFieldComp, "1", null),
                         new ComparableFieldValue(descrFieldComp, "descr1", null),
                         new ComparableFieldValue(descrFieldComp, "descr1", null)
@@ -593,18 +529,12 @@ public class CompareDataControllerTest {
      */
     @Test
     public void testGetOldWithDiff() {
-        ComparableField idFieldComp = new ComparableField(id.getCode(), id.getName(), null);
-        ComparableField codeFieldComp = new ComparableField(code.getCode(), code.getName(), null);
-        ComparableField commonFieldComp = new ComparableField(common.getCode(), common.getName(), null);
-        ComparableField descrFieldComp = new ComparableField(descr.getCode(), descr.getName(), DiffStatusEnum.DELETED);
-        ComparableField updFieldComp = new ComparableField(upd1.getCode(), upd1.getName(), DiffStatusEnum.UPDATED);
-        ComparableField typeFieldComp = new ComparableField(typeS.getCode(), typeS.getName(), DiffStatusEnum.UPDATED);
         Page<ComparableRow> expectedOldRowsWithDiff = new RestPage<>(asList(
                 new ComparableRow(asList(
                         new ComparableFieldValue(idFieldComp, BigInteger.valueOf(1), null),
                         new ComparableFieldValue(codeFieldComp, "001", null),
                         new ComparableFieldValue(commonFieldComp, "c1", null),
-                        new ComparableFieldValue(updFieldComp, "u1", null),
+                        new ComparableFieldValue(upd1FieldComp, "u1", null),
                         new ComparableFieldValue(typeFieldComp, "1", null),
                         new ComparableFieldValue(descrFieldComp, "descr1", null)
                 ),
@@ -613,7 +543,7 @@ public class CompareDataControllerTest {
                         new ComparableFieldValue(idFieldComp, BigInteger.valueOf(2), BigInteger.valueOf(2)),
                         new ComparableFieldValue(codeFieldComp, "002", "002"),
                         new ComparableFieldValue(commonFieldComp, "c2", "c2"),
-                        new ComparableFieldValue(updFieldComp, "u2", "u2"),
+                        new ComparableFieldValue(upd1FieldComp, "u2", "u2"),
                         new ComparableFieldValue(typeFieldComp, "2", BigInteger.valueOf(2)),
                         new ComparableFieldValue(descrFieldComp, "descr2", null)
                 ),
@@ -622,7 +552,7 @@ public class CompareDataControllerTest {
                         new ComparableFieldValue(idFieldComp, BigInteger.valueOf(3), BigInteger.valueOf(3)),
                         new ComparableFieldValue(codeFieldComp, "003", "003"),
                         new ComparableFieldValue(commonFieldComp, "c3", "c3_1"),
-                        new ComparableFieldValue(updFieldComp, "u3", null),
+                        new ComparableFieldValue(upd1FieldComp, "u3", null),
                         new ComparableFieldValue(typeFieldComp, "3", null),
                         new ComparableFieldValue(descrFieldComp, "descr3", null)
                 ),
@@ -637,19 +567,13 @@ public class CompareDataControllerTest {
      */
     @Test
     public void testGetNewWithDiff() {
-        ComparableField idFieldComp = new ComparableField(id.getCode(), id.getName(), null);
-        ComparableField codeFieldComp = new ComparableField(code.getCode(), code.getName(), null);
-        ComparableField commonFieldComp = new ComparableField(common.getCode(), common.getName(), null);
-        ComparableField nameFieldComp = new ComparableField(name.getCode(), name.getName(), DiffStatusEnum.INSERTED);
-        ComparableField updFieldComp = new ComparableField(upd2.getCode(), upd2.getName(), DiffStatusEnum.UPDATED);
-        ComparableField typeFieldComp = new ComparableField(typeI.getCode(), typeI.getName(), DiffStatusEnum.UPDATED);
         Page<ComparableRow> expectedNewRowsWithDiff = new RestPage<>(asList(
                 new ComparableRow(asList(
                         new ComparableFieldValue(idFieldComp, BigInteger.valueOf(2), BigInteger.valueOf(2)),
                         new ComparableFieldValue(codeFieldComp, "002", "002"),
                         new ComparableFieldValue(commonFieldComp, "c2", "c2"),
                         new ComparableFieldValue(nameFieldComp, null, "name2"),
-                        new ComparableFieldValue(updFieldComp, "u2", "u2"),
+                        new ComparableFieldValue(upd2FieldComp, "u2", "u2"),
                         new ComparableFieldValue(typeFieldComp, "2", BigInteger.valueOf(2))
                 ),
                         null),
@@ -658,7 +582,7 @@ public class CompareDataControllerTest {
                         new ComparableFieldValue(codeFieldComp, "003", "003"),
                         new ComparableFieldValue(commonFieldComp, "c3", "c3_1"),
                         new ComparableFieldValue(nameFieldComp, null, "name3"),
-                        new ComparableFieldValue(updFieldComp, null, "u3_1"),
+                        new ComparableFieldValue(upd2FieldComp, null, "u3_1"),
                         new ComparableFieldValue(typeFieldComp, null, BigInteger.valueOf(3))
                 ),
                         DiffStatusEnum.UPDATED),
@@ -667,13 +591,82 @@ public class CompareDataControllerTest {
                         new ComparableFieldValue(codeFieldComp, null, "004"),
                         new ComparableFieldValue(commonFieldComp, null, "c4"),
                         new ComparableFieldValue(nameFieldComp, null, "name4"),
-                        new ComparableFieldValue(updFieldComp, null, "u4"),
+                        new ComparableFieldValue(upd2FieldComp, null, "u4"),
                         new ComparableFieldValue(typeFieldComp, null, BigInteger.valueOf(4))
                 ),
                         DiffStatusEnum.INSERTED)
         ));
         Page<ComparableRow> actualNewRowsWithDiff = compareDataController.getNewWithDiff(compareDataCriteria);
         assertComparableRowsEquals(expectedNewRowsWithDiff, actualNewRowsWithDiff);
+    }
+
+    private Criteria getCriteria(int pageNumber, int pageSize, Integer count) {
+        Criteria criteria = new Criteria();
+        criteria.setPage(pageNumber);
+        criteria.setSize(pageSize);
+        criteria.setCount(count);
+        return criteria;
+    }
+
+    private CompareDataCriteria getCompareDataCriteria(Integer oldId, Integer newId, int pageNumber, int pageSize) {
+        CompareDataCriteria compareDataCriteria = new CompareDataCriteria(oldId, newId);
+        compareDataCriteria.setPageNumber(pageNumber);
+        compareDataCriteria.setPageSize(pageSize);
+        return compareDataCriteria;
+    }
+
+    private CompareDataCriteria getCompareDataCriteriaDeleted(Integer oldId, Integer newId) {
+        CompareDataCriteria compareDataCriteria = getCompareDataCriteria(oldId, newId, 0, 10);
+        compareDataCriteria.setCountOnly(true);
+        compareDataCriteria.setDiffStatus(DiffStatusEnum.DELETED);
+        return compareDataCriteria;
+    }
+
+    private SearchDataCriteria getSearchDataCriteria(int pageNumber, int pageSize) {
+        SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
+        searchDataCriteria.setPageNumber(pageNumber);
+        searchDataCriteria.setPageSize(pageSize);
+        return searchDataCriteria;
+    }
+
+    private List<ComparableRow> getListOfNewComparableRows(Integer ... indexes) {
+        return Stream.of(indexes)
+                .map(index ->
+                        new ComparableRow(asList(
+                                new ComparableFieldValue(idFieldComp, null, BigInteger.valueOf(index)),
+                                new ComparableFieldValue(commonFieldComp, null, "new" + index)
+                        ), DiffStatusEnum.INSERTED)
+                )
+                .collect(Collectors.toList());
+    }
+
+    private List<ComparableRow> getListOfOldComparableRows(Integer ... indexes) {
+        return Stream.of(indexes)
+                .map(index ->
+                        new ComparableRow(asList(
+                                new ComparableFieldValue(idFieldComp, BigInteger.valueOf(index), null),
+                                new ComparableFieldValue(commonFieldComp, "old" + index, null)
+                        ), DiffStatusEnum.DELETED)
+                )
+                .collect(Collectors.toList());
+    }
+
+    private List<DiffRowValue> getListOfNewDiffRowValues(Integer ... indexes) {
+        return Stream.of(indexes)
+                .map(index -> new DiffRowValue(asList(
+                        new DiffFieldValue<>(idField, null, BigInteger.valueOf(index), DiffStatusEnum.INSERTED),
+                        new DiffFieldValue<>(commonField, null, "new" + index, DiffStatusEnum.INSERTED)
+                ), DiffStatusEnum.INSERTED))
+                .collect(Collectors.toList());
+    }
+
+    private List<DiffRowValue> getListOfOldDiffRowValues(Integer ... indexes) {
+        return Stream.of(indexes)
+                .map(index -> new DiffRowValue(asList(
+                        new DiffFieldValue<>(idField, BigInteger.valueOf(index), null, DiffStatusEnum.DELETED),
+                        new DiffFieldValue<>(commonField, "old" + index, null, DiffStatusEnum.DELETED)
+                ), DiffStatusEnum.DELETED))
+                .collect(Collectors.toList());
     }
 
     /*
@@ -697,6 +690,10 @@ public class CompareDataControllerTest {
                 : status1.equals(status2);
     }
 
+    /*
+    * suppose that two CompareDataCriteria values are equal for mocking if equal version ids, countOnly flag and diffStatus
+    * ignore page size and page number (from Criteria)
+    */
     private static class CompareDataCriteriaMatcher extends ArgumentMatcher<CompareDataCriteria> {
 
         private CompareDataCriteria expected;
@@ -715,6 +712,10 @@ public class CompareDataControllerTest {
         }
     }
 
+    /*
+     * suppose that two SearchDataCriteria values are equal for mocking if equal page size and page number
+     * ignore attribute filters, common filter and fields filter
+     */
     private static class SearchDataCriteriaMatcher extends ArgumentMatcher<SearchDataCriteria> {
 
         private SearchDataCriteria expected;
