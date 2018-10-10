@@ -13,10 +13,6 @@
                 <input-text id="name" label="Наименование" required="true"
                                  control-style="width:300px" length="250"/>
             </row>
-            <!--<row>-->
-                <!--<input-text id="displayVersion" label="Номер текущей версии"-->
-                        <!--css-class="n2o-label-9" control-style="width:445px" readonly="true"/>-->
-            <!--</row>-->
         </fields>
     </form>
 </simple-page>

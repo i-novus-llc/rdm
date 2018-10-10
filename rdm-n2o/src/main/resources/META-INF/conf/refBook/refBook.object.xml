@@ -1,54 +1,9 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<object xmlns="http://n2oapp.net/framework/config/schema/object-2.0"
-        xmlns:n2o="http://n2oapp.net/framework/config/schema/n2o-invocations-2.0">
+<object xmlns="http://n2oapp.net/framework/config/schema/object-2.0">
     <name>Справочник</name>
 
     <fields>
         <field id="refBookId" mapping="['refBookId']" domain="integer"/>
     </fields>
-
-    <!--<actions>-->
-        <!--<action id="archived" name="В архив" form-submit-label="Сохранить">-->
-            <!--<invocation>-->
-                <!--<n2o:rest method="POST">-->
-                    <!--<n2o:query>${rdm.backend.path}/refBook/archive/{refBookId}</n2o:query>-->
-                <!--</n2o:rest>-->
-            <!--</invocation>-->
-            <!--<in-parameters>-->
-                <!--<param name="refBookId"/>-->
-            <!--</in-parameters>-->
-            <!--<confirmation-text>Вы действительно хотите отправить справочник в архив?</confirmation-text>-->
-            <!--<validations activate="whiteList">-->
-                <!--<validation ref-id="archiveWarning"/>-->
-            <!--</validations>-->
-            <!--<success-text>Справочник отправлен в архив</success-text>-->
-        <!--</action>-->
-
-        <!--<action id="delete" name="Удаление">-->
-            <!--<invocation>-->
-                <!--<n2o:rest method="DELETE">-->
-                    <!--<n2o:query>${rdm.backend.path}/refBook</n2o:query>-->
-                <!--</n2o:rest>-->
-            <!--</invocation>-->
-            <!--<in-parameters>-->
-                <!--<param name="refBookId"/>-->
-            <!--</in-parameters>-->
-            <!--<confirmation-text>Вы действительно хотите удалить справочник?</confirmation-text>-->
-            <!--<validations activate="nothing"/>-->
-            <!--<success-text>Справочник успешно удален</success-text>-->
-        <!--</action>-->
-    <!--</actions>-->
-
-    <!--<validations>-->
-        <!--<constraint id="archiveWarning" level="warning" moment="before-action">-->
-            <!--<message>-->
-                <!--При подтверждении действия справочник перейдет в архив. Для справочника будут недоступны функции добавления версии и редактирования паспорта-->
-            <!--</message>-->
-            <!--<invocation>-->
-                <!--<n2o:sql/>-->
-            <!--</invocation>-->
-            <!--<result expression="false"/>-->
-        <!--</constraint>-->
-    <!--</validations>-->
 
 </object>

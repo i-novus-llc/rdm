@@ -15,26 +15,9 @@
             <out-parameters>
                 <param id="id" mapping="id" domain="integer" />
             </out-parameters>
-            <!--<validations white-list="checkCode"/>-->
             <success-text>Справочник успешно сохранен</success-text>
         </operation>
     </operations>
 
-    <validations>
-        <!--<constraint id="checkCode" level="error" moment="before-action">-->
-        <!--<message>-->
-        <!--Поле 'Код' содержит недопустимые символы. Допустимыми являются: 0-9, A-Z, a-z, _, -. Пожалуйста,-->
-        <!--отредактируйте код и повторите сохранение.-->
-        <!--</message>-->
-        <!--<invocation>-->
-        <!--&lt;!&ndash;todo переделать на js условие&ndash;&gt;-->
-        <!--<sql>SELECT :code SIMILAR TO '[0-9,-,_,A-Z,a-z]+'</sql>-->
-        <!--</invocation>-->
-        <!--<in-parameters>-->
-        <!--<param id="code" mapping="['code']" domain="string"/>-->
-        <!--</in-parameters>-->
-        <!--<result>[0][0][0]</result>-->
-        <!--</constraint>-->
-    </validations>
 
 </object>
