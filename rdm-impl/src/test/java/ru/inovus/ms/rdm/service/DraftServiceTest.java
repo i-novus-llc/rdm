@@ -101,6 +101,9 @@ public class DraftServiceTest {
     @Mock
     private VersionPeriodPublishValidation versionPeriodPublishValidation;
 
+    @Mock
+    private RefBookLockService refBookLockService;
+
     private static final String UPD_SUFFIX = "_upd";
     private static final String PK_SUFFIX = "_pk";
 
