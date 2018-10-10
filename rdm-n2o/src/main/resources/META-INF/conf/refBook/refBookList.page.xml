@@ -29,5 +29,4 @@
                 <text format="date DD.MM.YYYY"/>
             </column>
         </columns>
-    </table>
-</simple-page>
+    </table></simple-page>
