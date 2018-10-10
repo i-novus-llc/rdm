@@ -1,6 +1,8 @@
-package ru.inovus.ms.rdm.model;
+package ru.inovus.ms.rdm.model.compare;
 
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
+import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 
 import java.util.Objects;
 
@@ -19,6 +21,47 @@ public class ComparableFieldValue {
         this.comparableField = comparableField;
         this.oldValue = oldValue;
         this.newValue = newValue;
+    }
+
+    public ComparableFieldValue(ComparableField comparableField, DiffFieldValue diffFieldValue,
+                                RowValue oldRowValue, RowValue newRowValue) {
+        String fieldCode = comparableField.getCode();
+
+        this.comparableField = comparableField;
+        if (comparableField.getStatus() == null) {
+            if (diffFieldValue != null) {
+                this.newValue = diffFieldValue.getNewValue();
+                this.oldValue = diffFieldValue.getStatus() != null
+                        ? diffFieldValue.getOldValue()
+                        : diffFieldValue.getNewValue();
+            } else {
+                this.oldValue = getValueFromRowValue(fieldCode, oldRowValue);
+                this.newValue = getValueFromRowValue(fieldCode, newRowValue);
+            }
+        } else {
+            switch (comparableField.getStatus()) {
+                case DELETED:
+                    this.oldValue = getValueFromRowValue(fieldCode, oldRowValue);
+                    this.newValue = null;
+                    break;
+                case UPDATED:
+                    this.oldValue = getValueFromRowValue(fieldCode, oldRowValue);
+                    this.newValue = getValueFromRowValue(fieldCode, newRowValue);
+                    break;
+                case INSERTED:
+                    this.oldValue = null;
+                    this.newValue = getValueFromRowValue(fieldCode, newRowValue);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private Object getValueFromRowValue(String fieldCode, RowValue rowValue) {
+        return rowValue != null
+                ? rowValue.getFieldValue(fieldCode).getValue()
+                : null;
     }
 
     public DiffStatusEnum getFieldValueStatus() {

@@ -2,32 +2,41 @@ package ru.inovus.ms.rdm.service;
 
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
+import net.n2oapp.platform.jaxrs.RestPage;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.model.DataDifference;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.CompareDataService;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.inovus.ms.rdm.entity.PassportAttributeEntity;
 import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.compare.ComparableField;
+import ru.inovus.ms.rdm.model.compare.ComparableFieldValue;
+import ru.inovus.ms.rdm.model.compare.ComparableRow;
 import ru.inovus.ms.rdm.repositiory.PassportAttributeRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.CompareService;
+import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.sql.Date;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static cz.atria.common.lang.Util.isEmpty;
+import static java.util.Collections.emptySet;
+import static ru.inovus.ms.rdm.util.ComparableUtils.*;
 import static ru.inovus.ms.rdm.util.ConverterUtil.getFieldSearchCriteriaList;
 
 @Service
@@ -35,6 +44,7 @@ import static ru.inovus.ms.rdm.util.ConverterUtil.getFieldSearchCriteriaList;
 public class CompareServiceImpl implements CompareService {
 
     private CompareDataService compareDataService;
+    private VersionService versionService;
     private RefBookVersionRepository versionRepository;
     private PassportAttributeRepository passportAttributeRepository;
 
@@ -45,9 +55,11 @@ public class CompareServiceImpl implements CompareService {
     FieldFactory fieldFactory;
 
     @Autowired
-    public CompareServiceImpl(CompareDataService compareDataService, RefBookVersionRepository versionRepository,
+    public CompareServiceImpl(CompareDataService compareDataService,
+                              VersionService versionService, RefBookVersionRepository versionRepository,
                               PassportAttributeRepository passportAttributeRepository) {
         this.compareDataService = compareDataService;
+        this.versionService = versionService;
         this.versionRepository = versionRepository;
         this.passportAttributeRepository = passportAttributeRepository;
     }
@@ -139,6 +151,25 @@ public class CompareServiceImpl implements CompareService {
         return new RefBookDataDiff(new DiffRowValuePage(dataDifference.getRows()), oldAttributes, newAttributes, updatedAttributes);
     }
 
+    @Override
+    public Page<ComparableRow> getCommonDataDiff(CompareCriteria criteria) {
+        Structure newStructure = versionService.getStructure(criteria.getNewVersionId());
+        Structure oldStructure = versionService.getStructure(criteria.getOldVersionId());
+
+        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize(), null);
+        Page<RowValue> newData = versionService.search(criteria.getNewVersionId(), searchDataCriteria);
+
+        RefBookDataDiff refBookDataDiff = getRefBookDataDiff(criteria, newData, newStructure);
+
+        List<ComparableField> comparableFields = createCommonComparableFieldsList(refBookDataDiff, newStructure, oldStructure);
+        List<ComparableRow> comparableRows = new ArrayList<>();
+
+        addNewVersionRows(comparableRows, comparableFields, newData, refBookDataDiff, newStructure, criteria);
+        addDeletedRows(comparableRows, comparableFields, criteria, (int) newData.getTotalElements());
+
+        return new RestPage<>(comparableRows, criteria, newData.getTotalElements() + getTotalDeletedCount(criteria));
+    }
+
     private CompareDataCriteria createCompareDataCriteria(RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion,
                                                           ru.inovus.ms.rdm.model.CompareDataCriteria rdmCriteria) {
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria();
@@ -199,6 +230,94 @@ public class CompareServiceImpl implements CompareService {
             return (newPassportValue != null && oldPassportValue.getValue().equals(newPassportValue.getValue()));
         else
             return (newPassportValue == null || newPassportValue.getValue() == null);
+    }
+
+    private RefBookDataDiff getRefBookDataDiff(CompareCriteria criteria, Page<RowValue> data, Structure structure) {
+        ru.inovus.ms.rdm.model.CompareDataCriteria compareDataCriteria = new ru.inovus.ms.rdm.model.CompareDataCriteria(criteria);
+        compareDataCriteria.setPrimaryAttributesFilters(createPrimaryAttributesFilters(data, structure));
+
+        return compareData(compareDataCriteria);
+    }
+
+    private long getTotalDeletedCount(CompareCriteria criteria) {
+        ru.inovus.ms.rdm.model.CompareDataCriteria deletedCountCriteria = new ru.inovus.ms.rdm.model.CompareDataCriteria(criteria);
+        deletedCountCriteria.setDiffStatus(DiffStatusEnum.DELETED);
+        deletedCountCriteria.setPrimaryAttributesFilters(emptySet());
+        deletedCountCriteria.setCountOnly(true);
+        RefBookDataDiff refBookDeletedRows = compareData(deletedCountCriteria);
+        return refBookDeletedRows.getRows().getTotalElements();
+    }
+
+    private void addNewVersionRows(List<ComparableRow> comparableRows, List<ComparableField> comparableFields,
+                                   Page<RowValue> newData, RefBookDataDiff refBookDataDiff,
+                                   Structure newStructure, CompareCriteria criteria) {
+        if (CollectionUtils.isEmpty(newData.getContent()))
+            return;
+
+        Boolean hasUpdOrDelAttr = !CollectionUtils.isEmpty(refBookDataDiff.getUpdatedAttributes()) || !CollectionUtils.isEmpty(refBookDataDiff.getOldAttributes());
+
+        SearchDataCriteria oldSearchDataCriteria = hasUpdOrDelAttr
+                ? new SearchDataCriteria(0, criteria.getPageSize(), createPrimaryAttributesFilters(newData, newStructure))
+                : null;
+
+        Page<RowValue> oldData = hasUpdOrDelAttr
+                ? versionService.search(criteria.getOldVersionId(), oldSearchDataCriteria)
+                : null;
+
+        newData.getContent()
+                .forEach(newRowValue -> {
+                    ComparableRow comparableRow = new ComparableRow();
+                    DiffRowValue diffRowValue = getDiffRowValue(newStructure.getPrimary(), newRowValue,
+                            refBookDataDiff.getRows().getContent());
+                    RowValue oldRowValue = oldData != null
+                            ? findRowValue(newStructure.getPrimary(), newRowValue, oldData.getContent())
+                            : null;
+
+                    comparableRow.setStatus(diffRowValue != null ? diffRowValue.getStatus() : null);
+                    comparableRow.setFieldValues(
+                            comparableFields
+                                    .stream()
+                                    .map(comparableField ->
+                                            new ComparableFieldValue(comparableField,
+                                                    diffRowValue != null
+                                                            ? diffRowValue.getDiffFieldValue(comparableField.getCode())
+                                                            : null,
+                                                    oldRowValue,
+                                                    newRowValue))
+                                    .collect(Collectors.toList())
+                    );
+                    comparableRows.add(comparableRow);
+                });
+    }
+
+    private void addDeletedRows(List<ComparableRow> comparableRows, List<ComparableField> comparableFields,
+                                CompareCriteria criteria, int totalNewCount) {
+        if (comparableRows.size() < criteria.getPageSize()) {
+            int skipPageCount = criteria.getPageNumber() - totalNewCount / criteria.getPageSize();
+            long newDataOnLastPageCount = totalNewCount % criteria.getPageSize();
+            long skipDeletedRowsCount = criteria.getPageSize() * skipPageCount - newDataOnLastPageCount;
+            long pageSize = skipDeletedRowsCount + criteria.getPageSize();
+            SearchDataCriteria delSearchDataCriteria = new SearchDataCriteria(0, (int) pageSize, null);
+            Page<RowValue> delData = versionService.search(criteria.getOldVersionId(), delSearchDataCriteria);
+            delData.getContent()
+                    .stream()
+                    .skip(skipDeletedRowsCount > 0 ? skipDeletedRowsCount : 0)
+                    .forEach(deletedRowValue -> {
+                        ComparableRow comparableRow = new ComparableRow();
+                        comparableRow.setStatus(DiffStatusEnum.DELETED);
+                        comparableRow.setFieldValues(
+                                comparableFields
+                                        .stream()
+                                        .map(comparableField ->
+                                                new ComparableFieldValue(comparableField,
+                                                        null,
+                                                        deletedRowValue,
+                                                        null))
+                                        .collect(Collectors.toList())
+                        );
+                        comparableRows.add(comparableRow);
+                    });
+        }
     }
 
 }

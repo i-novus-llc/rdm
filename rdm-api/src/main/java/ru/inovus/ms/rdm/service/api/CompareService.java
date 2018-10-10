@@ -1,10 +1,9 @@
 package ru.inovus.ms.rdm.service.api;
 
 import io.swagger.annotations.*;
-import ru.inovus.ms.rdm.model.CompareDataCriteria;
-import ru.inovus.ms.rdm.model.PassportDiff;
-import ru.inovus.ms.rdm.model.RefBookDataDiff;
-import ru.inovus.ms.rdm.model.StructureDiff;
+import org.springframework.data.domain.Page;
+import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.compare.ComparableRow;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -37,6 +36,15 @@ public interface CompareService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     RefBookDataDiff compareData(@BeanParam CompareDataCriteria compareDataCriteria);
+
+    @GET
+    @Path("/getCommonDataDiff")
+    @ApiOperation("Получение результата сравнения данных версий")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    Page<ComparableRow> getCommonDataDiff(@BeanParam CompareCriteria criteria);
 
     @GET
     @Path("/structures")

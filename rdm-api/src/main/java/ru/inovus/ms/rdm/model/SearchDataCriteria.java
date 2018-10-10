@@ -17,12 +17,18 @@ public class SearchDataCriteria extends AbstractCriteria{
     @QueryParam("commonFilter")
     private String commonFilter;
 
+    public SearchDataCriteria() {
+    }
+
     public SearchDataCriteria(Set<List<AttributeFilter>> attributeFilter, String commonFilter) {
         this.attributeFilter = attributeFilter;
         this.commonFilter = commonFilter;
     }
 
-    public SearchDataCriteria() {
+    public SearchDataCriteria(int pageNumber, int pageSize, Set<List<AttributeFilter>> attributeFilter) {
+        this(attributeFilter, null);
+        this.setPageNumber(pageNumber);
+        this.setPageSize(pageSize);
     }
 
     public Set<List<AttributeFilter>> getAttributeFilter() {

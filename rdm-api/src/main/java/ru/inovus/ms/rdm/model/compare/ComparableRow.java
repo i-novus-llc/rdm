@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.model;
+package ru.inovus.ms.rdm.model.compare;
 
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 
