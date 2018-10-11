@@ -1,76 +1,23 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<object xmlns="http://n2oapp.net/framework/config/schema/object-1.0"
-        xmlns:n2o="http://n2oapp.net/framework/config/schema/action-invocation-1.0"
-        xmlns:sql="http://n2oapp.net/framework/config/schema/action-sql-1.0">
-    <name>Паспорт</name>
+<object xmlns="http://n2oapp.net/framework/config/schema/object-3.0"
+        name="Паспорт">
 
-    <fields>
-        <field id="code" mapping="['code']" domain="string"/>
-        <field id="fullName" mapping="['fullName']" domain="string"/>
-        <field id="shortName" mapping="['shortName']" domain="string"/>
-        <field id="annotation" mapping="['annotation']" domain="string"/>
-    </fields>
 
-    <actions>
-        <action id="create" form-submit-label="Сохранить">
+    <operations>
+        <operation id="create" submit-label="Сохранить">
             <invocation>
-                <n2o:rest method="POST">
-                    <n2o:query>${rdm.backend.path}/refBook</n2o:query>
-                </n2o:rest>
+                <rest method="POST">/refBook</rest>
             </invocation>
             <in-parameters>
-                <param name="code"/>
-                <param name="fullName"/>
-                <param name="shortName"/>
-                <param name="annotation"/>
+                <param id="code" mapping="code" domain="string" mapper="spel" />
+                <param id="name" mapping="passport.name" domain="string" mapper="spel"/>
             </in-parameters>
             <out-parameters>
-                <param name="id" mapping="['id']" domain="integer"/>
+                <param id="id" mapping="id" domain="integer" />
             </out-parameters>
-            <validations activate="whiteList">
-                <validation ref-id="checkCode"/>
-            </validations>
             <success-text>Справочник успешно сохранен</success-text>
-        </action>
+        </operation>
+    </operations>
 
-        <action id="update" form-submit-label="Сохранить">
-            <invocation>
-                <n2o:rest method="PUT">
-                    <n2o:query>${rdm.backend.path}/refBook</n2o:query>
-                </n2o:rest>
-            </invocation>
-            <in-parameters>
-                <param name="id"/>
-                <param name="code"/>
-                <param name="fullName"/>
-                <param name="shortName"/>
-                <param name="annotation"/>
-                <param name="comment"/>
-            </in-parameters>
-            <out-parameters>
-                <param name="id" mapping="['id']" domain="integer"/>
-            </out-parameters>
-            <validations activate="whiteList">
-                <validation ref-id="checkCode"/>
-            </validations>
-        </action>
-    </actions>
-
-    <validations>
-        <constraint id="checkCode" level="error" moment="before-action">
-            <message>
-                Поле 'Код' содержит недопустимые символы. Допустимыми являются: 0-9, A-Z, a-z, _, -. Пожалуйста, отредактируйте код и повторите сохранение.
-            </message>
-            <invocation>
-                <sql:sql>
-                    SELECT :code SIMILAR TO '[0-9,-,_,A-Z,a-z]+'
-                </sql:sql>
-            </invocation>
-            <in-parameters>
-                <param name="code" mapping="['code']" domain="string"/>
-            </in-parameters>
-            <result expression="[0][0][0]"/>
-        </constraint>
-    </validations>
 
 </object>

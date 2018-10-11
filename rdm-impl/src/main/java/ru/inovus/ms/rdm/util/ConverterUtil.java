@@ -10,6 +10,7 @@ import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
+import ru.i_novus.platform.versioned_data_storage.pg_impl.model.*;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.service.FieldFactoryImpl;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.file.Row;
@@ -35,7 +36,7 @@ public class ConverterUtil {
         List<Field> fields = new ArrayList<>();
         if (structure != null) {
             Optional.ofNullable(structure.getAttributes()).ifPresent(s ->
-                    s.forEach(attribute -> fields.add(field(attribute)))
+                            s.forEach(attribute -> fields.add(field(attribute)))
             );
         }
         return fields;
@@ -85,23 +86,21 @@ public class ConverterUtil {
     }
 
     public static Object castReferenceValue(Field field, String value) {
-        switch (field.getType()) {
-            case "boolean":
-                return Boolean.valueOf(value);
-            case "date":
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-                return LocalDate.parse(value, formatter);
-            case "numeric":
-                return Float.parseFloat(value);
-            case "bigint":
-                return BigInteger.valueOf(Long.parseLong(value));
-            case "varchar":
-                return value;
-            case "ltree":
-                return value;
-            default:
-                throw new RdmException("invalid field type");
-        }
+        if (field instanceof BooleanField) {
+            return Boolean.valueOf(value);
+        } else if (field instanceof DateField) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+            return LocalDate.parse(value, formatter);
+        } else if (field instanceof FloatField) {
+            return Float.parseFloat(value);
+        } else if (field instanceof IntegerField) {
+            return BigInteger.valueOf(Long.parseLong(value));
+        } else if (field instanceof StringField) {
+            return value;
+        } else if (field instanceof TreeField) {
+            return value;
+        } else
+            throw new RdmException("invalid field type");
     }
 
     public static Object toSearchType(Object value) {

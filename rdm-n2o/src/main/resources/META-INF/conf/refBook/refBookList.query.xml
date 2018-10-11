@@ -1,107 +1,67 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<query xmlns="http://n2oapp.net/framework/config/schema/query-3.0"
-       xmlns:n2o="http://n2oapp.net/framework/config/schema/n2o-query-executions-1.0">
-    <object-id>refBook</object-id>
-    <name>Администрирование/Справчники</name>
-    <execution>
-        <n2o:rest>
-            <n2o:query>${rdm.backend.path}/refBook</n2o:query>
-            <n2o:query-by-id>${rdm.backend.path}/refBook/{id}</n2o:query-by-id>
-            <n2o:date-format>dd.MM.yyyy HH:mm:ss</n2o:date-format>
-            <n2o:response-mapping collection="content" count="totalElements"/>
-            <n2o:size param-name="size"/>
-            <n2o:page param-name="page"/>
-            <n2o:sorting param-name="sort" separator=","/>
-        </n2o:rest>
-    </execution>
+<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="refBook">
+    <list result-mapping="['content']" count-mapping="['totalElements']">
+        <java class="ru.inovus.ms.rdm.service.api.RefBookService"
+              method="search">
+            <spring bean="refBookServiceJaxRsProxyClient"/>
+            <arguments>
+                <argument type="criteria"
+                          class="ru.inovus.ms.rdm.criteria.RefBookCriteriaDate"/>
+            </arguments>
+        </java>
+    </list>
+    <unique filters="id">
+        <java class="ru.inovus.ms.rdm.service.api.RefBookService"
+              method="getByVersionId">
+            <spring bean="refBookServiceJaxRsProxyClient"/>
+            <arguments>
+                <argument type="primitive"/>
+            </arguments>
+        </java>
+    </unique>
 
     <fields>
-        <field>
-            <id>id</id>
-            <domain>integer</domain>
-            <display>id</display>
+        <field id="id" domain="integer">
+            <select mapping="id"/>
             <filters>
-                <filter type="eq" filter-field="id">:id</filter>
-            </filters>
-            <expression>id</expression>
-        </field>
-
-        <field>
-            <id>refBookId</id>
-            <domain>integer</domain>
-            <display/>
-        </field>
-
-        <field>
-            <id>code</id>
-            <domain>string</domain>
-            <display/>
-            <filters auto-generate="true"/>
-            <sorting>refBook.code,:direction</sorting>
-        </field>
-
-        <field>
-            <id>name</id>
-            <domain>string</domain>
-            <filters auto-generate="true"/>
-        </field>
-
-        <field>
-            <id>shortName</id>
-            <domain>string</domain>
-            <display/>
-            <sorting>shortName,:direction</sorting>
-        </field>
-
-        <field>
-            <id>fullName</id>
-            <domain>string</domain>
-            <display/>
-            <sorting>fullName,:direction</sorting>
-        </field>
-
-        <field>
-            <id>lastPublishedVersionFromDate</id>
-            <domain>date</domain>
-            <filters>
-                <filter type="more" filter-field="lastPublishedVersionFromDate.begin">fromDateBegin=:lastPublishedVersionFromDate.begin</filter>
-                <filter type="less" filter-field="lastPublishedVersionFromDate.end">fromDateEnd=:lastPublishedVersionFromDate.end</filter>
-            </filters>
-            <display/>
-        </field>
-
-        <field>
-            <id>version</id>
-            <domain>string</domain>
-            <display/>
-        </field>
-
-        <field>
-            <id>displayVersion</id>
-            <domain>string</domain>
-            <display/>
-            <sorting>version,:direction</sorting>
-        </field>
-
-        <field>
-            <id>status.id</id>
-            <domain>string</domain>
-            <display/>
-            <filters>
-                <filter type="eq" filter-field="status.id"/>
+                <eq filter-id="id" mapping="[0]"/>
             </filters>
         </field>
 
-        <field>
-            <id>archived</id>
-            <domain>boolean</domain>
-            <display/>
+        <field id="code" domain="string">
+            <select mapping="code"/>
+            <filters>
+                <eq filter-id="code" mapping="code"/>
+            </filters>
+            <sorting/>
         </field>
 
-        <field>
-            <id>refBookHasPublishingVersion</id>
-            <domain>boolean</domain>
-            <display/>
+        <field id="status" domain="string">
+            <select mapping="status"/>
+            <filters>
+                <eq filter-id="status.id" mapping="status"/>
+            </filters>
+        </field>
+
+        <field id="name" domain="string">
+            <select mapping="passport['name']"/>
+            <filters>
+                <eq filter-id="name" mapping="passport['name']"/>
+            </filters>
+            <sorting/>
+        </field>
+
+        <field id="displayVersion" domain="string">
+            <select mapping="displayVersion"/>
+        </field>
+
+        <field id="lastPublishedVersionFromDate" domain="date">
+            <select mapping="lastPublishedVersionFromDate"/>
+            <filters>
+                <more filter-id="lastPublishedVersionFromDateInterval.begin" mapping="fromDateBegin"/>
+                <less filter-id="lastPublishedVersionFromDateInterval.end" mapping="fromDateEnd"/>
+            </filters>
+            <sorting/>
         </field>
     </fields>
 </query>

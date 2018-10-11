@@ -1,81 +1,15 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<query xmlns:n2o="http://n2oapp.net/framework/config/schema/n2o-query-executions-1.0"
-       xmlns="http://n2oapp.net/framework/config/schema/query-3.0">
-    <object-id>passport</object-id>
-    <name>Паспорт справочника</name>
-    <execution>
-        <n2o:rest>
-            <n2o:query-by-id>${rdm.backend.path}/refBook/{id}</n2o:query-by-id>
-        </n2o:rest>
-    </execution>
+<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="passport">
+    <unique result-mapping="#this">
+        <java class="ru.inovus.ms.rdm.service.api.RefBookService"
+              method="create" >
+            <spring bean="refBookServiceJaxRsProxyClient"/>
+        </java>
+    </unique>
 
     <fields>
-        <field>
-            <id>id</id>
-            <domain>integer</domain>
-            <display>id</display>
-            <filters auto-generate="true">
-                <filter type="eq" filter-field="id">:id</filter>
-            </filters>
-        </field>
-
-        <field>
-            <id>code</id>
-            <domain>string</domain>
-            <display/>
-        </field>
-
-        <field>
-            <id>name</id>
-            <domain>string</domain>
-        </field>
-
-        <field>
-            <id>shortName</id>
-            <domain>string</domain>
-            <display/>
-        </field>
-
-        <field>
-            <id>fullName</id>
-            <domain>string</domain>
-            <display/>
-        </field>
-
-        <field>
-            <id>fromDate</id>
-            <domain>date</domain>
-            <display/>
-        </field>
-
-        <field>
-            <id>firstPublishedVersionFromDate</id>
-            <domain>date</domain>
-            <display/>
-        </field>
-
-        <field>
-            <id>version</id>
-            <domain>string</domain>
-            <display/>
-        </field>
-
-        <field>
-            <id>annotation</id>
-            <domain>string</domain>
-            <display/>
-        </field>
-
-        <field>
-            <id>comment</id>
-            <domain>string</domain>
-            <display/>
-        </field>
-
-        <field>
-            <id>recordsCount</id>
-            <domain>integer</domain>
-            <display/>
+        <field id="id" domain="integer">
+            <select mapping="id"/>
         </field>
 
     </fields>
