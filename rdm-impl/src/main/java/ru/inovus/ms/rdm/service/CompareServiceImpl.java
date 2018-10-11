@@ -195,7 +195,7 @@ public class CompareServiceImpl implements CompareService {
         compareDataCriteria.setFields(getCommonFields(oldVersion.getStructure(), newVersion.getStructure()));
 
         compareDataCriteria.setPrimaryFieldsFilters(getFieldSearchCriteriaList(rdmCriteria.getPrimaryAttributesFilters()));
-        compareDataCriteria.setCountOnly(rdmCriteria.getCountOnly() != null ? rdmCriteria.getCountOnly() : false);
+        compareDataCriteria.setCountOnly(rdmCriteria.getCountOnly() != null && rdmCriteria.getCountOnly());
         compareDataCriteria.setReturnType(getDiffReturnType(rdmCriteria.getDiffStatus()));
         compareDataCriteria.setPage(rdmCriteria.getPageNumber() + 1);
         compareDataCriteria.setSize(rdmCriteria.getPageSize());
