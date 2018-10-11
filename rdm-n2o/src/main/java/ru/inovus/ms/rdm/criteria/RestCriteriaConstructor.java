@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.criteria;
 
+import net.n2oapp.criteria.api.Direction;
 import net.n2oapp.criteria.api.Sorting;
 import net.n2oapp.framework.api.criteria.N2oPreparedCriteria;
 import net.n2oapp.framework.api.data.CriteriaConstructor;
@@ -11,7 +12,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RefBookCriteriaConstructor implements CriteriaConstructor, Serializable {
+public class RestCriteriaConstructor implements CriteriaConstructor, Serializable {
 
 
     @Override
@@ -27,17 +28,11 @@ public class RefBookCriteriaConstructor implements CriteriaConstructor, Serializ
             List<Order> sortings = new ArrayList<>();
             Sort.Direction direction = null;
             for (Sorting sorting : criteria.getSortings()) {
-                switch (sorting.getDirection()) {
-                    case ASC: {
-                        direction = Sort.Direction.ASC;
-                        break;
-                    }
-                    case DESC: {
-                        direction = Sort.Direction.DESC;
-                        break;
-                    }
-                }
-                if (sorting.getField().equals("name"))
+                if(sorting.getDirection().equals(Direction.ASC))
+                    direction = Sort.Direction.ASC;
+                if(sorting.getDirection().equals(Direction.DESC))
+                    direction = Sort.Direction.DESC;
+                if (("name").equals(sorting.getField()))
                     sortings.add(new Order(direction, "passport." + sorting.getField()));
                 else
                     sortings.add(new Order(direction,  sorting.getField()));

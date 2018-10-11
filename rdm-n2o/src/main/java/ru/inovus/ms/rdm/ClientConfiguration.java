@@ -7,7 +7,7 @@ import net.n2oapp.framework.engine.data.N2oInvocationFactory;
 import net.n2oapp.framework.engine.data.N2oQueryProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.inovus.ms.rdm.criteria.RefBookCriteriaConstructor;
+import ru.inovus.ms.rdm.criteria.RestCriteriaConstructor;
 import ru.inovus.ms.rdm.util.ExportFileProvider;
 import ru.inovus.ms.rdm.util.RdmParamConverterProvider;
 import ru.inovus.ms.rdm.util.RowValueMapperPreparer;
@@ -36,7 +36,7 @@ public class ClientConfiguration {
                                          DomainProcessor domainProcessor,
                                          N2oInvocationFactory invocationFactory) {
         N2oQueryProcessor queryProcessor = new N2oQueryProcessor(contextProcessor, domainProcessor, invocationFactory);
-        queryProcessor.setCriteriaResolver(new RefBookCriteriaConstructor());
+        queryProcessor.setCriteriaResolver(new RestCriteriaConstructor());
         return queryProcessor;
     }
 }
