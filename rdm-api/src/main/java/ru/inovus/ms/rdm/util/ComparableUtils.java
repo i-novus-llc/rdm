@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 public class ComparableUtils {
 
-    public ComparableUtils() {}
+    private ComparableUtils() {}
 
     /**
      * В списке diff-записей #diffRowValues ищется запись, которая соответствует строке #rowValue

@@ -90,11 +90,9 @@ public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
         Object referenceValueCasted = castReferenceValue(fieldFilter, referenceValue);
         AttributeFilter attributeFilter = new AttributeFilter(reference.getReferenceAttribute(), referenceValueCasted,
                 referenceStructure.getAttribute(reference.getReferenceAttribute()).getType(), SearchTypeEnum.EXACT);
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(
-                new HashSet<List<AttributeFilter>>() {{
-                    add(singletonList(attributeFilter));
-                }},
-                null);
+        Set<List<AttributeFilter>> attributeFilters = new HashSet<>();
+        attributeFilters.add(singletonList(attributeFilter));
+        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(attributeFilters, null);
         Page<RowValue> pagedData = versionService.search(versionId, searchDataCriteria);
         return (pagedData == null || !pagedData.hasContent());
     }
