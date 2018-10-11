@@ -1,18 +1,32 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<page xmlns="http://n2oapp.net/framework/config/schema/page-1.0"
-      xmlns:wgt="http://n2oapp.net/framework/config/schema/n2o-widget-3.0"
-      xmlns:ctrl="http://n2oapp.net/framework/config/schema/n2o-control-1.0">
-    <object-id>refBook</object-id>
-    <layout>n2o/layout/single</layout>
-    <name>Администрирование / Справочники</name>
-
-    <!--NSI-M-4-->
-
-    <regions>
-        <region place="single" type="none">
-            <container id="main">
-                <wgt:table ref-id="refBookList"/>
-            </container>
-        </region>
-    </regions>
-</page>
+<simple-page xmlns="http://n2oapp.net/framework/config/schema/page-2.0" name="Реестр НСИ">
+    <table  query-id="refBookList">
+        <pagination/>
+        <filters>
+            <row>
+                <input-text id="code" label="Код" />
+                <input-text id="name" label="Наименование"/>
+                <input-select id="status" label="Статус">
+                    <options  label-field-id="name" value-field-id="id">
+                        <option>{"id":"PUBLISHED","name":"Опубликован"}</option>
+                        <option>{"id":"DRAFT","name":"Черновик"}</option>
+                        <option>{"id":"PUBLISHING","name":"Публикуется"}</option>
+                    </options>
+                </input-select>
+                <date-interval id="lastPublishedVersionFromDateInterval" label="Последняя публикация"  />
+            </row>
+        </filters>
+        <toolbar >
+        <button id="create" label="Добавить справочник" icon="fa fa-plus">
+            <open-page page-id="passport" submit-operation-id="create"  model="filter" focus-after-submit="true"/>
+        </button>
+        </toolbar>
+        <columns>
+            <column text-field-id="code" label="Код" width="100px"/>
+            <column text-field-id="name" label="Наименование"/>
+            <column text-field-id="displayVersion" label="Версия"/>
+            <column text-field-id="lastPublishedVersionFromDate" label="Последняя публикация">
+                <text format="date DD.MM.YYYY"/>
+            </column>
+        </columns>
+    </table></simple-page>

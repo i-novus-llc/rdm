@@ -131,6 +131,12 @@
             </dependency>
 
             <dependency>
+                <groupId>net.n2oapp.framework</groupId>
+                <artifactId>n2o-header</artifactId>
+                <version>${n2o.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>com.itextpdf</groupId>
                 <artifactId>itextpdf</artifactId>
                 <version>${itext.version}</version>
