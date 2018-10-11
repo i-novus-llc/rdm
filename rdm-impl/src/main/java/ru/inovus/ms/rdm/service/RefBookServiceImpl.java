@@ -20,6 +20,7 @@ import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.inovus.ms.rdm.entity.*;
 import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.PassportValueRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
@@ -363,13 +364,13 @@ public class RefBookServiceImpl implements RefBookService {
 
     private void validateRefBookExists(Integer refBookId) {
         if (refBookId == null || !refBookRepository.exists(refBookId)) {
-            throw new UserException("refbook.not.found");
+            throw new NotFoundException(new Message("refbook.not.found", refBookId));
         }
     }
 
     private void validateVersionExists(Integer versionId) {
         if (versionId == null || !repository.exists(versionId)) {
-            throw new UserException(new Message("version.not.found", versionId));
+            throw new NotFoundException(new Message("version.not.found", versionId));
         }
     }
 

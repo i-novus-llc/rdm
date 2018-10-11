@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.util;
+package ru.inovus.ms.rdm.provider;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;

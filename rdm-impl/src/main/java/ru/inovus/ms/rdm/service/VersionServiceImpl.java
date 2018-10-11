@@ -2,7 +2,6 @@ package ru.inovus.ms.rdm.service;
 
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
-import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
@@ -16,6 +15,7 @@ import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.entity.VersionFileEntity;
 import ru.inovus.ms.rdm.enumeration.FileType;
+import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.file.export.*;
@@ -82,7 +82,7 @@ public class VersionServiceImpl implements VersionService {
     public Page<RowValue> search(Integer versionId, SearchDataCriteria criteria) {
         RefBookVersionEntity version = versionRepository.findOne(versionId);
         if (version == null)
-            throw new UserException(new Message("version.not.found", versionId));
+            throw new NotFoundException(new Message("version.not.found", versionId));
         return getRowValuesOfVersion(criteria, version);
     }
 
@@ -90,6 +90,8 @@ public class VersionServiceImpl implements VersionService {
     @Transactional
     public RefBookVersion getById(Integer versionId) {
         RefBookVersionEntity versionEntity = versionRepository.findOne(versionId);
+        if (versionEntity == null)
+            throw new NotFoundException(new Message("version.not.found", versionId));
         RefBookVersion versionModel = ModelGenerator.versionModel(versionEntity);
         versionModel.setStructure(versionEntity.getStructure());
         return versionModel;

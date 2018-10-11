@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.util;
+package ru.inovus.ms.rdm.provider;
 
 import org.apache.cxf.helpers.IOUtils;
 import ru.inovus.ms.rdm.exception.RdmException;
