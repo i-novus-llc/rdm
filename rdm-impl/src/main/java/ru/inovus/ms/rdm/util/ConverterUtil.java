@@ -64,14 +64,16 @@ public class ConverterUtil {
         return sortings;
     }
 
-    public static List<FieldSearchCriteria> getFieldSearchCriteriaList(List<AttributeFilter> attributeFilters) {
+    public static Set<List<FieldSearchCriteria>> getFieldSearchCriteriaList(Set<List<AttributeFilter>> attributeFilters) {
         if (Objects.isNull(attributeFilters))
-            return Collections.emptyList();
-        return attributeFilters.stream().map(attrFilter -> new FieldSearchCriteria(
-                        fieldFactory.createField(attrFilter.getAttributeName(), attrFilter.getFieldType()),
-                        attrFilter.getSearchType(),
-                        Collections.singletonList(attrFilter.getValue()))
-        ).collect(Collectors.toList());
+            return Collections.emptySet();
+        return attributeFilters.stream().map(attrFiltersList ->
+                attrFiltersList.stream().map(attrFilter ->
+                        new FieldSearchCriteria(
+                                fieldFactory.createField(attrFilter.getAttributeName(), attrFilter.getFieldType()),
+                                attrFilter.getSearchType(),
+                                Collections.singletonList(attrFilter.getValue()))).collect(Collectors.toList())
+        ).collect(Collectors.toSet());
     }
 
     public static Row toRow(RowValue rowValue) {

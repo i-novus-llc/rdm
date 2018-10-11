@@ -16,13 +16,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit4.SpringRunner;
+import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
@@ -32,10 +31,8 @@ import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.file.Row;
 import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.service.api.DraftService;
-import ru.inovus.ms.rdm.service.api.FileStorageService;
-import ru.inovus.ms.rdm.service.api.RefBookService;
-import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
+import ru.inovus.ms.rdm.service.api.*;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 
 import javax.sql.DataSource;
@@ -107,6 +104,10 @@ public class ApplicationTest {
     @Autowired
     @Qualifier("versionServiceJaxRsProxyClient")
     private VersionService versionService;
+
+    @Autowired
+    @Qualifier("compareServiceJaxRsProxyClient")
+    private CompareService compareService;
 
     @Autowired
     private DataSource dataSource;
@@ -647,11 +648,11 @@ public class ApplicationTest {
         });
 
         attributeFilters.forEach(attributeFilter -> {
-            Page<RowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(Collections.singletonList(attributeFilter), null));
+            Page<RowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(new HashSet<List<AttributeFilter>>(){{add(singletonList(attributeFilter));}}, null));
             assertRows(fields, expectedRowValues, actualPage.getContent());
         });
 
-        Page<RowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(attributeFilters, null));
+        Page<RowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(new HashSet<List<AttributeFilter>>(){{add(attributeFilters);}}, null));
         assertRows(fields, expectedRowValues, actualPage.getContent());
     }
 
@@ -1285,8 +1286,184 @@ public class ApplicationTest {
                 refBook3,
                 refBook2).iterator();
         refBookService.search(criteria).getContent().forEach(actual -> assertRefBooksEqual(expected5.next(), actual));
+    }
 
+    /*
+    * compare data for two published versions with different storage codes
+    * id, code - composite primary key (PK)
+    * common - common non-primary field (UPDATED)
+    * descr - field from OLD version (DELETED)
+    * name - field from NEW version (INSERTED)
+    * upd1, upd2 - field with updated name (UPDATED field)
+    * typeS, typeI - field with updated type (UPDATED field)
+    * */
+    @Test
+    public void testCompareVersionsData() {
+        final String OLD_FILE_NAME = "oldData.xlsx";
+        final String NEW_FILE_NAME = "newData.xlsx";
+        LocalDateTime publishDate1 = LocalDateTime.now();
+        LocalDateTime closeDate1 = LocalDateTime.from(publishDate1.plusYears(2));
+        LocalDateTime publishDate2 = LocalDateTime.from(publishDate1.plusYears(3));
+        LocalDateTime closeDate2 = LocalDateTime.from(publishDate1.plusYears(4));
 
+        Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
+        Structure.Attribute code = Structure.Attribute.buildPrimary("CODE", "code", FieldType.STRING, "code");
+        Structure.Attribute common = Structure.Attribute.build("COMMON", "common", FieldType.STRING, false,"common");
+        Structure.Attribute descr = Structure.Attribute.build("DESCR", "descr", FieldType.STRING, false, "descr");
+        Structure.Attribute name = Structure.Attribute.build("NAME", "name", FieldType.STRING, false, "name");
+        Structure.Attribute upd1 = Structure.Attribute.build("UPD", "upd1", FieldType.STRING, false, "upd");
+        Structure.Attribute upd2 = Structure.Attribute.build("UPD", "upd2", FieldType.STRING, false, "upd");
+        Structure.Attribute typeS = Structure.Attribute.build("TYPE", "type", FieldType.STRING, false, "type");
+        Structure.Attribute typeI = Structure.Attribute.build("TYPE", "type", FieldType.INTEGER, false, "type");
+
+        RefBook refBook = refBookService.create(new RefBookCreateRequest("A000", null));
+        Integer oldVersionId = refBook.getId();
+        Arrays.asList(id, code, common, descr, upd1, typeS)
+                .forEach(attribute ->
+                        draftService.createAttribute(new CreateAttribute(oldVersionId, attribute, null))
+                );
+        draftService.updateData(oldVersionId, createFileModel(OLD_FILE_NAME, "testCompare/" + OLD_FILE_NAME));
+        draftService.publish(oldVersionId, "1.0", publishDate1, closeDate1);
+
+        Integer newVersionId = draftService.create(refBook.getRefBookId(), new Structure(Arrays.asList(id, code, common, name, upd2, typeI), emptyList())).getId();
+        draftService.updateData(newVersionId, createFileModel(NEW_FILE_NAME, "testCompare/" + NEW_FILE_NAME));
+        draftService.publish(newVersionId, "1.1", publishDate2, closeDate2);
+
+        Field idField = new CommonField(id.getCode());
+        Field codeField = new CommonField(code.getCode());
+        Field commonField = new CommonField(common.getCode());
+
+        List<DiffRowValue> expectedDiffRowValues = new ArrayList<>();
+        expectedDiffRowValues.add(new DiffRowValue(
+                Arrays.asList(
+                        new DiffFieldValue<>(idField, BigInteger.valueOf(1), null, DiffStatusEnum.DELETED),
+                        new DiffFieldValue<>(codeField, "001", null, DiffStatusEnum.DELETED),
+                        new DiffFieldValue<>(commonField, "c1", null, DiffStatusEnum.DELETED)),
+                DiffStatusEnum.DELETED));
+        expectedDiffRowValues.add(new DiffRowValue(
+                Arrays.asList(
+                        new DiffFieldValue<>(idField, null,  BigInteger.valueOf(4), DiffStatusEnum.INSERTED),
+                        new DiffFieldValue<>(codeField, null, "004", DiffStatusEnum.INSERTED),
+                        new DiffFieldValue<>(commonField, null,  "c4", DiffStatusEnum.INSERTED)),
+                DiffStatusEnum.INSERTED));
+        expectedDiffRowValues.add(new DiffRowValue(
+                Arrays.asList(
+                        new DiffFieldValue<>(idField, null,  BigInteger.valueOf(3), null),
+                        new DiffFieldValue<>(codeField, null, "003", null),
+                        new DiffFieldValue<>(commonField, "c3",  "c3_1", DiffStatusEnum.UPDATED)),
+                DiffStatusEnum.UPDATED));
+
+        RefBookDataDiff expectedRefBookDataDiff = new RefBookDataDiff(
+                new PageImpl<>(expectedDiffRowValues, new PageRequest(0, 10), expectedDiffRowValues.size()),
+                singletonList(descr.getCode()),
+                singletonList(name.getCode()),
+                Arrays.asList(upd1.getCode(), typeI.getCode())
+        );
+
+        RefBookDataDiff actualRefBookDataDiff = compareService.compareData(new CompareDataCriteria(oldVersionId, newVersionId));
+        assertRefBookDataDiffs(expectedRefBookDataDiff, actualRefBookDataDiff);
+    }
+
+    /*
+     * testing get data difference for two versions with no differences for common fields
+     * empty refBookDataDiff is expected (with empty list)
+     */
+    @Test
+    public void testCompareDataWhenNoDiff() {
+        final String FILE_NAME = "testCompareData.xlsx";
+
+        LocalDateTime publishDate1 = LocalDateTime.now();
+        LocalDateTime publishDate2 = LocalDateTime.from(publishDate1.plusYears(2));
+
+        Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
+        Structure.Attribute code = Structure.Attribute.build("CODE", "code", FieldType.STRING, false, "code");
+        Structure.Attribute name = Structure.Attribute.build("NAME", "name", FieldType.STRING, false, "name");
+
+        RefBook refBook = refBookService.create(new RefBookCreateRequest("A000", null));
+        Integer oldVersionId = refBook.getId();
+        draftService.createAttribute(new CreateAttribute(refBook.getId(), id, null));
+        draftService.createAttribute(new CreateAttribute(refBook.getId(), code, null));
+        draftService.updateData(refBook.getId(), createFileModel(FILE_NAME, "testCompare/" + FILE_NAME));
+        draftService.publish(refBook.getId(), "1.0", publishDate1, null);
+
+        Integer newVersionId = draftService.create(
+                refBook.getRefBookId(),
+                new Structure(Arrays.asList(
+                        id,
+                        code,
+                        name),
+                        emptyList())).getId();
+        draftService.updateData(newVersionId, createFileModel(FILE_NAME, "testCompare/" + FILE_NAME));
+        draftService.publish(newVersionId, "1.1", publishDate2, null);
+
+        List<DiffRowValue> expectedDiffRowValues = new ArrayList<>();
+        RefBookDataDiff expectedRefBookDataDiff = new RefBookDataDiff(
+                new PageImpl<>(expectedDiffRowValues, new PageRequest(0, 10), expectedDiffRowValues.size()),
+                emptyList(),
+                singletonList(name.getCode()),
+                emptyList()
+        );
+
+        RefBookDataDiff actualRefBookDataDiff = compareService.compareData(new CompareDataCriteria(oldVersionId, newVersionId));
+        assertRefBookDataDiffs(expectedRefBookDataDiff, actualRefBookDataDiff);
+    }
+
+    /*
+     * testing get data difference for two versions with different primary fields
+     * Exception is expected
+     */
+    @Test
+    public void testCompareDataWhenDifferentPK() {
+        final String FILE_NAME = "testCompareData.xlsx";
+
+        Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
+        Structure.Attribute code = Structure.Attribute.build("CODE", "code", FieldType.STRING, false, "code");
+
+        RefBook refBook = refBookService.create(new RefBookCreateRequest("A000", null));
+        Integer oldVersionId = refBook.getId();
+        draftService.createAttribute(new CreateAttribute(refBook.getId(), id, null));
+        draftService.createAttribute(new CreateAttribute(refBook.getId(), code, null));
+        draftService.updateData(refBook.getId(), createFileModel(FILE_NAME, "testCompare/" + FILE_NAME));
+        draftService.publish(refBook.getId(), "1.0", LocalDateTime.now(), null);
+
+        Integer newVersionId = draftService.create(
+                refBook.getRefBookId(),
+                new Structure(Arrays.asList(
+                        Structure.Attribute.build("ID", "id", FieldType.INTEGER, false, "id"),
+                        Structure.Attribute.buildPrimary("CODE", "code", FieldType.STRING, "code")),
+                        emptyList())).getId();
+        draftService.updateData(newVersionId, createFileModel(FILE_NAME, "testCompare/" + FILE_NAME));
+        draftService.publish(newVersionId, "1.1", LocalDateTime.now().plusYears(1), null);
+
+        try {
+            compareService.compareData(new CompareDataCriteria(oldVersionId, newVersionId));
+            fail();
+        } catch (RestException re) {
+            assertEquals("data.comparing.unavailable", re.getMessage());
+        }
+    }
+
+    private void assertRefBookDataDiffs(RefBookDataDiff expectedRefBookDataDiff, RefBookDataDiff actualRefBookDataDiff) {
+        assertListsEquals(expectedRefBookDataDiff.getNewAttributes(), actualRefBookDataDiff.getNewAttributes());
+        assertListsEquals(expectedRefBookDataDiff.getOldAttributes(), actualRefBookDataDiff.getOldAttributes());
+        assertListsEquals(expectedRefBookDataDiff.getUpdatedAttributes(), actualRefBookDataDiff.getUpdatedAttributes());
+
+        assertDiffRowValues(expectedRefBookDataDiff.getRows().getContent(), actualRefBookDataDiff.getRows().getContent());
+    }
+
+    private void assertListsEquals(List<String> expectedValuesList, List<String> actualValuesList) {
+        assertEquals(expectedValuesList.size(), actualValuesList.size());
+        if (expectedValuesList.stream().anyMatch(expectedValue -> !actualValuesList.contains(expectedValue)))
+            fail();
+    }
+
+    private void assertDiffRowValues(List<DiffRowValue> expectedDiffRowValues, List<DiffRowValue> actualDiffRowValues) {
+        assertEquals(expectedDiffRowValues.size(), actualDiffRowValues.size());
+        expectedDiffRowValues.forEach(expectedDiffRowValue -> {
+            if (actualDiffRowValues.stream().noneMatch(actualDiffRowValue ->
+                    expectedDiffRowValue.getValues().size() == actualDiffRowValue.getValues().size() && actualDiffRowValue.getValues().containsAll(expectedDiffRowValue.getValues())))
+                fail();
+        });
     }
 
 }

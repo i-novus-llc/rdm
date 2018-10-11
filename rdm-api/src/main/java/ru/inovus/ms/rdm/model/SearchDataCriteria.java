@@ -5,30 +5,37 @@ import io.swagger.annotations.ApiModelProperty;
 
 import javax.ws.rs.QueryParam;
 import java.util.List;
+import java.util.Set;
 
 @ApiModel("Критерии поиска данных справочника")
 public class SearchDataCriteria extends AbstractCriteria{
-    @ApiModelProperty("Фильтр по отдельным полям")
+    @ApiModelProperty("Множество фильтров по отдельным полям")
     @QueryParam("attributeFilter")
-    private List<AttributeFilter> attributeFilter;
+    private Set<List<AttributeFilter>> attributeFilter;
 
     @ApiModelProperty("Фильтр по всем полям")
     @QueryParam("commonFilter")
     private String commonFilter;
 
-    public SearchDataCriteria(List<AttributeFilter> attributeFilter, String commonFilter) {
+    public SearchDataCriteria() {
+    }
+
+    public SearchDataCriteria(Set<List<AttributeFilter>> attributeFilter, String commonFilter) {
         this.attributeFilter = attributeFilter;
         this.commonFilter = commonFilter;
     }
 
-    public SearchDataCriteria() {
+    public SearchDataCriteria(int pageNumber, int pageSize, Set<List<AttributeFilter>> attributeFilter) {
+        this(attributeFilter, null);
+        this.setPageNumber(pageNumber);
+        this.setPageSize(pageSize);
     }
 
-    public List<AttributeFilter> getAttributeFilter() {
+    public Set<List<AttributeFilter>> getAttributeFilter() {
         return attributeFilter;
     }
 
-    public void setAttributeFilter(List<AttributeFilter> attributeFilter) {
+    public void setAttributeFilter(Set<List<AttributeFilter>> attributeFilter) {
         this.attributeFilter = attributeFilter;
     }
 
@@ -47,7 +54,8 @@ public class SearchDataCriteria extends AbstractCriteria{
 
         SearchDataCriteria that = (SearchDataCriteria) o;
 
-        if (attributeFilter != null ? !attributeFilter.equals(that.attributeFilter) : that.attributeFilter != null) return false;
+        if (attributeFilter != null ? !attributeFilter.equals(that.attributeFilter) : that.attributeFilter != null)
+            return false;
         return commonFilter != null ? commonFilter.equals(that.commonFilter) : that.commonFilter == null;
     }
 

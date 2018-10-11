@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
@@ -46,7 +47,7 @@ public class VersionServiceTest {
         Date bdate = testVersion.getFromDate() != null ? Date.from(testVersion.getFromDate().atZone(ZoneId.systemDefault()).toInstant()) : null;
         Date edate = testVersion.getToDate() != null ? Date.from(testVersion.getToDate().atZone(ZoneId.systemDefault()).toInstant()) : null;
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
-        searchDataCriteria.setAttributeFilter(new ArrayList<>());
+        searchDataCriteria.setAttributeFilter(new HashSet<>());
         searchDataCriteria.setCommonFilter("commonFilter");
         DataCriteria dataCriteria = new DataCriteria(TEST_STORAGE_CODE, bdate, edate, new ArrayList<>(),
                 ConverterUtil.getFieldSearchCriteriaList(searchDataCriteria.getAttributeFilter()), searchDataCriteria.getCommonFilter());

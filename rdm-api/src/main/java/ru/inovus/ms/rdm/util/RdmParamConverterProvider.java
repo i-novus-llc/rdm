@@ -15,9 +15,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Provider
 public class RdmParamConverterProvider implements ParamConverterProvider {
@@ -52,6 +50,15 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
             else mapConverter = new MapConverter(Object.class);
             //noinspection unchecked
             return (ParamConverter<T>) mapConverter;
+        } else if (List.class.isAssignableFrom(rawType)) {
+            ListConverter listConverter;
+            if (genericType instanceof ParameterizedType &&
+                    ((ParameterizedType) genericType).getActualTypeArguments().length > 0 &&
+                    ((ParameterizedType) genericType).getActualTypeArguments()[0] instanceof Class)
+                listConverter = new ListConverter((Class) ((ParameterizedType) genericType).getActualTypeArguments()[0]);
+            else listConverter = new ListConverter(Object.class);
+            //noinspection unchecked
+            return (ParamConverter<T>) listConverter;
         }
         return null;
     }
@@ -162,4 +169,36 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
             }
         }
     }
+
+    private static class ListConverter implements ParamConverter<List> {
+
+        JavaType type;
+        ObjectMapper mapper;
+
+        public ListConverter(Class valueClass) {
+            this.mapper = new ObjectMapper();
+            JavaTimeModule jtm = new JavaTimeModule();
+            mapper.registerModule(jtm);
+            this.type = mapper.getTypeFactory().constructCollectionType(ArrayList.class, valueClass);
+        }
+
+        @Override
+        public List fromString(String value) {
+            try {
+                return mapper.readValue(value, type);
+            } catch (IOException e) {
+                throw new IllegalArgumentException(String.format("Failed to convert string '%s' to List", value), e);
+            }
+        }
+
+        @Override
+        public String toString(List value) {
+            try {
+                return mapper.writeValueAsString(value);
+            } catch (JsonProcessingException e) {
+                throw new IllegalArgumentException("Failed to convert from List to string", e);
+            }
+        }
+    }
+
 }

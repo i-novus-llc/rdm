@@ -1,14 +1,18 @@
 package ru.inovus.ms.rdm.service.api;
 
 import io.swagger.annotations.*;
-import ru.inovus.ms.rdm.model.PassportDiff;
-import ru.inovus.ms.rdm.model.StructureDiff;
+import org.springframework.data.domain.Page;
+import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.compare.ComparableRow;
+import ru.inovus.ms.rdm.model.compare.CompareCriteria;
+import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 
 @Path("/compare")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 @Api("Методы сравнения версий")
 public interface CompareService {
 
@@ -19,12 +23,31 @@ public interface CompareService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    PassportDiff comparePassports(@ApiParam("Идентификатор первой версии")
-                                  @QueryParam("firstVersionId")
-                                          Integer firstVersionId,
-                                  @ApiParam("Идентификатор второй версии")
-                                  @QueryParam("secondVersionId")
-                                          Integer secondVersionId);
+    PassportDiff comparePassports(@ApiParam("Идентификатор старой версии")
+                                  @QueryParam("oldVersionId")
+                                          Integer oldVersionId,
+                                  @ApiParam("Идентификатор новой версии")
+                                  @QueryParam("newVersionId")
+                                          Integer newVersionId);
+
+    @GET
+    @Path("/data")
+    @ApiOperation("Сравнение данных версий")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    RefBookDataDiff compareData(@BeanParam CompareDataCriteria compareDataCriteria);
+
+    @GET
+    @Path("/getCommonComparableRows")
+    @ApiOperation("Получение результата сравнения данных версий")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    Page<ComparableRow> getCommonComparableRows(@BeanParam CompareCriteria criteria);
+
     @GET
     @Path("/structures")
     @ApiOperation("Сравнение структуры версий")

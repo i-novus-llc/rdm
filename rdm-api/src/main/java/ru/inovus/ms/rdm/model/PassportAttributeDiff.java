@@ -5,16 +5,16 @@ import java.util.Objects;
 public class PassportAttributeDiff {
 
     private PassportAttribute passportAttribute;
-    private String firstValue;
-    private String secondValue;
+    private String oldValue;
+    private String newValue;
 
     public PassportAttributeDiff() {
     }
 
-    public PassportAttributeDiff(PassportAttribute passportAttribute, String firstValue, String secondValue) {
+    public PassportAttributeDiff(PassportAttribute passportAttribute, String oldValue, String newValue) {
         this.passportAttribute = passportAttribute;
-        this.firstValue = firstValue;
-        this.secondValue = secondValue;
+        this.oldValue = oldValue;
+        this.newValue = newValue;
     }
 
     public PassportAttribute getPassportAttribute() {
@@ -25,20 +25,20 @@ public class PassportAttributeDiff {
         this.passportAttribute = passportAttribute;
     }
 
-    public String getFirstValue() {
-        return firstValue;
+    public String getOldValue() {
+        return oldValue;
     }
 
-    public void setFirstValue(String firstValue) {
-        this.firstValue = firstValue;
+    public void setOldValue(String oldValue) {
+        this.oldValue = oldValue;
     }
 
-    public String getSecondValue() {
-        return secondValue;
+    public String getNewValue() {
+        return newValue;
     }
 
-    public void setSecondValue(String secondValue) {
-        this.secondValue = secondValue;
+    public void setNewValue(String newValue) {
+        this.newValue = newValue;
     }
 
     @Override
@@ -47,17 +47,17 @@ public class PassportAttributeDiff {
         if (o == null || getClass() != o.getClass()) return false;
         PassportAttributeDiff passportAttributeDiff = (PassportAttributeDiff) o;
         if (!Objects.equals(passportAttribute, passportAttributeDiff.passportAttribute)) return false;
-        if (!(firstValue == null && passportAttributeDiff.firstValue == null || Objects.equals(firstValue, passportAttributeDiff.firstValue)))
+        if (!(oldValue == null && passportAttributeDiff.oldValue == null || Objects.equals(oldValue, passportAttributeDiff.oldValue)))
             return false;
-        return (secondValue == null && passportAttributeDiff.secondValue == null || Objects.equals(secondValue, passportAttributeDiff.secondValue));
+        return (newValue == null && passportAttributeDiff.newValue == null || Objects.equals(newValue, passportAttributeDiff.newValue));
     }
 
     @Override
     public int hashCode() {
         int result = 1;
         result = 31 * result + (passportAttribute != null ? passportAttribute.hashCode() : 0);
-        result = 31 * result + (firstValue != null ? firstValue.hashCode() : 0);
-        result = 31 * result + (secondValue != null ? secondValue.hashCode() : 0);
+        result = 31 * result + (oldValue != null ? oldValue.hashCode() : 0);
+        result = 31 * result + (newValue != null ? newValue.hashCode() : 0);
         return result;
     }
 

@@ -369,7 +369,7 @@ public class RefBookServiceImpl implements RefBookService {
 
     private void validateVersionExists(Integer versionId) {
         if (versionId == null || !repository.exists(versionId)) {
-            throw new UserException("version.not.found");
+            throw new UserException(new Message("version.not.found", versionId));
         }
     }
 

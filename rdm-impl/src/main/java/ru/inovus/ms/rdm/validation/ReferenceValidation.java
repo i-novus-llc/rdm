@@ -17,6 +17,7 @@ import ru.inovus.ms.rdm.util.ConverterUtil;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.util.ConverterUtil.date;
@@ -56,13 +57,18 @@ public class ReferenceValidation implements RdmValidation {
         List<String> incorrectValues = new ArrayList<>();
         List<Message> messages = new ArrayList<>();
 
-        DataCriteria draftDataCriteria = new DataCriteria(draftVersion.getStorageCode(), null, null, singletonList(draftField), null, null);
+        DataCriteria draftDataCriteria = new DataCriteria(draftVersion.getStorageCode(), null, null,
+                singletonList(draftField), emptySet(), null);
         draftDataCriteria.setPage(1);
         draftDataCriteria.setSize(bufSize);
         validateData(draftDataCriteria, incorrectValues, refField, refVersion);
 
         incorrectValues.forEach(incorrectValue ->
-                messages.add(new Message(INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE, draftVersion.getStructure().getAttribute(reference.getAttribute()).getDescription(), incorrectValue))
+                messages.add(
+                        new Message(INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE,
+                                draftVersion.getStructure().getAttribute(reference.getAttribute()).getDescription(),
+                                incorrectValue)
+                )
         );
         return messages;
     }
@@ -85,10 +91,16 @@ public class ReferenceValidation implements RdmValidation {
         });
         if (!isEmpty(castedValues)) {
             FieldSearchCriteria refFieldSearchCriteria = new FieldSearchCriteria(refField, SearchTypeEnum.EXACT, castedValues);
-            DataCriteria refDataCriteria = new DataCriteria(refVersion.getStorageCode(), date(refVersion.getFromDate()), date(refVersion.getToDate()), singletonList(refField), singletonList(refFieldSearchCriteria), null);
+            DataCriteria refDataCriteria =
+                    new DataCriteria(refVersion.getStorageCode(),
+                            date(refVersion.getFromDate()), date(refVersion.getToDate()),
+                            singletonList(refField), singletonList(refFieldSearchCriteria), null);
             CollectionPage<RowValue> refRowValues = searchDataService.getPagedData(refDataCriteria);
             castedValues.forEach(castedValue -> {
-                if (refRowValues.getCollection().stream().noneMatch(rowValue -> castedValue.equals(rowValue.getFieldValue(reference.getReferenceAttribute()).getValue())))
+                if (refRowValues.getCollection().stream()
+                        .noneMatch(rowValue ->
+                                castedValue.equals(rowValue.getFieldValue(reference.getReferenceAttribute()).getValue())
+                        ))
                     incorrectValues.add(String.valueOf(castedValue));
             });
         }
