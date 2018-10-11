@@ -9,7 +9,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.inovus.ms.rdm.model.AttributeDiff;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.model.StructureDiff;
-import ru.inovus.ms.rdm.model.CompareCriteria;
+import ru.inovus.ms.rdm.model.compare.CompareCriteria;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 

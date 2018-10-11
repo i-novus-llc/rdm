@@ -31,6 +31,7 @@ import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.file.Row;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.service.api.*;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 

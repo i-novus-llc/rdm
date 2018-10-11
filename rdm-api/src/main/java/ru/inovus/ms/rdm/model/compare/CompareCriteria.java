@@ -1,8 +1,9 @@
-package ru.inovus.ms.rdm.model;
+package ru.inovus.ms.rdm.model.compare;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
+import ru.inovus.ms.rdm.model.AbstractCriteria;
 
 import javax.ws.rs.QueryParam;
 import java.util.Objects;

@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.i_novus.platform.datastorage.temporal.enums.DiffReturnTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.model.DataDifference;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
@@ -24,6 +25,7 @@ import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.compare.ComparableField;
 import ru.inovus.ms.rdm.model.compare.ComparableFieldValue;
 import ru.inovus.ms.rdm.model.compare.ComparableRow;
+import ru.inovus.ms.rdm.model.compare.CompareCriteria;
 import ru.inovus.ms.rdm.repositiory.PassportAttributeRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.CompareService;
@@ -47,21 +49,20 @@ public class CompareServiceImpl implements CompareService {
     private VersionService versionService;
     private RefBookVersionRepository versionRepository;
     private PassportAttributeRepository passportAttributeRepository;
+    private FieldFactory fieldFactory;
 
     private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
     private static final String DATA_COMPARING_UNAVAILABLE_EXCEPTION_CODE = "data.comparing.unavailable";
 
     @Autowired
-    FieldFactory fieldFactory;
-
-    @Autowired
     public CompareServiceImpl(CompareDataService compareDataService,
                               VersionService versionService, RefBookVersionRepository versionRepository,
-                              PassportAttributeRepository passportAttributeRepository) {
+                              PassportAttributeRepository passportAttributeRepository, FieldFactory fieldFactory) {
         this.compareDataService = compareDataService;
         this.versionService = versionService;
         this.versionRepository = versionRepository;
         this.passportAttributeRepository = passportAttributeRepository;
+        this.fieldFactory = fieldFactory;
     }
 
     @Override
@@ -121,7 +122,7 @@ public class CompareServiceImpl implements CompareService {
 
     @Override
     @Transactional(readOnly = true)
-    public RefBookDataDiff compareData(ru.inovus.ms.rdm.model.CompareDataCriteria criteria) {
+    public RefBookDataDiff compareData(ru.inovus.ms.rdm.model.compare.CompareDataCriteria criteria) {
         RefBookVersionEntity oldVersion = versionRepository.getOne(criteria.getOldVersionId());
         RefBookVersionEntity newVersion = versionRepository.getOne(criteria.getNewVersionId());
         validateVersionsExistence(oldVersion, newVersion, criteria.getOldVersionId(), criteria.getNewVersionId());
@@ -152,7 +153,7 @@ public class CompareServiceImpl implements CompareService {
     }
 
     @Override
-    public Page<ComparableRow> getCommonDataDiff(CompareCriteria criteria) {
+    public Page<ComparableRow> getCommonComparableRows(CompareCriteria criteria) {
         Structure newStructure = versionService.getStructure(criteria.getNewVersionId());
         Structure oldStructure = versionService.getStructure(criteria.getOldVersionId());
 
@@ -171,7 +172,7 @@ public class CompareServiceImpl implements CompareService {
     }
 
     private CompareDataCriteria createCompareDataCriteria(RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion,
-                                                          ru.inovus.ms.rdm.model.CompareDataCriteria rdmCriteria) {
+                                                          ru.inovus.ms.rdm.model.compare.CompareDataCriteria rdmCriteria) {
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria();
         compareDataCriteria.setStorageCode(oldVersion.getStorageCode());
         compareDataCriteria.setNewStorageCode(newVersion.getStorageCode());
@@ -195,10 +196,20 @@ public class CompareServiceImpl implements CompareService {
 
         compareDataCriteria.setPrimaryFieldsFilters(getFieldSearchCriteriaList(rdmCriteria.getPrimaryAttributesFilters()));
         compareDataCriteria.setCountOnly(rdmCriteria.getCountOnly() != null ? rdmCriteria.getCountOnly() : false);
-        compareDataCriteria.setStatus(rdmCriteria.getDiffStatus());
+        compareDataCriteria.setReturnType(getDiffReturnType(rdmCriteria.getDiffStatus()));
         compareDataCriteria.setPage(rdmCriteria.getPageNumber() + 1);
         compareDataCriteria.setSize(rdmCriteria.getPageSize());
         return compareDataCriteria;
+    }
+
+    private DiffReturnTypeEnum getDiffReturnType(DiffStatusEnum status) {
+        if (status == null)
+            return DiffReturnTypeEnum.ALL;
+        if (DiffStatusEnum.DELETED.equals(status))
+            return DiffReturnTypeEnum.OLD;
+        if (DiffStatusEnum.INSERTED.equals(status))
+            return DiffReturnTypeEnum.NEW;
+        return null;
     }
 
     private List<Field> getCommonFields(Structure structure1, Structure structure2) {
@@ -233,14 +244,14 @@ public class CompareServiceImpl implements CompareService {
     }
 
     private RefBookDataDiff getRefBookDataDiff(CompareCriteria criteria, Page<RowValue> data, Structure structure) {
-        ru.inovus.ms.rdm.model.CompareDataCriteria compareDataCriteria = new ru.inovus.ms.rdm.model.CompareDataCriteria(criteria);
+        ru.inovus.ms.rdm.model.compare.CompareDataCriteria compareDataCriteria = new ru.inovus.ms.rdm.model.compare.CompareDataCriteria(criteria);
         compareDataCriteria.setPrimaryAttributesFilters(createPrimaryAttributesFilters(data, structure));
 
         return compareData(compareDataCriteria);
     }
 
     private long getTotalDeletedCount(CompareCriteria criteria) {
-        ru.inovus.ms.rdm.model.CompareDataCriteria deletedCountCriteria = new ru.inovus.ms.rdm.model.CompareDataCriteria(criteria);
+        ru.inovus.ms.rdm.model.compare.CompareDataCriteria deletedCountCriteria = new ru.inovus.ms.rdm.model.compare.CompareDataCriteria(criteria);
         deletedCountCriteria.setDiffStatus(DiffStatusEnum.DELETED);
         deletedCountCriteria.setPrimaryAttributesFilters(emptySet());
         deletedCountCriteria.setCountOnly(true);

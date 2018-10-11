@@ -31,7 +31,7 @@ public class ComparableFieldValue {
         if (comparableField.getStatus() == null) {
             if (diffFieldValue != null) {
                 this.newValue = diffFieldValue.getNewValue();
-                this.oldValue = diffFieldValue.getStatus() != null
+                this.oldValue = diffFieldValue.getStatus() != null || oldRowValue == null
                         ? diffFieldValue.getOldValue()
                         : diffFieldValue.getNewValue();
             } else {
