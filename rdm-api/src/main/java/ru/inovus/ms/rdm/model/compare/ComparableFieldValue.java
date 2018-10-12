@@ -6,7 +6,7 @@ import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 
 import java.util.Objects;
 
-public class ComparableFieldValue {
+public class ComparableFieldValue extends RdmComparable {
 
     private ComparableField comparableField;
 
@@ -64,6 +64,7 @@ public class ComparableFieldValue {
                 : null;
     }
 
+    //TODO rewrite the method using comparable field status and rows's status
     public DiffStatusEnum getFieldValueStatus() {
         if (oldValue == null)
             return newValue == null ? null : DiffStatusEnum.INSERTED;

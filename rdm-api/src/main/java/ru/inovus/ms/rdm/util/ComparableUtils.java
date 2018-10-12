@@ -20,6 +20,16 @@ public class ComparableUtils {
 
     private ComparableUtils() {}
 
+    public static DiffStatusEnum getStrongestStatus(DiffStatusEnum status1, DiffStatusEnum status2) {
+        if (status1 == DiffStatusEnum.DELETED || status2 == DiffStatusEnum.DELETED)
+            return DiffStatusEnum.DELETED;
+        if (status1 == DiffStatusEnum.INSERTED || status2 == DiffStatusEnum.INSERTED)
+            return DiffStatusEnum.INSERTED;
+        if (status1 == DiffStatusEnum.UPDATED || status2 == DiffStatusEnum.UPDATED)
+            return DiffStatusEnum.UPDATED;
+        return null;
+    }
+
     /**
      * В списке diff-записей #diffRowValues ищется запись, которая соответствует строке #rowValue
      * на основании набора первичных ключей primaries.
@@ -81,8 +91,32 @@ public class ComparableUtils {
     /**
      * Для полученного набора строк заполняется множество фильтров по первичным полям
      *
-     * @param data список первичных атрибутов для идентификации записи
-     * @param structure  запись, для которой ведется поиск соответствующей в полученном списке записей
+     * @param refBookDataDiff информация об измененных строк, для которых необходимо создать фильтры
+     * @param structure структура версии, для определения первичных полей
+     *
+     * @return Множество фильтров по первичным полям версии
+     */
+    public static Set<List<AttributeFilter>> createPrimaryAttributesFilters(RefBookDataDiff refBookDataDiff, Structure structure) {
+        return refBookDataDiff.getRows().getContent().stream().map(row ->
+                structure.getPrimary()
+                        .stream()
+                        .map(pk ->
+                                new AttributeFilter(
+                                        pk.getCode(),
+                                        DiffStatusEnum.DELETED.equals(row.getStatus())
+                                                ? row.getDiffFieldValue(pk.getCode()).getOldValue()
+                                                : row.getDiffFieldValue(pk.getCode()).getNewValue(),
+                                        pk.getType())
+                        )
+                        .collect(Collectors.toList())
+        ).collect(Collectors.toSet());
+    }
+
+    /**
+     * Для полученного набора строк заполняется множество фильтров по первичным полям
+     *
+     * @param data множество строк, значения которых будут переведны в фильтры
+     * @param structure структура версии, для определения первичных полей
      *
      * @return Множество фильтров по первичным полям версии
      */

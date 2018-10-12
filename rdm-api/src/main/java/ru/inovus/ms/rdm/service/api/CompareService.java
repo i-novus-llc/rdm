@@ -41,7 +41,7 @@ public interface CompareService {
 
     @GET
     @Path("/getCommonComparableRows")
-    @ApiOperation("Получение результата сравнения данных версий")
+    @ApiOperation("Объединенный результат сравнения данных версий")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")

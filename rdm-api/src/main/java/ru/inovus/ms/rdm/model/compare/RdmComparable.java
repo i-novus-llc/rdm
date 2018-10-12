@@ -2,6 +2,8 @@ package ru.inovus.ms.rdm.model.compare;
 
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 
+import static ru.inovus.ms.rdm.util.ComparableUtils.getStrongestStatus;
+
 public class RdmComparable {
 
     private DiffStatusEnum status;
@@ -18,7 +20,9 @@ public class RdmComparable {
     }
 
     public void setStatus(DiffStatusEnum status) {
-        this.status = status;
+        this.status = this.status == null
+                ? status
+                : getStrongestStatus(this.status, status);
     }
 
 }

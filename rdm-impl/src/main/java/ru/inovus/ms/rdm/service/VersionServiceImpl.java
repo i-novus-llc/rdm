@@ -104,7 +104,7 @@ public class VersionServiceImpl implements VersionService {
         Date edate = date(version.getToDate());
         DataCriteria dataCriteria = new DataCriteria(version.getStorageCode(), bdate, edate,
                 fields, ConverterUtil.getFieldSearchCriteriaList(criteria.getAttributeFilter()), criteria.getCommonFilter());
-        dataCriteria.setPage(criteria.getPageNumber());
+        dataCriteria.setPage(criteria.getPageNumber() + 1);
         dataCriteria.setSize(criteria.getPageSize());
         Optional.ofNullable(criteria.getSort()).ifPresent(sort -> dataCriteria.setSortings(sortings(sort)));
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
