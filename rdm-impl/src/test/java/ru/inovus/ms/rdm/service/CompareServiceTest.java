@@ -414,43 +414,43 @@ public class CompareServiceTest {
         CompareDataCriteria compareDataCriteria = createCompareDataCriteria(OLD_ID, NEW_ID, 0, DEF_PAGE_SIZE);
         Page<ComparableRow> expectedCommonComparableRows = new RestPage<>(asList(
                 new ComparableRow(asList(
-                        new ComparableFieldValue(idFieldComp, BigInteger.valueOf(2), BigInteger.valueOf(2)),
-                        new ComparableFieldValue(codeFieldComp, "002", "002"),
-                        new ComparableFieldValue(commonFieldComp, "c2", "c2"),
-                        new ComparableFieldValue(nameFieldComp, null, "name2"),
-                        new ComparableFieldValue(upd2FieldComp, "u2", "u2"),
-                        new ComparableFieldValue(typeFieldComp, "2", BigInteger.valueOf(2)),
-                        new ComparableFieldValue(descrFieldComp, "descr2", null)
+                        new ComparableFieldValue(idFieldComp, BigInteger.valueOf(2), BigInteger.valueOf(2), null),
+                        new ComparableFieldValue(codeFieldComp, "002", "002", null),
+                        new ComparableFieldValue(commonFieldComp, "c2", "c2", null),
+                        new ComparableFieldValue(nameFieldComp, null, "name2", DiffStatusEnum.INSERTED),
+                        new ComparableFieldValue(upd2FieldComp, "u2", "u2", null),
+                        new ComparableFieldValue(typeFieldComp, "2", BigInteger.valueOf(2), null),
+                        new ComparableFieldValue(descrFieldComp, "descr2", null, DiffStatusEnum.DELETED)
                 ),
                         null),
                 new ComparableRow(asList(
-                        new ComparableFieldValue(idFieldComp, BigInteger.valueOf(3), BigInteger.valueOf(3)),
-                        new ComparableFieldValue(codeFieldComp, "003", "003"),
-                        new ComparableFieldValue(commonFieldComp, "c3", "c3_1"),
-                        new ComparableFieldValue(nameFieldComp, null, "name3"),
-                        new ComparableFieldValue(upd2FieldComp, "u3", "u3_1"),
-                        new ComparableFieldValue(typeFieldComp, "3", BigInteger.valueOf(3)),
-                        new ComparableFieldValue(descrFieldComp, "descr3", null)
+                        new ComparableFieldValue(idFieldComp, BigInteger.valueOf(3), BigInteger.valueOf(3), null),
+                        new ComparableFieldValue(codeFieldComp, "003", "003", null),
+                        new ComparableFieldValue(commonFieldComp, "c3", "c3_1", DiffStatusEnum.UPDATED),
+                        new ComparableFieldValue(nameFieldComp, null, "name3", DiffStatusEnum.INSERTED),
+                        new ComparableFieldValue(upd2FieldComp, "u3", "u3_1", DiffStatusEnum.UPDATED),
+                        new ComparableFieldValue(typeFieldComp, "3", BigInteger.valueOf(3), null),
+                        new ComparableFieldValue(descrFieldComp, "descr3", null, DiffStatusEnum.DELETED)
                 ),
                         DiffStatusEnum.UPDATED),
                 new ComparableRow(asList(
-                        new ComparableFieldValue(idFieldComp, null, BigInteger.valueOf(4)),
-                        new ComparableFieldValue(codeFieldComp, null, "004"),
-                        new ComparableFieldValue(commonFieldComp, null, "c4"),
-                        new ComparableFieldValue(nameFieldComp, null, "name4"),
-                        new ComparableFieldValue(upd2FieldComp, null, "u4"),
-                        new ComparableFieldValue(typeFieldComp, null, BigInteger.valueOf(4)),
-                        new ComparableFieldValue(descrFieldComp, null, null)
+                        new ComparableFieldValue(idFieldComp, null, BigInteger.valueOf(4), DiffStatusEnum.INSERTED),
+                        new ComparableFieldValue(codeFieldComp, null, "004", DiffStatusEnum.INSERTED),
+                        new ComparableFieldValue(commonFieldComp, null, "c4", DiffStatusEnum.INSERTED),
+                        new ComparableFieldValue(nameFieldComp, null, "name4", DiffStatusEnum.INSERTED),
+                        new ComparableFieldValue(upd2FieldComp, null, "u4", DiffStatusEnum.INSERTED),
+                        new ComparableFieldValue(typeFieldComp, null, BigInteger.valueOf(4), DiffStatusEnum.INSERTED),
+                        new ComparableFieldValue(descrFieldComp, null, null, null, DiffStatusEnum.INSERTED)
                 ),
                         DiffStatusEnum.INSERTED),
                 new ComparableRow(asList(
-                        new ComparableFieldValue(idFieldComp, BigInteger.valueOf(1), null),
-                        new ComparableFieldValue(codeFieldComp, "001", null),
-                        new ComparableFieldValue(commonFieldComp, "c1", null),
-                        new ComparableFieldValue(upd2FieldComp, "u1", null),
-                        new ComparableFieldValue(typeFieldComp, "1", null),
-                        new ComparableFieldValue(descrFieldComp, "descr1", null),
-                        new ComparableFieldValue(descrFieldComp, "descr1", null)
+                        new ComparableFieldValue(idFieldComp, BigInteger.valueOf(1), null, DiffStatusEnum.DELETED),
+                        new ComparableFieldValue(codeFieldComp, "001", null, DiffStatusEnum.DELETED),
+                        new ComparableFieldValue(commonFieldComp, "c1", null, DiffStatusEnum.DELETED),
+                        new ComparableFieldValue(upd2FieldComp, "u1", null, DiffStatusEnum.DELETED),
+                        new ComparableFieldValue(typeFieldComp, "1", null, DiffStatusEnum.DELETED),
+                        new ComparableFieldValue(descrFieldComp, "descr1", null, DiffStatusEnum.DELETED),
+                        new ComparableFieldValue(descrFieldComp, "descr1", null, DiffStatusEnum.DELETED)
                 ),
                         DiffStatusEnum.DELETED)
         ), compareDataCriteria, 4);
@@ -689,8 +689,8 @@ public class CompareServiceTest {
         return Stream.of(indexes)
                 .map(index ->
                         new ComparableRow(asList(
-                                new ComparableFieldValue(idFieldComp, null, BigInteger.valueOf(index)),
-                                new ComparableFieldValue(commonFieldComp, null, "new" + index)
+                                new ComparableFieldValue(idFieldComp, null, BigInteger.valueOf(index), DiffStatusEnum.INSERTED),
+                                new ComparableFieldValue(commonFieldComp, null, "new" + index, DiffStatusEnum.INSERTED)
                         ), DiffStatusEnum.INSERTED)
                 )
                 .collect(Collectors.toList());
@@ -700,8 +700,8 @@ public class CompareServiceTest {
         return Stream.of(indexes)
                 .map(index ->
                         new ComparableRow(asList(
-                                new ComparableFieldValue(idFieldComp, BigInteger.valueOf(index), null),
-                                new ComparableFieldValue(commonFieldComp, "old" + index, null)
+                                new ComparableFieldValue(idFieldComp, BigInteger.valueOf(index), null, DiffStatusEnum.DELETED),
+                                new ComparableFieldValue(commonFieldComp, "old" + index, null, DiffStatusEnum.DELETED)
                         ), DiffStatusEnum.DELETED)
                 )
                 .collect(Collectors.toList());

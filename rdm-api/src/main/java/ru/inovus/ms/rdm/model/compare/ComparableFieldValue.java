@@ -14,15 +14,14 @@ public class ComparableFieldValue extends RdmComparable {
 
     private Object newValue;
 
-    private DiffStatusEnum diffStatus;
-
     public ComparableFieldValue() {
     }
 
-    public ComparableFieldValue(ComparableField comparableField, Object oldValue, Object newValue) {
+    public ComparableFieldValue(ComparableField comparableField, Object oldValue, Object newValue, DiffStatusEnum status) {
         this.comparableField = comparableField;
         this.oldValue = oldValue;
         this.newValue = newValue;
+        setStatus(status);
     }
 
     public ComparableFieldValue(ComparableField comparableField, DiffFieldValue diffFieldValue,
@@ -58,14 +57,20 @@ public class ComparableFieldValue extends RdmComparable {
                     break;
             }
         }
-        if (DiffStatusEnum.DELETED.equals(rowStatus) || DiffStatusEnum.DELETED.equals(comparableField.getStatus()))
-            diffStatus = DiffStatusEnum.DELETED;
-        else if (DiffStatusEnum.INSERTED.equals(rowStatus) || DiffStatusEnum.INSERTED.equals(comparableField.getStatus()))
-            diffStatus = DiffStatusEnum.INSERTED;
-        else if ((diffFieldValue != null && DiffStatusEnum.UPDATED.equals(diffFieldValue.getStatus())) ||
-                (DiffStatusEnum.UPDATED.equals(comparableField.getStatus()) && !Objects.equals(String.valueOf(oldValue), String.valueOf(newValue))))
-            diffStatus = DiffStatusEnum.UPDATED;
+        setStatus(calculateFieldValueStatus(rowStatus, comparableField.getStatus(), diffFieldValue, oldValue, newValue));
+    }
 
+    private DiffStatusEnum calculateFieldValueStatus(DiffStatusEnum rowStatus, DiffStatusEnum fieldStatus,
+                                                     DiffFieldValue diffFieldValue, Object oldValue, Object newValue) {
+        if (DiffStatusEnum.DELETED.equals(rowStatus) || DiffStatusEnum.DELETED.equals(fieldStatus))
+            return DiffStatusEnum.DELETED;
+        else if (DiffStatusEnum.INSERTED.equals(rowStatus) || DiffStatusEnum.INSERTED.equals(fieldStatus))
+            return DiffStatusEnum.INSERTED;
+        else if ((diffFieldValue != null && DiffStatusEnum.UPDATED.equals(diffFieldValue.getStatus())) ||
+                (DiffStatusEnum.UPDATED.equals(fieldStatus) &&
+                        !Objects.equals(String.valueOf(oldValue), String.valueOf(newValue))))
+            return DiffStatusEnum.UPDATED;
+        return null;
     }
 
     private Object getValueFromRowValue(String fieldCode, RowValue rowValue) {
@@ -98,12 +103,19 @@ public class ComparableFieldValue extends RdmComparable {
         this.newValue = newValue;
     }
 
-    public DiffStatusEnum getDiffStatus() {
-        return diffStatus;
-    }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ComparableFieldValue that = (ComparableFieldValue) o;
 
-    public void setDiffStatus(DiffStatusEnum diffStatus) {
-        this.diffStatus = diffStatus;
+        if (comparableField != null ? !comparableField.equals(that.comparableField) : that.comparableField != null)
+            return false;
+        if (oldValue != null ? that.oldValue == null || !oldValue.toString().equals(that.oldValue.toString()) : that.oldValue != null)
+            return false;
+        if (getStatus() != that.getStatus())
+            return false;
+        return newValue != null ? that.newValue != null && newValue.toString().equals(that.newValue.toString()) : that.newValue == null;
     }
 
     @Override

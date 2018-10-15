@@ -8,7 +8,9 @@ import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.RefBookDataDiff;
+import ru.inovus.ms.rdm.model.SearchDataCriteria;
+import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.model.compare.*;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.VersionService;
@@ -26,7 +28,7 @@ public class CompareDataController {
     @Autowired
     VersionService versionService;
 
-    public Page<ComparableRow> getOldWithDiff(CompareCriteria criteria) {
+    public Page<ComparableRow> getOldWithDiff(CompareDataCriteria criteria) {
         Structure oldStructure = versionService.getStructure(criteria.getOldVersionId());
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize(), null);
         Page<RowValue> oldData = versionService.search(criteria.getOldVersionId(), searchDataCriteria);
@@ -57,6 +59,49 @@ public class CompareDataController {
                 }).collect(Collectors.toList());
 
         return new RestPage<>(comparableRows, criteria, oldData.getTotalElements());
+    }
+
+    public Page<ComparableRow> getOldWithDiffUsingService(CompareDataCriteria criteria) {
+
+        Structure oldStructure = versionService.getStructure(criteria.getOldVersionId());
+        Page<RowValue> oldData = versionService.search(criteria.getOldVersionId(), new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize(), null));
+
+        criteria.setPrimaryAttributesFilters(createPrimaryAttributesFilters(oldData, oldStructure));
+        Page<ComparableRow> commonComparableRows = compareService.getCommonComparableRows(criteria);
+        commonComparableRows
+                .getContent()
+                .forEach(commonComparableRow ->
+                        commonComparableRow
+                                .getFieldValues()
+                                .removeIf(comparableFieldValue ->
+                                        oldStructure.getAttribute(comparableFieldValue.getComparableField().getCode()) == null
+                                )
+                );
+        sortComparableRowsList(commonComparableRows.getContent(), oldStructure.getPrimary());
+        return commonComparableRows;
+    }
+
+    public Page<ComparableRow> getNewWithDiffUsingService(CompareDataCriteria criteria) {
+        Structure newStructure = versionService.getStructure(criteria.getNewVersionId());
+        Page<RowValue> newData = versionService.search(criteria.getNewVersionId(), new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize(), null));
+
+        criteria.setPrimaryAttributesFilters(createPrimaryAttributesFilters(newData, newStructure));
+        Page<ComparableRow> commonComparableRows = compareService.getCommonComparableRows(criteria);
+        commonComparableRows
+                .getContent()
+                .removeIf(comparableRow ->
+                        DiffStatusEnum.DELETED.equals(comparableRow.getStatus())
+                );
+        commonComparableRows
+                .getContent()
+                .forEach(commonComparableRow ->
+                        commonComparableRow
+                                .getFieldValues()
+                                .removeIf(comparableFieldValue ->
+                                        newStructure.getAttribute(comparableFieldValue.getComparableField().getCode()) == null
+                                )
+                );
+        return commonComparableRows;
     }
 
     public Page<ComparableRow> getNewWithDiff(CompareCriteria criteria) {
@@ -104,9 +149,9 @@ public class CompareDataController {
      * - старому значению из diffRowValue, если оно не пустое
      * - null, если поле было добавлено в структуру
      *
-     * @param diffRowValue список первичных атрибутов для идентификации записи
+     * @param diffRowValue    список первичных атрибутов для идентификации записи
      * @param comparableField атрибут, для которого вычисляется старое значение
-     * @param defaultValue значение по умолчанию
+     * @param defaultValue    значение по умолчанию
      * @return Старое значение либо null
      */
     private Object getOldComparableFieldValueForNewWithDiff(DiffRowValue diffRowValue, ComparableField comparableField,
@@ -129,9 +174,9 @@ public class CompareDataController {
      * - новому значению из diffRowValue, если оно не пустое
      * - null, если поле было удалено из структуры
      *
-     * @param diffRowValue список первичных атрибутов для идентификации записи
+     * @param diffRowValue    список первичных атрибутов для идентификации записи
      * @param comparableField атрибут, для которого вычисляется новое значение
-     * @param defaultValue значение по умолчанию
+     * @param defaultValue    значение по умолчанию
      * @return Новое значение либо null
      */
     private Object getNewComparableFieldValueForOldWithDiff(DiffRowValue diffRowValue, ComparableField comparableField,

@@ -13,7 +13,7 @@ public class ComparableRow extends RdmComparable {
 
     public ComparableRow(List<ComparableFieldValue> fieldValues, DiffStatusEnum status) {
         super(status);
-        this.fieldValues = fieldValues;
+        setFieldValues(fieldValues);
     }
 
     public List<ComparableFieldValue> getFieldValues() {
@@ -22,6 +22,12 @@ public class ComparableRow extends RdmComparable {
 
     public void setFieldValues(List<ComparableFieldValue> fieldValues) {
         this.fieldValues = fieldValues;
+        if (getStatus() == null
+                &&
+                fieldValues
+                        .stream()
+                        .anyMatch(fieldValue -> DiffStatusEnum.UPDATED.equals(fieldValue.getStatus())))
+            setStatus(DiffStatusEnum.UPDATED);
     }
 
 }

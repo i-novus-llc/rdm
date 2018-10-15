@@ -10,6 +10,7 @@ import ru.inovus.ms.rdm.model.AttributeFilter;
 import ru.inovus.ms.rdm.model.RefBookDataDiff;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.model.compare.ComparableField;
+import ru.inovus.ms.rdm.model.compare.ComparableRow;
 import ru.inovus.ms.rdm.model.compare.RdmComparable;
 
 import java.util.List;
@@ -34,14 +35,13 @@ public class ComparableUtils {
      * В списке diff-записей #diffRowValues ищется запись, которая соответствует строке #rowValue
      * на основании набора первичных ключей primaries.
      *
-     * @param primaries список первичных атрибутов для идентификации записи
-     * @param rowValue запись, для которой ведется поиск в полученном списке записей
+     * @param primaries     список первичных атрибутов для идентификации записи
+     * @param rowValue      запись, для которой ведется поиск в полученном списке записей
      * @param diffRowValues список diff-записей, среди которых ведется поиск
-     *
      * @return Найденная diff-запись об изменениях либо null
      */
     public static DiffRowValue getDiffRowValue(List<Structure.Attribute> primaries, RowValue rowValue,
-                                         List<DiffRowValue> diffRowValues) {
+                                               List<DiffRowValue> diffRowValues) {
         return diffRowValues
                 .stream()
                 .filter(diffRow ->
@@ -67,11 +67,10 @@ public class ComparableUtils {
      * @param primaries список первичных атрибутов для идентификации записи
      * @param rowValue  запись, для которой ведется поиск соответствующей в полученном списке записей
      * @param rowValues список записей, среди которых ведется поиск
-     *
      * @return Найденная запись либо null
      */
     public static RowValue findRowValue(List<Structure.Attribute> primaries, RowValue rowValue,
-                                  List<RowValue> rowValues) {
+                                        List<RowValue> rowValues) {
         return rowValues
                 .stream()
                 .filter(rowValue1 ->
@@ -92,8 +91,7 @@ public class ComparableUtils {
      * Для полученного набора строк заполняется множество фильтров по первичным полям
      *
      * @param refBookDataDiff информация об измененных строк, для которых необходимо создать фильтры
-     * @param structure структура версии, для определения первичных полей
-     *
+     * @param structure       структура версии, для определения первичных полей
      * @return Множество фильтров по первичным полям версии
      */
     public static Set<List<AttributeFilter>> createPrimaryAttributesFilters(RefBookDataDiff refBookDataDiff, Structure structure) {
@@ -115,9 +113,8 @@ public class ComparableUtils {
     /**
      * Для полученного набора строк заполняется множество фильтров по первичным полям
      *
-     * @param data множество строк, значения которых будут переведны в фильтры
+     * @param data      множество строк, значения которых будут переведны в фильтры
      * @param structure структура версии, для определения первичных полей
-     *
      * @return Множество фильтров по первичным полям версии
      */
     public static Set<List<AttributeFilter>> createPrimaryAttributesFilters(Page<RowValue> data, Structure structure) {
@@ -137,9 +134,8 @@ public class ComparableUtils {
      * расположения в новой структуре, удаленные атрибуты в конце списка в порядке их расположения в старой структуре.
      *
      * @param refBookDataDiff изменения для сравниваемых версий
-     * @param newStructure структура новой версии, определяет порядок полей
-     * @param oldStructure структура старой версии, определяет порядок удаленных полей в конце списка
-     *
+     * @param newStructure    структура новой версии, определяет порядок полей
+     * @param oldStructure    структура старой версии, определяет порядок удаленных полей в конце списка
      * @return Список атрибутов
      */
     public static List<ComparableField> createCommonComparableFieldsList(RefBookDataDiff refBookDataDiff,
@@ -168,12 +164,11 @@ public class ComparableUtils {
      * расположения в структуре.
      *
      * @param refBookDataDiff изменения для сравниваемых версий
-     * @param structure структура старой версии, определяет порядок полей
-     *
+     * @param structure       структура старой версии, определяет порядок полей
      * @return Список атрибутов
      */
     public static List<ComparableField> createOldVersionComparableFieldsList(RefBookDataDiff refBookDataDiff,
-                                                                       Structure structure) {
+                                                                             Structure structure) {
         return structure.getAttributes().stream().map(attribute -> {
             DiffStatusEnum fieldStatus = null;
             if (refBookDataDiff.getUpdatedAttributes().contains(attribute.getCode()))
@@ -190,12 +185,11 @@ public class ComparableUtils {
      * расположения в структуре.
      *
      * @param refBookDataDiff изменения для сравниваемых версий
-     * @param structure структура новой версии, определяет порядок полей
-     *
+     * @param structure       структура новой версии, определяет порядок полей
      * @return Список атрибутов
      */
     public static List<ComparableField> createNewVersionComparableFieldsList(RefBookDataDiff refBookDataDiff,
-                                                                       Structure structure) {
+                                                                             Structure structure) {
         return structure.getAttributes().stream().map(attribute -> {
             DiffStatusEnum fieldStatus = null;
             if (refBookDataDiff.getUpdatedAttributes().contains(attribute.getCode()))
@@ -207,9 +201,9 @@ public class ComparableUtils {
     }
 
     /**
-    * Сортирует список объектов по статусу.
-     * Объекты со статусом DiffStatusEnum.DELETED перемещает в конец в том же порядке
-    */
+     * Сортирует список атрибутов по статусу.
+     * Атрибуты со статусом DiffStatusEnum.DELETED перемещает в конец в том же порядке
+     */
     public static <T extends RdmComparable> void sortComparableList(List<T> comparables, int count) {
         for (int i = 0; i < comparables.size() && count > 0; i++) {
             if (DiffStatusEnum.DELETED.equals(comparables.get(i).getStatus())) {
@@ -219,6 +213,14 @@ public class ComparableUtils {
                 count--;
             }
         }
+    }
+
+    /**
+     * todo no implementation yet
+     * Сортирует список строк по первичным ключам.
+     */
+    public static void sortComparableRowsList(List<ComparableRow> comparableRows, List<Structure.Attribute> primaryAttributes) {
+
     }
 
 }

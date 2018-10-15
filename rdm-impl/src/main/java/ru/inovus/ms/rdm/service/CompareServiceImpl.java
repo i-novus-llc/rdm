@@ -156,11 +156,11 @@ public class CompareServiceImpl implements CompareService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ComparableRow> getCommonComparableRows(CompareCriteria criteria) {
+    public Page<ComparableRow> getCommonComparableRows(ru.inovus.ms.rdm.model.compare.CompareDataCriteria criteria) {
         Structure newStructure = versionService.getStructure(criteria.getNewVersionId());
         Structure oldStructure = versionService.getStructure(criteria.getOldVersionId());
 
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize(), null);
+        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize(), criteria.getPrimaryAttributesFilters());
         Page<RowValue> newData = versionService.search(criteria.getNewVersionId(), searchDataCriteria);
 
         RefBookDataDiff refBookDataDiff = compareData(createRdmCompareDataCriteria(criteria, newData, newStructure));
@@ -286,7 +286,8 @@ public class CompareServiceImpl implements CompareService {
                                                             ? diffRowValue.getDiffFieldValue(comparableField.getCode())
                                                             : null,
                                                     oldRowValue,
-                                                    newRowValue, diffRowValue != null ? diffRowValue.getStatus() : null))
+                                                    newRowValue,
+                                                    diffRowValue != null ? diffRowValue.getStatus() : null))
                                     .collect(Collectors.toList())
                     );
                     comparableRows.add(comparableRow);
@@ -318,7 +319,8 @@ public class CompareServiceImpl implements CompareService {
                                                 new ComparableFieldValue(comparableField,
                                                         null,
                                                         deletedRowValue,
-                                                        null, DiffStatusEnum.DELETED))
+                                                        null,
+                                                        DiffStatusEnum.DELETED))
                                         .collect(Collectors.toList())
                         );
                         comparableRows.add(comparableRow);

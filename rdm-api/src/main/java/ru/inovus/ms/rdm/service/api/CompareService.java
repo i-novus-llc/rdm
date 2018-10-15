@@ -4,7 +4,6 @@ import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.compare.ComparableRow;
-import ru.inovus.ms.rdm.model.compare.CompareCriteria;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 
 import javax.ws.rs.*;
@@ -46,7 +45,7 @@ public interface CompareService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Page<ComparableRow> getCommonComparableRows(@BeanParam CompareCriteria criteria);
+    Page<ComparableRow> getCommonComparableRows(@BeanParam CompareDataCriteria criteria);
 
     @GET
     @Path("/structures")
