@@ -52,7 +52,7 @@ public class VersionDataIteratorTest {
         //в зависимости от параметров, возвращаем разные строки из тестовых данных
         when(versionService.search(eq(1), any())).then(invocationOnMock -> {
             SearchDataCriteria criteria = (SearchDataCriteria) invocationOnMock.getArguments()[1];
-            int fromIndex = (criteria.getPageNumber() - 1) * criteria.getPageSize();
+            int fromIndex = criteria.getOffset();
             int toIndex = fromIndex + criteria.getPageSize();
             toIndex = toIndex > firstVersionRows.size() ? firstVersionRows.size() : toIndex;
             if (fromIndex < 0 || fromIndex >= toIndex) return null;
@@ -61,7 +61,7 @@ public class VersionDataIteratorTest {
         });
         when(versionService.search(eq(2), any())).then(invocationOnMock -> {
             SearchDataCriteria criteria = (SearchDataCriteria) invocationOnMock.getArguments()[1];
-            int fromIndex = (criteria.getPageNumber()-1) * criteria.getPageSize();
+            int fromIndex = criteria.getOffset();
             int toIndex = fromIndex + criteria.getPageSize();
             toIndex = toIndex > secondVersionRows.size() ? secondVersionRows.size() : toIndex;
             if (fromIndex < 0 || fromIndex >= toIndex) return null;

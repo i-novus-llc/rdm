@@ -44,7 +44,7 @@ public class VersionDataIterator implements Iterator<Row> {
     private boolean nextPage() {
         SearchDataCriteria criteria = new SearchDataCriteria();
         criteria.setPageSize(BUFFER_SIZE);
-        criteria.setPageNumber(++currentPage);
+        criteria.setPageNumber(currentPage++);
         Page<RowValue> page = versionService.search(currentVersionId, criteria);
         if (page != null && page.getContent() != null && !page.getContent().isEmpty()){
             buffer = page.getContent().iterator();
