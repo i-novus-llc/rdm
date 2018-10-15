@@ -109,7 +109,7 @@ public class CompareServiceImpl implements CompareService {
                     .filter(o -> Objects.equals(newAttribute.getCode(), o.getCode())).findAny();
             if (!oldAttribute.isPresent()) {
                 inserted.add(new StructureDiff.AttributeDiff(null, newAttribute));
-            } else if (oldAttribute.get().equals(newAttribute)) {
+            } else if (!oldAttribute.get().equals(newAttribute)) {
                 updated.add(new StructureDiff.AttributeDiff(oldAttribute.get(), newAttribute));
             }
         });
@@ -286,7 +286,7 @@ public class CompareServiceImpl implements CompareService {
                                                             ? diffRowValue.getDiffFieldValue(comparableField.getCode())
                                                             : null,
                                                     oldRowValue,
-                                                    newRowValue))
+                                                    newRowValue, diffRowValue != null ? diffRowValue.getStatus() : null))
                                     .collect(Collectors.toList())
                     );
                     comparableRows.add(comparableRow);
@@ -318,7 +318,7 @@ public class CompareServiceImpl implements CompareService {
                                                 new ComparableFieldValue(comparableField,
                                                         null,
                                                         deletedRowValue,
-                                                        null))
+                                                        null, DiffStatusEnum.DELETED))
                                         .collect(Collectors.toList())
                         );
                         comparableRows.add(comparableRow);
