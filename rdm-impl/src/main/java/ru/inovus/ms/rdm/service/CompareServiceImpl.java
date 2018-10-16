@@ -270,7 +270,7 @@ public class CompareServiceImpl implements CompareService {
         newData.getContent()
                 .forEach(newRowValue -> {
                     ComparableRow comparableRow = new ComparableRow();
-                    DiffRowValue diffRowValue = getDiffRowValue(newStructure.getPrimary(), newRowValue,
+                    DiffRowValue diffRowValue = findDiffRowValue(newStructure.getPrimary(), newRowValue,
                             refBookDataDiff.getRows().getContent());
                     RowValue oldRowValue = oldData != null
                             ? findRowValue(newStructure.getPrimary(), newRowValue, oldData.getContent())

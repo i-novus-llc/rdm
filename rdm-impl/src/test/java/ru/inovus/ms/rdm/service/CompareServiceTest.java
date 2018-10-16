@@ -12,7 +12,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
-import ru.i_novus.platform.datastorage.temporal.enums.DiffReturnTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DataDifference;
@@ -26,7 +25,10 @@ import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.model.compare.*;
+import ru.inovus.ms.rdm.model.compare.ComparableField;
+import ru.inovus.ms.rdm.model.compare.ComparableFieldValue;
+import ru.inovus.ms.rdm.model.compare.ComparableRow;
+import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.repositiory.PassportAttributeRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.VersionService;
@@ -411,7 +413,7 @@ public class CompareServiceTest {
      */
     @Test
     public void testCommonDataDiffOnePageWithNewAndDeletedRows() {
-        CompareDataCriteria compareDataCriteria = createCompareDataCriteria(OLD_ID, NEW_ID, 0, DEF_PAGE_SIZE);
+        CompareDataCriteria compareDataCriteria = createRdmDefaultCompareDataCriteria(OLD_ID, NEW_ID);
         Page<ComparableRow> expectedCommonComparableRows = new RestPage<>(asList(
                 new ComparableRow(asList(
                         new ComparableFieldValue(idFieldComp, BigInteger.valueOf(2), BigInteger.valueOf(2), null),
@@ -492,9 +494,9 @@ public class CompareServiceTest {
         ), DiffStatusEnum.DELETED));
 
 
-        when(compareDataService.getDataDifference(argThat(new CompareDataCriteriaMatcher(createCompareDataCriteriaDeleted(OLD_ID, NEW_ID)))))
+        when(compareDataService.getDataDifference(argThat(new CompareDataCriteriaMatcher(createVdsDeletedCompareDataCriteria(OLD_ID, NEW_ID)))))
                 .thenReturn(new DataDifference(
-                        new CollectionPage<>(deletedDiffRowValuesList.size(), deletedDiffRowValuesList, createCriteria(1, DEF_PAGE_SIZE, 1))
+                        new CollectionPage<>(deletedDiffRowValuesList.size(), deletedDiffRowValuesList, createCriteria(0, DEF_PAGE_SIZE, 1))
                 ));
 
         Page<ComparableRow> actualCommonComparableRows = compareService.getCommonComparableRows(compareDataCriteria);
@@ -538,15 +540,15 @@ public class CompareServiceTest {
                 .thenReturn(new RowValuePage(new CollectionPage<>(4, oldVersionRows, createCriteria(0, DEF_PAGE_SIZE, 4))));
 
 //        test first page
-        CompareDataCriteria compareDataCriteria = createCompareDataCriteria(OLD_ID_1, NEW_ID_1, 0, DEF_PAGE_SIZE);
-        ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria compareDataCriteriaDeletedVds = createCompareDataCriteriaDeleted(OLD_ID_1, NEW_ID_1);
+        CompareDataCriteria compareDataCriteria = createRdmDefaultCompareDataCriteria(OLD_ID_1, NEW_ID_1);
+        ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria compareDataCriteriaDeletedVds = createVdsDeletedCompareDataCriteria(OLD_ID_1, NEW_ID_1);
         Page<ComparableRow> expectedCommonComparableRowsPage1 = new RestPage<>(createListOfNewComparableRows(1, 2, 3, 4), compareDataCriteria, 8);
 
         List<DiffRowValue> diffRowValuesListPage1 = createListOfNewDiffRowValues(1, 2, 3, 4);
 
         when(compareDataService.getDataDifference(any(ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria.class)))
                 .thenReturn(new DataDifference(
-                        new CollectionPage<>(diffRowValuesListPage1.size(), diffRowValuesListPage1, createCriteria(1, DEF_PAGE_SIZE, 8))
+                        new CollectionPage<>(diffRowValuesListPage1.size(), diffRowValuesListPage1, createCriteria(0, DEF_PAGE_SIZE, 8))
                 ));
 
         Page<ComparableRow> actualCommonComparableRowsPage1 = compareService.getCommonComparableRows(compareDataCriteria);
@@ -560,7 +562,7 @@ public class CompareServiceTest {
 
         when(compareDataService.getDataDifference(any(ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria.class)))
                 .thenReturn(new DataDifference(
-                        new CollectionPage<>(diffRowValuesListPage2.size(), diffRowValuesListPage2, createCriteria(2, DEF_PAGE_SIZE, 8))
+                        new CollectionPage<>(diffRowValuesListPage2.size(), diffRowValuesListPage2, createCriteria(1, DEF_PAGE_SIZE, 8))
                 ));
         when(compareDataService.getDataDifference(argThat(new CompareDataCriteriaMatcher(compareDataCriteriaDeletedVds))))
                 .thenReturn(new DataDifference(
@@ -614,16 +616,16 @@ public class CompareServiceTest {
                 .search(eq(OLD_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, 11, emptySet())))))
                 .thenReturn(new RowValuePage(new CollectionPage<>(8, oldVersionRows, createCriteria(0, 11, 8))));
 
-        ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria compareDataCriteriaDeletedVds = createCompareDataCriteriaDeleted(OLD_ID_1, NEW_ID_1);
+        ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria compareDataCriteriaDeletedVds = createVdsDeletedCompareDataCriteria(OLD_ID_1, NEW_ID_1);
 //        test first page
-        CompareDataCriteria compareDataCriteria = createCompareDataCriteria(OLD_ID_1, NEW_ID_1, 0, DEF_PAGE_SIZE);
+        CompareDataCriteria compareDataCriteria = createRdmDefaultCompareDataCriteria(OLD_ID_1, NEW_ID_1);
         Page<ComparableRow> expectedCommonComparableRowsPage1 = new RestPage<>(createListOfNewComparableRows(1, 2, 3, 4), compareDataCriteria, 13);
 
         List<DiffRowValue> diffRowValuesListPage1 = createListOfNewDiffRowValues(1, 2, 3, 4);
 
         when(compareDataService.getDataDifference(any(ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria.class)))
                 .thenReturn(new DataDifference(
-                        new CollectionPage<>(diffRowValuesListPage1.size(), diffRowValuesListPage1, createCriteria(1, DEF_PAGE_SIZE, 13))
+                        new CollectionPage<>(diffRowValuesListPage1.size(), diffRowValuesListPage1, createCriteria(0, DEF_PAGE_SIZE, 13))
                 ));
         when(compareDataService.getDataDifference(argThat(new CompareDataCriteriaMatcher(compareDataCriteriaDeletedVds))))
                 .thenReturn(new DataDifference(new CollectionPage<>(8, emptyList(), createCriteria(0, 10, 8))));
@@ -644,7 +646,7 @@ public class CompareServiceTest {
 
         when(compareDataService.getDataDifference(any(ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria.class)))
                 .thenReturn(new DataDifference(
-                        new CollectionPage<>(diffRowValuesListPage2.size(), diffRowValuesListPage2, createCriteria(2, DEF_PAGE_SIZE, 13))
+                        new CollectionPage<>(diffRowValuesListPage2.size(), diffRowValuesListPage2, createCriteria(1, DEF_PAGE_SIZE, 13))
                 ));
         when(compareDataService.getDataDifference(argThat(new CompareDataCriteriaMatcher(compareDataCriteriaDeletedVds))))
                 .thenReturn(new DataDifference(new CollectionPage<>(8, emptyList(), createCriteria(0, 10, 8))));
@@ -660,7 +662,7 @@ public class CompareServiceTest {
 
         when(compareDataService.getDataDifference(any(ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria.class)))
                 .thenReturn(new DataDifference(
-                        new CollectionPage<>(diffRowValuesListPage3.size(), diffRowValuesListPage3, createCriteria(3, DEF_PAGE_SIZE, 13))
+                        new CollectionPage<>(diffRowValuesListPage3.size(), diffRowValuesListPage3, createCriteria(2, DEF_PAGE_SIZE, 13))
                 ));
         when(compareDataService.getDataDifference(argThat(new CompareDataCriteriaMatcher(compareDataCriteriaDeletedVds))))
                 .thenReturn(new DataDifference(new CollectionPage<>(8, emptyList(), createCriteria(0, 10, 8))));
@@ -676,7 +678,7 @@ public class CompareServiceTest {
 
         when(compareDataService.getDataDifference(any(ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria.class)))
                 .thenReturn(new DataDifference(
-                        new CollectionPage<>(diffRowValuesListPage4.size(), diffRowValuesListPage4, createCriteria(4, DEF_PAGE_SIZE, 13))
+                        new CollectionPage<>(diffRowValuesListPage4.size(), diffRowValuesListPage4, createCriteria(3, DEF_PAGE_SIZE, 13))
                 ));
         when(compareDataService.getDataDifference(argThat(new CompareDataCriteriaMatcher(compareDataCriteriaDeletedVds))))
                 .thenReturn(new DataDifference(new CollectionPage<>(8, emptyList(), createCriteria(0, 10, 8))));
@@ -742,7 +744,7 @@ public class CompareServiceTest {
      */
     private void assertComparableRowsEquals(Page<ComparableRow> expectedRowsWithDiff, Page<ComparableRow> actualRowsWithDiff) {
         assertEquals(expectedRowsWithDiff.getContent().size(), actualRowsWithDiff.getContent().size());
-//        assertEquals(expectedRowsWithDiff.getTotalElements(), actualRowsWithDiff.getTotalElements());
+        assertEquals(expectedRowsWithDiff.getTotalElements(), actualRowsWithDiff.getTotalElements());
 
         for (int i = 0; i < expectedRowsWithDiff.getContent().size(); i++) {
             ComparableRow expectedRow = expectedRowsWithDiff.getContent().get(i);
@@ -767,24 +769,26 @@ public class CompareServiceTest {
         return criteria;
     }
 
-    private CompareDataCriteria createCompareDataCriteria(Integer oldId, Integer newId, int pageNumber, int pageSize) {
+    private CompareDataCriteria createRdmDefaultCompareDataCriteria(Integer oldId, Integer newId) {
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria(oldId, newId);
-        compareDataCriteria.setPageNumber(pageNumber);
-        compareDataCriteria.setPageSize(pageSize);
+        compareDataCriteria.setPageNumber(0);
+        compareDataCriteria.setPageSize(DEF_PAGE_SIZE);
         return compareDataCriteria;
     }
 
-    private ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria createCompareDataCriteriaDeleted(Integer oldId, Integer newId) {
+    private ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria createVdsDeletedCompareDataCriteria(Integer oldId, Integer newId) {
         ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria compareDataCriteria = new ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria();
         compareDataCriteria.setStorageCode("storage" + oldId);
         compareDataCriteria.setNewStorageCode("storage" + newId);
-        compareDataCriteria.setCountOnly(true);
-        compareDataCriteria.setReturnType(DiffReturnTypeEnum.OLD);
+        compareDataCriteria.setCountOnly(false);
+        compareDataCriteria.setStatus(DiffStatusEnum.DELETED);
+        compareDataCriteria.setPage(1);
+        compareDataCriteria.setSize(10);
         return compareDataCriteria;
     }
 
     /*
-     * suppose that two CompareDataCriteria values are equal for mocking if equal version ids, countOnly flag and diffStatus
+     * suppose that two vds CompareDataCriteria values are equal for mocking if equal version ids, countOnly flag and diffStatus
      * ignore page size and page number (from Criteria)
      */
     private static class CompareDataCriteriaMatcher extends ArgumentMatcher<ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria> {
@@ -803,7 +807,7 @@ public class CompareServiceTest {
             return expected.getStorageCode().equals((actualTyped).getStorageCode()) &&
                     expected.getNewStorageCode().equals((actualTyped).getNewStorageCode()) &&
                     expected.getCountOnly() == (actualTyped).getCountOnly() &&
-                    expected.getReturnType() == (actualTyped).getReturnType();
+                    expected.getStatus() == (actualTyped).getStatus();
         }
     }
 

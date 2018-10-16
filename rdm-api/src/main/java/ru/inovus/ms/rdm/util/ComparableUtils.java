@@ -10,8 +10,8 @@ import ru.inovus.ms.rdm.model.AttributeFilter;
 import ru.inovus.ms.rdm.model.RefBookDataDiff;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.model.compare.ComparableField;
+import ru.inovus.ms.rdm.model.compare.ComparableFieldValue;
 import ru.inovus.ms.rdm.model.compare.ComparableRow;
-import ru.inovus.ms.rdm.model.compare.RdmComparable;
 
 import java.util.List;
 import java.util.Set;
@@ -19,7 +19,8 @@ import java.util.stream.Collectors;
 
 public class ComparableUtils {
 
-    private ComparableUtils() {}
+    private ComparableUtils() {
+    }
 
     public static DiffStatusEnum getStrongestStatus(DiffStatusEnum status1, DiffStatusEnum status2) {
         if (status1 == DiffStatusEnum.DELETED || status2 == DiffStatusEnum.DELETED)
@@ -40,8 +41,8 @@ public class ComparableUtils {
      * @param diffRowValues список diff-записей, среди которых ведется поиск
      * @return Найденная diff-запись об изменениях либо null
      */
-    public static DiffRowValue getDiffRowValue(List<Structure.Attribute> primaries, RowValue rowValue,
-                                               List<DiffRowValue> diffRowValues) {
+    public static DiffRowValue findDiffRowValue(List<Structure.Attribute> primaries, RowValue rowValue,
+                                                List<DiffRowValue> diffRowValues) {
         return diffRowValues
                 .stream()
                 .filter(diffRow ->
@@ -81,6 +82,34 @@ public class ComparableUtils {
                                     && fieldValue1 != null
                                     && fieldValue.getValue() != null
                                     && fieldValue.getValue().equals(fieldValue1.getValue());
+                        })
+                )
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * В списке записей #comparableRows ищется строка, которая соответствует строке #rowValue
+     * на основании набора первичных ключей primaries.
+     *
+     * @param primaries      список первичных атрибутов для идентификации записи
+     * @param rowValue       запись, для которой ведется поиск соответствующей
+     * @param comparableRows список записей, среди которых ведется поиск
+     * @return Найденная запись либо null
+     */
+    public static ComparableRow findComparableRow(List<Structure.Attribute> primaries, RowValue rowValue,
+                                                  List<ComparableRow> comparableRows, DiffStatusEnum status) {
+        return comparableRows
+                .stream()
+                .filter(comparableRow ->
+                        primaries.stream().allMatch(primary -> {
+                            ComparableFieldValue comparableValue = comparableRow.getComparableFieldValue(primary.getCode());
+                            return comparableValue != null &&
+                                    rowValue.getFieldValue(primary.getCode()).getValue().equals(
+                                            DiffStatusEnum.DELETED.equals(status)
+                                                    ? comparableValue.getOldValue()
+                                                    : comparableValue.getNewValue()
+                                    );
                         })
                 )
                 .findFirst()
@@ -156,71 +185,6 @@ public class ComparableUtils {
                                         DiffStatusEnum.DELETED))
                 );
         return comparableFields;
-    }
-
-    /**
-     * Возвращает для старой версии список атрибутов со статусами.
-     * Содержит неизмененные, измененные и удаленные атрибуты в порядке их
-     * расположения в структуре.
-     *
-     * @param refBookDataDiff изменения для сравниваемых версий
-     * @param structure       структура старой версии, определяет порядок полей
-     * @return Список атрибутов
-     */
-    public static List<ComparableField> createOldVersionComparableFieldsList(RefBookDataDiff refBookDataDiff,
-                                                                             Structure structure) {
-        return structure.getAttributes().stream().map(attribute -> {
-            DiffStatusEnum fieldStatus = null;
-            if (refBookDataDiff.getUpdatedAttributes().contains(attribute.getCode()))
-                fieldStatus = DiffStatusEnum.UPDATED;
-            if (refBookDataDiff.getOldAttributes().contains(attribute.getCode()))
-                fieldStatus = DiffStatusEnum.DELETED;
-            return new ComparableField(attribute.getCode(), attribute.getName(), fieldStatus);
-        }).collect(Collectors.toList());
-    }
-
-    /**
-     * Возвращает для новой версии список атрибутов со статусами.
-     * Содержит неизмененные, измененные и добавленные атрибуты в порядке их
-     * расположения в структуре.
-     *
-     * @param refBookDataDiff изменения для сравниваемых версий
-     * @param structure       структура новой версии, определяет порядок полей
-     * @return Список атрибутов
-     */
-    public static List<ComparableField> createNewVersionComparableFieldsList(RefBookDataDiff refBookDataDiff,
-                                                                             Structure structure) {
-        return structure.getAttributes().stream().map(attribute -> {
-            DiffStatusEnum fieldStatus = null;
-            if (refBookDataDiff.getUpdatedAttributes().contains(attribute.getCode()))
-                fieldStatus = DiffStatusEnum.UPDATED;
-            if (refBookDataDiff.getNewAttributes().contains(attribute.getCode()))
-                fieldStatus = DiffStatusEnum.INSERTED;
-            return new ComparableField(attribute.getCode(), attribute.getName(), fieldStatus);
-        }).collect(Collectors.toList());
-    }
-
-    /**
-     * Сортирует список атрибутов по статусу.
-     * Атрибуты со статусом DiffStatusEnum.DELETED перемещает в конец в том же порядке
-     */
-    public static <T extends RdmComparable> void sortComparableList(List<T> comparables, int count) {
-        for (int i = 0; i < comparables.size() && count > 0; i++) {
-            if (DiffStatusEnum.DELETED.equals(comparables.get(i).getStatus())) {
-                T comparable = comparables.get(i);
-                comparables.remove(i);
-                comparables.add(comparable);
-                count--;
-            }
-        }
-    }
-
-    /**
-     * todo no implementation yet
-     * Сортирует список строк по первичным ключам.
-     */
-    public static void sortComparableRowsList(List<ComparableRow> comparableRows, List<Structure.Attribute> primaryAttributes) {
-
     }
 
 }
