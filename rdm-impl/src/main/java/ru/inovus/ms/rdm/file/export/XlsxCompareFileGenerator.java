@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.file.export;
 
+import net.n2oapp.platform.i18n.UserException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -8,6 +9,8 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFFont;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.util.CollectionUtils;
@@ -36,6 +39,9 @@ import java.util.stream.Stream;
  * Created by znurgaliev on 26.09.2018.
  */
 class XlsxCompareFileGenerator implements FileGenerator {
+
+    private static final Logger logger = LoggerFactory.getLogger(XlsxCompareFileGenerator.class);
+
 
     private static final Color RED_FONT_COLOR = Color.RED;
     private static final Color BLUE_FONT_COLOR = new Color(31, 78, 120);
@@ -264,7 +270,8 @@ class XlsxCompareFileGenerator implements FileGenerator {
         RefBookDataDiff refBookDataDiff;
         try {
             refBookDataDiff = compareService.compareData(new CompareDataCriteria(oldVersion.getId(), newVersion.getId()));
-        } catch (Exception ignored) {
+        } catch (UserException e) {
+            logger.info("cannot compare data", e);
             createNextRow(sheet).createCell(0).setCellValue("Невозможно сравнить данные");
             return;
         }
