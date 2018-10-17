@@ -34,7 +34,7 @@ public class Archiver implements Closeable {
     public Archiver addEntry(FileGenerator fileGenerator, String fileName) {
         try (FileGenerator fg = fileGenerator) {
             zos.putNextEntry(new ZipEntry(String.valueOf(fileName)));
-            fg.generate(zos);
+            fg.generate(new NoCloseOutputStreamWrapper(zos));
             zos.closeEntry();
         } catch (IOException e) {
             logger.error("Can not add generate file " + fileName, e);
@@ -55,5 +55,17 @@ public class Archiver implements Closeable {
     @Override
     public void close() throws IOException {
         zos.close();
+    }
+
+    private class NoCloseOutputStreamWrapper extends BufferedOutputStream {
+
+        public NoCloseOutputStreamWrapper(OutputStream out) {
+            super(out);
+        }
+
+        @Override
+        public void close() throws IOException {
+            flush();
+        }
     }
 }

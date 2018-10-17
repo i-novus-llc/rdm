@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.model.DataDifference;
@@ -73,7 +74,7 @@ public class CompareServiceImpl implements CompareService {
         RefBookVersionEntity newVersion = versionRepository.getOne(newVersionId);
         validateVersionsExistence(oldVersion, newVersion, oldVersionId, newVersionId);
 
-        List<PassportAttributeEntity> passportAttributes = passportAttributeRepository.findAllByComparableIsTrue();
+        List<PassportAttributeEntity> passportAttributes = passportAttributeRepository.findAllByComparableIsTrueOrderByPositionAsc();
         List<PassportAttributeDiff> passportAttributeDiffList = new ArrayList<>();
 
         passportAttributes.forEach(passportAttribute -> {
@@ -123,7 +124,7 @@ public class CompareServiceImpl implements CompareService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
     public RefBookDataDiff compareData(ru.inovus.ms.rdm.model.compare.CompareDataCriteria criteria) {
         RefBookVersionEntity oldVersion = versionRepository.getOne(criteria.getOldVersionId());
         RefBookVersionEntity newVersion = versionRepository.getOne(criteria.getNewVersionId());

@@ -33,11 +33,12 @@ public class TypeValidation extends ErrorAttributeHolderValidation {
         row.entrySet().stream()
                 .filter(entry -> getErrorAttributes() == null || !getErrorAttributes().contains(entry.getKey()))
                 .forEach(entry -> {
-                    FieldType type = structure.getAttribute(entry.getKey()).getType();
-                    Optional.ofNullable(checkType(type, entry.getKey(), entry.getValue())).ifPresent(message -> {
-                        messages.add(message);
-                        addErrorAttribute(entry.getKey());
-                    });
+                    Structure.Attribute attribute = structure.getAttribute(entry.getKey());
+                    if (attribute != null)
+                        Optional.ofNullable(checkType(attribute.getType(), entry.getKey(), entry.getValue())).ifPresent(message -> {
+                            messages.add(message);
+                            addErrorAttribute(entry.getKey());
+                        });
                 });
         return messages;
     }
