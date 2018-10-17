@@ -139,7 +139,7 @@ public class Structure implements Serializable {
         }
 
         public void setPrimary(Boolean isPrimary) {
-            this.isPrimary = isPrimary != null ? isPrimary : false;
+            this.isPrimary = isPrimary != null && isPrimary;
             if (this.isPrimary)
                 this.isRequired = true;
         }
@@ -151,7 +151,7 @@ public class Structure implements Serializable {
         public void setIsRequired(Boolean isRequired) {
             if (this.isPrimary && !isRequired)
                 throw new IllegalStateException("primary attribute must be required");
-            this.isRequired = isRequired != null ? isRequired : false;
+            this.isRequired = isRequired != null && isRequired;
         }
 
         public String getDescription() {
