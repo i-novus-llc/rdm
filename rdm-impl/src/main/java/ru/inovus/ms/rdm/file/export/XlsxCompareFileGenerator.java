@@ -14,6 +14,7 @@ import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.inovus.ms.rdm.entity.PassportAttributeEntity;
+import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.compare.ComparableRow;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
@@ -141,7 +142,7 @@ class XlsxCompareFileGenerator implements FileGenerator {
         try {
             wb.write(outputStream);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RdmException("cannot.create.file", e);
         }
     }
 
@@ -164,8 +165,7 @@ class XlsxCompareFileGenerator implements FileGenerator {
                 diff -> new XlsxComparedCell(
                         diff.getOldValue(),
                         diff.getNewValue(),
-                        diff.getOldValue() == null ? DiffStatusEnum.INSERTED :
-                                diff.getNewValue() == null ? DiffStatusEnum.DELETED : DiffStatusEnum.UPDATED
+                        calculateEditStatus(diff.getOldValue(), diff.getNewValue())
                 )
         )));
 
@@ -190,6 +190,14 @@ class XlsxCompareFileGenerator implements FileGenerator {
         });
         sheet.autoSizeColumn(0, true);
 
+    }
+
+    private DiffStatusEnum calculateEditStatus(Object oldValue, Object newValue) {
+        if (oldValue == null) {
+            return DiffStatusEnum.INSERTED;
+        } else if (newValue == null) {
+            return DiffStatusEnum.DELETED;
+        }else return DiffStatusEnum.UPDATED;
     }
 
     private void addStructureCompare() {
@@ -256,7 +264,7 @@ class XlsxCompareFileGenerator implements FileGenerator {
         RefBookDataDiff refBookDataDiff;
         try {
             refBookDataDiff = compareService.compareData(new CompareDataCriteria(oldVersion.getId(), newVersion.getId()));
-        } catch (Exception e) {
+        } catch (Exception ignored) {
             createNextRow(sheet).createCell(0).setCellValue("Невозможно сравнить данные");
             return;
         }
