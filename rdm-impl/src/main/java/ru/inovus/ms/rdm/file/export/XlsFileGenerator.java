@@ -34,7 +34,6 @@ public class XlsFileGenerator extends PerRowFileGenerator {
     private int pageSize = 500;
     private CellStileFactory stileFactory;
 
-
     public XlsFileGenerator(Iterator<Row> rowIterator) {
         super(rowIterator);
     }
@@ -52,9 +51,6 @@ public class XlsFileGenerator extends PerRowFileGenerator {
         super(rowIterator, structure);
         this.pageSize = pageSize;
     }
-
-
-
 
     @Override
     protected void startWrite() {
@@ -137,7 +133,6 @@ public class XlsFileGenerator extends PerRowFileGenerator {
         currrentCell.setCellValue(fieldName);
         currrentCell.getSheet().trackColumnForAutoSizing(columnIndex);
 
-
         fieldColumn.put(fieldName, columnIndex);
 
         return columnIndex;
@@ -157,7 +152,7 @@ public class XlsFileGenerator extends PerRowFileGenerator {
             cell.setCellValue(((Number) value).doubleValue());
         } else if (value instanceof Reference) {
             cell.setCellStyle(stileFactory.getDefaultStyle());
-            cell.setCellValue(((Reference)value).getValue());
+            cell.setCellValue(((Reference) value).getValue());
         } else {
             cell.setCellStyle(stileFactory.getDefaultStyle());
             cell.setCellValue(Optional.ofNullable(value).orElse("").toString());
@@ -176,7 +171,7 @@ public class XlsFileGenerator extends PerRowFileGenerator {
     @Override
     public void close() throws IOException {
         if (workbook != null)
-        workbook.close();
+            workbook.close();
     }
 
 
@@ -236,7 +231,6 @@ public class XlsFileGenerator extends PerRowFileGenerator {
                 defaultFont = workbook.createFont();
                 defaultFont.setFontHeightInPoints((short) 12);
                 defaultFont.setFontName("Times New Roman");
-
             }
             return defaultFont;
         }

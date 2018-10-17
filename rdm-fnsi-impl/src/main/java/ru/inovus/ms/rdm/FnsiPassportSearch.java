@@ -29,12 +29,12 @@ public class FnsiPassportSearch implements PassportPredicateProducer {
 
         BooleanBuilder where = new BooleanBuilder();
         passportAttributeValueMap.forEach((k, v) -> {
-            if (orAttributes.containsKey(k)){
+            if (orAttributes.containsKey(k)) {
                 where.and(orAttributes.get(k).stream()
                         .map(orAttr -> hasAttributeValue(orAttr, v))
                         .reduce(BooleanExpression::or).get());
             } else
-            where.and(hasAttributeValue(k, v));
+                where.and(hasAttributeValue(k, v));
         });
         return where.getValue();
     }

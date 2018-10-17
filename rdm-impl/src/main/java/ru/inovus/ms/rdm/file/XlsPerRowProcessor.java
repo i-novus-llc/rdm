@@ -26,7 +26,6 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
         super(rowMapper, rowsProcessor);
     }
 
-
     @Override
     protected void setFile(InputStream inputStream) {
         try {
@@ -39,7 +38,7 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
                 rowIterator = sheetIterator.next().rowIterator();
             if (rowIterator != null && rowIterator.hasNext())
                 processFirstRow(rowIterator.next());
-        } catch (Exception e){
+        } catch (Exception e) {
             logger.error("cannot read xlsx", e);
             throw new UserException("cannot read xlsx");
         }
@@ -50,10 +49,9 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
         if (row == null) return;
         for (Cell cell : row) {
             if (cell.getStringCellValue() != null && !"".equals(cell.getStringCellValue().trim()))
-            numberToNameParam.put(cell.getColumnIndex(), cell.getStringCellValue());
+                numberToNameParam.put(cell.getColumnIndex(), cell.getStringCellValue());
         }
     }
-
 
     @Override
     public boolean hasNext() {
@@ -66,7 +64,6 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
         } else return false;
         return hasNext();
     }
-
 
     @Override
     public Row next() {
