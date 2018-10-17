@@ -12,7 +12,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
-import ru.i_novus.platform.datastorage.temporal.enums.DiffReturnTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DataDifference;
@@ -26,7 +25,10 @@ import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.model.compare.*;
+import ru.inovus.ms.rdm.model.compare.ComparableField;
+import ru.inovus.ms.rdm.model.compare.ComparableFieldValue;
+import ru.inovus.ms.rdm.model.compare.ComparableRow;
+import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.repositiory.PassportAttributeRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.VersionService;
@@ -411,46 +413,46 @@ public class CompareServiceTest {
      */
     @Test
     public void testCommonDataDiffOnePageWithNewAndDeletedRows() {
-        CompareDataCriteria compareDataCriteria = createCompareDataCriteria(OLD_ID, NEW_ID, 0, DEF_PAGE_SIZE);
+        CompareDataCriteria compareDataCriteria = createRdmDefaultCompareDataCriteria(OLD_ID, NEW_ID);
         Page<ComparableRow> expectedCommonComparableRows = new RestPage<>(asList(
                 new ComparableRow(asList(
-                        new ComparableFieldValue(idFieldComp, BigInteger.valueOf(2), BigInteger.valueOf(2)),
-                        new ComparableFieldValue(codeFieldComp, "002", "002"),
-                        new ComparableFieldValue(commonFieldComp, "c2", "c2"),
-                        new ComparableFieldValue(nameFieldComp, null, "name2"),
-                        new ComparableFieldValue(upd2FieldComp, "u2", "u2"),
-                        new ComparableFieldValue(typeFieldComp, "2", BigInteger.valueOf(2)),
-                        new ComparableFieldValue(descrFieldComp, "descr2", null)
+                        new ComparableFieldValue(idFieldComp, BigInteger.valueOf(2), BigInteger.valueOf(2), null),
+                        new ComparableFieldValue(codeFieldComp, "002", "002", null),
+                        new ComparableFieldValue(commonFieldComp, "c2", "c2", null),
+                        new ComparableFieldValue(nameFieldComp, null, "name2", DiffStatusEnum.INSERTED),
+                        new ComparableFieldValue(upd2FieldComp, "u2", "u2", null),
+                        new ComparableFieldValue(typeFieldComp, "2", BigInteger.valueOf(2), null),
+                        new ComparableFieldValue(descrFieldComp, "descr2", null, DiffStatusEnum.DELETED)
                 ),
                         null),
                 new ComparableRow(asList(
-                        new ComparableFieldValue(idFieldComp, BigInteger.valueOf(3), BigInteger.valueOf(3)),
-                        new ComparableFieldValue(codeFieldComp, "003", "003"),
-                        new ComparableFieldValue(commonFieldComp, "c3", "c3_1"),
-                        new ComparableFieldValue(nameFieldComp, null, "name3"),
-                        new ComparableFieldValue(upd2FieldComp, "u3", "u3_1"),
-                        new ComparableFieldValue(typeFieldComp, "3", BigInteger.valueOf(3)),
-                        new ComparableFieldValue(descrFieldComp, "descr3", null)
+                        new ComparableFieldValue(idFieldComp, BigInteger.valueOf(3), BigInteger.valueOf(3), null),
+                        new ComparableFieldValue(codeFieldComp, "003", "003", null),
+                        new ComparableFieldValue(commonFieldComp, "c3", "c3_1", DiffStatusEnum.UPDATED),
+                        new ComparableFieldValue(nameFieldComp, null, "name3", DiffStatusEnum.INSERTED),
+                        new ComparableFieldValue(upd2FieldComp, "u3", "u3_1", DiffStatusEnum.UPDATED),
+                        new ComparableFieldValue(typeFieldComp, "3", BigInteger.valueOf(3), null),
+                        new ComparableFieldValue(descrFieldComp, "descr3", null, DiffStatusEnum.DELETED)
                 ),
                         DiffStatusEnum.UPDATED),
                 new ComparableRow(asList(
-                        new ComparableFieldValue(idFieldComp, null, BigInteger.valueOf(4)),
-                        new ComparableFieldValue(codeFieldComp, null, "004"),
-                        new ComparableFieldValue(commonFieldComp, null, "c4"),
-                        new ComparableFieldValue(nameFieldComp, null, "name4"),
-                        new ComparableFieldValue(upd2FieldComp, null, "u4"),
-                        new ComparableFieldValue(typeFieldComp, null, BigInteger.valueOf(4)),
-                        new ComparableFieldValue(descrFieldComp, null, null)
+                        new ComparableFieldValue(idFieldComp, null, BigInteger.valueOf(4), DiffStatusEnum.INSERTED),
+                        new ComparableFieldValue(codeFieldComp, null, "004", DiffStatusEnum.INSERTED),
+                        new ComparableFieldValue(commonFieldComp, null, "c4", DiffStatusEnum.INSERTED),
+                        new ComparableFieldValue(nameFieldComp, null, "name4", DiffStatusEnum.INSERTED),
+                        new ComparableFieldValue(upd2FieldComp, null, "u4", DiffStatusEnum.INSERTED),
+                        new ComparableFieldValue(typeFieldComp, null, BigInteger.valueOf(4), DiffStatusEnum.INSERTED),
+                        new ComparableFieldValue(descrFieldComp, null, null, null, DiffStatusEnum.INSERTED)
                 ),
                         DiffStatusEnum.INSERTED),
                 new ComparableRow(asList(
-                        new ComparableFieldValue(idFieldComp, BigInteger.valueOf(1), null),
-                        new ComparableFieldValue(codeFieldComp, "001", null),
-                        new ComparableFieldValue(commonFieldComp, "c1", null),
-                        new ComparableFieldValue(upd2FieldComp, "u1", null),
-                        new ComparableFieldValue(typeFieldComp, "1", null),
-                        new ComparableFieldValue(descrFieldComp, "descr1", null),
-                        new ComparableFieldValue(descrFieldComp, "descr1", null)
+                        new ComparableFieldValue(idFieldComp, BigInteger.valueOf(1), null, DiffStatusEnum.DELETED),
+                        new ComparableFieldValue(codeFieldComp, "001", null, DiffStatusEnum.DELETED),
+                        new ComparableFieldValue(commonFieldComp, "c1", null, DiffStatusEnum.DELETED),
+                        new ComparableFieldValue(upd2FieldComp, "u1", null, DiffStatusEnum.DELETED),
+                        new ComparableFieldValue(typeFieldComp, "1", null, DiffStatusEnum.DELETED),
+                        new ComparableFieldValue(descrFieldComp, "descr1", null, DiffStatusEnum.DELETED),
+                        new ComparableFieldValue(descrFieldComp, "descr1", null, DiffStatusEnum.DELETED)
                 ),
                         DiffStatusEnum.DELETED)
         ), compareDataCriteria, 4);
@@ -492,7 +494,7 @@ public class CompareServiceTest {
         ), DiffStatusEnum.DELETED));
 
 
-        when(compareDataService.getDataDifference(argThat(new CompareDataCriteriaMatcher(createCompareDataCriteriaDeleted(OLD_ID, NEW_ID)))))
+        when(compareDataService.getDataDifference(argThat(new CompareDataCriteriaMatcher(createVdsDeletedCompareDataCriteria(OLD_ID, NEW_ID)))))
                 .thenReturn(new DataDifference(
                         new CollectionPage<>(deletedDiffRowValuesList.size(), deletedDiffRowValuesList, createCriteria(0, DEF_PAGE_SIZE, 1))
                 ));
@@ -535,11 +537,11 @@ public class CompareServiceTest {
                 .thenReturn(new RowValuePage(new CollectionPage<>(4, emptyList(), new Criteria())));
         when(versionService
                 .search(eq(OLD_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, DEF_PAGE_SIZE, emptySet())))))
-                .thenReturn(new RowValuePage(new CollectionPage<>(4, oldVersionRows, createCriteria(0, 4, 4))));
+                .thenReturn(new RowValuePage(new CollectionPage<>(4, oldVersionRows, createCriteria(0, DEF_PAGE_SIZE, 4))));
 
 //        test first page
-        CompareDataCriteria compareDataCriteria = createCompareDataCriteria(OLD_ID_1, NEW_ID_1, 0, DEF_PAGE_SIZE);
-        ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria compareDataCriteriaDeletedVds = createCompareDataCriteriaDeleted(OLD_ID_1, NEW_ID_1);
+        CompareDataCriteria compareDataCriteria = createRdmDefaultCompareDataCriteria(OLD_ID_1, NEW_ID_1);
+        ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria compareDataCriteriaDeletedVds = createVdsDeletedCompareDataCriteria(OLD_ID_1, NEW_ID_1);
         Page<ComparableRow> expectedCommonComparableRowsPage1 = new RestPage<>(createListOfNewComparableRows(1, 2, 3, 4), compareDataCriteria, 8);
 
         List<DiffRowValue> diffRowValuesListPage1 = createListOfNewDiffRowValues(1, 2, 3, 4);
@@ -614,9 +616,9 @@ public class CompareServiceTest {
                 .search(eq(OLD_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, 11, emptySet())))))
                 .thenReturn(new RowValuePage(new CollectionPage<>(8, oldVersionRows, createCriteria(0, 11, 8))));
 
-        ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria compareDataCriteriaDeletedVds = createCompareDataCriteriaDeleted(OLD_ID_1, NEW_ID_1);
+        ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria compareDataCriteriaDeletedVds = createVdsDeletedCompareDataCriteria(OLD_ID_1, NEW_ID_1);
 //        test first page
-        CompareDataCriteria compareDataCriteria = createCompareDataCriteria(OLD_ID_1, NEW_ID_1, 0, DEF_PAGE_SIZE);
+        CompareDataCriteria compareDataCriteria = createRdmDefaultCompareDataCriteria(OLD_ID_1, NEW_ID_1);
         Page<ComparableRow> expectedCommonComparableRowsPage1 = new RestPage<>(createListOfNewComparableRows(1, 2, 3, 4), compareDataCriteria, 13);
 
         List<DiffRowValue> diffRowValuesListPage1 = createListOfNewDiffRowValues(1, 2, 3, 4);
@@ -689,8 +691,8 @@ public class CompareServiceTest {
         return Stream.of(indexes)
                 .map(index ->
                         new ComparableRow(asList(
-                                new ComparableFieldValue(idFieldComp, null, BigInteger.valueOf(index)),
-                                new ComparableFieldValue(commonFieldComp, null, "new" + index)
+                                new ComparableFieldValue(idFieldComp, null, BigInteger.valueOf(index), DiffStatusEnum.INSERTED),
+                                new ComparableFieldValue(commonFieldComp, null, "new" + index, DiffStatusEnum.INSERTED)
                         ), DiffStatusEnum.INSERTED)
                 )
                 .collect(Collectors.toList());
@@ -700,8 +702,8 @@ public class CompareServiceTest {
         return Stream.of(indexes)
                 .map(index ->
                         new ComparableRow(asList(
-                                new ComparableFieldValue(idFieldComp, BigInteger.valueOf(index), null),
-                                new ComparableFieldValue(commonFieldComp, "old" + index, null)
+                                new ComparableFieldValue(idFieldComp, BigInteger.valueOf(index), null, DiffStatusEnum.DELETED),
+                                new ComparableFieldValue(commonFieldComp, "old" + index, null, DiffStatusEnum.DELETED)
                         ), DiffStatusEnum.DELETED)
                 )
                 .collect(Collectors.toList());
@@ -761,30 +763,32 @@ public class CompareServiceTest {
 
     private Criteria createCriteria(int pageNumber, int pageSize, Integer count) {
         Criteria criteria = new Criteria();
-        criteria.setPage(pageNumber);
+        criteria.setPage(pageNumber + 1);
         criteria.setSize(pageSize);
         criteria.setCount(count);
         return criteria;
     }
 
-    private CompareDataCriteria createCompareDataCriteria(Integer oldId, Integer newId, int pageNumber, int pageSize) {
+    private CompareDataCriteria createRdmDefaultCompareDataCriteria(Integer oldId, Integer newId) {
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria(oldId, newId);
-        compareDataCriteria.setPageNumber(pageNumber);
-        compareDataCriteria.setPageSize(pageSize);
+        compareDataCriteria.setPageNumber(0);
+        compareDataCriteria.setPageSize(DEF_PAGE_SIZE);
         return compareDataCriteria;
     }
 
-    private ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria createCompareDataCriteriaDeleted(Integer oldId, Integer newId) {
+    private ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria createVdsDeletedCompareDataCriteria(Integer oldId, Integer newId) {
         ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria compareDataCriteria = new ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria();
         compareDataCriteria.setStorageCode("storage" + oldId);
         compareDataCriteria.setNewStorageCode("storage" + newId);
-        compareDataCriteria.setCountOnly(true);
-        compareDataCriteria.setReturnType(DiffReturnTypeEnum.OLD);
+        compareDataCriteria.setCountOnly(false);
+        compareDataCriteria.setStatus(DiffStatusEnum.DELETED);
+        compareDataCriteria.setPage(1);
+        compareDataCriteria.setSize(10);
         return compareDataCriteria;
     }
 
     /*
-     * suppose that two CompareDataCriteria values are equal for mocking if equal version ids, countOnly flag and diffStatus
+     * suppose that two vds CompareDataCriteria values are equal for mocking if equal version ids, countOnly flag and diffStatus
      * ignore page size and page number (from Criteria)
      */
     private static class CompareDataCriteriaMatcher extends ArgumentMatcher<ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria> {
@@ -803,7 +807,7 @@ public class CompareServiceTest {
             return expected.getStorageCode().equals((actualTyped).getStorageCode()) &&
                     expected.getNewStorageCode().equals((actualTyped).getNewStorageCode()) &&
                     expected.getCountOnly() == (actualTyped).getCountOnly() &&
-                    expected.getReturnType() == (actualTyped).getReturnType();
+                    expected.getStatus() == (actualTyped).getStatus();
         }
     }
 

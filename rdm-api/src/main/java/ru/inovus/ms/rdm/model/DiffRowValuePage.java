@@ -10,8 +10,12 @@ import java.util.ArrayList;
 public class DiffRowValuePage extends PageImpl<DiffRowValue> {
 
     public DiffRowValuePage(CollectionPage<DiffRowValue> content) {
-        super(new ArrayList(content.getCollection()), new PageRequest(content.getCriteria().getPage(),
-                content.getCriteria().getSize()), content.getCount());
+        super(content.getCollection() != null
+                        ? new ArrayList(content.getCollection())
+                        : new ArrayList<>(),
+                new PageRequest(content.getCriteria().getPage() - 1,
+                        content.getCriteria().getSize()),
+                content.getCount());
     }
 
 }
