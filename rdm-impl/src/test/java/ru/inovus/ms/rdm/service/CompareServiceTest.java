@@ -127,7 +127,7 @@ public class CompareServiceTest {
         prepareOldVersionData();
         prepareNewVersionData();
 
-        when(passportAttributeRepository.findAllByComparableIsTrue())
+        when(passportAttributeRepository.findAllByComparableIsTrueOrderByPositionAsc())
                 .thenReturn(asList(passportAttributeFullName, passportAttributeShortName, passportAttributeAnnotation,
                         passportAttributeGroup, passportAttributeType));
 

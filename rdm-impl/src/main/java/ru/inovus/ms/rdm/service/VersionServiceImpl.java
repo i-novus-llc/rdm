@@ -89,7 +89,10 @@ public class VersionServiceImpl implements VersionService {
     @Override
     @Transactional
     public RefBookVersion getById(Integer versionId) {
-        return ModelGenerator.versionModel(versionRepository.findOne(versionId));
+        RefBookVersionEntity versionEntity = versionRepository.findOne(versionId);
+        RefBookVersion versionModel = ModelGenerator.versionModel(versionEntity);
+        versionModel.setStructure(versionEntity.getStructure());
+        return versionModel;
     }
 
     @Override

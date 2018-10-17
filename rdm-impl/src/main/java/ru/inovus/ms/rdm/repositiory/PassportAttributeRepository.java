@@ -8,6 +8,6 @@ import java.util.List;
 public interface PassportAttributeRepository extends
         JpaRepository<PassportAttributeEntity, Integer> {
 
-    List<PassportAttributeEntity> findAllByComparableIsTrue();
+    List<PassportAttributeEntity> findAllByComparableIsTrueOrderByPositionAsc();
 
 }
