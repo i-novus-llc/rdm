@@ -25,6 +25,7 @@ import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.entity.VersionFileEntity;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.file.*;
 import ru.inovus.ms.rdm.file.export.*;
@@ -161,7 +162,7 @@ public class DraftServiceImpl implements DraftService {
             RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
             RefBookVersionEntity draftVersion = getDraftByRefbook(refBookId);
             if (draftVersion == null && lastRefBookVersion == null) {
-                throw new UserException("refbook.not.found");
+                throw new NotFoundException(new Message("refbook.not.found", refBookId));
             }
             if (draftVersion != null) {
                 dropDataService.drop(Collections.singleton(draftVersion.getStorageCode()));
@@ -680,13 +681,13 @@ public class DraftServiceImpl implements DraftService {
 
     private void validateRefBookExists(Integer refBookId) {
         if (refBookId == null || !versionRepository.exists(isVersionOfRefBook(refBookId))) {
-            throw new UserException("refbook.not.found");
+            throw new NotFoundException("refbook.not.found");
         }
     }
 
     private void validateDraftExists(Integer draftId) {
         if (draftId == null || !versionRepository.exists(hasVersionId(draftId).and(isDraft()))) {
-            throw new UserException(new Message("draft.not.found", draftId));
+            throw new NotFoundException(new Message("draft.not.found", draftId));
         }
     }
 

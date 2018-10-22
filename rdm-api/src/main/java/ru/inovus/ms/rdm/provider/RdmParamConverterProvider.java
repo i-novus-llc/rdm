@@ -1,10 +1,11 @@
-package ru.inovus.ms.rdm.util;
+package ru.inovus.ms.rdm.provider;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import ru.inovus.ms.rdm.model.AttributeFilter;
+import ru.inovus.ms.rdm.util.TimeUtils;
 
 import javax.ws.rs.ext.ParamConverter;
 import javax.ws.rs.ext.ParamConverterProvider;

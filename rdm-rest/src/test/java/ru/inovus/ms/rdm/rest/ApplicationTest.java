@@ -63,7 +63,8 @@ import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
                 "cxf.jaxrs.client.classes-scan=true",
                 "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.service.api",
                 "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
-                "fileStorage.root=src/test/resources/rdm/temp"
+                "fileStorage.root=src/test/resources/rdm/temp",
+                "i18n.global.enabled=false"
         })
 @DefinePort
 @EnableEmbeddedPg
