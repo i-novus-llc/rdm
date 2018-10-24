@@ -11,7 +11,6 @@ import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
@@ -79,7 +78,6 @@ class XlsxCompareFileGenerator implements FileGenerator {
     private Map<String, Integer> structureColumnIndexes = new HashMap<>();
     private Map<String, Integer> dataColumnIndexes = new HashMap<>();
 
-    @Autowired
     public XlsxCompareFileGenerator(Integer oldVersionId, Integer newVersionId,
                                     CompareService compareService, VersionService versionService,
                                     PassportAttributeRepository passportAttributeRepository) {
@@ -212,7 +210,7 @@ class XlsxCompareFileGenerator implements FileGenerator {
         Row headRow = createStructureHead(sheet);
         sheet.trackAllColumnsForAutoSizing();
 
-        Structure newStructure = versionService.getStructure(newVersion.getId());
+        Structure newStructure = newVersion.getStructure();
         StructureDiff structureDiff = compareService.compareStructures(oldVersion.getId(), newVersion.getId());
 
 
@@ -281,7 +279,6 @@ class XlsxCompareFileGenerator implements FileGenerator {
         sheet.trackAllColumnsForAutoSizing();
 
         CompareDataCriteria compareCriteria = new CompareDataCriteria(oldVersion.getId(), newVersion.getId());
-        compareCriteria.setPageSize(1);
         Page<ComparableRow> page;
         do {
             page = compareService.getCommonComparableRows(compareCriteria);
