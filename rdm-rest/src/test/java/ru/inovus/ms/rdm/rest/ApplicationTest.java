@@ -33,7 +33,6 @@ import ru.inovus.ms.rdm.file.Row;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.service.api.*;
-import ru.inovus.ms.rdm.util.ConverterUtil;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -43,16 +42,20 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.junit.Assert.*;
+import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
+import static ru.inovus.ms.rdm.util.ConverterUtil.rowValue;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
 
 @RunWith(SpringRunner.class)
@@ -171,7 +174,7 @@ public class ApplicationTest {
         version3.setStatus(RefBookVersionStatus.PUBLISHED);
         version3.setVersion("1");
 
-        versionList = Arrays.asList(version0, version1, version2, version3);
+        versionList = asList(version0, version1, version2, version3);
     }
 
     @AfterClass
@@ -287,7 +290,6 @@ public class ApplicationTest {
      * Поиск по статусу.
      * Поиск по дате последней публикации.
      */
-
     @Test
     public void testRefBookSearch() {
 
@@ -386,7 +388,6 @@ public class ApplicationTest {
      * Получение списка версий без черновика
      * Поиск по номеру версии
      */
-
     @Test
     public void testGetVersions() {
         VersionCriteria criteria = new VersionCriteria();
@@ -466,7 +467,7 @@ public class ApplicationTest {
 
     private Structure createStructure() {
         Structure structure = new Structure();
-        structure.setAttributes(Collections.singletonList(Structure.Attribute.build("name", "name", FieldType.STRING, true, "description")));
+        structure.setAttributes(singletonList(Structure.Attribute.build("name", "name", FieldType.STRING, true, "description")));
         return structure;
     }
 
@@ -480,18 +481,124 @@ public class ApplicationTest {
         assertEquals(count.getValue(), fieldValues.get(1).getValue());
     }
 
+    /*
+    * refBookCode: test_ref_book_for_draft
+    * refBookId: -1
+    * (changelog)
+    * */
     @Test
-    public void testPublishFirstDraft() throws Exception {
-        new StringFieldValue();
+    public void testPublishFirstDraft() {
         draftService.publish(-2, "1.0", LocalDateTime.now(), null);
-        Page<RowValue> rowValuesInVersion = versionService.search(-1, OffsetDateTime.now(), new SearchDataCriteria());
+        Page<RowValue> rowValuesInVersion = versionService.search("test_ref_book_for_draft", OffsetDateTime.now(), new SearchDataCriteria());
         List fieldValues = rowValuesInVersion.getContent().get(0).getFieldValues();
         FieldValue name = new StringFieldValue("name", "name");
         FieldValue count = new IntegerFieldValue("count", 2);
         assertEquals(fieldValues.get(0), name);
         assertEquals(fieldValues.get(1), count);
-        Page<RowValue> rowValuesOutVersion = versionService.search(-1, OffsetDateTime.now().minusDays(1), new SearchDataCriteria());
+        Page<RowValue> rowValuesOutVersion = versionService.search("test_ref_book_for_draft", OffsetDateTime.now().minusDays(1), new SearchDataCriteria());
         assertEquals(new PageImpl<RowValue>(emptyList()), rowValuesOutVersion);
+    }
+
+    /*
+    * Поиск строки в актуальной на дату версии по первичным ключам
+    * */
+    @Test
+    public void testSearchRowsByKeys() {
+        final String REFBOOK_CODE = "A001";
+        final String OLD_FILE_NAME = "oldData.xlsx";
+
+        Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
+        Structure.Attribute code = Structure.Attribute.buildPrimary("CODE", "code", FieldType.STRING, "code");
+        Structure.Attribute common = Structure.Attribute.build("COMMON", "common", FieldType.STRING, false,"common");
+        Structure.Attribute descr = Structure.Attribute.build("DESCR", "descr", FieldType.STRING, false, "descr");
+        Structure.Attribute upd = Structure.Attribute.build("UPD", "upd", FieldType.STRING, false, "upd");
+        Structure.Attribute type = Structure.Attribute.build("TYPE", "type", FieldType.STRING, false, "type");
+
+        Structure structure = new Structure(asList(id, code, common, descr, upd, type), emptyList());
+        RefBook refBook = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE, null));
+        Integer oldVersionId = refBook.getId();
+        structure.getAttributes()
+                .forEach(attribute ->
+                        draftService.createAttribute(new CreateAttribute(oldVersionId, attribute, null))
+                );
+        draftService.updateData(oldVersionId, createFileModel(OLD_FILE_NAME, "testCompare/" + OLD_FILE_NAME));
+        draftService.publish(oldVersionId, "1.0", LocalDateTime.now(), null);
+
+        Map<String, Object> rowMap = new HashMap<String, Object>(){{
+            put(id.getCode(), BigInteger.valueOf(1));
+            put(code.getCode(), "001");
+            put(common.getCode(), "c1");
+            put(descr.getCode(), "descr1");
+            put(upd.getCode(), "u1");
+            put(type.getCode(), "1");
+        }};
+        Set<List<AttributeFilter>> filters = new HashSet<List<AttributeFilter>>(){{
+            add(asList(
+                    new AttributeFilter(id.getCode(), rowMap.get(id.getCode()), id.getType()),
+                    new AttributeFilter(code.getCode(), rowMap.get(code.getCode()), code.getType())
+            ));
+        }};
+
+        Page<RowValue> actualRow = versionService
+                .search(REFBOOK_CODE, OffsetDateTime.now(), new SearchDataCriteria(filters, null));
+        assertEquals(1, actualRow.getContent().size());
+        assertRows(fields(structure), singletonList(rowValue(new Row(rowMap), structure)), actualRow.getContent());
+    }
+
+    /*
+     * Поиск строки в актуальной на дату версии ничего не возвращает при поиске по отсутвующим в версии первичным ключам
+     * Добавить версию со строками 1 2 3
+     * Опубликовать
+     * Добавить версию со стркоа ми 2 3(изменить) 4
+     * Опубликовать
+     * Поиск строки 1 во второй опубликованной версии
+     * */
+    @Test
+    public void testSearchRowsByNonExistingKeys() {
+        final String REFBOOK_CODE = "A002";
+        final String OLD_FILE_NAME = "oldData.xlsx";
+        final String NEW_FILE_NAME = "newData.xlsx";
+        LocalDateTime publishDate1 = LocalDateTime.now();
+        LocalDateTime closeDate1 = LocalDateTime.from(publishDate1.plusYears(2));
+        LocalDateTime publishDate2 = LocalDateTime.from(publishDate1.plusYears(3));
+        LocalDateTime closeDate2 = LocalDateTime.from(publishDate1.plusYears(5));
+
+        Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
+        Structure.Attribute code = Structure.Attribute.buildPrimary("CODE", "code", FieldType.STRING, "code");
+        Structure.Attribute common = Structure.Attribute.build("COMMON", "common", FieldType.STRING, false,"common");
+        Structure.Attribute descr = Structure.Attribute.build("DESCR", "descr", FieldType.STRING, false, "descr");
+        Structure.Attribute name = Structure.Attribute.build("NAME", "name", FieldType.STRING, false, "name");
+        Structure.Attribute upd = Structure.Attribute.build("UPD", "upd", FieldType.STRING, false, "upd");
+        Structure.Attribute type = Structure.Attribute.build("TYPE", "type", FieldType.STRING, false, "type");
+
+        Structure structure = new Structure(asList(id, code, common, descr, upd, type), emptyList());
+        RefBook refBook = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE, null));
+        Integer oldVersionId = refBook.getId();
+        structure.getAttributes()
+                .forEach(attribute ->
+                        draftService.createAttribute(new CreateAttribute(oldVersionId, attribute, null))
+                );
+        draftService.updateData(oldVersionId, createFileModel(OLD_FILE_NAME, "testCompare/" + OLD_FILE_NAME));
+        draftService.publish(oldVersionId, "1.0", publishDate1, closeDate1);
+
+        Integer newVersionId = draftService
+                .create(refBook.getRefBookId(), new Structure(asList(id, code, common, name, upd, type), emptyList()))
+                .getId();
+        draftService.updateData(newVersionId, createFileModel(NEW_FILE_NAME, "testCompare/" + NEW_FILE_NAME));
+        draftService.publish(newVersionId, "1.1", publishDate2, closeDate2);
+
+        Set<List<AttributeFilter>> filters = new HashSet<List<AttributeFilter>>(){{
+            add(asList(
+                    new AttributeFilter(id.getCode(), BigInteger.valueOf(1), id.getType()),
+                    new AttributeFilter(code.getCode(), "001", code.getType())
+            ));
+        }};
+
+        Page<RowValue> actualRow = versionService
+                .search(REFBOOK_CODE,
+                        OffsetDateTime.of(publishDate1.plusYears(4), ZoneOffset.UTC),
+                        new SearchDataCriteria(filters, null));
+        assertEquals(0, actualRow.getContent().size());
     }
 
     /**
@@ -502,7 +609,7 @@ public class ApplicationTest {
     public void testDraftUpdateData() {
         int referenceVersion = -1;
         Structure structure = createStructure();
-        structure.setAttributes(Arrays.asList(
+        structure.setAttributes(asList(
                 Structure.Attribute.build("string", "string", FieldType.STRING, false, "string"),
                 Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, false, "count"),
                 Structure.Attribute.build("float", "float", FieldType.FLOAT, false, "float"),
@@ -510,7 +617,7 @@ public class ApplicationTest {
                 Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, false, "boolean"),
                 Structure.Attribute.build("integer", "integer", FieldType.INTEGER, false, "integer")
         ));
-        structure.setReferences(Collections.singletonList(new Structure.Reference("reference", referenceVersion, "count", Collections.singletonList("count"), null)));
+        structure.setReferences(singletonList(new Structure.Reference("reference", referenceVersion, "count", singletonList("count"), null)));
         Draft draft = draftService.create(1, structure);
         FileModel fileModel = createFileModel("update_testUpload.xlsx", "testUpload.xlsx");
 
@@ -526,10 +633,10 @@ public class ApplicationTest {
         rowMap1.put(codes.get(3), date);
         rowMap1.put(codes.get(4), true);
         rowMap1.put(codes.get(5), BigInteger.valueOf(4));
-        List<RowValue> expected = Collections.singletonList(ConverterUtil.rowValue(new Row(rowMap1), structure));
+        List<RowValue> expected = singletonList(rowValue(new Row(rowMap1), structure));
 
         Page<RowValue> search = draftService.search(draft.getId(), new SearchDataCriteria(null, null));
-        assertRows(ConverterUtil.fields(structure), expected, search.getContent());
+        assertRows(fields(structure), expected, search.getContent());
     }
 
     /**
@@ -540,14 +647,14 @@ public class ApplicationTest {
     public void testDraftUpdateDataWithInvalidReference() {
         int referenceVersion = -1;
         Structure structure = createStructure();
-        structure.setAttributes(Arrays.asList(
+        structure.setAttributes(asList(
                 Structure.Attribute.build("string", "string", FieldType.STRING, false, "string"),
                 Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, false, "count"),
                 Structure.Attribute.build("float", "float", FieldType.FLOAT, false, "float"),
                 Structure.Attribute.build("date", "date", FieldType.DATE, false, "date"),
                 Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, false, "boolean")
         ));
-        structure.setReferences(Collections.singletonList(new Structure.Reference("reference", referenceVersion, "count", Collections.singletonList("count"), null)));
+        structure.setReferences(singletonList(new Structure.Reference("reference", referenceVersion, "count", singletonList("count"), null)));
         Draft draft = draftService.create(1, structure);
         FileModel fileModel = createFileModel("update_testUploadInvalidReference.xlsx", "testUploadInvalidReference.xlsx");
 
@@ -562,7 +669,7 @@ public class ApplicationTest {
 
     @Test
     public void testDraftCreateFromFile() {
-        List<FieldValue> expectedData = new ArrayList() {{
+        List<FieldValue> expectedData = new ArrayList<FieldValue>() {{
             add(new StringFieldValue("string", "Иван"));
             add(new StringFieldValue("reference", "2"));
             add(new StringFieldValue("float", "1.0"));
@@ -624,14 +731,14 @@ public class ApplicationTest {
         rowMap2.put(codes.get(4), localDateTime2);
         rowMap2.put(codes.get(5), null);
 
-        List<RowValue> rowValues = Arrays.asList(
-                ConverterUtil.rowValue(new Row(rowMap1), structure),
-                ConverterUtil.rowValue(new Row(rowMap2), structure));
+        List<RowValue> rowValues = asList(
+                rowValue(new Row(rowMap1), structure),
+                rowValue(new Row(rowMap2), structure));
         draftDataService.addRows(draft.getStorageCode(), rowValues);
 
-        List<RowValue> expectedRowValues = Collections.singletonList(rowValues.get(0));
+        List<RowValue> expectedRowValues = singletonList(rowValues.get(0));
 
-        List<Field> fields = ConverterUtil.fields(structure);
+        List<Field> fields = fields(structure);
 
         codes.forEach(attributeCode -> {
             String fullTextSearchValue = FieldType.REFERENCE.equals(structure.getAttribute(attributeCode).getType()) ?
@@ -659,7 +766,7 @@ public class ApplicationTest {
 
     private Structure getTestStructureWithoutTreeFieldType() {
         return new Structure(
-                Arrays.asList(
+                asList(
                         Structure.Attribute.buildPrimary("id", "idAttrName", FieldType.INTEGER, "idAttrDesc"),
                         Structure.Attribute.build("floatAttribute", "floatAttributeName", FieldType.FLOAT, false, "floatAttributeDesc"),
                         Structure.Attribute.build("name", "nameAttrName", FieldType.STRING, true, "nameAttrDesc"),
@@ -667,7 +774,7 @@ public class ApplicationTest {
                         Structure.Attribute.build("dateAttribute", "dateAttributeName", FieldType.DATE, false, "dateAttributeDesc"),
                         Structure.Attribute.build("referenceAttribute", "referenceAttributeName", FieldType.REFERENCE, false, "referenceAttributeNameDesc")
                 ),
-                Collections.singletonList(createReference("referenceAttribute"))
+                singletonList(createReference("referenceAttribute"))
         );
     }
 
@@ -678,7 +785,7 @@ public class ApplicationTest {
 
         RefBook refBook = refBookService.create(createRequest);
         Structure structure = new Structure(
-                Arrays.asList(
+                asList(
                         Structure.Attribute.buildPrimary("id", "idAttrName", FieldType.INTEGER, null),
                         Structure.Attribute.build("name", "nameAttrName", FieldType.STRING, false, null)
                 ), null
@@ -690,12 +797,12 @@ public class ApplicationTest {
         rowMap1.put(structure.getAttributes().get(1).getCode(), "запись для ссылки");
 
         draftDataService.addRows(draft.getStorageCode(),
-                Collections.singletonList(ConverterUtil.rowValue(new Row(rowMap1), structure)));
+                singletonList(rowValue(new Row(rowMap1), structure)));
 
         draftService.publish(draft.getId(), "1.0", LocalDateTime.of(2017, 9, 1, 0, 0), null);
 
         return new Structure.Reference(attributeCode, draft.getId(), structure.getAttributes().get(0).getCode(),
-                Arrays.asList(structure.getAttributes().get(0).getCode(), structure.getAttributes().get(1).getCode()), null);
+                asList(structure.getAttributes().get(0).getCode(), structure.getAttributes().get(1).getCode()), null);
     }
 
     private void assertRows(List<Field> fields, List<RowValue> expectedRows, List<RowValue> actualRows) {
@@ -704,11 +811,11 @@ public class ApplicationTest {
         String actualRowsStr = actualRows.stream().map(RowValue::toString).collect(Collectors.joining(", "));
         Assert.assertTrue(
                 "not equals actualRows: \n" + actualRowsStr + " \n and expected rows: \n" + expectedRowsStr
-                , actualRows.stream().filter(actualRow ->
-                                expectedRows.stream().filter(expectedRow ->
-                                                equalsFieldValues(fields, expectedRow.getFieldValues(), actualRow.getFieldValues())
-                                ).findAny().isPresent()
-                ).findAny().isPresent()
+                , actualRows.stream().anyMatch(actualRow ->
+                        expectedRows.stream().anyMatch(expectedRow ->
+                                        equalsFieldValues(fields, expectedRow.getFieldValues(), actualRow.getFieldValues())
+                        )
+                )
         );
     }
 
@@ -717,7 +824,7 @@ public class ApplicationTest {
         if (values1 == null || values2 == null || values1.size() != values2.size()) return false;
 
         for (FieldValue val1 : values1) {
-            boolean isPresent = values2.stream().filter(val2 -> {
+            boolean isPresent = values2.stream().anyMatch(val2 -> {
                 if (val2 == val1) return true;
                 if (val2.getField().equals(val1.getField())) {
                     Field field = fields.stream().filter(f -> f.getName().equals(val2.getField())).findFirst().get();
@@ -726,7 +833,7 @@ public class ApplicationTest {
                 }
                 return false;
 
-            }).findAny().isPresent();
+            });
 
             if (!isPresent) {
                 return false;
@@ -784,7 +891,7 @@ public class ApplicationTest {
 
         RefBook refBook = refBookService.create(createRequest);
         Structure structure = new Structure(
-                Arrays.asList(
+                asList(
                         Structure.Attribute.buildPrimary("id", "Идентификатор", FieldType.INTEGER, null),
                         Structure.Attribute.build("name", "Наименование", FieldType.STRING, false, null),
                         Structure.Attribute.build("code", "Код", FieldType.STRING, false, null)),
@@ -802,9 +909,9 @@ public class ApplicationTest {
         rowMap2.put(codes.get(1), "Дублирующееся имя");
         rowMap2.put(codes.get(2), "0021");
 
-        List<RowValue> rowValues = Arrays.asList(
-                ConverterUtil.rowValue(new Row(rowMap1), structure),
-                ConverterUtil.rowValue(new Row(rowMap2), structure));
+        List<RowValue> rowValues = asList(
+                rowValue(new Row(rowMap1), structure),
+                rowValue(new Row(rowMap2), structure));
 
         draftDataService.addRows(draft.getStorageCode(), rowValues);
 
@@ -1252,37 +1359,37 @@ public class ApplicationTest {
 
         RefBookCriteria criteria = new RefBookCriteria();
         criteria.setCode(REFBOOK_CODE);
-        Iterator<RefBook> expected1 = Arrays.asList(
+        Iterator<RefBook> expected1 = asList(
                 refBook1,
                 refBook2,
                 refBook3).iterator();
         refBookService.search(criteria).getContent().forEach(actual -> assertRefBooksEqual(expected1.next(), actual));
 
-        criteria.setOrders(Collections.singletonList(new Sort.Order(Sort.Direction.ASC, "code")));
-        Iterator<RefBook> expected2 = Arrays.asList(
+        criteria.setOrders(singletonList(new Sort.Order(Sort.Direction.ASC, "code")));
+        Iterator<RefBook> expected2 = asList(
                 refBook3,
                 refBook1,
                 refBook2).iterator();
         refBookService.search(criteria).getContent().forEach(actual -> assertRefBooksEqual(expected2.next(), actual));
 
-        criteria.setOrders(Collections.singletonList(new Sort.Order(Sort.Direction.DESC, "code")));
-        Iterator<RefBook> expected3 = Arrays.asList(
+        criteria.setOrders(singletonList(new Sort.Order(Sort.Direction.DESC, "code")));
+        Iterator<RefBook> expected3 = asList(
                 refBook2,
                 refBook1,
                 refBook3).iterator();
         refBookService.search(criteria).getContent().forEach(actual -> assertRefBooksEqual(expected3.next(), actual));
 
-        criteria.setOrders(Collections.singletonList(new Sort.Order(Sort.Direction.ASC, "passport." + PASSPORT_ATTRIBUTE_SHORT_NAME)));
-        Iterator<RefBook> expected4 = Arrays.asList(
+        criteria.setOrders(singletonList(new Sort.Order(Sort.Direction.ASC, "passport." + PASSPORT_ATTRIBUTE_SHORT_NAME)));
+        Iterator<RefBook> expected4 = asList(
                 refBook3,
                 refBook2,
                 refBook1).iterator();
         refBookService.search(criteria).getContent().forEach(actual -> assertRefBooksEqual(expected4.next(), actual));
 
-        criteria.setOrders(Arrays.asList(
+        criteria.setOrders(asList(
                 new Sort.Order(Sort.Direction.ASC, "passport." + PASSPORT_ATTRIBUTE_FULL_NAME),
                 new Sort.Order(Sort.Direction.ASC, "code")));
-        Iterator<RefBook> expected5 = Arrays.asList(
+        Iterator<RefBook> expected5 = asList(
                 refBook1,
                 refBook3,
                 refBook2).iterator();
@@ -1303,9 +1410,9 @@ public class ApplicationTest {
         final String OLD_FILE_NAME = "oldData.xlsx";
         final String NEW_FILE_NAME = "newData.xlsx";
         LocalDateTime publishDate1 = LocalDateTime.now();
-        LocalDateTime closeDate1 = LocalDateTime.from(publishDate1.plusYears(2));
-        LocalDateTime publishDate2 = LocalDateTime.from(publishDate1.plusYears(3));
-        LocalDateTime closeDate2 = LocalDateTime.from(publishDate1.plusYears(4));
+        LocalDateTime closeDate1 = publishDate1.plusYears(2);
+        LocalDateTime publishDate2 = publishDate1.plusYears(3);
+        LocalDateTime closeDate2 = publishDate1.plusYears(4);
 
         Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
         Structure.Attribute code = Structure.Attribute.buildPrimary("CODE", "code", FieldType.STRING, "code");
@@ -1319,14 +1426,14 @@ public class ApplicationTest {
 
         RefBook refBook = refBookService.create(new RefBookCreateRequest("A000", null));
         Integer oldVersionId = refBook.getId();
-        Arrays.asList(id, code, common, descr, upd1, typeS)
+        asList(id, code, common, descr, upd1, typeS)
                 .forEach(attribute ->
                         draftService.createAttribute(new CreateAttribute(oldVersionId, attribute, null))
                 );
         draftService.updateData(oldVersionId, createFileModel(OLD_FILE_NAME, "testCompare/" + OLD_FILE_NAME));
         draftService.publish(oldVersionId, "1.0", publishDate1, closeDate1);
 
-        Integer newVersionId = draftService.create(refBook.getRefBookId(), new Structure(Arrays.asList(id, code, common, name, upd2, typeI), emptyList())).getId();
+        Integer newVersionId = draftService.create(refBook.getRefBookId(), new Structure(asList(id, code, common, name, upd2, typeI), emptyList())).getId();
         draftService.updateData(newVersionId, createFileModel(NEW_FILE_NAME, "testCompare/" + NEW_FILE_NAME));
         draftService.publish(newVersionId, "1.1", publishDate2, closeDate2);
 
@@ -1336,19 +1443,19 @@ public class ApplicationTest {
 
         List<DiffRowValue> expectedDiffRowValues = new ArrayList<>();
         expectedDiffRowValues.add(new DiffRowValue(
-                Arrays.asList(
+                asList(
                         new DiffFieldValue<>(idField, BigInteger.valueOf(1), null, DiffStatusEnum.DELETED),
                         new DiffFieldValue<>(codeField, "001", null, DiffStatusEnum.DELETED),
                         new DiffFieldValue<>(commonField, "c1", null, DiffStatusEnum.DELETED)),
                 DiffStatusEnum.DELETED));
         expectedDiffRowValues.add(new DiffRowValue(
-                Arrays.asList(
+                asList(
                         new DiffFieldValue<>(idField, null,  BigInteger.valueOf(4), DiffStatusEnum.INSERTED),
                         new DiffFieldValue<>(codeField, null, "004", DiffStatusEnum.INSERTED),
                         new DiffFieldValue<>(commonField, null,  "c4", DiffStatusEnum.INSERTED)),
                 DiffStatusEnum.INSERTED));
         expectedDiffRowValues.add(new DiffRowValue(
-                Arrays.asList(
+                asList(
                         new DiffFieldValue<>(idField, null,  BigInteger.valueOf(3), null),
                         new DiffFieldValue<>(codeField, null, "003", null),
                         new DiffFieldValue<>(commonField, "c3",  "c3_1", DiffStatusEnum.UPDATED)),
@@ -1358,7 +1465,7 @@ public class ApplicationTest {
                 new PageImpl<>(expectedDiffRowValues, new PageRequest(0, 10), expectedDiffRowValues.size()),
                 singletonList(descr.getCode()),
                 singletonList(name.getCode()),
-                Arrays.asList(upd1.getCode(), typeI.getCode())
+                asList(upd1.getCode(), typeI.getCode())
         );
 
         RefBookDataDiff actualRefBookDataDiff = compareService.compareData(new CompareDataCriteria(oldVersionId, newVersionId));
@@ -1374,7 +1481,7 @@ public class ApplicationTest {
         final String FILE_NAME = "testCompareData.xlsx";
 
         LocalDateTime publishDate1 = LocalDateTime.now();
-        LocalDateTime publishDate2 = LocalDateTime.from(publishDate1.plusYears(2));
+        LocalDateTime publishDate2 = publishDate1.plusYears(2);
 
         Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
         Structure.Attribute code = Structure.Attribute.build("CODE", "code", FieldType.STRING, false, "code");
@@ -1389,7 +1496,7 @@ public class ApplicationTest {
 
         Integer newVersionId = draftService.create(
                 refBook.getRefBookId(),
-                new Structure(Arrays.asList(
+                new Structure(asList(
                         id,
                         code,
                         name),
@@ -1429,7 +1536,7 @@ public class ApplicationTest {
 
         Integer newVersionId = draftService.create(
                 refBook.getRefBookId(),
-                new Structure(Arrays.asList(
+                new Structure(asList(
                         Structure.Attribute.build("ID", "id", FieldType.INTEGER, false, "id"),
                         Structure.Attribute.buildPrimary("CODE", "code", FieldType.STRING, "code")),
                         emptyList())).getId();
