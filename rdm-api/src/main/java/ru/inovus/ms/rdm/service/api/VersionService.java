@@ -36,15 +36,14 @@ public interface VersionService {
                            @PathParam("versionId")
                            Integer versionId);
 
-
     @GET
-    @Path(("/refbook/{refbookId}/{date}"))
-    @ApiOperation("Получения записей версии актуальных на дату, с фильтрацией ")
+    @Path("/refBook/{refBookCode}/{date}")
+    @ApiOperation("Получение актуальных на дату записей версии по коду справочника")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет версии")
     })
-    Page<RowValue> search(@ApiParam("Идентификатор справочника") @PathParam("refbookId")Integer refbookId,
+    Page<RowValue> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
                           @ApiParam("Дата получения данных") @PathParam("date") OffsetDateTime date,
                           @BeanParam SearchDataCriteria criteria);
 
@@ -56,7 +55,6 @@ public interface VersionService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     Structure getStructure(@QueryParam("versionId") @ApiParam("Идентификатор версии") Integer versionId);
-
 
     @GET
     @Path("/{versionId}/getFile")

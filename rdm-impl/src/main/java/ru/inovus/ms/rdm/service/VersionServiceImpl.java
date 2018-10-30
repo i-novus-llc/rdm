@@ -98,8 +98,8 @@ public class VersionServiceImpl implements VersionService {
     }
 
     @Override
-    public Page<RowValue> search(Integer refbookId, OffsetDateTime date, SearchDataCriteria criteria) {
-        RefBookVersionEntity version = versionRepository.findActualOnDate(refbookId, date.toLocalDateTime());
+    public Page<RowValue> search(String refBookCode, OffsetDateTime date, SearchDataCriteria criteria) {
+        RefBookVersionEntity version = versionRepository.findActualOnDate(refBookCode, date.toLocalDateTime());
         return version != null ? getRowValuesOfVersion(criteria, version) : new PageImpl<>(Collections.emptyList());
     }
 
@@ -120,7 +120,6 @@ public class VersionServiceImpl implements VersionService {
     public Structure getStructure(Integer versionId) {
         return versionRepository.findOne(versionId).getStructure();
     }
-
 
     @Override
     @Transactional
