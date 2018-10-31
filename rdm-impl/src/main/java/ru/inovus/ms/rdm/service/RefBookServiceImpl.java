@@ -312,6 +312,7 @@ public class RefBookServiceImpl implements RefBookService {
         RefBook model = new RefBook(ModelGenerator.versionModel(entity));
         model.setStatus(entity.getStatus());
         model.setRemovable(isRefBookRemovable(entity.getRefBook().getId()));
+        model.setCategory(entity.getRefBook().getCategory());
         model.setDisplayVersion(getDisplayVersion(entity));
         model.setLastPublishedVersionFromDate(getLastPublishedVersionFromDate(entity));
         return model;
