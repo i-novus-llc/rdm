@@ -20,5 +20,16 @@
                 ('name', 'Наименование', true)
         </sql>
     </changeSet>
+    <changeSet id="201810311000_RDM-160" author="znurgaliev" dbms="postgresql">
+        <preConditions onFail="CONTINUE">
+            <tableExists tableName="passport_attribute" schemaName="n2o_rdm_management"/>
+        </preConditions>
+        <comment>Ввод возможных атрибутов паспорта справочника</comment>
+        <sql>
+            INSERT INTO n2o_rdm_management.passport_attribute(code, name, comparable) VALUES
+                ('shortName', 'Краткое наименование', TRUE),
+                ('description', 'Описание', TRUE)
+        </sql>
+    </changeSet>
 
 </databaseChangeLog>
