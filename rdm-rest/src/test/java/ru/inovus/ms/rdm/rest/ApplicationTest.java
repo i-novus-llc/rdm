@@ -502,9 +502,10 @@ public class ApplicationTest {
         row.getData().replace("string", "string1");
         row.getData().replace("boolean", false);
         row.getData().replace("float", 1.2);
-        row.getData().replace("reference", null);
+        row.getData().replace("reference", "2");
         draftService.updateData(versionId, row);
 
+        row.getData().replace("reference", new Reference("2", "2"));
         expectedRowValue = rowValue(row, structure);
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertRows(fields(structure), singletonList(expectedRowValue), actualRowValues.getContent());
