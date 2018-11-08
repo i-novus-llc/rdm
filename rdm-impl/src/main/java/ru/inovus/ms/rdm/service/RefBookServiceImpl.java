@@ -7,8 +7,6 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
@@ -53,7 +51,6 @@ public class RefBookServiceImpl implements RefBookService {
     private static final String REF_BOOK_FROM_DATE_SORT_PROPERTY = "fromDate";
     private static final String REF_BOOK_CATEGORY_SORT_PROPERTY = "category";
 
-    private static final Logger logger = LoggerFactory.getLogger(RefBookServiceImpl.class);
     private RefBookVersionRepository repository;
     private RefBookRepository refBookRepository;
     private DraftDataService draftDataService;
@@ -309,10 +306,6 @@ public class RefBookServiceImpl implements RefBookService {
         }
 
         return where.getValue();
-    }
-
-    private RefBookVersionEntity getLastPublishedVersion(Integer refBookId) {
-        return repository.findOne(isVersionOfRefBook(refBookId).and(isLastPublished()));
     }
 
     private boolean isRefBookRemovable(Integer refBookId) {

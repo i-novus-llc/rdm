@@ -11,8 +11,6 @@ import java.util.Date;
 @ApiModel("Критерии поиска справочника с конвертацией даты")
 public class RefBookCriteriaDateAndStatus extends RefBookCriteria {
 
-    private RefBookStatus status;
-
     public void setFromDateBegin(Date fromDateBegin) {
         super.setFromDateBegin(convertDateToLocalDateTime(fromDateBegin));
     }

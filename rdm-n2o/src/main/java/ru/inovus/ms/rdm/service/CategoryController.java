@@ -19,6 +19,7 @@ import java.time.OffsetDateTime;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 @Controller
 public class CategoryController {
@@ -45,7 +46,7 @@ public class CategoryController {
 
     private static SearchDataCriteria toSearchDataCriteria(CategoryCriteria categoryCriteria) {
         SearchDataCriteria criteria = new SearchDataCriteria();
-        if (categoryCriteria.getName() != null && !categoryCriteria.getName().trim().equals("")) {
+        if (isNotBlank(categoryCriteria.getName())) {
             criteria.setAttributeFilter(singleton(singletonList(
                     new AttributeFilter(CATEGORY_NAME_FIELD_CODE, categoryCriteria.getName(), FieldType.STRING, SearchTypeEnum.LIKE))));
         }
