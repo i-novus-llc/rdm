@@ -9,6 +9,7 @@ import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.service.FieldFactoryImpl;
 import ru.inovus.ms.rdm.file.*;
 import ru.inovus.ms.rdm.model.Result;
+import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 

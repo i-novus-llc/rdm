@@ -12,6 +12,10 @@ public final class TimeUtils {
 
     public static final String DATE_TIME_PATTERN = "dd.MM.yyyy HH:mm:ss";
     public static final DateTimeFormatter DATE_TIME_PATTERN_FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
+    public static final String DATE_PATTERN_WITH_POINT = "dd.MM.yyyy";
+    public static final DateTimeFormatter DATE_PATTERN_WITH_POINT_FORMATTER = DateTimeFormatter.ofPattern(DATE_PATTERN_WITH_POINT);
+    public static final String DATE_PATTERN_WITH_HYPHEN = "yyyy-MM-dd";
+    public static final DateTimeFormatter DATE_PATTERN_WITH_HYPHEN_FORMATTER = DateTimeFormatter.ofPattern(DATE_PATTERN_WITH_HYPHEN);
 
     private static final Logger logger = LoggerFactory.getLogger(TimeUtils.class);
 
@@ -34,6 +38,23 @@ public final class TimeUtils {
 
     public static String format(LocalDateTime localDateTime) {
         return localDateTime.format(DATE_TIME_PATTERN_FORMATTER);
+    }
+
+    public static LocalDate parseLocalDate(Object value) {
+        if (value instanceof LocalDate)
+            return (LocalDate) value;
+        if (value instanceof LocalDateTime)
+            return ((LocalDateTime) value).toLocalDate();
+        return LocalDate.parse(
+                String.valueOf(value),
+                String.valueOf(value).contains(".")
+                        ? DATE_PATTERN_WITH_POINT_FORMATTER
+                        : DATE_PATTERN_WITH_HYPHEN_FORMATTER
+        );
+    }
+
+    public static String format(LocalDate localDate) {
+        return localDate.format(DATE_PATTERN_WITH_POINT_FORMATTER);
     }
 
     public static String format(OffsetDateTime offsetDateTime) {

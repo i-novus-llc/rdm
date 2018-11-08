@@ -1,20 +1,20 @@
 package ru.inovus.ms.rdm.validation;
 
-
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.inovus.ms.rdm.file.Row;
+import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UniqueRowAppendValidationTest {
@@ -80,8 +80,6 @@ public class UniqueRowAppendValidationTest {
         noPkRowMap.put(NOT_PK, "test Value");
         noPkRow = new Row(noPkRowMap);
 
-
-
     }
 
     @Test
@@ -89,15 +87,15 @@ public class UniqueRowAppendValidationTest {
 
         UniqueRowAppendValidation uniqueRowAppendValidation = new UniqueRowAppendValidation(pkStructure);
         uniqueRowAppendValidation.appendRow(pkRow1);
-        Assert.assertEquals(0,uniqueRowAppendValidation.validate().size());
+        assertEquals(0,uniqueRowAppendValidation.validate().size());
         uniqueRowAppendValidation.appendRow(pkRow1);
-        Assert.assertEquals(1, uniqueRowAppendValidation.validate().size());
+        assertEquals(1, uniqueRowAppendValidation.validate().size());
         uniqueRowAppendValidation.appendRow(pkRow2);
-        Assert.assertEquals(0, uniqueRowAppendValidation.validate().size());
+        assertEquals(0, uniqueRowAppendValidation.validate().size());
         uniqueRowAppendValidation.appendRow(pkRow2);
-        Assert.assertEquals(1, uniqueRowAppendValidation.validate().size());
+        assertEquals(1, uniqueRowAppendValidation.validate().size());
         uniqueRowAppendValidation.appendRow(pkRow1);
-        Assert.assertEquals(1, uniqueRowAppendValidation.validate().size());
+        assertEquals(1, uniqueRowAppendValidation.validate().size());
 
     }
 

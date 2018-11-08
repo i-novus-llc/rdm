@@ -13,7 +13,7 @@ import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.*;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.service.FieldFactoryImpl;
 import ru.inovus.ms.rdm.exception.RdmException;
-import ru.inovus.ms.rdm.file.Row;
+import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.AttributeFilter;
 import ru.inovus.ms.rdm.model.Structure;
 
@@ -24,6 +24,9 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonList;
 
 public class ConverterUtil {
 
@@ -48,8 +51,10 @@ public class ConverterUtil {
 
     public static RowValue rowValue(Row row, Structure structure) {
         List<Field> fields = ConverterUtil.fields(structure);
-        return new LongRowValue(fields.stream().map(field -> field.valueOf(row.getData().get(field.getName())))
-                .toArray(size -> new FieldValue[size]));
+        return new LongRowValue(row.getSystemId(),
+                fields.stream()
+                        .map(field -> field.valueOf(row.getData().get(field.getName())))
+                        .collect(Collectors.toList()));
     }
 
     public static Date date(LocalDateTime date) {
@@ -66,13 +71,13 @@ public class ConverterUtil {
 
     public static Set<List<FieldSearchCriteria>> getFieldSearchCriteriaList(Set<List<AttributeFilter>> attributeFilters) {
         if (Objects.isNull(attributeFilters))
-            return Collections.emptySet();
+            return emptySet();
         return attributeFilters.stream().map(attrFiltersList ->
                 attrFiltersList.stream().map(attrFilter ->
                         new FieldSearchCriteria(
                                 fieldFactory.createField(attrFilter.getAttributeName(), attrFilter.getFieldType()),
                                 attrFilter.getSearchType(),
-                                Collections.singletonList(attrFilter.getValue()))).collect(Collectors.toList())
+                                singletonList(attrFilter.getValue()))).collect(Collectors.toList())
         ).collect(Collectors.toSet());
     }
 

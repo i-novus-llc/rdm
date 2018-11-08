@@ -35,7 +35,10 @@ import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.VersionService;
-import ru.inovus.ms.rdm.util.*;
+import ru.inovus.ms.rdm.util.FileNameGenerator;
+import ru.inovus.ms.rdm.util.ModelGenerator;
+import ru.inovus.ms.rdm.util.VersionNumberStrategy;
+import ru.inovus.ms.rdm.util.VersionPeriodPublishValidation;
 import ru.inovus.ms.rdm.validation.PrimaryKeyUniqueValidation;
 import ru.inovus.ms.rdm.validation.ReferenceValidation;
 import ru.kirkazan.common.exception.CodifiedException;
@@ -52,11 +55,10 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
-import static ru.inovus.ms.rdm.util.ConverterUtil.field;
-import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
-import static ru.inovus.ms.rdm.util.ConverterUtil.getFieldSearchCriteriaList;
+import static ru.inovus.ms.rdm.util.ConverterUtil.*;
 
 @Primary
 @Service
@@ -234,7 +236,6 @@ public class DraftServiceImpl implements DraftService {
         return versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
     }
 
-
     @Override
     public void updateMetadata(Integer draftId, MetadataDiff metadataDiff) {
 
@@ -251,6 +252,36 @@ public class DraftServiceImpl implements DraftService {
         validateDraftNotArchived(draftId);
 
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    @Transactional
+    public void updateData(Integer draftId, Row row) {
+
+        validateDraftExists(draftId);
+        validateDraftNotArchived(draftId);
+
+        RefBookVersionEntity draft = versionRepository.findOne(draftId);
+        Row finalRow = row;
+        StructureRowMapper structureRowMapper = new StructureRowMapper(draft.getStructure(), versionRepository);
+        row = structureRowMapper.map(finalRow);
+
+        if (row.getSystemId() == null)
+            draftDataService.addRows(draft.getStorageCode(), singletonList(rowValue(row, draft.getStructure())));
+        else
+            draftDataService.updateRow(draft.getStorageCode(), rowValue(row, draft.getStructure()));
+    }
+
+    @Override
+    @Transactional
+    public void deleteRow(Integer draftId, Long systemId) {
+
+        validateDraftExists(draftId);
+        validateDraftNotArchived(draftId);
+
+        RefBookVersionEntity draft = versionRepository.findOne(draftId);
+
+        draftDataService.deleteRows(draft.getStorageCode(), singletonList(systemId));
     }
 
     @Override
@@ -278,7 +309,6 @@ public class DraftServiceImpl implements DraftService {
                 throw new RdmException(e);
             }
 
-
             StructureRowMapper structureRowMapper = new StructureRowMapper(structure, versionRepository);
             try (FilePerRowProcessor persister = FileProcessorFactory.createProcessor(extension,
                     new BufferedRowsPersister(draftDataService, storageCode, structure), structureRowMapper)) {
@@ -289,8 +319,6 @@ public class DraftServiceImpl implements DraftService {
         } finally {
             refBookLockService.deleteRefBookAction(refBookId);
         }
-
-
     }
 
     @Override
@@ -358,7 +386,6 @@ public class DraftServiceImpl implements DraftService {
             }
 
             dropDataService.drop(dataStorageToDelete);
-
 
             RefBookVersion versionModel = versionService.getById(draftId);
             for (FileType fileType : PerRowFileGeneratorFactory.getAvalibleTypes())

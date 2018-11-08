@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.file;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 
@@ -27,7 +28,7 @@ public class NonStrictOnTypeRowMapper extends StructureRowMapper {
     }
 
     @Override
-    protected Object castValue(Structure.Attribute attribute, String value) {
+    protected Object castValue(Structure.Attribute attribute, Object value) {
         try {
             return super.castValue(attribute, value);
         } catch (Exception e) {

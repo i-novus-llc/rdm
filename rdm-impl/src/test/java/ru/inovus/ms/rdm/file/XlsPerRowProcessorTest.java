@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.model.Result;
+import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
 
 import java.math.BigInteger;
@@ -16,28 +17,27 @@ import java.util.*;
  */
 public class XlsPerRowProcessorTest {
 
-
     @Test
     public void testSimpleProcessFile() throws Exception {
         List<Map<String, Object>> expected = new ArrayList<>();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         LocalDate date =  LocalDate.parse("01.01.2011", formatter);
-        expected.add(new HashMap() {{
+        expected.add(new HashMap<String, Object>() {{
             put("Kod", BigInteger.valueOf(0));
             put("Opis", "Не требует изготовления полиса");
             put("DATEBEG", date);
         }});
-        expected.add(new HashMap() {{
+        expected.add(new HashMap<String, Object>() {{
             put("Kod", BigInteger.valueOf(1));
             put("Opis", "Бумажный полис ОМС");
             put("DATEBEG", date);
         }});
-        expected.add(new HashMap() {{
+        expected.add(new HashMap<String, Object>() {{
             put("Kod", BigInteger.valueOf(2));
             put("Opis", "Электронный полис ОМС");
             put("DATEBEG", date);
         }});
-        expected.add(new HashMap() {{
+        expected.add(new HashMap<String, Object>() {{
             put("Kod", BigInteger.valueOf(3));
             put("Opis", "Электронный полис ОМС в составе УЭК");
             put("DATEBEG", date);
@@ -66,7 +66,6 @@ public class XlsPerRowProcessorTest {
             private int successCount = 0;
 
             private int allCount = 0;
-
 
             @Override
             public Result append(Row row) {
