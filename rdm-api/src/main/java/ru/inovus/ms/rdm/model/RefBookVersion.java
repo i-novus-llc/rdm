@@ -29,9 +29,6 @@ public class RefBookVersion {
     @ApiModelProperty("Версия")
     private String version;
 
-    @ApiModelProperty("Версия (отображаемое значение)")
-    private String displayVersion;
-
     @ApiModelProperty("Дата публикации")
     @JsonSerialize(using = JsonLocalDateTimeSerializer.class)
     @JsonDeserialize(using = JsonLocalDateTimeDeserializer.class)
@@ -45,9 +42,6 @@ public class RefBookVersion {
     @ApiModelProperty("Статус версии")
     private RefBookVersionStatus status;
 
-    @ApiModelProperty("Статус версии (отображаемое значение)")
-    private String displayStatus;
-
     @ApiModelProperty("В архиве")
     private Boolean archived;
 
@@ -56,6 +50,11 @@ public class RefBookVersion {
 
     @ApiModelProperty("Структура версии")
     private Structure structure;
+
+    @ApiModelProperty("Дата последнего изменения")
+    @JsonSerialize(using = JsonLocalDateTimeSerializer.class)
+    @JsonDeserialize(using = JsonLocalDateTimeDeserializer.class)
+    private LocalDateTime editDate;
 
     public RefBookVersion() {
     }
@@ -66,13 +65,12 @@ public class RefBookVersion {
         this.code = refBookVersion.getCode();
         this.comment = refBookVersion.getComment();
         this.version = refBookVersion.getVersion();
-        this.displayVersion = refBookVersion.getDisplayVersion();
         this.fromDate = refBookVersion.getFromDate();
         this.toDate = refBookVersion.getToDate();
         this.status = refBookVersion.getStatus();
-        this.displayStatus = refBookVersion.getDisplayStatus();
         this.archived = refBookVersion.getArchived();
         this.passport = refBookVersion.getPassport();
+        this.editDate = refBookVersion.getEditDate();
     }
 
     public Integer getId() {
@@ -115,14 +113,6 @@ public class RefBookVersion {
         this.version = version;
     }
 
-    public String getDisplayVersion() {
-        return displayVersion;
-    }
-
-    public void setDisplayVersion(String displayVersion) {
-        this.displayVersion = displayVersion;
-    }
-
     public LocalDateTime getFromDate() {
         return fromDate;
     }
@@ -147,14 +137,6 @@ public class RefBookVersion {
         this.status = status;
     }
 
-    public String getDisplayStatus() {
-        return displayStatus;
-    }
-
-    public void setDisplayStatus(String displayStatus) {
-        this.displayStatus = displayStatus;
-    }
-
     public Boolean getArchived() {
         return archived != null && archived;
     }
@@ -177,5 +159,13 @@ public class RefBookVersion {
 
     public void setStructure(Structure structure) {
         this.structure = structure;
+    }
+
+    public LocalDateTime getEditDate() {
+        return editDate;
+    }
+
+    public void setEditDate(LocalDateTime editDate) {
+        this.editDate = editDate;
     }
 }

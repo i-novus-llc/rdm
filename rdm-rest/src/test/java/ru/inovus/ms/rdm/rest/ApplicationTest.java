@@ -26,7 +26,6 @@ import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 import ru.inovus.ms.rdm.enumeration.FileType;
-import ru.inovus.ms.rdm.enumeration.RefBookStatus;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.file.Row;
@@ -156,7 +155,6 @@ public class ApplicationTest {
         RefBookVersion version0 = new RefBookVersion();
         version0.setRefBookId(REF_BOOK_ID);
         version0.setStatus(RefBookVersionStatus.DRAFT);
-        version0.setDisplayStatus(RefBookVersionStatus.DRAFT.name());
 
         RefBookVersion version1 = new RefBookVersion();
         version1.setRefBookId(REF_BOOK_ID);
@@ -166,7 +164,6 @@ public class ApplicationTest {
         RefBookVersion version2 = new RefBookVersion();
         version2.setRefBookId(REF_BOOK_ID);
         version2.setStatus(RefBookVersionStatus.PUBLISHED);
-        version2.setDisplayStatus(RefBookVersionStatus.PUBLISHED.name());
         version2.setVersion("2");
 
         RefBookVersion version3 = new RefBookVersion();
@@ -214,7 +211,6 @@ public class ApplicationTest {
         assertEquals(refBookCreateRequest.getCode(), refBook.getCode());
         assertPassportEqual(refBookCreateRequest.getPassport(), refBook.getPassport());
         assertEquals(RefBookVersionStatus.DRAFT, refBook.getStatus());
-        assertEquals(RefBookStatus.DRAFT.getName(), refBook.getDisplayVersion());
         assertNull(refBook.getVersion());
         assertNull(refBook.getComment());
         assertTrue(refBook.getRemovable());
@@ -272,7 +268,6 @@ public class ApplicationTest {
         RefBook refBookById = refBookService.getByVersionId(refBook.getId());
         refBook.setArchived(Boolean.TRUE);
         refBook.setRemovable(Boolean.FALSE);
-        refBook.setDisplayVersion(RefBookStatus.ARCHIVED.getName());
         assertRefBooksEqual(refBook, refBookById);
 
         // удаление
@@ -295,7 +290,7 @@ public class ApplicationTest {
 
         // поиск по идентификатору справочника
         RefBookCriteria refBookCriteria = new RefBookCriteria();
-        refBookCriteria.setRefBookId(500);
+        refBookCriteria.setRefBookIds(singletonList(500));
         Page<RefBook> search = refBookService.search(refBookCriteria);
         assertEquals(1, search.getTotalElements());
 
@@ -319,36 +314,34 @@ public class ApplicationTest {
         assertPassportEqual(refBook.getPassport(), search.getContent().get(0).getPassport());
 
         // поиск по статусу 'Черновик'
-        RefBookCriteria statusCriteria = new RefBookCriteria();
-        statusCriteria.setStatus(RefBookStatus.DRAFT);
-        search = refBookService.search(statusCriteria);
+        RefBookCriteria draftCriteria = new RefBookCriteria();
+        draftCriteria.setHasDraft(true);
+        search = refBookService.search(draftCriteria);
         assertTrue(search.getTotalElements() > 0);
         search.getContent().forEach(r -> {
             assertFalse(r.getArchived());
-            assertTrue(RefBookVersionStatus.DRAFT.equals(r.getStatus())
-                    || RefBookVersionStatus.PUBLISHING.equals(r.getStatus()));
-            assertEquals(RefBookStatus.DRAFT.getName(), r.getDisplayVersion());
+            assertTrue(RefBookVersionStatus.DRAFT.equals(r.getStatus()));
         });
 
         // поиск по статусу 'Архив'
-        statusCriteria.setStatus(RefBookStatus.ARCHIVED);
-        search = refBookService.search(statusCriteria);
+        RefBookCriteria archivedCriteria = new RefBookCriteria();
+        archivedCriteria.setIsArchived(true);
+        search = refBookService.search(archivedCriteria);
         assertTrue(search.getTotalElements() > 0);
         search.getContent().forEach(r -> {
             assertTrue(r.getArchived());
             assertFalse(r.getRemovable());
-            assertEquals(RefBookStatus.ARCHIVED.getName(), r.getDisplayVersion());
         });
 
         // поиск по статусу 'Опубликован'
-        statusCriteria.setStatus(RefBookStatus.PUBLISHED);
-        search = refBookService.search(statusCriteria);
+        RefBookCriteria publishedCriteria = new RefBookCriteria();
+        publishedCriteria.setHasPublished(true);
+        search = refBookService.search(publishedCriteria);
         assertTrue(search.getTotalElements() > 0);
         search.getContent().forEach(r -> {
             assertFalse(r.getArchived());
             assertNotNull(r.getLastPublishedVersionFromDate());
             assertFalse(r.getRemovable());
-            assertNotNull(r.getDisplayVersion());
         });
 
         // поиск по дате публикации (дата начала, дата окончания)
@@ -418,7 +411,6 @@ public class ApplicationTest {
         assertPassportEqual(expected.getPassport(), actual.getPassport());
         assertEquals(expected.getStatus(), actual.getStatus());
         assertEquals(expected.getVersion(), actual.getVersion());
-        assertEquals(expected.getDisplayVersion(), actual.getDisplayVersion());
         assertEquals(expected.getComment(), actual.getComment());
         assertEquals(expected.getRemovable(), actual.getRemovable());
         assertEquals(expected.getArchived(), actual.getArchived());
@@ -440,7 +432,6 @@ public class ApplicationTest {
         assertEquals(expected.getRefBookId(), actual.getRefBookId());
         assertEquals(expected.getVersion(), actual.getVersion());
         assertEquals(expected.getStatus(), actual.getStatus());
-        assertEquals(expected.getDisplayStatus(), actual.getDisplayStatus());
     }
 
     @Test

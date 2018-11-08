@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.service;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.ComparableExpressionBase;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
@@ -12,13 +13,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.inovus.ms.rdm.entity.*;
-import ru.inovus.ms.rdm.enumeration.RefBookStatus;
+import ru.inovus.ms.rdm.enumeration.RefBookInfo;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.model.*;
@@ -31,10 +33,10 @@ import ru.inovus.ms.rdm.util.PassportPredicateProducer;
 
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.singletonList;
 import static java.util.Objects.nonNull;
 import static org.springframework.util.StringUtils.isEmpty;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
@@ -49,6 +51,7 @@ public class RefBookServiceImpl implements RefBookService {
     private static final String REF_BOOK_CODE_SORT_PROPERTY = "code";
     private static final String REF_BOOK_LAST_PUBLISH_SORT_PROPERTY = "lastPublishedVersionFromDate";
     private static final String REF_BOOK_FROM_DATE_SORT_PROPERTY = "fromDate";
+    private static final String REF_BOOK_CATEGORY_SORT_PROPERTY = "category";
 
     private static final Logger logger = LoggerFactory.getLogger(RefBookServiceImpl.class);
     private RefBookVersionRepository repository;
@@ -94,14 +97,15 @@ public class RefBookServiceImpl implements RefBookService {
                 .fetch();
 
         Page<RefBookVersionEntity> list = new PageImpl<>(refBookVersionEntityList, criteria, count);
-        return list.map(this::refBookModel);
+        List<Integer> refBookIdsInPage = list.getContent().stream().map(v -> v.getRefBook().getId()).collect(Collectors.toList());
+        return list.map(entity -> refBookModel(entity, getLastPublishedVersions(refBookIdsInPage)));
     }
 
     private void sortQuery(JPAQuery<RefBookVersionEntity> jpaQuery, RefBookCriteria criteria) {
         List<Sort.Order> orders = criteria.getOrders();
 
         if (CollectionUtils.isEmpty(orders)) {
-            jpaQuery.orderBy(QRefBookVersionEntity.refBookVersionEntity.fromDate.asc());
+            jpaQuery.orderBy(getOrderByLastPublishDateExpression(jpaQuery).asc());
         } else {
             criteria.getOrders().stream()
                     .filter(order -> order != null && order.getProperty() != null)
@@ -132,8 +136,13 @@ public class RefBookServiceImpl implements RefBookService {
                     sortExpression = QRefBookVersionEntity.refBookVersionEntity.refBook.code;
                     break;
                 case REF_BOOK_LAST_PUBLISH_SORT_PROPERTY:
+                    sortExpression = getOrderByLastPublishDateExpression(jpaQuery);
+                    break;
                 case REF_BOOK_FROM_DATE_SORT_PROPERTY:
                     sortExpression = QRefBookVersionEntity.refBookVersionEntity.fromDate;
+                    break;
+                case REF_BOOK_CATEGORY_SORT_PROPERTY:
+                    sortExpression = QRefBookVersionEntity.refBookVersionEntity.refBook.category;
                     break;
                 default:
                     throw new UserException(new Message("cannot.order.by", order.getProperty()));
@@ -142,13 +151,26 @@ public class RefBookServiceImpl implements RefBookService {
         jpaQuery.orderBy(order.isAscending() ? sortExpression.asc() : sortExpression.desc());
     }
 
+    private ComparableExpressionBase getOrderByLastPublishDateExpression(JPAQuery<RefBookVersionEntity> jpaQuery) {
+        QRefBookVersionEntity qSortFromDateVersion = new QRefBookVersionEntity("sort_from_date");
+        QRefBookVersionEntity whereVersion = new QRefBookVersionEntity("sort_max_version");
+
+        jpaQuery.leftJoin(qSortFromDateVersion)
+                .on(QRefBookVersionEntity.refBookVersionEntity.refBook.eq(qSortFromDateVersion.refBook)
+                        .and(qSortFromDateVersion.fromDate.eq(JPAExpressions
+                                .select(whereVersion.fromDate.max()).from(whereVersion)
+                                .where(whereVersion.refBook.eq(QRefBookVersionEntity.refBookVersionEntity.refBook)))));
+        return qSortFromDateVersion.fromDate;
+    }
+
     @Override
     @Transactional
     public RefBook getByVersionId(Integer versionId) {
 
         validateVersionExists(versionId);
 
-        return refBookModel(repository.findOne(versionId));
+        RefBookVersionEntity refBookVersion = repository.findOne(versionId);
+        return refBookModel(refBookVersion, getLastPublishedVersions(singletonList(refBookVersion.getRefBook().getId())));
     }
 
     @Override
@@ -172,7 +194,8 @@ public class RefBookServiceImpl implements RefBookService {
         structure.setReferences(Collections.emptyList());
         refBookVersionEntity.setStructure(structure);
 
-        return refBookModel(repository.save(refBookVersionEntity));
+        RefBookVersionEntity savedVersion = repository.save(refBookVersionEntity);
+        return refBookModel(savedVersion, getLastPublishedVersions(singletonList(savedVersion.getRefBook().getId())));
     }
 
     @Override
@@ -190,7 +213,7 @@ public class RefBookServiceImpl implements RefBookService {
         }
         updateVersionFromPassport(refBookVersionEntity, request.getPassport());
         refBookVersionEntity.setComment(request.getComment());
-        return refBookModel(refBookVersionEntity);
+        return refBookModel(refBookVersionEntity, getLastPublishedVersions(singletonList(refBookVersionEntity.getRefBook().getId())));
     }
 
     @Override
@@ -227,7 +250,7 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     @Transactional
     public Page<RefBookVersion> getVersions(VersionCriteria criteria) {
-        criteria.setOrders(Collections.singletonList(new Sort.Order(Sort.Direction.DESC, REF_BOOK_FROM_DATE_SORT_PROPERTY, Sort.NullHandling.NULLS_FIRST)));
+        criteria.setOrders(singletonList(new Sort.Order(Sort.Direction.DESC, REF_BOOK_FROM_DATE_SORT_PROPERTY, Sort.NullHandling.NULLS_FIRST)));
         Page<RefBookVersionEntity> list = repository.findAll(toPredicate(criteria), criteria);
         return list.map(ModelGenerator::versionModel);
     }
@@ -245,7 +268,12 @@ public class RefBookServiceImpl implements RefBookService {
     private Predicate toPredicate(RefBookCriteria criteria) {
         BooleanBuilder where = new BooleanBuilder();
 
-        where.and(isLast());
+        if (RefBookInfo.ACTUAL.equals(criteria.getRefBookInfo()))
+            where.and(isActual());
+        else if (RefBookInfo.PUBLISHED.equals(criteria.getRefBookInfo()))
+            where.and(isLastPublished());
+        else
+            where.and(refBookHasDraft().not().and(isLastPublished()).or(isDraft()));
 
         if (nonNull(criteria.getFromDateBegin()))
             where.and(isMaxFromDateEqOrAfter(criteria.getFromDateBegin()));
@@ -256,28 +284,30 @@ public class RefBookServiceImpl implements RefBookService {
         if (!isEmpty(criteria.getCode()))
             where.and(isCodeContains(criteria.getCode()));
 
-        if (!isEmpty(criteria.getPassport())) {
+        if (!CollectionUtils.isEmpty(criteria.getPassport())) {
             where.and(passportPredicateProducer.toPredicate(criteria.getPassport()));
         }
 
-        if (!isEmpty(criteria.getRefBookId()))
-            where.and(isVersionOfRefBook(criteria.getRefBookId()));
-
-        if (nonNull(criteria.getStatus())) {
-            switch (criteria.getStatus()) {
-                case PUBLISHED:
-                    where.andNot(isArchived()).and(isAnyPublished());
-                    break;
-                case DRAFT:
-                    where.andNot(isArchived()).and(isDraft().or(isPublishing()));
-                    break;
-                case ARCHIVED:
-                    where.and(isArchived());
-                    break;
-                default:
-                    logger.debug("No filters for status: {}", criteria.getStatus().getName());
-            }
+        if (!isEmpty(criteria.getCategory())) {
+            where.and(refBookHasCategory(criteria.getCategory()));
         }
+
+        if (!CollectionUtils.isEmpty(criteria.getRefBookIds())) {
+            where.and(isVersionOfRefBook(criteria.getRefBookIds()));
+        }
+
+        if (criteria.getIsArchived()) {
+            where.and(isArchived());
+        }
+
+        if (criteria.getHasPublished()) {
+            where.andNot(isArchived()).and(isAnyPublished());
+        }
+
+        if (criteria.getHasDraft()) {
+            where.andNot(isArchived()).and(refBookHasDraft());
+        }
+
         return where.getValue();
     }
 
@@ -285,36 +315,22 @@ public class RefBookServiceImpl implements RefBookService {
         return repository.findOne(isVersionOfRefBook(refBookId).and(isLastPublished()));
     }
 
-    private LocalDateTime getLastPublishedVersionFromDate(RefBookVersionEntity entity) {
-        if (nonNull(entity.getFromDate()))
-            entity.getFromDate();
-        RefBookVersionEntity lastPublishedVersion = getLastPublishedVersion(entity.getRefBook().getId());
-        return nonNull(lastPublishedVersion) ? lastPublishedVersion.getFromDate() : null;
-    }
-
     private boolean isRefBookRemovable(Integer refBookId) {
         BooleanBuilder where = new BooleanBuilder();
         where.and(isVersionOfRefBook(refBookId));
-        where.and(isRemovable().not().or(isArchived()).or(isPublished()).or(isPublishing()));
+        where.and(isRemovable().not().or(isArchived()).or(isPublished()));
         return !repository.exists(where.getValue());
     }
 
-    private String getDisplayVersion(RefBookVersionEntity entity) {
-        if (entity.getRefBook().getArchived())
-            return RefBookStatus.ARCHIVED.getName();
-        if (RefBookVersionStatus.PUBLISHED.equals(entity.getStatus()))
-            return entity.getVersion();
-        return RefBookVersionStatus.DRAFT.getName();
-    }
-
-    private RefBook refBookModel(RefBookVersionEntity entity) {
+    private RefBook refBookModel(RefBookVersionEntity entity, List<RefBookVersionEntity> lastPublishVersions) {
         if (entity == null) return null;
         RefBook model = new RefBook(ModelGenerator.versionModel(entity));
         model.setStatus(entity.getStatus());
         model.setRemovable(isRefBookRemovable(entity.getRefBook().getId()));
         model.setCategory(entity.getRefBook().getCategory());
-        model.setDisplayVersion(getDisplayVersion(entity));
-        model.setLastPublishedVersionFromDate(getLastPublishedVersionFromDate(entity));
+        Optional<RefBookVersionEntity> lastPublishedVersion = lastPublishVersions.stream().filter(v -> v.getRefBook().getId().equals(entity.getRefBook().getId())).findAny();
+        model.setLastPublishedVersionFromDate(lastPublishedVersion.map(RefBookVersionEntity::getFromDate).orElse(null));
+        model.setLastPublishedVersion(lastPublishedVersion.map(RefBookVersionEntity::getVersion).orElse(null));
         return model;
     }
 
@@ -361,6 +377,14 @@ public class RefBookServiceImpl implements RefBookService {
                 .collect(Collectors.toList()));
 
         versionEntity.setPassportValues(newPassportValues);
+    }
+
+    private List<RefBookVersionEntity> getLastPublishedVersions(List<Integer> refBookIds) {
+        RefBookCriteria lastPublishVersionCriteria = new RefBookCriteria();
+        lastPublishVersionCriteria.setRefBookInfo(RefBookInfo.PUBLISHED);
+        lastPublishVersionCriteria.setRefBookIds(refBookIds);
+        return repository.findAll(toPredicate(lastPublishVersionCriteria),
+                new PageRequest(0, refBookIds.size())).getContent();
     }
 
     private void validateRefBookExists(Integer refBookId) {
