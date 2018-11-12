@@ -4,14 +4,15 @@ import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.exception.RdmException;
+import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+
+import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDate;
 
 
 public class StructureRowMapper implements RowMapper {
@@ -30,32 +31,41 @@ public class StructureRowMapper implements RowMapper {
         inputRow.getData().entrySet().stream()
                 .filter(entry -> entry.getValue() != null)
                 .forEach(entry ->
-                                inputRow.getData().put(entry.getKey(), castValue(structure.getAttribute(entry.getKey()), (String) entry.getValue()))
+                        inputRow.getData().put(entry.getKey(),
+                                castValue(structure.getAttribute(entry.getKey()), entry.getValue()))
                 );
         return inputRow;
     }
 
-    protected Object castValue(Structure.Attribute attribute, String value) {
+    protected Object castValue(Structure.Attribute attribute, Object value) {
 
-        if (value == null || "".equals(value)) return null;
+        if (value == null || "".equals(String.valueOf(value).trim()))
+            return null;
 
         switch (attribute.getType()) {
             case STRING:
-                return value;
+                return String.valueOf(value);
             case INTEGER:
-                return BigInteger.valueOf(Long.parseLong(value));
+                if (value instanceof BigInteger)
+                    return value;
+                return BigInteger.valueOf(Long.parseLong(String.valueOf(value)));
             case FLOAT:
-                return new BigDecimal(value.replace(",","."));
+                if (value instanceof BigDecimal)
+                    return value;
+                return new BigDecimal(String.valueOf(value).replace(",", "."));
             case DATE:
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-                return LocalDate.parse(value, formatter);
+                return parseLocalDate(value);
             case BOOLEAN:
-                String lowerCase = value.toLowerCase();
+                if (value instanceof Boolean)
+                    return value;
+                String lowerCase = String.valueOf(value).toLowerCase();
                 if (!"true".equals(lowerCase) && !"false".equals(lowerCase))
                     throw new RdmException("value is not boolean");
-                return Boolean.valueOf(value);
+                return Boolean.valueOf(lowerCase);
             case REFERENCE:
-                return createReference(attribute.getCode(), value);
+                if (value instanceof Reference)
+                    return value;
+                return createReference(attribute.getCode(), String.valueOf(value));
             case TREE:
                 return value;
             default:

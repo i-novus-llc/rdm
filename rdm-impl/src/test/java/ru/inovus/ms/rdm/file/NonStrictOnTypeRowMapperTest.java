@@ -9,6 +9,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
+import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.util.ConverterUtil;
@@ -39,7 +40,7 @@ public class NonStrictOnTypeRowMapperTest {
         versionEntity.setStructure(new Structure(Collections.singletonList(Structure.Attribute.build("count", "count",
                 FieldType.INTEGER, false, "count")), null));
         when(versionRepository.findOne(eq(referenceVersion))).thenReturn(versionEntity);
-        Map<String, Object> data = new LinkedHashMap() {{
+        Map<String, Object> data = new LinkedHashMap<String, Object>() {{
             put("string", "abc");
             put("reference", "2");
             put("float", "2.1");
@@ -48,12 +49,12 @@ public class NonStrictOnTypeRowMapperTest {
         }};
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         LocalDate date = LocalDate.parse("01.01.2011", formatter);
-        Map<String, Object> expectedData = new LinkedHashMap() {{
+        Map<String, Object> expectedData = new LinkedHashMap<String, Object>() {{
             put("string", "abc");
             put("reference", new Reference(versionEntity.getStorageCode(), ConverterUtil.date(versionEntity.getFromDate()), "count", DisplayExpression.ofField("count"), "2"));
             put("float", new BigDecimal("2.1"));
             put("date", date);
-            put("boolean", Boolean.valueOf(true));
+            put("boolean", true);
         }};
         Row expected = new Row(expectedData);
 
@@ -61,7 +62,6 @@ public class NonStrictOnTypeRowMapperTest {
         Row actual = rowMapper.map(new Row(data));
 
         Assert.assertEquals(expected, actual);
-
     }
 
     @Test
@@ -71,7 +71,7 @@ public class NonStrictOnTypeRowMapperTest {
         versionEntity.setStructure(new Structure(Collections.singletonList(Structure.Attribute.build("count", "count",
                 FieldType.INTEGER, false, "count")), null));
         when(versionRepository.findOne(eq(referenceVersion))).thenReturn(versionEntity);
-        Map<String, Object> data = new LinkedHashMap() {{
+        Map<String, Object> data = new LinkedHashMap<String, Object>() {{
             put("string", "abc");
             put("reference", "wrong value");
             put("float", "wrong value");

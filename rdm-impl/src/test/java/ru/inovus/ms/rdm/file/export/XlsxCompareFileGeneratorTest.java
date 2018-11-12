@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import net.n2oapp.platform.i18n.UserException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
@@ -179,8 +180,6 @@ public class XlsxCompareFileGeneratorTest {
 
             assertWorkbookEquals(expected, actual);
         }
-
-
     }
 
     @Test
@@ -199,7 +198,6 @@ public class XlsxCompareFileGeneratorTest {
             assertWorkbookEquals(expected, actual);
         }
     }
-
 
     private void assertWorkbookEquals(Workbook expected, Workbook actual) {
         Iterator<Sheet> actualSheets = actual.iterator();

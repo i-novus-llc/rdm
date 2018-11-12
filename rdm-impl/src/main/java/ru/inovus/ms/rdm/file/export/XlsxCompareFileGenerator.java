@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.file.export;
 import net.n2oapp.platform.i18n.UserException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
@@ -361,7 +362,6 @@ class XlsxCompareFileGenerator implements FileGenerator {
         return sheet.createRow(sheet.getLastRowNum() + 1);
     }
 
-
     private void createStatusCells(SXSSFSheet sheet) {
 
         sheet.trackColumnForAutoSizing(0);
@@ -380,7 +380,6 @@ class XlsxCompareFileGenerator implements FileGenerator {
 
         sheet.createRow(3);
     }
-
 
     private void insertCellDiffValue(Cell cell, XlsxComparedCell xlsxComparedCell) {
         if (xlsxComparedCell == null) {
@@ -430,7 +429,6 @@ class XlsxCompareFileGenerator implements FileGenerator {
             cell.setCellStyle(cell.getCellStyle());
             cell.setCellValue(Optional.ofNullable(value).orElse("").toString());
         }
-
     }
 
     private CellStyle getDateCellStyle(CellStyle style) {
@@ -440,8 +438,6 @@ class XlsxCompareFileGenerator implements FileGenerator {
         else if (deleteStyle.equals(style)) return deleteDateStyle;
         else return dateStyle;
     }
-
-
 
     public static class XlsxComparedRow {
 

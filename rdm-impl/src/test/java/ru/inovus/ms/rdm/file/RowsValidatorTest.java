@@ -17,10 +17,7 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
-import ru.inovus.ms.rdm.model.AttributeFilter;
-import ru.inovus.ms.rdm.model.Result;
-import ru.inovus.ms.rdm.model.SearchDataCriteria;
-import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.validation.ReferenceValueValidation;
 
@@ -125,7 +122,7 @@ public class RowsValidatorTest {
     }
 
     private Row createTestRowWithReference() {
-        return new Row(new LinkedHashMap() {{
+        return new Row(new LinkedHashMap<String, Object>() {{
             put(ATTRIBUTE_NAME, new Reference(ATTRIBUTE_VALUE, ATTRIBUTE_VALUE));
         }});
     }
