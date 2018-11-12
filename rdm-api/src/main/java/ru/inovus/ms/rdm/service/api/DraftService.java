@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @Consumes(MediaType.APPLICATION_JSON)
 @Api("Методы работы с черновиками")
 public interface DraftService {
+
     @POST
     @ApiOperation("Создание нового черновика")
     @ApiResponses({
@@ -31,29 +32,49 @@ public interface DraftService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/createByFile/{refBookId}")
-    Draft create(@ApiParam("Идентификатор справочника") @PathParam("refBookId")Integer refBookId, FileModel fileModel);
+    Draft create(@ApiParam("Идентификатор справочника") @PathParam("refBookId") Integer refBookId, FileModel fileModel);
 
     void updateMetadata(Integer draftId, MetadataDiff metadataDiff);
 
     void updateData(Integer draftId, DataDiff dataDiff);
 
     @POST
-    @ApiOperation("Обновления черновика из файла")
+    @ApiOperation("Добавление или изменение строки черновика")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Черновик обновлен"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/update/{draftId}")
+    void updateData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId, Row row);
+
+    @DELETE
+    @ApiOperation("Удаление строки черновика")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Черновик обновлен"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    @Path("/delete/{draftId}/{systemId}")
+    void deleteRow(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
+                   @ApiParam("Идентификатор строки") @PathParam("systemId") Long systemId);
+
+    @POST
+    @ApiOperation("Обновление черновика из файла")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Черновик обновлен"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    @Path("/updateFromFile/{draftId}")
     void updateData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId, FileModel fileModel);
 
     @GET
     @Path("/{draftId}/data")
-    @ApiOperation("Получения записей черновика, с фильтрацией")
+    @ApiOperation("Получение записей черновика, с фильтрацией")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет черновика")
     })
-    Page<RowValue> search(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId, @BeanParam SearchDataCriteria criteria);
+    Page<RowValue> search(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
+                          @BeanParam SearchDataCriteria criteria);
 
     @POST
     @Path("{draftId}/publish")

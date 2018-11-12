@@ -2,7 +2,7 @@ package ru.inovus.ms.rdm.file.export;
 
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.exception.RdmException;
-import ru.inovus.ms.rdm.file.Row;
+import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
 
 import java.util.Collections;
