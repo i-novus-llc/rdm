@@ -38,7 +38,7 @@ public class StructureRowMapper implements RowMapper {
 
     protected Object castValue(Structure.Attribute attribute, Object value) {
 
-        if ("null".equals(String.valueOf(value)) || "".equals(String.valueOf(value)))
+        if (value == null || "".equals(String.valueOf(value).trim()))
             return null;
 
         switch (attribute.getType()) {
@@ -62,6 +62,8 @@ public class StructureRowMapper implements RowMapper {
                     throw new RdmException("value is not boolean");
                 return Boolean.valueOf(lowerCase);
             case REFERENCE:
+                if (value instanceof Reference)
+                    return value;
                 return createReference(attribute.getCode(), String.valueOf(value));
             case TREE:
                 return value;

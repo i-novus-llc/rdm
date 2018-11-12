@@ -22,7 +22,8 @@ public class NonStrictOnTypeRowMapper extends StructureRowMapper {
     @Override
     public Row map(Row inputRow) {
         inputRow.getData().forEach((name, value) ->
-                inputRow.getData().put(name, castValue(structure.getAttribute(name), (String) value))
+                inputRow.getData().put(name,
+                        castValue(structure.getAttribute(name), value != null ? String.valueOf(value) : null))
         );
         return inputRow;
     }

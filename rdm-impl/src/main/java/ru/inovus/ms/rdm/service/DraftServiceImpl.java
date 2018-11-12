@@ -262,14 +262,16 @@ public class DraftServiceImpl implements DraftService {
         validateDraftNotArchived(draftId);
 
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
-        Row finalRow = row;
-        StructureRowMapper structureRowMapper = new StructureRowMapper(draft.getStructure(), versionRepository);
-        row = structureRowMapper.map(finalRow);
 
-        if (row.getSystemId() == null)
-            draftDataService.addRows(draft.getStorageCode(), singletonList(rowValue(row, draft.getStructure())));
+        RowsValidator validator = new RowsValidatorImpl(versionService, searchDataService, draft.getStructure(), draft.getStorageCode(), errorCountLimit);
+        validator.append(new NonStrictOnTypeRowMapper(draft.getStructure(), versionRepository).map(row));
+        validator.process();
+
+        RowValue rowValue = rowValue(new StructureRowMapper(draft.getStructure(), versionRepository).map(row), draft.getStructure());
+        if (rowValue.getSystemId() == null)
+            draftDataService.addRows(draft.getStorageCode(), singletonList(rowValue));
         else
-            draftDataService.updateRow(draft.getStorageCode(), rowValue(row, draft.getStructure()));
+            draftDataService.updateRow(draft.getStorageCode(), rowValue);
     }
 
     @Override

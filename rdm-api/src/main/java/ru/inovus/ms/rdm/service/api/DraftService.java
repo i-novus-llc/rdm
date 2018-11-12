@@ -39,7 +39,7 @@ public interface DraftService {
     void updateData(Integer draftId, DataDiff dataDiff);
 
     @POST
-    @ApiOperation("Добавление или обновление строки черновика")
+    @ApiOperation("Добавление или изменение строки черновика")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Черновик обновлен"),
             @ApiResponse(code = 404, message = "Нет ресурса")
