@@ -17,6 +17,9 @@ public class RefBookEntity {
     @Column(name = "code", nullable = false)
     private String code;
 
+    @Column(name = "category")
+    private String category;
+
     @Column(name = "removable", nullable = false)
     private Boolean removable;
 
@@ -77,6 +80,14 @@ public class RefBookEntity {
         return currentOperation;
     }
 
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
     @SuppressWarnings("all")
     @Override
     public boolean equals(Object o) {
@@ -87,11 +98,12 @@ public class RefBookEntity {
                 Objects.equals(code, that.code) &&
                 Objects.equals(removable, that.removable) &&
                 Objects.equals(archived, that.archived) &&
-                Objects.equals(currentOperation, that.currentOperation);
+                Objects.equals(currentOperation, that.currentOperation) &&
+                Objects.equals(category, that.category);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, code, removable, archived, currentOperation);
+        return Objects.hash(id, code, removable, archived, currentOperation, category);
     }
 }

@@ -18,6 +18,9 @@ public class RefBook extends RefBookVersion {
     @ApiModelProperty("Признак возможности удаления")
     private Boolean removable;
 
+    @ApiModelProperty("Категория")
+    private String category;
+
     @ApiModelProperty("Дата публикации последней версии")
     @JsonSerialize(using = JsonLocalDateTimeSerializer.class)
     @JsonDeserialize(using = JsonLocalDateTimeDeserializer.class)
@@ -62,5 +65,13 @@ public class RefBook extends RefBookVersion {
 
     public void setCurrentOperation(RefBookOperation currentOperation) {
         this.currentOperation = currentOperation;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 }

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="201810310800_RDM-160_add_category_column" author="znurgaliev" dbms="postgresql">
+        <preConditions onFail="CONTINUE">
+            <and>
+                <tableExists tableName="ref_book" schemaName="n2o_rdm_management"/>
+            </and>
+        </preConditions>
+        <comment>Добавление поля категория для справочника</comment>
+        <sql>
+            ALTER TABLE n2o_rdm_management.ref_book ADD COLUMN category VARCHAR;
+        </sql>
+    </changeSet>
+
+    <changeSet id="201810311200_RDM-160" author="znurgaliev" dbms="postgresql">
+        <preConditions onFail="CONTINUE">
+            <and>
+                <tableExists tableName="ref_book" schemaName="n2o_rdm_management"/>
+                <tableExists tableName="ref_book_version" schemaName="n2o_rdm_management"/>
+            </and>
+        </preConditions>
+        <comment>Добавление справочника категорий</comment>
+        <sql>
+            INSERT INTO n2o_rdm_management.ref_book (code, removable, archived, category) VALUES ('CAT', false, false, 'system');
+
+            INSERT INTO n2o_rdm_management.ref_book_version
+                (ref_book_id,
+                structure,
+                version, comment, status, from_date, to_date, creation_date, last_action_date, storage_code)
+            VALUES
+                ((SELECT id FROM n2o_rdm_management.ref_book where code = 'CAT' limit 1),
+                '{"attributes": [
+                    {
+                        "code": "name",
+                        "name": "Название категории",
+                        "type": "STRING",
+                        "isPrimary": true,
+                        "isRequired": true,
+                        "description": "name"
+                    },
+                    {
+                        "code": "code",
+                        "name": "Код",
+                        "type": "STRING",
+                        "isPrimary": false,
+                        "isRequired": false,
+                        "description": "code"
+                    }]}' :: JSONB,
+                '1.0', null, 'PUBLISHED', now(), null, now(), now(), '8de3a08c-1bb4-40e7-8ac6-474e79cf791d');
+
+            CREATE TABLE data."8de3a08c-1bb4-40e7-8ac6-474e79cf791d"
+                (
+                    "SYS_RECORDID" SERIAL PRIMARY KEY NOT NULL,
+                    name VARCHAR,
+                    code VARCHAR,
+                    "FTS" TSVECTOR,
+                    "SYS_HASH" CHAR(32),
+                    "SYS_PUBLISHTIME" TIMESTAMPTZ DEFAULT '-infinity',
+                    "SYS_CLOSETIME" TIMESTAMPTZ DEFAULT 'infinity'
+                );
+                CREATE INDEX "8de3a08c-1bb4-40e7-8ac6-474e79cf791d_code_idx" ON data."8de3a08c-1bb4-40e7-8ac6-474e79cf791d" (code);
+                CREATE INDEX "8de3a08c-1bb4-40e7-8ac6-474e79cf791d_fts_idx" ON data."8de3a08c-1bb4-40e7-8ac6-474e79cf791d" ("FTS");
+                CREATE INDEX "8de3a08c-1bb4-40e7-8ac6-474e79cf791d_name_idx" ON data."8de3a08c-1bb4-40e7-8ac6-474e79cf791d" (name);
+                CREATE INDEX "8de3a08c-1bb4-40e7-8ac6-474e79cf791d_sys_hash_ix" ON data."8de3a08c-1bb4-40e7-8ac6-474e79cf791d" ("SYS_HASH");
+
+                INSERT INTO data."8de3a08c-1bb4-40e7-8ac6-474e79cf791d"
+                    ("SYS_RECORDID", name, code, "FTS", "SYS_HASH")
+                VALUES
+                    (1, 'system', 'sys', '''sys'':1 ''system'':2', 'a3b6a8b967bccdf31495605468b26956');
+
+        </sql>
+    </changeSet>
+    <changeSet id="201810311200_RDM-160_add_passport" author="znurgaliev" dbms="postgresql">
+        <preConditions onFail="CONTINUE">
+            <and>
+                <tableExists tableName="passport_attribute" schemaName="n2o_rdm_management"/>
+                <tableExists tableName="passport_value" schemaName="n2o_rdm_management"/>
+                <sqlCheck expectedResult="t">
+                    SELECT exists(SELECT 1 FROM n2o_rdm_management.passport_attribute WHERE code = 'name')
+                        AND exists(SELECT 1 FROM n2o_rdm_management.passport_attribute WHERE code='shortName')
+                        AND exists(SELECT 1 FROM n2o_rdm_management.passport_attribute WHERE code='description');
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <comment>Добавление паспорта для справочника категорий</comment>
+        <sql>
+            INSERT INTO n2o_rdm_management.passport_value (code, value, version_id) VALUES
+                ('name', 'Категории справочников',
+                    (SELECT id FROM n2o_rdm_management.ref_book_version
+                        WHERE ref_book_id = (SELECT id FROM n2o_rdm_management.ref_book WHERE code = 'CAT' LIMIT 1) LIMIT 1)),
+                ('shortName', 'Категории',
+                    (SELECT id FROM n2o_rdm_management.ref_book_version
+                        WHERE ref_book_id = (SELECT id FROM n2o_rdm_management.ref_book WHERE code = 'CAT' LIMIT 1) LIMIT 1)),
+                ('description', 'Системный справочник категорий',
+                    (SELECT id FROM n2o_rdm_management.ref_book_version
+                        WHERE ref_book_id = (SELECT id FROM n2o_rdm_management.ref_book WHERE code = 'CAT' LIMIT 1) LIMIT 1));
+
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
