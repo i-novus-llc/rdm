@@ -82,8 +82,7 @@ public class StructureType implements UserType {
                     arrayNode.forEach(node -> values.add(node.asText()));
                     return values;
                 };
-                List<String> displayAttributes = getByKey(attributeJson, "displayAttributes", asList);
-                List<String> sortingAttributes = getByKey(attributeJson, "sortingAttributes", asList);
+                String displayExpression = getByKey(attributeJson, "referenceDisplayExpression", JsonNode::asText);
                 Structure.Attribute attribute;
                 if (isPrimary) {
                     attribute = Structure.Attribute.buildPrimary(code, name, FieldType.valueOf(type), description);
@@ -91,7 +90,7 @@ public class StructureType implements UserType {
                     attribute = Structure.Attribute.build(code, name, FieldType.valueOf(type), isRequired, description);
                 }
                 if (FieldType.valueOf(type).equals(FieldType.REFERENCE)) {
-                    Structure.Reference reference = new Structure.Reference(code, referenceVersion, referenceAttribute, displayAttributes, sortingAttributes);
+                    Structure.Reference reference = new Structure.Reference(code, referenceVersion, referenceAttribute, displayExpression);
                     references.add(reference);
                 }
                 attributes.add(attribute);
@@ -138,8 +137,8 @@ public class StructureType implements UserType {
         if (reference != null) {
             attributeJson.put("referenceVersion", reference.getReferenceVersion());
             attributeJson.put("referenceAttribute", reference.getReferenceAttribute());
-            ArrayNode arrayNode = attributeJson.putArray("displayAttributes");
-            Optional.ofNullable(reference.getDisplayAttributes()).ifPresent(d -> d.forEach(arrayNode::add));
+            if (reference.getDisplayExpression() != null)
+                attributeJson.put("referenceDisplayExpression", reference.getDisplayExpression());
         }
 
         return attributeJson;

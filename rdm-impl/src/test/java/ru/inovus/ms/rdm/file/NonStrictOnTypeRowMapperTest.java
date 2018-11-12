@@ -6,6 +6,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.model.Structure;
@@ -22,6 +23,7 @@ import java.util.Map;
 
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
+import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 
 @RunWith(MockitoJUnitRunner.class)
 public class NonStrictOnTypeRowMapperTest {
@@ -48,7 +50,7 @@ public class NonStrictOnTypeRowMapperTest {
         LocalDate date = LocalDate.parse("01.01.2011", formatter);
         Map<String, Object> expectedData = new LinkedHashMap() {{
             put("string", "abc");
-            put("reference", new Reference(versionEntity.getStorageCode(), ConverterUtil.date(versionEntity.getFromDate()), "count", "count", "2"));
+            put("reference", new Reference(versionEntity.getStorageCode(), ConverterUtil.date(versionEntity.getFromDate()), "count", DisplayExpression.ofField("count"), "2"));
             put("float", new BigDecimal("2.1"));
             put("date", date);
             put("boolean", Boolean.valueOf(true));
@@ -93,7 +95,7 @@ public class NonStrictOnTypeRowMapperTest {
                 Structure.Attribute.build("date", "date", FieldType.DATE, false, "date"),
                 Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, false, "boolean")
         ));
-        structure.setReferences(Collections.singletonList(new Structure.Reference("reference", referenceVersion, "count", Collections.singletonList("count"), null)));
+        structure.setReferences(Collections.singletonList(new Structure.Reference("reference", referenceVersion, "count", toPlaceholder("count"))));
         return structure;
     }
 }

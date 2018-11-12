@@ -5,7 +5,6 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.List;
 
 import static ru.inovus.ms.rdm.model.UpdateValue.of;
 
@@ -26,8 +25,7 @@ public class UpdateAttribute extends UpdatableDto {
     private UpdateValue<String> attribute;
     private UpdateValue<Integer> referenceVersion;
     private UpdateValue<String> referenceAttribute;
-    private UpdateValue<List<String>> displayAttributes;
-    private UpdateValue<List<String>> sortingAttributes;
+    private UpdateValue<String> displayExpression;
 
     public UpdateAttribute(){}
 
@@ -54,10 +52,8 @@ public class UpdateAttribute extends UpdatableDto {
             this.referenceVersion = of(reference.getReferenceVersion());
         if (reference.getReferenceAttribute() != null)
             this.referenceAttribute = of(reference.getReferenceAttribute());
-        if (reference.getDisplayAttributes() != null)
-            this.displayAttributes = of(reference.getDisplayAttributes());
-        if (reference.getSortingAttributes() != null)
-            this.sortingAttributes = of(reference.getSortingAttributes());
+        if (reference.getDisplayExpression() != null)
+            this.displayExpression = of(reference.getDisplayExpression());
     }
 
     public Integer getVersionId() {
@@ -145,19 +141,11 @@ public class UpdateAttribute extends UpdatableDto {
         this.referenceAttribute = referenceAttribute;
     }
 
-    public UpdateValue<List<String>> getDisplayAttributes() {
-        return displayAttributes;
+    public UpdateValue<String> getDisplayExpression() {
+        return displayExpression;
     }
 
-    public void setDisplayAttributes(UpdateValue<List<String>> displayAttributes) {
-        this.displayAttributes = displayAttributes;
-    }
-
-    public UpdateValue<List<String>> getSortingAttributes() {
-        return sortingAttributes;
-    }
-
-    public void setSortingAttributes(UpdateValue<List<String>> sortingAttributes) {
-        this.sortingAttributes = sortingAttributes;
+    public void setDisplayExpression(UpdateValue<String> displayExpression) {
+        this.displayExpression = displayExpression;
     }
 }

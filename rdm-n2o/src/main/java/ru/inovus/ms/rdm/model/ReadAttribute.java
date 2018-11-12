@@ -9,7 +9,7 @@ public class ReadAttribute extends Attribute {
 
     private String referenceAttributeName;
 
-    private String referenceDisplayAttributeName;
+    private String referenceDisplayExpression;
 
     public Integer getVersionId() {
         return versionId;
@@ -35,11 +35,11 @@ public class ReadAttribute extends Attribute {
         this.referenceAttributeName = referenceAttributeName;
     }
 
-    public String getReferenceDisplayAttributeName() {
-        return referenceDisplayAttributeName;
+    public String getReferenceDisplayExpression() {
+        return referenceDisplayExpression;
     }
 
-    public void setReferenceDisplayAttributeName(String referenceDisplayAttributeName) {
-        this.referenceDisplayAttributeName = referenceDisplayAttributeName;
+    public void setReferenceDisplayExpression(String referenceDisplayExpression) {
+        this.referenceDisplayExpression = referenceDisplayExpression;
     }
 }
