@@ -6,7 +6,7 @@ import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.inovus.ms.rdm.file.Row;
+import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.AttributeFilter;
 import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;

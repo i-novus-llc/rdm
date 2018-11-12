@@ -1,16 +1,18 @@
 package ru.inovus.ms.rdm.validation;
 
 import net.n2oapp.platform.i18n.Message;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.inovus.ms.rdm.file.Row;
+import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
 
 import java.util.*;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RequiredValueValidationTest {
@@ -50,22 +52,22 @@ public class RequiredValueValidationTest {
     @Test
     public void testValidate() throws Exception {
         List<Message> messages = new RequiredValidation(nullRow, structure, Collections.singleton(IGNORED_REQUIRED)).validate();
-        Assert.assertTrue(messages.size() == 2);
+        assertEquals(2, messages.size());
         Message expected1_1 = new Message(RequiredValidation.ERROR_CODE, PRIMARY);
-        Assert.assertTrue(messages.contains(expected1_1));
+        assertTrue(messages.contains(expected1_1));
         Message expected1_2 = new Message(RequiredValidation.ERROR_CODE, REQUIRED);
-        Assert.assertTrue(messages.contains(expected1_2));
+        assertTrue(messages.contains(expected1_2));
 
         List<Message> messages2 = new RequiredValidation(nullRow, structure, Collections.EMPTY_SET).validate();
-        Assert.assertTrue(messages2.size() == 3);
+        assertTrue(messages2.size() == 3);
         Message expected2_1 = new Message(RequiredValidation.ERROR_CODE, PRIMARY);
-        Assert.assertTrue(messages2.contains(expected2_1));
+        assertTrue(messages2.contains(expected2_1));
         Message expected2_2 = new Message(RequiredValidation.ERROR_CODE, REQUIRED);
-        Assert.assertTrue(messages2.contains(expected2_2));
+        assertTrue(messages2.contains(expected2_2));
         Message expected2_3 = new Message(RequiredValidation.ERROR_CODE, IGNORED_REQUIRED);
-        Assert.assertTrue(messages2.contains(expected2_3));
+        assertTrue(messages2.contains(expected2_3));
 
         List<Message> messages3 = new RequiredValidation(fullRow, structure, Collections.EMPTY_SET).validate();
-        Assert.assertTrue(messages3.size() == 0);
+        assertTrue(messages3.size() == 0);
     }
 }

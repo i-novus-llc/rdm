@@ -1,19 +1,39 @@
-package ru.inovus.ms.rdm.file;
+package ru.inovus.ms.rdm.model;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
 public class Row {
 
-    private Map<String, Object> data = new LinkedHashMap<>();
+    private Long systemId;
+
+    private Map<String, Object> data;
+
+    public Row() {}
 
     public Row(Map<String, Object> data) {
         this.data = data;
     }
 
+    public Row(Long systemId, Map<String, Object> data) {
+        this.systemId = systemId;
+        this.data = data;
+    }
+
+    public Long getSystemId() {
+        return systemId;
+    }
+
+    public void setSystemId(Long systemId) {
+        this.systemId = systemId;
+    }
+
     public Map<String, Object> getData() {
         return data;
+    }
+
+    public void setData(Map<String, Object> data) {
+        this.data = data;
     }
 
     @Override

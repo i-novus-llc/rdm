@@ -13,7 +13,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.inovus.ms.rdm.file.Row;
+import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
 
 import java.util.*;
@@ -33,7 +33,6 @@ public class DBPrimaryKeyValidationTest {
     private final String PK_INTEGER = "pki";
     private final String NOT_PK = "npk";
 
-
     @Mock
     private SearchDataService searchDataService;
 
@@ -44,7 +43,6 @@ public class DBPrimaryKeyValidationTest {
     private Row pkRow;
 
     private Row noPkRow;
-
 
     @Before
     public void setUp() throws Exception {
@@ -77,9 +75,6 @@ public class DBPrimaryKeyValidationTest {
         Map<String, Object> noPkRowMap = new HashMap<>();
         noPkRowMap.put(NOT_PK, "test Value");
         noPkRow = new Row(noPkRowMap);
-
-
-
     }
 
 
@@ -108,10 +103,7 @@ public class DBPrimaryKeyValidationTest {
         Assert.assertEquals(0, messages.size());
         Assert.assertEquals(1, errorAttributes.size());
 
-
-
         when(searchDataService.getPagedData(anyObject())).thenReturn(new CollectionPage<>(0, Collections.emptyList(), new Criteria()));
-
 
         validation = new DBPrimaryKeyValidation(searchDataService, pkStructure, pkRow, STORAGE_CODE);
         messages = validation.validate();

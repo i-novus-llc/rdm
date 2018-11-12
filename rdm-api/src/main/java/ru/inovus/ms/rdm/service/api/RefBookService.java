@@ -64,7 +64,7 @@ public interface RefBookService {
             @ApiResponse(code = 200, message = "Справочник в архиве"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void toArchive(@PathParam("refBookId") @ApiParam("Идентификатор справочника") int refBookId);
+    void toArchive(@ApiParam("Идентификатор справочника") @PathParam("refBookId") int refBookId);
 
     @POST
     @Path("/{refBookId}/fromArchive")
@@ -73,7 +73,7 @@ public interface RefBookService {
             @ApiResponse(code = 200, message = "Справочник возвращен из архива"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void fromArchive(@PathParam("refBookId") @ApiParam("Идентификатор справочника") int refBookId);
+    void fromArchive(@ApiParam("Идентификатор справочника") @PathParam("refBookId") int refBookId);
 
     @GET
     @Path("/versions")
