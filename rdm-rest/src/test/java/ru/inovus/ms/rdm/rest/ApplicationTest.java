@@ -1527,7 +1527,7 @@ public class ApplicationTest {
                         Structure.Attribute.build("float", "float", FieldType.FLOAT, false, "дробное"),
                         Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, false, "ссылка")
                 ),
-                singletonList(new Structure.Reference("reference", -1, "count", singletonList("count"), singletonList("count")))
+                singletonList(new Structure.Reference("reference", -1, "count", toPlaceholder("count")))
         );
     }
 
