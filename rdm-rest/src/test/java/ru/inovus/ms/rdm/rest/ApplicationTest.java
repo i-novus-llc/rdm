@@ -466,6 +466,7 @@ public class ApplicationTest {
     * - добавление строки, передается новая строка (нет systemId). Строка сохраняется в хранилище для версии. Кол-во строк = 1
     * - изменение строки, передается измененная строка (есть systemId). Строка сохраняется в хранилище для версии. Кол-во срок = 1
     * - удаление строки, передается systemId. Кол-во строк = 0
+    * - добавление невалидной строки: неверные значения целочисленного и ссылочного полей. Ожидается ошибка с двумя кодами
     * */
     @Test
     public void testUpdateVersionRows() {
@@ -515,6 +516,17 @@ public class ApplicationTest {
 
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertEquals(0, actualRowValues.getContent().size());
+
+//        создание невалидной строки
+        row = createRowForAllTypesStructure("string", BigInteger.valueOf(1), DATE_STR, true, 1.1, "1");
+        row.getData().replace("integer", "abc");
+        try {
+            draftService.updateData(versionId, row);
+            fail();
+        } catch (RestException re) {
+            Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.type.error"::equals).count());
+            Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.reference.err"::equals).count());
+        }
     }
 
     /*
