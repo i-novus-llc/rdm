@@ -52,6 +52,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.junit.Assert.*;
+import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.*;
 import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
 import static ru.inovus.ms.rdm.util.ConverterUtil.rowValue;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDate;
@@ -149,7 +150,7 @@ public class ApplicationTest {
         refBookUpdateRequest.setComment("обновленное наполнение");
 
         createAttribute = Structure.Attribute.buildPrimary("name", "Наименование", FieldType.REFERENCE, "описание");
-        createReference = new Structure.Reference(createAttribute.getCode(), 801, "code", emptyList(), emptyList());
+        createReference = new Structure.Reference(createAttribute.getCode(), 801, "code", null);
         updateAttribute = Structure.Attribute.buildPrimary(createAttribute.getCode(),
                 createAttribute.getName() + "_upd", createAttribute.getType(), createAttribute.getDescription() + "_upd");
         deleteAttribute = Structure.Attribute.build("code", "Код", FieldType.STRING, false, "на удаление");
@@ -258,7 +259,7 @@ public class ApplicationTest {
 
         // удаление атрибута и проверка
         createAttributeModel.setAttribute(deleteAttribute);
-        createAttributeModel.setReference(new Structure.Reference(null, null, null, null, null));
+        createAttributeModel.setReference(new Structure.Reference(null, null, null, null));
         draftService.createAttribute(createAttributeModel);
 
         draftService.deleteAttribute(draft.getId(), deleteAttribute.getCode());
@@ -1051,7 +1052,7 @@ public class ApplicationTest {
 
         draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.buildPrimary(PK_STRING, PK_STRING, FieldType.STRING, "string"), null));
         draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.buildPrimary(PK_REFERENCE, PK_REFERENCE, FieldType.REFERENCE, "count"),
-                new Structure.Reference(PK_REFERENCE, relRefBook.getId(), RELATION_ATTR_CODE, null, null)));
+                new Structure.Reference(PK_REFERENCE, relRefBook.getId(), RELATION_ATTR_CODE, null)));
         draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.buildPrimary(PK_FLOAT, PK_FLOAT, FieldType.FLOAT, "float"), null));
         draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.buildPrimary(PK_DATE, PK_DATE, FieldType.DATE, "date"), null));
         draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.buildPrimary(PK_BOOL, PK_BOOL, FieldType.BOOLEAN, "boolean"), null));
@@ -1059,7 +1060,7 @@ public class ApplicationTest {
 
         draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_STRING, NOT_PK_STRING, FieldType.STRING, false, "string"), null));
         draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_REFERENCE, NOT_PK_REFERENCE, FieldType.REFERENCE, false, "count"),
-                new Structure.Reference(NOT_PK_REFERENCE, relRefBook.getId(), RELATION_ATTR_CODE, null, null)));
+                new Structure.Reference(NOT_PK_REFERENCE, relRefBook.getId(), RELATION_ATTR_CODE, null)));
         draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_FLOAT, NOT_PK_FLOAT, FieldType.FLOAT, false, "float"), null));
         draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_DATE, NOT_PK_DATE, FieldType.DATE, false, "date"), null));
         draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_BOOL, NOT_PK_BOOL, FieldType.BOOLEAN, false, "boolean"), null));
@@ -1526,7 +1527,7 @@ public class ApplicationTest {
                         Structure.Attribute.build("float", "float", FieldType.FLOAT, false, "дробное"),
                         Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, false, "ссылка")
                 ),
-                singletonList(new Structure.Reference("reference", -1, "count", singletonList("count"), singletonList("count")))
+                singletonList(new Structure.Reference("reference", -1, "count", toPlaceholder("count")))
         );
     }
 

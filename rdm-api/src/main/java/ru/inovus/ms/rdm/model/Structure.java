@@ -6,7 +6,6 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.singletonList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 
 public class Structure implements Serializable {
@@ -216,19 +215,20 @@ public class Structure implements Serializable {
          */
         private String referenceAttribute;
 
-        private List<String> displayAttributes;
-
-        private List<String> sortingAttributes;
+        /**
+         * Вид отображаемого ссылочного значения.
+         * Поля справочника указываются через placeholder ${~}, например ${field}
+         */
+        private String displayExpression;
 
         public Reference() {
         }
 
-        public Reference(String attribute, Integer referenceVersion, String referenceAttribute, List<String> displayAttributes, List<String> sortingAttributes) {
+        public Reference(String attribute, Integer referenceVersion, String referenceAttribute, String displayExpression) {
             this.attribute = attribute;
             this.referenceVersion = referenceVersion;
             this.referenceAttribute = referenceAttribute;
-            this.displayAttributes = displayAttributes;
-            this.sortingAttributes = sortingAttributes != null ? sortingAttributes : displayAttributes;
+            this.displayExpression = displayExpression;
         }
 
         public String getAttribute() {
@@ -255,20 +255,12 @@ public class Structure implements Serializable {
             this.referenceAttribute = referenceAttribute;
         }
 
-        public List<String> getDisplayAttributes() {
-            return displayAttributes != null ? displayAttributes : singletonList(referenceAttribute);
+        public String getDisplayExpression() {
+            return displayExpression;
         }
 
-        public void setDisplayAttributes(List<String> displayAttributes) {
-            this.displayAttributes = displayAttributes;
-        }
-
-        public List<String> getSortingAttributes() {
-            return sortingAttributes != null ? sortingAttributes : getDisplayAttributes();
-        }
-
-        public void setSortingAttributes(List<String> sortingAttributes) {
-            this.sortingAttributes = sortingAttributes;
+        public void setDisplayExpression(String displayExpression) {
+            this.displayExpression = displayExpression;
         }
 
         @Override
@@ -283,9 +275,7 @@ public class Structure implements Serializable {
                 return false;
             if (referenceAttribute != null ? !referenceAttribute.equals(reference.referenceAttribute) : reference.referenceAttribute != null)
                 return false;
-            if (sortingAttributes != null ? !sortingAttributes.equals(reference.sortingAttributes) : reference.sortingAttributes != null)
-                return false;
-            return !(displayAttributes != null ? !displayAttributes.equals(reference.displayAttributes) : reference.displayAttributes != null);
+            return !(displayExpression != null ? !displayExpression.equals(reference.displayExpression) : reference.displayExpression != null);
 
         }
 
@@ -294,8 +284,7 @@ public class Structure implements Serializable {
             int result = attribute != null ? attribute.hashCode() : 0;
             result = 31 * result + (referenceVersion != null ? referenceVersion.hashCode() : 0);
             result = 31 * result + (referenceAttribute != null ? referenceAttribute.hashCode() : 0);
-            result = 31 * result + (displayAttributes != null ? displayAttributes.hashCode() : 0);
-            result = 31 * result + (sortingAttributes != null ? sortingAttributes.hashCode() : 0);
+            result = 31 * result + (displayExpression != null ? displayExpression.hashCode() : 0);
             return result;
         }
     }

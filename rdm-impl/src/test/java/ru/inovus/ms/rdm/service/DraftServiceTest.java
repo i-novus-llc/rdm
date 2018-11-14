@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.*;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
@@ -40,7 +41,6 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
@@ -124,9 +124,9 @@ public class DraftServiceTest {
         codeAttribute = Structure.Attribute.buildPrimary("code", "Код", FieldType.STRING, "описание code");
         pkAttribute = Structure.Attribute.buildPrimary(nameAttribute.getCode() + PK_SUFFIX, nameAttribute.getName() + PK_SUFFIX, FieldType.STRING, nameAttribute.getDescription() + PK_SUFFIX);
 
-        nameReference = new Structure.Reference(nameAttribute.getCode(), 801, codeAttribute.getCode(), emptyList(), emptyList());
-        updateNameReference = new Structure.Reference(nameAttribute.getCode(), 802, codeAttribute.getCode(), singletonList(codeAttribute.getCode()), singletonList(codeAttribute.getCode()));
-        nullReference = new Structure.Reference(null, null, null, null, null);
+        nameReference = new Structure.Reference(nameAttribute.getCode(), 801, codeAttribute.getCode(), null);
+        updateNameReference = new Structure.Reference(nameAttribute.getCode(), 802, codeAttribute.getCode(), DisplayExpression.toPlaceholder(codeAttribute.getCode()));
+        nullReference = new Structure.Reference(null, null, null, null);
     }
 
     @Before
