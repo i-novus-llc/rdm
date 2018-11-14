@@ -76,12 +76,6 @@ public class StructureType implements UserType {
                 boolean isRequired = getByKey(attributeJson, "isRequired", JsonNode::asBoolean);
                 Integer referenceVersion = getByKey(attributeJson, "referenceVersion", JsonNode::asInt);
                 String referenceAttribute = getByKey(attributeJson, "referenceAttribute", JsonNode::asText);
-                Function<JsonNode, List<String>> asList = jsonNode -> {
-                    List<String> values = new ArrayList<>();
-                    ArrayNode arrayNode = ((ArrayNode) jsonNode);
-                    arrayNode.forEach(node -> values.add(node.asText()));
-                    return values;
-                };
                 String displayExpression = getByKey(attributeJson, "referenceDisplayExpression", JsonNode::asText);
                 Structure.Attribute attribute;
                 if (isPrimary) {

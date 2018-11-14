@@ -9,8 +9,6 @@ public class ReadAttribute extends Attribute {
 
     private String referenceAttributeName;
 
-    private String referenceDisplayExpression;
-
     public Integer getVersionId() {
         return versionId;
     }
@@ -33,13 +31,5 @@ public class ReadAttribute extends Attribute {
 
     public void setReferenceAttributeName(String referenceAttributeName) {
         this.referenceAttributeName = referenceAttributeName;
-    }
-
-    public String getReferenceDisplayExpression() {
-        return referenceDisplayExpression;
-    }
-
-    public void setReferenceDisplayExpression(String referenceDisplayExpression) {
-        this.referenceDisplayExpression = referenceDisplayExpression;
     }
 }
