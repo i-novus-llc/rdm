@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.file;
 
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.exception.RdmException;
@@ -80,7 +81,11 @@ public class StructureRowMapper implements RowMapper {
         } catch (Exception e) {
             throw new RdmException("reference value has a wrong type", e);
         }
-        return new Reference(version.getStorageCode(), ConverterUtil.date(version.getFromDate()),
-                reference.getReferenceAttribute(), reference.getDisplayAttributes().get(0), value);
+        return new Reference(
+                version.getStorageCode(),
+                ConverterUtil.date(version.getFromDate()),
+                reference.getReferenceAttribute(),
+                new DisplayExpression(reference.getDisplayExpression()),
+                value);
     }
 }

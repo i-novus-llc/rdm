@@ -552,8 +552,7 @@ public class DraftServiceImpl implements DraftService {
         setValueIfPresent(updateAttribute::getAttribute, updatableReference::setAttribute);
         setValueIfPresent(updateAttribute::getReferenceVersion, updatableReference::setReferenceVersion);
         setValueIfPresent(updateAttribute::getReferenceAttribute, updatableReference::setReferenceAttribute);
-        setValueIfPresent(updateAttribute::getDisplayAttributes, updatableReference::setDisplayAttributes);
-        setValueIfPresent(updateAttribute::getSortingAttributes, updatableReference::setSortingAttributes);
+        setValueIfPresent(updateAttribute::getDisplayExpression, updatableReference::setDisplayExpression);
     }
 
     private <T> void setValueIfPresent(Supplier<UpdateValue<T>> updAttrValueGetter, Consumer<T> attrValueSetter) {
@@ -611,7 +610,7 @@ public class DraftServiceImpl implements DraftService {
         List<Message> referenceValidationMessages = new ReferenceValidation(
                 searchDataService,
                 versionRepository,
-                new Structure.Reference(updateAttribute.getAttribute().get(), updateAttribute.getReferenceVersion().get(), updateAttribute.getReferenceAttribute().get(), updateAttribute.getDisplayAttributes().get(), updateAttribute.getSortingAttributes().get()),
+                new Structure.Reference(updateAttribute.getAttribute().get(), updateAttribute.getReferenceVersion().get(), updateAttribute.getReferenceAttribute().get(), updateAttribute.getDisplayExpression().get()),
                 updateAttribute.getVersionId()).validate();
         if (!isEmpty(referenceValidationMessages))
             throw new UserException(referenceValidationMessages);
