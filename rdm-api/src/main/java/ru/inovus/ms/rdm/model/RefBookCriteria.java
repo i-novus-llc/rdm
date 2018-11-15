@@ -2,10 +2,11 @@ package ru.inovus.ms.rdm.model;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import ru.inovus.ms.rdm.enumeration.RefBookStatus;
+import ru.inovus.ms.rdm.enumeration.RefBookInfo;
 
 import javax.ws.rs.QueryParam;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @ApiModel("Критерии поиска справочника")
@@ -13,7 +14,7 @@ public class RefBookCriteria extends AbstractCriteria {
 
     @ApiModelProperty("Идентификатор справочника")
     @QueryParam("refBookId")
-    private Integer refBookId;
+    private List<Integer> refBookIds;
 
     @ApiModelProperty("Код")
     @QueryParam("code")
@@ -27,21 +28,29 @@ public class RefBookCriteria extends AbstractCriteria {
     @QueryParam("fromDateEnd")
     private LocalDateTime fromDateEnd;
 
-    @ApiModelProperty("Статус справочника")
-    @QueryParam("status.id")
-    private RefBookStatus status;
+    @ApiModelProperty("Источник данных справочника")
+    @QueryParam("refBookInfo")
+    private RefBookInfo refBookInfo;
+
+    @ApiModelProperty("Категория")
+    @QueryParam("category")
+    private String category;
+
+    @ApiModelProperty("В архиве")
+    @QueryParam("isArchived")
+    private boolean isArchived;
+
+    @ApiModelProperty("Справочник опубликован")
+    @QueryParam("hasPublished")
+    private boolean hasPublished;
+
+    @ApiModelProperty("У справочника есть черновик")
+    @QueryParam("hasDraft")
+    private boolean hasDraft;
 
     @ApiModelProperty("Паспорт справочника")
     @QueryParam("passport")
     private Map<String, String> passport;
-
-    public Integer getRefBookId() {
-        return refBookId;
-    }
-
-    public void setRefBookId(Integer refBookId) {
-        this.refBookId = refBookId;
-    }
 
     public String getCode() {
         return code;
@@ -67,12 +76,12 @@ public class RefBookCriteria extends AbstractCriteria {
         this.fromDateEnd = fromDateEnd;
     }
 
-    public RefBookStatus getStatus() {
-        return status;
+    public RefBookInfo getRefBookInfo() {
+        return refBookInfo;
     }
 
-    public void setStatus(RefBookStatus status) {
-        this.status = status;
+    public void setRefBookInfo(RefBookInfo refBookInfo) {
+        this.refBookInfo = refBookInfo;
     }
 
     public Map<String, String> getPassport() {
@@ -81,5 +90,45 @@ public class RefBookCriteria extends AbstractCriteria {
 
     public void setPassport(Map<String, String> passport) {
         this.passport = passport;
+    }
+
+    public boolean getIsArchived() {
+        return isArchived;
+    }
+
+    public void setIsArchived(boolean isArchived) {
+        this.isArchived = isArchived;
+    }
+
+    public boolean getHasPublished() {
+        return hasPublished;
+    }
+
+    public void setHasPublished(boolean hasPublished) {
+        this.hasPublished = hasPublished;
+    }
+
+    public boolean getHasDraft() {
+        return hasDraft;
+    }
+
+    public void setHasDraft(boolean hasDraft) {
+        this.hasDraft = hasDraft;
+    }
+
+    public List<Integer> getRefBookIds() {
+        return refBookIds;
+    }
+
+    public void setRefBookIds(List<Integer> refBookIds) {
+        this.refBookIds = refBookIds;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 }

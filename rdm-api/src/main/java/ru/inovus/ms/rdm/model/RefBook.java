@@ -26,6 +26,9 @@ public class RefBook extends RefBookVersion {
     @JsonDeserialize(using = JsonLocalDateTimeDeserializer.class)
     private LocalDateTime lastPublishedVersionFromDate;
 
+    @ApiModelProperty("Последняя опубликованная версия")
+    private String lastPublishedVersion;
+
     @ApiModelProperty("Текущая операция над справочником")
     private RefBookOperation currentOperation;
 
@@ -73,5 +76,13 @@ public class RefBook extends RefBookVersion {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public String getLastPublishedVersion() {
+        return lastPublishedVersion;
+    }
+
+    public void setLastPublishedVersion(String lastPublishedVersion) {
+        this.lastPublishedVersion = lastPublishedVersion;
     }
 }

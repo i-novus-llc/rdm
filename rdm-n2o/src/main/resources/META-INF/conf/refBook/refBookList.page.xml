@@ -1,32 +1,37 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <simple-page xmlns="http://n2oapp.net/framework/config/schema/page-2.0" name="Реестр НСИ">
-    <table  query-id="refBookList">
+    <table query-id="refBook">
         <pagination/>
         <filters>
             <row>
-                <input-text id="code" label="Код" />
-                <input-text id="name" label="Наименование"/>
+                <input-text id="name" label="Название справочника"/>
+                <input-text id="code" label="Код справочника"/>
+                <date-interval id="lastPublishedVersionFromDateInterval" label="Дата последней публикаци"/>
                 <input-select id="status" label="Статус">
-                    <options  label-field-id="name" value-field-id="id">
+                    <options label-field-id="name" value-field-id="id">
                         <option>{"id":"PUBLISHED","name":"Опубликован"}</option>
-                        <option>{"id":"DRAFT","name":"Черновик"}</option>
-                        <option>{"id":"PUBLISHING","name":"Публикуется"}</option>
+                        <option>{"id":"HAS_DRAFT","name":"В работе"}</option>
+                        <option>{"id":"ARCHIVED","name":"Архив"}</option>
                     </options>
                 </input-select>
-                <date-interval id="lastPublishedVersionFromDateInterval" label="Последняя публикация"  />
+                <input-select id="category" label="Категория">
+                    <query query-id="category" label-field-id="id"/>
+                </input-select>
             </row>
         </filters>
-        <toolbar >
-        <button id="create" label="Добавить справочник" icon="fa fa-plus">
-            <open-page page-id="passport" submit-operation-id="create"  model="filter" focus-after-submit="true"/>
-        </button>
+        <toolbar>
+            <button id="create" label="Добавить справочник" icon="fa fa-plus">
+                <open-page page-id="passport" submit-operation-id="create" model="filter" focus-after-submit="true"/>
+            </button>
         </toolbar>
         <columns>
             <column text-field-id="code" label="Код" width="100px"/>
             <column text-field-id="name" label="Наименование"/>
             <column text-field-id="displayVersion" label="Версия"/>
+            <column text-field-id="category" label="Категория"/>
             <column text-field-id="lastPublishedVersionFromDate" label="Последняя публикация">
                 <text format="date DD.MM.YYYY"/>
             </column>
         </columns>
-    </table></simple-page>
+    </table>
+</simple-page>
