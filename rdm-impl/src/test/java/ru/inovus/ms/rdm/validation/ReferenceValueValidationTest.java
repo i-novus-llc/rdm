@@ -19,6 +19,7 @@ import java.util.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
+import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ReferenceValueValidationTest {
@@ -47,8 +48,8 @@ public class ReferenceValueValidationTest {
         Structure.Attribute ref1 = Structure.Attribute.build(REF_ATTRIBUTE_CODE1, REF_ATTRIBUTE_NAME1, FieldType.REFERENCE, false, "");
         Structure.Attribute ref2 = Structure.Attribute.build(REF_ATTRIBUTE_CODE2, REF_ATTRIBUTE_NAME2, FieldType.REFERENCE, false, "");
         Structure.Attribute name = Structure.Attribute.build("name", "Наименование", FieldType.STRING, false, "");
-        Structure.Reference reference1 = new Structure.Reference(ref1.getCode(), VERSION_ID, "id1", Collections.singletonList("name1"), null);
-        Structure.Reference reference2 =new Structure.Reference(ref2.getCode(), VERSION_ID, "id2", Collections.singletonList("name2"), null);
+        Structure.Reference reference1 = new Structure.Reference(ref1.getCode(), VERSION_ID, "id1", toPlaceholder("name1"));
+        Structure.Reference reference2 =new Structure.Reference(ref2.getCode(), VERSION_ID, "id2", toPlaceholder("name2"));
         structure = new Structure(Arrays.asList(id, ref1, ref2, name), Arrays.asList(reference1, reference2));
         referenceWithValueMap = new HashMap<>();
         referenceWithValueMap.put(reference1, REFERENCE_VAL1);

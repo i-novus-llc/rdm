@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.enumeration;
 public enum RefBookVersionStatus {
 
     DRAFT       ("Черновик"),
-    PUBLISHING  ("Публикуется"),
     PUBLISHED   ("Опубликован");
 
     private String name;

@@ -21,7 +21,7 @@ public class Attribute {
 
     private String referenceAttribute;
 
-    private String referenceDisplayAttribute;
+    private String referenceDisplayExpression;
 
     public String getCode() {
         return code;
@@ -87,11 +87,11 @@ public class Attribute {
         this.referenceAttribute = referenceAttribute;
     }
 
-    public String getReferenceDisplayAttribute() {
-        return referenceDisplayAttribute;
+    public String getReferenceDisplayExpression() {
+        return referenceDisplayExpression;
     }
 
-    public void setReferenceDisplayAttribute(String referenceDisplayAttribute) {
-        this.referenceDisplayAttribute = referenceDisplayAttribute;
+    public void setReferenceDisplayExpression(String referenceDisplayExpression) {
+        this.referenceDisplayExpression = referenceDisplayExpression;
     }
 }

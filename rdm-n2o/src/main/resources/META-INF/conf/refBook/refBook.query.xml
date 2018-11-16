@@ -5,12 +5,11 @@
               method="search">
             <spring bean="refBookServiceJaxRsProxyClient"/>
             <arguments>
-                <argument type="criteria"
-                          class="ru.inovus.ms.rdm.criteria.RefBookCriteriaDate"/>
+                <argument type="criteria" class="ru.inovus.ms.rdm.criteria.RefBookCriteriaDateAndStatus"/>
             </arguments>
         </java>
     </list>
-    <unique filters="id">
+    <unique filters="version.id" result-mapping="#this">
         <java class="ru.inovus.ms.rdm.service.api.RefBookService"
               method="getByVersionId">
             <spring bean="refBookServiceJaxRsProxyClient"/>
@@ -22,10 +21,18 @@
 
     <fields>
         <field id="id" domain="integer">
+            <select mapping="refBookId"/>
+        </field>
+
+        <field id="version.id" domain="integer">
             <select mapping="id"/>
             <filters>
                 <eq filter-id="id" mapping="[0]"/>
             </filters>
+        </field>
+
+        <field id="version.version" domain="string">
+            <select mapping="version"/>
         </field>
 
         <field id="code" domain="string">
@@ -37,9 +44,8 @@
         </field>
 
         <field id="status" domain="string">
-            <select mapping="status"/>
             <filters>
-                <eq filter-id="status.id" mapping="status"/>
+                <eq filter-id="status.id" mapping="status" domain="string"/>
             </filters>
         </field>
 
@@ -52,7 +58,13 @@
         </field>
 
         <field id="displayVersion" domain="string">
-            <select mapping="displayVersion"/>
+            <select mapping="status?.toString()!='DRAFT' ?
+                version :
+                'Новая (изм. ' + editDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy')) + ')'"/>
+        </field>
+
+        <field id="editDate" domain="date">
+            <select/>
         </field>
 
         <field id="lastPublishedVersionFromDate" domain="date">
@@ -63,5 +75,19 @@
             </filters>
             <sorting/>
         </field>
+
+        <field id="lastPublishedVersion" domain="string">
+            <select mapping="lastPublishedVersion"/>
+        </field>
+
+        <field id="category" domain="string" name="Категория">
+            <select mapping="category"/>
+            <filters>
+                <eq filter-id="category.id" mapping="category" domain="string"/>
+            </filters>
+            <sorting/>
+        </field>
+
+
     </fields>
 </query>

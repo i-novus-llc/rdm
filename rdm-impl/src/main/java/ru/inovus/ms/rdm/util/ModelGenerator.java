@@ -2,8 +2,6 @@ package ru.inovus.ms.rdm.util;
 
 import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
-import ru.inovus.ms.rdm.enumeration.RefBookStatus;
-import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.RefBookVersion;
 
 import java.util.Objects;
@@ -29,7 +27,7 @@ public class ModelGenerator {
         model.setToDate(entity.getToDate());
         model.setArchived(entity.getRefBook().getArchived());
         model.setStatus(entity.getStatus());
-        model.setDisplayStatus(getDisplayStatus(entity));
+        model.setEditDate(entity.getLastActionDate());
         if (entity.getPassportValues() != null)
             model.setPassport(entity.getPassportValues().stream()
                     .filter(v -> Objects.nonNull(v.getValue()))
@@ -42,20 +40,5 @@ public class ModelGenerator {
                             v -> v.getAttribute().getCode(),
                             PassportValueEntity::getValue)));
         return model;
-    }
-
-
-    private static String getDisplayStatus(RefBookVersionEntity entity) {
-        if (Boolean.TRUE.equals(entity.getRefBook().getArchived()))
-            return RefBookStatus.ARCHIVED.name();
-        if (RefBookVersionStatus.PUBLISHED.equals(entity.getStatus()))
-            return isActualVersion(entity) ? entity.getStatus().name() : null;
-        else
-            return entity.getStatus().name();
-    }
-
-
-    private static boolean isActualVersion(RefBookVersionEntity entity) {
-        return TimeUtils.isSameOrBeforeNow(entity.getFromDate()) && TimeUtils.isNullOrAfterNow(entity.getToDate());
     }
 }
