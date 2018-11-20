@@ -31,11 +31,6 @@
 
         <dependency>
             <groupId>net.n2oapp.framework</groupId>
-            <artifactId>n2o-web</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>net.n2oapp.framework</groupId>
             <artifactId>n2o-header</artifactId>
         </dependency>
 
@@ -67,9 +62,12 @@
     </dependencies>
 
 
-
     <build>
         <resources>
+            <resource>
+                <directory>rdm-react/build</directory>
+                <targetPath>META-INF/resources</targetPath>
+            </resource>
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
