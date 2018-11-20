@@ -3,13 +3,13 @@ services:
   db:
     image: 538721144237.dkr.ecr.eu-west-1.amazonaws.com/rdm-database:latest
   backend:
-    image: "rdm/backend:${TAG}"
+    image: "${TAG}_backend:latest"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/rdm
       SERVER_TOMCAT_ACCESSLOG_ENABLED: "true"
     depends_on:
       - db
   frontend:
-    image: "rdm/frontend:${TAG}"
+    image: "${TAG}_frontend:latest"
     depends_on:
       - backend

@@ -4,9 +4,9 @@ services:
     build:
       context: .
       args:
-        JAR_FILE rdm-rest/target/rdm-rest.jar
+        JAR_FILE: rdm-rest/target/rdm-rest.jar
   frontend:
-    build: .
+    build:
       context: .
       args:
-        JAR_FILE rdm-n2o/target/rdm.jar
+        JAR_FILE: rdm-n2o/target/rdm.jar
