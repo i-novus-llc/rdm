@@ -32,7 +32,7 @@ public class XlsFileGenerator extends PerRowFileGenerator {
     private Map<String, Integer> fieldColumn = new HashMap<>();
     private SXSSFWorkbook workbook;
     private int pageSize = 500;
-    private CellStileFactory stileFactory;
+    private CellStileFactory styleFactory;
 
     public XlsFileGenerator(Iterator<Row> rowIterator) {
         super(rowIterator);
@@ -56,7 +56,7 @@ public class XlsFileGenerator extends PerRowFileGenerator {
     protected void startWrite() {
         logger.info("Start generate XLSX");
         workbook = new SXSSFWorkbook(500);
-        stileFactory = new CellStileFactory();
+        styleFactory = new CellStileFactory();
         SXSSFSheet activeSheet = workbook.createSheet("Страница 1");
         createFirstRow(activeSheet);
     }
@@ -77,7 +77,7 @@ public class XlsFileGenerator extends PerRowFileGenerator {
             workbook.close();
             ncos.flush();
             fieldColumn.clear();
-            stileFactory = null;
+            styleFactory = null;
             logger.info("XLSX generate finished");
         } catch (IOException e) {
             logger.error("cannot generate XLSX", e);
@@ -111,7 +111,7 @@ public class XlsFileGenerator extends PerRowFileGenerator {
 
     private SXSSFRow createFirstRow(SXSSFSheet sheet) {
         SXSSFRow row = sheet.createRow(0);
-        if (getStructure() != null)
+        if (getStructure() != null && getStructure().getAttributes() != null)
             getStructure().getAttributes().forEach(a -> getColumnIndex(a.getCode()));
         return row;
     }
@@ -129,7 +129,7 @@ public class XlsFileGenerator extends PerRowFileGenerator {
         Integer columnIndex = fieldColumn.size();
 
         SXSSFCell currrentCell = getActiveFirstRow().createCell(columnIndex);
-        currrentCell.setCellStyle(stileFactory.getFirstRowStyle());
+        currrentCell.setCellStyle(styleFactory.getFirstRowStyle());
         currrentCell.setCellValue(fieldName);
         currrentCell.getSheet().trackColumnForAutoSizing(columnIndex);
 
@@ -142,22 +142,21 @@ public class XlsFileGenerator extends PerRowFileGenerator {
 
         if (value instanceof LocalDate) {
             Date date = Date.from(((LocalDate) value).atStartOfDay(ZoneId.systemDefault()).toInstant());
-            cell.setCellStyle(stileFactory.getDateStyle());
+            cell.setCellStyle(styleFactory.getDateStyle());
             cell.setCellValue(date);
         } else if (value instanceof Boolean) {
-            cell.setCellStyle(stileFactory.getDefaultStyle());
+            cell.setCellStyle(styleFactory.getDefaultStyle());
             cell.setCellValue((Boolean) value);
         } else if (value instanceof Number) {
-            cell.setCellStyle(stileFactory.getDefaultStyle());
+            cell.setCellStyle(styleFactory.getDefaultStyle());
             cell.setCellValue(((Number) value).doubleValue());
         } else if (value instanceof Reference) {
-            cell.setCellStyle(stileFactory.getDefaultStyle());
+            cell.setCellStyle(styleFactory.getDefaultStyle());
             cell.setCellValue(((Reference) value).getValue());
         } else {
-            cell.setCellStyle(stileFactory.getDefaultStyle());
+            cell.setCellStyle(styleFactory.getDefaultStyle());
             cell.setCellValue(Optional.ofNullable(value).orElse("").toString());
         }
-
     }
 
     private void autoSizeAllSheet() {

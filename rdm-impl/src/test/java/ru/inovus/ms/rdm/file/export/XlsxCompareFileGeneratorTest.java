@@ -1,6 +1,6 @@
 package ru.inovus.ms.rdm.file.export;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSortedMap;
 import net.n2oapp.platform.i18n.UserException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
@@ -31,11 +31,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
@@ -68,12 +69,12 @@ public class XlsxCompareFileGeneratorTest {
         PassportAttribute insAttr = new PassportAttribute("insAttr", null);
         PassportAttribute noEditAttr = new PassportAttribute("noEditAttr", null);
         when(compareService.comparePassports(OLD_VERSION_ID, NEW_VERSION_ID))
-                .thenReturn(new PassportDiff(Arrays.asList(
+                .thenReturn(new PassportDiff(asList(
                         new PassportAttributeDiff(delAttr, "oldDelValue", null),
                         new PassportAttributeDiff(updAttr, "oldUpdValue", "newUpdValue"),
                         new PassportAttributeDiff(insAttr, null, "newInsValue"))));
         when(passportAttributeRepository.findAllByComparableIsTrueOrderByPositionAsc())
-                .thenReturn(Arrays.asList(
+                .thenReturn(asList(
                         new PassportAttributeEntity("delAttr", "Удаленный"),
                         new PassportAttributeEntity("updAttr", "Измененный"),
                         new PassportAttributeEntity("insAttr", "Добавленный"),
@@ -88,9 +89,9 @@ public class XlsxCompareFileGeneratorTest {
         Structure.Attribute notEditedAttribute = Structure.Attribute.build("not_edited", "not_edited name", FieldType.STRING, false, "not_edited description");
         when(compareService.compareStructures(OLD_VERSION_ID, NEW_VERSION_ID))
                 .thenReturn(new StructureDiff(
-                        Collections.singletonList(new StructureDiff.AttributeDiff(null, createdAttribute)),
-                        Collections.singletonList(new StructureDiff.AttributeDiff(updatedOldAttribute, updatedNewAttribute)),
-                        Collections.singletonList(new StructureDiff.AttributeDiff(deletedAttribute, null))));
+                        singletonList(new StructureDiff.AttributeDiff(null, createdAttribute)),
+                        singletonList(new StructureDiff.AttributeDiff(updatedOldAttribute, updatedNewAttribute)),
+                        singletonList(new StructureDiff.AttributeDiff(deletedAttribute, null))));
 
 
         ComparableField pk = new ComparableField("PK", "PK name", null);
@@ -99,36 +100,36 @@ public class XlsxCompareFileGeneratorTest {
         ComparableField not_edited = new ComparableField("not_edited", "not_edited name", null);
         ComparableField deleted = new ComparableField("deleted", "deleted name", DiffStatusEnum.DELETED);
         when(compareService.getCommonComparableRows(argThat(new CompareDataCriteriaMatcher(new CompareDataCriteria(OLD_VERSION_ID, NEW_VERSION_ID)))))
-                .thenReturn(new PageImpl<>(Arrays.asList(
-                        new ComparableRow(Arrays.asList(
+                .thenReturn(new PageImpl<>(asList(
+                        new ComparableRow(asList(
                                 new ComparableFieldValue(pk, 2, 2, null),
                                 new ComparableFieldValue(create, null, "c2", DiffStatusEnum.INSERTED),
                                 new ComparableFieldValue(string_to_int, "2", 2, null),
                                 new ComparableFieldValue(not_edited, "ne2", "ne2", null),
                                 new ComparableFieldValue(deleted, "d2", null, DiffStatusEnum.DELETED)
                         ), null),
-                        new ComparableRow(Arrays.asList(
+                        new ComparableRow(asList(
                                 new ComparableFieldValue(pk, 3, 3, null),
                                 new ComparableFieldValue(create, null, "c3", DiffStatusEnum.INSERTED),
                                 new ComparableFieldValue(string_to_int, "s3", 3, DiffStatusEnum.UPDATED),
                                 new ComparableFieldValue(not_edited, "ne3", "ne3", null),
                                 new ComparableFieldValue(deleted, "d3", null, DiffStatusEnum.DELETED)
                         ), DiffStatusEnum.UPDATED),
-                        new ComparableRow(Arrays.asList(
+                        new ComparableRow(asList(
                                 new ComparableFieldValue(pk, 4, 4, null),
                                 new ComparableFieldValue(create, null, "c4", DiffStatusEnum.INSERTED),
                                 new ComparableFieldValue(string_to_int, "4", 4, null),
                                 new ComparableFieldValue(not_edited, "e4", "e41", DiffStatusEnum.UPDATED),
                                 new ComparableFieldValue(deleted, "d4", null, DiffStatusEnum.DELETED)
                         ), DiffStatusEnum.UPDATED),
-                        new ComparableRow(Arrays.asList(
+                        new ComparableRow(asList(
                                 new ComparableFieldValue(pk, null, 5, DiffStatusEnum.INSERTED),
                                 new ComparableFieldValue(create, null, "c2", DiffStatusEnum.INSERTED),
                                 new ComparableFieldValue(string_to_int, null, 5, DiffStatusEnum.INSERTED),
                                 new ComparableFieldValue(not_edited, null, "ne5", DiffStatusEnum.INSERTED),
                                 new ComparableFieldValue(deleted, null, null, DiffStatusEnum.DELETED)
                         ), DiffStatusEnum.INSERTED),
-                        new ComparableRow(Arrays.asList(
+                        new ComparableRow(asList(
                                 new ComparableFieldValue(pk, 1, null, DiffStatusEnum.DELETED),
                                 new ComparableFieldValue(create, null, null, DiffStatusEnum.DELETED),
                                 new ComparableFieldValue(string_to_int, "s1", null, DiffStatusEnum.DELETED),
@@ -140,20 +141,20 @@ public class XlsxCompareFileGeneratorTest {
 
         when(compareService.compareData(new CompareDataCriteria(OLD_VERSION_ID, NEW_VERSION_ID)))
                 .thenReturn(new RefBookDataDiff(null,
-                        Collections.singletonList("deleted"),
-                        Collections.singletonList("created"),
-                        Collections.singletonList("string_to_int")));
+                        singletonList("deleted"),
+                        singletonList("created"),
+                        singletonList("string_to_int")));
 
 
         RefBookVersion oldVersion = new RefBookVersion();
         oldVersion.setId(OLD_VERSION_ID);
-        oldVersion.setStructure(new Structure(Arrays.asList(pKAttribute, updatedOldAttribute, notEditedAttribute, deletedAttribute), null));
+        oldVersion.setStructure(new Structure(asList(pKAttribute, updatedOldAttribute, notEditedAttribute, deletedAttribute), null));
         when(versionService.getById(OLD_VERSION_ID)).thenReturn(oldVersion);
 
         RefBookVersion newVersion = new RefBookVersion();
         newVersion.setId(NEW_VERSION_ID);
-        newVersion.setStructure(new Structure(Arrays.asList(pKAttribute, createdAttribute, updatedNewAttribute, notEditedAttribute), null));
-        newVersion.setPassport(ImmutableMap.of(
+        newVersion.setStructure(new Structure(asList(pKAttribute, createdAttribute, updatedNewAttribute, notEditedAttribute), null));
+        newVersion.setPassport(ImmutableSortedMap.of(
                 "updAttr", "newUpdValue",
                 "insAttr", "newInsValue",
                 "noEditAttr", "noEditValue"));

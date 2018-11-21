@@ -7,7 +7,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -130,7 +129,7 @@ public class DraftServiceTest {
     }
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         when(draftDataService.applyDraft(any(), any(), any(), any())).thenReturn(TEST_STORAGE_CODE);
         when(draftDataService.createDraft(anyList())).thenReturn(TEST_DRAFT_CODE_NEW);
         when(fileNameGenerator.generateName(any(), eq(FileType.XLSX))).thenReturn("version.xlsx");
@@ -138,7 +137,7 @@ public class DraftServiceTest {
     }
 
     @Test
-    public void testPublishFirstDraft() throws Exception {
+    public void testPublishFirstDraft() {
 
         RefBookVersionEntity testDraftVersion = createTestDraftVersion();
         String expectedDraftStorageCode = testDraftVersion.getStorageCode();
@@ -189,13 +188,12 @@ public class DraftServiceTest {
         assertEquals("1.1", testDraftVersion.getVersion());
         verify(draftDataService).applyDraft(isNull(String.class), eq(expectedDraftStorageCode), eq(Date.from(now.atZone(ZoneId.systemDefault()).toInstant())), any());
         verify(versionRepository).save(eq(expectedVersionEntity));
-        verify(fileStorage).saveContent(any(InputStream.class), anyString());
-        verify(fileStorage).saveContent(any(InputStream.class), anyString());
+        verify(fileStorage, times(2)).saveContent(any(InputStream.class), anyString());
         reset(versionRepository);
     }
 
     @Test
-    public void testPublishNextVersionWithSameStructure() throws Exception {
+    public void testPublishNextVersionWithSameStructure() {
 
         RefBookVersionEntity versionEntity = createTestPublishedVersion();
         versionEntity.setVersion("2.1");
@@ -220,13 +218,15 @@ public class DraftServiceTest {
 
         draftService.publish(draft.getId(), expectedVersionEntity.getVersion(), now, null);
 
-        verify(draftDataService).applyDraft(eq(versionEntity.getStorageCode()), eq(expectedDraftStorageCode), eq(Date.from(now.atZone(ZoneId.systemDefault()).toInstant())), any());
+        verify(draftDataService)
+                .applyDraft(eq(versionEntity.getStorageCode()), eq(expectedDraftStorageCode),
+                        eq(Date.from(now.atZone(ZoneId.systemDefault()).toInstant())), any());
         verify(versionRepository).save(eq(expectedVersionEntity));
         reset(versionRepository);
     }
 
     @Test
-    public void testPublishWithAllOverlappingCases() throws Exception {
+    public void testPublishWithAllOverlappingCases() {
 
         List<RefBookVersionEntity> actual = getVersionsForOverlappingPublish();
         List<RefBookVersionEntity> expected = getExpectedAfterOverlappingPublish();
@@ -275,11 +275,8 @@ public class DraftServiceTest {
         return versionEntity;
     }
 
-
-
-
     @Test
-    public void testCreateWithExistingDraftSameStructure() throws Exception {
+    public void testCreateWithExistingDraftSameStructure() {
         RefBookVersionEntity testDraftVersion = createTestDraftVersion();
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(testDraftVersion);
         when(versionRepository.save(any(RefBookVersionEntity.class))).thenReturn(testDraftVersion);
@@ -292,7 +289,7 @@ public class DraftServiceTest {
     }
 
     @Test
-    public void testCreateWithExistingDraftDifferentStructure() throws Exception {
+    public void testCreateWithExistingDraftDifferentStructure() {
         RefBookVersionEntity testDraftVersion = createTestDraftVersion();
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(testDraftVersion);
         when(versionRepository.save(eq(testDraftVersion))).thenReturn(testDraftVersion);
@@ -307,7 +304,7 @@ public class DraftServiceTest {
     }
 
     @Test
-    public void testCreateWithoutDraftWithPublishedVersion() throws Exception {
+    public void testCreateWithoutDraftWithPublishedVersion() {
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(null);
         RefBookVersionEntity lastRefBookVersion = createTestPublishedVersion();
         Page<RefBookVersionEntity> lastRefBookVersionPage = new PageImpl<>(Collections.singletonList(lastRefBookVersion));
@@ -534,8 +531,8 @@ public class DraftServiceTest {
         return testDraftVersion;
     }
 
-    private Set<PassportValueEntity> createTestPassportValues(RefBookVersionEntity version) {
-        Set<PassportValueEntity> passportValues = new HashSet<>();
+    private List<PassportValueEntity> createTestPassportValues(RefBookVersionEntity version) {
+        List<PassportValueEntity> passportValues = new ArrayList<>();
         passportValues.add(new PassportValueEntity(new PassportAttributeEntity("fullName"), "full_name", version));
         passportValues.add(new PassportValueEntity(new PassportAttributeEntity("shortName"), "short_name", version));
         passportValues.add(new PassportValueEntity(new PassportAttributeEntity("annotation"), "annotation", version));
@@ -549,26 +546,4 @@ public class DraftServiceTest {
         return testRefBook;
     }
 
-    private RefBookVersionEntity eqRefBookVersionEntity(RefBookVersionEntity refBookVersionEntity) {
-        return argThat(new RefBookVersionEntityMatcher(refBookVersionEntity));
-    }
-
-    private static class RefBookVersionEntityMatcher extends ArgumentMatcher<RefBookVersionEntity> {
-
-        private RefBookVersionEntity expected;
-
-        public RefBookVersionEntityMatcher(RefBookVersionEntity versionEntity) {
-            this.expected = versionEntity;
-        }
-
-        @Override
-        public boolean matches(Object actual) {
-            if (!(actual instanceof RefBookVersionEntity)) {
-                return false;
-            }
-
-            RefBookVersionEntity actualVersion = ((RefBookVersionEntity) actual);
-            return expected.equals(actualVersion);
-        }
-    }
 }

@@ -26,7 +26,6 @@ import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 import ru.inovus.ms.rdm.util.FileNameGenerator;
-import ru.inovus.ms.rdm.util.ModelGenerator;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
@@ -39,6 +38,7 @@ import java.util.Optional;
 
 import static ru.inovus.ms.rdm.util.ConverterUtil.date;
 import static ru.inovus.ms.rdm.util.ConverterUtil.sortings;
+import static ru.inovus.ms.rdm.util.ModelGenerator.versionModel;
 
 @Service
 @Primary
@@ -92,9 +92,7 @@ public class VersionServiceImpl implements VersionService {
         RefBookVersionEntity versionEntity = versionRepository.findOne(versionId);
         if (versionEntity == null)
             throw new NotFoundException(new Message("version.not.found", versionId));
-        RefBookVersion versionModel = ModelGenerator.versionModel(versionEntity);
-        versionModel.setStructure(versionEntity.getStructure());
-        return versionModel;
+        return versionModel(versionEntity);
     }
 
     @Override
@@ -137,12 +135,12 @@ public class VersionServiceImpl implements VersionService {
 
         return new ExportFile(
                 fileStorage.getContent(path),
-                fileNameGenerator.generateZipName(ModelGenerator.versionModel(versionEntity), fileType));
+                fileNameGenerator.generateZipName(versionModel(versionEntity), fileType));
     }
 
     private String generateVersionFile(RefBookVersionEntity version, FileType fileType) {
 
-        RefBookVersion versionModel = ModelGenerator.versionModel(version);
+        RefBookVersion versionModel = versionModel(version);
 
         String path = null;
         try (InputStream is = generateVersionFile(versionModel, fileType)) {
@@ -166,7 +164,7 @@ public class VersionServiceImpl implements VersionService {
     private InputStream generateVersionFile(RefBookVersion versionModel, FileType fileType) {
         VersionDataIterator dataIterator = new VersionDataIterator(this, Collections.singletonList(versionModel.getId()));
         try (PerRowFileGenerator fileGenerator = PerRowFileGeneratorFactory
-                .getFileGenerator(dataIterator, this.getStructure(versionModel.getId()), fileType);
+                .getFileGenerator(dataIterator, versionModel, fileType);
              Archiver archiver = new Archiver()) {
             if (includePassport) {
                 try (FileGenerator passportPdfFileGenerator = new PassportPdfFileGenerator(passportValueRepository, versionModel.getId(), passportFileHead)) {

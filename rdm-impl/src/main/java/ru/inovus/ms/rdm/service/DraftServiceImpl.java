@@ -52,10 +52,10 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
 import static ru.inovus.ms.rdm.util.ConverterUtil.*;
@@ -227,7 +227,7 @@ public class DraftServiceImpl implements DraftService {
         draftVersion.setStatus(RefBookVersionStatus.DRAFT);
         draftVersion.setPassportValues(original.getPassportValues().stream()
                 .map(v -> new PassportValueEntity(v.getAttribute(), v.getValue(), draftVersion))
-                .collect(Collectors.toSet()));
+                .collect(toList()));
         draftVersion.setStructure(structure);
         return draftVersion;
     }
@@ -390,7 +390,7 @@ public class DraftServiceImpl implements DraftService {
             dropDataService.drop(dataStorageToDelete);
 
             RefBookVersion versionModel = versionService.getById(draftId);
-            for (FileType fileType : PerRowFileGeneratorFactory.getAvalibleTypes())
+            for (FileType fileType : PerRowFileGeneratorFactory.getAvailableTypes())
                 saveVersionFile(versionModel, fileType, generateVersionFile(versionModel, fileType));
         } finally {
             refBookLockService.deleteRefBookAction(refBookId);
@@ -601,7 +601,7 @@ public class DraftServiceImpl implements DraftService {
 
     private void validatePrimaryKeyUnique(String storageCode, UpdateAttribute updateAttribute) {
         List<Message> pkValidationMessages = new PrimaryKeyUniqueValidation(draftDataService, storageCode,
-                Collections.singletonList(updateAttribute.getCode())).validate();
+                singletonList(updateAttribute.getCode())).validate();
         if (pkValidationMessages != null && !pkValidationMessages.isEmpty())
             throw new UserException(pkValidationMessages);
     }
@@ -662,13 +662,13 @@ public class DraftServiceImpl implements DraftService {
 
         return new ExportFile(
                 generateVersionFile(versionModel, fileType),
-                fileNameGenerator.generateZipName(versionModel, FileType.XLSX));
+                fileNameGenerator.generateZipName(versionModel, fileType));
     }
 
     private InputStream generateVersionFile(RefBookVersion versionModel, FileType fileType) {
-        VersionDataIterator dataIterator = new VersionDataIterator(versionService, Collections.singletonList(versionModel.getId()));
+        VersionDataIterator dataIterator = new VersionDataIterator(versionService, singletonList(versionModel.getId()));
         try (FileGenerator fileGenerator = PerRowFileGeneratorFactory
-                .getFileGenerator(dataIterator, versionService.getStructure(versionModel.getId()), fileType);
+                .getFileGenerator(dataIterator, versionModel, fileType);
              Archiver archiver = new Archiver()) {
             if (includePassport) {
                 try (FileGenerator passportPdfFileGenerator = new PassportPdfFileGenerator(passportValueRepository, versionModel.getId(), passportFileHead)) {

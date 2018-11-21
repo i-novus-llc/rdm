@@ -1,26 +1,29 @@
 package ru.inovus.ms.rdm.file.export;
 
-import org.junit.Assert;
 import org.junit.Test;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.service.FieldFactoryImpl;
-import ru.inovus.ms.rdm.file.*;
+import ru.inovus.ms.rdm.file.RowsProcessor;
+import ru.inovus.ms.rdm.file.StructureRowMapper;
+import ru.inovus.ms.rdm.file.XlsPerRowProcessor;
 import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.util.ConverterUtil;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.zip.ZipInputStream;
+
+import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
+import static ru.inovus.ms.rdm.util.ConverterUtil.toRow;
 
 /**
  * Created by znurgaliev on 06.08.2018.
@@ -46,7 +49,7 @@ public class XlsFileGenerateProcessTest {
 
         List<Row> d_a_rows = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
-            d_a_rows.add(ConverterUtil.toRow(new LongRowValue(
+            d_a_rows.add(toRow(new LongRowValue(
                     d_a_id.valueOf(BigInteger.valueOf(i)),
                     d_a_id_null.valueOf(null),
                     d_a_name.valueOf("test" + i),
@@ -65,14 +68,14 @@ public class XlsFileGenerateProcessTest {
                 new XlsPerRowProcessor(new StructureRowMapper(structure, null), getTestRowsProcessor(actual)).process(() -> zis);
             }
 
-            Assert.assertEquals(d_a_rows, actual);
+            assertEquals(d_a_rows, actual);
         }
     }
 
 
     private Structure createTestStructure() {
         Structure structure = new Structure();
-        structure.setAttributes(Arrays.asList(
+        structure.setAttributes(asList(
                 Structure.Attribute.build("ID", "ID", FieldType.INTEGER, false, "ID"),
                 Structure.Attribute.build("NAME", "NAME", FieldType.STRING, false, "NAME"),
                 Structure.Attribute.build("DATE_COL", "DATE_COL", FieldType.DATE, false, "DATE_COL"),

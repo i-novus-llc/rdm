@@ -4,8 +4,10 @@ import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.model.RefBookVersion;
 
+import java.util.LinkedHashMap;
 import java.util.Objects;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toMap;
 
 /**
  * Created by znurgaliev on 09.08.2018.
@@ -28,6 +30,7 @@ public class ModelGenerator {
         model.setArchived(entity.getRefBook().getArchived());
         model.setStatus(entity.getStatus());
         model.setEditDate(entity.getLastActionDate());
+        model.setStructure(entity.getStructure());
         if (entity.getPassportValues() != null)
             model.setPassport(entity.getPassportValues().stream()
                     .filter(v -> Objects.nonNull(v.getValue()))
@@ -36,9 +39,11 @@ public class ModelGenerator {
                             return 0;
                         return o1.getAttribute().getPosition() - o2.getAttribute().getPosition();
                     })
-                    .collect(Collectors.toMap(
+                    .collect(toMap(
                             v -> v.getAttribute().getCode(),
-                            PassportValueEntity::getValue)));
+                            PassportValueEntity::getValue,
+                            (e1, e2) -> e2,
+                            LinkedHashMap::new)));
         return model;
     }
 }
