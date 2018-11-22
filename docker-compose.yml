@@ -9,6 +9,7 @@ services:
       SERVER_TOMCAT_ACCESSLOG_ENABLED: "true"
     depends_on:
       - db
+    restart: on-failure: 3 
   frontend:
     image: "${PROJECT_NAME}_frontend:${TAG}"
     depends_on:
