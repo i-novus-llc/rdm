@@ -17,7 +17,7 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(MockitoJUnitRunner.class)
-public class UniqueRowAppendValidationTest {
+public class PkUniqueRowAppendValidationTest {
 
     private final String PK_STRING = "pks";
     private final String PK_REFERENCE = "pkr";
@@ -48,7 +48,7 @@ public class UniqueRowAppendValidationTest {
                 Structure.Attribute.buildPrimary(PK_DATE, "date", FieldType.DATE, "date"),
                 Structure.Attribute.buildPrimary(PK_BOOL, "boolean", FieldType.BOOLEAN, "boolean"),
                 Structure.Attribute.buildPrimary(PK_INTEGER, "integer", FieldType.INTEGER, "integer"),
-                Structure.Attribute.build(NOT_PK, "not_pk", FieldType.INTEGER, false, "integer")
+                Structure.Attribute.build(NOT_PK, "not_pk", FieldType.INTEGER, "integer")
         ));
 
         Map<String, Object> pkRowMap1 = new HashMap<>();
@@ -73,7 +73,7 @@ public class UniqueRowAppendValidationTest {
 
         noPkStructure = new Structure();
         noPkStructure.setAttributes(Collections.singletonList(
-                Structure.Attribute.build(NOT_PK, "not_pk", FieldType.INTEGER, false, "integer")
+                Structure.Attribute.build(NOT_PK, "not_pk", FieldType.INTEGER, "integer")
         ));
 
         Map<String, Object> noPkRowMap = new HashMap<>();
@@ -85,17 +85,17 @@ public class UniqueRowAppendValidationTest {
     @Test
     public void testValidate(){
 
-        UniqueRowAppendValidation uniqueRowAppendValidation = new UniqueRowAppendValidation(pkStructure);
-        uniqueRowAppendValidation.appendRow(pkRow1);
-        assertEquals(0,uniqueRowAppendValidation.validate().size());
-        uniqueRowAppendValidation.appendRow(pkRow1);
-        assertEquals(1, uniqueRowAppendValidation.validate().size());
-        uniqueRowAppendValidation.appendRow(pkRow2);
-        assertEquals(0, uniqueRowAppendValidation.validate().size());
-        uniqueRowAppendValidation.appendRow(pkRow2);
-        assertEquals(1, uniqueRowAppendValidation.validate().size());
-        uniqueRowAppendValidation.appendRow(pkRow1);
-        assertEquals(1, uniqueRowAppendValidation.validate().size());
+        PkUniqueRowAppendValidation pkUniqueRowAppendValidation = new PkUniqueRowAppendValidation(pkStructure);
+        pkUniqueRowAppendValidation.appendRow(pkRow1);
+        assertEquals(0, pkUniqueRowAppendValidation.validate().size());
+        pkUniqueRowAppendValidation.appendRow(pkRow1);
+        assertEquals(1, pkUniqueRowAppendValidation.validate().size());
+        pkUniqueRowAppendValidation.appendRow(pkRow2);
+        assertEquals(0, pkUniqueRowAppendValidation.validate().size());
+        pkUniqueRowAppendValidation.appendRow(pkRow2);
+        assertEquals(1, pkUniqueRowAppendValidation.validate().size());
+        pkUniqueRowAppendValidation.appendRow(pkRow1);
+        assertEquals(1, pkUniqueRowAppendValidation.validate().size());
 
     }
 

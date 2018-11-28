@@ -5,10 +5,13 @@ import org.springframework.data.domain.Page;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.validation.AttributeValidationValue;
+import ru.inovus.ms.rdm.model.validation.AttributeValidationType;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Path("/draft")
 @Produces(MediaType.APPLICATION_JSON)
@@ -127,6 +130,54 @@ public interface DraftService {
     })
     void deleteAttribute(@ApiParam("Идентификатор версии") @QueryParam("versionId") Integer versionId,
                          @ApiParam("Код атрибута") @QueryParam("code") String attributeCode);
+
+    @POST
+    @Path("/{versionId}/attribute/{attribute}/validation")
+    @ApiOperation("Добавление настраиваемой проверки")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void addAttributeValidation(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
+                                @ApiParam("Атрибут") @PathParam("attribute") String attribute,
+                                @ApiParam("Пользовательская проверка") AttributeValidationValue attributeValidation);
+
+
+    @DELETE
+    @Path("/{versionId}/attributeValidation")
+    @ApiOperation("Удаление настраиваемой проверки")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void deleteAttributeValidation(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
+                                   @ApiParam("Атрибут") @QueryParam("attribute") String attribute,
+                                   @ApiParam("Тип проверки") @QueryParam("type") AttributeValidationType type);
+
+
+    @GET
+    @Path("/{versionId}/attributeValidations")
+    @ApiOperation("Получение настраиваемых проверок")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    List<AttributeValidationValue> getAttributeValidations(@ApiParam("Идентификатор версии") @PathParam("versionId")
+                                                                   Integer versionId,
+                                                           @ApiParam("Атрибут") @QueryParam("attribute")
+                                                                   String attribute);
+
+
+    @PUT
+    @Path("/{versionId}/attribute/{attribute}")
+    @ApiOperation("Обновление настраиваемых проверок")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void updateAttributeValidations(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
+                                    @ApiParam("Атрибут") @PathParam("attribute") String attribute,
+                                    @ApiParam("Настраиваемые проверки") List<AttributeValidationValue> validations);
 
     @GET
     @Path("/{draftId}/getFile")

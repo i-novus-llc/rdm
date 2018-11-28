@@ -83,14 +83,11 @@ public class Structure implements Serializable {
 
         private Boolean isPrimary;
 
-        private Boolean isRequired;
-
         private String description;
 
         public static Attribute buildPrimary(String code, String name, FieldType type, String description) {
             Attribute attribute = new Attribute();
             attribute.setPrimary(true);
-            attribute.setIsRequired(true);
             attribute.setCode(code);
             attribute.setName(name);
             attribute.setType(type);
@@ -98,10 +95,9 @@ public class Structure implements Serializable {
             return attribute;
         }
 
-        public static Attribute build(String code, String name, FieldType type, boolean isRequired, String description) {
+        public static Attribute build(String code, String name, FieldType type, String description) {
             Attribute attribute = new Attribute();
             attribute.setPrimary(false);
-            attribute.setIsRequired(isRequired);
             attribute.setCode(code);
             attribute.setName(name);
             attribute.setType(type);
@@ -139,18 +135,6 @@ public class Structure implements Serializable {
 
         public void setPrimary(Boolean isPrimary) {
             this.isPrimary = isPrimary != null && isPrimary;
-            if (this.isPrimary)
-                this.isRequired = true;
-        }
-
-        public Boolean getIsRequired() {
-            return isRequired;
-        }
-
-        public void setIsRequired(Boolean isRequired) {
-            if (this.isPrimary && !isRequired)
-                throw new IllegalStateException("primary attribute must be required");
-            this.isRequired = isRequired != null && isRequired;
         }
 
         public String getDescription() {
@@ -177,7 +161,6 @@ public class Structure implements Serializable {
             Attribute attribute = (Attribute) o;
 
             if (isPrimary != attribute.isPrimary) return false;
-            if (isRequired != attribute.isRequired) return false;
             if (code != null ? !code.equals(attribute.code) : attribute.code != null)
                 return false;
             if (name != null ? !name.equals(attribute.name) : attribute.name != null)
@@ -193,7 +176,6 @@ public class Structure implements Serializable {
             result = 31 * result + (name != null ? name.hashCode() : 0);
             result = 31 * result + (type != null ? type.hashCode() : 0);
             result = 31 * result + (isPrimary ? 1 : 0);
-            result = 31 * result + (isRequired ? 1 : 0);
             return result;
         }
     }

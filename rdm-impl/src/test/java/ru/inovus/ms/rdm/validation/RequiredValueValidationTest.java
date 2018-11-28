@@ -11,6 +11,7 @@ import ru.inovus.ms.rdm.model.Structure;
 
 import java.util.*;
 
+import static java.util.Collections.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -19,10 +20,8 @@ public class RequiredValueValidationTest {
 
     private final String PRIMARY = "primary";
     private final String PRIMARY_NAME = "primary";
-    private final String IGNORED_REQUIRED = "ignore";
-    private final String IGNORED_REQUIRED_NAME = "ignore";
-    private final String REQUIRED = "required";
-    private final String REQUIRED_NAME = "required";
+    private final String IGNORED_PRIMARY = "ignore";
+    private final String IGNORED_PRIMARY_NAME = "ignore";
     private final String NON_REQUIRED = "nonRequired";
     private final String NON_REQUIRED_NAME = "nonRequired";
 
@@ -34,16 +33,14 @@ public class RequiredValueValidationTest {
     @Before
     public void setUp() throws Exception {
         Structure.Attribute id = Structure.Attribute.buildPrimary(PRIMARY, PRIMARY_NAME, FieldType.INTEGER, "");
-        Structure.Attribute ignoredReq = Structure.Attribute.build(IGNORED_REQUIRED, IGNORED_REQUIRED_NAME, FieldType.REFERENCE, true, "");
-        Structure.Attribute req = Structure.Attribute.build(REQUIRED, REQUIRED_NAME, FieldType.STRING, true, "");
-        Structure.Attribute nonReq = Structure.Attribute.build(NON_REQUIRED, NON_REQUIRED_NAME, FieldType.FLOAT, false, "");
-        structure = new Structure(Arrays.asList(id, ignoredReq, req, nonReq), null);
+        Structure.Attribute ignoredReq = Structure.Attribute.buildPrimary(IGNORED_PRIMARY, IGNORED_PRIMARY_NAME, FieldType.REFERENCE, "");
+        Structure.Attribute nonReq = Structure.Attribute.build(NON_REQUIRED, NON_REQUIRED_NAME, FieldType.FLOAT, "");
+        structure = new Structure(Arrays.asList(id, ignoredReq, nonReq), null);
 
         nullRow = new Row(new HashMap<>());
         Map<String, Object> fullRowMap = new HashMap<>();
         fullRowMap.put(PRIMARY, "test Value");
-        fullRowMap.put(REQUIRED, "test Value");
-        fullRowMap.put(IGNORED_REQUIRED, "test Value");
+        fullRowMap.put(IGNORED_PRIMARY, "test Value");
         fullRowMap.put(NON_REQUIRED, "test Value");
         fullRow = new Row(fullRowMap);
 
@@ -51,23 +48,19 @@ public class RequiredValueValidationTest {
 
     @Test
     public void testValidate() throws Exception {
-        List<Message> messages = new RequiredValidation(nullRow, structure, Collections.singleton(IGNORED_REQUIRED)).validate();
-        assertEquals(2, messages.size());
-        Message expected1_1 = new Message(RequiredValidation.ERROR_CODE, PRIMARY);
+        List<Message> messages = new PkRequiredValidation(nullRow, structure, singleton(IGNORED_PRIMARY)).validate();
+        assertEquals(1, messages.size());
+        Message expected1_1 = new Message(PkRequiredValidation.ERROR_CODE, PRIMARY);
         assertTrue(messages.contains(expected1_1));
-        Message expected1_2 = new Message(RequiredValidation.ERROR_CODE, REQUIRED);
-        assertTrue(messages.contains(expected1_2));
 
-        List<Message> messages2 = new RequiredValidation(nullRow, structure, Collections.EMPTY_SET).validate();
-        assertTrue(messages2.size() == 3);
-        Message expected2_1 = new Message(RequiredValidation.ERROR_CODE, PRIMARY);
+        List<Message> messages2 = new PkRequiredValidation(nullRow, structure, emptySet()).validate();
+        assertEquals(2, messages2.size());
+        Message expected2_1 = new Message(PkRequiredValidation.ERROR_CODE, PRIMARY);
         assertTrue(messages2.contains(expected2_1));
-        Message expected2_2 = new Message(RequiredValidation.ERROR_CODE, REQUIRED);
-        assertTrue(messages2.contains(expected2_2));
-        Message expected2_3 = new Message(RequiredValidation.ERROR_CODE, IGNORED_REQUIRED);
+        Message expected2_3 = new Message(PkRequiredValidation.ERROR_CODE, IGNORED_PRIMARY);
         assertTrue(messages2.contains(expected2_3));
 
-        List<Message> messages3 = new RequiredValidation(fullRow, structure, Collections.EMPTY_SET).validate();
+        List<Message> messages3 = new PkRequiredValidation(fullRow, structure, emptySet()).validate();
         assertTrue(messages3.size() == 0);
     }
 }

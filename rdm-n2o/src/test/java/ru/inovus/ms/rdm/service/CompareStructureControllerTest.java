@@ -42,31 +42,31 @@ public class CompareStructureControllerTest {
     @Before
     public void init() {
         when(versionService.getStructure(oldId)).thenReturn(new Structure(Arrays.asList(
-                Structure.Attribute.build("code1", "Код1", FieldType.STRING, false, "Описание1"),
-                Structure.Attribute.build("code2", "Код2", FieldType.STRING, false, "Описание2"),
-                Structure.Attribute.build("code3", "Код3", FieldType.STRING, false, "Описание3"),
-                Structure.Attribute.build("code4", "Код4", FieldType.STRING, false, "Описание4")
+                Structure.Attribute.build("code1", "Код1", FieldType.STRING, "Описание1"),
+                Structure.Attribute.build("code2", "Код2", FieldType.STRING, "Описание2"),
+                Structure.Attribute.build("code3", "Код3", FieldType.STRING, "Описание3"),
+                Structure.Attribute.build("code4", "Код4", FieldType.STRING, "Описание4")
         ), null));
         when(versionService.getStructure(newId)).thenReturn(new Structure(Arrays.asList(
-                Structure.Attribute.build("code1", "Код1", FieldType.STRING, false, "Описание1"),
-                Structure.Attribute.build("code2", "Код2.1", FieldType.STRING, false, "Описание2.1"),
-                Structure.Attribute.build("code5", "Код5", FieldType.STRING, false, "Описание5"),
-                Structure.Attribute.build("code4", "Код4", FieldType.STRING, false, "Описание4")
+                Structure.Attribute.build("code1", "Код1", FieldType.STRING, "Описание1"),
+                Structure.Attribute.build("code2", "Код2.1", FieldType.STRING, "Описание2.1"),
+                Structure.Attribute.build("code5", "Код5", FieldType.STRING, "Описание5"),
+                Structure.Attribute.build("code4", "Код4", FieldType.STRING, "Описание4")
         ), null));
         when(compareService.compareStructures(oldId, newId)).thenReturn(new StructureDiff(
                 Arrays.asList(
                         new StructureDiff.AttributeDiff(
                                 null,
-                                Structure.Attribute.build("code5", "Код5", FieldType.STRING, false, "Описание5"))
+                                Structure.Attribute.build("code5", "Код5", FieldType.STRING, "Описание5"))
                 ),
                 Arrays.asList(
                         new StructureDiff.AttributeDiff(
-                                Structure.Attribute.build("code2", "Код2", FieldType.STRING, false, "Описание2"),
-                                Structure.Attribute.build("code2", "Код2.1", FieldType.STRING, false, "Описание2.1"))
+                                Structure.Attribute.build("code2", "Код2", FieldType.STRING, "Описание2"),
+                                Structure.Attribute.build("code2", "Код2.1", FieldType.STRING, "Описание2.1"))
                 ),
                 Arrays.asList(
                         new StructureDiff.AttributeDiff(
-                                Structure.Attribute.build("code3", "Код3", FieldType.STRING, false, "Описание3"),
+                                Structure.Attribute.build("code3", "Код3", FieldType.STRING, "Описание3"),
                                 null)
                 )
         ));
@@ -75,12 +75,12 @@ public class CompareStructureControllerTest {
     @Test
     public void testGetCommonDiff() throws Exception {
         List<AttributeDiff> expectedCommon = Arrays.asList(
-                createDiff(null, Structure.Attribute.build("code1", "Код1", FieldType.STRING, false, "Описание1"), null),
-                createDiff(Structure.Attribute.build("code2", "Код2", FieldType.STRING, false, "Описание2"),
-                        Structure.Attribute.build("code2", "Код2.1", FieldType.STRING, false, "Описание2.1"), DiffStatusEnum.UPDATED),
-                createDiff(null, Structure.Attribute.build("code5", "Код5", FieldType.STRING, false, "Описание5"), DiffStatusEnum.INSERTED),
-                createDiff(null, Structure.Attribute.build("code4", "Код4", FieldType.STRING, false, "Описание4"), null),
-                createDiff(Structure.Attribute.build("code3", "Код3", FieldType.STRING, false, "Описание3"), null, DiffStatusEnum.DELETED)
+                createDiff(null, Structure.Attribute.build("code1", "Код1", FieldType.STRING, "Описание1"), null),
+                createDiff(Structure.Attribute.build("code2", "Код2", FieldType.STRING, "Описание2"),
+                        Structure.Attribute.build("code2", "Код2.1", FieldType.STRING, "Описание2.1"), DiffStatusEnum.UPDATED),
+                createDiff(null, Structure.Attribute.build("code5", "Код5", FieldType.STRING, "Описание5"), DiffStatusEnum.INSERTED),
+                createDiff(null, Structure.Attribute.build("code4", "Код4", FieldType.STRING, "Описание4"), null),
+                createDiff(Structure.Attribute.build("code3", "Код3", FieldType.STRING, "Описание3"), null, DiffStatusEnum.DELETED)
         );
         List<AttributeDiff> expectedInserted = expectedCommon.stream()
                 .filter(attributeDiff -> DiffStatusEnum.INSERTED.equals(attributeDiff.getDiffStatus()))
@@ -124,11 +124,11 @@ public class CompareStructureControllerTest {
     @Test
     public void testGetOldWithDiff() throws Exception {
         List<AttributeDiff> expectedCommon = Arrays.asList(
-                createDiff(Structure.Attribute.build("code1", "Код1", FieldType.STRING, false, "Описание1"), null, null),
-                createDiff(Structure.Attribute.build("code2", "Код2", FieldType.STRING, false, "Описание2"),
-                        Structure.Attribute.build("code2", "Код2.1", FieldType.STRING, false, "Описание2.1"), DiffStatusEnum.UPDATED),
-                createDiff(Structure.Attribute.build("code3", "Код3", FieldType.STRING, false, "Описание3"), null, DiffStatusEnum.DELETED),
-                createDiff(Structure.Attribute.build("code4", "Код4", FieldType.STRING, false, "Описание4"), null, null)
+                createDiff(Structure.Attribute.build("code1", "Код1", FieldType.STRING, "Описание1"), null, null),
+                createDiff(Structure.Attribute.build("code2", "Код2", FieldType.STRING, "Описание2"),
+                        Structure.Attribute.build("code2", "Код2.1", FieldType.STRING, "Описание2.1"), DiffStatusEnum.UPDATED),
+                createDiff(Structure.Attribute.build("code3", "Код3", FieldType.STRING, "Описание3"), null, DiffStatusEnum.DELETED),
+                createDiff(Structure.Attribute.build("code4", "Код4", FieldType.STRING, "Описание4"), null, null)
         );
         List<AttributeDiff> expectedInserted = expectedCommon.stream()
                 .filter(attributeDiff -> DiffStatusEnum.INSERTED.equals(attributeDiff.getDiffStatus()))
@@ -172,11 +172,11 @@ public class CompareStructureControllerTest {
     @Test
     public void testGetNewWithDiff() throws Exception {
         List<AttributeDiff> expectedCommon = Arrays.asList(
-                createDiff(null, Structure.Attribute.build("code1", "Код1", FieldType.STRING, false, "Описание1"), null),
-                createDiff(Structure.Attribute.build("code2", "Код2", FieldType.STRING, false, "Описание2"),
-                        Structure.Attribute.build("code2", "Код2.1", FieldType.STRING, false, "Описание2.1"), DiffStatusEnum.UPDATED),
-                createDiff(null, Structure.Attribute.build("code5", "Код5", FieldType.STRING, false, "Описание5"), DiffStatusEnum.INSERTED),
-                createDiff(null, Structure.Attribute.build("code4", "Код4", FieldType.STRING, false, "Описание4"), null)
+                createDiff(null, Structure.Attribute.build("code1", "Код1", FieldType.STRING, "Описание1"), null),
+                createDiff(Structure.Attribute.build("code2", "Код2", FieldType.STRING, "Описание2"),
+                        Structure.Attribute.build("code2", "Код2.1", FieldType.STRING, "Описание2.1"), DiffStatusEnum.UPDATED),
+                createDiff(null, Structure.Attribute.build("code5", "Код5", FieldType.STRING, "Описание5"), DiffStatusEnum.INSERTED),
+                createDiff(null, Structure.Attribute.build("code4", "Код4", FieldType.STRING, "Описание4"), null)
         );
         List<AttributeDiff> expectedInserted = expectedCommon.stream()
                 .filter(attributeDiff -> DiffStatusEnum.INSERTED.equals(attributeDiff.getDiffStatus()))
@@ -224,7 +224,6 @@ public class CompareStructureControllerTest {
                 new AttributeDiff.AttributeFieldDiff(oldAttr.getName(), newAttr.getName()),
                 new AttributeDiff.AttributeFieldDiff(oldAttr.getType(), newAttr.getType()),
                 new AttributeDiff.AttributeFieldDiff(oldAttr.getIsPrimary(), newAttr.getIsPrimary()),
-                new AttributeDiff.AttributeFieldDiff(oldAttr.getIsRequired(), newAttr.getIsRequired()),
                 new AttributeDiff.AttributeFieldDiff(oldAttr.getDescription(), newAttr.getDescription()),
                 diffStatus
         );
