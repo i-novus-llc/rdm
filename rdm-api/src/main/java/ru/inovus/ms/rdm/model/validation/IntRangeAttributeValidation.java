@@ -5,16 +5,16 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigInteger;
 
-public class IntRangeValidationValue extends AttributeValidationValue {
+public class IntRangeAttributeValidation extends AttributeValidation {
 
     private BigInteger min;
     private BigInteger max;
 
-    public IntRangeValidationValue() {
+    public IntRangeAttributeValidation() {
         super(AttributeValidationType.INT_RANGE);
     }
 
-    public IntRangeValidationValue(BigInteger min, BigInteger max) {
+    public IntRangeAttributeValidation(BigInteger min, BigInteger max) {
         this();
         this.min = min;
         this.max = max;
@@ -43,7 +43,7 @@ public class IntRangeValidationValue extends AttributeValidationValue {
     }
 
     @Override
-    public IntRangeValidationValue valueFromString(String value) {
+    public IntRangeAttributeValidation valueFromString(String value) {
         if (value == null || !value.matches("^(-?\\d+)*;(-?\\d+)*$"))
             throw new UserException("attribute.validation.value.invalid");
         String[] split = value.split(";");

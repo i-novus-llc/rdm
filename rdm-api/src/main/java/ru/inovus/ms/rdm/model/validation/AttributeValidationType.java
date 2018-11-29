@@ -7,22 +7,22 @@ import java.lang.reflect.InvocationTargetException;
 
 public enum AttributeValidationType {
 
-    REQUIRED(RequiredValidationValue.class),
-    UNIQUE(UniqueValidationValue.class),
-    PLAIN_SIZE(PlainSizeValidationValue.class),
-    FLOAT_SIZE(FloatSizeValidationValue.class),
-    INT_RANGE(IntRangeValidationValue.class),
-    FLOAT_RANGE(FloatRangeValidationValue.class),
-    DATE_RANGE(DateRangeValidationValue.class),
-    REG_EXP(RegExpValidationValue.class);
+    REQUIRED(RequiredAttributeValidation.class),
+    UNIQUE(UniqueAttributeValidation.class),
+    PLAIN_SIZE(PlainSizeAttributeValidation.class),
+    FLOAT_SIZE(FloatSizeAttributeValidation.class),
+    INT_RANGE(IntRangeAttributeValidation.class),
+    FLOAT_RANGE(FloatRangeAttributeValidation.class),
+    DATE_RANGE(DateRangeAttributeValidation.class),
+    REG_EXP(RegExpAttributeValidation.class);
 
-    private final Class<? extends AttributeValidationValue> validationValueClass;
+    private final Class<? extends AttributeValidation> validationValueClass;
 
-    AttributeValidationType(Class<? extends AttributeValidationValue> validationValueClass) {
+    AttributeValidationType(Class<? extends AttributeValidation> validationValueClass) {
         this.validationValueClass = validationValueClass;
     }
 
-    public AttributeValidationValue getValidationInstance() {
+    public AttributeValidation getValidationInstance() {
         try {
             return validationValueClass.getConstructor().newInstance();
         } catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {

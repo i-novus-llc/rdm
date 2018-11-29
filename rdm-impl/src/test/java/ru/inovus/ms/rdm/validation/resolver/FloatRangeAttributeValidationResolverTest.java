@@ -5,8 +5,7 @@ import net.n2oapp.platform.i18n.UserException;
 import org.junit.Test;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.model.validation.DateRangeValidationValue;
-import ru.inovus.ms.rdm.model.validation.FloatRangeValidationValue;
+import ru.inovus.ms.rdm.model.validation.FloatRangeAttributeValidation;
 
 import java.math.BigDecimal;
 
@@ -15,44 +14,53 @@ import static ru.inovus.ms.rdm.validation.resolver.FloatRangeAttributeValidation
 
 public class FloatRangeAttributeValidationResolverTest {
 
+    private final String TEST_ATTRIBUTE = "test_attribute";
+    private final String wrongEntityValue = "1";
+    private final String entityValue = "1.1;5.5";
+    private final BigDecimal min = BigDecimal.valueOf(1.1);
+    private final BigDecimal max = BigDecimal.valueOf(5.5);
+    private final BigDecimal less = BigDecimal.valueOf(1);
+    private final BigDecimal in = BigDecimal.valueOf(2.2);
+    private final BigDecimal more = BigDecimal.valueOf(11.1111111000);
+    private final Structure.Attribute wrongAttribute =
+            Structure.Attribute.build(TEST_ATTRIBUTE, TEST_ATTRIBUTE, FieldType.INTEGER, null);
+    private final Structure.Attribute attribute =
+            Structure.Attribute.build(TEST_ATTRIBUTE, TEST_ATTRIBUTE, FieldType.FLOAT, null);
 
+    /**
+     * создание FloatRangeAttributeValidationResolver с неправильным типом атрибута
+     */
     @Test
-    public void testResolve() {
-
-        final String TEST_ATTRIBUTE = "test_attribute";
-        final BigDecimal min = BigDecimal.valueOf(1.1);
-        final BigDecimal max = BigDecimal.valueOf(5.5);
-        final String wrongEntityValue = "1";
-        final String entityValue = "1.1;5.5";
-        final BigDecimal less = BigDecimal.valueOf(1);
-        final BigDecimal in = BigDecimal.valueOf(2.2);
-        final BigDecimal more = BigDecimal.valueOf(11.1111111000);
-        Structure.Attribute wrongAttribute =
-                Structure.Attribute.build(TEST_ATTRIBUTE, TEST_ATTRIBUTE, FieldType.INTEGER, null);
-        Structure.Attribute attribute =
-                Structure.Attribute.build(TEST_ATTRIBUTE, TEST_ATTRIBUTE, FieldType.FLOAT, null);
-
-        //создание с неправильным типом типом атрибута
+    public void testInvalidType() {
         try {
             new FloatRangeAttributeValidationResolver(wrongAttribute, min, max);
             fail();
         } catch (UserException e) {
             assertEquals("attribute.validation.type.invalid", e.getCode());
         }
+    }
 
-        //создание validationValue с из неправильной строки
+    /**
+     * заполнение FloatRangeAttributeValidation из строки
+     */
+    @Test
+    public void testInvalidStringValue() {
+        //из неправильной строки
         try {
-            new DateRangeValidationValue().valueFromString(wrongEntityValue);
+            new FloatRangeAttributeValidation().valueFromString(wrongEntityValue);
+            fail();
         } catch (UserException e) {
             assertEquals("attribute.validation.value.invalid", e.getCode());
         }
+        //из правильной строки
+        FloatRangeAttributeValidation validation = new FloatRangeAttributeValidation().valueFromString(entityValue);
+        assertEquals(min, validation.getMin());
+        assertEquals(max, validation.getMax());
+    }
 
-        //проверка работы
-        FloatRangeValidationValue validationValue = new FloatRangeValidationValue().valueFromString(entityValue);
-        FloatRangeAttributeValidationResolver resolver = new FloatRangeAttributeValidationResolver(attribute, validationValue);
-        assertEquals(min, validationValue.getMin());
-        assertEquals(max, validationValue.getMax());
-
+    @Test
+    public void testResolve() {
+        FloatRangeAttributeValidationResolver resolver = new FloatRangeAttributeValidationResolver(attribute, min, max);
         Message actual = resolver.resolve(less);
         assertEquals(FLOAT_RANGE_EXCEPTION_CODE, actual.getCode());
         actual = resolver.resolve(more);

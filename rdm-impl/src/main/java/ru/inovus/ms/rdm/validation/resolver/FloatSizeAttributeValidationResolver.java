@@ -4,7 +4,7 @@ import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.model.validation.FloatSizeValidationValue;
+import ru.inovus.ms.rdm.model.validation.FloatSizeAttributeValidation;
 
 import java.math.BigDecimal;
 
@@ -30,7 +30,7 @@ public class FloatSizeAttributeValidationResolver implements AttributeValidation
         this.fractionalPartSize = fractionalPartSize;
     }
 
-    public FloatSizeAttributeValidationResolver(Structure.Attribute attribute, FloatSizeValidationValue validationValue) {
+    public FloatSizeAttributeValidationResolver(Structure.Attribute attribute, FloatSizeAttributeValidation validationValue) {
         this(attribute, validationValue.getIntPartSize(), validationValue.getFracPartSize());
     }
 

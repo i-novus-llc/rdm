@@ -5,17 +5,17 @@ import org.apache.commons.lang3.StringUtils;
 
 import static java.lang.Integer.parseInt;
 
-public class FloatSizeValidationValue extends AttributeValidationValue {
+public class FloatSizeAttributeValidation extends AttributeValidation {
 
     private int intPartSize;
     private int fracPartSize;
 
 
-    public FloatSizeValidationValue() {
+    public FloatSizeAttributeValidation() {
         super(AttributeValidationType.FLOAT_SIZE);
     }
 
-    public FloatSizeValidationValue(int intPartSize, int fracPartSize) {
+    public FloatSizeAttributeValidation(int intPartSize, int fracPartSize) {
         this();
         this.intPartSize = intPartSize;
         this.fracPartSize = fracPartSize;
@@ -43,7 +43,7 @@ public class FloatSizeValidationValue extends AttributeValidationValue {
     }
 
     @Override
-    public FloatSizeValidationValue valueFromString(String value) {
+    public FloatSizeAttributeValidation valueFromString(String value) {
         if (value == null || !value.matches("^\\d*;\\d*$"))
             throw new UserException("attribute.validation.value.invalid");
         String[] split = value.split(";");

@@ -28,7 +28,7 @@ import ru.inovus.ms.rdm.file.*;
 import ru.inovus.ms.rdm.file.export.*;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.validation.AttributeValidationType;
-import ru.inovus.ms.rdm.model.validation.AttributeValidationValue;
+import ru.inovus.ms.rdm.model.validation.AttributeValidation;
 import ru.inovus.ms.rdm.repositiory.AttributeValidationRepository;
 import ru.inovus.ms.rdm.repositiory.PassportValueRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
@@ -667,7 +667,7 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void addAttributeValidation(Integer versionId, String attribute, AttributeValidationValue attributeValidation) {
+    public void addAttributeValidation(Integer versionId, String attribute, AttributeValidation attributeValidation) {
         validateAttributeExists(versionId, attribute);
         RefBookVersionEntity versionEntity = versionRepository.findOne(versionId);
 
@@ -699,7 +699,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
-    public List<AttributeValidationValue> getAttributeValidations(Integer draftId, String attribute) {
+    public List<AttributeValidation> getAttributeValidations(Integer draftId, String attribute) {
         List<AttributeValidationEntity> validations;
         if (attribute == null) {
             validateDraftExists(draftId);
@@ -713,7 +713,7 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void updateAttributeValidations(Integer versionId, String attribute, List<AttributeValidationValue> validations) {
+    public void updateAttributeValidations(Integer versionId, String attribute, List<AttributeValidation> validations) {
 
         validateAttributeExists(versionId, attribute);
         RefBookVersionEntity versionEntity = versionRepository.findOne(versionId);
@@ -752,8 +752,8 @@ public class DraftServiceImpl implements DraftService {
                 fileNameGenerator.generateZipName(versionModel, FileType.XLSX));
     }
 
-    private AttributeValidationValue attributeValidationModel(AttributeValidationEntity validationEntity) {
-        AttributeValidationValue validationModel = validationEntity.getType().getValidationInstance();
+    private AttributeValidation attributeValidationModel(AttributeValidationEntity validationEntity) {
+        AttributeValidation validationModel = validationEntity.getType().getValidationInstance();
         validationModel.valueFromString(validationEntity.getValue());
         validationModel.setVersionId(validationEntity.getVersion().getId());
         validationModel.setAttribute(validationEntity.getAttribute());

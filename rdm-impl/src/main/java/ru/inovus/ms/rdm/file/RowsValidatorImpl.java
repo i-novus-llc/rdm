@@ -31,7 +31,7 @@ public class RowsValidatorImpl implements RowsValidator {
 
     private String storageCode;
 
-    private PkUniqueRowAppendValidation pkPkUniqueRowAppendValidation;
+    private PkUniqueRowAppendValidation pkUniqueRowAppendValidation;
 
     private AttributeCustomValidation attributeCustomValidation;
 
@@ -42,7 +42,7 @@ public class RowsValidatorImpl implements RowsValidator {
         this.structure = structure;
         this.searchDataService = searchDataService;
         this.storageCode = storageCode;
-        this.pkPkUniqueRowAppendValidation = new PkUniqueRowAppendValidation(structure);
+        this.pkUniqueRowAppendValidation = new PkUniqueRowAppendValidation(structure);
         this.attributeCustomValidation = new AttributeCustomValidation(attributeValidations, structure, searchDataService, storageCode);
         if (errorCountLimit > 0) this.errorCountLimit = errorCountLimit;
     }
@@ -57,10 +57,10 @@ public class RowsValidatorImpl implements RowsValidator {
                     new TypeValidation(row.getData(), structure),
                     new ReferenceValueValidation(versionService, row, structure),
                     new DBPrimaryKeyValidation(searchDataService, structure, row, storageCode),
-                    pkPkUniqueRowAppendValidation,
+                    pkUniqueRowAppendValidation,
                     attributeCustomValidation
             );
-            pkPkUniqueRowAppendValidation.appendRow(row);
+            pkUniqueRowAppendValidation.appendRow(row);
             attributeCustomValidation.appendRow(row);
 
             for (ErrorAttributeHolderValidation validation : validations) {

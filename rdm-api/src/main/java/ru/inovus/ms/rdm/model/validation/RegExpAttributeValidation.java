@@ -5,15 +5,15 @@ import net.n2oapp.platform.i18n.UserException;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-public class RegExpValidationValue extends AttributeValidationValue {
+public class RegExpAttributeValidation extends AttributeValidation {
 
     private String regExp;
 
-    public RegExpValidationValue() {
+    public RegExpAttributeValidation() {
         super(AttributeValidationType.REG_EXP);
     }
 
-    public RegExpValidationValue(String regExp) {
+    public RegExpAttributeValidation(String regExp) {
         this();
         this.regExp = regExp;
     }
@@ -32,7 +32,7 @@ public class RegExpValidationValue extends AttributeValidationValue {
     }
 
     @Override
-    public RegExpValidationValue valueFromString(String value) {
+    public RegExpAttributeValidation valueFromString(String value) {
         try {
             Pattern.compile(value);
         } catch (PatternSyntaxException e) {

@@ -4,7 +4,7 @@ import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.model.validation.IntRangeValidationValue;
+import ru.inovus.ms.rdm.model.validation.IntRangeAttributeValidation;
 
 import java.math.BigInteger;
 
@@ -28,7 +28,7 @@ public class IntRangeAttributeValidationResolver implements AttributeValidationR
         this.max = max;
     }
 
-    public IntRangeAttributeValidationResolver(Structure.Attribute attribute, IntRangeValidationValue validationValue) {
+    public IntRangeAttributeValidationResolver(Structure.Attribute attribute, IntRangeAttributeValidation validationValue) {
         this(attribute, validationValue.getMin(), validationValue.getMax());
     }
 

@@ -3,7 +3,7 @@ package ru.inovus.ms.rdm.validation.resolver;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.model.validation.PlainSizeValidationValue;
+import ru.inovus.ms.rdm.model.validation.PlainSizeAttributeValidation;
 
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.INTEGER;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
@@ -25,7 +25,7 @@ public class PlainSizeAttributeValidationResolver implements AttributeValidation
         this.size = size;
     }
 
-    public PlainSizeAttributeValidationResolver(Structure.Attribute attribute, PlainSizeValidationValue validationValue) {
+    public PlainSizeAttributeValidationResolver(Structure.Attribute attribute, PlainSizeAttributeValidation validationValue) {
         this(attribute, validationValue.getSize());
     }
 

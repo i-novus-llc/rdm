@@ -5,7 +5,7 @@ import org.springframework.data.domain.Page;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.model.validation.AttributeValidationValue;
+import ru.inovus.ms.rdm.model.validation.AttributeValidation;
 import ru.inovus.ms.rdm.model.validation.AttributeValidationType;
 
 import javax.ws.rs.*;
@@ -140,7 +140,7 @@ public interface DraftService {
     })
     void addAttributeValidation(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
                                 @ApiParam("Атрибут") @PathParam("attribute") String attribute,
-                                @ApiParam("Пользовательская проверка") AttributeValidationValue attributeValidation);
+                                @ApiParam("Пользовательская проверка") AttributeValidation attributeValidation);
 
 
     @DELETE
@@ -162,9 +162,9 @@ public interface DraftService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    List<AttributeValidationValue> getAttributeValidations(@ApiParam("Идентификатор версии") @PathParam("versionId")
+    List<AttributeValidation> getAttributeValidations(@ApiParam("Идентификатор версии") @PathParam("versionId")
                                                                    Integer versionId,
-                                                           @ApiParam("Атрибут") @QueryParam("attribute")
+                                                      @ApiParam("Атрибут") @QueryParam("attribute")
                                                                    String attribute);
 
 
@@ -177,7 +177,7 @@ public interface DraftService {
     })
     void updateAttributeValidations(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
                                     @ApiParam("Атрибут") @PathParam("attribute") String attribute,
-                                    @ApiParam("Настраиваемые проверки") List<AttributeValidationValue> validations);
+                                    @ApiParam("Настраиваемые проверки") List<AttributeValidation> validations);
 
     @GET
     @Path("/{draftId}/getFile")

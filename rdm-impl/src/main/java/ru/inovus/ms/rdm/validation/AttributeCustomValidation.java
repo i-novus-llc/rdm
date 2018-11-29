@@ -29,7 +29,7 @@ public class AttributeCustomValidation extends AppendRowValidation {
         setResolvers(attributeValidations);
     }
 
-    private Map<String, List<AttributeValidationResolver>> setResolvers(List<AttributeValidationEntity> attributeValidations) {
+    private void setResolvers(List<AttributeValidationEntity> attributeValidations) {
         attributeValidations.sort(Comparator.comparing(AttributeValidationEntity::getType));
 
         resolvers = new HashMap<>();
@@ -43,12 +43,11 @@ public class AttributeCustomValidation extends AppendRowValidation {
                 resolvers.put(attributeValidation.getAttribute(), newResolverList);
             }
         }
-        return resolvers;
     }
 
     private AttributeValidationResolver toResolver(AttributeValidationEntity validationEntity) {
         Structure.Attribute attribute = structure.getAttribute(validationEntity.getAttribute());
-        AttributeValidationValue validationValue =
+        AttributeValidation validationValue =
                 validationEntity.getType().getValidationInstance().valueFromString(validationEntity.getValue());
         switch (validationEntity.getType()) {
             case REQUIRED:
@@ -56,17 +55,17 @@ public class AttributeCustomValidation extends AppendRowValidation {
             case UNIQUE:
                 return new UniqueAttributeValidationResolver(attribute, searchDataService, storageCode);
             case PLAIN_SIZE:
-                return new PlainSizeAttributeValidationResolver(attribute, (PlainSizeValidationValue) validationValue);
+                return new PlainSizeAttributeValidationResolver(attribute, (PlainSizeAttributeValidation) validationValue);
             case FLOAT_SIZE:
-                return new FloatSizeAttributeValidationResolver(attribute, (FloatSizeValidationValue) validationValue);
+                return new FloatSizeAttributeValidationResolver(attribute, (FloatSizeAttributeValidation) validationValue);
             case INT_RANGE:
-                return new IntRangeAttributeValidationResolver(attribute, (IntRangeValidationValue) validationValue);
+                return new IntRangeAttributeValidationResolver(attribute, (IntRangeAttributeValidation) validationValue);
             case FLOAT_RANGE:
-                return new FloatRangeAttributeValidationResolver(attribute, (FloatRangeValidationValue) validationValue);
+                return new FloatRangeAttributeValidationResolver(attribute, (FloatRangeAttributeValidation) validationValue);
             case DATE_RANGE:
-                return new DateRangeAttributeValidationResolver(attribute, (DateRangeValidationValue) validationValue);
+                return new DateRangeAttributeValidationResolver(attribute, (DateRangeAttributeValidation) validationValue);
             case REG_EXP:
-                return new RegExpAttributeValidationResolver(attribute, (RegExpValidationValue) validationValue);
+                return new RegExpAttributeValidationResolver(attribute, (RegExpAttributeValidation) validationValue);
             default:
                 throw new RdmException("resolver not found");
         }

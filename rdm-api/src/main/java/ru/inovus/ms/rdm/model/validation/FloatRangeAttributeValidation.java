@@ -5,16 +5,16 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 
-public class FloatRangeValidationValue extends AttributeValidationValue {
+public class FloatRangeAttributeValidation extends AttributeValidation {
 
     private BigDecimal min;
     private BigDecimal max;
 
-    public FloatRangeValidationValue() {
+    public FloatRangeAttributeValidation() {
         super(AttributeValidationType.FLOAT_RANGE);
     }
 
-    public FloatRangeValidationValue(BigDecimal min, BigDecimal max) {
+    public FloatRangeAttributeValidation(BigDecimal min, BigDecimal max) {
         this();
         this.min = min;
         this.max = max;
@@ -43,7 +43,7 @@ public class FloatRangeValidationValue extends AttributeValidationValue {
     }
 
     @Override
-    public FloatRangeValidationValue valueFromString(String value) {
+    public FloatRangeAttributeValidation valueFromString(String value) {
         if (value == null || !value.matches("^(-?\\d+\\.\\d+)*;(-?\\d+\\.\\d+)*$"))
             throw new UserException("attribute.validation.value.invalid");
         String[] split = value.split(";");

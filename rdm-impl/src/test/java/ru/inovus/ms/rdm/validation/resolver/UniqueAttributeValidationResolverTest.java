@@ -31,7 +31,8 @@ public class UniqueAttributeValidationResolverTest {
     private final String TEST_STORAGE_CODE = "test_storage_code";
     private final String UNIQUE_STRING = "unique";
     private final String DB_CONTAINS_STRING = "db";
-    private final Structure.Attribute attribute = Structure.Attribute.build(TEST_ATTRIBUTE, TEST_ATTRIBUTE, FieldType.STRING, null);
+    private final Structure.Attribute attribute =
+            Structure.Attribute.build(TEST_ATTRIBUTE, TEST_ATTRIBUTE, FieldType.STRING, null);
 
     @Mock
     SearchDataService searchDataService;
@@ -49,8 +50,6 @@ public class UniqueAttributeValidationResolverTest {
                 1,
                 singletonList(new LongRowValue(new StringField(TEST_ATTRIBUTE).valueOf(DB_CONTAINS_STRING))),
                 new Criteria()));
-
-
     }
 
     @Test

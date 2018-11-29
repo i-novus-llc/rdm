@@ -5,52 +5,62 @@ import net.n2oapp.platform.i18n.UserException;
 import org.junit.Test;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.model.validation.FloatSizeValidationValue;
+import ru.inovus.ms.rdm.model.validation.FloatSizeAttributeValidation;
 
 import java.math.BigDecimal;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static ru.inovus.ms.rdm.validation.resolver.FloatSizeAttributeValidationResolver.FLOAT_FRAC_SIZE_EXCEPTION_CODE;
 import static ru.inovus.ms.rdm.validation.resolver.FloatSizeAttributeValidationResolver.FLOAT_INT_SIZE_EXCEPTION_CODE;
 
 public class FloatSizeAttributeValidationResolverTest {
+    private final String TEST_ATTRIBUTE = "test_attribute";
+    private final String wrongEntityValue = "2";
+    private final String entityValue = "2;3";
+    private final int intPartSize = 2;
+    private final int fracPartSize = 3;
+    private final BigDecimal longInt = BigDecimal.valueOf(123.123);
+    private final BigDecimal longFrac = BigDecimal.valueOf(23.1234);
+    private final BigDecimal testValue = BigDecimal.valueOf(23.123);
+    private final Structure.Attribute wrongAttribute =
+            Structure.Attribute.build(TEST_ATTRIBUTE, TEST_ATTRIBUTE, FieldType.INTEGER, null);
+    private final Structure.Attribute attribute =
+            Structure.Attribute.build(TEST_ATTRIBUTE, TEST_ATTRIBUTE, FieldType.FLOAT, null);
 
+    /**
+     * создание FloatSizeAttributeValidationResolver с неправильным типом атрибута
+     */
     @Test
-    public void testResolve() {
-        final String TEST_ATTRIBUTE = "test_attribute";
-        final int intPartSize = 2;
-        final int fracPartSize = 3;
-        final String wrongEntityValue = "2";
-        final String entityValue = "2;3";
-        final BigDecimal longInt = BigDecimal.valueOf(123.123);
-        final BigDecimal longFrac = BigDecimal.valueOf(23.1234);
-        final BigDecimal testValue = BigDecimal.valueOf(23.123);
-        final Structure.Attribute wrongAttribute =
-                Structure.Attribute.build(TEST_ATTRIBUTE, TEST_ATTRIBUTE, FieldType.INTEGER, null);
-        final Structure.Attribute attribute =
-                Structure.Attribute.build(TEST_ATTRIBUTE, TEST_ATTRIBUTE, FieldType.FLOAT, null);
-
-        //создание с неправильным типом типом атрибута
+    public void testInvalidType() {
         try {
             new FloatSizeAttributeValidationResolver(wrongAttribute, intPartSize, fracPartSize);
+            fail();
         } catch (UserException e) {
             assertEquals("attribute.validation.type.invalid", e.getCode());
         }
+    }
 
-        //создание validationValue с из неправильной строки
+    /**
+     * заполнение FloatSizeAttributeValidation из строки
+     */
+    @Test
+    public void testInvalidStringValue() {
+        //из неправильной строки
         try {
-            new FloatSizeValidationValue().valueFromString(wrongEntityValue);
+            new FloatSizeAttributeValidation().valueFromString(wrongEntityValue);
+            fail();
         } catch (UserException e) {
             assertEquals("attribute.validation.value.invalid", e.getCode());
         }
+        //из правильной строки
+        FloatSizeAttributeValidation validation = new FloatSizeAttributeValidation().valueFromString(entityValue);
+        assertEquals(intPartSize, validation.getIntPartSize());
+        assertEquals(fracPartSize, validation.getFracPartSize());
+    }
 
-        FloatSizeValidationValue validationValue = new FloatSizeValidationValue().valueFromString(entityValue);
-        FloatSizeAttributeValidationResolver resolver = new FloatSizeAttributeValidationResolver(attribute, validationValue);
-        assertEquals(intPartSize, validationValue.getIntPartSize());
-        assertEquals(fracPartSize, validationValue.getFracPartSize());
-
-        //проверка работы
+    @Test
+    public void testResolve() {
+        FloatSizeAttributeValidationResolver resolver = new FloatSizeAttributeValidationResolver(attribute, intPartSize, fracPartSize);
         Message actual = resolver.resolve(longInt);
         assertEquals(FLOAT_INT_SIZE_EXCEPTION_CODE, actual.getCode());
         actual = resolver.resolve(longFrac);

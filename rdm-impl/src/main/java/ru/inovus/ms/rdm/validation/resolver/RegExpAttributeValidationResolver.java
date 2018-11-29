@@ -4,7 +4,7 @@ import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.model.validation.RegExpValidationValue;
+import ru.inovus.ms.rdm.model.validation.RegExpAttributeValidation;
 
 /**
  * Проверка сответствия регулярному выражению.
@@ -24,7 +24,7 @@ public class RegExpAttributeValidationResolver implements AttributeValidationRes
         this.regExp = regExp;
     }
 
-    public RegExpAttributeValidationResolver(Structure.Attribute attribute, RegExpValidationValue validationValue) {
+    public RegExpAttributeValidationResolver(Structure.Attribute attribute, RegExpAttributeValidation validationValue) {
         this(attribute, validationValue.getRegExp());
     }
 

@@ -4,7 +4,7 @@ import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.model.validation.FloatRangeValidationValue;
+import ru.inovus.ms.rdm.model.validation.FloatRangeAttributeValidation;
 
 import java.math.BigDecimal;
 
@@ -28,7 +28,7 @@ public class FloatRangeAttributeValidationResolver implements AttributeValidatio
         this.max = max;
     }
 
-    public FloatRangeAttributeValidationResolver(Structure.Attribute attribute, FloatRangeValidationValue validationValue) {
+    public FloatRangeAttributeValidationResolver(Structure.Attribute attribute, FloatRangeAttributeValidation validationValue) {
         this(attribute, validationValue.getMin(), validationValue.getMax());
     }
 

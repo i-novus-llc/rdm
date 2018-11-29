@@ -5,45 +5,56 @@ import net.n2oapp.platform.i18n.UserException;
 import org.junit.Test;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.model.validation.RegExpValidationValue;
+import ru.inovus.ms.rdm.model.validation.RegExpAttributeValidation;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static ru.inovus.ms.rdm.validation.resolver.RegExpAttributeValidationResolver.REG_EXP_EXCEPTION_CODE;
 
 public class RegExpAttributeValidationResolverTest {
 
-    @Test
-    public void testResolve() {
-        final String TEST_ATTRIBUTE = "test_attribute";
-        final int size = 5;
-        final String wrongEntityValue = "(";
-        final String entityValue = "^.{1}$";
-        final String matchString = "a";
-        final String notMatchString = "aa";
-        final Structure.Attribute wrongAttribute =
-                Structure.Attribute.build(TEST_ATTRIBUTE, TEST_ATTRIBUTE, FieldType.FLOAT, null);
-        final Structure.Attribute attribute =
-                Structure.Attribute.build(TEST_ATTRIBUTE, TEST_ATTRIBUTE, FieldType.STRING, null);
+    private final String TEST_ATTRIBUTE = "test_attribute";
+    private final String wrongEntityValue = "(";
+    private final String regExp = "^.{1}$";
+    private final String matchString = "a";
+    private final String notMatchString = "aa";
+    private final Structure.Attribute wrongAttribute =
+            Structure.Attribute.build(TEST_ATTRIBUTE, TEST_ATTRIBUTE, FieldType.FLOAT, null);
+    private final Structure.Attribute attribute =
+            Structure.Attribute.build(TEST_ATTRIBUTE, TEST_ATTRIBUTE, FieldType.STRING, null);
 
-        //создание с неправильным типом типом атрибута
+    /**
+     * создание RegExpAttributeValidationResolver с неправильным типом атрибута
+     */
+    @Test
+    public void testInvalidType() {
         try {
-            new RegExpAttributeValidationResolver(wrongAttribute, "");
+            new RegExpAttributeValidationResolver(wrongAttribute, regExp);
+            fail();
         } catch (UserException e) {
             assertEquals("attribute.validation.type.invalid", e.getCode());
         }
+    }
 
-        //создание validationValue с из неправильной строки
+    /**
+     * заполнение RegExpAttributeValidation из строки
+     */
+    @Test
+    public void testInvalidStringValue() {
+        //из неправильной строки
         try {
-            new RegExpValidationValue().valueFromString(wrongEntityValue);
+            new RegExpAttributeValidation().valueFromString(wrongEntityValue);
+            fail();
         } catch (UserException e) {
             assertEquals("attribute.validation.value.invalid", e.getCode());
         }
+        //из правильной строки
+        RegExpAttributeValidation validation = new RegExpAttributeValidation().valueFromString(regExp);
+        assertEquals(regExp, validation.getRegExp());
+    }
 
-        RegExpValidationValue validationValue = new RegExpValidationValue().valueFromString(entityValue);
-        RegExpAttributeValidationResolver resolver = new RegExpAttributeValidationResolver(attribute, validationValue);
-
-        //проверка работы
+    @Test
+    public void testResolve() {
+        RegExpAttributeValidationResolver resolver = new RegExpAttributeValidationResolver(attribute, regExp);
         Message actual = resolver.resolve(notMatchString);
         assertEquals(REG_EXP_EXCEPTION_CODE, actual.getCode());
         assertNull(resolver.resolve(matchString));

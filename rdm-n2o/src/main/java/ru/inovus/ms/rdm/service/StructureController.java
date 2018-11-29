@@ -35,7 +35,7 @@ public class StructureController {
 
         Structure structure = versionService.getStructure(criteria.getVersionId());
 
-        List<AttributeValidationValue> attributeValidations = draftService.getAttributeValidations(criteria.getVersionId(), null);
+        List<AttributeValidation> attributeValidations = draftService.getAttributeValidations(criteria.getVersionId(), null);
 
         if (structure != null)
             structure.getAttributes().forEach(a -> {
@@ -73,28 +73,28 @@ public class StructureController {
         draftService.deleteAttributeValidation(versionId, attribute.getCode(), null);
     }
 
-    private List<AttributeValidationValue> createValidations(Attribute attribute) {
-        List<AttributeValidationValue> validations = new ArrayList<>();
+    private List<AttributeValidation> createValidations(Attribute attribute) {
+        List<AttributeValidation> validations = new ArrayList<>();
         if (Boolean.TRUE.equals(attribute.getRequired()))
-            validations.add(new RequiredValidationValue());
+            validations.add(new RequiredAttributeValidation());
         if (Boolean.TRUE.equals(attribute.getUnique()))
-            validations.add(new UniqueValidationValue());
+            validations.add(new UniqueAttributeValidation());
         if (attribute.getPlainSize() != null)
-            validations.add(new PlainSizeValidationValue(attribute.getPlainSize()));
+            validations.add(new PlainSizeAttributeValidation(attribute.getPlainSize()));
         if (attribute.getIntPartSize() != null || attribute.getFracPartSize() != null) {
-            validations.add(new FloatSizeValidationValue(attribute.getIntPartSize(), attribute.getFracPartSize()));
+            validations.add(new FloatSizeAttributeValidation(attribute.getIntPartSize(), attribute.getFracPartSize()));
         }
         if (attribute.getMinInteger() != null || attribute.getMaxInteger() != null) {
-            validations.add(new IntRangeValidationValue(attribute.getMinInteger(), attribute.getMaxInteger()));
+            validations.add(new IntRangeAttributeValidation(attribute.getMinInteger(), attribute.getMaxInteger()));
         }
         if (attribute.getMinFloat() != null || attribute.getMaxFloat() != null) {
-            validations.add(new FloatRangeValidationValue(attribute.getMinFloat(), attribute.getMaxFloat()));
+            validations.add(new FloatRangeAttributeValidation(attribute.getMinFloat(), attribute.getMaxFloat()));
         }
         if (attribute.getMinDate() != null || attribute.getMaxDate() != null) {
-            validations.add(new DateRangeValidationValue(attribute.getMinDate(), attribute.getMaxDate()));
+            validations.add(new DateRangeAttributeValidation(attribute.getMinDate(), attribute.getMaxDate()));
         }
         if (attribute.getRegExp() != null) {
-            validations.add(new RegExpValidationValue(attribute.getRegExp()));
+            validations.add(new RegExpAttributeValidation(attribute.getRegExp()));
         }
         return validations;
     }
@@ -109,8 +109,8 @@ public class StructureController {
         attribute.setReferenceDisplayExpression(reference.getDisplayExpression());
     }
 
-    private void enrich(ReadAttribute attribute, List<AttributeValidationValue> validations) {
-        for (AttributeValidationValue validation : validations) {
+    private void enrich(ReadAttribute attribute, List<AttributeValidation> validations) {
+        for (AttributeValidation validation : validations) {
             switch (validation.getType()) {
                 case REQUIRED:
                     attribute.setRequired(true);
@@ -119,37 +119,37 @@ public class StructureController {
                     attribute.setUnique(true);
                     break;
                 case PLAIN_SIZE:
-                    attribute.setPlainSize(((PlainSizeValidationValue) validation).getSize());
+                    attribute.setPlainSize(((PlainSizeAttributeValidation) validation).getSize());
                     break;
                 case FLOAT_SIZE:
-                    FloatSizeValidationValue floatSize = (FloatSizeValidationValue) validation;
+                    FloatSizeAttributeValidation floatSize = (FloatSizeAttributeValidation) validation;
                     attribute.setIntPartSize(floatSize.getIntPartSize());
                     attribute.setFracPartSize(floatSize.getFracPartSize());
                     break;
                 case INT_RANGE:
-                    IntRangeValidationValue intRange = (IntRangeValidationValue) validation;
+                    IntRangeAttributeValidation intRange = (IntRangeAttributeValidation) validation;
                     attribute.setMinInteger(intRange.getMin());
                     attribute.setMaxInteger(intRange.getMax());
                     break;
                 case FLOAT_RANGE:
-                    FloatRangeValidationValue floatRange = (FloatRangeValidationValue) validation;
+                    FloatRangeAttributeValidation floatRange = (FloatRangeAttributeValidation) validation;
                     attribute.setMinFloat(floatRange.getMin());
                     attribute.setMaxFloat(floatRange.getMax());
                     break;
                 case DATE_RANGE:
-                    DateRangeValidationValue dateRange = (DateRangeValidationValue) validation;
+                    DateRangeAttributeValidation dateRange = (DateRangeAttributeValidation) validation;
                     attribute.setMinDate(dateRange.getMin());
                     attribute.setMaxDate(dateRange.getMax());
                     break;
                 case REG_EXP:
-                    attribute.setRegExp(((RegExpValidationValue) validation).getRegExp());
+                    attribute.setRegExp(((RegExpAttributeValidation) validation).getRegExp());
                     break;
                 default:break;
             }
         }
     }
 
-    private List<AttributeValidationValue> filterByAttribute(List<AttributeValidationValue> validations, String attribute) {
+    private List<AttributeValidation> filterByAttribute(List<AttributeValidation> validations, String attribute) {
         return validations.stream().filter(v -> Objects.equals(attribute, v.getAttribute())).collect(Collectors.toList());
     }
 

@@ -1,8 +1,8 @@
 package ru.inovus.ms.rdm.model.validation;
 
-public class UniqueValidationValue extends AttributeValidationValue {
+public class UniqueAttributeValidation extends AttributeValidation {
 
-    public UniqueValidationValue() {
+    public UniqueAttributeValidation() {
         super(AttributeValidationType.UNIQUE);
     }
 
@@ -12,7 +12,7 @@ public class UniqueValidationValue extends AttributeValidationValue {
     }
 
     @Override
-    public AttributeValidationValue valueFromString(String value) {
+    public AttributeValidation valueFromString(String value) {
         return this;
     }
 }

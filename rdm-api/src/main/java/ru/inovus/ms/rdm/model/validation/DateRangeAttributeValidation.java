@@ -8,16 +8,16 @@ import java.time.LocalDate;
 
 import static ru.inovus.ms.rdm.util.TimeUtils.format;
 
-public class DateRangeValidationValue extends AttributeValidationValue {
+public class DateRangeAttributeValidation extends AttributeValidation {
 
     private LocalDate min;
     private LocalDate max;
 
-    public DateRangeValidationValue() {
+    public DateRangeAttributeValidation() {
         super(AttributeValidationType.DATE_RANGE);
     }
 
-    public DateRangeValidationValue(LocalDate min, LocalDate max) {
+    public DateRangeAttributeValidation(LocalDate min, LocalDate max) {
         this();
         this.min = min;
         this.max = max;
@@ -45,7 +45,7 @@ public class DateRangeValidationValue extends AttributeValidationValue {
     }
 
     @Override
-    public DateRangeValidationValue valueFromString(String value) {
+    public DateRangeAttributeValidation valueFromString(String value) {
         if (value == null || !value.matches("^(\\d{2}\\.\\d{2}\\.\\d{4})*;(\\d{2}\\.\\d{2}\\.\\d{4})*$"))
             throw new UserException("attribute.validation.value.invalid");
         String[] split = value.split(";");

@@ -1,8 +1,8 @@
 package ru.inovus.ms.rdm.model.validation;
 
-public class RequiredValidationValue extends AttributeValidationValue {
+public class RequiredAttributeValidation extends AttributeValidation {
 
-    public RequiredValidationValue() {
+    public RequiredAttributeValidation() {
         super(AttributeValidationType.REQUIRED);
     }
 
@@ -12,7 +12,7 @@ public class RequiredValidationValue extends AttributeValidationValue {
     }
 
     @Override
-    public AttributeValidationValue valueFromString(String value) {
+    public AttributeValidation valueFromString(String value) {
         return this;
     }
 }
