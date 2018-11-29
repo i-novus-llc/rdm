@@ -73,11 +73,11 @@ public class XlsFileGenerateProcessTest {
     private Structure createTestStructure() {
         Structure structure = new Structure();
         structure.setAttributes(Arrays.asList(
-                Structure.Attribute.build("ID", "ID", FieldType.INTEGER, false, "ID"),
-                Structure.Attribute.build("NAME", "NAME", FieldType.STRING, false, "NAME"),
-                Structure.Attribute.build("DATE_COL", "DATE_COL", FieldType.DATE, false, "DATE_COL"),
-                Structure.Attribute.build("BOOL_COL", "BOOL_COL", FieldType.BOOLEAN, false, "DATE_COL"),
-                Structure.Attribute.build("FLOAT_COL", "FLOAT_COL", FieldType.FLOAT, false, "FLOAT_COL")));
+                Structure.Attribute.build("ID", "ID", FieldType.INTEGER, "ID"),
+                Structure.Attribute.build("NAME", "NAME", FieldType.STRING, "NAME"),
+                Structure.Attribute.build("DATE_COL", "DATE_COL", FieldType.DATE, "DATE_COL"),
+                Structure.Attribute.build("BOOL_COL", "BOOL_COL", FieldType.BOOLEAN, "DATE_COL"),
+                Structure.Attribute.build("FLOAT_COL", "FLOAT_COL", FieldType.FLOAT, "FLOAT_COL")));
         return structure;
     }
 

@@ -49,7 +49,7 @@ public class CreateDraftBufferedRowsPersister implements RowsProcessor {
     private Structure fields(Row row) {
         List<Structure.Attribute> attributes = new ArrayList<>();
         row.getData().keySet().forEach(columnName ->
-            attributes.add(Structure.Attribute.build(columnName, columnName, FieldType.STRING, false, columnName))
+            attributes.add(Structure.Attribute.build(columnName, columnName, FieldType.STRING, columnName))
         );
         return new Structure(attributes, null);
     }

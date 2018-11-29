@@ -17,8 +17,6 @@ public class AttributeDiff {
 
     private AttributeFieldDiff isPrimary;
 
-    private AttributeFieldDiff isRequired;
-
     private AttributeFieldDiff description;
 
     private DiffStatusEnum diffStatus;
@@ -26,12 +24,11 @@ public class AttributeDiff {
     public AttributeDiff() {
     }
 
-    public AttributeDiff(String code, AttributeFieldDiff name, AttributeFieldDiff type, AttributeFieldDiff isPrimary, AttributeFieldDiff isRequired, AttributeFieldDiff description, DiffStatusEnum diffStatus) {
+    public AttributeDiff(String code, AttributeFieldDiff name, AttributeFieldDiff type, AttributeFieldDiff isPrimary, AttributeFieldDiff description, DiffStatusEnum diffStatus) {
         this.code = code;
         this.name = name;
         this.type = type;
         this.isPrimary = isPrimary;
-        this.isRequired = isRequired;
         this.description = description;
         this.diffStatus = diffStatus;
     }
@@ -68,14 +65,6 @@ public class AttributeDiff {
         this.isPrimary = isPrimary;
     }
 
-    public AttributeFieldDiff getIsRequired() {
-        return isRequired;
-    }
-
-    public void setIsRequired(AttributeFieldDiff isRequired) {
-        this.isRequired = isRequired;
-    }
-
     public AttributeFieldDiff getDescription() {
         return description;
     }
@@ -103,7 +92,6 @@ public class AttributeDiff {
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (type != null ? !type.equals(that.type) : that.type != null) return false;
         if (isPrimary != null ? !isPrimary.equals(that.isPrimary) : that.isPrimary != null) return false;
-        if (isRequired != null ? !isRequired.equals(that.isRequired) : that.isRequired != null) return false;
         if (description != null ? !description.equals(that.description) : that.description != null) return false;
         return diffStatus == that.diffStatus;
 
@@ -115,7 +103,6 @@ public class AttributeDiff {
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (isPrimary != null ? isPrimary.hashCode() : 0);
-        result = 31 * result + (isRequired != null ? isRequired.hashCode() : 0);
         result = 31 * result + (description != null ? description.hashCode() : 0);
         result = 31 * result + (diffStatus != null ? diffStatus.hashCode() : 0);
         return result;

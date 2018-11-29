@@ -18,7 +18,6 @@ public class UpdateAttribute extends UpdatableDto {
     private UpdateValue<String> name;
     private FieldType type;
     private UpdateValue<Boolean> isPrimary;
-    private UpdateValue<Boolean> isRequired;
     private UpdateValue<String> description;
 
     // поля Structure.Reference
@@ -39,8 +38,6 @@ public class UpdateAttribute extends UpdatableDto {
         this.type = attribute.getType();
         if (attribute.getIsPrimary() != null)
             this.isPrimary = of(attribute.getIsPrimary());
-        if (attribute.getIsRequired() != null)
-            this.isRequired = attribute.getIsPrimary() ? of(true) : of(attribute.getIsRequired());
         if (attribute.getDescription() != null)
             setDescription(of(attribute.getDescription()));
         //reference fields
@@ -94,19 +91,6 @@ public class UpdateAttribute extends UpdatableDto {
 
     public void setIsPrimary(UpdateValue<Boolean> isPrimary) {
         this.isPrimary = isPrimary;
-        if (isPrimary != null && isPrimary.isPresent() && isPrimary.get())
-            setIsRequired(of(true));
-    }
-
-    public UpdateValue<Boolean> getIsRequired() {
-        return isRequired;
-    }
-
-    @SuppressWarnings("all")
-    public void setIsRequired(UpdateValue<Boolean> isRequired) {
-        if (isPrimary != null && isPrimary.isPresent() && isPrimary.get() && isRequired != null && isRequired.isPresent() && !isRequired.get())
-            throw new IllegalStateException("primary attribute must be required");
-        this.isRequired = isRequired;
     }
 
     public UpdateValue<String> getDescription() {

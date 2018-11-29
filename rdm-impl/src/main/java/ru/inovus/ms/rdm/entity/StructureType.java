@@ -73,7 +73,6 @@ public class StructureType implements UserType {
                 String description = getByKey(attributeJson, "description", JsonNode::asText);
                 String type = getByKey(attributeJson, "type", JsonNode::asText);
                 boolean isPrimary = getByKey(attributeJson, "isPrimary", JsonNode::asBoolean);
-                boolean isRequired = getByKey(attributeJson, "isRequired", JsonNode::asBoolean);
                 Integer referenceVersion = getByKey(attributeJson, "referenceVersion", JsonNode::asInt);
                 String referenceAttribute = getByKey(attributeJson, "referenceAttribute", JsonNode::asText);
                 String displayExpression = getByKey(attributeJson, "referenceDisplayExpression", JsonNode::asText);
@@ -81,7 +80,7 @@ public class StructureType implements UserType {
                 if (isPrimary) {
                     attribute = Structure.Attribute.buildPrimary(code, name, FieldType.valueOf(type), description);
                 } else {
-                    attribute = Structure.Attribute.build(code, name, FieldType.valueOf(type), isRequired, description);
+                    attribute = Structure.Attribute.build(code, name, FieldType.valueOf(type), description);
                 }
                 if (FieldType.valueOf(type).equals(FieldType.REFERENCE)) {
                     Structure.Reference reference = new Structure.Reference(code, referenceVersion, referenceAttribute, displayExpression);
@@ -125,7 +124,6 @@ public class StructureType implements UserType {
         attributeJson.put("name", attribute.getName());
         attributeJson.put("type", attribute.getType().name());
         attributeJson.put("isPrimary", attribute.getIsPrimary());
-        attributeJson.put("isRequired", attribute.getIsRequired());
         Optional.ofNullable(attribute.getDescription()).ifPresent(d -> attributeJson.put("description", attribute.getDescription()));
         Structure.Reference reference = structure.getReference(attribute.getCode());
         if (reference != null) {

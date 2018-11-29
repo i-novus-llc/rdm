@@ -60,7 +60,8 @@ public class RowsValidatorTest {
 
     @Before
     public void setUp() {
-        rowsValidator = new RowsValidatorImpl(versionService, searchDataService, createTestStructureWithReference(), "", 100);
+        rowsValidator = new RowsValidatorImpl(versionService, searchDataService, createTestStructureWithReference(), "",
+                100, Collections.emptyList());
         when(fieldFactory.createField(eq(REFERENCE_ATTRIBUTE), eq(FieldType.STRING)))
                 .thenReturn(new StringField(REFERENCE_ATTRIBUTE));
         when(versionService.getStructure(eq(REFERENCE_VERSION)))
@@ -129,7 +130,7 @@ public class RowsValidatorTest {
 
     private Structure createTestStructureWithReference() {
         Structure structure = new Structure();
-        structure.setAttributes(Collections.singletonList(Structure.Attribute.build(ATTRIBUTE_NAME, ATTRIBUTE_NAME, FieldType.REFERENCE, false, "description")));
+        structure.setAttributes(Collections.singletonList(Structure.Attribute.build(ATTRIBUTE_NAME, ATTRIBUTE_NAME, FieldType.REFERENCE, "description")));
         structure.setReferences(Collections.singletonList(new Structure.Reference(ATTRIBUTE_NAME, REFERENCE_VERSION, REFERENCE_ATTRIBUTE, null)));
         return structure;
     }

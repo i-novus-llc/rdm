@@ -38,7 +38,7 @@ public class NonStrictOnTypeRowMapperTest {
         int referenceVersion = -1;
         RefBookVersionEntity versionEntity = new RefBookVersionEntity();
         versionEntity.setStructure(new Structure(Collections.singletonList(Structure.Attribute.build("count", "count",
-                FieldType.INTEGER, false, "count")), null));
+                FieldType.INTEGER, "count")), null));
         when(versionRepository.findOne(eq(referenceVersion))).thenReturn(versionEntity);
         Map<String, Object> data = new LinkedHashMap<String, Object>() {{
             put("string", "abc");
@@ -69,7 +69,7 @@ public class NonStrictOnTypeRowMapperTest {
         int referenceVersion = -1;
         RefBookVersionEntity versionEntity = new RefBookVersionEntity();
         versionEntity.setStructure(new Structure(Collections.singletonList(Structure.Attribute.build("count", "count",
-                FieldType.INTEGER, false, "count")), null));
+                FieldType.INTEGER, "count")), null));
         when(versionRepository.findOne(eq(referenceVersion))).thenReturn(versionEntity);
         Map<String, Object> data = new LinkedHashMap<String, Object>() {{
             put("string", "abc");
@@ -89,11 +89,11 @@ public class NonStrictOnTypeRowMapperTest {
     private Structure createTestStructure(int referenceVersion) {
         Structure structure = new Structure();
         structure.setAttributes(Arrays.asList(
-                Structure.Attribute.build("string", "string", FieldType.STRING, false, "string"),
-                Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, false, "count"),
-                Structure.Attribute.build("float", "float", FieldType.FLOAT, false, "float"),
-                Structure.Attribute.build("date", "date", FieldType.DATE, false, "date"),
-                Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, false, "boolean")
+                Structure.Attribute.build("string", "string", FieldType.STRING, "string"),
+                Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, "count"),
+                Structure.Attribute.build("float", "float", FieldType.FLOAT, "float"),
+                Structure.Attribute.build("date", "date", FieldType.DATE, "date"),
+                Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, "boolean")
         ));
         structure.setReferences(Collections.singletonList(new Structure.Reference("reference", referenceVersion, "count", toPlaceholder("count"))));
         return structure;

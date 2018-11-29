@@ -1,11 +1,11 @@
 package ru.inovus.ms.rdm.service;
 
 import net.n2oapp.criteria.api.CollectionPage;
-import net.n2oapp.criteria.api.CollectionPageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.validation.*;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
@@ -16,11 +16,12 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static ru.inovus.ms.rdm.model.UpdateValue.of;
 
 @Controller
-public class StructureController implements CollectionPageService<AttributeCriteria, ReadAttribute> {
+public class StructureController {
 
     @Autowired
     private VersionService versionService;
@@ -29,17 +30,20 @@ public class StructureController implements CollectionPageService<AttributeCrite
     @Autowired
     private RefBookService refBookService;
 
-    @Override
     public CollectionPage<ReadAttribute> getCollectionPage(AttributeCriteria criteria) {
         List<ReadAttribute> list = new ArrayList<>();
 
         Structure structure = versionService.getStructure(criteria.getVersionId());
+
+        List<AttributeValidation> attributeValidations = draftService.getAttributeValidations(criteria.getVersionId(), null);
+
         if (structure != null)
             structure.getAttributes().forEach(a -> {
                 if (Objects.isNull(criteria.getCode()) || criteria.getCode().equals(a.getCode())) {
                     Structure.Reference reference = !FieldType.REFERENCE.equals(a.getType()) ? null
                             : structure.getReference(a.getCode());
                     ReadAttribute attribute = model(a, reference);
+                    enrich(attribute, filterByAttribute(attributeValidations, a.getCode()));
                     attribute.setVersionId(criteria.getVersionId());
                     if (reference != null)
                         enrich(attribute, reference);
@@ -56,10 +60,43 @@ public class StructureController implements CollectionPageService<AttributeCrite
         attributeModel.setAttribute(buildAttribute(attribute));
         attributeModel.setReference(buildReference(attribute));
         draftService.createAttribute(attributeModel);
+        draftService.updateAttributeValidations(versionId, attribute.getCode(), createValidations(attribute));
     }
 
     public void updateAttribute(Integer versionId, Attribute attribute) {
         draftService.updateAttribute(getUpdateAttribute(versionId, attribute));
+        draftService.updateAttributeValidations(versionId, attribute.getCode(), createValidations(attribute));
+    }
+
+    public void deleteAttribute(Integer versionId, Attribute attribute) {
+        draftService.deleteAttribute(versionId, attribute.getCode());
+        draftService.deleteAttributeValidation(versionId, attribute.getCode(), null);
+    }
+
+    private List<AttributeValidation> createValidations(Attribute attribute) {
+        List<AttributeValidation> validations = new ArrayList<>();
+        if (Boolean.TRUE.equals(attribute.getRequired()))
+            validations.add(new RequiredAttributeValidation());
+        if (Boolean.TRUE.equals(attribute.getUnique()))
+            validations.add(new UniqueAttributeValidation());
+        if (attribute.getPlainSize() != null)
+            validations.add(new PlainSizeAttributeValidation(attribute.getPlainSize()));
+        if (attribute.getIntPartSize() != null || attribute.getFracPartSize() != null) {
+            validations.add(new FloatSizeAttributeValidation(attribute.getIntPartSize(), attribute.getFracPartSize()));
+        }
+        if (attribute.getMinInteger() != null || attribute.getMaxInteger() != null) {
+            validations.add(new IntRangeAttributeValidation(attribute.getMinInteger(), attribute.getMaxInteger()));
+        }
+        if (attribute.getMinFloat() != null || attribute.getMaxFloat() != null) {
+            validations.add(new FloatRangeAttributeValidation(attribute.getMinFloat(), attribute.getMaxFloat()));
+        }
+        if (attribute.getMinDate() != null || attribute.getMaxDate() != null) {
+            validations.add(new DateRangeAttributeValidation(attribute.getMinDate(), attribute.getMaxDate()));
+        }
+        if (attribute.getRegExp() != null) {
+            validations.add(new RegExpAttributeValidation(attribute.getRegExp()));
+        }
+        return validations;
     }
 
     private void enrich(ReadAttribute attribute, Structure.Reference reference) {
@@ -72,6 +109,50 @@ public class StructureController implements CollectionPageService<AttributeCrite
         attribute.setReferenceDisplayExpression(reference.getDisplayExpression());
     }
 
+    private void enrich(ReadAttribute attribute, List<AttributeValidation> validations) {
+        for (AttributeValidation validation : validations) {
+            switch (validation.getType()) {
+                case REQUIRED:
+                    attribute.setRequired(true);
+                    break;
+                case UNIQUE:
+                    attribute.setUnique(true);
+                    break;
+                case PLAIN_SIZE:
+                    attribute.setPlainSize(((PlainSizeAttributeValidation) validation).getSize());
+                    break;
+                case FLOAT_SIZE:
+                    FloatSizeAttributeValidation floatSize = (FloatSizeAttributeValidation) validation;
+                    attribute.setIntPartSize(floatSize.getIntPartSize());
+                    attribute.setFracPartSize(floatSize.getFracPartSize());
+                    break;
+                case INT_RANGE:
+                    IntRangeAttributeValidation intRange = (IntRangeAttributeValidation) validation;
+                    attribute.setMinInteger(intRange.getMin());
+                    attribute.setMaxInteger(intRange.getMax());
+                    break;
+                case FLOAT_RANGE:
+                    FloatRangeAttributeValidation floatRange = (FloatRangeAttributeValidation) validation;
+                    attribute.setMinFloat(floatRange.getMin());
+                    attribute.setMaxFloat(floatRange.getMax());
+                    break;
+                case DATE_RANGE:
+                    DateRangeAttributeValidation dateRange = (DateRangeAttributeValidation) validation;
+                    attribute.setMinDate(dateRange.getMin());
+                    attribute.setMaxDate(dateRange.getMax());
+                    break;
+                case REG_EXP:
+                    attribute.setRegExp(((RegExpAttributeValidation) validation).getRegExp());
+                    break;
+                default:break;
+            }
+        }
+    }
+
+    private List<AttributeValidation> filterByAttribute(List<AttributeValidation> validations, String attribute) {
+        return validations.stream().filter(v -> Objects.equals(attribute, v.getAttribute())).collect(Collectors.toList());
+    }
+
     private String getAttributeName(String attributeCode, Integer versionId) {
         return versionService.getStructure(versionId).getAttribute(attributeCode).getName();
     }
@@ -81,11 +162,11 @@ public class StructureController implements CollectionPageService<AttributeCrite
             return Structure.Attribute.buildPrimary(request.getCode(),
                     request.getName(), request.getType(), request.getDescription());
         else {
-            return Structure.Attribute.build(request.getCode(),
-                    request.getName(), request.getType(),
-                    request.getIsRequired(), request.getDescription());
+            return Structure.Attribute.build(request.getCode(), request.getName(),
+                    request.getType(), request.getDescription());
         }
     }
+
     private Structure.Reference buildReference(Attribute request) {
         return new Structure.Reference(request.getCode(),
                 request.getReferenceVersion(), request.getReferenceAttribute(),
@@ -100,8 +181,6 @@ public class StructureController implements CollectionPageService<AttributeCrite
         if (attribute.getName() != null)
             updateAttribute.setName(of(attribute.getName()));
         updateAttribute.setType(attribute.getType());
-        if (attribute.getIsRequired() != null)
-            updateAttribute.setIsRequired(of(attribute.getIsRequired()));
         if (attribute.getIsPrimary() != null)
             updateAttribute.setIsPrimary(of(attribute.getIsPrimary()));
         if (attribute.getDescription() != null)
@@ -122,7 +201,6 @@ public class StructureController implements CollectionPageService<AttributeCrite
         attribute.setName(structureAttribute.getName());
         attribute.setDescription(structureAttribute.getDescription());
         attribute.setType(structureAttribute.getType());
-        attribute.setIsRequired(structureAttribute.getIsRequired());
         attribute.setIsPrimary(structureAttribute.getIsPrimary());
         if (Objects.nonNull(reference)) {
             attribute.setReferenceVersion(reference.getReferenceVersion());

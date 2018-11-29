@@ -54,7 +54,7 @@ public class DBPrimaryKeyValidationTest {
                 Structure.Attribute.buildPrimary(PK_DATE, "date", FieldType.DATE, "date"),
                 Structure.Attribute.buildPrimary(PK_BOOL, "boolean", FieldType.BOOLEAN, "boolean"),
                 Structure.Attribute.buildPrimary(PK_INTEGER, "integer", FieldType.INTEGER, "integer"),
-                Structure.Attribute.build(NOT_PK, "not_pk", FieldType.INTEGER, false, "integer")
+                Structure.Attribute.build(NOT_PK, "not_pk", FieldType.INTEGER, "integer")
         ));
 
         Map<String, Object> pkRowMap = new HashMap<>();
@@ -69,7 +69,7 @@ public class DBPrimaryKeyValidationTest {
 
         noPkStructure = new Structure();
         noPkStructure.setAttributes(Collections.singletonList(
-                Structure.Attribute.build(NOT_PK, "not_pk", FieldType.INTEGER, false, "integer")
+                Structure.Attribute.build(NOT_PK, "not_pk", FieldType.INTEGER, "integer")
         ));
 
         Map<String, Object> noPkRowMap = new HashMap<>();

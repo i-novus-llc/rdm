@@ -54,9 +54,9 @@ public class XlsPerRowProcessorTest {
     private Structure createTestStructure() {
         Structure structure = new Structure();
         structure.setAttributes(Arrays.asList(
-                Structure.Attribute.build("Kod", "Kod", FieldType.INTEGER, false, "Kod"),
-                Structure.Attribute.build("Opis", "Opis", FieldType.STRING, false, "Opis"),
-                Structure.Attribute.build("DATEBEG", "DATEBEG", FieldType.DATE, false, "DATEBEG")));
+                Structure.Attribute.build("Kod", "Kod", FieldType.INTEGER, "Kod"),
+                Structure.Attribute.build("Opis", "Opis", FieldType.STRING, "Opis"),
+                Structure.Attribute.build("DATEBEG", "DATEBEG", FieldType.DATE, "DATEBEG")));
         return structure;
     }
 

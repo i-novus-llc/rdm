@@ -2,7 +2,9 @@ package ru.inovus.ms.rdm.file;
 
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
+import org.apache.cxf.common.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
+import ru.inovus.ms.rdm.entity.AttributeValidationEntity;
 import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
@@ -29,15 +31,19 @@ public class RowsValidatorImpl implements RowsValidator {
 
     private String storageCode;
 
-    private UniqueRowAppendValidation uniqueRowAppendValidation;
+    private PkUniqueRowAppendValidation pkUniqueRowAppendValidation;
+
+    private AttributeCustomValidation attributeCustomValidation;
 
 
-    public RowsValidatorImpl(VersionService versionService, SearchDataService searchDataService, Structure structure, String storageCode, int errorCountLimit) {
+    public RowsValidatorImpl(VersionService versionService, SearchDataService searchDataService, Structure structure,
+                             String storageCode, int errorCountLimit, List<AttributeValidationEntity> attributeValidations) {
         this.versionService = versionService;
         this.structure = structure;
         this.searchDataService = searchDataService;
         this.storageCode = storageCode;
-        this.uniqueRowAppendValidation = new UniqueRowAppendValidation(structure);
+        this.pkUniqueRowAppendValidation = new PkUniqueRowAppendValidation(structure);
+        this.attributeCustomValidation = new AttributeCustomValidation(attributeValidations, structure, searchDataService, storageCode);
         if (errorCountLimit > 0) this.errorCountLimit = errorCountLimit;
     }
 
@@ -47,13 +53,15 @@ public class RowsValidatorImpl implements RowsValidator {
         Set<String> errorAttributes = new HashSet<>();
         if (row.getData().values().stream().filter(Objects::nonNull).anyMatch(v -> !"".equals(v))) {
             List<ErrorAttributeHolderValidation> validations = Arrays.asList(
-                    new RequiredValidation(row, structure),
+                    new PkRequiredValidation(row, structure),
                     new TypeValidation(row.getData(), structure),
                     new ReferenceValueValidation(versionService, row, structure),
                     new DBPrimaryKeyValidation(searchDataService, structure, row, storageCode),
-                    uniqueRowAppendValidation
+                    pkUniqueRowAppendValidation,
+                    attributeCustomValidation
             );
-            uniqueRowAppendValidation.appendRow(row);
+            pkUniqueRowAppendValidation.appendRow(row);
+            attributeCustomValidation.appendRow(row);
 
             for (ErrorAttributeHolderValidation validation : validations) {
                 validation.setErrorAttributes(errorAttributes);
@@ -73,7 +81,7 @@ public class RowsValidatorImpl implements RowsValidator {
 
     @Override
     public Result process() {
-        if (!result.getErrors().isEmpty())
+        if (!CollectionUtils.isEmpty(result.getErrors()))
             throw new UserException(result.getErrors());
         return result;
     }
