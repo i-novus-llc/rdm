@@ -1,11 +1,11 @@
 package ru.inovus.ms.rdm.file.export;
 
 import com.google.common.collect.ImmutableMap;
+import com.monitorjbl.xlsx.StreamingReader;
 import net.n2oapp.platform.i18n.UserException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.usermodel.*;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
@@ -174,8 +174,9 @@ public class XlsxCompareFileGeneratorTest {
         try (OutputStream os = new FileOutputStream(tempFile)) {
             xlsxCompareGenerator.generate(os);
         }
-        try (XSSFWorkbook expected = new XSSFWorkbook(XlsxCompareFileGeneratorTest.class.getResourceAsStream("/file/export/compare_test/compared_file.xlsx"));
-             XSSFWorkbook actual = new XSSFWorkbook(tempFile)) {
+        try (Workbook expected = StreamingReader.builder().rowCacheSize(100)
+                .open(XlsxCompareFileGeneratorTest.class.getResourceAsStream("/file/export/compare_test/compared_file.xlsx"));
+             Workbook actual = StreamingReader.builder().rowCacheSize(100).open(tempFile)) {
 
             assertWorkbookEquals(expected, actual);
         }
@@ -190,8 +191,9 @@ public class XlsxCompareFileGeneratorTest {
         try (OutputStream os = new FileOutputStream(tempFile)) {
             xlsxCompareGenerator.generate(os);
         }
-        try (XSSFWorkbook expected = new XSSFWorkbook(XlsxCompareFileGeneratorTest.class.getResourceAsStream("/file/export/compare_test/compared_no_data.xlsx"));
-             XSSFWorkbook actual = new XSSFWorkbook(tempFile)) {
+        try (Workbook expected = StreamingReader.builder().rowCacheSize(100)
+                .open(XlsxCompareFileGeneratorTest.class.getResourceAsStream("/file/export/compare_test/compared_no_data.xlsx"));
+             Workbook actual = StreamingReader.builder().rowCacheSize(100).open(tempFile)) {
 
             assertWorkbookEquals(expected, actual);
         }
