@@ -63,6 +63,7 @@ public interface DraftService {
             @ApiResponse(code = 200, message = "Черновик обновлен"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
+
     @Path("/updateFromFile/{draftId}")
     void updateData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId, FileModel fileModel);
 

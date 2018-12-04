@@ -222,7 +222,7 @@ public class ApplicationTest {
         assertNotNull(draft.getStorageCode());
 
         // изменение метеданных справочника
-        refBookUpdateRequest.setId(refBook.getId());
+        refBookUpdateRequest.setVersionId(refBook.getId());
         RefBook updatedRefBook = refBookService.update(refBookUpdateRequest);
         refBook.setCode(refBookUpdateRequest.getCode());
         Map<String, String> expectedAttributesAfterUpdate = new HashMap<>();

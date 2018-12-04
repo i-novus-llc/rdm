@@ -2,15 +2,15 @@ package ru.inovus.ms.rdm.model;
 
 public class RefBookUpdateRequest extends RefBookCreateRequest {
 
-    private Integer id;
+    private Integer versionId;
     private String comment;
 
-    public Integer getId() {
-        return id;
+    public Integer getVersionId() {
+        return versionId;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public void setVersionId(Integer versionId) {
+        this.versionId = versionId;
     }
 
     public String getComment() {

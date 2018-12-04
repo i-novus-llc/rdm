@@ -7,18 +7,22 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.model.RefBookVersion;
 import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.util.TimeUtils;
 
 import java.io.*;
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static org.custommonkey.xmlunit.XMLUnit.compareXML;
 import static org.junit.Assert.assertTrue;
 import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
+import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDate;
 
 public class XmlFileGenerateProcessTest {
 
@@ -33,24 +37,10 @@ public class XmlFileGenerateProcessTest {
             put("description", "описание");
         }});
 
-        List<Row> rows = asList(
-                new Row(new LinkedHashMap<String, Object>() {{
-                    put("reference", "2");
-                    put("date", TimeUtils.parseLocalDate("02.02.2002"));
-                    put("boolean", true);
-                    put("string", "string2");
-                    put("integer", BigInteger.valueOf(2));
-                    put("float", 2.2);
-                }}),
-                new Row(new LinkedHashMap<String, Object>() {{
-                    put("reference", "5");
-                    put("date", TimeUtils.parseLocalDate("05.05.2005"));
-                    put("boolean", false);
-                    put("string", "string5");
-                    put("integer", BigInteger.valueOf(5));
-                    put("float", 5.5);
-                }})
-        );
+        List<Row> rows = createRowsValues()
+                .stream()
+                .map(Row::new)
+                .collect(toList());
 
         Reader expectedXml = new InputStreamReader(getClass().getResourceAsStream("/file/export/export.xml"));
         Reader actualXml;
@@ -64,7 +54,7 @@ public class XmlFileGenerateProcessTest {
         assertTrue(compareXML(expectedXml, actualXml).identical());
     }
 
-    private Structure createFullTestStructure() {
+    public static Structure createFullTestStructure() {
         return new Structure(
                 asList(
                         Structure.Attribute.build("string", "string", FieldType.STRING, false, "строка"),
@@ -76,6 +66,27 @@ public class XmlFileGenerateProcessTest {
                 ),
                 singletonList(new Structure.Reference("reference", -1, "count", toPlaceholder("count")))
         );
+    }
+
+    public static List<Map<String, Object>> createRowsValues() {
+        List<Map<String, Object>> rowValues = new ArrayList<>();
+        rowValues.add(new LinkedHashMap<String, Object>() {{
+            put("reference", "2");
+            put("date", parseLocalDate("02.02.2002"));
+            put("boolean", true);
+            put("string", "string2");
+            put("integer", BigInteger.valueOf(2));
+            put("float", BigDecimal.valueOf(2.2));
+        }});
+        rowValues.add(new LinkedHashMap<String, Object>() {{
+            put("reference", "5");
+            put("date", parseLocalDate("05.05.2005"));
+            put("boolean", false);
+            put("string", "string5");
+            put("integer", BigInteger.valueOf(5));
+            put("float", BigDecimal.valueOf(5.5));
+        }});
+        return rowValues;
     }
 
 }

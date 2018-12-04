@@ -203,11 +203,11 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional
     public RefBook update(RefBookUpdateRequest request) {
 
-        validateVersionExists(request.getId());
-        validateVersionNotArchived(request.getId());
-        refBookLockService.validateRefBookNotBusyByVersionId(request.getId());
+        validateVersionExists(request.getVersionId());
+        validateVersionNotArchived(request.getVersionId());
+        refBookLockService.validateRefBookNotBusyByVersionId(request.getVersionId());
 
-        RefBookVersionEntity refBookVersionEntity = repository.findOne(request.getId());
+        RefBookVersionEntity refBookVersionEntity = repository.findOne(request.getVersionId());
         RefBookEntity refBookEntity = refBookVersionEntity.getRefBook();
         if (!refBookEntity.getCode().equals(request.getCode())) {
             refBookEntity.setCode(request.getCode());
