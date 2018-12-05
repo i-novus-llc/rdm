@@ -12,6 +12,7 @@ import javax.xml.stream.events.XMLEvent;
 import java.io.InputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toMap;
@@ -74,7 +75,7 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
             parseValues(passport, PASSPORT_TAG_NAME);
 
             if (passport != null)
-                passportProcessor.append(passport.entrySet()
+                passportProcessor.process(passport.entrySet()
                         .stream()
                         .filter(entry -> entry.getValue() != null)
                         .collect(toMap(Map.Entry::getKey, e -> (String) e.getValue())));
@@ -137,7 +138,8 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
             parseValues(rowValues, ROW_TAG_NAME);
 
         } catch (XMLStreamException e) {
-            throwXmlReadError(e);
+            logger.error(XML_READ_ERROR_MESSAGE, e);
+            throw new NoSuchElementException(XML_READ_ERROR_MESSAGE);
         }
 
         return new Row(rowValues);

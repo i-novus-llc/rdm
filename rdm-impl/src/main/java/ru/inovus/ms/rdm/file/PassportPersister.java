@@ -17,7 +17,7 @@ public class PassportPersister implements PassportProcessor {
     }
 
     @Override
-    public Result append(Map<String, String> passport) {
+    public Result process(Map<String, String> passport) {
         RefBookUpdateRequest request = new RefBookUpdateRequest();
         request.setVersionId(versionId);
         request.setPassport(passport);

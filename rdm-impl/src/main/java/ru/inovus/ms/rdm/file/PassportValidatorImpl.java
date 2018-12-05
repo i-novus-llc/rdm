@@ -7,7 +7,7 @@ import java.util.Map;
 public class PassportValidatorImpl implements PassportValidator {
 
     @Override
-    public Result append(Map<String, String> passport) {
+    public Result process(Map<String, String> passport) {
         return null;
     }
 

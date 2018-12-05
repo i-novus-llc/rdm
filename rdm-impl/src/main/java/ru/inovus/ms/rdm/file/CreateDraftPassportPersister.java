@@ -16,7 +16,7 @@ public class CreateDraftPassportPersister implements PassportProcessor {
     }
 
     @Override
-    public Result append(Map<String, String> passport) {
+    public Result process(Map<String, String> passport) {
         if (isEmpty(passport))
             return new Result(0, 0, null);
 

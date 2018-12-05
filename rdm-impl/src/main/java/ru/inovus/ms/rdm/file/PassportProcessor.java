@@ -6,6 +6,6 @@ import java.util.Map;
 
 public interface PassportProcessor {
 
-    Result append(Map<String, String> passport);
+    Result process(Map<String, String> passport);
 
 }
