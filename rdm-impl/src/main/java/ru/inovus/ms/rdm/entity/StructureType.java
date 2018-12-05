@@ -39,7 +39,7 @@ public class StructureType implements UserType {
 
     @Override
     public boolean equals(Object x, Object y) {
-        return x == y || x.equals(y);
+        return Objects.equals(x, y);
     }
 
     @Override

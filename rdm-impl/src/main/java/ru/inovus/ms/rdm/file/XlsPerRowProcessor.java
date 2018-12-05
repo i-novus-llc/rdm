@@ -17,9 +17,9 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
 
     private Map<Integer, String> numberToNameParam = new HashMap<>();
 
-    Workbook workbook;
-    Iterator<Sheet> sheetIterator;
-    Iterator<org.apache.poi.ss.usermodel.Row> rowIterator;
+    private Workbook workbook;
+    private Iterator<Sheet> sheetIterator;
+    private Iterator<org.apache.poi.ss.usermodel.Row> rowIterator;
 
 
     public XlsPerRowProcessor(RowMapper rowMapper, RowsProcessor rowsProcessor) {

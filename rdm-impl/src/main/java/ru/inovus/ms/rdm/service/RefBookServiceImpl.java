@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 import static java.util.Objects.nonNull;
+import static java.util.stream.Collectors.toList;
 import static org.springframework.util.StringUtils.isEmpty;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
 
@@ -94,7 +95,10 @@ public class RefBookServiceImpl implements RefBookService {
                 .fetch();
 
         Page<RefBookVersionEntity> list = new PageImpl<>(refBookVersionEntityList, criteria, count);
-        List<Integer> refBookIdsInPage = list.getContent().stream().map(v -> v.getRefBook().getId()).collect(Collectors.toList());
+        List<Integer> refBookIdsInPage = list.getContent()
+                .stream()
+                .map(v -> v.getRefBook().getId())
+                .collect(toList());
         return list.map(entity -> refBookModel(entity, getLastPublishedVersions(refBookIdsInPage)));
     }
 
@@ -199,11 +203,11 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional
     public RefBook update(RefBookUpdateRequest request) {
 
-        validateVersionExists(request.getId());
-        validateVersionNotArchived(request.getId());
-        refBookLockService.validateRefBookNotBusyByVersionId(request.getId());
+        validateVersionExists(request.getVersionId());
+        validateVersionNotArchived(request.getVersionId());
+        refBookLockService.validateRefBookNotBusyByVersionId(request.getVersionId());
 
-        RefBookVersionEntity refBookVersionEntity = repository.findOne(request.getId());
+        RefBookVersionEntity refBookVersionEntity = repository.findOne(request.getVersionId());
         RefBookEntity refBookEntity = refBookVersionEntity.getRefBook();
         if (!refBookEntity.getCode().equals(request.getCode())) {
             refBookEntity.setCode(request.getCode());
@@ -332,7 +336,7 @@ public class RefBookServiceImpl implements RefBookService {
             versionEntity.setPassportValues(passport.entrySet().stream()
                     .filter(e -> e.getValue() != null)
                     .map(e -> new PassportValueEntity(new PassportAttributeEntity(e.getKey()), e.getValue(), versionEntity))
-                    .collect(Collectors.toSet()));
+                    .collect(toList()));
         }
     }
 
@@ -341,8 +345,8 @@ public class RefBookServiceImpl implements RefBookService {
             return;
         }
 
-        Set<PassportValueEntity> newPassportValues = versionEntity.getPassportValues() != null ?
-                versionEntity.getPassportValues() : new HashSet<>();
+        List<PassportValueEntity> newPassportValues = versionEntity.getPassportValues() != null ?
+                versionEntity.getPassportValues() : new ArrayList<>();
 
         Map<String, String> correctUpdatePassport = new HashMap<>(newPassport);
 
@@ -352,7 +356,7 @@ public class RefBookServiceImpl implements RefBookService {
                 .collect(Collectors.toSet());
         List<PassportValueEntity> toRemove = versionEntity.getPassportValues().stream()
                 .filter(v -> attributeCodesToRemove.contains(v.getAttribute().getCode()))
-                .collect(Collectors.toList());
+                .collect(toList());
         versionEntity.getPassportValues().removeAll(toRemove);
         passportValueRepository.delete(toRemove);
         correctUpdatePassport.entrySet().removeIf(e -> attributeCodesToRemove.contains(e.getKey()));
@@ -367,7 +371,7 @@ public class RefBookServiceImpl implements RefBookService {
 
         newPassportValues.addAll(correctUpdatePassport.entrySet().stream()
                 .map(a -> new PassportValueEntity(new PassportAttributeEntity(a.getKey()), a.getValue(), versionEntity))
-                .collect(Collectors.toList()));
+                .collect(toList()));
 
         versionEntity.setPassportValues(newPassportValues);
     }

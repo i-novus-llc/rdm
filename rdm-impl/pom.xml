@@ -119,8 +119,12 @@
             <artifactId>xmlworker</artifactId>
         </dependency>
 
-    </dependencies>
+        <dependency>
+            <groupId>xmlunit</groupId>
+            <artifactId>xmlunit</artifactId>
+        </dependency>
 
+    </dependencies>
 
     <build>
         <plugins>
@@ -150,6 +154,5 @@
             </plugin>
         </plugins>
     </build>
-
 
 </project>

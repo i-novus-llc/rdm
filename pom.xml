@@ -27,6 +27,7 @@
         <n2o.version>7.0.RC6</n2o.version>
         <selenium.version>3.8.1</selenium.version>
         <itext.version>5.5.9</itext.version>
+        <xmlunit.version>1.6</xmlunit.version>
     </properties>
 
     <modules>
@@ -146,6 +147,13 @@
                 <groupId>com.itextpdf.tool</groupId>
                 <artifactId>xmlworker</artifactId>
                 <version>${itext.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>xmlunit</groupId>
+                <artifactId>xmlunit</artifactId>
+                <version>${xmlunit.version}</version>
+                <scope>test</scope>
             </dependency>
 
         </dependencies>

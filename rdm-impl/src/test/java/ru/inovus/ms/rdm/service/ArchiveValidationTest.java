@@ -96,7 +96,7 @@ public class ArchiveValidationTest {
         assertArchiveValidationError(() -> draftService.deleteAttribute(draftId, null));
 
         RefBookUpdateRequest updateRequest = new RefBookUpdateRequest();
-        updateRequest.setId(versionId);
+        updateRequest.setVersionId(versionId);
         assertArchiveValidationError(() -> refBookService.update(updateRequest));
 
     }

@@ -7,8 +7,8 @@ import ru.inovus.ms.rdm.model.Structure;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 @Entity
 @Table(name = "ref_book_version", schema = "n2o_rdm_management")
@@ -54,7 +54,7 @@ public class RefBookVersionEntity {
     private LocalDateTime lastActionDate;
 
     @OneToMany(mappedBy="version", cascade = CascadeType.ALL)
-    private Set<PassportValueEntity> passportValues;
+    private List<PassportValueEntity> passportValues;
 
     public Integer getId() {
         return id;
@@ -144,11 +144,11 @@ public class RefBookVersionEntity {
         this.storageCode = storageCode;
     }
 
-    public Set<PassportValueEntity> getPassportValues() {
+    public List<PassportValueEntity> getPassportValues() {
         return passportValues;
     }
 
-    public void setPassportValues(Set<PassportValueEntity> passportValues) {
+    public void setPassportValues(List<PassportValueEntity> passportValues) {
         this.passportValues = passportValues;
     }
 

@@ -47,7 +47,7 @@ public interface RefBookService {
             @ApiResponse(code = 200, message = "Справочник"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    RefBook update(RefBookUpdateRequest refBookCreateRequest);
+    RefBook update(RefBookUpdateRequest refBookUpdateRequest);
 
     @DELETE
     @ApiOperation("Удаление справочника")

@@ -35,9 +35,7 @@ import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -284,14 +282,14 @@ public class CompareServiceTest {
 
     @Test
     public void testComparePassports() {
-        Set<PassportValueEntity> oldPassportValues = new HashSet<>();
+        List<PassportValueEntity> oldPassportValues = new ArrayList<>();
         oldPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name", oldVersionP));
         oldPassportValues.add(new PassportValueEntity(passportAttributeShortName, "short_name", oldVersionP));
         oldPassportValues.add(new PassportValueEntity(passportAttributeGroup, "group", oldVersionP));
         oldPassportValues.add(new PassportValueEntity(passportAttributeType, null, oldVersionP));
         oldVersionP.setPassportValues(oldPassportValues);
 
-        Set<PassportValueEntity> newPassportValues = new HashSet<>();
+        List<PassportValueEntity> newPassportValues = new ArrayList<>();
         newPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name_upd", newVersionP));
         newPassportValues.add(new PassportValueEntity(passportAttributeAnnotation, "annotation", newVersionP));
         newPassportValues.add(new PassportValueEntity(passportAttributeGroup, "group", newVersionP));
@@ -323,11 +321,11 @@ public class CompareServiceTest {
 
     @Test
     public void testComparePassportsWhenUpdateAttributeValue() {
-        Set<PassportValueEntity> oldPassportValues = new HashSet<>();
+        List<PassportValueEntity> oldPassportValues = new ArrayList<>();
         oldPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name", oldVersionP));
         oldVersionP.setPassportValues(oldPassportValues);
 
-        Set<PassportValueEntity> newPassportValues = new HashSet<>();
+        List<PassportValueEntity> newPassportValues = new ArrayList<>();
         newPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name_upd", newVersionP));
         newVersionP.setPassportValues(newPassportValues);
 
@@ -346,10 +344,10 @@ public class CompareServiceTest {
 
     @Test
     public void testComparePassportsWhenAddAttributeValue() {
-        Set<PassportValueEntity> oldPassportValues = new HashSet<>();
+        List<PassportValueEntity> oldPassportValues = new ArrayList<>();
         oldVersionP.setPassportValues(oldPassportValues);
 
-        Set<PassportValueEntity> newPassportValues = new HashSet<>();
+        List<PassportValueEntity> newPassportValues = new ArrayList<>();
         newPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name", newVersionP));
         newVersionP.setPassportValues(newPassportValues);
 
@@ -367,11 +365,11 @@ public class CompareServiceTest {
 
     @Test
     public void testComparePassportsWhenDeleteAttributeValue() {
-        Set<PassportValueEntity> oldPassportValues = new HashSet<>();
+        List<PassportValueEntity> oldPassportValues = new ArrayList<>();
         oldPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name", oldVersionP));
         oldVersionP.setPassportValues(oldPassportValues);
 
-        Set<PassportValueEntity> newPassportValues = new HashSet<>();
+        List<PassportValueEntity> newPassportValues = new ArrayList<>();
         newVersionP.setPassportValues(newPassportValues);
 
         PassportDiff actualPassportDiff = compareService.comparePassports(oldVersionP.getId(), newVersionP.getId());
@@ -388,11 +386,11 @@ public class CompareServiceTest {
 
     @Test
     public void testComparePassportsWhenNoDiff() {
-        Set<PassportValueEntity> oldPassportValues = new HashSet<>();
+        List<PassportValueEntity> oldPassportValues = new ArrayList<>();
         oldPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name", oldVersionP));
         oldVersionP.setPassportValues(oldPassportValues);
 
-        Set<PassportValueEntity> newPassportValues = new HashSet<>();
+        List<PassportValueEntity> newPassportValues = new ArrayList<>();
         newPassportValues.add(new PassportValueEntity(passportAttributeFullName, "full_name", newVersionP));
         newVersionP.setPassportValues(newPassportValues);
 

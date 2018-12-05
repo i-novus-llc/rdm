@@ -71,4 +71,12 @@ public interface VersionService {
                             @QueryParam("type")
                             FileType fileType);
 
+    @PUT
+    @ApiOperation("Изменение метаданных версии")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Версия"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    RefBookVersion updatePassport(RefBookUpdateRequest refBookUpdateRequest);
+
 }

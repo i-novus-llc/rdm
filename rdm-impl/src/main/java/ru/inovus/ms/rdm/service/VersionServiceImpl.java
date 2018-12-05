@@ -12,6 +12,8 @@ import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
+import ru.inovus.ms.rdm.entity.PassportAttributeEntity;
+import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.entity.VersionFileEntity;
 import ru.inovus.ms.rdm.enumeration.FileType;
@@ -26,19 +28,18 @@ import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 import ru.inovus.ms.rdm.util.FileNameGenerator;
-import ru.inovus.ms.rdm.util.ModelGenerator;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.OffsetDateTime;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
+import static org.springframework.util.StringUtils.isEmpty;
 import static ru.inovus.ms.rdm.util.ConverterUtil.date;
 import static ru.inovus.ms.rdm.util.ConverterUtil.sortings;
+import static ru.inovus.ms.rdm.util.ModelGenerator.versionModel;
 
 @Service
 @Primary
@@ -92,9 +93,7 @@ public class VersionServiceImpl implements VersionService {
         RefBookVersionEntity versionEntity = versionRepository.findOne(versionId);
         if (versionEntity == null)
             throw new NotFoundException(new Message("version.not.found", versionId));
-        RefBookVersion versionModel = ModelGenerator.versionModel(versionEntity);
-        versionModel.setStructure(versionEntity.getStructure());
-        return versionModel;
+        return versionModel(versionEntity);
     }
 
     @Override
@@ -137,12 +136,62 @@ public class VersionServiceImpl implements VersionService {
 
         return new ExportFile(
                 fileStorage.getContent(path),
-                fileNameGenerator.generateZipName(ModelGenerator.versionModel(versionEntity), fileType));
+                fileNameGenerator.generateZipName(versionModel(versionEntity), fileType));
     }
+
+    @Override
+    @Transactional
+    public RefBookVersion updatePassport(RefBookUpdateRequest refBookUpdateRequest) {
+        RefBookVersionEntity refBookVersionEntity = versionRepository.findOne(refBookUpdateRequest.getVersionId());
+        if (refBookVersionEntity == null) return null;
+
+        updateVersionFromPassport(refBookVersionEntity, refBookUpdateRequest.getPassport());
+        return versionModel(refBookVersionEntity);
+    }
+
+    private void updateVersionFromPassport(RefBookVersionEntity versionEntity, Map<String, String> newPassport) {
+        if (newPassport == null) return;
+
+        List<PassportValueEntity> valuesToRemove = versionEntity
+                .getPassportValues()
+                .stream()
+                .filter(passportValue ->
+                        newPassport.get(passportValue.getAttribute().getCode()) == null
+                ).collect(Collectors.toList());
+
+        passportValueRepository.delete(valuesToRemove);
+
+        versionEntity
+                .getPassportValues()
+                .removeAll(valuesToRemove);
+
+        newPassport
+                .entrySet()
+                .stream()
+                .filter(newPV -> !isEmpty(newPV.getValue()))
+                .forEach(newPV -> {
+                    PassportValueEntity oldPV = versionEntity
+                            .getPassportValues()
+                            .stream()
+                            .filter(pv ->
+                                    newPV.getKey().equals(pv.getAttribute().getCode())
+                            )
+                            .findFirst()
+                            .orElse(null);
+
+                    if (oldPV != null)
+                        oldPV.setValue(newPV.getValue());
+                    else
+                        versionEntity
+                                .getPassportValues()
+                                .add(new PassportValueEntity(new PassportAttributeEntity(newPV.getKey()), newPV.getValue(), versionEntity));
+                });
+    }
+
 
     private String generateVersionFile(RefBookVersionEntity version, FileType fileType) {
 
-        RefBookVersion versionModel = ModelGenerator.versionModel(version);
+        RefBookVersion versionModel = versionModel(version);
 
         String path = null;
         try (InputStream is = generateVersionFile(versionModel, fileType)) {
@@ -166,7 +215,7 @@ public class VersionServiceImpl implements VersionService {
     private InputStream generateVersionFile(RefBookVersion versionModel, FileType fileType) {
         VersionDataIterator dataIterator = new VersionDataIterator(this, Collections.singletonList(versionModel.getId()));
         try (PerRowFileGenerator fileGenerator = PerRowFileGeneratorFactory
-                .getFileGenerator(dataIterator, this.getStructure(versionModel.getId()), fileType);
+                .getFileGenerator(dataIterator, versionModel, fileType);
              Archiver archiver = new Archiver()) {
             if (includePassport) {
                 try (FileGenerator passportPdfFileGenerator = new PassportPdfFileGenerator(passportValueRepository, versionModel.getId(), passportFileHead)) {
