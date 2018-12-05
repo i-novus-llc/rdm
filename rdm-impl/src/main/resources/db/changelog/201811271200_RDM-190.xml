@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="201811271200_RDM-190" author="znurgaliev" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="attribute_validation" schemaName="n2o_rdm_management"/>
+            </not>
+        </preConditions>
+        <comment>Добавление таблицы настраиваемых проверок</comment>
+        <sql>
+
+            CREATE TABLE IF NOT EXISTS n2o_rdm_management.attribute_validation (
+            id          SERIAL  PRIMARY KEY NOT NULL,
+            version_id  INTEGER             NOT NULL,
+            attribute   VARCHAR             NOT NULL,
+            type        VARCHAR             NOT NULL,
+            value       VARCHAR             NOT NULL,
+
+            CONSTRAINT fk_attribute_validation_ref_book_version_id FOREIGN KEY (version_id) REFERENCES n2o_rdm_management.ref_book_version (id) ON DELETE CASCADE ON UPDATE RESTRICT
+            );
+
+            COMMENT ON TABLE n2o_rdm_management.attribute_validation IS 'Настраиваемые проверки';
+            COMMENT ON COLUMN n2o_rdm_management.attribute_validation.id IS 'Идентификатор';
+            COMMENT ON COLUMN n2o_rdm_management.attribute_validation.version_id IS 'Ссылка на версию справочника';
+            COMMENT ON COLUMN n2o_rdm_management.attribute_validation.attribute IS 'Код атрибута структуры';
+            COMMENT ON COLUMN n2o_rdm_management.attribute_validation.type IS 'Тип проверки';
+            COMMENT ON COLUMN n2o_rdm_management.attribute_validation.value IS 'Данные для проверки';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

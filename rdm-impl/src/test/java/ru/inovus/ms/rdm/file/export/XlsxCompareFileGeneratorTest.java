@@ -1,11 +1,11 @@
 package ru.inovus.ms.rdm.file.export;
 
 import com.google.common.collect.ImmutableSortedMap;
+import com.monitorjbl.xlsx.StreamingReader;
 import net.n2oapp.platform.i18n.UserException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
@@ -81,12 +81,12 @@ public class XlsxCompareFileGeneratorTest {
                         new PassportAttributeEntity("noEditAttr", "Не измененный")));
 
 
-        Structure.Attribute pKAttribute = Structure.Attribute.build("PK", "PK name", FieldType.STRING, false, "PK description");
-        Structure.Attribute createdAttribute = Structure.Attribute.build("created", "create name", FieldType.STRING, false, "create description");
-        Structure.Attribute updatedOldAttribute = Structure.Attribute.build("string_to_int", "string to int name", FieldType.STRING, false, "string to int description");
-        Structure.Attribute updatedNewAttribute = Structure.Attribute.build("string_to_int", "string to int name", FieldType.INTEGER, false, "string to int description");
-        Structure.Attribute deletedAttribute = Structure.Attribute.build("deleted", "deleted name", FieldType.STRING, false, "deleted description");
-        Structure.Attribute notEditedAttribute = Structure.Attribute.build("not_edited", "not_edited name", FieldType.STRING, false, "not_edited description");
+        Structure.Attribute pKAttribute = Structure.Attribute.build("PK", "PK name", FieldType.STRING, "PK description");
+        Structure.Attribute createdAttribute = Structure.Attribute.build("created", "create name", FieldType.STRING, "create description");
+        Structure.Attribute updatedOldAttribute = Structure.Attribute.build("string_to_int", "string to int name", FieldType.STRING, "string to int description");
+        Structure.Attribute updatedNewAttribute = Structure.Attribute.build("string_to_int", "string to int name", FieldType.INTEGER, "string to int description");
+        Structure.Attribute deletedAttribute = Structure.Attribute.build("deleted", "deleted name", FieldType.STRING, "deleted description");
+        Structure.Attribute notEditedAttribute = Structure.Attribute.build("not_edited", "not_edited name", FieldType.STRING, "not_edited description");
         when(compareService.compareStructures(OLD_VERSION_ID, NEW_VERSION_ID))
                 .thenReturn(new StructureDiff(
                         singletonList(new StructureDiff.AttributeDiff(null, createdAttribute)),
@@ -174,10 +174,10 @@ public class XlsxCompareFileGeneratorTest {
         File tempFile = File.createTempFile("compare_with_data", "xlsx");
         try (OutputStream os = new FileOutputStream(tempFile)) {
             xlsxCompareGenerator.generate(os);
-            os.close();
         }
-        try (XSSFWorkbook expected = new XSSFWorkbook(XlsxCompareFileGeneratorTest.class.getResourceAsStream("/file/export/compare_test/compared_file.xlsx"));
-             XSSFWorkbook actual = new XSSFWorkbook(tempFile)) {
+        try (Workbook expected = StreamingReader.builder().rowCacheSize(100)
+                .open(XlsxCompareFileGeneratorTest.class.getResourceAsStream("/file/export/compare_test/compared_file.xlsx"));
+             Workbook actual = StreamingReader.builder().rowCacheSize(100).open(tempFile)) {
 
             assertWorkbookEquals(expected, actual);
         }
@@ -191,10 +191,10 @@ public class XlsxCompareFileGeneratorTest {
         File tempFile = File.createTempFile("compare_no_data", "xlsx");
         try (OutputStream os = new FileOutputStream(tempFile)) {
             xlsxCompareGenerator.generate(os);
-            os.close();
         }
-        try (XSSFWorkbook expected = new XSSFWorkbook(XlsxCompareFileGeneratorTest.class.getResourceAsStream("/file/export/compare_test/compared_no_data.xlsx"));
-             XSSFWorkbook actual = new XSSFWorkbook(tempFile)) {
+        try (Workbook expected = StreamingReader.builder().rowCacheSize(100)
+                .open(XlsxCompareFileGeneratorTest.class.getResourceAsStream("/file/export/compare_test/compared_no_data.xlsx"));
+             Workbook actual = StreamingReader.builder().rowCacheSize(100).open(tempFile)) {
 
             assertWorkbookEquals(expected, actual);
         }

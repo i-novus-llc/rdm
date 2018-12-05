@@ -237,15 +237,13 @@ class XlsxCompareFileGenerator implements FileGenerator {
         structureColumnIndexes.put("name", 1);
         structureColumnIndexes.put("type", 2);
         structureColumnIndexes.put("primary", 3);
-        structureColumnIndexes.put("required", 4);
-        structureColumnIndexes.put("description", 5);
+        structureColumnIndexes.put("description", 4);
 
         Row row = createNextRow(sheet);
         row.createCell(0).setCellValue("Поле");
         row.createCell(1).setCellValue("Наименование");
         row.createCell(2).setCellValue("Тип данных");
         row.createCell(3).setCellValue("Первичный ключ");
-        row.createCell(4).setCellValue("Обязательность");
         row.createCell(5).setCellValue("Описание");
         row.forEach(cell -> cell.setCellStyle(headStyle));
         return row;
@@ -259,7 +257,6 @@ class XlsxCompareFileGenerator implements FileGenerator {
         diffs.put("name", new XlsxComparedCell(oldAttr.getName(), newAttr.getName(), diffStatus));
         diffs.put("type", new XlsxComparedCell(oldAttr.getType(), newAttr.getType(), diffStatus));
         diffs.put("primary", new XlsxComparedCell(oldAttr.getIsPrimary(), newAttr.getIsPrimary(), diffStatus));
-        diffs.put("required", new XlsxComparedCell(oldAttr.getIsRequired(), newAttr.getIsRequired(), diffStatus));
         diffs.put("description", new XlsxComparedCell(oldAttr.getDescription(), newAttr.getDescription(), diffStatus));
         return new XlsxComparedRow(diffs, diffStatus);
     }

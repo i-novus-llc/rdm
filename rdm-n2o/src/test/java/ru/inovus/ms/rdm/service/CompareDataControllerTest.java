@@ -85,13 +85,13 @@ public class CompareDataControllerTest {
     private void initAttributes() {
         id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
         code = Structure.Attribute.buildPrimary("CODE", "code", FieldType.STRING, "code");
-        common = Structure.Attribute.build("COMMON", "common", FieldType.STRING, false, "common");
-        descr = Structure.Attribute.build("DESCR", "descr", FieldType.STRING, false, "descr");
-        name = Structure.Attribute.build("NAME", "name", FieldType.STRING, false, "name");
-        upd1 = Structure.Attribute.build("UPD", "upd1", FieldType.STRING, false, "upd");
-        upd2 = Structure.Attribute.build("UPD", "upd2", FieldType.STRING, false, "upd");
-        typeS = Structure.Attribute.build("TYPE", "type", FieldType.STRING, false, "type");
-        typeI = Structure.Attribute.build("TYPE", "type", FieldType.INTEGER, false, "type");
+        common = Structure.Attribute.build("COMMON", "common", FieldType.STRING, "common");
+        descr = Structure.Attribute.build("DESCR", "descr", FieldType.STRING, "descr");
+        name = Structure.Attribute.build("NAME", "name", FieldType.STRING, "name");
+        upd1 = Structure.Attribute.build("UPD", "upd1", FieldType.STRING, "upd");
+        upd2 = Structure.Attribute.build("UPD", "upd2", FieldType.STRING, "upd");
+        typeS = Structure.Attribute.build("TYPE", "type", FieldType.STRING, "type");
+        typeI = Structure.Attribute.build("TYPE", "type", FieldType.INTEGER, "type");
     }
 
     private void initFields() {

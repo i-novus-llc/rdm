@@ -25,6 +25,7 @@ import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.repositiory.AttributeValidationRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
@@ -66,42 +67,32 @@ public class DraftServiceTest {
 
     @Mock
     private RefBookVersionRepository versionRepository;
-
     @Mock
     private DraftDataService draftDataService;
-
     @Mock
     private VersionService versionService;
-
     @Mock
     private FieldFactory fieldFactory;
-
     @Mock
     private DropDataService dropDataService;
-
     @Mock
     private RefBookRepository refBookRepository;
-
     @Mock
     private SearchDataService searchDataService;
-
     @Mock
     private FileStorage fileStorage;
-
     @Mock
     private FileNameGenerator fileNameGenerator;
-
     @Mock
     private VersionFileRepository versionFileRepository;
-
     @Mock
     private VersionNumberStrategy versionNumberStrategy;
-
     @Mock
     private VersionPeriodPublishValidation versionPeriodPublishValidation;
-
     @Mock
     private RefBookLockService refBookLockService;
+    @Mock
+    private AttributeValidationRepository attributeValidationRepository;
 
     private static final String UPD_SUFFIX = "_upd";
     private static final String PK_SUFFIX = "_pk";
@@ -296,7 +287,7 @@ public class DraftServiceTest {
         when(versionRepository.exists(hasVersionId(testDraftVersion.getId()).and(isDraft()))).thenReturn(true);
         when(versionRepository.exists(eq(isVersionOfRefBook(REFBOOK_ID)))).thenReturn(true);
         Structure structure = new Structure();
-        structure.setAttributes(singletonList(Structure.Attribute.build("name", "name", FieldType.STRING, true, "description")));
+        structure.setAttributes(singletonList(Structure.Attribute.build("name", "name", FieldType.STRING, "description")));
         Draft draftActual = draftService.create(REFBOOK_ID, structure);
 
         assertEquals(testDraftVersion.getId(), draftActual.getId());
@@ -354,9 +345,9 @@ public class DraftServiceTest {
 
     private void setTestStructure(Structure structure) {
         structure.setAttributes(Arrays.asList(
-                Structure.Attribute.build("Kod", "Kod", FieldType.STRING, false, "Kod"),
-                Structure.Attribute.build("Opis", "Opis", FieldType.STRING, false, "Opis"),
-                Structure.Attribute.build("DATEBEG", "DATEBEG", FieldType.STRING, false, "DATEBEG")
+                Structure.Attribute.build("Kod", "Kod", FieldType.STRING, "Kod"),
+                Structure.Attribute.build("Opis", "Opis", FieldType.STRING, "Opis"),
+                Structure.Attribute.build("DATEBEG", "DATEBEG", FieldType.STRING, "DATEBEG")
         ));
     }
 

@@ -21,14 +21,16 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.*;
+import ru.i_novus.platform.datastorage.temporal.model.Field;
+import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.FileStorage;
-import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.service.api.*;
@@ -51,7 +53,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.junit.Assert.*;
-import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.*;
+import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
 import static ru.inovus.ms.rdm.util.ConverterUtil.rowValue;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDate;
@@ -152,7 +154,7 @@ public class ApplicationTest {
         createReference = new Structure.Reference(createAttribute.getCode(), 801, "code", null);
         updateAttribute = Structure.Attribute.buildPrimary(createAttribute.getCode(),
                 createAttribute.getName() + "_upd", createAttribute.getType(), createAttribute.getDescription() + "_upd");
-        deleteAttribute = Structure.Attribute.build("code", "Код", FieldType.STRING, false, "на удаление");
+        deleteAttribute = Structure.Attribute.build("code", "Код", FieldType.STRING, "на удаление");
 
         RefBookVersion version0 = new RefBookVersion();
         version0.setRefBookId(REF_BOOK_ID);
@@ -533,10 +535,10 @@ public class ApplicationTest {
 
         Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
         Structure.Attribute code = Structure.Attribute.buildPrimary("CODE", "code", FieldType.STRING, "code");
-        Structure.Attribute common = Structure.Attribute.build("COMMON", "common", FieldType.STRING, false,"common");
-        Structure.Attribute descr = Structure.Attribute.build("DESCR", "descr", FieldType.STRING, false, "descr");
-        Structure.Attribute upd = Structure.Attribute.build("UPD", "upd", FieldType.STRING, false, "upd");
-        Structure.Attribute type = Structure.Attribute.build("TYPE", "type", FieldType.STRING, false, "type");
+        Structure.Attribute common = Structure.Attribute.build("COMMON", "common", FieldType.STRING,"common");
+        Structure.Attribute descr = Structure.Attribute.build("DESCR", "descr", FieldType.STRING, "descr");
+        Structure.Attribute upd = Structure.Attribute.build("UPD", "upd", FieldType.STRING, "upd");
+        Structure.Attribute type = Structure.Attribute.build("TYPE", "type", FieldType.STRING, "type");
 
         Structure structure = new Structure(asList(id, code, common, descr, upd, type), emptyList());
         RefBook refBook = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE, null));
@@ -589,11 +591,11 @@ public class ApplicationTest {
 
         Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
         Structure.Attribute code = Structure.Attribute.buildPrimary("CODE", "code", FieldType.STRING, "code");
-        Structure.Attribute common = Structure.Attribute.build("COMMON", "common", FieldType.STRING, false,"common");
-        Structure.Attribute descr = Structure.Attribute.build("DESCR", "descr", FieldType.STRING, false, "descr");
-        Structure.Attribute name = Structure.Attribute.build("NAME", "name", FieldType.STRING, false, "name");
-        Structure.Attribute upd = Structure.Attribute.build("UPD", "upd", FieldType.STRING, false, "upd");
-        Structure.Attribute type = Structure.Attribute.build("TYPE", "type", FieldType.STRING, false, "type");
+        Structure.Attribute common = Structure.Attribute.build("COMMON", "common", FieldType.STRING,"common");
+        Structure.Attribute descr = Structure.Attribute.build("DESCR", "descr", FieldType.STRING, "descr");
+        Structure.Attribute name = Structure.Attribute.build("NAME", "name", FieldType.STRING, "name");
+        Structure.Attribute upd = Structure.Attribute.build("UPD", "upd", FieldType.STRING, "upd");
+        Structure.Attribute type = Structure.Attribute.build("TYPE", "type", FieldType.STRING, "type");
 
         Structure structure = new Structure(asList(id, code, common, descr, upd, type), emptyList());
         RefBook refBook = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE, null));
@@ -793,8 +795,8 @@ public class ApplicationTest {
         Structure structure = new Structure(
                 asList(
                         Structure.Attribute.buildPrimary("id", "Идентификатор", FieldType.INTEGER, null),
-                        Structure.Attribute.build("name", "Наименование", FieldType.STRING, false, null),
-                        Structure.Attribute.build("code", "Код", FieldType.STRING, false, null)),
+                        Structure.Attribute.build("name", "Наименование", FieldType.STRING, null),
+                        Structure.Attribute.build("code", "Код", FieldType.STRING, null)),
                 null);
         Draft draft = draftService.create(refBook.getRefBookId(), structure);
 
@@ -1051,13 +1053,13 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.buildPrimary(PK_BOOL, PK_BOOL, FieldType.BOOLEAN, "boolean"), null));
         draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.buildPrimary(PK_INTEGER, PK_INTEGER, FieldType.INTEGER, "integer"), null));
 
-        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_STRING, NOT_PK_STRING, FieldType.STRING, false, "string"), null));
-        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_REFERENCE, NOT_PK_REFERENCE, FieldType.REFERENCE, false, "count"),
+        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_STRING, NOT_PK_STRING, FieldType.STRING, "string"), null));
+        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_REFERENCE, NOT_PK_REFERENCE, FieldType.REFERENCE, "count"),
                 new Structure.Reference(NOT_PK_REFERENCE, relRefBook.getId(), RELATION_ATTR_CODE, null)));
-        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_FLOAT, NOT_PK_FLOAT, FieldType.FLOAT, false, "float"), null));
-        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_DATE, NOT_PK_DATE, FieldType.DATE, false, "date"), null));
-        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_BOOL, NOT_PK_BOOL, FieldType.BOOLEAN, false, "boolean"), null));
-        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_INTEGER, NOT_PK_INTEGER, FieldType.INTEGER, false, "integer"), null));
+        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_FLOAT, NOT_PK_FLOAT, FieldType.FLOAT, "float"), null));
+        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_DATE, NOT_PK_DATE, FieldType.DATE, "date"), null));
+        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_BOOL, NOT_PK_BOOL, FieldType.BOOLEAN, "boolean"), null));
+        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_INTEGER, NOT_PK_INTEGER, FieldType.INTEGER, "integer"), null));
         draftService.updateData(refBook.getId(), createFileModel(REFBOOK_FILENAME_1, REFBOOK_FILENAME_1));
         try {
             draftService.updateData(refBook.getId(), createFileModel(REFBOOK_FILENAME, REFBOOK_FILENAME));
@@ -1251,13 +1253,13 @@ public class ApplicationTest {
 
         Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
         Structure.Attribute code = Structure.Attribute.buildPrimary("CODE", "code", FieldType.STRING, "code");
-        Structure.Attribute common = Structure.Attribute.build("COMMON", "common", FieldType.STRING, false,"common");
-        Structure.Attribute descr = Structure.Attribute.build("DESCR", "descr", FieldType.STRING, false, "descr");
-        Structure.Attribute name = Structure.Attribute.build("NAME", "name", FieldType.STRING, false, "name");
-        Structure.Attribute upd1 = Structure.Attribute.build("UPD", "upd1", FieldType.STRING, false, "upd");
-        Structure.Attribute upd2 = Structure.Attribute.build("UPD", "upd2", FieldType.STRING, false, "upd");
-        Structure.Attribute typeS = Structure.Attribute.build("TYPE", "type", FieldType.STRING, false, "type");
-        Structure.Attribute typeI = Structure.Attribute.build("TYPE", "type", FieldType.INTEGER, false, "type");
+        Structure.Attribute common = Structure.Attribute.build("COMMON", "common", FieldType.STRING,"common");
+        Structure.Attribute descr = Structure.Attribute.build("DESCR", "descr", FieldType.STRING, "descr");
+        Structure.Attribute name = Structure.Attribute.build("NAME", "name", FieldType.STRING, "name");
+        Structure.Attribute upd1 = Structure.Attribute.build("UPD", "upd1", FieldType.STRING, "upd");
+        Structure.Attribute upd2 = Structure.Attribute.build("UPD", "upd2", FieldType.STRING, "upd");
+        Structure.Attribute typeS = Structure.Attribute.build("TYPE", "type", FieldType.STRING, "type");
+        Structure.Attribute typeI = Structure.Attribute.build("TYPE", "type", FieldType.INTEGER, "type");
 
         RefBook refBook = refBookService.create(new RefBookCreateRequest("A000", null));
         Integer oldVersionId = refBook.getId();
@@ -1319,8 +1321,8 @@ public class ApplicationTest {
         LocalDateTime publishDate2 = publishDate1.plusYears(2);
 
         Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
-        Structure.Attribute code = Structure.Attribute.build("CODE", "code", FieldType.STRING, false, "code");
-        Structure.Attribute name = Structure.Attribute.build("NAME", "name", FieldType.STRING, false, "name");
+        Structure.Attribute code = Structure.Attribute.build("CODE", "code", FieldType.STRING, "code");
+        Structure.Attribute name = Structure.Attribute.build("NAME", "name", FieldType.STRING, "name");
 
         RefBook refBook = refBookService.create(new RefBookCreateRequest("A000", null));
         Integer oldVersionId = refBook.getId();
@@ -1360,7 +1362,7 @@ public class ApplicationTest {
         final String FILE_NAME = "testCompareData.xlsx";
 
         Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
-        Structure.Attribute code = Structure.Attribute.build("CODE", "code", FieldType.STRING, false, "code");
+        Structure.Attribute code = Structure.Attribute.build("CODE", "code", FieldType.STRING, "code");
 
         RefBook refBook = refBookService.create(new RefBookCreateRequest("A000", null));
         Integer oldVersionId = refBook.getId();
@@ -1372,7 +1374,7 @@ public class ApplicationTest {
         Integer newVersionId = draftService.create(
                 refBook.getRefBookId(),
                 new Structure(asList(
-                        Structure.Attribute.build("ID", "id", FieldType.INTEGER, false, "id"),
+                        Structure.Attribute.build("ID", "id", FieldType.INTEGER, "id"),
                         Structure.Attribute.buildPrimary("CODE", "code", FieldType.STRING, "code")),
                         emptyList())).getId();
         draftService.updateData(newVersionId, createFileModel(FILE_NAME, "testCompare/" + FILE_NAME));
@@ -1502,7 +1504,7 @@ public class ApplicationTest {
 
     private Structure createStructure() {
         Structure structure = new Structure();
-        structure.setAttributes(singletonList(Structure.Attribute.build("name", "name", FieldType.STRING, true, "description")));
+        structure.setAttributes(singletonList(Structure.Attribute.build("name", "name", FieldType.STRING, "description")));
         return structure;
     }
 
@@ -1512,12 +1514,12 @@ public class ApplicationTest {
     private Structure createTestStructureWithoutTreeFieldType() {
         return new Structure(
                 asList(
-                        Structure.Attribute.build("string", "string", FieldType.STRING, false, "строка"),
-                        Structure.Attribute.build("integer", "integer", FieldType.INTEGER, false, "число"),
-                        Structure.Attribute.build("date", "date", FieldType.DATE, false, "дата"),
-                        Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, false, "булево"),
-                        Structure.Attribute.build("float", "float", FieldType.FLOAT, false, "дробное"),
-                        Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, false, "ссылка")
+                        Structure.Attribute.build("string", "string", FieldType.STRING, "строка"),
+                        Structure.Attribute.build("integer", "integer", FieldType.INTEGER, "число"),
+                        Structure.Attribute.build("date", "date", FieldType.DATE, "дата"),
+                        Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, "булево"),
+                        Structure.Attribute.build("float", "float", FieldType.FLOAT, "дробное"),
+                        Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, "ссылка")
                 ),
                 singletonList(new Structure.Reference("reference", -1, "count", toPlaceholder("count")))
         );

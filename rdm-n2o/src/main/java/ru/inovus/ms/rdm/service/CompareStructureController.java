@@ -91,7 +91,6 @@ public class CompareStructureController {
                 new AttributeDiff.AttributeFieldDiff(oldAttr.getName(), newAttr.getName()),
                 new AttributeDiff.AttributeFieldDiff(oldAttr.getType(), newAttr.getType()),
                 new AttributeDiff.AttributeFieldDiff(oldAttr.getIsPrimary(), newAttr.getIsPrimary()),
-                new AttributeDiff.AttributeFieldDiff(oldAttr.getIsRequired(), newAttr.getIsRequired()),
                 new AttributeDiff.AttributeFieldDiff(oldAttr.getDescription(), newAttr.getDescription()),
                 diffStatus
         );
