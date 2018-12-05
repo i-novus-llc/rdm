@@ -57,12 +57,12 @@ public class XmlFileGenerateProcessTest {
     public static Structure createFullTestStructure() {
         return new Structure(
                 asList(
-                        Structure.Attribute.build("string", "string", FieldType.STRING, false, "строка"),
-                        Structure.Attribute.build("integer", "integer", FieldType.INTEGER, false, "число"),
-                        Structure.Attribute.build("date", "date", FieldType.DATE, false, "дата"),
-                        Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, false, "булево"),
-                        Structure.Attribute.build("float", "float", FieldType.FLOAT, false, "дробное"),
-                        Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, false, "ссылка")
+                        Structure.Attribute.build("string", "string", FieldType.STRING, "строка"),
+                        Structure.Attribute.build("integer", "integer", FieldType.INTEGER, "число"),
+                        Structure.Attribute.build("date", "date", FieldType.DATE, "дата"),
+                        Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, "булево"),
+                        Structure.Attribute.build("float", "float", FieldType.FLOAT, "дробное"),
+                        Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, "ссылка")
                 ),
                 singletonList(new Structure.Reference("reference", -1, "count", toPlaceholder("count")))
         );
