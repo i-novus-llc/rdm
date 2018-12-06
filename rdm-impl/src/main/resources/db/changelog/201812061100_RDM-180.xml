@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="201812061100_RDM-180" author="znurgaliev" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="audit_log" schemaName="audit"/>
+            </not>
+        </preConditions>
+        <comment>Добавление таблицы действия пользователя в системе</comment>
+        <sql>
+            CREATE SCHEMA IF NOT EXISTS audit;
+
+            CREATE TABLE IF NOT EXISTS audit.audit_log
+            (
+                id      SERIAL PRIMARY KEY          NOT NULL,
+                user_id VARCHAR                     NOT NULL,
+                date    TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT current_timestamp ,
+                action  VARCHAR                     NOT NULL,
+                context VARCHAR
+            );
+
+            COMMENT ON TABLE audit.audit_log IS 'Действия пользователя в системе';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
