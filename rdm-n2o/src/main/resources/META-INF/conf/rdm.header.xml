@@ -4,6 +4,7 @@
     <nav welcome-page-id="refBookList" >
         <sub-menu label="Администрирование">
             <page page-id="refBookList" label="Перечень НСИ"/>
+            <page page-id="audit" label="Аудит"/>
         </sub-menu>
     </nav>
 
