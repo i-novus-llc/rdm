@@ -11,7 +11,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 import ru.inovus.ms.rdm.model.audit.AuditAction;
 import ru.inovus.ms.rdm.model.audit.AuditLog;
 import ru.inovus.ms.rdm.model.audit.AuditLogCriteria;
@@ -38,6 +40,7 @@ import static java.util.Comparator.comparing;
 @DefinePort
 @EnableEmbeddedPg
 @Import(BackendConfiguration.class)
+@Transactional
 public class AuditLogServiceITest {
 
     @Autowired
@@ -56,20 +59,8 @@ public class AuditLogServiceITest {
      * Тест добавления и чтения записи
      */
     @Test
+    @Rollback
     public void testCreateReadAudit() {
-        auditLogService.addAction(expected1);
-
-        expected1.setId(1);
-        List<AuditLog> actual = auditLogService.getActions(new AuditLogCriteria()).getContent();
-        Assert.assertEquals(expected1, actual.get(0));
-    }
-
-
-    /**
-     * Тест фильтрации и сортировки
-     */
-    @Test
-    public void testSortAndFilter() {
         auditLogService.addAction(expected1);
         auditLogService.addAction(expected2);
         auditLogService.addAction(expected3);
