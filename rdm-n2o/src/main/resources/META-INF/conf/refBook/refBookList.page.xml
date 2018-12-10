@@ -7,16 +7,14 @@
                 <input-text id="name" label="Название справочника"/>
                 <input-text id="code" label="Код справочника"/>
                 <date-interval id="lastPublishedVersionFromDateInterval" label="Дата последней публикаци"/>
-                <input-select id="status" label="Статус">
-                    <options label-field-id="name" value-field-id="id">
-                        <option>{"id":"PUBLISHED","name":"Опубликован"}</option>
-                        <option>{"id":"HAS_DRAFT","name":"В работе"}</option>
-                        <option>{"id":"ARCHIVED","name":"Архив"}</option>
+                <input-select id="status" label="Статус" label-field-id="name">
+                    <options>
+                        <option id="PUBLISHED" name="Опубликован"/>
+                        <option id="HAS_DRAFT" name="В работе"/>
+                        <option id="ARCHIVED" name="Архив"/>
                     </options>
                 </input-select>
-                <input-select id="category" label="Категория">
-                    <query query-id="category" label-field-id="id"/>
-                </input-select>
+                <input-select id="category" label="Категория" query-id="category" label-field-id="id"/>
             </row>
         </filters>
         <toolbar>

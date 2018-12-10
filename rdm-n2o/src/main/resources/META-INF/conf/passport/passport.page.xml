@@ -3,15 +3,14 @@
     <form  query-id="passport">
         <fields>
             <row>
-                <input-text id="code" label="Код" required="true" control-style="width:280px" length="5">
+                <input-text id="code" label="Код" required="true" length="5">
                     <dependencies>
-                        <enabling-condition on="firstPublishedVersionFromDate">
+                        <enabling on="firstPublishedVersionFromDate">
                             typeof firstPublishedVersionFromDate == 'undefined' || firstPublishedVersionFromDate == null
-                        </enabling-condition>
+                        </enabling>
                     </dependencies>
                 </input-text>
-                <input-text id="name" label="Наименование" required="true"
-                                 control-style="width:300px" length="250"/>
+                <input-text id="name" label="Наименование" required="true" length="250"/>
             </row>
         </fields>
     </form>
