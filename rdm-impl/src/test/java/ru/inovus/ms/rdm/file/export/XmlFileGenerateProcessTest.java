@@ -42,7 +42,7 @@ public class XmlFileGenerateProcessTest {
                 .map(Row::new)
                 .collect(toList());
 
-        Reader expectedXml = new InputStreamReader(getClass().getResourceAsStream("/file/export/export.xml"));
+        Reader expectedXml = new InputStreamReader(getClass().getResourceAsStream("/file/uploadFile.xml"));
         Reader actualXml;
         try (PerRowFileGenerator xmlFileGenerator = new XmlFileGenerator(rows.iterator(), version);
              ByteArrayOutputStream os = new ByteArrayOutputStream();) {
