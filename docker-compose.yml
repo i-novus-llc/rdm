@@ -28,6 +28,7 @@ services:
     image: "security-admin_frontend:latest"
     environment:
       SPRING_CLOUD_CONSUL_HOST: ${spring_cloud_consul_host}
+      SPRING_APPLICATION_NAME: "rdm-security-admin-frontend"
     depends_on:
       - security-admin-backend
 
