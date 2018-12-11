@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -41,6 +42,7 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
@@ -240,7 +242,7 @@ public class DraftServiceTest {
     }
 
     private List<RefBookVersionEntity> getVersionsForOverlappingPublish() {
-        return new ArrayList<>(Arrays.asList(
+        return new ArrayList<>(asList(
                 createVersionEntity(REFBOOK_ID, 2, RefBookVersionStatus.PUBLISHED, LocalDateTime.of(2017, 1, 3, 1, 1), LocalDateTime.of(2017, 1, 5, 1, 1)),
                 createVersionEntity(REFBOOK_ID, 3, RefBookVersionStatus.PUBLISHED, LocalDateTime.of(2017, 1, 6, 1, 1), LocalDateTime.of(2017, 1, 7, 1, 1)),
                 createVersionEntity(REFBOOK_ID, 4, RefBookVersionStatus.PUBLISHED, LocalDateTime.of(2017, 1, 8, 1, 1), LocalDateTime.of(2017, 1, 10, 1, 1))
@@ -318,7 +320,7 @@ public class DraftServiceTest {
     }
 
     @Test
-    public void testCreateDraftFromFileWithDraft() {
+    public void testCreateDraftFromXlsFileWithDraft() {
         RefBookVersionEntity testDraftVersion = createTestDraftVersion();
         RefBookEntity refBook = new RefBookEntity();
         refBook.setId(REFBOOK_ID);
@@ -336,7 +338,7 @@ public class DraftServiceTest {
         setTestStructure(structure);
         expectedRefBookVersion.setStructure(structure);
 
-        draftService.create(REFBOOK_ID, createTestFileModel());
+        draftService.create(REFBOOK_ID, createTestFileModel("/", "R002", "xlsx"));
 
         verify(dropDataService).drop(eq(Collections.singleton(TEST_DRAFT_CODE)));
         verify(versionRepository).delete(eq(testDraftVersion.getId()));
@@ -344,7 +346,7 @@ public class DraftServiceTest {
     }
 
     private void setTestStructure(Structure structure) {
-        structure.setAttributes(Arrays.asList(
+        structure.setAttributes(asList(
                 Structure.Attribute.build("Kod", "Kod", FieldType.STRING, "Kod"),
                 Structure.Attribute.build("Opis", "Opis", FieldType.STRING, "Opis"),
                 Structure.Attribute.build("DATEBEG", "DATEBEG", FieldType.STRING, "DATEBEG")
@@ -352,7 +354,7 @@ public class DraftServiceTest {
     }
 
     @Test
-    public void testCreateDraftFromFileWithPublishedVersion() {
+    public void testCreateDraftFromXlsFileWithPublishedVersion() {
         RefBookVersionEntity lastRefBookVersion = createTestPublishedVersion();
         Page<RefBookVersionEntity> lastRefBookVersionPage = new PageImpl<>(singletonList(lastRefBookVersion));
         when(versionRepository
@@ -371,9 +373,44 @@ public class DraftServiceTest {
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(null).thenReturn(expectedRefBookVersion);
         when(versionRepository.exists(isVersionOfRefBook(REFBOOK_ID))).thenReturn(true);
 
-        draftService.create(REFBOOK_ID, createTestFileModel());
+        draftService.create(REFBOOK_ID, createTestFileModel("/", "R002", "xlsx"));
 
         verify(versionRepository).save(eq(expectedRefBookVersion));
+    }
+
+    @Test
+    public void testCreateDraftFromXmlFileWithDraft() {
+        RefBookEntity refBook = new RefBookEntity();
+        refBook.setId(REFBOOK_ID);
+
+        RefBookVersionEntity versionBefore = createTestDraftVersion();
+        versionBefore.setRefBook(refBook);
+
+        RefBookVersionEntity versionWithPassport = createTestDraftVersionWithPassport();
+        versionWithPassport.setId(null);
+        versionWithPassport.setStorageCode(null);
+        versionWithPassport.setRefBook(refBook);
+
+        RefBookVersionEntity versionWithStructure = createTestDraftVersionWithPassport();
+        versionWithStructure.setId(1);
+
+        when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(createCopyOfVersion(versionBefore)).thenReturn(createCopyOfVersion(versionWithStructure));
+        when(refBookRepository.findOne(REFBOOK_ID)).thenReturn(refBook);
+        when(versionRepository.exists(hasVersionId(versionBefore.getId()).and(isDraft()))).thenReturn(true);
+        when(versionRepository.exists(eq(isVersionOfRefBook(REFBOOK_ID)))).thenReturn(true);
+
+        versionWithStructure.setStorageCode(TEST_DRAFT_CODE_NEW);
+        versionWithStructure.setRefBook(refBook);
+        versionWithStructure.setStructure(createFullTestStructure());
+
+        ArgumentCaptor<RefBookVersionEntity> versionsCaptor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
+        draftService.create(REFBOOK_ID, createTestFileModel("/file/", "uploadFile", "xml"));
+
+        verify(dropDataService).drop(eq(Collections.singleton(TEST_DRAFT_CODE)));
+        verify(versionRepository).delete(eq(versionBefore.getId()));
+        verify(versionRepository, times(2)).save(versionsCaptor.capture());
+
+        assertVersions(asList(versionWithPassport, versionWithStructure), versionsCaptor.getAllValues());
     }
 
     @Test
@@ -500,11 +537,16 @@ public class DraftServiceTest {
         return testDraftVersion;
     }
 
-    private FileModel createTestFileModel() {
-        InputStream input = DraftServiceTest.class.getResourceAsStream("/R002.xlsx");
-        String path = "R002";
-        FileModel fileModel = new FileModel(path, "R002.xlsx");
-        when(fileStorage.saveContent(eq(input), eq(path))).thenReturn(fileModel.generateFullPath());
+    /*
+     * Example:
+     * path = '/file/'
+     * fileName = 'uploadFile'
+     * extension = 'xml'
+     **/
+    private FileModel createTestFileModel(String path, String fileName, String extension) {
+        InputStream input = DraftServiceTest.class.getResourceAsStream(path + fileName + "." + extension);
+        FileModel fileModel = new FileModel(fileName, fileName + "." + extension);
+        when(fileStorage.saveContent(eq(input), eq(fileName))).thenReturn(fileModel.generateFullPath());
         when(fileStorage.getContent(eq(fileModel.generateFullPath()))).thenReturn(input);
         String fullPath = fileStorage.saveContent(input, fileModel.getPath());
         fileModel.setPath(fullPath);
@@ -520,6 +562,62 @@ public class DraftServiceTest {
         testDraftVersion.setStructure(new Structure());
         testDraftVersion.setPassportValues(createTestPassportValues(testDraftVersion));
         return testDraftVersion;
+    }
+
+    private RefBookVersionEntity createCopyOfVersion(RefBookVersionEntity version) {
+        RefBookVersionEntity copy = new RefBookVersionEntity();
+        copy.setId(version.getId());
+        copy.setStructure(version.getStructure());
+        copy.setStatus(version.getStatus());
+        copy.setRefBook(version.getRefBook());
+        copy.setPassportValues(new ArrayList<>(version.getPassportValues()));
+        copy.setStorageCode(version.getStorageCode());
+        return copy;
+    }
+
+    /*
+     * Creates a version entity to be saved while creating a version from xml-file with passport values
+     * */
+    private RefBookVersionEntity createTestDraftVersionWithPassport() {
+        RefBookVersionEntity version = new RefBookVersionEntity();
+        version.setId(null);
+        version.setStatus(RefBookVersionStatus.DRAFT);
+        version.setStructure(null);
+        version.setPassportValues(asList(
+                new PassportValueEntity(new PassportAttributeEntity("name"), "наименование справочника", version),
+                new PassportValueEntity(new PassportAttributeEntity("shortName"), "краткое наим-ие", version),
+                new PassportValueEntity(new PassportAttributeEntity("description"), "описание", version)
+        ));
+
+        return version;
+    }
+
+    private void assertVersions(List<RefBookVersionEntity> expected, List<RefBookVersionEntity> actual) {
+        assertEquals(expected.size(), actual.size());
+        for (int i = 0; i < expected.size(); i++) {
+            assertEquals(expected.get(i).getId(), actual.get(i).getId());
+            assertEquals(expected.get(i).getComment(), actual.get(i).getComment());
+            assertTrue(expected.get(i).getStructure() != null
+                    ? expected.get(i).getStructure().storageEquals(actual.get(i).getStructure())
+                    : actual.get(i).getStructure() == null);
+            assertEquals(expected.get(i).getRefBook(), actual.get(i).getRefBook());
+            assertEquals(expected.get(i).getStatus(), actual.get(i).getStatus());
+            assertEquals(expected.get(i).getPassportValues().size(), actual.get(i).getPassportValues().size());
+        }
+    }
+
+    private Structure createFullTestStructure() {
+        return new Structure(
+                asList(
+                        Structure.Attribute.build("string", "string", FieldType.STRING, "строка"),
+                        Structure.Attribute.build("integer", "integer", FieldType.STRING, "число"),
+                        Structure.Attribute.build("date", "date", FieldType.STRING, "дата"),
+                        Structure.Attribute.build("boolean", "boolean", FieldType.STRING, "булево"),
+                        Structure.Attribute.build("float", "float", FieldType.STRING, "дробное"),
+                        Structure.Attribute.build("reference", "reference", FieldType.STRING, "ссылка")
+                ),
+                null
+        );
     }
 
     private List<PassportValueEntity> createTestPassportValues(RefBookVersionEntity version) {
