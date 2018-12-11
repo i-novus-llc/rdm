@@ -20,10 +20,8 @@ services:
           SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/rdm
           SERVER_TOMCAT_ACCESSLOG_ENABLED: "true"
           SPRING_CLOUD_CONSUL_HOST: ${spring_cloud_consul_host}
-          SEC_ADMIN_REST_URL: http://security-admin-backend:8080/api
           SPRING_DATASOURCE_USERNAME: rdm
           SPRING_DATASOURCE_PASSWORD: rdm
-
     depends_on:
       - db
     restart: on-failure
@@ -32,7 +30,7 @@ services:
     environment:
       SPRING_CLOUD_CONSUL_HOST: ${spring_cloud_consul_host}
       SPRING_APPLICATION_NAME: "rdm-security-admin-frontend"
-      SEC_ADMIN_REST_URL: http://docker.one:8183/api
+      SEC_ADMIN_REST_URL: http://security-admin-backend:8080/api
     depends_on:
       - security-admin-backend
 
