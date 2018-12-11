@@ -14,3 +14,23 @@ services:
     image: "${PROJECT_NAME}_frontend:${TAG}"
     depends_on:
       - backend
+  security-admin-backend:
+    image: "security-admin_backend:${TAG}"
+    environment:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/rdm
+          SPRING_DATASOURCE_USERNAME: sec_user
+          SPRING_DATASOURCE_PASSWORD: sec_pass
+          SERVER_TOMCAT_ACCESSLOG_ENABLED: "true"
+          SPRING_CLOUD_CONSUL_HOST: ${spring_cloud_consul_host}
+          SEC_ADMIN_REST_URL: http://security-admin-backend:8080/api
+    depends_on:
+      - db
+    restart: on-failure
+  security-admin-frontend:
+    image: "security-admin_frontend:${TAG}"
+    environment:
+      SPRING_CLOUD_CONSUL_HOST: ${spring_cloud_consul_host}
+    depends_on:
+      - security-admin-backend
+
+
