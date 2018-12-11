@@ -21,6 +21,9 @@ services:
           SERVER_TOMCAT_ACCESSLOG_ENABLED: "true"
           SPRING_CLOUD_CONSUL_HOST: ${spring_cloud_consul_host}
           SEC_ADMIN_REST_URL: http://security-admin-backend:8080/api
+          SPRING_DATASOURCE_USERNAME: rdm
+          SPRING_DATASOURCE_PASSWORD: rdm
+
     depends_on:
       - db
     restart: on-failure
