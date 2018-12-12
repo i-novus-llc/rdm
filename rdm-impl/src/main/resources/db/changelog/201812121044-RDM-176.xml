@@ -12,9 +12,9 @@
         <sql>
             insert into sec.permission(name, code) values('Доступ к справочникам', 'nsi');
             insert into sec.permission(name, code, parent_id)
-               values('Добавление/редактирование справочников', 'nsi.edit', (select id from sec.permission where code = 'nsi');
+               values('Добавление/редактирование справочников', 'nsi.edit', (select id from sec.permission where code = 'nsi'));
             insert into sec.permission(name, code, parent_id)
-                values('Архивирование справочников', 'nsi.archive', (select id from sec.permission where code = 'nsi');
+                values('Архивирование справочников', 'nsi.archive', (select id from sec.permission where code = 'nsi'));
             insert into sec.permission(name, code) values('Аудит', 'audit');
         </sql>
     </changeSet>
