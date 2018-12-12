@@ -32,6 +32,7 @@ services:
       SPRING_CLOUD_CONSUL_HOST: ${spring_cloud_consul_host}
       SPRING_APPLICATION_NAME: "rdm-security-admin-frontend"
       SEC_ADMIN_REST_URL: http://security-admin-backend:8080/api
+      KEYCLOAK_REALM: rdm-realm
     depends_on:
       - security-admin-backend
 
