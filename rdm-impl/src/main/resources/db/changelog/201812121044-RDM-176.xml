@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <preConditions>
+        <dbms type="postgresql"/>
+        <tableExists tableName="permission" schemaName="sec"/>
+    </preConditions>
+
+    <changeSet id="201812121044-RDM-176_1.0" author="tnurdinov" dbms="postgresql">
+        <sql>
+            insert into sec.permission(name, code) values('Доступ к справочникам', 'nsi');
+            insert into sec.permission(name, code, parent_id)
+               values('Добавление/редактирование справочников', 'nsi.edit', (select id from sec.permission where code = 'nsi');
+            insert into sec.permission(name, code, parent_id)
+                values('Архивирование справочников', 'nsi.archive', (select id from sec.permission where code = 'nsi');
+            insert into sec.permission(name, code) values('Аудит', 'audit');
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
