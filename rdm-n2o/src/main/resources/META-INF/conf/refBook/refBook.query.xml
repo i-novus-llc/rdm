@@ -32,11 +32,13 @@
         </field>
 
         <field id="version.version" domain="string">
-            <select mapping="version"/>
+            <select mapping="status?.toString()!='DRAFT' ?
+                version :
+                'Новая (изм. ' + editDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy')) + ')'"/>
         </field>
 
         <field id="code" domain="string">
-            <select mapping="code"/>
+            <select/>
             <filters>
                 <eq filter-id="code" mapping="code"/>
             </filters>
@@ -86,6 +88,14 @@
                 <eq filter-id="category.id" mapping="category" domain="string"/>
             </filters>
             <sorting/>
+        </field>
+
+        <field id="shortName" domain="string">
+            <select mapping="passport['shortName']"/>
+        </field>
+
+        <field id="description" domain="string">
+            <select mapping="passport['description']"/>
         </field>
 
 

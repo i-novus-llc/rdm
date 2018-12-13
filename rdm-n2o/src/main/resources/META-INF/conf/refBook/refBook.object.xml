@@ -3,7 +3,7 @@
 
 
     <operations>
-        <operation id="create" submit-label="Сохранить">
+        <operation id="create" submit-label="Сохранить" success-text="Справочник успешно сохранен">
             <invocation>
                 <rest method="POST">/refBook</rest>
             </invocation>
@@ -11,27 +11,39 @@
             <in-parameters>
                 <param id="code" mapping="code" domain="string" mapper="spel"/>
                 <param id="name" mapping="passport.name" domain="string" mapper="spel"/>
+                <param id="shortName" mapping="passport.shortName" domain="string" mapper="spel"/>
+                <param id="description" mapping="passport.description" domain="string" mapper="spel"/>
             </in-parameters>
 
             <out-parameters>
-                <param id="id" mapping="id" domain="integer"/>
+                <param id="version.id" mapping="id" domain="integer"/>
             </out-parameters>
 
-            <success-text>Справочник успешно сохранен</success-text>
         </operation>
-        <operation id="edit" submit-label="Изменить">
+
+        <operation id="edit" submit-label="Изменить" success-text="Справочник успешно изменет">
             <invocation>
                 <rest method="PUT">/refBook</rest>
             </invocation>
             <in-parameters>
-                <param id="id" mapping="id" domain="integer" mapper="spel"/>
+                <param id="version.id" mapping="versionId" domain="integer" mapper="spel"/>
                 <param id="code" mapping="code" domain="string" mapper="spel"/>
                 <param id="name" mapping="passport.name" domain="string" mapper="spel"/>
+                <param id="shortName" mapping="passport.shortName" domain="string" mapper="spel"/>
+                <param id="description" mapping="passport.description" domain="string" mapper="spel"/>
             </in-parameters>
             <out-parameters>
-                <param id="id" mapping="id" domain="integer"/>
+                <param id="version.id" mapping="id" domain="integer"/>
             </out-parameters>
-            <success-text>Справочник успешно сохранен</success-text>
+        </operation>
+
+        <operation id="delete" submit-label="Удалить" success-text="Справочник удален">
+            <invocation>
+                <rest method="DELETE">/refBook</rest>
+            </invocation>
+            <in-parameters>
+                <param id="id" mapping="refBookId" domain="integer" mapper="spel"/>
+            </in-parameters>
         </operation>
     </operations>
 
