@@ -1,8 +1,13 @@
 package ru.inovus.ms.rdm.provider;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import ru.inovus.ms.rdm.model.AttributeFilter;
 import ru.inovus.ms.rdm.util.TimeUtils;
@@ -14,6 +19,7 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -180,6 +186,9 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
             this.mapper = new ObjectMapper();
             JavaTimeModule jtm = new JavaTimeModule();
             mapper.registerModule(jtm);
+            SimpleModule simpleModule = new SimpleModule();
+            simpleModule.addSerializer(BigDecimal.class, new BigDecimalPlainSerializer());
+            mapper.registerModule(simpleModule);
             this.type = mapper.getTypeFactory().constructCollectionType(ArrayList.class, valueClass);
         }
 
@@ -200,6 +209,18 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
                 throw new IllegalArgumentException("Failed to convert from List to string", e);
             }
         }
+    }
+
+    public static class BigDecimalPlainSerializer extends JsonSerializer<BigDecimal> {
+        @Override
+        public void serialize(BigDecimal value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+            jgen.writeString(value.stripTrailingZeros().toPlainString());
+        }
+        @Override
+        public void serializeWithType(BigDecimal value, JsonGenerator gen, SerializerProvider serializers, TypeSerializer typeSer) throws IOException {
+            typeSer.writeTypePrefixForScalar(value, gen);
+            serialize(value, gen, null);
+            typeSer.writeTypeSuffixForScalar(value, gen);            }
     }
 
 }

@@ -6,6 +6,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 
 import javax.ws.rs.QueryParam;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 
@@ -21,7 +22,8 @@ public class AttributeFilter {
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "type")
     @JsonSubTypes({
             @JsonSubTypes.Type(value = LocalDate.class, name = "DATE"),
-            @JsonSubTypes.Type(value = BigInteger.class, name = "INTEGER")
+            @JsonSubTypes.Type(value = BigInteger.class, name = "INTEGER"),
+            @JsonSubTypes.Type(value = BigDecimal.class, name = "FLOAT")
     })
     private Object value;
 

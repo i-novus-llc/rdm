@@ -21,7 +21,7 @@
 
         </operation>
 
-        <operation id="edit" submit-label="Изменить" success-text="Справочник успешно изменет">
+        <operation id="edit" submit-label="Изменить" success-text="Справочник успешно изменен">
             <invocation>
                 <rest method="PUT">/refBook</rest>
             </invocation>

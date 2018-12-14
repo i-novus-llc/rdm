@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.criteria;
 
+import net.n2oapp.criteria.api.Criteria;
 import net.n2oapp.criteria.api.Direction;
 import net.n2oapp.criteria.api.Sorting;
 import net.n2oapp.framework.api.criteria.N2oPreparedCriteria;
@@ -40,6 +41,10 @@ public class RestCriteriaConstructor implements CriteriaConstructor, Serializabl
             ((RestCriteria) instance).setOrders(sortings);
             ((RestCriteria) instance).setPageSize(criteria.getSize());
             ((RestCriteria) instance).setPageNumber(criteria.getPage() - 1);
+        }else if (instance instanceof Criteria) {
+            ((Criteria) instance).setSorting(criteria.getSorting());
+            ((Criteria) instance).setPage(criteria.getPage());
+            ((Criteria) instance).setSize(criteria.getSize());
         }
         return instance;
     }
