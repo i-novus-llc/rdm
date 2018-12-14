@@ -59,20 +59,20 @@ import static ru.inovus.ms.rdm.util.ConverterUtil.rowValue;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDate;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(
-        classes = Application.class,
-        webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
-        properties = {
-                "cxf.jaxrs.client.classes-scan=true",
-                "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.service.api",
-                "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
-                "fileStorage.root=src/test/resources/rdm/temp",
-                "i18n.global.enabled=false"
-        })
-@DefinePort
-@EnableEmbeddedPg
-@Import(BackendConfiguration.class)
+//@RunWith(SpringRunner.class)
+//@SpringBootTest(
+//        classes = Application.class,
+//        webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
+//        properties = {
+//                "cxf.jaxrs.client.classes-scan=true",
+//                "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.service.api",
+//                "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
+//                "fileStorage.root=src/test/resources/rdm/temp",
+//                "i18n.global.enabled=false"
+//        })
+//@DefinePort
+//@EnableEmbeddedPg
+//@Import(BackendConfiguration.class)
 public class ApplicationTest {
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ApplicationTest.class);
