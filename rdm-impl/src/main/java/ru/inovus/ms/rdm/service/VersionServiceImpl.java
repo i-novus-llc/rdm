@@ -102,6 +102,11 @@ public class VersionServiceImpl implements VersionService {
         return version != null ? getRowValuesOfVersion(criteria, version) : new PageImpl<>(Collections.emptyList());
     }
 
+    @Override
+    public Page<RowValue> search(String refBookCode, SearchDataCriteria criteria) {
+        return search(refBookCode, OffsetDateTime.now(), criteria);
+    }
+
     private Page<RowValue> getRowValuesOfVersion(SearchDataCriteria criteria, RefBookVersionEntity version) {
         List<Field> fields = ConverterUtil.fields(version.getStructure());
         Date bdate = date(version.getFromDate());
