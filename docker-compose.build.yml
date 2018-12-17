@@ -5,10 +5,10 @@ services:
       context: .
       args:
         JAR_FILE: rdm-rest/target/rdm-rest.jar
-    image: "538721144237.dkr.ecr.eu-west-1.amazonaws.com/${PROJECT_NAME}/backend:${TAG}"
+    image: "538721144237.dkr.ecr.eu-west-1.amazonaws.com/rdm/backend:${TAG}"
   frontend:
     build:
       context: .
       args:
         JAR_FILE: rdm-n2o/target/rdm.jar
-    image: "538721144237.dkr.ecr.eu-west-1.amazonaws.com/${PROJECT_NAME}/frontend:${TAG}"
+    image: "538721144237.dkr.ecr.eu-west-1.amazonaws.com/rdm/frontend:${TAG}"
