@@ -48,6 +48,16 @@ public interface VersionService {
                           @BeanParam SearchDataCriteria criteria);
 
     @GET
+    @Path("/refBook/{refBookCode}")
+    @ApiOperation("Получение актуальных на текущую дату записей версии по коду справочника")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет версии")
+    })
+    Page<RowValue> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
+                          @BeanParam SearchDataCriteria criteria);
+
+    @GET
     @Path("/structure")
     @ApiOperation("Получение структуры версии справочника")
     @ApiResponses({
