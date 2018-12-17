@@ -12,7 +12,7 @@ services:
         - node.labels.type == db
 
   backend:
-    image: "${PROJECT_NAME}_backend:${TAG}"
+    image: "538721144237.dkr.ecr.eu-west-1.amazonaws.com/${PROJECT_NAME}_backend:${TAG}"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/rdm
       SERVER_TOMCAT_ACCESSLOG_ENABLED: "true"
@@ -28,7 +28,7 @@ services:
         - node.hostname == os-4
 
   frontend:
-    image: "${PROJECT_NAME}_frontend:${TAG}"
+    image: "538721144237.dkr.ecr.eu-west-1.amazonaws.com/${PROJECT_NAME}_frontend:${TAG}"
     depends_on:
       - backend
     ports:
@@ -39,7 +39,7 @@ services:
         - node.hostname == os-4
 
   security-admin-backend:
-    image: "security-admin_backend:latest"
+    image: "538721144237.dkr.ecr.eu-west-1.amazonaws.com/security-admin_backend:latest"
     environment:
           SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/rdm
           SERVER_TOMCAT_ACCESSLOG_ENABLED: "true"
@@ -57,7 +57,7 @@ services:
         - node.hostname == os-4
 
   security-admin-frontend:
-    image: "security-admin_frontend:latest"
+    image: "538721144237.dkr.ecr.eu-west-1.amazonaws.com/security-admin_frontend:latest"
     environment:
       SPRING_CLOUD_CONSUL_HOST: ${spring_cloud_consul_host}
       SPRING_APPLICATION_NAME: "rdm-security-admin-frontend"
