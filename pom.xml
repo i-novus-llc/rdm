@@ -89,9 +89,9 @@
             </dependency>
 
             <dependency>
-                <groupId>ru.i-novus.util</groupId>
-                <artifactId>pg-embeded</artifactId>
-                <version>0.12.0</version>
+                <groupId>com.opentable.components</groupId>
+                <artifactId>otj-pg-embedded</artifactId>
+                <version>0.12.6</version>
                 <scope>test</scope>
             </dependency>
 
@@ -158,4 +158,16 @@
 
         </dependencies>
     </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <useSystemClassLoader>false</useSystemClassLoader>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
