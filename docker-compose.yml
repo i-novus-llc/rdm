@@ -2,6 +2,11 @@ version: "3"
 services:
   db:
     image: 538721144237.dkr.ecr.eu-west-1.amazonaws.com/rdm-database:latest
+    deploy:
+      placement:
+        constraints:
+        - node.labels.type == db
+
   backend:
     image: "${PROJECT_NAME}_backend:${TAG}"
     environment:
@@ -11,10 +16,20 @@ services:
       - db
       - security-admin-backend
     restart: on-failure
+    deploy:
+      placement:
+        constraints:
+        - node.hostname == os-4
+
   frontend:
     image: "${PROJECT_NAME}_frontend:${TAG}"
     depends_on:
       - backend
+    deploy:
+      placement:
+        constraints:
+        - node.hostname == os-4
+
   security-admin-backend:
     image: "security-admin_backend:latest"
     environment:
@@ -26,6 +41,11 @@ services:
     depends_on:
       - db
     restart: on-failure
+    deploy:
+      placement:
+        constraints:
+        - node.hostname == os-4
+
   security-admin-frontend:
     image: "security-admin_frontend:latest"
     environment:
@@ -35,5 +55,9 @@ services:
       KEYCLOAK_REALM: rdm-realm
     depends_on:
       - security-admin-backend
+    deploy:
+      placement:
+        constraints:
+        - node.hostname == os-4
 
 
