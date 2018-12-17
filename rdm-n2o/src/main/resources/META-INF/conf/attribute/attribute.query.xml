@@ -1,111 +1,89 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<query xmlns:n2o="http://n2oapp.net/framework/config/schema/n2o-query-executions-1.0"
-       xmlns="http://n2oapp.net/framework/config/schema/query-3.0">
-    <object-id>attribute</object-id>
-    <name>Атрибут</name>
+<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" name="Атрибут">
 
-    <execution>
-        <n2o:java-criteria bean-name="structureController" criteria-class="ru.inovus.ms.rdm.model.AttributeCriteria"/>
-    </execution>
+    <list result-mapping="['collection']" count-mapping="['count']">
+        <java method="getCollectionPage" class="ru.inovus.ms.rdm.service.StructureController">
+            <spring/>
+            <arguments>
+                <argument type="criteria" class="ru.inovus.ms.rdm.model.AttributeCriteria" name="criteria"/>
+            </arguments>
+        </java>
+    </list>
+    <unique result-mapping="collection[0]" filters="versionId,code">
+        <java method="getCollectionPage" class="ru.inovus.ms.rdm.service.StructureController">
+            <spring/>
+            <arguments>
+                <argument type="criteria" class="ru.inovus.ms.rdm.model.AttributeCriteria" name="criteria"/>
+            </arguments>
+        </java>
+    </unique>
 
     <fields>
-        <field>
-            <id>id</id>
-            <domain>integer</domain>
-            <filters auto-generate="true"/>
+        <field id="id" domain="string">
+            <select mapping="code"/>
         </field>
 
-        <field>
-            <id>savedCode</id>
-            <domain>string</domain>
-            <display>code</display>
+        <field id="code" domain="string" name="Код">
+            <select mapping="code"/>
+            <filters>
+                <eq filter-id="code" mapping="code" domain="string"/>
+            </filters>
         </field>
 
-        <field>
-            <id>code</id>
-            <domain>string</domain>
-            <display/>
-            <filters auto-generate="true"/>
+         <field id="versionId" domain="integer" >
+             <select mapping="versionId"/>
+             <filters>
+                 <eq filter-id="versionId" mapping="versionId" domain="integer"/>
+             </filters>
         </field>
 
-         <field>
-             <id>versionId</id>
-             <domain>integer</domain>
-             <filters auto-generate="true"/>
-             <display/>
+        <field id="referenceRefBook.id" domain="integer">
+            <select mapping="referenceRefBookId"/>
         </field>
 
-        <field>
-            <id>referenceRefBook.id</id>
-            <domain>integer</domain>
-            <expression>referenceRefBookId</expression>
-            <display/>
+        <field id="name" domain="string" name="Наименование">
+            <select/>
         </field>
 
-        <field>
-            <id>name</id>
-            <domain>string</domain>
-            <display/>
+        <field id="attrType.id" domain="string" name="Тип данных">
+            <select mapping="type.name()"/>
         </field>
 
-        <field>
-            <id>attrType.id</id>
-            <domain>string</domain>
-            <expression>type.name()</expression>
-            <display/>
+        <field id="description" domain="string">
+            <select/>
         </field>
 
-        <field>
-            <id>description</id>
-            <domain>string</domain>
-            <display/>
+        <field id="isPrimary" domain="boolean">
+            <select/>
         </field>
 
-        <field>
-            <id>isPrimary</id>
-            <domain>boolean</domain>
-            <display/>
+        <field id="referenceVersion.id" domain="integer">
+            <select mapping="referenceVersion"/>
         </field>
 
-        <field>
-            <id>isRequired</id>
-            <domain>boolean</domain>
-            <display/>
+        <field id="referenceAttribute.code" domain="string">
+            <select mapping="referenceAttribute"/>
         </field>
 
-        <field>
-            <id>referenceVersion.id</id>
-            <domain>integer</domain>
-            <expression>referenceVersion</expression>
-            <display/>
+        <field id="referenceAttribute.name" domain="string">
+            <select mapping="referenceAttributeName"/>
         </field>
 
-        <field>
-            <id>referenceAttribute.code</id>
-            <domain>string</domain>
-            <expression>referenceAttribute</expression>
-            <display/>
+        <!--<field id="referenceDisplayAttribute.code" domain="string">-->
+            <!--<select mapping="referenceDisplayAttribute"/>-->
+        <!--</field>-->
+
+        <!--<field id="referenceDisplayAttribute.name" domain="string">-->
+            <!--<select mapping="referenceDisplayAttributeName"/>-->
+        <!--</field>-->
+
+        <field id="keyAttribute" name="Ключевой атрибут" domain="string">
+            <select mapping="isPrimary ? 'Первичный ключ' : null"/>
         </field>
 
-        <field>
-            <id>referenceAttribute.name</id>
-            <domain>string</domain>
-            <expression>referenceAttributeName</expression>
-            <display/>
+        <field id="isReference" name="Ссылочное поле" domain="boolean">
+            <select mapping="type?.name()?.equals('REFERENCE')"/>
         </field>
 
-        <field>
-            <id>referenceDisplayAttribute.code</id>
-            <domain>string</domain>
-            <expression>referenceDisplayAttribute</expression>
-            <display/>
-        </field>
-
-        <field>
-            <id>referenceDisplayAttribute.name</id>
-            <domain>string</domain>
-            <expression>referenceDisplayAttributeName</expression>
-            <display/>
-        </field>
     </fields>
 </query>

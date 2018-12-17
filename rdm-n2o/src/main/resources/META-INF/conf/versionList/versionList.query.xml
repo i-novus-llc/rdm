@@ -1,78 +1,73 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<query xmlns:n2o="http://n2oapp.net/framework/config/schema/n2o-query-executions-1.0"
-       xmlns="http://n2oapp.net/framework/config/schema/query-3.0">
-    <object-id>refBook</object-id>
-    <name>Список версий справочника</name>
-    <execution>
-        <n2o:rest>
-            <n2o:query>${rdm.backend.path}/refBook/versions</n2o:query>
-            <n2o:query-by-id>${rdm.backend.path}/refBook/{id}</n2o:query-by-id>
-            <n2o:date-format>dd.MM.yyyy HH:mm:ss</n2o:date-format>
-            <n2o:response-mapping collection="content" count="totalElements"/>
-            <n2o:size param-name="size"/>
-            <n2o:page param-name="page"/>
-        </n2o:rest>
-    </execution>
+<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" name="Список версий справочника">
+    <list result-mapping="content" count-mapping="totalElements" filters="refBookId">
+        <java method="getVersions" class="ru.inovus.ms.rdm.service.api.RefBookService">
+            <spring bean="refBookServiceJaxRsProxyClient"/>
+            <!--<n2o:date-format>dd.MM.yyyy HH:mm:ss</n2o:date-format>-->
+            <arguments>
+                <argument type="criteria" class="ru.inovus.ms.rdm.model.VersionCriteria"/>
+            </arguments>
+        </java>
+    </list>
+    <unique filters="id" result-mapping="#this">
+        <java method="getById">
+            <spring bean="versionServiceJaxRsProxyClient"/>
+            <arguments>
+                <argument type="primitive" name="versionId"/>
+            </arguments>
+        </java>
+    </unique>
 
     <fields>
-        <field>
-            <id>id</id>
-            <domain>integer</domain>
-            <expression>id</expression>
+        <field id="id" domain="integer">
+            <select/>
             <filters>
-                <filter type="eq" filter-field="id">:id</filter>
+                <eq filter-id="id" mapping="[0]" domain="integer"/>
             </filters>
-            <display/>
         </field>
 
-        <field>
-            <id>refBookId</id>
-            <domain>integer</domain>
-            <display/>
-            <filters auto-generate="true"/>
+        <field id="refBookId" domain="integer">
+            <select/>
+            <filters>
+                <!-- todo-->
+                <eq filter-id="refBookId" mapping="refBookId" domain="integer" default-value="83"/>
+            </filters>
         </field>
 
-        <field>
-            <id>fromDate</id>
-            <domain>date</domain>
-            <display/>
+        <field id="code" domain="string" name="Код справочника">
+            <select/>
         </field>
 
-        <field>
-            <id>version</id>
-            <domain>string</domain>
-            <filters auto-generate="true"/>
-            <display/>
+        <field id="name" domain="string">
+            <select mapping="passport['name']"/>
+            <filters>
+                <eq filter-id="name" mapping="passport['name']"/>
+            </filters>
         </field>
 
-        <field>
-            <id>status</id>
-            <domain>string</domain>
-            <display/>
+        <field id="fromDate" domain="date">
+            <select/>
         </field>
 
-        <field>
-            <id>displayStatus</id>
-            <domain>string</domain>
-            <display/>
+        <field id="version" domain="string">
+            <select mapping="version?:'Новая (изм. ' + editDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy')) + ')'"/>
+            <filters/>
         </field>
 
-        <field>
-            <id>archived</id>
-            <domain>boolean</domain>
-            <display/>
-        </field>
-        
-        <field>
-            <id>refBookHasPublishingVersion</id>
-            <domain>boolean</domain>
-            <display/>
+        <field id="status" domain="string">
+            <select/>
         </field>
 
-        <field>
-            <id>excludeDraft</id>
-            <domain>boolean</domain>
-            <filters auto-generate="true"/>
+        <field id="editDate" domain="string">
+            <select/>
+        </field>
+
+        <field id="archived" domain="boolean">
+            <select/>
+        </field>
+
+        <field id="excludeDraft" domain="boolean">
+            <filters/>
         </field>
     </fields>
 </query>

@@ -743,10 +743,8 @@ public class DraftServiceImpl implements DraftService {
     public List<AttributeValidation> getAttributeValidations(Integer draftId, String attribute) {
         List<AttributeValidationEntity> validations;
         if (attribute == null) {
-            validateDraftExists(draftId);
             validations = attributeValidationRepository.findAllByVersionId(draftId);
         } else {
-            validateAttributeExists(draftId, attribute);
             validations = attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attribute);
         }
         return validations.stream().map(this::attributeValidationModel).collect(toList());

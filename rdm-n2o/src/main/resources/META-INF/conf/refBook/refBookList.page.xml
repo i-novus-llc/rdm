@@ -18,9 +18,19 @@
             </row>
         </filters>
         <toolbar>
-            <button id="create" label="Добавить справочник" icon="fa fa-plus">
-                <open-page page-id="passport" submit-operation-id="create" model="filter" focus-after-submit="true"/>
+            <!-- todo-->
+            <!--<button id="create" label="Создать справочник1" icon="fa fa-plus">-->
+                <!--<open-page page-id="refbook" model="filter" upload="defaults"-->
+                           <!--page-name="Создание справочника1"/>-->
+            <!--</button>-->
+            <button id="edit" label="Изменить справочник" icon="fa fa-pencil">
+                <open-page page-id="refbook" master-field-id="version.id" detail-field-id="version.id"
+                           page-name="Редактирование справочника"/>
             </button>
+            <!-- todo-->
+            <!--<button id="delete" label="Удалить справочник" icon="fa fa-trash" class="btn-danger" >-->
+                <!--<invoke operation-id="delete"/>-->
+            <!--</button>-->
         </toolbar>
         <columns>
             <column text-field-id="code" label="Код" width="100px"/>
