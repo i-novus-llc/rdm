@@ -16,6 +16,8 @@ services:
       - db
       - security-admin-backend
     restart: on-failure
+    ports:
+    - "8080"
     deploy:
       placement:
         constraints:
@@ -25,6 +27,8 @@ services:
     image: "${PROJECT_NAME}_frontend:${TAG}"
     depends_on:
       - backend
+    ports:
+    - "8080"
     deploy:
       placement:
         constraints:
@@ -41,6 +45,8 @@ services:
     depends_on:
       - db
     restart: on-failure
+    ports:
+    - "8080"
     deploy:
       placement:
         constraints:
@@ -55,6 +61,8 @@ services:
       KEYCLOAK_REALM: rdm-realm
     depends_on:
       - security-admin-backend
+    ports:
+    - "8080"
     deploy:
       placement:
         constraints:
