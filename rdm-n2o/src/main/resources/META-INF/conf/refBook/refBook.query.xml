@@ -27,7 +27,7 @@
         <field id="version.id" domain="integer">
             <select mapping="id"/>
             <filters>
-                <eq filter-id="id" mapping="[0]"/>
+                <eq filter-id="id" mapping="[0]" domain="integer"/>
             </filters>
         </field>
 

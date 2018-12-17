@@ -1,15 +1,19 @@
 import React, { Component } from 'react';
-import N2O from 'n2o/lib//N2o';
+import N2O from 'n2o';
+import DataGrid from 'n2o-data-grid';
+import 'n2o-data-grid/css/DataGrid.css';
 
 
 const config = {
-  messages: {
-    timeout: {
-      error: 0,
-      success: 5000,
-      warning: 0,
-      info: 0,
-    }
+  widgets: {
+    DataGrid: (props) => <DataGrid
+        id='DataGrid'
+        fetchOnInit={true}
+        minHeight={500}
+        rowHeight={50}
+        filterable={true}
+        {...props}
+        />
   }
 };
 
