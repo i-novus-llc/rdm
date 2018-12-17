@@ -26,21 +26,21 @@ import java.util.List;
 import static java.util.Collections.singletonList;
 import static java.util.Comparator.comparing;
 
-//@RunWith(SpringRunner.class)
-//@SpringBootTest(
-//        classes = Application.class,
-//        webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
-//        properties = {
-//                "cxf.jaxrs.client.classes-scan=true",
-//                "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.service.api",
-//                "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
-//                "fileStorage.root=src/test/resources/rdm/temp",
-//                "i18n.global.enabled=false"
-//        })
-//@DefinePort
-//@EnableEmbeddedPg
-//@Import(BackendConfiguration.class)
-//@Transactional
+@RunWith(SpringRunner.class)
+@SpringBootTest(
+        classes = Application.class,
+        webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
+        properties = {
+                "cxf.jaxrs.client.classes-scan=true",
+                "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.service.api",
+                "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
+                "fileStorage.root=src/test/resources/rdm/temp",
+                "i18n.global.enabled=false"
+        })
+@DefinePort
+@EnableEmbeddedPg
+@Import(BackendConfiguration.class)
+@Transactional
 public class AuditLogServiceITest {
 
     @Autowired
