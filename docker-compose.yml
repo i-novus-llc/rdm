@@ -39,7 +39,7 @@ services:
         - node.hostname == os-4
 
   security-admin-backend:
-    image: "538721144237.dkr.ecr.eu-west-1.amazonaws.com/security-admin_backend:latest"
+    image: "538721144237.dkr.ecr.eu-west-1.amazonaws.com/security-admin/backend:latest"
     environment:
           SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/rdm
           SERVER_TOMCAT_ACCESSLOG_ENABLED: "true"
@@ -57,7 +57,7 @@ services:
         - node.hostname == os-4
 
   security-admin-frontend:
-    image: "538721144237.dkr.ecr.eu-west-1.amazonaws.com/security-admin_frontend:latest"
+    image: "538721144237.dkr.ecr.eu-west-1.amazonaws.com/security-admin/frontend:latest"
     environment:
       SPRING_CLOUD_CONSUL_HOST: ${spring_cloud_consul_host}
       SPRING_APPLICATION_NAME: "rdm-security-admin-frontend"
