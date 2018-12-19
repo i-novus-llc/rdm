@@ -4,9 +4,9 @@ networks:
   default:
     driver: overlay
     attachable: true
-    ipam:
-      config:
-      - subnet: 192.168.1.0/24
+#    ipam:
+#      config:
+#      - subnet: 192.168.1.0/24
 
 services:
   db:
@@ -30,7 +30,7 @@ services:
     deploy:
       placement:
         constraints:
-        - node.hostname == os-4
+        - node.hostname == os-2
 
   frontend:
     image: "538721144237.dkr.ecr.eu-west-1.amazonaws.com/rdm/frontend:${TAG}"
@@ -41,7 +41,7 @@ services:
     deploy:
       placement:
         constraints:
-        - node.hostname == os-4
+        - node.hostname == os-2
 
   security-admin-backend:
     image: "538721144237.dkr.ecr.eu-west-1.amazonaws.com/security-admin/backend:latest"
@@ -59,7 +59,7 @@ services:
     deploy:
       placement:
         constraints:
-        - node.hostname == os-4
+        - node.hostname == os-2
 
   security-admin-frontend:
     image: "538721144237.dkr.ecr.eu-west-1.amazonaws.com/security-admin/frontend:latest"
@@ -74,6 +74,6 @@ services:
     deploy:
       placement:
         constraints:
-        - node.hostname == os-4
+        - node.hostname == os-2
 
 
