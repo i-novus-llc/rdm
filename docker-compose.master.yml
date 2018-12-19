@@ -1,30 +1,18 @@
 version: "3.6"
 
-networks:
-  common_net:
-    external: true
-
 services:
-  db:
-    networks:
-      common_net:
   backend:
     ports:
       - "8181:8080"
-    networks:
-      common_net:
+
   frontend:
     ports:
       - "8180:8080"
-    networks:
-      common_net:
+
   security-admin-backend:
     ports:
       - "8183:8080"
-    networks:
-      common_net:
+
   security-admin-frontend:
     ports:
       - "8182:8080"
-    networks:
-      common_net:
