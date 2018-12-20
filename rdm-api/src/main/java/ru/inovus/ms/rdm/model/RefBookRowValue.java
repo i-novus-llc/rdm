@@ -4,6 +4,7 @@ import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 
 import java.util.List;
+import java.util.Objects;
 
 public class RefBookRowValue extends LongRowValue {
     private String id;
@@ -33,5 +34,19 @@ public class RefBookRowValue extends LongRowValue {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        RefBookRowValue that = (RefBookRowValue) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), id);
     }
 }
