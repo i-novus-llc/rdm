@@ -1,4 +1,5 @@
 version: "3.6"
+
 services:
   backend:
     build:
@@ -6,6 +7,7 @@ services:
       args:
         JAR_FILE: rdm-rest/target/rdm-rest.jar
     image: "538721144237.dkr.ecr.eu-west-1.amazonaws.com/rdm/backend:${TAG}"
+
   frontend:
     build:
       context: .

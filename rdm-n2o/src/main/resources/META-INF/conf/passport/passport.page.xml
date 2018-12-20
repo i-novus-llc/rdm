@@ -4,10 +4,10 @@
           master-field-id="version.id" detail-field-id="version.id" object-id="refBook">
         <fields>
             <input-select id="category" label="Категория" query-id="category" label-field-id="id"/>
-            <input-text id="code" label="Код" required="true" length="5"/>
-            <input-text id="name" label="Наименование" required="true" length="250"/>
-            <input-text id="shortName" label="Краткое наименование" length="250"/>
-            <input-text id="description" label="Описание" length="250"/>
+            <input-text id="code" label="Код" required="true"/>
+            <input-text id="name" label="Наименование" required="true"/>
+            <input-text id="shortName" label="Краткое наименование"/>
+            <input-text id="description" label="Описание"/>
         </fields>
         <toolbar place="bottomRight">
             <button label="Назад">
