@@ -25,6 +25,8 @@ public class UiTest {
     @Test
     public void testOpenStartPage() throws Exception {
         Selenide.open(appUrl);
+        Selenide.$(Selectors.byId("username")).setValue("rdm");
+        Selenide.$(Selectors.byId("password")).setValue("rdm").pressEnter();
         Selenide.$(Selectors.byText("Код")).shouldHave(Condition.exist);
         Selenide.$(Selectors.byText("Версия")).shouldHave(Condition.exist);
 

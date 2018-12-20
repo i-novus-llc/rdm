@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<menu xmlns="http://n2oapp.net/framework/config/schema/simple-menu-1.0">
+    <sub-menu label="Реестр справочников">
+        <page page-id="refBookList" label="Перечень НСИ"/>
+    </sub-menu>
+    <sub-menu label="Администрирование">
+        <a href="${rdm.user.admin.url}" label="Настройка доступа" />
+        <page page-id="audit" label="Аудит"/>
+    </sub-menu>
+</menu>

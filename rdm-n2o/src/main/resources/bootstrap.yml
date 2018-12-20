@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: rdm-frontend
+  cloud:
+    consul:
+      host: docker.one
+      port: 8500
+      config:
+        enabled: ${config.server.enable}
+        fail-fast: false

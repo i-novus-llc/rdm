@@ -1,0 +1,12 @@
+<access xmlns="http://n2oapp.net/framework/config/schema/access-schema-1.0">
+
+    <role id="admin">
+        <url-access pattern="${rdm.user.admin.url}"/>
+    </role>
+    
+    <permission id="nsi">
+        <object-access object-id="refBook"/>
+    </permission>
+
+</access>
+
