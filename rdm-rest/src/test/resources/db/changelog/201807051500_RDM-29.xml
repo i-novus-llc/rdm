@@ -122,7 +122,7 @@
     <changeSet id="201807051500_RDM-29_7.2" author="znurgaliev" dbms="postgresql">
         <comment>Добавление данных storage'a</comment>
         <sql>
-            INSERT INTO data."test-storage-for-draft_2"("SYS_RECORDID", name, count) VALUES (1, 'name', 2);
+            INSERT INTO data."test-storage-for-draft_2"("SYS_RECORDID", name, count, "SYS_HASH") VALUES (1, 'name', 2, 'hash');
         </sql>
     </changeSet>
 

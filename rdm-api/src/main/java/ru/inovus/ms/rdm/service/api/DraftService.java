@@ -2,7 +2,6 @@ package ru.inovus.ms.rdm.service.api;
 
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.validation.AttributeValidation;
@@ -77,7 +76,7 @@ public interface DraftService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет черновика")
     })
-    Page<RowValue> search(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
+    Page<RefBookRowValue> search(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
                           @BeanParam SearchDataCriteria criteria);
 
     @POST

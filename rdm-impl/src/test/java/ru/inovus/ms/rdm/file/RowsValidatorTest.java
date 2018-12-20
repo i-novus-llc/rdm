@@ -11,7 +11,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
@@ -73,7 +72,7 @@ public class RowsValidatorTest {
                 }},
                 null);
         when(versionService.search(eq(REFERENCE_VERSION), eq(searchDataCriteria)))
-                .thenReturn(new PageImpl<>(Collections.singletonList(new LongRowValue())));
+                .thenReturn(new PageImpl<>(Collections.singletonList(new RefBookRowValue())));
     }
 
     @Test

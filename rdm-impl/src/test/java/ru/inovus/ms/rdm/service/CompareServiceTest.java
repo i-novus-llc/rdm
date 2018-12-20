@@ -12,6 +12,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DataDifference;
@@ -220,64 +222,63 @@ public class CompareServiceTest {
     }
 
     private void prepareOldVersionData() {
-        CollectionPage<RowValue> oldVersionRows = new CollectionPage<>(3, asList(
-                new LongRowValue(
+        PageImpl<RefBookRowValue> oldVersionRows = new PageImpl<>(asList(
+                new RefBookRowValue(new LongRowValue(
                         new IntegerFieldValue(id.getCode(), BigInteger.valueOf(1)),
                         new StringFieldValue(code.getCode(), "001"),
                         new StringFieldValue(common.getCode(), "c1"),
                         new StringFieldValue(descr.getCode(), "descr1"),
                         new StringFieldValue(upd1.getCode(), "u1"),
                         new StringFieldValue(typeS.getCode(), "1")
-                ),
-                new LongRowValue(
-                        new IntegerFieldValue(id.getCode(), BigInteger.valueOf(2)),
+                ), OLD_ID),
+                new RefBookRowValue(new LongRowValue(new IntegerFieldValue(id.getCode(), BigInteger.valueOf(2)),
                         new StringFieldValue(code.getCode(), "002"),
                         new StringFieldValue(common.getCode(), "c2"),
                         new StringFieldValue(descr.getCode(), "descr2"),
                         new StringFieldValue(upd1.getCode(), "u2"),
                         new StringFieldValue(typeS.getCode(), "2")
-                ),
-                new LongRowValue(
-                        new IntegerFieldValue(id.getCode(), BigInteger.valueOf(3)),
+                ), OLD_ID),
+                new RefBookRowValue(new LongRowValue(new IntegerFieldValue(id.getCode(), BigInteger.valueOf(3)),
                         new StringFieldValue(code.getCode(), "003"),
                         new StringFieldValue(common.getCode(), "c3"),
                         new StringFieldValue(descr.getCode(), "descr3"),
                         new StringFieldValue(upd1.getCode(), "u3"),
                         new StringFieldValue(typeS.getCode(), "3")
-                )
-        ), createCriteria(0, 10, 3));
+                ), OLD_ID)
+        ), new PageRequest(0, 10), 3);
 
-        when(versionService.search(eq(OLD_ID), any(SearchDataCriteria.class))).thenReturn(new RowValuePage(oldVersionRows));
+        when(versionService.search(eq(OLD_ID), any(SearchDataCriteria.class))).thenReturn(oldVersionRows);
     }
 
     private void prepareNewVersionData() {
-        CollectionPage<RowValue> newVersionRows = new CollectionPage<>(3, asList(
-                new LongRowValue(
+        PageImpl<RefBookRowValue> newVersionRows = new PageImpl<>(asList(
+                new RefBookRowValue(new LongRowValue(
                         new IntegerFieldValue(id.getCode(), BigInteger.valueOf(2)),
                         new StringFieldValue(code.getCode(), "002"),
                         new StringFieldValue(common.getCode(), "c2"),
                         new StringFieldValue(name.getCode(), "name2"),
                         new StringFieldValue(upd1.getCode(), "u2"),
                         new IntegerFieldValue(typeS.getCode(), BigInteger.valueOf(2))
-                ),
-                new LongRowValue(
+                ), NEW_ID),
+                new RefBookRowValue(new LongRowValue(
                         new IntegerFieldValue(id.getCode(), BigInteger.valueOf(3)),
                         new StringFieldValue(code.getCode(), "003"),
                         new StringFieldValue(common.getCode(), "c3_1"),
                         new StringFieldValue(name.getCode(), "name3"),
                         new StringFieldValue(upd1.getCode(), "u3_1"),
                         new IntegerFieldValue(typeS.getCode(), BigInteger.valueOf(3))
-                ), new LongRowValue(
+                ), NEW_ID),
+                new RefBookRowValue(new LongRowValue(
                         new IntegerFieldValue(id.getCode(), BigInteger.valueOf(4)),
                         new StringFieldValue(code.getCode(), "004"),
                         new StringFieldValue(common.getCode(), "c4"),
                         new StringFieldValue(name.getCode(), "name4"),
                         new StringFieldValue(upd1.getCode(), "u4"),
                         new IntegerFieldValue(typeS.getCode(), BigInteger.valueOf(4))
-                )
-        ), createCriteria(0, 10, 3));
+                ), NEW_ID)
+        ), new PageRequest(0, 10), 3);
 
-        when(versionService.search(eq(NEW_ID), any(SearchDataCriteria.class))).thenReturn(new RowValuePage(newVersionRows));
+        when(versionService.search(eq(NEW_ID), any(SearchDataCriteria.class))).thenReturn(newVersionRows);
     }
 
     @Test
@@ -455,17 +456,18 @@ public class CompareServiceTest {
                         DiffStatusEnum.DELETED)
         ), compareDataCriteria, 4);
 
-        CollectionPage<RowValue> deletedRows = new CollectionPage<>(1, singletonList(
-                new LongRowValue(
+        PageImpl<RefBookRowValue> deletedRows = new PageImpl<>(singletonList(
+                new RefBookRowValue(new LongRowValue(
                         new IntegerFieldValue(id.getCode(), BigInteger.valueOf(1)),
                         new StringFieldValue(code.getCode(), "001"),
                         new StringFieldValue(common.getCode(), "c1"),
                         new StringFieldValue(descr.getCode(), "descr1"),
                         new StringFieldValue(upd1.getCode(), "u1"),
                         new StringFieldValue(typeS.getCode(), "1")
-                )), createCriteria(0, 10, 1));
+                ), NEW_ID)
+        ), new PageRequest(0, 10), 1);
         when(versionService.search(eq(OLD_ID), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, 1, emptySet())))))
-                .thenReturn(new RowValuePage(deletedRows));
+                .thenReturn(deletedRows);
 
         List<DiffRowValue> diffRowValuesList = new ArrayList<>();
         diffRowValuesList.add(new DiffRowValue(asList(
@@ -509,33 +511,33 @@ public class CompareServiceTest {
     @Test
     public void testCommonDataDiffExactDivisionOnPagesWithNewAndDeletedRows() {
 
-        List<RowValue> oldVersionRows = Stream.of(5, 6, 7, 8)
-                .map(index -> new LongRowValue(
+        List<RefBookRowValue> oldVersionRows = Stream.of(5, 6, 7, 8)
+                .map(index -> new RefBookRowValue(new LongRowValue(
                         new IntegerFieldValue(id.getCode(), BigInteger.valueOf(index)),
                         new StringFieldValue(common.getCode(), "old" + index)
-                ))
+                ), OLD_ID_1))
                 .collect(Collectors.toList());
 
-        List<RowValue> newVersionRows = Stream.of(1, 2, 3, 4)
-                .map(index -> new LongRowValue(
+        List<RefBookRowValue> newVersionRows = Stream.of(1, 2, 3, 4)
+                .map(index -> new RefBookRowValue(new LongRowValue(
                         new IntegerFieldValue(id.getCode(), BigInteger.valueOf(index)),
                         new StringFieldValue(common.getCode(), "new" + index)
-                ))
+                ), NEW_ID_1))
                 .collect(Collectors.toList());
 
         when(versionService
                 .search(eq(NEW_ID_1), any(SearchDataCriteria.class)))
-                .thenReturn(new RowValuePage(new CollectionPage<>(4, emptyList(), new Criteria())));
+                .thenReturn(new PageImpl<>(emptyList(), new PageRequest(0, DEF_PAGE_SIZE), 4));
         when(versionService
                 .search(eq(NEW_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, DEF_PAGE_SIZE, emptySet())))))
-                .thenReturn(new RowValuePage(new CollectionPage<>(4, newVersionRows.subList(0, 4), createCriteria(0, DEF_PAGE_SIZE, 4))));
+                .thenReturn(new PageImpl<>(newVersionRows.subList(0, 4), new PageRequest(0, DEF_PAGE_SIZE), 4));
 
         when(versionService
                 .search(eq(OLD_ID_1), any(SearchDataCriteria.class)))
-                .thenReturn(new RowValuePage(new CollectionPage<>(4, emptyList(), new Criteria())));
+                .thenReturn(new PageImpl<>(emptyList(), new PageRequest(0, DEF_PAGE_SIZE), 4));
         when(versionService
                 .search(eq(OLD_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, DEF_PAGE_SIZE, emptySet())))))
-                .thenReturn(new RowValuePage(new CollectionPage<>(4, oldVersionRows, createCriteria(0, DEF_PAGE_SIZE, 4))));
+                .thenReturn(new PageImpl<>(oldVersionRows, new PageRequest(0, DEF_PAGE_SIZE), 4));
 
 //        test first page
         CompareDataCriteria compareDataCriteria = createRdmDefaultCompareDataCriteria(OLD_ID_1, NEW_ID_1);
@@ -577,42 +579,42 @@ public class CompareServiceTest {
     @Test
     public void testCommonDataDiffSeveralPagesWithNewAndDeletedRows() {
 
-        List<RowValue> newVersionRows = Stream.of(1, 2, 3, 4, 5)
-                .map(index -> new LongRowValue(
+        List<RefBookRowValue> newVersionRows = Stream.of(1, 2, 3, 4, 5)
+                .map(index -> new RefBookRowValue(new LongRowValue(
                         new IntegerFieldValue(id.getCode(), BigInteger.valueOf(index)),
                         new StringFieldValue(common.getCode(), "new" + index)
-                ))
+                ), NEW_ID_1))
                 .collect(Collectors.toList());
 
-        List<RowValue> oldVersionRows = Stream.of(6, 7, 8, 9, 10, 11, 12, 13)
-                .map(index -> new LongRowValue(
+        List<RefBookRowValue> oldVersionRows = Stream.of(6, 7, 8, 9, 10, 11, 12, 13)
+                .map(index -> new RefBookRowValue(new LongRowValue(
                         new IntegerFieldValue(id.getCode(), BigInteger.valueOf(index)),
                         new StringFieldValue(common.getCode(), "old" + index)
-                ))
+                ), OLD_ID_1))
                 .collect(Collectors.toList());
 
         when(versionService
                 .search(eq(NEW_ID_1), any(SearchDataCriteria.class)))
-                .thenReturn(new RowValuePage(new CollectionPage<>(5, emptyList(), new Criteria())));
+                .thenReturn(new PageImpl<>(emptyList(), new PageRequest(0, DEF_PAGE_SIZE), 5));
         when(versionService
                 .search(eq(NEW_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, DEF_PAGE_SIZE, emptySet())))))
-                .thenReturn(new RowValuePage(new CollectionPage<>(5, newVersionRows.subList(0, 4), createCriteria(0, DEF_PAGE_SIZE, 5))));
+                .thenReturn(new PageImpl<>(newVersionRows.subList(0, 4), new PageRequest(0, DEF_PAGE_SIZE), 5));
         when(versionService
                 .search(eq(NEW_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(1, DEF_PAGE_SIZE, emptySet())))))
-                .thenReturn(new RowValuePage(new CollectionPage<>(5, newVersionRows.subList(4, 5), createCriteria(1, DEF_PAGE_SIZE, 5))));
+                .thenReturn(new PageImpl<>(newVersionRows.subList(4, 5), new PageRequest(1, DEF_PAGE_SIZE), 5));
 
         when(versionService
                 .search(eq(OLD_ID_1), any(SearchDataCriteria.class)))
-                .thenReturn(new RowValuePage(new CollectionPage<>(8, emptyList(), new Criteria())));
+                .thenReturn(new PageImpl<>(emptyList(), new PageRequest(0, DEF_PAGE_SIZE), 8));
         when(versionService
                 .search(eq(OLD_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, 3, emptySet())))))
-                .thenReturn(new RowValuePage(new CollectionPage<>(8, oldVersionRows.subList(0, 3), createCriteria(0, 3, 8))));
+                .thenReturn(new PageImpl<>(oldVersionRows.subList(0, 3), new PageRequest(0, 3), 8));
         when(versionService
                 .search(eq(OLD_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, 7, emptySet())))))
-                .thenReturn(new RowValuePage(new CollectionPage<>(8, oldVersionRows.subList(0, 7), createCriteria(0, 7, 8))));
+                .thenReturn(new PageImpl<>(oldVersionRows.subList(0, 7), new PageRequest(0, 7), 8));
         when(versionService
                 .search(eq(OLD_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, 11, emptySet())))))
-                .thenReturn(new RowValuePage(new CollectionPage<>(8, oldVersionRows, createCriteria(0, 11, 8))));
+                .thenReturn(new PageImpl<>(oldVersionRows, new PageRequest(0, 11), 8));
 
         ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria compareDataCriteriaDeletedVds = createVdsDeletedCompareDataCriteria(OLD_ID_1, NEW_ID_1);
 //        test first page

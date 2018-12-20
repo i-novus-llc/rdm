@@ -9,7 +9,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.service.api.VersionService;
@@ -71,7 +70,7 @@ public class ReferenceValueValidationTest {
     @Test
     public void testValidate() throws Exception {
         when(versionService.getStructure(eq(VERSION_ID))).thenReturn(referenceStructure);
-        when(versionService.search(eq(VERSION_ID), any(SearchDataCriteria.class))).thenReturn(new PageImpl<RowValue>(Collections.<RowValue>emptyList()));
+        when(versionService.search(eq(VERSION_ID), any(SearchDataCriteria.class))).thenReturn(new PageImpl<>(Collections.emptyList()));
         List<Message> messages = new ReferenceValueValidation(versionService, referenceWithValueMap, structure, Collections.singleton(REF_ATTRIBUTE_CODE2)).validate();
         Assert.assertTrue(messages.size() == 1);
         Message expected1 = new Message(ReferenceValueValidation.ERROR_CODE, REF_ATTRIBUTE_NAME1, REFERENCE_VAL1);

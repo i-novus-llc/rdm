@@ -71,7 +71,7 @@ public class ComparableUtils {
      * @return Найденная запись либо null
      */
     public static RowValue findRowValue(List<Structure.Attribute> primaries, RowValue rowValue,
-                                        List<RowValue> rowValues) {
+                                        List<? extends RowValue> rowValues) {
         return rowValues
                 .stream()
                 .filter(rowValue1 ->
@@ -146,7 +146,7 @@ public class ComparableUtils {
      * @param structure структура версии, для определения первичных полей
      * @return Множество фильтров по первичным полям версии
      */
-    public static Set<List<AttributeFilter>> createPrimaryAttributesFilters(Page<RowValue> data, Structure structure) {
+    public static Set<List<AttributeFilter>> createPrimaryAttributesFilters(Page<? extends RowValue> data, Structure structure) {
         return data.getContent().stream().map(row ->
                 structure.getPrimary()
                         .stream()

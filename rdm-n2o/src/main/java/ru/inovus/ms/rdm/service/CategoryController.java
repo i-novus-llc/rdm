@@ -11,6 +11,7 @@ import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.criteria.CategoryCriteria;
 import ru.inovus.ms.rdm.model.AttributeFilter;
 import ru.inovus.ms.rdm.model.Category;
+import ru.inovus.ms.rdm.model.RefBookRowValue;
 import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
@@ -37,7 +38,7 @@ public class CategoryController {
 
         SearchDataCriteria criteria = toSearchDataCriteria(categoryCriteria);
 
-        Page<RowValue> rowValues = versionService.search(CATEGORY_REFBOOK_CODE, OffsetDateTime.now(), criteria);
+        Page<RefBookRowValue> rowValues = versionService.search(CATEGORY_REFBOOK_CODE, OffsetDateTime.now(), criteria);
 
         return new RestPage<>(rowValues.getContent(), criteria, rowValues.getTotalElements())
                 .map(CategoryController::toCategory);

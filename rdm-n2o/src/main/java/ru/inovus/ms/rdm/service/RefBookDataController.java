@@ -27,10 +27,7 @@ import ru.i_novus.platform.datastorage.temporal.model.value.DateFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.criteria.DataCriteria;
-import ru.inovus.ms.rdm.model.AttributeFilter;
-import ru.inovus.ms.rdm.model.DataColumn;
-import ru.inovus.ms.rdm.model.SearchDataCriteria;
-import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.math.BigDecimal;
@@ -65,7 +62,7 @@ public class RefBookDataController {
 
         Structure structure = versionService.getStructure(criteria.getVersionId());
         SearchDataCriteria searchDataCriteria = toSearchDataCriteria(criteria, structure);
-        Page<RowValue> search = versionService.search(criteria.getVersionId(), searchDataCriteria);
+        Page<RefBookRowValue> search = versionService.search(criteria.getVersionId(), searchDataCriteria);
         DataGridRow dataGridHead = new DataGridRow(createHead(structure));
         List<DataGridRow> dataGridRows = search.getContent().stream()
                 .map(this::toDataGridRow)
