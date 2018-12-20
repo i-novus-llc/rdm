@@ -11,6 +11,8 @@ networks:
 services:
   db:
     image: 538721144237.dkr.ecr.eu-west-1.amazonaws.com/rdm-database:latest
+    ports:
+    - "5432"
     deploy:
       placement:
         constraints:
