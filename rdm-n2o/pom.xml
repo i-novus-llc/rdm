@@ -16,6 +16,7 @@
     <properties>
         <backend.default.path>http://localhost:8080/rdm/api</backend.default.path>
         <frontend.default.port>8081</frontend.default.port>
+        <config.server.enable>false</config.server.enable>
     </properties>
 
     <dependencies>
@@ -59,6 +60,27 @@
             <artifactId>spring-boot-starter-test</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>net.n2oapp.framework.security</groupId>
+            <artifactId>security-admin-rest-client</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>net.n2oapp.framework.security</groupId>
+            <artifactId>security-auth-oauth2</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-consul-config</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-actuator</artifactId>
+        </dependency>
+
+
     </dependencies>
 
 
@@ -96,6 +118,7 @@
             <properties>
                 <backend.default.path>http://backend:8080/rdm/api</backend.default.path>
                 <frontend.default.port>8080</frontend.default.port>
+                <config.server.enable>true</config.server.enable>
             </properties>
             <activation>
                 <activeByDefault>false</activeByDefault>
