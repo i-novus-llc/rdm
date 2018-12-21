@@ -1,14 +1,18 @@
 version: "3.6"
+
 services:
   backend:
     ports:
       - "8181:8080"
+
   frontend:
     ports:
       - "8180:8080"
+
   security-admin-backend:
     ports:
       - "8183:8080"
+
   security-admin-frontend:
     ports:
       - "8182:8080"

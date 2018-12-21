@@ -1,11 +1,18 @@
 version: "3.6"
+
 networks:
   default:
     driver: overlay
     attachable: true
+#    ipam:
+#      config:
+#      - subnet: 192.168.1.0/24
+
 services:
   db:
     image: 538721144237.dkr.ecr.eu-west-1.amazonaws.com/rdm-database:latest
+    ports:
+    - "5432"
     deploy:
       placement:
         constraints:
