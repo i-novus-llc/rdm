@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import N2O from 'n2o';
 import DataGrid from 'n2o-data-grid';
 import 'n2o-data-grid/css/DataGrid.css';
+import { authProvider } from 'n2o-auth';
+
 
 
 const config = {
@@ -14,7 +16,12 @@ const config = {
         filterable={true}
         {...props}
         />
-  }
+  },
+security: {
+    authProvider,
+    externalLoginUrl: '/'
+}
+
 };
 
 class App extends Component {
