@@ -39,7 +39,6 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
-import static org.springframework.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.isEmpty;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.hasVersionId;
 import static ru.inovus.ms.rdm.util.ConverterUtil.*;
@@ -193,7 +192,7 @@ public class VersionServiceImpl implements VersionService {
     }
 
     @Override
-    public RowValue gerRow(String rowId) {
+    public RefBookRowValue gerRow(String rowId) {
         if (!existsData(singletonList(rowId)).isExists())
             throw new NotFoundException("row.not.found");
         String[] split = rowId.split("\\$");
@@ -205,9 +204,8 @@ public class VersionServiceImpl implements VersionService {
                 fields(version.getStructure()),
                 singletonList(split[0]));
         List<RowValue> data = searchDataService.getData(criteria);
-        if (isEmpty(data)) return null;
         if (data.size() > 1) throw new IllegalStateException("more than one row with id " + rowId);
-        return data.get(0);
+        return new RefBookRowValue((LongRowValue) data.get(0), version.getId());
     }
 
     private void updateVersionFromPassport(RefBookVersionEntity versionEntity, Map<String, String> newPassport) {
