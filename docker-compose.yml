@@ -82,4 +82,5 @@ services:
         constraints:
         - node.hostname == os-4
 
-
+volumes:
+  rdm-db-data:
