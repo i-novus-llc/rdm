@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
+import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
@@ -25,8 +26,8 @@ import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.PassportValueRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
+import ru.inovus.ms.rdm.service.api.ExistsData;
 import ru.inovus.ms.rdm.service.api.VersionService;
-import ru.inovus.ms.rdm.util.ConverterUtil;
 import ru.inovus.ms.rdm.util.FileNameGenerator;
 
 import javax.transaction.Transactional;
@@ -36,9 +37,11 @@ import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static org.springframework.util.StringUtils.isEmpty;
-import static ru.inovus.ms.rdm.util.ConverterUtil.date;
-import static ru.inovus.ms.rdm.util.ConverterUtil.sortings;
+import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.hasVersionId;
+import static ru.inovus.ms.rdm.util.ConverterUtil.*;
 import static ru.inovus.ms.rdm.util.ModelGenerator.versionModel;
 
 @Service
@@ -80,7 +83,7 @@ public class VersionServiceImpl implements VersionService {
     }
 
     @Override
-    public Page<RowValue> search(Integer versionId, SearchDataCriteria criteria) {
+    public Page<RefBookRowValue> search(Integer versionId, SearchDataCriteria criteria) {
         RefBookVersionEntity version = versionRepository.findOne(versionId);
         if (version == null)
             throw new NotFoundException(new Message("version.not.found", versionId));
@@ -97,27 +100,27 @@ public class VersionServiceImpl implements VersionService {
     }
 
     @Override
-    public Page<RowValue> search(String refBookCode, OffsetDateTime date, SearchDataCriteria criteria) {
+    public Page<RefBookRowValue> search(String refBookCode, OffsetDateTime date, SearchDataCriteria criteria) {
         RefBookVersionEntity version = versionRepository.findActualOnDate(refBookCode, date.toLocalDateTime());
         return version != null ? getRowValuesOfVersion(criteria, version) : new PageImpl<>(Collections.emptyList());
     }
 
     @Override
-    public Page<RowValue> search(String refBookCode, SearchDataCriteria criteria) {
+    public Page<RefBookRowValue> search(String refBookCode, SearchDataCriteria criteria) {
         return search(refBookCode, OffsetDateTime.now(), criteria);
     }
 
-    private Page<RowValue> getRowValuesOfVersion(SearchDataCriteria criteria, RefBookVersionEntity version) {
-        List<Field> fields = ConverterUtil.fields(version.getStructure());
+    private Page<RefBookRowValue> getRowValuesOfVersion(SearchDataCriteria criteria, RefBookVersionEntity version) {
+        List<Field> fields = fields(version.getStructure());
         Date bdate = date(version.getFromDate());
         Date edate = date(version.getToDate());
         DataCriteria dataCriteria = new DataCriteria(version.getStorageCode(), bdate, edate,
-                fields, ConverterUtil.getFieldSearchCriteriaList(criteria.getAttributeFilter()), criteria.getCommonFilter());
+                fields, getFieldSearchCriteriaList(criteria.getAttributeFilter()), criteria.getCommonFilter());
         dataCriteria.setPage(criteria.getPageNumber() + 1);
         dataCriteria.setSize(criteria.getPageSize());
         Optional.ofNullable(criteria.getSort()).ifPresent(sort -> dataCriteria.setSortings(sortings(sort)));
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
-        return pagedData.getCollection() != null ? new RowValuePage(pagedData) : null;
+        return pagedData.getCollection() != null ? new RowValuePage(pagedData).map(rv -> new RefBookRowValue((LongRowValue) rv, version.getId())) : null;
     }
 
     @Override
@@ -152,6 +155,57 @@ public class VersionServiceImpl implements VersionService {
 
         updateVersionFromPassport(refBookVersionEntity, refBookUpdateRequest.getPassport());
         return versionModel(refBookVersionEntity);
+    }
+
+    @Override
+    public ExistsData existsData(List<String> rowIds) {
+        List<String> notExistent = new ArrayList<>();
+        Map<Integer, List<String>> hashes = new HashMap<>();
+
+        for (String rowId : rowIds) {
+            if (!rowId.matches("^.+\\$\\d+$")) {
+                notExistent.add(rowId);
+                continue;
+            }
+            String[] split = rowId.split("\\$");
+            Integer versionId = Integer.parseInt(split[1]);
+            if (!versionRepository.exists(hasVersionId(versionId))) {
+                notExistent.add(rowId);
+            } else {
+                if (hashes.containsKey(versionId))
+                    hashes.get(versionId).add(split[0]);
+                else hashes.put(versionId, new ArrayList<>(singleton(split[0])));
+            }
+        }
+
+        for (Map.Entry<Integer, List<String>> entry : hashes.entrySet()) {
+            RefBookVersionEntity versionEntity = versionRepository.findOne(entry.getKey());
+            notExistent.addAll(searchDataService.getNotExists(
+                    versionEntity.getStorageCode(),
+                    date(versionEntity.getFromDate()),
+                    date(versionEntity.getToDate()),
+                    entry.getValue()));
+
+        }
+
+        return new ExistsData(notExistent.isEmpty(), notExistent);
+    }
+
+    @Override
+    public RefBookRowValue gerRow(String rowId) {
+        if (!existsData(singletonList(rowId)).isExists())
+            throw new NotFoundException("row.not.found");
+        String[] split = rowId.split("\\$");
+        RefBookVersionEntity version = versionRepository.findOne(Integer.parseInt(split[1]));
+        DataCriteria criteria = new DataCriteria(
+                version.getStorageCode(),
+                date(version.getFromDate()),
+                date(version.getToDate()),
+                fields(version.getStructure()),
+                singletonList(split[0]));
+        List<RowValue> data = searchDataService.getData(criteria);
+        if (data.size() > 1) throw new IllegalStateException("more than one row with id " + rowId);
+        return new RefBookRowValue((LongRowValue) data.get(0), version.getId());
     }
 
     private void updateVersionFromPassport(RefBookVersionEntity versionEntity, Map<String, String> newPassport) {

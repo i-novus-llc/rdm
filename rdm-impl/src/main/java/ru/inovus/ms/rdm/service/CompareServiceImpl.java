@@ -162,7 +162,7 @@ public class CompareServiceImpl implements CompareService {
         Structure oldStructure = versionService.getStructure(criteria.getOldVersionId());
 
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize(), criteria.getPrimaryAttributesFilters());
-        Page<RowValue> newData = versionService.search(criteria.getNewVersionId(), searchDataCriteria);
+        Page<RefBookRowValue> newData = versionService.search(criteria.getNewVersionId(), searchDataCriteria);
 
         RefBookDataDiff refBookDataDiff = compareData(createRdmCompareDataCriteria(criteria, newData, newStructure));
         RefBookDataDiff refBookDataDiffDeleted = compareData(createRdmCompareDataCriteriaDeleted(criteria));
@@ -238,7 +238,7 @@ public class CompareServiceImpl implements CompareService {
         return compareDataCriteria;
     }
 
-    private ru.inovus.ms.rdm.model.compare.CompareDataCriteria createRdmCompareDataCriteria(CompareCriteria criteria, Page<RowValue> data, Structure structure) {
+    private ru.inovus.ms.rdm.model.compare.CompareDataCriteria createRdmCompareDataCriteria(CompareCriteria criteria, Page<? extends RowValue> data, Structure structure) {
         ru.inovus.ms.rdm.model.compare.CompareDataCriteria rdmCriteria = new ru.inovus.ms.rdm.model.compare.CompareDataCriteria(criteria);
         rdmCriteria.setPrimaryAttributesFilters(createPrimaryAttributesFilters(data, structure));
         return rdmCriteria;
@@ -253,7 +253,7 @@ public class CompareServiceImpl implements CompareService {
     }
 
    private void addNewVersionRows(List<ComparableRow> comparableRows, List<ComparableField> comparableFields,
-                                   Page<RowValue> newData, RefBookDataDiff refBookDataDiff,
+                                   Page<? extends RowValue> newData, RefBookDataDiff refBookDataDiff,
                                    Structure newStructure, CompareCriteria criteria) {
         if (CollectionUtils.isEmpty(newData.getContent()))
             return;
@@ -264,7 +264,7 @@ public class CompareServiceImpl implements CompareService {
                 ? new SearchDataCriteria(0, criteria.getPageSize(), createPrimaryAttributesFilters(newData, newStructure))
                 : null;
 
-        Page<RowValue> oldData = hasUpdOrDelAttr
+        Page<RefBookRowValue> oldData = hasUpdOrDelAttr
                 ? versionService.search(criteria.getOldVersionId(), oldSearchDataCriteria)
                 : null;
 
@@ -306,7 +306,7 @@ public class CompareServiceImpl implements CompareService {
             if (pageSize <= 0)
                 return;
             SearchDataCriteria delSearchDataCriteria = new SearchDataCriteria(0, (int) pageSize, createPrimaryAttributesFilters(refBookDataDiffDeleted, oldStructure));
-            Page<RowValue> delData = versionService.search(criteria.getOldVersionId(), delSearchDataCriteria);
+            Page<RefBookRowValue> delData = versionService.search(criteria.getOldVersionId(), delSearchDataCriteria);
             delData.getContent()
                     .stream()
                     .skip(skipDeletedRowsCount > 0 ? skipDeletedRowsCount : 0)

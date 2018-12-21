@@ -9,6 +9,7 @@ import ru.inovus.ms.rdm.model.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Path("/version")
 @Produces(MediaType.APPLICATION_JSON)
@@ -23,7 +24,7 @@ public interface VersionService {
             @ApiResponse(code = 404, message = "Нет версии")
     })
     @Path("/{versionId}/data")
-    Page<RowValue> search(@PathParam("versionId")Integer versionId, @BeanParam SearchDataCriteria criteria);
+    Page<RefBookRowValue> search(@PathParam("versionId")Integer versionId, @BeanParam SearchDataCriteria criteria);
 
     @GET
     @ApiOperation("Получение версии по идентификатору")
@@ -43,7 +44,7 @@ public interface VersionService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет версии")
     })
-    Page<RowValue> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
+    Page<RefBookRowValue> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
                           @ApiParam("Дата получения данных") @PathParam("date") OffsetDateTime date,
                           @BeanParam SearchDataCriteria criteria);
 
@@ -54,7 +55,7 @@ public interface VersionService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет версии")
     })
-    Page<RowValue> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
+    Page<RefBookRowValue> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
                           @BeanParam SearchDataCriteria criteria);
 
     @GET
@@ -84,9 +85,26 @@ public interface VersionService {
     @PUT
     @ApiOperation("Изменение метаданных версии")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Версия"),
+            @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     RefBookVersion updatePassport(RefBookUpdateRequest refBookUpdateRequest);
 
+    @GET
+    @ApiOperation("Информация о существовании записей в системе")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    @Path("/row/exists")
+    ExistsData existsData(@ApiParam("Идентификатор строки")@QueryParam("rowId") List<String> rowIds);
+
+    @GET
+    @ApiOperation("Получение строки по идентификатору")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    @Path("/row/{rowId}")
+    RowValue gerRow(@ApiParam("Идентификатор строки")@PathParam("rowId") String rowId);
 }

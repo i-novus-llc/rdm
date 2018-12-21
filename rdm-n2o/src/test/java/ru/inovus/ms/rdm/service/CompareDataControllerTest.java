@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.service;
 
-import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.criteria.api.Criteria;
 import net.n2oapp.platform.jaxrs.RestPage;
 import org.junit.Before;
@@ -11,13 +10,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
-import ru.inovus.ms.rdm.model.RowValuePage;
+import ru.inovus.ms.rdm.model.RefBookRowValue;
 import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.model.compare.ComparableField;
@@ -106,64 +106,65 @@ public class CompareDataControllerTest {
     }
 
     private void prepareOldVersionData() {
-        CollectionPage<RowValue> oldVersionRows = new CollectionPage<>(3, asList(
-                new LongRowValue(
+        PageImpl<RefBookRowValue> oldVersionRows = new PageImpl<>( asList(
+                new RefBookRowValue(new LongRowValue(
                         new IntegerFieldValue(id.getCode(), BigInteger.valueOf(1)),
                         new StringFieldValue(code.getCode(), "001"),
                         new StringFieldValue(common.getCode(), "c1"),
                         new StringFieldValue(descr.getCode(), "descr1"),
                         new StringFieldValue(upd1.getCode(), "u1"),
                         new StringFieldValue(typeS.getCode(), "1")
-                ),
-                new LongRowValue(
+                ), OLD_ID),
+                new RefBookRowValue(new LongRowValue(
                         new IntegerFieldValue(id.getCode(), BigInteger.valueOf(2)),
                         new StringFieldValue(code.getCode(), "002"),
                         new StringFieldValue(common.getCode(), "c2"),
                         new StringFieldValue(descr.getCode(), "descr2"),
                         new StringFieldValue(upd1.getCode(), "u2"),
                         new StringFieldValue(typeS.getCode(), "2")
-                ),
-                new LongRowValue(
+                ), OLD_ID),
+                new RefBookRowValue(new LongRowValue(
                         new IntegerFieldValue(id.getCode(), BigInteger.valueOf(3)),
                         new StringFieldValue(code.getCode(), "003"),
                         new StringFieldValue(common.getCode(), "c3"),
                         new StringFieldValue(descr.getCode(), "descr3"),
                         new StringFieldValue(upd1.getCode(), "u3"),
                         new StringFieldValue(typeS.getCode(), "3")
-                )
-        ), createDefaultCriteria());
+                ), OLD_ID)
+        ), new PageRequest(0, 10), 3);
 
-        when(versionService.search(eq(OLD_ID), any(SearchDataCriteria.class))).thenReturn(new RowValuePage(oldVersionRows));
+        when(versionService.search(eq(OLD_ID), any(SearchDataCriteria.class))).thenReturn(oldVersionRows);
     }
 
     private void prepareNewVersionData() {
-        CollectionPage<RowValue> newVersionRows = new CollectionPage<>(3, asList(
-                new LongRowValue(
+        PageImpl<RefBookRowValue> newVersionRows = new PageImpl<>( asList(
+                new RefBookRowValue(new LongRowValue(
                         new IntegerFieldValue(id.getCode(), BigInteger.valueOf(2)),
                         new StringFieldValue(code.getCode(), "002"),
                         new StringFieldValue(common.getCode(), "c2"),
                         new StringFieldValue(name.getCode(), "name2"),
                         new StringFieldValue(upd1.getCode(), "u2"),
                         new IntegerFieldValue(typeS.getCode(), BigInteger.valueOf(2))
-                ),
-                new LongRowValue(
+                ), NEW_ID),
+                new RefBookRowValue(new LongRowValue(
                         new IntegerFieldValue(id.getCode(), BigInteger.valueOf(3)),
                         new StringFieldValue(code.getCode(), "003"),
                         new StringFieldValue(common.getCode(), "c3_1"),
                         new StringFieldValue(name.getCode(), "name3"),
                         new StringFieldValue(upd1.getCode(), "u3_1"),
                         new IntegerFieldValue(typeS.getCode(), BigInteger.valueOf(3))
-                ), new LongRowValue(
+                ), NEW_ID),
+                new RefBookRowValue(new LongRowValue(
                         new IntegerFieldValue(id.getCode(), BigInteger.valueOf(4)),
                         new StringFieldValue(code.getCode(), "004"),
                         new StringFieldValue(common.getCode(), "c4"),
                         new StringFieldValue(name.getCode(), "name4"),
                         new StringFieldValue(upd1.getCode(), "u4"),
                         new IntegerFieldValue(typeS.getCode(), BigInteger.valueOf(4))
-                )
-        ), createDefaultCriteria());
+                ), NEW_ID)
+        ), new PageRequest(0, 10), 3);
 
-        when(versionService.search(eq(NEW_ID), any(SearchDataCriteria.class))).thenReturn(new RowValuePage(newVersionRows));
+        when(versionService.search(eq(NEW_ID), any(SearchDataCriteria.class))).thenReturn(newVersionRows);
     }
 
     private void prepareCommonComparableRows() {

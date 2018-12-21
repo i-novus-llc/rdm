@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
+import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
@@ -27,8 +28,8 @@ import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.file.*;
 import ru.inovus.ms.rdm.file.export.*;
 import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.model.validation.AttributeValidationType;
 import ru.inovus.ms.rdm.model.validation.AttributeValidation;
+import ru.inovus.ms.rdm.model.validation.AttributeValidationType;
 import ru.inovus.ms.rdm.repositiory.AttributeValidationRepository;
 import ru.inovus.ms.rdm.repositiory.PassportValueRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
@@ -43,7 +44,8 @@ import ru.inovus.ms.rdm.validation.PrimaryKeyUniqueValidation;
 import ru.inovus.ms.rdm.validation.ReferenceValidation;
 import ru.kirkazan.common.exception.CodifiedException;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -373,7 +375,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
-    public Page<RowValue> search(Integer draftId, SearchDataCriteria criteria) {
+    public Page<RefBookRowValue> search(Integer draftId, SearchDataCriteria criteria) {
 
         validateDraftExists(draftId);
 
@@ -383,7 +385,7 @@ public class DraftServiceImpl implements DraftService {
         DataCriteria dataCriteria = new DataCriteria(storageCode, null, null,
                 fields, getFieldSearchCriteriaList(criteria.getAttributeFilter()), criteria.getCommonFilter());
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
-        return new RowValuePage(pagedData);
+        return new RowValuePage(pagedData).map(rv -> new RefBookRowValue((LongRowValue) rv, draft.getId()));
     }
 
 

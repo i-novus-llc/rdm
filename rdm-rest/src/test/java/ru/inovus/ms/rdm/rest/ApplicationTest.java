@@ -431,7 +431,7 @@ public class ApplicationTest {
 
     @Test
     public void testVersionSearch() {
-        Page<RowValue> rowValues = versionService.search(-1, new SearchDataCriteria());
+        Page<RefBookRowValue> rowValues = versionService.search(-1, new SearchDataCriteria());
         List<FieldValue> fieldValues = rowValues.getContent().get(0).getFieldValues();
         StringFieldValue name = new StringFieldValue("name", "name");
         IntegerFieldValue count = new IntegerFieldValue("count", 2);
@@ -447,13 +447,13 @@ public class ApplicationTest {
     @Test
     public void testPublishFirstDraft() {
         draftService.publish(-2, "1.0", LocalDateTime.now(), null);
-        Page<RowValue> rowValuesInVersion = versionService.search("test_ref_book_for_draft", OffsetDateTime.now(), new SearchDataCriteria());
+        Page<RefBookRowValue> rowValuesInVersion = versionService.search("test_ref_book_for_draft", OffsetDateTime.now(), new SearchDataCriteria());
         List fieldValues = rowValuesInVersion.getContent().get(0).getFieldValues();
         FieldValue name = new StringFieldValue("name", "name");
         FieldValue count = new IntegerFieldValue("count", 2);
         assertEquals(fieldValues.get(0), name);
         assertEquals(fieldValues.get(1), count);
-        Page<RowValue> rowValuesOutVersion = versionService.search("test_ref_book_for_draft", OffsetDateTime.now().minusDays(1), new SearchDataCriteria());
+        Page<RefBookRowValue> rowValuesOutVersion = versionService.search("test_ref_book_for_draft", OffsetDateTime.now().minusDays(1), new SearchDataCriteria());
         assertEquals(new PageImpl<RowValue>(emptyList()), rowValuesOutVersion);
     }
 
@@ -492,7 +492,7 @@ public class ApplicationTest {
         row.getData().replace("reference", new Reference("2", "2"));
         RowValue expectedRowValue = rowValue(row, structure);
 
-        Page<RowValue> actualRowValues = draftService.search(versionId, new SearchDataCriteria());
+        Page<RefBookRowValue> actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertRows(fields(structure), singletonList(expectedRowValue), actualRowValues.getContent());
 
 //        изменение строки
@@ -565,7 +565,7 @@ public class ApplicationTest {
             ));
         }};
 
-        Page<RowValue> actualRow = versionService
+        Page<RefBookRowValue> actualRow = versionService
                 .search(REFBOOK_CODE, OffsetDateTime.now(), new SearchDataCriteria(filters, null));
         assertEquals(1, actualRow.getContent().size());
         assertRows(fields(structure), singletonList(rowValue(new Row(rowMap), structure)), actualRow.getContent());
@@ -620,7 +620,7 @@ public class ApplicationTest {
             ));
         }};
 
-        Page<RowValue> actualRow = versionService
+        Page<RefBookRowValue> actualRow = versionService
                 .search(REFBOOK_CODE,
                         OffsetDateTime.of(publishDate1.plusYears(4), ZoneOffset.UTC),
                         new SearchDataCriteria(filters, null));
@@ -643,7 +643,7 @@ public class ApplicationTest {
         Row row = createRowForAllTypesStructure("Иван", BigInteger.valueOf(4), DATE_STR, true, 1.0, new Reference("2", "2"));
         List<RowValue> expected = singletonList(rowValue(row, structure));
 
-        Page<RowValue> search = draftService.search(draft.getId(), new SearchDataCriteria(null, null));
+        Page<RefBookRowValue> search = draftService.search(draft.getId(), new SearchDataCriteria(null, null));
         assertRows(fields(structure), expected, search.getContent());
     }
 
@@ -682,7 +682,7 @@ public class ApplicationTest {
 
         assertEquals(expected, actual);
 
-        Page<RowValue> search = draftService.search(expected.getId(), new SearchDataCriteria());
+        Page<RefBookRowValue> search = draftService.search(expected.getId(), new SearchDataCriteria());
         List actualData = search.getContent().get(0).getFieldValues();
 
         assertEquals(expectedData, actualData);
@@ -725,7 +725,7 @@ public class ApplicationTest {
         structure.getAttributes().forEach(attribute -> {
             String fullTextSearchValue = FieldType.REFERENCE.equals(attribute.getType()) ?
                     ((Reference) row1.getData().get(attribute.getCode())).getValue() : row1.getData().get(attribute.getCode()).toString();
-            Page<RowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(null, fullTextSearchValue));
+            Page<RefBookRowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(null, fullTextSearchValue));
             Assert.assertEquals("Full text search failed", 1, actualPage.getContent().size());
             assertRows(fields, expectedRowValues, actualPage.getContent());
         });
@@ -738,11 +738,11 @@ public class ApplicationTest {
         });
 
         attributeFilters.forEach(attributeFilter -> {
-            Page<RowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(new HashSet<List<AttributeFilter>>(){{add(singletonList(attributeFilter));}}, null));
+            Page<RefBookRowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(new HashSet<List<AttributeFilter>>(){{add(singletonList(attributeFilter));}}, null));
             assertRows(fields, expectedRowValues, actualPage.getContent());
         });
 
-        Page<RowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(new HashSet<List<AttributeFilter>>(){{add(attributeFilters);}}, null));
+        Page<RefBookRowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(new HashSet<List<AttributeFilter>>(){{add(attributeFilters);}}, null));
         assertRows(fields, expectedRowValues, actualPage.getContent());
     }
 
@@ -763,7 +763,7 @@ public class ApplicationTest {
         RefBook refBook = refBookService.create(new RefBookCreateRequest("Z002", null));
         FileModel fileModel = createFileModel("create_testUpload.xlsx", "testUpload.xlsx");
         Draft draft1 = draftService.create(refBook.getRefBookId(), fileModel);
-        Page<RowValue> expectedPage = draftService.search(draft1.getId(), new SearchDataCriteria());
+        Page<RefBookRowValue> expectedPage = draftService.search(draft1.getId(), new SearchDataCriteria());
 
         //выгрузка файла
         ExportFile exportFile = draftService.getDraftFile(draft1.getId(), FileType.XLSX);
@@ -777,7 +777,7 @@ public class ApplicationTest {
         //создание нового черновика из выгруженного
         Draft draft2 = draftService.create(refBook.getRefBookId(), fileModel);
         Assert.assertNotEquals(draft1, draft2);
-        Page<RowValue> actualPage = draftService.search(draft2.getId(), new SearchDataCriteria());
+        Page<RefBookRowValue> actualPage = draftService.search(draft2.getId(), new SearchDataCriteria());
 
         //сравнение двух черновиков
         Assert.assertEquals(expectedPage, actualPage);
@@ -965,7 +965,7 @@ public class ApplicationTest {
         validateUpdateTypeWithException(draft.getId(), "integer", FieldType.INTEGER, FieldType.BOOLEAN, null);
 
         // Все типы в string и обратно. Без ошибок
-        List<RowValue> rowValues;
+        List<RefBookRowValue> rowValues;
         // integer -> string -> integer
         structure.getAttribute("integer").setType(FieldType.STRING);
         draftService.updateAttribute(new UpdateAttribute(draft.getId(), structure.getAttribute("integer"), null));
@@ -1099,7 +1099,7 @@ public class ApplicationTest {
         Integer leftId = draftService.create(refBook.getRefBookId(), createFileModel(LEFT_FILE, "testPublishing/" + LEFT_FILE)).getId();
         draftService.publish(leftId, null, parseLocalDateTime("01.02.2018 00:00:00"), null);
 
-        List<RowValue> actual = versionService.search(leftId, new SearchDataCriteria(null, null)).getContent();
+        List<RefBookRowValue> actual = versionService.search(leftId, new SearchDataCriteria(null, null)).getContent();
         assertEqualRow(expectedLeft, actual);
 
         //Публикация средней версии
@@ -1442,14 +1442,14 @@ public class ApplicationTest {
     }
 
 
-    private void assertEqualRow(List<RowValue> expected, List<RowValue> actual) {
+    private void assertEqualRow(List<RowValue> expected, List<? extends RowValue> actual) {
         assertEquals(expected.size(), actual.size());
         Set<List> expectedStrings = expected.stream().map(RowValue::getFieldValues).collect(Collectors.toSet());
         Set<List> actualStrings = actual.stream().map(RowValue::getFieldValues).collect(Collectors.toSet());
         assertEquals(expectedStrings, actualStrings);
     }
 
-    private void assertRows(List<Field> fields, List<RowValue> expectedRows, List<RowValue> actualRows) {
+    private void assertRows(List<Field> fields, List<RowValue> expectedRows, List<? extends RowValue> actualRows) {
         Assert.assertEquals("result size not equals", expectedRows.size(), actualRows.size());
         String expectedRowsStr = expectedRows.stream().map(RowValue::toString).collect(Collectors.joining(", "));
         String actualRowsStr = actualRows.stream().map(RowValue::toString).collect(Collectors.joining(", "));

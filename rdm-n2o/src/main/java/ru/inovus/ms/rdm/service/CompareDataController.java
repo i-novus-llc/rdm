@@ -5,10 +5,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Controller;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.inovus.ms.rdm.model.RefBookRowValue;
 import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.model.compare.*;
+import ru.inovus.ms.rdm.model.compare.ComparableFieldValue;
+import ru.inovus.ms.rdm.model.compare.ComparableRow;
+import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
@@ -16,7 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static ru.inovus.ms.rdm.util.ComparableUtils.*;
+import static ru.inovus.ms.rdm.util.ComparableUtils.createPrimaryAttributesFilters;
+import static ru.inovus.ms.rdm.util.ComparableUtils.findComparableRow;
 
 @Controller
 public class CompareDataController {
@@ -36,7 +39,7 @@ public class CompareDataController {
 
     private Page<ComparableRow> getComparableRowsPage(Integer versionId, CompareDataCriteria criteria, DiffStatusEnum status) {
         Structure structure = versionService.getStructure(versionId);
-        Page<RowValue> data = versionService.search(versionId, new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize(), null));
+        Page<RefBookRowValue> data = versionService.search(versionId, new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize(), null));
 
         criteria.setPrimaryAttributesFilters(createPrimaryAttributesFilters(data, structure));
         Page<ComparableRow> commonComparableRows = compareService.getCommonComparableRows(criteria);

@@ -5,11 +5,7 @@ import org.springframework.data.domain.Page;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.inovus.ms.rdm.model.Row;
-import ru.inovus.ms.rdm.model.AttributeFilter;
-import ru.inovus.ms.rdm.model.SearchDataCriteria;
-import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.util.*;
@@ -93,7 +89,7 @@ public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
         Set<List<AttributeFilter>> attributeFilters = new HashSet<>();
         attributeFilters.add(singletonList(attributeFilter));
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria(attributeFilters, null);
-        Page<RowValue> pagedData = versionService.search(versionId, searchDataCriteria);
+        Page<RefBookRowValue> pagedData = versionService.search(versionId, searchDataCriteria);
         return (pagedData == null || !pagedData.hasContent());
     }
 
