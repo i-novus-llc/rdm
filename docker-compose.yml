@@ -11,6 +11,10 @@ networks:
 services:
   db:
     image: 538721144237.dkr.ecr.eu-west-1.amazonaws.com/rdm-database:latest
+    volumes:
+    - rdm-db-data:/var/lib/postgresql/data/pgdata
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
     - "5432"
     deploy:
