@@ -6,48 +6,19 @@
                 <fields>
                     <select id="version" label="Версия" query-id="versionList" label-field-id="version">
                         <pre-filters>
-                            <eq field-id="refBookId" value="{id}"/>
+                            <eq field-id="refBookId" value="{refBookId}"/>
                         </pre-filters>
                     </select>
                 </fields>
             </form>
         </none>
         <tabs place="single">
-            <form name="Паспорт" query-id="refBook" id="passport_form" depends-on="version_select"
-                  master-field-id="version.id" detail-field-id="version.id" object-id="refBook">
-                <fields>
-                    <input-select id="category" label="Категория" query-id="category" label-field-id="id"/>
-                    <input-text id="code" label="Код" required="true" length="5"/>
-                    <input-text id="name" label="Наименование" required="true" length="250"/>
-                    <input-text id="shortName" label="Краткое наименование" length="250"/>
-                    <input-text id="description" label="Описание" length="250"/>
-                </fields>
-                <toolbar place="bottomRight">
-                    <!-- todo-->
-                    <!--<button label="Создать" id="create" visibility-condition="typeof id == 'undefined' || id == null || id == ''">-->
-                        <!--<invoke operation-id="create" close-after-success="false" redirect-url="/main/:id/edit"/>-->
-                    <!--</button>-->
-                    <button label="Изменить" id="edit" visibility-condition="!(typeof id == 'undefined' || id == null || id == '')">
-                        <invoke operation-id="edit" close-after-success="false"/>
-                    </button>
-                    <button label="Назад">
-                        <close/>
-                    </button>
-                </toolbar>
-            </form>
-            <table name="Структура" query-id="attribute" id="structure_table" depends-on="version_select"
-                   master-field-id="version.id" detail-field-id="versionId" object-id="attribute" upload="query">
-                <columns>
-                    <column text-field-id="keyAttribute"/>
-                    <column text-field-id="code"/>
-                    <column text-field-id="name"/>
-                    <column text-field-id="attrType.id"/>
-                    <column text-field-id="description"/>
-                    <column text-field-id="isReference">
-                        <checkbox/>
-                    </column>
-                </columns>
-            </table>
+            <form ref-id="passport" name="Паспорт" id="passport_form" depends-on="version_select"
+                  master-field-id="version.id" detail-field-id="version.id" object-id="refBook"/>
+            <table ref-id="structure" name="Структура" id="structure_table" depends-on="version_select"
+                   master-field-id="version.id" detail-field-id="versionId" upload="query"/>
+            <table src="DataGrid" name="Данные" id="dataTable" query-id="data" depends-on="version_select"
+                   master-field-id="version.id" detail-field-id="versionId"/>
         </tabs>
     </regions>
 

@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<table xmlns="http://n2oapp.net/framework/config/schema/n2o-widget-4.0"
+       name="Структура" query-id="attribute" object-id="attribute">
+    <columns>
+        <column text-field-id="keyAttribute"/>
+        <column text-field-id="code"/>
+        <column text-field-id="name"/>
+        <column text-field-id="attrType.name"/>
+        <column text-field-id="description"/>
+        <column text-field-id="isReference">
+            <checkbox/>
+        </column>
+    </columns>
+    <!--<toolbar place="bottomRight">-->
+        <!--<button label="Добавить" id="create" color="warning" enabling-condition="false">-->
+            <!--<open-page page-id="attribute" submit-operation-id="create" submit-model="filter">-->
+                <!--<pre-filters>-->
+                    <!--<eq field-id="versionId" value="{versionId}"/>-->
+                <!--</pre-filters>-->
+            <!--</open-page>-->
+        <!--</button>-->
+        <!--<button label="Изменить" id="edit">-->
+            <!--<open-page page-id="attribute" submit-operation-id="update">-->
+                <!--<pre-filters>-->
+                    <!--<eq field-id="versionId" value="{versionId}"/>-->
+                    <!--<eq field-id="code" value="{code}"/>-->
+                <!--</pre-filters>-->
+            <!--</open-page>-->
+        <!--</button>-->
+        <!--<button label="Удалить" id="delete" color="danger">-->
+            <!--<invoke operation-id="delete" close-after-success="false"/>-->
+        <!--</button>-->
+    <!--</toolbar>-->
+</table>

@@ -21,6 +21,10 @@
 
     <fields>
         <field id="id" domain="integer">
+            <select mapping="id"/>
+        </field>
+
+        <field id="refBookId" domain="integer">
             <select mapping="refBookId"/>
         </field>
 

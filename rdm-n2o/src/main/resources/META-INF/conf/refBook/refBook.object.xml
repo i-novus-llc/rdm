@@ -16,7 +16,7 @@
             </in-parameters>
 
             <out-parameters>
-                <param id="version.id" mapping="id" domain="integer"/>
+                <param id="id" mapping="id" domain="integer"/>
             </out-parameters>
 
         </operation>
@@ -33,7 +33,7 @@
                 <param id="description" mapping="passport.description" domain="string" mapper="spel"/>
             </in-parameters>
             <out-parameters>
-                <param id="version.id" mapping="id" domain="integer"/>
+                <param id="id" mapping="id" domain="integer"/>
             </out-parameters>
         </operation>
 
@@ -42,7 +42,7 @@
                 <rest method="DELETE">/refBook</rest>
             </invocation>
             <in-parameters>
-                <param id="id" mapping="refBookId" domain="integer" mapper="spel"/>
+                <param id="refBookId" mapping="refBookId" domain="integer" mapper="spel"/>
             </in-parameters>
         </operation>
     </operations>
