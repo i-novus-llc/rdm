@@ -19,7 +19,7 @@
         </filters>
         <toolbar>
             <button id="create" label="Создать справочник" model="filter" icon="fa fa-plus">
-                <open-page page-id="passport" upload="defaults" submit-operation-id="create" redirect-url-after-submit="/main/:id/edit?version.id=:id"
+                <open-page page-id="passport" upload="defaults" submit-operation-id="create" redirect-url-after-submit="/main/:id/edit?id=:id"
                            page-name="Создание справочника"/>
             </button>
             <button id="edit" label="Изменить справочник" icon="fa fa-pencil">
