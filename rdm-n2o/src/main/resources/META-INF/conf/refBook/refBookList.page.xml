@@ -23,8 +23,7 @@
                            page-name="Создание справочника"/>
             </button>
             <button id="edit" label="Изменить справочник" icon="fa fa-pencil">
-                <open-page page-id="refbook" master-field-id="version.id" detail-field-id="version.id"
-                           page-name="Редактирование справочника"/>
+                <open-page page-id="refbook" page-name="Редактирование справочника" detail-field-id="id"/>
             </button>
             <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger">
                 <invoke operation-id="delete"/>

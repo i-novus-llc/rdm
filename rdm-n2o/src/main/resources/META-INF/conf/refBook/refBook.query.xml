@@ -9,7 +9,7 @@
             </arguments>
         </java>
     </list>
-    <unique filters="version.id" result-mapping="#this">
+    <unique filters="id" result-mapping="#this">
         <java class="ru.inovus.ms.rdm.service.api.RefBookService"
               method="getByVersionId">
             <spring bean="refBookServiceJaxRsProxyClient"/>
@@ -22,6 +22,9 @@
     <fields>
         <field id="id" domain="integer">
             <select mapping="id"/>
+            <filters>
+                <eq filter-id="id" mapping="[0]" domain="integer"/>
+            </filters>
         </field>
 
         <field id="refBookId" domain="integer">
@@ -30,9 +33,6 @@
 
         <field id="version.id" domain="integer">
             <select mapping="id"/>
-            <filters>
-                <eq filter-id="id" mapping="[0]" domain="integer"/>
-            </filters>
         </field>
 
         <field id="version.version" domain="string">

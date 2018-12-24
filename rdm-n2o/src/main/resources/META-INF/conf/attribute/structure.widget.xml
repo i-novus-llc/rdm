@@ -11,24 +11,22 @@
             <checkbox/>
         </column>
     </columns>
-    <!--<toolbar place="bottomRight">-->
-        <!--<button label="Добавить" id="create" color="warning" enabling-condition="false">-->
-            <!--<open-page page-id="attribute" submit-operation-id="create" submit-model="filter">-->
-                <!--<pre-filters>-->
-                    <!--<eq field-id="versionId" value="{versionId}"/>-->
-                <!--</pre-filters>-->
-            <!--</open-page>-->
-        <!--</button>-->
-        <!--<button label="Изменить" id="edit">-->
-            <!--<open-page page-id="attribute" submit-operation-id="update">-->
-                <!--<pre-filters>-->
-                    <!--<eq field-id="versionId" value="{versionId}"/>-->
-                    <!--<eq field-id="code" value="{code}"/>-->
-                <!--</pre-filters>-->
-            <!--</open-page>-->
-        <!--</button>-->
-        <!--<button label="Удалить" id="delete" color="danger">-->
-            <!--<invoke operation-id="delete" close-after-success="false"/>-->
-        <!--</button>-->
-    <!--</toolbar>-->
+    <toolbar place="bottomRight">
+        <button label="Добавить" id="create">
+            <show-modal page-id="attribute" submit-operation-id="create"
+                        master-field-id="versionId" detail-field-id="versionId"
+                        upload="defaults"/>
+        </button>
+        <button label="Изменить" id="edit">
+            <show-modal page-id="attribute" submit-operation-id="updateAttribute" submit-model="resolve">
+                <pre-filters>
+                    <eq field-id="versionId" value="{versionId}"/>
+                    <eq field-id="code" value="{code}"/>
+                </pre-filters>
+            </show-modal>
+        </button>
+        <button label="Удалить" id="delete" color="danger">
+            <invoke operation-id="delete" close-after-success="false"/>
+        </button>
+    </toolbar>
 </table>
