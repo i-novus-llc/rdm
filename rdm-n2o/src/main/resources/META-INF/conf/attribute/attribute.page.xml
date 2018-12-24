@@ -3,7 +3,6 @@
     <form default-values-query-id="attributeDefaults" query-id="attribute" object-id="attribute">
         <fields>
             <input-text id="code" label="Код" required="true"/>
-            <input-text id="id" label="id" required="true"/>
 
             <input-text id="name" label="Наименование" required="true"/>
 
@@ -14,7 +13,7 @@
                     <option id="FLOAT" name="Дробный"/>
                     <option id="DATE" name="Дата"/>
                     <option id="BOOLEAN" name="Логический"/>
-                    <option id="REFERENCE" name="Ссылочный"/>
+                    <!--<option id="REFERENCE" name="Ссылочный"/>-->
                 </options>
             </select>
 
@@ -64,8 +63,8 @@
                 </dependencies>
             </checkbox>
 
-            <checkbox id="unique"/>
-            <input-text id="plainSize" domain="integer" min="1">
+            <checkbox id="unique" label="Уникальный атрибут"/>
+            <input-text id="plainSize" domain="integer" label="Максимальная длина" min="1">
                 <dependencies>
                     <visibility on="attrType">
                         attrType.id == 'STRING' || attrType.id == 'INTEGER'
@@ -73,14 +72,14 @@
                 </dependencies>
             </input-text>
             <row>
-                <input-text id="intPartSize" domain="integer">
+                <input-text id="intPartSize" domain="integer" label="Максимальная длина целой части">
                     <dependencies>
                         <visibility on="attrType">
                             attrType.id == 'FLOAT'
                         </visibility>
                     </dependencies>
                 </input-text>
-                <input-text id="fracPartSize" domain="integer">
+                <input-text id="fracPartSize" domain="integer" label="Максимальная длина дробной части">
                     <dependencies>
                         <visibility on="attrType">
                             attrType.id == 'FLOAT'
@@ -89,14 +88,14 @@
                 </input-text>
             </row>
             <row>
-                <input-text id="minInteger" domain="integer">
+                <input-text id="minInteger" domain="integer" label="Минимальное значение">
                     <dependencies>
                         <visibility on="attrType">
                             attrType.id == 'INTEGER'
                         </visibility>
                     </dependencies>
                 </input-text>
-                <input-text id="maxInteger" domain="integer">
+                <input-text id="maxInteger" domain="integer" label="Максимальное значение">
                     <dependencies>
                         <visibility on="attrType">
                             attrType.id == 'INTEGER'
@@ -105,14 +104,14 @@
                 </input-text>
             </row>
             <row>
-                <input-text id="minFloat" domain="numeric">
+                <input-text id="minFloat" domain="numeric" label="Минимальное значение">
                     <dependencies>
                         <visibility on="attrType">
                             attrType.id == 'FLOAT'
                         </visibility>
                     </dependencies>
                 </input-text>
-                <input-text id="maxFloat" domain="numeric">
+                <input-text id="maxFloat" domain="numeric" label="Максимальное значение">
                     <dependencies>
                         <visibility on="attrType">
                             attrType.id == 'FLOAT'
@@ -121,7 +120,7 @@
                 </input-text>
             </row>
             <row>
-                <date-interval id="dateInterval">
+                <date-interval id="dateInterval" label="Интервал значений">
                     <dependencies>
                         <visibility on="attrType">
                             attrType.id == 'DATE'
@@ -129,7 +128,7 @@
                     </dependencies>
                 </date-interval>
             </row>
-            <input-text id="regExp" domain="string">
+            <input-text id="regExp" domain="string" label="Регулярное выражение">
                 <dependencies>
                     <visibility on="attrType">
                         attrType.id == 'STRING'

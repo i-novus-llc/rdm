@@ -46,6 +46,16 @@
                 <param id="refBookId" mapping="refBookId" domain="integer" mapper="spel"/>
             </in-parameters>
         </operation>
+
+        <operation id="publish" submit-label="Опубликовать" success-text="Справочник опубликован"
+                   confirm="true" confirm-text="Вы уверены что хотите опубликовать этот справочник?">
+            <invocation>
+                <rest method="POST">/draft/{draftId}/publish</rest>
+            </invocation>
+            <in-parameters>
+                <param id="version.id" mapping="draftId" domain="integer" mapper="spel"/>
+            </in-parameters>
+        </operation>
     </operations>
 
 </object>

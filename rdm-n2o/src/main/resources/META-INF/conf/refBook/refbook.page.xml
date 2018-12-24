@@ -10,6 +10,13 @@
                         </pre-filters>
                     </select>
                 </fields>
+                <toolbar place="bottomLeft">
+                    <sub-menu label="Действия">
+                        <menu-item label="Опубликовать">
+                            <invoke operation-id="publish"/>
+                        </menu-item>
+                    </sub-menu>
+                </toolbar>
             </form>
         </none>
         <tabs place="single">
