@@ -19,7 +19,7 @@ public interface VersionPlainDataService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет версии")
     })
-    @Path("/{versionId}")
+    @Path("/{versionId}/data")
     Page<Map<String, String>> search(@PathParam("versionId")Integer versionId, @BeanParam SearchDataCriteria criteria);
 
 
