@@ -6,48 +6,62 @@
                 <fields>
                     <select id="version" label="Версия" query-id="versionList" label-field-id="version">
                         <pre-filters>
-                            <eq field-id="refBookId" value="{id}"/>
+                            <eq field-id="refBookId" value="{refBookId}"/>
                         </pre-filters>
                     </select>
                 </fields>
+                <toolbar place="bottomLeft">
+                    <sub-menu label="Действия">
+                        <menu-item label="Опубликовать">
+                            <invoke operation-id="publish"/>
+                        </menu-item>
+                        <menu-item label="Загрузить из файла">
+                            <show-modal page-id="uploadFile" submit-operation-id="upload" upload="defaults">
+                                <pre-filters>
+                                    <eq field-id="versionId" value="{version.id}"/>
+                                </pre-filters>
+                            </show-modal>
+                        </menu-item>
+                        <menu-item label="Скачать">
+                            <show-modal page-id="downloadFile" upload="defaults">
+                                <pre-filters>
+                                    <eq field-id="versionId" value="{version.id}"/>
+                                </pre-filters>
+                            </show-modal>
+                        </menu-item>
+                    </sub-menu>
+                </toolbar>
             </form>
         </none>
         <tabs place="single">
-            <form name="Паспорт" query-id="refBook" id="passport_form" depends-on="version_select"
-                  master-field-id="version.id" detail-field-id="version.id" object-id="refBook">
-                <fields>
-                    <input-select id="category" label="Категория" query-id="category" label-field-id="id"/>
-                    <input-text id="code" label="Код" required="true" length="5"/>
-                    <input-text id="name" label="Наименование" required="true" length="250"/>
-                    <input-text id="shortName" label="Краткое наименование" length="250"/>
-                    <input-text id="description" label="Описание" length="250"/>
-                </fields>
+            <form ref-id="passport" name="Паспорт" id="passport_form" depends-on="version_select"
+                  master-field-id="id" detail-field-id="id" object-id="refBook"/>
+            <table ref-id="structure" name="Структура" id="structure_table" depends-on="version_select"
+                   master-field-id="version.id" detail-field-id="versionId" upload="query">
                 <toolbar place="bottomRight">
-                    <!-- todo-->
-                    <!--<button label="Создать" id="create" visibility-condition="typeof id == 'undefined' || id == null || id == ''">-->
-                        <!--<invoke operation-id="create" close-after-success="false" redirect-url="/main/:id/edit"/>-->
-                    <!--</button>-->
-                    <button label="Изменить" id="edit" visibility-condition="!(typeof id == 'undefined' || id == null || id == '')">
-                        <invoke operation-id="edit" close-after-success="false"/>
+                    <button label="Добавить" id="create" model="filter">
+                        <show-modal page-id="attribute" submit-operation-id="create" upload="defaults">
+                            <pre-filters>
+                                <eq field-id="versionId" value="{version.id}" ref-model="resolve"
+                                    ref-widget-id="version_select"/>
+                            </pre-filters>
+                        </show-modal>
                     </button>
-                    <button label="Назад">
-                        <close/>
+                    <button label="Изменить" id="edit">
+                        <show-modal page-id="attribute" submit-operation-id="updateAttribute" submit-model="resolve">
+                            <pre-filters>
+                                <eq field-id="versionId" value="{versionId}"/>
+                                <eq field-id="code" value="{code}"/>
+                            </pre-filters>
+                        </show-modal>
+                    </button>
+                    <button label="Удалить" id="delete" color="danger">
+                        <invoke operation-id="delete" close-after-success="false"/>
                     </button>
                 </toolbar>
-            </form>
-            <table name="Структура" query-id="attribute" id="structure_table" depends-on="version_select"
-                   master-field-id="version.id" detail-field-id="versionId" object-id="attribute" upload="query">
-                <columns>
-                    <column text-field-id="keyAttribute"/>
-                    <column text-field-id="code"/>
-                    <column text-field-id="name"/>
-                    <column text-field-id="attrType.id"/>
-                    <column text-field-id="description"/>
-                    <column text-field-id="isReference">
-                        <checkbox/>
-                    </column>
-                </columns>
             </table>
+            <table src="DataGrid" name="Данные" id="dataTable" query-id="data" depends-on="version_select"
+                   master-field-id="version.id" detail-field-id="versionId"/>
         </tabs>
     </regions>
 
