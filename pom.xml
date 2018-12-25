@@ -24,7 +24,7 @@
         <apache.poi.version>3.17</apache.poi.version>
         <filestorage.version>2.0-SNAPSHOT</filestorage.version>
         <vds.version>1.3</vds.version>
-        <n2o.version>7.0-SNAPSHOT</n2o.version>
+        <n2o.version>7.0.RC13</n2o.version>
         <selenium.version>3.8.1</selenium.version>
         <itext.version>5.5.9</itext.version>
         <xmlunit.version>1.6</xmlunit.version>
