@@ -2,7 +2,6 @@ package ru.inovus.ms.rdm.service.api;
 
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.model.*;
 
@@ -106,5 +105,5 @@ public interface VersionService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/row/{rowId}")
-    RowValue gerRow(@ApiParam("Идентификатор строки")@PathParam("rowId") String rowId);
+    RefBookRowValue gerRow(@ApiParam("Идентификатор строки")@PathParam("rowId") String rowId);
 }

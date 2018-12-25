@@ -13,6 +13,7 @@ import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.*;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.service.FieldFactoryImpl;
 import ru.inovus.ms.rdm.exception.RdmException;
+import ru.inovus.ms.rdm.model.RefBookRowValue;
 import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.AttributeFilter;
 import ru.inovus.ms.rdm.model.Structure;
@@ -88,6 +89,23 @@ public class ConverterUtil {
             data.put(fv.getField(), fv.getValue());
         });
         return new Row(data);
+    }
+
+    public static Map<String, String> toStringMap(RefBookRowValue rowValue) {
+        Map<String, String> map = new HashMap<>();
+        map.put("rowId", rowValue.getId());
+        rowValue.getFieldValues().forEach(fieldValue -> map.put(fieldValue.getField(), toString(fieldValue.getValue())));
+        return map;
+    }
+
+    public static String toString(Object value) {
+        if (value instanceof LocalDate) {
+            return TimeUtils.format((LocalDate) value);
+        }
+        if (value instanceof Reference) {
+            return ((Reference) value).getValue();
+        }
+        return String.valueOf(value);
     }
 
     public static Object castReferenceValue(Field field, String value) {

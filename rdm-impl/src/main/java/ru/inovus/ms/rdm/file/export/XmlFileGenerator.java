@@ -2,16 +2,14 @@ package ru.inovus.ms.rdm.file.export;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.RefBookVersion;
 import ru.inovus.ms.rdm.model.Row;
-import ru.inovus.ms.rdm.util.TimeUtils;
+import ru.inovus.ms.rdm.util.ConverterUtil;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-import java.time.LocalDate;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -55,7 +53,7 @@ public class XmlFileGenerator extends PerRowFileGenerator {
                 if (getStructure().getAttribute(fieldCode) != null
                         && row.getData().get(fieldCode) != null) {
                     writer.writeStartElement(fieldCode);
-                    writer.writeCharacters(getStringValue(row.getData().get(fieldCode)));
+                    writer.writeCharacters(ConverterUtil.toString(row.getData().get(fieldCode)));
                     writer.writeEndElement();
                 }
             }
@@ -90,16 +88,6 @@ public class XmlFileGenerator extends PerRowFileGenerator {
             }
         });
         writer.writeEndElement(); //passport
-    }
-
-    private String getStringValue(Object value) {
-        if (value instanceof LocalDate) {
-            return TimeUtils.format((LocalDate) value);
-        }
-        if (value instanceof Reference) {
-            return ((Reference) value).getValue();
-        }
-        return String.valueOf(value);
     }
 
     private void throwXmlGenerateError(XMLStreamException e) {
