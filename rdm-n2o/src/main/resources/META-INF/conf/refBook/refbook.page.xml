@@ -15,6 +15,20 @@
                         <menu-item label="Опубликовать">
                             <invoke operation-id="publish"/>
                         </menu-item>
+                        <menu-item label="Загрузить из файла">
+                            <show-modal page-id="uploadFile" submit-operation-id="upload" upload="defaults">
+                                <pre-filters>
+                                    <eq field-id="versionId" value="{version.id}"/>
+                                </pre-filters>
+                            </show-modal>
+                        </menu-item>
+                        <menu-item label="Скачать">
+                            <show-modal page-id="downloadFile" upload="defaults">
+                                <pre-filters>
+                                    <eq field-id="versionId" value="{version.id}"/>
+                                </pre-filters>
+                            </show-modal>
+                        </menu-item>
                     </sub-menu>
                 </toolbar>
             </form>
@@ -28,7 +42,8 @@
                     <button label="Добавить" id="create" model="filter">
                         <show-modal page-id="attribute" submit-operation-id="create" upload="defaults">
                             <pre-filters>
-                                <eq field-id="versionId" value="{version.id}" ref-model="resolve" ref-widget-id="version_select"/>
+                                <eq field-id="versionId" value="{version.id}" ref-model="resolve"
+                                    ref-widget-id="version_select"/>
                             </pre-filters>
                         </show-modal>
                     </button>

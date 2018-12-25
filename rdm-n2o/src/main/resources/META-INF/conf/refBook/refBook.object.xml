@@ -56,6 +56,17 @@
                 <param id="version.id" mapping="draftId" domain="integer" mapper="spel"/>
             </in-parameters>
         </operation>
+
+        <operation id="upload" submit-label="Загрузить" success-text="Данные загружены">
+            <invocation>
+                <rest method="POST">/draft/updateFromFile/{draftId}</rest>
+            </invocation>
+            <in-parameters>
+                <param id="versionId" mapping="draftId" domain="string" mapper="spel"/>
+                <param id="file.path" mapping="path" domain="string" mapper="spel"/>
+                <param id="file.name" mapping="name" domain="string" mapper="spel"/>
+            </in-parameters>
+        </operation>
     </operations>
 
 </object>

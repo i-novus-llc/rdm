@@ -54,9 +54,14 @@ public class XmlFileGenerator extends PerRowFileGenerator {
             for (String fieldCode : row.getData().keySet()) {
                 if (getStructure().getAttribute(fieldCode) != null
                         && row.getData().get(fieldCode) != null) {
-                    writer.writeStartElement(fieldCode);
-                    writer.writeCharacters(getStringValue(row.getData().get(fieldCode)));
-                    writer.writeEndElement();
+                    String stringValue = getStringValue(row.getData().get(fieldCode));
+                    if (stringValue == null) {
+                        writer.writeEmptyElement(fieldCode);
+                    } else {
+                        writer.writeStartElement(fieldCode);
+                        writer.writeCharacters(stringValue);
+                        writer.writeEndElement();
+                    }
                 }
             }
             writer.writeEndElement();

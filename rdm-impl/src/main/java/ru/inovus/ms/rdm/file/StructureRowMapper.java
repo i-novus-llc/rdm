@@ -39,7 +39,7 @@ public class StructureRowMapper implements RowMapper {
 
     protected Object castValue(Structure.Attribute attribute, Object value) {
 
-        if (value == null || "".equals(String.valueOf(value).trim()))
+        if (attribute == null || value == null || "".equals(String.valueOf(value).trim()))
             return null;
 
         switch (attribute.getType()) {
