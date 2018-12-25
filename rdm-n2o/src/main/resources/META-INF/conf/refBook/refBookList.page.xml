@@ -18,26 +18,15 @@
             </row>
         </filters>
         <toolbar>
-            <!-- todo-->
-            <!--<button id="create" label="Создать справочник1" icon="fa fa-plus">-->
-                <!--<open-page page-id="refbook" model="filter" upload="defaults"-->
-                           <!--page-name="Создание справочника"/>-->
-            <!--</button>-->
-            <!--<button id="edit" label="Изменить справочник" icon="fa fa-pencil">-->
-                <!--<open-page page-id="refbook" master-field-id="version.id" detail-field-id="version.id"-->
-                           <!--page-name="Редактирование справочника"/>-->
-            <!--</button>-->
-            <!--<button id="delete" label="Удалить справочник" icon="fa fa-trash" class="btn-danger" >-->
-                <!--<invoke operation-id="delete"/>-->
-            <!--</button>-->
-            <button id="passport" label="Паспорт">
-                <open-page page-id="passport" master-field-id="version.id" detail-field-id="version.id"/>
+            <button id="create" label="Создать справочник" model="filter" icon="fa fa-plus">
+                <open-page page-id="passport" upload="defaults" submit-operation-id="create" redirect-url-after-submit="/main/:id/edit?id=:id"
+                           page-name="Создание справочника"/>
             </button>
-            <button id="structure" label="Структура">
-                <open-page page-id="structure" master-field-id="version.id" detail-field-id="versionId"/>
+            <button id="edit" label="Изменить справочник" icon="fa fa-pencil">
+                <open-page page-id="refbook" page-name="Редактирование справочника" detail-field-id="id"/>
             </button>
-            <button id="data" label="Просмотр данных">
-                <open-page page-id="data" master-field-id="version.id" detail-field-id="versionId"/>
+            <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger">
+                <invoke operation-id="delete"/>
             </button>
         </toolbar>
         <columns>

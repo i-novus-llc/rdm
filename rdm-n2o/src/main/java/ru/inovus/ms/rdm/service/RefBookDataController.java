@@ -9,7 +9,7 @@ import net.n2oapp.framework.api.metadata.control.N2oField;
 import net.n2oapp.framework.api.metadata.control.list.N2oInputSelect;
 import net.n2oapp.framework.api.metadata.control.plain.N2oDatePicker;
 import net.n2oapp.framework.api.metadata.control.plain.N2oInputText;
-import net.n2oapp.framework.api.metadata.meta.control.Field;
+import net.n2oapp.framework.api.metadata.meta.control.StandardField;
 import net.n2oapp.framework.api.metadata.pipeline.CompilePipeline;
 import net.n2oapp.framework.config.compile.pipeline.N2oPipelineSupport;
 import net.n2oapp.framework.config.metadata.compile.context.WidgetContext;
@@ -38,7 +38,8 @@ import java.util.stream.Collectors;
 
 import static com.google.common.collect.ImmutableMap.of;
 import static java.time.format.DateTimeFormatter.ofPattern;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singleton;
 import static java.util.Optional.ofNullable;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
@@ -107,7 +108,7 @@ public class RefBookDataController {
         n2oField.setId(attribute.getCode());
         CompilePipeline pipeline = N2oPipelineSupport.compilePipeline(env);
         CompileContext<?, ?> ctx = new WidgetContext("");
-        Field field = pipeline.compile().get(n2oField, ctx);
+        StandardField field = pipeline.compile().get(n2oField, ctx);
 
         return new DataColumn(attribute.getCode(), attribute.getName(), true, true, true, field.getControl());
     }
@@ -115,9 +116,11 @@ public class RefBookDataController {
     private N2oField toN2oField(Structure.Attribute attribute) {
         if (FieldType.BOOLEAN.equals(attribute.getType())) {
             N2oInputSelect n2oInputSelect = new N2oInputSelect();
+            n2oInputSelect.setValueFieldId("id");
+            n2oInputSelect.setLabelFieldId("name");
             n2oInputSelect.setOptions(new Map[]{
-                    of("id", "true", "name", "true"),
-                    of("id", "false", "name", "false")});
+                    of("id", "true", "name", "ИСТИНА"),
+                    of("id", "false", "name", "ЛОЖЬ")});
             return n2oInputSelect;
         } else if (FieldType.DATE.equals(attribute.getType())) {
             return new N2oDatePicker();
@@ -154,7 +157,7 @@ public class RefBookDataController {
                             v = LocalDate.parse((String) v, DATE_TIME_PATTERN_FORMATTER);
                             break;
                         case BOOLEAN:
-                            v = Boolean.valueOf((String) ((Map) v).get(BOOL_FIELD_NAME));
+                            v = Boolean.valueOf((String) ((Map) v).get(BOOL_FIELD_ID));
                             break;
                         default:
                             break;

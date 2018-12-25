@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<form xmlns="http://n2oapp.net/framework/config/schema/n2o-widget-4.0"
+      name="Паспорт" query-id="refBook" object-id="refBook">
+    <fields>
+        <input-text id="code" label="Код" required="true"/>
+        <input-text id="name" label="Наименование" required="true"/>
+        <input-text id="shortName" label="Краткое наименование"/>
+        <input-select id="category" label="Категория" query-id="category" label-field-id="id"/>
+        <input-text id="description" label="Описание"/>
+    </fields>
+    <toolbar place="bottomRight">
+        <button label="Изменить" id="edit" visibility-condition="!(typeof id == 'undefined' || id == null || id == '')">
+            <invoke operation-id="edit" close-after-success="false"/>
+        </button>
+    </toolbar>
+</form>

@@ -30,11 +30,11 @@
             </filters>
         </field>
 
-         <field id="versionId" domain="integer" >
-             <select mapping="versionId"/>
-             <filters>
-                 <eq filter-id="versionId" mapping="versionId" domain="integer"/>
-             </filters>
+        <field id="versionId" domain="integer">
+            <select mapping="versionId"/>
+            <filters>
+                <eq filter-id="versionId" mapping="versionId" domain="integer"/>
+            </filters>
         </field>
 
         <field id="referenceRefBook.id" domain="integer">
@@ -47,6 +47,15 @@
 
         <field id="attrType.id" domain="string" name="Тип данных">
             <select mapping="type.name()"/>
+        </field>
+
+        <field id="attrType.name" domain="string" name="Тип данных">
+            <select mapping="type.name()=='STRING'?'Строковый':
+                             type.name()=='INTEGER'?'Целочисленный':
+                             type.name()=='FLOAT'?'Дробный':
+                             type.name()=='DATE'?'Дата':
+                             type.name()=='BOOLEAN'?'Логический':
+                             type.name()=='REFERENCE'?'Ссылочный':null"/>
         </field>
 
         <field id="description" domain="string">
@@ -70,11 +79,11 @@
         </field>
 
         <!--<field id="referenceDisplayAttribute.code" domain="string">-->
-            <!--<select mapping="referenceDisplayAttribute"/>-->
+        <!--<select mapping="referenceDisplayAttribute"/>-->
         <!--</field>-->
 
         <!--<field id="referenceDisplayAttribute.name" domain="string">-->
-            <!--<select mapping="referenceDisplayAttributeName"/>-->
+        <!--<select mapping="referenceDisplayAttributeName"/>-->
         <!--</field>-->
 
         <field id="keyAttribute" name="Ключевой атрибут" domain="string">
@@ -83,6 +92,43 @@
 
         <field id="isReference" name="Ссылочное поле" domain="boolean">
             <select mapping="type?.name()?.equals('REFERENCE')"/>
+        </field>
+
+        <field id="required">
+            <select/>
+        </field>
+        <field id="unique">
+            <select/>
+        </field>
+        <field id="plainSize">
+            <select/>
+        </field>
+        <field id="intPartSize">
+            <select/>
+        </field>
+        <field id="fracPartSize">
+            <select/>
+        </field>
+        <field id="minInteger">
+            <select/>
+        </field>
+        <field id="maxInteger">
+            <select/>
+        </field>
+        <field id="minFloat">
+            <select/>
+        </field>
+        <field id="maxFloat">
+            <select/>
+        </field>
+        <field id="dateInterval.begin">
+            <select mapping="minDate"/>
+        </field>
+        <field id="dateInterval.end">
+            <select mapping="maxDate"/>
+        </field>
+        <field id="regExp">
+            <select/>
         </field>
 
     </fields>

@@ -16,7 +16,7 @@
             </in-parameters>
 
             <out-parameters>
-                <param id="version.id" mapping="id" domain="integer"/>
+                <param id="id" mapping="id" domain="integer"/>
             </out-parameters>
 
         </operation>
@@ -33,16 +33,27 @@
                 <param id="description" mapping="passport.description" domain="string" mapper="spel"/>
             </in-parameters>
             <out-parameters>
-                <param id="version.id" mapping="id" domain="integer"/>
+                <param id="id" mapping="id" domain="integer"/>
             </out-parameters>
         </operation>
 
-        <operation id="delete" submit-label="Удалить" success-text="Справочник удален">
+        <operation id="delete" submit-label="Удалить" success-text="Справочник удален"
+                   confirm="true" confirm-text="Вы уверены что хотите удалить этот справочник?">
             <invocation>
                 <rest method="DELETE">/refBook</rest>
             </invocation>
             <in-parameters>
-                <param id="id" mapping="refBookId" domain="integer" mapper="spel"/>
+                <param id="refBookId" mapping="refBookId" domain="integer" mapper="spel"/>
+            </in-parameters>
+        </operation>
+
+        <operation id="publish" submit-label="Опубликовать" success-text="Справочник опубликован"
+                   confirm="true" confirm-text="Вы уверены что хотите опубликовать этот справочник?">
+            <invocation>
+                <rest method="POST">/draft/{draftId}/publish</rest>
+            </invocation>
+            <in-parameters>
+                <param id="version.id" mapping="draftId" domain="integer" mapper="spel"/>
             </in-parameters>
         </operation>
     </operations>
