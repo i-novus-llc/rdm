@@ -20,4 +20,15 @@
         </sql>
     </changeSet>
 
+    <changeSet id="201812261200-RDM-176_read_permission_1.0" author="znurgaliev" dbms="postgresql">
+        <preConditions onFail="CONTINUE">
+            <tableExists tableName="permission" schemaName="sec"/>
+        </preConditions>
+        <sql>
+            insert into sec.permission(name, code, parent_id)
+               select 'Просмотр справочников', 'nsi.read', (select id from sec.permission where code = 'nsi') where not exists (select 1 from sec.permission where code = 'nsi.read');
+
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

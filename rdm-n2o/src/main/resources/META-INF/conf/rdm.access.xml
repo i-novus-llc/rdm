@@ -1,14 +1,19 @@
 <access xmlns="http://n2oapp.net/framework/config/schema/access-2.0">
     <role id="admin">
         <url-access pattern="${rdm.user.admin.url}"/>
-        <page-access page-id="passport"/>
     </role>
 
-    <permission id="nsi">
+    <permission id="nsi.edit">
         <object-access object-id="refBook" operations="*"/>
         <object-access object-id="attribute" operations="*"/>
         <page-access page-id="passport"/>
+        <page-access page-id="refbook"/>
         <page-access page-id="attribute"/>
+    </permission>
+
+    <permission id="nsi.read">
+        <object-access object-id="refBook"/>
+        <object-access object-id="attribute"/>
     </permission>
 
 </access>
