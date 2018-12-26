@@ -8,6 +8,14 @@ public class AttributeCriteria extends Criteria {
 
     private Integer versionId;
 
+    public AttributeCriteria() {
+    }
+
+    public AttributeCriteria(String code, Integer versionId) {
+        this.code = code;
+        this.versionId = versionId;
+    }
+
     public String getCode() {
         return code;
     }

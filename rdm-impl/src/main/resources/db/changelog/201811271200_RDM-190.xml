@@ -31,5 +31,13 @@
             COMMENT ON COLUMN n2o_rdm_management.attribute_validation.value IS 'Данные для проверки';
         </sql>
     </changeSet>
+    <changeSet id="201811271200_RDM-190_1" author="znurgaliev" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="attribute_validation" schemaName="n2o_rdm_management"/>
+        </preConditions>
+        <sql>
+            ALTER TABLE n2o_rdm_management.attribute_validation ALTER COLUMN value DROP NOT NULL;
+        </sql>
+    </changeSet>
 
 </databaseChangeLog>

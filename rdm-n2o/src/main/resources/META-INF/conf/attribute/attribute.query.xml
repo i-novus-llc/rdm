@@ -1,16 +1,16 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" name="Атрибут">
 
-    <list result-mapping="['collection']" count-mapping="['count']">
-        <java method="getCollectionPage" class="ru.inovus.ms.rdm.service.StructureController">
+    <list result-mapping="['content']" count-mapping="['totalElements']">
+        <java method="getPage" class="ru.inovus.ms.rdm.service.StructureController">
             <spring/>
             <arguments>
                 <argument type="criteria" class="ru.inovus.ms.rdm.model.AttributeCriteria" name="criteria"/>
             </arguments>
         </java>
     </list>
-    <unique result-mapping="collection[0]" filters="versionId,code">
-        <java method="getCollectionPage" class="ru.inovus.ms.rdm.service.StructureController">
+    <unique result-mapping="['content']" filters="versionId,code">
+        <java method="getPage" class="ru.inovus.ms.rdm.service.StructureController">
             <spring/>
             <arguments>
                 <argument type="criteria" class="ru.inovus.ms.rdm.model.AttributeCriteria" name="criteria"/>
