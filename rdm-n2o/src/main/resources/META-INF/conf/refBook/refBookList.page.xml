@@ -28,6 +28,9 @@
             <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger">
                 <invoke operation-id="delete"/>
             </button>
+            <button id="view" label="Просмотр">
+                <open-page page-id="refBookView" page-name="Просмотр справочника" detail-field-id="id"/>
+            </button>
         </toolbar>
         <columns>
             <column text-field-id="code" label="Код" width="100px"/>
