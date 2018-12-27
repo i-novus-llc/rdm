@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.handler;
+package ru.inovus.ms.rdm.audit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
