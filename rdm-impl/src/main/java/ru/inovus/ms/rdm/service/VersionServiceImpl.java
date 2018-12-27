@@ -49,6 +49,8 @@ import static ru.inovus.ms.rdm.util.ModelGenerator.versionModel;
 @Primary
 public class VersionServiceImpl implements VersionService {
 
+    public static final String ROW_NOT_FOUND = "row.not.found";
+
     private RefBookVersionRepository versionRepository;
     private SearchDataService searchDataService;
     private FileNameGenerator fileNameGenerator;
@@ -194,11 +196,11 @@ public class VersionServiceImpl implements VersionService {
 
     @Override
     public RefBookRowValue getRow(String rowId) {
-        if (!rowId.matches("^.+\\$\\d+$")) throw new NotFoundException("row.not.found");
+        if (!rowId.matches("^.+\\$\\d+$")) throw new NotFoundException(ROW_NOT_FOUND);
 
         String[] split = rowId.split("\\$");
         RefBookVersionEntity version = versionRepository.findOne(Integer.parseInt(split[1]));
-        if (version == null) throw new NotFoundException("row.not.found");
+        if (version == null) throw new NotFoundException(ROW_NOT_FOUND);
 
         DataCriteria criteria = new DataCriteria(
                 version.getStorageCode(),
@@ -208,7 +210,7 @@ public class VersionServiceImpl implements VersionService {
                 singletonList(split[0]));
 
         List<RowValue> data = searchDataService.getData(criteria);
-        if (CollectionUtils.isEmpty(data)) throw new NotFoundException("row.not.found");
+        if (CollectionUtils.isEmpty(data)) throw new NotFoundException(ROW_NOT_FOUND);
         if (data.size() > 1) throw new IllegalStateException("more than one row with id " + rowId);
         return new RefBookRowValue((LongRowValue) data.get(0), version.getId());
     }
