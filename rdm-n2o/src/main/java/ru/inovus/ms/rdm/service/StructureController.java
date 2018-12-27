@@ -1,7 +1,8 @@
 package ru.inovus.ms.rdm.service;
 
-import net.n2oapp.criteria.api.CollectionPage;
+import net.n2oapp.platform.jaxrs.RestPage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.model.*;
@@ -30,7 +31,7 @@ public class StructureController {
     @Autowired
     private RefBookService refBookService;
 
-    public CollectionPage<ReadAttribute> getCollectionPage(AttributeCriteria criteria) {
+    public RestPage<ReadAttribute> getPage(AttributeCriteria criteria) {
         List<ReadAttribute> list = new ArrayList<>();
 
         Structure structure = versionService.getStructure(criteria.getVersionId());
@@ -50,8 +51,7 @@ public class StructureController {
                     list.add(attribute);
                 }
             });
-        // noinspection unchecked
-        return new CollectionPage(list.size(), list, criteria);
+        return new RestPage<>(list, new PageRequest(0, list.size()), list.size());
     }
 
     public void createAttribute(Integer versionId, Attribute attribute) {
@@ -144,7 +144,8 @@ public class StructureController {
                 case REG_EXP:
                     attribute.setRegExp(((RegExpAttributeValidation) validation).getRegExp());
                     break;
-                default:break;
+                default:
+                    break;
             }
         }
     }
