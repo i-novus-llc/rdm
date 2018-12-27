@@ -105,5 +105,5 @@ public interface VersionService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/row/{rowId}")
-    RefBookRowValue gerRow(@ApiParam("Идентификатор строки")@PathParam("rowId") String rowId);
+    RefBookRowValue getRow(@ApiParam("Идентификатор строки")@PathParam("rowId") String rowId);
 }

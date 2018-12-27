@@ -42,7 +42,7 @@ public class VersionPlainDataServiceImpl implements VersionPlainDataService{
     }
 
     @Override
-    public Map<String, String> gerRow(String rowId) {
-        return ConverterUtil.toStringMap(versionService.gerRow(rowId));
+    public Map<String, String> getRow(String rowId) {
+        return ConverterUtil.toStringMap(versionService.getRow(rowId));
     }
 }

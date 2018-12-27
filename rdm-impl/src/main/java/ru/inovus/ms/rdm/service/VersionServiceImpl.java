@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
@@ -192,18 +193,22 @@ public class VersionServiceImpl implements VersionService {
     }
 
     @Override
-    public RefBookRowValue gerRow(String rowId) {
-        if (!existsData(singletonList(rowId)).isExists())
-            throw new NotFoundException("row.not.found");
+    public RefBookRowValue getRow(String rowId) {
+        if (!rowId.matches("^.+\\$\\d+$")) throw new NotFoundException("row.not.found");
+
         String[] split = rowId.split("\\$");
         RefBookVersionEntity version = versionRepository.findOne(Integer.parseInt(split[1]));
+        if (version == null) throw new NotFoundException("row.not.found");
+
         DataCriteria criteria = new DataCriteria(
                 version.getStorageCode(),
                 date(version.getFromDate()),
                 date(version.getToDate()),
                 fields(version.getStructure()),
                 singletonList(split[0]));
+
         List<RowValue> data = searchDataService.getData(criteria);
+        if (CollectionUtils.isEmpty(data)) throw new NotFoundException("row.not.found");
         if (data.size() > 1) throw new IllegalStateException("more than one row with id " + rowId);
         return new RefBookRowValue((LongRowValue) data.get(0), version.getId());
     }
