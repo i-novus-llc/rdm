@@ -52,5 +52,5 @@ public interface VersionPlainDataService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/row/{rowId}")
-    Map<String, String> gerRow(@ApiParam("Идентификатор строки")@PathParam("rowId") String rowId);
+    Map<String, String> getRow(@ApiParam("Идентификатор строки")@PathParam("rowId") String rowId);
 }
