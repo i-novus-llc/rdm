@@ -705,7 +705,7 @@ public class ApplicationTest {
                 "01.09.2014",
                 true,
                 2.4,
-                new Reference("2", null));
+                new Reference("77", null));
         Row row2 = createRowForAllTypesStructure("Второе тестовое наименование",
                 BigInteger.valueOf(3),
                 "01.10.2014",

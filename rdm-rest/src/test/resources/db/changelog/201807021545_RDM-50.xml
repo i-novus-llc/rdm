@@ -19,6 +19,7 @@
             CONSTRAINT s_pkey PRIMARY KEY ("SYS_RECORDID")
             );
             INSERT INTO data.test_storage("SYS_RECORDID", name, count, "SYS_PUBLISHTIME", "SYS_HASH") VALUES (1, 'name', 2, '2018-01-01', 'hash2');
+            INSERT INTO data.test_storage("SYS_RECORDID", name, count, "SYS_PUBLISHTIME", "SYS_HASH") VALUES (77, 'name77', 77, '2018-01-01', 'hash77');
         </sql>
     </changeSet>
 
