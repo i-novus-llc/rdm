@@ -7,15 +7,20 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.model.ExportFile;
 import ru.inovus.ms.rdm.model.FileModel;
+import ru.inovus.ms.rdm.model.audit.AuditAction;
+import ru.inovus.ms.rdm.model.audit.AuditLog;
+import ru.inovus.ms.rdm.service.api.AuditLogService;
 import ru.inovus.ms.rdm.service.api.FileStorageService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 
 @RestController
@@ -24,11 +29,14 @@ public class FilesRestController {
 
     private final FileStorageService fileStorageService;
     private final VersionService versionService;
+    private final AuditLogService auditLogService;
 
     @Autowired
-    public FilesRestController(FileStorageService fileStorageService, VersionService versionService) {
+    public FilesRestController(FileStorageService fileStorageService, VersionService versionService,
+                               AuditLogService auditLogService) {
         this.fileStorageService = fileStorageService;
         this.versionService = versionService;
+        this.auditLogService = auditLogService;
     }
 
     @CrossOrigin(origins = "*")
@@ -47,9 +55,11 @@ public class FilesRestController {
 
     @CrossOrigin(origins = "*")
     @GetMapping(value = "/{versionId}/{type}")
-    public ResponseEntity<Resource> uploadFile(@PathVariable Integer versionId, @PathVariable FileType type) {
+    public ResponseEntity<Resource> downloadFile(@PathVariable Integer versionId, @PathVariable FileType type) {
 
         ExportFile versionFile = versionService.getVersionFile(versionId, type);
+
+        saveVersionDownloadAuditLog(versionId);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.MULTIPART_FORM_DATA)
@@ -57,5 +67,12 @@ public class FilesRestController {
                 .body(new InputStreamResource(versionFile.getInputStream()));
     }
 
+    private void saveVersionDownloadAuditLog(Integer versionId) {
+        auditLogService.addAction(new AuditLog(null,
+                SecurityContextHolder.getContext().getAuthentication().getName(),
+                LocalDateTime.now(),
+                AuditAction.DOWNLOAD,
+                versionService.getById(versionId).getCode()));
+    }
 
 }

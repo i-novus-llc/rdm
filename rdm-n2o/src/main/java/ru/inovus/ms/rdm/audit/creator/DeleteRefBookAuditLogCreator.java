@@ -9,9 +9,9 @@ import ru.inovus.ms.rdm.model.audit.AuditLog;
 import java.time.LocalDateTime;
 
 @Component
-public class PublicationAuditLogCreator implements AuditLogCreator {
+public class DeleteRefBookAuditLogCreator implements AuditLogCreator {
 
-    private static final AuditAction auditAction = AuditAction.PUBLICATION;
+    private static final AuditAction auditAction = AuditAction.DELETE_REF_BOOK;
 
     @Override
     public AuditLog create(ActionRequestInfo requestInfo, DataSet dataSet) {
