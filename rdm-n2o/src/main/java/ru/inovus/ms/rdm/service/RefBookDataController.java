@@ -9,7 +9,7 @@ import net.n2oapp.framework.api.metadata.control.N2oField;
 import net.n2oapp.framework.api.metadata.control.list.N2oInputSelect;
 import net.n2oapp.framework.api.metadata.control.plain.N2oDatePicker;
 import net.n2oapp.framework.api.metadata.control.plain.N2oInputText;
-import net.n2oapp.framework.api.metadata.meta.control.Field;
+import net.n2oapp.framework.api.metadata.meta.control.StandardField;
 import net.n2oapp.framework.api.metadata.pipeline.CompilePipeline;
 import net.n2oapp.framework.config.compile.pipeline.N2oPipelineSupport;
 import net.n2oapp.framework.config.metadata.compile.context.WidgetContext;
@@ -108,7 +108,7 @@ public class RefBookDataController {
         n2oField.setId(attribute.getCode());
         CompilePipeline pipeline = N2oPipelineSupport.compilePipeline(env);
         CompileContext<?, ?> ctx = new WidgetContext("");
-        Field field = pipeline.compile().get(n2oField, ctx);
+        StandardField field = pipeline.compile().get(n2oField, ctx);
 
         return new DataColumn(attribute.getCode(), attribute.getName(), true, true, true, field.getControl());
     }
