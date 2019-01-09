@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>ru.inovus.ms.rdm</groupId>
     <artifactId>rdm</artifactId>
-    <version>1.2</version>
+    <version>1.5-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
         <groupId>net.n2oapp.platform</groupId>
         <artifactId>n2o-platform-parent</artifactId>
         <version>1.6-SNAPSHOT</version>
-        <relativePath/>
+        <relativePath />
     </parent>
 
     <properties>
@@ -29,7 +27,18 @@
         <itext.version>5.5.9</itext.version>
         <xmlunit.version>1.6</xmlunit.version>
         <security.admin.version>3.0-SNAPSHOT</security.admin.version>
+        <internal.repository.releases>https://maven.i-novus.ru/libs-release-local</internal.repository.releases>
+        <internal.repository.shapshots>https://maven.i-novus.ru/libs-snapshot-local</internal.repository.shapshots>
+        <internal.repository.id>i-novus-central</internal.repository.id>
     </properties>
+
+    <scm>
+        <connection>scm:git:https://git.i-novus.ru/microservices/rdm.git</connection>
+        <url>https://git.i-novus.ru/microservices/rdm</url>
+        <developerConnection>scm:git:https://git.i-novus.ru/microservices/rdm.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
 
     <modules>
         <module>rdm-api</module>
@@ -39,6 +48,20 @@
         <module>rdm-fnsi-impl</module>
         <module>rdm-fnsi-n2o</module>
     </modules>
+
+    <distributionManagement>
+        <repository>
+            <id>${internal.repository.id}</id>
+            <name>${internal.repository.id}</name>
+            <url>${internal.repository.releases}</url>
+        </repository>
+        <snapshotRepository>
+            <id>${internal.repository.id}</id>
+            <name>${internal.repository.id}</name>
+            <url>${internal.repository.shapshots}</url>
+            <uniqueVersion>true</uniqueVersion>
+        </snapshotRepository>
+    </distributionManagement>
 
 
     <dependencyManagement>
@@ -187,6 +210,14 @@
 
         </dependencies>
     </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>javax.interceptor</groupId>
+            <artifactId>javax.interceptor-api</artifactId>
+            <version>1.2</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
