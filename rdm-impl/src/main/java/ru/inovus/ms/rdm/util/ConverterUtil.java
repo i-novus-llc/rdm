@@ -2,12 +2,15 @@ package ru.inovus.ms.rdm.util;
 
 import net.n2oapp.criteria.api.Direction;
 import net.n2oapp.criteria.api.Sorting;
+import net.n2oapp.platform.i18n.UserException;
 import org.springframework.data.domain.Sort;
+import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.*;
@@ -26,8 +29,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 
 public class ConverterUtil {
 
@@ -40,7 +42,7 @@ public class ConverterUtil {
         List<Field> fields = new ArrayList<>();
         if (structure != null) {
             Optional.ofNullable(structure.getAttributes()).ifPresent(s ->
-                            s.forEach(attribute -> fields.add(field(attribute)))
+                    s.forEach(attribute -> fields.add(field(attribute)))
             );
         }
         return fields;
@@ -80,6 +82,18 @@ public class ConverterUtil {
                                 attrFilter.getSearchType(),
                                 singletonList(attrFilter.getValue()))).collect(Collectors.toList())
         ).collect(Collectors.toSet());
+    }
+
+    public static Set<List<FieldSearchCriteria>> getFieldSearchCriteriaList(Map<String, String> filters, Structure structure) {
+        if (CollectionUtils.isEmpty(filters))
+            return emptySet();
+        return singleton(filters.entrySet().stream()
+                .map(e -> {
+                    Structure.Attribute attribute = structure.getAttribute(e.getKey());
+                    if (attribute == null) return null;
+                    Field field = field(attribute);
+                    return new FieldSearchCriteria(field, SearchTypeEnum.LIKE, singletonList(toSearchType(field, e.getValue())));
+                }).collect(Collectors.toList()));
     }
 
     public static Row toRow(RowValue rowValue) {
@@ -131,5 +145,24 @@ public class ConverterUtil {
             return ((Reference) value).getValue();
         }
         return value;
+    }
+
+    public static Object toSearchType(Field field, String value) {
+        try {
+            if (field instanceof BooleanField) {
+                return Boolean.valueOf(value);
+            } else if (field instanceof DateField) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+                return LocalDate.parse(value, formatter);
+            } else if (field instanceof FloatField) {
+                return Float.parseFloat(value);
+            } else if (field instanceof IntegerField) {
+                return BigInteger.valueOf(Long.parseLong(value));
+            } else {
+                return value;
+            }
+        } catch (Exception e) {
+            throw new UserException("invalid.search.value", e);
+        }
     }
 }

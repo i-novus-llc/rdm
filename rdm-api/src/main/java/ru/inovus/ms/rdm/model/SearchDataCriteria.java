@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModelProperty;
 
 import javax.ws.rs.QueryParam;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @ApiModel("Критерии поиска данных справочника")
@@ -12,6 +13,10 @@ public class SearchDataCriteria extends AbstractCriteria{
     @ApiModelProperty("Множество фильтров по отдельным полям")
     @QueryParam("attributeFilter")
     private Set<List<AttributeFilter>> attributeFilter;
+
+    @ApiModelProperty("Простые фильтры по полям")
+    @QueryParam("plainAttributeFilter")
+    private Map<String, String> plainAttributeFilter;
 
     @ApiModelProperty("Фильтр по всем полям")
     @QueryParam("commonFilter")
@@ -25,10 +30,24 @@ public class SearchDataCriteria extends AbstractCriteria{
         this.commonFilter = commonFilter;
     }
 
+    public SearchDataCriteria(Set<List<AttributeFilter>> attributeFilter, Map<String, String> plainAttributeFilter, String commonFilter) {
+        this.attributeFilter = attributeFilter;
+        this.plainAttributeFilter = plainAttributeFilter;
+        this.commonFilter = commonFilter;
+    }
+
     public SearchDataCriteria(int pageNumber, int pageSize, Set<List<AttributeFilter>> attributeFilter) {
         this(attributeFilter, null);
         this.setPageNumber(pageNumber);
         this.setPageSize(pageSize);
+    }
+
+    public Map<String, String> getPlainAttributeFilter() {
+        return plainAttributeFilter;
+    }
+
+    public void setPlainAttributeFilter(Map<String, String> plainAttributeFilter) {
+        this.plainAttributeFilter = plainAttributeFilter;
     }
 
     public Set<List<AttributeFilter>> getAttributeFilter() {
