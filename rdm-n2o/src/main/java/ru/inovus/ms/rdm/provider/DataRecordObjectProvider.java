@@ -25,7 +25,9 @@ import static java.util.stream.Stream.of;
 @Service
 public class DataRecordObjectProvider implements DynamicMetadataProvider {
 
-    final static String OBJECT_PROVIDER_ID = "dataRecordObject";
+    static final String OBJECT_PROVIDER_ID = "dataRecordObject";
+
+    private static final String INTEGER_DOMAIN = "integer";
 
     @Autowired
     private VersionService versionService;
@@ -107,7 +109,7 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
         N2oObject.Parameter versionIdParameter = new N2oObject.Parameter();
         versionIdParameter.setId("versionId");
         versionIdParameter.setMapping("[0]");
-        versionIdParameter.setDomain("integer");
+        versionIdParameter.setDomain(INTEGER_DOMAIN);
         versionIdParameter.setDefaultValue(String.valueOf(versionId));
         return versionIdParameter;
     }
@@ -115,7 +117,7 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
     private N2oObject.Parameter systemIdParameter() {
         N2oObject.Parameter systemId = new N2oObject.Parameter();
         systemId.setId("id");
-        systemId.setDomain("integer");
+        systemId.setDomain(INTEGER_DOMAIN);
         systemId.setMapping("[1].systemId");
         return systemId;
     }
@@ -134,7 +136,7 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
                 parameter.setDomain("string");
                 break;
             case INTEGER:
-                parameter.setDomain("integer");
+                parameter.setDomain(INTEGER_DOMAIN);
                 break;
             case FLOAT:
                 parameter.setDomain("numeric");
@@ -148,6 +150,8 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
             case REFERENCE:
                 parameter.setId(attribute.getCode() + ".value");
                 parameter.setDomain("string");
+                break;
+            default: throw new IllegalArgumentException("attribute type not supported");
         }
         return parameter;
     }

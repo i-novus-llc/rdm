@@ -24,7 +24,7 @@ import static java.util.Collections.singletonList;
 @Service
 public class DataRecordPageProvider implements DynamicMetadataProvider {
 
-    final static String FORM_PROVIDER_ID = "dataRecordPage";
+    static final String FORM_PROVIDER_ID = "dataRecordPage";
 
     @Autowired
     private VersionService versionService;
