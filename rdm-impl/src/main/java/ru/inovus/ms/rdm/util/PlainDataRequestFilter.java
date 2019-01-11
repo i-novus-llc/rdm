@@ -16,6 +16,11 @@ import java.util.stream.Collectors;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
+/**
+ * Преобразует запросы для VersionPlainDataService, позволяя писать их в более удобном виде
+ * Принимает запросы с параметрами вида filter.[key]=[value]
+ * и преобразует их в формат json для десериализации в Map
+ */
 @PreMatching
 @Provider
 @Component
