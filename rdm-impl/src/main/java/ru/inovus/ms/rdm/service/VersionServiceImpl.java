@@ -12,6 +12,7 @@ import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.PassportAttributeEntity;
@@ -117,8 +118,13 @@ public class VersionServiceImpl implements VersionService {
         List<Field> fields = fields(version.getStructure());
         Date bdate = date(version.getFromDate());
         Date edate = date(version.getToDate());
+
+        Set<List<FieldSearchCriteria>> fieldSearchCriteriaList = new HashSet<>();
+        fieldSearchCriteriaList.addAll(getFieldSearchCriteriaList(criteria.getAttributeFilter()));
+        fieldSearchCriteriaList.addAll(getFieldSearchCriteriaList(criteria.getPlainAttributeFilter(), version.getStructure()));
+
         DataCriteria dataCriteria = new DataCriteria(version.getStorageCode(), bdate, edate,
-                fields, getFieldSearchCriteriaList(criteria.getAttributeFilter()), criteria.getCommonFilter());
+                fields, fieldSearchCriteriaList, criteria.getCommonFilter());
         dataCriteria.setPage(criteria.getPageNumber() + 1);
         dataCriteria.setSize(criteria.getPageSize());
         Optional.ofNullable(criteria.getSort()).ifPresent(sort -> dataCriteria.setSortings(sortings(sort)));
