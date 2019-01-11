@@ -4,6 +4,12 @@
         <none place="single">
             <form id="version_select" query-id="refBook">
                 <fields>
+                    <!--для передачи динамичного атрибута при редактировании записи-->
+                    <output-text id="id" visible="false">
+                        <dependencies>
+                            <set-value on="version">version.id</set-value>
+                        </dependencies>
+                    </output-text>
                     <select id="version" label="Версия" query-id="versionList" label-field-id="version">
                         <pre-filters>
                             <eq field-id="refBookId" value="{refBookId}"/>
@@ -35,7 +41,13 @@
         </none>
         <tabs place="single">
             <form ref-id="passport" name="Паспорт" id="passport_form" depends-on="version_select"
-                  master-field-id="id" detail-field-id="id" object-id="refBook"/>
+                  master-field-id="id" detail-field-id="id" object-id="refBook">
+                <toolbar place="bottomRight">
+                    <button label="Изменить" id="edit">
+                        <invoke operation-id="edit" close-after-success="false"/>
+                    </button>
+                </toolbar>
+            </form>
             <table ref-id="structure" name="Структура" id="structure_table" depends-on="version_select"
                    master-field-id="version.id" detail-field-id="versionId" upload="query">
                 <toolbar place="bottomRight">
@@ -55,13 +67,26 @@
                             </pre-filters>
                         </show-modal>
                     </button>
-                    <button label="Удалить" id="delete" color="danger">
+                    <button label="Удалить" id="delete" color="danger" icon="fa fa-trash">
                         <invoke operation-id="delete" close-after-success="false"/>
                     </button>
                 </toolbar>
             </table>
             <table src="DataGrid" name="Данные" id="dataTable" query-id="data" depends-on="version_select"
-                   master-field-id="version.id" detail-field-id="versionId"/>
+                   master-field-id="id" detail-field-id="versionId" object-id="data">
+                <toolbar place="topRight">
+                    <button id="createRecord" label="Добавить строку" icon="fa fa-plus" model="filter">
+                        <show-modal page-id="dataRecordPage?{main_edit_version_select_id}" upload="defaults" submit-operation-id="create"/>
+                    </button>
+                    <button id="updateRecord" label="Изменить строку" icon="fa fa-pencil">
+                        <show-modal page-id="dataRecordPage?{main_edit_version_select_id}" upload="query" detail-field-id="id"
+                                    submit-operation-id="update"/>
+                    </button>
+                    <button id="deleteRecord" label="Удалить строку" color="danger" icon="fa fa-trash">
+                        <invoke operation-id="delete"/>
+                    </button>
+                </toolbar>
+            </table>
         </tabs>
     </regions>
 

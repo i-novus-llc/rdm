@@ -9,7 +9,7 @@
             </arguments>
         </java>
     </list>
-    <unique result-mapping="['content']" filters="versionId,code">
+    <unique result-mapping="['content'][0]" filters="versionId,code">
         <java method="getPage" class="ru.inovus.ms.rdm.service.StructureController">
             <spring/>
             <arguments>

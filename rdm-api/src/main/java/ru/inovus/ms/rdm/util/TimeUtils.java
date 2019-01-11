@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 import static java.util.Objects.isNull;
 
@@ -41,6 +42,8 @@ public final class TimeUtils {
     }
 
     public static LocalDate parseLocalDate(Object value) {
+        if (value instanceof Date)
+            return ((Date) value).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         if (value instanceof LocalDate)
             return (LocalDate) value;
         if (value instanceof LocalDateTime)
