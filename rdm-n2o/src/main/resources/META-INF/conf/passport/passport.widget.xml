@@ -8,9 +8,4 @@
         <input-select id="category" label="Категория" query-id="category" label-field-id="id"/>
         <input-text id="description" label="Описание"/>
     </fields>
-    <toolbar place="bottomRight">
-        <button label="Изменить" id="edit" visibility-condition="!(typeof id == 'undefined' || id == null || id == '')">
-            <invoke operation-id="edit" close-after-success="false"/>
-        </button>
-    </toolbar>
 </form>

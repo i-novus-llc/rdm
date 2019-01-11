@@ -51,7 +51,7 @@ public class StructureController {
                     list.add(attribute);
                 }
             });
-        return new RestPage<>(list, new PageRequest(0, list.size()), list.size());
+        return new RestPage<>(list, new PageRequest(criteria.getPage(), criteria.getSize()), list.size());
     }
 
     public void createAttribute(Integer versionId, Attribute attribute) {

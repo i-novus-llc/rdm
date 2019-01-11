@@ -66,22 +66,24 @@ public class RefBookDataController {
         Page<RefBookRowValue> search = versionService.search(criteria.getVersionId(), searchDataCriteria);
         DataGridRow dataGridHead = new DataGridRow(createHead(structure));
         List<DataGridRow> dataGridRows = search.getContent().stream()
-                .map(this::toDataGridRow)
+                .map(rowValue -> toDataGridRow(rowValue, criteria.getVersionId()))
                 .collect(Collectors.toList());
 
         List<DataGridRow> result = new ArrayList<>();
         result.add(dataGridHead);
         result.addAll(dataGridRows);
 
-
+        //прибавляется к количеству элементов 1(костыль), изза особенности подсчета количества для последней страницы
+        //на клиенте отнимается 1 для всех страниц
         return new RestPage<>(result, searchDataCriteria, search.getTotalElements() + 1);
     }
 
-    private DataGridRow toDataGridRow(RowValue rowValue) {
+    private DataGridRow toDataGridRow(RowValue rowValue, Integer versionId) {
         Map<String, String> row = new HashMap<>();
         LongRowValue longRow = (LongRowValue) rowValue;
         longRow.getFieldValues().forEach(fieldValue -> row.put(fieldValue.getField(), toStringValue(fieldValue)));
         row.put("id", String.valueOf(longRow.getSystemId()));
+        row.put("versionId", String.valueOf(versionId));
         return new DataGridRow(longRow.getSystemId(), row);
     }
 
@@ -119,11 +121,13 @@ public class RefBookDataController {
             n2oInputSelect.setValueFieldId("id");
             n2oInputSelect.setLabelFieldId("name");
             n2oInputSelect.setOptions(new Map[]{
-                    of("id", "true", "name", "ИСТИНА"),
-                    of("id", "false", "name", "ЛОЖЬ")});
+                    of(BOOL_FIELD_ID, "true", BOOL_FIELD_NAME, "ИСТИНА"),
+                    of(BOOL_FIELD_ID, "false", BOOL_FIELD_NAME, "ЛОЖЬ")});
             return n2oInputSelect;
         } else if (FieldType.DATE.equals(attribute.getType())) {
-            return new N2oDatePicker();
+            N2oDatePicker n2oDatePicker = new N2oDatePicker();
+            n2oDatePicker.setDateFormat("DD.MM.YYYY");
+            return n2oDatePicker;
         } else if (FieldType.INTEGER.equals(attribute.getType())) {
             N2oInputText n2oInputText = new N2oInputText();
             n2oInputText.setDomain("integer");
