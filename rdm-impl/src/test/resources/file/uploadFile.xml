@@ -1,10 +1,63 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <refBook>
+    <code>TEST_REF_CODE</code>
     <passport>
         <name>наименование справочника</name>
         <shortName>краткое наим-ие</shortName>
         <description>описание</description>
     </passport>
+    <structure>
+        <row>
+            <code>string</code>
+            <name>string</name>
+            <type>STRING</type>
+            <description>строка</description>
+            <primary>true</primary>
+        </row>
+        <row>
+            <code>integer</code>
+            <name>integer</name>
+            <type>INTEGER</type>
+            <description>число</description>
+            <primary>false</primary>
+            <validation>
+                <type>INT_RANGE</type>
+                <value>1;10</value>
+            </validation>
+        </row>
+        <row>
+            <code>date</code>
+            <name>date</name>
+            <type>DATE</type>
+            <description>дата</description>
+            <primary>false</primary>
+        </row>
+        <row>
+            <code>boolean</code>
+            <name>boolean</name>
+            <type>BOOLEAN</type>
+            <description>булево</description>
+            <primary>false</primary>
+        </row>
+        <row>
+            <code>float</code>
+            <name>float</name>
+            <type>FLOAT</type>
+            <description>дробное</description>
+            <primary>false</primary>
+            <validation>
+                <type>REQUIRED</type>
+            </validation>
+        </row>
+        <row>
+            <code>reference</code>
+            <name>reference</name>
+            <type>REFERENCE</type>
+            <description>ссылка</description>
+            <primary>false</primary>
+            <referenceCode>REF_CODE_TO_REFERENCE</referenceCode>
+        </row>
+    </structure>
     <data>
         <row>
             <reference>2</reference>

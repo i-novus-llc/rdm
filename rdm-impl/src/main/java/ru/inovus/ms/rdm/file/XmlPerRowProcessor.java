@@ -24,6 +24,7 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
     private static final String XML_READ_ERROR_MESSAGE = "cannot read XML";
 
     private static final String PASSPORT_TAG_NAME = "passport";
+    private static final String STRUCTURE_TAG_NAME = "structure";
     private static final String DATA_TAG_NAME = "data";
     private static final String ROW_TAG_NAME = "row";
 
@@ -52,6 +53,7 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
                             !(event.isCharacters() && event.asCharacters().isWhiteSpace()));
 
             processPassport();
+            processStructure();
 
         } catch (XMLStreamException e) {
             throwXmlReadError(e);
@@ -64,10 +66,10 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
                 reader.nextEvent();
 
             XMLEvent curEvent = null;
-            while (reader.peek() != null && !(isStartElementWithName(reader.peek(), PASSPORT_TAG_NAME, DATA_TAG_NAME))) {
+            while (reader.peek() != null && !(isStartElementWithName(reader.peek(), PASSPORT_TAG_NAME, STRUCTURE_TAG_NAME, DATA_TAG_NAME))) {
                 curEvent = reader.nextEvent();
             }
-            if (curEvent == null || reader.peek() == null || isStartElementWithName(reader.peek(), DATA_TAG_NAME))
+            if (curEvent == null || reader.peek() == null || isStartElementWithName(reader.peek(), STRUCTURE_TAG_NAME) || isStartElementWithName(reader.peek(), DATA_TAG_NAME))
                 return;
 
             passport = new LinkedHashMap<>();
@@ -80,6 +82,27 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
                         .filter(entry -> entry.getValue() != null)
                         .collect(toMap(Map.Entry::getKey, e -> (String) e.getValue())));
         }
+    }
+
+    private void processStructure() throws XMLStreamException {
+        if (reader.hasNext()) {
+
+
+            XMLEvent curEvent = reader.peek();
+            while (curEvent != null && !(isStartElementWithName(curEvent, STRUCTURE_TAG_NAME, DATA_TAG_NAME))) {
+                curEvent = reader.nextEvent();
+            }
+            if (curEvent == null || reader.peek() == null || isStartElementWithName(reader.peek(), PASSPORT_TAG_NAME, DATA_TAG_NAME))
+                return;
+
+            Map<String, Object> structure = new LinkedHashMap<>();
+            reader.nextEvent();     // current is start-tag <structure>
+            parseValues(structure, STRUCTURE_TAG_NAME);
+
+            //todo implement
+
+        }
+
     }
 
     private void parseValues(Map<String, Object> map, String outerTagName) throws XMLStreamException {

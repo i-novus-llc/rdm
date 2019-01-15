@@ -58,6 +58,7 @@ public class VersionServiceImpl implements VersionService {
     private VersionFileRepository versionFileRepository;
     private FileStorage fileStorage;
     private PassportValueRepository passportValueRepository;
+    private PerRowFileGeneratorFactory perRowFileGeneratorFactory;
 
 
     private String passportFileHead;
@@ -67,13 +68,15 @@ public class VersionServiceImpl implements VersionService {
     public VersionServiceImpl(RefBookVersionRepository versionRepository,
                               SearchDataService searchDataService,
                               FileNameGenerator fileNameGenerator, VersionFileRepository versionFileRepository,
-                              FileStorage fileStorage, PassportValueRepository passportValueRepository) {
+                              FileStorage fileStorage, PassportValueRepository passportValueRepository,
+                              PerRowFileGeneratorFactory perRowFileGeneratorFactory) {
         this.versionRepository = versionRepository;
         this.searchDataService = searchDataService;
         this.fileNameGenerator = fileNameGenerator;
         this.versionFileRepository = versionFileRepository;
         this.fileStorage = fileStorage;
         this.passportValueRepository = passportValueRepository;
+        this.perRowFileGeneratorFactory = perRowFileGeneratorFactory;
     }
 
     @Value("${rdm.download.passport.head}")
@@ -286,7 +289,7 @@ public class VersionServiceImpl implements VersionService {
 
     private InputStream generateVersionFile(RefBookVersion versionModel, FileType fileType) {
         VersionDataIterator dataIterator = new VersionDataIterator(this, Collections.singletonList(versionModel.getId()));
-        try (PerRowFileGenerator fileGenerator = PerRowFileGeneratorFactory
+        try (PerRowFileGenerator fileGenerator = perRowFileGeneratorFactory
                 .getFileGenerator(dataIterator, versionModel, fileType);
              Archiver archiver = new Archiver()) {
             if (includePassport) {

@@ -25,6 +25,8 @@ import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.FileStorage;
+import ru.inovus.ms.rdm.file.export.PerRowFileGenerator;
+import ru.inovus.ms.rdm.file.export.PerRowFileGeneratorFactory;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.AttributeValidationRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
@@ -46,10 +48,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static ru.inovus.ms.rdm.model.UpdateValue.of;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
@@ -95,6 +94,8 @@ public class DraftServiceTest {
     private RefBookLockService refBookLockService;
     @Mock
     private AttributeValidationRepository attributeValidationRepository;
+    @Mock
+    private PerRowFileGeneratorFactory fileGeneratorFactory;
 
     private static final String UPD_SUFFIX = "_upd";
     private static final String PK_SUFFIX = "_pk";
@@ -123,10 +124,13 @@ public class DraftServiceTest {
 
     @Before
     public void setUp() {
+        reset(draftDataService, fileNameGenerator, fileGeneratorFactory);
         when(draftDataService.applyDraft(any(), any(), any(), any())).thenReturn(TEST_STORAGE_CODE);
         when(draftDataService.createDraft(anyList())).thenReturn(TEST_DRAFT_CODE_NEW);
         when(fileNameGenerator.generateName(any(), eq(FileType.XLSX))).thenReturn("version.xlsx");
         when(fileNameGenerator.generateName(any(), eq(FileType.PDF))).thenReturn("version.pdf");
+        when(fileGeneratorFactory.getFileGenerator(any(Iterator.class), any(RefBookVersion.class), any(FileType.class))).thenReturn(mock(PerRowFileGenerator.class));
+
     }
 
     @Test

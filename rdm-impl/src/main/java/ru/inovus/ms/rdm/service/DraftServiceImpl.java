@@ -92,6 +92,8 @@ public class DraftServiceImpl implements DraftService {
 
     private AttributeValidationRepository attributeValidationRepository;
 
+    private PerRowFileGeneratorFactory fileGeneratorFactory;
+
     private int errorCountLimit = 100;
     private String passportFileHead = "fullName";
     private boolean includePassport = false;
@@ -112,7 +114,8 @@ public class DraftServiceImpl implements DraftService {
                             SearchDataService searchDataService, DropDataService dropDataService, FileStorage fileStorage,
                             FileNameGenerator fileNameGenerator, VersionFileRepository versionFileRepository, VersionNumberStrategy versionNumberStrategy,
                             VersionPeriodPublishValidation versionPeriodPublishValidation, PassportValueRepository passportValueRepository,
-                            RefBookLockService refBookLockService, AttributeValidationRepository attributeValidationRepository) {
+                            RefBookLockService refBookLockService, AttributeValidationRepository attributeValidationRepository,
+                            PerRowFileGeneratorFactory fileGeneratorFactory) {
         this.draftDataService = draftDataService;
         this.versionRepository = versionRepository;
         this.versionService = versionService;
@@ -126,6 +129,7 @@ public class DraftServiceImpl implements DraftService {
         this.passportValueRepository = passportValueRepository;
         this.refBookLockService = refBookLockService;
         this.attributeValidationRepository = attributeValidationRepository;
+        this.fileGeneratorFactory = fileGeneratorFactory;
     }
 
     @Value("${rdm.validation-errors-count}")
@@ -441,7 +445,7 @@ public class DraftServiceImpl implements DraftService {
             dropDataService.drop(dataStorageToDelete);
 
             RefBookVersion versionModel = versionService.getById(draftId);
-            for (FileType fileType : PerRowFileGeneratorFactory.getAvailableTypes())
+            for (FileType fileType : fileGeneratorFactory.getAvailableTypes())
                 saveVersionFile(versionModel, fileType, generateVersionFile(versionModel, fileType));
         } finally {
             refBookLockService.deleteRefBookAction(refBookId);
@@ -749,7 +753,7 @@ public class DraftServiceImpl implements DraftService {
         } else {
             validations = attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attribute);
         }
-        return validations.stream().map(this::attributeValidationModel).collect(toList());
+        return validations.stream().map(AttributeValidationEntity::attributeValidationModel).collect(toList());
     }
 
     @Override
@@ -793,17 +797,9 @@ public class DraftServiceImpl implements DraftService {
                 fileNameGenerator.generateZipName(versionModel, fileType));
     }
 
-    private AttributeValidation attributeValidationModel(AttributeValidationEntity validationEntity) {
-        AttributeValidation validationModel = validationEntity.getType().getValidationInstance();
-        validationModel.valueFromString(validationEntity.getValue());
-        validationModel.setVersionId(validationEntity.getVersion().getId());
-        validationModel.setAttribute(validationEntity.getAttribute());
-        return validationModel;
-    }
-
     private InputStream generateVersionFile(RefBookVersion versionModel, FileType fileType) {
         VersionDataIterator dataIterator = new VersionDataIterator(versionService, singletonList(versionModel.getId()));
-        try (FileGenerator fileGenerator = PerRowFileGeneratorFactory
+        try (FileGenerator fileGenerator = fileGeneratorFactory
                 .getFileGenerator(dataIterator, versionModel, fileType);
              Archiver archiver = new Archiver()) {
             if (includePassport) {
