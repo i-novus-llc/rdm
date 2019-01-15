@@ -72,14 +72,14 @@
                 </dependencies>
             </input-text>
             <row>
-                <input-text id="intPartSize" domain="integer" label="Максимальная длина целой части">
+                <input-text id="intPartSize" domain="integer" label="Максимальная длина целой части" min="1">
                     <dependencies>
                         <visibility on="attrType">
                             attrType.id == 'FLOAT'
                         </visibility>
                     </dependencies>
                 </input-text>
-                <input-text id="fracPartSize" domain="integer" label="Максимальная длина дробной части">
+                <input-text id="fracPartSize" domain="integer" label="Максимальная длина дробной части" min="1">
                     <dependencies>
                         <visibility on="attrType">
                             attrType.id == 'FLOAT'

@@ -122,14 +122,14 @@ public interface DraftService {
     void updateAttribute(@ApiParam("Модель атрибута справочника") UpdateAttribute updateAttribute);
 
     @DELETE
-    @Path("/attribute")
+    @Path("/{versionId}/attribute/{code}")
     @ApiOperation("Удаление атрибута справочника")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void deleteAttribute(@ApiParam("Идентификатор версии") @QueryParam("versionId") Integer versionId,
-                         @ApiParam("Код атрибута") @QueryParam("code") String attributeCode);
+    void deleteAttribute(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
+                         @ApiParam("Код атрибута") @PathParam("code") String attributeCode);
 
     @POST
     @Path("/{versionId}/attribute/{attribute}/validation")
