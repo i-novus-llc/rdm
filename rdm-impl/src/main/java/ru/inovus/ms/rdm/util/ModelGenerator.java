@@ -31,6 +31,7 @@ public class ModelGenerator {
         model.setStatus(entity.getStatus());
         model.setEditDate(entity.getLastActionDate());
         model.setStructure(entity.getStructure());
+        model.setStorageCode(entity.getStorageCode());
         if (entity.getPassportValues() != null)
             model.setPassport(entity.getPassportValues().stream()
                     .filter(v -> Objects.nonNull(v.getValue()))

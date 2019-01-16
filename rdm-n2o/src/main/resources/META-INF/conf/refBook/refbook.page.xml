@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <page xmlns="http://n2oapp.net/framework/config/schema/page-2.0" name="Реестр НСИ">
     <regions>
-        <none place="single">
+        <region place="single">
             <form id="version_select" query-id="refBook">
                 <fields>
                     <!--для передачи динамичного атрибута при редактировании записи-->
@@ -22,7 +22,8 @@
                             <invoke operation-id="publish"/>
                         </menu-item>
                         <menu-item label="Загрузить из файла">
-                            <show-modal page-id="uploadFile" submit-operation-id="upload" upload="defaults">
+                            <show-modal page-id="uploadFile" submit-operation-id="upload" upload="defaults"
+                                        redirect-url-after-submit="/main/:version.id/edit">
                                 <pre-filters>
                                     <eq field-id="versionId" value="{version.id}"/>
                                 </pre-filters>
@@ -38,7 +39,7 @@
                     </sub-menu>
                 </toolbar>
             </form>
-        </none>
+        </region>
         <tabs place="single">
             <form ref-id="passport" name="Паспорт" id="passport_form" depends-on="version_select"
                   master-field-id="id" detail-field-id="id" object-id="refBook">
@@ -84,6 +85,9 @@
                     </button>
                     <button id="deleteRecord" label="Удалить строку" color="danger" icon="fa fa-trash">
                         <invoke operation-id="delete"/>
+                    </button>
+                    <button id="deleteAllRecords" label="Удалить все" color="danger" icon="fa fa-trash">
+                        <invoke operation-id="deleteAll"/>
                     </button>
                 </toolbar>
             </table>
