@@ -28,6 +28,15 @@ public interface DraftService {
     Draft create(@ApiParam("Идентификатор справочника") @PathParam("refBookId") Integer refBookId, Structure structure);
 
     @POST
+    @ApiOperation("Создание нового черновика")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Черновик создан"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    @Path("/createFromVersion/{versionId}")
+    Draft createFromVersion(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId);
+
+    @POST
     @ApiOperation("Создание нового черновика из файла")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Черновик создан"),

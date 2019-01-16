@@ -6,6 +6,7 @@ import ru.inovus.ms.rdm.model.RefBookStatus;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.Date;
 
 @ApiModel("Критерии поиска справочника с конвертацией даты")
@@ -35,5 +36,9 @@ public class RefBookCriteriaDateAndStatus extends RefBookCriteria {
         return (date == null) ? null : date.toInstant()
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime();
+    }
+
+    public void setRefbookId(Integer refBookId) {
+        super.setRefBookIds(Collections.singletonList(refBookId));
     }
 }
