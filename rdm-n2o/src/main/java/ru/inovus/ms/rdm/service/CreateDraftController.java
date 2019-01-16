@@ -126,7 +126,7 @@ public class CreateDraftController {
 
         if (RefBookVersionStatus.DRAFT.equals(version.getStatus())) {
             draftService.updateData(versionId, fileModel);
-            return new Draft(versionId, version.getStorageCode());
+            return new Draft(versionId, null);
         } else {
             draftService.create(version.getRefBookId(), version.getStructure());
             return draftService.create(version.getRefBookId(), fileModel);
