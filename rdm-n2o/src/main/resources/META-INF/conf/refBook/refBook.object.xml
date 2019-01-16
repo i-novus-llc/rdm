@@ -78,8 +78,7 @@
                 <param id="file.name" mapping="[1].name" domain="string"/>
             </in-parameters>
             <out-parameters>
-                <param id="refBookId" mapping="#this" domain="string"/>
-                <!--<param id="version.id" mapping="id" domain="integer"/>-->
+                <param id="refBookId" mapping="refBookId" domain="integer"/>
             </out-parameters>
         </operation>
     </operations>

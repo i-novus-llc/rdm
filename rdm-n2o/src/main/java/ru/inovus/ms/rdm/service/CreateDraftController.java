@@ -116,7 +116,7 @@ public class CreateDraftController {
         return newRow.getContent().get(0).getSystemId();
     }
 
-    public Draft uploadFromFile(Integer versionId, FileModel fileModel) {
+    public UiDraft uploadFromFile(Integer versionId, FileModel fileModel) {
 
         RefBookVersion version = versionService.getById(versionId);
         if (version == null)
@@ -124,11 +124,12 @@ public class CreateDraftController {
 
         if (RefBookVersionStatus.DRAFT.equals(version.getStatus())) {
             draftService.updateData(versionId, fileModel);
-            return new Draft(versionId, null);
         } else {
             draftService.create(version.getRefBookId(), version.getStructure());
-            return draftService.create(version.getRefBookId(), fileModel);
+            versionId = draftService.create(version.getRefBookId(), fileModel).getId();
         }
+
+        return new UiDraft(versionId, version.getRefBookId());
     }
 
 }
