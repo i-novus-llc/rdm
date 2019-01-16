@@ -51,9 +51,6 @@ public class RefBookVersion {
     @ApiModelProperty("Структура версии")
     private Structure structure;
 
-    @ApiModelProperty("Хранилище версии")
-    private String storageCode;
-
     @ApiModelProperty("Дата последнего изменения")
     @JsonSerialize(using = JsonLocalDateTimeSerializer.class)
     @JsonDeserialize(using = JsonLocalDateTimeDeserializer.class)
@@ -75,7 +72,6 @@ public class RefBookVersion {
         this.passport = refBookVersion.getPassport();
         this.editDate = refBookVersion.getEditDate();
         this.structure = refBookVersion.getStructure();
-        this.storageCode = refBookVersion.getStorageCode();
     }
 
     public Integer getId() {
@@ -164,14 +160,6 @@ public class RefBookVersion {
 
     public void setStructure(Structure structure) {
         this.structure = structure;
-    }
-
-    public String getStorageCode() {
-        return storageCode;
-    }
-
-    public void setStorageCode(String storageCode) {
-        this.storageCode = storageCode;
     }
 
     public LocalDateTime getEditDate() {

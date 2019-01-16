@@ -1,7 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <object xmlns="http://n2oapp.net/framework/config/schema/object-3.0" name="Справочник">
 
-
     <operations>
         <operation id="create" submit-label="Сохранить" success-text="Справочник успешно сохранен">
             <invocation>
@@ -79,7 +78,8 @@
                 <param id="file.name" mapping="[1].name" domain="string"/>
             </in-parameters>
             <out-parameters>
-                <param id="version.id" mapping="id" domain="integer"/>
+                <param id="refBookId" mapping="#this" domain="string"/>
+                <!--<param id="version.id" mapping="id" domain="integer"/>-->
             </out-parameters>
         </operation>
     </operations>
