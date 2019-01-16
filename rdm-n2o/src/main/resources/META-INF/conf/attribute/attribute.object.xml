@@ -4,7 +4,7 @@
     <operations>
         <operation id="create" submit-label="Сохранить" name="Добавление атрибута" success-text="Атрибут сохранен">
             <invocation>
-                <java class="ru.inovus.ms.rdm.service.StructureController"
+                <java class="ru.inovus.ms.rdm.service.CreateDraftController"
                       method="createAttribute">
                     <spring/>
                     <arguments>
@@ -46,7 +46,7 @@
 
         <operation id="updateAttribute" submit-label="Сохранить" name="Изменение атрибута" success-text="Атрибут изменен">
             <invocation>
-                <java class="ru.inovus.ms.rdm.service.StructureController"
+                <java class="ru.inovus.ms.rdm.service.CreateDraftController"
                       method="updateAttribute">
                     <spring/>
                     <arguments>
@@ -87,11 +87,18 @@
         <operation id="delete" name="Удаление атрибута" success-text="Атрибут удален"
                    confirm="true" confirm-text="Вы действительно хотите удалить атрибут справочника?">
             <invocation>
-                <rest method="DELETE">/draft/attribute</rest>
+                <java class="ru.inovus.ms.rdm.service.CreateDraftController"
+                      method="deleteAttribute">
+                    <spring/>
+                    <arguments>
+                        <argument type="primitive" name="versionId" class="java.lang.Integer"/>
+                        <argument type="primitive" name="attributeCode" class="java.lang.String"/>
+                    </arguments>
+                </java>
             </invocation>
             <in-parameters>
-                <param id="versionId" mapping="['versionId']"/>
-                <param id="code" mapping="['code']"/>
+                <param id="versionId" mapping="[0]" domain="integer"/>
+                <param id="code" mapping="[1]" domain="string"/>
             </in-parameters>
             <!--<confirmation-text>Вы действительно хотите удалить атрибут справочника?</confirmation-text>-->
             <!--<success-text>Атрибут успешно удален</success-text>-->
