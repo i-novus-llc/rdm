@@ -14,6 +14,8 @@ import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
+import java.util.Objects;
+
 import static com.google.common.collect.ImmutableSet.of;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
@@ -37,68 +39,64 @@ public class CreateDraftController {
         this.dataRecordController = dataRecordController;
     }
 
-    private boolean isDraft(Integer versionId) {
+    private UiDraft getOrCreateDraft(Integer versionId) {
         final RefBookVersion version = versionService.getById(versionId);
-        return RefBookVersionStatus.DRAFT.equals(version.getStatus());
-    }
-
-    private Integer getDraftId(Integer versionId) {
-        if (isDraft(versionId))
-            return versionId;
+        if (RefBookVersionStatus.DRAFT.equals(version.getStatus()))
+            return new UiDraft(versionId, version.getRefBookId());
         else
-            return draftService.createFromVersion(versionId).getId();
+            return new UiDraft(draftService.createFromVersion(versionId).getId(), version.getRefBookId());
     }
 
-    Draft editPassport(RefBookUpdateRequest refBookUpdateRequest) {
-        Integer draftId = getDraftId(refBookUpdateRequest.getVersionId());
+    UiDraft editPassport(RefBookUpdateRequest refBookUpdateRequest) {
+        final UiDraft uiDraft = getOrCreateDraft(refBookUpdateRequest.getVersionId());
+        Integer draftId = uiDraft.getId();
         refBookUpdateRequest.setVersionId(draftId);
         refBookService.update(refBookUpdateRequest);
-        return new Draft(draftId, null);
+        return uiDraft;
     }
 
-    Draft createAttribute(Integer versionId, Attribute attribute) {
-        Integer draftId = getDraftId(versionId);
+    UiDraft createAttribute(Integer versionId, Attribute attribute) {
+        final UiDraft uiDraft = getOrCreateDraft(versionId);
+        Integer draftId = uiDraft.getId();
         structureController.createAttribute(draftId, attribute);
-        return new Draft(draftId, null);
+        return uiDraft;
     }
 
-    Draft updateAttribute(Integer versionId, Attribute attribute) {
-        Integer draftId = getDraftId(versionId);
+    UiDraft updateAttribute(Integer versionId, Attribute attribute) {
+        final UiDraft uiDraft = getOrCreateDraft(versionId);
+        Integer draftId = uiDraft.getId();
         structureController.updateAttribute(draftId, attribute);
-        return new Draft(draftId, null);
+        return uiDraft;
     }
 
-    Draft deleteAttribute(Integer versionId, String attributeCode) {
-        Integer draftId = getDraftId(versionId);
+    UiDraft deleteAttribute(Integer versionId, String attributeCode) {
+        final UiDraft uiDraft = getOrCreateDraft(versionId);
+        Integer draftId = uiDraft.getId();
         draftService.deleteAttribute(draftId, attributeCode);
-        return new Draft(draftId, null);
+        return uiDraft;
     }
 
-    Draft updateDataRecord(Integer versionId, Row row) {
-        Integer draftId;
-        if (isDraft(versionId))
-            draftId = versionId;
-        else {
-            draftId = draftService.createFromVersion(versionId).getId();
-            row.setSystemId(calculateNewSystemId(row.getSystemId(), versionId, draftId));
+    UiDraft updateDataRecord(Integer versionId, Row row) {
+
+        UiDraft uiDraft = getOrCreateDraft(versionId);
+
+        if (!Objects.equals(versionId, uiDraft.getId())) {
+            row.setSystemId(calculateNewSystemId(row.getSystemId(), versionId, uiDraft.getId()));
         }
-        dataRecordController.updateData(draftId, row);
-        return new Draft(draftId, null);
+        dataRecordController.updateData(uiDraft.getId(), row);
+        return uiDraft;
+
     }
 
-    Draft deleteDataRecord(Integer versionId, Long systemId) {
-        Integer draftId;
-        Long rowId;
-        if (isDraft(versionId)){
-            draftId = versionId;
-            rowId = systemId;
+    UiDraft deleteDataRecord(Integer versionId, Long systemId) {
+
+        UiDraft uiDraft = getOrCreateDraft(versionId);
+
+        if (!Objects.equals(versionId, uiDraft.getId())) {
+            systemId = calculateNewSystemId(systemId, versionId, uiDraft.getId());
         }
-        else {
-            draftId = draftService.createFromVersion(versionId).getId();
-            rowId = calculateNewSystemId(systemId, versionId, draftId);
-        }
-        draftService.deleteRow(draftId, rowId);
-        return new Draft(draftId, null);
+        draftService.deleteRow(uiDraft.getId(), systemId);
+        return uiDraft;
     }
 
     private Long calculateNewSystemId(Long oldSystemId, Integer oldVersionId, Integer newVersionId) {
@@ -113,7 +111,7 @@ public class CreateDraftController {
 
         final SearchDataCriteria hashCriteria = new SearchDataCriteria(of(singletonList(
                 new AttributeFilter("SYS_HASH", hash, FieldType.STRING))), null);
-        final Page<RefBookRowValue> newRow = versionService.search(oldVersionId, hashCriteria);
+        final Page<RefBookRowValue> newRow = versionService.search(newVersionId, hashCriteria);
         if (CollectionUtils.isEmpty(newRow.getContent())) throw new NotFoundException("record not found");
         return newRow.getContent().get(0).getSystemId();
     }
