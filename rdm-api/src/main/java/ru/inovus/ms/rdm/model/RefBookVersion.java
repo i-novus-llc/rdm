@@ -71,6 +71,7 @@ public class RefBookVersion {
         this.archived = refBookVersion.getArchived();
         this.passport = refBookVersion.getPassport();
         this.editDate = refBookVersion.getEditDate();
+        this.structure = refBookVersion.getStructure();
     }
 
     public Integer getId() {

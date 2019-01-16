@@ -1,5 +1,7 @@
 package ru.inovus.ms.rdm.service;
 
+import net.n2oapp.platform.i18n.Message;
+import net.n2oapp.platform.i18n.UserException;
 import org.apache.cxf.common.util.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -28,7 +30,8 @@ public class CreateDraftController {
     private DataRecordController dataRecordController;
 
     @Autowired
-    public CreateDraftController(DraftService draftService, RefBookService refBookService, VersionService versionService, StructureController structureController, DataRecordController dataRecordController) {
+    public CreateDraftController(DraftService draftService, RefBookService refBookService, VersionService versionService,
+                                 StructureController structureController, DataRecordController dataRecordController) {
         this.draftService = draftService;
         this.refBookService = refBookService;
         this.versionService = versionService;
@@ -112,4 +115,20 @@ public class CreateDraftController {
         if (CollectionUtils.isEmpty(newRow.getContent())) throw new NotFoundException("record not found");
         return newRow.getContent().get(0).getSystemId();
     }
+
+    public Draft uploadFromFile(Integer versionId, FileModel fileModel) {
+
+        RefBookVersion version = versionService.getById(versionId);
+        if (version == null)
+            throw new UserException(new Message("version.not.found", versionId));
+
+        if (RefBookVersionStatus.DRAFT.equals(version.getStatus())) {
+            draftService.updateData(versionId, fileModel);
+            return new Draft(versionId, null);
+        } else {
+            draftService.create(version.getRefBookId(), version.getStructure());
+            return draftService.create(version.getRefBookId(), fileModel);
+        }
+    }
+
 }

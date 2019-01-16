@@ -22,6 +22,18 @@
             </in-parameters>
 
         </operation>
+
+        <operation id="deleteAll" submit-label="Удалить все" success-text="Все записи успешно удалены"
+                   confirm="true" confirm-text="Вы точно хотите удалить все записи?">
+            <invocation>
+                <rest method="DELETE">/draft/deleteAll/{draftId}</rest>
+            </invocation>
+
+            <in-parameters>
+                <param id="versionId" mapping="draftId" domain="string" mapper="spel"/>
+            </in-parameters>
+
+        </operation>
     </operations>
 
 </object>

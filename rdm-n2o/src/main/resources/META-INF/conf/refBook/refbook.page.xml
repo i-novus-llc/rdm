@@ -11,8 +11,6 @@
                         </dependencies>
                     </output-text>
                     <select id="version" label="Версия" query-id="versionList" label-field-id="version" >
-                        <dependencies>
-                        </dependencies>
                         <pre-filters>
                             <eq field-id="refBookId" value="{refBookId}"/>
                         </pre-filters>
@@ -24,7 +22,8 @@
                             <invoke operation-id="publish"/>
                         </menu-item>
                         <menu-item label="Загрузить из файла">
-                            <show-modal page-id="uploadFile" submit-operation-id="upload" upload="defaults">
+                            <show-modal page-id="uploadFile" submit-operation-id="upload" upload="defaults"
+                                        redirect-url-after-submit="/main/:refBookId/edit">
                                 <pre-filters>
                                     <eq field-id="versionId" value="{version.id}"/>
                                 </pre-filters>
@@ -90,6 +89,9 @@
                     </button>
                     <button id="deleteRecord" label="Удалить строку" color="danger" icon="fa fa-trash">
                         <invoke operation-id="delete"/>
+                    </button>
+                    <button id="deleteAllRecords" label="Удалить все" color="danger" icon="fa fa-trash">
+                        <invoke operation-id="deleteAll"/>
                     </button>
                 </toolbar>
             </table>

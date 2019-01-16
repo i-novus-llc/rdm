@@ -345,6 +345,17 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
+    @Transactional
+    public void deleteAllRows(Integer draftId) {
+        validateDraftExists(draftId);
+        validateDraftNotArchived(draftId);
+
+        RefBookVersionEntity draft = versionRepository.findOne(draftId);
+
+        draftDataService.deleteAllRows(draft.getStorageCode());
+    }
+
+    @Override
     @Transactional(timeout = 600000)
     public void updateData(Integer draftId, FileModel fileModel) {
 

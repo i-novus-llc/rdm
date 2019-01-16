@@ -68,6 +68,15 @@ public interface DraftService {
     void deleteRow(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
                    @ApiParam("Идентификатор строки") @PathParam("systemId") Long systemId);
 
+    @DELETE
+    @ApiOperation("Удаление строк черновика")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Черновик обновлен"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    @Path("/deleteAll/{draftId}")
+    void deleteAllRows(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId);
+
     @POST
     @ApiOperation("Обновление черновика из файла")
     @ApiResponses({
