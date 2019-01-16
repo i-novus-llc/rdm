@@ -21,7 +21,7 @@
         <liquibase.version>3.6.3-SNAPSHOT</liquibase.version>
         <apache.poi.version>3.17</apache.poi.version>
         <filestorage.version>2.0-SNAPSHOT</filestorage.version>
-        <vds.version>2.0-SNAPSHOT</vds.version>
+        <vds.version>2.1-SNAPSHOT</vds.version>
         <n2o.version>7.0.2</n2o.version>
         <selenium.version>3.8.1</selenium.version>
         <itext.version>5.5.9</itext.version>
