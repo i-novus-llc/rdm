@@ -35,6 +35,10 @@
                 'Новая (изм. ' + editDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy')) + ')'"/>
         </field>
 
+        <field id="version.status" domain="string">
+            <select mapping="status"/>
+        </field>
+
         <field id="code" domain="string">
             <select/>
         </field>
