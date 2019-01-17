@@ -44,7 +44,7 @@
         <operation id="delete" submit-label="Удалить" success-text="Справочник удален"
                    confirm="true" confirm-text="Вы уверены что хотите удалить этот справочник?">
             <invocation>
-                <rest method="DELETE">/refBook</rest>
+                <rest method="DELETE">/refBook?refBookId={refBookId}</rest>
             </invocation>
             <in-parameters>
                 <param id="refBookId" mapping="refBookId" domain="integer" mapper="spel"/>
