@@ -122,7 +122,7 @@ public class CreateDraftController {
         if (version == null)
             throw new UserException(new Message("version.not.found", versionId));
 
-        if (RefBookVersionStatus.DRAFT.equals(version.getStatus()) && version.getStructure() != null && !CollectionUtils.isEmpty(version.getStructure().getAttributes())) {
+        if (RefBookVersionStatus.DRAFT.equals(version.getStatus()) ) {
             draftService.updateData(versionId, fileModel);
         } else {
             draftService.create(version.getRefBookId(), version.getStructure());
