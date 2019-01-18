@@ -101,6 +101,7 @@ public class DraftServiceImpl implements DraftService {
     private static final String INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE = "incompatible.new.type";
     private static final String DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "draft.attribute.not.found";
     private static final String DRAFT_NOT_FOUND_EXCEPTION_CODE = "draft.not.found";
+    private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
     private static final String REFBOOK_NOT_FOUND_EXCEPTION_CODE = "refbook.not.found";
     private static final String REFBOOK_IS_ARCHIVED_EXCEPTION_CODE = "refbook.is.archived";
     private static final String INVALID_VERSION_NAME_EXCEPTION_CODE = "invalid.version.name";
@@ -253,6 +254,19 @@ public class DraftServiceImpl implements DraftService {
         return new Draft(savedDraftVersion.getId(), savedDraftVersion.getStorageCode());
     }
 
+    @Override
+    @Transactional
+    public Draft createFromVersion(Integer versionId) {
+
+        validateVersionExists(versionId);
+        RefBookVersionEntity sourceVersion = versionRepository.findOne(versionId);
+
+        Draft draft = create(sourceVersion.getRefBook().getId(), sourceVersion.getStructure());
+
+        draftDataService.loadData(draft.getStorageCode(), sourceVersion.getStorageCode(), date(sourceVersion.getFromDate()), date(sourceVersion.getToDate()));
+        return draft;
+    }
+
     private void updateDraft(Structure structure, RefBookVersionEntity draftVersion, List<Field> fields) {
         String draftCode = draftVersion.getStorageCode();
         if (!structure.equals(draftVersion.getStructure())) {
@@ -328,6 +342,17 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
 
         draftDataService.deleteRows(draft.getStorageCode(), singletonList(systemId));
+    }
+
+    @Override
+    @Transactional
+    public void deleteAllRows(Integer draftId) {
+        validateDraftExists(draftId);
+        validateDraftNotArchived(draftId);
+
+        RefBookVersionEntity draft = versionRepository.findOne(draftId);
+
+        draftDataService.deleteAllRows(draft.getStorageCode());
     }
 
     @Override
@@ -855,6 +880,11 @@ public class DraftServiceImpl implements DraftService {
         }
     }
 
+
+    private void validateVersionExists(Integer versionId) {
+        if (versionId == null || !versionRepository.exists(hasVersionId(versionId))) {
+            throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
+        }    }
     private void validateAttributeExists(Integer versionId, String attribute) {
         validateDraftExists(versionId);
         Structure structure = versionService.getStructure(versionId);

@@ -6,12 +6,31 @@
         <operation id="delete" submit-label="Удалить" success-text="Запись успешно удалена"
                    confirm="true" confirm-text="Вы точно хотите удалить запись?">
             <invocation>
-                <rest method="DELETE">/draft/delete/{draftId}/{systemId}</rest>
+                <java class="ru.inovus.ms.rdm.service.CreateDraftController"
+                      method="deleteDataRecord">
+                    <spring/>
+                    <arguments>
+                        <argument type="primitive" name="versionId" class="java.lang.Integer"/>
+                        <argument type="primitive" name="systemId" class="java.lang.Long"/>
+                    </arguments>
+                </java>
             </invocation>
 
             <in-parameters>
-                <param id="versionId" mapping="draftId" domain="string" mapper="spel" />
-                <param id="id" mapping="systemId" domain="string" mapper="spel"/>
+                <param id="versionId" mapping="[0]" domain="integer" mapper="spel" />
+                <param id="id" mapping="[1]" domain="long" mapper="spel"/>
+            </in-parameters>
+
+        </operation>
+
+        <operation id="deleteAll" submit-label="Удалить все" success-text="Все записи успешно удалены"
+                   confirm="true" confirm-text="Вы точно хотите удалить все записи?">
+            <invocation>
+                <rest method="DELETE">/draft/deleteAll/{draftId}</rest>
+            </invocation>
+
+            <in-parameters>
+                <param id="versionId" mapping="draftId" domain="string" mapper="spel"/>
             </in-parameters>
 
         </operation>

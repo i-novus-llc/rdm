@@ -1,7 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <object xmlns="http://n2oapp.net/framework/config/schema/object-3.0" name="Справочник">
 
-
     <operations>
         <operation id="create" submit-label="Сохранить" success-text="Справочник успешно сохранен">
             <invocation>
@@ -16,21 +15,26 @@
             </in-parameters>
 
             <out-parameters>
-                <param id="id" mapping="id" domain="integer"/>
+                <param id="refBookId" mapping="['refBookId']" domain="integer"/>
             </out-parameters>
 
         </operation>
 
         <operation id="edit" submit-label="Изменить" success-text="Справочник успешно изменен">
             <invocation>
-                <rest method="PUT">/refBook</rest>
+                <java method="editPassport" class="ru.inovus.ms.rdm.service.CreateDraftController">
+                    <spring/>
+                    <arguments>
+                        <argument class="ru.inovus.ms.rdm.model.RefBookUpdateRequest" name="refBookUpdateRequest"/>
+                    </arguments>
+                </java>
             </invocation>
             <in-parameters>
-                <param id="version.id" mapping="versionId" domain="integer" mapper="spel"/>
-                <param id="code" mapping="code" domain="string" mapper="spel"/>
-                <param id="name" mapping="passport.name" domain="string" mapper="spel"/>
-                <param id="shortName" mapping="passport.shortName" domain="string" mapper="spel"/>
-                <param id="description" mapping="passport.description" domain="string" mapper="spel"/>
+                <param id="version.id" mapping="[0].versionId" domain="integer" mapper="spel"/>
+                <param id="code" mapping="[0].code" domain="string" mapper="spel"/>
+                <param id="name" mapping="[0].passport['name']" domain="string" mapper="spel"/>
+                <param id="shortName" mapping="[0].passport['shortName']" domain="string" mapper="spel"/>
+                <param id="description" mapping="[0].passport['description']" domain="string" mapper="spel"/>
             </in-parameters>
             <out-parameters>
                 <param id="id" mapping="id" domain="integer"/>
@@ -40,7 +44,7 @@
         <operation id="delete" submit-label="Удалить" success-text="Справочник удален"
                    confirm="true" confirm-text="Вы уверены что хотите удалить этот справочник?">
             <invocation>
-                <rest method="DELETE">/refBook</rest>
+                <rest method="DELETE">/refBook?refBookId={refBookId}</rest>
             </invocation>
             <in-parameters>
                 <param id="refBookId" mapping="refBookId" domain="integer" mapper="spel"/>
@@ -59,13 +63,23 @@
 
         <operation id="upload" submit-label="Загрузить" success-text="Данные загружены">
             <invocation>
-                <rest method="POST">/draft/updateFromFile/{draftId}</rest>
+                <java class="ru.inovus.ms.rdm.service.CreateDraftController"
+                      method="uploadFromFile">
+                    <spring/>
+                    <arguments>
+                        <argument type="primitive" name="versionId" class="java.lang.Integer"/>
+                        <argument type="class" name="fileModel" class="ru.inovus.ms.rdm.model.FileModel"/>
+                    </arguments>
+                </java>
             </invocation>
             <in-parameters>
-                <param id="versionId" mapping="draftId" domain="string" mapper="spel"/>
-                <param id="file.path" mapping="path" domain="string" mapper="spel"/>
-                <param id="file.name" mapping="name" domain="string" mapper="spel"/>
+                <param id="versionId" mapping="[0]" domain="integer"/>
+                <param id="file.path" mapping="[1].path" domain="string"/>
+                <param id="file.name" mapping="[1].name" domain="string"/>
             </in-parameters>
+            <out-parameters>
+                <param id="refBookId" mapping="refBookId" domain="integer"/>
+            </out-parameters>
         </operation>
     </operations>
 

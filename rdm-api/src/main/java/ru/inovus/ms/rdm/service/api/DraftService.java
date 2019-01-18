@@ -28,6 +28,15 @@ public interface DraftService {
     Draft create(@ApiParam("Идентификатор справочника") @PathParam("refBookId") Integer refBookId, Structure structure);
 
     @POST
+    @ApiOperation("Создание нового черновика")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Черновик создан"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    @Path("/createFromVersion/{versionId}")
+    Draft createFromVersion(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId);
+
+    @POST
     @ApiOperation("Создание нового черновика из файла")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Черновик создан"),
@@ -58,6 +67,15 @@ public interface DraftService {
     @Path("/delete/{draftId}/{systemId}")
     void deleteRow(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
                    @ApiParam("Идентификатор строки") @PathParam("systemId") Long systemId);
+
+    @DELETE
+    @ApiOperation("Удаление строк черновика")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Черновик обновлен"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    @Path("/deleteAll/{draftId}")
+    void deleteAllRows(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId);
 
     @POST
     @ApiOperation("Обновление черновика из файла")

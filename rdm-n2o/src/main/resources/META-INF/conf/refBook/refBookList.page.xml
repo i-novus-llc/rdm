@@ -19,21 +19,21 @@
         </filters>
         <toolbar>
             <button id="view" label="Просмотр">
-                <open-page page-id="refBookView" page-name="Просмотр справочника" detail-field-id="id"/>
+                <open-page page-id="refBookView" page-name="Просмотр справочника" detail-field-id="refBookId"/>
             </button>
             <button id="create" label="Создать справочник" model="filter" icon="fa fa-plus">
-                <open-page page-id="passport" upload="defaults" submit-operation-id="create" redirect-url-after-submit="/main/:id/edit?id=:id"
+                <open-page page-id="passport" upload="defaults" submit-operation-id="create" redirect-url-after-submit="/main/:refBookId/edit"
                            page-name="Создание справочника"/>
             </button>
             <button id="edit" label="Изменить справочник" icon="fa fa-pencil">
-                <open-page page-id="refbook" page-name="Редактирование справочника" detail-field-id="id"/>
+                <open-page page-id="refbook" page-name="Редактирование справочника" detail-field-id="refBookId"/>
             </button>
             <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger">
                 <invoke operation-id="delete"/>
             </button>
         </toolbar>
         <columns>
-            <column text-field-id="code" label="Код" width="100px"/>
+            <column text-field-id="code" label="Код" width="100px" sorting-direction="asc"/>
             <column text-field-id="name" label="Наименование"/>
             <column text-field-id="displayVersion" label="Версия"/>
             <column text-field-id="category" label="Категория"/>

@@ -33,6 +33,15 @@ public interface RefBookService {
     })
     RefBook getByVersionId(@PathParam("id") @ApiParam("Идентификатор версии") Integer versionId);
 
+    @GET
+    @Path("/{id}")
+    @ApiOperation("Код справочника по идентификатору")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Справочник"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    String getCode(@PathParam("id") @ApiParam("Идентификатор справочника") Integer refBookId);
+
     @POST
     @ApiOperation("Создание нового справочника")
     @ApiResponses({
