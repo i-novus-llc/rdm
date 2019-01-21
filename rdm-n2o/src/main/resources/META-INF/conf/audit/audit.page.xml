@@ -24,7 +24,7 @@
             <column text-field-id="action" label="Действие"/>
             <column text-field-id="context" label="Справочник"/>
             <column text-field-id="date" label="Время">
-                <text format="date DD.MM.YYYY hh:mm"/>
+                <text format="date DD.MM.YYYY HH:mm"/>
             </column>
         </columns>
     </table>
