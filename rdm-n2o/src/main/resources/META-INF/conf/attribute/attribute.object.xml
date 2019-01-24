@@ -37,11 +37,7 @@
                 <param id="dateInterval.end"  mapping="[1].maxDate" domain="date"/>
                 <param id="regExp" mapping="[1].regExp" domain="string"/>
             </in-parameters>
-            <!--<validations activate="whiteList">-->
-            <!--<validation ref-id="checkCode"/>-->
-            <!--<validation ref-id="checkAttributeCodeNotExists"/>-->
-            <!--</validations>-->
-            <!--<success-text>Атрибут успешо сохранен</success-text>-->
+            <validations white-list="checkCode"/>
         </operation>
 
         <operation id="updateAttribute" submit-label="Сохранить" name="Изменение атрибута" success-text="Атрибут изменен">
@@ -78,6 +74,7 @@
                 <param id="dateInterval.end"  mapping="[1].maxDate" domain="date"/>
                 <param id="regExp" mapping="[1].regExp" domain="string"/>
             </in-parameters>
+            <validations white-list="checkCode"/>
             <!--<validations activate="whiteList">-->
             <!--<validation ref-id="checkCode"/>-->
             <!--</validations>-->
@@ -108,21 +105,12 @@
         </operation>
     </operations>
 
-    <!--<validations>-->
-    <!--<constraint id="checkCode" level="error" moment="before-action">-->
-    <!--<message>-->
-    <!--Поле 'Код' содержит недопустимые символы. Допустимыми являются: a-z,A-Z, _, 0-9(кроме первого символа). Пожалуйста, отредактируйте код и повторите сохранение.-->
-    <!--</message>-->
-    <!--<invocation>-->
-    <!--<n2o:sql>-->
-    <!--SELECT :code SIMILAR TO '[_,A-Z,a-z]{1}[_,A-Z,a-z,0-9]*'-->
-    <!--</n2o:sql>-->
-    <!--</invocation>-->
-    <!--<in-parameters>-->
-    <!--<param name="code" mapping="['code']" domain="string"/>-->
-    <!--</in-parameters>-->
-    <!--<result expression="[0][0][0]"/>-->
-    <!--</constraint>-->
+    <validations>
+        <condition id="checkCode" severity="danger"
+                   server-moment="before-operation"
+                   message="Код атрибута должен содержать только латинские символы и цифры">
+            typeof code == 'undefined' || code == null || code == '' || /^[a-zA-Z][a-zA-Z0-9_]*$/.test(code)
+        </condition>
 
     <!--<constraint id="checkAttributeDeletable" level="error">-->
     <!--<invocation>-->
@@ -154,5 +142,5 @@
     <!--<result expression="#this == true"/>-->
     <!--<message>Атрибут с указанным кодом уже существует. Задайте другой код и повторите сохранение, пожалуйста</message>-->
     <!--</constraint>-->
-    <!--</validations>-->
+    </validations>
 </object>
