@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm;
 
 import net.n2oapp.framework.api.context.ContextProcessor;
+import net.n2oapp.framework.api.data.DomainProcessor;
 import net.n2oapp.framework.api.data.QueryProcessor;
 import net.n2oapp.framework.engine.data.N2oInvocationFactory;
 import net.n2oapp.framework.engine.data.N2oQueryProcessor;
@@ -32,8 +33,9 @@ public class ClientConfiguration {
 
     @Bean
     public QueryProcessor queryProcessor(ContextProcessor contextProcessor,
-                                         N2oInvocationFactory invocationFactory) {
-        N2oQueryProcessor queryProcessor = new N2oQueryProcessor(contextProcessor, invocationFactory);
+                                         N2oInvocationFactory invocationFactory,
+                                         DomainProcessor domainProcessor) {
+        N2oQueryProcessor queryProcessor = new N2oQueryProcessor(invocationFactory, contextProcessor, domainProcessor);
         queryProcessor.setCriteriaResolver(new RestCriteriaConstructor());
         return queryProcessor;
     }
