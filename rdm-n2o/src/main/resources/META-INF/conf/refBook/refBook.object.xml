@@ -9,6 +9,7 @@
 
             <in-parameters>
                 <param id="code" mapping="code" domain="string" mapper="spel"/>
+                <param id="category.id" mapping="category" domain="string" mapper="spel"/>
                 <param id="name" mapping="passport.name" domain="string" mapper="spel"/>
                 <param id="shortName" mapping="passport.shortName" domain="string" mapper="spel"/>
                 <param id="description" mapping="passport.description" domain="string" mapper="spel"/>
@@ -25,16 +26,18 @@
                 <java method="editPassport" class="ru.inovus.ms.rdm.service.CreateDraftController">
                     <spring/>
                     <arguments>
-                        <argument class="ru.inovus.ms.rdm.model.RefBookUpdateRequest" name="refBookUpdateRequest"/>
+                        <argument type="primitive" name="versionId" class="java.lang.Integer"/>
+                        <argument type="class" name="uiPassport" class="ru.inovus.ms.rdm.model.UiPassport"/>
                     </arguments>
                 </java>
             </invocation>
             <in-parameters>
-                <param id="version.id" mapping="[0].versionId" domain="integer" mapper="spel"/>
-                <param id="code" mapping="[0].code" domain="string" mapper="spel"/>
-                <param id="name" mapping="[0].passport['name']" domain="string" mapper="spel"/>
-                <param id="shortName" mapping="[0].passport['shortName']" domain="string" mapper="spel"/>
-                <param id="description" mapping="[0].passport['description']" domain="string" mapper="spel"/>
+                <param id="version.id" mapping="[0]" domain="integer" mapper="spel"/>
+                <param id="code" mapping="[1].code" domain="string" mapper="spel"/>
+                <param id="category.id" mapping="[1].category" domain="string" mapper="spel"/>
+                <param id="name" mapping="[1].name" domain="string" mapper="spel"/>
+                <param id="shortName" mapping="[1].shortName" domain="string" mapper="spel"/>
+                <param id="description" mapping="[1].description" domain="string" mapper="spel"/>
             </in-parameters>
             <out-parameters>
                 <param id="id" mapping="id" domain="integer"/>

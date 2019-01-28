@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.provider;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import net.n2oapp.platform.jaxrs.MapperConfigurer;
 import org.springframework.data.domain.PageImpl;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
@@ -23,6 +24,7 @@ public class RowValueMapperPreparer implements MapperConfigurer {
         mapper.addMixIn(DiffRowValue.class, DiffRowValueMixin.class);
         mapper.addMixIn(Field.class, FieldMixin.class);
         mapper.enable(DeserializationFeature.USE_BIG_INTEGER_FOR_INTS);
+        mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, true);
         mapper.writerFor(new TypeReference<PageImpl<RowValue>>() {
         });
 
