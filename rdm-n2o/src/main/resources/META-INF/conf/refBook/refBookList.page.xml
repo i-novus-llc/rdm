@@ -36,7 +36,7 @@
             <column text-field-id="code" label="Код" width="100px" sorting-direction="asc"/>
             <column text-field-id="name" label="Наименование"/>
             <column text-field-id="displayVersion" label="Версия"/>
-            <column text-field-id="category" label="Категория"/>
+            <column text-field-id="category.id" label="Категория"/>
             <column text-field-id="lastPublishedVersionFromDate" label="Последняя публикация">
                 <text format="date DD.MM.YYYY"/>
             </column>

@@ -189,6 +189,7 @@ public class RefBookServiceImpl implements RefBookService {
         refBookEntity.setArchived(Boolean.FALSE);
         refBookEntity.setRemovable(Boolean.TRUE);
         refBookEntity.setCode(request.getCode());
+        refBookEntity.setCategory(request.getCategory());
         refBookEntity = refBookRepository.save(refBookEntity);
 
         RefBookVersionEntity refBookVersionEntity = new RefBookVersionEntity();
@@ -220,6 +221,7 @@ public class RefBookServiceImpl implements RefBookService {
         if (!refBookEntity.getCode().equals(request.getCode())) {
             refBookEntity.setCode(request.getCode());
         }
+        refBookEntity.setCategory(request.getCategory());
         updateVersionFromPassport(refBookVersionEntity, request.getPassport());
         refBookVersionEntity.setComment(request.getComment());
         return refBookModel(refBookVersionEntity, getLastPublishedVersions(singletonList(refBookVersionEntity.getRefBook().getId())));

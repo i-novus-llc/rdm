@@ -14,6 +14,8 @@ import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import static com.google.common.collect.ImmutableSet.of;
@@ -47,12 +49,24 @@ public class CreateDraftController {
             return new UiDraft(draftService.createFromVersion(versionId).getId(), version.getRefBookId());
     }
 
-    UiDraft editPassport(RefBookUpdateRequest refBookUpdateRequest) {
-        final UiDraft uiDraft = getOrCreateDraft(refBookUpdateRequest.getVersionId());
+    UiDraft editPassport(Integer versionId, UiPassport uiPassport) {
+        final UiDraft uiDraft = getOrCreateDraft(versionId);
         Integer draftId = uiDraft.getId();
-        refBookUpdateRequest.setVersionId(draftId);
-        refBookService.update(refBookUpdateRequest);
+        refBookService.update(toRefBookUpdateRequest(draftId, uiPassport));
         return uiDraft;
+    }
+
+    private RefBookUpdateRequest toRefBookUpdateRequest(Integer versionId, UiPassport uiPassport) {
+        final RefBookUpdateRequest refBookUpdateRequest = new RefBookUpdateRequest();
+        refBookUpdateRequest.setVersionId(versionId);
+        refBookUpdateRequest.setCode(uiPassport.getCode());
+        refBookUpdateRequest.setCategory(uiPassport.getCategory());
+        Map<String, String> passport = new HashMap<>();
+        passport.put("name", uiPassport.getName());
+        passport.put("shortName", uiPassport.getShortName());
+        passport.put("description", uiPassport.getDescription());
+        refBookUpdateRequest.setPassport(passport);
+        return refBookUpdateRequest;
     }
 
     UiDraft createAttribute(Integer versionId, Attribute attribute) {

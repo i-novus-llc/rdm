@@ -86,7 +86,7 @@
             <select mapping="lastPublishedVersion"/>
         </field>
 
-        <field id="category" domain="string" name="Категория">
+        <field id="category.id" domain="string" name="Категория">
             <select mapping="category"/>
             <filters>
                 <eq filter-id="category.id" mapping="category" domain="string"/>
