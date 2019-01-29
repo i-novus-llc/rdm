@@ -51,7 +51,12 @@ public class StructureController {
                     list.add(attribute);
                 }
             });
-        return new RestPage<>(list, new PageRequest(criteria.getPage(), criteria.getSize()), list.size());
+        List<ReadAttribute> currentPageAttributes = list.stream()
+                .skip((long)(criteria.getPage() - 1) *  criteria.getSize())
+                .limit(criteria.getSize())
+                .collect(Collectors.toList());
+
+        return new RestPage<>(currentPageAttributes, new PageRequest(criteria.getPage(), criteria.getSize()), list.size());
     }
 
     public void createAttribute(Integer versionId, Attribute attribute) {
