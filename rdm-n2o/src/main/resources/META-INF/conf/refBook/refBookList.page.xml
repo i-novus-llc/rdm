@@ -22,7 +22,7 @@
                 <open-page page-id="refBookView" page-name="Просмотр справочника" detail-field-id="refBookId"/>
             </button>
             <button id="create" label="Создать справочник" model="filter" icon="fa fa-plus">
-                <open-page page-id="passport" upload="defaults" submit-operation-id="create" redirect-url-after-submit="/main/:refBookId/edit"
+                <open-page page-id="createRefBook" upload="defaults" submit-operation-id="create" redirect-url-after-submit="/main/:refBookId/edit"
                            page-name="Создание справочника"/>
             </button>
             <button id="edit" label="Изменить справочник" icon="fa fa-pencil">
