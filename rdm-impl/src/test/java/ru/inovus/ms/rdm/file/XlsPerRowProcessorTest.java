@@ -26,21 +26,25 @@ public class XlsPerRowProcessorTest {
             put("Kod", BigInteger.valueOf(0));
             put("Opis", "Не требует изготовления полиса");
             put("DATEBEG", date);
+            put("DATEEND", null);
         }});
         expected.add(new HashMap<String, Object>() {{
             put("Kod", BigInteger.valueOf(1));
             put("Opis", "Бумажный полис ОМС");
             put("DATEBEG", date);
+            put("DATEEND", null);
         }});
         expected.add(new HashMap<String, Object>() {{
             put("Kod", BigInteger.valueOf(2));
             put("Opis", "Электронный полис ОМС");
             put("DATEBEG", date);
+            put("DATEEND", null);
         }});
         expected.add(new HashMap<String, Object>() {{
             put("Kod", BigInteger.valueOf(3));
             put("Opis", "Электронный полис ОМС в составе УЭК");
             put("DATEBEG", date);
+            put("DATEEND", null);
         }});
         RowsProcessor testRowsProcessor = getTestRowsProcessor(expected);
         try (FilePerRowProcessor processor = new XlsPerRowProcessor(new StructureRowMapper(createTestStructure(), null), testRowsProcessor)) {
@@ -72,6 +76,7 @@ public class XlsPerRowProcessorTest {
                 Assert.assertTrue(row.getData().containsKey("Kod"));
                 Assert.assertTrue(row.getData().containsKey("Opis"));
                 Assert.assertTrue(row.getData().containsKey("DATEBEG"));
+                Assert.assertTrue(row.getData().containsKey("DATEEND"));
                 successCount++;
                 allCount++;
                 expected.remove(row.getData());
