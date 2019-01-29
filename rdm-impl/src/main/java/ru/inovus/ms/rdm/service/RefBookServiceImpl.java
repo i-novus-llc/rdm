@@ -52,6 +52,8 @@ public class RefBookServiceImpl implements RefBookService {
     private static final String REF_BOOK_FROM_DATE_SORT_PROPERTY = "fromDate";
     private static final String REF_BOOK_CATEGORY_SORT_PROPERTY = "category";
 
+    private static final String REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.already.exists";
+
     private RefBookVersionRepository repository;
     private RefBookRepository refBookRepository;
     private DraftDataService draftDataService;
@@ -185,6 +187,9 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     @Transactional
     public RefBook create(RefBookCreateRequest request) {
+        if (isRefBookExist(request.getCode()))
+            throw new UserException(new Message(REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE, request.getCode()));
+
         RefBookEntity refBookEntity = new RefBookEntity();
         refBookEntity.setArchived(Boolean.FALSE);
         refBookEntity.setRemovable(Boolean.TRUE);
@@ -211,6 +216,8 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     @Transactional
     public RefBook update(RefBookUpdateRequest request) {
+        if (isRefBookExist(request.getCode()))
+            throw new UserException(new Message(REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE, request.getCode()));
 
         validateVersionExists(request.getVersionId());
         validateVersionNotArchived(request.getVersionId());
@@ -327,6 +334,12 @@ public class RefBookServiceImpl implements RefBookService {
         where.and(isVersionOfRefBook(refBookId));
         where.and(isRemovable().not().or(isArchived()).or(isPublished()));
         return !repository.exists(where.getValue());
+    }
+
+    private boolean isRefBookExist(String refBookCode) {
+        RefBookCriteria criteria = new RefBookCriteria();
+        criteria.setCode(refBookCode);
+        return !isEmpty(search(criteria).getContent());
     }
 
     private RefBook refBookModel(RefBookVersionEntity entity, List<RefBookVersionEntity> lastPublishVersions) {
