@@ -349,7 +349,8 @@ public class DraftServiceTest {
         structure.setAttributes(asList(
                 Structure.Attribute.build("Kod", "Kod", FieldType.STRING, "Kod"),
                 Structure.Attribute.build("Opis", "Opis", FieldType.STRING, "Opis"),
-                Structure.Attribute.build("DATEBEG", "DATEBEG", FieldType.STRING, "DATEBEG")
+                Structure.Attribute.build("DATEBEG", "DATEBEG", FieldType.STRING, "DATEBEG"),
+                Structure.Attribute.build("DATEEND", "DATEEND", FieldType.STRING, "DATEEND")
         ));
     }
 

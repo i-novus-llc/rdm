@@ -77,6 +77,8 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
         LinkedHashMap<String, Object> params = new LinkedHashMap<>();
         DataFormatter formatter = new DataFormatter();
 
+        numberToNameParam.values().forEach(nameParam -> params.put(nameParam, null));
+
         for (Cell cell : row) {
             String nameParam = numberToNameParam.get(cell.getColumnIndex());
             if (nameParam != null) {
