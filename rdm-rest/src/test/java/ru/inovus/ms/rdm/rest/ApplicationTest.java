@@ -81,6 +81,7 @@ public class ApplicationTest {
     private static final int REMOVABLE_REF_BOOK_ID = 501;
     private static final String REMOVABLE_REF_BOOK_CODE = "A082";
     private static final String ALL_TYPES_REF_BOOK_CODE = "all_types_ref_book";
+    private static final String COMPARABLE_REF_BOOK_CODE = "comparable_ref_book";
     private static final String SEARCH_CODE_STR = "78 ";
     private static final String SEARCH_BY_NAME_STR = "отличное от последней версии ";
     private static final String SEARCH_BY_NAME_STR_ASSERT_CODE = "Z001";
@@ -466,7 +467,7 @@ public class ApplicationTest {
     * */
     @Test
     public void testUpdateVersionRows() {
-        final String REFBOOK_CODE = "A001";
+        final String REFBOOK_CODE = "update_rows";
 
         Structure structure = createTestStructureWithoutTreeFieldType();
         RefBook refBook = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE, null));
@@ -530,7 +531,7 @@ public class ApplicationTest {
     * */
     @Test
     public void testSearchRowsByKeys() {
-        final String REFBOOK_CODE = "A001";
+        final String REFBOOK_CODE = "search_by_keys";
         final String OLD_FILE_NAME = "oldData.xlsx";
 
         Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
@@ -841,7 +842,7 @@ public class ApplicationTest {
      */
     @Test
     public void testUpdateAttributeTypeWithoutData() {
-        RefBookCreateRequest refBookCreate = new RefBookCreateRequest(ALL_TYPES_REF_BOOK_CODE, new HashMap<>());
+        RefBookCreateRequest refBookCreate = new RefBookCreateRequest(ALL_TYPES_REF_BOOK_CODE + "_wtht_data", new HashMap<>());
         RefBook refBook = refBookService.create(refBookCreate);
         Structure structure = createTestStructureWithoutTreeFieldType();
         Structure.Reference reference = structure.getReference("reference");
@@ -915,7 +916,7 @@ public class ApplicationTest {
      */
     @Test
     public void testUpdateAttributeTypeWithData() {
-        RefBookCreateRequest refBookCreate = new RefBookCreateRequest(ALL_TYPES_REF_BOOK_CODE, new HashMap<>());
+        RefBookCreateRequest refBookCreate = new RefBookCreateRequest(ALL_TYPES_REF_BOOK_CODE + "_with_data", new HashMap<>());
         RefBook refBook = refBookService.create(refBookCreate);
         Structure structure = createTestStructureWithoutTreeFieldType();
         Structure.Reference reference = structure.getReference("reference");
@@ -1261,7 +1262,7 @@ public class ApplicationTest {
         Structure.Attribute typeS = Structure.Attribute.build("TYPE", "type", FieldType.STRING, "type");
         Structure.Attribute typeI = Structure.Attribute.build("TYPE", "type", FieldType.INTEGER, "type");
 
-        RefBook refBook = refBookService.create(new RefBookCreateRequest("A000", null));
+        RefBook refBook = refBookService.create(new RefBookCreateRequest(COMPARABLE_REF_BOOK_CODE + "_diff", null));
         Integer oldVersionId = refBook.getId();
         asList(id, code, common, descr, upd1, typeS)
                 .forEach(attribute ->
@@ -1324,7 +1325,7 @@ public class ApplicationTest {
         Structure.Attribute code = Structure.Attribute.build("CODE", "code", FieldType.STRING, "code");
         Structure.Attribute name = Structure.Attribute.build("NAME", "name", FieldType.STRING, "name");
 
-        RefBook refBook = refBookService.create(new RefBookCreateRequest("A000", null));
+        RefBook refBook = refBookService.create(new RefBookCreateRequest(COMPARABLE_REF_BOOK_CODE + "_no_diff", null));
         Integer oldVersionId = refBook.getId();
         draftService.createAttribute(new CreateAttribute(refBook.getId(), id, null));
         draftService.createAttribute(new CreateAttribute(refBook.getId(), code, null));
@@ -1364,7 +1365,7 @@ public class ApplicationTest {
         Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
         Structure.Attribute code = Structure.Attribute.build("CODE", "code", FieldType.STRING, "code");
 
-        RefBook refBook = refBookService.create(new RefBookCreateRequest("A000", null));
+        RefBook refBook = refBookService.create(new RefBookCreateRequest(COMPARABLE_REF_BOOK_CODE + "_diff_pk", null));
         Integer oldVersionId = refBook.getId();
         draftService.createAttribute(new CreateAttribute(refBook.getId(), id, null));
         draftService.createAttribute(new CreateAttribute(refBook.getId(), code, null));

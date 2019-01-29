@@ -7,4 +7,7 @@ import ru.inovus.ms.rdm.entity.RefBookEntity;
 public interface RefBookRepository  extends
         JpaRepository<RefBookEntity, Integer>,
         QueryDslPredicateExecutor<RefBookEntity> {
+
+    RefBookEntity findByCode(String code);
+
 }

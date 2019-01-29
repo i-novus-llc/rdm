@@ -216,9 +216,6 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     @Transactional
     public RefBook update(RefBookUpdateRequest request) {
-        if (isRefBookExist(request.getCode()))
-            throw new UserException(new Message(REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE, request.getCode()));
-
         validateVersionExists(request.getVersionId());
         validateVersionNotArchived(request.getVersionId());
         refBookLockService.validateRefBookNotBusyByVersionId(request.getVersionId());
@@ -226,6 +223,9 @@ public class RefBookServiceImpl implements RefBookService {
         RefBookVersionEntity refBookVersionEntity = repository.findOne(request.getVersionId());
         RefBookEntity refBookEntity = refBookVersionEntity.getRefBook();
         if (!refBookEntity.getCode().equals(request.getCode())) {
+            if (isRefBookExist(request.getCode()))
+                throw new UserException(new Message(REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE, request.getCode()));
+
             refBookEntity.setCode(request.getCode());
         }
         refBookEntity.setCategory(request.getCategory());
@@ -337,9 +337,8 @@ public class RefBookServiceImpl implements RefBookService {
     }
 
     private boolean isRefBookExist(String refBookCode) {
-        RefBookCriteria criteria = new RefBookCriteria();
-        criteria.setCode(refBookCode);
-        return !isEmpty(search(criteria).getContent());
+        RefBookEntity refBook = refBookRepository.findByCode(refBookCode);
+        return refBook != null;
     }
 
     private RefBook refBookModel(RefBookVersionEntity entity, List<RefBookVersionEntity> lastPublishVersions) {
