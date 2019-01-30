@@ -46,6 +46,10 @@ public class BufferedRowsPersister implements RowsProcessor {
         this.structure = structure;
     }
 
+    public void setStructure(Structure structure) {
+        this.structure = structure;
+    }
+
     @Override
     public Result append(Row row) {
 

@@ -139,7 +139,6 @@ public class CreateDraftController {
         if (RefBookVersionStatus.DRAFT.equals(version.getStatus()) && version.getStructure() != null && !CollectionUtils.isEmpty(version.getStructure().getAttributes())) {
             draftService.updateData(versionId, fileModel);
         } else {
-            draftService.create(version.getRefBookId(), version.getStructure());
             versionId = draftService.create(version.getRefBookId(), fileModel).getId();
         }
 
