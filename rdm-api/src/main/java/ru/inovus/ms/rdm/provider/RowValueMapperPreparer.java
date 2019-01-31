@@ -24,6 +24,7 @@ public class RowValueMapperPreparer implements MapperConfigurer {
         mapper.addMixIn(DiffRowValue.class, DiffRowValueMixin.class);
         mapper.addMixIn(Field.class, FieldMixin.class);
         mapper.enable(DeserializationFeature.USE_BIG_INTEGER_FOR_INTS);
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, true);
         mapper.writerFor(new TypeReference<PageImpl<RowValue>>() {
         });
