@@ -22,7 +22,7 @@ public class CriteriaSizeControlFilter implements ContainerRequestFilter {
     private static final String SIZE_QUERY_NAME = "size";
     private static final Integer SIZE_MAX_VALUE = 100;
 
-    private static final String SIZE_MAX_VALUE_EXCEEDED_EXCEPTION_CODE = "size must no greater than " + SIZE_MAX_VALUE;
+    private static final String SIZE_MAX_VALUE_EXCEEDED_EXCEPTION_CODE = "size must be no greater than " + SIZE_MAX_VALUE;
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
