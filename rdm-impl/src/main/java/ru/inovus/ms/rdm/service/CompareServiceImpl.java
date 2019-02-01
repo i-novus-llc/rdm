@@ -68,6 +68,7 @@ public class CompareServiceImpl implements CompareService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PassportDiff comparePassports(Integer oldVersionId, Integer newVersionId) {
         RefBookVersionEntity oldVersion = versionRepository.getOne(oldVersionId);
         RefBookVersionEntity newVersion = versionRepository.getOne(newVersionId);
