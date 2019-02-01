@@ -1,12 +1,9 @@
 package ru.inovus.ms.rdm;
 
-import net.n2oapp.framework.access.data.SecurityProvider;
-import net.n2oapp.framework.access.simple.PermissionApi;
 import net.n2oapp.framework.security.auth.oauth2.OpenIdSecurityConfigurerAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2SsoProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoRestTemplateFactory;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -36,11 +33,6 @@ public class SecurityConfig extends OpenIdSecurityConfigurerAdapter {
                 .logout().addLogoutHandler(auditLogoutHandler)
                 .and()
                 .addFilterBefore(ssoFilter(), BasicAuthenticationFilter.class);
-    }
-
-    @Bean
-    public SecurityProvider securityProvider(PermissionApi permissionApi) {
-        return new SecurityProvider(permissionApi);
     }
 
     private OAuth2ClientAuthenticationProcessingFilter ssoFilter() {
