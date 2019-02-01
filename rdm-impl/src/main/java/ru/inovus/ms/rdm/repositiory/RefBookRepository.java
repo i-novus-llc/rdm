@@ -10,4 +10,6 @@ public interface RefBookRepository  extends
 
     RefBookEntity findByCode(String code);
 
+    boolean existsByCode(String code);
+
 }

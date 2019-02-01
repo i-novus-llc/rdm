@@ -80,7 +80,7 @@ public class ArchiveValidationTest {
         when(versionRepository.exists(eq(isVersionOfRefBook(refBookId)))).thenReturn(true);
         when(versionRepository.exists(eq(hasVersionId(draftId).and(isDraft())))).thenReturn(true);
         when(versionRepository.exists(eq(versionId))).thenReturn(true);
-        when(refBookRepository.findByCode(any())).thenReturn(null);
+        when(refBookRepository.existsByCode(any())).thenReturn(false);
     }
 
     @Test
