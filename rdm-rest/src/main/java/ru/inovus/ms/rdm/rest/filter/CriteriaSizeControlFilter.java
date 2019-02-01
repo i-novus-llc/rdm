@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.util;
+package ru.inovus.ms.rdm.rest.filter;
 
 import org.springframework.stereotype.Component;
 

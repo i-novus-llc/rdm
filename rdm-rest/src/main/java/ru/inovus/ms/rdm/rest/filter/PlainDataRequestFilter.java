@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.util;
+package ru.inovus.ms.rdm.rest.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.cxf.jaxrs.impl.ContainerRequestContextImpl;
@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
