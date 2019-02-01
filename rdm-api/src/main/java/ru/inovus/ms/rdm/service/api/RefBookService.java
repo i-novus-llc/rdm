@@ -20,6 +20,7 @@ public interface RefBookService {
 
     @ApiResponses({
             @ApiResponse(code = 200, message = "Список справочников"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     Page<RefBook> search(@BeanParam RefBookCriteria criteria);
@@ -89,6 +90,7 @@ public interface RefBookService {
     @ApiOperation("Получение списка версий справочника")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Версия справочника"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     Page<RefBookVersion> getVersions(@BeanParam VersionCriteria criteria);
