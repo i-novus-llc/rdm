@@ -92,6 +92,7 @@ public interface DraftService {
     @ApiOperation("Получение записей черновика, с фильтрацией")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет черновика")
     })
     Page<RefBookRowValue> search(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,

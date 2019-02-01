@@ -27,6 +27,7 @@ public interface AuditLogService {
     @ApiOperation("Список действий по фильтрам")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Файл сохранен"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса"),
     })
     @Path("/actions")

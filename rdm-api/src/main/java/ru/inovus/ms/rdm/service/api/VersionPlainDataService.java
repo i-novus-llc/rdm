@@ -17,6 +17,7 @@ public interface VersionPlainDataService {
     @ApiOperation("Получения записей версии, с фильтрацией")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет версии")
     })
     @Path("/{versionId}/data")
@@ -28,6 +29,7 @@ public interface VersionPlainDataService {
     @ApiOperation("Получение актуальных на дату записей версии по коду справочника")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет версии")
     })
     Page<Map<String, String>> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
@@ -40,6 +42,7 @@ public interface VersionPlainDataService {
     @ApiOperation("Получение актуальных на текущую дату записей версии по коду справочника")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет версии")
     })
     Page<Map<String, String>> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,

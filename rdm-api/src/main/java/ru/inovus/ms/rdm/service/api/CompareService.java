@@ -34,6 +34,7 @@ public interface CompareService {
     @ApiOperation("Сравнение данных версий")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     RefBookDataDiff compareData(@BeanParam CompareDataCriteria compareDataCriteria);
@@ -43,6 +44,7 @@ public interface CompareService {
     @ApiOperation("Объединенный результат сравнения данных версий")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     Page<ComparableRow> getCommonComparableRows(@BeanParam CompareDataCriteria criteria);
