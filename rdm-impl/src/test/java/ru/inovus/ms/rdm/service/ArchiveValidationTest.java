@@ -22,6 +22,7 @@ import ru.inovus.ms.rdm.util.VersionNumberStrategy;
 import ru.inovus.ms.rdm.util.VersionPeriodPublishValidation;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
@@ -75,12 +76,11 @@ public class ArchiveValidationTest {
     private VersionPeriodPublishValidation versionPeriodPublishValidation;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         when(versionRepository.exists(eq(isVersionOfRefBook(refBookId)))).thenReturn(true);
         when(versionRepository.exists(eq(hasVersionId(draftId).and(isDraft())))).thenReturn(true);
         when(versionRepository.exists(eq(versionId))).thenReturn(true);
-
-
+        when(refBookRepository.existsByCode(any())).thenReturn(false);
     }
 
     @Test

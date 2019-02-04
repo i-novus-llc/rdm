@@ -52,6 +52,8 @@ public class RefBookServiceImpl implements RefBookService {
     private static final String REF_BOOK_FROM_DATE_SORT_PROPERTY = "fromDate";
     private static final String REF_BOOK_CATEGORY_SORT_PROPERTY = "category";
 
+    private static final String REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.already.exists";
+
     private RefBookVersionRepository repository;
     private RefBookRepository refBookRepository;
     private DraftDataService draftDataService;
@@ -185,6 +187,9 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     @Transactional
     public RefBook create(RefBookCreateRequest request) {
+        if (refBookRepository.existsByCode(request.getCode()))
+            throw new UserException(new Message(REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE, request.getCode()));
+
         RefBookEntity refBookEntity = new RefBookEntity();
         refBookEntity.setArchived(Boolean.FALSE);
         refBookEntity.setRemovable(Boolean.TRUE);
@@ -211,7 +216,6 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     @Transactional
     public RefBook update(RefBookUpdateRequest request) {
-
         validateVersionExists(request.getVersionId());
         validateVersionNotArchived(request.getVersionId());
         refBookLockService.validateRefBookNotBusyByVersionId(request.getVersionId());
@@ -219,6 +223,9 @@ public class RefBookServiceImpl implements RefBookService {
         RefBookVersionEntity refBookVersionEntity = repository.findOne(request.getVersionId());
         RefBookEntity refBookEntity = refBookVersionEntity.getRefBook();
         if (!refBookEntity.getCode().equals(request.getCode())) {
+            if (refBookRepository.existsByCode((request.getCode())))
+                throw new UserException(new Message(REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE, request.getCode()));
+
             refBookEntity.setCode(request.getCode());
         }
         refBookEntity.setCategory(request.getCategory());
