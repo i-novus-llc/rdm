@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
+import static ru.inovus.ms.rdm.RdmUiUtil.addPrefix;
 
 @Service
 public class DataRecordPageProvider implements DynamicMetadataProvider {
@@ -108,7 +109,7 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
                 n2oField = new N2oInputText();
 
         }
-        n2oField.setId(attribute.getCode());
+        n2oField.setId(addPrefix(attribute.getCode()));
         n2oField.setLabel(attribute.getName());
         return n2oField;
     }
