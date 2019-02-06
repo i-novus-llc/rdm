@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static java.util.stream.Stream.of;
+import static ru.inovus.ms.rdm.RdmUiUtil.addPrefix;
 
 @Service
 public class DataRecordObjectProvider implements DynamicMetadataProvider {
@@ -129,7 +130,8 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
 
     private N2oObject.Parameter createParam(Structure.Attribute attribute) {
         N2oObject.Parameter parameter = new N2oObject.Parameter();
-        parameter.setId(attribute.getCode());
+        String codeWithPrefix = addPrefix(attribute.getCode());
+        parameter.setId(codeWithPrefix);
         parameter.setMapping("[1].data['" + attribute.getCode() + "']");
         switch (attribute.getType()) {
             case STRING:
@@ -148,10 +150,11 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
                 parameter.setDomain("boolean");
                 break;
             case REFERENCE:
-                parameter.setId(attribute.getCode() + ".value");
+                parameter.setId(codeWithPrefix + ".value");
                 parameter.setDomain("string");
                 break;
-            default: throw new IllegalArgumentException("attribute type not supported");
+            default:
+                throw new IllegalArgumentException("attribute type not supported");
         }
         return parameter;
     }

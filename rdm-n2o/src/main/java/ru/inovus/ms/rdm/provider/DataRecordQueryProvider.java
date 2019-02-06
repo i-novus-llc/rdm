@@ -19,6 +19,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static java.util.stream.Stream.of;
+import static ru.inovus.ms.rdm.RdmUiUtil.addPrefix;
 
 @Service
 public class DataRecordQueryProvider implements DynamicMetadataProvider {
@@ -119,7 +120,8 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
         List<N2oQuery.Field> list = new ArrayList<>();
         for (Structure.Attribute attribute : structure.getAttributes()) {
             N2oQuery.Field field = new N2oQuery.Field();
-            field.setId(attribute.getCode());
+            String codeWithPrefix = addPrefix(attribute.getCode());
+            field.setId(codeWithPrefix);
             field.setName(attribute.getName());
             field.setSelectMapping(createAttributeMapping(attribute.getCode()));
             switch (attribute.getType()) {
@@ -139,12 +141,12 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
                     field.setDomain("date");
                     break;
                 case REFERENCE:
-                    field.setId(attribute.getCode() + ".value");
+                    field.setId(codeWithPrefix + ".value");
                     field.setSelectMapping(createAttributeMapping(attribute.getCode()) + ".value");
                     field.setDomain(STRING_DOMAIN);
                     list.add(field);
                     N2oQuery.Field field1 = new N2oQuery.Field();
-                    field1.setId(attribute.getCode() + ".displayValue");
+                    field1.setId(codeWithPrefix + ".displayValue");
                     field1.setSelectMapping(createAttributeMapping(attribute.getCode()) + ".displayValue");
                     field1.setDomain(STRING_DOMAIN);
                     list.add(field1);
