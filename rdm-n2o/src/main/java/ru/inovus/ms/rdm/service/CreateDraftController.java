@@ -113,6 +113,14 @@ public class CreateDraftController {
         return uiDraft;
     }
 
+    UiDraft deleteAllDataRecords(Integer versionId) {
+
+        UiDraft uiDraft = getOrCreateDraft(versionId);
+
+        draftService.deleteAllRows(uiDraft.getId());
+        return uiDraft;
+    }
+
     private Long calculateNewSystemId(Long oldSystemId, Integer oldVersionId, Integer newVersionId) {
         if (oldSystemId == null) return null;
         SearchDataCriteria criteria = new SearchDataCriteria();

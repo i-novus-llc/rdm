@@ -29,8 +29,7 @@
         <field id="refBookId" domain="integer">
             <select/>
             <filters>
-                <!-- todo-->
-                <eq filter-id="refBookId" mapping="refBookId" domain="integer" default-value="83"/>
+                <eq filter-id="refBookId" mapping="refBookId" domain="integer"/>
             </filters>
         </field>
 

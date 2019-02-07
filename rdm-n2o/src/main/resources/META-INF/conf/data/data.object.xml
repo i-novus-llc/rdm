@@ -26,11 +26,17 @@
         <operation id="deleteAll" submit-label="Удалить все" success-text="Все записи успешно удалены"
                    confirm="true" confirm-text="Вы точно хотите удалить все записи?">
             <invocation>
-                <rest method="DELETE">/draft/deleteAll/{draftId}</rest>
+                <java class="ru.inovus.ms.rdm.service.CreateDraftController"
+                      method="deleteAllDataRecords">
+                    <spring/>
+                    <arguments>
+                        <argument type="primitive" name="versionId" class="java.lang.Integer"/>
+                    </arguments>
+                </java>
             </invocation>
 
             <in-parameters>
-                <param id="versionId" mapping="draftId" domain="string" mapper="spel"/>
+                <param id="versionId" mapping="[0]" domain="integer" mapper="spel" />
             </in-parameters>
 
         </operation>
