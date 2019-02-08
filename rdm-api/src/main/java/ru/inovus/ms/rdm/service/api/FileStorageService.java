@@ -19,7 +19,7 @@ public interface FileStorageService {
     @ApiOperation("Сохранение файла")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "file", value = "Файл", required = true, dataType = "java.io.File", paramType = "form"),
-            @ApiImplicitParam(name = "fileName", value = "Имя файла", required = true, dataType = "String", paramType = "form")
+            @ApiImplicitParam(name = "fileName", value = "Имя файла", required = true, dataType = "String", paramType = "query")
     })
     @ApiResponses({
             @ApiResponse(code = 200, message = "Файл сохранен"),
