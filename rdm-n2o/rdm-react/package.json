@@ -5,7 +5,7 @@
   "dependencies": {
     "n2o": "7.0.4",
     "n2o-auth": "7.0.4",
-    "n2o-data-grid": "1.0.4",
+    "n2o-data-grid": "1.1.1",
     "react": "^16.6.3",
     "react-dom": "^16.6.3",
     "react-scripts": "^2.1.3"
