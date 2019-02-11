@@ -13,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.exception.NotUniqueException;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
@@ -727,7 +728,11 @@ public class DraftServiceImpl implements DraftService {
             draftEntity.getStructure().getReferences().remove(draftEntity.getStructure().getReference(attributeCode));
         draftEntity.getStructure().getAttributes().remove(attribute);
 
-        draftDataService.deleteField(draftEntity.getStorageCode(), attributeCode);
+        try {
+            draftDataService.deleteField(draftEntity.getStorageCode(), attributeCode);
+        } catch (NotUniqueException e) {
+            throw new UserException("row.not.unique", e);
+        }
 
         attributeValidationRepository.delete(
                 attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attributeCode));
