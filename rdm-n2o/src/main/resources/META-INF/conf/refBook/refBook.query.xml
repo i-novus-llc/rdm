@@ -22,6 +22,9 @@
     <fields>
         <field id="id" domain="integer">
             <select mapping="refBookId"/>
+            <filters>
+                <eq filter-id="id" mapping="refbookId"/>
+            </filters>
         </field>
 
         <field id="refBookId" domain="integer">
