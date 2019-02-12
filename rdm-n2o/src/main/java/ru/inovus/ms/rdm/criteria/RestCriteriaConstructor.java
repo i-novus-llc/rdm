@@ -27,16 +27,8 @@ public class RestCriteriaConstructor implements CriteriaConstructor, Serializabl
         }
         if (instance instanceof RestCriteria) {
             List<Order> sortings = new ArrayList<>();
-            Sort.Direction direction = null;
             for (Sorting sorting : criteria.getSortings()) {
-                if(sorting.getDirection().equals(Direction.ASC))
-                    direction = Sort.Direction.ASC;
-                if(sorting.getDirection().equals(Direction.DESC))
-                    direction = Sort.Direction.DESC;
-                if (("name").equals(sorting.getField()))
-                    sortings.add(new Order(direction, "passport." + sorting.getField()));
-                else
-                    sortings.add(new Order(direction,  sorting.getField()));
+                sortings.add(toOrder(sorting));
             }
             ((RestCriteria) instance).setOrders(sortings);
             ((RestCriteria) instance).setPageSize(criteria.getSize());
@@ -47,5 +39,17 @@ public class RestCriteriaConstructor implements CriteriaConstructor, Serializabl
             ((Criteria) instance).setSize(criteria.getSize());
         }
         return instance;
+    }
+
+    private Order toOrder(Sorting sorting) {
+        Sort.Direction direction = null;
+        if (sorting.getDirection().equals(Direction.ASC))
+            direction = Sort.Direction.ASC;
+        if (sorting.getDirection().equals(Direction.DESC))
+            direction = Sort.Direction.DESC;
+        if (("name").equals(sorting.getField()))
+            return new Order(direction, "passport." + sorting.getField());
+        else
+            return new Order(direction, sorting.getField());
     }
 }
