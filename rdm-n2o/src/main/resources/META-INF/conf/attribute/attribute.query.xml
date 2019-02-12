@@ -21,6 +21,9 @@
     <fields>
         <field id="id" domain="string">
             <select mapping="code"/>
+            <filters>
+                <eq filter-id="id" mapping="code" domain="string"/>
+            </filters>
         </field>
 
         <field id="code" domain="string" name="Код">
