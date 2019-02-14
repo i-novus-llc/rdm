@@ -18,6 +18,7 @@ import ru.inovus.ms.rdm.model.Structure;
 
 import java.util.*;
 
+import static java.util.Collections.emptyList;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.when;
 
@@ -81,7 +82,7 @@ public class DBPrimaryKeyValidationTest {
     @Test
     public void testValidateWithoutCreateCriteria() throws Exception {
 
-        when(searchDataService.getPagedData(anyObject())).thenReturn(new CollectionPage<>(1, Collections.singletonList(new LongRowValue()), new Criteria()));
+        when(searchDataService.getPagedData(anyObject())).thenReturn(new CollectionPage<>(1, Collections.singletonList(new LongRowValue(1L, emptyList())), new Criteria()));
 
         ErrorAttributeHolderValidation validation = new DBPrimaryKeyValidation(searchDataService, pkStructure, pkRow, STORAGE_CODE);
         List<Message> messages = validation.validate();
@@ -103,7 +104,7 @@ public class DBPrimaryKeyValidationTest {
         Assert.assertEquals(0, messages.size());
         Assert.assertEquals(1, errorAttributes.size());
 
-        when(searchDataService.getPagedData(anyObject())).thenReturn(new CollectionPage<>(0, Collections.emptyList(), new Criteria()));
+        when(searchDataService.getPagedData(anyObject())).thenReturn(new CollectionPage<>(0, emptyList(), new Criteria()));
 
         validation = new DBPrimaryKeyValidation(searchDataService, pkStructure, pkRow, STORAGE_CODE);
         messages = validation.validate();

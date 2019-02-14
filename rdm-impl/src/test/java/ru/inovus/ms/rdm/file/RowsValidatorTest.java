@@ -106,7 +106,7 @@ public class RowsValidatorTest {
             Assert.fail();
         } catch (UserException e) {
             Assert.assertEquals(1, e.getMessages().size());
-            Assert.assertEquals(new Message(ReferenceValueValidation.ERROR_CODE, ATTRIBUTE_NAME, ATTRIBUTE_VALUE + "_1"), e.getMessages().get(0));
+            Assert.assertEquals(new Message(ReferenceValueValidation.REFERENCE_ERROR_CODE, ATTRIBUTE_NAME, ATTRIBUTE_VALUE + "_1"), e.getMessages().get(0));
         }
 
         Assert.assertEquals(expected, appendActual);
