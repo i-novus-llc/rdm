@@ -1,0 +1,11 @@
+version: 3.6
+
+services:
+  db:
+    image: 538721144237.dkr.ecr.eu-west-1.amazonaws.com/rdm-database:latest
+
+  security-admin-backend:
+    image: 538721144237.dkr.ecr.eu-west-1.amazonaws.com/security-admin/backend:latest
+
+  security-admin-frontend:
+    image: 538721144237.dkr.ecr.eu-west-1.amazonaws.com/security-admin/frontend:latest
