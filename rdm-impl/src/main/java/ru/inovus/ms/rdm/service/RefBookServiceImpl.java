@@ -50,7 +50,7 @@ public class RefBookServiceImpl implements RefBookService {
     private static final String REF_BOOK_CODE_SORT_PROPERTY = "code";
     private static final String REF_BOOK_LAST_PUBLISH_SORT_PROPERTY = "lastPublishedVersionFromDate";
     private static final String REF_BOOK_FROM_DATE_SORT_PROPERTY = "fromDate";
-    private static final String REF_BOOK_CATEGORY_SORT_PROPERTY = "category.id";
+    private static final String REF_BOOK_CATEGORY_SORT_PROPERTY = "category";
 
     private static final String REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.already.exists";
 
