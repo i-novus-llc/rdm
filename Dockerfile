@@ -1,4 +1,4 @@
-FROM openjdk:8-jre-alpine
+FROM openjdk:11-slim-sid
 
 LABEL maintainer="apatronov@i-novus.ru"
 RUN apk add --update ttf-dejavu
