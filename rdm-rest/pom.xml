@@ -90,6 +90,11 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.sun.xml.ws</groupId>
+            <artifactId>rt</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>
