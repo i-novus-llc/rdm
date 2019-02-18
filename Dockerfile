@@ -1,7 +1,6 @@
 FROM openjdk:11-slim-sid
 
 LABEL maintainer="apatronov@i-novus.ru"
-RUN apk add --update ttf-dejavu
 RUN apk add tzdata
 ENV TZ=Europe/Moscow
 
