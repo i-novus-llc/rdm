@@ -93,6 +93,12 @@
             <artifactId>spring-retry</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
     </dependencies>
 
 
