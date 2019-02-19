@@ -1,9 +1,8 @@
-FROM openjdk:8-jre-alpine
+FROM adoptopenjdk/openjdk11:alpine-slim
 
-LABEL maintainer="apatronov@i-novus.ru"
-RUN apk add --update ttf-dejavu
-RUN apk add tzdata
+RUN apk --no-cache add tzdata ttf-dejavu
 ENV TZ=Europe/Moscow
+
 
 ARG JAR_FILE
 COPY ${JAR_FILE} app.jar
