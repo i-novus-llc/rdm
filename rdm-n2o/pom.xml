@@ -95,8 +95,7 @@
 
         <dependency>
             <groupId>org.aspectj</groupId>
-            <artifactId>aspectjrt</artifactId>
-            <scope>runtime</scope>
+            <artifactId>aspectjweaver</artifactId>
         </dependency>
 
     </dependencies>
