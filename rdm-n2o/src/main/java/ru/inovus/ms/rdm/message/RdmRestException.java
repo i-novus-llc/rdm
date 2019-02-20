@@ -11,15 +11,14 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * @deprecated Копия кода из класса net.n2oapp.platform.jaxrs.RestException в n2o-platform
+ * Копия кода из класса net.n2oapp.platform.jaxrs.RestException в n2o-platform
  */
-@Deprecated
 public class RdmRestException extends N2oException {
     private static final Pattern STACKTRACE_ELEMENT_PATTERN = Pattern.compile(".+\\(.+:[0-9]+\\)");
 
-    private List<String> stackTrace;
+    private final List<String> stackTrace;
 
-    public RdmRestException(String message, List<String> stackTrace, Exception e) {
+    RdmRestException(String message, List<String> stackTrace, Exception e) {
         super(message, e);
         this.stackTrace = stackTrace;
     }
