@@ -53,6 +53,7 @@ public class RefBookServiceImpl implements RefBookService {
     private static final String REF_BOOK_CATEGORY_SORT_PROPERTY = "category";
 
     private static final String REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.already.exists";
+    private static final String CANNOT_ORDER_BY_EXCEPTION_CODE = "cannot.order.by \"{0}\"";
 
     private RefBookVersionRepository repository;
     private RefBookRepository refBookRepository;
@@ -148,7 +149,7 @@ public class RefBookServiceImpl implements RefBookService {
                     sortExpression = QRefBookVersionEntity.refBookVersionEntity.refBook.category;
                     break;
                 default:
-                    throw new UserException(new Message("cannot.order.by", order.getProperty()));
+                    throw new UserException(new Message(CANNOT_ORDER_BY_EXCEPTION_CODE, order.getProperty()));
             }
         }
         jpaQuery.orderBy(order.isAscending() ? sortExpression.asc() : sortExpression.desc());
