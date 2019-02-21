@@ -104,6 +104,15 @@ public class VersionServiceImpl implements VersionService {
     }
 
     @Override
+    @Transactional
+    public RefBookVersion getByVersionAndCode(String version, String refBookCode) {
+        RefBookVersionEntity versionEntity = versionRepository.findByVersionAndRefBookCode(version, refBookCode);
+        if (versionEntity == null)
+            throw new NotFoundException(new Message("version.not.found", version));
+        return versionModel(versionEntity);
+    }
+
+    @Override
     public Page<RefBookRowValue> search(String refBookCode, OffsetDateTime date, SearchDataCriteria criteria) {
         RefBookVersionEntity version = versionRepository.findActualOnDate(refBookCode, date.toLocalDateTime());
         return version != null ? getRowValuesOfVersion(criteria, version) : new PageImpl<>(Collections.emptyList());

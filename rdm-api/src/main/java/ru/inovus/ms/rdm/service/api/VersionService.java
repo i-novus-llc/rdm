@@ -38,6 +38,16 @@ public interface VersionService {
                            Integer versionId);
 
     @GET
+    @ApiOperation("Получение версии по коду справочника и номеру")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет версии")
+    })
+    @Path("/{version}/refbook/{refBookCode}")
+    RefBookVersion getByVersionAndCode(@ApiParam("Номер версии") @PathParam("versionId") String version,
+                           @ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode);
+
+    @GET
     @Path("/refBook/{refBookCode}/{date}")
     @ApiOperation("Получение актуальных на дату записей версии по коду справочника")
     @ApiResponses({

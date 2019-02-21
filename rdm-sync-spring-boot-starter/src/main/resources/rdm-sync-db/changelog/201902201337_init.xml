@@ -4,9 +4,47 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
 
-    <changeSet id="201902201337_init" author="lgalimova" dbms="postgresql">
+    <changeSet id="201902201337_init_1" author="lgalimova" dbms="postgresql">
         <sql>
             CREATE SCHEMA IF NOT EXISTS rdm_sync;
+        </sql>
+    </changeSet>
+
+    <changeSet id="201902201337_init_2" author="lgalimova" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="version" schemaName="rdm_sync"/>
+            </not>
+        </preConditions>
+        <sql>
+            create table rdm_sync.version(
+                id serial,
+                code varchar(50) not null,
+                version varchar(50) not null,
+                publication_dt timestamp not null,
+                update_dt timestamp not null,
+                sys_table varchar(100),
+                unique_nsi_field varchar(100),
+            constraint pk_version_id PRIMARY KEY(id)
+            );
+        </sql>
+    </changeSet>
+
+    <changeSet id="201902201337_init_3" author="lgalimova" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="value" schemaName="rdm_sync"/>
+            </not>
+        </preConditions>
+        <sql>
+            create table rdm_sync.value(
+                id serial,
+                code varchar(50) not null,
+                version varchar(50),
+                sys_field varchar(100) not null,
+                nsi_field varchar(100) not null,
+            constraint pk_value_id PRIMARY KEY(id)
+            );
         </sql>
     </changeSet>
 

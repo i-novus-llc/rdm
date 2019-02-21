@@ -10,8 +10,7 @@ import org.springframework.util.StringUtils;
 import ru.inovus.ms.rdm.provider.ExportFileProvider;
 import ru.inovus.ms.rdm.provider.RdmParamConverterProvider;
 import ru.inovus.ms.rdm.provider.RowValueMapperPreparer;
-import ru.inovus.ms.rdm.service.RdmSyncRest;
-import ru.inovus.ms.rdm.service.RdmSyncRestImpl;
+import ru.inovus.ms.rdm.service.*;
 
 /**
  * @author lgalimova
@@ -30,18 +29,29 @@ public class RdmClientSyncAutoConfiguration {
     public RdmClientSyncConfig rdmClientSyncConfig() {
         String url = properties.getUrl();
         if (StringUtils.isEmpty(url)) {
-            throw new IllegalArgumentException("Rdm client syncronizator properties not configured properly: url is missing");
+            throw new IllegalArgumentException("Rdm client synchronizer properties not configured properly: url is missing");
         }
         RdmClientSyncConfig config = new RdmClientSyncConfig();
         config.put("url", url);
         return config;
     }
 
+    @Bean
+    @ConditionalOnMissingBean
+    public RdmSyncRest rdmSyncRest(RdmClientSyncConfig config) {
+        return new RdmSyncRestImpl(config);
+    }
 
     @Bean
     @ConditionalOnMissingBean
-    public RdmSyncRest rdmSyncService(RdmClientSyncConfig config) {
-        return new RdmSyncRestImpl(config);
+    public RdmSyncService rdmSyncService() {
+        return new RdmSyncService();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public RdmMapping rdmMapping() {
+        return new RdmMappingImpl();
     }
 
     @Bean
