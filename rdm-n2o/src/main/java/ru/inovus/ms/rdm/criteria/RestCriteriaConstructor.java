@@ -10,6 +10,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,8 +22,8 @@ public class RestCriteriaConstructor implements CriteriaConstructor, Serializabl
 
         T instance;
         try {
-            instance = criteriaClass.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+            instance = criteriaClass.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             throw new IllegalArgumentException(e);
         }
         if (instance instanceof RestCriteria) {

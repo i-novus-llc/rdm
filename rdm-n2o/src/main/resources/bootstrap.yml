@@ -3,8 +3,7 @@ spring:
     name: rdm-frontend
   cloud:
     consul:
-      host: docker.one
-      port: 8500
+      host: consul.develop.i-novus.ru
       config:
         enabled: ${config.server.enable}
         fail-fast: false
