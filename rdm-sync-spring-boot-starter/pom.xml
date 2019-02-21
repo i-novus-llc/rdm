@@ -16,10 +16,25 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <properties>
+        <rdm.version>1.9</rdm.version>
+    </properties>
+
     <dependencies>
+        <dependency>
+            <groupId>ru.inovus.ms.rdm</groupId>
+            <artifactId>rdm-api</artifactId>
+            <version>${rdm.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>net.n2oapp.platform</groupId>
             <artifactId>n2o-platform-starter-jaxrs-server</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-jaxrs-client</artifactId>
         </dependency>
 
         <dependency>
@@ -48,9 +63,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>compile</scope>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
         </dependency>
 
     </dependencies>

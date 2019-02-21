@@ -1,10 +1,15 @@
 package ru.inovus.ms.rdm;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
+import ru.inovus.ms.rdm.provider.ExportFileProvider;
+import ru.inovus.ms.rdm.provider.RdmParamConverterProvider;
+import ru.inovus.ms.rdm.provider.RowValueMapperPreparer;
 import ru.inovus.ms.rdm.service.RdmSyncRest;
 import ru.inovus.ms.rdm.service.RdmSyncRestImpl;
 
@@ -17,10 +22,43 @@ import ru.inovus.ms.rdm.service.RdmSyncRestImpl;
 @EnableConfigurationProperties(RdmClientSyncProperties.class)
 public class RdmClientSyncAutoConfiguration {
 
+    @Autowired
+    private RdmClientSyncProperties properties;
 
     @Bean
     @ConditionalOnMissingBean
-    public RdmSyncRest rdmSyncService() {
-        return new RdmSyncRestImpl();
+    public RdmClientSyncConfig rdmClientSyncConfig() {
+        String url = properties.getUrl();
+        if (StringUtils.isEmpty(url)) {
+            throw new IllegalArgumentException("Rdm client syncronizator properties not configured properly: url is missing");
+        }
+        RdmClientSyncConfig config = new RdmClientSyncConfig();
+        config.put("url", url);
+        return config;
+    }
+
+
+    @Bean
+    @ConditionalOnMissingBean
+    public RdmSyncRest rdmSyncService(RdmClientSyncConfig config) {
+        return new RdmSyncRestImpl(config);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    RdmParamConverterProvider rdmParamConverterProvider() {
+        return new RdmParamConverterProvider();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    ExportFileProvider exportFileProvider(){
+        return new ExportFileProvider();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    RowValueMapperPreparer rowValueMapperPreparer(){
+        return new RowValueMapperPreparer();
     }
 }
