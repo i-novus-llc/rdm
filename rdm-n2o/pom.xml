@@ -54,6 +54,11 @@
         </dependency>
 
         <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
         </dependency>
@@ -78,6 +83,20 @@
             <artifactId>n2o-platform-starter-actuator</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.sun.xml.ws</groupId>
+            <artifactId>rt</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.retry</groupId>
+            <artifactId>spring-retry</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
 
     </dependencies>
 
