@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
  */
 public class PkRequiredValidation extends ErrorAttributeHolderValidation {
 
-    public static final String ERROR_CODE = "validation.required.err";
+    public static final String REQUIRED_ERROR_CODE = "validation.required.err";
 
     private Map<String, Object> row;
 
@@ -38,7 +38,7 @@ public class PkRequiredValidation extends ErrorAttributeHolderValidation {
                 .filter(primaries::contains)
                 .filter(this::isPKBlank)
                 .peek(this::addErrorAttribute)
-                .map(attribute -> new Message(ERROR_CODE, attribute.getName()))
+                .map(attribute -> new Message(REQUIRED_ERROR_CODE, attribute.getName()))
                 .collect(Collectors.toList());
     }
 
