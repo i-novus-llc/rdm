@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm;
+package ru.inovus.ms.rdm.sync;
 
 import java.util.Properties;
 

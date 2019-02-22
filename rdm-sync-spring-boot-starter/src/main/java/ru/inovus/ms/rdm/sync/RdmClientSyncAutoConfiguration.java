@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm;
+package ru.inovus.ms.rdm.sync;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -10,7 +10,8 @@ import org.springframework.util.StringUtils;
 import ru.inovus.ms.rdm.provider.ExportFileProvider;
 import ru.inovus.ms.rdm.provider.RdmParamConverterProvider;
 import ru.inovus.ms.rdm.provider.RowValueMapperPreparer;
-import ru.inovus.ms.rdm.service.*;
+import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
+import ru.inovus.ms.rdm.sync.service.*;
 
 /**
  * @author lgalimova
@@ -44,14 +45,14 @@ public class RdmClientSyncAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public RdmSyncService rdmSyncService() {
-        return new RdmSyncService();
+    public RdmMappingService rdmMappingService() {
+        return new RdmMappingServiceImpl();
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public RdmMapping rdmMapping() {
-        return new RdmMappingImpl();
+    public RdmSyncDao rdmSyncDao() {
+        return new RdmSyncDaoImpl();
     }
 
     @Bean

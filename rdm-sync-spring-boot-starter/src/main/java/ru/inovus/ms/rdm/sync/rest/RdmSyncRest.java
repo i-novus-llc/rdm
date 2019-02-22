@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.service;
+package ru.inovus.ms.rdm.sync.rest;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -8,7 +8,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 /**
  * @author lgalimova
@@ -17,11 +16,11 @@ import javax.ws.rs.core.Response;
 @Path("rdm")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-@Api("Синхронизация справочников")
+@Api("Синхронизация данных справочников НСИ")
 public interface RdmSyncRest {
 
     @POST
     @Path("/update")
     @ApiOperation(value = "Синхронизация справочников")
-    Response update();
+    void update();
 }

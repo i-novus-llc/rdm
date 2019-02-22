@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.model;
+package ru.inovus.ms.rdm.sync.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

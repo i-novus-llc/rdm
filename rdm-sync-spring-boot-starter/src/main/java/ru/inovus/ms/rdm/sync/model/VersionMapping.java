@@ -1,11 +1,10 @@
-package ru.inovus.ms.rdm.model;
+package ru.inovus.ms.rdm.sync.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 
 /**
  * @author lgalimova
