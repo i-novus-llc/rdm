@@ -84,11 +84,13 @@
                     <button id="createRecord_r" label="Добавить строку" icon="fa fa-plus" model="resolve" widget-id="version_select">
                         <show-modal page-id="dataRecordPage?{id}" upload="defaults" submit-operation-id="create"/>
                     </button>
-                    <button id="updateRecord_r" label="Изменить строку" icon="fa fa-pencil">
-                        <show-modal page-id="dataRecordPage?{versionId}" upload="query" detail-field-id="id"
+                    <!-- порядок кнопок в данном toolbar важен, так как эта кнопка изменяется в UpdateDependencyTransformer-->
+                    <button id="updateRecord_r" label="Изменить строку" icon="fa fa-pencil"
+                            widget-id="version_select" model="resolve">
+                        <show-modal page-id="dataRecordPage?{id}" upload="query" route="/update"
                                     submit-operation-id="update">
                             <pre-filters>
-                                <eq field-id="versionId" value="{versionId}"/>
+                                <eq field-id="id" value="{id}" ref-model="resolve" ref-widget-id="dataTable"/>
                             </pre-filters>
                         </show-modal>
                     </button>
