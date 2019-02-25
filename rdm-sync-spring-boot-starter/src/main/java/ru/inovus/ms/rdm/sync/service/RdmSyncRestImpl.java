@@ -7,22 +7,22 @@ import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
-import ru.inovus.ms.rdm.sync.RdmClientSyncConfig;
-import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.sync.model.DataTypeEnum;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 
 public class RdmSyncRestImpl implements RdmSyncRest {
     public static final Logger logger = LoggerFactory.getLogger(RdmSyncRestImpl.class);
+    private static final int MAX_SIZE = 100;
 
     @Autowired
     private RefBookService refBookService;
@@ -40,126 +41,177 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     @Autowired
     private CompareService compareService;
     @Autowired
-    private RdmMappingService rdmMappingService;
+    private RdmMappingService mappingService;
+    @Autowired
+    private RdmSyncRest self;
     @Autowired
     private RdmSyncDao dao;
-    private RdmClientSyncConfig config;
-
-    public RdmSyncRestImpl(RdmClientSyncConfig config) {
-        this.config = config;
-    }
 
     @Override
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void update() {
-        Map<VersionMapping, RefBook> refbooksToUpdate = getRefbooksToUpdate();
-        for (Map.Entry<VersionMapping, RefBook> entry : refbooksToUpdate.entrySet()) {
-            VersionMapping versionMapping = entry.getKey();
-            RefBook newVersion = entry.getValue();
-            if (versionMapping.getVersion() == null) {
-                //заливаем с нуля
-                uploadNew(versionMapping);
-            } else {
-                //обновляем данные
-                mergeData(versionMapping, newVersion);
+        List<VersionMapping> refbooks = dao.getVersionMappings();
+        for (VersionMapping refbook : refbooks) {
+            try {
+                self.update(refbook.getCode());
+            } catch (RuntimeException e) {
+                logger.error(String.format("Ошибка при обновлении справочника с кодом %s", refbook.getCode()), e);
             }
-            //обновляем версию в таблице версий клиента
-            updateVersion(versionMapping.getId(), newVersion);
-            //обновляем версию в таблице маппинга полей
-            dao.updateFieldMappingVersion(newVersion.getLastPublishedVersion());
         }
     }
 
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void update(String refbookCode) {
+        VersionMapping versionMapping = getVersionMapping(refbookCode);
+        RefBook newVersion = getNewVersionFromRdm(refbookCode, versionMapping);
+        if (newVersion == null) {
+            //обновлять не нужно
+            return;
+        }
+        if (versionMapping.getVersion() == null) {
+            //заливаем с нуля
+            uploadNew(versionMapping);
+        } else {
+            //обновляем данные
+            mergeData(versionMapping, newVersion);
+        }
+        //обновляем версию в таблице версий клиента
+        dao.updateVersionMapping(versionMapping.getId(), newVersion.getLastPublishedVersion(), newVersion.getLastPublishedVersionFromDate());
+        //обновляем версию в таблице маппинга полей
+        dao.updateFieldMappingVersion(newVersion.getLastPublishedVersion());
+    }
+
+    private VersionMapping getVersionMapping(String refbookCode) {
+        VersionMapping versionMapping = dao.getVersionMapping(refbookCode);
+        List<FieldMapping> fieldMappings = dao.getFieldMapping(versionMapping.getCode());
+        if (fieldMappings.stream().noneMatch(f -> f.getSysField().equals(versionMapping.getPrimaryField()))) {
+            throw new IllegalArgumentException(String.format("Поле %s, указанное в качестве первичного ключа, не задано в маппинге полей", versionMapping.getPrimaryField()));
+        }
+        return versionMapping;
+    }
+
+    private RefBook getNewVersionFromRdm(String refbookCode, VersionMapping versionMapping) {
+        RefBookCriteria refBookCriteria = new RefBookCriteria();
+        refBookCriteria.setCode(refbookCode);
+        Page<RefBook> rdmRefbooks = refBookService.search(refBookCriteria);
+        if (rdmRefbooks.getContent() == null || rdmRefbooks.getContent().isEmpty()) {
+            throw new IllegalStateException(String.format("Справочник с кодом %s не найден в системе", refbookCode));
+        }
+        RefBook rdmRefbook = rdmRefbooks.getContent().get(0);
+        //проверяем наличие первичного ключа
+        if (rdmRefbook.getStructure().getPrimary().isEmpty()) {
+            throw new IllegalStateException(String.format("Невозможно обновить справочник с кодом %s: отсутствует первичный ключ", refbookCode));
+        }
+        //сравниваем по версии и дате публикации
+        if (versionMapping.getVersion() == null ||
+                !versionMapping.getVersion().equals(rdmRefbook.getLastPublishedVersion()) &&
+                        !versionMapping.getPublicationDate().equals(rdmRefbook.getLastPublishedVersionFromDate())) {
+            return rdmRefbook;
+        }
+        return null;
+    }
+
     private void mergeData(VersionMapping versionMapping, RefBook newVersion) {
+        List<FieldMapping> fieldMappings = dao.getFieldMapping(versionMapping.getCode());
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria();
         compareDataCriteria.setOldVersionId(versionService.getByVersionAndCode(versionMapping.getVersion(), versionMapping.getCode()).getId());
         compareDataCriteria.setNewVersionId(newVersion.getId());
         compareDataCriteria.setCountOnly(true);
         RefBookDataDiff diff = compareService.compareData(compareDataCriteria);
-        //todo если изменилась структура и изменения коснулись полей в маппинге, то выбрасываем исключение
-        List<String> clientFields = rdmMappingService.getFieldMapping(versionMapping.getCode(), versionMapping.getVersion()).stream().map(FieldMapping::getRdmField).collect(Collectors.toList());
-//        if (!CollectionUtils.isEmpty(diff.getOldAttributes()) && diff.getOldAttributes().contains())
+        //если изменилась структура, проверяем актуальность полей в маппинге
+        validateStructureChanges(versionMapping, fieldMappings, diff, newVersion);
         if (diff.getRows().getTotalElements() > 0) {
             compareDataCriteria.setCountOnly(false);
             for (int i = 0; i < diff.getRows().getTotalPages(); i++) {
                 compareDataCriteria.setPageNumber(i);
                 diff = compareService.compareData(compareDataCriteria);
                 for (DiffRowValue row : diff.getRows()) {
-                    LinkedHashMap<String, Object> mappedRow = rdmMappingService.map(versionMapping.getCode(), versionMapping.getVersion(), row);
+                    LinkedHashMap<String, Object> mappedRow = new LinkedHashMap<>();
+                    for (DiffFieldValue diffFieldValue : row.getValues()) {
+                        FieldMapping fieldMapping = fieldMappings.stream().filter(m -> m.getRdmField().equals(diffFieldValue.getField().getName())).findAny().orElse(null);
+                        if (fieldMapping == null) {
+                            //поле не ведется в системе
+                            continue;
+                        }
+                        Object mappedValue = mappingService.map(fieldMapping, diffFieldValue.getNewValue());
+                        mappedRow.put(fieldMapping.getSysField(), mappedValue);
+                    }
                     switch (row.getStatus()) {
                         case INSERTED:
                             dao.insertRow(versionMapping.getTable(), mappedRow);
                             break;
                         case DELETED:
-
-
+                            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(),
+                                    mappedRow.get(versionMapping.getPrimaryField()));
+                            break;
                     }
                 }
             }
         }
     }
 
+    private void validateStructureChanges(VersionMapping versionMapping, List<FieldMapping> fieldMappings,
+                                          RefBookDataDiff diff, RefBook newVersion) {
+        List<String> clientRdmFields = fieldMappings.stream().map(FieldMapping::getRdmField).collect(Collectors.toList());
+        //проверяем удаленные поля
+        if (!CollectionUtils.isEmpty(diff.getOldAttributes())) {
+            diff.getOldAttributes().retainAll(clientRdmFields);
+            if (diff.getOldAttributes().isEmpty()) {
+                //в новой версии удалены поля, которые ведутся в системе
+                throw new IllegalStateException(String.format("В новой версии справочника с кодом %s удалены поля %s. Обновите маппинг",
+                        versionMapping.getCode(), String.join(",", diff.getOldAttributes())));
+            }
+        }
+        if (!CollectionUtils.isEmpty(diff.getUpdatedAttributes())) {
+            diff.getUpdatedAttributes().retainAll(clientRdmFields);
+            for (String updatedAttribute : diff.getUpdatedAttributes()) {
+                FieldMapping fieldMapping = fieldMappings.stream().filter(f -> f.getRdmField().equals(updatedAttribute)).findAny().orElse(null);
+                FieldType rdmType = newVersion.getStructure().getAttribute(updatedAttribute).getType();
+                String clientType = DataTypeEnum.getByText(fieldMapping.getRdmDataType()).name();
+                //проверяем изменения в типе данных
+                if (!rdmType.name().equals(clientType)) {
+                    throw new IllegalStateException(String.format("В новой версии справочника с кодом %s изменен тип поля %s с %s на %s. Обновите маппинг",
+                            versionMapping.getCode(), updatedAttribute, fieldMapping.getRdmDataType(),
+                            DataTypeEnum.valueOf(rdmType.name())));
+                }
+            }
+        }
+    }
+
     private void uploadNew(VersionMapping versionMapping) {
+        List<FieldMapping> fieldMappings = dao.getFieldMapping(versionMapping.getCode());
         String primaryField = versionMapping.getPrimaryField();
         List<Object> existingDataIds = dao.getDataIds(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField());
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
-        int page = 1;
+        searchDataCriteria.setPageSize(1);
+        int page = 0;
         Page<RefBookRowValue> list = versionService.search(versionMapping.getCode(), searchDataCriteria);
-        while (page <= list.getTotalPages()) {
-            for (RefBookRowValue rdmRowValue : list) {
-                LinkedHashMap<String, Object> mappedRow = rdmMappingService.map(versionMapping.getCode(), versionMapping.getVersion(), rdmRowValue);
+        searchDataCriteria.setPageSize(MAX_SIZE);
+        for (int i = 0; i < list.getTotalElements(); i = i + MAX_SIZE) {
+            searchDataCriteria.setPageNumber(page);
+            list = versionService.search(versionMapping.getCode(), searchDataCriteria);
+            for (RefBookRowValue rdmRowValue : list.getContent()) {
+                LinkedHashMap<String, Object> mappedRow = new LinkedHashMap<>();
+                for (FieldValue fieldValue : rdmRowValue.getFieldValues()) {
+                    FieldMapping fieldMapping = fieldMappings.stream().filter(m -> m.getRdmField().equals(fieldValue.getField())).findAny().orElse(null);
+                    if (fieldMapping == null) {
+                        //поле не ведется в системе
+                        continue;
+                    }
+                    Object mappedValue = mappingService.map(fieldMapping, fieldValue.getValue());
+                    mappedRow.put(fieldMapping.getSysField(), mappedValue);
+                }
                 Object primaryValue = mappedRow.get(primaryField);
                 if (existingDataIds.contains(primaryValue)) {
-                    //update
+                    //если запись существует, обновляем
                     dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow);
                 } else {
-                    //insert
+                    //создаем новую запись
                     dao.insertRow(versionMapping.getTable(), mappedRow);
                 }
             }
-            if (page < list.getTotalPages()) {
-                searchDataCriteria.setPageNumber(page);
-                list = versionService.search(versionMapping.getCode(), searchDataCriteria);
-            }
             page++;
         }
-    }
-
-
-    private void updateVersion(Integer id, RefBook newVersion) {
-        dao.updateVersionMapping(id, newVersion.getLastPublishedVersion(), newVersion.getLastPublishedVersionFromDate());
-    }
-
-    private Map<VersionMapping, RefBook> getRefbooksToUpdate() {
-        List<VersionMapping> currentRefbooks = rdmMappingService.getVersionMappings();
-        Map<VersionMapping, RefBook> refbooksToUpdate = new HashMap<>();
-        RefBookCriteria refBookCriteria = new RefBookCriteria();
-        for (VersionMapping currentRefbook : currentRefbooks) {
-            refBookCriteria.setCode(currentRefbook.getCode());
-            //актуальная версия справочника
-            Page<RefBook> rdmRefbooks = refBookService.search(refBookCriteria);
-            if (rdmRefbooks.isEmpty()) {
-                //todo писать в журнал
-                logError(currentRefbook.getCode(), currentRefbook.getVersion(),
-                        String.format("Справочник с кодом %s не найден в системе", currentRefbook.getCode()));
-            }
-            RefBook rdmRefbook = rdmRefbooks.iterator().next();
-            //проверяем наличие первичного ключа
-            if (rdmRefbook.getStructure().getPrimary().isEmpty()) {
-                logError(currentRefbook.getCode(), currentRefbook.getVersion(),
-                        String.format("Невозможно обновить справочник с кодом %s: отсутствует первичный ключ", currentRefbook.getCode()));
-            }
-            //сравниваем по версии и дате публикации
-            if (!currentRefbook.getVersion().equals(rdmRefbook.getLastPublishedVersion()) &&
-                    !currentRefbook.getPublicationDate().equals(rdmRefbook.getLastPublishedVersionFromDate())) {
-                refbooksToUpdate.put(currentRefbook, rdmRefbook);
-            }
-        }
-        return refbooksToUpdate;
-    }
-
-    private void logError(String code, String version, String message) {
-        logger.error(message);
-        //todo писать в журнал
     }
 }

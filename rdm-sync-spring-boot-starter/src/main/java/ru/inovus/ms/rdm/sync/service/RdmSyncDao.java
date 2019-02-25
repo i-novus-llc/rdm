@@ -14,26 +14,19 @@ import java.util.List;
 public interface RdmSyncDao {
 
     /**
-     * Получить поле клиента, отвечающее за признак удаления
-     * @param refbookCode код справочника НСИ
-     * @param version номер версии справочника в НСИ
-     * @return поле клиента, отвечающее за признак удаления
-     */
-    String getDeletedField(String refbookCode, String version);
-
-    /**
      * Получить список маппинга справочников НСИ на таблицы клиента
      * @return список
      */
     List<VersionMapping> getVersionMappings();
 
+    VersionMapping getVersionMapping(String refbookCode);
+
     /**
      * Получить список маппинга полей справочников НСИ на поля клиента
      * @param refbookCode код справочника НСИ
-     * @param version номер версии справочника в НСИ
      * @return список
      */
-    List<FieldMapping> getFieldMapping(String refbookCode, String version);
+    List<FieldMapping> getFieldMapping(String refbookCode);
 
     void updateVersionMapping(Integer id, String version, LocalDateTime publishDate);
 

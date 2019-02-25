@@ -39,8 +39,8 @@ public class RdmClientSyncAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public RdmSyncRest rdmSyncRest(RdmClientSyncConfig config) {
-        return new RdmSyncRestImpl(config);
+    public RdmSyncRest rdmSyncRest() {
+        return new RdmSyncRestImpl();
     }
 
     @Bean

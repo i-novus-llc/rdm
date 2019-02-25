@@ -21,6 +21,11 @@ public interface RdmSyncRest {
 
     @POST
     @Path("/update")
-    @ApiOperation(value = "Синхронизация справочников")
+    @ApiOperation(value = "Синхронизация всех справочников")
     void update();
+
+    @POST
+    @Path("/update")
+    @ApiOperation(value = "Синхронизация отдельного справочника")
+    void update(String refbookCode);
 }
