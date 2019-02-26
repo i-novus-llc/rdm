@@ -80,7 +80,7 @@ public interface VersionService {
     ExportFile getVersionFile(@ApiParam("Идентификатор версии")
                             @PathParam("versionId")
                             Integer versionId,
-                            @ApiParam(value = "Тип файла", required = true)
+                            @ApiParam(value = "Тип файла", required = true, allowableValues = "XLSX, XML")
                             @QueryParam("type")
                             FileType fileType);
 
