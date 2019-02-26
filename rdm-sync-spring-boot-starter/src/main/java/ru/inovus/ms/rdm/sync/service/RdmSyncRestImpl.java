@@ -7,7 +7,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
@@ -64,7 +63,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void update(String refbookCode) {
         VersionMapping versionMapping = getVersionMapping(refbookCode);
-        RefBook newVersion = getNewVersionFromRdm(refbookCode, versionMapping);
+        RefBook newVersion = getNewVersionFromRdm(refbookCode);
         if (versionMapping.getVersion() == null) {
             //заливаем с нуля
             uploadNew(versionMapping);
@@ -86,7 +85,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         return versionMapping;
     }
 
-    private RefBook getNewVersionFromRdm(String refbookCode, VersionMapping versionMapping) {
+    private RefBook getNewVersionFromRdm(String refbookCode) {
         RefBookCriteria refBookCriteria = new RefBookCriteria();
         refBookCriteria.setCode(refbookCode);
         Page<RefBook> rdmRefbooks = refBookService.search(refBookCriteria);
@@ -153,13 +152,15 @@ public class RdmSyncRestImpl implements RdmSyncRest {
             }
         }
         if (!CollectionUtils.isEmpty(diff.getUpdatedAttributes())) {
-            diff.getUpdatedAttributes().retainAll(clientRdmFields);
             for (String updatedAttribute : diff.getUpdatedAttributes()) {
                 FieldMapping fieldMapping = fieldMappings.stream().filter(f -> f.getRdmField().equals(updatedAttribute)).findAny().orElse(null);
-                FieldType rdmType = newVersion.getStructure().getAttribute(updatedAttribute).getType();
-                String clientType = DataTypeEnum.getByText(fieldMapping.getRdmDataType()).name();
+                if (fieldMapping == null){
+                    continue;
+                }
+                DataTypeEnum rdmType = DataTypeEnum.getByNsiDataType(newVersion.getStructure().getAttribute(updatedAttribute).getType().name());
+                DataTypeEnum clientType = DataTypeEnum.getByText(fieldMapping.getSysDataType());
                 //проверяем изменения в типе данных
-                if (!rdmType.name().equals(clientType)) {
+                if (!rdmType.equals(clientType)) {
                     throw new IllegalStateException(String.format("В новой версии справочника с кодом %s изменен тип поля %s с %s на %s. Обновите маппинг",
                             versionMapping.getCode(), updatedAttribute, fieldMapping.getRdmDataType(),
                             DataTypeEnum.valueOf(rdmType.name())));

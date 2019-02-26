@@ -71,6 +71,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
                 version, publishDate, new Date(), id);
     }
 
+    @Override
     public void insertRow(String table, LinkedHashMap<String, Object> row) {
         String keys = row.keySet().stream().map(this::addDoubleQuotes).collect(Collectors.joining(","));
         List<String> values = new ArrayList<>();
