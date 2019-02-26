@@ -102,7 +102,9 @@ public class ConverterUtil {
             FieldValue fv = (FieldValue) fieldValue;
             data.put(fv.getField(), fv.getValue());
         });
-        return new Row(data);
+        return new Row(rowValue.getSystemId() != null
+                ? Long.valueOf(String.valueOf(rowValue.getSystemId()))
+                : null, data);
     }
 
     public static String toString(Object value) {

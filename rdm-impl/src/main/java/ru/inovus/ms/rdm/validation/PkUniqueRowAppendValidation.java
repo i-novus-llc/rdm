@@ -14,7 +14,7 @@ import static java.util.Collections.singletonList;
  */
 public class PkUniqueRowAppendValidation extends AppendRowValidation {
 
-    public static final String ERROR_CODE = "validation.not.unique.pk.err";
+    public static final String NOT_UNIQUE_PK_ERR = "validation.not.unique.pk.err";
 
     private final Set<String> uniqueRowAttributes;
 
@@ -32,12 +32,12 @@ public class PkUniqueRowAppendValidation extends AppendRowValidation {
     }
 
     @Override
-    protected List<Message> validate(Map<String, Object> attributeValues) {
+    protected List<Message> validate(Long systemId, Map<String, Object> attributeValues) {
         if (uniqueRowAttributes.isEmpty() || !attributeValues.keySet().containsAll(uniqueRowAttributes))
             return Collections.emptyList();
         attributeValues.entrySet().removeIf(entry -> !uniqueRowAttributes.contains(entry.getKey()));
         if (!uniqueRow.add(attributeValues)) {
-            return singletonList(new Message(ERROR_CODE,
+            return singletonList(new Message(NOT_UNIQUE_PK_ERR,
                     attributeValues.entrySet().stream()
                             .map(e -> structure.getAttribute(e.getKey()).getName() + "\" - \"" + e.getValue())
                             .collect(Collectors.joining("\", \""))));

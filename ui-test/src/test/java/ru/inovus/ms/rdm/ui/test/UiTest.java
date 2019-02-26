@@ -15,7 +15,7 @@ public class UiTest {
     @BeforeClass
     public static void init(){
         Configuration.browser = "chrome";
-        Configuration.timeout = 15000;
+        Configuration.timeout = 25000;
         String urlFromProperty = System.getProperty("appUrl");
         if(urlFromProperty != null) {
             appUrl = urlFromProperty;
