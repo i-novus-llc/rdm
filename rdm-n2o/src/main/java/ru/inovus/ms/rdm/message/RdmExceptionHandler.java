@@ -9,8 +9,13 @@ import net.n2oapp.framework.api.metadata.local.CompiledObject;
 import net.n2oapp.framework.api.metadata.local.CompiledQuery;
 import net.n2oapp.framework.api.util.RestClient;
 import net.n2oapp.framework.engine.data.N2oOperationExceptionHandler;
+import net.n2oapp.platform.jaxrs.RestException;
+import net.n2oapp.platform.jaxrs.RestMessage;
 
 import java.util.List;
+import java.util.stream.IntStream;
+
+import static java.util.stream.Collectors.joining;
 
 /**
  * Получение сообщений для пользователя из исключений от REST сервисов.
@@ -44,6 +49,16 @@ public class RdmExceptionHandler extends N2oOperationExceptionHandler implements
                 List<String> stackTrace = (List<String>) restException.getBody().getList("stackTrace");
                 return new RdmRestException(message, stackTrace, e);
             }
+        } else if (e instanceof N2oException) {
+            RestException restException = (RestException) ((N2oException) e).getCause();
+            if (restException.getErrors() == null)
+                return null;
+            restException.getErrors().add(new RestMessage.Error("second"));
+            String message = IntStream
+                    .rangeClosed(1, restException.getErrors().size())
+                    .mapToObj(i -> i + ") " + restException.getErrors().get(i - 1).getMessage())
+                    .collect(joining("; "));
+            return new N2oUserException(message);
         }
         return null;
     }
