@@ -2,7 +2,6 @@ package ru.inovus.ms.rdm.file.export;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.ExportFile;
 import ru.inovus.ms.rdm.model.RefBookVersion;
@@ -28,7 +27,6 @@ public class CompareFileGeneratorImpl implements CompareFileGenerator {
 
 
     @Override
-    @Transactional(readOnly = true)
     public ExportFile generateCompareFile(Integer oldVersionId, Integer newVersionId) {
         RefBookVersion oldVersion = versionService.getById(oldVersionId);
         RefBookVersion newVersion = versionService.getById(newVersionId);
