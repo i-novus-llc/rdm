@@ -65,21 +65,16 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     public void update(String refbookCode) {
         VersionMapping versionMapping = getVersionMapping(refbookCode);
         RefBook newVersion = getNewVersionFromRdm(refbookCode, versionMapping);
-        if (newVersion == null) {
-            //обновлять не нужно
-            return;
-        }
         if (versionMapping.getVersion() == null) {
             //заливаем с нуля
             uploadNew(versionMapping);
-        } else {
-            //обновляем данные
+        } else if (!versionMapping.getVersion().equals(newVersion.getLastPublishedVersion()) &&
+                !versionMapping.getPublicationDate().equals(newVersion.getLastPublishedVersionFromDate())) {
+            //если версия и дата публикация не совпадают - нужно обновить справочник
             mergeData(versionMapping, newVersion);
         }
         //обновляем версию в таблице версий клиента
         dao.updateVersionMapping(versionMapping.getId(), newVersion.getLastPublishedVersion(), newVersion.getLastPublishedVersionFromDate());
-        //обновляем версию в таблице маппинга полей
-        dao.updateFieldMappingVersion(newVersion.getLastPublishedVersion());
     }
 
     private VersionMapping getVersionMapping(String refbookCode) {
@@ -103,13 +98,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         if (rdmRefbook.getStructure().getPrimary().isEmpty()) {
             throw new IllegalStateException(String.format("Невозможно обновить справочник с кодом %s: отсутствует первичный ключ", refbookCode));
         }
-        //сравниваем по версии и дате публикации
-        if (versionMapping.getVersion() == null ||
-                !versionMapping.getVersion().equals(rdmRefbook.getLastPublishedVersion()) &&
-                        !versionMapping.getPublicationDate().equals(rdmRefbook.getLastPublishedVersionFromDate())) {
-            return rdmRefbook;
-        }
-        return null;
+        return rdmRefbook;
     }
 
     private void mergeData(VersionMapping versionMapping, RefBook newVersion) {

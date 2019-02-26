@@ -30,8 +30,6 @@ public interface RdmSyncDao {
 
     void updateVersionMapping(Integer id, String version, LocalDateTime publishDate);
 
-    void updateFieldMappingVersion(String version);
-
     /**
      *
      * @param table таблица справочника на стороне клиента

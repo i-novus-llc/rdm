@@ -71,12 +71,6 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
                 version, publishDate, new Date(), id);
     }
 
-    @Override
-    public void updateFieldMappingVersion(String version) {
-        jdbcTemplate.update("update rdm_sync.field_mapping set version=? where version=?",
-                version, version);
-    }
-
     public void insertRow(String table, LinkedHashMap<String, Object> row) {
         String keys = row.keySet().stream().map(this::addDoubleQuotes).collect(Collectors.joining(","));
         List<String> values = new ArrayList<>();
