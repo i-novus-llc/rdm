@@ -42,25 +42,28 @@ public class SequenceVersionNumberStrategy implements VersionNumberStrategy {
         Integer major = Integer.parseInt(versionParts[0]);
         Integer minor = Integer.parseInt(versionParts[1]);
         RefBookVersionEntity draft = versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refbookId);
-        if (draft != null && draft.getStructure().equals(maxVersion.getStructure()))
+        if (draft != null && draft.getStructure().equals(maxVersion.getStructure())){
             minor++;
-        else major++;
-        return major + "." + minor;
+            return major + "." + minor;
+        } else {
+            return ++major + ".0";
+        }
     }
 
     private RefBookVersionEntity getMaxVersion(List<RefBookVersionEntity> versionEntityList) {
         return versionEntityList.stream().reduce((v1, v2) -> {
 
-            if (v1 == null || v1.getVersion() == null) return v2;
-            if (v2 == null || v2.getVersion() == null) return v1;
+            String[] version1Parts = v1.getVersion().split("\\.");
+            Integer major1 = Integer.parseInt(version1Parts[0]);
+            String[] version2Parts = v2.getVersion().split("\\.");
+            Integer major2 = Integer.parseInt(version2Parts[0]);
+            if (major1 > major2) return v1;
+            if (major2 > major1) return v2;
 
-            Matcher matcher1 = pattern.matcher(v1.getVersion());
-            Matcher matcher2 = pattern.matcher(v2.getVersion());
-            Double num1 = Double.parseDouble((matcher1.find() ? matcher1.group() : "-1"));
-            Double num2 = Double.parseDouble((matcher2.find() ? matcher2.group() : "-1"));
-            if (num1 > num2) return v1;
-            else if (num2 != -1) return v2;
-            return null;
+            Integer minor1 = Integer.parseInt(version1Parts[1]);
+            Integer minor2 = Integer.parseInt(version2Parts[1]);
+            if (minor1 > minor2) return v1;
+            else return v2;
         }).orElse(null);
     }
 
