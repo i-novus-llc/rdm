@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
@@ -18,6 +19,7 @@ import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.sync.model.DataTypeEnum;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
 import ru.inovus.ms.rdm.sync.service.RdmMappingService;
@@ -77,10 +79,10 @@ public class RdmSyncRestTest {
         when(dao.getDataIds(versionMapping.getTable(), primaryFieldMapping, versionMapping.getDeletedField())).thenReturn(Collections.singletonList(BigInteger.valueOf(1L)));
         when(refBookService.search(any(RefBookCriteria.class))).thenReturn(new PageImpl<>(Collections.singletonList(firstVersion), PageRequest.of(0, 10), 1L));
         when(versionService.search(eq(versionMapping.getCode()), any(SearchDataCriteria.class))).thenReturn(data);
-        when(mappingService.map(fieldMappings.get(0), data.getContent().get(0).getFieldValues().get(0).getValue())).thenReturn(BigInteger.valueOf(1L));
-        when(mappingService.map(fieldMappings.get(1), data.getContent().get(0).getFieldValues().get(1).getValue())).thenReturn("London");
-        when(mappingService.map(fieldMappings.get(0), data.getContent().get(1).getFieldValues().get(0).getValue())).thenReturn(BigInteger.valueOf(2L));
-        when(mappingService.map(fieldMappings.get(1), data.getContent().get(1).getFieldValues().get(1).getValue())).thenReturn("Moscow");
+        when(mappingService.map(FieldType.INTEGER, DataTypeEnum.INTEGER, data.getContent().get(0).getFieldValues().get(0).getValue())).thenReturn(BigInteger.valueOf(1L));
+        when(mappingService.map(FieldType.STRING, DataTypeEnum.VARCHAR, data.getContent().get(0).getFieldValues().get(1).getValue())).thenReturn("London");
+        when(mappingService.map(FieldType.INTEGER, DataTypeEnum.INTEGER, data.getContent().get(1).getFieldValues().get(0).getValue())).thenReturn(BigInteger.valueOf(2L));
+        when(mappingService.map(FieldType.STRING, DataTypeEnum.VARCHAR, data.getContent().get(1).getFieldValues().get(1).getValue())).thenReturn("Moscow");
         rdmSyncRest.update(versionMapping.getCode());
         verify(dao).updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), dataMap.get(0));
         verify(dao).insertRow(versionMapping.getTable(), dataMap.get(1));
@@ -103,16 +105,16 @@ public class RdmSyncRestTest {
 
         when(dao.getVersionMapping(versionMapping.getCode())).thenReturn(versionMapping);
         when(dao.getFieldMapping(versionMapping.getCode())).thenReturn(fieldMappings);
-        when(versionService.getByVersionAndCode(versionMapping.getVersion(), versionMapping.getCode())).thenReturn(firstVersion);
+        when(versionService.getVersion(versionMapping.getVersion(), versionMapping.getCode())).thenReturn(firstVersion);
         when(compareService.compareData(any(CompareDataCriteria.class))).thenReturn(diff);
         when(refBookService.search(any(RefBookCriteria.class))).thenReturn(new PageImpl<>(Collections.singletonList(secondVersion), PageRequest.of(0, 10), 1L));
         when(versionService.search(eq(versionMapping.getCode()), any(SearchDataCriteria.class))).thenReturn(data);
-        when(mappingService.map(fieldMappings.get(0), data.getContent().get(0).getFieldValues().get(0).getValue())).thenReturn(BigInteger.valueOf(1L));
-        when(mappingService.map(fieldMappings.get(1), data.getContent().get(0).getFieldValues().get(1).getValue())).thenReturn("London");
-        when(mappingService.map(fieldMappings.get(0), data.getContent().get(1).getFieldValues().get(0).getValue())).thenReturn(BigInteger.valueOf(2L));
-        when(mappingService.map(fieldMappings.get(1), data.getContent().get(1).getFieldValues().get(1).getValue())).thenReturn("Moscow");
-        when(mappingService.map(fieldMappings.get(0), data.getContent().get(2).getFieldValues().get(0).getValue())).thenReturn(BigInteger.valueOf(3L));
-        when(mappingService.map(fieldMappings.get(1), data.getContent().get(2).getFieldValues().get(1).getValue())).thenReturn("Guadalupe");
+        when(mappingService.map(FieldType.INTEGER, DataTypeEnum.INTEGER, data.getContent().get(0).getFieldValues().get(0).getValue())).thenReturn(BigInteger.valueOf(1L));
+        when(mappingService.map(FieldType.STRING, DataTypeEnum.VARCHAR, data.getContent().get(0).getFieldValues().get(1).getValue())).thenReturn("London");
+        when(mappingService.map(FieldType.INTEGER, DataTypeEnum.INTEGER, data.getContent().get(1).getFieldValues().get(0).getValue())).thenReturn(BigInteger.valueOf(2L));
+        when(mappingService.map(FieldType.STRING, DataTypeEnum.VARCHAR, data.getContent().get(1).getFieldValues().get(1).getValue())).thenReturn("Moscow");
+        when(mappingService.map(FieldType.INTEGER, DataTypeEnum.INTEGER, data.getContent().get(2).getFieldValues().get(0).getValue())).thenReturn(BigInteger.valueOf(3L));
+        when(mappingService.map(FieldType.STRING, DataTypeEnum.VARCHAR, data.getContent().get(2).getFieldValues().get(1).getValue())).thenReturn("Guadalupe");
         rdmSyncRest.update(versionMapping.getCode());
         verify(dao).markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), BigInteger.valueOf(1L));
         verify(dao).insertRow(versionMapping.getTable(), dataMap.get(1));
@@ -123,10 +125,10 @@ public class RdmSyncRestTest {
         RefBook refBook = new RefBook();
         refBook.setLastPublishedVersion("1.0");
         refBook.setLastPublishedVersionFromDate(LocalDateTime.of(2019, Month.FEBRUARY, 26, 10, 0));
-        Structure.Attribute idAttribute = new Structure.Attribute();
+        Structure.Attribute idAttribute = Structure.Attribute.build("id", null, FieldType.INTEGER, null);
+        Structure.Attribute nameAttribute = Structure.Attribute.build("name", null, FieldType.STRING, null);
         idAttribute.setPrimary(true);
-        idAttribute.setCode("id");
-        refBook.setStructure(new Structure(Collections.singletonList(idAttribute), null));
+        refBook.setStructure(new Structure(asList(idAttribute, nameAttribute), null));
         return refBook;
     }
 
@@ -134,10 +136,10 @@ public class RdmSyncRestTest {
         RefBook refBook = new RefBook();
         refBook.setLastPublishedVersion("1.1");
         refBook.setLastPublishedVersionFromDate(LocalDateTime.of(2019, Month.FEBRUARY, 27, 10, 0));
-        Structure.Attribute idAttribute = new Structure.Attribute();
+        Structure.Attribute idAttribute = Structure.Attribute.build("id", null, FieldType.INTEGER, null);
+        Structure.Attribute nameAttribute = Structure.Attribute.build("name", null, FieldType.STRING, null);
         idAttribute.setPrimary(true);
-        idAttribute.setCode("id");
-        refBook.setStructure(new Structure(Collections.singletonList(idAttribute), null));
+        refBook.setStructure(new Structure(asList(idAttribute, nameAttribute), null));
         return refBook;
     }
 
@@ -162,8 +164,8 @@ public class RdmSyncRestTest {
 
     private List<FieldMapping> createFieldMappings() {
         List<FieldMapping> list = new ArrayList<>();
-        list.add(new FieldMapping("id", "bigint", "id", "bigint"));
-        list.add(new FieldMapping("full_name", "varchar", "name", "varchar"));
+        list.add(new FieldMapping("id", "bigint", "id"));
+        list.add(new FieldMapping("full_name", "varchar", "name"));
         return list;
     }
 

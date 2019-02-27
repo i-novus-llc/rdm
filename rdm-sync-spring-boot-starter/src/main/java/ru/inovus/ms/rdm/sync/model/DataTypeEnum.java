@@ -1,46 +1,34 @@
 package ru.inovus.ms.rdm.sync.model;
 
 
+import java.util.List;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+
 public enum DataTypeEnum {
-    VARCHAR("varchar", "STRING"),
-    INTEGER("bigint", "INTEGER"),
-    DATE("date", "DATE"),
-    BOOLEAN("boolean", "BOOLEAN"),
-    FLOAT("numeric", "FLOAT"),
-    JSONB("jsonb", "REFERENCE");
+    VARCHAR(asList("varchar", "text", "character varying")),
+    INTEGER(asList("smallint", "integer", "bigint", "serial", "bigserial")),
+    DATE(singletonList("date")),
+    BOOLEAN(singletonList("boolean")),
+    FLOAT(asList("numeric", "decimal")),
+    JSONB(singletonList("jsonb"));
 
-    private String text;
-    private String nsiDataType;
+    private List<String> dataTypes;
 
-    DataTypeEnum(String text, String nsiDataType) {
-        this.text = text;
-        this.nsiDataType = nsiDataType;
+    DataTypeEnum(List<String> dataTypes) {
+        this.dataTypes = dataTypes;
     }
 
-    public String getText() {
-        return text;
+    public List<String> getDataTypes() {
+        return dataTypes;
     }
 
-    public String getNsiDataType() {
-        return nsiDataType;
-    }
-
-    public static DataTypeEnum getByText(String text) {
-        if (text == null)
+    public static DataTypeEnum getByDataType(String dataType) {
+        if (dataType == null)
             return null;
         for (DataTypeEnum value : values()) {
-            if (value.getText().equals(text)) {
-                return value;
-            }
-        }
-        return null;
-    }
-
-    public static DataTypeEnum getByNsiDataType(String nsiDataType) {
-        if (nsiDataType == null)
-            return null;
-        for (DataTypeEnum value : values()) {
-            if (value.getNsiDataType().equals(nsiDataType)) {
+            if (value.getDataTypes().contains(dataType)) {
                 return value;
             }
         }

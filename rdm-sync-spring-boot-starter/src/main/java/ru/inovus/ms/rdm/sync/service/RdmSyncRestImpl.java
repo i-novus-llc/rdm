@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
@@ -67,7 +68,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         RefBook newVersion = getNewVersionFromRdm(refbookCode);
         if (versionMapping.getVersion() == null) {
             //заливаем с нуля
-            uploadNew(versionMapping);
+            uploadNew(versionMapping, newVersion);
         } else if (!versionMapping.getVersion().equals(newVersion.getLastPublishedVersion()) &&
                 !versionMapping.getPublicationDate().equals(newVersion.getLastPublishedVersionFromDate())) {
             //если версия и дата публикация не совпадают - нужно обновить справочник
@@ -105,12 +106,12 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     private void mergeData(VersionMapping versionMapping, RefBook newVersion) {
         List<FieldMapping> fieldMappings = dao.getFieldMapping(versionMapping.getCode());
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria();
-        compareDataCriteria.setOldVersionId(versionService.getByVersionAndCode(versionMapping.getVersion(), versionMapping.getCode()).getId());
+        compareDataCriteria.setOldVersionId(versionService.getVersion(versionMapping.getVersion(), versionMapping.getCode()).getId());
         compareDataCriteria.setNewVersionId(newVersion.getId());
         compareDataCriteria.setCountOnly(true);
         RefBookDataDiff diff = compareService.compareData(compareDataCriteria);
         //если изменилась структура, проверяем актуальность полей в маппинге
-        validateStructureChanges(versionMapping, fieldMappings, diff, newVersion);
+        validateStructureChanges(versionMapping, fieldMappings, diff);
         if (diff.getRows().getTotalElements() > 0) {
             compareDataCriteria.setCountOnly(false);
             for (int i = 0; i < diff.getRows().getTotalElements(); i = i + MAX_SIZE) {
@@ -124,8 +125,9 @@ public class RdmSyncRestImpl implements RdmSyncRest {
                             //поле не ведется в системе
                             continue;
                         }
-                        Object mappedValue = mappingService.map(fieldMapping,
-                                DiffStatusEnum.DELETED.equals(row.getStatus()) ? diffFieldValue.getOldValue() : diffFieldValue.getNewValue());
+                        FieldType rdmType = newVersion.getStructure().getAttribute(fieldMapping.getRdmField()).getType();
+                        DataTypeEnum clientType = DataTypeEnum.getByDataType(fieldMapping.getSysDataType());
+                        Object mappedValue = mappingService.map(rdmType, clientType, DiffStatusEnum.DELETED.equals(row.getStatus()) ? diffFieldValue.getOldValue() : diffFieldValue.getNewValue());
                         mappedRow.put(fieldMapping.getSysField(), mappedValue);
                     }
                     switch (row.getStatus()) {
@@ -144,8 +146,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         }
     }
 
-    private void validateStructureChanges(VersionMapping versionMapping, List<FieldMapping> fieldMappings,
-                                          RefBookDataDiff diff, RefBook newVersion) {
+    private void validateStructureChanges(VersionMapping versionMapping, List<FieldMapping> fieldMappings, RefBookDataDiff diff) {
         List<String> clientRdmFields = fieldMappings.stream().map(FieldMapping::getRdmField).collect(Collectors.toList());
         //проверяем удаленные поля
         if (!CollectionUtils.isEmpty(diff.getOldAttributes())) {
@@ -156,25 +157,9 @@ public class RdmSyncRestImpl implements RdmSyncRest {
                         versionMapping.getCode(), String.join(",", diff.getOldAttributes())));
             }
         }
-        if (!CollectionUtils.isEmpty(diff.getUpdatedAttributes())) {
-            for (String updatedAttribute : diff.getUpdatedAttributes()) {
-                FieldMapping fieldMapping = fieldMappings.stream().filter(f -> f.getRdmField().equals(updatedAttribute)).findAny().orElse(null);
-                if (fieldMapping == null) {
-                    continue;
-                }
-                DataTypeEnum rdmType = DataTypeEnum.getByNsiDataType(newVersion.getStructure().getAttribute(updatedAttribute).getType().name());
-                DataTypeEnum clientType = DataTypeEnum.getByText(fieldMapping.getSysDataType());
-                //проверяем изменения в типе данных
-                if (!rdmType.equals(clientType)) {
-                    throw new IllegalStateException(String.format("В новой версии справочника с кодом %s изменен тип поля %s с %s на %s. Обновите маппинг",
-                            versionMapping.getCode(), updatedAttribute, fieldMapping.getRdmDataType(),
-                            DataTypeEnum.valueOf(rdmType.name())));
-                }
-            }
-        }
     }
 
-    private void uploadNew(VersionMapping versionMapping) {
+    private void uploadNew(VersionMapping versionMapping, RefBook newVersion) {
         List<FieldMapping> fieldMappings = dao.getFieldMapping(versionMapping.getCode());
         String primaryField = versionMapping.getPrimaryField();
         List<Object> existingDataIds = dao.getDataIds(versionMapping.getTable(),
@@ -195,7 +180,9 @@ public class RdmSyncRestImpl implements RdmSyncRest {
                         //поле не ведется в системе
                         continue;
                     }
-                    Object mappedValue = mappingService.map(fieldMapping, fieldValue.getValue());
+                    FieldType rdmType = newVersion.getStructure().getAttribute(fieldMapping.getRdmField()).getType();
+                    DataTypeEnum clientType = DataTypeEnum.getByDataType(fieldMapping.getSysDataType());
+                    Object mappedValue = mappingService.map(rdmType, clientType, fieldValue.getValue());
                     mappedRow.put(fieldMapping.getSysField(), mappedValue);
                 }
                 Object primaryValue = mappedRow.get(primaryField);

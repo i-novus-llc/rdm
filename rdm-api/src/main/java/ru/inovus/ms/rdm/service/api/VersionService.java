@@ -44,7 +44,7 @@ public interface VersionService {
             @ApiResponse(code = 404, message = "Нет версии")
     })
     @Path("/{version}/refbook/{refBookCode}")
-    RefBookVersion getByVersionAndCode(@ApiParam("Номер версии") @PathParam("versionId") String version,
+    RefBookVersion getVersion(@ApiParam("Номер версии") @PathParam("version") String version,
                            @ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode);
 
     @GET

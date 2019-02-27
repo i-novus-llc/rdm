@@ -2,6 +2,8 @@ package ru.inovus.ms.rdm.sync.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.inovus.ms.rdm.sync.model.DataTypeEnum;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
 
@@ -50,20 +52,20 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
 
     @Override
     public List<FieldMapping> getFieldMapping(String refbookCode) {
-        return jdbcTemplate.query("select sys_field, sys_data_type, rdm_field, rdm_data_type from rdm_sync.field_mapping where code=?",
+        return jdbcTemplate.query("select sys_field, sys_data_type, rdm_field from rdm_sync.field_mapping where code=?",
                 (rs, rowNum) -> new FieldMapping(
                         rs.getString(1),
                         rs.getString(2),
-                        rs.getString(3),
-                        rs.getString(4)
+                        rs.getString(3)
                 ), refbookCode);
     }
 
     @Override
     public List<Object> getDataIds(String table, FieldMapping primaryField, String isDeletedField) {
+        DataTypeEnum dataType = DataTypeEnum.getByDataType(primaryField.getSysDataType());
         return jdbcTemplate.query(String.format("select %s from %s where %s is null or %s=false",
                 addDoubleQuotes(primaryField.getSysField()), table, addDoubleQuotes(isDeletedField), addDoubleQuotes(isDeletedField)),
-                (rs, rowNum) -> rdmMappingService.map(primaryField, rs.getObject(1)));
+                (rs, rowNum) -> rdmMappingService.map(FieldType.STRING, dataType, rs.getObject(1)));
     }
 
     @Override

@@ -1,8 +1,9 @@
 package ru.inovus.ms.rdm.sync.service;
 
 import org.apache.commons.lang3.time.FastDateFormat;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.inovus.ms.rdm.sync.model.DataTypeEnum;
-import ru.inovus.ms.rdm.sync.model.FieldMapping;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -19,91 +20,133 @@ import java.util.Date;
 public class RdmMappingServiceImpl implements RdmMappingService {
     private static final String DATE_FORMAT = "yyyy-MM-dd";
 
-
     @Override
-    public Object map(FieldMapping fieldMapping, Object value) {
+    public Object map(FieldType rdmType, DataTypeEnum clientType, Object value) {
         if (value == null) {
             return null;
         }
-        DataTypeEnum rdmType = DataTypeEnum.getByText(fieldMapping.getRdmDataType());
-        DataTypeEnum sysType = DataTypeEnum.getByText(fieldMapping.getSysDataType());
-        if (rdmType == null || sysType == null)
-            throw new IllegalArgumentException(String.format("Некорректный тип данных: %s", fieldMapping.getRdmDataType()));
         Object result = null;
-        String classCastError = String.format("Ошибка при попытке преобразовать тип %s в %s значение: %s", rdmType.getText(), sysType.getText(), value);
-
-        //Маппинг в JSONB возможен только при условии, что входные данные также имеют тип jSONB, так как иначе неизвестно как формат должен иметь json.
-        if (sysType.equals(DataTypeEnum.JSONB)) {
-            throw new ClassCastException(classCastError);
-        }
-        if (rdmType.equals(DataTypeEnum.VARCHAR)) {
-            switch (sysType) {
-                case VARCHAR:
-                    result = value;
-                    break;
-                case INTEGER:
-                    result = new BigInteger(value.toString());
-                    break;
-                case FLOAT:
-                    result = Float.parseFloat(value.toString());
-                    break;
-                case BOOLEAN:
-                    result = Boolean.parseBoolean(value.toString());
-                    break;
-                case DATE:
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
-                    result = LocalDate.parse(value.toString(), formatter);
-                    break;
-            }
-        } else if (rdmType.equals(DataTypeEnum.INTEGER)) {
-            switch (sysType) {
-                case INTEGER:
-                    result = new BigInteger(value.toString());
-                    break;
-                case VARCHAR:
-                    result = value.toString();
-                    break;
-                case FLOAT:
-                    result = Float.parseFloat(value.toString());
-                    break;
-                case BOOLEAN:
-                case DATE:
-                    throw new ClassCastException(classCastError);
-            }
-        } else if (rdmType.equals(DataTypeEnum.BOOLEAN) || rdmType.equals(DataTypeEnum.FLOAT)) {
-            if (sysType.equals(DataTypeEnum.VARCHAR)) {
-                result = value.toString();
-            } else if (sysType.equals(DataTypeEnum.BOOLEAN) || sysType.equals(DataTypeEnum.FLOAT)) {
-                result = value;
-            } else {
-                throw new ClassCastException(classCastError);
-            }
-        } else if (rdmType.equals(DataTypeEnum.DATE)) {
-            if (sysType.equals(DataTypeEnum.DATE)){
-                if (value instanceof LocalDate)
-                    result = value;
-                else if (value instanceof java.sql.Date) {
-                    result = ((java.sql.Date) value).toLocalDate();
-                } else if (value instanceof Date) {
-                    result = ((Date) value).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-                } else {
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
-                    result = LocalDate.parse(value.toString(), formatter);
-                }
-            }
-            else if (sysType.equals(DataTypeEnum.VARCHAR)) {
-                if (value instanceof Date) {
-                    result = FastDateFormat.getInstance(DATE_FORMAT).format(value);
-                } else if (value instanceof LocalDate || value instanceof LocalDateTime) {
-                    result = DateTimeFormatter.ofPattern(DATE_FORMAT).format((Temporal) value);
-                } else {
-                    throw new ClassCastException(classCastError);
-                }
-            } else {
-                throw new ClassCastException(classCastError);
-            }
+        switch (rdmType) {
+            case STRING:
+                return mapVarchar(clientType, value);
+            case INTEGER:
+                return mapInteger(clientType, value);
+            case BOOLEAN:
+                return mapBoolean(clientType, value);
+            case FLOAT:
+                return mapFloat(clientType, value);
+            case DATE:
+                return mapDate(clientType, value);
+            case TREE:
+                return value.toString();
+            case REFERENCE:
+                return mapReference(clientType, value);
         }
         return result;
+    }
+
+    private Object mapInteger(DataTypeEnum clientType, Object value) {
+        switch (clientType) {
+            case INTEGER:
+                return new BigInteger(value.toString());
+            case VARCHAR:
+                return value.toString();
+            case FLOAT:
+                return Float.parseFloat(value.toString());
+            default:
+                throw new ClassCastException(getClassCastError(FieldType.INTEGER, clientType, value));
+        }
+    }
+
+    private Object mapVarchar(DataTypeEnum clientType, Object value) {
+        switch (clientType) {
+            case VARCHAR:
+                return value;
+            case INTEGER:
+                return new BigInteger(value.toString());
+            case FLOAT:
+                return Float.parseFloat(value.toString());
+            case BOOLEAN:
+                return Boolean.parseBoolean(value.toString());
+            case DATE:
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
+                return LocalDate.parse(value.toString(), formatter);
+            default:
+                throw new ClassCastException(getClassCastError(FieldType.STRING, clientType, value));
+        }
+    }
+
+    private Object mapDate(DataTypeEnum clientType, Object value) {
+        if (clientType.equals(DataTypeEnum.DATE)) {
+            if (value instanceof LocalDate)
+                return value;
+            else if (value instanceof java.sql.Date) {
+                return ((java.sql.Date) value).toLocalDate();
+            } else if (value instanceof Date) {
+                return ((Date) value).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            } else {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
+                return LocalDate.parse(value.toString(), formatter);
+            }
+        } else if (clientType.equals(DataTypeEnum.VARCHAR)) {
+            if (value instanceof Date) {
+                return FastDateFormat.getInstance(DATE_FORMAT).format(value);
+            } else if (value instanceof LocalDate || value instanceof LocalDateTime) {
+                return DateTimeFormatter.ofPattern(DATE_FORMAT).format((Temporal) value);
+            } else {
+                throw new ClassCastException(getClassCastError(FieldType.DATE, clientType, value));
+            }
+        } else {
+            throw new ClassCastException(getClassCastError(FieldType.DATE, clientType, value));
+        }
+    }
+
+    private Object mapBoolean(DataTypeEnum clientType, Object value) {
+        if (clientType.equals(DataTypeEnum.VARCHAR)) {
+            return value.toString();
+        } else if (clientType.equals(DataTypeEnum.BOOLEAN)) {
+            return Boolean.parseBoolean(value.toString());
+        } else {
+            throw new ClassCastException(getClassCastError(FieldType.BOOLEAN, clientType, value));
+        }
+    }
+
+    private Object mapFloat(DataTypeEnum clientType, Object value) {
+        if (clientType.equals(DataTypeEnum.VARCHAR)) {
+            return value.toString();
+        } else if (clientType.equals(DataTypeEnum.FLOAT)) {
+            return Float.parseFloat(value.toString());
+        } else {
+            throw new ClassCastException(getClassCastError(FieldType.FLOAT, clientType, value));
+        }
+    }
+
+    private Object mapReference(DataTypeEnum clientType, Object value) {
+        if (!(value instanceof Reference)){
+            throw new ClassCastException(getClassCastError(FieldType.REFERENCE, clientType, value));
+        }
+        Reference reference = (Reference)value;
+        switch (clientType) {
+            case VARCHAR:
+                return reference;
+            case INTEGER:
+                return new BigInteger(reference.getValue());
+            case FLOAT:
+                return Float.parseFloat(reference.getValue());
+            case BOOLEAN:
+                return Boolean.parseBoolean(reference.getValue());
+            case DATE:
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
+                return LocalDate.parse(reference.getValue(), formatter);
+            case JSONB:
+                return reference;
+            default:
+                throw new ClassCastException(getClassCastError(FieldType.REFERENCE, clientType, value));
+        }
+    }
+
+    private String getClassCastError(FieldType rdmType, DataTypeEnum clientType, Object value) {
+        return String.format("Ошибка при попытке преобразовать тип %s в %s значение: %s", rdmType, clientType, value);
     }
 
 }

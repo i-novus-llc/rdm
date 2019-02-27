@@ -15,5 +15,4 @@ public class FieldMapping {
     private String sysField;
     private String sysDataType;
     private String rdmField;
-    private String rdmDataType;
 }

@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.sync.service;
 
-import ru.inovus.ms.rdm.sync.model.FieldMapping;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.inovus.ms.rdm.sync.model.DataTypeEnum;
 
 /**
  * @author lgalimova
@@ -10,9 +11,10 @@ public interface RdmMappingService {
     /**
      * Преобразование объекта согласно маппингу.
      *
-     * @param fieldMapping маппинг
+     * @param rdmType тип данных в НСИ
+     * @param sysType тип данных в системе
      * @param value        значение для преобразования
      * @return преобразованное значение
      */
-    Object map(FieldMapping fieldMapping, Object value);
+    Object map(FieldType rdmType, DataTypeEnum sysType, Object value);
 }

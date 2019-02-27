@@ -54,7 +54,6 @@
                 sys_field varchar(100) not null,
                 sys_data_type varchar(20) not null,
                 rdm_field varchar(100) not null,
-                rdm_data_type varchar(20) not null,
             constraint pk_field_mapping_id PRIMARY KEY(id)
             );
             COMMENT ON TABLE rdm_sync.field_mapping IS 'Соответствие полей справочников';
@@ -63,7 +62,6 @@
             COMMENT ON COLUMN rdm_sync.field_mapping.sys_field IS 'Код поля таблицы БД Модуля Системы';
             COMMENT ON COLUMN rdm_sync.field_mapping.sys_data_type IS 'Тип поля таблицы БД Модуля Системы';
             COMMENT ON COLUMN rdm_sync.field_mapping.rdm_field IS 'Код поля справочника НСИ';
-            COMMENT ON COLUMN rdm_sync.field_mapping.rdm_data_type IS 'Тип поля справочника НСИ';
         </sql>
     </changeSet>
 

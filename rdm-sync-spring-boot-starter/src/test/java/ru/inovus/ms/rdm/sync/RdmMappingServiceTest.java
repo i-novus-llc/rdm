@@ -1,17 +1,16 @@
 package ru.inovus.ms.rdm.sync;
 
-import org.apache.commons.lang3.time.FastDateFormat;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
-import ru.inovus.ms.rdm.sync.model.FieldMapping;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.inovus.ms.rdm.sync.service.RdmMappingServiceImpl;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.Calendar;
 
 import static org.junit.Assert.*;
 import static ru.inovus.ms.rdm.sync.model.DataTypeEnum.*;
@@ -22,78 +21,125 @@ import static ru.inovus.ms.rdm.sync.model.DataTypeEnum.*;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class RdmMappingServiceTest {
-    private static final String DATE_FORMAT = "yyyy-MM-dd";
 
     @InjectMocks
     private RdmMappingServiceImpl rdmMappingService;
 
     @Test
-    public void testMapping(){
-        String sysField = "field";
-        String rdmField = "field";
-        Object result = rdmMappingService.map(new FieldMapping(sysField, INTEGER.getText(), rdmField, INTEGER.getText()), BigInteger.valueOf(1L));
-        assertEquals("При одинаковых типах данных значение не должно измениться", BigInteger.valueOf(1L), result);
+    public void testMapping() {
 
-        result = rdmMappingService.map(new FieldMapping(sysField, INTEGER.getText(), rdmField, VARCHAR.getText()), "10");
-        assertEquals(BigInteger.TEN, result);
 
-        result = rdmMappingService.map(new FieldMapping(sysField, FLOAT.getText(), rdmField, VARCHAR.getText()), "10.5");
-        assertEquals(Float.parseFloat("10.5"), result);
+        try {
+            rdmMappingService.map(FieldType.INTEGER, JSONB, 1);
+            fail("Ожидается ClassCastException");
+        } catch (ClassCastException e) {
+            assertEquals("Ошибка при попытке преобразовать тип INTEGER в JSONB значение: 1", e.getMessage());
+        }
+    }
 
-        result = rdmMappingService.map(new FieldMapping(sysField, BOOLEAN.getText(), rdmField, VARCHAR.getText()), "true");
-        assertTrue((result instanceof Boolean) && (Boolean) result);
+    @Test
+    public void testInteger() {
+        Object result = rdmMappingService.map(FieldType.INTEGER, INTEGER, BigInteger.ONE);
+        assertEquals(BigInteger.ONE, result);
 
-        result = rdmMappingService.map(new FieldMapping(sysField, DATE.getText(), rdmField, VARCHAR.getText()), "2007-10-15");
-        assertEquals(LocalDate.of(2007, Month.OCTOBER, 15), result);
-
-        result = rdmMappingService.map(new FieldMapping(sysField, VARCHAR.getText(), rdmField, INTEGER.getText()), 1);
+        result = rdmMappingService.map(FieldType.INTEGER, VARCHAR, 1);
         assertEquals("1", result);
 
-        result = rdmMappingService.map(new FieldMapping(sysField, FLOAT.getText(), rdmField, INTEGER.getText()), 1);
+        result = rdmMappingService.map(FieldType.INTEGER, FLOAT, 1);
         assertEquals(Float.parseFloat("1"), result);
 
         try {
-            rdmMappingService.map(new FieldMapping(sysField, BOOLEAN.getText(), rdmField, INTEGER.getText()), 1);
+            rdmMappingService.map(FieldType.INTEGER, BOOLEAN, 1);
             fail("Ожидается ClassCastException");
-        }catch (ClassCastException e){
-            assertEquals("Ошибка при попытке преобразовать тип bigint в boolean значение: 1", e.getMessage());
+        } catch (ClassCastException e) {
+            assertEquals("Ошибка при попытке преобразовать тип INTEGER в BOOLEAN значение: 1", e.getMessage());
         }
 
         try {
-            rdmMappingService.map(new FieldMapping(sysField, DATE.getText(), rdmField, INTEGER.getText()), 1);
+            rdmMappingService.map(FieldType.INTEGER, DATE, 1);
             fail("Ожидается ClassCastException");
-        }catch (ClassCastException e){
-            assertEquals("Ошибка при попытке преобразовать тип bigint в date значение: 1", e.getMessage());
+        } catch (ClassCastException e) {
+            assertEquals("Ошибка при попытке преобразовать тип INTEGER в DATE значение: 1", e.getMessage());
         }
 
-        result = rdmMappingService.map(new FieldMapping(sysField, VARCHAR.getText(), rdmField, BOOLEAN.getText()), true);
+        try {
+            rdmMappingService.map(FieldType.INTEGER, JSONB, 1);
+            fail("Ожидается ClassCastException");
+        } catch (ClassCastException e) {
+            assertEquals("Ошибка при попытке преобразовать тип INTEGER в JSONB значение: 1", e.getMessage());
+        }
+    }
+
+    @Test
+    public void testString() {
+        Object result = rdmMappingService.map(FieldType.STRING, VARCHAR, "10");
+        assertEquals("10", result);
+
+        result = rdmMappingService.map(FieldType.STRING, INTEGER, "10");
+        assertEquals(BigInteger.TEN, result);
+
+        result = rdmMappingService.map(FieldType.STRING, FLOAT, "10.5");
+        assertEquals(Float.parseFloat("10.5"), result);
+
+        result = rdmMappingService.map(FieldType.STRING, BOOLEAN, "true");
+        assertTrue((result instanceof Boolean) && (Boolean) result);
+
+        result = rdmMappingService.map(FieldType.STRING, DATE, "2007-10-15");
+        assertEquals(LocalDate.of(2007, Month.OCTOBER, 15), result);
+
+        try {
+            rdmMappingService.map(FieldType.STRING, JSONB, "1");
+            fail("Ожидается ClassCastException");
+        } catch (ClassCastException e) {
+            assertEquals("Ошибка при попытке преобразовать тип STRING в JSONB значение: 1", e.getMessage());
+        }
+    }
+
+    @Test
+    public void testBoolean() {
+        Object result = rdmMappingService.map(FieldType.BOOLEAN, BOOLEAN, true);
+        assertEquals(true, result);
+
+        result = rdmMappingService.map(FieldType.BOOLEAN, VARCHAR, true);
         assertEquals("true", result);
 
         try {
-            rdmMappingService.map(new FieldMapping(sysField, DATE.getText(), rdmField, BOOLEAN.getText()), true);
+            rdmMappingService.map(FieldType.BOOLEAN, DATE, true);
             fail("Ожидается ClassCastException");
-        }catch (ClassCastException e){
-            assertEquals("Ошибка при попытке преобразовать тип boolean в date значение: true", e.getMessage());
+        } catch (ClassCastException e) {
+            assertEquals("Ошибка при попытке преобразовать тип BOOLEAN в DATE значение: true", e.getMessage());
         }
+    }
 
-        result = rdmMappingService.map(new FieldMapping(sysField, VARCHAR.getText(), rdmField, DATE.getText()), LocalDate.of(2007, Month.OCTOBER, 15));
+    @Test
+    public void testDate() {
+        LocalDate date = LocalDate.of(2007, Month.OCTOBER, 15);
+
+        Object result = rdmMappingService.map(FieldType.DATE, DATE, date);
+        assertEquals(date, result);
+
+        result = rdmMappingService.map(FieldType.DATE, VARCHAR, date);
         assertEquals("2007-10-15", result);
 
-        result = rdmMappingService.map(new FieldMapping(sysField, VARCHAR.getText(), rdmField, DATE.getText()), Calendar.getInstance().getTime());
-        assertEquals(FastDateFormat.getInstance(DATE_FORMAT).format(Calendar.getInstance().getTime()), result);
-
         try {
-            rdmMappingService.map(new FieldMapping(sysField, INTEGER.getText(), rdmField, DATE.getText()),  LocalDate.of(2007, Month.OCTOBER, 15));
+            rdmMappingService.map(FieldType.DATE, INTEGER, date);
             fail("Ожидается ClassCastException");
-        }catch (ClassCastException e){
-            assertEquals("Ошибка при попытке преобразовать тип date в bigint значение: 2007-10-15", e.getMessage());
+        } catch (ClassCastException e) {
+            assertEquals("Ошибка при попытке преобразовать тип DATE в INTEGER значение: 2007-10-15", e.getMessage());
         }
+    }
+
+    @Test
+    public void testReference() {
+        Reference reference = new Reference("1", "Moscow");
+        Object result = rdmMappingService.map(FieldType.REFERENCE, JSONB, new Reference("1", "Moscow"));
+        assertEquals(reference, result);
 
         try {
-            rdmMappingService.map(new FieldMapping(sysField, JSONB.getText(), rdmField, INTEGER.getText()), 1);
+            rdmMappingService.map(FieldType.INTEGER, JSONB, 1);
             fail("Ожидается ClassCastException");
-        }catch (ClassCastException e){
-            assertEquals("Ошибка при попытке преобразовать тип bigint в jsonb значение: 1", e.getMessage());
+        } catch (ClassCastException e) {
+            assertEquals("Ошибка при попытке преобразовать тип INTEGER в JSONB значение: 1", e.getMessage());
         }
     }
 }

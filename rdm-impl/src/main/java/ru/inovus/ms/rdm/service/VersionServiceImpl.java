@@ -105,7 +105,7 @@ public class VersionServiceImpl implements VersionService {
 
     @Override
     @Transactional
-    public RefBookVersion getByVersionAndCode(String version, String refBookCode) {
+    public RefBookVersion getVersion(String version, String refBookCode) {
         RefBookVersionEntity versionEntity = versionRepository.findByVersionAndRefBookCode(version, refBookCode);
         if (versionEntity == null)
             throw new NotFoundException(new Message("version.not.found", version));
