@@ -26,18 +26,6 @@ public class RdmMappingServiceTest {
     private RdmMappingServiceImpl rdmMappingService;
 
     @Test
-    public void testMapping() {
-
-
-        try {
-            rdmMappingService.map(FieldType.INTEGER, JSONB, 1);
-            fail("Ожидается ClassCastException");
-        } catch (ClassCastException e) {
-            assertEquals("Ошибка при попытке преобразовать тип INTEGER в JSONB значение: 1", e.getMessage());
-        }
-    }
-
-    @Test
     public void testInteger() {
         Object result = rdmMappingService.map(FieldType.INTEGER, INTEGER, BigInteger.ONE);
         assertEquals(BigInteger.ONE, result);
