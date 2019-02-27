@@ -11,7 +11,7 @@ import java.util.*;
  */
 public abstract class AppendRowValidation extends ErrorAttributeHolderValidation {
 
-    private final LinkedList<Map<String, Object>> buffer = new LinkedList<>();
+    private final Map<Map<String, Object>, Long> buffer = new LinkedHashMap<>();
 
     public AppendRowValidation() {
     }
@@ -20,7 +20,7 @@ public abstract class AppendRowValidation extends ErrorAttributeHolderValidation
         if (row != null) {
             Map<String, Object> rowMap = new HashMap<>(row.getData());
             rowMap.entrySet().removeIf(entry -> getErrorAttributes().contains(entry.getKey()));
-            buffer.add(rowMap);
+            buffer.put(rowMap, row.getSystemId());
         }
     }
 
@@ -28,13 +28,13 @@ public abstract class AppendRowValidation extends ErrorAttributeHolderValidation
     public List<Message> validate() {
         if (buffer.isEmpty()) throw new RdmException("Missing row to validate, append row before validation");
         List<Message> messages = new ArrayList<>();
-        buffer.stream()
+        buffer.keySet().stream()
                 .peek(map -> map.entrySet().removeIf(entry -> getErrorAttributes().contains(entry.getKey())))
-                .map(this::validate)
+                .map(attributeValues -> validate(buffer.get(attributeValues), attributeValues))
                 .forEach(messages::addAll);
         buffer.clear();
         return messages;
     }
 
-    protected abstract List<Message> validate(Map<String, Object> attributeValues);
+    protected abstract List<Message> validate(Long systemId, Map<String, Object> attributeValues);
 }

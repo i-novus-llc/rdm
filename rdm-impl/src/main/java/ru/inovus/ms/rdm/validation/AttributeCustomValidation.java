@@ -5,6 +5,7 @@ import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.AttributeValidationEntity;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.model.UniqueAttributeValue;
 import ru.inovus.ms.rdm.model.validation.*;
 import ru.inovus.ms.rdm.validation.resolver.*;
 
@@ -72,13 +73,17 @@ public class AttributeCustomValidation extends AppendRowValidation {
     }
 
     @Override
-    protected List<Message> validate(Map<String, Object> attributeValues) {
+    protected List<Message> validate(Long systemId, Map<String, Object> attributeValues) {
         List<Message> messages = new ArrayList<>();
         resolvers.entrySet().stream()
                 .filter(e -> !getErrorAttributes().contains(e.getKey()))
                 .forEach(e -> {
                     for (AttributeValidationResolver resolver : e.getValue()) {
-                        Message message = resolver.resolve(attributeValues.get(e.getKey()));
+                        Object attributeValue =
+                                resolver instanceof UniqueAttributeValidationResolver
+                                        ? new UniqueAttributeValue(systemId, attributeValues.get(e.getKey()))
+                                        : attributeValues.get(e.getKey());
+                        Message message = resolver.resolve(attributeValue);
                         if (message != null) {
                             messages.add(message);
                             break;

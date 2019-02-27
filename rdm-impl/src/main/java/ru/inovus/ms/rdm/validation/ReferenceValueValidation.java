@@ -20,7 +20,7 @@ import static ru.inovus.ms.rdm.util.ConverterUtil.field;
  */
 public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
 
-    public static final String ERROR_CODE = "validation.reference.err";
+    public static final String REFERENCE_ERROR_CODE = "validation.reference.err";
 
     private final VersionService versionService;
 
@@ -63,7 +63,7 @@ public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
     }
 
     private Message createMessage(Map.Entry<Structure.Reference, String> entry) {
-        return new Message(ERROR_CODE,
+        return new Message(REFERENCE_ERROR_CODE,
                 structure.getAttribute(entry.getKey().getAttribute()).getName(),
                 entry.getValue());
 
