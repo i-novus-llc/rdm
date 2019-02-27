@@ -108,11 +108,8 @@ public class RdmSyncRestTest {
         when(versionService.getVersion(versionMapping.getVersion(), versionMapping.getCode())).thenReturn(firstVersion);
         when(compareService.compareData(any(CompareDataCriteria.class))).thenReturn(diff);
         when(refBookService.search(any(RefBookCriteria.class))).thenReturn(new PageImpl<>(Collections.singletonList(secondVersion), PageRequest.of(0, 10), 1L));
-        when(versionService.search(eq(versionMapping.getCode()), any(SearchDataCriteria.class))).thenReturn(data);
         when(mappingService.map(FieldType.INTEGER, DataTypeEnum.INTEGER, data.getContent().get(0).getFieldValues().get(0).getValue())).thenReturn(BigInteger.valueOf(1L));
         when(mappingService.map(FieldType.STRING, DataTypeEnum.VARCHAR, data.getContent().get(0).getFieldValues().get(1).getValue())).thenReturn("London");
-        when(mappingService.map(FieldType.INTEGER, DataTypeEnum.INTEGER, data.getContent().get(1).getFieldValues().get(0).getValue())).thenReturn(BigInteger.valueOf(2L));
-        when(mappingService.map(FieldType.STRING, DataTypeEnum.VARCHAR, data.getContent().get(1).getFieldValues().get(1).getValue())).thenReturn("Moscow");
         when(mappingService.map(FieldType.INTEGER, DataTypeEnum.INTEGER, data.getContent().get(2).getFieldValues().get(0).getValue())).thenReturn(BigInteger.valueOf(3L));
         when(mappingService.map(FieldType.STRING, DataTypeEnum.VARCHAR, data.getContent().get(2).getFieldValues().get(1).getValue())).thenReturn("Guadalupe");
         rdmSyncRest.update(versionMapping.getCode());
