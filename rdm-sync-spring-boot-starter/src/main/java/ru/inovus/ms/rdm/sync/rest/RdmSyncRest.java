@@ -3,10 +3,7 @@ package ru.inovus.ms.rdm.sync.rest;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
 /**
@@ -25,7 +22,7 @@ public interface RdmSyncRest {
     void update();
 
     @POST
-    @Path("/update")
+    @Path("/update/{refbookCode}")
     @ApiOperation(value = "Синхронизация отдельного справочника")
-    void update(String refbookCode);
+    void update(@PathParam("refbookCode") String refbookCode);
 }

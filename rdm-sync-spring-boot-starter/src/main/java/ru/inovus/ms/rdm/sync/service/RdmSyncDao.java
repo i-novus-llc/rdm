@@ -37,7 +37,7 @@ public interface RdmSyncDao {
      * @param isDeletedField поле, отвечающее за признак удаления, в таблице клиента
      * @return список идентификаторов данных справочника клиента
      */
-    List<Object> getDataIds(String table, String primaryField, String isDeletedField);
+    List<Object> getDataIds(String table, FieldMapping primaryField, String isDeletedField);
 
     /**
      * Вставить строку в справочник клиента

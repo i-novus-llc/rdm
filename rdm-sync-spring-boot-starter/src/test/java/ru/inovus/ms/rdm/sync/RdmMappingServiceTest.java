@@ -22,7 +22,7 @@ import static ru.inovus.ms.rdm.sync.model.DataTypeEnum.*;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class RdmMappingServiceTest {
-    private static final String DATE_FORMAT = "dd.MM.yyyy";
+    private static final String DATE_FORMAT = "yyyy-MM-dd";
 
     @InjectMocks
     private RdmMappingServiceImpl rdmMappingService;
@@ -31,8 +31,8 @@ public class RdmMappingServiceTest {
     public void testMapping(){
         String sysField = "field";
         String rdmField = "field";
-        Object result = rdmMappingService.map(new FieldMapping(sysField, INTEGER.getText(), rdmField, INTEGER.getText()), 1);
-        assertEquals("При одинаковых типах данных значение не должно измениться", 1, result);
+        Object result = rdmMappingService.map(new FieldMapping(sysField, INTEGER.getText(), rdmField, INTEGER.getText()), BigInteger.valueOf(1L));
+        assertEquals("При одинаковых типах данных значение не должно измениться", BigInteger.valueOf(1L), result);
 
         result = rdmMappingService.map(new FieldMapping(sysField, INTEGER.getText(), rdmField, VARCHAR.getText()), "10");
         assertEquals(BigInteger.TEN, result);
@@ -43,7 +43,7 @@ public class RdmMappingServiceTest {
         result = rdmMappingService.map(new FieldMapping(sysField, BOOLEAN.getText(), rdmField, VARCHAR.getText()), "true");
         assertTrue((result instanceof Boolean) && (Boolean) result);
 
-        result = rdmMappingService.map(new FieldMapping(sysField, DATE.getText(), rdmField, VARCHAR.getText()), "15.10.2007");
+        result = rdmMappingService.map(new FieldMapping(sysField, DATE.getText(), rdmField, VARCHAR.getText()), "2007-10-15");
         assertEquals(LocalDate.of(2007, Month.OCTOBER, 15), result);
 
         result = rdmMappingService.map(new FieldMapping(sysField, VARCHAR.getText(), rdmField, INTEGER.getText()), 1);
@@ -77,7 +77,7 @@ public class RdmMappingServiceTest {
         }
 
         result = rdmMappingService.map(new FieldMapping(sysField, VARCHAR.getText(), rdmField, DATE.getText()), LocalDate.of(2007, Month.OCTOBER, 15));
-        assertEquals("15.10.2007", result);
+        assertEquals("2007-10-15", result);
 
         result = rdmMappingService.map(new FieldMapping(sysField, VARCHAR.getText(), rdmField, DATE.getText()), Calendar.getInstance().getTime());
         assertEquals(FastDateFormat.getInstance(DATE_FORMAT).format(Calendar.getInstance().getTime()), result);

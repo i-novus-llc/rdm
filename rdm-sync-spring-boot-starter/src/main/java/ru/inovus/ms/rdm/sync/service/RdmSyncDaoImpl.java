@@ -2,7 +2,6 @@ package ru.inovus.ms.rdm.sync.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.SingleColumnRowMapper;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
 
@@ -17,6 +16,8 @@ import java.util.stream.Collectors;
 public class RdmSyncDaoImpl implements RdmSyncDao {
     @Autowired
     private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private RdmMappingService rdmMappingService;
 
     @Override
     public List<VersionMapping> getVersionMappings() {
@@ -59,10 +60,10 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     }
 
     @Override
-    public List<Object> getDataIds(String table, String primaryField, String isDeletedField) {
+    public List<Object> getDataIds(String table, FieldMapping primaryField, String isDeletedField) {
         return jdbcTemplate.query(String.format("select %s from %s where %s is null or %s=false",
-                addDoubleQuotes(primaryField), table, addDoubleQuotes(isDeletedField), addDoubleQuotes(isDeletedField)),
-                new SingleColumnRowMapper<>());
+                addDoubleQuotes(primaryField.getSysField()), table, addDoubleQuotes(isDeletedField), addDoubleQuotes(isDeletedField)),
+                (rs, rowNum) -> rdmMappingService.map(primaryField, rs.getObject(1)));
     }
 
     @Override
@@ -82,8 +83,10 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
                 values.add("?");
             }
         }
+        Collection<Object> data = row.values();
+        data.removeAll(Collections.singleton(null));
         jdbcTemplate.update(String.format("insert into %s (%s) values(%s)", table, keys, String.join(",", values)),
-                row.values().toArray());
+                data.toArray());
     }
 
     public void updateRow(String table, String primaryField, String isDeletedField, LinkedHashMap<String, Object> row) {
@@ -97,11 +100,12 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
                 keys.add(addDoubleQuotes(field) + " = ?");
             }
         }
-        List<Object> values = new ArrayList<>(row.values());
-        values.add(row.get(primaryField));
+        List<Object> data = new ArrayList<>(row.values());
+        data.removeAll(Collections.singleton(null));
+        data.add(row.get(primaryField));
         jdbcTemplate.update(String.format("update %s set %s where %s=? and (%s is null or %s=false)",
                 table, String.join(",", keys), addDoubleQuotes(primaryField), addDoubleQuotes(isDeletedField), addDoubleQuotes(isDeletedField)),
-                values.toArray());
+                data.toArray());
     }
 
     @Override
