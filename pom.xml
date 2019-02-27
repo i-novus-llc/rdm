@@ -4,7 +4,7 @@
 
     <groupId>ru.inovus.ms.rdm</groupId>
     <artifactId>rdm</artifactId>
-    <version>1.10-SNAPSHOT</version>
+    <version>1.11-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -21,8 +21,8 @@
         <liquibase.version>3.6.3-SNAPSHOT</liquibase.version>
         <apache.poi.version>3.17</apache.poi.version>
         <filestorage.version>2.1-SNAPSHOT</filestorage.version>
-        <vds.version>2.1-SNAPSHOT</vds.version>
-        <n2o.version>7.0.6</n2o.version>
+        <vds.version>2.2-SNAPSHOT</vds.version>
+        <n2o.version>7.0.7</n2o.version>
         <selenium.version>3.8.1</selenium.version>
         <itext.version>5.5.9</itext.version>
         <xmlunit.version>1.6</xmlunit.version>
@@ -53,6 +53,7 @@
         <module>rdm-n2o</module>
         <module>rdm-fnsi-impl</module>
         <module>rdm-fnsi-n2o</module>
+        <module>rdm-sync-spring-boot-starter</module>
     </modules>
 
     <distributionManagement>
