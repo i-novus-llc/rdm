@@ -52,7 +52,7 @@ public class SequenceVersionNumberStrategyTest {
 
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(1)))
                 .thenReturn(notEqStructureDraft);
-        Assert.assertEquals("21.5", versionNumberStrategy.next(1));
+        Assert.assertEquals("21.0", versionNumberStrategy.next(1));
 
     }
 

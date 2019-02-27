@@ -21,18 +21,18 @@ import java.util.stream.Collectors;
  */
 public class DBPrimaryKeyValidation extends ErrorAttributeHolderValidation {
 
-    public static final String ERROR_CODE = "validation.db.contains.pk.err";
+    public static final String DB_CONTAINS_PK_ERROR_CODE = "validation.db.contains.pk.err";
 
     private SearchDataService searchDataService;
     private Map<Structure.Attribute, Object> primaryKey;
     private String storageCode;
+    private Long systemId;
 
     public DBPrimaryKeyValidation(SearchDataService searchDataService, Structure structure, Row row, String storageCode) {
         this.searchDataService = searchDataService;
         this.storageCode = storageCode;
         this.primaryKey = getPrimaryKeyMap(structure, row);
-
-
+        this.systemId = row.getSystemId();
     }
 
     @Override
@@ -43,9 +43,11 @@ public class DBPrimaryKeyValidation extends ErrorAttributeHolderValidation {
                     .map(Structure.Attribute::getCode)
                     .collect(Collectors.toList());
             if (primaryKeyAttributes.stream().noneMatch(a -> getErrorAttributes().contains(a)) &&
-                    !searchDataService.getPagedData(criteria).getCollection().isEmpty()) {
+                    searchDataService.getPagedData(criteria).getCollection()
+                            .stream()
+                            .anyMatch(rowValue -> !rowValue.getSystemId().equals(systemId))) {
                 primaryKeyAttributes.forEach(this::addErrorAttribute);
-                return Collections.singletonList(new Message(ERROR_CODE,
+                return Collections.singletonList(new Message(DB_CONTAINS_PK_ERROR_CODE,
                         primaryKey.entrySet().stream()
                                 .map(entry -> entry.getKey().getName() + "\" - \"" + entry.getValue())
                                 .collect(Collectors.joining("\", \""))));
@@ -54,7 +56,7 @@ public class DBPrimaryKeyValidation extends ErrorAttributeHolderValidation {
         return Collections.emptyList();
     }
 
-    private DataCriteria createCriteria(){
+    private DataCriteria createCriteria() {
         List<Field> fields = primaryKey.keySet().stream().map(ConverterUtil::field)
                 .collect(Collectors.toList());
         List<FieldSearchCriteria> filters = primaryKey.entrySet().stream()
@@ -64,11 +66,11 @@ public class DBPrimaryKeyValidation extends ErrorAttributeHolderValidation {
                 .collect(Collectors.toList());
         DataCriteria criteria = new DataCriteria(storageCode, null, null, fields, filters, null);
         criteria.setPage(1);
-        criteria.setSize(1);
+        criteria.setSize(systemId != null ? 2 : 1);
         return criteria;
     }
 
-    private static Map<Structure.Attribute, Object> getPrimaryKeyMap(Structure structure, Row row){
+    private static Map<Structure.Attribute, Object> getPrimaryKeyMap(Structure structure, Row row) {
         Map<Structure.Attribute, Object> map = new HashMap<>();
         structure.getAttributes().stream()
                 .filter(Structure.Attribute::getIsPrimary)

@@ -10,6 +10,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,8 +22,8 @@ public class RestCriteriaConstructor implements CriteriaConstructor, Serializabl
 
         T instance;
         try {
-            instance = criteriaClass.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+            instance = criteriaClass.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             throw new IllegalArgumentException(e);
         }
         if (instance instanceof RestCriteria) {
@@ -33,7 +34,7 @@ public class RestCriteriaConstructor implements CriteriaConstructor, Serializabl
             ((RestCriteria) instance).setOrders(sortings);
             ((RestCriteria) instance).setPageSize(criteria.getSize());
             ((RestCriteria) instance).setPageNumber(criteria.getPage() - 1);
-        }else if (instance instanceof Criteria) {
+        } else if (instance instanceof Criteria) {
             ((Criteria) instance).setSorting(criteria.getSorting());
             ((Criteria) instance).setPage(criteria.getPage());
             ((Criteria) instance).setSize(criteria.getSize());
@@ -49,6 +50,8 @@ public class RestCriteriaConstructor implements CriteriaConstructor, Serializabl
             direction = Sort.Direction.DESC;
         if (("name").equals(sorting.getField()))
             return new Order(direction, "passport." + sorting.getField());
+        else if (("category.id").equals(sorting.getField()))
+            return new Order(direction, "category");
         else
             return new Order(direction, sorting.getField());
     }
