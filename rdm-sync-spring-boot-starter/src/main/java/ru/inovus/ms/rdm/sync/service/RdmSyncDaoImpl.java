@@ -2,6 +2,8 @@ package ru.inovus.ms.rdm.sync.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.sync.model.DataTypeEnum;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
@@ -116,6 +118,13 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
                 addDoubleQuotes(isDeletedField), addDoubleQuotes(primaryField), addDoubleQuotes(isDeletedField), addDoubleQuotes(isDeletedField)),
                 primaryValue
         );
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void log(String status, String refbookCode, String oldVersion, String newVersion, String message, String stack) {
+        jdbcTemplate.update("insert into rdm_sync.log (code, current_version, new_version, status, date, message, stack) values(?,?,?,?,?,?,?)",
+                refbookCode, oldVersion, newVersion, status, new Date(), message, stack);
     }
 
     private String addDoubleQuotes(String value) {

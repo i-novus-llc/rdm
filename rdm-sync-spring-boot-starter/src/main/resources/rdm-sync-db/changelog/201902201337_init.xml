@@ -65,4 +65,34 @@
         </sql>
     </changeSet>
 
+    <changeSet id="201902201337_init_4" author="lgalimova" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="log" schemaName="rdm_sync"/>
+            </not>
+        </preConditions>
+        <sql>
+            create table rdm_sync.log(
+                id bigserial,
+                code varchar(50) not null,
+                current_version varchar(50),
+                new_version varchar(50),
+                status "varchar"(5) not null,
+                "date" timestamp not null,
+                "message" text,
+                "stack" text,
+                constraint pk_log_id PRIMARY KEY(id)
+            );
+            COMMENT ON TABLE rdm_sync.log IS 'Журнал обновления версий';
+            COMMENT ON COLUMN rdm_sync.log.id IS 'Уникальный идентификатор';
+            COMMENT ON COLUMN rdm_sync.log.code IS 'Код справочника';
+            COMMENT ON COLUMN rdm_sync.log.current_version IS 'Текущая версия';
+            COMMENT ON COLUMN rdm_sync.log.new_version IS 'Новая версия';
+            COMMENT ON COLUMN rdm_sync.log.status IS 'Статус обновления';
+            COMMENT ON COLUMN rdm_sync.log.date IS 'Дата и время обновления';
+            COMMENT ON COLUMN rdm_sync.log.message IS 'Текст ошибки';
+            COMMENT ON COLUMN rdm_sync.log.stack IS 'Техническая информация об ошибке';
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

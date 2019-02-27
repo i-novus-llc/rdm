@@ -15,6 +15,7 @@ public interface RdmSyncDao {
 
     /**
      * Получить список маппинга справочников НСИ на таблицы клиента
+     *
      * @return список
      */
     List<VersionMapping> getVersionMappings();
@@ -23,6 +24,7 @@ public interface RdmSyncDao {
 
     /**
      * Получить список маппинга полей справочников НСИ на поля клиента
+     *
      * @param refbookCode код справочника НСИ
      * @return список
      */
@@ -31,9 +33,8 @@ public interface RdmSyncDao {
     void updateVersionMapping(Integer id, String version, LocalDateTime publishDate);
 
     /**
-     *
-     * @param table таблица справочника на стороне клиента
-     * @param primaryField поле, являющееся первичном ключом справочника, в таблице клиента
+     * @param table          таблица справочника на стороне клиента
+     * @param primaryField   поле, являющееся первичном ключом справочника, в таблице клиента
      * @param isDeletedField поле, отвечающее за признак удаления, в таблице клиента
      * @return список идентификаторов данных справочника клиента
      */
@@ -41,12 +42,15 @@ public interface RdmSyncDao {
 
     /**
      * Вставить строку в справочник клиента
+     *
      * @param table таблица справочника на стороне клиента
-     * @param row строка с данными
+     * @param row   строка с данными
      */
     void insertRow(String table, LinkedHashMap<String, Object> row);
 
     void updateRow(String table, String primaryField, String isDeletedField, LinkedHashMap<String, Object> row);
 
     void markDeleted(String table, String primaryField, String isDeletedField, Object primaryValue);
+
+    void log(String status, String refbookCode, String oldVersion, String newVersion, String message, String stack);
 }
