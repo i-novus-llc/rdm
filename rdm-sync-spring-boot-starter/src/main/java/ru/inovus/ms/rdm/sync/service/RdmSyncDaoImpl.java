@@ -121,7 +121,6 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void log(String status, String refbookCode, String oldVersion, String newVersion, String message, String stack) {
         jdbcTemplate.update("insert into rdm_sync.log (code, current_version, new_version, status, date, message, stack) values(?,?,?,?,?,?,?)",
                 refbookCode, oldVersion, newVersion, status, new Date(), message, stack);

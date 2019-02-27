@@ -36,8 +36,6 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     private static final Logger logger = LoggerFactory.getLogger(RdmSyncRestImpl.class);
     private static final int MAX_SIZE = 100;
 
-    private enum Status {error, ok}
-
     @Autowired
     private RefBookService refBookService;
     @Autowired
@@ -46,6 +44,8 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     private CompareService compareService;
     @Autowired
     private RdmMappingService mappingService;
+    @Autowired
+    private RdmLoggingService loggingService;
     @Autowired
     private RdmSyncRest self;
     @Autowired
@@ -70,7 +70,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
             newVersion = getNewVersionFromRdm(refbookCode);
         } catch (RuntimeException e) {
             logger.error(String.format("Ошибка при получении новой версии справочника с кодом %s", refbookCode), e);
-            logError(refbookCode, null, null, e.getMessage(), ExceptionUtils.getStackTrace(e));
+            loggingService.logError(refbookCode, null, null, e.getMessage(), ExceptionUtils.getStackTrace(e));
             return;
         }
         try {
@@ -86,10 +86,10 @@ public class RdmSyncRestImpl implements RdmSyncRest {
             dao.updateVersionMapping(versionMapping.getId(), newVersion.getLastPublishedVersion(), newVersion.getLastPublishedVersionFromDate());
         } catch (RuntimeException e) {
             logger.error(String.format("Ошибка при обновлении справочника с кодом %s", refbookCode), e);
-            logError(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion(), e.getMessage(), ExceptionUtils.getStackTrace(e));
+            loggingService.logError(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion(), e.getMessage(), ExceptionUtils.getStackTrace(e));
             return;
         }
-        logOk(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion());
+        loggingService.logOk(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion());
     }
 
     private VersionMapping getVersionMapping(String refbookCode) {
@@ -120,8 +120,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     private void mergeData(VersionMapping versionMapping, RefBook newVersion) {
         List<FieldMapping> fieldMappings = dao.getFieldMapping(versionMapping.getCode());
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria();
-//        compareDataCriteria.setOldVersionId(versionService.getVersion(versionMapping.getVersion(), versionMapping.getCode()).getId());
-        compareDataCriteria.setOldVersionId(262);
+        compareDataCriteria.setOldVersionId(versionService.getVersion(versionMapping.getVersion(), versionMapping.getCode()).getId());
         compareDataCriteria.setNewVersionId(newVersion.getId());
         compareDataCriteria.setCountOnly(true);
         RefBookDataDiff diff = compareService.compareData(compareDataCriteria);
@@ -211,13 +210,5 @@ public class RdmSyncRestImpl implements RdmSyncRest {
             }
             page++;
         }
-    }
-
-    private void logError(String refbookCode, String oldVersion, String newVersion, String message, String stack) {
-        dao.log(Status.error.name(), refbookCode, oldVersion, newVersion, message, stack);
-    }
-
-    private void logOk(String refbookCode, String oldVersion, String newVersion) {
-        dao.log(Status.ok.name(), refbookCode, oldVersion, newVersion, null, null);
     }
 }
