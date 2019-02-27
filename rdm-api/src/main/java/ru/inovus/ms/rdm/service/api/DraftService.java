@@ -209,7 +209,7 @@ public interface DraftService {
     ExportFile getDraftFile(@ApiParam("Идентификатор версии")
                           @PathParam("draftId")
                           Integer draftId,
-                          @ApiParam(value = "Тип файла", required = true)
+                          @ApiParam(value = "Тип файла", required = true, allowableValues = "XLSX, XML")
                           @QueryParam("type")
                           FileType fileType);
 }

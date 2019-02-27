@@ -56,6 +56,7 @@
             <!--</set-value-expression>-->
             <!--</input-select>-->
             <!--</fields>-->
+
             <checkbox id="isPrimary" label="Первичный ключ">
                 <dependencies>
                     <enabling on="attrType">(attrType != null &amp;&amp; attrType != 'BOOLEAN')</enabling>
@@ -67,19 +68,21 @@
 
             <checkbox id="required" label="Обязательный атрибут">
                 <dependencies>
-                    <enabling on="isPrimary">typeof isPrimary == "undefined" || !isPrimary</enabling>
+                    <!--множественная зависимость в атрибуте 'on' доступна в 7.0.5-->
                     <visibility on="attrType">(attrType != null &amp;&amp; attrType != 'BOOLEAN')</visibility>
-                    <set-value on="isPrimary">if (isPrimary) return true; else return;</set-value>
+                    <visibility on="isPrimary">(!isPrimary)</visibility>
+                    <set-value on="isPrimary">if (isPrimary) return false; else return;</set-value>
+                </dependencies>
+            </checkbox>
+            <checkbox id="unique" label="Уникальный атрибут">
+                <dependencies>
+                    <!--множественная зависимость в атрибуте 'on' доступна в 7.0.5-->
+                    <visibility on="attrType">(attrType != null &amp;&amp; attrType != 'BOOLEAN')</visibility>
+                    <visibility on="isPrimary">(!isPrimary)</visibility>
+                    <set-value on="isPrimary">if (isPrimary) return false; else return;</set-value>
                 </dependencies>
             </checkbox>
 
-            <checkbox id="unique" label="Уникальный атрибут">
-                <dependencies>
-                    <enabling on="isPrimary">typeof isPrimary == "undefined" || !isPrimary</enabling>
-                    <visibility on="attrType">(attrType != null &amp;&amp; attrType != 'BOOLEAN')</visibility>
-                    <set-value on="isPrimary">if (isPrimary) return true; else return;</set-value>
-                </dependencies>
-            </checkbox>
             <input-text id="plainSize" domain="integer" label="Максимальная длина" min="1">
                 <dependencies>
                     <visibility on="attrType">
@@ -103,6 +106,7 @@
                     </dependencies>
                 </input-text>
             </row>
+
             <row>
                 <input-text id="minInteger" domain="integer" label="Минимальное значение">
                     <dependencies>
@@ -151,7 +155,6 @@
                     </visibility>
                 </dependencies>
             </input-text>
-
         </fields>
     </form>
 </simple-page>

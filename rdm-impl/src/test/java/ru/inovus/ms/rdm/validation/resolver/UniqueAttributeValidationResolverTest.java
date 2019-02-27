@@ -16,7 +16,9 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.model.UniqueAttributeValue;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -39,7 +41,7 @@ public class UniqueAttributeValidationResolverTest {
 
     @Before
     public void init() {
-        when(searchDataService.getPagedData(Matchers.any())).thenReturn(new CollectionPage<>());
+        when(searchDataService.getPagedData(Matchers.any())).thenReturn(new CollectionPage<>(0, emptyList(), new Criteria()));
         when(searchDataService.getPagedData(argThat(new ArgumentMatcher<DataCriteria>() {
             @Override
             public boolean matches(Object o) {
@@ -48,21 +50,18 @@ public class UniqueAttributeValidationResolverTest {
             }
         }))).thenReturn(new CollectionPage<>(
                 1,
-                singletonList(new LongRowValue(new StringField(TEST_ATTRIBUTE).valueOf(DB_CONTAINS_STRING))),
+                singletonList(new LongRowValue(1L, singletonList(new StringField(TEST_ATTRIBUTE).valueOf(DB_CONTAINS_STRING)))),
                 new Criteria()));
     }
 
     @Test
     public void testResolve() {
-
         UniqueAttributeValidationResolver resolver = new UniqueAttributeValidationResolver(attribute, searchDataService, TEST_STORAGE_CODE);
-        assertNull(resolver.resolve(UNIQUE_STRING));
-        Message actual = resolver.resolve(UNIQUE_STRING);
+        assertNull(resolver.resolve(new UniqueAttributeValue(null, UNIQUE_STRING)));
+        Message actual = resolver.resolve(new UniqueAttributeValue(null, UNIQUE_STRING));
         assertEquals(VALUE_NOT_UNIQUE_EXCEPTION_CODE, actual.getCode());
-        actual = resolver.resolve(DB_CONTAINS_STRING);
+        actual = resolver.resolve(new UniqueAttributeValue(null, DB_CONTAINS_STRING));
         assertEquals(DB_CONTAINS_VALUE_EXCEPTION_CODE, actual.getCode());
-
     }
-
 
 }

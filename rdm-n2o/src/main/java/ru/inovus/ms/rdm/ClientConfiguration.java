@@ -9,6 +9,7 @@ import net.n2oapp.framework.engine.data.N2oQueryProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.inovus.ms.rdm.criteria.RestCriteriaConstructor;
+import ru.inovus.ms.rdm.message.RdmExceptionHandler;
 import ru.inovus.ms.rdm.provider.ExportFileProvider;
 import ru.inovus.ms.rdm.provider.RdmParamConverterProvider;
 import ru.inovus.ms.rdm.provider.RowValueMapperPreparer;
@@ -31,6 +32,10 @@ public class ClientConfiguration {
         return new RowValueMapperPreparer();
     }
 
+    @Bean
+    public RdmExceptionHandler exceptionHandler() {
+        return new RdmExceptionHandler();
+    }
 
     @Bean
     public QueryProcessor queryProcessor(ContextProcessor contextProcessor,
