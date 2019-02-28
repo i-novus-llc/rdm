@@ -119,27 +119,31 @@ public class RdmSyncRestImpl implements RdmSyncRest {
                 compareDataCriteria.setPageNumber(i);
                 diff = compareService.compareData(compareDataCriteria);
                 for (DiffRowValue row : diff.getRows().getContent()) {
-                    Map<String, Object> mappedRow = new HashMap<>();
-                    for (DiffFieldValue diffFieldValue : row.getValues()) {
-                        Map<String, Object> mappedValue = mapValue(diffFieldValue.getField().getName(),
-                                DiffStatusEnum.DELETED.equals(row.getStatus()) ? diffFieldValue.getOldValue() : diffFieldValue.getNewValue(),
-                                fieldMappings, newVersion);
-                        if (mappedValue != null)
-                            mappedRow.putAll(mappedValue);
-                    }
-                    switch (row.getStatus()) {
-                        case INSERTED:
-                            dao.insertRow(versionMapping.getTable(), mappedRow);
-                            break;
-                        case DELETED:
-                            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(),
-                                    mappedRow.get(versionMapping.getPrimaryField()));
-                            break;
-                        case UPDATED:
-                            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow);
-                    }
+                    mergeRow(row, versionMapping, fieldMappings, newVersion);
                 }
             }
+        }
+    }
+
+    private void mergeRow(DiffRowValue row, VersionMapping versionMapping, List<FieldMapping> fieldMappings, RefBook newVersion) {
+        Map<String, Object> mappedRow = new HashMap<>();
+        for (DiffFieldValue diffFieldValue : row.getValues()) {
+            Map<String, Object> mappedValue = mapValue(diffFieldValue.getField().getName(),
+                    DiffStatusEnum.DELETED.equals(row.getStatus()) ? diffFieldValue.getOldValue() : diffFieldValue.getNewValue(),
+                    fieldMappings, newVersion);
+            if (mappedValue != null)
+                mappedRow.putAll(mappedValue);
+        }
+        switch (row.getStatus()) {
+            case INSERTED:
+                dao.insertRow(versionMapping.getTable(), mappedRow);
+                break;
+            case DELETED:
+                dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(),
+                        mappedRow.get(versionMapping.getPrimaryField()));
+                break;
+            case UPDATED:
+                dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow);
         }
     }
 
@@ -182,23 +186,28 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         for (int i = 0; i < list.getTotalElements(); i = i + MAX_SIZE) {
             searchDataCriteria.setPageNumber(page);
             list = versionService.search(versionMapping.getCode(), searchDataCriteria);
-            for (RefBookRowValue rdmRowValue : list.getContent()) {
-                Map<String, Object> mappedRow = new HashMap<>();
-                for (FieldValue fieldValue : rdmRowValue.getFieldValues()) {
-                    Map<String, Object> mappedValue = mapValue(fieldValue.getField(), fieldValue.getValue(), fieldMappings, newVersion);
-                    if (mappedValue != null)
-                        mappedRow.putAll(mappedValue);
-                }
-                Object primaryValue = mappedRow.get(primaryField);
-                if (existingDataIds.contains(primaryValue)) {
-                    //если запись существует, обновляем
-                    dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow);
-                } else {
-                    //создаем новую запись
-                    dao.insertRow(versionMapping.getTable(), mappedRow);
-                }
+            for (RefBookRowValue row : list.getContent()) {
+                insertRow(row, existingDataIds, versionMapping, fieldMappings, newVersion);
             }
             page++;
+        }
+    }
+
+    private void insertRow(RefBookRowValue row, List<Object> existingDataIds, VersionMapping versionMapping, List<FieldMapping> fieldMappings, RefBook newVersion) {
+        String primaryField = versionMapping.getPrimaryField();
+        Map<String, Object> mappedRow = new HashMap<>();
+        for (FieldValue fieldValue : row.getFieldValues()) {
+            Map<String, Object> mappedValue = mapValue(fieldValue.getField(), fieldValue.getValue(), fieldMappings, newVersion);
+            if (mappedValue != null)
+                mappedRow.putAll(mappedValue);
+        }
+        Object primaryValue = mappedRow.get(primaryField);
+        if (existingDataIds.contains(primaryValue)) {
+            //если запись существует, обновляем
+            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow);
+        } else {
+            //создаем новую запись
+            dao.insertRow(versionMapping.getTable(), mappedRow);
         }
     }
 }
