@@ -889,7 +889,9 @@ public class DraftServiceImpl implements DraftService {
     private void validateVersionExists(Integer versionId) {
         if (versionId == null || !versionRepository.exists(hasVersionId(versionId))) {
             throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
-        }    }
+        }
+    }
+
     private void validateAttributeExists(Integer versionId, String attribute) {
         validateDraftExists(versionId);
         Structure structure = versionService.getStructure(versionId);
