@@ -15,6 +15,8 @@ public interface RefBookVersionRepository extends
 
     RefBookVersionEntity findByStatusAndRefBookId(RefBookVersionStatus status, Integer refBookId);
 
+    RefBookVersionEntity findByVersionAndRefBookCode(String version, String refBookCode);
+
     List<RefBookVersionEntity> findAllByStatusAndRefBookId(RefBookVersionStatus status, Integer refBookId);
 
     List<RefBookVersionEntity> findByStorageCode(String storageCode);
