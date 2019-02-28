@@ -107,8 +107,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     private void mergeData(VersionMapping versionMapping, RefBook newVersion) {
         List<FieldMapping> fieldMappings = dao.getFieldMapping(versionMapping.getCode());
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria();
-//        compareDataCriteria.setOldVersionId(versionService.getVersion(versionMapping.getVersion(), versionMapping.getCode()).getId());
-        compareDataCriteria.setOldVersionId(264);
+        compareDataCriteria.setOldVersionId(versionService.getVersion(versionMapping.getVersion(), versionMapping.getCode()).getId());
         compareDataCriteria.setNewVersionId(newVersion.getId());
         compareDataCriteria.setCountOnly(true);
         RefBookDataDiff diff = compareService.compareData(compareDataCriteria);
