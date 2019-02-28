@@ -29,10 +29,7 @@ import ru.inovus.ms.rdm.sync.service.RdmSyncRestImpl;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 import static org.mockito.ArgumentMatchers.any;
@@ -72,7 +69,7 @@ public class RdmSyncRestTest {
         List<FieldMapping> fieldMappings = createFieldMappings();
         FieldMapping primaryFieldMapping = fieldMappings.stream().filter(f -> f.getSysField().equals(versionMapping.getPrimaryField())).findFirst().orElse(null);
         Page<RefBookRowValue> data = createFirstRdmData();
-        List<LinkedHashMap<String, Object>> dataMap = createFirstVerifyDataMap();
+        List<Map<String, Object>> dataMap = createFirstVerifyDataMap();
 
         when(dao.getVersionMapping(versionMapping.getCode())).thenReturn(versionMapping);
         when(dao.getFieldMapping(versionMapping.getCode())).thenReturn(fieldMappings);
@@ -100,7 +97,7 @@ public class RdmSyncRestTest {
         VersionMapping versionMapping = new VersionMapping(1, "TEST", firstVersion.getLastPublishedVersion(), firstVersion.getLastPublishedVersionFromDate(), "test_table", "id", "is_deleted");
         List<FieldMapping> fieldMappings = createFieldMappings();
         Page<RefBookRowValue> data = createSecondRdmData();
-        List<LinkedHashMap<String, Object>> dataMap = createSecondVerifyDataMap();
+        List<Map<String, Object>> dataMap = createSecondVerifyDataMap();
         RefBookDataDiff diff = prepareRefBookDataDiff();
 
         when(dao.getVersionMapping(versionMapping.getCode())).thenReturn(versionMapping);
@@ -181,21 +178,21 @@ public class RdmSyncRestTest {
         return new PageImpl<>(list, createSearchDataCriteria(), 3);
     }
 
-    private List<LinkedHashMap<String, Object>> createFirstVerifyDataMap() {
-        LinkedHashMap<String, Object> row1 = new LinkedHashMap<>();
+    private List<Map<String, Object>> createFirstVerifyDataMap() {
+        Map<String, Object> row1 = new HashMap<>();
         row1.put("id", BigInteger.valueOf(1L));
         row1.put("full_name", "London");
-        LinkedHashMap<String, Object> row2 = new LinkedHashMap<>();
+        Map<String, Object> row2 = new HashMap<>();
         row2.put("id", BigInteger.valueOf(2L));
         row2.put("full_name", "Moscow");
         return asList(row1, row2);
     }
 
-    private List<LinkedHashMap<String, Object>> createSecondVerifyDataMap() {
-        LinkedHashMap<String, Object> row1 = new LinkedHashMap<>();
+    private List<Map<String, Object>> createSecondVerifyDataMap() {
+        Map<String, Object> row1 = new HashMap<>();
         row1.put("id", BigInteger.valueOf(2L));
         row1.put("full_name", "Moscow");
-        LinkedHashMap<String, Object> row2 = new LinkedHashMap<>();
+        Map<String, Object> row2 = new HashMap<>();
         row2.put("id", BigInteger.valueOf(3L));
         row2.put("full_name", "Guadalupe");
         return asList(row1, row2);
