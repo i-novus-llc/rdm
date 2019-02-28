@@ -18,9 +18,9 @@ import io.swagger.annotations.ApiModelProperty;
 })
 public abstract class AttributeValidation {
 
-    @ApiModelProperty(readOnly = true)
+    @ApiModelProperty(accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private Integer versionId;
-    @ApiModelProperty(readOnly = true)
+    @ApiModelProperty(accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private String attribute;
     private AttributeValidationType type;
 

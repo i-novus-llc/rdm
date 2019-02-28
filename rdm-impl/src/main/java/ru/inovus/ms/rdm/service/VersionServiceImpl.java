@@ -51,6 +51,7 @@ import static ru.inovus.ms.rdm.util.ModelGenerator.versionModel;
 public class VersionServiceImpl implements VersionService {
 
     public static final String ROW_NOT_FOUND = "row.not.found";
+    public static final String VERSION_NOT_FOUND = "version.not.found";
 
     private RefBookVersionRepository versionRepository;
     private SearchDataService searchDataService;
@@ -90,7 +91,7 @@ public class VersionServiceImpl implements VersionService {
     public Page<RefBookRowValue> search(Integer versionId, SearchDataCriteria criteria) {
         RefBookVersionEntity version = versionRepository.findOne(versionId);
         if (version == null)
-            throw new NotFoundException(new Message("version.not.found", versionId));
+            throw new NotFoundException(new Message(VERSION_NOT_FOUND, versionId));
         return getRowValuesOfVersion(criteria, version);
     }
 
@@ -99,7 +100,7 @@ public class VersionServiceImpl implements VersionService {
     public RefBookVersion getById(Integer versionId) {
         RefBookVersionEntity versionEntity = versionRepository.findOne(versionId);
         if (versionEntity == null)
-            throw new NotFoundException(new Message("version.not.found", versionId));
+            throw new NotFoundException(new Message(VERSION_NOT_FOUND, versionId));
         return versionModel(versionEntity);
     }
 
@@ -108,7 +109,7 @@ public class VersionServiceImpl implements VersionService {
     public RefBookVersion getVersion(String version, String refBookCode) {
         RefBookVersionEntity versionEntity = versionRepository.findByVersionAndRefBookCode(version, refBookCode);
         if (versionEntity == null)
-            throw new NotFoundException(new Message("version.not.found", version));
+            throw new NotFoundException(new Message(VERSION_NOT_FOUND, version));
         return versionModel(versionEntity);
     }
 
