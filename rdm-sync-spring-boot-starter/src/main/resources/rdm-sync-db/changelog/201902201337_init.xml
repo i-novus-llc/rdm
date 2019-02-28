@@ -38,6 +38,8 @@
             COMMENT ON COLUMN rdm_sync.version.sys_table IS 'Наименование таблицы со справочником. Если справочник находится в схеме отличной от public, необходимо указывать схему';
             COMMENT ON COLUMN rdm_sync.version.unique_rdm_field IS 'Наименование колонки таблицы с уникальными кодами (в рамках НСИ)';
             COMMENT ON COLUMN rdm_sync.version.deleted_field IS 'Наименование колонки таблицы с признаком удаления записи';
+
+            CREATE INDEX version_code_idx ON  rdm_sync.version USING btree(code);
         </sql>
     </changeSet>
 
@@ -62,6 +64,41 @@
             COMMENT ON COLUMN rdm_sync.field_mapping.sys_field IS 'Код поля таблицы БД Модуля Системы';
             COMMENT ON COLUMN rdm_sync.field_mapping.sys_data_type IS 'Тип поля таблицы БД Модуля Системы';
             COMMENT ON COLUMN rdm_sync.field_mapping.rdm_field IS 'Код поля справочника НСИ';
+
+            CREATE INDEX field_mapping_code_idx ON  rdm_sync.field_mapping USING btree(code);
+        </sql>
+    </changeSet>
+
+    <changeSet id="201902201337_init_4" author="lgalimova" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="log" schemaName="rdm_sync"/>
+            </not>
+        </preConditions>
+        <sql>
+            create table rdm_sync.log(
+                id bigserial,
+                code varchar(50) not null,
+                current_version varchar(50),
+                new_version varchar(50),
+                status "varchar"(5) not null,
+                "date" timestamp not null,
+                "message" text,
+                "stack" text,
+                constraint pk_log_id PRIMARY KEY(id)
+            );
+            COMMENT ON TABLE rdm_sync.log IS 'Журнал обновления версий';
+            COMMENT ON COLUMN rdm_sync.log.id IS 'Уникальный идентификатор';
+            COMMENT ON COLUMN rdm_sync.log.code IS 'Код справочника';
+            COMMENT ON COLUMN rdm_sync.log.current_version IS 'Текущая версия';
+            COMMENT ON COLUMN rdm_sync.log.new_version IS 'Новая версия';
+            COMMENT ON COLUMN rdm_sync.log.status IS 'Статус обновления';
+            COMMENT ON COLUMN rdm_sync.log.date IS 'Дата и время обновления';
+            COMMENT ON COLUMN rdm_sync.log.message IS 'Текст ошибки';
+            COMMENT ON COLUMN rdm_sync.log.stack IS 'Техническая информация об ошибке';
+
+            CREATE INDEX log_date_idx ON  rdm_sync.log USING btree("date");
+            CREATE INDEX log_date_code_idx ON  rdm_sync.log USING btree("date", code);
         </sql>
     </changeSet>
 

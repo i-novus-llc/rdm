@@ -22,6 +22,7 @@ import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.sync.model.DataTypeEnum;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
+import ru.inovus.ms.rdm.sync.service.RdmLoggingService;
 import ru.inovus.ms.rdm.sync.service.RdmMappingService;
 import ru.inovus.ms.rdm.sync.service.RdmSyncDao;
 import ru.inovus.ms.rdm.sync.service.RdmSyncRestImpl;
@@ -57,6 +58,8 @@ public class RdmSyncRestTest {
     private CompareService compareService;
     @Mock
     private RdmMappingService mappingService;
+    @Mock
+    private RdmLoggingService rdmLoggingService;
 
     /**
      * Кейс: Обновление справочника в первый раз, версия в маппинге не указана. В таблице клиента уже есть запись с id=1, из НСИ приходят записи с id=1,2.

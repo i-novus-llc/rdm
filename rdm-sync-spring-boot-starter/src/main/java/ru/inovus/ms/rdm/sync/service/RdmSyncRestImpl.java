@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.sync.service;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +18,10 @@ import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.sync.criteria.LogCriteria;
 import ru.inovus.ms.rdm.sync.model.DataTypeEnum;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
+import ru.inovus.ms.rdm.sync.model.Log;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
 
@@ -33,7 +36,7 @@ import java.util.stream.Collectors;
  */
 
 public class RdmSyncRestImpl implements RdmSyncRest {
-    public static final Logger logger = LoggerFactory.getLogger(RdmSyncRestImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(RdmSyncRestImpl.class);
     private static final int MAX_SIZE = 100;
 
     @Autowired
@@ -45,6 +48,8 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     @Autowired
     private RdmMappingService mappingService;
     @Autowired
+    private RdmLoggingService loggingService;
+    @Autowired
     private RdmSyncRest self;
     @Autowired
     private RdmSyncDao dao;
@@ -54,29 +59,45 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     public void update() {
         List<VersionMapping> refbooks = dao.getVersionMappings();
         for (VersionMapping refbook : refbooks) {
-            try {
-                self.update(refbook.getCode());
-            } catch (RuntimeException e) {
-                logger.error(String.format("Ошибка при обновлении справочника с кодом %s", refbook.getCode()), e);
-            }
+            self.update(refbook.getCode());
         }
     }
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void update(String refbookCode) {
-        VersionMapping versionMapping = getVersionMapping(refbookCode);
-        RefBook newVersion = getNewVersionFromRdm(refbookCode);
-        if (versionMapping.getVersion() == null) {
-            //заливаем с нуля
-            uploadNew(versionMapping, newVersion);
-        } else if (!versionMapping.getVersion().equals(newVersion.getLastPublishedVersion()) &&
-                !versionMapping.getPublicationDate().equals(newVersion.getLastPublishedVersionFromDate())) {
-            //если версия и дата публикация не совпадают - нужно обновить справочник
-            mergeData(versionMapping, newVersion);
+        VersionMapping versionMapping;
+        RefBook newVersion;
+        try {
+            versionMapping = getVersionMapping(refbookCode);
+            newVersion = getNewVersionFromRdm(refbookCode);
+        } catch (RuntimeException e) {
+            logger.error(String.format("Ошибка при получении новой версии справочника с кодом %s", refbookCode), e);
+            loggingService.logError(refbookCode, null, null, e.getMessage(), ExceptionUtils.getStackTrace(e));
+            return;
         }
-        //обновляем версию в таблице версий клиента
-        dao.updateVersionMapping(versionMapping.getId(), newVersion.getLastPublishedVersion(), newVersion.getLastPublishedVersionFromDate());
+        try {
+            if (versionMapping.getVersion() == null) {
+                //заливаем с нуля
+                uploadNew(versionMapping, newVersion);
+            } else if (!versionMapping.getVersion().equals(newVersion.getLastPublishedVersion()) &&
+                    !versionMapping.getPublicationDate().equals(newVersion.getLastPublishedVersionFromDate())) {
+                //если версия и дата публикация не совпадают - нужно обновить справочник
+                mergeData(versionMapping, newVersion);
+            }
+            //обновляем версию в таблице версий клиента
+            dao.updateVersionMapping(versionMapping.getId(), newVersion.getLastPublishedVersion(), newVersion.getLastPublishedVersionFromDate());
+        } catch (RuntimeException e) {
+            logger.error(String.format("Ошибка при обновлении справочника с кодом %s", refbookCode), e);
+            loggingService.logError(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion(), e.getMessage(), ExceptionUtils.getStackTrace(e));
+            return;
+        }
+        loggingService.logOk(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion());
+    }
+
+    @Override
+    public List<Log> getLog(LogCriteria criteria) {
+        return loggingService.getList(criteria.getDate(), criteria.getRefbookCode());
     }
 
     private VersionMapping getVersionMapping(String refbookCode) {

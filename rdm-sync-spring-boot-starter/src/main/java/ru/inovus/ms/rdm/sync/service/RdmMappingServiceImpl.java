@@ -126,18 +126,19 @@ public class RdmMappingServiceImpl implements RdmMappingService {
             throw new ClassCastException(getClassCastError(FieldType.REFERENCE, clientType, value));
         }
         Reference reference = (Reference)value;
+        String refValue = reference.getValue();
         switch (clientType) {
             case VARCHAR:
-                return reference;
+                return refValue;
             case INTEGER:
-                return new BigInteger(reference.getValue());
+                return new BigInteger(refValue);
             case FLOAT:
-                return Float.parseFloat(reference.getValue());
+                return Float.parseFloat(refValue);
             case BOOLEAN:
-                return Boolean.parseBoolean(reference.getValue());
+                return Boolean.parseBoolean(refValue);
             case DATE:
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
-                return LocalDate.parse(reference.getValue(), formatter);
+                return LocalDate.parse(refValue, formatter);
             case JSONB:
                 return reference;
             default:

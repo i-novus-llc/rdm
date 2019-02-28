@@ -47,6 +47,12 @@ public class RdmClientSyncAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    public RdmLoggingService rdmLoggingService() {
+        return new RdmLoggingService();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
     public RdmSyncDao rdmSyncDao() {
         return new RdmSyncDaoImpl();
     }
