@@ -13,7 +13,7 @@ import java.util.List;
  * @since 27.02.2019
  */
 public class RdmLoggingService {
-    private enum Status {error, ok}
+    private enum Status {ERROR, OK}
 
     @Autowired
     private RdmSyncDao dao;
@@ -24,11 +24,11 @@ public class RdmLoggingService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logError(String refbookCode, String oldVersion, String newVersion, String message, String stack) {
-        dao.log(Status.error.name(), refbookCode, oldVersion, newVersion, message, stack);
+        dao.log(Status.ERROR.name(), refbookCode, oldVersion, newVersion, message, stack);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logOk(String refbookCode, String oldVersion, String newVersion) {
-        dao.log(Status.ok.name(), refbookCode, oldVersion, newVersion, null, null);
+        dao.log(Status.OK.name(), refbookCode, oldVersion, newVersion, null, null);
     }
 }
