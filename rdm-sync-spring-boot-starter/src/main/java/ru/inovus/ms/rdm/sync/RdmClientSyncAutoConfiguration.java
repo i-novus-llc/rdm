@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.sync;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -22,12 +21,9 @@ import ru.inovus.ms.rdm.sync.service.*;
 @EnableConfigurationProperties(RdmClientSyncProperties.class)
 public class RdmClientSyncAutoConfiguration {
 
-    @Autowired
-    private RdmClientSyncProperties properties;
-
     @Bean
     @ConditionalOnMissingBean
-    public RdmClientSyncConfig rdmClientSyncConfig() {
+    public RdmClientSyncConfig rdmClientSyncConfig(RdmClientSyncProperties properties) {
         String url = properties.getUrl();
         if (StringUtils.isEmpty(url)) {
             throw new IllegalArgumentException("Rdm client synchronizer properties not configured properly: url is missing");

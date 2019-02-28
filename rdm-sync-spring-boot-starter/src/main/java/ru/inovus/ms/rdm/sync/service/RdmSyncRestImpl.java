@@ -22,8 +22,9 @@ import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
 
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -106,7 +107,8 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     private void mergeData(VersionMapping versionMapping, RefBook newVersion) {
         List<FieldMapping> fieldMappings = dao.getFieldMapping(versionMapping.getCode());
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria();
-        compareDataCriteria.setOldVersionId(versionService.getVersion(versionMapping.getVersion(), versionMapping.getCode()).getId());
+//        compareDataCriteria.setOldVersionId(versionService.getVersion(versionMapping.getVersion(), versionMapping.getCode()).getId());
+        compareDataCriteria.setOldVersionId(264);
         compareDataCriteria.setNewVersionId(newVersion.getId());
         compareDataCriteria.setCountOnly(true);
         RefBookDataDiff diff = compareService.compareData(compareDataCriteria);
@@ -118,17 +120,13 @@ public class RdmSyncRestImpl implements RdmSyncRest {
                 compareDataCriteria.setPageNumber(i);
                 diff = compareService.compareData(compareDataCriteria);
                 for (DiffRowValue row : diff.getRows().getContent()) {
-                    LinkedHashMap<String, Object> mappedRow = new LinkedHashMap<>();
+                    Map<String, Object> mappedRow = new HashMap<>();
                     for (DiffFieldValue diffFieldValue : row.getValues()) {
-                        FieldMapping fieldMapping = fieldMappings.stream().filter(m -> m.getRdmField().equals(diffFieldValue.getField().getName())).findAny().orElse(null);
-                        if (fieldMapping == null) {
-                            //поле не ведется в системе
-                            continue;
-                        }
-                        FieldType rdmType = newVersion.getStructure().getAttribute(fieldMapping.getRdmField()).getType();
-                        DataTypeEnum clientType = DataTypeEnum.getByDataType(fieldMapping.getSysDataType());
-                        Object mappedValue = mappingService.map(rdmType, clientType, DiffStatusEnum.DELETED.equals(row.getStatus()) ? diffFieldValue.getOldValue() : diffFieldValue.getNewValue());
-                        mappedRow.put(fieldMapping.getSysField(), mappedValue);
+                        Map<String, Object> mappedValue = mapValue(diffFieldValue.getField().getName(),
+                                DiffStatusEnum.DELETED.equals(row.getStatus()) ? diffFieldValue.getOldValue() : diffFieldValue.getNewValue(),
+                                fieldMappings, newVersion);
+                        if (mappedValue != null)
+                            mappedRow.putAll(mappedValue);
                     }
                     switch (row.getStatus()) {
                         case INSERTED:
@@ -144,6 +142,19 @@ public class RdmSyncRestImpl implements RdmSyncRest {
                 }
             }
         }
+    }
+
+    private Map<String, Object> mapValue(String rdmField, Object value, List<FieldMapping> fieldMappings, RefBook newVersion) {
+        FieldMapping fieldMapping = fieldMappings.stream().filter(m -> m.getRdmField().equals(rdmField)).findAny().orElse(null);
+        if (fieldMapping == null) {
+            //поле не ведется в системе
+            return null;
+        }
+        FieldType rdmType = newVersion.getStructure().getAttribute(fieldMapping.getRdmField()).getType();
+        DataTypeEnum clientType = DataTypeEnum.getByDataType(fieldMapping.getSysDataType());
+        Map<String, Object> mappedValue = new HashMap<>();
+        mappedValue.put(fieldMapping.getSysField(), mappingService.map(rdmType, clientType, value));
+        return mappedValue;
     }
 
     private void validateStructureChanges(VersionMapping versionMapping, List<FieldMapping> fieldMappings, RefBookDataDiff diff) {
@@ -173,17 +184,11 @@ public class RdmSyncRestImpl implements RdmSyncRest {
             searchDataCriteria.setPageNumber(page);
             list = versionService.search(versionMapping.getCode(), searchDataCriteria);
             for (RefBookRowValue rdmRowValue : list.getContent()) {
-                LinkedHashMap<String, Object> mappedRow = new LinkedHashMap<>();
+                Map<String, Object> mappedRow = new HashMap<>();
                 for (FieldValue fieldValue : rdmRowValue.getFieldValues()) {
-                    FieldMapping fieldMapping = fieldMappings.stream().filter(m -> m.getRdmField().equals(fieldValue.getField())).findAny().orElse(null);
-                    if (fieldMapping == null) {
-                        //поле не ведется в системе
-                        continue;
-                    }
-                    FieldType rdmType = newVersion.getStructure().getAttribute(fieldMapping.getRdmField()).getType();
-                    DataTypeEnum clientType = DataTypeEnum.getByDataType(fieldMapping.getSysDataType());
-                    Object mappedValue = mappingService.map(rdmType, clientType, fieldValue.getValue());
-                    mappedRow.put(fieldMapping.getSysField(), mappedValue);
+                    Map<String, Object> mappedValue = mapValue(fieldValue.getField(), fieldValue.getValue(), fieldMappings, newVersion);
+                    if (mappedValue != null)
+                        mappedRow.putAll(mappedValue);
                 }
                 Object primaryValue = mappedRow.get(primaryField);
                 if (existingDataIds.contains(primaryValue)) {

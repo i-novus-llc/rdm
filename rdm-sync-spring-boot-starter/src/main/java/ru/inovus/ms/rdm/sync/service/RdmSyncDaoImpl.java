@@ -8,7 +8,10 @@ import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -75,35 +78,34 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     }
 
     @Override
-    public void insertRow(String table, LinkedHashMap<String, Object> row) {
+    public void insertRow(String table, Map<String, Object> row) {
         String keys = row.keySet().stream().map(this::addDoubleQuotes).collect(Collectors.joining(","));
         List<String> values = new ArrayList<>();
+        List<Object> data = new ArrayList<>();
         for (Map.Entry<String, Object> entry : row.entrySet()) {
             if (entry.getValue() == null) {
                 values.add("null");
             } else {
                 values.add("?");
+                data.add(entry.getValue());
             }
         }
-        Collection<Object> data = row.values();
-        data.removeAll(Collections.singleton(null));
         jdbcTemplate.update(String.format("insert into %s (%s) values(%s)", table, keys, String.join(",", values)),
                 data.toArray());
     }
 
-    public void updateRow(String table, String primaryField, String isDeletedField, LinkedHashMap<String, Object> row) {
+    public void updateRow(String table, String primaryField, String isDeletedField, Map<String, Object> row) {
         List<String> keys = new ArrayList<>();
+        List<Object> data = new ArrayList<>();
         for (Map.Entry<String, Object> entry : row.entrySet()) {
             String field = entry.getKey();
-            Object value = entry.getValue();
-            if (value == null) {
+            if (entry.getValue() == null) {
                 keys.add(addDoubleQuotes(field) + " = null");
             } else {
                 keys.add(addDoubleQuotes(field) + " = ?");
+                data.add(entry.getValue());
             }
         }
-        List<Object> data = new ArrayList<>(row.values());
-        data.removeAll(Collections.singleton(null));
         data.add(row.get(primaryField));
         jdbcTemplate.update(String.format("update %s set %s where %s=? and (%s is null or %s=false)",
                 table, String.join(",", keys), addDoubleQuotes(primaryField), addDoubleQuotes(isDeletedField), addDoubleQuotes(isDeletedField)),

@@ -4,8 +4,8 @@ import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
 
 import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author lgalimova
@@ -44,9 +44,23 @@ public interface RdmSyncDao {
      * @param table таблица справочника на стороне клиента
      * @param row строка с данными
      */
-    void insertRow(String table, LinkedHashMap<String, Object> row);
+    void insertRow(String table, Map<String, Object> row);
 
-    void updateRow(String table, String primaryField, String isDeletedField, LinkedHashMap<String, Object> row);
+    /**
+     * Изменить строку в справочник клиента
+     * @param table таблица справочника на стороне клиента
+     * @param primaryField поле, являющееся первичном ключом справочника, в таблице клиента
+     * @param isDeletedField поле, отвечающее за признак удаления, в таблице клиента
+     * @param row строка с данными
+     */
+    void updateRow(String table, String primaryField, String isDeletedField, Map<String, Object> row);
 
+    /**
+     * Пометить запись справочника клиента удаленной
+     * @param table таблица справочника на стороне клиента
+     * @param primaryField поле, являющееся первичном ключом справочника, в таблице клиента
+     * @param isDeletedField поле, отвечающее за признак удаления, в таблице клиента
+     * @param primaryValue значение первичного ключа записи
+     */
     void markDeleted(String table, String primaryField, String isDeletedField, Object primaryValue);
 }
