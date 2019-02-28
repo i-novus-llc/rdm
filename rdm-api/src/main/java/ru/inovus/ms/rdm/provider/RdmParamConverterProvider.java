@@ -20,6 +20,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -27,7 +28,9 @@ import java.util.*;
 @Provider
 public class RdmParamConverterProvider implements ParamConverterProvider {
 
-    private LocalDateTimeParamConverter localDateParamConverter = new LocalDateTimeParamConverter();
+    private LocalDateParamConverter localDateParamConverter = new LocalDateParamConverter();
+
+    private LocalDateTimeParamConverter localDateTimeParamConverter = new LocalDateTimeParamConverter();
 
     private OffsetDateTimeParamConverter offsetDateTimeParamConverter = new OffsetDateTimeParamConverter();
 
@@ -37,6 +40,9 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
     public <T> ParamConverter<T> getConverter(Class<T> rawType, Type genericType, Annotation[] annotations) {
 
         if (LocalDateTime.class.equals(rawType))
+            //noinspection unchecked
+            return (ParamConverter<T>) localDateTimeParamConverter;
+        else if (LocalDate.class.equals(rawType))
             //noinspection unchecked
             return (ParamConverter<T>) localDateParamConverter;
         else if (rawType.isEnum())
@@ -68,6 +74,19 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
             return (ParamConverter<T>) listConverter;
         }
         return null;
+    }
+
+    private static class LocalDateParamConverter implements ParamConverter<LocalDate> {
+
+        @Override
+        public LocalDate fromString(String str) {
+            return TimeUtils.parseLocalDate(str);
+        }
+
+        @Override
+        public String toString(LocalDate value) {
+            return TimeUtils.format(value);
+        }
     }
 
     private static class LocalDateTimeParamConverter implements ParamConverter<LocalDateTime> {

@@ -1,8 +1,10 @@
 package ru.inovus.ms.rdm.sync.service;
 
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
+import ru.inovus.ms.rdm.sync.model.Log;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -67,4 +69,6 @@ public interface RdmSyncDao {
     void markDeleted(String table, String primaryField, String isDeletedField, Object primaryValue);
 
     void log(String status, String refbookCode, String oldVersion, String newVersion, String message, String stack);
+
+    List<Log> getList(LocalDate date, String refbookCode);
 }

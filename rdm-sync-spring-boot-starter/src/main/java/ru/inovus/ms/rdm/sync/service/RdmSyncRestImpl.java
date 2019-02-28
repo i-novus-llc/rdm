@@ -18,8 +18,10 @@ import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.sync.criteria.LogCriteria;
 import ru.inovus.ms.rdm.sync.model.DataTypeEnum;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
+import ru.inovus.ms.rdm.sync.model.Log;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
 
@@ -91,6 +93,11 @@ public class RdmSyncRestImpl implements RdmSyncRest {
             return;
         }
         loggingService.logOk(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion());
+    }
+
+    @Override
+    public List<Log> getLog(LogCriteria criteria) {
+        return loggingService.getList(criteria.getDate(), criteria.getRefbookCode());
     }
 
     private VersionMapping getVersionMapping(String refbookCode) {

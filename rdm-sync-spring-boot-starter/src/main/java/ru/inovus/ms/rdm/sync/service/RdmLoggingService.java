@@ -3,6 +3,10 @@ package ru.inovus.ms.rdm.sync.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import ru.inovus.ms.rdm.sync.model.Log;
+
+import java.time.LocalDate;
+import java.util.List;
 
 /**
  * @author lgalimova
@@ -13,6 +17,10 @@ public class RdmLoggingService {
 
     @Autowired
     private RdmSyncDao dao;
+
+    public List<Log> getList(LocalDate date, String refbookCode) {
+        return dao.getList(date, refbookCode);
+    }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logError(String refbookCode, String oldVersion, String newVersion, String message, String stack) {

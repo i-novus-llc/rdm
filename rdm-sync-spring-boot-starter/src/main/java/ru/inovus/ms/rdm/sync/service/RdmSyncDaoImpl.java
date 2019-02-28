@@ -2,13 +2,13 @@ package ru.inovus.ms.rdm.sync.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.sync.model.DataTypeEnum;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
+import ru.inovus.ms.rdm.sync.model.Log;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
@@ -126,6 +126,27 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     public void log(String status, String refbookCode, String oldVersion, String newVersion, String message, String stack) {
         jdbcTemplate.update("insert into rdm_sync.log (code, current_version, new_version, status, date, message, stack) values(?,?,?,?,?,?,?)",
                 refbookCode, oldVersion, newVersion, status, new Date(), message, stack);
+    }
+
+    @Override
+    public List<Log> getList(LocalDate date, String refbookCode) {
+        LocalDate end = date.plusDays(1);
+        List<Object> args = new ArrayList<>();
+        args.add(date);
+        args.add(end);
+        if (refbookCode != null)
+            args.add(refbookCode);
+        return jdbcTemplate.query(
+                String.format("select id, code, current_version, new_version, status, date, message, stack from rdm_sync.log where date>=? and date<? %s", refbookCode != null ? "and code=?" : ""),
+                (rs, rowNum) -> new Log(rs.getLong(1),
+                        rs.getString(2),
+                        rs.getString(3),
+                        rs.getString(4),
+                        rs.getString(5),
+                        rs.getTimestamp(6).toLocalDateTime(),
+                        rs.getString(7),
+                        rs.getString(8)),
+                args.toArray());
     }
 
     private String addDoubleQuotes(String value) {
