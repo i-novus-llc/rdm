@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 @ApiModel
 public class AuditLog {
 
-    @ApiModelProperty(readOnly = true)
+    @ApiModelProperty(accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private Integer id;
     @ApiModelProperty(required = true)
     private String user;
