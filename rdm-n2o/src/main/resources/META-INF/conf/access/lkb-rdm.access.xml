@@ -3,7 +3,7 @@
         <url-access pattern="${rdm.user.admin.url}"/>
     </role>
 
-    <permission id="nsi.edit">
+    <permission id="nsi.domrf.edit">
         <object-access object-id="refBook" operations="*"/>
         <object-access object-id="attribute" operations="*"/>
         <object-access object-id="data" operations="*"/>
@@ -13,13 +13,8 @@
         <page-access page-id="attribute"/>
     </permission>
 
-    <permission id="audit">
+    <permission id="nsi.domrf.audit">
         <page-access page-id="audit"/>
-    </permission>
-
-    <permission id="nsi.read">
-        <object-access object-id="refBook"/>
-        <object-access object-id="attribute"/>
     </permission>
 
 </access>
