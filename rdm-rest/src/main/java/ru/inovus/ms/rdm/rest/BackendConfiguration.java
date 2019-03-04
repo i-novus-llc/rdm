@@ -8,10 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
-import ru.inovus.ms.rdm.provider.ExportFileProvider;
-import ru.inovus.ms.rdm.provider.NotFoundExceptionMapper;
-import ru.inovus.ms.rdm.provider.RdmParamConverterProvider;
-import ru.inovus.ms.rdm.provider.RowValueMapperPreparer;
+import ru.inovus.ms.rdm.provider.*;
 import ru.inovus.ms.rdm.util.FileNameGenerator;
 
 @Configuration
@@ -46,6 +43,13 @@ public class BackendConfiguration {
     @ConditionalOnClass(Messages.class)
     NotFoundExceptionMapper notFoundExceptionMapper(Messages messages) {
         return new NotFoundExceptionMapper(messages);
+    }
+
+    @Bean
+    @Primary
+    @ConditionalOnClass(Messages.class)
+    UserExceptionMapper userExceptionMapper(Messages messages) {
+        return new UserExceptionMapper(messages);
     }
 
 }

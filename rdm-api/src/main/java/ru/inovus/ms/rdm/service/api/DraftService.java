@@ -22,6 +22,7 @@ public interface DraftService {
     @ApiOperation("Создание нового черновика")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Черновик создан"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/create/{refBookId}")
@@ -31,6 +32,7 @@ public interface DraftService {
     @ApiOperation("Создание нового черновика")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Черновик создан"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/createFromVersion/{versionId}")
@@ -40,6 +42,7 @@ public interface DraftService {
     @ApiOperation("Создание нового черновика из файла")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Черновик создан"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/createByFile/{refBookId}")
@@ -53,6 +56,7 @@ public interface DraftService {
     @ApiOperation("Добавление или изменение строки черновика")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Черновик обновлен"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/update/{draftId}")
@@ -62,6 +66,7 @@ public interface DraftService {
     @ApiOperation("Удаление строки черновика")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Черновик обновлен"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/delete/{draftId}/{systemId}")
@@ -72,6 +77,7 @@ public interface DraftService {
     @ApiOperation("Удаление строк черновика")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Черновик обновлен"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/deleteAll/{draftId}")
@@ -81,6 +87,7 @@ public interface DraftService {
     @ApiOperation("Обновление черновика из файла")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Черновик обновлен"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
 
@@ -93,7 +100,7 @@ public interface DraftService {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 400, message = "Некорректный запрос"),
-            @ApiResponse(code = 404, message = "Нет черновика")
+            @ApiResponse(code = 404, message = "Нет ресурса")
     })
     Page<RefBookRowValue> search(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
                           @BeanParam SearchDataCriteria criteria);
@@ -101,6 +108,11 @@ public interface DraftService {
     @POST
     @Path("{draftId}/publish")
     @ApiOperation("Публикация черновика")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Черновик опубликован"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
     void publish(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
                  @ApiParam("Версия") @QueryParam("version") String version,
                  @ApiParam("Дата начала действия версии") @QueryParam("fromDate") LocalDateTime fromDate,
@@ -111,7 +123,8 @@ public interface DraftService {
     @ApiOperation("Удаление черновика")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Черновик удален"),
-            @ApiResponse(code = 404, message = "Нет черновика")
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
     })
     void remove(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId);
 
@@ -120,6 +133,10 @@ public interface DraftService {
     @GET
     @Path("/{draftId}")
     @ApiOperation("Получение черновика по идентификатору")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Черновик найден"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
     Draft getDraft(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId);
 
     @POST
@@ -127,6 +144,7 @@ public interface DraftService {
     @ApiOperation("Добавление атрибута справочника")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     void createAttribute(@ApiParam("Модель атрибута справочника") CreateAttribute createAttribute);
@@ -136,6 +154,7 @@ public interface DraftService {
     @ApiOperation("Изменение атрибута справочника")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     void updateAttribute(@ApiParam("Модель атрибута справочника") UpdateAttribute updateAttribute);
@@ -145,6 +164,7 @@ public interface DraftService {
     @ApiOperation("Удаление атрибута справочника")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     void deleteAttribute(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
@@ -155,6 +175,7 @@ public interface DraftService {
     @ApiOperation("Добавление настраиваемой проверки")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     void addAttributeValidation(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
@@ -192,6 +213,7 @@ public interface DraftService {
     @ApiOperation("Обновление настраиваемых проверок")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     void updateAttributeValidations(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,

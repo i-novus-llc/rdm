@@ -4,9 +4,101 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
 
-    <changeSet id="201902201337_init" author="lgalimova" dbms="postgresql">
+    <changeSet id="201902201337_init_1" author="lgalimova" dbms="postgresql">
         <sql>
             CREATE SCHEMA IF NOT EXISTS rdm_sync;
+        </sql>
+    </changeSet>
+
+    <changeSet id="201902201337_init_2" author="lgalimova" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="version" schemaName="rdm_sync"/>
+            </not>
+        </preConditions>
+        <sql>
+            create table rdm_sync.version(
+                id serial,
+                code varchar(50) not null,
+                version varchar(50),
+                publication_dt timestamp,
+                update_dt timestamp,
+                sys_table varchar(100) not null,
+                unique_rdm_field varchar(100) not null,
+                deleted_field varchar(100) not null,
+            constraint pk_version_id PRIMARY KEY(id)
+            );
+
+            COMMENT ON TABLE rdm_sync.version IS 'Версии справочников НСИ';
+            COMMENT ON COLUMN rdm_sync.version.id IS 'Уникальный идентификатор';
+            COMMENT ON COLUMN rdm_sync.version.code IS 'Код справочника';
+            COMMENT ON COLUMN rdm_sync.version.version IS 'Версия справочника';
+            COMMENT ON COLUMN rdm_sync.version.publication_dt IS 'Дата публикации справочника';
+            COMMENT ON COLUMN rdm_sync.version.update_dt IS 'Дата последнего обновления справочника';
+            COMMENT ON COLUMN rdm_sync.version.sys_table IS 'Наименование таблицы со справочником. Если справочник находится в схеме отличной от public, необходимо указывать схему';
+            COMMENT ON COLUMN rdm_sync.version.unique_rdm_field IS 'Наименование колонки таблицы с уникальными кодами (в рамках НСИ)';
+            COMMENT ON COLUMN rdm_sync.version.deleted_field IS 'Наименование колонки таблицы с признаком удаления записи';
+
+            CREATE INDEX version_code_idx ON  rdm_sync.version USING btree(code);
+        </sql>
+    </changeSet>
+
+    <changeSet id="201902201337_init_3" author="lgalimova" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="field_mapping" schemaName="rdm_sync"/>
+            </not>
+        </preConditions>
+        <sql>
+            create table rdm_sync.field_mapping(
+                id serial,
+                code varchar(50) not null,
+                sys_field varchar(100) not null,
+                sys_data_type varchar(20) not null,
+                rdm_field varchar(100) not null,
+            constraint pk_field_mapping_id PRIMARY KEY(id)
+            );
+            COMMENT ON TABLE rdm_sync.field_mapping IS 'Соответствие полей справочников';
+            COMMENT ON COLUMN rdm_sync.field_mapping.id IS 'Уникальный идентификатор';
+            COMMENT ON COLUMN rdm_sync.field_mapping.code IS 'Код справочника';
+            COMMENT ON COLUMN rdm_sync.field_mapping.sys_field IS 'Код поля таблицы БД Модуля Системы';
+            COMMENT ON COLUMN rdm_sync.field_mapping.sys_data_type IS 'Тип поля таблицы БД Модуля Системы';
+            COMMENT ON COLUMN rdm_sync.field_mapping.rdm_field IS 'Код поля справочника НСИ';
+
+            CREATE INDEX field_mapping_code_idx ON  rdm_sync.field_mapping USING btree(code);
+        </sql>
+    </changeSet>
+
+    <changeSet id="201902201337_init_4" author="lgalimova" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="log" schemaName="rdm_sync"/>
+            </not>
+        </preConditions>
+        <sql>
+            create table rdm_sync.log(
+                id bigserial,
+                code varchar(50) not null,
+                current_version varchar(50),
+                new_version varchar(50),
+                status "varchar"(5) not null,
+                "date" timestamp not null,
+                "message" text,
+                "stack" text,
+                constraint pk_log_id PRIMARY KEY(id)
+            );
+            COMMENT ON TABLE rdm_sync.log IS 'Журнал обновления версий';
+            COMMENT ON COLUMN rdm_sync.log.id IS 'Уникальный идентификатор';
+            COMMENT ON COLUMN rdm_sync.log.code IS 'Код справочника';
+            COMMENT ON COLUMN rdm_sync.log.current_version IS 'Текущая версия';
+            COMMENT ON COLUMN rdm_sync.log.new_version IS 'Новая версия';
+            COMMENT ON COLUMN rdm_sync.log.status IS 'Статус обновления';
+            COMMENT ON COLUMN rdm_sync.log.date IS 'Дата и время обновления';
+            COMMENT ON COLUMN rdm_sync.log.message IS 'Текст ошибки';
+            COMMENT ON COLUMN rdm_sync.log.stack IS 'Техническая информация об ошибке';
+
+            CREATE INDEX log_date_idx ON  rdm_sync.log USING btree("date");
+            CREATE INDEX log_date_code_idx ON  rdm_sync.log USING btree("date", code);
         </sql>
     </changeSet>
 
