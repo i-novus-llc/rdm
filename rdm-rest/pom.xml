@@ -118,9 +118,6 @@
                     </plugin>
                 </plugins>
             </build>
-            <properties>
-                <maven.test.skip>true</maven.test.skip>
-            </properties>
         </profile>
         <profile>
             <id>fnsi</id>
