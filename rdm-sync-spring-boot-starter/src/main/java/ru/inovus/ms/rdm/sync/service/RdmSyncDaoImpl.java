@@ -28,7 +28,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
 
     @Override
     public List<VersionMapping> getVersionMappings() {
-        return jdbcTemplate.query("select id,code,version,publication_dt,sys_table,unique_rdm_field,deleted_field from rdm_sync.version",
+        return jdbcTemplate.query("select id,code,version,publication_dt,sys_table,unique_sys_field,deleted_field from rdm_sync.version",
                 (rs, rowNum) -> new VersionMapping(
                         rs.getInt(1),
                         rs.getString(2),
@@ -42,7 +42,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
 
     @Override
     public VersionMapping getVersionMapping(String refbookCode) {
-        List<VersionMapping> list = jdbcTemplate.query("select id,code,version,publication_dt,sys_table,unique_rdm_field,deleted_field from rdm_sync.version where code=?",
+        List<VersionMapping> list = jdbcTemplate.query("select id,code,version,publication_dt,sys_table,unique_sys_field,deleted_field from rdm_sync.version where code=?",
                 (rs, rowNum) -> new VersionMapping(
                         rs.getInt(1),
                         rs.getString(2),
