@@ -102,4 +102,13 @@
         </sql>
     </changeSet>
 
+    <changeSet id="201903051130_init_5" author="amardanova" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="version" schemaName="rdm_sync"/>
+        </preConditions>
+        <sql>
+            ALTER TABLE rdm_sync.version RENAME COLUMN unique_rdm_field TO unique_sys_field;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
