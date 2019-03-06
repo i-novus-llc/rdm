@@ -88,13 +88,16 @@ public class BufferedRowsPersister implements RowsProcessor {
         try {
             draftDataService.addRows(storageCode, rowValues);
             this.result = this.result.addResult(new Result(rowValues.size(), buffer.size(), null));
+        } catch (NotUniqueException e) {
+            setErrorResult(ROW_NOT_UNIQUE_EXCEPTION_CODE, e);
         } catch (Exception e) {
-            String errorCode = e instanceof NotUniqueException
-                    ? ROW_NOT_UNIQUE_EXCEPTION_CODE
-                    : ROWS_ERROR_EXCEPTION_CODE;
-            this.result = this.result.addResult(new Result(0, buffer.size(), singletonList(new Message(errorCode, e.getMessage()))));
-            logger.error("can not add rows", e);
+            setErrorResult(ROWS_ERROR_EXCEPTION_CODE, e);
         }
+    }
+
+    private void setErrorResult(String errorCode, Exception e) {
+        this.result = this.result.addResult(new Result(0, buffer.size(), singletonList(new Message(errorCode, e.getMessage()))));
+        logger.error("can not add rows", e);
     }
 
 }
