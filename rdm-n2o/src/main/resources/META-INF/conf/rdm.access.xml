@@ -9,7 +9,12 @@
         <object-access object-id="data" operations="*"/>
         <page-access page-id="passport"/>
         <page-access page-id="refbook"/>
+        <page-access page-id="createRefBook"/>
         <page-access page-id="attribute"/>
+    </permission>
+
+    <permission id="audit">
+        <page-access page-id="audit"/>
     </permission>
 
     <permission id="nsi.read">
@@ -18,4 +23,3 @@
     </permission>
 
 </access>
-

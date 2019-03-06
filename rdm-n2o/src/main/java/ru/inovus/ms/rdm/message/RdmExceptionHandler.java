@@ -10,7 +10,6 @@ import net.n2oapp.framework.api.metadata.local.CompiledQuery;
 import net.n2oapp.framework.api.util.RestClient;
 import net.n2oapp.framework.engine.data.N2oOperationExceptionHandler;
 import net.n2oapp.platform.jaxrs.RestException;
-import net.n2oapp.platform.jaxrs.RestMessage;
 
 import java.util.List;
 import java.util.stream.IntStream;
@@ -53,7 +52,6 @@ public class RdmExceptionHandler extends N2oOperationExceptionHandler implements
             RestException restException = (RestException) ((N2oException) e).getCause();
             if (restException.getErrors() == null)
                 return null;
-            restException.getErrors().add(new RestMessage.Error("second"));
             String message = IntStream
                     .rangeClosed(1, restException.getErrors().size())
                     .mapToObj(i -> i + ") " + restException.getErrors().get(i - 1).getMessage())
