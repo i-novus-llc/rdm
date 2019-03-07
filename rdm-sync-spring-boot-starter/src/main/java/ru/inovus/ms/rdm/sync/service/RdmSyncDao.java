@@ -35,12 +35,20 @@ public interface RdmSyncDao {
     void updateVersionMapping(Integer id, String version, LocalDateTime publishDate);
 
     /**
+     *
      * @param table          таблица справочника на стороне клиента
      * @param primaryField   поле, являющееся первичном ключом справочника, в таблице клиента
-     * @param isDeletedField поле, отвечающее за признак удаления, в таблице клиента
      * @return список идентификаторов данных справочника клиента
      */
-    List<Object> getDataIds(String table, FieldMapping primaryField, String isDeletedField);
+    List<Object> getDataIds(String table, FieldMapping primaryField);
+
+    /**
+     *
+     * @param table таблица справочника на стороне клиента
+     * @param primaryField поле, являющееся первичном ключом справочника, в таблице клиента
+     * @return true, если идентификатор есть в таблице
+     */
+    boolean isIdExists(String table, String primaryField, Object primaryValue);
 
     /**
      * Вставить строку в справочник клиента
@@ -60,13 +68,14 @@ public interface RdmSyncDao {
     void updateRow(String table, String primaryField, String isDeletedField, Map<String, Object> row);
 
     /**
-     * Пометить запись справочника клиента удаленной
+     * Пометить запись справочника клиента (не)удаленной
      * @param table таблица справочника на стороне клиента
      * @param primaryField поле, являющееся первичном ключом справочника, в таблице клиента
      * @param isDeletedField поле, отвечающее за признак удаления, в таблице клиента
      * @param primaryValue значение первичного ключа записи
+     * @param deleted новое значение для поля isDeletedField
      */
-    void markDeleted(String table, String primaryField, String isDeletedField, Object primaryValue);
+    void markDeleted(String table, String primaryField, String isDeletedField, Object primaryValue, boolean deleted);
 
     void log(String status, String refbookCode, String oldVersion, String newVersion, String message, String stack);
 

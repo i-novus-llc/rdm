@@ -66,11 +66,17 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     }
 
     @Override
-    public List<Object> getDataIds(String table, FieldMapping primaryField, String isDeletedField) {
+    public List<Object> getDataIds(String table, FieldMapping primaryField) {
         DataTypeEnum dataType = DataTypeEnum.getByDataType(primaryField.getSysDataType());
-        return jdbcTemplate.query(String.format("select %s from %s where %s is null or %s=false",
-                addDoubleQuotes(primaryField.getSysField()), table, addDoubleQuotes(isDeletedField), addDoubleQuotes(isDeletedField)),
+        return jdbcTemplate.query(String.format("select %s from %s", addDoubleQuotes(primaryField.getSysField()), table),
                 (rs, rowNum) -> rdmMappingService.map(FieldType.STRING, dataType, rs.getObject(1)));
+    }
+
+    @Override
+    public boolean isIdExists(String table, String primaryField, Object primaryValue) {
+        return jdbcTemplate.queryForObject(String.format("select count(*)>0 from %s where %s=?", table, addDoubleQuotes(primaryField)),
+                Boolean.class,
+                primaryValue);
     }
 
     @Override
@@ -109,15 +115,15 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
             }
         }
         data.add(row.get(primaryField));
-        jdbcTemplate.update(String.format("update %s set %s where %s=? and (%s is null or %s=false)",
-                table, String.join(",", keys), addDoubleQuotes(primaryField), addDoubleQuotes(isDeletedField), addDoubleQuotes(isDeletedField)),
+        jdbcTemplate.update(String.format("update %s set %s where %s=?",
+                table, String.join(",", keys), addDoubleQuotes(primaryField)),
                 data.toArray());
     }
 
     @Override
-    public void markDeleted(String table, String primaryField, String isDeletedField, Object primaryValue) {
-        jdbcTemplate.update(String.format("update %s set %s=true where %s=? and (%s is null or %s=false)", table,
-                addDoubleQuotes(isDeletedField), addDoubleQuotes(primaryField), addDoubleQuotes(isDeletedField), addDoubleQuotes(isDeletedField)),
+    public void markDeleted(String table, String primaryField, String isDeletedField, Object primaryValue, boolean deleted) {
+        jdbcTemplate.update(String.format("update %s set %s=? where %s=?", table, addDoubleQuotes(isDeletedField), addDoubleQuotes(primaryField)),
+                deleted,
                 primaryValue
         );
     }
