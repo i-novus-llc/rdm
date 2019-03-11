@@ -1,6 +1,6 @@
 package ru.inovus.ms.rdm.sync.service;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.cxf.jaxrs.utils.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
