@@ -74,7 +74,8 @@ public final class RefBookVersionPredicates {
         LocalDateTime now = LocalDateTime.now();
         return isPublished().and(
                 QRefBookVersionEntity.refBookVersionEntity.fromDate.loe(now).and(
-                        QRefBookVersionEntity.refBookVersionEntity.toDate.after(now)));
+                        QRefBookVersionEntity.refBookVersionEntity.toDate.after(now).or(
+                                QRefBookVersionEntity.refBookVersionEntity.toDate.isNull())));
     }
 
     public static BooleanExpression isCodeContains(String code) {
