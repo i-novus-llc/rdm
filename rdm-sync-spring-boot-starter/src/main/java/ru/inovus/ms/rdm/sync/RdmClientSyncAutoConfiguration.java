@@ -17,6 +17,7 @@ import ru.inovus.ms.rdm.provider.RowValueMapperPreparer;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
 import ru.inovus.ms.rdm.sync.service.*;
 
 import javax.sql.DataSource;
@@ -59,7 +60,7 @@ public class RdmClientSyncAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public RdmSyncRestImpl rdmSyncRest() {
+    public RdmSyncRest rdmSyncRest() {
         return new RdmSyncRestImpl();
     }
 

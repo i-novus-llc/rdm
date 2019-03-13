@@ -23,14 +23,16 @@ public class RdmExceptionHandler extends N2oOperationExceptionHandler implements
     @Override
     public N2oException handle(CompiledObject.Operation operation, DataSet dataSet, Exception e) {
         N2oException exception = handle(e);
-        if (exception != null) return exception;
+        if (exception != null)
+            return exception;
         return super.handle(operation, dataSet, e);
     }
 
     @Override
     public N2oException handle(CompiledQuery compiledQuery, N2oPreparedCriteria n2oPreparedCriteria, Exception e) {
         N2oException exception = handle(e);
-        if (exception != null) return exception;
+        if (exception != null)
+            return exception;
         if (e instanceof N2oException)
             return (N2oException) e;
         return new N2oException(e);
@@ -49,14 +51,19 @@ public class RdmExceptionHandler extends N2oOperationExceptionHandler implements
                 return new RdmRestException(message, stackTrace, e);
             }
         } else if (e instanceof N2oException) {
-            RestException restException = (RestException) ((N2oException) e).getCause();
-            if (restException.getErrors() == null)
-                return null;
-            String message = IntStream
-                    .rangeClosed(1, restException.getErrors().size())
-                    .mapToObj(i -> i + ") " + restException.getErrors().get(i - 1).getMessage())
-                    .collect(joining("; "));
-            return new N2oUserException(message);
+            N2oException n2oex = (N2oException) e;
+            if (n2oex.getCause() instanceof RestException) {
+                RestException restException = (RestException) n2oex.getCause();
+                if (restException.getErrors() == null)
+                    return null;
+                String message = IntStream
+                        .rangeClosed(1, restException.getErrors().size())
+                        .mapToObj(i -> i + ") " + restException.getErrors().get(i - 1).getMessage())
+                        .collect(joining("; "));
+                return new N2oUserException(message, n2oex.getMessage());
+            } else {
+                return n2oex;
+            }
         }
         return null;
     }

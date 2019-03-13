@@ -10,25 +10,17 @@
     </dependency>
 ```
 
-2. Добавить в application.properties настройки клиента:
-```  
-rdm.client.sync.url=${rdm.rest.url}  
-cxf.jaxrs.client.address=${rdm.rest.url}  
-cxf.jaxrs.client.classes-scan=true
-cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.service.api  
-```  
-  
-3. Добавить в base-changelog.xml:
+2. Добавить в base-changelog.xml:
  ```  
    <includeAll path="classpath*:/rdm-sync-db/changelog"/>  
 ```  
   
-4. Необязательно. Чтобы методы сервиса отображались в swagger клиента, в application.properties добавить к настройкe swagger пакет синхронизатора через запятую:
+3. Необязательно. Чтобы методы сервиса отображались в swagger клиента, в application.properties добавить к настройкe swagger пакет синхронизатора через запятую:
 ```  
 jaxrs.swagger.resource-package=..., ru.inovus.ms.rdm.service  
 ```  
   
-5. Запустить клиентское приложение, чтобы отработал liquibase.
+4. Запустить клиентское приложение, чтобы отработал liquibase.
 Если пункт 2 выполнен правильно, то в базе данных должна создаться схема rdm_sync с таблицами:  
  * version - список справочников которые необходимо синхронизировать с НСИ;  
  * field_mapping - маппинг полей;  
@@ -45,7 +37,7 @@ jaxrs.swagger.resource-package=..., ru.inovus.ms.rdm.service
   * с плавающей точкой: numeric, decimal  
   * для полей, имеющих ссылку на другой справочник:  jsonb  
   
-6. Обновление всех справочников, которые ведутся в системе клиента:
+5. Обновление всех справочников, которые ведутся в системе клиента:
 ```  
 {CLIENT_SERVICE_URL}/rdm/update  
 ```  
