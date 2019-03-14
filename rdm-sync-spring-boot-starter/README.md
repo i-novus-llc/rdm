@@ -10,11 +10,6 @@
     </dependency>
 ```
 
-2. Добавить в base-changelog.xml:
- ```  
-   <includeAll path="classpath*:/rdm-sync-db/changelog"/>  
-```  
-  
 3. Необязательно. Чтобы методы сервиса отображались в swagger клиента, в application.properties добавить к настройкe swagger пакет синхронизатора через запятую:
 ```  
 jaxrs.swagger.resource-package=..., ru.inovus.ms.rdm.service  
