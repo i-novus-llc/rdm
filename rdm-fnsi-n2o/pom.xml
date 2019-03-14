@@ -17,7 +17,6 @@
             <artifactId>rdm-api</artifactId>
         </dependency>
 
-        <!--todo:esadykov Это тут точно нужно?-->
         <dependency>
             <groupId>net.n2oapp.framework</groupId>
             <artifactId>n2o-spring-boot-starter</artifactId>
