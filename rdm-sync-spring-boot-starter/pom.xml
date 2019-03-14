@@ -3,7 +3,7 @@
 
     <groupId>ru.inovus.ms.rdm</groupId>
     <artifactId>rdm-sync-spring-boot-starter</artifactId>
-    <version>1.15-SNAPSHOT</version>
+    <version>1.15</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -15,7 +15,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <properties>
-        <rdm.version>1.15-SNAPSHOT</rdm.version>
+        <rdm.version>1.15</rdm.version>
     </properties>
 
     <dependencies>
@@ -92,4 +92,8 @@
             </plugin>
         </plugins>
     </build>
+
+  <scm>
+    <tag>1.15</tag>
+  </scm>
 </project>
