@@ -26,6 +26,7 @@ public class XmlFileGenerator extends PerRowFileGenerator {
     public XmlFileGenerator(Iterator<Row> rowIterator, RefBookVersion version) {
         super(rowIterator, version.getStructure());
         this.passport = version.getPassport();
+        this.passport.put("Код справочника", version.getCode());
     }
 
     @Override
