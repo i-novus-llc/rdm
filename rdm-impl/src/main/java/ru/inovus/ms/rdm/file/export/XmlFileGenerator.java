@@ -5,13 +5,17 @@ import org.slf4j.LoggerFactory;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.RefBookVersion;
 import ru.inovus.ms.rdm.model.Row;
+import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
+
+import static java.util.stream.Collectors.toList;
 
 public class XmlFileGenerator extends PerRowFileGenerator {
 
@@ -25,8 +29,10 @@ public class XmlFileGenerator extends PerRowFileGenerator {
 
     public XmlFileGenerator(Iterator<Row> rowIterator, RefBookVersion version) {
         super(rowIterator, version.getStructure());
-        this.passport = version.getPassport();
-        this.passport.put("Код справочника", version.getCode());
+        this.passport = new LinkedHashMap<>() {{
+            put("code", version.getCode());
+            putAll(version.getPassport());
+        }};
     }
 
     @Override
@@ -50,9 +56,9 @@ public class XmlFileGenerator extends PerRowFileGenerator {
     protected void write(Row row) {
         try {
             writer.writeStartElement("row");
-            for (String fieldCode : row.getData().keySet()) {
-                if (getStructure().getAttribute(fieldCode) != null
-                        && row.getData().get(fieldCode) != null) {
+            for (String fieldCode :
+                    getStructure().getAttributes().stream().map(Structure.Attribute::getCode).collect(toList())) {
+                if (row.getData().get(fieldCode) != null) {
                     String stringValue = ConverterUtil.toString(row.getData().get(fieldCode));
                     if (stringValue == null) {
                         writer.writeEmptyElement(fieldCode);

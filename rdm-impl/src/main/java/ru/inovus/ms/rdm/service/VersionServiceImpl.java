@@ -20,6 +20,7 @@ import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.entity.VersionFileEntity;
 import ru.inovus.ms.rdm.enumeration.FileType;
+import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.file.FileStorage;
@@ -39,6 +40,7 @@ import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.springframework.util.StringUtils.isEmpty;
@@ -116,7 +118,7 @@ public class VersionServiceImpl implements VersionService {
     @Override
     public Page<RefBookRowValue> search(String refBookCode, OffsetDateTime date, SearchDataCriteria criteria) {
         RefBookVersionEntity version = versionRepository.findActualOnDate(refBookCode, date.toLocalDateTime());
-        return version != null ? getRowValuesOfVersion(criteria, version) : new PageImpl<>(Collections.emptyList());
+        return version != null ? getRowValuesOfVersion(criteria, version) : new PageImpl<>(emptyList());
     }
 
     @Override
@@ -275,7 +277,7 @@ public class VersionServiceImpl implements VersionService {
 
         RefBookVersion versionModel = versionModel(version);
 
-        String path = null;
+        String path;
         try (InputStream is = generateVersionFile(versionModel, fileType)) {
             path = fileStorage.saveContent(is, fileNameGenerator.generateZipName(versionModel, fileType));
         } catch (IOException e) {
@@ -283,19 +285,20 @@ public class VersionServiceImpl implements VersionService {
         }
         if (path == null || !fileStorage.isExistContent(path))
             throw new RdmException("cannot generate file");
+
         VersionFileEntity fileEntity = versionFileRepository.findByVersionIdAndType(versionModel.getId(), fileType);
-        if (fileEntity == null) {
+        if (fileEntity == null && !RefBookVersionStatus.DRAFT.equals(version.getStatus())) {
             RefBookVersionEntity versionEntity = new RefBookVersionEntity();
             versionEntity.setId(versionModel.getId());
             fileEntity = new VersionFileEntity(versionEntity, fileType, path);
+            versionFileRepository.save(fileEntity);
         }
-        versionFileRepository.save(fileEntity);
 
         return path;
     }
 
     private InputStream generateVersionFile(RefBookVersion versionModel, FileType fileType) {
-        VersionDataIterator dataIterator = new VersionDataIterator(this, Collections.singletonList(versionModel.getId()));
+        VersionDataIterator dataIterator = new VersionDataIterator(this, singletonList(versionModel.getId()));
         try (PerRowFileGenerator fileGenerator = PerRowFileGeneratorFactory
                 .getFileGenerator(dataIterator, versionModel, fileType);
              Archiver archiver = new Archiver()) {
