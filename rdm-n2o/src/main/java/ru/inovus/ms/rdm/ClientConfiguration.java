@@ -1,15 +1,22 @@
 package ru.inovus.ms.rdm;
 
+import net.n2oapp.cache.template.SyncCacheTemplate;
 import net.n2oapp.framework.api.context.ContextProcessor;
 import net.n2oapp.framework.api.data.DomainProcessor;
 import net.n2oapp.framework.api.data.QueryExceptionHandler;
 import net.n2oapp.framework.api.data.QueryProcessor;
+import net.n2oapp.framework.api.register.MetadataRegister;
+import net.n2oapp.framework.config.compile.pipeline.operation.CompileCacheOperation;
+import net.n2oapp.framework.config.compile.pipeline.operation.SourceCacheOperation;
 import net.n2oapp.framework.engine.data.N2oInvocationFactory;
 import net.n2oapp.framework.engine.data.N2oQueryProcessor;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.inovus.ms.rdm.criteria.RestCriteriaConstructor;
 import ru.inovus.ms.rdm.message.RdmExceptionHandler;
+import ru.inovus.ms.rdm.operation.RdmCompileCacheOperation;
+import ru.inovus.ms.rdm.operation.RdmSourceCacheOperation;
 import ru.inovus.ms.rdm.provider.ExportFileProvider;
 import ru.inovus.ms.rdm.provider.RdmParamConverterProvider;
 import ru.inovus.ms.rdm.provider.RowValueMapperPreparer;
@@ -45,6 +52,16 @@ public class ClientConfiguration {
         N2oQueryProcessor queryProcessor = new N2oQueryProcessor(invocationFactory, contextProcessor, domainProcessor, exceptionHandler);
         queryProcessor.setCriteriaResolver(new RestCriteriaConstructor());
         return queryProcessor;
+    }
+
+    @Bean
+    CompileCacheOperation compileCacheOperation(CacheManager cacheManager) {
+        return new RdmCompileCacheOperation(new SyncCacheTemplate(cacheManager));
+    }
+
+    @Bean
+    SourceCacheOperation sourceCacheOperation(CacheManager cacheManager, MetadataRegister metadataRegister) {
+        return new RdmSourceCacheOperation(new SyncCacheTemplate(cacheManager), metadataRegister);
     }
 
 }
