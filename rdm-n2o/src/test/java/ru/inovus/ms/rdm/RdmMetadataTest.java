@@ -1,10 +1,11 @@
 package ru.inovus.ms.rdm;
 
-import net.n2oapp.framework.api.metadata.local.CompilerHolder;
 import net.n2oapp.framework.config.N2oApplicationBuilder;
-import net.n2oapp.framework.config.metadata.CompileProcessorAdapter;
 import net.n2oapp.framework.config.metadata.compile.N2oCompileProcessor;
-import net.n2oapp.framework.config.metadata.pack.*;
+import net.n2oapp.framework.config.metadata.pack.N2oAllDataPack;
+import net.n2oapp.framework.config.metadata.pack.N2oAllPagesPack;
+import net.n2oapp.framework.config.metadata.pack.N2oAllValidatorsPack;
+import net.n2oapp.framework.config.metadata.pack.N2oHeaderPack;
 import net.n2oapp.framework.config.reader.XmlMetadataLoader;
 import net.n2oapp.framework.config.register.scanner.XmlInfoScanner;
 import net.n2oapp.framework.config.test.N2oTestBase;
@@ -37,7 +38,7 @@ public class RdmMetadataTest extends N2oTestBase {
         b.packs(new N2oAllDataPack(), new N2oAllPagesPack(), new N2oAllValidatorsPack(), new N2oHeaderPack());
         b.scanners(new XmlInfoScanner());
         builder.scan();
-        new CompilerHolder(new CompileProcessorAdapter(new N2oCompileProcessor(builder.getEnvironment()), builder.getEnvironment().getMetadataRegister()));
+        new N2oCompileProcessor(builder.getEnvironment());
     }
 
     @Test

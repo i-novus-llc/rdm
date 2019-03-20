@@ -75,10 +75,6 @@
                 <param id="regExp" mapping="[1].regExp" domain="string"/>
             </in-parameters>
             <validations white-list="checkCode,checkMinMaxInt"/>
-            <!--<validations activate="whiteList">-->
-            <!--<validation ref-id="checkCode"/>-->
-            <!--</validations>-->
-            <!--<success-text>Атрибут успешо сохранен</success-text>-->
         </operation>
 
         <operation id="delete" name="Удаление атрибута" success-text="Атрибут удален"
@@ -97,11 +93,6 @@
                 <param id="versionId" mapping="[0]" domain="integer"/>
                 <param id="code" mapping="[1]" domain="string"/>
             </in-parameters>
-            <!--<confirmation-text>Вы действительно хотите удалить атрибут справочника?</confirmation-text>-->
-            <!--<success-text>Атрибут успешно удален</success-text>-->
-            <!--<validations activate="whiteList">-->
-            <!--<validation ref-id="checkAttributeDeletable"/>-->
-            <!--</validations>-->
         </operation>
     </operations>
 
@@ -120,35 +111,5 @@
             maxInteger > minInteger
         </condition>
 
-    <!--<constraint id="checkAttributeDeletable" level="error">-->
-    <!--<invocation>-->
-    <!--<n2o:java method="checkAttributeDeletable">-->
-    <!--<n2o:spring bean="validationController"/>-->
-    <!--</n2o:java>-->
-    <!--</invocation>-->
-    <!--<in-parameters>-->
-    <!--<param name="versionId" mapping="[0]" domain="integer"/>-->
-    <!--</in-parameters>-->
-    <!--<result expression="#this == true"/>-->
-    <!--<message>Единственное поле не может быть удалено. Пожалуйста, удалите черновик и добавьте заново</message>-->
-    <!--</constraint>-->
-
-    <!--<constraint id="checkAttributeCodeNotExists" level="error">-->
-    <!--<invocation>-->
-    <!--<n2o:java method="checkAttributeCodeNotExists">-->
-    <!--<n2o:arguments>-->
-    <!--<n2o:argument class="java.lang.Integer"/>-->
-    <!--<n2o:argument class="java.lang.String"/>-->
-    <!--</n2o:arguments>-->
-    <!--<n2o:spring bean="validationController"/>-->
-    <!--</n2o:java>-->
-    <!--</invocation>-->
-    <!--<in-parameters>-->
-    <!--<param name="versionId" mapping="[0]" domain="integer"/>-->
-    <!--<param name="code" mapping="[1]" domain="string"/>-->
-    <!--</in-parameters>-->
-    <!--<result expression="#this == true"/>-->
-    <!--<message>Атрибут с указанным кодом уже существует. Задайте другой код и повторите сохранение, пожалуйста</message>-->
-    <!--</constraint>-->
     </validations>
 </object>
