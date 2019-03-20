@@ -16,14 +16,17 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class PassportPdfFileGenerator implements FileGenerator {
 
-    PassportValueRepository passportValueRepository;
-    Integer versionId;
-    String head;
+    private PassportValueRepository passportValueRepository;
+    private Integer versionId;
+    private String head;
+    private String code;
 
-    public PassportPdfFileGenerator(PassportValueRepository passportValueRepository, Integer versionId, String head) {
+    public PassportPdfFileGenerator(PassportValueRepository passportValueRepository, Integer versionId,
+                                    String head, String code) {
         this.passportValueRepository = passportValueRepository;
         this.versionId = versionId;
         this.head = head;
+        this.code = code;
     }
 
     @Override
@@ -35,6 +38,7 @@ public class PassportPdfFileGenerator implements FileGenerator {
 
         Map<String, String> passportToWrite = new LinkedHashMap<>();
 
+        passportToWrite.put("Код справочника", code);
         for (PassportValueEntity value : values) {
             passportToWrite.put(value.getAttribute().getName(), String.valueOf(value.getValue()));
         }

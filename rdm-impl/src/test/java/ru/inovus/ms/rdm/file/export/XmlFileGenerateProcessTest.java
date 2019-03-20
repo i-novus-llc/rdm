@@ -30,8 +30,9 @@ public class XmlFileGenerateProcessTest {
     public void testXmlFileGenerate() throws IOException, SAXException {
 
         RefBookVersion version = new RefBookVersion();
+        version.setCode("код справочника");
         version.setStructure(createFullTestStructure());
-        version.setPassport(new LinkedHashMap<String, String>() {{
+        version.setPassport(new LinkedHashMap<>() {{
             put("name", "наименование справочника");
             put("shortName", "краткое наим-ие");
             put("description", "описание");
@@ -70,7 +71,7 @@ public class XmlFileGenerateProcessTest {
 
     public static List<Map<String, Object>> createRowsValues() {
         List<Map<String, Object>> rowValues = new ArrayList<>();
-        rowValues.add(new LinkedHashMap<String, Object>() {{
+        rowValues.add(new LinkedHashMap<>() {{
             put("reference", "2");
             put("date", parseLocalDate("02.02.2002"));
             put("boolean", true);
@@ -78,7 +79,7 @@ public class XmlFileGenerateProcessTest {
             put("integer", BigInteger.valueOf(2));
             put("float", BigDecimal.valueOf(2.2));
         }});
-        rowValues.add(new LinkedHashMap<String, Object>() {{
+        rowValues.add(new LinkedHashMap<>() {{
             put("reference", "5");
             put("date", parseLocalDate("05.05.2005"));
             put("boolean", false);

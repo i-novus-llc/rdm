@@ -837,7 +837,9 @@ public class DraftServiceImpl implements DraftService {
                 .getFileGenerator(dataIterator, versionModel, fileType);
              Archiver archiver = new Archiver()) {
             if (includePassport) {
-                try (FileGenerator passportPdfFileGenerator = new PassportPdfFileGenerator(passportValueRepository, versionModel.getId(), passportFileHead)) {
+                try (FileGenerator passportPdfFileGenerator =
+                             new PassportPdfFileGenerator(passportValueRepository, versionModel.getId(), passportFileHead,
+                                     versionModel.getCode())) {
                     archiver.addEntry(passportPdfFileGenerator, fileNameGenerator.generateName(versionModel, FileType.PDF));
                 }
             }
