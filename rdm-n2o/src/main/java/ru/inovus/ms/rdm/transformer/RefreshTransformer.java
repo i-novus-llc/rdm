@@ -7,6 +7,7 @@ import net.n2oapp.framework.api.metadata.compile.CompileProcessor;
 import net.n2oapp.framework.api.metadata.compile.CompileTransformer;
 import net.n2oapp.framework.api.metadata.meta.action.invoke.InvokeAction;
 import net.n2oapp.framework.api.metadata.meta.saga.RefreshSaga;
+import net.n2oapp.framework.config.metadata.compile.N2oCompileProcessor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -22,7 +23,7 @@ public class RefreshTransformer implements CompileTransformer<InvokeAction, Comp
 
     @Override
     public InvokeAction transform(InvokeAction invokeAction, CompileContext<?, ?> compileContext, CompileProcessor compileProcessor) {
-        if (invokeAction.getId().endsWith("_r") || compileContext.getRoute(compileProcessor).endsWith("_r")) {
+        if (invokeAction.getId().endsWith("_r") || compileContext.getRoute((N2oCompileProcessor) compileProcessor).endsWith("_r")) {
             RefreshSaga refresh = new RefreshSaga();
             refresh.setType(RefreshSaga.Type.widget);
             refresh.getOptions().setWidgetId("main_edit_version_select");
