@@ -19,7 +19,7 @@
         <maven.compiler.target>11</maven.compiler.target>
         <encoding>UTF-8</encoding>
         <liquibase.version>3.6.3-SNAPSHOT</liquibase.version>
-        <apache.poi.version>4.0.1</apache.poi.version>
+        <apache.poi.version>3.17</apache.poi.version>
         <filestorage.version>2.1-SNAPSHOT</filestorage.version>
         <vds.version>2.3-SNAPSHOT</vds.version>
         <n2o.version>7.0.7</n2o.version>
@@ -147,7 +147,7 @@
             <dependency>
                 <groupId>com.monitorjbl</groupId>
                 <artifactId>xlsx-streamer</artifactId>
-                <version>2.1.0</version>
+                <version>1.2.1</version>
             </dependency>
 
             <dependency>

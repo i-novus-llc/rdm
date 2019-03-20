@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm;
 
+import net.n2oapp.framework.api.metadata.compile.CompileProcessor;
 import net.n2oapp.framework.api.metadata.local.CompilerHolder;
 import net.n2oapp.framework.config.N2oApplicationBuilder;
 import net.n2oapp.framework.config.metadata.CompileProcessorAdapter;
