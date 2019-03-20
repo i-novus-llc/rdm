@@ -10,6 +10,8 @@ import net.n2oapp.framework.api.metadata.local.CompiledQuery;
 import net.n2oapp.framework.api.util.RestClient;
 import net.n2oapp.framework.engine.data.N2oOperationExceptionHandler;
 import net.n2oapp.platform.jaxrs.RestException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.stream.IntStream;
@@ -20,6 +22,7 @@ import static java.util.stream.Collectors.joining;
  * Получение сообщений для пользователя из исключений от REST сервисов.
  */
 public class RdmExceptionHandler extends N2oOperationExceptionHandler implements QueryExceptionHandler {
+    private static final Logger logger = LoggerFactory.getLogger(RdmExceptionHandler.class);
     @Override
     public N2oException handle(CompiledObject.Operation operation, DataSet dataSet, Exception e) {
         N2oException exception = handle(e);
@@ -40,6 +43,7 @@ public class RdmExceptionHandler extends N2oOperationExceptionHandler implements
 
     @SuppressWarnings("all")
     private N2oException handle(Exception e) {
+        logger.error("handled error", e);
         if (e instanceof RestClient.RestException) {
             RestClient.RestException restException = (RestClient.RestException) e;
             if (restException.getHttpStatus() >= 400 && restException.getHttpStatus() < 500) {
