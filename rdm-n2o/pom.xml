@@ -30,11 +30,6 @@
 
         <dependency>
             <groupId>net.n2oapp.framework</groupId>
-            <artifactId>n2o-header</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>net.n2oapp.framework</groupId>
             <artifactId>n2o-engine-rest</artifactId>
         </dependency>
 
