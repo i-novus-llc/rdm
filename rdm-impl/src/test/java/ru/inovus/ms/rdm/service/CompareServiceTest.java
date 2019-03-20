@@ -187,8 +187,8 @@ public class CompareServiceTest {
         newVersionP.setId(NEW_ID_P);
         newVersionP.setStatus(RefBookVersionStatus.PUBLISHED);
 
-        when(versionRepository.getOne(OLD_ID_P)).thenReturn(oldVersionP);
-        when(versionRepository.getOne(NEW_ID_P)).thenReturn(newVersionP);
+        when(versionRepository.findOne(OLD_ID_P)).thenReturn(oldVersionP);
+        when(versionRepository.findOne(NEW_ID_P)).thenReturn(newVersionP);
 
         RefBookVersionEntity oldVersion = new RefBookVersionEntity();
         oldVersion.setId(OLD_ID);
@@ -202,8 +202,8 @@ public class CompareServiceTest {
         newVersion.setStructure(new Structure(asList(id, code, common, name, upd2, typeI), emptyList()));
         newVersion.setStorageCode("storage" + NEW_ID);
 
-        when(versionRepository.getOne(OLD_ID)).thenReturn(oldVersion);
-        when(versionRepository.getOne(NEW_ID)).thenReturn(newVersion);
+        when(versionRepository.findOne(OLD_ID)).thenReturn(oldVersion);
+        when(versionRepository.findOne(NEW_ID)).thenReturn(newVersion);
 
         RefBookVersionEntity oldVersion1 = new RefBookVersionEntity();
         oldVersion1.setId(OLD_ID_1);
@@ -217,8 +217,8 @@ public class CompareServiceTest {
         newVersion1.setStructure(new Structure(asList(id, common), emptyList()));
         newVersion1.setStorageCode("storage" + NEW_ID_1);
 
-        when(versionRepository.getOne(OLD_ID_1)).thenReturn(oldVersion1);
-        when(versionRepository.getOne(NEW_ID_1)).thenReturn(newVersion1);
+        when(versionRepository.findOne(OLD_ID_1)).thenReturn(oldVersion1);
+        when(versionRepository.findOne(NEW_ID_1)).thenReturn(newVersion1);
     }
 
     private void prepareOldVersionData() {

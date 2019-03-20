@@ -20,8 +20,7 @@ public interface RefBookService {
 
     @ApiResponses({
             @ApiResponse(code = 200, message = "Список справочников"),
-            @ApiResponse(code = 400, message = "Некорректный запрос"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
+            @ApiResponse(code = 400, message = "Некорректный запрос")
     })
     Page<RefBook> search(@BeanParam RefBookCriteria criteria);
 
@@ -47,7 +46,7 @@ public interface RefBookService {
     @ApiOperation("Создание нового справочника")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Справочник"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
+            @ApiResponse(code = 400, message = "Некорректный запрос")
     })
     RefBook create(RefBookCreateRequest refBookCreateRequest);
 
@@ -55,6 +54,7 @@ public interface RefBookService {
     @ApiOperation("Изменение метаданных справочника")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Справочник"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     RefBook update(RefBookUpdateRequest refBookUpdateRequest);
@@ -63,6 +63,7 @@ public interface RefBookService {
     @ApiOperation("Удаление справочника")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Справочник удален"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     void delete(@QueryParam("refBookId") int refBookId);

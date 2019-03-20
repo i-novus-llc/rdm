@@ -108,7 +108,7 @@
     <validations>
         <condition id="checkCode" severity="danger"
                    server-moment="before-operation"
-                   message="Код атрибута должен содержать только латинские символы и цифры">
+                   message="Код атрибута должен содержать только латинские символы и цифры и начинаться с символа">
             typeof code == 'undefined' || code == null || code == '' || /^[a-zA-Z][a-zA-Z0-9_]*$/.test(code)
         </condition>
 

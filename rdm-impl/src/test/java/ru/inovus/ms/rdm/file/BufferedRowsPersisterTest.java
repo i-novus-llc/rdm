@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.file;
 
 import net.n2oapp.platform.i18n.Message;
+import net.n2oapp.platform.i18n.UserException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,6 +9,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.exception.NotUniqueException;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
@@ -22,11 +24,11 @@ import ru.inovus.ms.rdm.model.Structure;
 import java.math.BigInteger;
 import java.util.*;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BufferedRowsPersisterTest {
@@ -69,7 +71,7 @@ public class BufferedRowsPersisterTest {
         Result actual = bufferedRowsPersister.append(rowSecond);
 
         verify(draftDataService, times(1)).addRows(eq(TEST_STORAGE_CODE), eq(rowValues));
-        Result expected = new Result(2, 2, Collections.emptyList());
+        Result expected = new Result(2, 2, emptyList());
         Assert.assertEquals(expected, actual);
     }
 
@@ -91,7 +93,7 @@ public class BufferedRowsPersisterTest {
         Result actual = bufferedRowsPersister.process();
 
         verify(draftDataService, times(1)).addRows(eq(TEST_STORAGE_CODE), eq(rowValues));
-        Result expected = new Result(1, 1, Collections.emptyList());
+        Result expected = new Result(1, 1, emptyList());
         Assert.assertEquals(expected, actual);
     }
 
@@ -103,15 +105,14 @@ public class BufferedRowsPersisterTest {
             add(new LongRowValue(name.valueOf("name1"), count.valueOf(BigInteger.valueOf(1))));
             add(new LongRowValue(name.valueOf("name2"), count.valueOf(BigInteger.valueOf(2))));
         }};
-        String code = "rows.error";
-        String message = "something wrong";
-        doThrow(new RuntimeException(message)).when(draftDataService).addRows(eq(TEST_STORAGE_CODE), eq(rowValues));
+        String code = "row.not.unique";
+        doThrow(new NotUniqueException(code)).when(draftDataService).addRows(eq(TEST_STORAGE_CODE), eq(rowValues));
 
         bufferedRowsPersister.append(rowFirst);
         Result actual = bufferedRowsPersister.append(rowSecond);
 
         verify(draftDataService, times(1)).addRows(eq(TEST_STORAGE_CODE), eq(rowValues));
-        Result expected = new Result(0, 2, Collections.singletonList(new Message(code, message)));
+        Result expected = new Result(0, 2, singletonList(new Message(code, code)));
         Assert.assertEquals(expected, actual);
     }
 
@@ -121,16 +122,17 @@ public class BufferedRowsPersisterTest {
         List<RowValue> rowValues = new ArrayList() {{
             add(new LongRowValue(name.valueOf("name1"), count.valueOf(BigInteger.valueOf(1))));
         }};
-        String code = "rows.error";
-        String message = "something wrong";
-        doThrow(new RuntimeException(message)).when(draftDataService).addRows(eq(TEST_STORAGE_CODE), eq(rowValues));
+        String code = "row.not.unique";
+        doThrow(new NotUniqueException(code)).when(draftDataService).addRows(eq(TEST_STORAGE_CODE), eq(rowValues));
 
         bufferedRowsPersister.append(rowFirst);
-        Result actual = bufferedRowsPersister.process();
-
+        try {
+            bufferedRowsPersister.process();
+            fail("rows are not unique");
+        } catch (UserException e) {
+            Assert.assertEquals(code, e.getCode());
+        }
         verify(draftDataService, times(1)).addRows(eq(TEST_STORAGE_CODE), eq(rowValues));
-        Result expected = new Result(0, 1, Collections.singletonList(new Message(code, message)));
-        Assert.assertEquals(expected, actual);
     }
 
     public static Structure createTestStructure() {

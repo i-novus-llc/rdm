@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "n2o": "7.0.6",
-    "n2o-auth": "7.0.6",
-    "n2o-data-grid": "1.1.1",
+    "n2o": "7.0.7",
+    "n2o-auth": "7.0.7",
+    "n2o-data-grid": "1.1.2",
     "react": "^16.6.3",
     "react-dom": "^16.6.3",
     "react-scripts": "^2.1.3"

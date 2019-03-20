@@ -30,8 +30,9 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
     protected void setFile(InputStream inputStream) {
         try {
             workbook = StreamingReader.builder()
-                    .rowCacheSize(100)
-                    .bufferSize(4096)
+                    .rowCacheSize(2000)
+                    .bufferSize(8096)
+                    .sstCacheSize(3000)
                     .open(inputStream);
             sheetIterator = workbook.sheetIterator();
             if (sheetIterator != null && sheetIterator.hasNext())

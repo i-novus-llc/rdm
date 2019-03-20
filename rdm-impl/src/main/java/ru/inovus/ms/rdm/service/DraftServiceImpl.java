@@ -146,7 +146,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
-    @Transactional(timeout = 600000)
+    @Transactional(timeout = 1200000)
     public Draft create(Integer refBookId, FileModel fileModel) {
 
         validateRefBookExists(refBookId);
@@ -357,7 +357,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
-    @Transactional(timeout = 600000)
+    @Transactional(timeout = 1200000)
     public void updateData(Integer draftId, FileModel fileModel) {
 
         validateDraftExists(draftId);
@@ -889,7 +889,9 @@ public class DraftServiceImpl implements DraftService {
     private void validateVersionExists(Integer versionId) {
         if (versionId == null || !versionRepository.exists(hasVersionId(versionId))) {
             throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
-        }    }
+        }
+    }
+
     private void validateAttributeExists(Integer versionId, String attribute) {
         validateDraftExists(versionId);
         Structure structure = versionService.getStructure(versionId);
