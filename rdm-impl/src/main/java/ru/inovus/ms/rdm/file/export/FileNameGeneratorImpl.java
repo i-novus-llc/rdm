@@ -14,15 +14,15 @@ public class FileNameGeneratorImpl implements FileNameGenerator {
 
     @Override
     public String generateName(RefBookVersion version, FileType fileType) {
-        return version.getCode() +
-                (RefBookVersionStatus.DRAFT.equals(version.getStatus()) ? "_draft" : version.getVersion()) +
+        return version.getCode() + "_" +
+                (RefBookVersionStatus.DRAFT.equals(version.getStatus()) ? "0.0" : version.getVersion()) +
                 "." + fileType.name().toLowerCase();
     }
 
     @Override
     public String generateZipName(RefBookVersion version, FileType fileTypes) {
-        return version.getCode() +
-                (RefBookVersionStatus.DRAFT.equals(version.getStatus()) ? "_draft" : version.getVersion()) +
-                ".zip";
+        return version.getCode() + "_" +
+                (RefBookVersionStatus.DRAFT.equals(version.getStatus()) ? "0.0" : version.getVersion()) +
+                "_" + fileTypes.name() + ".zip";
     }
 }

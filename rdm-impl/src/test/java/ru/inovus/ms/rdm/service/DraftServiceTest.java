@@ -585,6 +585,7 @@ public class DraftServiceTest {
         version.setStatus(RefBookVersionStatus.DRAFT);
         version.setStructure(null);
         version.setPassportValues(asList(
+                new PassportValueEntity(new PassportAttributeEntity("code"), "код справочника", version),
                 new PassportValueEntity(new PassportAttributeEntity("name"), "наименование справочника", version),
                 new PassportValueEntity(new PassportAttributeEntity("shortName"), "краткое наим-ие", version),
                 new PassportValueEntity(new PassportAttributeEntity("description"), "описание", version)

@@ -1,26 +1,27 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <refBook>
     <passport>
+        <code>код справочника</code>
         <name>наименование справочника</name>
         <shortName>краткое наим-ие</shortName>
         <description>описание</description>
     </passport>
     <data>
         <row>
-            <reference>2</reference>
-            <date>02.02.2002</date>
-            <boolean>true</boolean>
             <string>string2</string>
             <integer>2</integer>
+            <date>02.02.2002</date>
+            <boolean>true</boolean>
             <float>2.2</float>
+            <reference>2</reference>
         </row>
         <row>
-            <reference>5</reference>
-            <date>05.05.2005</date>
-            <boolean>false</boolean>
             <string>string5</string>
             <integer>5</integer>
+            <date>05.05.2005</date>
+            <boolean>false</boolean>
             <float>5.5</float>
+            <reference>5</reference>
         </row>
     </data>
 </refBook>

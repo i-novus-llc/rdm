@@ -8,15 +8,13 @@
                     <option id="XML" name="XML"/>
                 </options>
             </radio-group>
-            <hidden id="type" label="">
-                <dependencies>
-                    <set-value on="fileType">fileType.id</set-value>
-                </dependencies>
-            </hidden>
         </fields>
         <toolbar place="bottomRight">
             <button id="close" label="скачать">
-                <a href="./files/:versionId/:type"/>
+                <a href="/files/:versionId/:fileType" target="newWindow">
+                    <path-param name="versionId" value="{versionId}"/>
+                    <path-param name="fileType" value="{fileType.id}"/>
+                </a>
             </button>
         </toolbar>
     </form>
