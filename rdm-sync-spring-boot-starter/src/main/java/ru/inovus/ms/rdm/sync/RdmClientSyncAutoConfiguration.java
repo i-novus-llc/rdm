@@ -31,7 +31,7 @@ import javax.sql.DataSource;
 @EnableConfigurationProperties(RdmClientSyncProperties.class)
 @EnableJaxRsProxyClient(
         classes = {RefBookService.class, VersionService.class, CompareService.class},
-        address = RdmClientSyncProperties.RDM_DEFAULT_URL
+        address = "${rdm.client.sync.url}"
 )
 @AutoConfigureAfter(LiquibaseAutoConfiguration.class)
 public class RdmClientSyncAutoConfiguration {

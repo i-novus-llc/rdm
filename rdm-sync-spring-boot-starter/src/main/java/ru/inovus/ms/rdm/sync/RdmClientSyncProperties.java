@@ -9,7 +9,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "rdm.client.sync")
 public class RdmClientSyncProperties {
-    public static final String RDM_DEFAULT_URL = "http://docker.one:8807/rdm/api";
+    private static final String RDM_DEFAULT_URL = "http://docker.one:8807/rdm/api";
 
     private String url = RDM_DEFAULT_URL;
 
