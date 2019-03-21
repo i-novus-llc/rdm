@@ -28,7 +28,7 @@ public class UpdateDependencyTransformer implements CompileTransformer<Table, Co
 
     @Override
     public Table transform(Table table, CompileContext<?, ?> compileContext, CompileProcessor compileProcessor) {
-        if (table.getId().endsWith("_dataTable")) {
+        if (table.getId().endsWith("_dataTable") && table.getToolbar() != null) {
             List<ButtonCondition> buttonConditions = table.getToolbar().get("topRight").get(0).getButtons().get(1)
                     .getConditions().get(ValidationType.enabled);
             if (buttonConditions == null) {
