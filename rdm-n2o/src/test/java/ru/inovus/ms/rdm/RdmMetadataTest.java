@@ -21,12 +21,15 @@ import java.util.Properties;
  * Тестирование валидности файлов N2O
  */
 public class RdmMetadataTest extends N2oTestBase {
+
     private static final Logger logger = LoggerFactory.getLogger(RdmMetadataTest.class);
+
     @Override
     @Before
     public void setUp() throws Exception {
         Properties properties = new Properties();
-        properties.put("rdm.backend.path","http://localhost:8080/rdm/api");
+        properties.put("rdm.backend.path", "http://localhost:8080/rdm/api");
+        properties.put("rdm.user.admin.url", "http://docker.one:8182/");
         new TestStaticProperties().setProperties(properties);
         super.setUp();
     }
