@@ -612,7 +612,7 @@ public class DraftServiceImpl implements DraftService {
             } else {
                 reference = new Structure.Reference();
             }
-            Integer updatableReferenceIndex = structure.getReferences().indexOf(reference);
+            int updatableReferenceIndex = structure.getReferences().indexOf(reference);
             updateReference(updateAttribute, reference);
             if (updatableReferenceIndex >= 0)
                 structure.getReferences().set(updatableReferenceIndex, reference);
