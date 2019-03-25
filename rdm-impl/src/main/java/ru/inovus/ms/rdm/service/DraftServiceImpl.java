@@ -56,6 +56,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
@@ -107,6 +108,8 @@ public class DraftServiceImpl implements DraftService {
     private static final String REFBOOK_IS_ARCHIVED_EXCEPTION_CODE = "refbook.is.archived";
     private static final String INVALID_VERSION_NAME_EXCEPTION_CODE = "invalid.version.name";
     private static final String INVALID_VERSION_PERIOD_EXCEPTION_CODE = "invalid.version.period";
+    private static final String ROW_NOT_UNIQUE_EXCEPTION_CODE = "row.not.unique";
+    private static final String REQUIRED_FIELD_EXCEPTION_CODE = "validation.required.err";
 
     @Autowired
     @SuppressWarnings("all")
@@ -186,7 +189,7 @@ public class DraftServiceImpl implements DraftService {
             }
 //            structure == null means that draft was created during passport saving
             if (draftVersion != null && draftVersion.getStructure() != null) {
-                dropDataService.drop(Collections.singleton(draftVersion.getStorageCode()));
+                dropDataService.drop(singleton(draftVersion.getStorageCode()));
                 versionRepository.delete(draftVersion.getId());
                 draftVersion = newDraftVersion(structure, draftVersion.getPassportValues());
             } else if (draftVersion == null) {
@@ -210,7 +213,7 @@ public class DraftServiceImpl implements DraftService {
                 throw new NotFoundException(new Message(REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
 
             if (draftVersion != null) {
-                dropDataService.drop(Collections.singleton(draftVersion.getStorageCode()));
+                dropDataService.drop(singleton(draftVersion.getStorageCode()));
                 versionRepository.delete(draftVersion.getId());
             }
             draftVersion = newDraftVersion(null, passport
@@ -271,7 +274,7 @@ public class DraftServiceImpl implements DraftService {
     private void updateDraft(Structure structure, RefBookVersionEntity draftVersion, List<Field> fields) {
         String draftCode = draftVersion.getStorageCode();
         if (!structure.equals(draftVersion.getStructure())) {
-            dropDataService.drop(Collections.singleton(draftCode));
+            dropDataService.drop(singleton(draftCode));
             draftCode = draftDataService.createDraft(fields);
             draftVersion.setStorageCode(draftCode);
         } else {
@@ -474,7 +477,7 @@ public class DraftServiceImpl implements DraftService {
         }
     }
 
-    protected RefBookVersionEntity getLastPublishedVersion(RefBookVersionEntity draftVersion) {
+    private RefBookVersionEntity getLastPublishedVersion(RefBookVersionEntity draftVersion) {
         Page<RefBookVersionEntity> lastPublishedVersions = versionRepository
                 .findAll(isPublished().and(isVersionOfRefBook(draftVersion.getRefBook().getId()))
                         , new PageRequest(0, 1, new Sort(Sort.Direction.DESC, "fromDate")));
@@ -539,11 +542,15 @@ public class DraftServiceImpl implements DraftService {
         validateDraftNotArchived(createAttribute.getVersionId());
         refBookLockService.validateRefBookNotBusyByVersionId(createAttribute.getVersionId());
 
-
         RefBookVersionEntity draftEntity = versionRepository.findOne(createAttribute.getVersionId());
         Structure.Attribute attribute = createAttribute.getAttribute();
         Structure structure = draftEntity.getStructure();
         validateRequired(attribute, draftEntity.getStorageCode(), structure);
+
+        //clear previous primary keys
+        if (createAttribute.getAttribute().getIsPrimary())
+            structure.clearPrimary();
+
         Structure.Reference reference = createAttribute.getReference();
         draftDataService.addField(draftEntity.getStorageCode(), field(attribute));
 
@@ -569,7 +576,7 @@ public class DraftServiceImpl implements DraftService {
                     new DataCriteria(storageCode, null, null, fields(structure), emptySet(), null)
             );
             if (!isEmpty(data)) {
-                throw new UserException("required.attribute.err");
+                throw new UserException(new Message(REQUIRED_FIELD_EXCEPTION_CODE, attribute.getName()));
             }
         }
     }
@@ -659,7 +666,7 @@ public class DraftServiceImpl implements DraftService {
 
         // проверка отсутствия пустых значений в поле при установке первичного ключа
         if (!isUpdateValueNullOrEmpty(updateAttribute.getIsPrimary()) && updateAttribute.getIsPrimary().get() && draftDataService.isFieldContainEmptyValues(storageCode, updateAttribute.getCode()))
-            throw new UserException(new Message(INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE, attribute.getDescription()));
+            throw new UserException(new Message(INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE, attribute.getName()));
 
         if (!isUpdateValueNullOrEmpty(updateAttribute.getIsPrimary()) && updateAttribute.getIsPrimary().get()) {
             validatePrimaryKeyUnique(storageCode, updateAttribute);
@@ -668,7 +675,7 @@ public class DraftServiceImpl implements DraftService {
         // проверка совместимости типов, если столбец не пустой и изменяется тип. Если пустой - можно изменить тип
         if (draftDataService.isFieldNotEmpty(storageCode, updateAttribute.getCode())) {
             if (!isCompatibleTypes(attribute.getType(), updateAttribute.getType())) {
-                throw new UserException(new Message(INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE, attribute.getDescription()));
+                throw new UserException(new Message(INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE, attribute.getName()));
             }
         } else
             return;
@@ -731,7 +738,7 @@ public class DraftServiceImpl implements DraftService {
         try {
             draftDataService.deleteField(draftEntity.getStorageCode(), attributeCode);
         } catch (NotUniqueException e) {
-            throw new UserException("row.not.unique", e);
+            throw new UserException(ROW_NOT_UNIQUE_EXCEPTION_CODE, e);
         }
 
         attributeValidationRepository.delete(

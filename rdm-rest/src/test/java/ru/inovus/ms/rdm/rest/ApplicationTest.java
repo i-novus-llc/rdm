@@ -754,7 +754,7 @@ public class ApplicationTest {
             draftService.createAttribute(createAttributeModel);
             fail();
         } catch (Exception e) {
-            assertEquals("required.attribute.err", e.getMessage());
+            assertEquals("validation.required.err", e.getMessage());
         }
     }
 
@@ -1014,6 +1014,9 @@ public class ApplicationTest {
 
     }
 
+    /*
+    * currently system allows creating exactly one PK field
+    * */
     @Test
     public void testUpdateFromFileValidation() {
 
@@ -1035,7 +1038,6 @@ public class ApplicationTest {
         final String NOT_PK_DATE = "npkd";
         final String NOT_PK_BOOL = "npkb";
         final String NOT_PK_INTEGER = "npki";
-
 
         //create new refbook
         RefBook relRefBook = refBookService.create(new RefBookCreateRequest(RELATION_REFBOOK_CODE, null));
@@ -1066,9 +1068,9 @@ public class ApplicationTest {
             draftService.updateData(refBook.getId(), createFileModel(REFBOOK_FILENAME, REFBOOK_FILENAME));
             fail();
         } catch (RestException re) {
-            Assert.assertEquals(15, re.getErrors().size());
+            Assert.assertEquals(10, re.getErrors().size());
             Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.db.contains.pk.err"::equals).count());
-            Assert.assertEquals(6, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.required.err"::equals).count());
+            Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.required.err"::equals).count());
             Assert.assertEquals(4, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.type.error"::equals).count());
             Assert.assertEquals(2, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.reference.err"::equals).count());
             Assert.assertEquals(2, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.not.unique.pk.err"::equals).count());
@@ -1236,7 +1238,8 @@ public class ApplicationTest {
 
     /*
     * compare data for two published versions with different storage codes
-    * id, code - composite primary key (PK)
+    * id - primary key (PK)
+    * code - common non-primary field (no changes)
     * common - common non-primary field (UPDATED)
     * descr - field from OLD version (DELETED)
     * name - field from NEW version (INSERTED)
@@ -1253,7 +1256,7 @@ public class ApplicationTest {
         LocalDateTime closeDate2 = publishDate1.plusYears(4);
 
         Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
-        Structure.Attribute code = Structure.Attribute.buildPrimary("CODE", "code", FieldType.STRING, "code");
+        Structure.Attribute code = Structure.Attribute.build("CODE", "code", FieldType.STRING, "code");
         Structure.Attribute common = Structure.Attribute.build("COMMON", "common", FieldType.STRING,"common");
         Structure.Attribute descr = Structure.Attribute.build("DESCR", "descr", FieldType.STRING, "descr");
         Structure.Attribute name = Structure.Attribute.build("NAME", "name", FieldType.STRING, "name");
