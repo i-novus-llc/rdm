@@ -10,6 +10,7 @@ import net.n2oapp.framework.api.metadata.local.CompiledQuery;
 import net.n2oapp.framework.api.util.RestClient;
 import net.n2oapp.framework.engine.data.N2oOperationExceptionHandler;
 import net.n2oapp.platform.jaxrs.RestException;
+import org.apache.cxf.common.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +23,9 @@ import static java.util.stream.Collectors.joining;
  * Получение сообщений для пользователя из исключений от REST сервисов.
  */
 public class RdmExceptionHandler extends N2oOperationExceptionHandler implements QueryExceptionHandler {
+
     private static final Logger logger = LoggerFactory.getLogger(RdmExceptionHandler.class);
+
     @Override
     public N2oException handle(CompiledObject.Operation operation, DataSet dataSet, Exception e) {
         N2oException exception = handle(e);
@@ -58,12 +61,17 @@ public class RdmExceptionHandler extends N2oOperationExceptionHandler implements
             N2oException n2oex = (N2oException) e;
             if (n2oex.getCause() instanceof RestException) {
                 RestException restException = (RestException) n2oex.getCause();
-                if (restException.getErrors() == null)
-                    return null;
-                String message = IntStream
-                        .rangeClosed(1, restException.getErrors().size())
-                        .mapToObj(i -> i + ") " + restException.getErrors().get(i - 1).getMessage())
-                        .collect(joining("; "));
+                String message;
+                if (restException.getErrors() == null) {
+                    if (!StringUtils.isEmpty(restException.getMessage()))
+                        message = restException.getMessage();
+                    else
+                        return null;
+                } else
+                    message = IntStream
+                            .rangeClosed(1, restException.getErrors().size())
+                            .mapToObj(i -> i + ") " + restException.getErrors().get(i - 1).getMessage())
+                            .collect(joining("; "));
                 return new N2oUserException(message, n2oex.getMessage());
             } else {
                 return n2oex;

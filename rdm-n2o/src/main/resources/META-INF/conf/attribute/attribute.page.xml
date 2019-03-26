@@ -24,7 +24,9 @@
             <input-select id="referenceRefBook" label="Выбор справочника" query-id="refBook"
                           label-field-id="code">
                 <dependencies>
-                    <visibility on="attrType">attrType.id == 'REFERENCE'</visibility>
+                    <visibility on="attrType">
+                        attrType.id == 'REFERENCE'
+                    </visibility>
                 </dependencies>
             </input-select>
             <input-select id="referenceVersion" label="Версия" query-id="versionList"
@@ -33,7 +35,9 @@
                     <eq field-id="refBookId" value="{referenceRefBook.id}"/>
                 </pre-filters>
                 <dependencies>
-                    <visibility on="referenceRefBook,attrType">(attrType == 'REFERENCE' || referenceRefBook.id != null)</visibility>
+                    <visibility on="referenceRefBook,attrType">
+                        (attrType == 'REFERENCE' || referenceRefBook.id != null)
+                    </visibility>
                 </dependencies>
             </input-select>
             <!--<input-select id="referenceAttribute" label="Связанный атрибут" depends-on="referenceVersion"-->
@@ -59,7 +63,9 @@
 
             <checkbox id="isPrimary" label="Первичный ключ">
                 <dependencies>
-                    <enabling on="attrType">(attrType != null &amp;&amp; attrType != 'BOOLEAN')</enabling>
+                    <enabling on="attrType">
+                        (attrType != null &amp;&amp; attrType != 'BOOLEAN')
+                    </enabling>
                 </dependencies>
             </checkbox>
             <text-area id="description" label="Описание" rows="2"/>
@@ -68,18 +74,22 @@
 
             <checkbox id="required" label="Обязательный атрибут">
                 <dependencies>
-                    <!--множественная зависимость в атрибуте 'on' доступна в 7.0.5-->
-                    <visibility on="attrType">(attrType != null &amp;&amp; attrType != 'BOOLEAN')</visibility>
-                    <visibility on="isPrimary">(!isPrimary)</visibility>
-                    <set-value on="isPrimary">if (isPrimary) return false; else return;</set-value>
+                    <visibility on="attrType,isPrimary">
+                        (attrType != null &amp;&amp; attrType != 'BOOLEAN' &amp;&amp; !isPrimary)
+                    </visibility>
+                    <set-value on="isPrimary">
+                        if (isPrimary) return false; else return;
+                    </set-value>
                 </dependencies>
             </checkbox>
             <checkbox id="unique" label="Уникальный атрибут">
                 <dependencies>
-                    <!--множественная зависимость в атрибуте 'on' доступна в 7.0.5-->
-                    <visibility on="attrType">(attrType != null &amp;&amp; attrType != 'BOOLEAN')</visibility>
-                    <visibility on="isPrimary">(!isPrimary)</visibility>
-                    <set-value on="isPrimary">if (isPrimary) return false; else return;</set-value>
+                    <visibility on="attrType,isPrimary">
+                        (attrType != null &amp;&amp; attrType != 'BOOLEAN' &amp;&amp; !isPrimary)
+                    </visibility>
+                    <set-value on="isPrimary">
+                        if (isPrimary) return false; else return;
+                    </set-value>
                 </dependencies>
             </checkbox>
 
