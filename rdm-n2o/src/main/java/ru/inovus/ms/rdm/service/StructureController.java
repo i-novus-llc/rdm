@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.service;
 
+import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.jaxrs.RestPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -52,7 +53,7 @@ public class StructureController {
                 }
             });
         List<ReadAttribute> currentPageAttributes = list.stream()
-                .skip((long)(criteria.getPage() - 1) *  criteria.getSize())
+                .skip((long) (criteria.getPage() - 1) * criteria.getSize())
                 .limit(criteria.getSize())
                 .collect(Collectors.toList());
 
@@ -65,12 +66,24 @@ public class StructureController {
         attributeModel.setAttribute(buildAttribute(attribute));
         attributeModel.setReference(buildReference(attribute));
         draftService.createAttribute(attributeModel);
-        draftService.updateAttributeValidations(versionId, attribute.getCode(), createValidations(attribute));
+        try {
+            draftService.updateAttributeValidations(versionId, attribute.getCode(), createValidations(attribute));
+        } catch (RestException re) {
+            draftService.deleteAttribute(versionId, attribute.getCode());
+            throw re;
+        }
     }
 
     public void updateAttribute(Integer versionId, Attribute attribute) {
+        Structure.Attribute oldAttribute = versionService.getStructure(versionId).getAttribute(attribute.getCode());
+        Structure.Reference oldReference = versionService.getStructure(versionId).getReference(attribute.getCode());
         draftService.updateAttribute(getUpdateAttribute(versionId, attribute));
-        draftService.updateAttributeValidations(versionId, attribute.getCode(), createValidations(attribute));
+        try {
+            draftService.updateAttributeValidations(versionId, attribute.getCode(), createValidations(attribute));
+        } catch (RestException re) {
+            draftService.updateAttribute(new UpdateAttribute(versionId, oldAttribute, oldReference));
+            throw re;
+        }
     }
 
     public void deleteAttribute(Integer versionId, Attribute attribute) {

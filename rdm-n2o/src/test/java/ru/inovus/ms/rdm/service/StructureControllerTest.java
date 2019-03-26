@@ -135,6 +135,7 @@ public class StructureControllerTest extends TestCase {
     @Test
     public void testUpdateValidations() throws Exception {
         Attribute attribute = createAllValidationAttribute();
+        when(versionService.getStructure(eq(versionId))).thenReturn(new Structure());
 
         structureController.updateAttribute(versionId, attribute);
 
