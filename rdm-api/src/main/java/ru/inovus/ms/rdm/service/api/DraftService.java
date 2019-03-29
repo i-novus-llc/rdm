@@ -48,10 +48,6 @@ public interface DraftService {
     @Path("/createByFile/{refBookId}")
     Draft create(@ApiParam("Идентификатор справочника") @PathParam("refBookId") Integer refBookId, FileModel fileModel);
 
-    void updateMetadata(Integer draftId, MetadataDiff metadataDiff);
-
-    void updateData(Integer draftId, DataDiff dataDiff);
-
     @POST
     @ApiOperation("Добавление или изменение строки черновика")
     @ApiResponses({

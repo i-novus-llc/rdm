@@ -154,8 +154,8 @@ public class DraftServiceImpl implements DraftService {
     @Transactional(timeout = 1200000)
     public Draft create(Integer refBookId, FileModel fileModel) {
 
-        validateRefBookExists(refBookId);
-        validateRefBookNotArchived(refBookId);
+        validateRefBook(refBookId);
+
         refBookLockService.setRefBookUploading(refBookId);
 
         try {
@@ -174,7 +174,7 @@ public class DraftServiceImpl implements DraftService {
             } catch (IOException e) {
                 throw new RdmException(e);
             }
-            RefBookVersionEntity createdDraft = getDraftByRefbook(refBookId);
+            RefBookVersionEntity createdDraft = getDraftByRefBook(refBookId);
             return new Draft(createdDraft.getId(), createdDraft.getStorageCode());
         } finally {
             refBookLockService.deleteRefBookAction(refBookId);
@@ -185,7 +185,7 @@ public class DraftServiceImpl implements DraftService {
     private BiConsumer<String, Structure> getSaveDraftConsumer(Integer refBookId) {
         return (storageCode, structure) -> {
             RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
-            RefBookVersionEntity draftVersion = getDraftByRefbook(refBookId);
+            RefBookVersionEntity draftVersion = getDraftByRefBook(refBookId);
             if (draftVersion == null && lastRefBookVersion == null) {
                 throw new NotFoundException(new Message(REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
             }
@@ -210,7 +210,7 @@ public class DraftServiceImpl implements DraftService {
 //    creates a draft version to save passport values from file
     private Consumer<Map<String, String>> getDraftWithPassportCreator(Integer refBookId) {
         return passport -> {
-            RefBookVersionEntity draftVersion = getDraftByRefbook(refBookId);
+            RefBookVersionEntity draftVersion = getDraftByRefBook(refBookId);
             if (draftVersion == null && getLastRefBookVersion(refBookId) == null)
                 throw new NotFoundException(new Message(REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
 
@@ -237,11 +237,10 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public Draft create(Integer refBookId, Structure structure) {
 
-        validateRefBookExists(refBookId);
-        validateRefBookNotArchived(refBookId);
+        validateRefBook(refBookId);
 
         RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
-        RefBookVersionEntity draftVersion = getDraftByRefbook(refBookId);
+        RefBookVersionEntity draftVersion = getDraftByRefBook(refBookId);
         if (draftVersion == null && lastRefBookVersion == null) {
             throw new CodifiedException("invalid refbook");
         }
@@ -295,34 +294,15 @@ public class DraftServiceImpl implements DraftService {
         return draftVersion;
     }
 
-    private RefBookVersionEntity getDraftByRefbook(Integer refBookId) {
+    private RefBookVersionEntity getDraftByRefBook(Integer refBookId) {
         return versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
-    }
-
-    @Override
-    public void updateMetadata(Integer draftId, MetadataDiff metadataDiff) {
-
-        validateDraftExists(draftId);
-        validateDraftNotArchived(draftId);
-
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void updateData(Integer draftId, DataDiff dataDiff) {
-
-        validateDraftExists(draftId);
-        validateDraftNotArchived(draftId);
-
-        throw new UnsupportedOperationException();
     }
 
     @Override
     @Transactional
     public void updateData(Integer draftId, Row row) {
 
-        validateDraftExists(draftId);
-        validateDraftNotArchived(draftId);
+        validateDraft(draftId);
 
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
 
@@ -345,8 +325,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void deleteRow(Integer draftId, Long systemId) {
 
-        validateDraftExists(draftId);
-        validateDraftNotArchived(draftId);
+        validateDraft(draftId);
 
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
 
@@ -356,8 +335,8 @@ public class DraftServiceImpl implements DraftService {
     @Override
     @Transactional
     public void deleteAllRows(Integer draftId) {
-        validateDraftExists(draftId);
-        validateDraftNotArchived(draftId);
+
+        validateDraft(draftId);
 
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
 
@@ -368,8 +347,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional(timeout = 1200000)
     public void updateData(Integer draftId, FileModel fileModel) {
 
-        validateDraftExists(draftId);
-        validateDraftNotArchived(draftId);
+        validateDraft(draftId);
 
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
         Integer refBookId = draft.getRefBook().getId();
@@ -426,8 +404,7 @@ public class DraftServiceImpl implements DraftService {
     @Override
     public void publish(Integer draftId, String versionName, LocalDateTime fromDate, LocalDateTime toDate) {
 
-        validateDraftExists(draftId);
-        validateDraftNotArchived(draftId);
+        validateDraft(draftId);
 
         RefBookVersionEntity draftVersion = versionRepository.findOne(draftId);
         Integer refBookId = draftVersion.getRefBook().getId();
@@ -519,8 +496,8 @@ public class DraftServiceImpl implements DraftService {
     @Override
     public void remove(Integer draftId) {
 
-        validateDraftExists(draftId);
-        validateDraftNotArchived(draftId);
+        validateDraft(draftId);
+
         refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
         versionRepository.delete(draftId);
@@ -723,8 +700,8 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void deleteAttribute(Integer draftId, String attributeCode) {
 
-        validateDraftExists(draftId);
-        validateDraftNotArchived(draftId);
+        validateDraft(draftId);
+
         refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
         RefBookVersionEntity draftEntity = versionRepository.findOne(draftId);
@@ -869,6 +846,16 @@ public class DraftServiceImpl implements DraftService {
         }
     }
 
+    private void validateDraft(Integer draftId){
+        validateDraftExists(draftId);
+        validateDraftNotArchived(draftId);
+    }
+
+    private void validateRefBook(Integer refBookId){
+        validateRefBookExists(refBookId);
+        validateRefBookNotArchived(refBookId);
+    }
+
     private void validateRefBookNotArchived(Integer refBookId) {
         if (refBookId != null && versionRepository.exists(isVersionOfRefBook(refBookId).and(isArchived()))) {
             throw new UserException(REFBOOK_IS_ARCHIVED_EXCEPTION_CODE);
@@ -893,7 +880,6 @@ public class DraftServiceImpl implements DraftService {
         }
     }
 
-
     private void validateVersionExists(Integer versionId) {
         if (versionId == null || !versionRepository.exists(hasVersionId(versionId))) {
             throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
@@ -907,4 +893,5 @@ public class DraftServiceImpl implements DraftService {
             throw new NotFoundException(new Message(DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, versionId, attribute));
         }
     }
+
 }
