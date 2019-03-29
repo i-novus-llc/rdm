@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.exception.NotUniqueException;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
@@ -109,6 +110,7 @@ public class DraftServiceImpl implements DraftService {
     private static final String INVALID_VERSION_NAME_EXCEPTION_CODE = "invalid.version.name";
     private static final String INVALID_VERSION_PERIOD_EXCEPTION_CODE = "invalid.version.period";
     private static final String ROW_NOT_UNIQUE_EXCEPTION_CODE = "row.not.unique";
+    private static final String ROW_IS_EMPTY_EXCEPTION_CODE = "row.is.empty";
     private static final String REQUIRED_FIELD_EXCEPTION_CODE = "validation.required.err";
 
     @Autowired
@@ -328,6 +330,9 @@ public class DraftServiceImpl implements DraftService {
                 draft.getStorageCode(), errorCountLimit, attributeValidationRepository.findAllByVersionId(draftId));
         validator.append(new NonStrictOnTypeRowMapper(draft.getStructure(), versionRepository).map(row));
         validator.process();
+
+        if (row.getData().values().stream().allMatch(ObjectUtils::isEmpty))
+            throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
 
         RowValue rowValue = rowValue(new StructureRowMapper(draft.getStructure(), versionRepository).map(row), draft.getStructure());
         if (rowValue.getSystemId() == null)
