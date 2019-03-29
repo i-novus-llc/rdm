@@ -128,8 +128,6 @@ public interface DraftService {
     })
     void remove(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId);
 
-    Structure getMetadata(Integer draftId);
-
     @GET
     @Path("/{draftId}")
     @ApiOperation("Получение черновика по идентификатору")

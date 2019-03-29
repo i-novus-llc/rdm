@@ -527,12 +527,6 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
-    public Structure getMetadata(Integer draftId) {
-        validateDraftExists(draftId);
-        return null;
-    }
-
-    @Override
     public Draft getDraft(Integer draftId) {
         validateDraftExists(draftId);
         RefBookVersionEntity versionEntity = versionRepository.findOne(draftId);
