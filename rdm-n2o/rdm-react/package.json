@@ -1,30 +1,16 @@
 {
-  "name": "rdm-react",
-  "version": "0.1.0",
+  "name": "root",
   "private": true,
-  "dependencies": {
-    "n2o": "7.1.5",
-    "n2o-auth": "7.1.5",
-    "n2o-data-grid": "1.1.2",
-    "react": "^16.6.3",
-    "react-dom": "^16.6.3",
-    "react-scripts": "^2.1.3"
-  },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "bootstrap": "lerna bootstrap",
+    "clean": "lerna clean",
+    "build": "npm run build:config && npm run build:frontend",
+    "build:config": "lerna run --scope n2o-config-rdm build",
+    "build:frontend": "lerna run --scope rdm-frontend build",
+    "publish": "lerna publish",
+    "version": "lerna version minor --no-git-tag-version --no-push --force-publish=n2o-config-rdm"
   },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
-  "homepage": ".",
-  "browserslist": [
-    ">0.2%",
-    "not dead",
-    "not ie <= 11",
-    "not op_mini all"
-  ],
-  "proxy": "http://localhost:8081"
+  "devDependencies": {
+    "lerna": "^3.13.2"
+  }
 }

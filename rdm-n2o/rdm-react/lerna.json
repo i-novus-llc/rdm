@@ -1,0 +1,10 @@
+{
+  "packages": [
+    "packages/*"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.i-novus.ru"
+  },
+  "version": "independent"
+}
