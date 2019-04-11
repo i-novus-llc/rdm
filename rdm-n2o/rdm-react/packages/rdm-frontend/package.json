@@ -1,10 +1,10 @@
 {
   "name": "rdm-frontend",
-  "version": "1.2.0",
+  "version": "1.0.0",
   "private": true,
   "dependencies": {
     "n2o": "7.1.10",
-    "n2o-config-rdm": "^1.2.0",
+    "n2o-config-rdm": "^1.0.0",
     "react": "^16.6.3",
     "react-dom": "^16.6.3",
     "react-scripts": "^2.1.3"
