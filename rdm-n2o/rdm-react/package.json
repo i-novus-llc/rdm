@@ -8,7 +8,7 @@
     "build:config": "lerna run --scope n2o-config-rdm build",
     "build:frontend": "lerna run --scope rdm-frontend build",
     "publish": "lerna publish",
-    "version": "lerna version minor --no-git-tag-version --no-push --force-publish=n2o-config-rdm"
+    "version": "lerna version minor --no-git-tag-version --no-push"
   },
   "devDependencies": {
     "lerna": "^3.13.2"
