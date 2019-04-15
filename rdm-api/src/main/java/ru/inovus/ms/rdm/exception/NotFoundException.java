@@ -37,9 +37,4 @@ public class NotFoundException extends UserException {
         super(NOT_FOUND_EXCEPTION, cause);
     }
 
-    @Override
-    public NotFoundException set(Object argument) {
-        super.set(argument);
-        return this;
-    }
 }

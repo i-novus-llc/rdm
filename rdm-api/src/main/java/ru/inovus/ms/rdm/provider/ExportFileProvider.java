@@ -1,6 +1,6 @@
 package ru.inovus.ms.rdm.provider;
 
-import org.apache.cxf.helpers.IOUtils;
+import org.apache.commons.io.IOUtils;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.ExportFile;
 

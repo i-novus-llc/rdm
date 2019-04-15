@@ -1,12 +1,14 @@
 package ru.inovus.ms.rdm.model;
 
+import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+import static org.springframework.util.CollectionUtils.isEmpty;
+
 
 public class Structure implements Serializable {
 
