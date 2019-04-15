@@ -1,14 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { each } from 'lodash';
-import { styles } from 'n2o-config-rdm';
-import App from './App';
+import N2O from 'n2o';
+import rdmConfig from 'n2o-config-rdm';
 
 import 'n2o/dist/n2o.css';
-import './index.css';
+import 'n2o-data-grid/css/DataGrid.css';
 
-each( styles, function( module ){
-  require( module );
-});
-
-ReactDOM.render(<App />, document.getElementById('root'));
+ReactDOM.render(<N2O {...rdmConfig} />, document.getElementById('root'));
