@@ -20,6 +20,7 @@ public class PassportPdfFileGenerator implements FileGenerator {
     private Integer versionId;
     private String head;
     private String code;
+    private String category;
 
     public PassportPdfFileGenerator(PassportValueRepository passportValueRepository, Integer versionId,
                                     String head, String code) {
@@ -27,6 +28,15 @@ public class PassportPdfFileGenerator implements FileGenerator {
         this.versionId = versionId;
         this.head = head;
         this.code = code;
+    }
+
+    public PassportPdfFileGenerator(PassportValueRepository passportValueRepository, Integer versionId,
+                                    String head, String code, String category) {
+        this.passportValueRepository = passportValueRepository;
+        this.versionId = versionId;
+        this.head = head;
+        this.code = code;
+        this.category = category;
     }
 
     @Override
@@ -39,6 +49,9 @@ public class PassportPdfFileGenerator implements FileGenerator {
         Map<String, String> passportToWrite = new LinkedHashMap<>();
 
         passportToWrite.put("Код справочника", code);
+        if (!category.isEmpty())
+            passportToWrite.put("Категория справочника", category);
+
         for (PassportValueEntity value : values) {
             passportToWrite.put(value.getAttribute().getName(), String.valueOf(value.getValue()));
         }

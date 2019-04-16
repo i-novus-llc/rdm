@@ -305,7 +305,7 @@ public class VersionServiceImpl implements VersionService {
             if (includePassport) {
                 try (FileGenerator passportPdfFileGenerator =
                              new PassportPdfFileGenerator(passportValueRepository, versionModel.getId(),
-                                     passportFileHead, versionModel.getCode())) {
+                                     passportFileHead, versionModel.getCode(), versionModel.getCategory())) {
                     archiver.addEntry(passportPdfFileGenerator, fileNameGenerator.generateName(versionModel, FileType.PDF));
                 }
             }

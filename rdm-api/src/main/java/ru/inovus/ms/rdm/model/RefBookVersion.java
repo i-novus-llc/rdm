@@ -23,6 +23,9 @@ public class RefBookVersion {
     @ApiModelProperty("Код")
     private String code;
 
+    @ApiModelProperty("Категория")
+    private String category;
+
     @ApiModelProperty("Комментарий к версии")
     private String comment;
 
@@ -63,6 +66,7 @@ public class RefBookVersion {
         this.id = refBookVersion.getId();
         this.refBookId = refBookVersion.getRefBookId();
         this.code = refBookVersion.getCode();
+        this.category = refBookVersion.getCategory();
         this.comment = refBookVersion.getComment();
         this.version = refBookVersion.getVersion();
         this.fromDate = refBookVersion.getFromDate();
@@ -96,6 +100,14 @@ public class RefBookVersion {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public String getComment() {
