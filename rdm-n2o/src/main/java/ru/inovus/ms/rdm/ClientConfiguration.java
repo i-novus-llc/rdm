@@ -19,7 +19,7 @@ import ru.inovus.ms.rdm.operation.RdmCompileCacheOperation;
 import ru.inovus.ms.rdm.operation.RdmSourceCacheOperation;
 import ru.inovus.ms.rdm.provider.ExportFileProvider;
 import ru.inovus.ms.rdm.provider.RdmParamConverterProvider;
-import ru.inovus.ms.rdm.provider.RowValueMapperPreparer;
+import ru.inovus.ms.rdm.provider.RdmMapperConfigurer;
 
 @Configuration
 public class ClientConfiguration {
@@ -35,8 +35,8 @@ public class ClientConfiguration {
     }
 
     @Bean
-    RowValueMapperPreparer rowValueMapperPreparer(){
-        return new RowValueMapperPreparer();
+    RdmMapperConfigurer rdmMapperConfigurer(){
+        return new RdmMapperConfigurer();
     }
 
     @Bean

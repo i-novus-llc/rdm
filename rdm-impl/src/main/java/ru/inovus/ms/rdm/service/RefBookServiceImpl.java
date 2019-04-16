@@ -173,7 +173,7 @@ public class RefBookServiceImpl implements RefBookService {
 
         validateVersionExists(versionId);
 
-        RefBookVersionEntity refBookVersion = repository.findOne(versionId);
+        RefBookVersionEntity refBookVersion = repository.getOne(versionId);
         return refBookModel(refBookVersion, getLastPublishedVersions(singletonList(refBookVersion.getRefBook().getId())));
     }
 
@@ -221,7 +221,7 @@ public class RefBookServiceImpl implements RefBookService {
         validateVersionNotArchived(request.getVersionId());
         refBookLockService.validateRefBookNotBusyByVersionId(request.getVersionId());
 
-        RefBookVersionEntity refBookVersionEntity = repository.findOne(request.getVersionId());
+        RefBookVersionEntity refBookVersionEntity = repository.getOne(request.getVersionId());
         RefBookEntity refBookEntity = refBookVersionEntity.getRefBook();
         if (!refBookEntity.getCode().equals(request.getCode())) {
             if (refBookRepository.existsByCode((request.getCode())))
@@ -247,13 +247,13 @@ public class RefBookServiceImpl implements RefBookService {
                 dropDataService.drop(refBookRepository.getOne(refBookId).getVersionList().stream()
                         .map(RefBookVersionEntity::getStorageCode)
                         .collect(Collectors.toSet())));
-        refBookRepository.delete(refBookId);
+        refBookRepository.deleteById(refBookId);
     }
 
     @Override
     public void toArchive(int refBookId) {
         validateRefBookExists(refBookId);
-        RefBookEntity refBookEntity = refBookRepository.findOne(refBookId);
+        RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
         refBookEntity.setArchived(Boolean.TRUE);
         refBookRepository.save(refBookEntity);
     }
@@ -261,7 +261,7 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     public void fromArchive(int refBookId) {
         validateRefBookExists(refBookId);
-        RefBookEntity refBookEntity = refBookRepository.findOne(refBookId);
+        RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
         refBookEntity.setArchived(Boolean.FALSE);
         refBookRepository.save(refBookEntity);
     }
@@ -376,7 +376,7 @@ public class RefBookServiceImpl implements RefBookService {
                 .filter(v -> attributeCodesToRemove.contains(v.getAttribute().getCode()))
                 .collect(toList());
         versionEntity.getPassportValues().removeAll(toRemove);
-        passportValueRepository.delete(toRemove);
+        passportValueRepository.deleteAll(toRemove);
         correctUpdatePassport.entrySet().removeIf(e -> attributeCodesToRemove.contains(e.getKey()));
 
         Set<Map.Entry> toUpdate = correctUpdatePassport.entrySet().stream()
@@ -399,17 +399,17 @@ public class RefBookServiceImpl implements RefBookService {
         lastPublishVersionCriteria.setRefBookInfo(RefBookInfo.PUBLISHED);
         lastPublishVersionCriteria.setRefBookIds(refBookIds);
         return repository.findAll(toPredicate(lastPublishVersionCriteria),
-                new PageRequest(0, refBookIds.size())).getContent();
+                PageRequest.of(0, refBookIds.size())).getContent();
     }
 
     private void validateRefBookExists(Integer refBookId) {
-        if (refBookId == null || !refBookRepository.exists(refBookId)) {
+        if (refBookId == null || !refBookRepository.existsById(refBookId)) {
             throw new NotFoundException(new Message("refbook.not.found", refBookId));
         }
     }
 
     private void validateVersionExists(Integer versionId) {
-        if (versionId == null || !repository.exists(versionId)) {
+        if (versionId == null || !repository.existsById(versionId)) {
             throw new NotFoundException(new Message("version.not.found", versionId));
         }
     }

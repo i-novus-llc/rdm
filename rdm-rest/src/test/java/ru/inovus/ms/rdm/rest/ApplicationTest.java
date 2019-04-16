@@ -324,7 +324,7 @@ public class ApplicationTest {
         assertTrue(search.getTotalElements() > 0);
         search.getContent().forEach(r -> {
             assertFalse(r.getArchived());
-            assertTrue(RefBookVersionStatus.DRAFT.equals(r.getStatus()));
+            assertEquals(RefBookVersionStatus.DRAFT, r.getStatus());
         });
 
         // поиск по статусу 'Архив'
@@ -559,7 +559,7 @@ public class ApplicationTest {
             put(upd.getCode(), "u1");
             put(type.getCode(), "1");
         }};
-        Set<List<AttributeFilter>> filters = new HashSet<List<AttributeFilter>>(){{
+        Set<List<AttributeFilter>> filters = new HashSet<>(){{
             add(asList(
                     new AttributeFilter(id.getCode(), rowMap.get(id.getCode()), id.getType()),
                     new AttributeFilter(code.getCode(), rowMap.get(code.getCode()), code.getType())
@@ -614,7 +614,7 @@ public class ApplicationTest {
         draftService.updateData(newVersionId, createFileModel(NEW_FILE_NAME, "testCompare/" + NEW_FILE_NAME));
         draftService.publish(newVersionId, "1.1", publishDate2, closeDate2);
 
-        Set<List<AttributeFilter>> filters = new HashSet<List<AttributeFilter>>(){{
+        Set<List<AttributeFilter>> filters = new HashSet<>(){{
             add(asList(
                     new AttributeFilter(id.getCode(), BigInteger.valueOf(1), id.getType()),
                     new AttributeFilter(code.getCode(), "001", code.getType())
@@ -669,7 +669,7 @@ public class ApplicationTest {
 
     @Test
     public void testDraftCreateFromFile() {
-        List<FieldValue> expectedData = new ArrayList<FieldValue>() {{
+        List<FieldValue> expectedData = new ArrayList<>() {{
             add(new StringFieldValue("string", "Иван"));
             add(new StringFieldValue("reference", "2"));
             add(new StringFieldValue("float", "1.0"));
@@ -739,11 +739,11 @@ public class ApplicationTest {
         });
 
         attributeFilters.forEach(attributeFilter -> {
-            Page<RefBookRowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(new HashSet<List<AttributeFilter>>(){{add(singletonList(attributeFilter));}}, null));
+            Page<RefBookRowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(new HashSet<>(){{add(singletonList(attributeFilter));}}, null));
             assertRows(fields, expectedRowValues, actualPage.getContent());
         });
 
-        Page<RefBookRowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(new HashSet<List<AttributeFilter>>(){{add(attributeFilters);}}, null));
+        Page<RefBookRowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(new HashSet<>(){{add(attributeFilters);}}, null));
         assertRows(fields, expectedRowValues, actualPage.getContent());
     }
 
@@ -1303,7 +1303,7 @@ public class ApplicationTest {
                 DiffStatusEnum.UPDATED));
 
         RefBookDataDiff expectedRefBookDataDiff = new RefBookDataDiff(
-                new PageImpl<>(expectedDiffRowValues, new PageRequest(0, 10), expectedDiffRowValues.size()),
+                new PageImpl<>(expectedDiffRowValues, PageRequest.of(0, 10), expectedDiffRowValues.size()),
                 singletonList(descr.getCode()),
                 singletonList(name.getCode()),
                 asList(upd1.getCode(), typeI.getCode())
@@ -1347,7 +1347,7 @@ public class ApplicationTest {
 
         List<DiffRowValue> expectedDiffRowValues = new ArrayList<>();
         RefBookDataDiff expectedRefBookDataDiff = new RefBookDataDiff(
-                new PageImpl<>(expectedDiffRowValues, new PageRequest(0, 10), expectedDiffRowValues.size()),
+                new PageImpl<>(expectedDiffRowValues, PageRequest.of(0, 10), expectedDiffRowValues.size()),
                 emptyList(),
                 singletonList(name.getCode()),
                 emptyList()
@@ -1530,7 +1530,7 @@ public class ApplicationTest {
     }
 
     private Row createRowForAllTypesStructure(String str, BigInteger bigInt, String date, Boolean bool, Double fl, Object ref) {
-        return new Row(new HashMap<String, Object>() {{
+        return new Row(new HashMap<>() {{
             put("string", str);
             put("integer", bigInt);
             put("date", parseLocalDate(date));

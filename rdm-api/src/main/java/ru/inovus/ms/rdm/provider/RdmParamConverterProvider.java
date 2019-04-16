@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.provider;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -235,11 +236,13 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
         public void serialize(BigDecimal value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
             jgen.writeString(value.stripTrailingZeros().toPlainString());
         }
+
         @Override
         public void serializeWithType(BigDecimal value, JsonGenerator gen, SerializerProvider serializers, TypeSerializer typeSer) throws IOException {
-            typeSer.writeTypePrefixForScalar(value, gen);
+            typeSer.writeTypePrefix(gen, typeSer.typeId(value, JsonToken.VALUE_STRING));
             serialize(value, gen, null);
-            typeSer.writeTypeSuffixForScalar(value, gen);            }
+            typeSer.writeTypePrefix(gen, typeSer.typeId(value, JsonToken.VALUE_STRING));
+        }
     }
 
 }

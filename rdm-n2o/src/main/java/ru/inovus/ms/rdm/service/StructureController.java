@@ -57,7 +57,7 @@ public class StructureController {
                 .limit(criteria.getSize())
                 .collect(Collectors.toList());
 
-        return new RestPage<>(currentPageAttributes, new PageRequest(criteria.getPage(), criteria.getSize()), list.size());
+        return new RestPage<>(currentPageAttributes, PageRequest.of(criteria.getPage(), criteria.getSize()), list.size());
     }
 
     public void createAttribute(Integer versionId, Attribute attribute) {

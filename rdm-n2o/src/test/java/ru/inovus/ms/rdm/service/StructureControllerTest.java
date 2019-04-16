@@ -9,7 +9,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.validation.*;
@@ -27,8 +27,8 @@ import java.util.stream.Collectors;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Stream.of;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isNull;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.*;
 import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 import static ru.inovus.ms.rdm.model.Structure.Attribute.build;
@@ -91,16 +91,15 @@ public class StructureControllerTest extends TestCase {
                 .peek(v -> v.setAttribute(testCode)).collect(Collectors.toList());
     }
 
-
     /**
      * Тест получения атрибута без проверок
      */
     @Test
-    public void testReadSimple() throws Exception {
+    public void testReadSimple() {
 
         when(versionService.getStructure(eq(versionId)))
                 .thenReturn(new Structure(singletonList(build(testCode, null, FieldType.INTEGER, null)), null));
-        when(draftService.getAttributeValidations(eq(versionId), isNull(String.class))).thenReturn(emptyList());
+        when(draftService.getAttributeValidations(eq(versionId), isNull())).thenReturn(emptyList());
 
         RestPage<ReadAttribute> page = structureController.getPage(new AttributeCriteria(null, versionId));
         ReadAttribute actual = page.getContent().get(0);
@@ -114,12 +113,12 @@ public class StructureControllerTest extends TestCase {
      * Тест получения атрибута со всеми проверками (без соответствия типов и проверок)
      */
     @Test
-    public void testReadValidations() throws Exception {
+    public void testReadValidations() {
         Structure structure = new Structure(singletonList(build(testCode, null, null, null)), null);
         Attribute expectedValidation = createAllValidationAttribute();
 
         when(versionService.getStructure(eq(versionId))).thenReturn(structure);
-        when(draftService.getAttributeValidations(eq(versionId), isNull(String.class))).thenReturn(expectedValidations);
+        when(draftService.getAttributeValidations(eq(versionId), isNull())).thenReturn(expectedValidations);
 
         RestPage<ReadAttribute> page = structureController.getPage(new AttributeCriteria(null, versionId));
         ReadAttribute actual = page.getContent().get(0);
@@ -144,14 +143,13 @@ public class StructureControllerTest extends TestCase {
 
         assertValidationListEquals(expectedValidations, validationsArgumentCaptor.getValue());
         assertEquals(testCode, updateAttributeArgumentCaptor.getValue().getCode());
-
     }
 
     /**
      * Тест обновления атрибута со всеми проверками
      */
     @Test
-    public void testCreateReference() throws Exception {
+    public void testCreateReference() {
         Attribute attribute = new Attribute();
         attribute.setCode(testCode);
         attribute.setName(testName);
@@ -177,14 +175,13 @@ public class StructureControllerTest extends TestCase {
         assertEquals(displayExpression, actual.getReference().getDisplayExpression());
         assertEquals(referenceAttribute, actual.getReference().getReferenceAttribute());
         assertEquals(referenceVersion, actual.getReference().getReferenceVersion());
-
     }
 
     /**
      * Тест получения атрибута cо ссылочным типом
      */
     @Test
-    public void testReadReference() throws Exception {
+    public void testReadReference() {
 
         RefBook referenceRefbook = new RefBook();
         referenceRefbook.setRefBookId(-2);
@@ -193,7 +190,7 @@ public class StructureControllerTest extends TestCase {
                 .thenReturn(new Structure(
                         singletonList(build(testCode, null, FieldType.REFERENCE, null)),
                         singletonList(new Structure.Reference(testCode, referenceVersion, referenceAttribute, displayExpression))));
-        when(draftService.getAttributeValidations(eq(versionId), isNull(String.class))).thenReturn(emptyList());
+        when(draftService.getAttributeValidations(eq(versionId), isNull())).thenReturn(emptyList());
         when(refBookService.getByVersionId(eq(referenceVersion))).thenReturn(referenceRefbook);
         when(versionService.getStructure(referenceVersion))
                 .thenReturn(new Structure(singletonList(build(referenceAttribute, null, FieldType.INTEGER, null)), null));

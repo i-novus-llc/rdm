@@ -5,7 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
@@ -20,8 +20,9 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Optional;
 
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -42,7 +43,7 @@ public class VersionServiceTest {
     @Test
     public void testSearchVersion() {
         RefBookVersionEntity testVersion = createTestVersion();
-        when(versionRepository.findOne(anyInt())).thenReturn(testVersion);
+        when(versionRepository.findById(anyInt())).thenReturn(Optional.of(testVersion));
         when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>());
         Date bdate = testVersion.getFromDate() != null ? Date.from(testVersion.getFromDate().atZone(ZoneId.systemDefault()).toInstant()) : null;
         Date edate = testVersion.getToDate() != null ? Date.from(testVersion.getToDate().atZone(ZoneId.systemDefault()).toInstant()) : null;

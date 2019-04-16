@@ -75,7 +75,7 @@ public class StructureRowMapper implements RowMapper {
 
     private Reference createReference(String attributeCode, String value) {
         Structure.Reference reference = structure.getReference(attributeCode);
-        RefBookVersionEntity version = versionRepository.findOne(reference.getReferenceVersion());
+        RefBookVersionEntity version = versionRepository.getOne(reference.getReferenceVersion());
         try {
             castValue(version.getStructure().getAttribute(reference.getReferenceAttribute()), value);
         } catch (Exception e) {

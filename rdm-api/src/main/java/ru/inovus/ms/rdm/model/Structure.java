@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.model;
 
-import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.io.Serializable;
@@ -8,7 +7,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
-
 
 public class Structure implements Serializable {
 
@@ -43,7 +41,6 @@ public class Structure implements Serializable {
         return attributes.stream().filter(attribute -> attribute.getCode().equals(code)).findAny()
                 .orElse(null);
     }
-
 
     public void clearPrimary() {
         if (isEmpty(attributes)) {
@@ -288,7 +285,6 @@ public class Structure implements Serializable {
 
         if (attributes != null ? !attributes.equals(structure.attributes) : structure.attributes != null) return false;
         return !(references != null ? !references.equals(structure.references) : structure.references != null);
-
     }
 
     @Override

@@ -11,7 +11,7 @@
         </fields>
         <toolbar place="bottomRight">
             <button id="close" label="скачать">
-                <a href="/files/:versionId/:fileType" target="newWindow">
+                <a href="${server.servlet.context-path}/files/:versionId/:fileType" target="newWindow">
                     <path-param name="versionId" value="{versionId}"/>
                     <path-param name="fileType" value="{fileType.id}"/>
                 </a>

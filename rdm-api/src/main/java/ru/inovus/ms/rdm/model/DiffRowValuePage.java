@@ -11,9 +11,9 @@ public class DiffRowValuePage extends PageImpl<DiffRowValue> {
 
     public DiffRowValuePage(CollectionPage<DiffRowValue> content) {
         super(content.getCollection() != null
-                        ? new ArrayList(content.getCollection())
+                        ? new ArrayList<>(content.getCollection())
                         : new ArrayList<>(),
-                new PageRequest(content.getCriteria().getPage() - 1,
+                PageRequest.of(content.getCriteria().getPage() - 1,
                         content.getCriteria().getSize()),
                 content.getCount());
     }

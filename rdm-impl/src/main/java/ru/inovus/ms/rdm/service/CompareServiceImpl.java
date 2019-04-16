@@ -71,9 +71,10 @@ public class CompareServiceImpl implements CompareService {
     @Override
     @Transactional(readOnly = true)
     public PassportDiff comparePassports(Integer oldVersionId, Integer newVersionId) {
-        RefBookVersionEntity oldVersion = versionRepository.findOne(oldVersionId);
-        RefBookVersionEntity newVersion = versionRepository.findOne(newVersionId);
-        validateVersionsExistence(oldVersion, newVersion, oldVersionId, newVersionId);
+        validateVersionsExistence(oldVersionId, newVersionId);
+
+        RefBookVersionEntity oldVersion = versionRepository.getOne(oldVersionId);
+        RefBookVersionEntity newVersion = versionRepository.getOne(newVersionId);
 
         List<PassportAttributeEntity> passportAttributes = passportAttributeRepository.findAllByComparableIsTrueOrderByPositionAsc();
         List<PassportAttributeDiff> passportAttributeDiffList = new ArrayList<>();
@@ -96,11 +97,10 @@ public class CompareServiceImpl implements CompareService {
     @Override
     @Transactional(readOnly = true)
     public StructureDiff compareStructures(Integer oldVersionId, Integer newVersionId) {
+        validateVersionsExistence(oldVersionId, newVersionId);
 
-        RefBookVersionEntity oldVersion = versionRepository.findOne(oldVersionId);
-        RefBookVersionEntity newVersion = versionRepository.findOne(newVersionId);
-        if (oldVersion == null || newVersion == null)
-            throw new IllegalArgumentException("invalid.version.ids");
+        RefBookVersionEntity oldVersion = versionRepository.getOne(oldVersionId);
+        RefBookVersionEntity newVersion = versionRepository.getOne(newVersionId);
 
         List<StructureDiff.AttributeDiff> inserted = new ArrayList<>();
         List<StructureDiff.AttributeDiff> updated = new ArrayList<>();
@@ -127,9 +127,10 @@ public class CompareServiceImpl implements CompareService {
     @Override
     @Transactional(readOnly = true)
     public RefBookDataDiff compareData(ru.inovus.ms.rdm.model.compare.CompareDataCriteria criteria) {
-        RefBookVersionEntity oldVersion = versionRepository.findOne(criteria.getOldVersionId());
-        RefBookVersionEntity newVersion = versionRepository.findOne(criteria.getNewVersionId());
-        validateVersionsExistence(oldVersion, newVersion, criteria.getOldVersionId(), criteria.getNewVersionId());
+        validateVersionsExistence(criteria.getOldVersionId(), criteria.getNewVersionId());
+
+        RefBookVersionEntity oldVersion = versionRepository.getOne(criteria.getOldVersionId());
+        RefBookVersionEntity newVersion = versionRepository.getOne(criteria.getNewVersionId());
 
         Structure oldStructure = oldVersion.getStructure();
         Structure newStructure = newVersion.getStructure();
@@ -159,6 +160,8 @@ public class CompareServiceImpl implements CompareService {
     @Override
     @Transactional(readOnly = true)
     public Page<ComparableRow> getCommonComparableRows(ru.inovus.ms.rdm.model.compare.CompareDataCriteria criteria) {
+        validateVersionsExistence(criteria.getNewVersionId(), criteria.getOldVersionId());
+
         Structure newStructure = versionService.getStructure(criteria.getNewVersionId());
         Structure oldStructure = versionService.getStructure(criteria.getOldVersionId());
 
@@ -188,9 +191,11 @@ public class CompareServiceImpl implements CompareService {
                 .collect(Collectors.toList());
     }
 
-    private void validateVersionsExistence(RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion, Integer oldVersionId, Integer newVersionId) {
-        if (oldVersion == null || newVersion == null)
-            throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, oldVersion == null ? oldVersionId : newVersionId));
+    private void validateVersionsExistence(Integer oldVersionId, Integer newVersionId) {
+        if (oldVersionId == null || !versionRepository.existsById(oldVersionId))
+            throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, oldVersionId));
+        if (newVersionId == null || !versionRepository.existsById(newVersionId))
+            throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, newVersionId));
     }
 
     private void validatePrimaryAttributesEquality(List<Structure.Attribute> oldPrimaries, List<Structure.Attribute> newPrimaries) {

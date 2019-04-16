@@ -6,7 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.model.SearchDataCriteria;
@@ -15,8 +15,8 @@ import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.util.*;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 
@@ -42,7 +42,7 @@ public class ReferenceValueValidationTest {
     private Map<Structure.Reference, String> referenceWithValueMap;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         Structure.Attribute id = Structure.Attribute.buildPrimary("id", "Идентификатор", FieldType.INTEGER, "");
         Structure.Attribute ref1 = Structure.Attribute.build(REF_ATTRIBUTE_CODE1, REF_ATTRIBUTE_NAME1, FieldType.REFERENCE, "");
         Structure.Attribute ref2 = Structure.Attribute.build(REF_ATTRIBUTE_CODE2, REF_ATTRIBUTE_NAME2, FieldType.REFERENCE, "");
@@ -64,15 +64,14 @@ public class ReferenceValueValidationTest {
                         ),
                 null
         );
-
     }
 
     @Test
-    public void testValidate() throws Exception {
+    public void testValidate() {
         when(versionService.getStructure(eq(VERSION_ID))).thenReturn(referenceStructure);
         when(versionService.search(eq(VERSION_ID), any(SearchDataCriteria.class))).thenReturn(new PageImpl<>(Collections.emptyList()));
         List<Message> messages = new ReferenceValueValidation(versionService, referenceWithValueMap, structure, Collections.singleton(REF_ATTRIBUTE_CODE2)).validate();
-        Assert.assertTrue(messages.size() == 1);
+        Assert.assertEquals(1, messages.size());
         Message expected1 = new Message(ReferenceValueValidation.REFERENCE_ERROR_CODE, REF_ATTRIBUTE_NAME1, REFERENCE_VAL1);
         Assert.assertTrue(messages.contains(expected1));
     }

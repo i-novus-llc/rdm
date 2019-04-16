@@ -18,6 +18,7 @@ import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import javax.annotation.PostConstruct;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Optional;
 
 @Service
 public class RefBookLockServiceImpl implements RefBookLockService {
@@ -54,38 +55,36 @@ public class RefBookLockServiceImpl implements RefBookLockService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void setRefBookPublishing(Integer refBookId) {
-        RefBookEntity refBook = refBookRepository.findOne(refBookId);
+        RefBookEntity refBook = refBookRepository.getOne(refBookId);
         validateRefBookNotBusy(refBook);
         operationRepository.save(new RefBookOperationEntity(refBook, RefBookOperation.PUBLISHING, instanceId, DEFAULT_USER));
-
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void setRefBookUploading(Integer refBookId) {
-        RefBookEntity refBook = refBookRepository.findOne(refBookId);
+        RefBookEntity refBook = refBookRepository.getOne(refBookId);
         validateRefBookNotBusy(refBook);
         operationRepository.save(new RefBookOperationEntity(refBook, RefBookOperation.UPLOADING, instanceId, DEFAULT_USER));
-
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void deleteRefBookAction(Integer refBookId) {
-        RefBookEntity refBook = refBookRepository.findOne(refBookId);
-        if (refBook != null && refBook.getCurrentOperation() != null) {
-            operationRepository.delete(refBook.getCurrentOperation().getId());
-            refBook.setCurrentOperation(null);
+        Optional<RefBookEntity> refBook = refBookRepository.findById(refBookId);
+        if (refBook.isPresent() && refBook.get().getCurrentOperation() != null) {
+            operationRepository.deleteById(refBook.get().getCurrentOperation().getId());
+            refBook.get().setCurrentOperation(null);
         }
-
     }
 
     @Override
     public void validateRefBookNotBusyByVersionId(Integer versionId) {
-        RefBookVersionEntity versionEntity = versionRepository.findOne(versionId);
-        if (versionEntity != null) {
-            validateRefBookNotBusy(versionEntity.getRefBook());
-        }
+        Optional<RefBookVersionEntity> versionEntity = versionRepository.findById(versionId);
+        versionEntity.ifPresent(
+                refBookVersionEntity ->
+                        validateRefBookNotBusy(refBookVersionEntity.getRefBook())
+        );
     }
 
     @Override

@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
@@ -19,7 +19,7 @@ import ru.inovus.ms.rdm.model.Structure;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -46,7 +46,7 @@ public class DBPrimaryKeyValidationTest {
     private Row noPkRow;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         pkStructure = new Structure();
         pkStructure.setAttributes(Arrays.asList(
                 Structure.Attribute.buildPrimary(PK_STRING, "string", FieldType.STRING, "string"),
@@ -78,11 +78,10 @@ public class DBPrimaryKeyValidationTest {
         noPkRow = new Row(noPkRowMap);
     }
 
-
     @Test
-    public void testValidateWithoutCreateCriteria() throws Exception {
+    public void testValidateWithoutCreateCriteria() {
 
-        when(searchDataService.getPagedData(anyObject())).thenReturn(new CollectionPage<>(1, Collections.singletonList(new LongRowValue(1L, emptyList())), new Criteria()));
+        when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>(1, Collections.singletonList(new LongRowValue(1L, emptyList())), new Criteria()));
 
         ErrorAttributeHolderValidation validation = new DBPrimaryKeyValidation(searchDataService, pkStructure, pkRow, STORAGE_CODE);
         List<Message> messages = validation.validate();
@@ -104,7 +103,7 @@ public class DBPrimaryKeyValidationTest {
         Assert.assertEquals(0, messages.size());
         Assert.assertEquals(1, errorAttributes.size());
 
-        when(searchDataService.getPagedData(anyObject())).thenReturn(new CollectionPage<>(0, emptyList(), new Criteria()));
+        when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>(0, emptyList(), new Criteria()));
 
         validation = new DBPrimaryKeyValidation(searchDataService, pkStructure, pkRow, STORAGE_CODE);
         messages = validation.validate();

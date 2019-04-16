@@ -10,7 +10,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.*;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
@@ -125,8 +125,10 @@ public class DraftServiceTest {
     public void setUp() {
         when(draftDataService.applyDraft(any(), any(), any(), any())).thenReturn(TEST_STORAGE_CODE);
         when(draftDataService.createDraft(anyList())).thenReturn(TEST_DRAFT_CODE_NEW);
-        when(fileNameGenerator.generateName(any(), eq(FileType.XLSX))).thenReturn("version.xlsx");
-        when(fileNameGenerator.generateName(any(), eq(FileType.PDF))).thenReturn("version.pdf");
+        when(fileNameGenerator.generateName(any(RefBookVersion.class), eq(FileType.XLSX))).thenReturn("version.xlsx");
+        when(fileNameGenerator.generateZipName(any(RefBookVersion.class), eq(FileType.XLSX))).thenReturn("version_xlsx.zip");
+        when(fileNameGenerator.generateName(any(RefBookVersion.class), eq(FileType.XML))).thenReturn("version.xml");
+        when(fileNameGenerator.generateZipName(any(RefBookVersion.class), eq(FileType.XML))).thenReturn("version_xml.zip");
     }
 
     @Test
@@ -140,8 +142,9 @@ public class DraftServiceTest {
         expectedVersionEntity.setStorageCode(TEST_STORAGE_CODE);
         LocalDateTime now = LocalDateTime.now();
         expectedVersionEntity.setFromDate(now);
-        when(versionRepository.findOne(eq(testDraftVersion.getId()))).thenReturn(testDraftVersion);
-        when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(null);
+        when(versionRepository.getOne(eq(testDraftVersion.getId()))).thenReturn(testDraftVersion);
+        when(versionRepository.findById(eq(testDraftVersion.getId()))).thenReturn(java.util.Optional.of(testDraftVersion));
+        when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(Page.empty());
         when(versionService.getById(eq(testDraftVersion.getId())))
                 .thenReturn(ModelGenerator.versionModel(testDraftVersion));
         when(versionNumberStrategy.next(eq(REFBOOK_ID))).thenReturn("1.1");
@@ -179,7 +182,7 @@ public class DraftServiceTest {
         //valid publishing, null version name
         draftService.publish(testDraftVersion.getId(), null, now, null);
         assertEquals("1.1", testDraftVersion.getVersion());
-        verify(draftDataService).applyDraft(isNull(String.class), eq(expectedDraftStorageCode), eq(Date.from(now.atZone(ZoneId.systemDefault()).toInstant())), any());
+        verify(draftDataService).applyDraft(isNull(), eq(expectedDraftStorageCode), eq(Date.from(now.atZone(ZoneId.systemDefault()).toInstant())), any());
         verify(versionRepository).save(eq(expectedVersionEntity));
         verify(fileStorage, times(2)).saveContent(any(InputStream.class), anyString());
         reset(versionRepository);
@@ -202,8 +205,8 @@ public class DraftServiceTest {
         expectedVersionEntity.setStorageCode(TEST_STORAGE_CODE);
         LocalDateTime now = LocalDateTime.now();
         expectedVersionEntity.setFromDate(now);
-        when(versionRepository.findOne(eq(draft.getId()))).thenReturn(draft);
-        when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(new PageImpl(singletonList(versionEntity)));
+        when(versionRepository.getOne(eq(draft.getId()))).thenReturn(draft);
+        when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(new PageImpl<>(singletonList(versionEntity)));
         when(versionService.getById(eq(draft.getId())))
                 .thenReturn(ModelGenerator.versionModel(draft));
         when(versionNumberStrategy.check("2.2", REFBOOK_ID)).thenReturn(true);
@@ -226,13 +229,14 @@ public class DraftServiceTest {
 
         RefBookVersionEntity draftVersion = createTestDraftVersion();
 
-        when(versionRepository.findOne(eq(draftVersion.getId()))).thenReturn(draftVersion);
-        when(versionRepository.findAll(any(Predicate.class))).thenReturn(new PageImpl(actual));
+        when(versionRepository.getOne(eq(draftVersion.getId()))).thenReturn(draftVersion);
+        when(versionRepository.findAll(any(Predicate.class))).thenReturn(new PageImpl<>(actual));
+        when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(new PageImpl<>(actual));
         when(versionService.getById(eq(draftVersion.getId())))
                 .thenReturn(ModelGenerator.versionModel(draftVersion));
         when(versionNumberStrategy.check(eq("2.4"), eq(REFBOOK_ID))).thenReturn(true);
         doAnswer(invocation -> actual.removeIf(e -> e.getId().equals((invocation.getArguments()[0]))))
-                .when(versionRepository).delete(anyInt());
+                .when(versionRepository).deleteById(anyInt());
         when(versionRepository.exists(eq(hasVersionId(draftVersion.getId()).and(isDraft())))).thenReturn(true);
 
         draftService.publish(draftVersion.getId(), "2.4", LocalDateTime.of(2017, 1, 4, 1, 1), LocalDateTime.of(2017, 1, 9, 1, 1));
@@ -274,6 +278,8 @@ public class DraftServiceTest {
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(testDraftVersion);
         when(versionRepository.save(any(RefBookVersionEntity.class))).thenReturn(testDraftVersion);
         when(versionRepository.exists(isVersionOfRefBook(REFBOOK_ID))).thenReturn(true);
+        when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(Page.empty());
+
         Draft expected = new Draft(1, TEST_DRAFT_CODE);
         Draft actual = draftService.create(REFBOOK_ID, testDraftVersion.getStructure());
 
@@ -286,8 +292,9 @@ public class DraftServiceTest {
         RefBookVersionEntity testDraftVersion = createTestDraftVersion();
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(testDraftVersion);
         when(versionRepository.save(eq(testDraftVersion))).thenReturn(testDraftVersion);
-        when(versionRepository.exists(hasVersionId(testDraftVersion.getId()).and(isDraft()))).thenReturn(true);
         when(versionRepository.exists(eq(isVersionOfRefBook(REFBOOK_ID)))).thenReturn(true);
+        when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(Page.empty());
+
         Structure structure = new Structure();
         structure.setAttributes(singletonList(Structure.Attribute.build("name", "name", FieldType.STRING, "description")));
         Draft draftActual = draftService.create(REFBOOK_ID, structure);
@@ -302,11 +309,10 @@ public class DraftServiceTest {
         RefBookVersionEntity lastRefBookVersion = createTestPublishedVersion();
         Page<RefBookVersionEntity> lastRefBookVersionPage = new PageImpl<>(Collections.singletonList(lastRefBookVersion));
         when(versionRepository
-                .findAll(eq(isPublished().and(isVersionOfRefBook(REFBOOK_ID)))
-                        , eq(new PageRequest(0, 1, new Sort(Sort.Direction.DESC, "fromDate"))))).thenReturn(lastRefBookVersionPage);
+                .findAll(eq(isPublished().and(isVersionOfRefBook(REFBOOK_ID))),
+                        eq(PageRequest.of(0, 1, new Sort(Sort.Direction.DESC, "fromDate"))))).thenReturn(lastRefBookVersionPage);
         RefBookEntity refBook = new RefBookEntity();
         refBook.setId(REFBOOK_ID);
-        when(refBookRepository.findOne(REFBOOK_ID)).thenReturn(refBook);
         RefBookVersionEntity expectedRefBookVersion = createTestDraftVersion();
         expectedRefBookVersion.setId(null);
         expectedRefBookVersion.setStorageCode(TEST_DRAFT_CODE_NEW);
@@ -326,9 +332,8 @@ public class DraftServiceTest {
         refBook.setId(REFBOOK_ID);
 
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(testDraftVersion);
-        when(refBookRepository.findOne(REFBOOK_ID)).thenReturn(refBook);
-        when(versionRepository.exists(hasVersionId(testDraftVersion.getId()).and(isDraft()))).thenReturn(true);
         when(versionRepository.exists(eq(isVersionOfRefBook(REFBOOK_ID)))).thenReturn(true);
+        when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(Page.empty());
 
         RefBookVersionEntity expectedRefBookVersion = createTestDraftVersion();
         expectedRefBookVersion.setId(null);
@@ -341,7 +346,7 @@ public class DraftServiceTest {
         draftService.create(REFBOOK_ID, createTestFileModel("/", "R002", "xlsx"));
 
         verify(dropDataService).drop(eq(Collections.singleton(TEST_DRAFT_CODE)));
-        verify(versionRepository).delete(eq(testDraftVersion.getId()));
+        verify(versionRepository).deleteById(eq(testDraftVersion.getId()));
         verify(versionRepository).save(eq(expectedRefBookVersion));
     }
 
@@ -359,11 +364,11 @@ public class DraftServiceTest {
         RefBookVersionEntity lastRefBookVersion = createTestPublishedVersion();
         Page<RefBookVersionEntity> lastRefBookVersionPage = new PageImpl<>(singletonList(lastRefBookVersion));
         when(versionRepository
-                .findAll(eq(isPublished().and(isVersionOfRefBook(REFBOOK_ID)))
-                        , eq(new PageRequest(0, 1, new Sort(Sort.Direction.DESC, "fromDate"))))).thenReturn(lastRefBookVersionPage);
+                .findAll(eq(isPublished().and(isVersionOfRefBook(REFBOOK_ID))),
+                        eq(PageRequest.of(0, 1, new Sort(Sort.Direction.DESC, "fromDate")))))
+                .thenReturn(lastRefBookVersionPage);
         RefBookEntity refBook = new RefBookEntity();
         refBook.setId(REFBOOK_ID);
-        when(refBookRepository.findOne(REFBOOK_ID)).thenReturn(refBook);
         RefBookVersionEntity expectedRefBookVersion = createTestDraftVersion();
         expectedRefBookVersion.setId(null);
         expectedRefBookVersion.setStorageCode(TEST_DRAFT_CODE_NEW);
@@ -395,10 +400,10 @@ public class DraftServiceTest {
         RefBookVersionEntity versionWithStructure = createTestDraftVersionWithPassport();
         versionWithStructure.setId(1);
 
-        when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(createCopyOfVersion(versionBefore)).thenReturn(createCopyOfVersion(versionWithStructure));
-        when(refBookRepository.findOne(REFBOOK_ID)).thenReturn(refBook);
-        when(versionRepository.exists(hasVersionId(versionBefore.getId()).and(isDraft()))).thenReturn(true);
+        when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID)))
+                .thenReturn(createCopyOfVersion(versionBefore)).thenReturn(createCopyOfVersion(versionWithStructure));
         when(versionRepository.exists(eq(isVersionOfRefBook(REFBOOK_ID)))).thenReturn(true);
+        when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(Page.empty());
 
         versionWithStructure.setStorageCode(TEST_DRAFT_CODE_NEW);
         versionWithStructure.setRefBook(refBook);
@@ -408,7 +413,7 @@ public class DraftServiceTest {
         draftService.create(REFBOOK_ID, createTestFileModel("/file/", "uploadFile", "xml"));
 
         verify(dropDataService).drop(eq(Collections.singleton(TEST_DRAFT_CODE)));
-        verify(versionRepository).delete(eq(versionBefore.getId()));
+        verify(versionRepository).deleteById(eq(versionBefore.getId()));
         verify(versionRepository, times(2)).save(versionsCaptor.capture());
 
         assertVersions(asList(versionWithPassport, versionWithStructure), versionsCaptor.getAllValues());
@@ -421,16 +426,14 @@ public class DraftServiceTest {
 
         draftService.remove(1);
 
-        verify(versionRepository).delete(eq(1));
+        verify(versionRepository).deleteById(eq(1));
     }
 
     @Test
     public void testUpdateStructure() {
         RefBookVersionEntity draftVersion = createTestDraftVersion();
-        RefBookEntity refBook = draftVersion.getRefBook();
-        when(versionRepository.findOne(eq(draftVersion.getId()))).thenReturn(draftVersion);
+        when(versionRepository.getOne(eq(draftVersion.getId()))).thenReturn(draftVersion);
         when(versionService.getStructure(eq(draftVersion.getId()))).thenReturn(draftVersion.getStructure());
-        when(refBookRepository.findOne(eq(refBook.getId()))).thenReturn(refBook);
         when(versionRepository.exists(hasVersionId(draftVersion.getId()).and(isDraft()))).thenReturn(true);
 
         // добавление атрибута, получение структуры, проверка добавленного атрибута
