@@ -7,6 +7,7 @@ import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.RefBookVersion;
 import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.validation.AttributeValidation;
+import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -14,7 +15,10 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import java.util.Iterator;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
+
+import static java.util.stream.Collectors.toList;
 
 public class XmlFileGenerator extends PerRowFileGenerator {
 
@@ -44,8 +48,10 @@ public class XmlFileGenerator extends PerRowFileGenerator {
                             Map<String, String> referenceToRefBookCodeMap,
                             List<AttributeValidation> attributeValidations) {
         super(rowIterator, version.getStructure());
-        this.passport = version.getPassport();
-        this.version = version;
+        this.passport = new LinkedHashMap<>() {{
+            put("code", version.getCode());
+            putAll(version.getPassport());
+        }};
         this.referenceToRefBookCodeMap = referenceToRefBookCodeMap;
         this.attributeValidations = attributeValidations;
     }
@@ -73,9 +79,9 @@ public class XmlFileGenerator extends PerRowFileGenerator {
     protected void write(Row row) {
         try {
             writer.writeStartElement("row");
-            for (String fieldCode : row.getData().keySet()) {
-                if (getStructure().getAttribute(fieldCode) != null
-                        && row.getData().get(fieldCode) != null) {
+            for (String fieldCode :
+                    getStructure().getAttributes().stream().map(Structure.Attribute::getCode).collect(toList())) {
+                if (row.getData().get(fieldCode) != null) {
                     String stringValue = ConverterUtil.toString(row.getData().get(fieldCode));
                     if (stringValue == null) {
                         writer.writeEmptyElement(fieldCode);

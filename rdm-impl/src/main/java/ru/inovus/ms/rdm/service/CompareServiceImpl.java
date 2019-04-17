@@ -20,6 +20,7 @@ import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.inovus.ms.rdm.entity.PassportAttributeEntity;
 import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
+import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.compare.ComparableField;
 import ru.inovus.ms.rdm.model.compare.ComparableFieldValue;
@@ -68,9 +69,10 @@ public class CompareServiceImpl implements CompareService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PassportDiff comparePassports(Integer oldVersionId, Integer newVersionId) {
-        RefBookVersionEntity oldVersion = versionRepository.getOne(oldVersionId);
-        RefBookVersionEntity newVersion = versionRepository.getOne(newVersionId);
+        RefBookVersionEntity oldVersion = versionRepository.findOne(oldVersionId);
+        RefBookVersionEntity newVersion = versionRepository.findOne(newVersionId);
         validateVersionsExistence(oldVersion, newVersion, oldVersionId, newVersionId);
 
         List<PassportAttributeEntity> passportAttributes = passportAttributeRepository.findAllByComparableIsTrueOrderByPositionAsc();
@@ -125,8 +127,8 @@ public class CompareServiceImpl implements CompareService {
     @Override
     @Transactional(readOnly = true)
     public RefBookDataDiff compareData(ru.inovus.ms.rdm.model.compare.CompareDataCriteria criteria) {
-        RefBookVersionEntity oldVersion = versionRepository.getOne(criteria.getOldVersionId());
-        RefBookVersionEntity newVersion = versionRepository.getOne(criteria.getNewVersionId());
+        RefBookVersionEntity oldVersion = versionRepository.findOne(criteria.getOldVersionId());
+        RefBookVersionEntity newVersion = versionRepository.findOne(criteria.getNewVersionId());
         validateVersionsExistence(oldVersion, newVersion, criteria.getOldVersionId(), criteria.getNewVersionId());
 
         Structure oldStructure = oldVersion.getStructure();
@@ -188,7 +190,7 @@ public class CompareServiceImpl implements CompareService {
 
     private void validateVersionsExistence(RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion, Integer oldVersionId, Integer newVersionId) {
         if (oldVersion == null || newVersion == null)
-            throw new UserException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, oldVersion == null ? oldVersionId : newVersionId));
+            throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, oldVersion == null ? oldVersionId : newVersionId));
     }
 
     private void validatePrimaryAttributesEquality(List<Structure.Attribute> oldPrimaries, List<Structure.Attribute> newPrimaries) {

@@ -27,22 +27,22 @@ public class VersionPlainDataServiceImpl implements VersionPlainDataService{
     }
 
     @Override
-    public Page<Map<String, String>> search(Integer versionId, SearchDataCriteria criteria) {
-        return versionService.search(versionId, criteria).map(ConverterUtil::toStringMap);
+    public Page<Map<String, Object>> search(Integer versionId, SearchDataCriteria criteria) {
+        return versionService.search(versionId, criteria).map(ConverterUtil::toStringObjectMap);
     }
 
     @Override
-    public Page<Map<String, String>> search(String refBookCode, OffsetDateTime date, SearchDataCriteria criteria) {
-        return versionService.search(refBookCode, date, criteria).map(ConverterUtil::toStringMap);
+    public Page<Map<String, Object>> search(String refBookCode, OffsetDateTime date, SearchDataCriteria criteria) {
+        return versionService.search(refBookCode, date, criteria).map(ConverterUtil::toStringObjectMap);
     }
 
     @Override
-    public Page<Map<String, String>> search(String refBookCode, SearchDataCriteria criteria) {
-        return versionService.search(refBookCode,  criteria).map(ConverterUtil::toStringMap);
+    public Page<Map<String, Object>> search(String refBookCode, SearchDataCriteria criteria) {
+        return versionService.search(refBookCode,  criteria).map(ConverterUtil::toStringObjectMap);
     }
 
     @Override
-    public Map<String, String> getRow(String rowId) {
-        return ConverterUtil.toStringMap(versionService.getRow(rowId));
+    public Map<String, Object> getRow(String rowId) {
+        return ConverterUtil.toStringObjectMap(versionService.getRow(rowId));
     }
 }

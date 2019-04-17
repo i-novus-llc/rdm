@@ -52,6 +52,9 @@ public class RefBookServiceImpl implements RefBookService {
     private static final String REF_BOOK_FROM_DATE_SORT_PROPERTY = "fromDate";
     private static final String REF_BOOK_CATEGORY_SORT_PROPERTY = "category";
 
+    private static final String REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.already.exists";
+    private static final String CANNOT_ORDER_BY_EXCEPTION_CODE = "cannot.order.by \"{0}\"";
+
     private RefBookVersionRepository repository;
     private RefBookRepository refBookRepository;
     private DraftDataService draftDataService;
@@ -146,7 +149,7 @@ public class RefBookServiceImpl implements RefBookService {
                     sortExpression = QRefBookVersionEntity.refBookVersionEntity.refBook.category;
                     break;
                 default:
-                    throw new UserException(new Message("cannot.order.by", order.getProperty()));
+                    throw new UserException(new Message(CANNOT_ORDER_BY_EXCEPTION_CODE, order.getProperty()));
             }
         }
         jpaQuery.orderBy(order.isAscending() ? sortExpression.asc() : sortExpression.desc());
@@ -176,11 +179,23 @@ public class RefBookServiceImpl implements RefBookService {
 
     @Override
     @Transactional
+    public String getCode(Integer refBookId) {
+        validateRefBookExists(refBookId);
+        final RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
+        return refBookEntity.getCode();
+    }
+
+    @Override
+    @Transactional
     public RefBook create(RefBookCreateRequest request) {
+        if (refBookRepository.existsByCode(request.getCode()))
+            throw new UserException(new Message(REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE, request.getCode()));
+
         RefBookEntity refBookEntity = new RefBookEntity();
         refBookEntity.setArchived(Boolean.FALSE);
         refBookEntity.setRemovable(Boolean.TRUE);
         refBookEntity.setCode(request.getCode());
+        refBookEntity.setCategory(request.getCategory());
         refBookEntity = refBookRepository.save(refBookEntity);
 
         RefBookVersionEntity refBookVersionEntity = new RefBookVersionEntity();
@@ -202,7 +217,6 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     @Transactional
     public RefBook update(RefBookUpdateRequest request) {
-
         validateVersionExists(request.getVersionId());
         validateVersionNotArchived(request.getVersionId());
         refBookLockService.validateRefBookNotBusyByVersionId(request.getVersionId());
@@ -210,8 +224,12 @@ public class RefBookServiceImpl implements RefBookService {
         RefBookVersionEntity refBookVersionEntity = repository.findOne(request.getVersionId());
         RefBookEntity refBookEntity = refBookVersionEntity.getRefBook();
         if (!refBookEntity.getCode().equals(request.getCode())) {
+            if (refBookRepository.existsByCode((request.getCode())))
+                throw new UserException(new Message(REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE, request.getCode()));
+
             refBookEntity.setCode(request.getCode());
         }
+        refBookEntity.setCategory(request.getCategory());
         updateVersionFromPassport(refBookVersionEntity, request.getPassport());
         refBookVersionEntity.setComment(request.getComment());
         return refBookModel(refBookVersionEntity, getLastPublishedVersions(singletonList(refBookVersionEntity.getRefBook().getId())));

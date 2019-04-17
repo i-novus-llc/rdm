@@ -4,7 +4,7 @@
     <parent>
         <groupId>ru.inovus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
-        <version>1.5-SNAPSHOT</version>
+        <version>1.27-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -17,7 +17,6 @@
             <artifactId>rdm-api</artifactId>
         </dependency>
 
-        <!--todo:esadykov Это тут точно нужно?-->
         <dependency>
             <groupId>net.n2oapp.framework</groupId>
             <artifactId>n2o-spring-boot-starter</artifactId>

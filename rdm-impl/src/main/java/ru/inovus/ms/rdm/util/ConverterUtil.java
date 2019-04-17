@@ -16,9 +16,9 @@ import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.*;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.service.FieldFactoryImpl;
 import ru.inovus.ms.rdm.exception.RdmException;
+import ru.inovus.ms.rdm.model.AttributeFilter;
 import ru.inovus.ms.rdm.model.RefBookRowValue;
 import ru.inovus.ms.rdm.model.Row;
-import ru.inovus.ms.rdm.model.AttributeFilter;
 import ru.inovus.ms.rdm.model.Structure;
 
 import java.math.BigInteger;
@@ -102,14 +102,9 @@ public class ConverterUtil {
             FieldValue fv = (FieldValue) fieldValue;
             data.put(fv.getField(), fv.getValue());
         });
-        return new Row(data);
-    }
-
-    public static Map<String, String> toStringMap(RefBookRowValue rowValue) {
-        Map<String, String> map = new HashMap<>();
-        map.put("rowId", rowValue.getId());
-        rowValue.getFieldValues().forEach(fieldValue -> map.put(fieldValue.getField(), toString(fieldValue.getValue())));
-        return map;
+        return new Row(rowValue.getSystemId() != null
+                ? Long.valueOf(String.valueOf(rowValue.getSystemId()))
+                : null, data);
     }
 
     public static String toString(Object value) {
@@ -120,6 +115,21 @@ public class ConverterUtil {
             return ((Reference) value).getValue();
         }
         return String.valueOf(value);
+    }
+
+    public static Map<String, Object> toStringObjectMap(RefBookRowValue rowValue) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("rowId", rowValue.getId());
+        rowValue.getFieldValues().forEach(fieldValue -> map.put(fieldValue.getField(), getPlainValue(fieldValue)));
+        return map;
+    }
+
+    public static Object getPlainValue(FieldValue fieldValue) {
+        if (fieldValue == null) return null;
+        if (fieldValue.getValue() instanceof Reference) {
+            return ((Reference) fieldValue.getValue()).getValue();
+        }
+        return fieldValue.getValue();
     }
 
     public static Object castReferenceValue(Field field, String value) {

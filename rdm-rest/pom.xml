@@ -7,7 +7,7 @@
     <parent>
         <groupId>ru.inovus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
-        <version>1.5-SNAPSHOT</version>
+        <version>1.27-SNAPSHOT</version>
     </parent>
 
     <dependencies>
@@ -90,6 +90,11 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.sun.xml.ws</groupId>
+            <artifactId>rt</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -113,9 +118,6 @@
                     </plugin>
                 </plugins>
             </build>
-            <properties>
-                <maven.test.skip>true</maven.test.skip>
-            </properties>
         </profile>
         <profile>
             <id>fnsi</id>

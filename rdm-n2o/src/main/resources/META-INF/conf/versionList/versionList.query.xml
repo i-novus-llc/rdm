@@ -3,7 +3,6 @@
     <list result-mapping="content" count-mapping="totalElements" filters="refBookId">
         <java method="getVersions" class="ru.inovus.ms.rdm.service.api.RefBookService">
             <spring bean="refBookServiceJaxRsProxyClient"/>
-            <!--<n2o:date-format>dd.MM.yyyy HH:mm:ss</n2o:date-format>-->
             <arguments>
                 <argument type="criteria" class="ru.inovus.ms.rdm.model.VersionCriteria"/>
             </arguments>
@@ -29,8 +28,7 @@
         <field id="refBookId" domain="integer">
             <select/>
             <filters>
-                <!-- todo-->
-                <eq filter-id="refBookId" mapping="refBookId" domain="integer" default-value="83"/>
+                <eq filter-id="refBookId" mapping="refBookId" domain="integer"/>
             </filters>
         </field>
 

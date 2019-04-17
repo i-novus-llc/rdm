@@ -50,14 +50,14 @@ public class RequiredValueValidationTest {
     public void testValidate() throws Exception {
         List<Message> messages = new PkRequiredValidation(nullRow, structure, singleton(IGNORED_PRIMARY)).validate();
         assertEquals(1, messages.size());
-        Message expected1_1 = new Message(PkRequiredValidation.ERROR_CODE, PRIMARY);
+        Message expected1_1 = new Message(PkRequiredValidation.REQUIRED_ERROR_CODE, PRIMARY);
         assertTrue(messages.contains(expected1_1));
 
         List<Message> messages2 = new PkRequiredValidation(nullRow, structure, emptySet()).validate();
         assertEquals(2, messages2.size());
-        Message expected2_1 = new Message(PkRequiredValidation.ERROR_CODE, PRIMARY);
+        Message expected2_1 = new Message(PkRequiredValidation.REQUIRED_ERROR_CODE, PRIMARY);
         assertTrue(messages2.contains(expected2_1));
-        Message expected2_3 = new Message(PkRequiredValidation.ERROR_CODE, IGNORED_PRIMARY);
+        Message expected2_3 = new Message(PkRequiredValidation.REQUIRED_ERROR_CODE, IGNORED_PRIMARY);
         assertTrue(messages2.contains(expected2_3));
 
         List<Message> messages3 = new PkRequiredValidation(fullRow, structure, emptySet()).validate();

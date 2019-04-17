@@ -15,7 +15,7 @@ public class UiTest {
     @BeforeClass
     public static void init(){
         Configuration.browser = "chrome";
-        Configuration.timeout = 10000;
+        Configuration.timeout = 25000;
         String urlFromProperty = System.getProperty("appUrl");
         if(urlFromProperty != null) {
             appUrl = urlFromProperty;
@@ -25,6 +25,9 @@ public class UiTest {
     @Test
     public void testOpenStartPage() throws Exception {
         Selenide.open(appUrl);
+        Selenide.sleep(3000);
+        Selenide.open(appUrl);
+
         Selenide.$(Selectors.byId("username")).setValue("rdm");
         Selenide.$(Selectors.byId("password")).setValue("rdm").pressEnter();
         Selenide.$(Selectors.byText("Код")).shouldHave(Condition.exist);

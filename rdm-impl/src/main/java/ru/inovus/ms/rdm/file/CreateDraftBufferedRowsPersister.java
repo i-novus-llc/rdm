@@ -5,11 +5,16 @@ import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.util.ConverterUtil;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
+
+import static ru.inovus.ms.rdm.util.ConverterUtil.field;
+import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
 
 public class CreateDraftBufferedRowsPersister implements RowsProcessor {
 
@@ -22,6 +27,10 @@ public class CreateDraftBufferedRowsPersister implements RowsProcessor {
     private int size = 100;
 
     private BiConsumer consumer;
+
+    private String storageCode;
+    private Structure structure = null;
+    private Set<String> allKeys = new LinkedHashSet<>();
 
     public CreateDraftBufferedRowsPersister(DraftDataService draftDataService, BiConsumer<String, Structure> consumer) {
         this.draftDataService = draftDataService;
@@ -37,25 +46,46 @@ public class CreateDraftBufferedRowsPersister implements RowsProcessor {
     @Override
     public Result append(Row row) {
         if (!isFirstRowAppended) {
-            Structure structure = fields(row);
-            String storageCode = draftDataService.createDraft(ConverterUtil.fields(structure));
-            consumer.accept(storageCode, structure);
+            allKeys.addAll(row.getData().keySet());
+            structure = stringStructure(allKeys);
+            storageCode = draftDataService.createDraft(fields(structure));
             this.bufferedRowsPersister = new BufferedRowsPersister(size, draftDataService, storageCode, structure);
             isFirstRowAppended = true;
+        } else {
+            updateStructure(row);
         }
         return bufferedRowsPersister.append(row);
     }
 
-    private Structure fields(Row row) {
+    private void updateStructure(Row row) {
+        List<String> newKeys = row.getData().keySet().stream()
+                .filter(k -> !allKeys.contains(k))
+                .collect(Collectors.toList());
+        if (allKeys.addAll(newKeys)) {
+            newKeys.stream()
+                    .map(this::stringAttribute)
+                    .peek(attribute -> draftDataService.addField(storageCode, field(attribute)))
+                    .forEach(attribute -> structure.getAttributes().add(attribute));
+            bufferedRowsPersister.setStructure(structure);
+        }
+    }
+
+    private Structure stringStructure(Set<String> keySet) {
         List<Structure.Attribute> attributes = new ArrayList<>();
-        row.getData().keySet().forEach(columnName ->
-            attributes.add(Structure.Attribute.build(columnName, columnName, FieldType.STRING, columnName))
+        keySet.forEach(columnName ->
+                attributes.add(stringAttribute(columnName))
         );
         return new Structure(attributes, null);
     }
 
+    private Structure.Attribute stringAttribute(String attrCode) {
+        return Structure.Attribute.build(attrCode, attrCode, FieldType.STRING, attrCode);
+    }
+
     @Override
     public Result process() {
-        return bufferedRowsPersister != null ? bufferedRowsPersister.process() : null;
+        Result result = bufferedRowsPersister != null ? bufferedRowsPersister.process() : null;
+        consumer.accept(storageCode, structure);
+        return result;
     }
 }

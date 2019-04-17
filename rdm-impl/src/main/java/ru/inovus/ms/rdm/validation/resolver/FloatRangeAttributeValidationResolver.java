@@ -37,6 +37,8 @@ public class FloatRangeAttributeValidationResolver implements AttributeValidatio
         if (value == null) return null;
         boolean isLargerThanMin = min == null || value.compareTo(min) >= 0;
         boolean isLessThanMax = max == null || value.compareTo(max) <= 0;
-        return isLargerThanMin && isLessThanMax ? null : new Message(FLOAT_RANGE_EXCEPTION_CODE, attribute, value);
+        return isLargerThanMin && isLessThanMax
+                ? null
+                : new Message(FLOAT_RANGE_EXCEPTION_CODE, attribute.getName(), value);
     }
 }

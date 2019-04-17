@@ -2,7 +2,11 @@
 <simple-page xmlns="http://n2oapp.net/framework/config/schema/page-2.0" name="Структура">
     <form default-values-query-id="versionDefault" query-id="attribute" object-id="attribute">
         <fields>
-            <input-text id="code" label="Код" required="true"/>
+            <input-text id="code" label="Код" required="true">
+                <dependencies>
+                    <enabling>typeof id == 'undefined'</enabling>
+                </dependencies>
+            </input-text>
 
             <input-text id="name" label="Наименование" required="true"/>
 
@@ -20,7 +24,9 @@
             <input-select id="referenceRefBook" label="Выбор справочника" query-id="refBook"
                           label-field-id="code">
                 <dependencies>
-                    <visibility on="attrType">attrType.id == 'REFERENCE'</visibility>
+                    <visibility on="attrType">
+                        attrType.id == 'REFERENCE'
+                    </visibility>
                 </dependencies>
             </input-select>
             <input-select id="referenceVersion" label="Версия" query-id="versionList"
@@ -29,7 +35,9 @@
                     <eq field-id="refBookId" value="{referenceRefBook.id}"/>
                 </pre-filters>
                 <dependencies>
-                    <visibility on="referenceRefBook,attrType">(attrType == 'REFERENCE' || referenceRefBook.id != null)</visibility>
+                    <visibility on="referenceRefBook,attrType">
+                        (attrType == 'REFERENCE' || referenceRefBook.id != null)
+                    </visibility>
                 </dependencies>
             </input-select>
             <!--<input-select id="referenceAttribute" label="Связанный атрибут" depends-on="referenceVersion"-->
@@ -52,18 +60,39 @@
             <!--</set-value-expression>-->
             <!--</input-select>-->
             <!--</fields>-->
-            <checkbox id="isPrimary" label="Первичный ключ"/>
+
+            <checkbox id="isPrimary" label="Первичный ключ">
+                <dependencies>
+                    <enabling on="attrType">
+                        (attrType != null &amp;&amp; attrType != 'BOOLEAN')
+                    </enabling>
+                </dependencies>
+            </checkbox>
             <text-area id="description" label="Описание" rows="2"/>
 
             <!--пользовательские проверки-->
 
             <checkbox id="required" label="Обязательный атрибут">
                 <dependencies>
-                    <visibility on="isPrimary">!isPrimary</visibility>
+                    <visibility on="attrType,isPrimary">
+                        (attrType != null &amp;&amp; attrType != 'BOOLEAN' &amp;&amp; !isPrimary)
+                    </visibility>
+                    <set-value on="isPrimary">
+                        if (isPrimary) return false; else return;
+                    </set-value>
+                </dependencies>
+            </checkbox>
+            <checkbox id="unique" label="Уникальный атрибут">
+                <dependencies>
+                    <visibility on="attrType,isPrimary">
+                        (attrType != null &amp;&amp; attrType != 'BOOLEAN' &amp;&amp; !isPrimary)
+                    </visibility>
+                    <set-value on="isPrimary">
+                        if (isPrimary) return false; else return;
+                    </set-value>
                 </dependencies>
             </checkbox>
 
-            <checkbox id="unique" label="Уникальный атрибут"/>
             <input-text id="plainSize" domain="integer" label="Максимальная длина" min="1">
                 <dependencies>
                     <visibility on="attrType">
@@ -72,14 +101,14 @@
                 </dependencies>
             </input-text>
             <row>
-                <input-text id="intPartSize" domain="integer" label="Максимальная длина целой части">
+                <input-text id="intPartSize" domain="integer" label="Максимальная длина целой части" min="1">
                     <dependencies>
                         <visibility on="attrType">
                             attrType.id == 'FLOAT'
                         </visibility>
                     </dependencies>
                 </input-text>
-                <input-text id="fracPartSize" domain="integer" label="Максимальная длина дробной части">
+                <input-text id="fracPartSize" domain="integer" label="Максимальная длина дробной части" min="1">
                     <dependencies>
                         <visibility on="attrType">
                             attrType.id == 'FLOAT'
@@ -87,6 +116,7 @@
                     </dependencies>
                 </input-text>
             </row>
+
             <row>
                 <input-text id="minInteger" domain="integer" label="Минимальное значение">
                     <dependencies>
@@ -135,7 +165,6 @@
                     </visibility>
                 </dependencies>
             </input-text>
-
         </fields>
     </form>
 </simple-page>

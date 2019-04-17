@@ -20,6 +20,7 @@ public interface VersionService {
     @ApiOperation("Получения записей версии, с фильтрацией")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет версии")
     })
     @Path("/{versionId}/data")
@@ -37,10 +38,21 @@ public interface VersionService {
                            Integer versionId);
 
     @GET
+    @ApiOperation("Получение версии по коду справочника и номеру")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет версии")
+    })
+    @Path("/{version}/refbook/{refBookCode}")
+    RefBookVersion getVersion(@ApiParam("Номер версии") @PathParam("version") String version,
+                           @ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode);
+
+    @GET
     @Path("/refBook/{refBookCode}/{date}")
     @ApiOperation("Получение актуальных на дату записей версии по коду справочника")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет версии")
     })
     Page<RefBookRowValue> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
@@ -52,6 +64,7 @@ public interface VersionService {
     @ApiOperation("Получение актуальных на текущую дату записей версии по коду справочника")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет версии")
     })
     Page<RefBookRowValue> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
@@ -77,7 +90,7 @@ public interface VersionService {
     ExportFile getVersionFile(@ApiParam("Идентификатор версии")
                             @PathParam("versionId")
                             Integer versionId,
-                            @ApiParam(value = "Тип файла", required = true)
+                            @ApiParam(value = "Тип файла", required = true, allowableValues = "XLSX, XML")
                             @QueryParam("type")
                             FileType fileType);
 

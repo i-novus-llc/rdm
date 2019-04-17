@@ -30,8 +30,9 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
     protected void setFile(InputStream inputStream) {
         try {
             workbook = StreamingReader.builder()
-                    .rowCacheSize(100)
-                    .bufferSize(4096)
+                    .rowCacheSize(2000)
+                    .bufferSize(8096)
+                    .sstCacheSize(3000)
                     .open(inputStream);
             sheetIterator = workbook.sheetIterator();
             if (sheetIterator != null && sheetIterator.hasNext())
@@ -76,6 +77,8 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
     private ru.inovus.ms.rdm.model.Row parseFromXlsx(org.apache.poi.ss.usermodel.Row row) {
         LinkedHashMap<String, Object> params = new LinkedHashMap<>();
         DataFormatter formatter = new DataFormatter();
+
+        numberToNameParam.values().forEach(nameParam -> params.put(nameParam, null));
 
         for (Cell cell : row) {
             String nameParam = numberToNameParam.get(cell.getColumnIndex());

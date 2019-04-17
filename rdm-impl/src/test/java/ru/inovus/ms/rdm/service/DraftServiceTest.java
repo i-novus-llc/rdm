@@ -49,6 +49,8 @@ import static java.util.Collections.singletonList;
 import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.*;
+import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static ru.inovus.ms.rdm.model.UpdateValue.of;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
@@ -353,7 +355,8 @@ public class DraftServiceTest {
         structure.setAttributes(asList(
                 Structure.Attribute.build("Kod", "Kod", FieldType.STRING, "Kod"),
                 Structure.Attribute.build("Opis", "Opis", FieldType.STRING, "Opis"),
-                Structure.Attribute.build("DATEBEG", "DATEBEG", FieldType.STRING, "DATEBEG")
+                Structure.Attribute.build("DATEBEG", "DATEBEG", FieldType.STRING, "DATEBEG"),
+                Structure.Attribute.build("DATEEND", "DATEEND", FieldType.STRING, "DATEEND")
         ));
     }
 
@@ -489,34 +492,25 @@ public class DraftServiceTest {
         assertEquals(updateNameAttribute, structure.getAttribute(updateAttributeModel.getCode()));
         assertEquals(updateNameReference, structure.getReference(updateAttributeModel.getCode()));
 
-        // добавление нового первичного атрибута и проверка
+        // добавление нового первичного атрибута и проверка, что первичность предыдущего удалена
         assertTrue(structure.getAttributes().stream().anyMatch(Structure.Attribute::getIsPrimary));
         assertEquals(updateNameAttribute, structure.getAttributes().stream().filter(Structure.Attribute::getIsPrimary).findFirst().orElse(null));
         CreateAttribute primaryCreateAttributeModel = new CreateAttribute(draftVersion.getId(), pkAttribute, nullReference);
         draftService.createAttribute(primaryCreateAttributeModel);
         structure = versionService.getStructure(draftVersion.getId());
-        Set<Structure.Attribute> pks = structure.getAttributes().stream().filter(Structure.Attribute::getIsPrimary).collect(Collectors.toSet());
-        assertEquals(2, pks.size());
+        List<Structure.Attribute> pks = structure.getPrimary();
+        assertEquals(1, pks.size());
         assertTrue(pks.contains(pkAttribute));
-        assertTrue(pks.contains(updateNameAttribute));
+        assertFalse(pks.contains(updateNameAttribute));
 
-        // удаление первичности атрибута и проверка
-        assertTrue(structure.getAttributes().stream().anyMatch(Structure.Attribute::getIsPrimary));
+        // удаление первичности атрибута и проверка, что первичных нет
+        assertTrue(!isEmpty(structure.getPrimary()));
         pkAttribute.setPrimary(false);
         updateAttributeModel = new UpdateAttribute(updateAttributeModel.getVersionId(), pkAttribute, nullReference);
         draftService.updateAttribute(updateAttributeModel);
         structure = versionService.getStructure(draftVersion.getId());
-        pks = structure.getAttributes().stream().filter(Structure.Attribute::getIsPrimary).collect(Collectors.toSet());
-        assertEquals(1, pks.size());
-        assertTrue(pks.contains(updateNameAttribute));
-
-        // удаление первичности второго атрибута и проверка, что первичных нет
-        assertTrue(structure.getAttributes().stream().anyMatch(Structure.Attribute::getIsPrimary));
-        updateNameAttribute.setPrimary(false);
-        updateAttributeModel = new UpdateAttribute(updateAttributeModel.getVersionId(), updateNameAttribute, nullReference);
-        draftService.updateAttribute(updateAttributeModel);
-        structure = versionService.getStructure(draftVersion.getId());
-        assertFalse(structure.getAttributes().stream().anyMatch(Structure.Attribute::getIsPrimary));
+        pks = structure.getPrimary();
+        assertEquals(0, pks.size());
     }
 
     private void testUpdateWithExceptionExpected(UpdateAttribute updateAttribute, Structure.Attribute oldAttribute, Structure.Reference oldReference) {
@@ -588,6 +582,7 @@ public class DraftServiceTest {
         version.setStatus(RefBookVersionStatus.DRAFT);
         version.setStructure(null);
         version.setPassportValues(asList(
+                new PassportValueEntity(new PassportAttributeEntity("code"), "код справочника", version),
                 new PassportValueEntity(new PassportAttributeEntity("name"), "наименование справочника", version),
                 new PassportValueEntity(new PassportAttributeEntity("shortName"), "краткое наим-ие", version),
                 new PassportValueEntity(new PassportAttributeEntity("description"), "описание", version)
