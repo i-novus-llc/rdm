@@ -4,7 +4,7 @@
         <region place="single">
             <form id="version_select" query-id="refBookVersion">
                 <fields>
-                    <select id="version" label="Версия" query-id="versionList" label-field-id="version">
+                    <select id="version" label="Версия" query-id="versionList" label-field-id="version" cleanable="false">
                         <pre-filters>
                             <eq field-id="refBookId" value="{refBookId}"/>
                         </pre-filters>
