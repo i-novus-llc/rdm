@@ -48,12 +48,10 @@ public class XmlFileGenerator extends PerRowFileGenerator {
                             Map<String, String> referenceToRefBookCodeMap,
                             List<AttributeValidation> attributeValidations) {
         super(rowIterator, version.getStructure());
-        this.passport = new LinkedHashMap<>() {{
-            put("code", version.getCode());
-            putAll(version.getPassport());
-        }};
+        this.passport = version.getPassport();
         this.referenceToRefBookCodeMap = referenceToRefBookCodeMap;
         this.attributeValidations = attributeValidations;
+        this.version = version;
     }
 
     @Override

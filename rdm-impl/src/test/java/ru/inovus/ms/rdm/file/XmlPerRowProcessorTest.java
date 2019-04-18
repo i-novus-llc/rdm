@@ -109,7 +109,6 @@ public class XmlPerRowProcessorTest {
 
     private Map<String, Object> createExpectedPassport() {
         return new LinkedHashMap<>() {{
-            put("code", "код справочника");
             put("name", "наименование справочника");
             put("shortName", "краткое наим-ие");
             put("description", "описание");

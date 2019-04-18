@@ -2,7 +2,6 @@
 <refBook>
     <code>TEST_REF_CODE</code>
     <passport>
-        <code>код справочника</code>
         <name>наименование справочника</name>
         <shortName>краткое наим-ие</shortName>
         <description>описание</description>
