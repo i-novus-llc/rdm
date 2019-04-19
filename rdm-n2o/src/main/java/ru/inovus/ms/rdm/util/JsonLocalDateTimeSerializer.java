@@ -10,6 +10,6 @@ import java.time.LocalDateTime;
 public class JsonLocalDateTimeSerializer extends JsonSerializer<LocalDateTime> {
 
     public void serialize(LocalDateTime value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
-        jgen.writeString(TimeUtils.format(TimeUtils.utcToZoned(value)));
+        jgen.writeString(TimeUtils.format(value));
     }
 }

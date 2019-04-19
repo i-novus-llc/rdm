@@ -93,12 +93,12 @@ public class RdmParamConverterProvider implements ParamConverterProvider {
 
         @Override
         public LocalDateTime fromString(String str) {
-            return TimeUtils.zonedToUtc(TimeUtils.parseLocalDateTime(str));
+            return TimeUtils.parseLocalDateTime(str);
         }
 
         @Override
         public String toString(LocalDateTime value) {
-            return TimeUtils.format(TimeUtils.utcToZoned(value));
+            return TimeUtils.format(value);
         }
     }
 

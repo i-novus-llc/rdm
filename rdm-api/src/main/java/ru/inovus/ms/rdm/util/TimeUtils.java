@@ -18,6 +18,9 @@ public final class TimeUtils {
     public static final String DATE_PATTERN_WITH_HYPHEN = "yyyy-MM-dd";
     public static final DateTimeFormatter DATE_PATTERN_WITH_HYPHEN_FORMATTER = DateTimeFormatter.ofPattern(DATE_PATTERN_WITH_HYPHEN);
 
+    private static final ZoneId LOCALIZED_TIMEZONE_ID = ZoneId.of("Europe/Moscow");
+    private static final ZoneId UNIVERSAL_TIMEZONE_ID = ZoneId.of("UTC");
+
     private static final Logger logger = LoggerFactory.getLogger(TimeUtils.class);
 
     private TimeUtils() {
@@ -39,6 +42,18 @@ public final class TimeUtils {
 
     public static String format(LocalDateTime localDateTime) {
         return localDateTime.format(DATE_TIME_PATTERN_FORMATTER);
+    }
+
+    private static LocalDateTime convert (LocalDateTime localDateTime, ZoneId fromZone, ZoneId toZone) {
+        return localDateTime.atZone(fromZone).withZoneSameInstant(toZone).toLocalDateTime();
+    }
+
+    public static LocalDateTime zonedToUtc (LocalDateTime localDateTime) {
+        return convert(localDateTime, LOCALIZED_TIMEZONE_ID, UNIVERSAL_TIMEZONE_ID);
+    }
+
+    public static LocalDateTime utcToZoned (LocalDateTime localDateTime) {
+        return convert(localDateTime, UNIVERSAL_TIMEZONE_ID, LOCALIZED_TIMEZONE_ID);
     }
 
     public static LocalDate parseLocalDate(Object value) {
