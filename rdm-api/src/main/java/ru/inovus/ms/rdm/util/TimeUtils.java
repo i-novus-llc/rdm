@@ -44,15 +44,19 @@ public final class TimeUtils {
         return localDateTime.format(DATE_TIME_PATTERN_FORMATTER);
     }
 
-    private static LocalDateTime convert (LocalDateTime localDateTime, ZoneId fromZone, ZoneId toZone) {
+    public static LocalDateTime now() {
+        return LocalDateTime.now(UNIVERSAL_TIMEZONE_ID);
+    }
+
+    private static LocalDateTime convert(LocalDateTime localDateTime, ZoneId fromZone, ZoneId toZone) {
         return localDateTime.atZone(fromZone).withZoneSameInstant(toZone).toLocalDateTime();
     }
 
-    public static LocalDateTime zonedToUtc (LocalDateTime localDateTime) {
+    public static LocalDateTime zonedToUtc(LocalDateTime localDateTime) {
         return convert(localDateTime, LOCALIZED_TIMEZONE_ID, UNIVERSAL_TIMEZONE_ID);
     }
 
-    public static LocalDateTime utcToZoned (LocalDateTime localDateTime) {
+    public static LocalDateTime utcToZoned(LocalDateTime localDateTime) {
         return convert(localDateTime, UNIVERSAL_TIMEZONE_ID, LOCALIZED_TIMEZONE_ID);
     }
 
@@ -80,11 +84,11 @@ public final class TimeUtils {
     }
 
     public static boolean isSameOrBeforeNow(LocalDateTime localDateTime) {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = now();
         return !isNull(localDateTime) && (localDateTime.equals(now) || localDateTime.isBefore(now));
     }
 
     public static boolean isNullOrAfterNow(LocalDateTime localDateTime) {
-        return isNull(localDateTime) || localDateTime.isAfter(LocalDateTime.now());
+        return isNull(localDateTime) || localDateTime.isAfter(now());
     }
 }
