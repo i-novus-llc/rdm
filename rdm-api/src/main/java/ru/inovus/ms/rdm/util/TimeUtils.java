@@ -48,6 +48,10 @@ public final class TimeUtils {
         return LocalDateTime.now(UNIVERSAL_TIMEZONE_ID);
     }
 
+    public static LocalDateTime nowZoned() {
+        return LocalDateTime.now(LOCALIZED_TIMEZONE_ID);
+    }
+
     private static LocalDateTime convert(LocalDateTime localDateTime, ZoneId fromZone, ZoneId toZone) {
         return localDateTime.atZone(fromZone).withZoneSameInstant(toZone).toLocalDateTime();
     }
