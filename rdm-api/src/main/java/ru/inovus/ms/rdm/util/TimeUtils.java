@@ -52,8 +52,17 @@ public final class TimeUtils {
         return LocalDateTime.now(LOCALIZED_TIMEZONE_ID);
     }
 
+    /**
+     * Convert datetime from one zone to another.
+     * Преобразование даты-времени из одной зоны в другую.
+     *
+     * @param localDateTime исходное значение даты-времени
+     * @param fromZone      исходная зона
+     * @param toZone        требуемая зона
+     * @return Преобразованное значение даты-времени
+     */
     private static LocalDateTime convert(LocalDateTime localDateTime, ZoneId fromZone, ZoneId toZone) {
-        return localDateTime.atZone(fromZone).withZoneSameInstant(toZone).toLocalDateTime();
+        return (localDateTime != null) ? localDateTime.atZone(fromZone).withZoneSameInstant(toZone).toLocalDateTime() : null;
     }
 
     public static LocalDateTime zonedToUtc(LocalDateTime localDateTime) {
