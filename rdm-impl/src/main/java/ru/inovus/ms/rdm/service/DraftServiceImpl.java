@@ -37,10 +37,7 @@ import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.VersionService;
-import ru.inovus.ms.rdm.util.FileNameGenerator;
-import ru.inovus.ms.rdm.util.ModelGenerator;
-import ru.inovus.ms.rdm.util.VersionNumberStrategy;
-import ru.inovus.ms.rdm.util.VersionPeriodPublishValidation;
+import ru.inovus.ms.rdm.util.*;
 import ru.inovus.ms.rdm.validation.PrimaryKeyUniqueValidation;
 import ru.inovus.ms.rdm.validation.ReferenceValidation;
 import ru.kirkazan.common.exception.CodifiedException;
@@ -48,7 +45,6 @@ import ru.kirkazan.common.exception.CodifiedException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -445,8 +441,8 @@ public class DraftServiceImpl implements DraftService {
             String storageCode = draftDataService.applyDraft(
                     lastPublishedVersion != null ? lastPublishedVersion.getStorageCode() : null,
                     draftVersion.getStorageCode(),
-                    Date.from(fromDate.atZone(ZoneId.systemDefault()).toInstant()),
-                    toDate == null ? null : Date.from(toDate.atZone(ZoneId.systemDefault()).toInstant())
+                    date(fromDate),
+                    date(toDate)
             );
 
             Set<String> dataStorageToDelete = new HashSet<>();
