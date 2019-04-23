@@ -3,23 +3,25 @@ package ru.inovus.ms.rdm.file;
 import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.model.Row;
+import ru.inovus.ms.rdm.model.Structure;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
 import java.io.InputStream;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 import static java.util.Arrays.asList;
-import static java.util.stream.Collectors.toMap;
+import static ru.inovus.ms.rdm.file.XmlParseUtils.isStartElementWithName;
+import static ru.inovus.ms.rdm.file.XmlParseUtils.parseValues;
 
 public class XmlPerRowProcessor extends FilePerRowProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(FilePerRowProcessor.class);
+    private static final Logger logger = LoggerFactory.getLogger(XmlPerRowProcessor.class);
 
     private static final String XML_READ_ERROR_MESSAGE = "cannot read XML";
 
@@ -32,14 +34,9 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
 
     private XMLEventReader reader;
 
-    Map<String, Object> passport;
 
-    private PassportProcessor passportProcessor;
-
-
-    XmlPerRowProcessor(RowMapper rowMapper, RowsProcessor rowsProcessor, PassportProcessor passportProcessor) {
+    XmlPerRowProcessor(RowMapper rowMapper, RowsProcessor rowsProcessor) {
         super(rowMapper, rowsProcessor);
-        this.passportProcessor = passportProcessor;
     }
 
     @Override
@@ -51,98 +48,34 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
             reader = FACTORY.createFilteredReader(simpleReader,
                     event ->
                             !(event.isCharacters() && event.asCharacters().isWhiteSpace()));
-
-            processPassport();
-            processStructure();
-
         } catch (XMLStreamException e) {
             throwXmlReadError(e);
         }
     }
 
-    private void processPassport() throws XMLStreamException {
-        if (reader.hasNext()) {
-            if (reader.peek().isStartDocument())
-                reader.nextEvent();
 
-            XMLEvent curEvent = null;
-            while (reader.peek() != null && !(isStartElementWithName(reader.peek(), PASSPORT_TAG_NAME, STRUCTURE_TAG_NAME, DATA_TAG_NAME))) {
-                curEvent = reader.nextEvent();
-            }
-            if (curEvent == null || reader.peek() == null || isStartElementWithName(reader.peek(), STRUCTURE_TAG_NAME) || isStartElementWithName(reader.peek(), DATA_TAG_NAME))
-                return;
-
-            passport = new LinkedHashMap<>();
-            reader.nextEvent();     // current is start-tag <passport>
-            parseValues(passport, PASSPORT_TAG_NAME);
-
-            if (passport != null)
-                passportProcessor.process(passport.entrySet()
-                        .stream()
-                        .filter(entry -> entry.getValue() != null)
-                        .collect(toMap(Map.Entry::getKey, e -> (String) e.getValue())));
-        }
-    }
-
-    private void processStructure() throws XMLStreamException {
-        if (reader.hasNext()) {
-
-
-            XMLEvent curEvent = reader.peek();
-            while (curEvent != null && !(isStartElementWithName(curEvent, STRUCTURE_TAG_NAME, DATA_TAG_NAME))) {
-                curEvent = reader.nextEvent();
-            }
-            if (curEvent == null || reader.peek() == null || isStartElementWithName(reader.peek(), PASSPORT_TAG_NAME, DATA_TAG_NAME))
-                return;
-
-            Map<String, Object> structure = new LinkedHashMap<>();
-            reader.nextEvent();     // current is start-tag <structure>
-            parseValues(structure, STRUCTURE_TAG_NAME);
-
-            //todo implement
-
-        }
-
-    }
-
-    private void parseValues(Map<String, Object> map, String outerTagName) throws XMLStreamException {
-        String tagName = null;
-        String tagValue = null;
-        XMLEvent curEvent = reader.nextTag();
-        while (curEvent != null && !isEndElementWithName(curEvent, outerTagName)) {
-            if (curEvent.isStartElement()) {
-                tagName = curEvent.asStartElement().getName().getLocalPart();
-            } else if (curEvent.isCharacters()) {
-                tagValue = curEvent.asCharacters().getData();
-            } else if (curEvent.isEndElement()) {
-                map.put(tagName, tagValue);
-                tagName = null;
-                tagValue = null;
-            }
-            curEvent = reader.nextEvent();
-        }
-    }
-
-    private boolean isStartElementWithName(XMLEvent event, String... tagNames) {
-        return event != null && event.isStartElement()
-                && asList(tagNames).contains(event.asStartElement().getName().getLocalPart());
-    }
-
-    private boolean isEndElementWithName(XMLEvent event, String... tagNames) {
-        return event.isEndElement()
-                && asList(tagNames).contains(event.asEndElement().getName().getLocalPart());
-    }
 
     // check if next tag is <row>. Will move to next tag if meets <data> tag
     @Override
     public boolean hasNext() {
         try {
+            if(!reader.hasNext()) {
+                return false;
+            }
+
             XMLEvent next = reader.peek();
-            if (isStartElementWithName(next, DATA_TAG_NAME)) {
-                reader.nextTag();
+            if(isStartElementWithName(next, ROW_TAG_NAME)) {
+                return true;
+            }
+            while (!isStartElementWithName(next, DATA_TAG_NAME) && reader.hasNext()) {
+                reader.nextEvent();
                 next = reader.peek();
             }
-            return isStartElementWithName(next, ROW_TAG_NAME);
+            if(!isStartElementWithName(next, DATA_TAG_NAME)) {
+                return false;
+            }
+            reader.nextEvent();
+            return isStartElementWithName(reader.peek(), ROW_TAG_NAME);
         } catch (XMLStreamException e) {
             throwXmlReadError(e);
         }
@@ -151,21 +84,21 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
 
     @Override
     public Row next() {
-        Map<String, Object> rowValues = new LinkedHashMap<>();
+        Map<String, String> rowValues = new LinkedHashMap<>();
 
         try {
             reader.nextTag();
             if (isStartElementWithName(reader.peek(), DATA_TAG_NAME)) {
                 reader.nextTag();
             }
-            parseValues(rowValues, ROW_TAG_NAME);
+            parseValues(reader, rowValues, ROW_TAG_NAME);
 
         } catch (XMLStreamException e) {
             logger.error(XML_READ_ERROR_MESSAGE, e);
             throw new NoSuchElementException(XML_READ_ERROR_MESSAGE);
         }
 
-        return new Row(rowValues);
+        return new Row(new HashMap<>(rowValues));
     }
 
     @Override

@@ -9,6 +9,10 @@ import java.util.List;
 
 public class Result {
 
+    private boolean passportProcessed;
+
+    private boolean structureProcessed;
+
     private int successCount;
 
     private int allCount;

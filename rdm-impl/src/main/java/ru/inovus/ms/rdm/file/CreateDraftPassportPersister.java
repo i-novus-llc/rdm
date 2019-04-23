@@ -1,7 +1,5 @@
 package ru.inovus.ms.rdm.file;
 
-import ru.inovus.ms.rdm.model.Result;
-
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -16,13 +14,11 @@ public class CreateDraftPassportPersister implements PassportProcessor {
     }
 
     @Override
-    public Result process(Map<String, String> passport) {
+    public void process(Map<String, String> passport) {
         if (isEmpty(passport))
-            return new Result(0, 0, null);
+            return;
 
         draftCreator.accept(passport);
-
-        return new Result(passport.size(), passport.size(), null);
     }
 
 }

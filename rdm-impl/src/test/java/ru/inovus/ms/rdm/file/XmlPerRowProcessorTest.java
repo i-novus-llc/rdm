@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.file;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -33,9 +34,8 @@ public class XmlPerRowProcessorTest {
 
         try (XmlPerRowProcessor processor =
                      new XmlPerRowProcessor(new StructureRowMapper(structure, null),
-                             getTestRowsProcessor(expected), new PassportValidatorImpl())) {
+                             getTestRowsProcessor(expected))) {
             Result result = processor.process(() -> getClass().getResourceAsStream(XML_FILE));
-            assertActualValuesMap(Collections.singletonList(createExpectedPassport()), processor.passport);
             assertEquals(2, result.getAllCount());
             assertEquals(2, result.getSuccessCount());
             assertNull(result.getErrors());
@@ -47,9 +47,8 @@ public class XmlPerRowProcessorTest {
 
         try (XmlPerRowProcessor processor =
                      new XmlPerRowProcessor(new StructureRowMapper(structure, null),
-                             getTestRowsProcessor(new ArrayList<>()), new PassportValidatorImpl())) {
+                             getTestRowsProcessor(new ArrayList<>()))) {
             Result result = processor.process(() -> getClass().getResourceAsStream(EMPTY_XML_FILE));
-            assertNull(processor.passport);
             assertEquals(0, result.getAllCount());
             assertEquals(0, result.getSuccessCount());
             assertNull(result.getErrors());
@@ -61,7 +60,7 @@ public class XmlPerRowProcessorTest {
 
         try (XmlPerRowProcessor processor =
                      new XmlPerRowProcessor(new StructureRowMapper(structure, null),
-                             getTestRowsProcessor(expected), new PassportValidatorImpl())) {
+                             getTestRowsProcessor(expected))) {
             processor.setFile(getClass().getResourceAsStream(XML_FILE));
             assertTrue(processor.hasNext());
             processor.next();
@@ -76,12 +75,14 @@ public class XmlPerRowProcessorTest {
 
         try (XmlPerRowProcessor processor =
                      new XmlPerRowProcessor(new StructureRowMapper(structure, null),
-                             getTestRowsProcessor(new ArrayList<>()), new PassportValidatorImpl())) {
+                             getTestRowsProcessor(new ArrayList<>()))) {
             processor.setFile(getClass().getResourceAsStream(EMPTY_XML_FILE));
             assertFalse(processor.hasNext());
             processor.next();
         }
     }
+
+
 
     private RowsProcessor getTestRowsProcessor(List<Map<String, Object>> expected) {
         return new RowsProcessor() {

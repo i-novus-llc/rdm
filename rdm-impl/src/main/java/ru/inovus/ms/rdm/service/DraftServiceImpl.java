@@ -36,6 +36,7 @@ import ru.inovus.ms.rdm.repositiory.PassportValueRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
 import ru.inovus.ms.rdm.service.api.DraftService;
+import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.FileNameGenerator;
 import ru.inovus.ms.rdm.util.ModelGenerator;
@@ -96,6 +97,8 @@ public class DraftServiceImpl implements DraftService {
 
     private PerRowFileGeneratorFactory fileGeneratorFactory;
 
+    private RefBookService refBookService;
+
     private int errorCountLimit = 100;
     private String passportFileHead = "fullName";
     private boolean includePassport = false;
@@ -120,7 +123,7 @@ public class DraftServiceImpl implements DraftService {
                             FileNameGenerator fileNameGenerator, VersionFileRepository versionFileRepository, VersionNumberStrategy versionNumberStrategy,
                             VersionPeriodPublishValidation versionPeriodPublishValidation, PassportValueRepository passportValueRepository,
                             RefBookLockService refBookLockService, AttributeValidationRepository attributeValidationRepository,
-                            PerRowFileGeneratorFactory fileGeneratorFactory) {
+                            PerRowFileGeneratorFactory fileGeneratorFactory, RefBookService refBookService) {
         this.draftDataService = draftDataService;
         this.versionRepository = versionRepository;
         this.versionService = versionService;
@@ -135,6 +138,7 @@ public class DraftServiceImpl implements DraftService {
         this.refBookLockService = refBookLockService;
         this.attributeValidationRepository = attributeValidationRepository;
         this.fileGeneratorFactory = fileGeneratorFactory;
+        this.refBookService = refBookService;
     }
 
     @Value("${rdm.validation-errors-count}")
@@ -163,15 +167,15 @@ public class DraftServiceImpl implements DraftService {
         try {
             Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
 
-            BiConsumer<String, Structure> consumer = getSaveDraftConsumer(refBookId);
-            Consumer<Map<String, String>> draftWithPassportCreator = getDraftWithPassportCreator(refBookId);
+            BiConsumer<String, Structure> saveDraftConsumer = getSaveDraftConsumer(refBookId);
 
             String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
-            RowsProcessor rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, consumer);
-            PassportProcessor passportProcessor = new CreateDraftPassportPersister(draftWithPassportCreator);
+            //todo
+            RowsProcessor rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, saveDraftConsumer);
+
 
             try (FilePerRowProcessor persister = FileProcessorFactory.createProcessor(extension,
-                    rowsProcessor, new PlainRowMapper(), passportProcessor)) {
+                    rowsProcessor, new PlainRowMapper())) {
                 persister.process(inputStreamSupplier);
             } catch (IOException e) {
                 throw new RdmException(e);
@@ -180,6 +184,20 @@ public class DraftServiceImpl implements DraftService {
             return new Draft(createdDraft.getId(), createdDraft.getStorageCode());
         } finally {
             refBookLockService.deleteRefBookAction(refBookId);
+        }
+
+    }
+
+    @Override
+    public Draft create(FileModel fileModel) {
+        Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
+        try(XmlCreateRefBookFileProcessor createRefBookFileProcessor = new XmlCreateRefBookFileProcessor(refBookService)) {
+            RefBook refBook = createRefBookFileProcessor.process(inputStreamSupplier);
+            try(XmlUpdateDraftFileProcessor xmlUpdateDraftFileProcessor = new XmlUpdateDraftFileProcessor(refBook.getRefBookId(), this)) {
+                Draft draft =xmlUpdateDraftFileProcessor.process(inputStreamSupplier);
+                updateData(draft.getId(), fileModel);
+                return draft;
+            }
         }
 
     }
@@ -237,8 +255,10 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public Draft create(Integer refBookId, Structure structure) {
+    public Draft create(CreateDraftRequest createDraftRequest) {
 
+        final Integer refBookId = createDraftRequest.getRefBookId();
+        final Structure structure = createDraftRequest.getStructure();
         validateRefBookExists(refBookId);
         validateRefBookNotArchived(refBookId);
 
@@ -248,15 +268,23 @@ public class DraftServiceImpl implements DraftService {
             throw new CodifiedException("invalid refbook");
         }
         List<Field> fields = fields(structure);
+        List<PassportValueEntity> passportValues = null;
+        if(createDraftRequest.getPassport() != null) {
+            passportValues = createDraftRequest.getPassport()
+                    .entrySet()
+                    .stream()
+                    .map(entry -> new PassportValueEntity(new PassportAttributeEntity(entry.getKey()), entry.getValue(), null))
+                    .collect(toList());
+        }
         if (draftVersion == null) {
-            draftVersion = newDraftVersion(structure, lastRefBookVersion.getPassportValues());
+            draftVersion = newDraftVersion(structure, passportValues != null ? passportValues : lastRefBookVersion.getPassportValues());
             RefBookEntity refBookEntity = new RefBookEntity();
             refBookEntity.setId(refBookId);
             draftVersion.setRefBook(refBookEntity);
             String draftCode = draftDataService.createDraft(fields);
             draftVersion.setStorageCode(draftCode);
         } else {
-            updateDraft(structure, draftVersion, fields);
+            updateDraft(structure, draftVersion, fields, passportValues);
         }
         RefBookVersionEntity savedDraftVersion = versionRepository.save(draftVersion);
         return new Draft(savedDraftVersion.getId(), savedDraftVersion.getStorageCode());
@@ -269,13 +297,19 @@ public class DraftServiceImpl implements DraftService {
         validateVersionExists(versionId);
         RefBookVersionEntity sourceVersion = versionRepository.findOne(versionId);
 
-        Draft draft = create(sourceVersion.getRefBook().getId(), sourceVersion.getStructure());
+        Map<String, String> passport = new HashMap<>();
+        sourceVersion.getPassportValues().forEach(passportValueEntity -> passport.put(passportValueEntity.getAttribute().getCode(), passportValueEntity.getValue()));
+        CreateDraftRequest draftRequest  = new CreateDraftRequest(sourceVersion.getRefBook().getId(), sourceVersion.getStructure(), passport);
+        Draft draft = create(draftRequest);
 
         draftDataService.loadData(draft.getStorageCode(), sourceVersion.getStorageCode(), date(sourceVersion.getFromDate()), date(sourceVersion.getToDate()));
         return draft;
     }
 
-    private void updateDraft(Structure structure, RefBookVersionEntity draftVersion, List<Field> fields) {
+    private void updateDraft(Structure structure, RefBookVersionEntity draftVersion, List<Field> fields, List<PassportValueEntity> passportValues) {
+        if(passportValues != null) {
+            draftVersion.setPassportValues(passportValues);
+        }
         String draftCode = draftVersion.getStorageCode();
         if (!structure.equals(draftVersion.getStructure())) {
             dropDataService.drop(singleton(draftCode));
@@ -385,8 +419,7 @@ public class DraftServiceImpl implements DraftService {
                     .createProcessor(extension,
                             new RowsValidatorImpl(versionService, searchDataService, structure, storageCode, errorCountLimit,
                                     attributeValidationRepository.findAllByVersionId(draftId)),
-                            nonStrictOnTypeRowMapper,
-                            new PassportValidatorImpl())) {
+                            nonStrictOnTypeRowMapper)) {
                 validator.process(inputStreamSupplier);
             } catch (IOException e) {
                 throw new RdmException(e);
@@ -396,8 +429,7 @@ public class DraftServiceImpl implements DraftService {
             try (FilePerRowProcessor persister = FileProcessorFactory
                     .createProcessor(extension,
                             new BufferedRowsPersister(draftDataService, storageCode, structure),
-                            structureRowMapper,
-                            new PassportPersister(versionService, draftId))) {
+                            structureRowMapper)) {
                 persister.process(inputStreamSupplier);
             } catch (IOException e) {
                 throw new RdmException(e);

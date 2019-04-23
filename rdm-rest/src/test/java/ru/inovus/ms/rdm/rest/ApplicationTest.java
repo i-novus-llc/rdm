@@ -411,7 +411,7 @@ public class ApplicationTest {
     @Test
     public void testDraftCreate() {
         Structure structure = createStructure();
-        Draft expected = draftService.create(1, structure);
+        Draft expected = draftService.create(new CreateDraftRequest(1, structure));
 
         Draft actual = draftService.getDraft(expected.getId());
 
@@ -421,7 +421,7 @@ public class ApplicationTest {
     @Test
     public void testDraftRemove() {
         Structure structure = createStructure();
-        Draft draft = draftService.create(1, structure);
+        Draft draft = draftService.create(new CreateDraftRequest(1, structure));
         draftService.remove(draft.getId());
         try{
             draftService.getDraft(draft.getId());
@@ -609,7 +609,7 @@ public class ApplicationTest {
         draftService.publish(oldVersionId, "1.0", publishDate1, closeDate1);
 
         Integer newVersionId = draftService
-                .create(refBook.getRefBookId(), new Structure(asList(id, code, common, name, upd, type), emptyList()))
+                .create(new CreateDraftRequest(refBook.getRefBookId(), new Structure(asList(id, code, common, name, upd, type), emptyList())))
                 .getId();
         draftService.updateData(newVersionId, createFileModel(NEW_FILE_NAME, "testCompare/" + NEW_FILE_NAME));
         draftService.publish(newVersionId, "1.1", publishDate2, closeDate2);
@@ -635,7 +635,7 @@ public class ApplicationTest {
     @Test
     public void testDraftUpdateData() {
         Structure structure = createTestStructureWithoutTreeFieldType();
-        Draft draft = draftService.create(1, structure);
+        Draft draft = draftService.create(new CreateDraftRequest(1, structure));
 
         FileModel fileModel = createFileModel("update_testUpload.xlsx", "testUpload.xlsx");
 
@@ -655,7 +655,7 @@ public class ApplicationTest {
     @Test()
     public void testDraftUpdateDataWithInvalidReference() {
         Structure structure = createTestStructureWithoutTreeFieldType();
-        Draft draft = draftService.create(1, structure);
+        Draft draft = draftService.create(new CreateDraftRequest(1, structure));
 
         FileModel fileModel = createFileModel("update_testUploadInvalidReference.xlsx", "testUploadInvalidReference.xlsx");
 
@@ -699,7 +699,7 @@ public class ApplicationTest {
 
         RefBook refBook = refBookService.create(createRequest);
         Structure structure = createTestStructureWithoutTreeFieldType();
-        Draft draft = draftService.create(refBook.getRefBookId(), structure);
+        Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), structure));
 
         Row row1 = createRowForAllTypesStructure("Первое тестовое наименование",
                 BigInteger.valueOf(1),
@@ -799,7 +799,7 @@ public class ApplicationTest {
                         Structure.Attribute.build("name", "Наименование", FieldType.STRING, null),
                         Structure.Attribute.build("code", "Код", FieldType.STRING, null)),
                 null);
-        Draft draft = draftService.create(refBook.getRefBookId(), structure);
+        Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), structure));
 
         List<String> codes = structure.getAttributes().stream().map(Structure.Attribute::getCode).collect(Collectors.toList());
         Map<String, Object> rowMap1 = new HashMap<>();
@@ -847,7 +847,7 @@ public class ApplicationTest {
         Structure structure = createTestStructureWithoutTreeFieldType();
         Structure.Reference reference = structure.getReference("reference");
 
-        Draft draft = draftService.create(refBook.getRefBookId(), structure);
+        Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), structure));
 
         // string -> integer, boolean, reference, float и обратно. Без ошибок
         reference.setAttribute("string");
@@ -921,7 +921,7 @@ public class ApplicationTest {
         Structure structure = createTestStructureWithoutTreeFieldType();
         Structure.Reference reference = structure.getReference("reference");
 
-        Draft draft = draftService.create(refBook.getRefBookId(), structure);
+        Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), structure));
         draftService.updateData(draft.getId(), createFileModel("update_testUpdateStr.xlsx", "testUpload.xlsx"));
 
         // string -> integer, boolean, reference, float и обратно. Ожидается ошибка, так как данные неприводимы к другому типу
@@ -1274,7 +1274,7 @@ public class ApplicationTest {
         draftService.updateData(oldVersionId, createFileModel(OLD_FILE_NAME, "testCompare/" + OLD_FILE_NAME));
         draftService.publish(oldVersionId, "1.0", publishDate1, closeDate1);
 
-        Integer newVersionId = draftService.create(refBook.getRefBookId(), new Structure(asList(id, code, common, name, upd2, typeI), emptyList())).getId();
+        Integer newVersionId = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), new Structure(asList(id, code, common, name, upd2, typeI), emptyList()))).getId();
         draftService.updateData(newVersionId, createFileModel(NEW_FILE_NAME, "testCompare/" + NEW_FILE_NAME));
         draftService.publish(newVersionId, "1.1", publishDate2, closeDate2);
 
@@ -1336,12 +1336,14 @@ public class ApplicationTest {
         draftService.publish(refBook.getId(), "1.0", publishDate1, null);
 
         Integer newVersionId = draftService.create(
-                refBook.getRefBookId(),
-                new Structure(asList(
-                        id,
-                        code,
-                        name),
-                        emptyList())).getId();
+                new CreateDraftRequest(
+                        refBook.getRefBookId(),
+                        new Structure(asList(
+                                id,
+                                code,
+                                name),
+                                emptyList())))
+                .getId();
         draftService.updateData(newVersionId, createFileModel(FILE_NAME, "testCompare/" + FILE_NAME));
         draftService.publish(newVersionId, "1.1", publishDate2, null);
 
@@ -1376,11 +1378,13 @@ public class ApplicationTest {
         draftService.publish(refBook.getId(), "1.0", LocalDateTime.now(), null);
 
         Integer newVersionId = draftService.create(
-                refBook.getRefBookId(),
-                new Structure(asList(
-                        Structure.Attribute.build("ID", "id", FieldType.INTEGER, "id"),
-                        Structure.Attribute.buildPrimary("CODE", "code", FieldType.STRING, "code")),
-                        emptyList())).getId();
+                new CreateDraftRequest(
+                        refBook.getRefBookId(),
+                        new Structure(asList(
+                                Structure.Attribute.build("ID", "id", FieldType.INTEGER, "id"),
+                                Structure.Attribute.buildPrimary("CODE", "code", FieldType.STRING, "code")),
+                                emptyList())))
+                .getId();
         draftService.updateData(newVersionId, createFileModel(FILE_NAME, "testCompare/" + FILE_NAME));
         draftService.publish(newVersionId, "1.1", LocalDateTime.now().plusYears(1), null);
 
@@ -1390,6 +1394,16 @@ public class ApplicationTest {
         } catch (RestException re) {
             assertEquals("data.comparing.unavailable", re.getMessage());
         }
+    }
+
+    /**
+     * Создание справочника из файла
+     */
+    @Test
+    public void testCreateRefbookFromFile() {
+        Draft draft = draftService.create(createFileModel("testCreateRefbookFromFilePath", "refbook.xml"));
+        Page<RefBookRowValue> search = draftService.search(draft.getId(), new SearchDataCriteria());
+        //todo asserts
     }
 
     private boolean equalsFieldValues(List<Field> fields, List<FieldValue> values1, List<FieldValue> values2) {

@@ -281,7 +281,7 @@ public class DraftServiceTest {
         when(versionRepository.save(any(RefBookVersionEntity.class))).thenReturn(testDraftVersion);
         when(versionRepository.exists(isVersionOfRefBook(REFBOOK_ID))).thenReturn(true);
         Draft expected = new Draft(1, TEST_DRAFT_CODE);
-        Draft actual = draftService.create(REFBOOK_ID, testDraftVersion.getStructure());
+        Draft actual = draftService.create(new CreateDraftRequest(REFBOOK_ID, testDraftVersion.getStructure()));
 
         verify(draftDataService).deleteAllRows(eq(TEST_DRAFT_CODE));
         assertEquals(expected, actual);
@@ -296,7 +296,7 @@ public class DraftServiceTest {
         when(versionRepository.exists(eq(isVersionOfRefBook(REFBOOK_ID)))).thenReturn(true);
         Structure structure = new Structure();
         structure.setAttributes(singletonList(Structure.Attribute.build("name", "name", FieldType.STRING, "description")));
-        Draft draftActual = draftService.create(REFBOOK_ID, structure);
+        Draft draftActual = draftService.create(new CreateDraftRequest(REFBOOK_ID, structure));
 
         assertEquals(testDraftVersion.getId(), draftActual.getId());
         assertNotEquals(TEST_DRAFT_CODE, draftActual.getStorageCode());
@@ -320,7 +320,7 @@ public class DraftServiceTest {
         when(versionRepository.save(eq(expectedRefBookVersion))).thenReturn(expectedRefBookVersion);
         when(versionRepository.exists(eq(isVersionOfRefBook(REFBOOK_ID)))).thenReturn(true);
 
-        draftService.create(REFBOOK_ID, new Structure());
+        draftService.create(new CreateDraftRequest(REFBOOK_ID, new Structure()));
 
         verify(versionRepository).save(eq(expectedRefBookVersion));
     }

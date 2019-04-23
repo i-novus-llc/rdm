@@ -5,6 +5,6 @@ import ru.inovus.ms.rdm.model.Result;
 import java.io.InputStream;
 import java.util.function.Supplier;
 
-public interface FileProcessor {
-    Result process(Supplier<InputStream> fileSource);
+public interface FileProcessor<T> {
+    T process(Supplier<InputStream> fileSource);
 }
