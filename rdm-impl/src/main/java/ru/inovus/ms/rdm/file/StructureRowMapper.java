@@ -83,7 +83,7 @@ public class StructureRowMapper implements RowMapper {
         }
         return new Reference(
                 version.getStorageCode(),
-                ConverterUtil.date(version.getFromDate()),
+                version.getFromDate(),
                 reference.getReferenceAttribute(),
                 new DisplayExpression(reference.getDisplayExpression()),
                 value);
