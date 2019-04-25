@@ -36,8 +36,9 @@ public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
         try(InputStream inputStream = fileSource.get()) {
             setFile(inputStream);
 
+            Map<String, String> passport = getPassport();
             Structure structure = getStructure();
-            Draft draft = draftService.create(new CreateDraftRequest(refBookId, structure, getPassport()));
+            Draft draft = draftService.create(new CreateDraftRequest(refBookId, structure, passport));
             return draft;
 
         }  catch (IOException e) {
