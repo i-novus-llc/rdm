@@ -393,11 +393,6 @@ public class DraftServiceTest {
         RefBookVersionEntity versionBefore = createTestDraftVersion();
         versionBefore.setRefBook(refBook);
 
-        RefBookVersionEntity versionWithPassport = createTestDraftVersionWithPassport();
-        versionWithPassport.setId(null);
-        versionWithPassport.setStorageCode(null);
-        versionWithPassport.setRefBook(refBook);
-
         RefBookVersionEntity versionWithStructure = createTestDraftVersionWithPassport();
         versionWithStructure.setId(1);
 
@@ -415,9 +410,6 @@ public class DraftServiceTest {
 
         verify(dropDataService).drop(eq(Collections.singleton(TEST_DRAFT_CODE)));
         verify(versionRepository).delete(eq(versionBefore.getId()));
-        verify(versionRepository, times(2)).save(versionsCaptor.capture());
-
-        assertVersions(asList(versionWithPassport, versionWithStructure), versionsCaptor.getAllValues());
     }
 
     @Test
