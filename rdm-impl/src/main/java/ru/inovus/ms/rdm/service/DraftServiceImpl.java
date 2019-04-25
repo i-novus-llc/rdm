@@ -162,26 +162,21 @@ public class DraftServiceImpl implements DraftService {
 
         validateRefBookExists(refBookId);
         validateRefBookNotArchived(refBookId);
-        refBookLockService.setRefBookUploading(refBookId);
 
+        refBookLockService.setRefBookUploading(refBookId);
         try {
             Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
 
-            BiConsumer<String, Structure> saveDraftConsumer = getSaveDraftConsumer(refBookId);
-
             String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
-            //todo
-            RowsProcessor rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, saveDraftConsumer);
-
-
-            try (FilePerRowProcessor persister = FileProcessorFactory.createProcessor(extension,
-                    rowsProcessor, new PlainRowMapper())) {
-                persister.process(inputStreamSupplier);
-            } catch (IOException e) {
-                throw new RdmException(e);
+            switch (extension) {
+                case "XLSX":
+                    return updateDraftDataByXlsx(refBookId, fileModel, inputStreamSupplier);
+                case "XML":
+                    return updateDraftDataByXml(refBookId, fileModel, inputStreamSupplier);
+                default:
+                    throw new RdmException("invalid file extension");
             }
-            RefBookVersionEntity createdDraft = getDraftByRefbook(refBookId);
-            return new Draft(createdDraft.getId(), createdDraft.getStorageCode());
+
         } finally {
             refBookLockService.deleteRefBookAction(refBookId);
         }
@@ -190,16 +185,51 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     public Draft create(FileModel fileModel) {
+        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
+        switch (extension) {
+            case "XLSX":
+                return createByXlsx(fileModel);
+            case "XML":
+                return createByXml(fileModel);
+            default:
+                throw new RdmException("invalid file extension");
+        }
+    }
+
+    private Draft createByXlsx(FileModel fileModel) {
+        throw new RdmException("creating draft from xlsx is not implemented yet");
+    }
+
+    private Draft createByXml(FileModel fileModel) {
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
         try(XmlCreateRefBookFileProcessor createRefBookFileProcessor = new XmlCreateRefBookFileProcessor(refBookService)) {
             RefBook refBook = createRefBookFileProcessor.process(inputStreamSupplier);
-            try(XmlUpdateDraftFileProcessor xmlUpdateDraftFileProcessor = new XmlUpdateDraftFileProcessor(refBook.getRefBookId(), this)) {
-                Draft draft =xmlUpdateDraftFileProcessor.process(inputStreamSupplier);
-                updateData(draft.getId(), fileModel);
-                return draft;
-            }
+            return updateDraftDataByXml(refBook.getRefBookId(), fileModel, inputStreamSupplier);
+        }
+    }
+
+    private Draft updateDraftDataByXlsx(Integer refBookId, FileModel fileModel, Supplier<InputStream> inputStreamSupplier) {
+        BiConsumer<String, Structure> saveDraftConsumer = getSaveDraftConsumer(refBookId);
+        RowsProcessor rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, saveDraftConsumer);
+
+        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
+        try (FilePerRowProcessor persister = FileProcessorFactory.createProcessor(extension,
+                rowsProcessor, new PlainRowMapper())) {
+            persister.process(inputStreamSupplier);
+        } catch (IOException e) {
+            throw new RdmException(e);
         }
 
+        RefBookVersionEntity createdDraft = getDraftByRefbook(refBookId);
+        return new Draft(createdDraft.getId(), createdDraft.getStorageCode());
+    }
+
+    private Draft updateDraftDataByXml(Integer refBookId, FileModel fileModel, Supplier<InputStream> inputStreamSupplier) {
+        try(XmlUpdateDraftFileProcessor xmlUpdateDraftFileProcessor = new XmlUpdateDraftFileProcessor(refBookId, this)) {
+            Draft draft = xmlUpdateDraftFileProcessor.process(inputStreamSupplier);
+            updateData(draft.getId(), fileModel);
+            return draft;
+        }
     }
 
     private BiConsumer<String, Structure> getSaveDraftConsumer(Integer refBookId) {
