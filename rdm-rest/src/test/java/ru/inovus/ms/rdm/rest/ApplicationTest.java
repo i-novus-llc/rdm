@@ -40,6 +40,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -1401,9 +1402,38 @@ public class ApplicationTest {
      */
     @Test
     public void testCreateRefbookFromFile() {
-        Draft draft = draftService.create(createFileModel("testCreateRefbookFromFilePath", "refbook.xml"));
-        Page<RefBookRowValue> search = draftService.search(draft.getId(), new SearchDataCriteria());
-        //todo asserts
+        FileModel fileModel = createFileModel("testCreateRefbookFromFilePath.xml", "refbook.xml");
+
+        Draft expected = draftService.create(fileModel);
+
+        // Наличие черновика:
+        Draft actual = draftService.getDraft(expected.getId());
+        assertEquals(expected, actual);
+
+        Page<RefBookRowValue> search = draftService.search(expected.getId(), new SearchDataCriteria());
+
+        // Количество записей:
+        assertEquals(2, search.getContent().size());
+
+        // Совпадение записей:
+        List<FieldValue> expectedData0 = new ArrayList<FieldValue>() {{
+            add(new StringFieldValue("TEST_CODE", "string2"));
+            add(new IntegerFieldValue("number", 2));
+            add(new DateFieldValue("dt", LocalDate.of(2002, 2, 2)));
+            add(new BooleanFieldValue("flag", true));
+        }};
+        List actualData0 = search.getContent().get(0).getFieldValues();
+        assertEquals(expectedData0, actualData0);
+
+        List<FieldValue> expectedData1 = new ArrayList<FieldValue>() {{
+            add(new StringFieldValue("TEST_CODE", "string5"));
+            add(new IntegerFieldValue("number", 5));
+            add(new DateFieldValue("dt", LocalDate.of(2005, 5, 5)));
+            add(new BooleanFieldValue("flag", false));
+        }};
+        List actualData1 = search.getContent().get(1).getFieldValues();
+        assertEquals(expectedData1, actualData1);
+
     }
 
     private boolean equalsFieldValues(List<Field> fields, List<FieldValue> values1, List<FieldValue> values2) {
