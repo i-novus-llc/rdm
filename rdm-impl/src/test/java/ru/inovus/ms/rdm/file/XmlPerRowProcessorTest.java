@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.file;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -108,12 +107,8 @@ public class XmlPerRowProcessorTest {
         };
     }
 
-    private Map<String, Object> createExpectedPassport() {
-        return new LinkedHashMap<>() {{
-            put("name", "наименование справочника");
-            put("shortName", "краткое наим-ие");
-            put("description", "описание");
-        }};
+    private Map<String, String> createExpectedPassport() {
+        return UploadFileTestData.createPassport();
     }
 
     private void assertActualValuesMap(List<Map<String, Object>> expected, Map<String, Object> actual) {

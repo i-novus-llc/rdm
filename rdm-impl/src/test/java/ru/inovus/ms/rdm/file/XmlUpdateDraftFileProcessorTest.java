@@ -8,15 +8,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import ru.inovus.ms.rdm.model.CreateDraftRequest;
-import ru.inovus.ms.rdm.model.Result;
-import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.service.api.DraftService;
 
-import java.util.ArrayList;
-
 import static org.mockito.Mockito.*;
-import static ru.inovus.ms.rdm.file.export.XmlFileGenerateProcessTest.createFullTestStructure;
 
 @RunWith(MockitoJUnitRunner.class)
 public class XmlUpdateDraftFileProcessorTest {
@@ -36,10 +31,7 @@ public class XmlUpdateDraftFileProcessorTest {
 
     @Test
     public void testProcess() throws Exception {
-        Structure expectedStructure = createFullTestStructure();
-        //убрать когда переделаем ссылочность
-        expectedStructure.setReferences(new ArrayList<>());
-        CreateDraftRequest expected = new CreateDraftRequest(TEST_REF_BOOK_ID, expectedStructure, null);
+        CreateDraftRequest expected = new CreateDraftRequest(TEST_REF_BOOK_ID, UploadFileTestData.createStructure(), UploadFileTestData.createPassport());
 
         try(XmlUpdateDraftFileProcessor fileProcessor = new XmlUpdateDraftFileProcessor(TEST_REF_BOOK_ID, draftService)) {
             fileProcessor.process(() -> getClass().getResourceAsStream(XML_FILE));
