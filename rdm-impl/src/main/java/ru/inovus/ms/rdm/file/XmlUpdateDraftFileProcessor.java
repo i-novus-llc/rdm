@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static ru.inovus.ms.rdm.file.XmlParseUtils.*;
@@ -119,6 +120,9 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
                     }
                 }
                 reader.nextTag();
+
+                structure.setReferences(new ArrayList<>()); // NB: Убрать, когда переделаем ссылочность
+
                 return structure;
 
             } catch (XMLStreamException e) {
