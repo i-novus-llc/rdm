@@ -9,6 +9,7 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "ref_book_version", schema = "n2o_rdm_management")
@@ -149,7 +150,9 @@ public class RefBookVersionEntity {
     }
 
     public void setPassportValues(List<PassportValueEntity> passportValues) {
-        this.passportValues = passportValues;
+        this.passportValues = passportValues.stream()
+                .map(v -> new PassportValueEntity(v.getAttribute(), v.getValue(), this))
+                .collect(Collectors.toList());
     }
 
     @PrePersist
