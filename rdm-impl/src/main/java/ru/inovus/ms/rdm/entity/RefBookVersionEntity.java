@@ -150,9 +150,8 @@ public class RefBookVersionEntity {
     }
 
     public void setPassportValues(List<PassportValueEntity> passportValues) {
-        this.passportValues = passportValues.stream()
-                .map(v -> new PassportValueEntity(v.getAttribute(), v.getValue(), this))
-                .collect(Collectors.toList());
+        passportValues.forEach(v -> v.setVersion(this));
+        this.passportValues = passportValues;
     }
 
     @PrePersist
