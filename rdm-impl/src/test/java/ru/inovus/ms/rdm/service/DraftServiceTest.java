@@ -10,6 +10,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.*;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -25,6 +26,8 @@ import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.FileStorage;
+import ru.inovus.ms.rdm.file.MockFileStorage;
+import ru.inovus.ms.rdm.file.UploadFileTestData;
 import ru.inovus.ms.rdm.file.export.PerRowFileGenerator;
 import ru.inovus.ms.rdm.file.export.PerRowFileGeneratorFactory;
 import ru.inovus.ms.rdm.model.*;
@@ -42,7 +45,6 @@ import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -50,7 +52,6 @@ import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.*;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static ru.inovus.ms.rdm.model.UpdateValue.of;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
@@ -82,8 +83,10 @@ public class DraftServiceTest {
     private RefBookRepository refBookRepository;
     @Mock
     private SearchDataService searchDataService;
-    @Mock
-    private FileStorage fileStorage;
+//    @Mock
+//    private FileStorage fileStorage;
+    @Spy
+    private FileStorage fileStorage = new MockFileStorage();
     @Mock
     private FileNameGenerator fileNameGenerator;
     @Mock
@@ -393,8 +396,9 @@ public class DraftServiceTest {
         RefBookVersionEntity versionBefore = createTestDraftVersion();
         versionBefore.setRefBook(refBook);
 
+        Integer draftId = 1;
         RefBookVersionEntity versionWithStructure = createTestDraftVersionWithPassport();
-        versionWithStructure.setId(1);
+        versionWithStructure.setId(draftId);
 
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(createCopyOfVersion(versionBefore)).thenReturn(createCopyOfVersion(versionWithStructure));
         when(refBookRepository.findOne(REFBOOK_ID)).thenReturn(refBook);
@@ -403,13 +407,25 @@ public class DraftServiceTest {
 
         versionWithStructure.setStorageCode(TEST_DRAFT_CODE_NEW);
         versionWithStructure.setRefBook(refBook);
-        versionWithStructure.setStructure(createFullTestStructure());
+        versionWithStructure.setStructure(UploadFileTestData.createStringStructure());
 
-        ArgumentCaptor<RefBookVersionEntity> versionsCaptor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
+        when(versionRepository.save(any(RefBookVersionEntity.class))).thenReturn(versionWithStructure);
+        when(versionRepository.findOne(draftId)).thenReturn(versionWithStructure);
+
+        RefBookVersionEntity expectedDraftVersion = versionWithStructure;
+        ArgumentCaptor<RefBookVersionEntity> draftCaptor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
+
         draftService.create(REFBOOK_ID, createTestFileModel("/file/", "uploadFile", "xml"));
 
-        verify(dropDataService).drop(eq(Collections.singleton(TEST_DRAFT_CODE)));
-        verify(versionRepository).delete(eq(versionBefore.getId()));
+        verify(versionRepository).save(draftCaptor.capture());
+
+        expectedDraftVersion.setStructure(UploadFileTestData.createStructure());
+        Assert.assertEquals(expectedDraftVersion, draftCaptor.getValue());
+
+        // NB: Old draft is not dropped since its structure is changed
+        //verify(dropDataService).drop(eq(Collections.singleton(TEST_DRAFT_CODE)));
+        //verify(versionRepository).delete(eq(versionBefore.getId()));
+
     }
 
     @Test
@@ -534,10 +550,26 @@ public class DraftServiceTest {
      * extension = 'xml'
      **/
     private FileModel createTestFileModel(String path, String fileName, String extension) {
-        InputStream input = DraftServiceTest.class.getResourceAsStream(path + fileName + "." + extension);
-        FileModel fileModel = new FileModel(fileName, fileName + "." + extension);
-        when(fileStorage.saveContent(eq(input), eq(fileName))).thenReturn(fileModel.generateFullPath());
-        when(fileStorage.getContent(eq(fileModel.generateFullPath()))).thenReturn(input);
+        String fullName = fileName + "." + extension;
+
+        FileModel fileModel = new FileModel(fileName, fullName); // NB: fileName as path!
+        if (fileStorage instanceof MockFileStorage) {
+            ((MockFileStorage)fileStorage).setFileModel(fileModel);
+            ((MockFileStorage)fileStorage).setFilePath(path + fullName);
+        }
+
+        InputStream input = DraftServiceTest.class.getResourceAsStream(path + fullName);
+
+        if (!(fileStorage instanceof MockFileStorage)) {
+            when(fileStorage.saveContent(eq(input), eq(fileName))).thenReturn(fileModel.generateFullPath());
+            when(fileStorage.getContent(eq(fileModel.generateFullPath())))
+                    .thenReturn(input,
+                            DraftServiceTest.class.getResourceAsStream(path + fullName),
+                            DraftServiceTest.class.getResourceAsStream(path + fullName),
+                            DraftServiceTest.class.getResourceAsStream(path + fullName));
+        }
+
+        // NB: Check mock.
         String fullPath = fileStorage.saveContent(input, fileModel.getPath());
         fileModel.setPath(fullPath);
         return fileModel;
@@ -573,11 +605,7 @@ public class DraftServiceTest {
         version.setId(null);
         version.setStatus(RefBookVersionStatus.DRAFT);
         version.setStructure(null);
-        version.setPassportValues(asList(
-                new PassportValueEntity(new PassportAttributeEntity("name"), "наименование справочника", version),
-                new PassportValueEntity(new PassportAttributeEntity("shortName"), "краткое наим-ие", version),
-                new PassportValueEntity(new PassportAttributeEntity("description"), "описание", version)
-        ));
+        version.setPassportValues(UploadFileTestData.createPassportValues(version));
 
         return version;
     }
@@ -594,20 +622,6 @@ public class DraftServiceTest {
             assertEquals(expected.get(i).getStatus(), actual.get(i).getStatus());
             assertEquals(expected.get(i).getPassportValues().size(), actual.get(i).getPassportValues().size());
         }
-    }
-
-    private Structure createFullTestStructure() {
-        return new Structure(
-                asList(
-                        Structure.Attribute.build("string", "string", FieldType.STRING, "строка"),
-                        Structure.Attribute.build("integer", "integer", FieldType.STRING, "число"),
-                        Structure.Attribute.build("date", "date", FieldType.STRING, "дата"),
-                        Structure.Attribute.build("boolean", "boolean", FieldType.STRING, "булево"),
-                        Structure.Attribute.build("float", "float", FieldType.STRING, "дробное"),
-                        Structure.Attribute.build("reference", "reference", FieldType.STRING, "ссылка")
-                ),
-                null
-        );
     }
 
     private List<PassportValueEntity> createTestPassportValues(RefBookVersionEntity version) {
