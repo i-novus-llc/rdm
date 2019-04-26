@@ -225,7 +225,7 @@ public class ApplicationTest {
         assertNotNull(draft);
         assertNotNull(draft.getStorageCode());
 
-        // изменение метеданных справочника
+        // изменение метаданных справочника
         refBookUpdateRequest.setVersionId(refBook.getId());
         RefBook updatedRefBook = refBookService.update(refBookUpdateRequest);
         refBook.setCode(refBookUpdateRequest.getCode());
