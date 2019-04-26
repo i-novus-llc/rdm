@@ -104,7 +104,7 @@
     <build>
         <resources>
             <resource>
-                <directory>rdm-react/packages/rdm-frontend/build</directory>
+                <directory>old-rdm-react/build</directory>
                 <targetPath>META-INF/resources</targetPath>
             </resource>
             <resource>
