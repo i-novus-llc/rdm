@@ -354,7 +354,9 @@ public class DraftServiceImpl implements DraftService {
     private RefBookVersionEntity newDraftVersion(Structure structure, List<PassportValueEntity> passportValues) {
         RefBookVersionEntity draftVersion = new RefBookVersionEntity();
         draftVersion.setStatus(RefBookVersionStatus.DRAFT);
-        draftVersion.setPassportValues(passportValues);
+        draftVersion.setPassportValues(passportValues.stream()
+                .map(v -> new PassportValueEntity(v.getAttribute(), v.getValue(), draftVersion))
+                .collect(toList()));
         draftVersion.setStructure(structure);
         return draftVersion;
     }
