@@ -4,7 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
 
-    <changeSet id="201904180804-RDM-456_1" author="arahmatullin" dbms="postgresql">
+    <changeSet id="201904180804-RDM-456_1.1" author="arahmatullin" dbms="postgresql">
         <comment>Исключение time zone из timestamptz-полей таблиц схемы rdm/data</comment>
         <sql splitStatements="false">
             <![CDATA[
@@ -16,12 +16,20 @@ declare
 
 begin
     for r in
-        select l_c.*
+        select l_c.*,
+               (case when l_c.column_default like '%::timestamp with time zone'
+                     then 1 else 0
+                end) as is_new_default,
+               replace(l_c.column_default,
+                       '::timestamp with time zone',
+                       '::timestamp without time zone') as new_default
           from information_schema.tables as l_t
          inner join information_schema.columns as l_c
             on l_c.table_name = l_t.table_name
          where l_t.table_type = 'BASE TABLE'
-           and l_c.data_type = 'timestamp with time zone'
+           and l_c.data_type in (
+                 'timestamptz', 'timestamp with time zone'
+               )
            and l_t.table_catalog = 'rdm'
            and l_t.table_schema = 'data'
            and l_c.column_name in ('SYS_PUBLISHTIME', 'SYS_CLOSETIME')
@@ -32,6 +40,16 @@ begin
                 ' alter column ' ||
                 quote_ident(r.column_name) ||
                 ' type timestamp without time zone';
+
+        if (r.is_new_default = 1) then
+            execute 'alter table ' ||
+                    quote_ident(r.table_schema) || '.' ||
+                    quote_ident(r.table_name) ||
+                        ' alter column ' ||
+                            quote_ident(r.column_name) ||
+                            ' set default ' || r.new_default;
+        end if;
+
     end loop;
 end;
 
