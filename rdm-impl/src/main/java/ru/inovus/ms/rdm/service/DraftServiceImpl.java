@@ -184,7 +184,6 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
-    @Transactional(timeout = 1200000)
     public Draft create(FileModel fileModel) {
         String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
         switch (extension) {
