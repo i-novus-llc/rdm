@@ -138,6 +138,14 @@ public class CreateDraftController {
         return newRow.getContent().get(0).getSystemId();
     }
 
+    public UiDraft createFromFile(FileModel fileModel) {
+
+        Integer versionId = draftService.create(fileModel).getId();
+        RefBookVersion version = versionService.getById(versionId);
+
+        return new UiDraft(versionId, version.getRefBookId());
+    }
+
     public UiDraft uploadFromFile(Integer versionId, FileModel fileModel) {
 
         RefBookVersion version = versionService.getById(versionId);

@@ -64,6 +64,25 @@
             </in-parameters>
         </operation>
 
+        <operation id="createFromFile" submit-label="Создать из файла" success-text="Справочник успешно сохранен">
+            <invocation>
+                <java class="ru.inovus.ms.rdm.service.CreateDraftController"
+                      method="createFromFile">
+                    <spring/>
+                    <arguments>
+                        <argument type="class" name="fileModel" class="ru.inovus.ms.rdm.model.FileModel"/>
+                    </arguments>
+                </java>
+            </invocation>
+            <in-parameters>
+                <param id="file.path" mapping="[0].path" domain="string"/>
+                <param id="file.name" mapping="[0].name" domain="string"/>
+            </in-parameters>
+            <out-parameters>
+                <param id="refBookId" mapping="['refBookId']" domain="integer"/>
+            </out-parameters>
+        </operation>
+
         <operation id="upload" submit-label="Загрузить" success-text="Данные загружены">
             <invocation>
                 <java class="ru.inovus.ms.rdm.service.CreateDraftController"
