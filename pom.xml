@@ -23,7 +23,6 @@
         <filestorage.version>2.1-SNAPSHOT</filestorage.version>
         <vds.version>2.3-SNAPSHOT</vds.version>
         <n2o.version>7.1.5</n2o.version>
-        <selenium.version>3.8.1</selenium.version>
         <itext.version>5.5.9</itext.version>
         <xmlunit.version>1.6</xmlunit.version>
         <lombok.version>1.18.4</lombok.version>
