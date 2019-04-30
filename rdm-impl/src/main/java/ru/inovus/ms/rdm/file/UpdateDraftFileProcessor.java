@@ -20,16 +20,16 @@ public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
 
     private DraftService draftService;
 
-    protected abstract Structure getStructure();
-
-    public abstract Map<String, String> getPassport();
-
-    protected abstract void setFile(InputStream inputStream);
-
     public UpdateDraftFileProcessor(Integer refBookId, DraftService draftService) {
         this.refBookId = refBookId;
         this.draftService = draftService;
     }
+
+    protected abstract void setFile(InputStream inputStream);
+
+    public abstract Map<String, String> getPassport();
+
+    protected abstract Structure getStructure();
 
     @Override
     public Draft process(Supplier<InputStream> fileSource) {
@@ -38,8 +38,7 @@ public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
 
             Map<String, String> passport = getPassport();
             Structure structure = getStructure();
-            Draft draft = draftService.create(new CreateDraftRequest(refBookId, structure, passport));
-            return draft;
+            return draftService.create(new CreateDraftRequest(refBookId, structure, passport));
 
         }  catch (IOException e) {
             logger.error("cannot get inputStream", e);

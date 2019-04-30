@@ -3,10 +3,7 @@ package ru.inovus.ms.rdm.file;
 import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.CollectionUtils;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.model.Row;
-import ru.inovus.ms.rdm.model.Structure;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -52,8 +49,6 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
             throwXmlReadError(e);
         }
     }
-
-
 
     // check if next tag is <row>. Will move to next tag if meets <data> tag
     @Override

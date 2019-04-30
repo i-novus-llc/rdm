@@ -1,7 +1,5 @@
 package ru.inovus.ms.rdm.file;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ru.inovus.ms.rdm.model.RefBookCreateRequest;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 
@@ -10,23 +8,15 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
 import java.io.Closeable;
-import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 import static ru.inovus.ms.rdm.file.XmlParseUtils.*;
 
 public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor implements Closeable {
 
-    private static final Logger logger = LoggerFactory.getLogger(XmlCreateRefBookFileProcessor.class);
-
-    private static final String XML_READ_ERROR_MESSAGE = "cannot read XML";
-
     private static final String PASSPORT_TAG_NAME = "passport";
     private static final String STRUCTURE_TAG_NAME = "structure";
     private static final String DATA_TAG_NAME = "data";
-    private static final String ROW_TAG_NAME = "row";
 
     private static final XMLInputFactory FACTORY = XMLInputFactory.newInstance();
 

@@ -5,17 +5,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.Row;
-import ru.inovus.ms.rdm.model.Structure;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.function.Supplier;
-
-import static java.util.stream.Collectors.toMap;
 
 public abstract class FilePerRowProcessor implements FileProcessor<Result>, Iterator<Row>, Closeable {
 

@@ -20,6 +20,9 @@ public class XmlParseUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(XmlParseUtils.class);
 
+    private XmlParseUtils() {
+    }
+
     public static void parseValues(XMLEventReader reader, Map<String, String> map, String outerTagName) throws XMLStreamException {
         String keyValue = null;
         XMLEvent curEvent = reader.nextEvent();
