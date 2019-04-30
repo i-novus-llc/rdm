@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.model;
 
-
 import net.n2oapp.platform.i18n.Message;
 
 import java.util.ArrayList;
@@ -8,10 +7,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 public class Result {
-
-    private boolean passportProcessed;
-
-    private boolean structureProcessed;
 
     private int successCount;
 

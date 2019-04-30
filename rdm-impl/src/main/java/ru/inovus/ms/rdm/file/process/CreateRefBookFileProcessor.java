@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.file;
+package ru.inovus.ms.rdm.file.process;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

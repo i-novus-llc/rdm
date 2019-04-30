@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.file;
+package ru.inovus.ms.rdm.file.process;
 
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.model.Structure;
@@ -14,8 +14,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static ru.inovus.ms.rdm.file.XmlParseUtils.*;
-import static ru.inovus.ms.rdm.file.XmlParseUtils.isStartElementWithName;
+import static ru.inovus.ms.rdm.file.process.XmlParseUtils.*;
+import static ru.inovus.ms.rdm.file.process.XmlParseUtils.isStartElementWithName;
 
 public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implements Closeable {
 

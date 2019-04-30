@@ -1,8 +1,9 @@
-package ru.inovus.ms.rdm.file;
+package ru.inovus.ms.rdm.file.process;
 
 import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.inovus.ms.rdm.file.RowMapper;
 import ru.inovus.ms.rdm.model.Row;
 
 import javax.xml.stream.XMLEventReader;
@@ -12,9 +13,8 @@ import javax.xml.stream.events.XMLEvent;
 import java.io.InputStream;
 import java.util.*;
 
-import static java.util.Arrays.asList;
-import static ru.inovus.ms.rdm.file.XmlParseUtils.isStartElementWithName;
-import static ru.inovus.ms.rdm.file.XmlParseUtils.parseValues;
+import static ru.inovus.ms.rdm.file.process.XmlParseUtils.isStartElementWithName;
+import static ru.inovus.ms.rdm.file.process.XmlParseUtils.parseValues;
 
 public class XmlPerRowProcessor extends FilePerRowProcessor {
 
@@ -22,8 +22,6 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
 
     private static final String XML_READ_ERROR_MESSAGE = "cannot read XML";
 
-    private static final String PASSPORT_TAG_NAME = "passport";
-    private static final String STRUCTURE_TAG_NAME = "structure";
     private static final String DATA_TAG_NAME = "data";
     private static final String ROW_TAG_NAME = "row";
 

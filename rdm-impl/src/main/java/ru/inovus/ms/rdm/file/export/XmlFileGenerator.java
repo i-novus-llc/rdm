@@ -122,7 +122,7 @@ public class XmlFileGenerator extends PerRowFileGenerator {
         writer.writeEndElement(); //passport
     }
 
-    private void addCode() throws XMLStreamException {
+    private void addCode() {
         writeElement("code", version.getCode());
     }
 
