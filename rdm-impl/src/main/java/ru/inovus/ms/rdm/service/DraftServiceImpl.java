@@ -25,12 +25,11 @@ import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.file.*;
 import ru.inovus.ms.rdm.file.export.*;
+import ru.inovus.ms.rdm.file.process.*;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.validation.*;
 import ru.inovus.ms.rdm.repositiory.*;
-import ru.inovus.ms.rdm.service.api.DraftService;
-import ru.inovus.ms.rdm.service.api.RefBookService;
-import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.service.api.*;
 import ru.inovus.ms.rdm.util.*;
 import ru.inovus.ms.rdm.validation.PrimaryKeyUniqueValidation;
 import ru.inovus.ms.rdm.validation.ReferenceValidation;
@@ -225,7 +224,7 @@ public class DraftServiceImpl implements DraftService {
             if (draftVersion == null && lastRefBookVersion == null) {
                 throw new NotFoundException(new Message(REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
             }
-//            structure == null means that draft was created during passport saving
+            // NB: structure == null means that draft was created during passport saving
             if (draftVersion != null && draftVersion.getStructure() != null) {
                 dropDataService.drop(singleton(draftVersion.getStorageCode()));
                 versionRepository.delete(draftVersion.getId());
@@ -323,24 +322,6 @@ public class DraftServiceImpl implements DraftService {
 
     private RefBookVersionEntity getDraftByRefbook(Integer refBookId) {
         return versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
-    }
-
-    @Override
-    public void updateMetadata(Integer draftId, MetadataDiff metadataDiff) {
-
-        validateDraftExists(draftId);
-        validateDraftNotArchived(draftId);
-
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void updateData(Integer draftId, DataDiff dataDiff) {
-
-        validateDraftExists(draftId);
-        validateDraftNotArchived(draftId);
-
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -496,8 +477,9 @@ public class DraftServiceImpl implements DraftService {
             dropDataService.drop(dataStorageToDelete);
 
             RefBookVersion versionModel = versionService.getById(draftId);
-            for (FileType fileType : fileGeneratorFactory.getAvailableTypes())
+            for (FileType fileType : PerRowFileGeneratorFactory.getAvailableTypes())
                 saveVersionFile(versionModel, fileType, generateVersionFile(versionModel, fileType));
+
         } finally {
             refBookLockService.deleteRefBookAction(refBookId);
         }
@@ -545,12 +527,6 @@ public class DraftServiceImpl implements DraftService {
         refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
         versionRepository.delete(draftId);
-    }
-
-    @Override
-    public Structure getMetadata(Integer draftId) {
-        validateDraftExists(draftId);
-        return null;
     }
 
     @Override
@@ -661,6 +637,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private void updateReference(UpdateAttribute updateAttribute, Structure.Reference updatableReference) {
+
         setValueIfPresent(updateAttribute::getAttribute, updatableReference::setAttribute);
         setValueIfPresent(updateAttribute::getReferenceVersion, updatableReference::setReferenceVersion);
         setValueIfPresent(updateAttribute::getReferenceAttribute, updatableReference::setReferenceAttribute);
@@ -749,7 +726,6 @@ public class DraftServiceImpl implements DraftService {
     @Override
     @Transactional
     public void deleteAttribute(Integer draftId, String attributeCode) {
-
         validateDraftExists(draftId);
         validateDraftNotArchived(draftId);
         refBookLockService.validateRefBookNotBusyByVersionId(draftId);
@@ -850,7 +826,6 @@ public class DraftServiceImpl implements DraftService {
         validateDraftExists(draftId);
 
         RefBookVersion versionModel = ModelGenerator.versionModel(versionRepository.findOne(draftId));
-
         return new ExportFile(
                 generateVersionFile(versionModel, fileType),
                 fileNameGenerator.generateZipName(versionModel, fileType));

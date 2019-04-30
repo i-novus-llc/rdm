@@ -57,9 +57,6 @@ public interface DraftService {
     @Path("/createByFile")
     Draft create(@ApiParam("Идентификатор справочника") FileModel fileModel);
 
-    void updateMetadata(Integer draftId, MetadataDiff metadataDiff);
-
-    void updateData(Integer draftId, DataDiff dataDiff);
 
     @POST
     @ApiOperation("Добавление или изменение строки черновика")
@@ -136,8 +133,6 @@ public interface DraftService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     void remove(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId);
-
-    Structure getMetadata(Integer draftId);
 
     @GET
     @Path("/{draftId}")
