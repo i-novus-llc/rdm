@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.file;
+package ru.inovus.ms.rdm.file.process;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -7,8 +7,9 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import ru.inovus.ms.rdm.file.UploadFileTestData;
+import ru.inovus.ms.rdm.file.process.XmlUpdateDraftFileProcessor;
 import ru.inovus.ms.rdm.model.CreateDraftRequest;
-import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.service.api.DraftService;
 
 import static org.mockito.Mockito.*;

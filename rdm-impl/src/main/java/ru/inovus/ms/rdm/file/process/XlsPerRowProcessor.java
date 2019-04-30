@@ -1,11 +1,11 @@
-package ru.inovus.ms.rdm.file;
+package ru.inovus.ms.rdm.file.process;
 
 import com.monitorjbl.xlsx.StreamingReader;
 import net.n2oapp.platform.i18n.UserException;
 import org.apache.poi.ss.usermodel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.file.RowMapper;
 
 import java.io.IOException;
 import java.io.InputStream;

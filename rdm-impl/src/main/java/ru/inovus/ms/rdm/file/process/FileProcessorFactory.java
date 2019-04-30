@@ -1,6 +1,7 @@
-package ru.inovus.ms.rdm.file;
+package ru.inovus.ms.rdm.file.process;
 
 import ru.inovus.ms.rdm.exception.RdmException;
+import ru.inovus.ms.rdm.file.*;
 
 public class FileProcessorFactory {
     private FileProcessorFactory() {

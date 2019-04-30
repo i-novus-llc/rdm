@@ -1,6 +1,4 @@
-package ru.inovus.ms.rdm.file;
-
-import ru.inovus.ms.rdm.model.Result;
+package ru.inovus.ms.rdm.file.process;
 
 import java.io.InputStream;
 import java.util.function.Supplier;

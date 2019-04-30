@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.file;
+package ru.inovus.ms.rdm.file.process;
 
 import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
@@ -19,6 +19,9 @@ public class XmlParseUtils {
     private static final String XML_READ_ERROR_MESSAGE = "cannot read XML";
 
     private static final Logger logger = LoggerFactory.getLogger(XmlParseUtils.class);
+
+    private XmlParseUtils() {
+    }
 
     public static void parseValues(XMLEventReader reader, Map<String, String> map, String outerTagName) throws XMLStreamException {
         String keyValue = null;
