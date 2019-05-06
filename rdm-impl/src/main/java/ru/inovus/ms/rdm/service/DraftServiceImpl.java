@@ -212,10 +212,48 @@ public class DraftServiceImpl implements DraftService {
     private Draft updateDraftDataByXml(Integer refBookId, FileModel fileModel, Supplier<InputStream> inputStreamSupplier) {
         try(XmlUpdateDraftFileProcessor xmlUpdateDraftFileProcessor = new XmlUpdateDraftFileProcessor(refBookId, this)) {
             Draft draft = xmlUpdateDraftFileProcessor.process(inputStreamSupplier);
-            updateData(draft.getId(), fileModel);
+            updateDraftData(versionRepository.findOne(draft.getId()), fileModel);
             return draft;
         }
     }
+
+    /** Обновление данных черновика.
+     *
+     * @param draft
+     * @param fileModel
+     */
+    private void updateDraftData(RefBookVersionEntity draft, FileModel fileModel) {
+        String storageCode = draft.getStorageCode();
+        Structure structure = draft.getStructure();
+
+        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
+        Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
+
+        StructureRowMapper nonStrictOnTypeRowMapper = new NonStrictOnTypeRowMapper(structure, versionRepository);
+        try (FilePerRowProcessor validator = FileProcessorFactory
+                .createProcessor(extension,
+                        new RowsValidatorImpl(versionService, searchDataService, structure, storageCode, errorCountLimit,
+                                attributeValidationRepository.findAllByVersionId(draft.getId())),
+                        nonStrictOnTypeRowMapper)) {
+            validator.process(inputStreamSupplier);
+
+        } catch (IOException e) {
+            throw new RdmException(e);
+        }
+
+        StructureRowMapper structureRowMapper = new StructureRowMapper(structure, versionRepository);
+        try (FilePerRowProcessor persister = FileProcessorFactory
+                .createProcessor(extension,
+                        new BufferedRowsPersister(draftDataService, storageCode, structure),
+                        structureRowMapper)) {
+            persister.process(inputStreamSupplier);
+
+        } catch (IOException e) {
+            throw new RdmException(e);
+        }
+
+    }
+
 
     private BiConsumer<String, Structure> getSaveDraftConsumer(Integer refBookId) {
         return (storageCode, structure) -> {
@@ -311,6 +349,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private RefBookVersionEntity newDraftVersion(Structure structure, List<PassportValueEntity> passportValues) {
+
         RefBookVersionEntity draftVersion = new RefBookVersionEntity();
         draftVersion.setStatus(RefBookVersionStatus.DRAFT);
         draftVersion.setPassportValues(passportValues.stream()
@@ -360,6 +399,7 @@ public class DraftServiceImpl implements DraftService {
     @Override
     @Transactional
     public void deleteAllRows(Integer draftId) {
+
         validateDraftExists(draftId);
         validateDraftNotArchived(draftId);
 
@@ -377,34 +417,11 @@ public class DraftServiceImpl implements DraftService {
 
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
         Integer refBookId = draft.getRefBook().getId();
+
         refBookLockService.setRefBookUploading(refBookId);
-
         try {
-            String storageCode = draft.getStorageCode();
-            Structure structure = draft.getStructure();
-            String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
-            Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
+            updateDraftData(draft, fileModel);
 
-            StructureRowMapper nonStrictOnTypeRowMapper = new NonStrictOnTypeRowMapper(structure, versionRepository);
-            try (FilePerRowProcessor validator = FileProcessorFactory
-                    .createProcessor(extension,
-                            new RowsValidatorImpl(versionService, searchDataService, structure, storageCode, errorCountLimit,
-                                    attributeValidationRepository.findAllByVersionId(draftId)),
-                            nonStrictOnTypeRowMapper)) {
-                validator.process(inputStreamSupplier);
-            } catch (IOException e) {
-                throw new RdmException(e);
-            }
-
-            StructureRowMapper structureRowMapper = new StructureRowMapper(structure, versionRepository);
-            try (FilePerRowProcessor persister = FileProcessorFactory
-                    .createProcessor(extension,
-                            new BufferedRowsPersister(draftDataService, storageCode, structure),
-                            structureRowMapper)) {
-                persister.process(inputStreamSupplier);
-            } catch (IOException e) {
-                throw new RdmException(e);
-            }
         } finally {
             refBookLockService.deleteRefBookAction(refBookId);
         }
