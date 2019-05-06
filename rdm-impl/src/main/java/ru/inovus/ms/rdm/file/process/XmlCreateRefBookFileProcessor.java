@@ -14,6 +14,7 @@ import static ru.inovus.ms.rdm.file.process.XmlParseUtils.*;
 
 public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor implements Closeable {
 
+    private static final String CODE_TAG_NAME = "code";
     private static final String PASSPORT_TAG_NAME = "passport";
     private static final String STRUCTURE_TAG_NAME = "structure";
     private static final String DATA_TAG_NAME = "data";
@@ -29,7 +30,6 @@ public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor im
 
     @Override
     protected void setFile(InputStream inputStream) {
-
         try {
             FACTORY.setProperty(XMLInputFactory.IS_COALESCING, true);
             XMLEventReader simpleReader = FACTORY.createXMLEventReader(inputStream);
@@ -47,11 +47,13 @@ public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor im
             if(!reader.hasNext()) {
                 return null;
             }
+
             XMLEvent event = reader.nextEvent();
-            while (!isStartElementWithName(event, "code", PASSPORT_TAG_NAME, STRUCTURE_TAG_NAME, DATA_TAG_NAME) && reader.hasNext()) {
+            while (!isStartElementWithName(event, CODE_TAG_NAME, PASSPORT_TAG_NAME, STRUCTURE_TAG_NAME, DATA_TAG_NAME) && reader.hasNext()) {
                 event = reader.nextEvent();
             }
-            if(isStartElementWithName(event, "code")) {
+
+            if(isStartElementWithName(event, CODE_TAG_NAME)) {
                 return new RefBookCreateRequest(reader.getElementText(), null, null);
             }
         } catch (XMLStreamException e) {
