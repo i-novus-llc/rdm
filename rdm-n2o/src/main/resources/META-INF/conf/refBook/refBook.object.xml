@@ -44,6 +44,7 @@
             </out-parameters>
         </operation>
 
+        <!-- WARN: confirm + confirm-text должен заработать после NNO-3132 -->
         <operation id="delete" submit-label="Удалить" success-text="Справочник удален"
                    confirm="true" confirm-text="Вы уверены что хотите удалить этот справочник?">
             <invocation>
@@ -83,10 +84,32 @@
             </out-parameters>
         </operation>
 
-        <operation id="upload" submit-label="Загрузить" success-text="Данные загружены">
+        <operation id="uploadFromFile" submit-label="Загрузить из файла" success-text="Файл загружен"
+                   confirm="true" confirm-text="Вы уверены, что хотите загрузить справочник?">
             <invocation>
                 <java class="ru.inovus.ms.rdm.service.CreateDraftController"
                       method="uploadFromFile">
+                    <spring/>
+                    <arguments>
+                        <argument type="primitive" name="versionId" class="java.lang.Integer"/>
+                        <argument type="class" name="fileModel" class="ru.inovus.ms.rdm.model.FileModel"/>
+                    </arguments>
+                </java>
+            </invocation>
+            <in-parameters>
+                <param id="versionId" mapping="[0]" domain="integer"/>
+                <param id="file.path" mapping="[1].path" domain="string"/>
+                <param id="file.name" mapping="[1].name" domain="string"/>
+            </in-parameters>
+            <out-parameters>
+                <param id="refBookId" mapping="refBookId" domain="integer"/>
+            </out-parameters>
+        </operation>
+
+        <operation id="uploadData" submit-label="Загрузить данные" success-text="Данные загружены">
+            <invocation>
+                <java class="ru.inovus.ms.rdm.service.CreateDraftController"
+                      method="uploadData">
                     <spring/>
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>

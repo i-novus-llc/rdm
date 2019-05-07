@@ -152,11 +152,23 @@ public class CreateDraftController {
         if (version == null)
             throw new UserException(new Message("version.not.found", versionId));
 
-        if (RefBookVersionStatus.DRAFT.equals(version.getStatus()) && version.getStructure() != null && !CollectionUtils.isEmpty(version.getStructure().getAttributes())) {
-            draftService.updateData(versionId, fileModel);
-        } else {
-            versionId = draftService.create(version.getRefBookId(), fileModel).getId();
-        }
+        versionId = draftService.create(version.getRefBookId(), fileModel).getId();
+
+        return new UiDraft(versionId, version.getRefBookId());
+    }
+
+    public UiDraft uploadData(Integer versionId, FileModel fileModel) {
+
+        RefBookVersion version = versionService.getById(versionId);
+        if (version == null)
+            throw new UserException(new Message("version.not.found", versionId));
+
+        if (!RefBookVersionStatus.DRAFT.equals(version.getStatus()))
+            throw new UserException(new Message("version.is.not.draft", versionId));
+        if (version.getStructure() == null || CollectionUtils.isEmpty(version.getStructure().getAttributes()))
+            throw new UserException(new Message("version.has.not.structure", versionId));
+
+        draftService.updateData(versionId, fileModel);
 
         return new UiDraft(versionId, version.getRefBookId());
     }
