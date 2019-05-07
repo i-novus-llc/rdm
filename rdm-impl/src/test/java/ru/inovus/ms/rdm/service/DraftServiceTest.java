@@ -31,10 +31,7 @@ import ru.inovus.ms.rdm.file.UploadFileTestData;
 import ru.inovus.ms.rdm.file.export.PerRowFileGenerator;
 import ru.inovus.ms.rdm.file.export.PerRowFileGeneratorFactory;
 import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.repositiory.AttributeValidationRepository;
-import ru.inovus.ms.rdm.repositiory.RefBookRepository;
-import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
-import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
+import ru.inovus.ms.rdm.repositiory.*;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.FileNameGenerator;
 import ru.inovus.ms.rdm.util.ModelGenerator;
@@ -55,7 +52,6 @@ import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static org.mockito.Mockito.*;
 import static ru.inovus.ms.rdm.model.UpdateValue.of;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
-
 
 @RunWith(MockitoJUnitRunner.class)
 public class DraftServiceTest {
@@ -101,6 +97,8 @@ public class DraftServiceTest {
     private AttributeValidationRepository attributeValidationRepository;
     @Mock
     private PerRowFileGeneratorFactory fileGeneratorFactory;
+    @Mock
+    private PassportValueRepository passportValueRepository;
 
     private static final String UPD_SUFFIX = "_upd";
     private static final String PK_SUFFIX = "_pk";
@@ -294,14 +292,19 @@ public class DraftServiceTest {
     public void testCreateWithExistingDraftDifferentStructure() {
         RefBookVersionEntity testDraftVersion = createTestDraftVersion();
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(testDraftVersion);
-        when(versionRepository.save(eq(testDraftVersion))).thenReturn(testDraftVersion);
+        when(versionRepository.save(any(RefBookVersionEntity.class))).thenAnswer(v -> {
+            RefBookVersionEntity saved = (RefBookVersionEntity)(v.getArguments()[0]);
+            saved.setId(testDraftVersion.getId() + 1);
+            return saved;
+        });
         when(versionRepository.exists(hasVersionId(testDraftVersion.getId()).and(isDraft()))).thenReturn(true);
         when(versionRepository.exists(eq(isVersionOfRefBook(REFBOOK_ID)))).thenReturn(true);
         Structure structure = new Structure();
         structure.setAttributes(singletonList(Structure.Attribute.build("name", "name", FieldType.STRING, "description")));
+
         Draft draftActual = draftService.create(new CreateDraftRequest(REFBOOK_ID, structure));
 
-        assertEquals(testDraftVersion.getId(), draftActual.getId());
+        assertNotEquals(testDraftVersion.getId(), draftActual.getId());
         assertNotEquals(TEST_DRAFT_CODE, draftActual.getStorageCode());
     }
 
@@ -408,18 +411,22 @@ public class DraftServiceTest {
         versionWithStructure.setStorageCode(TEST_DRAFT_CODE_NEW);
         versionWithStructure.setRefBook(refBook);
         versionWithStructure.setStructure(UploadFileTestData.createStringStructure());
+        //versionWithStructure.setStructure(UploadFileTestData.createStructure()); // NB: reference
 
         when(versionRepository.save(any(RefBookVersionEntity.class))).thenReturn(versionWithStructure);
         when(versionRepository.findOne(draftId)).thenReturn(versionWithStructure);
 
-        RefBookVersionEntity expectedDraftVersion = versionWithStructure;
         ArgumentCaptor<RefBookVersionEntity> draftCaptor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
 
         draftService.create(REFBOOK_ID, createTestFileModel("/file/", "uploadFile", "xml"));
 
         verify(versionRepository).save(draftCaptor.capture());
 
+        RefBookVersionEntity expectedDraftVersion = versionWithStructure;
         expectedDraftVersion.setStructure(UploadFileTestData.createStructure());
+        RefBookVersionEntity actualDraftVersion = (RefBookVersionEntity)(draftCaptor.getValue());
+        actualDraftVersion.setId(expectedDraftVersion.getId());
+
         Assert.assertEquals(expectedDraftVersion, draftCaptor.getValue());
 
         // NB: Old draft is not dropped since its structure is changed
