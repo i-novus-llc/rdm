@@ -31,13 +31,16 @@ public abstract class FilePerRowProcessor implements FileProcessor<Result>, Iter
     public Result process(Supplier<InputStream> fileSource) {
         try (InputStream inputStream = fileSource.get()) {
             setFile(inputStream);
+
             while (hasNext()) {
                 rowsProcessor.append(rowMapper.map(next()));
             }
+
         } catch (IOException e) {
             logger.error("cannot get InputStream", e);
             return new Result(0, 0, Collections.singletonList(new Message("io.error", e.getMessage())));
         }
+
         return rowsProcessor.process();
     }
 
