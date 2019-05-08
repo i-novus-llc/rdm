@@ -64,6 +64,26 @@
             </in-parameters>
         </operation>
 
+        <operation id="toArchive" submit-label="Отправить в архив" success-text="Справочник отправлен в архив"
+                   confirm="true" confirm-text="Вы уверены, что хотите отправить этот справочник в архив?">
+            <invocation>
+                <rest method="POST">/refBook/{refBookId}/toArchive</rest>
+            </invocation>
+            <in-parameters>
+                <param id="refBookId" mapping="refBookId" domain="integer" mapper="spel"/>
+            </in-parameters>
+        </operation>
+
+        <operation id="fromArchive" submit-label="Вернуть из архива" success-text="Справочник возвращён из архива"
+                   confirm="true" confirm-text="Вы уверены, что хотите вернуть этот справочник из архива?">
+            <invocation>
+                <rest method="POST">/refBook/{refBookId}/fromArchive</rest>
+            </invocation>
+            <in-parameters>
+                <param id="refBookId" mapping="refBookId" domain="integer" mapper="spel"/>
+            </in-parameters>
+        </operation>
+
         <operation id="upload" submit-label="Загрузить" success-text="Данные загружены">
             <invocation>
                 <java class="ru.inovus.ms.rdm.service.CreateDraftController"
