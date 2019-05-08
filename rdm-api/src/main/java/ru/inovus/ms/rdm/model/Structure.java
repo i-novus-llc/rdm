@@ -183,17 +183,17 @@ public class Structure implements Serializable {
     public static class Reference implements Serializable {
 
         /**
-         * Поле которое ссылается
+         * Поле, которое ссылается
          */
         private String attribute;
 
         /**
-         * Веррсия на которую ссылаемся
+         * Версия, на которую ссылаемся
          */
         private Integer referenceVersion;
 
         /**
-         * Поле на которое ссылаемся
+         * Поле, на которое ссылаемся
          */
         private String referenceAttribute;
 
