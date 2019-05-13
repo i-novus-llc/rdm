@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.exception.NotUniqueException;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
@@ -56,6 +57,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
@@ -107,6 +109,9 @@ public class DraftServiceImpl implements DraftService {
     private static final String REFBOOK_IS_ARCHIVED_EXCEPTION_CODE = "refbook.is.archived";
     private static final String INVALID_VERSION_NAME_EXCEPTION_CODE = "invalid.version.name";
     private static final String INVALID_VERSION_PERIOD_EXCEPTION_CODE = "invalid.version.period";
+    private static final String ROW_NOT_UNIQUE_EXCEPTION_CODE = "row.not.unique";
+    private static final String ROW_IS_EMPTY_EXCEPTION_CODE = "row.is.empty";
+    private static final String REQUIRED_FIELD_EXCEPTION_CODE = "validation.required.err";
 
     @Autowired
     @SuppressWarnings("all")
@@ -149,8 +154,8 @@ public class DraftServiceImpl implements DraftService {
     @Transactional(timeout = 1200000)
     public Draft create(Integer refBookId, FileModel fileModel) {
 
-        validateRefBookExists(refBookId);
-        validateRefBookNotArchived(refBookId);
+        validateRefBook(refBookId);
+
         refBookLockService.setRefBookUploading(refBookId);
 
         try {
@@ -169,7 +174,7 @@ public class DraftServiceImpl implements DraftService {
             } catch (IOException e) {
                 throw new RdmException(e);
             }
-            RefBookVersionEntity createdDraft = getDraftByRefbook(refBookId);
+            RefBookVersionEntity createdDraft = getDraftByRefBook(refBookId);
             return new Draft(createdDraft.getId(), createdDraft.getStorageCode());
         } finally {
             refBookLockService.deleteRefBookAction(refBookId);
@@ -180,13 +185,13 @@ public class DraftServiceImpl implements DraftService {
     private BiConsumer<String, Structure> getSaveDraftConsumer(Integer refBookId) {
         return (storageCode, structure) -> {
             RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
-            RefBookVersionEntity draftVersion = getDraftByRefbook(refBookId);
+            RefBookVersionEntity draftVersion = getDraftByRefBook(refBookId);
             if (draftVersion == null && lastRefBookVersion == null) {
                 throw new NotFoundException(new Message(REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
             }
 //            structure == null means that draft was created during passport saving
             if (draftVersion != null && draftVersion.getStructure() != null) {
-                dropDataService.drop(Collections.singleton(draftVersion.getStorageCode()));
+                dropDataService.drop(singleton(draftVersion.getStorageCode()));
                 versionRepository.delete(draftVersion.getId());
                 draftVersion = newDraftVersion(structure, draftVersion.getPassportValues());
             } else if (draftVersion == null) {
@@ -205,12 +210,12 @@ public class DraftServiceImpl implements DraftService {
 //    creates a draft version to save passport values from file
     private Consumer<Map<String, String>> getDraftWithPassportCreator(Integer refBookId) {
         return passport -> {
-            RefBookVersionEntity draftVersion = getDraftByRefbook(refBookId);
+            RefBookVersionEntity draftVersion = getDraftByRefBook(refBookId);
             if (draftVersion == null && getLastRefBookVersion(refBookId) == null)
                 throw new NotFoundException(new Message(REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
 
             if (draftVersion != null) {
-                dropDataService.drop(Collections.singleton(draftVersion.getStorageCode()));
+                dropDataService.drop(singleton(draftVersion.getStorageCode()));
                 versionRepository.delete(draftVersion.getId());
             }
             draftVersion = newDraftVersion(null, passport
@@ -232,11 +237,10 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public Draft create(Integer refBookId, Structure structure) {
 
-        validateRefBookExists(refBookId);
-        validateRefBookNotArchived(refBookId);
+        validateRefBook(refBookId);
 
         RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
-        RefBookVersionEntity draftVersion = getDraftByRefbook(refBookId);
+        RefBookVersionEntity draftVersion = getDraftByRefBook(refBookId);
         if (draftVersion == null && lastRefBookVersion == null) {
             throw new CodifiedException("invalid refbook");
         }
@@ -271,7 +275,7 @@ public class DraftServiceImpl implements DraftService {
     private void updateDraft(Structure structure, RefBookVersionEntity draftVersion, List<Field> fields) {
         String draftCode = draftVersion.getStorageCode();
         if (!structure.equals(draftVersion.getStructure())) {
-            dropDataService.drop(Collections.singleton(draftCode));
+            dropDataService.drop(singleton(draftCode));
             draftCode = draftDataService.createDraft(fields);
             draftVersion.setStorageCode(draftCode);
         } else {
@@ -290,34 +294,15 @@ public class DraftServiceImpl implements DraftService {
         return draftVersion;
     }
 
-    private RefBookVersionEntity getDraftByRefbook(Integer refBookId) {
+    private RefBookVersionEntity getDraftByRefBook(Integer refBookId) {
         return versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
-    }
-
-    @Override
-    public void updateMetadata(Integer draftId, MetadataDiff metadataDiff) {
-
-        validateDraftExists(draftId);
-        validateDraftNotArchived(draftId);
-
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void updateData(Integer draftId, DataDiff dataDiff) {
-
-        validateDraftExists(draftId);
-        validateDraftNotArchived(draftId);
-
-        throw new UnsupportedOperationException();
     }
 
     @Override
     @Transactional
     public void updateData(Integer draftId, Row row) {
 
-        validateDraftExists(draftId);
-        validateDraftNotArchived(draftId);
+        validateDraft(draftId);
 
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
 
@@ -325,6 +310,9 @@ public class DraftServiceImpl implements DraftService {
                 draft.getStorageCode(), errorCountLimit, attributeValidationRepository.findAllByVersionId(draftId));
         validator.append(new NonStrictOnTypeRowMapper(draft.getStructure(), versionRepository).map(row));
         validator.process();
+
+        if (row.getData().values().stream().allMatch(ObjectUtils::isEmpty))
+            throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
 
         RowValue rowValue = rowValue(new StructureRowMapper(draft.getStructure(), versionRepository).map(row), draft.getStructure());
         if (rowValue.getSystemId() == null)
@@ -337,8 +325,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void deleteRow(Integer draftId, Long systemId) {
 
-        validateDraftExists(draftId);
-        validateDraftNotArchived(draftId);
+        validateDraft(draftId);
 
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
 
@@ -348,8 +335,8 @@ public class DraftServiceImpl implements DraftService {
     @Override
     @Transactional
     public void deleteAllRows(Integer draftId) {
-        validateDraftExists(draftId);
-        validateDraftNotArchived(draftId);
+
+        validateDraft(draftId);
 
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
 
@@ -360,8 +347,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional(timeout = 1200000)
     public void updateData(Integer draftId, FileModel fileModel) {
 
-        validateDraftExists(draftId);
-        validateDraftNotArchived(draftId);
+        validateDraft(draftId);
 
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
         Integer refBookId = draft.getRefBook().getId();
@@ -418,8 +404,7 @@ public class DraftServiceImpl implements DraftService {
     @Override
     public void publish(Integer draftId, String versionName, LocalDateTime fromDate, LocalDateTime toDate) {
 
-        validateDraftExists(draftId);
-        validateDraftNotArchived(draftId);
+        validateDraft(draftId);
 
         RefBookVersionEntity draftVersion = versionRepository.findOne(draftId);
         Integer refBookId = draftVersion.getRefBook().getId();
@@ -474,7 +459,7 @@ public class DraftServiceImpl implements DraftService {
         }
     }
 
-    protected RefBookVersionEntity getLastPublishedVersion(RefBookVersionEntity draftVersion) {
+    private RefBookVersionEntity getLastPublishedVersion(RefBookVersionEntity draftVersion) {
         Page<RefBookVersionEntity> lastPublishedVersions = versionRepository
                 .findAll(isPublished().and(isVersionOfRefBook(draftVersion.getRefBook().getId()))
                         , new PageRequest(0, 1, new Sort(Sort.Direction.DESC, "fromDate")));
@@ -511,17 +496,11 @@ public class DraftServiceImpl implements DraftService {
     @Override
     public void remove(Integer draftId) {
 
-        validateDraftExists(draftId);
-        validateDraftNotArchived(draftId);
+        validateDraft(draftId);
+
         refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
         versionRepository.delete(draftId);
-    }
-
-    @Override
-    public Structure getMetadata(Integer draftId) {
-        validateDraftExists(draftId);
-        return null;
     }
 
     @Override
@@ -539,11 +518,15 @@ public class DraftServiceImpl implements DraftService {
         validateDraftNotArchived(createAttribute.getVersionId());
         refBookLockService.validateRefBookNotBusyByVersionId(createAttribute.getVersionId());
 
-
         RefBookVersionEntity draftEntity = versionRepository.findOne(createAttribute.getVersionId());
         Structure.Attribute attribute = createAttribute.getAttribute();
         Structure structure = draftEntity.getStructure();
         validateRequired(attribute, draftEntity.getStorageCode(), structure);
+
+        //clear previous primary keys
+        if (createAttribute.getAttribute().getIsPrimary())
+            structure.clearPrimary();
+
         Structure.Reference reference = createAttribute.getReference();
         draftDataService.addField(draftEntity.getStorageCode(), field(attribute));
 
@@ -569,7 +552,7 @@ public class DraftServiceImpl implements DraftService {
                     new DataCriteria(storageCode, null, null, fields(structure), emptySet(), null)
             );
             if (!isEmpty(data)) {
-                throw new UserException("required.attribute.err");
+                throw new UserException(new Message(REQUIRED_FIELD_EXCEPTION_CODE, attribute.getName()));
             }
         }
     }
@@ -612,7 +595,7 @@ public class DraftServiceImpl implements DraftService {
             } else {
                 reference = new Structure.Reference();
             }
-            Integer updatableReferenceIndex = structure.getReferences().indexOf(reference);
+            int updatableReferenceIndex = structure.getReferences().indexOf(reference);
             updateReference(updateAttribute, reference);
             if (updatableReferenceIndex >= 0)
                 structure.getReferences().set(updatableReferenceIndex, reference);
@@ -659,7 +642,7 @@ public class DraftServiceImpl implements DraftService {
 
         // проверка отсутствия пустых значений в поле при установке первичного ключа
         if (!isUpdateValueNullOrEmpty(updateAttribute.getIsPrimary()) && updateAttribute.getIsPrimary().get() && draftDataService.isFieldContainEmptyValues(storageCode, updateAttribute.getCode()))
-            throw new UserException(new Message(INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE, attribute.getDescription()));
+            throw new UserException(new Message(INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE, attribute.getName()));
 
         if (!isUpdateValueNullOrEmpty(updateAttribute.getIsPrimary()) && updateAttribute.getIsPrimary().get()) {
             validatePrimaryKeyUnique(storageCode, updateAttribute);
@@ -668,7 +651,7 @@ public class DraftServiceImpl implements DraftService {
         // проверка совместимости типов, если столбец не пустой и изменяется тип. Если пустой - можно изменить тип
         if (draftDataService.isFieldNotEmpty(storageCode, updateAttribute.getCode())) {
             if (!isCompatibleTypes(attribute.getType(), updateAttribute.getType())) {
-                throw new UserException(new Message(INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE, attribute.getDescription()));
+                throw new UserException(new Message(INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE, attribute.getName()));
             }
         } else
             return;
@@ -717,8 +700,8 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void deleteAttribute(Integer draftId, String attributeCode) {
 
-        validateDraftExists(draftId);
-        validateDraftNotArchived(draftId);
+        validateDraft(draftId);
+
         refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
         RefBookVersionEntity draftEntity = versionRepository.findOne(draftId);
@@ -731,7 +714,7 @@ public class DraftServiceImpl implements DraftService {
         try {
             draftDataService.deleteField(draftEntity.getStorageCode(), attributeCode);
         } catch (NotUniqueException e) {
-            throw new UserException("row.not.unique", e);
+            throw new UserException(ROW_NOT_UNIQUE_EXCEPTION_CODE, e);
         }
 
         attributeValidationRepository.delete(
@@ -863,6 +846,16 @@ public class DraftServiceImpl implements DraftService {
         }
     }
 
+    private void validateDraft(Integer draftId){
+        validateDraftExists(draftId);
+        validateDraftNotArchived(draftId);
+    }
+
+    private void validateRefBook(Integer refBookId){
+        validateRefBookExists(refBookId);
+        validateRefBookNotArchived(refBookId);
+    }
+
     private void validateRefBookNotArchived(Integer refBookId) {
         if (refBookId != null && versionRepository.exists(isVersionOfRefBook(refBookId).and(isArchived()))) {
             throw new UserException(REFBOOK_IS_ARCHIVED_EXCEPTION_CODE);
@@ -887,7 +880,6 @@ public class DraftServiceImpl implements DraftService {
         }
     }
 
-
     private void validateVersionExists(Integer versionId) {
         if (versionId == null || !versionRepository.exists(hasVersionId(versionId))) {
             throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
@@ -901,4 +893,5 @@ public class DraftServiceImpl implements DraftService {
             throw new NotFoundException(new Message(DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, versionId, attribute));
         }
     }
+
 }

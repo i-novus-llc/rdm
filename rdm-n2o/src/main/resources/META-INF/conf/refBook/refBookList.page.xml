@@ -6,7 +6,7 @@
             <row>
                 <input-text id="name" label="Название справочника"/>
                 <input-text id="code" label="Код справочника"/>
-                <date-interval id="lastPublishedVersionFromDateInterval" label="Дата последней публикаци"/>
+                <date-interval id="lastPublishedVersionFromDateInterval" label="Дата последней публикации"/>
                 <input-select id="category" label="Категория" query-id="category" label-field-id="id"/>
                 <input-select id="status" label="Статус" label-field-id="name">
                     <options>
