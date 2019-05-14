@@ -8,6 +8,7 @@ import ru.inovus.ms.rdm.entity.AttributeValidationEntity;
 import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.validation.*;
 
@@ -26,6 +27,7 @@ public class RowsValidatorImpl implements RowsValidator {
     private Structure structure;
 
     private VersionService versionService;
+    private RefBookVersionRepository versionRepository;
 
     private SearchDataService searchDataService;
 
@@ -36,9 +38,15 @@ public class RowsValidatorImpl implements RowsValidator {
     private AttributeCustomValidation attributeCustomValidation;
 
 
-    public RowsValidatorImpl(VersionService versionService, SearchDataService searchDataService, Structure structure,
-                             String storageCode, int errorCountLimit, List<AttributeValidationEntity> attributeValidations) {
+    public RowsValidatorImpl(VersionService versionService,
+                             RefBookVersionRepository versionRepository,
+                             SearchDataService searchDataService,
+                             Structure structure,
+                             String storageCode,
+                             int errorCountLimit,
+                             List<AttributeValidationEntity> attributeValidations) {
         this.versionService = versionService;
+        this.versionRepository = versionRepository;
         this.structure = structure;
         this.searchDataService = searchDataService;
         this.storageCode = storageCode;
@@ -55,7 +63,7 @@ public class RowsValidatorImpl implements RowsValidator {
             List<ErrorAttributeHolderValidation> validations = Arrays.asList(
                     new PkRequiredValidation(row, structure),
                     new TypeValidation(row.getData(), structure),
-                    new ReferenceValueValidation(versionService, row, structure),
+                    new ReferenceValueValidation(versionService, versionRepository, row, structure),
                     new DBPrimaryKeyValidation(searchDataService, structure, row, storageCode),
                     pkUniqueRowAppendValidation,
                     attributeCustomValidation

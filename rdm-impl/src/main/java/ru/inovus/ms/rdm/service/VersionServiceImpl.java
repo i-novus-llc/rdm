@@ -54,6 +54,7 @@ public class VersionServiceImpl implements VersionService {
 
     public static final String ROW_NOT_FOUND = "row.not.found";
     public static final String VERSION_NOT_FOUND = "version.not.found";
+    public static final String LAST_PUBLISHED_VERSION_NOT_FOUND = "last.published.version.not.found";
 
     private RefBookVersionRepository versionRepository;
     private SearchDataService searchDataService;
@@ -115,6 +116,15 @@ public class VersionServiceImpl implements VersionService {
         RefBookVersionEntity versionEntity = versionRepository.findByVersionAndRefBookCode(version, refBookCode);
         if (versionEntity == null)
             throw new NotFoundException(new Message(VERSION_NOT_FOUND, version));
+        return versionModel(versionEntity);
+    }
+
+    @Override
+    @Transactional
+    public RefBookVersion getLastPublishedVersion(String refBookCode) {
+        RefBookVersionEntity versionEntity = versionRepository.findLastVersion(refBookCode, RefBookVersionStatus.PUBLISHED);
+        if (versionEntity == null)
+            throw new NotFoundException(new Message(LAST_PUBLISHED_VERSION_NOT_FOUND));
         return versionModel(versionEntity);
     }
 

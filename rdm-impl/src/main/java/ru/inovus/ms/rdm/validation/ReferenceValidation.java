@@ -9,6 +9,7 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
+import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
@@ -27,6 +28,7 @@ public class ReferenceValidation implements RdmValidation {
 
     private SearchDataService searchDataService;
     private RefBookVersionRepository versionRepository;
+
     private Structure.Reference reference;
     private Integer draftId;
     private Integer bufSize;
@@ -34,11 +36,15 @@ public class ReferenceValidation implements RdmValidation {
     private static final Logger logger = LoggerFactory.getLogger(ReferenceValidation.class);
     private static final String INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE = "inconvertible.new.type";
 
-    public ReferenceValidation(SearchDataService searchDataService, RefBookVersionRepository versionRepository, Structure.Reference reference, Integer draftId) {
+    public ReferenceValidation(SearchDataService searchDataService,
+                               RefBookVersionRepository versionRepository,
+                               Structure.Reference reference, Integer draftId) {
         this(searchDataService, versionRepository, reference, draftId, 100);
     }
 
-    public ReferenceValidation(SearchDataService searchDataService, RefBookVersionRepository versionRepository, Structure.Reference reference, Integer draftId, Integer bufSize) {
+    public ReferenceValidation(SearchDataService searchDataService,
+                               RefBookVersionRepository versionRepository,
+                               Structure.Reference reference, Integer draftId, Integer bufSize) {
         this.searchDataService = searchDataService;
         this.versionRepository = versionRepository;
         this.reference = reference;
@@ -49,9 +55,9 @@ public class ReferenceValidation implements RdmValidation {
     @Override
     public List<Message> validate() {
         RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
-        RefBookVersionEntity refVersion = versionRepository.getOne(reference.getReferenceVersion());
+        RefBookVersionEntity lastVersion = versionRepository.findLastVersion(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
         Field draftField = field(draftVersion.getStructure().getAttribute(reference.getAttribute()));
-        Field refField = field(refVersion.getStructure().getAttribute(reference.getReferenceAttribute()));
+        Field refField = field(lastVersion.getStructure().getAttribute(reference.getReferenceAttribute()));
 
         // значения, которые невозможно привести к типу атрибута, на который ссылаемся, либо не найдены в ссылаемой версии
         List<String> incorrectValues = new ArrayList<>();
@@ -61,7 +67,7 @@ public class ReferenceValidation implements RdmValidation {
                 singletonList(draftField), emptySet(), null);
         draftDataCriteria.setPage(1);
         draftDataCriteria.setSize(bufSize);
-        validateData(draftDataCriteria, incorrectValues, refField, refVersion);
+        validateData(draftDataCriteria, incorrectValues, refField, lastVersion);
 
         incorrectValues.forEach(incorrectValue ->
                 messages.add(
@@ -104,9 +110,11 @@ public class ReferenceValidation implements RdmValidation {
                     incorrectValues.add(String.valueOf(castedValue));
             });
         }
+
         int remainCount = draftRowValues.getCount() - (draftDataCriteria.getPage() - 1) * bufSize - draftDataCriteria.getSize();
         if (remainCount <= 0)
             return;
+
         draftDataCriteria.setPage(draftDataCriteria.getPage() + 1);
         draftDataCriteria.setSize((remainCount >= bufSize) ? bufSize : remainCount);
         validateData(draftDataCriteria, incorrectValues, refField, refVersion);

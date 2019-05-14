@@ -22,7 +22,7 @@ public class UpdateAttribute extends UpdatableDto {
 
     // поля Structure.Reference
     private UpdateValue<String> attribute;
-    private UpdateValue<Integer> referenceVersion;
+    private UpdateValue<String> referenceCode;
     private UpdateValue<String> referenceAttribute;
     private UpdateValue<String> displayExpression;
 
@@ -30,7 +30,9 @@ public class UpdateAttribute extends UpdatableDto {
 
     public UpdateAttribute(Integer versionId, Structure.Attribute attribute, Structure.Reference reference) {
         setLastActionDate(LocalDateTime.of(LocalDate.now(), LocalTime.now()));
+
         this.versionId = versionId;
+
         //attribute fields
         this.code = attribute.getCode();
         if (attribute.getName() != null)
@@ -40,13 +42,14 @@ public class UpdateAttribute extends UpdatableDto {
             this.isPrimary = of(attribute.getIsPrimary());
         if (attribute.getDescription() != null)
             setDescription(of(attribute.getDescription()));
+
         //reference fields
         if (reference == null)
             return;
         if (reference.getAttribute() != null)
             this.attribute = of(reference.getAttribute());
-        if (reference.getReferenceVersion() != null)
-            this.referenceVersion = of(reference.getReferenceVersion());
+        if (reference.getReferenceCode() != null)
+            this.referenceCode = of(reference.getReferenceCode());
         if (reference.getReferenceAttribute() != null)
             this.referenceAttribute = of(reference.getReferenceAttribute());
         if (reference.getDisplayExpression() != null)
@@ -109,12 +112,12 @@ public class UpdateAttribute extends UpdatableDto {
         this.attribute = attribute;
     }
 
-    public UpdateValue<Integer> getReferenceVersion() {
-        return referenceVersion;
+    public UpdateValue<String> getReferenceCode() {
+        return referenceCode;
     }
 
-    public void setReferenceVersion(UpdateValue<Integer> referenceVersion) {
-        this.referenceVersion = referenceVersion;
+    public void setReferenceCode(UpdateValue<String> referenceCode) {
+        this.referenceCode = referenceCode;
     }
 
     public UpdateValue<String> getReferenceAttribute() {

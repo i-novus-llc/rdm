@@ -218,6 +218,7 @@ public class DraftServiceImpl implements DraftService {
      * @param fileModel
      */
     private void updateDraftData(RefBookVersionEntity draft, FileModel fileModel) {
+
         String storageCode = draft.getStorageCode();
         Structure structure = draft.getStructure();
 
@@ -227,7 +228,7 @@ public class DraftServiceImpl implements DraftService {
         StructureRowMapper nonStrictOnTypeRowMapper = new NonStrictOnTypeRowMapper(structure, versionRepository);
         try (FilePerRowProcessor validator = FileProcessorFactory
                 .createProcessor(extension,
-                        new RowsValidatorImpl(versionService, searchDataService, structure, storageCode, errorCountLimit,
+                        new RowsValidatorImpl(versionService, versionRepository, searchDataService, structure, storageCode, errorCountLimit,
                                 attributeValidationRepository.findAllByVersionId(draft.getId())),
                         nonStrictOnTypeRowMapper)) {
             validator.process(inputStreamSupplier);
@@ -388,7 +389,7 @@ public class DraftServiceImpl implements DraftService {
 
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
 
-        RowsValidator validator = new RowsValidatorImpl(versionService, searchDataService, draft.getStructure(),
+        RowsValidator validator = new RowsValidatorImpl(versionService, versionRepository, searchDataService, draft.getStructure(),
                 draft.getStorageCode(), errorCountLimit, attributeValidationRepository.findAllByVersionId(draftId));
         validator.append(new NonStrictOnTypeRowMapper(draft.getStructure(), versionRepository).map(row));
         validator.process();
@@ -518,10 +519,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private RefBookVersionEntity getLastPublishedVersion(RefBookVersionEntity draftVersion) {
-        Page<RefBookVersionEntity> lastPublishedVersions = versionRepository
-                .findAll(isPublished().and(isVersionOfRefBook(draftVersion.getRefBook().getId()))
-                        , new PageRequest(0, 1, new Sort(Sort.Direction.DESC, "fromDate")));
-        return lastPublishedVersions != null && lastPublishedVersions.hasContent() ? lastPublishedVersions.getContent().get(0) : null;
+        return versionRepository.findLastVersion(draftVersion.getRefBook().getId(), RefBookVersionStatus.PUBLISHED);
     }
 
     private void resolveOverlappingPeriodsInFuture(LocalDateTime fromDate, LocalDateTime toDate, Integer refBookId) {
@@ -676,7 +674,7 @@ public class DraftServiceImpl implements DraftService {
     private void updateReference(UpdateAttribute updateAttribute, Structure.Reference updatableReference) {
 
         setValueIfPresent(updateAttribute::getAttribute, updatableReference::setAttribute);
-        setValueIfPresent(updateAttribute::getReferenceVersion, updatableReference::setReferenceVersion);
+        setValueIfPresent(updateAttribute::getReferenceCode, updatableReference::setReferenceCode);
         setValueIfPresent(updateAttribute::getReferenceAttribute, updatableReference::setReferenceAttribute);
         setValueIfPresent(updateAttribute::getDisplayExpression, updatableReference::setDisplayExpression);
     }
@@ -732,7 +730,7 @@ public class DraftServiceImpl implements DraftService {
         List<Message> referenceValidationMessages = new ReferenceValidation(
                 searchDataService,
                 versionRepository,
-                new Structure.Reference(updateAttribute.getAttribute().get(), updateAttribute.getReferenceVersion().get(), updateAttribute.getReferenceAttribute().get(), updateAttribute.getDisplayExpression().get()),
+                new Structure.Reference(updateAttribute.getAttribute().get(), updateAttribute.getReferenceCode().get(), updateAttribute.getReferenceAttribute().get(), updateAttribute.getDisplayExpression().get()),
                 updateAttribute.getVersionId()).validate();
         if (!isEmpty(referenceValidationMessages))
             throw new UserException(referenceValidationMessages);
@@ -743,7 +741,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private boolean isValidUpdateReferenceValues(UpdateAttribute updateAttribute, Function<UpdateValue, Boolean> valueValidateFunc) {
-        return valueValidateFunc.apply(updateAttribute.getReferenceVersion())
+        return valueValidateFunc.apply(updateAttribute.getReferenceCode())
                 || valueValidateFunc.apply(updateAttribute.getAttribute())
                 || valueValidateFunc.apply(updateAttribute.getReferenceAttribute());
     }
@@ -843,7 +841,7 @@ public class DraftServiceImpl implements DraftService {
     private void validateDataBase(RefBookVersionEntity versionEntity, List<AttributeValidationEntity> validationEntities) {
 
         VersionDataIterator iterator = new VersionDataIterator(versionService, singletonList(versionEntity.getId()));
-        RowsValidator validator = new RowsValidatorImpl(versionService, searchDataService, versionEntity.getStructure(),
+        RowsValidator validator = new RowsValidatorImpl(versionService, versionRepository, searchDataService, versionEntity.getStructure(),
                 versionEntity.getStorageCode(), errorCountLimit, validationEntities);
 
         while (iterator.hasNext()) {

@@ -188,9 +188,9 @@ public class Structure implements Serializable {
         private String attribute;
 
         /**
-         * Версия, на которую ссылаемся
+         * Код справочника, на который ссылаемся
          */
-        private Integer referenceVersion;
+        private String referenceCode;
 
         /**
          * Поле, на которое ссылаемся
@@ -206,9 +206,9 @@ public class Structure implements Serializable {
         public Reference() {
         }
 
-        public Reference(String attribute, Integer referenceVersion, String referenceAttribute, String displayExpression) {
+        public Reference(String attribute, String referenceCode, String referenceAttribute, String displayExpression) {
             this.attribute = attribute;
-            this.referenceVersion = referenceVersion;
+            this.referenceCode = referenceCode;
             this.referenceAttribute = referenceAttribute;
             this.displayExpression = displayExpression;
         }
@@ -221,12 +221,12 @@ public class Structure implements Serializable {
             this.attribute = attribute;
         }
 
-        public Integer getReferenceVersion() {
-            return referenceVersion;
+        public String getReferenceCode() {
+            return referenceCode;
         }
 
-        public void setReferenceVersion(Integer referenceVersion) {
-            this.referenceVersion = referenceVersion;
+        public void setReferenceCode(String referenceCode) {
+            this.referenceCode = referenceCode;
         }
 
         public String getReferenceAttribute() {
@@ -253,7 +253,7 @@ public class Structure implements Serializable {
             Reference reference = (Reference) o;
 
             if (attribute != null ? !attribute.equals(reference.attribute) : reference.attribute != null) return false;
-            if (referenceVersion != null ? !referenceVersion.equals(reference.referenceVersion) : reference.referenceVersion != null)
+            if (referenceCode != null ? !referenceCode.equals(reference.referenceCode) : reference.referenceCode != null)
                 return false;
             if (referenceAttribute != null ? !referenceAttribute.equals(reference.referenceAttribute) : reference.referenceAttribute != null)
                 return false;
@@ -264,7 +264,7 @@ public class Structure implements Serializable {
         @Override
         public int hashCode() {
             int result = attribute != null ? attribute.hashCode() : 0;
-            result = 31 * result + (referenceVersion != null ? referenceVersion.hashCode() : 0);
+            result = 31 * result + (referenceCode != null ? referenceCode.hashCode() : 0);
             result = 31 * result + (referenceAttribute != null ? referenceAttribute.hashCode() : 0);
             result = 31 * result + (displayExpression != null ? displayExpression.hashCode() : 0);
             return result;

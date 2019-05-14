@@ -42,7 +42,7 @@ public class ReferenceController {
 
         SearchDataCriteria criteria = toSearchDataCriteria(reference, referenceCriteria);
 
-        Page<RefBookRowValue> rowValues = versionService.search(reference.getReferenceVersion(), criteria);
+        Page<RefBookRowValue> rowValues = versionService.search(reference.getReferenceCode(), criteria);
 
 
         return new RestPage<>(rowValues.getContent(), criteria, rowValues.getTotalElements())

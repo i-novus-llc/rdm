@@ -11,7 +11,6 @@ import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.model.validation.AttributeValidation;
 import ru.inovus.ms.rdm.repositiory.AttributeValidationRepository;
-import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -27,13 +26,10 @@ import static java.util.Arrays.asList;
 @Component
 public class PerRowFileGeneratorFactory {
 
-    private RefBookVersionRepository refBookVersionRepository;
-
     private AttributeValidationRepository attributeValidationRepository;
 
     @Autowired
-    public PerRowFileGeneratorFactory(RefBookVersionRepository refBookVersionRepository, AttributeValidationRepository attributeValidationRepository) {
-        this.refBookVersionRepository = refBookVersionRepository;
+    public PerRowFileGeneratorFactory(AttributeValidationRepository attributeValidationRepository) {
         this.attributeValidationRepository = attributeValidationRepository;
     }
 
@@ -48,7 +44,7 @@ public class PerRowFileGeneratorFactory {
                 referenceToRefBookCodeMap = new HashMap<>();
                 version.getStructure().getReferences().stream()
                         .collect(Collectors.toMap(
-                                        reference -> refBookVersionRepository.getOne(reference.getReferenceVersion()).getRefBook().getCode(),
+                                        Structure.Reference::getReferenceCode,
                                         Structure.Reference::getAttribute)
                         );
             }

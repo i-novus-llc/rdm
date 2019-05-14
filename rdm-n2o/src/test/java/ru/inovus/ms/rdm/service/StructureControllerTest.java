@@ -56,10 +56,12 @@ public class StructureControllerTest extends TestCase {
     @Captor
     ArgumentCaptor<CreateAttribute> createAttributeArgumentCaptor;
 
+    private final int refBookId = -2;
     private final int versionId = 15;
     private String testCode = "test_code";
     private String testName = "testName";
     private String testDescription = "testDescription";
+    private String referenceCode = "test_storage";
     private Integer referenceVersion = -1;
     private String referenceAttribute = "count";
     private String displayExpression = toPlaceholder(referenceAttribute);
@@ -160,8 +162,7 @@ public class StructureControllerTest extends TestCase {
         attribute.setType(FieldType.REFERENCE);
         attribute.setReferenceDisplayExpression(displayExpression);
         attribute.setReferenceAttribute(referenceAttribute);
-        attribute.setReferenceVersion(referenceVersion);
-
+        attribute.setReferenceCode(referenceCode);
         structureController.createAttribute(versionId, attribute);
 
         verify(draftService, times(1)).createAttribute(createAttributeArgumentCaptor.capture());
@@ -176,7 +177,7 @@ public class StructureControllerTest extends TestCase {
         assertEquals(testCode, actual.getReference().getAttribute());
         assertEquals(displayExpression, actual.getReference().getDisplayExpression());
         assertEquals(referenceAttribute, actual.getReference().getReferenceAttribute());
-        assertEquals(referenceVersion, actual.getReference().getReferenceVersion());
+        assertEquals(referenceCode, actual.getReference().getReferenceCode());
 
     }
 
@@ -187,14 +188,20 @@ public class StructureControllerTest extends TestCase {
     public void testReadReference() throws Exception {
 
         RefBook referenceRefbook = new RefBook();
-        referenceRefbook.setRefBookId(-2);
+        referenceRefbook.setRefBookId(refBookId);
 
         when(versionService.getStructure(eq(versionId)))
                 .thenReturn(new Structure(
                         singletonList(build(testCode, null, FieldType.REFERENCE, null)),
-                        singletonList(new Structure.Reference(testCode, referenceVersion, referenceAttribute, displayExpression))));
+                        singletonList(new Structure.Reference(testCode, referenceCode, referenceAttribute, displayExpression))));
         when(draftService.getAttributeValidations(eq(versionId), isNull(String.class))).thenReturn(emptyList());
-        when(refBookService.getByVersionId(eq(referenceVersion))).thenReturn(referenceRefbook);
+
+        when(refBookService.getId(eq(referenceCode))).thenReturn(refBookId);
+
+        RefBookVersion version = new RefBookVersion();
+        version.setId(referenceVersion);
+        when(versionService.getLastPublishedVersion(eq(referenceCode))).thenReturn(version);
+
         when(versionService.getStructure(referenceVersion))
                 .thenReturn(new Structure(singletonList(build(referenceAttribute, null, FieldType.INTEGER, null)), null));
 

@@ -120,8 +120,8 @@ public class DraftServiceTest {
         codeAttribute = Structure.Attribute.buildPrimary("code", "Код", FieldType.STRING, "описание code");
         pkAttribute = Structure.Attribute.buildPrimary(nameAttribute.getCode() + PK_SUFFIX, nameAttribute.getName() + PK_SUFFIX, FieldType.STRING, nameAttribute.getDescription() + PK_SUFFIX);
 
-        nameReference = new Structure.Reference(nameAttribute.getCode(), 801, codeAttribute.getCode(), null);
-        updateNameReference = new Structure.Reference(nameAttribute.getCode(), 802, codeAttribute.getCode(), DisplayExpression.toPlaceholder(codeAttribute.getCode()));
+        nameReference = new Structure.Reference(nameAttribute.getCode(), "REF_801", codeAttribute.getCode(), null);
+        updateNameReference = new Structure.Reference(nameAttribute.getCode(), "REF_802", codeAttribute.getCode(), DisplayExpression.toPlaceholder(codeAttribute.getCode()));
         nullReference = new Structure.Reference(null, null, null, null);
     }
 
@@ -209,8 +209,10 @@ public class DraftServiceTest {
         expectedVersionEntity.setStorageCode(TEST_STORAGE_CODE);
         LocalDateTime now = LocalDateTime.now();
         expectedVersionEntity.setFromDate(now);
+
         when(versionRepository.findOne(eq(draft.getId()))).thenReturn(draft);
-        when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(new PageImpl(singletonList(versionEntity)));
+        when(versionRepository.findLastVersion(anyInt(), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(versionEntity);
+
         when(versionService.getById(eq(draft.getId())))
                 .thenReturn(ModelGenerator.versionModel(draft));
         when(versionNumberStrategy.check("2.2", REFBOOK_ID)).thenReturn(true);
@@ -475,11 +477,11 @@ public class DraftServiceTest {
         assertEquals(updateNameReference, structure.getReference(updateAttributeModel.getCode()));
 
         // новое значение не передается, проверка, что значение не изменилось
-        updateAttributeModel.setReferenceVersion(null);
+        updateAttributeModel.setReferenceCode(null);
         // изменение некоторого поля атрибута на null и проверка, что значение обновилось
         updateAttributeModel.setDescription(of(null));
         draftService.updateAttribute(updateAttributeModel);
-        assertEquals(updateNameReference.getReferenceVersion(), structure.getReference(updateAttributeModel.getCode()).getReferenceVersion());
+        assertEquals(updateNameReference.getReferenceCode(), structure.getReference(updateAttributeModel.getCode()).getReferenceCode());
         assertNull(structure.getAttribute(updateAttributeModel.getCode()).getDescription());
 
         // изменение кода атрибута на null, должна быть ошибка IllegalArgumentException
@@ -487,7 +489,7 @@ public class DraftServiceTest {
         testUpdateWithExceptionExpected(updateAttributeModel, structure.getAttribute(updateAttributeModel.getCode()), structure.getReference(updateAttributeModel.getCode()));
 
         // изменение версии ссылки на null, должна быть ошибка IllegalArgumentException (случай Reference -> Reference)
-        updateAttributeModel.setReferenceVersion(of(null));
+        updateAttributeModel.setReferenceCode(of(null));
         testUpdateWithExceptionExpected(updateAttributeModel, structure.getAttribute(updateAttributeModel.getCode()), structure.getReference(updateAttributeModel.getCode()));
 
         // изменение типа атрибута Reference -> String и проверка, что ссылка удалилась из структуры

@@ -118,12 +118,12 @@ public class StructureController {
     }
 
     private void enrich(ReadAttribute attribute, Structure.Reference reference) {
-        Integer refRefBookId = refBookService.getByVersionId(reference.getReferenceVersion()).getRefBookId();
+        Integer refRefBookId = refBookService.getId(reference.getReferenceCode());
         attribute.setReferenceRefBookId(refRefBookId);
 
-        String attributeName = getAttributeName(reference.getReferenceAttribute(), attribute.getReferenceVersion());
+        Integer versionId = versionService.getLastPublishedVersion(attribute.getReferenceCode()).getId();
+        String attributeName = getAttributeName(reference.getReferenceAttribute(), versionId);
         attribute.setReferenceAttributeName(attributeName);
-
         attribute.setReferenceDisplayExpression(reference.getDisplayExpression());
     }
 
@@ -188,7 +188,7 @@ public class StructureController {
 
     private Structure.Reference buildReference(Attribute request) {
         return new Structure.Reference(request.getCode(),
-                request.getReferenceVersion(), request.getReferenceAttribute(),
+                request.getReferenceCode(), request.getReferenceAttribute(),
                 request.getReferenceDisplayExpression());
     }
 
@@ -205,8 +205,8 @@ public class StructureController {
         if (attribute.getDescription() != null)
             updateAttribute.setDescription(of(attribute.getDescription()));
         updateAttribute.setAttribute(of(attribute.getCode()));
-        if (attribute.getReferenceVersion() != null)
-            updateAttribute.setReferenceVersion(of(attribute.getReferenceVersion()));
+        if (attribute.getReferenceCode() != null)
+            updateAttribute.setReferenceCode(of(attribute.getReferenceCode()));
         if (attribute.getReferenceAttribute() != null)
             updateAttribute.setReferenceAttribute(of(attribute.getReferenceAttribute()));
         if (attribute.getReferenceDisplayExpression() != null)
@@ -222,7 +222,7 @@ public class StructureController {
         attribute.setType(structureAttribute.getType());
         attribute.setIsPrimary(structureAttribute.getIsPrimary());
         if (Objects.nonNull(reference)) {
-            attribute.setReferenceVersion(reference.getReferenceVersion());
+            attribute.setReferenceCode(reference.getReferenceCode());
             attribute.setReferenceAttribute(reference.getReferenceAttribute());
             attribute.setReferenceDisplayExpression(reference.getDisplayExpression());
         }

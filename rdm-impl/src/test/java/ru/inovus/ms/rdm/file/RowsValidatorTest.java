@@ -15,10 +15,14 @@ import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
+import ru.i_novus.platform.versioned_data_storage.pg_impl.model.ReferenceField;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
+import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
+import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.process.RowsValidator;
 import ru.inovus.ms.rdm.file.process.RowsValidatorImpl;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.validation.ReferenceValueValidation;
 
@@ -41,6 +45,8 @@ public class RowsValidatorTest {
 
     @Mock
     private VersionService versionService;
+    @Mock
+    private RefBookVersionRepository versionRepository;
 
     @Mock
     private SearchDataService searchDataService;
@@ -55,18 +61,25 @@ public class RowsValidatorTest {
 
     private static final String REFERENCE_ATTRIBUTE = "name";
 
+    private static final String REFERENCE_CODE = "REF_CODE";
     private static final Integer REFERENCE_VERSION = 1;
 
     private SearchDataCriteria searchDataCriteria;
 
     @Before
     public void setUp() {
-        rowsValidator = new RowsValidatorImpl(versionService, searchDataService, createTestStructureWithReference(), "",
+        rowsValidator = new RowsValidatorImpl(versionService, versionRepository, searchDataService, createTestStructureWithReference(), "",
                 100, Collections.emptyList());
         when(fieldFactory.createField(eq(REFERENCE_ATTRIBUTE), eq(FieldType.STRING)))
                 .thenReturn(new StringField(REFERENCE_ATTRIBUTE));
-        when(versionService.getStructure(eq(REFERENCE_VERSION)))
-                .thenReturn(createTestStructure());
+                //.thenReturn(new ReferenceField(REFERENCE_ATTRIBUTE));
+
+        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
+        versionEntity.setId(REFERENCE_VERSION);
+        when(versionRepository.findLastVersion(eq(REFERENCE_CODE), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(versionEntity);
+
+        when(versionService.getStructure(eq(REFERENCE_VERSION))).thenReturn(createTestStructure());
+
         AttributeFilter attributeFilter = new AttributeFilter(REFERENCE_ATTRIBUTE, ATTRIBUTE_VALUE, FieldType.STRING, SearchTypeEnum.EXACT);
         searchDataCriteria = new SearchDataCriteria(
                 new HashSet<List<AttributeFilter>>() {{
@@ -132,7 +145,7 @@ public class RowsValidatorTest {
     private Structure createTestStructureWithReference() {
         Structure structure = new Structure();
         structure.setAttributes(Collections.singletonList(Structure.Attribute.build(ATTRIBUTE_NAME, ATTRIBUTE_NAME, FieldType.REFERENCE, "description")));
-        structure.setReferences(Collections.singletonList(new Structure.Reference(ATTRIBUTE_NAME, REFERENCE_VERSION, REFERENCE_ATTRIBUTE, null)));
+        structure.setReferences(Collections.singletonList(new Structure.Reference(ATTRIBUTE_NAME, REFERENCE_CODE, REFERENCE_ATTRIBUTE, null)));
         return structure;
     }
 }
