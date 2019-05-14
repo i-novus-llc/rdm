@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.util.json;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import net.n2oapp.platform.jaxrs.MapperConfigurer;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
@@ -11,7 +10,6 @@ import java.time.LocalDateTime;
  * @author arahmatullin
  * since 14.05.2019
  */
-@Component
 public class LocalDateTimeMapperPreparer implements MapperConfigurer {
 
     @Override
