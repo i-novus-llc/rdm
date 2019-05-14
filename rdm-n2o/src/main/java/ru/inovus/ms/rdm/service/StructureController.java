@@ -11,10 +11,8 @@ import ru.inovus.ms.rdm.model.validation.*;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.util.TimeUtils;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -194,7 +192,7 @@ public class StructureController {
 
     private UpdateAttribute getUpdateAttribute(Integer versionId, Attribute attribute) {
         UpdateAttribute updateAttribute = new UpdateAttribute();
-        updateAttribute.setLastActionDate(LocalDateTime.of(LocalDate.now(), LocalTime.now()));
+        updateAttribute.setLastActionDate(TimeUtils.nowZoned());
         updateAttribute.setVersionId(versionId);
         updateAttribute.setCode(attribute.getCode());
         if (attribute.getName() != null)

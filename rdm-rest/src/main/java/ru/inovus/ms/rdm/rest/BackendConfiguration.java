@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Primary;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.inovus.ms.rdm.provider.*;
 import ru.inovus.ms.rdm.util.FileNameGenerator;
+import ru.inovus.ms.rdm.util.json.LocalDateTimeMapperPreparer;
 
 @Configuration
 public class BackendConfiguration {
@@ -20,6 +21,11 @@ public class BackendConfiguration {
     @Bean
     RdmParamConverterProvider rdmParamConverterProvider() {
         return new RdmParamConverterProvider();
+    }
+
+    @Bean
+    LocalDateTimeMapperPreparer localDateTimeMapperPreparer() {
+        return new LocalDateTimeMapperPreparer();
     }
 
     @Bean
