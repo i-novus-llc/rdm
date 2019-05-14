@@ -39,20 +39,20 @@ public class PerRowFileGeneratorFactory {
             return new XlsFileGenerator(rowIterator, version.getStructure());
 
         if (FileType.XML.equals(fileType)) {
-            Map<String, String> referenceToRefBookCodeMap = null;
+            Map<String, Structure.Reference> attributeToReferenceMap = null;
             if (!CollectionUtils.isEmpty(version.getStructure().getReferences())) {
-                referenceToRefBookCodeMap = new HashMap<>();
+                attributeToReferenceMap = new HashMap<>();
                 version.getStructure().getReferences().stream()
                         .collect(Collectors.toMap(
-                                        Structure.Reference::getReferenceCode,
-                                        Structure.Reference::getAttribute)
+                                        Structure.Reference::getAttribute,
+                                        reference -> reference)
                         );
             }
             final List<AttributeValidation> attributeValidations = attributeValidationRepository
                     .findAllByVersionId(version.getId()).stream()
                     .map(AttributeValidationEntity::attributeValidationModel)
                     .collect(Collectors.toList());
-            return new XmlFileGenerator(rowIterator, version, referenceToRefBookCodeMap, attributeValidations);
+            return new XmlFileGenerator(rowIterator, version, attributeToReferenceMap, attributeValidations);
         }
 
         throw new RdmException("no generator for " + fileType + " type");

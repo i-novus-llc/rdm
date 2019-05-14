@@ -30,7 +30,7 @@ import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.t
 @RunWith(MockitoJUnitRunner.class)
 public class NonStrictOnTypeRowMapperTest {
 
-    private final String referenceCode = "REF_m1";
+    private final String referenceCode = "test_storage";
     private final int referenceVersion = -1;
 
     @Mock

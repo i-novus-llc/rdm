@@ -6,6 +6,7 @@ import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.Test;
 import org.xml.sax.SAXException;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.inovus.ms.rdm.file.UploadFileTestData;
 import ru.inovus.ms.rdm.model.RefBookVersion;
 import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
@@ -48,7 +49,6 @@ public class XmlFileGenerateProcessTest {
         requiredValidation.setAttribute("float");
         attributeValidations.add(requiredValidation);
 
-
         List<Row> rows = createRowsValues()
                 .stream()
                 .map(Row::new)
@@ -56,10 +56,15 @@ public class XmlFileGenerateProcessTest {
 
         Reader expectedXml = new InputStreamReader(getClass().getResourceAsStream("/file/uploadFile.xml"));
         Reader actualXml;
+
+        Structure.Reference reference = new Structure.Reference();
+        reference.setAttribute("reference");
+        reference.setReferenceCode(UploadFileTestData.REFERENCE_ENTITY_CODE);
+
         try (PerRowFileGenerator xmlFileGenerator = new XmlFileGenerator(
                 rows.iterator(),
                 version,
-                new HashMap(){{put("reference", "REF_CODE_TO_REFERENCE");}},
+                new HashMap(){{put("reference", reference);}},
                 attributeValidations);
              ByteArrayOutputStream os = new ByteArrayOutputStream();) {
             xmlFileGenerator.generate(os);

@@ -1,6 +1,8 @@
 package ru.inovus.ms.rdm.service;
 
 import com.querydsl.core.types.Predicate;
+import net.n2oapp.criteria.api.CollectionPage;
+import net.n2oapp.criteria.api.Criteria;
 import net.n2oapp.platform.i18n.UserException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -44,6 +46,7 @@ import java.time.ZoneId;
 import java.util.*;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertTrue;
@@ -412,11 +415,22 @@ public class DraftServiceTest {
 
         versionWithStructure.setStorageCode(TEST_DRAFT_CODE_NEW);
         versionWithStructure.setRefBook(refBook);
-        versionWithStructure.setStructure(UploadFileTestData.createStringStructure());
-        //versionWithStructure.setStructure(UploadFileTestData.createStructure()); // NB: reference
+        //versionWithStructure.setStructure(UploadFileTestData.createStringStructure());
+        versionWithStructure.setStructure(UploadFileTestData.createStructure()); // NB: reference
+
+        RefBookVersionEntity referenceEntity = UploadFileTestData.createReferenceVersion();
+        when(versionRepository.findLastVersion(eq(UploadFileTestData.REFERENCE_ENTITY_CODE), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(referenceEntity);
+        when(versionService.getStructure(eq(UploadFileTestData.REFERENCE_ENTITY_VERSION_ID))).thenReturn(referenceEntity.getStructure());
+
+        PageImpl<RefBookRowValue> referenceRows = UploadFileTestData.createReferenceRows();
+        when(versionService.search(eq(UploadFileTestData.REFERENCE_ENTITY_VERSION_ID), any(SearchDataCriteria.class))).thenReturn(referenceRows);
+
+        when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>(0, emptyList(), new Criteria()));
 
         when(versionRepository.save(any(RefBookVersionEntity.class))).thenReturn(versionWithStructure);
         when(versionRepository.findOne(draftId)).thenReturn(versionWithStructure);
+
+        //searchDataService
 
         ArgumentCaptor<RefBookVersionEntity> draftCaptor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
 

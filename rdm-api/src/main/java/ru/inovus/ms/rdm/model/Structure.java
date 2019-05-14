@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.model;
 
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.inovus.ms.rdm.exception.RdmException;
 
 import java.io.Serializable;
 import java.util.List;
@@ -42,6 +43,24 @@ public class Structure implements Serializable {
                 .orElse(null);
     }
 
+    public Attribute getReferenceAttribute (String referenceAttribute) {
+
+        if (referenceAttribute != null && !referenceAttribute.isEmpty()) {
+            Attribute attribute = getAttribute(referenceAttribute);
+            if (attribute == null)
+                throw new RdmException("attribute.not.found");
+
+            return attribute;
+        }
+
+        List<Structure.Attribute> primaryAttributes = getPrimary();
+        if (primaryAttributes == null || primaryAttributes.isEmpty())
+            throw new RdmException("primary.attribute.not.found");
+        if (primaryAttributes.size() > 1)
+            throw new RdmException("primary.attribute.multiple");
+
+        return primaryAttributes.get(0);
+    }
 
     public void clearPrimary() {
         if (isEmpty(attributes)) {

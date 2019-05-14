@@ -83,8 +83,6 @@ public class XmlPerRowProcessorTest {
         }
     }
 
-
-
     private RowsProcessor getTestRowsProcessor(List<Map<String, Object>> expected) {
         return new RowsProcessor() {
 
