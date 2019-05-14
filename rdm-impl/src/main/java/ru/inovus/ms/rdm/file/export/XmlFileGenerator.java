@@ -165,11 +165,9 @@ public class XmlFileGenerator extends PerRowFileGenerator {
 
         Structure.Reference reference = attributeToReferenceMap.get(attribute.getCode());
         writeElement("referenceCode", reference.getReferenceCode());
-        if (!attribute.getIsPrimary()) {
-            writeElement("referenceAttribute", reference.getReferenceAttribute());
-            if (reference.getDisplayExpression() != null)
-                writeElement("displayExpression", reference.getDisplayExpression());
-        }
+        writeElement("referenceAttribute", reference.getReferenceAttribute());
+        if (reference.getDisplayExpression() != null)
+            writeElement("displayExpression", reference.getDisplayExpression());
     }
 
     private void addAttributeValidation(String attributeCode) {
