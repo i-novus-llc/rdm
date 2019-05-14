@@ -22,6 +22,7 @@ public class UiTest {
             appUrl = urlFromProperty;
         }
         String chromeDriverVersion = System.getProperty("chromeDriverVersion");
+        System.out.println("chromeDriverVersion=" + chromeDriverVersion);
         if(chromeDriverVersion != null) {
             WebDriverManager.chromedriver().version(chromeDriverVersion).setup();
         }
