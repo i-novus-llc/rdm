@@ -93,7 +93,7 @@ public class ReferenceValidation implements RdmValidation {
             FieldSearchCriteria refFieldSearchCriteria = new FieldSearchCriteria(refField, SearchTypeEnum.EXACT, castedValues);
             DataCriteria refDataCriteria =
                     new DataCriteria(refVersion.getStorageCode(),
-                            date(refVersion.getFromDate()), date(refVersion.getToDate()),
+                            refVersion.getFromDate(), refVersion.getToDate(),
                             singletonList(refField), singletonList(refFieldSearchCriteria), null);
             CollectionPage<RowValue> refRowValues = searchDataService.getPagedData(refDataCriteria);
             castedValues.forEach(castedValue -> {
