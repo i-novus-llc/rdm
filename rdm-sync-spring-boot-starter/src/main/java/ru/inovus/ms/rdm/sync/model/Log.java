@@ -1,10 +1,8 @@
 package ru.inovus.ms.rdm.sync.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import ru.inovus.ms.rdm.util.JsonLocalDateTimeDeserializer;
 
 import java.time.LocalDateTime;
 
@@ -21,7 +19,6 @@ public class Log {
     private String currentVersion;
     private String newVersion;
     private String status;
-    @JsonDeserialize(using = JsonLocalDateTimeDeserializer.class)
     private LocalDateTime date;
     private String message;
     private String stack;
