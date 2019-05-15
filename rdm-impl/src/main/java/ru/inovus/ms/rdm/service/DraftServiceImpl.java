@@ -201,7 +201,7 @@ public class DraftServiceImpl implements DraftService {
             throw new RdmException(e);
         }
 
-        RefBookVersionEntity createdDraft = getDraftByRefbook(refBookId);
+        RefBookVersionEntity createdDraft = getDraftByRefBook(refBookId);
         return new Draft(createdDraft.getId(), createdDraft.getStorageCode());
     }
 
@@ -253,7 +253,7 @@ public class DraftServiceImpl implements DraftService {
     private BiConsumer<String, Structure> getSaveDraftConsumer(Integer refBookId) {
         return (storageCode, structure) -> {
             RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
-            RefBookVersionEntity draftVersion = getDraftByRefbook(refBookId);
+            RefBookVersionEntity draftVersion = getDraftByRefBook(refBookId);
             if (draftVersion == null && lastRefBookVersion == null)
                 throw new NotFoundException(new Message(REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
 
@@ -282,12 +282,12 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public Draft create(CreateDraftRequest createDraftRequest) {
 
-        validateRefBook(refBookId);
         final Integer refBookId = createDraftRequest.getRefBookId();
         final Structure structure = createDraftRequest.getStructure();
+        validateRefBook(refBookId);
 
         RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
-        RefBookVersionEntity draftVersion = getDraftByRefbook(refBookId);
+        RefBookVersionEntity draftVersion = getDraftByRefBook(refBookId);
         if (draftVersion == null && lastRefBookVersion == null)
             throw new CodifiedException("invalid refbook");
 
