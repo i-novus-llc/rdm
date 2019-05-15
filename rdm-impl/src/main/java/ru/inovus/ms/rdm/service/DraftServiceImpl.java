@@ -38,10 +38,7 @@ import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.VersionService;
-import ru.inovus.ms.rdm.util.FileNameGenerator;
-import ru.inovus.ms.rdm.util.ModelGenerator;
-import ru.inovus.ms.rdm.util.VersionNumberStrategy;
-import ru.inovus.ms.rdm.util.VersionPeriodPublishValidation;
+import ru.inovus.ms.rdm.util.*;
 import ru.inovus.ms.rdm.validation.PrimaryKeyUniqueValidation;
 import ru.inovus.ms.rdm.validation.ReferenceValidation;
 import ru.kirkazan.common.exception.CodifiedException;
@@ -49,7 +46,6 @@ import ru.kirkazan.common.exception.CodifiedException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -272,7 +268,7 @@ public class DraftServiceImpl implements DraftService {
 
         Draft draft = create(sourceVersion.getRefBook().getId(), sourceVersion.getStructure());
 
-        draftDataService.loadData(draft.getStorageCode(), sourceVersion.getStorageCode(), date(sourceVersion.getFromDate()), date(sourceVersion.getToDate()));
+        draftDataService.loadData(draft.getStorageCode(), sourceVersion.getStorageCode(), sourceVersion.getFromDate(), sourceVersion.getToDate());
         return draft;
     }
 
@@ -422,7 +418,7 @@ public class DraftServiceImpl implements DraftService {
                 throw new UserException(new Message(INVALID_VERSION_NAME_EXCEPTION_CODE, versionName));
             }
 
-            if (fromDate == null) fromDate = LocalDateTime.now();
+            if (fromDate == null) fromDate = TimeUtils.now();
             if (toDate != null && fromDate.isAfter(toDate)) throw new UserException(INVALID_VERSION_PERIOD_EXCEPTION_CODE);
 
             versionPeriodPublishValidation.validate(fromDate, toDate, refBookId);
@@ -431,8 +427,8 @@ public class DraftServiceImpl implements DraftService {
             String storageCode = draftDataService.applyDraft(
                     lastPublishedVersion != null ? lastPublishedVersion.getStorageCode() : null,
                     draftVersion.getStorageCode(),
-                    Date.from(fromDate.atZone(ZoneId.systemDefault()).toInstant()),
-                    toDate == null ? null : Date.from(toDate.atZone(ZoneId.systemDefault()).toInstant())
+                    fromDate,
+                    toDate
             );
 
             Set<String> dataStorageToDelete = new HashSet<>();
