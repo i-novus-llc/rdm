@@ -52,6 +52,7 @@ import java.util.zip.ZipInputStream;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.junit.Assert.*;
 import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
@@ -364,7 +365,7 @@ public class ApplicationTest {
                     || r.getLastPublishedVersionFromDate().isBefore(fromDateEnd));
         });
 
-        // поиск по дате последней публикации (дата начала и дата окончания вне диапазона действия сущесвующих записей)
+        // поиск по дате последней публикации (дата начала и дата окончания вне диапазона действия существующих записей)
         fromDateCriteria.setFromDateBegin(parseLocalDateTime("01.01.2013 00:00:00"));
         fromDateCriteria.setFromDateEnd(parseLocalDateTime("01.02.2013 00:00:00"));
         search = refBookService.search(fromDateCriteria);
@@ -467,8 +468,10 @@ public class ApplicationTest {
     /*
     * Метод проверки методов работы со строками черновика:
     * - добавление строки, передается новая строка (нет systemId). Строка сохраняется в хранилище для версии. Кол-во строк = 1
-    * - изменение строки, передается измененная строка (есть systemId). Строка сохраняется в хранилище для версии. Кол-во срок = 1
+    * - изменение строки, передается измененная строка (есть systemId). Строка сохраняется в хранилище для версии. Кол-во строк = 1
     * - удаление строки, передается systemId. Кол-во строк = 0
+    * - добавление 2 строк. Строки созхраняются в хранилище. Кол-во строк = 2
+    * - удаление всех строк. Кол-во строк = 0
     * - добавление невалидной строки: неверные значения целочисленного и ссылочного полей. Ожидается ошибка с двумя кодами
     * */
     @Test
@@ -517,6 +520,19 @@ public class ApplicationTest {
 //        удаление строки
         draftService.deleteRow(versionId, 1L);
 
+        actualRowValues = draftService.search(versionId, new SearchDataCriteria());
+        assertEquals(0, actualRowValues.getContent().size());
+
+//        создание 2х строк
+        Row row1 = createRowForAllTypesStructure("string1", BigInteger.valueOf(1), null, null, null, null);
+        Row row2 = createRowForAllTypesStructure("string2", BigInteger.valueOf(2), null, null, null, null);
+        draftService.updateData(versionId, row1);
+        draftService.updateData(versionId, row2);
+        actualRowValues = draftService.search(versionId, new SearchDataCriteria());
+        assertEquals(2, actualRowValues.getContent().size());
+
+//        удаление 2х строк
+        draftService.deleteAllRows(versionId);
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertEquals(0, actualRowValues.getContent().size());
 
@@ -620,7 +636,7 @@ public class ApplicationTest {
         draftService.updateData(newVersionId, createFileModel(NEW_FILE_NAME, "testCompare/" + NEW_FILE_NAME));
         draftService.publish(newVersionId, "1.1", publishDate2, closeDate2);
 
-        Set<List<AttributeFilter>> filters = new HashSet<List<AttributeFilter>>(){{
+        Set<List<AttributeFilter>> filters = new HashSet<>(){{
             add(asList(
                     new AttributeFilter(id.getCode(), BigInteger.valueOf(1), id.getType()),
                     new AttributeFilter(code.getCode(), "001", code.getType())
@@ -675,7 +691,7 @@ public class ApplicationTest {
 
     @Test
     public void testDraftCreateFromFile() {
-        List<FieldValue> expectedData = new ArrayList<FieldValue>() {{
+        List<FieldValue> expectedData = new ArrayList<>() {{
             add(new StringFieldValue("string", "Иван"));
             add(new StringFieldValue("reference", "2"));
             add(new StringFieldValue("float", "1.0"));
@@ -693,6 +709,53 @@ public class ApplicationTest {
         List actualData = search.getContent().get(0).getFieldValues();
 
         assertEquals(expectedData, actualData);
+    }
+
+    /*
+    * Создается черновик справочника, заполняется данными, публикуется
+    * Создается новый черновик из версии с указанием предыдущей версии
+    * Проверяется, что структура и данные совпадают с предыдущей версией
+    * */
+    @Test
+    public void testDraftCreateFromVersion() {
+        RefBookCreateRequest createRequest = new RefBookCreateRequest();
+        createRequest.setCode("testDraftCreateFromVersionCode");
+        RefBook refBook = refBookService.create(createRequest);
+        Structure structure = createTestStructureWithoutTreeFieldType();
+        Draft draft = draftService.create(refBook.getRefBookId(), structure);
+
+        Row row1 = createRowForAllTypesStructure("test1",
+                BigInteger.valueOf(1),
+                "01.09.2014",
+                true,
+                1.1,
+                new Reference("77", null));
+        Row row2 = createRowForAllTypesStructure("test2",
+                BigInteger.valueOf(2),
+                "01.10.2014",
+                false,
+                2.2,
+                null);
+
+        List<RowValue> rowValues = asList(
+                rowValue(row1, structure),
+                rowValue(row2, structure));
+        draftDataService.addRows(draft.getStorageCode(), rowValues);
+        draftService.publish(draft.getId(), null, null, null);
+
+        try {
+            draftService.createFromVersion(0);
+            fail();
+        } catch (Exception e) {
+            assertEquals("version.not.found", e.getMessage());
+        }
+
+        Draft draftFromVersion = draftService.createFromVersion(draft.getId());
+
+        Assert.assertTrue(versionService.getStructure(draft.getId()).storageEquals(versionService.getStructure(draftFromVersion.getId())));
+        assertRows(fields(versionService.getStructure(draft.getId())),
+                rowValues,
+                draftService.search(draftFromVersion.getId(), new SearchDataCriteria()).getContent());
     }
 
     @Test
@@ -745,11 +808,11 @@ public class ApplicationTest {
         });
 
         attributeFilters.forEach(attributeFilter -> {
-            Page<RefBookRowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(new HashSet<List<AttributeFilter>>(){{add(singletonList(attributeFilter));}}, null));
+            Page<RefBookRowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(new HashSet<>(){{add(singletonList(attributeFilter));}}, null));
             assertRows(fields, expectedRowValues, actualPage.getContent());
         });
 
-        Page<RefBookRowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(new HashSet<List<AttributeFilter>>(){{add(attributeFilters);}}, null));
+        Page<RefBookRowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(new HashSet<>(){{add(attributeFilters);}}, null));
         assertRows(fields, expectedRowValues, actualPage.getContent());
     }
 
@@ -807,7 +870,7 @@ public class ApplicationTest {
                 null);
         Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), structure));
 
-        List<String> codes = structure.getAttributes().stream().map(Structure.Attribute::getCode).collect(Collectors.toList());
+        List<String> codes = structure.getAttributes().stream().map(Structure.Attribute::getCode).collect(toList());
         Map<String, Object> rowMap1 = new HashMap<>();
         rowMap1.put(codes.get(0), BigInteger.valueOf(1));
         rowMap1.put(codes.get(1), "Дублирующееся имя");
@@ -1581,10 +1644,10 @@ public class ApplicationTest {
     }
 
     private Row createRowForAllTypesStructure(String str, BigInteger bigInt, String date, Boolean bool, Double fl, Object ref) {
-        return new Row(new HashMap<String, Object>() {{
+        return new Row(new HashMap<>() {{
             put("string", str);
             put("integer", bigInt);
-            put("date", parseLocalDate(date));
+            put("date", date != null ? parseLocalDate(date) : null);
             put("boolean", bool);
             put("float", fl);
             put("reference", ref);

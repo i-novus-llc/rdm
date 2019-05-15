@@ -1,10 +1,7 @@
 package ru.inovus.ms.rdm.model;
 
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import ru.inovus.ms.rdm.util.TimeUtils;
 
 import static ru.inovus.ms.rdm.model.UpdateValue.of;
 
@@ -29,7 +26,7 @@ public class UpdateAttribute extends UpdatableDto {
     public UpdateAttribute(){}
 
     public UpdateAttribute(Integer versionId, Structure.Attribute attribute, Structure.Reference reference) {
-        setLastActionDate(LocalDateTime.of(LocalDate.now(), LocalTime.now()));
+        setLastActionDate(TimeUtils.nowZoned());
 
         this.versionId = versionId;
 

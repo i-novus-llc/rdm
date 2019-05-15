@@ -56,7 +56,7 @@ public class NonStrictOnTypeRowMapperTest {
 
         Map<String, Object> expectedData = new LinkedHashMap<String, Object>() {{
             put("string", "abc");
-            put("reference", new Reference(versionEntity.getStorageCode(), ConverterUtil.date(versionEntity.getFromDate()), "count", DisplayExpression.ofField("count"), "2"));
+            put("reference", new Reference(versionEntity.getStorageCode(), versionEntity.getFromDate(), "count", DisplayExpression.ofField("count"), "2"));
             put("float", new BigDecimal("2.1"));
             put("date", date);
             put("boolean", true);

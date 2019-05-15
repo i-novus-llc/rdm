@@ -141,14 +141,11 @@ public class VersionServiceImpl implements VersionService {
 
     private Page<RefBookRowValue> getRowValuesOfVersion(SearchDataCriteria criteria, RefBookVersionEntity version) {
         List<Field> fields = fields(version.getStructure());
-        Date bdate = date(version.getFromDate());
-        Date edate = date(version.getToDate());
-
         Set<List<FieldSearchCriteria>> fieldSearchCriteriaList = new HashSet<>();
         fieldSearchCriteriaList.addAll(getFieldSearchCriteriaList(criteria.getAttributeFilter()));
         fieldSearchCriteriaList.addAll(getFieldSearchCriteriaList(criteria.getPlainAttributeFilter(), version.getStructure()));
 
-        DataCriteria dataCriteria = new DataCriteria(version.getStorageCode(), bdate, edate,
+        DataCriteria dataCriteria = new DataCriteria(version.getStorageCode(), version.getFromDate(), version.getToDate(),
                 fields, fieldSearchCriteriaList, criteria.getCommonFilter());
         dataCriteria.setPage(criteria.getPageNumber() + 1);
         dataCriteria.setSize(criteria.getPageSize());
@@ -216,8 +213,8 @@ public class VersionServiceImpl implements VersionService {
             RefBookVersionEntity versionEntity = versionRepository.findOne(entry.getKey());
             notExistent.addAll(searchDataService.getNotExists(
                     versionEntity.getStorageCode(),
-                    date(versionEntity.getFromDate()),
-                    date(versionEntity.getToDate()),
+                    versionEntity.getFromDate(),
+                    versionEntity.getToDate(),
                     entry.getValue()));
 
         }
@@ -235,8 +232,8 @@ public class VersionServiceImpl implements VersionService {
 
         DataCriteria criteria = new DataCriteria(
                 version.getStorageCode(),
-                date(version.getFromDate()),
-                date(version.getToDate()),
+                version.getFromDate(),
+                version.getToDate(),
                 fields(version.getStructure()),
                 singletonList(split[0]));
 

@@ -18,6 +18,9 @@ public final class TimeUtils {
     public static final String DATE_PATTERN_WITH_HYPHEN = "yyyy-MM-dd";
     public static final DateTimeFormatter DATE_PATTERN_WITH_HYPHEN_FORMATTER = DateTimeFormatter.ofPattern(DATE_PATTERN_WITH_HYPHEN);
 
+    private static final ZoneId LOCALIZED_TIMEZONE = ZoneId.of("Europe/Moscow");
+    private static final ZoneId UNIVERSAL_TIMEZONE = ZoneId.of("UTC");
+
     private static final Logger logger = LoggerFactory.getLogger(TimeUtils.class);
 
     private TimeUtils() {
@@ -39,6 +42,35 @@ public final class TimeUtils {
 
     public static String format(LocalDateTime localDateTime) {
         return localDateTime.format(DATE_TIME_PATTERN_FORMATTER);
+    }
+
+    public static LocalDateTime now() {
+        return LocalDateTime.now(UNIVERSAL_TIMEZONE);
+    }
+
+    public static LocalDateTime nowZoned() {
+        return LocalDateTime.now(LOCALIZED_TIMEZONE);
+    }
+
+    /**
+     * Convert datetime from one zone to another.
+     * Преобразование даты-времени из одной зоны в другую.
+     *
+     * @param localDateTime исходное значение даты-времени
+     * @param fromZone      исходная зона
+     * @param toZone        требуемая зона
+     * @return Преобразованное значение даты-времени
+     */
+    private static LocalDateTime convert(LocalDateTime localDateTime, ZoneId fromZone, ZoneId toZone) {
+        return (localDateTime != null) ? localDateTime.atZone(fromZone).withZoneSameInstant(toZone).toLocalDateTime() : null;
+    }
+
+    public static LocalDateTime zonedToUtc(LocalDateTime localDateTime) {
+        return convert(localDateTime, LOCALIZED_TIMEZONE, UNIVERSAL_TIMEZONE);
+    }
+
+    public static LocalDateTime utcToZoned(LocalDateTime localDateTime) {
+        return convert(localDateTime, UNIVERSAL_TIMEZONE, LOCALIZED_TIMEZONE);
     }
 
     public static LocalDate parseLocalDate(Object value) {
@@ -65,11 +97,11 @@ public final class TimeUtils {
     }
 
     public static boolean isSameOrBeforeNow(LocalDateTime localDateTime) {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = now();
         return !isNull(localDateTime) && (localDateTime.equals(now) || localDateTime.isBefore(now));
     }
 
     public static boolean isNullOrAfterNow(LocalDateTime localDateTime) {
-        return isNull(localDateTime) || localDateTime.isAfter(LocalDateTime.now());
+        return isNull(localDateTime) || localDateTime.isAfter(now());
     }
 }
