@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.repositiory;
 
+import org.apache.cxf.common.util.CollectionUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
@@ -32,12 +33,12 @@ public interface RefBookVersionRepository extends
 
     default RefBookVersionEntity findLastVersion(Integer refBookId, RefBookVersionStatus status) {
         List<RefBookVersionEntity> versions = findStatusVersions(refBookId, status);
-        return ((versions != null) && !versions.isEmpty()) ? versions.get(0) : null;
+        return (!CollectionUtils.isEmpty(versions)) ? versions.get(0) : null;
     }
 
     default RefBookVersionEntity findLastVersion(String refBookCode, RefBookVersionStatus status) {
         List<RefBookVersionEntity> versions = findStatusVersions(refBookCode, status);
-        return ((versions != null) && !versions.isEmpty()) ? versions.get(0) : null;
+        return (!CollectionUtils.isEmpty(versions)) ? versions.get(0) : null;
     }
 
 }
