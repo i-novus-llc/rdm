@@ -21,7 +21,7 @@
                 <param id="attrType.id" mapping="[1].type" domain="string"/>
                 <param id="isPrimary" mapping="[1].isPrimary" domain="boolean"/>
                 <param id="description" mapping="[1].description" domain="string"/>
-                <!--<param id="referenceVersion.id" mapping="[1].referenceVersion"/>-->
+                <!--<param id="referenceCode" mapping="[1].referenceCode"/>-->
                 <!--<param id="referenceAttribute.code" mapping="[1].referenceAttribute"/>-->
                 <!--<param id="referenceDisplayAttribute.code" mapping="[1].referenceDisplayAttribute"/>-->
                 <param id="required" mapping="[1].required" domain="boolean"/>
@@ -58,7 +58,7 @@
                 <param id="attrType.id" mapping="[1].type" domain="string"/>
                 <param id="isPrimary" mapping="[1].isPrimary" domain="boolean"/>
                 <param id="description" mapping="[1].description" domain="string"/>
-                <!--<param id="referenceVersion.id" mapping="[1].referenceVersion"/>-->
+                <!--<param id="referenceCode" mapping="[1].referenceCode"/>-->
                 <!--<param id="referenceAttribute.code" mapping="[1].referenceAttribute"/>-->
                 <!--<param id="referenceDisplayAttribute.code" mapping="[1].referenceDisplayAttribute"/>-->
                 <param id="required" mapping="[1].required" domain="boolean"/>

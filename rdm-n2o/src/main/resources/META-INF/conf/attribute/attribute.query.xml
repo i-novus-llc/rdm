@@ -69,8 +69,8 @@
             <select/>
         </field>
 
-        <field id="referenceVersion.id" domain="integer">
-            <select mapping="referenceVersion"/>
+        <field id="referenceCode" domain="string">
+            <select mapping="referenceCode"/>
         </field>
 
         <field id="referenceAttribute.code" domain="string">
