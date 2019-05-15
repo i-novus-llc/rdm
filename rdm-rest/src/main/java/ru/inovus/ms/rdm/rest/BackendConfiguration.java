@@ -34,7 +34,7 @@ public class BackendConfiguration {
     }
 
     @Bean
-    RdmMapperConfigurer rowValueMapperPreparer(){
+    RdmMapperConfigurer rdmMapperConfigurer(){
         return new RdmMapperConfigurer();
     }
 

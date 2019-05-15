@@ -71,7 +71,6 @@ import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
 @DefinePort
 @EnableEmbeddedPg
 @Import(BackendConfiguration.class)
-@Ignore
 public class ApplicationTest {
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ApplicationTest.class);
@@ -1491,11 +1490,15 @@ public class ApplicationTest {
     }
 
     private void assertPassportEqual(Map<String, String> expected, Map<String, String> actual) {
-        if (expected == null) assertNull(actual);
-        else assertNotNull(actual);
+        if (expected == null)
+            assertNull(actual);
+        else
+            assertNotNull(actual);
         expected.forEach((k, v) -> {
-            if (v == null) assertNull(actual.get(k));
-            else assertNotNull(actual.get(k));
+            if (v == null)
+                assertNull(actual.get(k));
+            else
+                assertNotNull(actual.get(k));
             assertEquals(v, actual.get(k));
         });
     }

@@ -4,6 +4,7 @@ import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
@@ -49,6 +50,7 @@ public class ReferenceValidation implements RdmValidation {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Message> validate() {
         RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
         RefBookVersionEntity refVersion = versionRepository.getOne(reference.getReferenceVersion());

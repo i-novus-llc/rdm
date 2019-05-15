@@ -251,6 +251,7 @@ public class RefBookServiceImpl implements RefBookService {
     }
 
     @Override
+    @Transactional
     public void toArchive(int refBookId) {
         validateRefBookExists(refBookId);
         RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
@@ -259,6 +260,7 @@ public class RefBookServiceImpl implements RefBookService {
     }
 
     @Override
+    @Transactional
     public void fromArchive(int refBookId) {
         validateRefBookExists(refBookId);
         RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);

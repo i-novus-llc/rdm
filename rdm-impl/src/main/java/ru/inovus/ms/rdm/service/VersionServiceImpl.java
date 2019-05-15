@@ -140,6 +140,7 @@ public class VersionServiceImpl implements VersionService {
     }
 
     @Override
+    @Transactional
     public Structure getStructure(Integer versionId) {
         return versionRepository.getOne(versionId).getStructure();
     }
@@ -168,7 +169,7 @@ public class VersionServiceImpl implements VersionService {
     @Transactional
     public RefBookVersion updatePassport(RefBookUpdateRequest refBookUpdateRequest) {
         Optional<RefBookVersionEntity> refBookVersionEntity = versionRepository.findById(refBookUpdateRequest.getVersionId());
-        if (!refBookVersionEntity.isPresent())
+        if (refBookVersionEntity.isEmpty())
             return null;
 
         updateVersionFromPassport(refBookVersionEntity.get(), refBookUpdateRequest.getPassport());
@@ -176,6 +177,7 @@ public class VersionServiceImpl implements VersionService {
     }
 
     @Override
+    @Transactional
     public ExistsData existsData(List<String> rowIds) {
         List<String> notExistent = new ArrayList<>();
         Map<Integer, List<String>> hashes = new HashMap<>();
@@ -213,7 +215,7 @@ public class VersionServiceImpl implements VersionService {
 
         String[] split = rowId.split("\\$");
         Optional<RefBookVersionEntity> versionOptional = versionRepository.findById(Integer.parseInt(split[1]));
-        if (!versionOptional.isPresent())
+        if (versionOptional.isEmpty())
             throw new NotFoundException(ROW_NOT_FOUND);
         RefBookVersionEntity version = versionOptional.get();
 

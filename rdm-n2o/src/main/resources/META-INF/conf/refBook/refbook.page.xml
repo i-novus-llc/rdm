@@ -10,7 +10,7 @@
                             <set-value on="version">version.id</set-value>
                         </dependencies>
                     </output-text>
-                    <select id="version" label="Версия" query-id="versionList" label-field-id="version" >
+                    <select id="version" label="Версия" query-id="versionList" label-field-id="version" cleanable="false">
                         <pre-filters>
                             <eq field-id="refBookId" value="{refBookId}"/>
                         </pre-filters>

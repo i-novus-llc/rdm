@@ -383,6 +383,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
+    @Transactional
     public Page<RefBookRowValue> search(Integer draftId, SearchDataCriteria criteria) {
 
         validateDraftExists(draftId);
@@ -402,12 +403,10 @@ public class DraftServiceImpl implements DraftService {
 
         validateDraft(draftId);
 
-        RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
+        RefBookVersionEntity draftVersion = versionRepository.findById(draftId).orElseThrow();
         Integer refBookId = draftVersion.getRefBook().getId();
         refBookLockService.setRefBookPublishing(refBookId);
         try {
-
-            draftVersion = versionRepository.getOne(draftId);
             if (versionName == null) {
                 versionName = versionNumberStrategy.next(refBookId);
             } else if (!versionNumberStrategy.check(versionName, refBookId)) {
@@ -498,6 +497,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
+    @Transactional
     public Draft getDraft(Integer draftId) {
         validateDraftExists(draftId);
         RefBookVersionEntity versionEntity = versionRepository.getOne(draftId);

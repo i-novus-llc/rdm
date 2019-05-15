@@ -17,6 +17,7 @@ import ru.inovus.ms.rdm.criteria.RestCriteriaConstructor;
 import ru.inovus.ms.rdm.operation.RdmCompileCacheOperation;
 import ru.inovus.ms.rdm.operation.RdmSourceCacheOperation;
 import ru.inovus.ms.rdm.provider.ExportFileProvider;
+import ru.inovus.ms.rdm.provider.RdmMapperConfigurer;
 import ru.inovus.ms.rdm.provider.RdmN2oParamConverterProvider;
 import ru.inovus.ms.rdm.util.json.RdmN2oLocalDateTimeMapperPreparer;
 
@@ -36,6 +37,11 @@ public class ClientConfiguration {
     @Bean
     ExportFileProvider exportFileProvider(){
         return new ExportFileProvider();
+    }
+
+    @Bean
+    RdmMapperConfigurer rdmMapperConfigurer(){
+        return new RdmMapperConfigurer();
     }
 
     @Bean
