@@ -41,7 +41,6 @@ public class ReferenceValueValidationTest {
     @Mock
     private RefBookVersionRepository versionRepository;
 
-
     private Structure structure;
 
     private Structure referenceStructure;
@@ -77,11 +76,11 @@ public class ReferenceValueValidationTest {
 
     @Test
     public void testValidate() throws Exception {
-        when(versionService.getStructure(eq(VERSION_ID))).thenReturn(referenceStructure);
         when(versionService.search(eq(VERSION_ID), any(SearchDataCriteria.class))).thenReturn(new PageImpl<>(Collections.emptyList()));
 
         RefBookVersionEntity versionEntity = new RefBookVersionEntity();
         versionEntity.setId(VERSION_ID);
+        versionEntity.setStructure(referenceStructure);
         when(versionRepository.findLastVersion(eq(REF_BOOK_CODE), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(versionEntity);
 
         List<Message> messages = new ReferenceValueValidation(versionService, versionRepository, referenceWithValueMap, structure, Collections.singleton(REF_ATTRIBUTE_CODE2)).validate();

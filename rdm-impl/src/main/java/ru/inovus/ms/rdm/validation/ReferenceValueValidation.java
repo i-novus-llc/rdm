@@ -103,8 +103,8 @@ public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
 
         RefBookVersionEntity refBookVersion = versionRepository.findLastVersion(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
         if (refBookVersion == null) return true;
-        Integer versionId = refBookVersion.getId(); 
-        Structure referenceStructure = versionService.getStructure(versionId);
+        Integer versionId = refBookVersion.getId();
+        Structure referenceStructure = refBookVersion.getStructure();
 
         Field fieldFilter = createFieldFilter(referenceStructure, reference);
         Object referenceValueCasted = castReferenceValue(fieldFilter, referenceValue);
