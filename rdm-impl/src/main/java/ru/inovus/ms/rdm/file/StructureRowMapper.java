@@ -91,7 +91,7 @@ public class StructureRowMapper implements RowMapper {
             throw new RdmException("version.not.found");
 
         try {
-            castValue(version.getStructure().getReferenceAttribute(reference.getReferenceAttribute()), value);
+            castValue(reference.findReferenceAttribute(version.getStructure()), value);
 
         } catch (Exception e) {
             throw new RdmException("reference value has a wrong type", e);

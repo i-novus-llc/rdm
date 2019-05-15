@@ -121,8 +121,8 @@ public class StructureController {
         Integer refRefBookId = refBookService.getId(reference.getReferenceCode());
         attribute.setReferenceRefBookId(refRefBookId);
 
-        Integer versionId = versionService.getLastPublishedVersion(attribute.getReferenceCode()).getId();
-        String attributeName = getAttributeName(reference.getReferenceAttribute(), versionId);
+        RefBookVersion version = versionService.getLastPublishedVersion(attribute.getReferenceCode());
+        String attributeName = reference.findReferenceAttribute(version.getStructure()).getName();
         attribute.setReferenceAttributeName(attributeName);
         attribute.setReferenceDisplayExpression(reference.getDisplayExpression());
     }
@@ -170,10 +170,6 @@ public class StructureController {
 
     private List<AttributeValidation> filterByAttribute(List<AttributeValidation> validations, String attribute) {
         return validations.stream().filter(v -> Objects.equals(attribute, v.getAttribute())).collect(Collectors.toList());
-    }
-
-    private String getAttributeName(String attributeCode, Integer versionId) {
-        return versionService.getStructure(versionId).getAttribute(attributeCode).getName();
     }
 
     private Structure.Attribute buildAttribute(Attribute request) {

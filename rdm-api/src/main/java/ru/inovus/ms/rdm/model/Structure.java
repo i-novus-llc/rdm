@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.model;
 
+import org.apache.cxf.common.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.exception.RdmException;
 
@@ -41,25 +42,6 @@ public class Structure implements Serializable {
         }
         return attributes.stream().filter(attribute -> attribute.getCode().equals(code)).findAny()
                 .orElse(null);
-    }
-
-    public Attribute getReferenceAttribute (String referenceAttribute) {
-
-        if (referenceAttribute != null && !referenceAttribute.isEmpty()) {
-            Attribute attribute = getAttribute(referenceAttribute);
-            if (attribute == null)
-                throw new RdmException("attribute.not.found");
-
-            return attribute;
-        }
-
-        List<Structure.Attribute> primaryAttributes = getPrimary();
-        if (primaryAttributes == null || primaryAttributes.isEmpty())
-            throw new RdmException("primary.attribute.not.found");
-        if (primaryAttributes.size() > 1)
-            throw new RdmException("primary.attribute.multiple");
-
-        return primaryAttributes.get(0);
     }
 
     public void clearPrimary() {
@@ -262,6 +244,21 @@ public class Structure implements Serializable {
 
         public void setDisplayExpression(String displayExpression) {
             this.displayExpression = displayExpression;
+        }
+
+        public Structure.Attribute findReferenceAttribute (Structure structure) {
+
+            if (!StringUtils.isEmpty(getReferenceAttribute())) {
+                return structure.getAttribute(getReferenceAttribute());
+            }
+
+            List<Structure.Attribute> primaryAttributes = structure.getPrimary();
+            if (isEmpty(primaryAttributes))
+                throw new RdmException("primary.attribute.not.found");
+            if (primaryAttributes.size() > 1)
+                throw new RdmException("primary.attribute.multiple");
+
+            return primaryAttributes.get(0);
         }
 
         @Override
