@@ -284,7 +284,6 @@ public class DraftServiceImpl implements DraftService {
 
         final Integer refBookId = createDraftRequest.getRefBookId();
         final Structure structure = createDraftRequest.getStructure();
-
         validateRefBook(refBookId);
 
         RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
