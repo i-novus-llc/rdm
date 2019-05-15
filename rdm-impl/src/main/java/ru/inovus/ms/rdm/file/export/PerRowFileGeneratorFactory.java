@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.file.export;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import ru.inovus.ms.rdm.entity.AttributeValidationEntity;
 import ru.inovus.ms.rdm.enumeration.FileType;
@@ -37,6 +38,7 @@ public class PerRowFileGeneratorFactory {
         this.attributeValidationRepository = attributeValidationRepository;
     }
 
+    @Transactional(readOnly = true)
     public PerRowFileGenerator getFileGenerator(Iterator<Row> rowIterator, RefBookVersion version, FileType fileType) {
 
         if (FileType.XLSX.equals(fileType))
