@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.file;
+package ru.inovus.ms.rdm.file.process;
 
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
@@ -26,21 +26,21 @@ public class CreateDraftBufferedRowsPersister implements RowsProcessor {
 
     private int size = 100;
 
-    private BiConsumer consumer;
+    private BiConsumer saveDraftConsumer;
 
     private String storageCode;
     private Structure structure = null;
     private Set<String> allKeys = new LinkedHashSet<>();
 
-    public CreateDraftBufferedRowsPersister(DraftDataService draftDataService, BiConsumer<String, Structure> consumer) {
+    public CreateDraftBufferedRowsPersister(DraftDataService draftDataService, BiConsumer<String, Structure> saveDraftConsumer) {
         this.draftDataService = draftDataService;
-        this.consumer = consumer;
+        this.saveDraftConsumer = saveDraftConsumer;
     }
 
-    public CreateDraftBufferedRowsPersister(DraftDataService draftDataService, int size, BiConsumer<String, Structure> consumer) {
+    public CreateDraftBufferedRowsPersister(DraftDataService draftDataService, int size, BiConsumer<String, Structure> saveDraftConsumer) {
         this.draftDataService = draftDataService;
         this.size = size;
-        this.consumer = consumer;
+        this.saveDraftConsumer = saveDraftConsumer;
     }
 
     @Override
@@ -85,7 +85,7 @@ public class CreateDraftBufferedRowsPersister implements RowsProcessor {
     @Override
     public Result process() {
         Result result = bufferedRowsPersister != null ? bufferedRowsPersister.process() : null;
-        consumer.accept(storageCode, structure);
+        saveDraftConsumer.accept(storageCode, structure);
         return result;
     }
 }
