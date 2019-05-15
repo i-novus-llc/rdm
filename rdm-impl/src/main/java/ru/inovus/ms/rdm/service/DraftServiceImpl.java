@@ -39,7 +39,6 @@ import ru.kirkazan.common.exception.CodifiedException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.function.*;
 
@@ -327,7 +326,7 @@ public class DraftServiceImpl implements DraftService {
         CreateDraftRequest draftRequest  = new CreateDraftRequest(sourceVersion.getRefBook().getId(), sourceVersion.getStructure(), passport);
         Draft draft = create(draftRequest);
 
-        draftDataService.loadData(draft.getStorageCode(), sourceVersion.getStorageCode(), date(sourceVersion.getFromDate()), date(sourceVersion.getToDate()));
+        draftDataService.loadData(draft.getStorageCode(), sourceVersion.getStorageCode(), sourceVersion.getFromDate(), sourceVersion.getToDate());
         return draft;
     }
 
@@ -473,7 +472,7 @@ public class DraftServiceImpl implements DraftService {
                 throw new UserException(new Message(INVALID_VERSION_NAME_EXCEPTION_CODE, versionName));
             }
 
-            if (fromDate == null) fromDate = LocalDateTime.now();
+            if (fromDate == null) fromDate = TimeUtils.now();
             if (toDate != null && fromDate.isAfter(toDate)) throw new UserException(INVALID_VERSION_PERIOD_EXCEPTION_CODE);
 
             versionPeriodPublishValidation.validate(fromDate, toDate, refBookId);
@@ -482,8 +481,8 @@ public class DraftServiceImpl implements DraftService {
             String storageCode = draftDataService.applyDraft(
                     lastPublishedVersion != null ? lastPublishedVersion.getStorageCode() : null,
                     draftVersion.getStorageCode(),
-                    Date.from(fromDate.atZone(ZoneId.systemDefault()).toInstant()),
-                    toDate == null ? null : Date.from(toDate.atZone(ZoneId.systemDefault()).toInstant())
+                    fromDate,
+                    toDate
             );
 
             Set<String> dataStorageToDelete = new HashSet<>();

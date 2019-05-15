@@ -365,7 +365,7 @@ public class ApplicationTest {
                     || r.getLastPublishedVersionFromDate().isBefore(fromDateEnd));
         });
 
-        // поиск по дате последней публикации (дата начала и дата окончания вне диапазона действия сущесвующих записей)
+        // поиск по дате последней публикации (дата начала и дата окончания вне диапазона действия существующих записей)
         fromDateCriteria.setFromDateBegin(parseLocalDateTime("01.01.2013 00:00:00"));
         fromDateCriteria.setFromDateEnd(parseLocalDateTime("01.02.2013 00:00:00"));
         search = refBookService.search(fromDateCriteria);
