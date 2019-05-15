@@ -164,6 +164,9 @@ public class XmlFileGenerator extends PerRowFileGenerator {
         }
 
         Structure.Reference reference = attributeToReferenceMap.get(attribute.getCode());
+        if (reference == null)
+            throw new RdmException("reference.not.found");
+
         writeElement("referenceCode", reference.getReferenceCode());
         writeElement("referenceAttribute", reference.getReferenceAttribute());
         if (reference.getDisplayExpression() != null)

@@ -200,7 +200,7 @@ public class DraftServiceImpl implements DraftService {
             throw new RdmException(e);
         }
 
-        RefBookVersionEntity createdDraft = getDraftByRefbook(refBookId);
+        RefBookVersionEntity createdDraft = getDraftByRefBook(refBookId);
         return new Draft(createdDraft.getId(), createdDraft.getStorageCode());
     }
 
@@ -254,7 +254,7 @@ public class DraftServiceImpl implements DraftService {
         return (storageCode, structure) -> {
             RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
             RefBookVersionEntity draftVersion = getDraftByRefBook(refBookId);
-            if (draftVersion == null && lastRefBookVersion == null) {
+            if (draftVersion == null && lastRefBookVersion == null)
                 throw new NotFoundException(new Message(REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
 
             // NB: structure == null means that draft was created during passport saving
@@ -289,11 +289,11 @@ public class DraftServiceImpl implements DraftService {
 
         RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
         RefBookVersionEntity draftVersion = getDraftByRefBook(refBookId);
-        if (draftVersion == null && lastRefBookVersion == null) {
+        if (draftVersion == null && lastRefBookVersion == null)
             throw new CodifiedException("invalid refbook");
 
         List<PassportValueEntity> passportValues = null;
-        if(createDraftRequest.getPassport() != null) {
+        if (createDraftRequest.getPassport() != null) {
             passportValues = createDraftRequest.getPassport()
                     .entrySet()
                     .stream()
@@ -818,7 +818,7 @@ public class DraftServiceImpl implements DraftService {
         } else {
             validations = attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attribute);
         }
-        return validations.stream().map(this::attributeValidationModel).collect(toList());
+        return validations.stream().map(AttributeValidationEntity::attributeValidationModel).collect(toList());
     }
 
     @Override
@@ -863,7 +863,7 @@ public class DraftServiceImpl implements DraftService {
 
     private InputStream generateVersionFile(RefBookVersion versionModel, FileType fileType) {
         VersionDataIterator dataIterator = new VersionDataIterator(versionService, singletonList(versionModel.getId()));
-        try (FileGenerator fileGenerator = PerRowFileGeneratorFactory
+        try (FileGenerator fileGenerator = fileGeneratorFactory
                 .getFileGenerator(dataIterator, versionModel, fileType);
              Archiver archiver = new Archiver()) {
             if (includePassport) {

@@ -12,7 +12,6 @@ import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.model.validation.AttributeValidation;
 import ru.inovus.ms.rdm.repositiory.AttributeValidationRepository;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -41,8 +40,7 @@ public class PerRowFileGeneratorFactory {
         if (FileType.XML.equals(fileType)) {
             Map<String, Structure.Reference> attributeToReferenceMap = null;
             if (!CollectionUtils.isEmpty(version.getStructure().getReferences())) {
-                attributeToReferenceMap = new HashMap<>();
-                version.getStructure().getReferences().stream()
+                attributeToReferenceMap = version.getStructure().getReferences().stream()
                         .collect(Collectors.toMap(
                                         Structure.Reference::getAttribute,
                                         reference -> reference)

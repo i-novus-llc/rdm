@@ -722,7 +722,7 @@ public class ApplicationTest {
         createRequest.setCode("testDraftCreateFromVersionCode");
         RefBook refBook = refBookService.create(createRequest);
         Structure structure = createTestStructureWithoutTreeFieldType();
-        Draft draft = draftService.create(refBook.getRefBookId(), structure);
+        Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), structure));
 
         Row row1 = createRowForAllTypesStructure("test1",
                 BigInteger.valueOf(1),
