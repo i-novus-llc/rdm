@@ -36,10 +36,8 @@ public class UploadFileTestData {
                         Structure.Attribute.build("float", "float", FieldType.FLOAT, "дробное"),
                         Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, "ссылка")
                 ),
-                //new ArrayList<>() // NB: Убрать, когда переделаем ссылочность
                 Collections.singletonList(
                         new Structure.Reference("reference", REFERENCE_ENTITY_CODE, null, null)
-                        //new Structure.Reference("reference", "REFERENCE_ENTITY_CODE", "count", toPlaceholder("count"))
                 )
         );
     }
@@ -78,20 +76,6 @@ public class UploadFileTestData {
                         new IntegerFieldValue(REFERENCE_FIELD_CODE, BigInteger.valueOf(REFERENCE_FIELD_VALUE_2))
                 ), 1)
         ), new PageRequest(0, 10), 2);
-    }
-
-    public static Structure createStringStructure() {
-        return new Structure(
-                asList(
-                        Structure.Attribute.build("string", "string", FieldType.STRING, "строка"),
-                        Structure.Attribute.build("integer", "integer", FieldType.STRING, "число"),
-                        Structure.Attribute.build("date", "date", FieldType.STRING, "дата"),
-                        Structure.Attribute.build("boolean", "boolean", FieldType.STRING, "булево"),
-                        Structure.Attribute.build("float", "float", FieldType.STRING, "дробное"),
-                        Structure.Attribute.build("reference", "reference", FieldType.STRING, "ссылка")
-                ),
-                new ArrayList<>() // NB: Убрать, когда переделаем ссылочность
-        );
     }
 
     public static Map<String, String> createPassport() {
