@@ -4,7 +4,7 @@
     <parent>
         <groupId>ru.inovus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
-        <version>1.26-SNAPSHOT</version>
+        <version>1.29-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -12,7 +12,7 @@
     <packaging>jar</packaging>
 
     <properties>
-        <rdm.version>1.26-SNAPSHOT</rdm.version>
+        <rdm.version>1.29-SNAPSHOT</rdm.version>
     </properties>
 
     <dependencies>

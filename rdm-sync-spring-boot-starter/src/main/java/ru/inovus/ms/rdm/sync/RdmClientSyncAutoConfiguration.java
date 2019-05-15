@@ -19,6 +19,7 @@ import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
 import ru.inovus.ms.rdm.sync.service.*;
+import ru.inovus.ms.rdm.util.json.LocalDateTimeMapperPreparer;
 
 import javax.sql.DataSource;
 
@@ -86,6 +87,12 @@ public class RdmClientSyncAutoConfiguration {
     @ConditionalOnMissingBean
     RdmParamConverterProvider rdmParamConverterProvider() {
         return new RdmParamConverterProvider();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    LocalDateTimeMapperPreparer localDateTimeMapperPreparer() {
+        return new LocalDateTimeMapperPreparer();
     }
 
     @Bean

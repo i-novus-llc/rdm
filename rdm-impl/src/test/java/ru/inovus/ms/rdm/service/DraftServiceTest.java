@@ -182,7 +182,7 @@ public class DraftServiceTest {
         //valid publishing, null version name
         draftService.publish(testDraftVersion.getId(), null, now, null);
         assertEquals("1.1", testDraftVersion.getVersion());
-        verify(draftDataService).applyDraft(isNull(), eq(expectedDraftStorageCode), eq(Date.from(now.atZone(ZoneId.systemDefault()).toInstant())), any());
+        verify(draftDataService).applyDraft(isNull(), eq(expectedDraftStorageCode), eq(now), any());
         verify(versionRepository).save(eq(expectedVersionEntity));
         verify(fileStorage, times(2)).saveContent(any(InputStream.class), anyString());
         reset(versionRepository);
@@ -215,8 +215,7 @@ public class DraftServiceTest {
         draftService.publish(draft.getId(), expectedVersionEntity.getVersion(), now, null);
 
         verify(draftDataService)
-                .applyDraft(eq(versionEntity.getStorageCode()), eq(expectedDraftStorageCode),
-                        eq(Date.from(now.atZone(ZoneId.systemDefault()).toInstant())), any());
+                .applyDraft(eq(versionEntity.getStorageCode()), eq(expectedDraftStorageCode), eq(now), any());
         verify(versionRepository).save(eq(expectedVersionEntity));
         reset(versionRepository);
     }

@@ -1,12 +1,8 @@
 package ru.inovus.ms.rdm.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
-import ru.inovus.ms.rdm.util.JsonLocalDateTimeDeserializer;
-import ru.inovus.ms.rdm.util.JsonLocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -30,13 +26,9 @@ public class RefBookVersion {
     private String version;
 
     @ApiModelProperty("Дата публикации")
-    @JsonSerialize(using = JsonLocalDateTimeSerializer.class)
-    @JsonDeserialize(using = JsonLocalDateTimeDeserializer.class)
     private LocalDateTime fromDate;
 
     @ApiModelProperty("Дата окончания действия")
-    @JsonSerialize(using = JsonLocalDateTimeSerializer.class)
-    @JsonDeserialize(using = JsonLocalDateTimeDeserializer.class)
     private LocalDateTime toDate;
 
     @ApiModelProperty("Статус версии")
@@ -52,8 +44,6 @@ public class RefBookVersion {
     private Structure structure;
 
     @ApiModelProperty("Дата последнего изменения")
-    @JsonSerialize(using = JsonLocalDateTimeSerializer.class)
-    @JsonDeserialize(using = JsonLocalDateTimeDeserializer.class)
     private LocalDateTime editDate;
 
     public RefBookVersion() {

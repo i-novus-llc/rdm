@@ -5,7 +5,9 @@ import net.n2oapp.platform.i18n.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
@@ -15,12 +17,12 @@ import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 
 import java.time.format.DateTimeParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
-import static ru.inovus.ms.rdm.util.ConverterUtil.date;
 import static ru.inovus.ms.rdm.util.ConverterUtil.field;
 
 public class ReferenceValidation implements RdmValidation {
@@ -93,7 +95,7 @@ public class ReferenceValidation implements RdmValidation {
             FieldSearchCriteria refFieldSearchCriteria = new FieldSearchCriteria(refField, SearchTypeEnum.EXACT, castedValues);
             DataCriteria refDataCriteria =
                     new DataCriteria(refVersion.getStorageCode(),
-                            date(refVersion.getFromDate()), date(refVersion.getToDate()),
+                            refVersion.getFromDate(), refVersion.getToDate(),
                             singletonList(refField), singletonList(refFieldSearchCriteria), null);
             CollectionPage<RowValue> refRowValues = searchDataService.getPagedData(refDataCriteria);
             castedValues.forEach(castedValue -> {

@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.rest;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
 import net.n2oapp.platform.test.autoconfigure.EnableEmbeddedPg;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,7 @@ import static java.util.Comparator.comparing;
 @EnableEmbeddedPg
 @Import(BackendConfiguration.class)
 @Transactional
+@Ignore
 public class AuditLogServiceITest {
 
     @Autowired

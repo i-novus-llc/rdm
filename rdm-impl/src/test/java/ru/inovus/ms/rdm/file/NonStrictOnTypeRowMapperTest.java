@@ -51,7 +51,7 @@ public class NonStrictOnTypeRowMapperTest {
         LocalDate date = LocalDate.parse("01.01.2011", formatter);
         Map<String, Object> expectedData = new LinkedHashMap<String, Object>() {{
             put("string", "abc");
-            put("reference", new Reference(versionEntity.getStorageCode(), ConverterUtil.date(versionEntity.getFromDate()), "count", DisplayExpression.ofField("count"), "2"));
+            put("reference", new Reference(versionEntity.getStorageCode(), versionEntity.getFromDate(), "count", DisplayExpression.ofField("count"), "2"));
             put("float", new BigDecimal("2.1"));
             put("date", date);
             put("boolean", true);

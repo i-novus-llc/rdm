@@ -7,13 +7,11 @@ import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
-import ru.inovus.ms.rdm.util.ConverterUtil;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDate;
-
 
 public class StructureRowMapper implements RowMapper {
 
@@ -83,7 +81,7 @@ public class StructureRowMapper implements RowMapper {
         }
         return new Reference(
                 version.getStorageCode(),
-                ConverterUtil.date(version.getFromDate()),
+                version.getFromDate(),
                 reference.getReferenceAttribute(),
                 new DisplayExpression(reference.getDisplayExpression()),
                 value);

@@ -45,12 +45,10 @@ public class VersionServiceTest {
         RefBookVersionEntity testVersion = createTestVersion();
         when(versionRepository.findById(anyInt())).thenReturn(Optional.of(testVersion));
         when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>());
-        Date bdate = testVersion.getFromDate() != null ? Date.from(testVersion.getFromDate().atZone(ZoneId.systemDefault()).toInstant()) : null;
-        Date edate = testVersion.getToDate() != null ? Date.from(testVersion.getToDate().atZone(ZoneId.systemDefault()).toInstant()) : null;
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
         searchDataCriteria.setAttributeFilter(new HashSet<>());
         searchDataCriteria.setCommonFilter("commonFilter");
-        DataCriteria dataCriteria = new DataCriteria(TEST_STORAGE_CODE, bdate, edate, new ArrayList<>(),
+        DataCriteria dataCriteria = new DataCriteria(TEST_STORAGE_CODE, testVersion.getFromDate(), testVersion.getToDate(), new ArrayList<>(),
                 ConverterUtil.getFieldSearchCriteriaList(searchDataCriteria.getAttributeFilter()), searchDataCriteria.getCommonFilter());
         versionService.search(1, searchDataCriteria);
         verify(searchDataService).getPagedData(eq(dataCriteria));
