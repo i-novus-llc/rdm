@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.model;
 
-
 import net.n2oapp.platform.i18n.Message;
 
 import java.util.ArrayList;

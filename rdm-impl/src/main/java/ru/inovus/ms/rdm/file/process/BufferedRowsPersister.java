@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.file;
+package ru.inovus.ms.rdm.file.process;
 
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
