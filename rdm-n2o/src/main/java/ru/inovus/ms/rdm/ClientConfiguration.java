@@ -14,7 +14,6 @@ import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.inovus.ms.rdm.criteria.RestCriteriaConstructor;
-import ru.inovus.ms.rdm.message.RdmExceptionHandler;
 import ru.inovus.ms.rdm.operation.RdmCompileCacheOperation;
 import ru.inovus.ms.rdm.operation.RdmSourceCacheOperation;
 import ru.inovus.ms.rdm.provider.ExportFileProvider;
@@ -37,11 +36,6 @@ public class ClientConfiguration {
     @Bean
     ExportFileProvider exportFileProvider(){
         return new ExportFileProvider();
-    }
-
-    @Bean
-    public RdmExceptionHandler exceptionHandler() {
-        return new RdmExceptionHandler();
     }
 
     @Bean
