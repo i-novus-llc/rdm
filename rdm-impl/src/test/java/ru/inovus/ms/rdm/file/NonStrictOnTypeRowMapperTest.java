@@ -39,12 +39,12 @@ public class NonStrictOnTypeRowMapperTest {
     @Test
     public void testMap() {
         RefBookVersionEntity versionEntity = new RefBookVersionEntity();
-        versionEntity.setStructure(new Structure(Collections.singletonList(Structure.Attribute.build("count", "count",
+        versionEntity.setStructure(new Structure(Collections.singletonList(Structure.Attribute.buildPrimary("count", "count",
                 FieldType.INTEGER, "count")), null));
         when(versionRepository.findOne(eq(referenceVersion))).thenReturn(versionEntity);
         when(versionRepository.findLastVersion(eq(referenceCode), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(versionEntity);
 
-        Map<String, Object> data = new LinkedHashMap<String, Object>() {{
+        Map<String, Object> data = new LinkedHashMap<>() {{
             put("string", "abc");
             put("reference", "2");
             put("float", "2.1");
@@ -54,7 +54,7 @@ public class NonStrictOnTypeRowMapperTest {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         LocalDate date = LocalDate.parse("01.01.2011", formatter);
 
-        Map<String, Object> expectedData = new LinkedHashMap<String, Object>() {{
+        Map<String, Object> expectedData = new LinkedHashMap<>() {{
             put("string", "abc");
             put("reference", new Reference(versionEntity.getStorageCode(), versionEntity.getFromDate(), "count", DisplayExpression.ofField("count"), "2"));
             put("float", new BigDecimal("2.1"));
@@ -103,7 +103,7 @@ public class NonStrictOnTypeRowMapperTest {
                 Structure.Attribute.build("date", "date", FieldType.DATE, "date"),
                 Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, "boolean")
         ));
-        structure.setReferences(Collections.singletonList(new Structure.Reference("reference", referenceCode, "count", toPlaceholder("count"))));
+        structure.setReferences(Collections.singletonList(new Structure.Reference("reference", referenceCode, toPlaceholder("count"))));
 
         return structure;
     }

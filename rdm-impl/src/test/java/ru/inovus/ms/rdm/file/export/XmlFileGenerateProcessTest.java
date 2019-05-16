@@ -87,7 +87,7 @@ public class XmlFileGenerateProcessTest {
                         Structure.Attribute.build("float", "float", FieldType.FLOAT, "дробное"),
                         Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, "ссылка")
                 ),
-                singletonList(new Structure.Reference("reference", "ref_code", "count", toPlaceholder("count")))
+                singletonList(new Structure.Reference("reference", "ref_code", toPlaceholder("count")))
         );
     }
 

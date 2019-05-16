@@ -123,9 +123,9 @@ public class DraftServiceTest {
         codeAttribute = Structure.Attribute.buildPrimary("code", "Код", FieldType.STRING, "описание code");
         pkAttribute = Structure.Attribute.buildPrimary(nameAttribute.getCode() + PK_SUFFIX, nameAttribute.getName() + PK_SUFFIX, FieldType.STRING, nameAttribute.getDescription() + PK_SUFFIX);
 
-        nameReference = new Structure.Reference(nameAttribute.getCode(), "REF_801", codeAttribute.getCode(), null);
-        updateNameReference = new Structure.Reference(nameAttribute.getCode(), "REF_802", codeAttribute.getCode(), DisplayExpression.toPlaceholder(codeAttribute.getCode()));
-        nullReference = new Structure.Reference(null, null, null, null);
+        nameReference = new Structure.Reference(nameAttribute.getCode(), "REF_801", null);
+        updateNameReference = new Structure.Reference(nameAttribute.getCode(), "REF_802", DisplayExpression.toPlaceholder(codeAttribute.getCode()));
+        nullReference = new Structure.Reference(null, null, null);
     }
 
     @Before

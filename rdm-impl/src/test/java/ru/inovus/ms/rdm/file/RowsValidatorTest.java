@@ -15,7 +15,6 @@ import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.i_novus.platform.versioned_data_storage.pg_impl.model.ReferenceField;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
@@ -144,7 +143,7 @@ public class RowsValidatorTest {
     private Structure createTestStructureWithReference() {
         Structure structure = new Structure();
         structure.setAttributes(Collections.singletonList(Structure.Attribute.build(ATTRIBUTE_NAME, ATTRIBUTE_NAME, FieldType.REFERENCE, "description")));
-        structure.setReferences(Collections.singletonList(new Structure.Reference(ATTRIBUTE_NAME, REFERENCE_CODE, REFERENCE_ATTRIBUTE, null)));
+        structure.setReferences(Collections.singletonList(new Structure.Reference(ATTRIBUTE_NAME, REFERENCE_CODE, null)));
         return structure;
     }
 }

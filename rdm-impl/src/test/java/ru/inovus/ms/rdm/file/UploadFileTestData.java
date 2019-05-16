@@ -37,7 +37,7 @@ public class UploadFileTestData {
                         Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, "ссылка")
                 ),
                 Collections.singletonList(
-                        new Structure.Reference("reference", REFERENCE_ENTITY_CODE, null, null)
+                        new Structure.Reference("reference", REFERENCE_ENTITY_CODE, null)
                 )
         );
     }

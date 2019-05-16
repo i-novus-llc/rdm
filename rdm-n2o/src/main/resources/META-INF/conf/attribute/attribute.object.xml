@@ -22,7 +22,6 @@
                 <param id="isPrimary" mapping="[1].isPrimary" domain="boolean"/>
                 <param id="description" mapping="[1].description" domain="string"/>
                 <!--<param id="referenceCode" mapping="[1].referenceCode"/>-->
-                <!--<param id="referenceAttribute.code" mapping="[1].referenceAttribute"/>-->
                 <!--<param id="referenceDisplayAttribute.code" mapping="[1].referenceDisplayAttribute"/>-->
                 <param id="required" mapping="[1].required" domain="boolean"/>
                 <param id="unique" mapping="[1].unique" domain="boolean"/>
@@ -59,7 +58,6 @@
                 <param id="isPrimary" mapping="[1].isPrimary" domain="boolean"/>
                 <param id="description" mapping="[1].description" domain="string"/>
                 <!--<param id="referenceCode" mapping="[1].referenceCode"/>-->
-                <!--<param id="referenceAttribute.code" mapping="[1].referenceAttribute"/>-->
                 <!--<param id="referenceDisplayAttribute.code" mapping="[1].referenceDisplayAttribute"/>-->
                 <param id="required" mapping="[1].required" domain="boolean"/>
                 <param id="unique" mapping="[1].unique" domain="boolean"/>

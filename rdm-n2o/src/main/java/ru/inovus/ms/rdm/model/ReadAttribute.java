@@ -7,8 +7,6 @@ public class ReadAttribute extends Attribute {
 
     private Integer referenceRefBookId;
 
-    private String referenceAttributeName;
-
     public Integer getVersionId() {
         return versionId;
     }
@@ -23,13 +21,5 @@ public class ReadAttribute extends Attribute {
 
     public void setReferenceRefBookId(Integer referenceRefBookId) {
         this.referenceRefBookId = referenceRefBookId;
-    }
-
-    public String getReferenceAttributeName() {
-        return referenceAttributeName;
-    }
-
-    public void setReferenceAttributeName(String referenceAttributeName) {
-        this.referenceAttributeName = referenceAttributeName;
     }
 }

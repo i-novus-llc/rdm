@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.model;
 
-import org.apache.cxf.common.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.exception.RdmException;
 
@@ -194,11 +193,6 @@ public class Structure implements Serializable {
         private String referenceCode;
 
         /**
-         * Поле, на которое ссылаемся
-         */
-        private String referenceAttribute;
-
-        /**
          * Вид отображаемого ссылочного значения.
          * Поля справочника указываются через placeholder ${~}, например ${field}
          */
@@ -207,10 +201,9 @@ public class Structure implements Serializable {
         public Reference() {
         }
 
-        public Reference(String attribute, String referenceCode, String referenceAttribute, String displayExpression) {
+        public Reference(String attribute, String referenceCode, String displayExpression) {
             this.attribute = attribute;
             this.referenceCode = referenceCode;
-            this.referenceAttribute = referenceAttribute;
             this.displayExpression = displayExpression;
         }
 
@@ -230,14 +223,6 @@ public class Structure implements Serializable {
             this.referenceCode = referenceCode;
         }
 
-        public String getReferenceAttribute() {
-            return referenceAttribute;
-        }
-
-        public void setReferenceAttribute(String referenceAttribute) {
-            this.referenceAttribute = referenceAttribute;
-        }
-
         public String getDisplayExpression() {
             return displayExpression;
         }
@@ -247,10 +232,6 @@ public class Structure implements Serializable {
         }
 
         public Structure.Attribute findReferenceAttribute (Structure structure) {
-
-            if (!StringUtils.isEmpty(getReferenceAttribute())) {
-                return structure.getAttribute(getReferenceAttribute());
-            }
 
             List<Structure.Attribute> primaryAttributes = structure.getPrimary();
             if (isEmpty(primaryAttributes))
@@ -268,20 +249,17 @@ public class Structure implements Serializable {
 
             Reference reference = (Reference) o;
 
-            if (attribute != null ? !attribute.equals(reference.attribute) : reference.attribute != null) return false;
+            if (attribute != null ? !attribute.equals(reference.attribute) : reference.attribute != null)
+                return false;
             if (referenceCode != null ? !referenceCode.equals(reference.referenceCode) : reference.referenceCode != null)
                 return false;
-            if (referenceAttribute != null ? !referenceAttribute.equals(reference.referenceAttribute) : reference.referenceAttribute != null)
-                return false;
             return !(displayExpression != null ? !displayExpression.equals(reference.displayExpression) : reference.displayExpression != null);
-
         }
 
         @Override
         public int hashCode() {
             int result = attribute != null ? attribute.hashCode() : 0;
             result = 31 * result + (referenceCode != null ? referenceCode.hashCode() : 0);
-            result = 31 * result + (referenceAttribute != null ? referenceAttribute.hashCode() : 0);
             result = 31 * result + (displayExpression != null ? displayExpression.hashCode() : 0);
             return result;
         }

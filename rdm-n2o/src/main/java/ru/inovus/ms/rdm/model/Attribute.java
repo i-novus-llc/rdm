@@ -21,8 +21,6 @@ public class Attribute {
 
     private String referenceCode;
 
-    private String referenceAttribute;
-
     private String referenceDisplayExpression;
 
     //Настраиваемые проверки
@@ -86,14 +84,6 @@ public class Attribute {
 
     public void setReferenceCode(String referenceCode) {
         this.referenceCode = referenceCode;
-    }
-
-    public String getReferenceAttribute() {
-        return referenceAttribute;
-    }
-
-    public void setReferenceAttribute(String referenceAttribute) {
-        this.referenceAttribute = referenceAttribute;
     }
 
     public String getReferenceDisplayExpression() {

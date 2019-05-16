@@ -88,8 +88,9 @@ public class StructureRowMapper implements RowMapper {
         if (version == null)
             throw new RdmException("version.not.found");
 
+        Structure.Attribute referenceAttribute = reference.findReferenceAttribute(version.getStructure());
         try {
-            castValue(reference.findReferenceAttribute(version.getStructure()), value);
+            castValue(referenceAttribute, value);
 
         } catch (Exception e) {
             throw new RdmException("reference value has a wrong type", e);
@@ -98,7 +99,7 @@ public class StructureRowMapper implements RowMapper {
         return new Reference(
                 version.getStorageCode(),
                 version.getFromDate(),
-                reference.getReferenceAttribute(),
+                referenceAttribute.getCode(),
                 new DisplayExpression(reference.getDisplayExpression()),
                 value);
     }

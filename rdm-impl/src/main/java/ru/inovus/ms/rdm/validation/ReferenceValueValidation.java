@@ -88,11 +88,6 @@ public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
 
     }
 
-    private Field createFieldFilter(Structure structure, Structure.Reference reference) {
-        Structure.Attribute referenceAttribute = reference.findReferenceAttribute(structure);
-        return field(referenceAttribute);
-    }
-
     private boolean isReferenceNotValid(Map.Entry<Structure.Reference, String> entry) {
         if (getErrorAttributes().contains(entry.getKey().getAttribute()) || entry.getValue() == null) {
             return false;
@@ -106,9 +101,9 @@ public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
         Integer versionId = refBookVersion.getId();
         Structure referenceStructure = refBookVersion.getStructure();
 
-        Field fieldFilter = createFieldFilter(referenceStructure, reference);
-        Object referenceValueCasted = castReferenceValue(fieldFilter, referenceValue);
         Structure.Attribute referenceAttribute = reference.findReferenceAttribute(referenceStructure);
+        Field fieldFilter = field(referenceAttribute);
+        Object referenceValueCasted = castReferenceValue(fieldFilter, referenceValue);
         AttributeFilter attributeFilter = new AttributeFilter(referenceAttribute.getCode(), referenceValueCasted, referenceAttribute.getType(), SearchTypeEnum.EXACT);
         Set<List<AttributeFilter>> attributeFilters = new HashSet<>();
         attributeFilters.add(singletonList(attributeFilter));

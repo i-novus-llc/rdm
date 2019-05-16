@@ -672,7 +672,6 @@ public class DraftServiceImpl implements DraftService {
 
         setValueIfPresent(updateAttribute::getAttribute, updatableReference::setAttribute);
         setValueIfPresent(updateAttribute::getReferenceCode, updatableReference::setReferenceCode);
-        setValueIfPresent(updateAttribute::getReferenceAttribute, updatableReference::setReferenceAttribute);
         setValueIfPresent(updateAttribute::getDisplayExpression, updatableReference::setDisplayExpression);
     }
 
@@ -727,7 +726,7 @@ public class DraftServiceImpl implements DraftService {
         List<Message> referenceValidationMessages = new ReferenceValidation(
                 searchDataService,
                 versionRepository,
-                new Structure.Reference(updateAttribute.getAttribute().get(), updateAttribute.getReferenceCode().get(), updateAttribute.getReferenceAttribute().get(), updateAttribute.getDisplayExpression().get()),
+                new Structure.Reference(updateAttribute.getAttribute().get(), updateAttribute.getReferenceCode().get(), updateAttribute.getDisplayExpression().get()),
                 updateAttribute.getVersionId()).validate();
         if (!isEmpty(referenceValidationMessages))
             throw new UserException(referenceValidationMessages);
@@ -739,8 +738,7 @@ public class DraftServiceImpl implements DraftService {
 
     private boolean isValidUpdateReferenceValues(UpdateAttribute updateAttribute, Function<UpdateValue, Boolean> valueValidateFunc) {
         return valueValidateFunc.apply(updateAttribute.getReferenceCode())
-                || valueValidateFunc.apply(updateAttribute.getAttribute())
-                || valueValidateFunc.apply(updateAttribute.getReferenceAttribute());
+                || valueValidateFunc.apply(updateAttribute.getAttribute());
     }
 
     private boolean isUpdateValueNotNullAndEmpty(UpdateValue updateValue) {

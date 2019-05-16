@@ -104,7 +104,6 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
                     Structure.Reference structureReference = new Structure.Reference();
                     structureReference.setAttribute(structureAttribute.getCode());
                     structureReference.setReferenceCode(referenceCode);
-                    structureReference.setReferenceAttribute(attribute.get("referenceAttribute"));
                     structureReference.setDisplayExpression(attribute.get("displayExpresssion"));
                     structure.getReferences().add(structureReference);
                 }

@@ -53,8 +53,8 @@ public class ReferenceValueValidationTest {
         Structure.Attribute ref1 = Structure.Attribute.build(REF_ATTRIBUTE_CODE1, REF_ATTRIBUTE_NAME1, FieldType.REFERENCE, "");
         Structure.Attribute ref2 = Structure.Attribute.build(REF_ATTRIBUTE_CODE2, REF_ATTRIBUTE_NAME2, FieldType.REFERENCE, "");
         Structure.Attribute name = Structure.Attribute.build("name", "Наименование", FieldType.STRING, "");
-        Structure.Reference reference1 = new Structure.Reference(ref1.getCode(), REF_BOOK_CODE, "id1", toPlaceholder("name1"));
-        Structure.Reference reference2 = new Structure.Reference(ref2.getCode(), REF_BOOK_CODE, "id2", toPlaceholder("name2"));
+        Structure.Reference reference1 = new Structure.Reference(ref1.getCode(), REF_BOOK_CODE, toPlaceholder("name1"));
+        Structure.Reference reference2 = new Structure.Reference(ref2.getCode(), REF_BOOK_CODE, toPlaceholder("name2"));
         structure = new Structure(Arrays.asList(id, ref1, ref2, name), Arrays.asList(reference1, reference2));
 
         referenceWithValueMap = new HashMap<>();

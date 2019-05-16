@@ -20,7 +20,6 @@ public class UpdateAttribute extends UpdatableDto {
     // поля Structure.Reference
     private UpdateValue<String> attribute;
     private UpdateValue<String> referenceCode;
-    private UpdateValue<String> referenceAttribute;
     private UpdateValue<String> displayExpression;
 
     public UpdateAttribute(){}
@@ -47,8 +46,6 @@ public class UpdateAttribute extends UpdatableDto {
             this.attribute = of(reference.getAttribute());
         if (reference.getReferenceCode() != null)
             this.referenceCode = of(reference.getReferenceCode());
-        if (reference.getReferenceAttribute() != null)
-            this.referenceAttribute = of(reference.getReferenceAttribute());
         if (reference.getDisplayExpression() != null)
             this.displayExpression = of(reference.getDisplayExpression());
     }
@@ -115,14 +112,6 @@ public class UpdateAttribute extends UpdatableDto {
 
     public void setReferenceCode(UpdateValue<String> referenceCode) {
         this.referenceCode = referenceCode;
-    }
-
-    public UpdateValue<String> getReferenceAttribute() {
-        return referenceAttribute;
-    }
-
-    public void setReferenceAttribute(UpdateValue<String> referenceAttribute) {
-        this.referenceAttribute = referenceAttribute;
     }
 
     public UpdateValue<String> getDisplayExpression() {
