@@ -231,9 +231,9 @@ public class Structure implements Serializable {
             this.displayExpression = displayExpression;
         }
 
-        public Structure.Attribute findReferenceAttribute (Structure structure) {
+        public Structure.Attribute findReferenceAttribute(Structure referenceStructure) {
 
-            List<Structure.Attribute> primaryAttributes = structure.getPrimary();
+            List<Structure.Attribute> primaryAttributes = referenceStructure.getPrimary();
             if (isEmpty(primaryAttributes))
                 throw new RdmException("primary.attribute.not.found");
             if (primaryAttributes.size() > 1)
