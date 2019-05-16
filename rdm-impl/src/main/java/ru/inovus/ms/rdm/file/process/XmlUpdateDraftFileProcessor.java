@@ -101,7 +101,11 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
             if(FieldType.REFERENCE.equals(structureAttribute.getType())) {
                 String referenceCode = attribute.get("referenceCode");
                 if(referenceCode != null) {
-                    // NB: Need implement.
+                    Structure.Reference structureReference = new Structure.Reference();
+                    structureReference.setAttribute(structureAttribute.getCode());
+                    structureReference.setReferenceCode(referenceCode);
+                    structureReference.setDisplayExpression(attribute.get("displayExpresssion"));
+                    structure.getReferences().add(structureReference);
                 }
             }
         }
@@ -123,7 +127,6 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
 
                 Structure structure = new Structure(new ArrayList(), new ArrayList<>());
                 parseStructure(structure);
-                structure.setReferences(new ArrayList<>()); // NB: Убрать, когда переделаем ссылочность
 
                 reader.nextTag();
 

@@ -25,7 +25,7 @@ public class XmlFileGenerator extends PerRowFileGenerator {
 
     private static final String XML_GENERATE_ERROR_MESSAGE = "cannot generate XML";
 
-    private Map<String, String> referenceToRefBookCodeMap;
+    private Map<String, Structure.Reference> attributeToReferenceMap;
 
     private XMLStreamWriter writer;
 
@@ -39,16 +39,16 @@ public class XmlFileGenerator extends PerRowFileGenerator {
      *
      * @param rowIterator
      * @param version
-     * @param referenceToRefBookCodeMap - key - код  ссылочного атрибута ссылки, value - код справочника на который ссылаются
+     * @param attributeToReferenceMap - key - код  ссылочного атрибута ссылки, value - код справочника на который ссылаются
      * @param attributeValidations
      */
     public XmlFileGenerator(Iterator<Row> rowIterator,
                             RefBookVersion version,
-                            Map<String, String> referenceToRefBookCodeMap,
+                            Map<String, Structure.Reference> attributeToReferenceMap,
                             List<AttributeValidation> attributeValidations) {
         super(rowIterator, version.getStructure());
         this.passport = version.getPassport();
-        this.referenceToRefBookCodeMap = referenceToRefBookCodeMap;
+        this.attributeToReferenceMap = attributeToReferenceMap;
         this.attributeValidations = attributeValidations;
         this.version = version;
     }
@@ -132,14 +132,7 @@ public class XmlFileGenerator extends PerRowFileGenerator {
             version.getStructure().getAttributes().forEach(attribute -> {
                 try {
                     writer.writeStartElement("row");
-                    writeElement("code", attribute.getCode());
-                    writeElement("name", attribute.getName());
-                    writeElement("type", attribute.getType().name());
-                    writeElement("description", attribute.getDescription());
-                    writeElement("primary", ""+Boolean.TRUE.equals(attribute.getIsPrimary()));
-                    if(attribute.getType().equals(FieldType.REFERENCE)) {
-                        writeElement("referenceCode", referenceToRefBookCodeMap.get(attribute.getCode()));
-                    }
+                    addAttribute(attribute);
                     addAttributeValidation(attribute.getCode());
                     writer.writeEndElement();
                 } catch (XMLStreamException e) {
@@ -151,6 +144,32 @@ public class XmlFileGenerator extends PerRowFileGenerator {
         } catch (XMLStreamException e) {
             throwXmlGenerateError(e);
         }
+    }
+
+    private void addAttribute(Structure.Attribute attribute) {
+
+        writeElement("code", attribute.getCode());
+        writeElement("name", attribute.getName());
+        writeElement("type", attribute.getType().name());
+        writeElement("description", attribute.getDescription());
+        writeElement("primary", "" + Boolean.TRUE.equals(attribute.getIsPrimary()));
+
+        addReference(attribute);
+    }
+
+    private void addReference(Structure.Attribute attribute) {
+
+        if(!attribute.getType().equals(FieldType.REFERENCE)) {
+            return;
+        }
+
+        Structure.Reference reference = attributeToReferenceMap.get(attribute.getCode());
+        if (reference == null)
+            throw new RdmException("reference.not.found");
+
+        writeElement("referenceCode", reference.getReferenceCode());
+        if (reference.getDisplayExpression() != null)
+            writeElement("displayExpression", reference.getDisplayExpression());
     }
 
     private void addAttributeValidation(String attributeCode) {

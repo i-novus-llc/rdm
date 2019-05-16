@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.model;
 
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.inovus.ms.rdm.exception.RdmException;
 
 import java.io.Serializable;
 import java.util.List;
@@ -41,7 +42,6 @@ public class Structure implements Serializable {
         return attributes.stream().filter(attribute -> attribute.getCode().equals(code)).findAny()
                 .orElse(null);
     }
-
 
     public void clearPrimary() {
         if (isEmpty(attributes)) {
@@ -183,19 +183,14 @@ public class Structure implements Serializable {
     public static class Reference implements Serializable {
 
         /**
-         * Поле которое ссылается
+         * Поле, которое ссылается
          */
         private String attribute;
 
         /**
-         * Веррсия на которую ссылаемся
+         * Код справочника, на который ссылаемся
          */
-        private Integer referenceVersion;
-
-        /**
-         * Поле на которое ссылаемся
-         */
-        private String referenceAttribute;
+        private String referenceCode;
 
         /**
          * Вид отображаемого ссылочного значения.
@@ -206,10 +201,9 @@ public class Structure implements Serializable {
         public Reference() {
         }
 
-        public Reference(String attribute, Integer referenceVersion, String referenceAttribute, String displayExpression) {
+        public Reference(String attribute, String referenceCode, String displayExpression) {
             this.attribute = attribute;
-            this.referenceVersion = referenceVersion;
-            this.referenceAttribute = referenceAttribute;
+            this.referenceCode = referenceCode;
             this.displayExpression = displayExpression;
         }
 
@@ -221,20 +215,12 @@ public class Structure implements Serializable {
             this.attribute = attribute;
         }
 
-        public Integer getReferenceVersion() {
-            return referenceVersion;
+        public String getReferenceCode() {
+            return referenceCode;
         }
 
-        public void setReferenceVersion(Integer referenceVersion) {
-            this.referenceVersion = referenceVersion;
-        }
-
-        public String getReferenceAttribute() {
-            return referenceAttribute;
-        }
-
-        public void setReferenceAttribute(String referenceAttribute) {
-            this.referenceAttribute = referenceAttribute;
+        public void setReferenceCode(String referenceCode) {
+            this.referenceCode = referenceCode;
         }
 
         public String getDisplayExpression() {
@@ -245,6 +231,17 @@ public class Structure implements Serializable {
             this.displayExpression = displayExpression;
         }
 
+        public Structure.Attribute findReferenceAttribute(Structure referenceStructure) {
+
+            List<Structure.Attribute> primaryAttributes = referenceStructure.getPrimary();
+            if (isEmpty(primaryAttributes))
+                throw new RdmException("primary.attribute.not.found");
+            if (primaryAttributes.size() > 1)
+                throw new RdmException("primary.attribute.multiple");
+
+            return primaryAttributes.get(0);
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -252,20 +249,17 @@ public class Structure implements Serializable {
 
             Reference reference = (Reference) o;
 
-            if (attribute != null ? !attribute.equals(reference.attribute) : reference.attribute != null) return false;
-            if (referenceVersion != null ? !referenceVersion.equals(reference.referenceVersion) : reference.referenceVersion != null)
+            if (attribute != null ? !attribute.equals(reference.attribute) : reference.attribute != null)
                 return false;
-            if (referenceAttribute != null ? !referenceAttribute.equals(reference.referenceAttribute) : reference.referenceAttribute != null)
+            if (referenceCode != null ? !referenceCode.equals(reference.referenceCode) : reference.referenceCode != null)
                 return false;
             return !(displayExpression != null ? !displayExpression.equals(reference.displayExpression) : reference.displayExpression != null);
-
         }
 
         @Override
         public int hashCode() {
             int result = attribute != null ? attribute.hashCode() : 0;
-            result = 31 * result + (referenceVersion != null ? referenceVersion.hashCode() : 0);
-            result = 31 * result + (referenceAttribute != null ? referenceAttribute.hashCode() : 0);
+            result = 31 * result + (referenceCode != null ? referenceCode.hashCode() : 0);
             result = 31 * result + (displayExpression != null ? displayExpression.hashCode() : 0);
             return result;
         }

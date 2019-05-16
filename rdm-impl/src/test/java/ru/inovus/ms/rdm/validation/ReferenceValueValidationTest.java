@@ -9,9 +9,14 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.inovus.ms.rdm.entity.RefBookEntity;
+import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
+import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.util.ModelGenerator;
 
 import java.util.*;
 
@@ -27,6 +32,7 @@ public class ReferenceValueValidationTest {
     private final String REFERENCE_VAL2 = "22";
     private final String REF_ATTRIBUTE_CODE1 = "ref1";
     private final String REF_ATTRIBUTE_CODE2 = "ref2";
+    private final String REF_BOOK_CODE = "REF_VALID";
     private final Integer VERSION_ID = 1;
     private final String REF_ATTRIBUTE_NAME1 = "Ссылка1";
     private final String REF_ATTRIBUTE_NAME2 = "Ссылка2";
@@ -34,6 +40,8 @@ public class ReferenceValueValidationTest {
 
     @Mock
     private VersionService versionService;
+    @Mock
+    private RefBookVersionRepository versionRepository;
 
     private Structure structure;
 
@@ -47,9 +55,10 @@ public class ReferenceValueValidationTest {
         Structure.Attribute ref1 = Structure.Attribute.build(REF_ATTRIBUTE_CODE1, REF_ATTRIBUTE_NAME1, FieldType.REFERENCE, "");
         Structure.Attribute ref2 = Structure.Attribute.build(REF_ATTRIBUTE_CODE2, REF_ATTRIBUTE_NAME2, FieldType.REFERENCE, "");
         Structure.Attribute name = Structure.Attribute.build("name", "Наименование", FieldType.STRING, "");
-        Structure.Reference reference1 = new Structure.Reference(ref1.getCode(), VERSION_ID, "id1", toPlaceholder("name1"));
-        Structure.Reference reference2 =new Structure.Reference(ref2.getCode(), VERSION_ID, "id2", toPlaceholder("name2"));
+        Structure.Reference reference1 = new Structure.Reference(ref1.getCode(), REF_BOOK_CODE, toPlaceholder("name1"));
+        Structure.Reference reference2 = new Structure.Reference(ref2.getCode(), REF_BOOK_CODE, toPlaceholder("name2"));
         structure = new Structure(Arrays.asList(id, ref1, ref2, name), Arrays.asList(reference1, reference2));
+
         referenceWithValueMap = new HashMap<>();
         referenceWithValueMap.put(reference1, REFERENCE_VAL1);
         referenceWithValueMap.put(reference2, REFERENCE_VAL2);
@@ -69,8 +78,15 @@ public class ReferenceValueValidationTest {
 
     @Test
     public void testValidate() throws Exception {
-        when(versionService.getStructure(eq(VERSION_ID))).thenReturn(referenceStructure);
         when(versionService.search(eq(VERSION_ID), any(SearchDataCriteria.class))).thenReturn(new PageImpl<>(Collections.emptyList()));
+
+        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
+        versionEntity.setId(VERSION_ID);
+        versionEntity.setStructure(referenceStructure);
+        versionEntity.setRefBook(new RefBookEntity());
+        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(REF_BOOK_CODE), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(versionEntity);
+        when(versionService.getLastPublishedVersion(eq(REF_BOOK_CODE))).thenReturn(ModelGenerator.versionModel(versionEntity));
+
         List<Message> messages = new ReferenceValueValidation(versionService, referenceWithValueMap, structure, Collections.singleton(REF_ATTRIBUTE_CODE2)).validate();
         Assert.assertTrue(messages.size() == 1);
         Message expected1 = new Message(ReferenceValueValidation.REFERENCE_ERROR_CODE, REF_ATTRIBUTE_NAME1, REFERENCE_VAL1);

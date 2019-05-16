@@ -19,9 +19,7 @@ public class Attribute {
 
     private String description;
 
-    private Integer referenceVersion;
-
-    private String referenceAttribute;
+    private String referenceCode;
 
     private String referenceDisplayExpression;
 
@@ -80,20 +78,12 @@ public class Attribute {
         this.description = description;
     }
 
-    public Integer getReferenceVersion() {
-        return referenceVersion;
+    public String getReferenceCode() {
+        return referenceCode;
     }
 
-    public void setReferenceVersion(Integer referenceVersion) {
-        this.referenceVersion = referenceVersion;
-    }
-
-    public String getReferenceAttribute() {
-        return referenceAttribute;
-    }
-
-    public void setReferenceAttribute(String referenceAttribute) {
-        this.referenceAttribute = referenceAttribute;
+    public void setReferenceCode(String referenceCode) {
+        this.referenceCode = referenceCode;
     }
 
     public String getReferenceDisplayExpression() {

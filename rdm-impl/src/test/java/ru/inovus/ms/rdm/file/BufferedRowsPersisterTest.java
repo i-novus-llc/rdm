@@ -139,7 +139,7 @@ public class BufferedRowsPersisterTest {
     public static Structure createTestStructure() {
         Structure structure = new Structure();
         structure.setAttributes(new LinkedList() {{
-            add(Structure.Attribute.build("name", "name", FieldType.STRING, "description"));
+            add(Structure.Attribute.buildPrimary("name", "name", FieldType.STRING, "description"));
             add(Structure.Attribute.build("count", "count", FieldType.INTEGER, "description"));
         }});
         return structure;

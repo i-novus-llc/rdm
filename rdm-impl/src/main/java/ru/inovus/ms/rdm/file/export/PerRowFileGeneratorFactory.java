@@ -12,9 +12,7 @@ import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.model.validation.AttributeValidation;
 import ru.inovus.ms.rdm.repositiory.AttributeValidationRepository;
-import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -28,13 +26,10 @@ import static java.util.Arrays.asList;
 @Component
 public class PerRowFileGeneratorFactory {
 
-    private RefBookVersionRepository refBookVersionRepository;
-
     private AttributeValidationRepository attributeValidationRepository;
 
     @Autowired
-    public PerRowFileGeneratorFactory(RefBookVersionRepository refBookVersionRepository, AttributeValidationRepository attributeValidationRepository) {
-        this.refBookVersionRepository = refBookVersionRepository;
+    public PerRowFileGeneratorFactory(AttributeValidationRepository attributeValidationRepository) {
         this.attributeValidationRepository = attributeValidationRepository;
     }
 
@@ -45,20 +40,19 @@ public class PerRowFileGeneratorFactory {
             return new XlsFileGenerator(rowIterator, version.getStructure());
 
         if (FileType.XML.equals(fileType)) {
-            Map<String, String> referenceToRefBookCodeMap = null;
+            Map<String, Structure.Reference> attributeToReferenceMap = null;
             if (!CollectionUtils.isEmpty(version.getStructure().getReferences())) {
-                referenceToRefBookCodeMap = new HashMap<>();
-                version.getStructure().getReferences().stream()
+                attributeToReferenceMap = version.getStructure().getReferences().stream()
                         .collect(Collectors.toMap(
-                                        reference -> refBookVersionRepository.getOne(reference.getReferenceVersion()).getRefBook().getCode(),
-                                        Structure.Reference::getAttribute)
+                                        Structure.Reference::getAttribute,
+                                        reference -> reference)
                         );
             }
             final List<AttributeValidation> attributeValidations = attributeValidationRepository
                     .findAllByVersionId(version.getId()).stream()
                     .map(AttributeValidationEntity::attributeValidationModel)
                     .collect(Collectors.toList());
-            return new XmlFileGenerator(rowIterator, version, referenceToRefBookCodeMap, attributeValidations);
+            return new XmlFileGenerator(rowIterator, version, attributeToReferenceMap, attributeValidations);
         }
 
         throw new RdmException("no generator for " + fileType + " type");

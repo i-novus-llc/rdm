@@ -218,6 +218,7 @@ public class DraftServiceImpl implements DraftService {
      * @param fileModel
      */
     private void updateDraftData(RefBookVersionEntity draft, FileModel fileModel) {
+
         String storageCode = draft.getStorageCode();
         Structure structure = draft.getStructure();
 
@@ -291,7 +292,7 @@ public class DraftServiceImpl implements DraftService {
             throw new CodifiedException("invalid refbook");
 
         List<PassportValueEntity> passportValues = null;
-        if(createDraftRequest.getPassport() != null) {
+        if (createDraftRequest.getPassport() != null) {
             passportValues = createDraftRequest.getPassport()
                     .entrySet()
                     .stream()
@@ -515,10 +516,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private RefBookVersionEntity getLastPublishedVersion(RefBookVersionEntity draftVersion) {
-        Page<RefBookVersionEntity> lastPublishedVersions = versionRepository
-                .findAll(isPublished().and(isVersionOfRefBook(draftVersion.getRefBook().getId()))
-                        , new PageRequest(0, 1, new Sort(Sort.Direction.DESC, "fromDate")));
-        return lastPublishedVersions != null && lastPublishedVersions.hasContent() ? lastPublishedVersions.getContent().get(0) : null;
+        return versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(draftVersion.getRefBook().getId(), RefBookVersionStatus.PUBLISHED);
     }
 
     private void resolveOverlappingPeriodsInFuture(LocalDateTime fromDate, LocalDateTime toDate, Integer refBookId) {
@@ -673,8 +671,7 @@ public class DraftServiceImpl implements DraftService {
     private void updateReference(UpdateAttribute updateAttribute, Structure.Reference updatableReference) {
 
         setValueIfPresent(updateAttribute::getAttribute, updatableReference::setAttribute);
-        setValueIfPresent(updateAttribute::getReferenceVersion, updatableReference::setReferenceVersion);
-        setValueIfPresent(updateAttribute::getReferenceAttribute, updatableReference::setReferenceAttribute);
+        setValueIfPresent(updateAttribute::getReferenceCode, updatableReference::setReferenceCode);
         setValueIfPresent(updateAttribute::getDisplayExpression, updatableReference::setDisplayExpression);
     }
 
@@ -729,7 +726,7 @@ public class DraftServiceImpl implements DraftService {
         List<Message> referenceValidationMessages = new ReferenceValidation(
                 searchDataService,
                 versionRepository,
-                new Structure.Reference(updateAttribute.getAttribute().get(), updateAttribute.getReferenceVersion().get(), updateAttribute.getReferenceAttribute().get(), updateAttribute.getDisplayExpression().get()),
+                new Structure.Reference(updateAttribute.getAttribute().get(), updateAttribute.getReferenceCode().get(), updateAttribute.getDisplayExpression().get()),
                 updateAttribute.getVersionId()).validate();
         if (!isEmpty(referenceValidationMessages))
             throw new UserException(referenceValidationMessages);
@@ -740,9 +737,8 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private boolean isValidUpdateReferenceValues(UpdateAttribute updateAttribute, Function<UpdateValue, Boolean> valueValidateFunc) {
-        return valueValidateFunc.apply(updateAttribute.getReferenceVersion())
-                || valueValidateFunc.apply(updateAttribute.getAttribute())
-                || valueValidateFunc.apply(updateAttribute.getReferenceAttribute());
+        return valueValidateFunc.apply(updateAttribute.getReferenceCode())
+                || valueValidateFunc.apply(updateAttribute.getAttribute());
     }
 
     private boolean isUpdateValueNotNullAndEmpty(UpdateValue updateValue) {
@@ -941,5 +937,4 @@ public class DraftServiceImpl implements DraftService {
             throw new NotFoundException(new Message(DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, versionId, attribute));
         }
     }
-
 }

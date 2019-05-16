@@ -22,8 +22,8 @@ public interface DraftService {
     @ApiOperation("Создание нового черновика")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Черновик создан"),
-            @ApiResponse(code = 404, message = "Справочник с таким идентификатором не существует"),
-            @ApiResponse(code = 400, message = "Некорректный запрос")
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
     })
     Draft create(CreateDraftRequest createDraftRequest);
 
