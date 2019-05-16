@@ -16,6 +16,7 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
+import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.process.RowsValidator;
@@ -23,6 +24,7 @@ import ru.inovus.ms.rdm.file.process.RowsValidatorImpl;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.util.ModelGenerator;
 import ru.inovus.ms.rdm.validation.ReferenceValueValidation;
 
 import java.util.Collections;
@@ -67,7 +69,7 @@ public class RowsValidatorTest {
 
     @Before
     public void setUp() {
-        rowsValidator = new RowsValidatorImpl(versionService, versionRepository, searchDataService, createTestStructureWithReference(), "",
+        rowsValidator = new RowsValidatorImpl(versionService, searchDataService, createTestStructureWithReference(), "",
                 100, Collections.emptyList());
         when(fieldFactory.createField(eq(REFERENCE_ATTRIBUTE), eq(FieldType.STRING)))
                 .thenReturn(new StringField(REFERENCE_ATTRIBUTE));
@@ -76,7 +78,9 @@ public class RowsValidatorTest {
         RefBookVersionEntity versionEntity = new RefBookVersionEntity();
         versionEntity.setId(REFERENCE_VERSION);
         versionEntity.setStructure(createTestStructure());
+        versionEntity.setRefBook(new RefBookEntity());
         when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(REFERENCE_CODE), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(versionEntity);
+        when(versionService.getLastPublishedVersion(eq(REFERENCE_CODE))).thenReturn(ModelGenerator.versionModel(versionEntity));
 
         AttributeFilter attributeFilter = new AttributeFilter(REFERENCE_ATTRIBUTE, ATTRIBUTE_VALUE, FieldType.STRING, SearchTypeEnum.EXACT);
         searchDataCriteria = new SearchDataCriteria(

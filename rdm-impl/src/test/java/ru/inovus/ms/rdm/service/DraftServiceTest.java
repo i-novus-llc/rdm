@@ -418,6 +418,7 @@ public class DraftServiceTest {
 
         RefBookVersionEntity referenceEntity = UploadFileTestData.createReferenceVersion();
         when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(UploadFileTestData.REFERENCE_ENTITY_CODE), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(referenceEntity);
+        when(versionService.getLastPublishedVersion(eq(UploadFileTestData.REFERENCE_ENTITY_CODE))).thenReturn(ModelGenerator.versionModel(referenceEntity));
         when(versionService.getStructure(eq(UploadFileTestData.REFERENCE_ENTITY_VERSION_ID))).thenReturn(referenceEntity.getStructure());
 
         PageImpl<RefBookRowValue> referenceRows = UploadFileTestData.createReferenceRows();

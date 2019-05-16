@@ -228,7 +228,7 @@ public class DraftServiceImpl implements DraftService {
         StructureRowMapper nonStrictOnTypeRowMapper = new NonStrictOnTypeRowMapper(structure, versionRepository);
         try (FilePerRowProcessor validator = FileProcessorFactory
                 .createProcessor(extension,
-                        new RowsValidatorImpl(versionService, versionRepository, searchDataService, structure, storageCode, errorCountLimit,
+                        new RowsValidatorImpl(versionService, searchDataService, structure, storageCode, errorCountLimit,
                                 attributeValidationRepository.findAllByVersionId(draft.getId())),
                         nonStrictOnTypeRowMapper)) {
             validator.process(inputStreamSupplier);
@@ -387,7 +387,7 @@ public class DraftServiceImpl implements DraftService {
 
         RefBookVersionEntity draft = versionRepository.findOne(draftId);
 
-        RowsValidator validator = new RowsValidatorImpl(versionService, versionRepository, searchDataService, draft.getStructure(),
+        RowsValidator validator = new RowsValidatorImpl(versionService, searchDataService, draft.getStructure(),
                 draft.getStorageCode(), errorCountLimit, attributeValidationRepository.findAllByVersionId(draftId));
         validator.append(new NonStrictOnTypeRowMapper(draft.getStructure(), versionRepository).map(row));
         validator.process();
@@ -837,7 +837,7 @@ public class DraftServiceImpl implements DraftService {
     private void validateDataBase(RefBookVersionEntity versionEntity, List<AttributeValidationEntity> validationEntities) {
 
         VersionDataIterator iterator = new VersionDataIterator(versionService, singletonList(versionEntity.getId()));
-        RowsValidator validator = new RowsValidatorImpl(versionService, versionRepository, searchDataService, versionEntity.getStructure(),
+        RowsValidator validator = new RowsValidatorImpl(versionService, searchDataService, versionEntity.getStructure(),
                 versionEntity.getStorageCode(), errorCountLimit, validationEntities);
 
         while (iterator.hasNext()) {

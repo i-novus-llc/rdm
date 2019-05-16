@@ -9,12 +9,14 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.util.ModelGenerator;
 
 import java.util.*;
 
@@ -81,9 +83,11 @@ public class ReferenceValueValidationTest {
         RefBookVersionEntity versionEntity = new RefBookVersionEntity();
         versionEntity.setId(VERSION_ID);
         versionEntity.setStructure(referenceStructure);
+        versionEntity.setRefBook(new RefBookEntity());
         when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(REF_BOOK_CODE), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(versionEntity);
+        when(versionService.getLastPublishedVersion(eq(REF_BOOK_CODE))).thenReturn(ModelGenerator.versionModel(versionEntity));
 
-        List<Message> messages = new ReferenceValueValidation(versionService, versionRepository, referenceWithValueMap, structure, Collections.singleton(REF_ATTRIBUTE_CODE2)).validate();
+        List<Message> messages = new ReferenceValueValidation(versionService, referenceWithValueMap, structure, Collections.singleton(REF_ATTRIBUTE_CODE2)).validate();
         Assert.assertTrue(messages.size() == 1);
         Message expected1 = new Message(ReferenceValueValidation.REFERENCE_ERROR_CODE, REF_ATTRIBUTE_NAME1, REFERENCE_VAL1);
         Assert.assertTrue(messages.contains(expected1));

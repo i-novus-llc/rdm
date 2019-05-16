@@ -1,14 +1,13 @@
 package ru.inovus.ms.rdm.validation;
 
 import net.n2oapp.platform.i18n.Message;
+import net.n2oapp.platform.i18n.UserException;
 import org.springframework.data.domain.Page;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
-import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
-import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.util.*;
@@ -24,46 +23,41 @@ import static ru.inovus.ms.rdm.util.ConverterUtil.field;
 public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
 
     public static final String REFERENCE_ERROR_CODE = "validation.reference.err";
+    public static final String REFERENCE_ERROR_VERSION = "validation.reference.version.not.found";
 
     private final VersionService versionService;
-    private final RefBookVersionRepository versionRepository;
 
     private final Map<Structure.Reference, String> referenceWithValueMap;
 
     private Structure structure;
 
     public ReferenceValueValidation(VersionService versionService,
-                                    RefBookVersionRepository versionRepository,
                                     Map<Structure.Reference, String> referenceWithValueMap,
                                     Structure structure) {
         this.versionService = versionService;
-        this.versionRepository = versionRepository;
         this.referenceWithValueMap = referenceWithValueMap;
         this.structure = structure;
     }
 
     public ReferenceValueValidation(VersionService versionService,
-                                    RefBookVersionRepository versionRepository,
                                     Map<Structure.Reference, String> referenceWithValueMap,
                                     Structure structure,
                                     Set<String> excludeAttributes) {
-        this(versionService, versionRepository, referenceWithValueMap, structure);
+        this(versionService, referenceWithValueMap, structure);
         setErrorAttributes(excludeAttributes);
     }
 
     public ReferenceValueValidation(VersionService versionService,
-                                    RefBookVersionRepository versionRepository,
                                     Row row,
                                     Structure structure) {
-        this(versionService, versionRepository, getReferenceWithValueMap(row, structure), structure);
+        this(versionService, getReferenceWithValueMap(row, structure), structure);
     }
 
     public ReferenceValueValidation(VersionService versionService,
-                                    RefBookVersionRepository versionRepository,
                                     Row row,
                                     Structure structure,
                                     Set<String> excludeAttributes) {
-        this(versionService, versionRepository, row, structure);
+        this(versionService, row, structure);
         setErrorAttributes(excludeAttributes);
     }
 
@@ -96,8 +90,14 @@ public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
         Structure.Reference reference = entry.getKey();
         String referenceValue = entry.getValue();
 
-        RefBookVersionEntity refBookVersion = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
-        if (refBookVersion == null) return true;
+        RefBookVersion refBookVersion;
+        try {
+            refBookVersion = versionService.getLastPublishedVersion(reference.getReferenceCode());
+
+        } catch (NotFoundException e) {
+            throw new UserException(new Message(REFERENCE_ERROR_VERSION,
+                    reference.getReferenceCode(), reference.getAttribute()), e);
+        }
         Integer versionId = refBookVersion.getId();
         Structure referenceStructure = refBookVersion.getStructure();
 
