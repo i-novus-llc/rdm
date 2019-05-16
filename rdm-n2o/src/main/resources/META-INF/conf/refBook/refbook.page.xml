@@ -95,10 +95,10 @@
                         </show-modal>
                     </button>
                     <button id="deleteRecord_r" label="Удалить строку" color="danger" icon="fa fa-trash">
-                        <invoke operation-id="delete"/>
+                        <invoke operation-id="delete" refresh-widget-id="version_select"/>
                     </button>
                     <button id="deleteAllRecords_r" label="Удалить все" color="danger" icon="fa fa-trash">
-                        <invoke operation-id="deleteAll"/>
+                        <invoke operation-id="deleteAll" refresh-widget-id="version_select"/>
                     </button>
                 </toolbar>
             </table>
