@@ -516,7 +516,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private RefBookVersionEntity getLastPublishedVersion(RefBookVersionEntity draftVersion) {
-        return versionRepository.findLastVersion(draftVersion.getRefBook().getId(), RefBookVersionStatus.PUBLISHED);
+        return versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(draftVersion.getRefBook().getId(), RefBookVersionStatus.PUBLISHED);
     }
 
     private void resolveOverlappingPeriodsInFuture(LocalDateTime fromDate, LocalDateTime toDate, Integer refBookId) {

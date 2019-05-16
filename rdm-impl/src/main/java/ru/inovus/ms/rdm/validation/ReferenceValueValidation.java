@@ -96,7 +96,7 @@ public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
         Structure.Reference reference = entry.getKey();
         String referenceValue = entry.getValue();
 
-        RefBookVersionEntity refBookVersion = versionRepository.findLastVersion(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
+        RefBookVersionEntity refBookVersion = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
         if (refBookVersion == null) return true;
         Integer versionId = refBookVersion.getId();
         Structure referenceStructure = refBookVersion.getStructure();

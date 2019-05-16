@@ -42,7 +42,6 @@ import ru.inovus.ms.rdm.util.VersionPeriodPublishValidation;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 
 import static java.util.Arrays.asList;
@@ -214,7 +213,7 @@ public class DraftServiceTest {
         expectedVersionEntity.setFromDate(now);
 
         when(versionRepository.findOne(eq(draft.getId()))).thenReturn(draft);
-        when(versionRepository.findLastVersion(anyInt(), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(versionEntity);
+        when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(anyInt(), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(versionEntity);
 
         when(versionService.getById(eq(draft.getId())))
                 .thenReturn(ModelGenerator.versionModel(draft));
@@ -418,7 +417,7 @@ public class DraftServiceTest {
         versionWithStructure.setStructure(UploadFileTestData.createStructure()); // NB: reference
 
         RefBookVersionEntity referenceEntity = UploadFileTestData.createReferenceVersion();
-        when(versionRepository.findLastVersion(eq(UploadFileTestData.REFERENCE_ENTITY_CODE), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(referenceEntity);
+        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(UploadFileTestData.REFERENCE_ENTITY_CODE), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(referenceEntity);
         when(versionService.getStructure(eq(UploadFileTestData.REFERENCE_ENTITY_VERSION_ID))).thenReturn(referenceEntity.getStructure());
 
         PageImpl<RefBookRowValue> referenceRows = UploadFileTestData.createReferenceRows();

@@ -57,7 +57,7 @@ public class ReferenceValidation implements RdmValidation {
         Structure.Attribute draftAttribute = draftVersion.getStructure().getAttribute(reference.getAttribute());
         Field draftField = field(draftAttribute);
 
-        RefBookVersionEntity referenceVersion = versionRepository.findLastVersion(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
+        RefBookVersionEntity referenceVersion = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
         Structure.Attribute referenceAttribute = reference.findReferenceAttribute(referenceVersion.getStructure());
         Field referenceField = field(referenceAttribute);
 

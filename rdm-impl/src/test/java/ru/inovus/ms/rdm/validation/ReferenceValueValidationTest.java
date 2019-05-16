@@ -81,7 +81,7 @@ public class ReferenceValueValidationTest {
         RefBookVersionEntity versionEntity = new RefBookVersionEntity();
         versionEntity.setId(VERSION_ID);
         versionEntity.setStructure(referenceStructure);
-        when(versionRepository.findLastVersion(eq(REF_BOOK_CODE), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(versionEntity);
+        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(REF_BOOK_CODE), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(versionEntity);
 
         List<Message> messages = new ReferenceValueValidation(versionService, versionRepository, referenceWithValueMap, structure, Collections.singleton(REF_ATTRIBUTE_CODE2)).validate();
         Assert.assertTrue(messages.size() == 1);

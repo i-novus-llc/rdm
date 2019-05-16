@@ -76,7 +76,7 @@ public class RowsValidatorTest {
         RefBookVersionEntity versionEntity = new RefBookVersionEntity();
         versionEntity.setId(REFERENCE_VERSION);
         versionEntity.setStructure(createTestStructure());
-        when(versionRepository.findLastVersion(eq(REFERENCE_CODE), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(versionEntity);
+        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(REFERENCE_CODE), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(versionEntity);
 
         AttributeFilter attributeFilter = new AttributeFilter(REFERENCE_ATTRIBUTE, ATTRIBUTE_VALUE, FieldType.STRING, SearchTypeEnum.EXACT);
         searchDataCriteria = new SearchDataCriteria(

@@ -13,7 +13,6 @@ import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
-import ru.inovus.ms.rdm.util.ConverterUtil;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -42,7 +41,7 @@ public class NonStrictOnTypeRowMapperTest {
         versionEntity.setStructure(new Structure(Collections.singletonList(Structure.Attribute.buildPrimary("count", "count",
                 FieldType.INTEGER, "count")), null));
         when(versionRepository.findOne(eq(referenceVersion))).thenReturn(versionEntity);
-        when(versionRepository.findLastVersion(eq(referenceCode), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(versionEntity);
+        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(referenceCode), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(versionEntity);
 
         Map<String, Object> data = new LinkedHashMap<>() {{
             put("string", "abc");
@@ -78,7 +77,7 @@ public class NonStrictOnTypeRowMapperTest {
 
         RefBookVersionEntity m1VersionEntity = new RefBookVersionEntity();
         m1VersionEntity.setId(referenceVersion);
-        when(versionRepository.findLastVersion(eq(referenceCode), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(m1VersionEntity);
+        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(referenceCode), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(m1VersionEntity);
 
         Map<String, Object> data = new LinkedHashMap<String, Object>() {{
             put("string", "abc");
