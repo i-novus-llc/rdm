@@ -45,7 +45,16 @@ public interface VersionService {
     })
     @Path("/{version}/refbook/{refBookCode}")
     RefBookVersion getVersion(@ApiParam("Номер версии") @PathParam("version") String version,
-                           @ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode);
+                              @ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode);
+
+    @GET
+    @ApiOperation("Получение последней опубликованной версии по коду справочника")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет версии")
+    })
+    @Path("/refBook/{refBookCode}/last")
+    RefBookVersion getLastPublishedVersion(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode);
 
     @GET
     @Path("/refBook/{refBookCode}/{date}")

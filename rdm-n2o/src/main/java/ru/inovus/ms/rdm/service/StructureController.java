@@ -11,10 +11,8 @@ import ru.inovus.ms.rdm.model.validation.*;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.util.TimeUtils;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -118,11 +116,8 @@ public class StructureController {
     }
 
     private void enrich(ReadAttribute attribute, Structure.Reference reference) {
-        Integer refRefBookId = refBookService.getByVersionId(reference.getReferenceVersion()).getRefBookId();
+        Integer refRefBookId = refBookService.getId(reference.getReferenceCode());
         attribute.setReferenceRefBookId(refRefBookId);
-
-        String attributeName = getAttributeName(reference.getReferenceAttribute(), attribute.getReferenceVersion());
-        attribute.setReferenceAttributeName(attributeName);
 
         attribute.setReferenceDisplayExpression(reference.getDisplayExpression());
     }
@@ -133,35 +128,43 @@ public class StructureController {
                 case REQUIRED:
                     attribute.setRequired(true);
                     break;
+
                 case UNIQUE:
                     attribute.setUnique(true);
                     break;
+
                 case PLAIN_SIZE:
                     attribute.setPlainSize(((PlainSizeAttributeValidation) validation).getSize());
                     break;
+
                 case FLOAT_SIZE:
                     FloatSizeAttributeValidation floatSize = (FloatSizeAttributeValidation) validation;
                     attribute.setIntPartSize(floatSize.getIntPartSize());
                     attribute.setFracPartSize(floatSize.getFracPartSize());
                     break;
+
                 case INT_RANGE:
                     IntRangeAttributeValidation intRange = (IntRangeAttributeValidation) validation;
                     attribute.setMinInteger(intRange.getMin());
                     attribute.setMaxInteger(intRange.getMax());
                     break;
+
                 case FLOAT_RANGE:
                     FloatRangeAttributeValidation floatRange = (FloatRangeAttributeValidation) validation;
                     attribute.setMinFloat(floatRange.getMin());
                     attribute.setMaxFloat(floatRange.getMax());
                     break;
+
                 case DATE_RANGE:
                     DateRangeAttributeValidation dateRange = (DateRangeAttributeValidation) validation;
                     attribute.setMinDate(dateRange.getMin());
                     attribute.setMaxDate(dateRange.getMax());
                     break;
+
                 case REG_EXP:
                     attribute.setRegExp(((RegExpAttributeValidation) validation).getRegExp());
                     break;
+
                 default:
                     break;
             }
@@ -170,10 +173,6 @@ public class StructureController {
 
     private List<AttributeValidation> filterByAttribute(List<AttributeValidation> validations, String attribute) {
         return validations.stream().filter(v -> Objects.equals(attribute, v.getAttribute())).collect(Collectors.toList());
-    }
-
-    private String getAttributeName(String attributeCode, Integer versionId) {
-        return versionService.getStructure(versionId).getAttribute(attributeCode).getName();
     }
 
     private Structure.Attribute buildAttribute(Attribute request) {
@@ -188,13 +187,13 @@ public class StructureController {
 
     private Structure.Reference buildReference(Attribute request) {
         return new Structure.Reference(request.getCode(),
-                request.getReferenceVersion(), request.getReferenceAttribute(),
+                request.getReferenceCode(),
                 request.getReferenceDisplayExpression());
     }
 
     private UpdateAttribute getUpdateAttribute(Integer versionId, Attribute attribute) {
         UpdateAttribute updateAttribute = new UpdateAttribute();
-        updateAttribute.setLastActionDate(LocalDateTime.of(LocalDate.now(), LocalTime.now()));
+        updateAttribute.setLastActionDate(TimeUtils.nowZoned());
         updateAttribute.setVersionId(versionId);
         updateAttribute.setCode(attribute.getCode());
         if (attribute.getName() != null)
@@ -205,10 +204,8 @@ public class StructureController {
         if (attribute.getDescription() != null)
             updateAttribute.setDescription(of(attribute.getDescription()));
         updateAttribute.setAttribute(of(attribute.getCode()));
-        if (attribute.getReferenceVersion() != null)
-            updateAttribute.setReferenceVersion(of(attribute.getReferenceVersion()));
-        if (attribute.getReferenceAttribute() != null)
-            updateAttribute.setReferenceAttribute(of(attribute.getReferenceAttribute()));
+        if (attribute.getReferenceCode() != null)
+            updateAttribute.setReferenceCode(of(attribute.getReferenceCode()));
         if (attribute.getReferenceDisplayExpression() != null)
             updateAttribute.setDisplayExpression(of(attribute.getReferenceDisplayExpression()));
         return updateAttribute;
@@ -222,8 +219,7 @@ public class StructureController {
         attribute.setType(structureAttribute.getType());
         attribute.setIsPrimary(structureAttribute.getIsPrimary());
         if (Objects.nonNull(reference)) {
-            attribute.setReferenceVersion(reference.getReferenceVersion());
-            attribute.setReferenceAttribute(reference.getReferenceAttribute());
+            attribute.setReferenceCode(reference.getReferenceCode());
             attribute.setReferenceDisplayExpression(reference.getDisplayExpression());
         }
         return attribute;

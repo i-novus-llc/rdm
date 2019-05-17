@@ -11,10 +11,7 @@ import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.criteria.ReferenceCriteria;
-import ru.inovus.ms.rdm.model.AttributeFilter;
-import ru.inovus.ms.rdm.model.RefBookRowValue;
-import ru.inovus.ms.rdm.model.SearchDataCriteria;
-import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.util.HashMap;
@@ -30,7 +27,6 @@ public class ReferenceController {
     @Autowired
     private VersionService versionService;
 
-
     /**
      * Поиск списка категорий из справочника категорий (находится по коду)
      */
@@ -40,35 +36,42 @@ public class ReferenceController {
                 .getStructure(referenceCriteria.getVersionId())
                 .getReference(referenceCriteria.getReference());
 
-        SearchDataCriteria criteria = toSearchDataCriteria(reference, referenceCriteria);
+        RefBookVersion referenceVersion = versionService.getLastPublishedVersion(reference.getReferenceCode());
+        Structure.Attribute referenceAttribute = reference.findReferenceAttribute(referenceVersion.getStructure());
 
-        Page<RefBookRowValue> rowValues = versionService.search(reference.getReferenceVersion(), criteria);
+        SearchDataCriteria criteria = toSearchDataCriteria(referenceAttribute, referenceCriteria);
 
+        Page<RefBookRowValue> rowValues = versionService.search(reference.getReferenceCode(), criteria);
 
         return new RestPage<>(rowValues.getContent(), criteria, rowValues.getTotalElements())
-                .map(rowValue -> toReference(reference, rowValue));
+                .map(rowValue -> toReferenceValue(referenceAttribute, reference.getDisplayExpression(), rowValue));
     }
 
-    private static Reference toReference(Structure.Reference referenceAttribute, RowValue rowValue) {
+    private Reference toReferenceValue(Structure.Attribute attribute, String displayExpression, RowValue rowValue) {
         Reference referenceValue = new Reference();
-        referenceValue.setValue(String.valueOf(rowValue.getFieldValue(referenceAttribute.getReferenceAttribute()).getValue()));
+
+        referenceValue.setValue(String.valueOf(rowValue.getFieldValue(attribute.getCode()).getValue()));
+
         Map<String, Object> map = new HashMap<>();
         ((LongRowValue)rowValue).getFieldValues().forEach(fieldValue -> map.put(fieldValue.getField(), fieldValue.getValue()));
-        referenceValue.setDisplayValue(new StrSubstitutor(map).replace(referenceAttribute.getDisplayExpression()));
+        referenceValue.setDisplayValue(new StrSubstitutor(map).replace(displayExpression));
+
         return referenceValue;
     }
 
-    private SearchDataCriteria toSearchDataCriteria(Structure.Reference reference, ReferenceCriteria referenceCriteria) {
+    private SearchDataCriteria toSearchDataCriteria(Structure.Attribute attribute, ReferenceCriteria referenceCriteria) {
 
         SearchDataCriteria criteria = new SearchDataCriteria();
         if (isNotBlank(referenceCriteria.getValue())) {
             criteria.setAttributeFilter(singleton(singletonList(
-                    new AttributeFilter(reference.getReferenceAttribute(), referenceCriteria.getValue(), FieldType.STRING, SearchTypeEnum.EXACT))));
+                    new AttributeFilter(attribute.getCode(), referenceCriteria.getValue(), FieldType.STRING, SearchTypeEnum.EXACT))));
         }
+
         if (isNotBlank(referenceCriteria.getDisplayValue()))
             criteria.setCommonFilter(referenceCriteria.getDisplayValue());
         criteria.setPageNumber(referenceCriteria.getPage() - 1);
         criteria.setPageSize(referenceCriteria.getSize());
+
         return criteria;
     }
 }

@@ -3,17 +3,16 @@ package ru.inovus.ms.rdm.file;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
+import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
-import ru.inovus.ms.rdm.util.ConverterUtil;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDate;
-
 
 public class StructureRowMapper implements RowMapper {
 
@@ -45,29 +44,39 @@ public class StructureRowMapper implements RowMapper {
         switch (attribute.getType()) {
             case STRING:
                 return String.valueOf(value);
+
             case INTEGER:
                 if (value instanceof BigInteger)
                     return value;
+
                 return BigInteger.valueOf(Long.parseLong(String.valueOf(value)));
+
             case FLOAT:
                 if (value instanceof BigDecimal)
                     return value;
+
                 return new BigDecimal(String.valueOf(value).replace(",", "."));
+
             case DATE:
                 return parseLocalDate(value);
+
             case BOOLEAN:
                 if (value instanceof Boolean)
                     return value;
+
                 String lowerCase = String.valueOf(value).toLowerCase();
                 if (!"true".equals(lowerCase) && !"false".equals(lowerCase))
                     throw new RdmException("value is not boolean");
                 return Boolean.valueOf(lowerCase);
+
             case REFERENCE:
                 if (value instanceof Reference)
                     return value;
                 return createReference(attribute.getCode(), String.valueOf(value));
+
             case TREE:
                 return value;
+
             default:
                 throw new RdmException("invalid type: " + attribute.getType());
         }
@@ -75,16 +84,22 @@ public class StructureRowMapper implements RowMapper {
 
     private Reference createReference(String attributeCode, String value) {
         Structure.Reference reference = structure.getReference(attributeCode);
-        RefBookVersionEntity version = versionRepository.findOne(reference.getReferenceVersion());
+        RefBookVersionEntity version = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
+        if (version == null)
+            throw new RdmException("version.not.found");
+
+        Structure.Attribute referenceAttribute = reference.findReferenceAttribute(version.getStructure());
         try {
-            castValue(version.getStructure().getAttribute(reference.getReferenceAttribute()), value);
+            castValue(referenceAttribute, value);
+
         } catch (Exception e) {
             throw new RdmException("reference value has a wrong type", e);
         }
+
         return new Reference(
                 version.getStorageCode(),
-                ConverterUtil.date(version.getFromDate()),
-                reference.getReferenceAttribute(),
+                version.getFromDate(),
+                referenceAttribute.getCode(),
                 new DisplayExpression(reference.getDisplayExpression()),
                 value);
     }

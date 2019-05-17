@@ -54,6 +54,7 @@ public class VersionServiceImpl implements VersionService {
 
     public static final String ROW_NOT_FOUND = "row.not.found";
     public static final String VERSION_NOT_FOUND = "version.not.found";
+    public static final String LAST_PUBLISHED_VERSION_NOT_FOUND = "last.published.version.not.found";
 
     private RefBookVersionRepository versionRepository;
     private SearchDataService searchDataService;
@@ -61,6 +62,7 @@ public class VersionServiceImpl implements VersionService {
     private VersionFileRepository versionFileRepository;
     private FileStorage fileStorage;
     private PassportValueRepository passportValueRepository;
+    private PerRowFileGeneratorFactory perRowFileGeneratorFactory;
 
 
     private String passportFileHead;
@@ -70,13 +72,15 @@ public class VersionServiceImpl implements VersionService {
     public VersionServiceImpl(RefBookVersionRepository versionRepository,
                               SearchDataService searchDataService,
                               FileNameGenerator fileNameGenerator, VersionFileRepository versionFileRepository,
-                              FileStorage fileStorage, PassportValueRepository passportValueRepository) {
+                              FileStorage fileStorage, PassportValueRepository passportValueRepository,
+                              PerRowFileGeneratorFactory perRowFileGeneratorFactory) {
         this.versionRepository = versionRepository;
         this.searchDataService = searchDataService;
         this.fileNameGenerator = fileNameGenerator;
         this.versionFileRepository = versionFileRepository;
         this.fileStorage = fileStorage;
         this.passportValueRepository = passportValueRepository;
+        this.perRowFileGeneratorFactory = perRowFileGeneratorFactory;
     }
 
     @Value("${rdm.download.passport.head}")
@@ -116,6 +120,15 @@ public class VersionServiceImpl implements VersionService {
     }
 
     @Override
+    @Transactional
+    public RefBookVersion getLastPublishedVersion(String refBookCode) {
+        RefBookVersionEntity versionEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.PUBLISHED);
+        if (versionEntity == null)
+            throw new NotFoundException(new Message(LAST_PUBLISHED_VERSION_NOT_FOUND));
+        return versionModel(versionEntity);
+    }
+
+    @Override
     public Page<RefBookRowValue> search(String refBookCode, OffsetDateTime date, SearchDataCriteria criteria) {
         RefBookVersionEntity version = versionRepository.findActualOnDate(refBookCode, date.toLocalDateTime());
         return version != null ? getRowValuesOfVersion(criteria, version) : new PageImpl<>(emptyList());
@@ -128,14 +141,11 @@ public class VersionServiceImpl implements VersionService {
 
     private Page<RefBookRowValue> getRowValuesOfVersion(SearchDataCriteria criteria, RefBookVersionEntity version) {
         List<Field> fields = fields(version.getStructure());
-        Date bdate = date(version.getFromDate());
-        Date edate = date(version.getToDate());
-
         Set<List<FieldSearchCriteria>> fieldSearchCriteriaList = new HashSet<>();
         fieldSearchCriteriaList.addAll(getFieldSearchCriteriaList(criteria.getAttributeFilter()));
         fieldSearchCriteriaList.addAll(getFieldSearchCriteriaList(criteria.getPlainAttributeFilter(), version.getStructure()));
 
-        DataCriteria dataCriteria = new DataCriteria(version.getStorageCode(), bdate, edate,
+        DataCriteria dataCriteria = new DataCriteria(version.getStorageCode(), version.getFromDate(), version.getToDate(),
                 fields, fieldSearchCriteriaList, criteria.getCommonFilter());
         dataCriteria.setPage(criteria.getPageNumber() + 1);
         dataCriteria.setSize(criteria.getPageSize());
@@ -203,8 +213,8 @@ public class VersionServiceImpl implements VersionService {
             RefBookVersionEntity versionEntity = versionRepository.findOne(entry.getKey());
             notExistent.addAll(searchDataService.getNotExists(
                     versionEntity.getStorageCode(),
-                    date(versionEntity.getFromDate()),
-                    date(versionEntity.getToDate()),
+                    versionEntity.getFromDate(),
+                    versionEntity.getToDate(),
                     entry.getValue()));
 
         }
@@ -222,8 +232,8 @@ public class VersionServiceImpl implements VersionService {
 
         DataCriteria criteria = new DataCriteria(
                 version.getStorageCode(),
-                date(version.getFromDate()),
-                date(version.getToDate()),
+                version.getFromDate(),
+                version.getToDate(),
                 fields(version.getStructure()),
                 singletonList(split[0]));
 
@@ -298,8 +308,8 @@ public class VersionServiceImpl implements VersionService {
     }
 
     private InputStream generateVersionFile(RefBookVersion versionModel, FileType fileType) {
-        VersionDataIterator dataIterator = new VersionDataIterator(this, singletonList(versionModel.getId()));
-        try (PerRowFileGenerator fileGenerator = PerRowFileGeneratorFactory
+        VersionDataIterator dataIterator = new VersionDataIterator(this, Collections.singletonList(versionModel.getId()));
+        try (PerRowFileGenerator fileGenerator = perRowFileGeneratorFactory
                 .getFileGenerator(dataIterator, versionModel, fileType);
              Archiver archiver = new Archiver()) {
             if (includePassport) {

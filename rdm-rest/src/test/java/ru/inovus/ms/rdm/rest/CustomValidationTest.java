@@ -64,7 +64,7 @@ public class CustomValidationTest {
     public void testAddDeleteValidation() {
         String REF_BOOK_NAME = "CustomValidationTest";
         RefBook refBook = refBookService.create(new RefBookCreateRequest(REF_BOOK_NAME, null));
-        Draft draft = draftService.create(refBook.getRefBookId(), createStructure());
+        Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), createStructure()));
 
         //добавление проверки
         draftService.addAttributeValidation(draft.getId(), INTEGER_ATTR, new IntRangeAttributeValidation(
@@ -99,7 +99,7 @@ public class CustomValidationTest {
     public void testUpdateValidation() {
         String REF_BOOK_NAME = "CustomValidationUpdateTest";
         RefBook refBook = refBookService.create(new RefBookCreateRequest(REF_BOOK_NAME, null));
-        Draft draft = draftService.create(refBook.getRefBookId(), createStructure());
+        Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), createStructure()));
         //добавление проверки на обязательность
         RequiredAttributeValidation expectedRequired = new RequiredAttributeValidation();
         draftService.updateAttributeValidations(draft.getId(), INTEGER_ATTR, singletonList(expectedRequired));

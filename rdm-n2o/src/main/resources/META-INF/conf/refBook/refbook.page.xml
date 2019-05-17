@@ -21,8 +21,17 @@
                         <menu-item label="Опубликовать" visibility-condition="version.status=='DRAFT'">
                             <invoke operation-id="publish"/>
                         </menu-item>
+                        <menu-item label="Загрузить данные" visibility-condition="version.status=='DRAFT'">
+                            <show-modal page-id="uploadData" submit-operation-id="uploadData" upload="defaults"
+                                        redirect-target-after-submit="self"
+                                        redirect-url-after-submit="/#/main/:refBookId/edit">
+                                <pre-filters>
+                                    <eq field-id="versionId" value="{version.id}"/>
+                                </pre-filters>
+                            </show-modal>
+                        </menu-item>
                         <menu-item label="Загрузить из файла">
-                            <show-modal page-id="uploadFile" submit-operation-id="upload" upload="defaults"
+                            <show-modal page-id="uploadFile" submit-operation-id="uploadFromFile" upload="defaults"
                                         redirect-target-after-submit="self"
                                         redirect-url-after-submit="/#/main/:refBookId/edit">
                                 <pre-filters>

@@ -1,6 +1,8 @@
 package ru.inovus.ms.rdm.service;
 
 import com.querydsl.core.types.Predicate;
+import net.n2oapp.criteria.api.CollectionPage;
+import net.n2oapp.criteria.api.Criteria;
 import net.n2oapp.platform.i18n.UserException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -10,6 +12,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.*;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -25,11 +28,12 @@ import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.FileStorage;
+import ru.inovus.ms.rdm.file.MockFileStorage;
+import ru.inovus.ms.rdm.file.UploadFileTestData;
+import ru.inovus.ms.rdm.file.export.PerRowFileGenerator;
+import ru.inovus.ms.rdm.file.export.PerRowFileGeneratorFactory;
 import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.repositiory.AttributeValidationRepository;
-import ru.inovus.ms.rdm.repositiory.RefBookRepository;
-import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
-import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
+import ru.inovus.ms.rdm.repositiory.*;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.FileNameGenerator;
 import ru.inovus.ms.rdm.util.ModelGenerator;
@@ -38,22 +42,18 @@ import ru.inovus.ms.rdm.util.VersionPeriodPublishValidation;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertTrue;
-import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static org.junit.Assert.*;
+import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static org.mockito.Mockito.*;
 import static ru.inovus.ms.rdm.model.UpdateValue.of;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
-
 
 @RunWith(MockitoJUnitRunner.class)
 public class DraftServiceTest {
@@ -81,8 +81,10 @@ public class DraftServiceTest {
     private RefBookRepository refBookRepository;
     @Mock
     private SearchDataService searchDataService;
-    @Mock
-    private FileStorage fileStorage;
+//    @Mock
+//    private FileStorage fileStorage;
+    @Spy
+    private FileStorage fileStorage = new MockFileStorage();
     @Mock
     private FileNameGenerator fileNameGenerator;
     @Mock
@@ -95,6 +97,10 @@ public class DraftServiceTest {
     private RefBookLockService refBookLockService;
     @Mock
     private AttributeValidationRepository attributeValidationRepository;
+    @Mock
+    private PerRowFileGeneratorFactory fileGeneratorFactory;
+    @Mock
+    private PassportValueRepository passportValueRepository;
 
     private static final String UPD_SUFFIX = "_upd";
     private static final String PK_SUFFIX = "_pk";
@@ -116,17 +122,20 @@ public class DraftServiceTest {
         codeAttribute = Structure.Attribute.buildPrimary("code", "Код", FieldType.STRING, "описание code");
         pkAttribute = Structure.Attribute.buildPrimary(nameAttribute.getCode() + PK_SUFFIX, nameAttribute.getName() + PK_SUFFIX, FieldType.STRING, nameAttribute.getDescription() + PK_SUFFIX);
 
-        nameReference = new Structure.Reference(nameAttribute.getCode(), 801, codeAttribute.getCode(), null);
-        updateNameReference = new Structure.Reference(nameAttribute.getCode(), 802, codeAttribute.getCode(), DisplayExpression.toPlaceholder(codeAttribute.getCode()));
-        nullReference = new Structure.Reference(null, null, null, null);
+        nameReference = new Structure.Reference(nameAttribute.getCode(), "REF_801", null);
+        updateNameReference = new Structure.Reference(nameAttribute.getCode(), "REF_802", DisplayExpression.toPlaceholder(codeAttribute.getCode()));
+        nullReference = new Structure.Reference(null, null, null);
     }
 
     @Before
     public void setUp() {
+        reset(draftDataService, fileNameGenerator, fileGeneratorFactory);
         when(draftDataService.applyDraft(any(), any(), any(), any())).thenReturn(TEST_STORAGE_CODE);
         when(draftDataService.createDraft(anyList())).thenReturn(TEST_DRAFT_CODE_NEW);
         when(fileNameGenerator.generateName(any(), eq(FileType.XLSX))).thenReturn("version.xlsx");
         when(fileNameGenerator.generateName(any(), eq(FileType.PDF))).thenReturn("version.pdf");
+        when(fileGeneratorFactory.getFileGenerator(any(Iterator.class), any(RefBookVersion.class), any(FileType.class))).thenReturn(mock(PerRowFileGenerator.class));
+
     }
 
     @Test
@@ -179,7 +188,7 @@ public class DraftServiceTest {
         //valid publishing, null version name
         draftService.publish(testDraftVersion.getId(), null, now, null);
         assertEquals("1.1", testDraftVersion.getVersion());
-        verify(draftDataService).applyDraft(isNull(String.class), eq(expectedDraftStorageCode), eq(Date.from(now.atZone(ZoneId.systemDefault()).toInstant())), any());
+        verify(draftDataService).applyDraft(isNull(String.class), eq(expectedDraftStorageCode), eq(now), any());
         verify(versionRepository).save(eq(expectedVersionEntity));
         verify(fileStorage, times(2)).saveContent(any(InputStream.class), anyString());
         reset(versionRepository);
@@ -202,8 +211,10 @@ public class DraftServiceTest {
         expectedVersionEntity.setStorageCode(TEST_STORAGE_CODE);
         LocalDateTime now = LocalDateTime.now();
         expectedVersionEntity.setFromDate(now);
+
         when(versionRepository.findOne(eq(draft.getId()))).thenReturn(draft);
-        when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(new PageImpl(singletonList(versionEntity)));
+        when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(anyInt(), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(versionEntity);
+
         when(versionService.getById(eq(draft.getId())))
                 .thenReturn(ModelGenerator.versionModel(draft));
         when(versionNumberStrategy.check("2.2", REFBOOK_ID)).thenReturn(true);
@@ -212,8 +223,7 @@ public class DraftServiceTest {
         draftService.publish(draft.getId(), expectedVersionEntity.getVersion(), now, null);
 
         verify(draftDataService)
-                .applyDraft(eq(versionEntity.getStorageCode()), eq(expectedDraftStorageCode),
-                        eq(Date.from(now.atZone(ZoneId.systemDefault()).toInstant())), any());
+                .applyDraft(eq(versionEntity.getStorageCode()), eq(expectedDraftStorageCode), eq(now), any());
         verify(versionRepository).save(eq(expectedVersionEntity));
         reset(versionRepository);
     }
@@ -275,7 +285,7 @@ public class DraftServiceTest {
         when(versionRepository.save(any(RefBookVersionEntity.class))).thenReturn(testDraftVersion);
         when(versionRepository.exists(isVersionOfRefBook(REFBOOK_ID))).thenReturn(true);
         Draft expected = new Draft(1, TEST_DRAFT_CODE);
-        Draft actual = draftService.create(REFBOOK_ID, testDraftVersion.getStructure());
+        Draft actual = draftService.create(new CreateDraftRequest(REFBOOK_ID, testDraftVersion.getStructure()));
 
         verify(draftDataService).deleteAllRows(eq(TEST_DRAFT_CODE));
         assertEquals(expected, actual);
@@ -285,14 +295,19 @@ public class DraftServiceTest {
     public void testCreateWithExistingDraftDifferentStructure() {
         RefBookVersionEntity testDraftVersion = createTestDraftVersion();
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(testDraftVersion);
-        when(versionRepository.save(eq(testDraftVersion))).thenReturn(testDraftVersion);
+        when(versionRepository.save(any(RefBookVersionEntity.class))).thenAnswer(v -> {
+            RefBookVersionEntity saved = (RefBookVersionEntity)(v.getArguments()[0]);
+            saved.setId(testDraftVersion.getId() + 1);
+            return saved;
+        });
         when(versionRepository.exists(hasVersionId(testDraftVersion.getId()).and(isDraft()))).thenReturn(true);
         when(versionRepository.exists(eq(isVersionOfRefBook(REFBOOK_ID)))).thenReturn(true);
         Structure structure = new Structure();
         structure.setAttributes(singletonList(Structure.Attribute.build("name", "name", FieldType.STRING, "description")));
-        Draft draftActual = draftService.create(REFBOOK_ID, structure);
 
-        assertEquals(testDraftVersion.getId(), draftActual.getId());
+        Draft draftActual = draftService.create(new CreateDraftRequest(REFBOOK_ID, structure));
+
+        assertNotEquals(testDraftVersion.getId(), draftActual.getId());
         assertNotEquals(TEST_DRAFT_CODE, draftActual.getStorageCode());
     }
 
@@ -314,7 +329,7 @@ public class DraftServiceTest {
         when(versionRepository.save(eq(expectedRefBookVersion))).thenReturn(expectedRefBookVersion);
         when(versionRepository.exists(eq(isVersionOfRefBook(REFBOOK_ID)))).thenReturn(true);
 
-        draftService.create(REFBOOK_ID, new Structure());
+        draftService.create(new CreateDraftRequest(REFBOOK_ID, new Structure()));
 
         verify(versionRepository).save(eq(expectedRefBookVersion));
     }
@@ -387,13 +402,9 @@ public class DraftServiceTest {
         RefBookVersionEntity versionBefore = createTestDraftVersion();
         versionBefore.setRefBook(refBook);
 
-        RefBookVersionEntity versionWithPassport = createTestDraftVersionWithPassport();
-        versionWithPassport.setId(null);
-        versionWithPassport.setStorageCode(null);
-        versionWithPassport.setRefBook(refBook);
-
+        Integer draftId = 1;
         RefBookVersionEntity versionWithStructure = createTestDraftVersionWithPassport();
-        versionWithStructure.setId(1);
+        versionWithStructure.setId(draftId);
 
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(createCopyOfVersion(versionBefore)).thenReturn(createCopyOfVersion(versionWithStructure));
         when(refBookRepository.findOne(REFBOOK_ID)).thenReturn(refBook);
@@ -402,16 +413,41 @@ public class DraftServiceTest {
 
         versionWithStructure.setStorageCode(TEST_DRAFT_CODE_NEW);
         versionWithStructure.setRefBook(refBook);
-        versionWithStructure.setStructure(createFullTestStructure());
+        //versionWithStructure.setStructure(UploadFileTestData.createStringStructure());
+        versionWithStructure.setStructure(UploadFileTestData.createStructure()); // NB: reference
 
-        ArgumentCaptor<RefBookVersionEntity> versionsCaptor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
+        RefBookVersionEntity referenceEntity = UploadFileTestData.createReferenceVersion();
+        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(UploadFileTestData.REFERENCE_ENTITY_CODE), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(referenceEntity);
+        when(versionService.getLastPublishedVersion(eq(UploadFileTestData.REFERENCE_ENTITY_CODE))).thenReturn(ModelGenerator.versionModel(referenceEntity));
+        when(versionService.getStructure(eq(UploadFileTestData.REFERENCE_ENTITY_VERSION_ID))).thenReturn(referenceEntity.getStructure());
+
+        PageImpl<RefBookRowValue> referenceRows = UploadFileTestData.createReferenceRows();
+        when(versionService.search(eq(UploadFileTestData.REFERENCE_ENTITY_VERSION_ID), any(SearchDataCriteria.class))).thenReturn(referenceRows);
+
+        when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>(0, emptyList(), new Criteria()));
+
+        when(versionRepository.save(any(RefBookVersionEntity.class))).thenReturn(versionWithStructure);
+        when(versionRepository.findOne(draftId)).thenReturn(versionWithStructure);
+
+        //searchDataService
+
+        ArgumentCaptor<RefBookVersionEntity> draftCaptor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
+
         draftService.create(REFBOOK_ID, createTestFileModel("/file/", "uploadFile", "xml"));
 
-        verify(dropDataService).drop(eq(Collections.singleton(TEST_DRAFT_CODE)));
-        verify(versionRepository).delete(eq(versionBefore.getId()));
-        verify(versionRepository, times(2)).save(versionsCaptor.capture());
+        verify(versionRepository).save(draftCaptor.capture());
 
-        assertVersions(asList(versionWithPassport, versionWithStructure), versionsCaptor.getAllValues());
+        RefBookVersionEntity expectedDraftVersion = versionWithStructure;
+        expectedDraftVersion.setStructure(UploadFileTestData.createStructure());
+        RefBookVersionEntity actualDraftVersion = (RefBookVersionEntity)(draftCaptor.getValue());
+        actualDraftVersion.setId(expectedDraftVersion.getId());
+
+        Assert.assertEquals(expectedDraftVersion, draftCaptor.getValue());
+
+        // NB: Old draft is not dropped since its structure is changed
+        //verify(dropDataService).drop(eq(Collections.singleton(TEST_DRAFT_CODE)));
+        //verify(versionRepository).delete(eq(versionBefore.getId()));
+
     }
 
     @Test
@@ -454,11 +490,11 @@ public class DraftServiceTest {
         assertEquals(updateNameReference, structure.getReference(updateAttributeModel.getCode()));
 
         // новое значение не передается, проверка, что значение не изменилось
-        updateAttributeModel.setReferenceVersion(null);
+        updateAttributeModel.setReferenceCode(null);
         // изменение некоторого поля атрибута на null и проверка, что значение обновилось
         updateAttributeModel.setDescription(of(null));
         draftService.updateAttribute(updateAttributeModel);
-        assertEquals(updateNameReference.getReferenceVersion(), structure.getReference(updateAttributeModel.getCode()).getReferenceVersion());
+        assertEquals(updateNameReference.getReferenceCode(), structure.getReference(updateAttributeModel.getCode()).getReferenceCode());
         assertNull(structure.getAttribute(updateAttributeModel.getCode()).getDescription());
 
         // изменение кода атрибута на null, должна быть ошибка IllegalArgumentException
@@ -466,7 +502,7 @@ public class DraftServiceTest {
         testUpdateWithExceptionExpected(updateAttributeModel, structure.getAttribute(updateAttributeModel.getCode()), structure.getReference(updateAttributeModel.getCode()));
 
         // изменение версии ссылки на null, должна быть ошибка IllegalArgumentException (случай Reference -> Reference)
-        updateAttributeModel.setReferenceVersion(of(null));
+        updateAttributeModel.setReferenceCode(of(null));
         testUpdateWithExceptionExpected(updateAttributeModel, structure.getAttribute(updateAttributeModel.getCode()), structure.getReference(updateAttributeModel.getCode()));
 
         // изменение типа атрибута Reference -> String и проверка, что ссылка удалилась из структуры
@@ -536,10 +572,26 @@ public class DraftServiceTest {
      * extension = 'xml'
      **/
     private FileModel createTestFileModel(String path, String fileName, String extension) {
-        InputStream input = DraftServiceTest.class.getResourceAsStream(path + fileName + "." + extension);
-        FileModel fileModel = new FileModel(fileName, fileName + "." + extension);
-        when(fileStorage.saveContent(eq(input), eq(fileName))).thenReturn(fileModel.generateFullPath());
-        when(fileStorage.getContent(eq(fileModel.generateFullPath()))).thenReturn(input);
+        String fullName = fileName + "." + extension;
+
+        FileModel fileModel = new FileModel(fileName, fullName); // NB: fileName as path!
+        if (fileStorage instanceof MockFileStorage) {
+            ((MockFileStorage)fileStorage).setFileModel(fileModel);
+            ((MockFileStorage)fileStorage).setFilePath(path + fullName);
+        }
+
+        InputStream input = DraftServiceTest.class.getResourceAsStream(path + fullName);
+
+        if (!(fileStorage instanceof MockFileStorage)) {
+            when(fileStorage.saveContent(eq(input), eq(fileName))).thenReturn(fileModel.generateFullPath());
+            when(fileStorage.getContent(eq(fileModel.generateFullPath())))
+                    .thenReturn(input,
+                            DraftServiceTest.class.getResourceAsStream(path + fullName),
+                            DraftServiceTest.class.getResourceAsStream(path + fullName),
+                            DraftServiceTest.class.getResourceAsStream(path + fullName));
+        }
+
+        // NB: Check mock.
         String fullPath = fileStorage.saveContent(input, fileModel.getPath());
         fileModel.setPath(fullPath);
         return fileModel;
@@ -575,12 +627,7 @@ public class DraftServiceTest {
         version.setId(null);
         version.setStatus(RefBookVersionStatus.DRAFT);
         version.setStructure(null);
-        version.setPassportValues(asList(
-                new PassportValueEntity(new PassportAttributeEntity("code"), "код справочника", version),
-                new PassportValueEntity(new PassportAttributeEntity("name"), "наименование справочника", version),
-                new PassportValueEntity(new PassportAttributeEntity("shortName"), "краткое наим-ие", version),
-                new PassportValueEntity(new PassportAttributeEntity("description"), "описание", version)
-        ));
+        version.setPassportValues(UploadFileTestData.createPassportValues(version));
 
         return version;
     }
@@ -597,20 +644,6 @@ public class DraftServiceTest {
             assertEquals(expected.get(i).getStatus(), actual.get(i).getStatus());
             assertEquals(expected.get(i).getPassportValues().size(), actual.get(i).getPassportValues().size());
         }
-    }
-
-    private Structure createFullTestStructure() {
-        return new Structure(
-                asList(
-                        Structure.Attribute.build("string", "string", FieldType.STRING, "строка"),
-                        Structure.Attribute.build("integer", "integer", FieldType.STRING, "число"),
-                        Structure.Attribute.build("date", "date", FieldType.STRING, "дата"),
-                        Structure.Attribute.build("boolean", "boolean", FieldType.STRING, "булево"),
-                        Structure.Attribute.build("float", "float", FieldType.STRING, "дробное"),
-                        Structure.Attribute.build("reference", "reference", FieldType.STRING, "ссылка")
-                ),
-                null
-        );
     }
 
     private List<PassportValueEntity> createTestPassportValues(RefBookVersionEntity version) {

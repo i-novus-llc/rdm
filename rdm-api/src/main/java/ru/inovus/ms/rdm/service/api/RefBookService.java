@@ -42,6 +42,15 @@ public interface RefBookService {
     })
     String getCode(@PathParam("id") @ApiParam("Идентификатор справочника") Integer refBookId);
 
+    @GET
+    @Path("/code/{refBookCode}")
+    @ApiOperation("Идентификатор справочника по коду")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Справочник"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    Integer getId(String refBookCode);
+
     @POST
     @ApiOperation("Создание нового справочника")
     @ApiResponses({

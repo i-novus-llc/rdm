@@ -18,15 +18,21 @@ import ru.inovus.ms.rdm.message.RdmExceptionHandler;
 import ru.inovus.ms.rdm.operation.RdmCompileCacheOperation;
 import ru.inovus.ms.rdm.operation.RdmSourceCacheOperation;
 import ru.inovus.ms.rdm.provider.ExportFileProvider;
-import ru.inovus.ms.rdm.provider.RdmParamConverterProvider;
+import ru.inovus.ms.rdm.provider.RdmN2oParamConverterProvider;
 import ru.inovus.ms.rdm.provider.RowValueMapperPreparer;
+import ru.inovus.ms.rdm.util.json.RdmN2oLocalDateTimeMapperPreparer;
 
 @Configuration
 public class ClientConfiguration {
 
     @Bean
-    RdmParamConverterProvider rdmParamConverterProvider() {
-        return new RdmParamConverterProvider();
+    RdmN2oParamConverterProvider rdmParamConverterProvider() {
+        return new RdmN2oParamConverterProvider();
+    }
+
+    @Bean
+    RdmN2oLocalDateTimeMapperPreparer localDateTimeMapperPreparer() {
+        return new RdmN2oLocalDateTimeMapperPreparer();
     }
 
     @Bean

@@ -1,10 +1,7 @@
 package ru.inovus.ms.rdm.model;
 
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import ru.inovus.ms.rdm.util.TimeUtils;
 
 import static ru.inovus.ms.rdm.model.UpdateValue.of;
 
@@ -22,15 +19,16 @@ public class UpdateAttribute extends UpdatableDto {
 
     // поля Structure.Reference
     private UpdateValue<String> attribute;
-    private UpdateValue<Integer> referenceVersion;
-    private UpdateValue<String> referenceAttribute;
+    private UpdateValue<String> referenceCode;
     private UpdateValue<String> displayExpression;
 
     public UpdateAttribute(){}
 
     public UpdateAttribute(Integer versionId, Structure.Attribute attribute, Structure.Reference reference) {
-        setLastActionDate(LocalDateTime.of(LocalDate.now(), LocalTime.now()));
+        setLastActionDate(TimeUtils.nowZoned());
+
         this.versionId = versionId;
+
         //attribute fields
         this.code = attribute.getCode();
         if (attribute.getName() != null)
@@ -40,15 +38,14 @@ public class UpdateAttribute extends UpdatableDto {
             this.isPrimary = of(attribute.getIsPrimary());
         if (attribute.getDescription() != null)
             setDescription(of(attribute.getDescription()));
+
         //reference fields
         if (reference == null)
             return;
         if (reference.getAttribute() != null)
             this.attribute = of(reference.getAttribute());
-        if (reference.getReferenceVersion() != null)
-            this.referenceVersion = of(reference.getReferenceVersion());
-        if (reference.getReferenceAttribute() != null)
-            this.referenceAttribute = of(reference.getReferenceAttribute());
+        if (reference.getReferenceCode() != null)
+            this.referenceCode = of(reference.getReferenceCode());
         if (reference.getDisplayExpression() != null)
             this.displayExpression = of(reference.getDisplayExpression());
     }
@@ -109,20 +106,12 @@ public class UpdateAttribute extends UpdatableDto {
         this.attribute = attribute;
     }
 
-    public UpdateValue<Integer> getReferenceVersion() {
-        return referenceVersion;
+    public UpdateValue<String> getReferenceCode() {
+        return referenceCode;
     }
 
-    public void setReferenceVersion(UpdateValue<Integer> referenceVersion) {
-        this.referenceVersion = referenceVersion;
-    }
-
-    public UpdateValue<String> getReferenceAttribute() {
-        return referenceAttribute;
-    }
-
-    public void setReferenceAttribute(UpdateValue<String> referenceAttribute) {
-        this.referenceAttribute = referenceAttribute;
+    public void setReferenceCode(UpdateValue<String> referenceCode) {
+        this.referenceCode = referenceCode;
     }
 
     public UpdateValue<String> getDisplayExpression() {

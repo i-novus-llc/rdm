@@ -149,6 +149,7 @@ public class RefBookVersionEntity {
     }
 
     public void setPassportValues(List<PassportValueEntity> passportValues) {
+        passportValues.forEach(v -> v.setVersion(this));
         this.passportValues = passportValues;
     }
 

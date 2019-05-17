@@ -31,8 +31,6 @@ import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
-import java.sql.Date;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -213,18 +211,10 @@ public class CompareServiceImpl implements CompareService {
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria();
         compareDataCriteria.setStorageCode(oldVersion.getStorageCode());
         compareDataCriteria.setNewStorageCode(newVersion.getStorageCode());
-        compareDataCriteria.setOldPublishDate(oldVersion.getFromDate() != null
-                ? Date.from(oldVersion.getFromDate().atZone(ZoneId.systemDefault()).toInstant())
-                : null);
-        compareDataCriteria.setOldCloseDate(oldVersion.getToDate() != null
-                ? Date.from(oldVersion.getToDate().atZone(ZoneId.systemDefault()).toInstant())
-                : null);
-        compareDataCriteria.setNewPublishDate(newVersion.getFromDate() != null
-                ? Date.from(newVersion.getFromDate().atZone(ZoneId.systemDefault()).toInstant())
-                : null);
-        compareDataCriteria.setNewCloseDate(newVersion.getToDate() != null
-                ? Date.from(newVersion.getToDate().atZone(ZoneId.systemDefault()).toInstant())
-                : null);
+        compareDataCriteria.setOldPublishDate(oldVersion.getFromDate());
+        compareDataCriteria.setOldCloseDate(oldVersion.getToDate());
+        compareDataCriteria.setNewPublishDate(newVersion.getFromDate());
+        compareDataCriteria.setNewCloseDate(newVersion.getToDate());
         compareDataCriteria.setPrimaryFields(newVersion.getStructure().getPrimary()
                 .stream()
                 .map(Structure.Attribute::getCode)

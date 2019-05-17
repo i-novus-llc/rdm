@@ -5,6 +5,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selectors;
 import com.codeborne.selenide.Selenide;
+import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -19,6 +20,11 @@ public class UiTest {
         String urlFromProperty = System.getProperty("appUrl");
         if(urlFromProperty != null) {
             appUrl = urlFromProperty;
+        }
+        String chromeDriverVersion = System.getProperty("chromeDriverVersion");
+        System.out.println("chromeDriverVersion=" + chromeDriverVersion);
+        if(chromeDriverVersion != null) {
+            WebDriverManager.chromedriver().version(chromeDriverVersion).setup();
         }
     }
 
