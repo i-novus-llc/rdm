@@ -26,7 +26,8 @@ public abstract class AppendRowValidation extends ErrorAttributeHolderValidation
 
     @Override
     public List<Message> validate() {
-        if (buffer.isEmpty()) throw new RdmException("Missing row to validate, append row before validation");
+        if (buffer.isEmpty())
+            throw new RdmException("Missing row to validate, append row before validation");
         List<Message> messages = new ArrayList<>();
         buffer.keySet().stream()
                 .peek(map -> map.entrySet().removeIf(entry -> getErrorAttributes().contains(entry.getKey())))

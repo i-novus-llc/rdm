@@ -23,6 +23,7 @@
         <vds.version>2.4-SNAPSHOT</vds.version>
         <n2o.version>7.2.9</n2o.version>
         <itext.version>5.5.9</itext.version>
+        <commons.text.version>1.6</commons.text.version>
         <xmlunit.version>1.6</xmlunit.version>
         <lombok.version>1.18.4</lombok.version>
         <jaxws.version>2.3.2</jaxws.version>
@@ -44,7 +45,6 @@
         <developerConnection>scm:git:https://git.i-novus.ru/microservices/rdm.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
-
 
     <modules>
         <module>rdm-api</module>
@@ -69,7 +69,6 @@
             <uniqueVersion>true</uniqueVersion>
         </snapshotRepository>
     </distributionManagement>
-
 
     <dependencyManagement>
         <dependencies>
@@ -105,7 +104,6 @@
                 <artifactId>versioned-data-storage-api</artifactId>
                 <version>${vds.version}</version>
             </dependency>
-
 
             <dependency>
                 <groupId>ru.i-novus.platform</groupId>
@@ -223,6 +221,12 @@
                 <groupId>javax.activation</groupId>
                 <artifactId>activation</artifactId>
                 <version>${javax.activation.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-text</artifactId>
+                <version>${commons.text.version}</version>
             </dependency>
 
         </dependencies>

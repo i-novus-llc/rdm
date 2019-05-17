@@ -1,7 +1,7 @@
 package ru.inovus.ms.rdm.service;
 
 import net.n2oapp.platform.jaxrs.RestPage;
-import org.apache.commons.lang3.text.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -54,7 +54,7 @@ public class ReferenceController {
 
         Map<String, Object> map = new HashMap<>();
         ((LongRowValue)rowValue).getFieldValues().forEach(fieldValue -> map.put(fieldValue.getField(), fieldValue.getValue()));
-        referenceValue.setDisplayValue(new StrSubstitutor(map).replace(displayExpression));
+        referenceValue.setDisplayValue(new StringSubstitutor(map).replace(displayExpression));
 
         return referenceValue;
     }

@@ -93,19 +93,19 @@ public class VersionServiceImpl implements VersionService {
 
     @Override
     public Page<RefBookRowValue> search(Integer versionId, SearchDataCriteria criteria) {
-        Optional<RefBookVersionEntity> version = versionRepository.findById(versionId);
-        if (version.isEmpty())
-            throw new NotFoundException(new Message(VERSION_NOT_FOUND, versionId));
-        return getRowValuesOfVersion(criteria, version.get());
+        RefBookVersionEntity version = versionRepository
+                .findById(versionId)
+                .orElseThrow(() -> new NotFoundException(new Message(VERSION_NOT_FOUND, versionId)));
+        return getRowValuesOfVersion(criteria, version);
     }
 
     @Override
     @Transactional
     public RefBookVersion getById(Integer versionId) {
-        Optional<RefBookVersionEntity> version = versionRepository.findById(versionId);
-        if (version.isEmpty())
-            throw new NotFoundException(new Message(VERSION_NOT_FOUND, versionId));
-        return versionModel(version.get());
+        RefBookVersionEntity version = versionRepository
+                .findById(versionId)
+                .orElseThrow(() -> new NotFoundException(new Message(VERSION_NOT_FOUND, versionId)));
+        return versionModel(version);
     }
 
     @Override
@@ -161,21 +161,23 @@ public class VersionServiceImpl implements VersionService {
     @Override
     @Transactional
     public ExportFile getVersionFile(Integer versionId, FileType fileType) {
-        Optional<RefBookVersionEntity> versionEntity = versionRepository.findById(versionId);
-        if (versionEntity.isEmpty() || fileType == null)
+        if (fileType == null)
             return null;
+        RefBookVersionEntity versionEntity = versionRepository
+                .findById(versionId)
+                .orElseThrow(() -> new NotFoundException(new Message(VERSION_NOT_FOUND, versionId)));
 
         VersionFileEntity fileEntity = versionFileRepository.findByVersionIdAndType(versionId, fileType);
         String path = null;
         if (fileEntity != null)
             path = fileEntity.getPath();
         if (fileEntity == null || !fileStorage.isExistContent(fileEntity.getPath())) {
-            path = generateVersionFile(versionEntity.get(), fileType);
+            path = generateVersionFile(versionEntity, fileType);
         }
 
         return new ExportFile(
                 fileStorage.getContent(path),
-                fileNameGenerator.generateZipName(versionModel(versionEntity.get()), fileType));
+                fileNameGenerator.generateZipName(versionModel(versionEntity), fileType));
     }
 
     @Override
