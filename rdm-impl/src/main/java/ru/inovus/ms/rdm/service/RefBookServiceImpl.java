@@ -349,13 +349,20 @@ public class RefBookServiceImpl implements RefBookService {
 
     private RefBook refBookModel(RefBookVersionEntity entity, List<RefBookVersionEntity> lastPublishVersions) {
         if (entity == null) return null;
+
         RefBook model = new RefBook(ModelGenerator.versionModel(entity));
         model.setStatus(entity.getStatus());
         model.setRemovable(isRefBookRemovable(entity.getRefBook().getId()));
         model.setCategory(entity.getRefBook().getCategory());
+
         Optional<RefBookVersionEntity> lastPublishedVersion = lastPublishVersions.stream().filter(v -> v.getRefBook().getId().equals(entity.getRefBook().getId())).findAny();
-        model.setLastPublishedVersionFromDate(lastPublishedVersion.map(RefBookVersionEntity::getFromDate).orElse(null));
         model.setLastPublishedVersion(lastPublishedVersion.map(RefBookVersionEntity::getVersion).orElse(null));
+        model.setLastPublishedVersionFromDate(lastPublishedVersion.map(RefBookVersionEntity::getFromDate).orElse(null));
+
+        Structure structure = entity.getStructure();
+        List<Structure.Attribute> primaryAttributes = (structure != null) ? structure.getPrimary() : null;
+        model.setHasPrimaryAttribute(!CollectionUtils.isEmpty(primaryAttributes));
+
         return model;
     }
 
