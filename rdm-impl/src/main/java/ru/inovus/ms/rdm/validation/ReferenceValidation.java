@@ -12,6 +12,7 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
+import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
@@ -30,6 +31,7 @@ public class ReferenceValidation implements RdmValidation {
 
     private SearchDataService searchDataService;
     private RefBookVersionRepository versionRepository;
+
     private Structure.Reference reference;
     private Integer draftId;
     private Integer bufSize;
@@ -37,11 +39,15 @@ public class ReferenceValidation implements RdmValidation {
     private static final Logger logger = LoggerFactory.getLogger(ReferenceValidation.class);
     private static final String INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE = "inconvertible.new.type";
 
-    public ReferenceValidation(SearchDataService searchDataService, RefBookVersionRepository versionRepository, Structure.Reference reference, Integer draftId) {
+    public ReferenceValidation(SearchDataService searchDataService,
+                               RefBookVersionRepository versionRepository,
+                               Structure.Reference reference, Integer draftId) {
         this(searchDataService, versionRepository, reference, draftId, 100);
     }
 
-    public ReferenceValidation(SearchDataService searchDataService, RefBookVersionRepository versionRepository, Structure.Reference reference, Integer draftId, Integer bufSize) {
+    public ReferenceValidation(SearchDataService searchDataService,
+                               RefBookVersionRepository versionRepository,
+                               Structure.Reference reference, Integer draftId, Integer bufSize) {
         this.searchDataService = searchDataService;
         this.versionRepository = versionRepository;
         this.reference = reference;
@@ -53,9 +59,12 @@ public class ReferenceValidation implements RdmValidation {
     @Transactional(readOnly = true)
     public List<Message> validate() {
         RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
-        RefBookVersionEntity refVersion = versionRepository.getOne(reference.getReferenceVersion());
-        Field draftField = field(draftVersion.getStructure().getAttribute(reference.getAttribute()));
-        Field refField = field(refVersion.getStructure().getAttribute(reference.getReferenceAttribute()));
+        Structure.Attribute draftAttribute = draftVersion.getStructure().getAttribute(reference.getAttribute());
+        Field draftField = field(draftAttribute);
+
+        RefBookVersionEntity referenceVersion = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
+        Structure.Attribute referenceAttribute = reference.findReferenceAttribute(referenceVersion.getStructure());
+        Field referenceField = field(referenceAttribute);
 
         // значения, которые невозможно привести к типу атрибута, на который ссылаемся, либо не найдены в ссылаемой версии
         List<String> incorrectValues = new ArrayList<>();
@@ -65,19 +74,20 @@ public class ReferenceValidation implements RdmValidation {
                 singletonList(draftField), emptySet(), null);
         draftDataCriteria.setPage(1);
         draftDataCriteria.setSize(bufSize);
-        validateData(draftDataCriteria, incorrectValues, refField, refVersion);
+        validateData(draftDataCriteria, incorrectValues, referenceField, referenceVersion, referenceAttribute);
 
         incorrectValues.forEach(incorrectValue ->
                 messages.add(
                         new Message(INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE,
-                                draftVersion.getStructure().getAttribute(reference.getAttribute()).getDescription(),
+                                draftAttribute.getDescription(),
                                 incorrectValue)
                 )
         );
         return messages;
     }
 
-    private void validateData(DataCriteria draftDataCriteria, List<String> incorrectValues, Field refField, RefBookVersionEntity refVersion) {
+    private void validateData(DataCriteria draftDataCriteria, List<String> incorrectValues, Field refField,
+                              RefBookVersionEntity refVersion, Structure.Attribute refAttribute) {
         CollectionPage<RowValue> draftRowValues = searchDataService.getPagedData(draftDataCriteria);
         // значения, которые приведены к типу атрибута из ссылки
         List<Object> castedValues = new ArrayList<>();
@@ -88,11 +98,13 @@ public class ReferenceValidation implements RdmValidation {
             try {
                 castedValue = ConverterUtil.castReferenceValue(refField, value);
                 castedValues.add(castedValue);
+
             } catch (NumberFormatException | DateTimeParseException | RdmException e) {
                 incorrectValues.add(value);
                 logger.error("Can not parse value " + value, e);
             }
         });
+
         if (!isEmpty(castedValues)) {
             FieldSearchCriteria refFieldSearchCriteria = new FieldSearchCriteria(refField, SearchTypeEnum.EXACT, castedValues);
             DataCriteria refDataCriteria =
@@ -100,19 +112,22 @@ public class ReferenceValidation implements RdmValidation {
                             refVersion.getFromDate(), refVersion.getToDate(),
                             singletonList(refField), singletonList(refFieldSearchCriteria), null);
             CollectionPage<RowValue> refRowValues = searchDataService.getPagedData(refDataCriteria);
+
             castedValues.forEach(castedValue -> {
                 if (refRowValues.getCollection().stream()
                         .noneMatch(rowValue ->
-                                castedValue.equals(rowValue.getFieldValue(reference.getReferenceAttribute()).getValue())
+                                castedValue.equals(rowValue.getFieldValue(refAttribute.getCode()).getValue())
                         ))
                     incorrectValues.add(String.valueOf(castedValue));
             });
         }
+
         int remainCount = draftRowValues.getCount() - (draftDataCriteria.getPage() - 1) * bufSize - draftDataCriteria.getSize();
         if (remainCount <= 0)
             return;
+
         draftDataCriteria.setPage(draftDataCriteria.getPage() + 1);
         draftDataCriteria.setSize((remainCount >= bufSize) ? bufSize : remainCount);
-        validateData(draftDataCriteria, incorrectValues, refField, refVersion);
+        validateData(draftDataCriteria, incorrectValues, refField, refVersion, refAttribute);
     }
 }

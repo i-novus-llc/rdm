@@ -40,15 +40,6 @@
                     </visibility>
                 </dependencies>
             </input-select>
-            <!--<input-select id="referenceAttribute" label="Связанный атрибут" depends-on="referenceVersion"-->
-                          <!--dependency-condition="isReference" query-id="attribute" value-field-id="code"-->
-                          <!--label-field-id="name"-->
-                          <!--master-field-id="id" detail-field-id="versionId">-->
-                <!--<dependencies>-->
-                    <!--<requiring on="isReference">isReference</requiring>-->
-                    <!--<set-value on="isReference">if (!isReference) undefined; else throw '!';</set-value>-->
-                <!--</dependencies>-->
-            <!--</input-select>-->
 
             <!--<input-select id="referenceDisplayAttribute" label="Отображаемый атрибут" depends-on="referenceVersion"-->
             <!--cache="off"-->

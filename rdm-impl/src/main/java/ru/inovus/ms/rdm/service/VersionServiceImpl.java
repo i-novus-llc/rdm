@@ -52,6 +52,7 @@ public class VersionServiceImpl implements VersionService {
 
     public static final String ROW_NOT_FOUND = "row.not.found";
     public static final String VERSION_NOT_FOUND = "version.not.found";
+    public static final String LAST_PUBLISHED_VERSION_NOT_FOUND = "last.published.version.not.found";
 
     private RefBookVersionRepository versionRepository;
     private SearchDataService searchDataService;
@@ -59,6 +60,7 @@ public class VersionServiceImpl implements VersionService {
     private VersionFileRepository versionFileRepository;
     private FileStorage fileStorage;
     private PassportValueRepository passportValueRepository;
+    private PerRowFileGeneratorFactory perRowFileGeneratorFactory;
 
 
     private String passportFileHead;
@@ -68,13 +70,15 @@ public class VersionServiceImpl implements VersionService {
     public VersionServiceImpl(RefBookVersionRepository versionRepository,
                               SearchDataService searchDataService,
                               FileNameGenerator fileNameGenerator, VersionFileRepository versionFileRepository,
-                              FileStorage fileStorage, PassportValueRepository passportValueRepository) {
+                              FileStorage fileStorage, PassportValueRepository passportValueRepository,
+                              PerRowFileGeneratorFactory perRowFileGeneratorFactory) {
         this.versionRepository = versionRepository;
         this.searchDataService = searchDataService;
         this.fileNameGenerator = fileNameGenerator;
         this.versionFileRepository = versionFileRepository;
         this.fileStorage = fileStorage;
         this.passportValueRepository = passportValueRepository;
+        this.perRowFileGeneratorFactory = perRowFileGeneratorFactory;
     }
 
     @Value("${rdm.download.passport.head}")
@@ -110,6 +114,15 @@ public class VersionServiceImpl implements VersionService {
         RefBookVersionEntity versionEntity = versionRepository.findByVersionAndRefBookCode(version, refBookCode);
         if (versionEntity == null)
             throw new NotFoundException(new Message(VERSION_NOT_FOUND, version));
+        return versionModel(versionEntity);
+    }
+
+    @Override
+    @Transactional
+    public RefBookVersion getLastPublishedVersion(String refBookCode) {
+        RefBookVersionEntity versionEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.PUBLISHED);
+        if (versionEntity == null)
+            throw new NotFoundException(new Message(LAST_PUBLISHED_VERSION_NOT_FOUND));
         return versionModel(versionEntity);
     }
 
@@ -297,8 +310,8 @@ public class VersionServiceImpl implements VersionService {
     }
 
     private InputStream generateVersionFile(RefBookVersion versionModel, FileType fileType) {
-        VersionDataIterator dataIterator = new VersionDataIterator(this, singletonList(versionModel.getId()));
-        try (PerRowFileGenerator fileGenerator = PerRowFileGeneratorFactory
+        VersionDataIterator dataIterator = new VersionDataIterator(this, Collections.singletonList(versionModel.getId()));
+        try (PerRowFileGenerator fileGenerator = perRowFileGeneratorFactory
                 .getFileGenerator(dataIterator, versionModel, fileType);
              Archiver archiver = new Archiver()) {
             if (includePassport) {

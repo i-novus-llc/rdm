@@ -14,8 +14,14 @@ import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
+import ru.inovus.ms.rdm.entity.RefBookEntity;
+import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
+import ru.inovus.ms.rdm.file.process.RowsValidator;
+import ru.inovus.ms.rdm.file.process.RowsValidatorImpl;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.util.ModelGenerator;
 import ru.inovus.ms.rdm.validation.ReferenceValueValidation;
 
 import java.util.HashSet;
@@ -37,6 +43,8 @@ public class RowsValidatorTest {
 
     @Mock
     private VersionService versionService;
+    @Mock
+    private RefBookVersionRepository versionRepository;
 
     @Mock
     private SearchDataService searchDataService;
@@ -51,6 +59,7 @@ public class RowsValidatorTest {
 
     private static final String REFERENCE_ATTRIBUTE = "name";
 
+    private static final String REFERENCE_CODE = "REF_CODE";
     private static final Integer REFERENCE_VERSION = 1;
 
     private SearchDataCriteria searchDataCriteria;
@@ -59,8 +68,14 @@ public class RowsValidatorTest {
     public void setUp() {
         rowsValidator = new RowsValidatorImpl(versionService, searchDataService, createTestStructureWithReference(), "",
                 100, emptyList());
-        when(versionService.getStructure(eq(REFERENCE_VERSION)))
-                .thenReturn(createTestStructure());
+
+        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
+        versionEntity.setId(REFERENCE_VERSION);
+        versionEntity.setStructure(createTestStructure());
+        versionEntity.setRefBook(new RefBookEntity());
+        when(versionService.getLastPublishedVersion(eq(REFERENCE_CODE)))
+                .thenReturn(ModelGenerator.versionModel(versionEntity));
+
         AttributeFilter attributeFilter = new AttributeFilter(REFERENCE_ATTRIBUTE, ATTRIBUTE_VALUE, FieldType.STRING, SearchTypeEnum.EXACT);
         searchDataCriteria = new SearchDataCriteria(
                 new HashSet<>() {{
@@ -124,7 +139,7 @@ public class RowsValidatorTest {
     private Structure createTestStructureWithReference() {
         Structure structure = new Structure();
         structure.setAttributes(singletonList(Structure.Attribute.build(ATTRIBUTE_NAME, ATTRIBUTE_NAME, FieldType.REFERENCE, "description")));
-        structure.setReferences(singletonList(new Structure.Reference(ATTRIBUTE_NAME, REFERENCE_VERSION, REFERENCE_ATTRIBUTE, null)));
+        structure.setReferences(singletonList(new Structure.Reference(ATTRIBUTE_NAME, REFERENCE_CODE, null)));
         return structure;
     }
 }

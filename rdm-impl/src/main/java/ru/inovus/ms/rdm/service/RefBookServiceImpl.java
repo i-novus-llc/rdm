@@ -180,9 +180,19 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     @Transactional
     public String getCode(Integer refBookId) {
+
         validateRefBookExists(refBookId);
+
         final RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
         return refBookEntity.getCode();
+    }
+
+    @Override
+    @Transactional
+    public Integer getId(String refBookCode) {
+
+        final RefBookEntity refBookEntity = refBookRepository.findByCode(refBookCode);
+        return refBookEntity.getId();
     }
 
     @Override

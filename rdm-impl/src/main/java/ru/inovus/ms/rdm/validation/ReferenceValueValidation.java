@@ -1,10 +1,12 @@
 package ru.inovus.ms.rdm.validation;
 
 import net.n2oapp.platform.i18n.Message;
+import net.n2oapp.platform.i18n.UserException;
 import org.springframework.data.domain.Page;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
+import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
@@ -21,6 +23,7 @@ import static ru.inovus.ms.rdm.util.ConverterUtil.field;
 public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
 
     public static final String REFERENCE_ERROR_CODE = "validation.reference.err";
+    public static final String REFERENCE_ERROR_VERSION = "validation.reference.version.not.found";
 
     private final VersionService versionService;
 
@@ -28,22 +31,32 @@ public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
 
     private Structure structure;
 
-    public ReferenceValueValidation(VersionService versionService, Map<Structure.Reference, String> referenceWithValueMap, Structure structure) {
+    public ReferenceValueValidation(VersionService versionService,
+                                    Map<Structure.Reference, String> referenceWithValueMap,
+                                    Structure structure) {
         this.versionService = versionService;
         this.referenceWithValueMap = referenceWithValueMap;
         this.structure = structure;
     }
 
-    public ReferenceValueValidation(VersionService versionService, Map<Structure.Reference, String> referenceWithValueMap, Structure structure, Set<String> excludeAttributes) {
+    public ReferenceValueValidation(VersionService versionService,
+                                    Map<Structure.Reference, String> referenceWithValueMap,
+                                    Structure structure,
+                                    Set<String> excludeAttributes) {
         this(versionService, referenceWithValueMap, structure);
         setErrorAttributes(excludeAttributes);
     }
 
-    public ReferenceValueValidation(VersionService versionService, Row row, Structure structure) {
+    public ReferenceValueValidation(VersionService versionService,
+                                    Row row,
+                                    Structure structure) {
         this(versionService, getReferenceWithValueMap(row, structure), structure);
     }
 
-    public ReferenceValueValidation(VersionService versionService, Row row, Structure structure, Set<String> excludeAttributes) {
+    public ReferenceValueValidation(VersionService versionService,
+                                    Row row,
+                                    Structure structure,
+                                    Set<String> excludeAttributes) {
         this(versionService, row, structure);
         setErrorAttributes(excludeAttributes);
     }
@@ -69,25 +82,32 @@ public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
 
     }
 
-    private Field createFieldFilter(Structure structure, Structure.Reference reference) {
-        Structure.Attribute referenceAttribute = structure.getAttribute(reference.getReferenceAttribute());
-        return field(referenceAttribute);
-    }
-
     private boolean isReferenceNotValid(Map.Entry<Structure.Reference, String> entry) {
         if (getErrorAttributes().contains(entry.getKey().getAttribute()) || entry.getValue() == null) {
             return false;
         }
+
         Structure.Reference reference = entry.getKey();
         String referenceValue = entry.getValue();
-        Integer versionId = reference.getReferenceVersion();
-        Structure referenceStructure = versionService.getStructure(versionId);
-        Field fieldFilter = createFieldFilter(referenceStructure, reference);
+
+        RefBookVersion refBookVersion;
+        try {
+            refBookVersion = versionService.getLastPublishedVersion(reference.getReferenceCode());
+
+        } catch (NotFoundException e) {
+            throw new UserException(new Message(REFERENCE_ERROR_VERSION,
+                    reference.getReferenceCode(), reference.getAttribute()), e);
+        }
+        Integer versionId = refBookVersion.getId();
+        Structure referenceStructure = refBookVersion.getStructure();
+
+        Structure.Attribute referenceAttribute = reference.findReferenceAttribute(referenceStructure);
+        Field fieldFilter = field(referenceAttribute);
         Object referenceValueCasted = castReferenceValue(fieldFilter, referenceValue);
-        AttributeFilter attributeFilter = new AttributeFilter(reference.getReferenceAttribute(), referenceValueCasted,
-                referenceStructure.getAttribute(reference.getReferenceAttribute()).getType(), SearchTypeEnum.EXACT);
+        AttributeFilter attributeFilter = new AttributeFilter(referenceAttribute.getCode(), referenceValueCasted, referenceAttribute.getType(), SearchTypeEnum.EXACT);
         Set<List<AttributeFilter>> attributeFilters = new HashSet<>();
         attributeFilters.add(singletonList(attributeFilter));
+
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria(attributeFilters, null);
         Page<RefBookRowValue> pagedData = versionService.search(versionId, searchDataCriteria);
         return (pagedData == null || !pagedData.hasContent());

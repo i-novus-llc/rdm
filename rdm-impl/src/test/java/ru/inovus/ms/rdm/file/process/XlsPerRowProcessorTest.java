@@ -1,8 +1,9 @@
-package ru.inovus.ms.rdm.file;
+package ru.inovus.ms.rdm.file.process;
 
 import org.junit.Assert;
 import org.junit.Test;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.inovus.ms.rdm.file.StructureRowMapper;
 import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;

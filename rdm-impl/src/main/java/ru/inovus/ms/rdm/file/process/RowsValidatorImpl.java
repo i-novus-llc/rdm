@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.file;
+package ru.inovus.ms.rdm.file.process;
 
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
@@ -36,8 +36,12 @@ public class RowsValidatorImpl implements RowsValidator {
     private AttributeCustomValidation attributeCustomValidation;
 
 
-    public RowsValidatorImpl(VersionService versionService, SearchDataService searchDataService, Structure structure,
-                             String storageCode, int errorCountLimit, List<AttributeValidationEntity> attributeValidations) {
+    public RowsValidatorImpl(VersionService versionService,
+                             SearchDataService searchDataService,
+                             Structure structure,
+                             String storageCode,
+                             int errorCountLimit,
+                             List<AttributeValidationEntity> attributeValidations) {
         this.versionService = versionService;
         this.structure = structure;
         this.searchDataService = searchDataService;

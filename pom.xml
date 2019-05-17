@@ -35,6 +35,7 @@
         <internal.repository.releases>https://maven.i-novus.ru/libs-release-local</internal.repository.releases>
         <internal.repository.shapshots>https://maven.i-novus.ru/libs-snapshot-local</internal.repository.shapshots>
         <internal.repository.id>i-novus-central</internal.repository.id>
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <scm>

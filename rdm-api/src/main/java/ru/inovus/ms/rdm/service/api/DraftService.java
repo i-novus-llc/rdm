@@ -25,8 +25,7 @@ public interface DraftService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    @Path("/create/{refBookId}")
-    Draft create(@ApiParam("Идентификатор справочника") @PathParam("refBookId") Integer refBookId, Structure structure);
+    Draft create(CreateDraftRequest createDraftRequest);
 
     @POST
     @ApiOperation("Создание нового черновика")
@@ -47,6 +46,17 @@ public interface DraftService {
     })
     @Path("/createByFile/{refBookId}")
     Draft create(@ApiParam("Идентификатор справочника") @PathParam("refBookId") Integer refBookId, FileModel fileModel);
+
+    @POST
+    @ApiOperation("Создание нового черновика из файла без справочника")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Черновик создан"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    @Path("/createByFile")
+    Draft create(@ApiParam("Идентификатор справочника") FileModel fileModel);
+
 
     @POST
     @ApiOperation("Добавление или изменение строки черновика")
