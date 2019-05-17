@@ -94,7 +94,7 @@ public class VersionServiceImpl implements VersionService {
     @Override
     public Page<RefBookRowValue> search(Integer versionId, SearchDataCriteria criteria) {
         Optional<RefBookVersionEntity> version = versionRepository.findById(versionId);
-        if (!version.isPresent())
+        if (version.isEmpty())
             throw new NotFoundException(new Message(VERSION_NOT_FOUND, versionId));
         return getRowValuesOfVersion(criteria, version.get());
     }
@@ -103,7 +103,7 @@ public class VersionServiceImpl implements VersionService {
     @Transactional
     public RefBookVersion getById(Integer versionId) {
         Optional<RefBookVersionEntity> version = versionRepository.findById(versionId);
-        if (!version.isPresent())
+        if (version.isEmpty())
             throw new NotFoundException(new Message(VERSION_NOT_FOUND, versionId));
         return versionModel(version.get());
     }
@@ -162,7 +162,7 @@ public class VersionServiceImpl implements VersionService {
     @Transactional
     public ExportFile getVersionFile(Integer versionId, FileType fileType) {
         Optional<RefBookVersionEntity> versionEntity = versionRepository.findById(versionId);
-        if (!versionEntity.isPresent() || fileType == null)
+        if (versionEntity.isEmpty() || fileType == null)
             return null;
 
         VersionFileEntity fileEntity = versionFileRepository.findByVersionIdAndType(versionId, fileType);
@@ -181,12 +181,13 @@ public class VersionServiceImpl implements VersionService {
     @Override
     @Transactional
     public RefBookVersion updatePassport(RefBookUpdateRequest refBookUpdateRequest) {
-        Optional<RefBookVersionEntity> refBookVersionEntity = versionRepository.findById(refBookUpdateRequest.getVersionId());
-        if (refBookVersionEntity.isEmpty())
-            return null;
+        RefBookVersionEntity refBookVersionEntity = versionRepository
+                .findById(refBookUpdateRequest.getVersionId())
+                .orElseThrow(() ->
+                        new NotFoundException(new Message(VERSION_NOT_FOUND, refBookUpdateRequest.getVersionId())));
 
-        updateVersionFromPassport(refBookVersionEntity.get(), refBookUpdateRequest.getPassport());
-        return versionModel(refBookVersionEntity.get());
+        updateVersionFromPassport(refBookVersionEntity, refBookUpdateRequest.getPassport());
+        return versionModel(refBookVersionEntity);
     }
 
     @Override
@@ -227,10 +228,9 @@ public class VersionServiceImpl implements VersionService {
         if (!rowId.matches("^.+\\$\\d+$")) throw new NotFoundException(ROW_NOT_FOUND);
 
         String[] split = rowId.split("\\$");
-        Optional<RefBookVersionEntity> versionOptional = versionRepository.findById(Integer.parseInt(split[1]));
-        if (versionOptional.isEmpty())
-            throw new NotFoundException(ROW_NOT_FOUND);
-        RefBookVersionEntity version = versionOptional.get();
+        RefBookVersionEntity version = versionRepository
+                .findById(Integer.parseInt(split[1]))
+                .orElseThrow(() -> new NotFoundException(ROW_NOT_FOUND));
 
         DataCriteria criteria = new DataCriteria(
                 version.getStorageCode(),
@@ -240,8 +240,10 @@ public class VersionServiceImpl implements VersionService {
                 singletonList(split[0]));
 
         List<RowValue> data = searchDataService.getData(criteria);
-        if (CollectionUtils.isEmpty(data)) throw new NotFoundException(ROW_NOT_FOUND);
-        if (data.size() > 1) throw new IllegalStateException("more than one row with id " + rowId);
+        if (CollectionUtils.isEmpty(data))
+            throw new NotFoundException(ROW_NOT_FOUND);
+        if (data.size() > 1)
+            throw new IllegalStateException("more than one row with id " + rowId);
         return new RefBookRowValue((LongRowValue) data.get(0), version.getId());
     }
 

@@ -82,7 +82,6 @@ public class StructureRowMapper implements RowMapper {
         }
     }
 
-//    todo: version.not.found -> referenced version not exist:
     private Reference createReference(String attributeCode, String value) {
         Structure.Reference reference = structure.getReference(attributeCode);
         RefBookVersionEntity version = versionRepository
