@@ -36,7 +36,7 @@
                 </menu-item>
             </sub-menu>
             <button id="edit" label="Изменить справочник" icon="fa fa-pencil">
-                <open-page page-id="refbook" page-name="Редактирование справочника" detail-field-id="refBookId"/>
+                <open-page page-id="refBook" page-name="Редактирование справочника" detail-field-id="refBookId"/>
             </button>
             <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger">
                 <invoke operation-id="delete"/>
