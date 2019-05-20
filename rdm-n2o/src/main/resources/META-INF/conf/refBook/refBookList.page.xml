@@ -35,11 +35,19 @@
                     </show-modal>
                 </menu-item>
             </sub-menu>
-            <button id="edit" label="Изменить справочник" icon="fa fa-pencil">
+            <button id="edit" label="Изменить справочник" icon="fa fa-pencil" enabling-condition="!archived">
                 <open-page page-id="refbook" page-name="Редактирование справочника" detail-field-id="refBookId"/>
             </button>
             <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger">
                 <invoke operation-id="delete"/>
+            </button>
+            <button id="toArchive" label="Отправить в архив" icon="fa fa-lock"
+                    visibility-condition="!archived">
+                <invoke operation-id="toArchive"/>
+            </button>
+            <button id="fromArchive" label="Вернуть из архива" icon="fa fa-unlock"
+                    visibility-condition="archived">
+                <invoke operation-id="fromArchive"/>
             </button>
         </toolbar>
         <columns>
