@@ -1,7 +1,7 @@
 package ru.inovus.ms.rdm.model;
 
 
-public class ReadAttribute extends Attribute {
+public class ReadAttribute extends FormAttribute {
 
     private Integer versionId;
 

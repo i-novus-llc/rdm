@@ -109,7 +109,7 @@ public class StructureControllerTest extends TestCase {
 
         assertEquals(testCode, actual.getCode());
         assertEquals(FieldType.INTEGER, actual.getType());
-        assertValidationPartEquals(new Attribute(), actual);
+        assertValidationPartEquals(new FormAttribute(), actual);
     }
 
     /**
@@ -118,7 +118,7 @@ public class StructureControllerTest extends TestCase {
     @Test
     public void testReadValidations() throws Exception {
         Structure structure = new Structure(singletonList(build(testCode, null, null, null)), null);
-        Attribute expectedValidation = createAllValidationAttribute();
+        FormAttribute expectedValidation = createAllValidationAttribute();
 
         when(versionService.getStructure(eq(versionId))).thenReturn(structure);
         when(draftService.getAttributeValidations(eq(versionId), isNull(String.class))).thenReturn(expectedValidations);
@@ -136,10 +136,10 @@ public class StructureControllerTest extends TestCase {
      */
     @Test
     public void testUpdateValidations() throws Exception {
-        Attribute attribute = createAllValidationAttribute();
+        FormAttribute formAttribute = createAllValidationAttribute();
         when(versionService.getStructure(eq(versionId))).thenReturn(new Structure());
 
-        structureController.updateAttribute(versionId, attribute);
+        structureController.updateAttribute(versionId, formAttribute, null);
 
         verify(draftService, times(1)).updateAttribute(updateAttributeArgumentCaptor.capture());
         verify(draftService, times(1)).updateAttributeValidations(eq(versionId), eq(testCode), validationsArgumentCaptor.capture());
@@ -155,15 +155,15 @@ public class StructureControllerTest extends TestCase {
     @Test
     public void testCreateReference() throws Exception {
 
-        Attribute attribute = new Attribute();
-        attribute.setCode(testCode);
-        attribute.setName(testName);
-        attribute.setIsPrimary(false);
-        attribute.setDescription(testDescription);
-        attribute.setType(FieldType.REFERENCE);
-        attribute.setReferenceDisplayExpression(displayExpression);
-        attribute.setReferenceCode(referenceCode);
-        structureController.createAttribute(versionId, attribute);
+        FormAttribute formAttribute = new FormAttribute();
+        formAttribute.setCode(testCode);
+        formAttribute.setName(testName);
+        formAttribute.setIsPrimary(false);
+        formAttribute.setDescription(testDescription);
+        formAttribute.setType(FieldType.REFERENCE);
+        formAttribute.setReferenceDisplayExpression(displayExpression);
+        formAttribute.setReferenceCode(referenceCode);
+        structureController.createAttribute(versionId, formAttribute, null);
 
         verify(draftService, times(1)).createAttribute(createAttributeArgumentCaptor.capture());
         verify(draftService, times(1)).updateAttributeValidations(eq(versionId), eq(testCode), eq(emptyList()));
@@ -209,27 +209,27 @@ public class StructureControllerTest extends TestCase {
     }
 
 
-    private Attribute createAllValidationAttribute() {
+    private FormAttribute createAllValidationAttribute() {
 
-        Attribute attribute = new Attribute();
-        attribute.setCode(testCode);
-        attribute.setRequired(true);
-        attribute.setUnique(true);
-        attribute.setPlainSize(plainSize);
-        attribute.setMinInteger(minInteger);
-        attribute.setMaxInteger(maxInteger);
-        attribute.setIntPartSize(intPartSize);
-        attribute.setFracPartSize(fracPartSize);
-        attribute.setMinFloat(minFloat);
-        attribute.setMaxFloat(maxFloat);
-        attribute.setMinDate(minDate);
-        attribute.setMaxDate(maxDate);
-        attribute.setRegExp(regExp);
+        FormAttribute formAttribute = new FormAttribute();
+        formAttribute.setCode(testCode);
+        formAttribute.setRequired(true);
+        formAttribute.setUnique(true);
+        formAttribute.setPlainSize(plainSize);
+        formAttribute.setMinInteger(minInteger);
+        formAttribute.setMaxInteger(maxInteger);
+        formAttribute.setIntPartSize(intPartSize);
+        formAttribute.setFracPartSize(fracPartSize);
+        formAttribute.setMinFloat(minFloat);
+        formAttribute.setMaxFloat(maxFloat);
+        formAttribute.setMinDate(minDate);
+        formAttribute.setMaxDate(maxDate);
+        formAttribute.setRegExp(regExp);
 
-        return attribute;
+        return formAttribute;
     }
 
-    private void assertValidationPartEquals(Attribute expected, Attribute actual) {
+    private void assertValidationPartEquals(FormAttribute expected, FormAttribute actual) {
 
         assertEquals(expected.getRequired(), actual.getRequired());
         assertEquals(expected.getUnique(), actual.getUnique());

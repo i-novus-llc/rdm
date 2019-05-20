@@ -48,6 +48,7 @@ public class RefBookServiceImpl implements RefBookService {
     private static final String VERSION_ID_SORT_PROPERTY = "id";
     private static final String REF_BOOK_ID_SORT_PROPERTY = "refbookId";
     private static final String REF_BOOK_CODE_SORT_PROPERTY = "code";
+    private static final String REF_BOOK_DISPLAY_CODE_SORT_PROPERTY = "displayCode";
     private static final String REF_BOOK_LAST_PUBLISH_SORT_PROPERTY = "lastPublishedVersionFromDate";
     private static final String REF_BOOK_FROM_DATE_SORT_PROPERTY = "fromDate";
     private static final String REF_BOOK_CATEGORY_SORT_PROPERTY = "category";
@@ -128,26 +129,34 @@ public class RefBookServiceImpl implements RefBookService {
                     .on(qPassportValueEntity.version.eq(QRefBookVersionEntity.refBookVersionEntity)
                             .and(qPassportValueEntity.attribute.code.eq(property)));
             sortExpression = qPassportValueEntity.value;
+
         } else {
             switch (order.getProperty()) {
                 case VERSION_ID_SORT_PROPERTY:
                     sortExpression = QRefBookVersionEntity.refBookVersionEntity.id;
                     break;
+
                 case REF_BOOK_ID_SORT_PROPERTY:
                     sortExpression = QRefBookVersionEntity.refBookVersionEntity.refBook.id;
                     break;
+
                 case REF_BOOK_CODE_SORT_PROPERTY:
+                case REF_BOOK_DISPLAY_CODE_SORT_PROPERTY:
                     sortExpression = QRefBookVersionEntity.refBookVersionEntity.refBook.code;
                     break;
+
                 case REF_BOOK_LAST_PUBLISH_SORT_PROPERTY:
                     sortExpression = getOrderByLastPublishDateExpression(jpaQuery);
                     break;
+
                 case REF_BOOK_FROM_DATE_SORT_PROPERTY:
                     sortExpression = QRefBookVersionEntity.refBookVersionEntity.fromDate;
                     break;
+
                 case REF_BOOK_CATEGORY_SORT_PROPERTY:
                     sortExpression = QRefBookVersionEntity.refBookVersionEntity.refBook.category;
                     break;
+
                 default:
                     throw new UserException(new Message(CANNOT_ORDER_BY_EXCEPTION_CODE, order.getProperty()));
             }

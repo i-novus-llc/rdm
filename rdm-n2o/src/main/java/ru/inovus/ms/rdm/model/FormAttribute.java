@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 
-public class Attribute {
+public class FormAttribute {
 
     private String code;
 

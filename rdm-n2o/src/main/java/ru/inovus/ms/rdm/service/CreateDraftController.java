@@ -69,17 +69,17 @@ public class CreateDraftController {
         return refBookUpdateRequest;
     }
 
-    UiDraft createAttribute(Integer versionId, Attribute attribute) {
+    UiDraft createAttribute(Integer versionId, FormAttribute formAttribute, Integer referenceRefBookId) {
         final UiDraft uiDraft = getOrCreateDraft(versionId);
         Integer draftId = uiDraft.getId();
-        structureController.createAttribute(draftId, attribute);
+        structureController.createAttribute(draftId, formAttribute, referenceRefBookId);
         return uiDraft;
     }
 
-    UiDraft updateAttribute(Integer versionId, Attribute attribute) {
+    UiDraft updateAttribute(Integer versionId, FormAttribute formAttribute, Integer referenceRefBookId) {
         final UiDraft uiDraft = getOrCreateDraft(versionId);
         Integer draftId = uiDraft.getId();
-        structureController.updateAttribute(draftId, attribute);
+        structureController.updateAttribute(draftId, formAttribute, referenceRefBookId);
         return uiDraft;
     }
 

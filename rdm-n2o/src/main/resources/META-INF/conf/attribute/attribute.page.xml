@@ -17,35 +17,29 @@
                     <option id="FLOAT" name="Дробный"/>
                     <option id="DATE" name="Дата"/>
                     <option id="BOOLEAN" name="Логический"/>
-                    <!--<option id="REFERENCE" name="Ссылочный"/>-->
+                    <option id="REFERENCE" name="Ссылочный"/>
                 </options>
             </select>
 
             <input-select id="referenceRefBook" label="Выбор справочника" query-id="refBook"
-                          label-field-id="code">
+                          label-field-id="displayCode">
                 <dependencies>
                     <visibility on="attrType">
                         attrType.id == 'REFERENCE'
                     </visibility>
                 </dependencies>
-            </input-select>
-            <input-select id="referenceVersion" label="Версия" query-id="versionList"
-                          label-field-id="version">
                 <pre-filters>
-                    <eq field-id="refBookId" value="{referenceRefBook.id}"/>
+<!--                    <eq field-id="lastPublishedVersion" value="3.2" />-->
+<!--                    <notEq field-id="lastPublishedVersion" value="2.1" />-->
+<!--                    <eq field-id="hasPrimaryAttribute" value="true"/>-->
                 </pre-filters>
-                <dependencies>
-                    <visibility on="referenceRefBook,attrType">
-                        (attrType == 'REFERENCE' || referenceRefBook.id != null)
-                    </visibility>
-                </dependencies>
             </input-select>
 
-            <!--<input-select id="referenceDisplayAttribute" label="Отображаемый атрибут" depends-on="referenceVersion"-->
+            <!--<input-select id="referenceDisplayAttribute" label="Отображаемый атрибут" depends-on="referenceRefBook"-->
             <!--cache="off"-->
             <!--dependency-condition="isReference">-->
             <!--<query query-id="attribute" value-field-id="code" label-field-id="name"-->
-            <!--master-field-id="id" detail-field-id="versionId">-->
+            <!--master-field-id="id" detail-field-id="refBookId">-->
             <!--</query>-->
             <!--<set-value-expression on="isReference">if (!isReference) undefined; else throw '!';-->
             <!--</set-value-expression>-->
@@ -59,6 +53,7 @@
                     </enabling>
                 </dependencies>
             </checkbox>
+
             <text-area id="description" label="Описание" rows="2"/>
 
             <!--пользовательские проверки-->

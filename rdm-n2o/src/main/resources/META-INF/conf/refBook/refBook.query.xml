@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="refBook">
+
     <list result-mapping="['content']" count-mapping="['totalElements']">
         <java class="ru.inovus.ms.rdm.service.api.RefBookService"
               method="search">
@@ -9,6 +10,7 @@
             </arguments>
         </java>
     </list>
+
     <unique filters="version.id" result-mapping="#this">
         <java class="ru.inovus.ms.rdm.service.api.RefBookService"
               method="getByVersionId">
@@ -58,41 +60,11 @@
             </filters>
         </field>
 
+        <!-- Passport values -->
         <field id="name" domain="string">
             <select mapping="passport['name']"/>
             <filters>
                 <eq filter-id="name" mapping="passport['name']"/>
-            </filters>
-            <sorting/>
-        </field>
-
-        <field id="displayVersion" domain="string">
-            <select mapping="status?.toString()!='DRAFT' ?
-                version :
-                'Новая (изм. ' + editDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy')) + ')'"/>
-        </field>
-
-        <field id="editDate" domain="date">
-            <select/>
-        </field>
-
-        <field id="lastPublishedVersionFromDate" domain="date">
-            <select mapping="lastPublishedVersionFromDate"/>
-            <filters>
-                <more filter-id="lastPublishedVersionFromDateInterval.begin" mapping="fromDateBegin"/>
-                <less filter-id="lastPublishedVersionFromDateInterval.end" mapping="fromDateEnd"/>
-            </filters>
-            <sorting/>
-        </field>
-
-        <field id="lastPublishedVersion" domain="string">
-            <select mapping="lastPublishedVersion"/>
-        </field>
-
-        <field id="category.id" domain="string" name="Категория">
-            <select mapping="category"/>
-            <filters>
-                <eq filter-id="category.id" mapping="category" domain="string"/>
             </filters>
             <sorting/>
         </field>
@@ -104,7 +76,59 @@
         <field id="description" domain="string">
             <select mapping="passport['description']"/>
         </field>
+        <!-- / Passport values -->
 
+        <field id="category.id" domain="string" name="Категория">
+            <select mapping="category"/>
+            <filters>
+                <eq filter-id="category.id" mapping="category" domain="string"/>
+            </filters>
+            <sorting/>
+        </field>
+
+        <field id="lastPublishedVersion" domain="string">
+            <select mapping="lastPublishedVersion"/>
+            <filters>
+                <eq filter-id="lastPublishedVersion" mapping="lastPublishedVersion" domain="string"/>
+<!--                <eq filter-id="lastPublishedVersion" mapping="lastPublishedVersion" domain="string">lastPublishedVersion={lastPublishedVersion}</eq>-->
+<!--                <notEq filter-id="lastPublishedVersion" mapping="lastPublishedVersion" domain="string">({lastPublishedVersion}?:'')</notEq>-->
+<!--                <eq filter-id="hasPublishedVersion" domain="boolean">lastPublishedVersion != null</eq>-->
+            </filters>
+        </field>
+
+        <field id="lastPublishedVersionFromDate" domain="date">
+            <select mapping="lastPublishedVersionFromDate"/>
+            <filters>
+                <more filter-id="lastPublishedVersionFromDateInterval.begin" mapping="fromDateBegin"/>
+                <less filter-id="lastPublishedVersionFromDateInterval.end" mapping="fromDateEnd"/>
+            </filters>
+            <sorting/>
+        </field>
+
+        <field id="hasPrimaryAttribute" domain="boolean">
+            <select mapping="hasPrimaryAttribute"/>
+            <filters>
+                <eq filter-id="hasPrimaryAttribute" mapping="hasPrimaryAttribute"/>
+            </filters>
+        </field>
+
+        <field id="editDate" domain="date">
+            <select/>
+        </field>
+
+        <field id="displayVersion" domain="string">
+            <select mapping="status?.toString()!='DRAFT' ?
+                version :
+                'Новая (изм. ' + editDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy')) + ')'"/>
+        </field>
+
+        <field id="displayCode" domain="string">
+            <select mapping="
+                    code + ' ' +
+                    (lastPublishedVersion != null and lastPublishedVersion != '' ? '(' + lastPublishedVersion + ')' : '') +
+                    (hasPrimaryAttribute ? '' : ' -')
+                "/>
+        </field>
 
     </fields>
 </query>

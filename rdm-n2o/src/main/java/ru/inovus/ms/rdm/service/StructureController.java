@@ -58,59 +58,76 @@ public class StructureController {
         return new RestPage<>(currentPageAttributes, new PageRequest(criteria.getPage(), criteria.getSize()), list.size());
     }
 
-    public void createAttribute(Integer versionId, Attribute attribute) {
+    private void fillAttributeReferenceCode (FormAttribute formAttribute, Integer referenceRefBookId) {
+        if (referenceRefBookId == null || formAttribute == null || formAttribute.getType() != FieldType.REFERENCE)
+            return;
+
+        formAttribute.setReferenceCode(refBookService.getCode(referenceRefBookId));
+    }
+
+    public void createAttribute(Integer versionId, FormAttribute formAttribute, Integer referenceRefBookId) {
+
+        fillAttributeReferenceCode(formAttribute, referenceRefBookId);
+
         CreateAttribute attributeModel = new CreateAttribute();
         attributeModel.setVersionId(versionId);
-        attributeModel.setAttribute(buildAttribute(attribute));
-        attributeModel.setReference(buildReference(attribute));
+        attributeModel.setAttribute(buildAttribute(formAttribute));
+        attributeModel.setReference(buildReference(formAttribute));
+
         draftService.createAttribute(attributeModel);
         try {
-            draftService.updateAttributeValidations(versionId, attribute.getCode(), createValidations(attribute));
+            draftService.updateAttributeValidations(versionId, formAttribute.getCode(), createValidations(formAttribute));
+
         } catch (RestException re) {
-            draftService.deleteAttribute(versionId, attribute.getCode());
+            draftService.deleteAttribute(versionId, formAttribute.getCode());
             throw re;
         }
     }
 
-    public void updateAttribute(Integer versionId, Attribute attribute) {
-        Structure.Attribute oldAttribute = versionService.getStructure(versionId).getAttribute(attribute.getCode());
-        Structure.Reference oldReference = versionService.getStructure(versionId).getReference(attribute.getCode());
-        draftService.updateAttribute(getUpdateAttribute(versionId, attribute));
+    public void updateAttribute(Integer versionId, FormAttribute formAttribute, Integer referenceRefBookId) {
+
+        fillAttributeReferenceCode(formAttribute, referenceRefBookId);
+
+        Structure.Attribute oldAttribute = versionService.getStructure(versionId).getAttribute(formAttribute.getCode());
+        Structure.Reference oldReference = versionService.getStructure(versionId).getReference(formAttribute.getCode());
+
+        draftService.updateAttribute(getUpdateAttribute(versionId, formAttribute));
         try {
-            draftService.updateAttributeValidations(versionId, attribute.getCode(), createValidations(attribute));
+            draftService.updateAttributeValidations(versionId, formAttribute.getCode(), createValidations(formAttribute));
+
         } catch (RestException re) {
             draftService.updateAttribute(new UpdateAttribute(versionId, oldAttribute, oldReference));
             throw re;
         }
     }
 
-    public void deleteAttribute(Integer versionId, Attribute attribute) {
-        draftService.deleteAttribute(versionId, attribute.getCode());
-        draftService.deleteAttributeValidation(versionId, attribute.getCode(), null);
+    public void deleteAttribute(Integer versionId, FormAttribute formAttribute) {
+        draftService.deleteAttribute(versionId, formAttribute.getCode());
+        draftService.deleteAttributeValidation(versionId, formAttribute.getCode(), null);
     }
 
-    private List<AttributeValidation> createValidations(Attribute attribute) {
+    private List<AttributeValidation> createValidations(FormAttribute formAttribute) {
         List<AttributeValidation> validations = new ArrayList<>();
-        if (Boolean.TRUE.equals(attribute.getRequired()))
+        if (Boolean.TRUE.equals(formAttribute.getRequired()))
             validations.add(new RequiredAttributeValidation());
-        if (Boolean.TRUE.equals(attribute.getUnique()))
+        if (Boolean.TRUE.equals(formAttribute.getUnique()))
             validations.add(new UniqueAttributeValidation());
-        if (attribute.getPlainSize() != null)
-            validations.add(new PlainSizeAttributeValidation(attribute.getPlainSize()));
-        if (attribute.getIntPartSize() != null || attribute.getFracPartSize() != null) {
-            validations.add(new FloatSizeAttributeValidation(attribute.getIntPartSize(), attribute.getFracPartSize()));
+        if (formAttribute.getPlainSize() != null)
+            validations.add(new PlainSizeAttributeValidation(formAttribute.getPlainSize()));
+        if (formAttribute.getIntPartSize() != null || formAttribute.getFracPartSize() != null) {
+            validations.add(new FloatSizeAttributeValidation(formAttribute.getIntPartSize(), formAttribute.getFracPartSize()));
         }
-        if (attribute.getMinInteger() != null || attribute.getMaxInteger() != null) {
-            validations.add(new IntRangeAttributeValidation(attribute.getMinInteger(), attribute.getMaxInteger()));
+        if (formAttribute.getMinInteger() != null || formAttribute.getMaxInteger() != null) {
+            validations.add(new IntRangeAttributeValidation(formAttribute.getMinInteger(), formAttribute.getMaxInteger()));
         }
-        if (attribute.getMinFloat() != null || attribute.getMaxFloat() != null) {
-            validations.add(new FloatRangeAttributeValidation(attribute.getMinFloat(), attribute.getMaxFloat()));
+        if (formAttribute.getMinFloat() != null || formAttribute.getMaxFloat() != null) {
+            validations.add(new FloatRangeAttributeValidation(formAttribute.getMinFloat(), formAttribute.getMaxFloat()));
         }
-        if (attribute.getMinDate() != null || attribute.getMaxDate() != null) {
-            validations.add(new DateRangeAttributeValidation(attribute.getMinDate(), attribute.getMaxDate()));
+        if (formAttribute.getMinDate() != null || formAttribute.getMaxDate() != null) {
+            validations.add(new DateRangeAttributeValidation(formAttribute.getMinDate(), formAttribute.getMaxDate()));
         }
-        if (attribute.getRegExp() != null) {
-            validations.add(new RegExpAttributeValidation(attribute.getRegExp()));
+        if (formAttribute.getRegExp() != null) {
+            validations.add(new RegExpAttributeValidation(formAttribute.getRegExp()));
         }
         return validations;
     }
@@ -175,7 +192,7 @@ public class StructureController {
         return validations.stream().filter(v -> Objects.equals(attribute, v.getAttribute())).collect(Collectors.toList());
     }
 
-    private Structure.Attribute buildAttribute(Attribute request) {
+    private Structure.Attribute buildAttribute(FormAttribute request) {
         if (request.getIsPrimary())
             return Structure.Attribute.buildPrimary(request.getCode(),
                     request.getName(), request.getType(), request.getDescription());
@@ -185,29 +202,29 @@ public class StructureController {
         }
     }
 
-    private Structure.Reference buildReference(Attribute request) {
+    private Structure.Reference buildReference(FormAttribute request) {
         return new Structure.Reference(request.getCode(),
                 request.getReferenceCode(),
                 request.getReferenceDisplayExpression());
     }
 
-    private UpdateAttribute getUpdateAttribute(Integer versionId, Attribute attribute) {
+    private UpdateAttribute getUpdateAttribute(Integer versionId, FormAttribute formAttribute) {
         UpdateAttribute updateAttribute = new UpdateAttribute();
         updateAttribute.setLastActionDate(TimeUtils.nowZoned());
         updateAttribute.setVersionId(versionId);
-        updateAttribute.setCode(attribute.getCode());
-        if (attribute.getName() != null)
-            updateAttribute.setName(of(attribute.getName()));
-        updateAttribute.setType(attribute.getType());
-        if (attribute.getIsPrimary() != null)
-            updateAttribute.setIsPrimary(of(attribute.getIsPrimary()));
-        if (attribute.getDescription() != null)
-            updateAttribute.setDescription(of(attribute.getDescription()));
-        updateAttribute.setAttribute(of(attribute.getCode()));
-        if (attribute.getReferenceCode() != null)
-            updateAttribute.setReferenceCode(of(attribute.getReferenceCode()));
-        if (attribute.getReferenceDisplayExpression() != null)
-            updateAttribute.setDisplayExpression(of(attribute.getReferenceDisplayExpression()));
+        updateAttribute.setCode(formAttribute.getCode());
+        if (formAttribute.getName() != null)
+            updateAttribute.setName(of(formAttribute.getName()));
+        updateAttribute.setType(formAttribute.getType());
+        if (formAttribute.getIsPrimary() != null)
+            updateAttribute.setIsPrimary(of(formAttribute.getIsPrimary()));
+        if (formAttribute.getDescription() != null)
+            updateAttribute.setDescription(of(formAttribute.getDescription()));
+        updateAttribute.setAttribute(of(formAttribute.getCode()));
+        if (formAttribute.getReferenceCode() != null)
+            updateAttribute.setReferenceCode(of(formAttribute.getReferenceCode()));
+        if (formAttribute.getReferenceDisplayExpression() != null)
+            updateAttribute.setDisplayExpression(of(formAttribute.getReferenceDisplayExpression()));
         return updateAttribute;
     }
 
