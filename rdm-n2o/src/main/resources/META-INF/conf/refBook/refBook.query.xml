@@ -39,9 +39,14 @@
         </field>
 
         <field id="version.version" domain="string">
-            <select mapping="status?.toString()!='DRAFT' ?
-                version :
-                'Новая (изм. ' + editDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy')) + ')'"/>
+            <select mapping="
+                (archived ? 'В архиве: ' : '') +
+                (status?.toString()!='DRAFT' ?
+                 version :
+                 'Новая (изм. ' +
+                    editDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy')) +
+                    ')')
+                "/>
         </field>
 
         <field id="code" domain="string">
@@ -58,6 +63,10 @@
             </filters>
         </field>
 
+        <field id="archived" domain="boolean">
+            <select mapping="archived"/>
+        </field>
+
         <field id="name" domain="string">
             <select mapping="passport['name']"/>
             <filters>
@@ -67,9 +76,14 @@
         </field>
 
         <field id="displayVersion" domain="string">
-            <select mapping="status?.toString()!='DRAFT' ?
-                version :
-                'Новая (изм. ' + editDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy')) + ')'"/>
+            <select mapping="
+                (archived ? 'В архиве: ' : '') +
+                (status?.toString() != 'DRAFT' ?
+                 version :
+                 'Новая (изм. ' +
+                    editDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy')) +
+                    ')')
+                "/>
         </field>
 
         <field id="editDate" domain="date">
