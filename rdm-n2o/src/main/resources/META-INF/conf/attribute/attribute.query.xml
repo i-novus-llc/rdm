@@ -58,7 +58,8 @@
                              type.name()=='FLOAT'?'Дробный':
                              type.name()=='DATE'?'Дата':
                              type.name()=='BOOLEAN'?'Логический':
-                             type.name()=='REFERENCE'?'Ссылочный':null"/>
+                             type.name()=='REFERENCE'?'Ссылочный':
+                             null"/>
         </field>
 
         <field id="description" domain="string">

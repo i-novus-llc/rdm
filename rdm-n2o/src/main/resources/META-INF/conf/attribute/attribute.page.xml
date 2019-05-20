@@ -29,11 +29,15 @@
                     </visibility>
                 </dependencies>
                 <pre-filters>
-<!--                    <eq field-id="code" value="CAT" />-->
-<!--                    <eq field-id="lastPublishedVersion" value="3.2" />-->
-<!--                    <notEq field-id="lastPublishedVersion" value="2.1" />-->
+                    <eq field-id="hasPublishedVersion" value="true" />
 <!--                    <eq field-id="hasPrimaryAttribute" value="true"/>-->
                 </pre-filters>
+                <validations>
+                    <condition id="hasPrimaryAttribute" severity="danger"
+                               message="У справочника нет первичного ключа">
+                        referenceRefBook.hasPrimaryAttribute
+                    </condition>
+                </validations>
             </input-select>
 
             <!--<input-select id="referenceDisplayAttribute" label="Отображаемый атрибут" depends-on="referenceRefBook"-->

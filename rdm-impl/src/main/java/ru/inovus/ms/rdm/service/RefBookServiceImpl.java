@@ -49,7 +49,7 @@ public class RefBookServiceImpl implements RefBookService {
     private static final String REF_BOOK_ID_SORT_PROPERTY = "refbookId";
     private static final String REF_BOOK_CODE_SORT_PROPERTY = "code";
     private static final String REF_BOOK_DISPLAY_CODE_SORT_PROPERTY = "displayCode";
-    private static final String REF_BOOK_LAST_PUBLISH_SORT_PROPERTY = "lastPublishedVersionFromDate";
+    private static final String REF_BOOK_LAST_PUBLISH_DATE_SORT_PROPERTY = "lastPublishedVersionFromDate";
     private static final String REF_BOOK_FROM_DATE_SORT_PROPERTY = "fromDate";
     private static final String REF_BOOK_CATEGORY_SORT_PROPERTY = "category";
 
@@ -145,7 +145,7 @@ public class RefBookServiceImpl implements RefBookService {
                     sortExpression = QRefBookVersionEntity.refBookVersionEntity.refBook.code;
                     break;
 
-                case REF_BOOK_LAST_PUBLISH_SORT_PROPERTY:
+                case REF_BOOK_LAST_PUBLISH_DATE_SORT_PROPERTY:
                     sortExpression = getOrderByLastPublishDateExpression(jpaQuery);
                     break;
 
@@ -322,29 +322,29 @@ public class RefBookServiceImpl implements RefBookService {
         if (!isEmpty(criteria.getCode()))
             where.and(isCodeContains(criteria.getCode()));
 
-        if (!CollectionUtils.isEmpty(criteria.getPassport())) {
+        if (!CollectionUtils.isEmpty(criteria.getPassport()))
             where.and(passportPredicateProducer.toPredicate(criteria.getPassport()));
-        }
 
-        if (!isEmpty(criteria.getCategory())) {
+        if (!isEmpty(criteria.getCategory()))
             where.and(refBookHasCategory(criteria.getCategory()));
-        }
 
-        if (!CollectionUtils.isEmpty(criteria.getRefBookIds())) {
+        if (!CollectionUtils.isEmpty(criteria.getRefBookIds()))
             where.and(isVersionOfRefBook(criteria.getRefBookIds()));
-        }
 
-        if (criteria.getIsArchived()) {
+        if (criteria.getIsArchived())
             where.and(isArchived());
-        }
 
-        if (criteria.getHasPublished()) {
+        if (criteria.getHasPublished())
             where.andNot(isArchived()).and(isAnyPublished());
-        }
 
-        if (criteria.getHasDraft()) {
+        if (criteria.getHasDraft())
             where.andNot(isArchived()).and(refBookHasDraft());
-        }
+
+        if (criteria.getHasPublishedVersion())
+            where.and(hasLastPublishedVersion());
+
+        if (criteria.getHasPrimaryAttribute())
+            where.and(hasPrimaryAttribute());
 
         return where.getValue();
     }

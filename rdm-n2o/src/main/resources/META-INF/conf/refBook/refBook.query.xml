@@ -87,14 +87,14 @@
         </field>
 
         <field id="lastPublishedVersion" domain="string">
-            <select mapping="lastPublishedVersion"/>
+            <select />
+        </field>
+
+        <field id="hasPublishedVersion" domain="boolean">
+            <select mapping="lastPublishedVersion != null"/>
             <filters>
-                <eq filter-id="lastPublishedVersion" mapping="lastPublishedVersion" domain="string"/>
-<!--                <eq filter-id="lastPublishedVersion" mapping="lastPublishedVersion" domain="string">lastPublishedVersion={lastPublishedVersion}</eq>-->
-<!--                <notEq filter-id="lastPublishedVersion" mapping="lastPublishedVersion" domain="string">({lastPublishedVersion}?:'')</notEq>-->
-<!--                <eq filter-id="hasPublishedVersion" domain="boolean">lastPublishedVersion != null</eq>-->
+                <eq filter-id="hasPublishedVersion" mapping="hasPublishedVersion"/>
             </filters>
-            <sorting/>
         </field>
 
         <field id="lastPublishedVersionFromDate" domain="date">
@@ -107,7 +107,7 @@
         </field>
 
         <field id="hasPrimaryAttribute" domain="boolean">
-            <select mapping="hasPrimaryAttribute"/>
+            <select />
             <filters>
                 <eq filter-id="hasPrimaryAttribute" mapping="hasPrimaryAttribute"/>
             </filters>
@@ -125,9 +125,9 @@
 
         <field id="displayCode" domain="string">
             <select mapping="
-                    code + ' ' +
-                    (lastPublishedVersion != null and lastPublishedVersion != '' ? '(' + lastPublishedVersion + ')' : '') +
-                    (hasPrimaryAttribute ? '' : ' -')
+                    code +
+                    (lastPublishedVersion != null ? ' (' + lastPublishedVersion + ')' : '') +
+                    ' [' + passport['name'] + ']'
                 "/>
         </field>
 
