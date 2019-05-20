@@ -10,20 +10,17 @@
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
                         <argument type="class" name="attribute" class="ru.inovus.ms.rdm.model.FormAttribute"/>
-                        <argument type="primitive" name="referenceRefBookId" class="java.lang.Integer"/>
                     </arguments>
                 </java>
             </invocation>
             <in-parameters>
-
                 <param id="versionId" mapping="[0]" domain="integer"/>
                 <param id="code" mapping="[1].code" domain="string"/>
                 <param id="name" mapping="[1].name" domain="string"/>
                 <param id="attrType.id" mapping="[1].type" domain="string"/>
                 <param id="isPrimary" mapping="[1].isPrimary" domain="boolean"/>
                 <param id="description" mapping="[1].description" domain="string"/>
-                <!-- NB: referenceCode is filled from referenceRefBookId -->
-                <!--<param id="referenceCode" mapping="[1].referenceCode"/>-->
+                <param id="referenceRefBook.code" mapping="[1].referenceCode" domain="string"/>
                 <!--<param id="referenceDisplayAttribute.code" mapping="[1].referenceDisplayAttribute"/>-->
                 <param id="required" mapping="[1].required" domain="boolean"/>
                 <param id="unique" mapping="[1].unique" domain="boolean"/>
@@ -37,7 +34,6 @@
                 <param id="dateInterval.begin"  mapping="[1].minDate" domain="date"/>
                 <param id="dateInterval.end"  mapping="[1].maxDate" domain="date"/>
                 <param id="regExp" mapping="[1].regExp" domain="string"/>
-                <param id="referenceRefBook.id" mapping="[2]" domain="integer"/>
             </in-parameters>
             <validations white-list="checkCode,checkMinMaxInt"/>
         </operation>
@@ -50,7 +46,6 @@
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
                         <argument type="class" name="attribute" class="ru.inovus.ms.rdm.model.FormAttribute"/>
-                        <argument type="primitive" name="referenceRefBookId" class="java.lang.Integer"/>
                     </arguments>
                 </java>
             </invocation>
@@ -61,8 +56,7 @@
                 <param id="attrType.id" mapping="[1].type" domain="string"/>
                 <param id="isPrimary" mapping="[1].isPrimary" domain="boolean"/>
                 <param id="description" mapping="[1].description" domain="string"/>
-                <!-- NB: referenceCode is filled from referenceRefBookId -->
-                <!--<param id="referenceCode" mapping="[1].referenceCode"/>-->
+                <param id="referenceRefBook.code" mapping="[1].referenceCode" domain="string"/>
                 <!--<param id="referenceDisplayAttribute.code" mapping="[1].referenceDisplayAttribute"/>-->
                 <param id="required" mapping="[1].required" domain="boolean"/>
                 <param id="unique" mapping="[1].unique" domain="boolean"/>
@@ -76,7 +70,6 @@
                 <param id="dateInterval.begin"  mapping="[1].minDate" domain="date"/>
                 <param id="dateInterval.end"  mapping="[1].maxDate" domain="date"/>
                 <param id="regExp" mapping="[1].regExp" domain="string"/>
-                <param id="referenceRefBook.id" mapping="[2]" domain="integer"/>
             </in-parameters>
             <validations white-list="checkCode,checkMinMaxInt"/>
         </operation>

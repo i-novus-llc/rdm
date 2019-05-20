@@ -139,7 +139,7 @@ public class StructureControllerTest extends TestCase {
         FormAttribute formAttribute = createAllValidationAttribute();
         when(versionService.getStructure(eq(versionId))).thenReturn(new Structure());
 
-        structureController.updateAttribute(versionId, formAttribute, null);
+        structureController.updateAttribute(versionId, formAttribute);
 
         verify(draftService, times(1)).updateAttribute(updateAttributeArgumentCaptor.capture());
         verify(draftService, times(1)).updateAttributeValidations(eq(versionId), eq(testCode), validationsArgumentCaptor.capture());
@@ -163,7 +163,7 @@ public class StructureControllerTest extends TestCase {
         formAttribute.setType(FieldType.REFERENCE);
         formAttribute.setReferenceDisplayExpression(displayExpression);
         formAttribute.setReferenceCode(referenceCode);
-        structureController.createAttribute(versionId, formAttribute, null);
+        structureController.createAttribute(versionId, formAttribute);
 
         verify(draftService, times(1)).createAttribute(createAttributeArgumentCaptor.capture());
         verify(draftService, times(1)).updateAttributeValidations(eq(versionId), eq(testCode), eq(emptyList()));

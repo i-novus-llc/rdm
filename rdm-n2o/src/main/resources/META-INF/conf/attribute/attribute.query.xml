@@ -40,8 +40,8 @@
             </filters>
         </field>
 
-        <field id="referenceRefBook.id" domain="integer">
-            <select mapping="referenceRefBookId"/>
+        <field id="referenceRefBook.code" domain="string">
+            <select mapping="referenceCode"/>
         </field>
 
         <field id="name" domain="string" name="Наименование">

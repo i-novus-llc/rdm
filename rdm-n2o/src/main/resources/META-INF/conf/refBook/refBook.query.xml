@@ -94,6 +94,7 @@
 <!--                <notEq filter-id="lastPublishedVersion" mapping="lastPublishedVersion" domain="string">({lastPublishedVersion}?:'')</notEq>-->
 <!--                <eq filter-id="hasPublishedVersion" domain="boolean">lastPublishedVersion != null</eq>-->
             </filters>
+            <sorting/>
         </field>
 
         <field id="lastPublishedVersionFromDate" domain="date">

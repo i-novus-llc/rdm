@@ -58,16 +58,7 @@ public class StructureController {
         return new RestPage<>(currentPageAttributes, new PageRequest(criteria.getPage(), criteria.getSize()), list.size());
     }
 
-    private void fillAttributeReferenceCode (FormAttribute formAttribute, Integer referenceRefBookId) {
-        if (referenceRefBookId == null || formAttribute == null || formAttribute.getType() != FieldType.REFERENCE)
-            return;
-
-        formAttribute.setReferenceCode(refBookService.getCode(referenceRefBookId));
-    }
-
-    public void createAttribute(Integer versionId, FormAttribute formAttribute, Integer referenceRefBookId) {
-
-        fillAttributeReferenceCode(formAttribute, referenceRefBookId);
+    public void createAttribute(Integer versionId, FormAttribute formAttribute) {
 
         CreateAttribute attributeModel = new CreateAttribute();
         attributeModel.setVersionId(versionId);
@@ -84,9 +75,7 @@ public class StructureController {
         }
     }
 
-    public void updateAttribute(Integer versionId, FormAttribute formAttribute, Integer referenceRefBookId) {
-
-        fillAttributeReferenceCode(formAttribute, referenceRefBookId);
+    public void updateAttribute(Integer versionId, FormAttribute formAttribute) {
 
         Structure.Attribute oldAttribute = versionService.getStructure(versionId).getAttribute(formAttribute.getCode());
         Structure.Reference oldReference = versionService.getStructure(versionId).getReference(formAttribute.getCode());

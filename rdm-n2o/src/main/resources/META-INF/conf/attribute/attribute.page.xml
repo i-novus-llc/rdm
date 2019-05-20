@@ -22,13 +22,14 @@
             </select>
 
             <input-select id="referenceRefBook" label="Выбор справочника" query-id="refBook"
-                          label-field-id="displayCode">
+                          value-field-id="code" label-field-id="displayCode">
                 <dependencies>
                     <visibility on="attrType">
                         attrType.id == 'REFERENCE'
                     </visibility>
                 </dependencies>
                 <pre-filters>
+<!--                    <eq field-id="code" value="CAT" />-->
 <!--                    <eq field-id="lastPublishedVersion" value="3.2" />-->
 <!--                    <notEq field-id="lastPublishedVersion" value="2.1" />-->
 <!--                    <eq field-id="hasPrimaryAttribute" value="true"/>-->
