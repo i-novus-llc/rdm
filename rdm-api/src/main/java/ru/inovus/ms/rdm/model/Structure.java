@@ -196,15 +196,15 @@ public class Structure implements Serializable {
          * Вид отображаемого ссылочного значения.
          * Поля справочника указываются через placeholder ${~}, например ${field}
          */
-        private String displayExpression;
+        private String referenceExpression;
 
         public Reference() {
         }
 
-        public Reference(String attribute, String referenceCode, String displayExpression) {
+        public Reference(String attribute, String referenceCode, String referenceExpression) {
             this.attribute = attribute;
             this.referenceCode = referenceCode;
-            this.displayExpression = displayExpression;
+            this.referenceExpression = referenceExpression;
         }
 
         public String getAttribute() {
@@ -223,12 +223,12 @@ public class Structure implements Serializable {
             this.referenceCode = referenceCode;
         }
 
-        public String getDisplayExpression() {
-            return displayExpression;
+        public String getReferenceExpression() {
+            return referenceExpression;
         }
 
-        public void setDisplayExpression(String displayExpression) {
-            this.displayExpression = displayExpression;
+        public void setReferenceExpression(String referenceExpression) {
+            this.referenceExpression = referenceExpression;
         }
 
         public Structure.Attribute findReferenceAttribute(Structure referenceStructure) {
@@ -253,14 +253,14 @@ public class Structure implements Serializable {
                 return false;
             if (referenceCode != null ? !referenceCode.equals(reference.referenceCode) : reference.referenceCode != null)
                 return false;
-            return !(displayExpression != null ? !displayExpression.equals(reference.displayExpression) : reference.displayExpression != null);
+            return !(referenceExpression != null ? !referenceExpression.equals(reference.referenceExpression) : reference.referenceExpression != null);
         }
 
         @Override
         public int hashCode() {
             int result = attribute != null ? attribute.hashCode() : 0;
             result = 31 * result + (referenceCode != null ? referenceCode.hashCode() : 0);
-            result = 31 * result + (displayExpression != null ? displayExpression.hashCode() : 0);
+            result = 31 * result + (referenceExpression != null ? referenceExpression.hashCode() : 0);
             return result;
         }
     }

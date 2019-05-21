@@ -168,8 +168,8 @@ public class XmlFileGenerator extends PerRowFileGenerator {
             throw new RdmException("reference.not.found");
 
         writeElement("referenceCode", reference.getReferenceCode());
-        if (reference.getDisplayExpression() != null)
-            writeElement("displayExpression", reference.getDisplayExpression());
+        if (reference.getReferenceExpression() != null)
+            writeElement("referenceExpresssion", reference.getReferenceExpression());
     }
 
     private void addAttributeValidation(String attributeCode) {

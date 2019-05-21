@@ -72,9 +72,9 @@ public class StructureType implements UserType {
                 String name = getByKey(attributeJson, "name", JsonNode::asText);
                 String description = getByKey(attributeJson, "description", JsonNode::asText);
                 String type = getByKey(attributeJson, "type", JsonNode::asText);
-                boolean isPrimary = getByKey(attributeJson, "isPrimary", JsonNode::asBoolean);
+                boolean isPrimary = Boolean.TRUE.equals(getByKey(attributeJson, "isPrimary", JsonNode::asBoolean));
                 String referenceCode = getByKey(attributeJson, "referenceCode", JsonNode::asText);
-                String displayExpression = getByKey(attributeJson, "referenceDisplayExpression", JsonNode::asText);
+                String referenceExpression = getByKey(attributeJson, "referenceExpression", JsonNode::asText);
                 Structure.Attribute attribute;
                 if (isPrimary) {
                     attribute = Structure.Attribute.buildPrimary(code, name, FieldType.valueOf(type), description);
@@ -82,7 +82,7 @@ public class StructureType implements UserType {
                     attribute = Structure.Attribute.build(code, name, FieldType.valueOf(type), description);
                 }
                 if (FieldType.valueOf(type).equals(FieldType.REFERENCE)) {
-                    Structure.Reference reference = new Structure.Reference(code, referenceCode, displayExpression);
+                    Structure.Reference reference = new Structure.Reference(code, referenceCode, referenceExpression);
                     references.add(reference);
                 }
                 attributes.add(attribute);
@@ -127,8 +127,8 @@ public class StructureType implements UserType {
         Structure.Reference reference = structure.getReference(attribute.getCode());
         if (reference != null) {
             attributeJson.put("referenceCode", reference.getReferenceCode());
-            if (reference.getDisplayExpression() != null)
-                attributeJson.put("referenceDisplayExpression", reference.getDisplayExpression());
+            if (reference.getReferenceExpression() != null)
+                attributeJson.put("referenceExpression", reference.getReferenceExpression());
         }
 
         return attributeJson;

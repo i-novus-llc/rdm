@@ -125,7 +125,7 @@ public class StructureController {
         Integer refRefBookId = refBookService.getId(reference.getReferenceCode());
         attribute.setReferenceRefBookId(refRefBookId);
 
-        attribute.setReferenceDisplayExpression(reference.getDisplayExpression());
+        attribute.setReferenceExpression(reference.getReferenceExpression());
     }
 
     private void enrich(ReadAttribute attribute, List<AttributeValidation> validations) {
@@ -194,7 +194,7 @@ public class StructureController {
     private Structure.Reference buildReference(FormAttribute request) {
         return new Structure.Reference(request.getCode(),
                 request.getReferenceCode(),
-                request.getReferenceDisplayExpression());
+                request.getReferenceExpression());
     }
 
     private UpdateAttribute getUpdateAttribute(Integer versionId, FormAttribute formAttribute) {
@@ -212,8 +212,8 @@ public class StructureController {
         updateAttribute.setAttribute(of(formAttribute.getCode()));
         if (formAttribute.getReferenceCode() != null)
             updateAttribute.setReferenceCode(of(formAttribute.getReferenceCode()));
-        if (formAttribute.getReferenceDisplayExpression() != null)
-            updateAttribute.setDisplayExpression(of(formAttribute.getReferenceDisplayExpression()));
+        if (formAttribute.getReferenceExpression() != null)
+            updateAttribute.setReferenceExpression(of(formAttribute.getReferenceExpression()));
         return updateAttribute;
     }
 
@@ -226,7 +226,7 @@ public class StructureController {
         attribute.setIsPrimary(structureAttribute.getIsPrimary());
         if (Objects.nonNull(reference)) {
             attribute.setReferenceCode(reference.getReferenceCode());
-            attribute.setReferenceDisplayExpression(reference.getDisplayExpression());
+            attribute.setReferenceExpression(reference.getReferenceExpression());
         }
         return attribute;
     }

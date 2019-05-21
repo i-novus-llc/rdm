@@ -65,7 +65,7 @@ public class StructureControllerTest extends TestCase {
     private String referenceCode = "test_storage";
     private Integer referenceVersionId = -1;
     private String referenceAttribute = "count";
-    private String displayExpression = toPlaceholder(referenceAttribute);
+    private String referenceExpression = toPlaceholder(referenceAttribute);
     private int plainSize = 2;
     private BigInteger minInteger = BigInteger.valueOf(5L);
     private BigInteger maxInteger = BigInteger.valueOf(6L);
@@ -159,7 +159,7 @@ public class StructureControllerTest extends TestCase {
         formAttribute.setIsPrimary(false);
         formAttribute.setDescription(testDescription);
         formAttribute.setType(FieldType.REFERENCE);
-        formAttribute.setReferenceDisplayExpression(displayExpression);
+        formAttribute.setReferenceExpression(referenceExpression);
         formAttribute.setReferenceCode(referenceCode);
         structureController.createAttribute(versionId, formAttribute);
 
@@ -173,7 +173,7 @@ public class StructureControllerTest extends TestCase {
         assertEquals(FieldType.REFERENCE, actual.getAttribute().getType());
         assertFalse(actual.getAttribute().getIsPrimary());
         assertEquals(testCode, actual.getReference().getAttribute());
-        assertEquals(displayExpression, actual.getReference().getDisplayExpression());
+        assertEquals(referenceExpression, actual.getReference().getReferenceExpression());
         assertEquals(referenceCode, actual.getReference().getReferenceCode());
     }
 
@@ -189,7 +189,7 @@ public class StructureControllerTest extends TestCase {
         when(versionService.getStructure(eq(versionId)))
                 .thenReturn(new Structure(
                         singletonList(build(testCode, null, FieldType.REFERENCE, null)),
-                        singletonList(new Structure.Reference(testCode, referenceCode, displayExpression))));
+                        singletonList(new Structure.Reference(testCode, referenceCode, referenceExpression))));
         when(draftService.getAttributeValidations(eq(versionId), isNull()))
                 .thenReturn(emptyList());
         when(refBookService.getId(eq(referenceCode))).thenReturn(refBookId);
