@@ -5,6 +5,8 @@ public class ReadAttribute extends FormAttribute {
 
     private Integer versionId;
 
+    private String codeExpression;
+
     private Integer referenceRefBookId;
 
     public Integer getVersionId() {
@@ -13,6 +15,14 @@ public class ReadAttribute extends FormAttribute {
 
     public void setVersionId(Integer versionId) {
         this.versionId = versionId;
+    }
+
+    public String getCodeExpression() {
+        return codeExpression;
+    }
+
+    public void setCodeExpression(String codeExpression) {
+        this.codeExpression = codeExpression;
     }
 
     public Integer getReferenceRefBookId() {

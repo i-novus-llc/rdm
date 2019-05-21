@@ -274,6 +274,7 @@ public class RefBookServiceImpl implements RefBookService {
     public void toArchive(int refBookId) {
         validateRefBookExists(refBookId);
         RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
+        // NB: Add checking references to this refBook.
         refBookEntity.setArchived(Boolean.TRUE);
         refBookRepository.save(refBookEntity);
     }
@@ -343,7 +344,7 @@ public class RefBookServiceImpl implements RefBookService {
             where.andNot(isArchived()).and(refBookHasDraft());
 
         if (criteria.getHasPublishedVersion())
-            where.and(hasLastPublishedVersion());
+            where.andNot(isArchived()).and(hasLastPublishedVersion());
 
         if (criteria.getHasPrimaryAttribute())
             where.and(hasPrimaryAttribute());

@@ -141,7 +141,7 @@
             <select mapping="
                     code +
                     (lastPublishedVersion != null ? ' (' + lastPublishedVersion + ')' : '') +
-                    ' [' + passport['name'] + ']'
+                    (passport['name'] != null ? ' [' + passport['name'] + ']' : '')
                 "/>
         </field>
 

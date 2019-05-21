@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.validation.*;
 import ru.inovus.ms.rdm.service.api.DraftService;
@@ -38,18 +39,21 @@ public class StructureController {
         List<AttributeValidation> attributeValidations = draftService.getAttributeValidations(criteria.getVersionId(), null);
 
         if (structure != null)
-            structure.getAttributes().forEach(a -> {
-                if (Objects.isNull(criteria.getCode()) || criteria.getCode().equals(a.getCode())) {
-                    Structure.Reference reference = !FieldType.REFERENCE.equals(a.getType()) ? null
-                            : structure.getReference(a.getCode());
-                    ReadAttribute attribute = model(a, reference);
-                    enrich(attribute, filterByAttribute(attributeValidations, a.getCode()));
-                    attribute.setVersionId(criteria.getVersionId());
+            structure.getAttributes().forEach(attribute -> {
+                if (Objects.isNull(criteria.getCode()) || criteria.getCode().equals(attribute.getCode())) {
+                    Structure.Reference reference = !FieldType.REFERENCE.equals(attribute.getType()) ? null
+                            : structure.getReference(attribute.getCode());
+                    ReadAttribute readAttribute = model(attribute, reference);
+                    enrich(readAttribute, filterByAttribute(attributeValidations, attribute.getCode()));
+
+                    readAttribute.setVersionId(criteria.getVersionId());
+                    readAttribute.setCodeExpression(DisplayExpression.toPlaceholder(attribute.getCode()));
                     if (reference != null)
-                        enrich(attribute, reference);
-                    list.add(attribute);
+                        enrich(readAttribute, reference);
+                    list.add(readAttribute);
                 }
             });
+
         List<ReadAttribute> currentPageAttributes = list.stream()
                 .skip((long) (criteria.getPage() - 1) * criteria.getSize())
                 .limit(criteria.getSize())
@@ -198,6 +202,7 @@ public class StructureController {
     }
 
     private UpdateAttribute getUpdateAttribute(Integer versionId, FormAttribute formAttribute) {
+
         UpdateAttribute updateAttribute = new UpdateAttribute();
         updateAttribute.setLastActionDate(TimeUtils.nowZoned());
         updateAttribute.setVersionId(versionId);
@@ -214,20 +219,24 @@ public class StructureController {
             updateAttribute.setReferenceCode(of(formAttribute.getReferenceCode()));
         if (formAttribute.getReferenceExpression() != null)
             updateAttribute.setReferenceExpression(of(formAttribute.getReferenceExpression()));
+
         return updateAttribute;
     }
 
     private ReadAttribute model(Structure.Attribute structureAttribute, Structure.Reference reference) {
+
         ReadAttribute attribute = new ReadAttribute();
         attribute.setCode(structureAttribute.getCode());
         attribute.setName(structureAttribute.getName());
         attribute.setDescription(structureAttribute.getDescription());
         attribute.setType(structureAttribute.getType());
         attribute.setIsPrimary(structureAttribute.getIsPrimary());
+
         if (Objects.nonNull(reference)) {
             attribute.setReferenceCode(reference.getReferenceCode());
             attribute.setReferenceExpression(reference.getReferenceExpression());
         }
+
         return attribute;
     }
 }
