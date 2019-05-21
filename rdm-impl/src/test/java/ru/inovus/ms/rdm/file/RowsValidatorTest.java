@@ -6,19 +6,16 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.AdditionalMatchers;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
-import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.process.RowsValidator;
 import ru.inovus.ms.rdm.file.process.RowsValidatorImpl;
 import ru.inovus.ms.rdm.model.*;
@@ -27,12 +24,12 @@ import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ModelGenerator;
 import ru.inovus.ms.rdm.validation.ReferenceValueValidation;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.List;
 
-import static org.mockito.Matchers.eq;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static ru.inovus.ms.rdm.file.BufferedRowsPersisterTest.createTestStructure;
 
@@ -70,32 +67,29 @@ public class RowsValidatorTest {
     @Before
     public void setUp() {
         rowsValidator = new RowsValidatorImpl(versionService, searchDataService, createTestStructureWithReference(), "",
-                100, Collections.emptyList());
-        when(fieldFactory.createField(eq(REFERENCE_ATTRIBUTE), eq(FieldType.STRING)))
-                .thenReturn(new StringField(REFERENCE_ATTRIBUTE));
-                //.thenReturn(new ReferenceField(REFERENCE_ATTRIBUTE));
+                100, emptyList());
 
         RefBookVersionEntity versionEntity = new RefBookVersionEntity();
         versionEntity.setId(REFERENCE_VERSION);
         versionEntity.setStructure(createTestStructure());
         versionEntity.setRefBook(new RefBookEntity());
-        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(REFERENCE_CODE), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(versionEntity);
-        when(versionService.getLastPublishedVersion(eq(REFERENCE_CODE))).thenReturn(ModelGenerator.versionModel(versionEntity));
+        when(versionService.getLastPublishedVersion(eq(REFERENCE_CODE)))
+                .thenReturn(ModelGenerator.versionModel(versionEntity));
 
         AttributeFilter attributeFilter = new AttributeFilter(REFERENCE_ATTRIBUTE, ATTRIBUTE_VALUE, FieldType.STRING, SearchTypeEnum.EXACT);
         searchDataCriteria = new SearchDataCriteria(
-                new HashSet<List<AttributeFilter>>() {{
-                    add(Collections.singletonList(attributeFilter));
+                new HashSet<>() {{
+                    add(singletonList(attributeFilter));
                 }},
                 null);
         when(versionService.search(eq(REFERENCE_VERSION), eq(searchDataCriteria)))
-                .thenReturn(new PageImpl<>(Collections.singletonList(new RefBookRowValue())));
+                .thenReturn(new PageImpl<>(singletonList(new RefBookRowValue())));
     }
 
     @Test
     public void testAppendAndProcess() {
         Row row = createTestRowWithReference();
-        Result expected = new Result(1, 1, Collections.emptyList());
+        Result expected = new Result(1, 1, emptyList());
 
         Result appendActual = rowsValidator.append(row);
         Result processActual = rowsValidator.process();
@@ -108,12 +102,10 @@ public class RowsValidatorTest {
     public void testAppendAndProcessWithErrors() {
         Row validRow = createTestRowWithReference();
         String newAttributeValue = ATTRIBUTE_VALUE + "_1";
-        Row notValidRow = new Row(new LinkedHashMap() {{
+        Row notValidRow = new Row(new LinkedHashMap<>() {{
             put(ATTRIBUTE_NAME, new Reference(newAttributeValue, newAttributeValue));
         }});
-        Result expected = new Result(1, 2, Collections.singletonList(new Message("validation.reference.err", ATTRIBUTE_NAME, newAttributeValue)));
-        when(versionService.search(AdditionalMatchers.not(eq(REFERENCE_VERSION)), AdditionalMatchers.not(eq(searchDataCriteria))))
-                .thenReturn(new PageImpl<>(Collections.emptyList()));
+        Result expected = new Result(1, 2, singletonList(new Message("validation.reference.err", ATTRIBUTE_NAME, newAttributeValue)));
 
         rowsValidator.append(validRow);
         Result appendActual = rowsValidator.append(notValidRow);
@@ -134,20 +126,20 @@ public class RowsValidatorTest {
      * @throws Exception
      */
     @Test
-    public void testIgnoreAttributeIfIsHasInvalidType() throws Exception {
+    public void testIgnoreAttributeIfIsHasInvalidType() {
         //todo
     }
 
     private Row createTestRowWithReference() {
-        return new Row(new LinkedHashMap<String, Object>() {{
+        return new Row(new LinkedHashMap<>() {{
             put(ATTRIBUTE_NAME, new Reference(ATTRIBUTE_VALUE, ATTRIBUTE_VALUE));
         }});
     }
 
     private Structure createTestStructureWithReference() {
         Structure structure = new Structure();
-        structure.setAttributes(Collections.singletonList(Structure.Attribute.build(ATTRIBUTE_NAME, ATTRIBUTE_NAME, FieldType.REFERENCE, "description")));
-        structure.setReferences(Collections.singletonList(new Structure.Reference(ATTRIBUTE_NAME, REFERENCE_CODE, null)));
+        structure.setAttributes(singletonList(Structure.Attribute.build(ATTRIBUTE_NAME, ATTRIBUTE_NAME, FieldType.REFERENCE, "description")));
+        structure.setReferences(singletonList(new Structure.Reference(ATTRIBUTE_NAME, REFERENCE_CODE, null)));
         return structure;
     }
 }

@@ -1,7 +1,7 @@
 package ru.inovus.ms.rdm.model.validation;
 
 import net.n2oapp.platform.i18n.UserException;
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 
@@ -47,9 +47,9 @@ public class FloatRangeAttributeValidation extends AttributeValidation {
         if (value == null || !value.matches("^(-?\\d+\\.\\d+)*;(-?\\d+\\.\\d+)*$"))
             throw new UserException("attribute.validation.value.invalid");
         String[] split = value.split(";");
-        if (StringUtils.isNotBlank(split[0]))
+        if (!StringUtils.isEmpty(split[0]))
             min = new BigDecimal(split[0]);
-        if (StringUtils.isNotBlank(split[1]))
+        if (!StringUtils.isEmpty(split[1]))
             max = new BigDecimal(split[1]);
         return this;
     }

@@ -4,10 +4,7 @@ import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.jaxrs.RestMessage;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
 import net.n2oapp.platform.test.autoconfigure.EnableEmbeddedPg;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +16,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit4.SpringRunner;
+import ru.i_novus.common.file.storage.api.FileStorage;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
@@ -30,7 +28,6 @@ import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
-import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.service.api.*;
@@ -334,7 +331,7 @@ public class ApplicationTest {
         assertTrue(search.getTotalElements() > 0);
         search.getContent().forEach(r -> {
             assertFalse(r.getArchived());
-            assertTrue(RefBookVersionStatus.DRAFT.equals(r.getStatus()));
+            assertEquals(RefBookVersionStatus.DRAFT, r.getStatus());
         });
 
         // поиск по статусу 'Архив'
@@ -584,7 +581,7 @@ public class ApplicationTest {
             put(upd.getCode(), "u1");
             put(type.getCode(), "1");
         }};
-        Set<List<AttributeFilter>> filters = new HashSet<List<AttributeFilter>>(){{
+        Set<List<AttributeFilter>> filters = new HashSet<>(){{
             add(asList(
                     new AttributeFilter(id.getCode(), rowMap.get(id.getCode()), id.getType()),
                     new AttributeFilter(code.getCode(), rowMap.get(code.getCode()), code.getType())
@@ -1378,7 +1375,7 @@ public class ApplicationTest {
                 DiffStatusEnum.UPDATED));
 
         RefBookDataDiff expectedRefBookDataDiff = new RefBookDataDiff(
-                new PageImpl<>(expectedDiffRowValues, new PageRequest(0, 10), expectedDiffRowValues.size()),
+                new PageImpl<>(expectedDiffRowValues, PageRequest.of(0, 10), expectedDiffRowValues.size()),
                 singletonList(descr.getCode()),
                 singletonList(name.getCode()),
                 asList(upd1.getCode(), typeI.getCode())
@@ -1424,7 +1421,7 @@ public class ApplicationTest {
 
         List<DiffRowValue> expectedDiffRowValues = new ArrayList<>();
         RefBookDataDiff expectedRefBookDataDiff = new RefBookDataDiff(
-                new PageImpl<>(expectedDiffRowValues, new PageRequest(0, 10), expectedDiffRowValues.size()),
+                new PageImpl<>(expectedDiffRowValues, PageRequest.of(0, 10), expectedDiffRowValues.size()),
                 emptyList(),
                 singletonList(name.getCode()),
                 emptyList()
@@ -1475,8 +1472,8 @@ public class ApplicationTest {
      * Создание справочника из файла
      */
     @Test
-    public void testCreateRefbookFromFile() {
-        FileModel fileModel = createFileModel("testCreateRefbookFromFilePath.xml", "refbook.xml");
+    public void testCreateRefBookFromFile() {
+        FileModel fileModel = createFileModel("testCreateRefBookFromFilePath.xml", "refBook.xml");
 
         Draft expected = draftService.create(fileModel);
 
@@ -1490,7 +1487,7 @@ public class ApplicationTest {
         assertEquals(2, search.getContent().size());
 
         // Совпадение записей:
-        List<FieldValue> expectedData0 = new ArrayList<FieldValue>() {{
+        List<FieldValue> expectedData0 = new ArrayList<>() {{
             add(new StringFieldValue("TEST_CODE", "string2"));
             add(new IntegerFieldValue("number", 2));
             add(new DateFieldValue("dt", LocalDate.of(2002, 2, 2)));
@@ -1499,7 +1496,7 @@ public class ApplicationTest {
         List actualData0 = search.getContent().get(0).getFieldValues();
         assertEquals(expectedData0, actualData0);
 
-        List<FieldValue> expectedData1 = new ArrayList<FieldValue>() {{
+        List<FieldValue> expectedData1 = new ArrayList<>() {{
             add(new StringFieldValue("TEST_CODE", "string5"));
             add(new IntegerFieldValue("number", 5));
             add(new DateFieldValue("dt", LocalDate.of(2005, 5, 5)));
@@ -1548,11 +1545,15 @@ public class ApplicationTest {
     }
 
     private void assertPassportEqual(Map<String, String> expected, Map<String, String> actual) {
-        if (expected == null) assertNull(actual);
-        else assertNotNull(actual);
+        if (expected == null)
+            assertNull(actual);
+        else
+            assertNotNull(actual);
         expected.forEach((k, v) -> {
-            if (v == null) assertNull(actual.get(k));
-            else assertNotNull(actual.get(k));
+            if (v == null)
+                assertNull(actual.get(k));
+            else
+                assertNotNull(actual.get(k));
             assertEquals(v, actual.get(k));
         });
     }

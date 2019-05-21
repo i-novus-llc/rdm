@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.service;
 
-import net.n2oapp.criteria.api.Criteria;
 import net.n2oapp.platform.jaxrs.RestPage;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,7 +7,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -33,7 +32,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -131,7 +130,7 @@ public class CompareDataControllerTest {
                         new StringFieldValue(upd1.getCode(), "u3"),
                         new StringFieldValue(typeS.getCode(), "3")
                 ), OLD_ID)
-        ), new PageRequest(0, 10), 3);
+        ), PageRequest.of(0, 10), 3);
 
         when(versionService.search(eq(OLD_ID), any(SearchDataCriteria.class))).thenReturn(oldVersionRows);
     }
@@ -162,7 +161,7 @@ public class CompareDataControllerTest {
                         new StringFieldValue(upd1.getCode(), "u4"),
                         new IntegerFieldValue(typeS.getCode(), BigInteger.valueOf(4))
                 ), NEW_ID)
-        ), new PageRequest(0, 10), 3);
+        ), PageRequest.of(0, 10), 3);
 
         when(versionService.search(eq(NEW_ID), any(SearchDataCriteria.class))).thenReturn(newVersionRows);
     }
@@ -292,14 +291,6 @@ public class CompareDataControllerTest {
         assertComparableRowsEquals(expectedNewRowsWithDiff, actualNewRowsWithDiff);
     }
 
-    private Criteria createDefaultCriteria() {
-        Criteria criteria = new Criteria();
-        criteria.setPage(1);
-        criteria.setSize(10);
-        criteria.setCount(null);
-        return criteria;
-    }
-
     private CompareDataCriteria createRdmDefaultCompareDataCriteria(Integer oldId, Integer newId) {
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria(oldId, newId);
         compareDataCriteria.setPageNumber(0);
@@ -333,7 +324,7 @@ public class CompareDataControllerTest {
      * suppose that two rdm CompareDataCriteria values are equal for mocking if equal version ids, countOnly flag and diffStatus
      * ignore page size and page number (from Criteria)
      */
-    private static class CompareDataCriteriaMatcher extends ArgumentMatcher<CompareDataCriteria> {
+    private static class CompareDataCriteriaMatcher implements ArgumentMatcher<CompareDataCriteria> {
 
         private CompareDataCriteria expected;
 
@@ -342,14 +333,13 @@ public class CompareDataControllerTest {
         }
 
         @Override
-        public boolean matches(Object actual) {
-            if (!(actual instanceof CompareDataCriteria))
+        public boolean matches(CompareDataCriteria actual) {
+            if (expected == null)
                 return false;
-            CompareDataCriteria actualTyped = (CompareDataCriteria) actual;
-            return expected.getOldVersionId().equals((actualTyped).getOldVersionId()) &&
-                    expected.getNewVersionId().equals((actualTyped).getNewVersionId()) &&
-                    expected.getPageNumber() == (actualTyped).getPageNumber() &&
-                    expected.getPageSize() == (actualTyped).getPageSize();
+            return expected.getOldVersionId().equals(actual.getOldVersionId()) &&
+                    expected.getNewVersionId().equals(actual.getNewVersionId()) &&
+                    expected.getPageNumber() == actual.getPageNumber() &&
+                    expected.getPageSize() == actual.getPageSize();
         }
     }
 

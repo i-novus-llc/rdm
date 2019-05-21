@@ -10,7 +10,7 @@
                             <set-value on="version">version.id</set-value>
                         </dependencies>
                     </output-text>
-                    <select id="version" label="Версия" query-id="versionList" label-field-id="version" >
+                    <select id="version" label="Версия" query-id="versionList" label-field-id="version" cleanable="false">
                         <pre-filters>
                             <eq field-id="refBookId" value="{refBookId}"/>
                         </pre-filters>
@@ -91,27 +91,27 @@
                 <toolbar place="topRight">
                     <!--todo: сделать отдельные кнопки без рефшреша для редактирования черновика-->
                     <button id="createRecord_r" label="Добавить строку" icon="fa fa-plus" model="resolve" widget-id="version_select">
-                        <show-modal page-id="dataRecordPage?{id}" upload="defaults" submit-operation-id="create"/>
+                        <show-modal page-id="dataRecordPage?{id}" upload="defaults" route="/create"
+                                    submit-operation-id="create" refresh-widget-id="version_select"/>
                     </button>
                     <!-- порядок кнопок в данном toolbar важен, так как эта кнопка изменяется в UpdateDependencyTransformer-->
                     <button id="updateRecord_r" label="Изменить строку" icon="fa fa-pencil"
                             widget-id="version_select" model="resolve">
                         <show-modal page-id="dataRecordPage?{id}" upload="query" route="/update"
-                                    submit-operation-id="update">
+                                    submit-operation-id="update" refresh-widget-id="version_select">
                             <pre-filters>
                                 <eq field-id="id" value="{id}" ref-model="resolve" ref-widget-id="dataTable"/>
                             </pre-filters>
                         </show-modal>
                     </button>
                     <button id="deleteRecord_r" label="Удалить строку" color="danger" icon="fa fa-trash">
-                        <invoke operation-id="delete"/>
+                        <invoke operation-id="delete" refresh-widget-id="version_select" route="/delete"/>
                     </button>
                     <button id="deleteAllRecords_r" label="Удалить все" color="danger" icon="fa fa-trash">
-                        <invoke operation-id="deleteAll"/>
+                        <invoke operation-id="deleteAll" refresh-widget-id="version_select" route="/deleteAll"/>
                     </button>
                 </toolbar>
             </table>
         </tabs>
     </regions>
-
 </page>

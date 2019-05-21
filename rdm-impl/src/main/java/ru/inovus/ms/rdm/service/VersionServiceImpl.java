@@ -40,9 +40,7 @@ import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 import static org.springframework.util.StringUtils.isEmpty;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.hasVersionId;
 import static ru.inovus.ms.rdm.util.ConverterUtil.*;
@@ -95,19 +93,19 @@ public class VersionServiceImpl implements VersionService {
 
     @Override
     public Page<RefBookRowValue> search(Integer versionId, SearchDataCriteria criteria) {
-        RefBookVersionEntity version = versionRepository.findOne(versionId);
-        if (version == null)
-            throw new NotFoundException(new Message(VERSION_NOT_FOUND, versionId));
+        RefBookVersionEntity version = versionRepository
+                .findById(versionId)
+                .orElseThrow(() -> new NotFoundException(new Message(VERSION_NOT_FOUND, versionId)));
         return getRowValuesOfVersion(criteria, version);
     }
 
     @Override
     @Transactional
     public RefBookVersion getById(Integer versionId) {
-        RefBookVersionEntity versionEntity = versionRepository.findOne(versionId);
-        if (versionEntity == null)
-            throw new NotFoundException(new Message(VERSION_NOT_FOUND, versionId));
-        return versionModel(versionEntity);
+        RefBookVersionEntity version = versionRepository
+                .findById(versionId)
+                .orElseThrow(() -> new NotFoundException(new Message(VERSION_NOT_FOUND, versionId)));
+        return versionModel(version);
     }
 
     @Override
@@ -155,15 +153,19 @@ public class VersionServiceImpl implements VersionService {
     }
 
     @Override
+    @Transactional
     public Structure getStructure(Integer versionId) {
-        return versionRepository.findOne(versionId).getStructure();
+        return versionRepository.getOne(versionId).getStructure();
     }
 
     @Override
     @Transactional
     public ExportFile getVersionFile(Integer versionId, FileType fileType) {
-        RefBookVersionEntity versionEntity = versionRepository.findOne(versionId);
-        if (versionEntity == null || fileType == null) return null;
+        if (fileType == null)
+            return null;
+        RefBookVersionEntity versionEntity = versionRepository
+                .findById(versionId)
+                .orElseThrow(() -> new NotFoundException(new Message(VERSION_NOT_FOUND, versionId)));
 
         VersionFileEntity fileEntity = versionFileRepository.findByVersionIdAndType(versionId, fileType);
         String path = null;
@@ -181,14 +183,17 @@ public class VersionServiceImpl implements VersionService {
     @Override
     @Transactional
     public RefBookVersion updatePassport(RefBookUpdateRequest refBookUpdateRequest) {
-        RefBookVersionEntity refBookVersionEntity = versionRepository.findOne(refBookUpdateRequest.getVersionId());
-        if (refBookVersionEntity == null) return null;
+        RefBookVersionEntity refBookVersionEntity = versionRepository
+                .findById(refBookUpdateRequest.getVersionId())
+                .orElseThrow(() ->
+                        new NotFoundException(new Message(VERSION_NOT_FOUND, refBookUpdateRequest.getVersionId())));
 
         updateVersionFromPassport(refBookVersionEntity, refBookUpdateRequest.getPassport());
         return versionModel(refBookVersionEntity);
     }
 
     @Override
+    @Transactional
     public ExistsData existsData(List<String> rowIds) {
         List<String> notExistent = new ArrayList<>();
         Map<Integer, List<String>> hashes = new HashMap<>();
@@ -210,15 +215,13 @@ public class VersionServiceImpl implements VersionService {
         }
 
         for (Map.Entry<Integer, List<String>> entry : hashes.entrySet()) {
-            RefBookVersionEntity versionEntity = versionRepository.findOne(entry.getKey());
+            RefBookVersionEntity versionEntity = versionRepository.getOne(entry.getKey());
             notExistent.addAll(searchDataService.getNotExists(
                     versionEntity.getStorageCode(),
                     versionEntity.getFromDate(),
                     versionEntity.getToDate(),
                     entry.getValue()));
-
         }
-
         return new ExistsData(notExistent.isEmpty(), notExistent);
     }
 
@@ -227,8 +230,9 @@ public class VersionServiceImpl implements VersionService {
         if (!rowId.matches("^.+\\$\\d+$")) throw new NotFoundException(ROW_NOT_FOUND);
 
         String[] split = rowId.split("\\$");
-        RefBookVersionEntity version = versionRepository.findOne(Integer.parseInt(split[1]));
-        if (version == null) throw new NotFoundException(ROW_NOT_FOUND);
+        RefBookVersionEntity version = versionRepository
+                .findById(Integer.parseInt(split[1]))
+                .orElseThrow(() -> new NotFoundException(ROW_NOT_FOUND));
 
         DataCriteria criteria = new DataCriteria(
                 version.getStorageCode(),
@@ -238,8 +242,10 @@ public class VersionServiceImpl implements VersionService {
                 singletonList(split[0]));
 
         List<RowValue> data = searchDataService.getData(criteria);
-        if (CollectionUtils.isEmpty(data)) throw new NotFoundException(ROW_NOT_FOUND);
-        if (data.size() > 1) throw new IllegalStateException("more than one row with id " + rowId);
+        if (CollectionUtils.isEmpty(data))
+            throw new NotFoundException(ROW_NOT_FOUND);
+        if (data.size() > 1)
+            throw new IllegalStateException("more than one row with id " + rowId);
         return new RefBookRowValue((LongRowValue) data.get(0), version.getId());
     }
 
@@ -253,7 +259,7 @@ public class VersionServiceImpl implements VersionService {
                         newPassport.get(passportValue.getAttribute().getCode()) == null
                 ).collect(Collectors.toList());
 
-        passportValueRepository.delete(valuesToRemove);
+        passportValueRepository.deleteAll(valuesToRemove);
 
         versionEntity
                 .getPassportValues()

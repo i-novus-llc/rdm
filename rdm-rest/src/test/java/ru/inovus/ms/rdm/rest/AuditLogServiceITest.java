@@ -71,23 +71,27 @@ public class AuditLogServiceITest {
 
         List<AuditLog> expectedList = Arrays.asList(expected1, expected2, expected3);
 
+        Sort.Order userSortASC = new Sort.Order(Sort.Direction.ASC, "user");
+        Sort.Order dateSortASC = new Sort.Order(Sort.Direction.ASC, "date");
+
         //сортировка по пользователям
         expectedList.sort(comparing(AuditLog::getUser));
         AuditLogCriteria criteria = new AuditLogCriteria();
-        criteria.setOrders(singletonList(new Sort.Order(Sort.Direction.ASC, "user")));
+        criteria.setOrders(singletonList(userSortASC));
         List<AuditLog> actualList = auditLogService.getActions(criteria).getContent();
         Assert.assertEquals(expectedList, actualList);
 
         //сортировка по времени
         expectedList.sort(comparing(AuditLog::getDate));
         criteria = new AuditLogCriteria();
-        criteria.setOrders(singletonList(new Sort.Order(Sort.Direction.ASC, "date")));
+        criteria.setOrders(singletonList(dateSortASC));
         actualList = auditLogService.getActions(criteria).getContent();
         Assert.assertEquals(expectedList, actualList);
 
         //фильтр по пользователю
         AuditLogCriteria filterCriteria1 = new AuditLogCriteria();
         filterCriteria1.setUser("user2");
+        filterCriteria1.setOrders(singletonList(dateSortASC));
         Page<AuditLog> actualPage = auditLogService.getActions(filterCriteria1);
         Assert.assertEquals(1, actualPage.getTotalElements());
         Assert.assertEquals(expected2, actualPage.getContent().get(0));
@@ -95,10 +99,9 @@ public class AuditLogServiceITest {
         //фильтр по дате
         AuditLogCriteria filterCriteria2 = new AuditLogCriteria();
         filterCriteria2.setFromDate(filterFromDate);
+        filterCriteria2.setOrders(singletonList(dateSortASC));
         actualPage = auditLogService.getActions(filterCriteria2);
         Assert.assertEquals(1, actualPage.getTotalElements());
         Assert.assertEquals(expected1, actualPage.getContent().get(0));
-
-
     }
 }

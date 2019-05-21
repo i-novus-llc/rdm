@@ -6,22 +6,21 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.data.domain.PageImpl;
+import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
-import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
-import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ModelGenerator;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singleton;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 
@@ -37,11 +36,8 @@ public class ReferenceValueValidationTest {
     private final String REF_ATTRIBUTE_NAME1 = "Ссылка1";
     private final String REF_ATTRIBUTE_NAME2 = "Ссылка2";
 
-
     @Mock
     private VersionService versionService;
-    @Mock
-    private RefBookVersionRepository versionRepository;
 
     private Structure structure;
 
@@ -50,21 +46,21 @@ public class ReferenceValueValidationTest {
     private Map<Structure.Reference, String> referenceWithValueMap;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         Structure.Attribute id = Structure.Attribute.buildPrimary("id", "Идентификатор", FieldType.INTEGER, "");
         Structure.Attribute ref1 = Structure.Attribute.build(REF_ATTRIBUTE_CODE1, REF_ATTRIBUTE_NAME1, FieldType.REFERENCE, "");
         Structure.Attribute ref2 = Structure.Attribute.build(REF_ATTRIBUTE_CODE2, REF_ATTRIBUTE_NAME2, FieldType.REFERENCE, "");
         Structure.Attribute name = Structure.Attribute.build("name", "Наименование", FieldType.STRING, "");
         Structure.Reference reference1 = new Structure.Reference(ref1.getCode(), REF_BOOK_CODE, toPlaceholder("name1"));
         Structure.Reference reference2 = new Structure.Reference(ref2.getCode(), REF_BOOK_CODE, toPlaceholder("name2"));
-        structure = new Structure(Arrays.asList(id, ref1, ref2, name), Arrays.asList(reference1, reference2));
+        structure = new Structure(asList(id, ref1, ref2, name), asList(reference1, reference2));
 
         referenceWithValueMap = new HashMap<>();
         referenceWithValueMap.put(reference1, REFERENCE_VAL1);
         referenceWithValueMap.put(reference2, REFERENCE_VAL2);
 
         referenceStructure = new Structure(
-                Arrays.asList(
+                asList(
                         Structure.Attribute.buildPrimary("id", "Идентификатор", FieldType.INTEGER, ""),
                         Structure.Attribute.build("name1", "Наименование1", FieldType.STRING, ""),
                         Structure.Attribute.build("id1", "id1", FieldType.INTEGER, ""),
@@ -73,22 +69,20 @@ public class ReferenceValueValidationTest {
                         ),
                 null
         );
-
     }
 
     @Test
-    public void testValidate() throws Exception {
-        when(versionService.search(eq(VERSION_ID), any(SearchDataCriteria.class))).thenReturn(new PageImpl<>(Collections.emptyList()));
-
+    public void testValidate() {
         RefBookVersionEntity versionEntity = new RefBookVersionEntity();
         versionEntity.setId(VERSION_ID);
         versionEntity.setStructure(referenceStructure);
         versionEntity.setRefBook(new RefBookEntity());
-        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(REF_BOOK_CODE), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(versionEntity);
-        when(versionService.getLastPublishedVersion(eq(REF_BOOK_CODE))).thenReturn(ModelGenerator.versionModel(versionEntity));
 
-        List<Message> messages = new ReferenceValueValidation(versionService, referenceWithValueMap, structure, Collections.singleton(REF_ATTRIBUTE_CODE2)).validate();
-        Assert.assertTrue(messages.size() == 1);
+        when(versionService.getLastPublishedVersion(eq(REF_BOOK_CODE)))
+                .thenReturn(ModelGenerator.versionModel(versionEntity));
+
+        List<Message> messages = new ReferenceValueValidation(versionService, referenceWithValueMap, structure, singleton(REF_ATTRIBUTE_CODE2)).validate();
+        Assert.assertEquals(1, messages.size());
         Message expected1 = new Message(ReferenceValueValidation.REFERENCE_ERROR_CODE, REF_ATTRIBUTE_NAME1, REFERENCE_VAL1);
         Assert.assertTrue(messages.contains(expected1));
     }

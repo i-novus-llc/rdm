@@ -4,7 +4,7 @@ import net.n2oapp.platform.i18n.Message;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
@@ -61,6 +61,6 @@ public class RequiredValueValidationTest {
         assertTrue(messages2.contains(expected2_3));
 
         List<Message> messages3 = new PkRequiredValidation(fullRow, structure, emptySet()).validate();
-        assertTrue(messages3.size() == 0);
+        assertEquals(0, messages3.size());
     }
 }

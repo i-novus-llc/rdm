@@ -84,7 +84,8 @@ public class StructureRowMapper implements RowMapper {
 
     private Reference createReference(String attributeCode, String value) {
         Structure.Reference reference = structure.getReference(attributeCode);
-        RefBookVersionEntity version = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
+        RefBookVersionEntity version = versionRepository
+                .findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
         if (version == null)
             throw new RdmException("version.not.found");
 

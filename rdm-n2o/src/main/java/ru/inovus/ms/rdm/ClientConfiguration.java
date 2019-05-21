@@ -14,12 +14,11 @@ import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.inovus.ms.rdm.criteria.RestCriteriaConstructor;
-import ru.inovus.ms.rdm.message.RdmExceptionHandler;
 import ru.inovus.ms.rdm.operation.RdmCompileCacheOperation;
 import ru.inovus.ms.rdm.operation.RdmSourceCacheOperation;
 import ru.inovus.ms.rdm.provider.ExportFileProvider;
+import ru.inovus.ms.rdm.provider.RdmMapperConfigurer;
 import ru.inovus.ms.rdm.provider.RdmN2oParamConverterProvider;
-import ru.inovus.ms.rdm.provider.RowValueMapperPreparer;
 import ru.inovus.ms.rdm.util.json.RdmN2oLocalDateTimeMapperPreparer;
 
 @Configuration
@@ -41,13 +40,8 @@ public class ClientConfiguration {
     }
 
     @Bean
-    RowValueMapperPreparer rowValueMapperPreparer(){
-        return new RowValueMapperPreparer();
-    }
-
-    @Bean
-    public RdmExceptionHandler exceptionHandler() {
-        return new RdmExceptionHandler();
+    RdmMapperConfigurer rdmMapperConfigurer(){
+        return new RdmMapperConfigurer();
     }
 
     @Bean

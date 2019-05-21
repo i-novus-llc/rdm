@@ -13,7 +13,7 @@ public class TypeValidationTest {
 
     @Test
     public void testValidate(){
-        Map<String, Object> row = new LinkedHashMap(){{
+        Map<String, Object> row = new LinkedHashMap<>() {{
             put("name", "name");
             put("count", "wrong type");
         }};

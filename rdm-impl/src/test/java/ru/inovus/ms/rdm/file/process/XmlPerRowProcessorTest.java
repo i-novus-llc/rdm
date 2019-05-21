@@ -4,12 +4,14 @@ import org.junit.Before;
 import org.junit.Test;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.file.StructureRowMapper;
-import ru.inovus.ms.rdm.file.UploadFileTestData;
 import ru.inovus.ms.rdm.model.Result;
 import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
 import static org.junit.Assert.*;
 import static ru.inovus.ms.rdm.file.export.XmlFileGenerateProcessTest.createFullTestStructure;
@@ -105,10 +107,6 @@ public class XmlPerRowProcessorTest {
                 return new Result(successCount, allCount, null);
             }
         };
-    }
-
-    private Map<String, String> createExpectedPassport() {
-        return UploadFileTestData.createPassport();
     }
 
     private void assertActualValuesMap(List<Map<String, Object>> expected, Map<String, Object> actual) {

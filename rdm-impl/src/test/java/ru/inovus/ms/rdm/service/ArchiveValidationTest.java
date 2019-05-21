@@ -6,7 +6,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
@@ -22,8 +22,7 @@ import ru.inovus.ms.rdm.util.VersionNumberStrategy;
 import ru.inovus.ms.rdm.util.VersionPeriodPublishValidation;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
 
@@ -79,8 +78,7 @@ public class ArchiveValidationTest {
     public void setUp() {
         when(versionRepository.exists(eq(isVersionOfRefBook(refBookId)))).thenReturn(true);
         when(versionRepository.exists(eq(hasVersionId(draftId).and(isDraft())))).thenReturn(true);
-        when(versionRepository.exists(eq(versionId))).thenReturn(true);
-        when(refBookRepository.existsByCode(any())).thenReturn(false);
+        when(versionRepository.existsById(eq(versionId))).thenReturn(true);
     }
 
     @Test
@@ -105,7 +103,6 @@ public class ArchiveValidationTest {
         when(versionRepository.exists(eq(hasVersionId(draftId).and(isArchived())))).thenReturn(true);
         when(versionRepository.exists(eq(isVersionOfRefBook(refBookId).and(isArchived())))).thenReturn(true);
         when(versionRepository.exists(eq(hasVersionId(versionId).and(isArchived())))).thenReturn(true);
-        when(versionRepository.exists(eq(isVersionOfRefBook(versionId).and(isArchived())))).thenReturn(true);
         try {
             executor.execute();
             fail();
@@ -116,7 +113,6 @@ public class ArchiveValidationTest {
         when(versionRepository.exists(eq(hasVersionId(draftId).and(isArchived())))).thenReturn(false);
         when(versionRepository.exists(eq(isVersionOfRefBook(refBookId).and(isArchived())))).thenReturn(false);
         when(versionRepository.exists(eq(hasVersionId(versionId).and(isArchived())))).thenReturn(false);
-        when(versionRepository.exists(eq(isVersionOfRefBook(versionId).and(isArchived())))).thenReturn(false);
         try {
             executor.execute();
         } catch (UserException e) {

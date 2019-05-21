@@ -165,6 +165,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
+    @Transactional(timeout = 1200000)
     public Draft create(FileModel fileModel) {
         String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
         switch (extension) {
@@ -207,7 +208,7 @@ public class DraftServiceImpl implements DraftService {
     private Draft updateDraftDataByXml(Integer refBookId, FileModel fileModel, Supplier<InputStream> inputStreamSupplier) {
         try(XmlUpdateDraftFileProcessor xmlUpdateDraftFileProcessor = new XmlUpdateDraftFileProcessor(refBookId, this)) {
             Draft draft = xmlUpdateDraftFileProcessor.process(inputStreamSupplier);
-            updateDraftData(versionRepository.findOne(draft.getId()), fileModel);
+            updateDraftData(versionRepository.getOne(draft.getId()), fileModel);
             return draft;
         }
     }
@@ -260,7 +261,7 @@ public class DraftServiceImpl implements DraftService {
             // NB: structure == null means that draft was created during passport saving
             if (draftVersion != null && draftVersion.getStructure() != null) {
                 dropDataService.drop(singleton(draftVersion.getStorageCode()));
-                versionRepository.delete(draftVersion.getId());
+                versionRepository.deleteById(draftVersion.getId());
 
                 draftVersion = newDraftVersion(structure, draftVersion.getPassportValues());
 
@@ -320,7 +321,7 @@ public class DraftServiceImpl implements DraftService {
     public Draft createFromVersion(Integer versionId) {
 
         validateVersionExists(versionId);
-        RefBookVersionEntity sourceVersion = versionRepository.findOne(versionId);
+        RefBookVersionEntity sourceVersion = versionRepository.getOne(versionId);
 
         Map<String, String> passport = new HashMap<>();
         sourceVersion.getPassportValues().forEach(passportValueEntity -> passport.put(passportValueEntity.getAttribute().getCode(), passportValueEntity.getValue()));
@@ -341,7 +342,7 @@ public class DraftServiceImpl implements DraftService {
             if(passportValues == null) passportValues = draftVersion.getPassportValues();
 
             dropDataService.drop(singleton(draftCode));
-            versionRepository.delete(draftVersion.getId());
+            versionRepository.deleteById(draftVersion.getId());
 
             draftVersion = newDraftVersion(structure, passportValues);
             draftVersion.setRefBook(newRefBook(refBookId));
@@ -385,7 +386,7 @@ public class DraftServiceImpl implements DraftService {
 
         validateDraft(draftId);
 
-        RefBookVersionEntity draft = versionRepository.findOne(draftId);
+        RefBookVersionEntity draft = versionRepository.getOne(draftId);
 
         RowsValidator validator = new RowsValidatorImpl(versionService, searchDataService, draft.getStructure(),
                 draft.getStorageCode(), errorCountLimit, attributeValidationRepository.findAllByVersionId(draftId));
@@ -408,7 +409,7 @@ public class DraftServiceImpl implements DraftService {
 
         validateDraft(draftId);
 
-        RefBookVersionEntity draft = versionRepository.findOne(draftId);
+        RefBookVersionEntity draft = versionRepository.getOne(draftId);
         draftDataService.deleteRows(draft.getStorageCode(), singletonList(systemId));
     }
 
@@ -418,7 +419,7 @@ public class DraftServiceImpl implements DraftService {
 
         validateDraft(draftId);
 
-        RefBookVersionEntity draft = versionRepository.findOne(draftId);
+        RefBookVersionEntity draft = versionRepository.getOne(draftId);
         draftDataService.deleteAllRows(draft.getStorageCode());
     }
 
@@ -428,7 +429,7 @@ public class DraftServiceImpl implements DraftService {
 
         validateDraft(draftId);
 
-        RefBookVersionEntity draft = versionRepository.findOne(draftId);
+        RefBookVersionEntity draft = versionRepository.getOne(draftId);
         Integer refBookId = draft.getRefBook().getId();
 
         refBookLockService.setRefBookUploading(refBookId);
@@ -441,11 +442,12 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
+    @Transactional
     public Page<RefBookRowValue> search(Integer draftId, SearchDataCriteria criteria) {
 
         validateDraftExists(draftId);
 
-        RefBookVersionEntity draft = versionRepository.findOne(draftId);
+        RefBookVersionEntity draft = versionRepository.getOne(draftId);
         String storageCode = draft.getStorageCode();
         List<Field> fields = fields(draft.getStructure());
 
@@ -461,12 +463,10 @@ public class DraftServiceImpl implements DraftService {
 
         validateDraft(draftId);
 
-        RefBookVersionEntity draftVersion = versionRepository.findOne(draftId);
+        RefBookVersionEntity draftVersion = versionRepository.findById(draftId).orElseThrow();
         Integer refBookId = draftVersion.getRefBook().getId();
         refBookLockService.setRefBookPublishing(refBookId);
         try {
-
-            draftVersion = versionRepository.findOne(draftId);
             if (versionName == null) {
                 versionName = versionNumberStrategy.next(refBookId);
             } else if (!versionNumberStrategy.check(versionName, refBookId)) {
@@ -509,14 +509,14 @@ public class DraftServiceImpl implements DraftService {
             RefBookVersion versionModel = versionService.getById(draftId);
             for (FileType fileType : PerRowFileGeneratorFactory.getAvailableTypes())
                 saveVersionFile(versionModel, fileType, generateVersionFile(versionModel, fileType));
-
         } finally {
             refBookLockService.deleteRefBookAction(refBookId);
         }
     }
 
     private RefBookVersionEntity getLastPublishedVersion(RefBookVersionEntity draftVersion) {
-        return versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(draftVersion.getRefBook().getId(), RefBookVersionStatus.PUBLISHED);
+        return versionRepository
+                .findFirstByRefBookIdAndStatusOrderByFromDateDesc(draftVersion.getRefBook().getId(), RefBookVersionStatus.PUBLISHED);
     }
 
     private void resolveOverlappingPeriodsInFuture(LocalDateTime fromDate, LocalDateTime toDate, Integer refBookId) {
@@ -527,24 +527,21 @@ public class DraftServiceImpl implements DraftService {
                         .and(isVersionOfRefBook(refBookId))
                         .and(isPublished())
         );
-
-        if (versions != null) {
-            versions.forEach(version -> {
-                if (fromDate.isAfter(version.getFromDate())) {
-                    version.setToDate(fromDate);
-                    versionRepository.save(version);
-                } else {
-                    versionRepository.delete(version.getId());
-                }
-            });
-        }
+        versions.forEach(version -> {
+            if (fromDate.isAfter(version.getFromDate())) {
+                version.setToDate(fromDate);
+                versionRepository.save(version);
+            } else {
+                versionRepository.deleteById(version.getId());
+            }
+        });
     }
 
     private RefBookVersionEntity getLastRefBookVersion(Integer refBookId) {
         Page<RefBookVersionEntity> lastPublishedVersions = versionRepository
-                .findAll(isPublished().and(isVersionOfRefBook(refBookId))
-                        , new PageRequest(0, 1, new Sort(Sort.Direction.DESC, "fromDate")));
-        return lastPublishedVersions != null && lastPublishedVersions.hasContent() ? lastPublishedVersions.getContent().get(0) : null;
+                .findAll(isPublished().and(isVersionOfRefBook(refBookId)),
+                        PageRequest.of(0, 1, new Sort(Sort.Direction.DESC, "fromDate")));
+        return lastPublishedVersions.hasContent() ? lastPublishedVersions.getContent().get(0) : null;
     }
 
     @Override
@@ -554,15 +551,16 @@ public class DraftServiceImpl implements DraftService {
 
         refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
-        versionRepository.delete(draftId);
+        versionRepository.deleteById(draftId);
     }
 
     @Override
+    @Transactional
     public Draft getDraft(Integer draftId) {
 
         validateDraftExists(draftId);
 
-        RefBookVersionEntity versionEntity = versionRepository.findOne(draftId);
+        RefBookVersionEntity versionEntity = versionRepository.getOne(draftId);
         return new Draft(versionEntity.getId(), versionEntity.getStorageCode());
     }
 
@@ -574,7 +572,7 @@ public class DraftServiceImpl implements DraftService {
         validateDraftNotArchived(createAttribute.getVersionId());
         refBookLockService.validateRefBookNotBusyByVersionId(createAttribute.getVersionId());
 
-        RefBookVersionEntity draftEntity = versionRepository.findOne(createAttribute.getVersionId());
+        RefBookVersionEntity draftEntity = versionRepository.getOne(createAttribute.getVersionId());
         Structure.Attribute attribute = createAttribute.getAttribute();
         Structure structure = draftEntity.getStructure();
         validateRequired(attribute, draftEntity.getStorageCode(), structure);
@@ -621,7 +619,7 @@ public class DraftServiceImpl implements DraftService {
         validateDraftNotArchived(updateAttribute.getVersionId());
         refBookLockService.validateRefBookNotBusyByVersionId(updateAttribute.getVersionId());
 
-        RefBookVersionEntity draftEntity = versionRepository.findOne(updateAttribute.getVersionId());
+        RefBookVersionEntity draftEntity = versionRepository.getOne(updateAttribute.getVersionId());
         Structure structure = draftEntity.getStructure();
         Structure.Attribute attribute = structure.getAttribute(updateAttribute.getCode());
         validateUpdateAttribute(updateAttribute, attribute, draftEntity.getStorageCode());
@@ -664,7 +662,7 @@ public class DraftServiceImpl implements DraftService {
         }
 
         if (Objects.equals(oldType, updateAttribute.getType()))
-            attributeValidationRepository.delete(
+            attributeValidationRepository.deleteAll(
                     attributeValidationRepository.findAllByVersionIdAndAttribute(updateAttribute.getVersionId(), updateAttribute.getCode()));
     }
 
@@ -757,7 +755,7 @@ public class DraftServiceImpl implements DraftService {
 
         refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
-        RefBookVersionEntity draftEntity = versionRepository.findOne(draftId);
+        RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
         Structure.Attribute attribute = draftEntity.getStructure().getAttribute(attributeCode);
 
         if (FieldType.REFERENCE.equals(attribute.getType()))
@@ -770,7 +768,7 @@ public class DraftServiceImpl implements DraftService {
             throw new UserException(ROW_NOT_UNIQUE_EXCEPTION_CODE, e);
         }
 
-        attributeValidationRepository.delete(
+        attributeValidationRepository.deleteAll(
                 attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attributeCode));
     }
 
@@ -778,7 +776,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void addAttributeValidation(Integer versionId, String attribute, AttributeValidation attributeValidation) {
         validateAttributeExists(versionId, attribute);
-        RefBookVersionEntity versionEntity = versionRepository.findOne(versionId);
+        RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
 
         AttributeValidationEntity attributeValidationEntity = new AttributeValidationEntity(versionEntity, attribute,
                 attributeValidation.getType(), attributeValidation.valuesToString());
@@ -804,7 +802,7 @@ public class DraftServiceImpl implements DraftService {
             }
         }
         if (!validations.isEmpty())
-            attributeValidationRepository.delete(validations);
+            attributeValidationRepository.deleteAll(validations);
     }
 
     @Override
@@ -823,7 +821,7 @@ public class DraftServiceImpl implements DraftService {
     public void updateAttributeValidations(Integer versionId, String attribute, List<AttributeValidation> validations) {
 
         validateAttributeExists(versionId, attribute);
-        RefBookVersionEntity versionEntity = versionRepository.findOne(versionId);
+        RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
         List<AttributeValidationEntity> validationEntities = validations.stream()
                 .map(validation -> new AttributeValidationEntity(versionEntity, attribute, validation.getType(),
                         validation.valuesToString())).collect(toList());
@@ -831,7 +829,7 @@ public class DraftServiceImpl implements DraftService {
 
         deleteAttributeValidation(versionId, attribute, null);
 
-        attributeValidationRepository.save(validationEntities);
+        attributeValidationRepository.saveAll(validationEntities);
     }
 
     private void validateDataBase(RefBookVersionEntity versionEntity, List<AttributeValidationEntity> validationEntities) {
@@ -852,7 +850,8 @@ public class DraftServiceImpl implements DraftService {
 
         validateDraftExists(draftId);
 
-        RefBookVersion versionModel = ModelGenerator.versionModel(versionRepository.findOne(draftId));
+        RefBookVersion versionModel = ModelGenerator.versionModel(versionRepository.getOne(draftId));
+
         return new ExportFile(
                 generateVersionFile(versionModel, fileType),
                 fileNameGenerator.generateZipName(versionModel, fileType));
@@ -937,4 +936,5 @@ public class DraftServiceImpl implements DraftService {
             throw new NotFoundException(new Message(DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, versionId, attribute));
         }
     }
+
 }

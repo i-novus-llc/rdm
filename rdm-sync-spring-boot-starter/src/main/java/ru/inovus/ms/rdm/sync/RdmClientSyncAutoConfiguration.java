@@ -13,7 +13,7 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.util.StringUtils;
 import ru.inovus.ms.rdm.provider.ExportFileProvider;
 import ru.inovus.ms.rdm.provider.RdmParamConverterProvider;
-import ru.inovus.ms.rdm.provider.RowValueMapperPreparer;
+import ru.inovus.ms.rdm.provider.RdmMapperConfigurer;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
@@ -97,13 +97,13 @@ public class RdmClientSyncAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    ExportFileProvider exportFileProvider(){
+    ExportFileProvider exportFileProvider() {
         return new ExportFileProvider();
     }
 
     @Bean
     @ConditionalOnMissingBean
-    RowValueMapperPreparer rowValueMapperPreparer(){
-        return new RowValueMapperPreparer();
+    RdmMapperConfigurer rdmMapperConfigurer() {
+        return new RdmMapperConfigurer();
     }
 }

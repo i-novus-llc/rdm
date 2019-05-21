@@ -34,8 +34,8 @@ public class BackendConfiguration {
     }
 
     @Bean
-    RowValueMapperPreparer rowValueMapperPreparer(){
-        return new RowValueMapperPreparer();
+    RdmMapperConfigurer rdmMapperConfigurer(){
+        return new RdmMapperConfigurer();
     }
 
     @Bean("fnsiFileNameGenerator")

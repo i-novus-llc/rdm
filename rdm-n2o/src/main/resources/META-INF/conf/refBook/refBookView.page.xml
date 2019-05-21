@@ -27,7 +27,7 @@
             <table ref-id="structure" name="Структура" id="structure_table" depends-on="version_select"
                    master-field-id="version.id" detail-field-id="versionId" upload="query"/>
             <table src="DataGrid" name="Данные" id="dataTable" query-id="data" depends-on="version_select"
-                   master-field-id="version.id" detail-field-id="versionId"/>
+                   master-field-id="version.id" detail-field-id="versionId" object-id="data"/>
         </tabs>
     </regions>
 

@@ -7,7 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.exception.NotUniqueException;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
@@ -28,7 +28,7 @@ import java.util.*;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -63,7 +63,7 @@ public class BufferedRowsPersisterTest {
     public void testAppend() {
         Row rowFirst = createTestRow(1);
         Row rowSecond = createTestRow(2);
-        List<RowValue> rowValues = new ArrayList() {{
+        List<RowValue> rowValues = new ArrayList<>() {{
             add(new LongRowValue(name.valueOf("name1"), count.valueOf(BigInteger.valueOf(1))));
             add(new LongRowValue(name.valueOf("name2"), count.valueOf(BigInteger.valueOf(2))));
         }};
@@ -77,7 +77,7 @@ public class BufferedRowsPersisterTest {
     }
 
     private Row createTestRow(int number) {
-        return new Row(new LinkedHashMap() {{
+        return new Row(new LinkedHashMap<>() {{
             put("name", "name" + number);
             put("count", BigInteger.valueOf(number));
         }});
@@ -86,7 +86,7 @@ public class BufferedRowsPersisterTest {
     @Test
     public void testProcess() {
         Row rowFirst = createTestRow(1);
-        List<RowValue> rowValues = new ArrayList() {{
+        List<RowValue> rowValues = new ArrayList<>() {{
             add(new LongRowValue(name.valueOf("name1"), count.valueOf(BigInteger.valueOf(1))));
         }};
 
@@ -102,7 +102,7 @@ public class BufferedRowsPersisterTest {
     public void testAppendWithErrors() {
         Row rowFirst = createTestRow(1);
         Row rowSecond = createTestRow(2);
-        List<RowValue> rowValues = new ArrayList() {{
+        List<RowValue> rowValues = new ArrayList<>() {{
             add(new LongRowValue(name.valueOf("name1"), count.valueOf(BigInteger.valueOf(1))));
             add(new LongRowValue(name.valueOf("name2"), count.valueOf(BigInteger.valueOf(2))));
         }};
@@ -120,7 +120,7 @@ public class BufferedRowsPersisterTest {
     @Test
     public void testProcessWithErrors() {
         Row rowFirst = createTestRow(1);
-        List<RowValue> rowValues = new ArrayList() {{
+        List<RowValue> rowValues = new ArrayList<>() {{
             add(new LongRowValue(name.valueOf("name1"), count.valueOf(BigInteger.valueOf(1))));
         }};
         String code = "row.not.unique";
@@ -138,7 +138,7 @@ public class BufferedRowsPersisterTest {
 
     public static Structure createTestStructure() {
         Structure structure = new Structure();
-        structure.setAttributes(new LinkedList() {{
+        structure.setAttributes(new LinkedList<>() {{
             add(Structure.Attribute.buildPrimary("name", "name", FieldType.STRING, "description"));
             add(Structure.Attribute.build("count", "count", FieldType.INTEGER, "description"));
         }});

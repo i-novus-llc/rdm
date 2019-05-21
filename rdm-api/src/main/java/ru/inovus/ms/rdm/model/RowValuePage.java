@@ -10,7 +10,7 @@ import java.util.ArrayList;
 public class RowValuePage extends PageImpl<RowValue> {
 
     public RowValuePage(CollectionPage<RowValue> content) {
-        super(new ArrayList(content.getCollection()), new PageRequest(content.getCriteria().getPage() - 1,
+        super(new ArrayList(content.getCollection()), PageRequest.of(content.getCriteria().getPage() - 1,
                 content.getCriteria().getSize()), content.getCount());
     }
 }

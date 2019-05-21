@@ -1,7 +1,7 @@
 package ru.inovus.ms.rdm.model.validation;
 
 import net.n2oapp.platform.i18n.UserException;
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.StringUtils;
 
 import java.math.BigInteger;
 
@@ -47,9 +47,9 @@ public class IntRangeAttributeValidation extends AttributeValidation {
         if (value == null || !value.matches("^(-?\\d+)*;(-?\\d+)*$"))
             throw new UserException("attribute.validation.value.invalid");
         String[] split = value.split(";");
-        if (StringUtils.isNotBlank(split[0]))
+        if (!StringUtils.isEmpty(split[0]))
             min = new BigInteger(split[0]);
-        if (split.length > 1 && StringUtils.isNotBlank(split[1]))
+        if (split.length > 1 && !StringUtils.isEmpty(split[1]))
             max = new BigInteger(split[1]);
         return this;
     }

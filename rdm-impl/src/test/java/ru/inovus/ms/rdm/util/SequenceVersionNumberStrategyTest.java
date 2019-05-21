@@ -5,7 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.Structure;
@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 /**
@@ -31,7 +31,7 @@ public class SequenceVersionNumberStrategyTest {
     RefBookVersionRepository versionRepository;
 
     @Test
-    public void testNext() throws Exception {
+    public void testNext() {
 
         Structure structure1 = new Structure(new ArrayList<>(), new ArrayList<>());
         Structure.Attribute attribute = new Structure.Attribute();
@@ -57,7 +57,7 @@ public class SequenceVersionNumberStrategyTest {
     }
 
     @Test
-    public void testCheck() throws Exception {
+    public void testCheck() {
         RefBookVersionEntity e1 = createVersionEntity(RefBookVersionStatus.PUBLISHED, "1.0", null);
         RefBookVersionEntity e2 = createVersionEntity(RefBookVersionStatus.PUBLISHED, "20.5", null);
         RefBookVersionEntity e3 = createVersionEntity(RefBookVersionStatus.PUBLISHED, "14.1", null);

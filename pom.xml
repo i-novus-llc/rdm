@@ -10,8 +10,7 @@
     <parent>
         <groupId>net.n2oapp.platform</groupId>
         <artifactId>n2o-platform-parent</artifactId>
-        <version>1.6.1-SNAPSHOT</version>
-        <relativePath />
+        <version>2.6</version>
     </parent>
 
     <properties>
@@ -22,8 +21,9 @@
         <apache.poi.version>3.17</apache.poi.version>
         <filestorage.version>2.1-SNAPSHOT</filestorage.version>
         <vds.version>2.4-SNAPSHOT</vds.version>
-        <n2o.version>7.1.5</n2o.version>
+        <n2o.version>7.2.9</n2o.version>
         <itext.version>5.5.9</itext.version>
+        <commons.text.version>1.6</commons.text.version>
         <xmlunit.version>1.6</xmlunit.version>
         <lombok.version>1.18.4</lombok.version>
         <jaxws.version>2.3.2</jaxws.version>
@@ -32,6 +32,7 @@
         <swagger-annotations.version>1.5.21</swagger-annotations.version>
         <javax.activation.version>1.1.1</javax.activation.version>
         <security.admin.version>3.0</security.admin.version>
+        <security.oauth2.autoconfigure.version>2.1.1.RELEASE</security.oauth2.autoconfigure.version>
         <internal.repository.releases>https://maven.i-novus.ru/libs-release-local</internal.repository.releases>
         <internal.repository.shapshots>https://maven.i-novus.ru/libs-snapshot-local</internal.repository.shapshots>
         <internal.repository.id>i-novus-central</internal.repository.id>
@@ -44,7 +45,6 @@
         <developerConnection>scm:git:https://git.i-novus.ru/microservices/rdm.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
-
 
     <modules>
         <module>rdm-api</module>
@@ -69,7 +69,6 @@
             <uniqueVersion>true</uniqueVersion>
         </snapshotRepository>
     </distributionManagement>
-
 
     <dependencyManagement>
         <dependencies>
@@ -105,7 +104,6 @@
                 <artifactId>versioned-data-storage-api</artifactId>
                 <version>${vds.version}</version>
             </dependency>
-
 
             <dependency>
                 <groupId>ru.i-novus.platform</groupId>
@@ -194,6 +192,12 @@
             </dependency>
 
             <dependency>
+                <groupId>org.springframework.security.oauth.boot</groupId>
+                <artifactId>spring-security-oauth2-autoconfigure</artifactId>
+                <version>${security.oauth2.autoconfigure.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>net.n2oapp.framework.security</groupId>
                 <artifactId>security-auth-simple</artifactId>
                 <version>${security.admin.version}</version>
@@ -217,6 +221,12 @@
                 <groupId>javax.activation</groupId>
                 <artifactId>activation</artifactId>
                 <version>${javax.activation.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-text</artifactId>
+                <version>${commons.text.version}</version>
             </dependency>
 
         </dependencies>

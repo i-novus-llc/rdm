@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class Structure implements Serializable {
 
@@ -280,7 +280,6 @@ public class Structure implements Serializable {
 
         if (attributes != null ? !attributes.equals(structure.attributes) : structure.attributes != null) return false;
         return !(references != null ? !references.equals(structure.references) : structure.references != null);
-
     }
 
     @Override

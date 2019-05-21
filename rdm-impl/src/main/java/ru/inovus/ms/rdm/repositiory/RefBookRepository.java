@@ -1,12 +1,12 @@
 package ru.inovus.ms.rdm.repositiory;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.querydsl.QueryDslPredicateExecutor;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import ru.inovus.ms.rdm.entity.RefBookEntity;
 
 public interface RefBookRepository extends
         JpaRepository<RefBookEntity, Integer>,
-        QueryDslPredicateExecutor<RefBookEntity> {
+        QuerydslPredicateExecutor<RefBookEntity> {
 
     RefBookEntity findByCode(String code);
 

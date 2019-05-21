@@ -4,8 +4,11 @@ import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
@@ -16,7 +19,8 @@ import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 
 import java.time.format.DateTimeParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
@@ -52,6 +56,7 @@ public class ReferenceValidation implements RdmValidation {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Message> validate() {
         RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
         Structure.Attribute draftAttribute = draftVersion.getStructure().getAttribute(reference.getAttribute());

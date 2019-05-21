@@ -16,6 +16,8 @@ import java.math.BigInteger;
 import java.util.*;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 
 public class UploadFileTestData {
 
@@ -36,7 +38,7 @@ public class UploadFileTestData {
                         Structure.Attribute.build("float", "float", FieldType.FLOAT, "дробное"),
                         Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, "ссылка")
                 ),
-                Collections.singletonList(
+                singletonList(
                         new Structure.Reference("reference", REFERENCE_ENTITY_CODE, null)
                 )
         );
@@ -46,8 +48,8 @@ public class UploadFileTestData {
         Structure.Attribute referenceAttribute = Structure.Attribute.buildPrimary(REFERENCE_FIELD_CODE, "код", FieldType.INTEGER, null);
 
         return new Structure(
-                Collections.singletonList(referenceAttribute),
-                Collections.emptyList()
+                singletonList(referenceAttribute),
+                emptyList()
         );
     }
 
@@ -68,14 +70,14 @@ public class UploadFileTestData {
     }
 
     public static PageImpl<RefBookRowValue> createReferenceRows() {
-        return new PageImpl<>( asList(
+        return new PageImpl<>(asList(
                 new RefBookRowValue(new LongRowValue(
                         new IntegerFieldValue(REFERENCE_FIELD_CODE, BigInteger.valueOf(REFERENCE_FIELD_VALUE_1))
                 ), 1),
                 new RefBookRowValue(new LongRowValue(
                         new IntegerFieldValue(REFERENCE_FIELD_CODE, BigInteger.valueOf(REFERENCE_FIELD_VALUE_2))
                 ), 1)
-        ), new PageRequest(0, 10), 2);
+        ), PageRequest.of(0, 10), 2);
     }
 
     public static Map<String, String> createPassport() {
