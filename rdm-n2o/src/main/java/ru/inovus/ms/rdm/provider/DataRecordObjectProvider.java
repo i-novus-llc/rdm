@@ -28,8 +28,6 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
 
     static final String OBJECT_PROVIDER_ID = "dataRecordObject";
 
-    private static final String INTEGER_DOMAIN = "integer";
-
     @Autowired
     private VersionService versionService;
 
@@ -110,7 +108,7 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
         N2oObject.Parameter versionIdParameter = new N2oObject.Parameter();
         versionIdParameter.setId("versionId");
         versionIdParameter.setMapping("[0]");
-        versionIdParameter.setDomain(INTEGER_DOMAIN);
+        versionIdParameter.setDomain(N2oDomain.INTEGER);
         versionIdParameter.setDefaultValue(String.valueOf(versionId));
         return versionIdParameter;
     }
@@ -118,7 +116,7 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
     private N2oObject.Parameter systemIdParameter() {
         N2oObject.Parameter systemId = new N2oObject.Parameter();
         systemId.setId("id");
-        systemId.setDomain(INTEGER_DOMAIN);
+        systemId.setDomain(N2oDomain.INTEGER);
         systemId.setMapping("[1].systemId");
         return systemId;
     }
@@ -129,30 +127,26 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
     }
 
     private N2oObject.Parameter createParam(Structure.Attribute attribute) {
-        N2oObject.Parameter parameter = new N2oObject.Parameter();
         String codeWithPrefix = addPrefix(attribute.getCode());
+
+        N2oObject.Parameter parameter = new N2oObject.Parameter();
         parameter.setId(codeWithPrefix);
         parameter.setMapping("[1].data['" + attribute.getCode() + "']");
+
         switch (attribute.getType()) {
             case STRING:
-                parameter.setDomain("string");
-                break;
             case INTEGER:
-                parameter.setDomain(INTEGER_DOMAIN);
-                break;
             case FLOAT:
-                parameter.setDomain("numeric");
-                break;
             case DATE:
-                parameter.setDomain("date");
-                break;
             case BOOLEAN:
-                parameter.setDomain("boolean");
+                parameter.setDomain(N2oDomain.fieldTypeToDomain(attribute.getType()));
                 break;
+
             case REFERENCE:
                 parameter.setId(codeWithPrefix + ".value");
-                parameter.setDomain("string");
+                parameter.setDomain(N2oDomain.STRING);
                 break;
+
             default:
                 throw new IllegalArgumentException("attribute type not supported");
         }
