@@ -129,7 +129,7 @@ public class StructureController {
         Integer refRefBookId = refBookService.getId(reference.getReferenceCode());
         attribute.setReferenceRefBookId(refRefBookId);
 
-        attribute.setReferenceExpression(reference.getReferenceExpression());
+        attribute.setDisplayExpression(reference.getDisplayExpression());
     }
 
     private void enrich(ReadAttribute attribute, List<AttributeValidation> validations) {
@@ -198,7 +198,7 @@ public class StructureController {
     private Structure.Reference buildReference(FormAttribute request) {
         return new Structure.Reference(request.getCode(),
                 request.getReferenceCode(),
-                request.getReferenceExpression());
+                request.getDisplayExpression());
     }
 
     private UpdateAttribute getUpdateAttribute(Integer versionId, FormAttribute formAttribute) {
@@ -217,8 +217,8 @@ public class StructureController {
         updateAttribute.setAttribute(of(formAttribute.getCode()));
         if (formAttribute.getReferenceCode() != null)
             updateAttribute.setReferenceCode(of(formAttribute.getReferenceCode()));
-        if (formAttribute.getReferenceExpression() != null)
-            updateAttribute.setReferenceExpression(of(formAttribute.getReferenceExpression()));
+        if (formAttribute.getDisplayExpression() != null)
+            updateAttribute.setDisplayExpression(of(formAttribute.getDisplayExpression()));
 
         return updateAttribute;
     }
@@ -234,7 +234,7 @@ public class StructureController {
 
         if (Objects.nonNull(reference)) {
             attribute.setReferenceCode(reference.getReferenceCode());
-            attribute.setReferenceExpression(reference.getReferenceExpression());
+            attribute.setDisplayExpression(reference.getDisplayExpression());
         }
 
         return attribute;

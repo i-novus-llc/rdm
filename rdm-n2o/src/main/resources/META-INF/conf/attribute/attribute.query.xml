@@ -71,8 +71,8 @@
             <select mapping="type?.name()?.equals('REFERENCE')"/>
         </field>
 
-        <field id="referenceData" name="Ссылочное поле" domain="string">
-            <select mapping="type?.name()?.equals('REFERENCE') ? referenceCode + ' (' + referenceExpression + ')' : ''"/>
+        <field id="referenceData" name="Отображаемое поле" domain="string">
+            <select mapping="type?.name()?.equals('REFERENCE') ? referenceCode + ' (' + displayExpression + ')' : ''"/>
         </field>
 
         <field id="referenceRefBook.id" domain="integer">
@@ -91,7 +91,7 @@
             <select/>
         </field>
 
-        <field id="referenceExpression" domain="string">
+        <field id="displayExpression" domain="string">
             <select/>
         </field>
 

@@ -43,7 +43,7 @@
                 </validations>
             </input-select>
 
-            <input-select id="expressionAttribute" label="Атрибут для отображения"
+            <input-select id="displayAttribute" label="Атрибут для отображения"
                           query-id="attribute" label-field-id="name">
                 <dependencies>
                     <visibility on="attrType,referenceRefBook">
@@ -55,14 +55,14 @@
                 </pre-filters>
             </input-select>
 
-            <input-text id="referenceExpression" label="Отображаемое поле">
+            <input-text id="displayExpression" label="Отображаемое поле">
                 <dependencies>
                     <visibility on="attrType,referenceRefBook">
                         (attrType.id == 'REFERENCE' &amp;&amp; referenceRefBook != null)
                     </visibility>
-                    <set-value on="expressionAttribute">
-                        if (expressionAttribute.codeExpression != null)
-                            return expressionAttribute.codeExpression;
+                    <set-value on="displayAttribute">
+                        if (displayAttribute.codeExpression != null)
+                            return displayAttribute.codeExpression;
                     </set-value>
                 </dependencies>
             </input-text>

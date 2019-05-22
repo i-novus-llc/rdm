@@ -28,7 +28,7 @@ public class ReferenceController {
     private VersionService versionService;
 
     /**
-     * Поиск списка категорий из справочника категорий (находится по коду)
+     * Поиск списка значений справочника для ссылки.
      */
     public Page<Reference> getList(ReferenceCriteria referenceCriteria) {
 
@@ -44,7 +44,7 @@ public class ReferenceController {
         Page<RefBookRowValue> rowValues = versionService.search(reference.getReferenceCode(), criteria);
 
         return new RestPage<>(rowValues.getContent(), criteria, rowValues.getTotalElements())
-                .map(rowValue -> toReferenceValue(referenceAttribute, reference.getReferenceExpression(), rowValue));
+                .map(rowValue -> toReferenceValue(referenceAttribute, reference.getDisplayExpression(), rowValue));
     }
 
     private Reference toReferenceValue(Structure.Attribute attribute, String displayExpression, RowValue rowValue) {

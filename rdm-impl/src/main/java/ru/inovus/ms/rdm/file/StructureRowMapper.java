@@ -101,7 +101,7 @@ public class StructureRowMapper implements RowMapper {
                 version.getStorageCode(),
                 version.getFromDate(),
                 referenceAttribute.getCode(),
-                new DisplayExpression(reference.getReferenceExpression()),
+                new DisplayExpression(reference.getDisplayExpression()),
                 value);
     }
 }

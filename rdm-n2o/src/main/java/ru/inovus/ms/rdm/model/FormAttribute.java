@@ -21,7 +21,7 @@ public class FormAttribute {
 
     private String referenceCode;
 
-    private String referenceExpression;
+    private String displayExpression;
 
     //Настраиваемые проверки
     private Boolean required;
@@ -86,12 +86,12 @@ public class FormAttribute {
         this.referenceCode = referenceCode;
     }
 
-    public String getReferenceExpression() {
-        return referenceExpression;
+    public String getDisplayExpression() {
+        return displayExpression;
     }
 
-    public void setReferenceExpression(String referenceExpression) {
-        this.referenceExpression = referenceExpression;
+    public void setDisplayExpression(String displayExpression) {
+        this.displayExpression = displayExpression;
     }
 
     public Boolean getRequired() {

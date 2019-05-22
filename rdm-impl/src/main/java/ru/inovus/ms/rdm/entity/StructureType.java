@@ -74,7 +74,7 @@ public class StructureType implements UserType {
                 String type = getByKey(attributeJson, "type", JsonNode::asText);
                 boolean isPrimary = Boolean.TRUE.equals(getByKey(attributeJson, "isPrimary", JsonNode::asBoolean));
                 String referenceCode = getByKey(attributeJson, "referenceCode", JsonNode::asText);
-                String referenceExpression = getByKey(attributeJson, "referenceExpression", JsonNode::asText);
+                String displayExpression = getByKey(attributeJson, "displayExpression", JsonNode::asText);
                 Structure.Attribute attribute;
                 if (isPrimary) {
                     attribute = Structure.Attribute.buildPrimary(code, name, FieldType.valueOf(type), description);
@@ -82,7 +82,7 @@ public class StructureType implements UserType {
                     attribute = Structure.Attribute.build(code, name, FieldType.valueOf(type), description);
                 }
                 if (FieldType.valueOf(type).equals(FieldType.REFERENCE)) {
-                    Structure.Reference reference = new Structure.Reference(code, referenceCode, referenceExpression);
+                    Structure.Reference reference = new Structure.Reference(code, referenceCode, displayExpression);
                     references.add(reference);
                 }
                 attributes.add(attribute);
@@ -127,8 +127,8 @@ public class StructureType implements UserType {
         Structure.Reference reference = structure.getReference(attribute.getCode());
         if (reference != null) {
             attributeJson.put("referenceCode", reference.getReferenceCode());
-            if (reference.getReferenceExpression() != null)
-                attributeJson.put("referenceExpression", reference.getReferenceExpression());
+            if (reference.getDisplayExpression() != null)
+                attributeJson.put("displayExpression", reference.getDisplayExpression());
         }
 
         return attributeJson;
