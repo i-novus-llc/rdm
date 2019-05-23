@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.service;
 
 import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.jaxrs.RestPage;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
@@ -101,12 +102,15 @@ public class StructureController {
 
     private List<AttributeValidation> createValidations(FormAttribute formAttribute) {
         List<AttributeValidation> validations = new ArrayList<>();
-        if (Boolean.TRUE.equals(formAttribute.getRequired()))
+        if (Boolean.TRUE.equals(formAttribute.getRequired())) {
             validations.add(new RequiredAttributeValidation());
-        if (Boolean.TRUE.equals(formAttribute.getUnique()))
+        }
+        if (Boolean.TRUE.equals(formAttribute.getUnique())) {
             validations.add(new UniqueAttributeValidation());
-        if (formAttribute.getPlainSize() != null)
+        }
+        if (formAttribute.getPlainSize() != null) {
             validations.add(new PlainSizeAttributeValidation(formAttribute.getPlainSize()));
+        }
         if (formAttribute.getIntPartSize() != null || formAttribute.getFracPartSize() != null) {
             validations.add(new FloatSizeAttributeValidation(formAttribute.getIntPartSize(), formAttribute.getFracPartSize()));
         }
@@ -125,11 +129,44 @@ public class StructureController {
         return validations;
     }
 
+    private String displayExpressionToAttributeCode(String displayExpression) {
+
+        DisplayExpression expression = new DisplayExpression(displayExpression);
+        List<String> attributeCodes = expression.getPlaceholders();
+        if (attributeCodes != null && attributeCodes.size() == 1) {
+            String attributeCode = attributeCodes.get(0);
+            if (DisplayExpression.toPlaceholder(attributeCode).equals(displayExpression)) {
+                return attributeCode;
+            }
+        }
+        return null;
+    }
+
+    private String attributeCodeToName(String refBookCode, String attributeCode) {
+
+        RefBookVersion version = versionService.getLastPublishedVersion(refBookCode);
+        Structure.Attribute attribute = version.getStructure().getAttribute(attributeCode);
+        return attribute.getName();
+    }
+
     private void enrich(ReadAttribute attribute, Structure.Reference reference) {
         Integer refRefBookId = refBookService.getId(reference.getReferenceCode());
         attribute.setReferenceRefBookId(refRefBookId);
 
-        attribute.setDisplayExpression(reference.getDisplayExpression());
+        int displayType = 1;
+        String displayExpression = reference.getDisplayExpression();
+        if (StringUtils.isNotEmpty(displayExpression)) {
+            attribute.setDisplayExpression(displayExpression);
+
+            displayType = 2;
+            String attributeCode = displayExpressionToAttributeCode(displayExpression);
+            if (attributeCode != null) {
+                displayType = 1;
+                attribute.setDisplayAttribute(attributeCode);
+                attribute.setDisplayAttributeName(attributeCodeToName(reference.getReferenceCode(), attributeCode));
+            }
+        }
+        attribute.setDisplayType(displayType);
     }
 
     private void enrich(ReadAttribute attribute, List<AttributeValidation> validations) {

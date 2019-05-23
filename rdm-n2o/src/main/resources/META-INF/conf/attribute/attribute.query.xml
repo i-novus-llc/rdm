@@ -91,6 +91,18 @@
             <select/>
         </field>
 
+        <field id="displayType.id" domain="integer">
+            <select mapping="displayType"/>
+        </field>
+
+        <field id="displayAttribute.id" domain="string">
+            <select mapping="displayAttribute"/>
+        </field>
+
+        <field id="displayAttribute.name" domain="string">
+            <select mapping="displayAttributeName"/>
+        </field>
+
         <field id="displayExpression" domain="string">
             <select/>
         </field>

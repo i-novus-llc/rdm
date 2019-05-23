@@ -197,6 +197,7 @@ public class StructureControllerTest extends TestCase {
         RefBookVersion referenceVersion = new RefBookVersion();
         referenceVersion.setId(referenceVersionId);
         referenceVersion.setStructure(new Structure(singletonList(build(referenceAttribute, null, FieldType.INTEGER, null)), null));
+        when(versionService.getLastPublishedVersion(eq(referenceCode))).thenReturn(referenceVersion);
 
         RestPage<ReadAttribute> page = structureController.getPage(new AttributeCriteria(null, versionId));
         ReadAttribute actual = page.getContent().get(0);
