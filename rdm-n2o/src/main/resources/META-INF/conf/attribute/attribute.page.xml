@@ -42,34 +42,14 @@
                     </condition>
                 </validations>
             </input-select>
+
+            <!-- NB: После NNO-1629 сделать скрытие на основе toolbar\button\set-value\displayType\return 1|2; -->
             
-            <radio-group id="displayType" no-label="true">
-                <options>
-                    <option id="1" name="Обычный формат"/>
-                    <option id="2" name="Задать формат"/>
-                </options>
-                <default-value id="1" name="Обычный формат"/>
+            <input-select id="displayAttribute" label="Отображаемый атрибут"
+                          query-id="attribute" label-field-id="name">
                 <dependencies>
                     <visibility on="attrType,referenceRefBook">
                         (attrType.id == 'REFERENCE' &amp;&amp; referenceRefBook != null)
-                    </visibility>
-                </dependencies>
-            </radio-group>
-
-<!--            <hidden id="displayType" default-value="1"/>-->
-
-            <input-select id="displayAttribute" label="Отображаемый атрибут"
-                          query-id="attribute" label-field-id="name">
-                <toolbar>
-                    <button id="toDisplayExpression" label="Задать формат" model="edit">
-                        <set-value target-field-id="displayType">
-                            return 2;
-                        </set-value>
-                    </button>
-                </toolbar>
-                <dependencies>
-                    <visibility on="attrType,referenceRefBook,displayType">
-                        (attrType.id == 'REFERENCE' &amp;&amp; referenceRefBook != null &amp;&amp; displayType.id != 2)
                     </visibility>
                 </dependencies>
                 <pre-filters>
@@ -84,16 +64,9 @@
             </input-select>
 
             <input-text id="displayExpression" label="Отображаемое поле">
-<!--                <toolbar>-->
-<!--                    <button id="toDisplayAttribute" label="Обычный формат">-->
-<!--                        <set-value model="edit" target-field-id="displayType">-->
-<!--                            return 1;-->
-<!--                        </set-value>-->
-<!--                    </button>-->
-<!--                </toolbar>-->
                 <dependencies>
-                    <visibility on="attrType,referenceRefBook,displayType">
-                        (attrType.id == 'REFERENCE' &amp;&amp; referenceRefBook != null &amp;&amp; displayType.id == 2)
+                    <visibility on="attrType,referenceRefBook">
+                        (attrType.id == 'REFERENCE' &amp;&amp; referenceRefBook != null)
                     </visibility>
                     <set-value on="displayAttribute">
                         if (displayAttribute.codeExpression != null)
