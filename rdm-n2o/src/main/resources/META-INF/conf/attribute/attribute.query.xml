@@ -95,6 +95,12 @@
             <select mapping="displayType"/>
         </field>
 
+        <field id="displayType.name" domain="string">
+            <select mapping="displayType==1?'Обычный формат':
+                             displayType==2?'Задать формат':
+                             null"/>
+        </field>
+
         <field id="displayAttribute.id" domain="string">
             <select mapping="displayAttribute"/>
         </field>

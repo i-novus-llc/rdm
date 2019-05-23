@@ -17,7 +17,7 @@
                     <option id="FLOAT" name="Дробный"/>
                     <option id="DATE" name="Дата"/>
                     <option id="BOOLEAN" name="Логический"/>
-<!--                    <option id="REFERENCE" name="Ссылочный"/>-->
+                    <option id="REFERENCE" name="Ссылочный"/>
                 </options>
             </select>
 
@@ -48,6 +48,7 @@
                     <option id="1" name="Обычный формат"/>
                     <option id="2" name="Задать формат"/>
                 </options>
+                <default-value id="1" name="Обычный формат"/>
                 <dependencies>
                     <visibility on="attrType,referenceRefBook">
                         (attrType.id == 'REFERENCE' &amp;&amp; referenceRefBook != null)
@@ -56,18 +57,16 @@
             </radio-group>
 
 <!--            <hidden id="displayType" default-value="1"/>-->
-<!--            <input-text id="displayType"/>-->
-<!--            <input-text id="displayType" default-value="1"/>-->
 
-            <select id="displayAttribute" label="Отображаемый атрибут"
-                          query-id="attribute" label-field-id="name" cleanable="false">
-<!--                <toolbar>-->
-<!--                    <button id="toDisplayExpression" label="Задать формат" model="edit">-->
-<!--                        <set-value target-field-id="displayType">-->
-<!--                            return 2;-->
-<!--                        </set-value>-->
-<!--                    </button>-->
-<!--                </toolbar>-->
+            <input-select id="displayAttribute" label="Отображаемый атрибут"
+                          query-id="attribute" label-field-id="name">
+                <toolbar>
+                    <button id="toDisplayExpression" label="Задать формат" model="edit">
+                        <set-value target-field-id="displayType">
+                            return 2;
+                        </set-value>
+                    </button>
+                </toolbar>
                 <dependencies>
                     <visibility on="attrType,referenceRefBook,displayType">
                         (attrType.id == 'REFERENCE' &amp;&amp; referenceRefBook != null &amp;&amp; displayType.id != 2)
@@ -76,7 +75,13 @@
                 <pre-filters>
                     <eq field-id="versionId" value="{referenceRefBook.version.id}" />
                 </pre-filters>
-            </select>
+                <validations>
+                    <condition id="hasAttribute" severity="danger"
+                               message="Атрибут не выбран">
+                        displayAttribute != null
+                    </condition>
+                </validations>
+            </input-select>
 
             <input-text id="displayExpression" label="Отображаемое поле">
 <!--                <toolbar>-->
@@ -95,6 +100,12 @@
                             return displayAttribute.codeExpression;
                     </set-value>
                 </dependencies>
+                <validations>
+                    <condition id="hasExpression" severity="danger"
+                               message="Поле не заполнено">
+                        displayExpression != null
+                    </condition>
+                </validations>
             </input-text>
 
             <checkbox id="isPrimary" label="Первичный ключ">
