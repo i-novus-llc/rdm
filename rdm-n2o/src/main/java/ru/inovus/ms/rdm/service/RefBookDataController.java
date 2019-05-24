@@ -95,7 +95,7 @@ public class RefBookDataController {
         Optional<Object> valueOptional = ofNullable(value).map(FieldValue::getValue);
         if (value instanceof ReferenceFieldValue)
             return valueOptional.filter(o -> o instanceof Reference).map(o -> (Reference) o)
-                    .map(Reference::getValue).orElse(null);
+                    .map(this::referenceToString).orElse(null);
 
         else if (value instanceof DateFieldValue)
             return valueOptional.filter(o -> o instanceof LocalDate).map(o -> (LocalDate) o)
@@ -103,6 +103,10 @@ public class RefBookDataController {
                     .orElse(null);
 
         return valueOptional.map(String::valueOf).orElse(null);
+    }
+
+    private String referenceToString(Reference reference) {
+        return (reference.getValue() != null) ? reference.getValue() + ": " + reference.getDisplayValue() : null;
     }
 
     private List<DataColumn> createHead(Structure structure) {
