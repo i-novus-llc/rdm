@@ -3,11 +3,12 @@ package ru.inovus.ms.rdm.provider;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 public class N2oDomain {
-    static final String STRING = "string";
-    static final String INTEGER = "integer";
-    static final String FLOAT = "numeric";
-    static final String DATE = "date";
-    static final String BOOLEAN = "boolean";
+
+    public static final String STRING = "string";
+    public static final String INTEGER = "integer";
+    public static final String FLOAT = "numeric";
+    public static final String DATE = "date";
+    public static final String BOOLEAN = "boolean";
 
     private N2oDomain() {
     }

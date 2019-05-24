@@ -27,6 +27,7 @@ import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.criteria.DataCriteria;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.provider.N2oDomain;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.math.BigDecimal;
@@ -130,13 +131,13 @@ public class RefBookDataController {
         switch (attribute.getType()) {
             case INTEGER:
                 N2oInputText integerField = new N2oInputText();
-                integerField.setDomain("integer");
+                integerField.setDomain(N2oDomain.INTEGER);
                 integerField.setStep("1");
                 return integerField;
 
             case FLOAT:
                 N2oInputText floatField = new N2oInputText();
-                floatField.setDomain("numeric");
+                floatField.setDomain(N2oDomain.FLOAT);
                 floatField.setStep("0.0001");
                 return floatField;
 
