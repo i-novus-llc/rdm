@@ -63,6 +63,11 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
     }
 
     private N2oQuery.Selection createSelection() {
+
+        SpringInvocation invocation = new SpringInvocation();
+        invocation.setClassName(CONTROLLER_CLASS_NAME);
+        invocation.setMethodName(CONTROLLER_METHOD);
+
         Argument versionId = new Argument();
         versionId.setType(Argument.Type.PRIMITIVE);
         versionId.setName(VERSION_ID_NAME);
@@ -71,9 +76,6 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
         sysRecordId.setType(Argument.Type.PRIMITIVE);
         sysRecordId.setName("sysRecordId");
 
-        SpringInvocation invocation = new SpringInvocation();
-        invocation.setClassName(CONTROLLER_CLASS_NAME);
-        invocation.setMethodName(CONTROLLER_METHOD);
         invocation.setArguments(new Argument[]{versionId, sysRecordId});
 
         N2oQuery.Selection selection = new N2oQuery.Selection(N2oQuery.Selection.Type.list);
@@ -119,7 +121,9 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
             N2oQuery.Field field = new N2oQuery.Field();
             field.setId(codeWithPrefix);
             field.setName(attribute.getName());
-            field.setSelectMapping(createAttributeMapping(attribute.getCode()));
+
+            String attributeMapping = getAttributeMapping(codeWithPrefix);
+            field.setSelectMapping(attributeMapping);
 
             switch (attribute.getType()) {
                 case INTEGER:
@@ -133,13 +137,13 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
                 case REFERENCE:
                     // NB: field used as valueField
                     field.setId(codeWithPrefix + ".value");
-                    field.setSelectMapping(createAttributeMapping(attribute.getCode()) + ".value");
+                    field.setSelectMapping(attributeMapping + ".value");
                     field.setDomain(N2oDomain.STRING);
                     list.add(field);
 
                     N2oQuery.Field displayField = new N2oQuery.Field();
                     displayField.setId(codeWithPrefix + ".displayValue");
-                    displayField.setSelectMapping(createAttributeMapping(attribute.getCode()) + ".displayValue");
+                    displayField.setSelectMapping(attributeMapping + ".displayValue");
                     displayField.setDomain(N2oDomain.STRING);
                     list.add(displayField);
                     continue;
@@ -152,7 +156,7 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
         return list;
     }
 
-    private String createAttributeMapping(String attributeCode) {
+    private String getAttributeMapping(String attributeCode) {
         return "#this.get('" + attributeCode + "')";
     }
 }

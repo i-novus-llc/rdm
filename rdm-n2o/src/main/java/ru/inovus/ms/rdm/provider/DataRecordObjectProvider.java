@@ -58,18 +58,6 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
         return singletonList(N2oObject.class);
     }
 
-    private N2oObject.Operation getUpdateOperation(Integer versionId, Structure structure) {
-
-        N2oObject.Operation operation = new N2oObject.Operation();
-        operation.setId("update");
-        operation.setFormSubmitLabel("Изменить");
-        operation.setInvocation(createInvocation());
-        operation.setInParameters(Stream.concat(
-                of(versionIdParameter(versionId), systemIdParameter()), createDynamicParams(structure).stream())
-                .toArray(N2oObject.Parameter[]::new));
-        return operation;
-    }
-
     private N2oObject.Operation getCreateOperation(Integer versionId, Structure structure) {
 
         N2oObject.Operation operation = new N2oObject.Operation();
@@ -82,13 +70,24 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
         return operation;
     }
 
+    private N2oObject.Operation getUpdateOperation(Integer versionId, Structure structure) {
+
+        N2oObject.Operation operation = new N2oObject.Operation();
+        operation.setId("update");
+        operation.setFormSubmitLabel("Изменить");
+        operation.setInvocation(createInvocation());
+        operation.setInParameters(Stream.concat(
+                of(versionIdParameter(versionId), systemIdParameter()), createDynamicParams(structure).stream())
+                .toArray(N2oObject.Parameter[]::new));
+        return operation;
+    }
+
     private AbstractDataProvider createInvocation() {
 
         N2oJavaDataProvider invocation = new N2oJavaDataProvider();
         invocation.setClassName(CreateDraftController.class.getName());
         invocation.setMethod("updateDataRecord");
         invocation.setSpringProvider(new SpringProvider());
-
 
         Argument draftId = new Argument();
         draftId.setType(Argument.Type.PRIMITIVE);

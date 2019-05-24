@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
@@ -55,7 +54,6 @@ public class RefBookDataController {
     public static final String BOOL_FIELD_ID = "id";
     public static final String BOOL_FIELD_NAME = "name";
 
-
     @Autowired
     private MetadataEnvironment env;
     @Autowired
@@ -66,6 +64,7 @@ public class RefBookDataController {
         Structure structure = versionService.getStructure(criteria.getVersionId());
         SearchDataCriteria searchDataCriteria = toSearchDataCriteria(criteria, structure);
         Page<RefBookRowValue> search = versionService.search(criteria.getVersionId(), searchDataCriteria);
+
         DataGridRow dataGridHead = new DataGridRow(createHead(structure));
         List<DataGridRow> dataGridRows = search.getContent().stream()
                 .map(rowValue -> toDataGridRow(rowValue, criteria.getVersionId()))
@@ -75,8 +74,10 @@ public class RefBookDataController {
         result.add(dataGridHead);
         result.addAll(dataGridRows);
 
-        //прибавляется к количеству элементов 1(костыль), изза особенности подсчета количества для последней страницы
-        //на клиенте отнимается 1 для всех страниц
+        // NB: (костыль)
+        // Прибавляется 1 к количеству элементов
+        // из-за особенности подсчёта количества для последней страницы.
+        // На клиенте отнимается 1 для всех страниц.
         return new RestPage<>(result, searchDataCriteria, search.getTotalElements() + 1);
     }
 
@@ -84,6 +85,7 @@ public class RefBookDataController {
         Map<String, String> row = new HashMap<>();
         LongRowValue longRow = (LongRowValue) rowValue;
         longRow.getFieldValues().forEach(fieldValue -> row.put(addPrefix(fieldValue.getField()), toStringValue(fieldValue)));
+
         row.put("id", String.valueOf(longRow.getSystemId()));
         row.put("versionId", String.valueOf(versionId));
         return new DataGridRow(longRow.getSystemId(), row);
@@ -94,10 +96,12 @@ public class RefBookDataController {
         if (value instanceof ReferenceFieldValue)
             return valueOptional.filter(o -> o instanceof Reference).map(o -> (Reference) o)
                     .map(Reference::getValue).orElse(null);
+
         else if (value instanceof DateFieldValue)
             return valueOptional.filter(o -> o instanceof LocalDate).map(o -> (LocalDate) o)
                     .map(localDate -> localDate.format(ofPattern(DATE_PATTERN_WITH_POINT)))
                     .orElse(null);
+
         return valueOptional.map(String::valueOf).orElse(null);
     }
 
@@ -118,29 +122,37 @@ public class RefBookDataController {
     }
 
     private N2oField toN2oField(Structure.Attribute attribute) {
-        if (FieldType.BOOLEAN.equals(attribute.getType())) {
-            N2oInputSelect n2oInputSelect = new N2oInputSelect();
-            n2oInputSelect.setValueFieldId("id");
-            n2oInputSelect.setLabelFieldId("name");
-            n2oInputSelect.setOptions(new Map[]{
-                    of(BOOL_FIELD_ID, "true", BOOL_FIELD_NAME, "ИСТИНА"),
-                    of(BOOL_FIELD_ID, "false", BOOL_FIELD_NAME, "ЛОЖЬ")});
-            return n2oInputSelect;
-        } else if (FieldType.DATE.equals(attribute.getType())) {
-            N2oDatePicker n2oDatePicker = new N2oDatePicker();
-            n2oDatePicker.setDateFormat("DD.MM.YYYY");
-            return n2oDatePicker;
-        } else if (FieldType.INTEGER.equals(attribute.getType())) {
-            N2oInputText n2oInputText = new N2oInputText();
-            n2oInputText.setDomain("integer");
-            n2oInputText.setStep("1");
-            return n2oInputText;
-        } else if (FieldType.FLOAT.equals(attribute.getType())) {
-            N2oInputText n2oInputText = new N2oInputText();
-            n2oInputText.setDomain("numeric");
-            n2oInputText.setStep("0.0001");
-            return n2oInputText;
-        } else return new N2oInputText();
+
+        switch (attribute.getType()) {
+            case INTEGER:
+                N2oInputText integerField = new N2oInputText();
+                integerField.setDomain("integer");
+                integerField.setStep("1");
+                return integerField;
+
+            case FLOAT:
+                N2oInputText floatField = new N2oInputText();
+                floatField.setDomain("numeric");
+                floatField.setStep("0.0001");
+                return floatField;
+
+            case DATE:
+                N2oDatePicker dateField = new N2oDatePicker();
+                dateField.setDateFormat("DD.MM.YYYY");
+                return dateField;
+
+            case BOOLEAN:
+                N2oInputSelect booleanField = new N2oInputSelect();
+                booleanField.setValueFieldId("id");
+                booleanField.setLabelFieldId("name");
+                booleanField.setOptions(new Map[]{
+                        of(BOOL_FIELD_ID, "true", BOOL_FIELD_NAME, "ИСТИНА"),
+                        of(BOOL_FIELD_ID, "false", BOOL_FIELD_NAME, "ЛОЖЬ")});
+                return booleanField;
+
+            default:
+                return new N2oInputText();
+        }
     }
 
     private SearchDataCriteria toSearchDataCriteria(DataCriteria criteria, Structure structure) {
@@ -153,6 +165,7 @@ public class RefBookDataController {
                     Structure.Attribute attribute = structure.getAttribute(attributeCode);
                     if (attribute == null)
                         throw new IllegalArgumentException("Filter field not found");
+
                     switch (attribute.getType()) {
                         case INTEGER:
                             v = new BigInteger((String) v);
