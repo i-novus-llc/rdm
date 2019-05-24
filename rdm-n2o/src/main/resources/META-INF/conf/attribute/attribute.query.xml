@@ -72,7 +72,7 @@
         </field>
 
         <field id="referenceData" name="Отображаемое поле" domain="string">
-            <select mapping="type?.name()?.equals('REFERENCE') ? referenceCode + ' (' + displayExpression + ')' : ''"/>
+            <select mapping="type?.name()?.equals('REFERENCE') ? referenceCode + ': ' + (displayExpression?:'') : ''"/>
         </field>
 
         <field id="referenceRefBook.id" domain="integer">
