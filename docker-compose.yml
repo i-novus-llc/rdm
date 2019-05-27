@@ -42,6 +42,12 @@ services:
       placement:
         constraints:
         - node.hostname == os-4
+    healthcheck:
+      test: curl -f http://localhost:8080/monitoring/health | grep -io '^{"status":"UP"' || exit 1
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   frontend:
     environment:
@@ -57,6 +63,12 @@ services:
       placement:
         constraints:
         - node.hostname == os-4
+    healthcheck:
+      test: curl -f http://localhost:8080/monitoring/health | grep -io '^{"status":"UP"' || exit 1
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   security-admin-backend:
     environment:
