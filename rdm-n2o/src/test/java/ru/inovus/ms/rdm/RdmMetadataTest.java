@@ -28,7 +28,7 @@ public class RdmMetadataTest extends N2oTestBase {
     @Before
     public void setUp() throws Exception {
         Properties properties = new Properties();
-        properties.put("server.servlet.context-path", "");
+        properties.put("server.context-path", "");
         properties.put("rdm.backend.path", "http://localhost:8080/rdm/api");
         properties.put("rdm.user.admin.url", "http://docker.one:8182/");
         new TestStaticProperties().setProperties(properties);
