@@ -5,6 +5,7 @@ import ru.inovus.ms.rdm.exception.RdmException;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -146,9 +147,9 @@ public class Structure implements Serializable {
         }
 
         public boolean storageEquals(Attribute a) {
-            if (code != null ? !code.equals(a.code) : a.code != null)
+            if (!Objects.equals(code, a.code))
                 return false;
-            if (name != null ? !name.equals(a.name) : a.name != null)
+            if (!Objects.equals(name, a.name))
                 return false;
             return type == a.type;
         }
@@ -161,11 +162,11 @@ public class Structure implements Serializable {
             Attribute attribute = (Attribute) o;
 
             if (isPrimary != attribute.isPrimary) return false;
-            if (code != null ? !code.equals(attribute.code) : attribute.code != null)
+            if (!Objects.equals(code, attribute.code))
                 return false;
-            if (name != null ? !name.equals(attribute.name) : attribute.name != null)
+            if (!Objects.equals(name, attribute.name))
                 return false;
-            if (description != null ? !description.equals(attribute.description) : attribute.description != null)
+            if (!Objects.equals(description, attribute.description))
                 return false;
             return type == attribute.type;
         }
@@ -249,11 +250,11 @@ public class Structure implements Serializable {
 
             Reference reference = (Reference) o;
 
-            if (attribute != null ? !attribute.equals(reference.attribute) : reference.attribute != null)
+            if (!Objects.equals(attribute, reference.attribute))
                 return false;
-            if (referenceCode != null ? !referenceCode.equals(reference.referenceCode) : reference.referenceCode != null)
+            if (!Objects.equals(referenceCode, reference.referenceCode))
                 return false;
-            return !(displayExpression != null ? !displayExpression.equals(reference.displayExpression) : reference.displayExpression != null);
+            return Objects.equals(displayExpression, reference.displayExpression);
         }
 
         @Override
@@ -278,8 +279,8 @@ public class Structure implements Serializable {
 
         Structure structure = (Structure) o;
 
-        if (attributes != null ? !attributes.equals(structure.attributes) : structure.attributes != null) return false;
-        return !(references != null ? !references.equals(structure.references) : structure.references != null);
+        if (!Objects.equals(attributes, structure.attributes)) return false;
+        return Objects.equals(references, structure.references);
     }
 
     @Override

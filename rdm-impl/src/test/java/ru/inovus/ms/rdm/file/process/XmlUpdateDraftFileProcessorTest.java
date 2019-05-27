@@ -6,9 +6,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import ru.inovus.ms.rdm.file.UploadFileTestData;
-import ru.inovus.ms.rdm.file.process.XmlUpdateDraftFileProcessor;
 import ru.inovus.ms.rdm.model.CreateDraftRequest;
 import ru.inovus.ms.rdm.service.api.DraftService;
 
@@ -24,14 +23,13 @@ public class XmlUpdateDraftFileProcessorTest {
     @Mock
     private DraftService draftService;
 
-
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         reset(draftService);
     }
 
     @Test
-    public void testProcess() throws Exception {
+    public void testProcess() {
         CreateDraftRequest expected = new CreateDraftRequest(TEST_REF_BOOK_ID, UploadFileTestData.createStructure(), UploadFileTestData.createPassport());
 
         try(XmlUpdateDraftFileProcessor fileProcessor = new XmlUpdateDraftFileProcessor(TEST_REF_BOOK_ID, draftService)) {
@@ -40,6 +38,5 @@ public class XmlUpdateDraftFileProcessorTest {
             verify(draftService, times(1)).create(captor.capture());
             Assert.assertEquals(expected, captor.getValue());
         }
-
     }
 }
