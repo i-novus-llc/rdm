@@ -28,7 +28,7 @@ public class ReferenceController {
     private VersionService versionService;
 
     /**
-     * Поиск списка категорий из справочника категорий (находится по коду)
+     * Поиск списка значений справочника для ссылки.
      */
     public Page<Reference> getList(ReferenceCriteria referenceCriteria) {
 

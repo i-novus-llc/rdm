@@ -7,8 +7,9 @@
         <column text-field-id="name" label="Наименование"/>
         <column text-field-id="attrType.name" label="Тип данных"/>
         <column text-field-id="description" label="Описание"/>
-        <column text-field-id="isReference" label="Ссылочное поле">
+        <column text-field-id="isReference" label="Ссылка">
             <checkbox/>
         </column>
+        <column text-field-id="referenceData" label="Ссылочное поле"/>
     </columns>
 </table>

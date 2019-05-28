@@ -48,6 +48,14 @@ public class RefBookCriteria extends AbstractCriteria {
     @QueryParam("hasDraft")
     private boolean hasDraft;
 
+    @ApiModelProperty("Наличие опубликованной версии")
+    @QueryParam("hasPublishedVersion")
+    private boolean hasPublishedVersion;
+
+    @ApiModelProperty("Наличие первичного ключа")
+    @QueryParam("hasPrimaryAttribute")
+    private boolean hasPrimaryAttribute;
+
     @ApiModelProperty("Паспорт справочника")
     @QueryParam("passport")
     private Map<String, String> passport;
@@ -114,6 +122,22 @@ public class RefBookCriteria extends AbstractCriteria {
 
     public void setHasDraft(boolean hasDraft) {
         this.hasDraft = hasDraft;
+    }
+
+    public boolean getHasPublishedVersion() {
+        return hasPublishedVersion;
+    }
+
+    public void setHasPublishedVersion(boolean hasPublishedVersion) {
+        this.hasPublishedVersion = hasPublishedVersion;
+    }
+
+    public boolean getHasPrimaryAttribute() {
+        return hasPrimaryAttribute;
+    }
+
+    public void setHasPrimaryAttribute(boolean hasPrimaryAttribute) {
+        this.hasPrimaryAttribute = hasPrimaryAttribute;
     }
 
     public List<Integer> getRefBookIds() {

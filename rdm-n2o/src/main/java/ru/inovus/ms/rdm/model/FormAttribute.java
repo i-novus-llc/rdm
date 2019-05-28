@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 
-public class Attribute {
+public class FormAttribute {
 
     private String code;
 
@@ -21,7 +21,7 @@ public class Attribute {
 
     private String referenceCode;
 
-    private String referenceDisplayExpression;
+    private String displayExpression;
 
     //Настраиваемые проверки
     private Boolean required;
@@ -86,12 +86,12 @@ public class Attribute {
         this.referenceCode = referenceCode;
     }
 
-    public String getReferenceDisplayExpression() {
-        return referenceDisplayExpression;
+    public String getDisplayExpression() {
+        return displayExpression;
     }
 
-    public void setReferenceDisplayExpression(String referenceDisplayExpression) {
-        this.referenceDisplayExpression = referenceDisplayExpression;
+    public void setDisplayExpression(String displayExpression) {
+        this.displayExpression = displayExpression;
     }
 
     public Boolean getRequired() {
