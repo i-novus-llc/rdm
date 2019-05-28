@@ -11,4 +11,11 @@ public class Conflict {
 
     private List<FieldValue> primaryKeys;
 
+    public Conflict() {
+    }
+
+    public Conflict(ConflictType conflictType, List<FieldValue> primaryKeys) {
+        this.conflictType = conflictType;
+        this.primaryKeys = primaryKeys;
+    }
 }
