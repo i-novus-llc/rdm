@@ -4,6 +4,7 @@ import io.swagger.annotations.*;
 import ru.inovus.ms.rdm.model.Conflict;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import java.util.List;
@@ -26,4 +27,20 @@ public interface ConflictService {
                                       @QueryParam("refToId")
                                               Integer refToId);
 
+    @POST
+    @Path("/update/displays")
+    @ApiOperation("Обновление отображаемых значений ссылок")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void updateReferenceValues(@ApiParam("Идентификатор версии, которая ссылается")
+                               @QueryParam("refFromId")
+                                        Integer refFromId,
+                               @ApiParam("Идентификатор версии, на которую ссылаются")
+                               @QueryParam("refToId")
+                                       Integer refToId,
+                               @ApiParam("Список конфликтов")
+                               @QueryParam("conflicts")
+                                       List<Conflict> conflicts);
 }
