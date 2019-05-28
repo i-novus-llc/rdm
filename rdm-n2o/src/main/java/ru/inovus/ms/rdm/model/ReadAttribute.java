@@ -11,7 +11,6 @@ public class ReadAttribute extends FormAttribute {
 
     // reference
     private Integer referenceRefBookId;
-    // NB: Add consts as 1 - ATTR - обычный формат, 2 - EXPR - задать формат.
     private Integer displayType;
     private String displayAttribute;
     private String displayAttributeName;
