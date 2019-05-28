@@ -11,6 +11,7 @@
     </parent>
 
     <dependencies>
+
         <dependency>
             <groupId>ru.inovus.ms.rdm</groupId>
             <artifactId>rdm-api</artifactId>

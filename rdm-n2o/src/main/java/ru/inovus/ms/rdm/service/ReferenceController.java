@@ -1,21 +1,17 @@
 package ru.inovus.ms.rdm.service;
 
 import net.n2oapp.platform.jaxrs.RestPage;
-import org.apache.commons.text.StringSubstitutor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.criteria.ReferenceCriteria;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.service.api.VersionService;
-
-import java.util.HashMap;
-import java.util.Map;
+import ru.inovus.ms.rdm.util.RowUtils;
 
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
@@ -28,7 +24,7 @@ public class ReferenceController {
     private VersionService versionService;
 
     /**
-     * Поиск списка категорий из справочника категорий (находится по коду)
+     * Поиск списка значений справочника для ссылки.
      */
     public Page<Reference> getList(ReferenceCriteria referenceCriteria) {
 
@@ -49,13 +45,8 @@ public class ReferenceController {
 
     private Reference toReferenceValue(Structure.Attribute attribute, String displayExpression, RowValue rowValue) {
         Reference referenceValue = new Reference();
-
         referenceValue.setValue(String.valueOf(rowValue.getFieldValue(attribute.getCode()).getValue()));
-
-        Map<String, Object> map = new HashMap<>();
-        ((LongRowValue)rowValue).getFieldValues().forEach(fieldValue -> map.put(fieldValue.getField(), fieldValue.getValue()));
-        referenceValue.setDisplayValue(new StringSubstitutor(map).replace(displayExpression));
-
+        referenceValue.setDisplayValue(RowUtils.toDisplayValue(displayExpression, rowValue));
         return referenceValue;
     }
 

@@ -48,7 +48,8 @@ public class RefBookServiceImpl implements RefBookService {
     private static final String VERSION_ID_SORT_PROPERTY = "id";
     private static final String REF_BOOK_ID_SORT_PROPERTY = "refbookId";
     private static final String REF_BOOK_CODE_SORT_PROPERTY = "code";
-    private static final String REF_BOOK_LAST_PUBLISH_SORT_PROPERTY = "lastPublishedVersionFromDate";
+    private static final String REF_BOOK_DISPLAY_CODE_SORT_PROPERTY = "displayCode";
+    private static final String REF_BOOK_LAST_PUBLISH_DATE_SORT_PROPERTY = "lastPublishedVersionFromDate";
     private static final String REF_BOOK_FROM_DATE_SORT_PROPERTY = "fromDate";
     private static final String REF_BOOK_CATEGORY_SORT_PROPERTY = "category";
 
@@ -128,26 +129,34 @@ public class RefBookServiceImpl implements RefBookService {
                     .on(qPassportValueEntity.version.eq(QRefBookVersionEntity.refBookVersionEntity)
                             .and(qPassportValueEntity.attribute.code.eq(property)));
             sortExpression = qPassportValueEntity.value;
+
         } else {
             switch (order.getProperty()) {
                 case VERSION_ID_SORT_PROPERTY:
                     sortExpression = QRefBookVersionEntity.refBookVersionEntity.id;
                     break;
+
                 case REF_BOOK_ID_SORT_PROPERTY:
                     sortExpression = QRefBookVersionEntity.refBookVersionEntity.refBook.id;
                     break;
+
                 case REF_BOOK_CODE_SORT_PROPERTY:
+                case REF_BOOK_DISPLAY_CODE_SORT_PROPERTY:
                     sortExpression = QRefBookVersionEntity.refBookVersionEntity.refBook.code;
                     break;
-                case REF_BOOK_LAST_PUBLISH_SORT_PROPERTY:
+
+                case REF_BOOK_LAST_PUBLISH_DATE_SORT_PROPERTY:
                     sortExpression = getOrderByLastPublishDateExpression(jpaQuery);
                     break;
+
                 case REF_BOOK_FROM_DATE_SORT_PROPERTY:
                     sortExpression = QRefBookVersionEntity.refBookVersionEntity.fromDate;
                     break;
+
                 case REF_BOOK_CATEGORY_SORT_PROPERTY:
                     sortExpression = QRefBookVersionEntity.refBookVersionEntity.refBook.category;
                     break;
+
                 default:
                     throw new UserException(new Message(CANNOT_ORDER_BY_EXCEPTION_CODE, order.getProperty()));
             }
@@ -265,6 +274,7 @@ public class RefBookServiceImpl implements RefBookService {
     public void toArchive(int refBookId) {
         validateRefBookExists(refBookId);
         RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
+        // NB: Add checking references to this refBook.
         refBookEntity.setArchived(Boolean.TRUE);
         refBookRepository.save(refBookEntity);
     }
@@ -315,29 +325,29 @@ public class RefBookServiceImpl implements RefBookService {
         if (!isEmpty(criteria.getCode()))
             where.and(isCodeContains(criteria.getCode()));
 
-        if (!CollectionUtils.isEmpty(criteria.getPassport())) {
+        if (!CollectionUtils.isEmpty(criteria.getPassport()))
             where.and(passportPredicateProducer.toPredicate(criteria.getPassport()));
-        }
 
-        if (!isEmpty(criteria.getCategory())) {
+        if (!isEmpty(criteria.getCategory()))
             where.and(refBookHasCategory(criteria.getCategory()));
-        }
 
-        if (!CollectionUtils.isEmpty(criteria.getRefBookIds())) {
+        if (!CollectionUtils.isEmpty(criteria.getRefBookIds()))
             where.and(isVersionOfRefBook(criteria.getRefBookIds()));
-        }
 
-        if (criteria.getIsArchived()) {
+        if (criteria.getIsArchived())
             where.and(isArchived());
-        }
 
-        if (criteria.getHasPublished()) {
+        if (criteria.getHasPublished())
             where.andNot(isArchived()).and(isAnyPublished());
-        }
 
-        if (criteria.getHasDraft()) {
+        if (criteria.getHasDraft())
             where.andNot(isArchived()).and(refBookHasDraft());
-        }
+
+        if (criteria.getHasPublishedVersion())
+            where.andNot(isArchived()).and(hasLastPublishedVersion());
+
+        if (criteria.getHasPrimaryAttribute())
+            where.and(hasPrimaryAttribute());
 
         return where.getValue();
     }
@@ -351,13 +361,20 @@ public class RefBookServiceImpl implements RefBookService {
 
     private RefBook refBookModel(RefBookVersionEntity entity, List<RefBookVersionEntity> lastPublishVersions) {
         if (entity == null) return null;
+
         RefBook model = new RefBook(ModelGenerator.versionModel(entity));
         model.setStatus(entity.getStatus());
         model.setRemovable(isRefBookRemovable(entity.getRefBook().getId()));
         model.setCategory(entity.getRefBook().getCategory());
+
         Optional<RefBookVersionEntity> lastPublishedVersion = lastPublishVersions.stream().filter(v -> v.getRefBook().getId().equals(entity.getRefBook().getId())).findAny();
-        model.setLastPublishedVersionFromDate(lastPublishedVersion.map(RefBookVersionEntity::getFromDate).orElse(null));
         model.setLastPublishedVersion(lastPublishedVersion.map(RefBookVersionEntity::getVersion).orElse(null));
+        model.setLastPublishedVersionFromDate(lastPublishedVersion.map(RefBookVersionEntity::getFromDate).orElse(null));
+
+        Structure structure = entity.getStructure();
+        List<Structure.Attribute> primaryAttributes = (structure != null) ? structure.getPrimary() : null;
+        model.setHasPrimaryAttribute(!CollectionUtils.isEmpty(primaryAttributes));
+
         return model;
     }
 

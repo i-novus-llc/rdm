@@ -17,14 +17,17 @@ public class RefBook extends RefBookVersion {
     @ApiModelProperty("Категория")
     private String category;
 
-    @ApiModelProperty("Дата публикации последней версии")
-    private LocalDateTime lastPublishedVersionFromDate;
-
     @ApiModelProperty("Последняя опубликованная версия")
     private String lastPublishedVersion;
 
+    @ApiModelProperty("Дата публикации последней версии")
+    private LocalDateTime lastPublishedVersionFromDate;
+
     @ApiModelProperty("Текущая операция над справочником")
     private RefBookOperation currentOperation;
+
+    @ApiModelProperty("Наличие первичного ключа")
+    private Boolean hasPrimaryAttribute;
 
     public RefBook() {
     }
@@ -35,9 +38,12 @@ public class RefBook extends RefBookVersion {
 
     public RefBook(RefBook refBook) {
         super(refBook);
+
         this.removable = refBook.getRemovable();
+        this.lastPublishedVersion = refBook.getLastPublishedVersion();
         this.lastPublishedVersionFromDate = refBook.getLastPublishedVersionFromDate();
         this.currentOperation = refBook.getCurrentOperation();
+        this.hasPrimaryAttribute = refBook.getHasPrimaryAttribute();
     }
 
     public Boolean getRemovable() {
@@ -46,6 +52,22 @@ public class RefBook extends RefBookVersion {
 
     public void setRemovable(Boolean removable) {
         this.removable = removable;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getLastPublishedVersion() {
+        return lastPublishedVersion;
+    }
+
+    public void setLastPublishedVersion(String lastPublishedVersion) {
+        this.lastPublishedVersion = lastPublishedVersion;
     }
 
     public LocalDateTime getLastPublishedVersionFromDate() {
@@ -64,19 +86,11 @@ public class RefBook extends RefBookVersion {
         this.currentOperation = currentOperation;
     }
 
-    public String getCategory() {
-        return category;
+    public Boolean getHasPrimaryAttribute() {
+        return hasPrimaryAttribute;
     }
 
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public String getLastPublishedVersion() {
-        return lastPublishedVersion;
-    }
-
-    public void setLastPublishedVersion(String lastPublishedVersion) {
-        this.lastPublishedVersion = lastPublishedVersion;
+    public void setHasPrimaryAttribute(Boolean hasPrimaryAttribute) {
+        this.hasPrimaryAttribute = hasPrimaryAttribute;
     }
 }

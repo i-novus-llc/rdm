@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0">
+
     <list result-mapping="content" count-mapping="['totalElements']">
         <java class="ru.inovus.ms.rdm.service.RefBookDataController"
               method="getList" >
@@ -14,20 +15,24 @@
         <field id="id">
             <select/>
         </field>
+
         <field id="versionId" domain="integer">
             <filters>
-                <eq filter-id="versionId" domain="string" mapping="versionId"/>
+                <eq filter-id="versionId" mapping="versionId" domain="string"/>
             </filters>
         </field>
+
         <field id="columns">
             <select/>
         </field>
+
         <field id="row">
             <select/>
         </field>
+
         <field id="filter">
             <filters>
-                <eq filter-id="filter" domain="object" mapping="filter"/>
+                <eq filter-id="filter" mapping="filter" domain="object"/>
             </filters>
         </field>
 

@@ -18,6 +18,7 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.springframework.util.CollectionUtils.isEmpty;
+import static ru.inovus.ms.rdm.RdmUiUtil.addPrefix;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDate;
 
 @Controller
@@ -31,8 +32,8 @@ public class DataRecordController {
     public Map<String, Object> getRow(Integer versionId, Integer sysRecordId) {
 
         SearchDataCriteria criteria = new SearchDataCriteria();
-        AttributeFilter recordId = new AttributeFilter("SYS_RECORDID", sysRecordId, FieldType.INTEGER);
-        criteria.setAttributeFilter(singleton(singletonList(recordId)));
+        AttributeFilter recordIdFilter = new AttributeFilter("SYS_RECORDID", sysRecordId, FieldType.INTEGER);
+        criteria.setAttributeFilter(singleton(singletonList(recordIdFilter)));
         Page<RefBookRowValue> search = versionService.search(versionId, criteria);
 
         if (isEmpty(search.getContent()))
@@ -40,10 +41,10 @@ public class DataRecordController {
 
         LongRowValue rowValue = search.getContent().get(0);
         Map<String, Object> map = new HashMap<>();
-        map.put("versionId", versionId);
         map.put("id", sysRecordId);
+        map.put("versionId", versionId);
         rowValue.getFieldValues().forEach(fieldValue ->
-                map.put(fieldValue.getField(), fieldValue.getValue()));
+                map.put(addPrefix(fieldValue.getField()), fieldValue.getValue()));
         return map;
     }
 

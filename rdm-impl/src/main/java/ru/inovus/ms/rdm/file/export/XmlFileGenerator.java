@@ -169,7 +169,7 @@ public class XmlFileGenerator extends PerRowFileGenerator {
 
         writeElement("referenceCode", reference.getReferenceCode());
         if (reference.getDisplayExpression() != null)
-            writeElement("displayExpression", reference.getDisplayExpression());
+            writeElement("displayExpresssion", reference.getDisplayExpression());
     }
 
     private void addAttributeValidation(String attributeCode) {

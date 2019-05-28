@@ -325,5 +325,4 @@ public class CompareServiceImpl implements CompareService {
                     });
         }
     }
-
 }

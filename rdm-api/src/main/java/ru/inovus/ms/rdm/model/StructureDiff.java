@@ -5,10 +5,9 @@ import java.util.List;
 
 public class StructureDiff {
 
-
-    List<AttributeDiff> inserted;
-    List<AttributeDiff> updated;
-    List<AttributeDiff> deleted;
+    private List<AttributeDiff> inserted;
+    private List<AttributeDiff> updated;
+    private List<AttributeDiff> deleted;
 
     public StructureDiff() {
     }
@@ -43,9 +42,10 @@ public class StructureDiff {
         this.deleted = deleted;
     }
 
-    public static class AttributeDiff{
-        Structure.Attribute oldAttribute;
-        Structure.Attribute newAttribute;
+    public static class AttributeDiff {
+
+        private Structure.Attribute oldAttribute;
+        private Structure.Attribute newAttribute;
 
         public AttributeDiff(Structure.Attribute oldAttribute, Structure.Attribute newAttribute) {
             this.oldAttribute = oldAttribute;

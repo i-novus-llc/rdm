@@ -49,7 +49,7 @@ public interface RefBookService {
             @ApiResponse(code = 200, message = "Справочник"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Integer getId(String refBookCode);
+    Integer getId(@PathParam("refBookCode") @ApiParam("Код справочника") String refBookCode);
 
     @POST
     @ApiOperation("Создание нового справочника")
