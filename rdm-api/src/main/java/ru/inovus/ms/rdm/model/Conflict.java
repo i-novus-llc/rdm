@@ -9,6 +9,30 @@ public class Conflict {
 
     private ConflictType conflictType;
 
-    private List<FieldValue> primaryKeys;
+    private List<FieldValue> primaryValues;
+
+    public Conflict() {
+    }
+
+    public Conflict(ConflictType conflictType, List<FieldValue> primaryValues) {
+        this.conflictType = conflictType;
+        this.primaryValues = primaryValues;
+    }
+
+    public ConflictType getConflictType() {
+        return conflictType;
+    }
+
+    public void setConflictType(ConflictType conflictType) {
+        this.conflictType = conflictType;
+    }
+
+    public List<FieldValue> getPrimaryValues() {
+        return primaryValues;
+    }
+
+    public void setPrimaryValues(List<FieldValue> primaryValues) {
+        this.primaryValues = primaryValues;
+    }
 
 }

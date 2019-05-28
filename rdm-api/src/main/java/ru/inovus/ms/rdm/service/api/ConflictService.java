@@ -3,12 +3,13 @@ package ru.inovus.ms.rdm.service.api;
 import io.swagger.annotations.*;
 import ru.inovus.ms.rdm.model.Conflict;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 import java.util.List;
 
 @Path("/conflicts")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 @Api("Методы работы с конфликтами")
 public interface ConflictService {
 

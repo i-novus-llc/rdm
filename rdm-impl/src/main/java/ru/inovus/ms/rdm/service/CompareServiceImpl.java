@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 
 import static cz.atria.common.lang.Util.isEmpty;
 import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toList;
 import static ru.inovus.ms.rdm.util.ComparableUtils.*;
 import static ru.inovus.ms.rdm.util.ConverterUtil.getFieldSearchCriteriaList;
 
@@ -107,7 +108,7 @@ public class CompareServiceImpl implements CompareService {
         newVersion.getStructure().getAttributes().forEach(newAttribute -> {
             Optional<Structure.Attribute> oldAttribute = oldVersion.getStructure().getAttributes().stream()
                     .filter(o -> Objects.equals(newAttribute.getCode(), o.getCode())).findAny();
-            if (!oldAttribute.isPresent()) {
+            if (oldAttribute.isEmpty()) {
                 inserted.add(new StructureDiff.AttributeDiff(null, newAttribute));
             } else if (!oldAttribute.get().equals(newAttribute)) {
                 updated.add(new StructureDiff.AttributeDiff(oldAttribute.get(), newAttribute));
@@ -134,7 +135,7 @@ public class CompareServiceImpl implements CompareService {
         Structure newStructure = newVersion.getStructure();
         validatePrimaryAttributesEquality(oldStructure.getPrimary(), newStructure.getPrimary());
 
-        CompareDataCriteria compareDataCriteria = createRdmCompareDataCriteria(oldVersion, newVersion, criteria);
+        CompareDataCriteria compareDataCriteria = createVdsCompareDataCriteria(oldVersion, newVersion, criteria);
 
         List<String> newAttributes = new ArrayList<>();
         List<String> oldAttributes = new ArrayList<>();
@@ -166,7 +167,7 @@ public class CompareServiceImpl implements CompareService {
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize(), criteria.getPrimaryAttributesFilters());
         Page<RefBookRowValue> newData = versionService.search(criteria.getNewVersionId(), searchDataCriteria);
 
-        RefBookDataDiff refBookDataDiff = compareData(createRdmCompareDataCriteria(criteria, newData, newStructure));
+        RefBookDataDiff refBookDataDiff = compareData(createVdsCompareDataCriteria(criteria, newData, newStructure));
         RefBookDataDiff refBookDataDiffDeleted = compareData(createRdmCompareDataCriteriaDeleted(criteria));
 
         List<ComparableField> comparableFields = createCommonComparableFieldsList(refBookDataDiff, newStructure, oldStructure);
@@ -186,7 +187,7 @@ public class CompareServiceImpl implements CompareService {
                     return (oldAttribute != null && oldAttribute.storageEquals(newAttribute));
                 })
                 .map(attribute -> fieldFactory.createField(attribute.getCode(), attribute.getType()))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private void validateVersionsExistence(Integer oldVersionId, Integer newVersionId) {
@@ -211,7 +212,7 @@ public class CompareServiceImpl implements CompareService {
             return (newPassportValue == null || newPassportValue.getValue() == null);
     }
 
-    private CompareDataCriteria createRdmCompareDataCriteria(RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion,
+    private CompareDataCriteria createVdsCompareDataCriteria(RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion,
                                                              ru.inovus.ms.rdm.model.compare.CompareDataCriteria rdmCriteria) {
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria();
         compareDataCriteria.setStorageCode(oldVersion.getStorageCode());
@@ -234,7 +235,7 @@ public class CompareServiceImpl implements CompareService {
         return compareDataCriteria;
     }
 
-    private ru.inovus.ms.rdm.model.compare.CompareDataCriteria createRdmCompareDataCriteria(CompareCriteria criteria, Page<? extends RowValue> data, Structure structure) {
+    private ru.inovus.ms.rdm.model.compare.CompareDataCriteria createVdsCompareDataCriteria(CompareCriteria criteria, Page<? extends RowValue> data, Structure structure) {
         ru.inovus.ms.rdm.model.compare.CompareDataCriteria rdmCriteria = new ru.inovus.ms.rdm.model.compare.CompareDataCriteria(criteria);
         rdmCriteria.setPrimaryAttributesFilters(createPrimaryAttributesFilters(data, structure));
         return rdmCriteria;
@@ -248,13 +249,13 @@ public class CompareServiceImpl implements CompareService {
         return deletedRdmCriteria;
     }
 
-   private void addNewVersionRows(List<ComparableRow> comparableRows, List<ComparableField> comparableFields,
+    private void addNewVersionRows(List<ComparableRow> comparableRows, List<ComparableField> comparableFields,
                                    Page<? extends RowValue> newData, RefBookDataDiff refBookDataDiff,
                                    Structure newStructure, CompareCriteria criteria) {
         if (CollectionUtils.isEmpty(newData.getContent()))
             return;
 
-        Boolean hasUpdOrDelAttr = !CollectionUtils.isEmpty(refBookDataDiff.getUpdatedAttributes()) || !CollectionUtils.isEmpty(refBookDataDiff.getOldAttributes());
+        boolean hasUpdOrDelAttr = !CollectionUtils.isEmpty(refBookDataDiff.getUpdatedAttributes()) || !CollectionUtils.isEmpty(refBookDataDiff.getOldAttributes());
 
         SearchDataCriteria oldSearchDataCriteria = hasUpdOrDelAttr
                 ? new SearchDataCriteria(0, criteria.getPageSize(), createPrimaryAttributesFilters(newData, newStructure))
@@ -285,7 +286,7 @@ public class CompareServiceImpl implements CompareService {
                                                     oldRowValue,
                                                     newRowValue,
                                                     diffRowValue != null ? diffRowValue.getStatus() : null))
-                                    .collect(Collectors.toList())
+                                    .collect(toList())
                     );
                     comparableRows.add(comparableRow);
                 });
@@ -318,7 +319,7 @@ public class CompareServiceImpl implements CompareService {
                                                         deletedRowValue,
                                                         null,
                                                         DiffStatusEnum.DELETED))
-                                        .collect(Collectors.toList())
+                                        .collect(toList())
                         );
                         comparableRows.add(comparableRow);
                     });
