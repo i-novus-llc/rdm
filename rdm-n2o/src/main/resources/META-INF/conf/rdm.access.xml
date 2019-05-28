@@ -8,7 +8,7 @@
         <object-access object-id="attribute" operations="*"/>
         <object-access object-id="data" operations="*"/>
         <page-access page-id="passport"/>
-        <page-access page-id="refbook"/>
+        <page-access page-id="refBook"/>
         <page-access page-id="createRefBook"/>
         <page-access page-id="attribute"/>
     </permission>

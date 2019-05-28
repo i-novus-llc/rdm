@@ -60,8 +60,8 @@ public class RefBookVersion {
         this.status = refBookVersion.getStatus();
         this.archived = refBookVersion.getArchived();
         this.passport = refBookVersion.getPassport();
-        this.editDate = refBookVersion.getEditDate();
         this.structure = refBookVersion.getStructure();
+        this.editDate = refBookVersion.getEditDate();
     }
 
     public Integer getId() {

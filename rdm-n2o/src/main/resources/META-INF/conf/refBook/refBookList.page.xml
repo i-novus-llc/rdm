@@ -24,17 +24,17 @@
             <sub-menu label="Создать справочник" icon="fa fa-plus">
                 <menu-item label="Создать справочник" model="filter">
                     <open-page page-id="createRefBook" page-name="Создание справочника" upload="defaults"
-                               submit-operation-id="create" redirect-url-after-submit="/main/:refBookId/edit"/>
+                               submit-operation-id="create" redirect-url-after-submit="${server.servlet.context-path}/main/:refBookId/edit"/>
                 </menu-item>
                 <menu-item label="Создать справочник из файла" model="filter">
                     <show-modal page-id="createFromFile" page-name="Создание справочника из файла" upload="defaults"
-                                submit-operation-id="createFromFile" redirect-url-after-submit="/#/main/:refBookId/edit"
+                                submit-operation-id="createFromFile" redirect-url-after-submit="${server.servlet.context-path}/#/main/:refBookId/edit"
                                 redirect-target-after-submit="self">
                     </show-modal>
                 </menu-item>
             </sub-menu>
             <button id="edit" label="Изменить справочник" icon="fa fa-pencil" enabling-condition="!archived">
-                <open-page page-id="refbook" page-name="Редактирование справочника" detail-field-id="refBookId"
+                <open-page page-id="refBook" page-name="Редактирование справочника" detail-field-id="refBookId"
                            route="/:refBookId/edit"/>
             </button>
             <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger">

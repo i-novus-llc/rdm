@@ -4,8 +4,8 @@ import net.n2oapp.criteria.api.Criteria;
 
 public class AttributeCriteria extends Criteria {
 
+    // Атрибут версии справочника
     private String code;
-
     private Integer versionId;
 
     public AttributeCriteria() {
