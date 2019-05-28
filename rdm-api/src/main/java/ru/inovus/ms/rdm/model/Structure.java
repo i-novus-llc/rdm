@@ -4,6 +4,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.exception.RdmException;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -72,6 +73,15 @@ public class Structure implements Serializable {
 
     public void setReferences(List<Reference> references) {
         this.references = references;
+    }
+
+    public List<Reference> getRefCodeReferences(String referenceCode) {
+        if (isEmpty(references)) {
+            return Collections.emptyList();
+        }
+        return references.stream()
+                .filter(reference -> reference.getReferenceCode().equals(referenceCode))
+                .collect(Collectors.toList());
     }
 
     public static class Attribute implements Serializable {

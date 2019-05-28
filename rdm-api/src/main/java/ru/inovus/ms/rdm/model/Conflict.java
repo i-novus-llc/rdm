@@ -18,4 +18,20 @@ public class Conflict {
         this.conflictType = conflictType;
         this.primaryKeys = primaryKeys;
     }
+
+    public ConflictType getConflictType() {
+        return conflictType;
+    }
+
+    public void setConflictType(ConflictType conflictType) {
+        this.conflictType = conflictType;
+    }
+
+    public List<FieldValue> getPrimaryKeys() {
+        return primaryKeys;
+    }
+
+    public void setPrimaryKeys(List<FieldValue> primaryKeys) {
+        this.primaryKeys = primaryKeys;
+    }
 }
