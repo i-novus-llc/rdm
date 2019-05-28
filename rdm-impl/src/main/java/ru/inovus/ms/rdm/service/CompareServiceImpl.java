@@ -248,7 +248,7 @@ public class CompareServiceImpl implements CompareService {
         return deletedRdmCriteria;
     }
 
-   private void addNewVersionRows(List<ComparableRow> comparableRows, List<ComparableField> comparableFields,
+    private void addNewVersionRows(List<ComparableRow> comparableRows, List<ComparableField> comparableFields,
                                    Page<? extends RowValue> newData, RefBookDataDiff refBookDataDiff,
                                    Structure newStructure, CompareCriteria criteria) {
         if (CollectionUtils.isEmpty(newData.getContent()))
@@ -324,5 +324,4 @@ public class CompareServiceImpl implements CompareService {
                     });
         }
     }
-
 }

@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 @ApiModel("Критерии поиска данных справочника")
-public class SearchDataCriteria extends AbstractCriteria{
+public class SearchDataCriteria extends AbstractCriteria {
     @ApiModelProperty("Множество фильтров по отдельным полям")
     @QueryParam("attributeFilter")
     private Set<List<AttributeFilter>> attributeFilter;
