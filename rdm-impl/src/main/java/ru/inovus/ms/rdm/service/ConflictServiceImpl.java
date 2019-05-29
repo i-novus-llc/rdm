@@ -72,10 +72,8 @@ public class ConflictServiceImpl implements ConflictService {
 
 //        на данный момент может быть только: 1 поле -> 1 первичный ключ (ссылка на составной ключ невозможна)
         List<Structure.Attribute> refAttributes = refFromVersion.getStructure()
-                .getReferences()
+                .getRefCodeReferences(refToVersion.getCode())
                 .stream()
-                .filter(ref ->
-                        refToVersion.getCode().equals(ref.getReferenceCode()))
                 .map(ref ->
                         refFromVersion.getStructure().getAttribute(ref.getAttribute()))
                 .collect(toList());
