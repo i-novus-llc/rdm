@@ -193,17 +193,6 @@ public class ConflictServiceImpl implements ConflictService {
             if (refFromRows == null || refFromRows.isEmpty())
                 throw new RdmException(CONFLICTED_REFERENCE_ROW_NOT_FOUND);
 
-            refFromRows.forEach(refBookRowValue -> {
-                // 1. Recalculate and update reference displayValue.
-                // 2. Clear refBookRowValue.id to add only.
-                // 3. Add or update row in refFromDraft.
-
-                // NB: Code from DraftServiceImpl.java:updateData for refFromId.
-    //            if (refFromDraft.getId().equals(refFromId))
-    //                draftDataService.updateRow(refFromDraft.getStorageCode(), rowValue);
-    //            else
-    //                draftDataService.addRows(refFromDraft.getStorageCode(), singletonList(rowValue));
-            });
         });
     }
 
