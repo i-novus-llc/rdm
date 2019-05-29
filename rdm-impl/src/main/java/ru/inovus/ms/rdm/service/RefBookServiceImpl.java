@@ -374,6 +374,7 @@ public class RefBookServiceImpl implements RefBookService {
         Structure structure = entity.getStructure();
         List<Structure.Attribute> primaryAttributes = (structure != null) ? structure.getPrimary() : null;
         model.setHasPrimaryAttribute(!CollectionUtils.isEmpty(primaryAttributes));
+        model.setHasConflicts(false);
 
         return model;
     }
