@@ -145,5 +145,9 @@
                 "/>
         </field>
 
+        <field id="hasConflicts" domain="boolean">
+            <select mapping="hasConflicts"/>
+        </field>
+
     </fields>
 </query>
