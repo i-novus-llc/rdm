@@ -9,8 +9,10 @@ import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
-import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.*;
+import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
@@ -20,6 +22,7 @@ import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.*;
+import ru.inovus.ms.rdm.util.RowUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,11 +39,11 @@ public class ConflictServiceImpl implements ConflictService {
 
     private CompareService compareService;
 
+    private VersionService versionService;
+
     private DraftService draftService;
 
-    private RefBookService refBookService;
-
-    private VersionService versionService;
+    private DraftDataService draftDataService;
 
     private RefBookVersionRepository versionRepository;
 
@@ -50,13 +53,15 @@ public class ConflictServiceImpl implements ConflictService {
 
     @Autowired
     public ConflictServiceImpl(CompareService compareService,
+                               VersionService versionService,
                                DraftService draftService,
-                               RefBookService refBookService, VersionService versionService,
+                               DraftDataService draftDataService,
                                RefBookVersionRepository versionRepository) {
         this.compareService = compareService;
-        this.draftService = draftService;
-        this.refBookService = refBookService;
         this.versionService = versionService;
+        this.draftService = draftService;
+        this.draftDataService = draftDataService;
+
         this.versionRepository = versionRepository;
     }
 
@@ -76,6 +81,7 @@ public class ConflictServiceImpl implements ConflictService {
                 .stream()
                 .filter(ref ->
                         refToVersion.getCode().equals(ref.getReferenceCode()))
+                // NB: ref.findReferenceAttribute(refFromVersion.getStructure()) ?
                 .map(ref ->
                         refFromVersion.getStructure().getAttribute(ref.getAttribute()))
                 .collect(toList());
@@ -142,7 +148,7 @@ public class ConflictServiceImpl implements ConflictService {
         List<AttributeFilter> filters = new ArrayList<>();
         conflict.getPrimaryValues().forEach(fieldValue -> {
             FieldType fieldType = version.getStructure().getAttribute(fieldValue.getField()).getType();
-            filters.add(new AttributeFilter(fieldValue.getField(), fieldValue.getValue(), fieldType));
+            filters.add(new AttributeFilter(fieldValue.getField(), fieldValue.getValue(), fieldType, SearchTypeEnum.EXACT));
         });
         criteria.setAttributeFilter(singleton(filters));
 
@@ -172,11 +178,10 @@ public class ConflictServiceImpl implements ConflictService {
         return (rowValues != null && !rowValues.isEmpty()) ? rowValues : null;
     }
 
-    public void updateReferenceValues(RefBookVersion refFromDraft,
-                                      RefBookVersion refToVersion,
-                                      String refToBookCode,
-                                      Conflict conflict) {
-
+    private void updateReferenceValues(RefBookVersion refFromDraft,
+                                       RefBookVersion refToVersion,
+                                       Conflict conflict,
+                                       String storageCode) {
         if (conflict == null ||
                 CollectionUtils.isEmpty(conflict.getPrimaryValues()))
             return;
@@ -187,12 +192,45 @@ public class ConflictServiceImpl implements ConflictService {
 
         String primaryValue = conflict.getPrimaryValues().get(0).getValue().toString();
 
-        List<Structure.Reference> references = refFromDraft.getStructure().getRefCodeReferences(refToBookCode);
+        List<Structure.Reference> references = refFromDraft.getStructure().getRefCodeReferences(refToVersion.getCode());
         references.forEach(reference -> {
             Page<RefBookRowValue> refFromRows = getRefFromRowValues(refFromDraft, conflict, reference, primaryValue);
             if (refFromRows == null || refFromRows.isEmpty())
                 throw new RdmException(CONFLICTED_REFERENCE_ROW_NOT_FOUND);
 
+            refFromRows.forEach(refBookRowValue -> {
+//                List<FieldValue> fieldValues = refBookRowValue.getFieldValues();
+//                int referenceIndex = fieldValues.indexOf(new FieldValue() {
+//                    @Override
+//                    public boolean equals(Object obj) {
+//                        return (obj instanceof FieldValue) &&
+//                                ((FieldValue)obj).getField().equals(reference.getAttribute());
+//                    }
+//                });
+
+                FieldValue fieldValue = refBookRowValue.getFieldValue(reference.getAttribute());
+                if (fieldValue instanceof ReferenceFieldValue) {
+//                if (referenceIndex > 0) {
+                    String oldDisplayValue = ((ReferenceFieldValue) fieldValue).getValue().getDisplayValue();
+                    String newDisplayValue = RowUtils.toDisplayValue(reference.getDisplayExpression(), refToRow);
+
+                    if (!Objects.equals(oldDisplayValue, newDisplayValue)) {
+                        Reference oldReference = ((ReferenceFieldValue) fieldValue).getValue();
+                        Reference newReference = new Reference(
+                                oldReference.getStorageCode(),
+                                oldReference.getDate(),
+                                oldReference.getKeyField(),
+                                oldReference.getDisplayExpression(),
+                                oldReference.getValue(),
+                                newDisplayValue);
+                        ((ReferenceFieldValue) fieldValue).setValue(newReference);
+
+                        //fieldValues.set(referenceIndex, new Re)
+
+                        draftDataService.updateRow(storageCode, refBookRowValue);
+                    }
+                }
+            });
         });
     }
 
@@ -206,7 +244,6 @@ public class ConflictServiceImpl implements ConflictService {
 
         RefBookVersion refFromVersion = versionService.getById(refFromId);
         RefBookVersion refToVersion = versionService.getById(refToId);
-        String refToBookCode = refBookService.getCode(refToVersion.getRefBookId());
 
         Draft updatingDraft;
         if (RefBookVersionStatus.DRAFT.equals(refFromVersion.getStatus()))
@@ -217,7 +254,7 @@ public class ConflictServiceImpl implements ConflictService {
 
         conflicts.stream()
                 .filter(conflict -> ConflictType.UPDATED.equals(conflict.getConflictType()))
-                .forEach(conflict -> updateReferenceValues(refFromDraft, refToVersion, refToBookCode, conflict));
+                .forEach(conflict -> updateReferenceValues(refFromDraft, refToVersion, conflict, updatingDraft.getStorageCode()));
     }
 
     private void validateVersionsExistence(Integer versionId) {
