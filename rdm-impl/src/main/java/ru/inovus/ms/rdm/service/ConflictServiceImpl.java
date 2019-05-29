@@ -199,18 +199,9 @@ public class ConflictServiceImpl implements ConflictService {
                 throw new RdmException(CONFLICTED_REFERENCE_ROW_NOT_FOUND);
 
             refFromRows.forEach(refBookRowValue -> {
-//                List<FieldValue> fieldValues = refBookRowValue.getFieldValues();
-//                int referenceIndex = fieldValues.indexOf(new FieldValue() {
-//                    @Override
-//                    public boolean equals(Object obj) {
-//                        return (obj instanceof FieldValue) &&
-//                                ((FieldValue)obj).getField().equals(reference.getAttribute());
-//                    }
-//                });
 
                 FieldValue fieldValue = refBookRowValue.getFieldValue(reference.getAttribute());
                 if (fieldValue instanceof ReferenceFieldValue) {
-//                if (referenceIndex > 0) {
                     String oldDisplayValue = ((ReferenceFieldValue) fieldValue).getValue().getDisplayValue();
                     String newDisplayValue = RowUtils.toDisplayValue(reference.getDisplayExpression(), refToRow);
 
@@ -224,8 +215,6 @@ public class ConflictServiceImpl implements ConflictService {
                                 oldReference.getValue(),
                                 newDisplayValue);
                         ((ReferenceFieldValue) fieldValue).setValue(newReference);
-
-                        //fieldValues.set(referenceIndex, new Re)
 
                         draftDataService.updateRow(storageCode, refBookRowValue);
                     }
