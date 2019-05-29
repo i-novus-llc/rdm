@@ -18,7 +18,6 @@ import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
-import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.DraftService;
@@ -31,9 +30,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
@@ -74,7 +72,7 @@ public class ConflictServiceTest {
     private RefBookVersionRepository versionRepository;
 
     private RefBookVersion referrerVersion;
-    private RefBookVersion publishedVersion;
+    private RefBookVersion publishingVersion;
     private Draft referrerDraft;
     private RefBookVersion referrerDraftVersion;
 
@@ -87,7 +85,7 @@ public class ConflictServiceTest {
 
         when(versionRepository.existsById(anyInt())).thenReturn(true);
         when(versionService.getById(eq(REFERRER_VERSION_ID))).thenReturn(referrerVersion);
-        when(versionService.getById(eq(PUBLISHING_VERSION_ID))).thenReturn(publishedVersion);
+        when(versionService.getById(eq(PUBLISHING_VERSION_ID))).thenReturn(publishingVersion);
         when(refBookService.getCode(eq(PUBLISHING_REF_BOOK_ID))).thenReturn(PUBLISHING_REF_BOOK_CODE);
     }
 
@@ -111,13 +109,13 @@ public class ConflictServiceTest {
     }
 
     private void createPublishingVersion() {
-        publishedVersion = new RefBookVersion();
-        publishedVersion.setCode(PUBLISHING_REF_BOOK_CODE);
-        publishedVersion.setId(PUBLISHING_VERSION_ID);
-        publishedVersion.setRefBookId(PUBLISHING_REF_BOOK_ID);
-        publishedVersion.setStatus(RefBookVersionStatus.DRAFT);
+        publishingVersion = new RefBookVersion();
+        publishingVersion.setCode(PUBLISHING_REF_BOOK_CODE);
+        publishingVersion.setId(PUBLISHING_VERSION_ID);
+        publishingVersion.setRefBookId(PUBLISHING_REF_BOOK_ID);
+        publishingVersion.setStatus(RefBookVersionStatus.DRAFT);
 
-        Structure publishedStructure = new Structure(
+        Structure publishingStructure = new Structure(
                 asList(
                         Structure.Attribute.buildPrimary(PUBLISHING_PRIMARY_CODE, "Код", FieldType.STRING, "строковый код"),
                         Structure.Attribute.build("name", "Название", FieldType.STRING, "наименование"),
@@ -125,7 +123,7 @@ public class ConflictServiceTest {
                 ),
                 emptyList()
         );
-        publishedVersion.setStructure(publishedStructure);
+        publishingVersion.setStructure(publishingStructure);
     }
 
     private void createReferrerDraft() {
