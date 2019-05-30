@@ -37,7 +37,7 @@ public interface ConflictService {
     void updateReferenceValues(@ApiParam("Идентификатор версии, которая ссылается")
                                @QueryParam("refFromId")
                                        Integer refFromId,
-                               @ApiParam("Идентификатор версии, на которую ссылаются")
+                               @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
                                @QueryParam("refToId")
                                        Integer refToId,
                                @ApiParam("Список конфликтов")
