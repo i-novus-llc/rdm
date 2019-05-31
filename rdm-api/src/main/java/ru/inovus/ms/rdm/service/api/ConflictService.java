@@ -4,7 +4,6 @@ import io.swagger.annotations.*;
 import ru.inovus.ms.rdm.model.Conflict;
 
 import javax.ws.rs.*;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 
@@ -37,11 +36,10 @@ public interface ConflictService {
     })
     void updateReferenceValues(@ApiParam("Идентификатор версии, которая ссылается")
                                @QueryParam("refFromId")
-                                        Integer refFromId,
-                               @ApiParam("Идентификатор версии, на которую ссылаются")
+                                       Integer refFromId,
+                               @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
                                @QueryParam("refToId")
                                        Integer refToId,
                                @ApiParam("Список конфликтов")
-                               @QueryParam("conflicts")
                                        List<Conflict> conflicts);
 }

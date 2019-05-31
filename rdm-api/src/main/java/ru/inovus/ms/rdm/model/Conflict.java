@@ -34,5 +34,4 @@ public class Conflict {
     public void setPrimaryValues(List<FieldValue> primaryValues) {
         this.primaryValues = primaryValues;
     }
-
 }
