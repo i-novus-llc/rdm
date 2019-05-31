@@ -4,7 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
 
-    <changeSet id="201905291320-RDM-469_1.0" author="arahmatullin" dbms="postgresql">
+    <changeSet id="201905291320-RDM-469_1.1" author="arahmatullin" dbms="postgresql">
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists tableName="ref_book_conflict" schemaName="n2o_rdm_management"/>
@@ -15,10 +15,10 @@
                 referrer_id          integer NOT NULL,
                 published_id         integer NOT NULL,
                 ref_recordid         integer NOT NULL,
-                ref_field_name       varchar NOT NULL,
+                ref_field_code       varchar NOT NULL,
                 conflict_type        varchar NOT NULL,
                 creation_date        timestamp DEFAULT current_timestamp,
-                closure_date         timestamp
+                handling_date        timestamp
             );
 
             ALTER TABLE n2o_rdm_management.ref_book_conflict
@@ -39,20 +39,27 @@
             COMMENT ON COLUMN n2o_rdm_management.ref_book_conflict.referrer_id IS 'Идентификатор версии справочника со ссылками';
             COMMENT ON COLUMN n2o_rdm_management.ref_book_conflict.published_id IS 'Идентификатор версии опубликованного справочника';
             COMMENT ON COLUMN n2o_rdm_management.ref_book_conflict.ref_recordid IS 'Системный идентификатор записи с конфликтом';
-            COMMENT ON COLUMN n2o_rdm_management.ref_book_conflict.ref_field_name IS 'Название поля-ссылки с конфликтом по отображаемому значению';
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_conflict.ref_field_code IS 'Название поля-ссылки с конфликтом по отображаемому значению';
             COMMENT ON COLUMN n2o_rdm_management.ref_book_conflict.conflict_type IS 'Тип конфликта';
             COMMENT ON COLUMN n2o_rdm_management.ref_book_conflict.creation_date IS 'Дата создания записи';
-            COMMENT ON COLUMN n2o_rdm_management.ref_book_conflict.closure_date IS 'Дата закрытия записи';
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_conflict.handling_date IS 'Дата обработки записи';
         </sql>
     </changeSet>
 
     <changeSet id="201905291320-RDM-469_2.0" author="arahmatullin" dbms="postgresql">
         <preConditions onFail="MARK_RAN">
-            <columnExists tableName="ref_book_conflict" columnName="ref_field_name" schemaName="n2o_rdm_management"/>
+            <not>
+                <columnExists tableName="ref_book_conflict" columnName="id" schemaName="n2o_rdm_management"/>
+            </not>
         </preConditions>
         <sql>
             ALTER TABLE n2o_rdm_management.ref_book_conflict
-                RENAME COLUMN ref_field_name TO ref_field_code;
+                ADD COLUMN id serial NOT NULL;
+
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_conflict.id IS 'Идентификатор записи о конфликте';
+
+            ALTER TABLE n2o_rdm_management.ref_book_conflict
+                ADD CONSTRAINT pk_ref_book_conflict_id PRIMARY KEY ( id );
         </sql>
     </changeSet>
 
