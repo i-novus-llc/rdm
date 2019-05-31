@@ -82,7 +82,7 @@ public class ConflictServiceImpl implements ConflictService {
                 .getRefCodeReferences(refToVersion.getCode())
                 .stream()
                 .map(ref ->
-                        refFromVersion.getStructure().getAttribute(ref.getAttribute()))
+                        ref.findReferenceAttribute(refFromVersion.getStructure()))
                 .collect(toList());
 
         Page<RefBookRowValue> refFromRowValues = versionService.search(refFromId, new SearchDataCriteria());
