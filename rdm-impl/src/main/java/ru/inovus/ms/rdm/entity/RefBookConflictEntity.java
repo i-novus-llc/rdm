@@ -11,6 +11,11 @@ import java.util.Objects;
 @Table(name = "ref_book_conflict", schema = "n2o_rdm_management")
 public class RefBookConflictEntity {
 
+    @Id
+    @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
     @ManyToOne
     @JoinColumn(name = "referrer_id", nullable = false)
     private RefBookVersionEntity referrerVersion;
