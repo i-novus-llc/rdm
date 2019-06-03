@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.service;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.jaxrs.RestPage;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
@@ -37,9 +36,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static cz.atria.common.lang.Util.isEmpty;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
+import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.util.ComparableUtils.*;
 import static ru.inovus.ms.rdm.util.ConverterUtil.getFieldSearchCriteriaList;
 
@@ -53,7 +52,6 @@ public class CompareServiceImpl implements CompareService {
     private PassportAttributeRepository passportAttributeRepository;
     private FieldFactory fieldFactory;
 
-    private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
     private static final String DATA_COMPARING_UNAVAILABLE_EXCEPTION_CODE = "data.comparing.unavailable";
 
     @Autowired
@@ -192,9 +190,9 @@ public class CompareServiceImpl implements CompareService {
 
     private void validateVersionsExistence(Integer oldVersionId, Integer newVersionId) {
         if (oldVersionId == null || !versionRepository.existsById(oldVersionId))
-            throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, oldVersionId));
+            throw new NotFoundException(new Message(VersionServiceImpl.VERSION_NOT_FOUND_EXCEPTION_CODE, oldVersionId));
         if (newVersionId == null || !versionRepository.existsById(newVersionId))
-            throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, newVersionId));
+            throw new NotFoundException(new Message(VersionServiceImpl.VERSION_NOT_FOUND_EXCEPTION_CODE, newVersionId));
     }
 
     private void validatePrimaryAttributesEquality(List<Structure.Attribute> oldPrimaries, List<Structure.Attribute> newPrimaries) {
@@ -252,10 +250,10 @@ public class CompareServiceImpl implements CompareService {
     private void addNewVersionRows(List<ComparableRow> comparableRows, List<ComparableField> comparableFields,
                                    Page<? extends RowValue> newData, RefBookDataDiff refBookDataDiff,
                                    Structure newStructure, CompareCriteria criteria) {
-        if (CollectionUtils.isEmpty(newData.getContent()))
+        if (isEmpty(newData.getContent()))
             return;
 
-        boolean hasUpdOrDelAttr = !CollectionUtils.isEmpty(refBookDataDiff.getUpdatedAttributes()) || !CollectionUtils.isEmpty(refBookDataDiff.getOldAttributes());
+        boolean hasUpdOrDelAttr = !isEmpty(refBookDataDiff.getUpdatedAttributes()) || !isEmpty(refBookDataDiff.getOldAttributes());
 
         SearchDataCriteria oldSearchDataCriteria = hasUpdOrDelAttr
                 ? new SearchDataCriteria(0, criteria.getPageSize(), createPrimaryAttributesFilters(newData, newStructure))

@@ -62,6 +62,14 @@
             <column text-field-id="lastPublishedVersionFromDate" label="Последняя публикация">
                 <text format="date DD.MM.YYYY"/>
             </column>
+<!--            вывод tooltip-сообщения пока не работает-->
+            <column text-field-id="hasConflicts" label="" type="icon" tooltip-field-id="hasConflictsMsg">
+                <icon>
+                    <switch value-field-id="hasConflicts">
+                        <case value="true">fa fa-question-circle-o</case>
+                    </switch>
+                </icon>
+            </column>
         </columns>
     </table>
 </simple-page>

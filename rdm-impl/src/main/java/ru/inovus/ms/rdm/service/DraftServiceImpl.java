@@ -92,9 +92,6 @@ public class DraftServiceImpl implements DraftService {
     private static final String INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE = "incompatible.new.type";
     private static final String DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "draft.attribute.not.found";
     private static final String DRAFT_NOT_FOUND_EXCEPTION_CODE = "draft.not.found";
-    private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
-    private static final String REFBOOK_NOT_FOUND_EXCEPTION_CODE = "refbook.not.found";
-    private static final String REFBOOK_IS_ARCHIVED_EXCEPTION_CODE = "refbook.is.archived";
     private static final String INVALID_VERSION_NAME_EXCEPTION_CODE = "invalid.version.name";
     private static final String INVALID_VERSION_PERIOD_EXCEPTION_CODE = "invalid.version.period";
     private static final String ROW_NOT_UNIQUE_EXCEPTION_CODE = "row.not.unique";
@@ -256,7 +253,7 @@ public class DraftServiceImpl implements DraftService {
             RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
             RefBookVersionEntity draftVersion = getDraftByRefBook(refBookId);
             if (draftVersion == null && lastRefBookVersion == null)
-                throw new NotFoundException(new Message(REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
+                throw new NotFoundException(new Message(RefBookServiceImpl.REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
 
             // NB: structure == null means that draft was created during passport saving
             if (draftVersion != null && draftVersion.getStructure() != null) {
@@ -901,19 +898,19 @@ public class DraftServiceImpl implements DraftService {
 
     private void validateRefBookNotArchived(Integer refBookId) {
         if (refBookId != null && versionRepository.exists(isVersionOfRefBook(refBookId).and(isArchived()))) {
-            throw new UserException(REFBOOK_IS_ARCHIVED_EXCEPTION_CODE);
+            throw new UserException(RefBookServiceImpl.REFBOOK_IS_ARCHIVED_EXCEPTION_CODE);
         }
     }
 
     private void validateDraftNotArchived(Integer draftId) {
         if (draftId != null && versionRepository.exists(hasVersionId(draftId).and(isArchived()))) {
-            throw new UserException(REFBOOK_IS_ARCHIVED_EXCEPTION_CODE);
+            throw new UserException(RefBookServiceImpl.REFBOOK_IS_ARCHIVED_EXCEPTION_CODE);
         }
     }
 
     private void validateRefBookExists(Integer refBookId) {
         if (refBookId == null || !versionRepository.exists(isVersionOfRefBook(refBookId))) {
-            throw new NotFoundException(REFBOOK_NOT_FOUND_EXCEPTION_CODE);
+            throw new NotFoundException(RefBookServiceImpl.REFBOOK_NOT_FOUND_EXCEPTION_CODE);
         }
     }
 
@@ -925,7 +922,7 @@ public class DraftServiceImpl implements DraftService {
 
     private void validateVersionExists(Integer versionId) {
         if (versionId == null || !versionRepository.exists(hasVersionId(versionId))) {
-            throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
+            throw new NotFoundException(new Message(VersionServiceImpl.VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
         }
     }
 

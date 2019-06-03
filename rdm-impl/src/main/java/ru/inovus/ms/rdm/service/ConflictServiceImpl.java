@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
@@ -34,6 +33,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.util.ComparableUtils.findRefBookRowValue;
 
 @Primary
@@ -50,7 +50,6 @@ public class ConflictServiceImpl implements ConflictService {
 
     private RefBookVersionRepository versionRepository;
 
-    private static final String VERSION_NOT_FOUND = "version.not.found";
     private static final String CONFLICTED_ROW_NOT_FOUND = "conflicted.row.not.found";
 
     @Autowired
@@ -138,7 +137,7 @@ public class ConflictServiceImpl implements ConflictService {
     private RefBookRowValue getRefToRowValue(RefBookVersion version, Conflict conflict) {
 
         if (version == null || conflict == null ||
-                CollectionUtils.isEmpty(conflict.getPrimaryValues()))
+                isEmpty(conflict.getPrimaryValues()))
             return null;
 
         // Convert conflict to criteria.
@@ -147,12 +146,16 @@ public class ConflictServiceImpl implements ConflictService {
         List<AttributeFilter> filters = new ArrayList<>();
         conflict.getPrimaryValues().forEach(fieldValue -> {
             FieldType fieldType = version.getStructure().getAttribute(fieldValue.getField()).getType();
-            filters.add(new AttributeFilter(fieldValue.getField(), fieldValue.getValue(), fieldType, SearchTypeEnum.EXACT));
+            filters.add(
+                    new AttributeFilter(fieldValue.getField(), fieldValue.getValue(), fieldType, SearchTypeEnum.EXACT)
+            );
         });
         criteria.setAttributeFilter(singleton(filters));
 
         Page<RefBookRowValue> rowValues = versionService.search(version.getId(), criteria);
-        return (rowValues != null && !rowValues.isEmpty()) ? rowValues.get().findFirst().orElse(null) : null;
+        return (rowValues != null && !rowValues.isEmpty())
+                ? rowValues.get().findFirst().orElse(null)
+                : null;
     }
 
     /**
@@ -162,7 +165,7 @@ public class ConflictServiceImpl implements ConflictService {
                                                       Structure.Reference reference, String referenceValue) {
 
         if (version == null || conflict == null ||
-                CollectionUtils.isEmpty(conflict.getPrimaryValues()))
+                isEmpty(conflict.getPrimaryValues()))
             return null;
 
         // Convert conflict to criteria.
@@ -174,7 +177,9 @@ public class ConflictServiceImpl implements ConflictService {
         criteria.setAttributeFilter(singleton(filters));
 
         Page<RefBookRowValue> rowValues = versionService.search(version.getId(), criteria);
-        return (rowValues != null && !rowValues.isEmpty()) ? rowValues : null;
+        return (rowValues != null && !rowValues.isEmpty())
+                ? rowValues
+                : null;
     }
 
     /**
@@ -209,7 +214,7 @@ public class ConflictServiceImpl implements ConflictService {
                                        String refFromStorageCode,
                                        String refToStorageCode) {
         if (conflict == null ||
-                CollectionUtils.isEmpty(conflict.getPrimaryValues()))
+                isEmpty(conflict.getPrimaryValues()))
             return;
 
         RefBookRowValue refToRow = getRefToRowValue(refToVersion, conflict);
@@ -261,7 +266,7 @@ public class ConflictServiceImpl implements ConflictService {
     @Override
     public void updateReferenceValues(Integer refFromId, Integer refToId, List<Conflict> conflicts) {
 
-        if (CollectionUtils.isEmpty(conflicts))
+        if (isEmpty(conflicts))
             return;
 
         validateVersionsExistence(refFromId);
@@ -279,14 +284,16 @@ public class ConflictServiceImpl implements ConflictService {
         Draft refToDraft = draftService.getDraft(refToId);
 
         conflicts.stream()
-                .filter(conflict -> ConflictType.UPDATED.equals(conflict.getConflictType()))
-                .forEach(conflict -> updateReferenceValues(refFromDraftVersion, refToVersion, conflict,
-                        refFromDraft.getStorageCode(),
-                        refToDraft.getStorageCode()));
+                .filter(conflict ->
+                        ConflictType.UPDATED.equals(conflict.getConflictType()))
+                .forEach(conflict ->
+                        updateReferenceValues(refFromDraftVersion, refToVersion, conflict,
+                                refFromDraft.getStorageCode(), refToDraft.getStorageCode())
+                );
     }
 
     private void validateVersionsExistence(Integer versionId) {
         if (versionId == null || !versionRepository.existsById(versionId))
-            throw new NotFoundException(new Message(VERSION_NOT_FOUND, versionId));
+            throw new NotFoundException(new Message(VersionServiceImpl.VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
     }
 }

@@ -23,6 +23,7 @@ import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.PassportValueRepository;
+import ru.inovus.ms.rdm.repositiory.RefBookConflictRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.RefBookService;
@@ -34,6 +35,7 @@ import javax.transaction.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
@@ -53,11 +55,14 @@ public class RefBookServiceImpl implements RefBookService {
     private static final String REF_BOOK_FROM_DATE_SORT_PROPERTY = "fromDate";
     private static final String REF_BOOK_CATEGORY_SORT_PROPERTY = "category";
 
+    static final String REFBOOK_IS_ARCHIVED_EXCEPTION_CODE = "refbook.is.archived";
+    static final String REFBOOK_NOT_FOUND_EXCEPTION_CODE = "refbook.not.found";
     private static final String REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.already.exists";
     private static final String CANNOT_ORDER_BY_EXCEPTION_CODE = "cannot.order.by \"{0}\"";
 
     private RefBookVersionRepository repository;
     private RefBookRepository refBookRepository;
+    private RefBookConflictRepository conflictRepository;
     private DraftDataService draftDataService;
     private DropDataService dropDataService;
     private PassportValueRepository passportValueRepository;
@@ -68,11 +73,13 @@ public class RefBookServiceImpl implements RefBookService {
     @Autowired
     @SuppressWarnings("all")
     public RefBookServiceImpl(RefBookVersionRepository repository, RefBookRepository refBookRepository,
+                              RefBookConflictRepository conflictRepository,
                               DraftDataService draftDataService, DropDataService dropDataService,
                               PassportValueRepository passportValueRepository, PassportPredicateProducer passportPredicateProducer,
                               EntityManager entityManager, RefBookLockService refBookLockService) {
         this.repository = repository;
         this.refBookRepository = refBookRepository;
+        this.conflictRepository = conflictRepository;
         this.draftDataService = draftDataService;
         this.dropDataService = dropDataService;
         this.passportValueRepository = passportValueRepository;
@@ -222,11 +229,11 @@ public class RefBookServiceImpl implements RefBookService {
         refBookVersionEntity.setRefBook(refBookEntity);
         refBookVersionEntity.setStatus(RefBookVersionStatus.DRAFT);
 
-        String storageCode = draftDataService.createDraft(Collections.emptyList());
+        String storageCode = draftDataService.createDraft(emptyList());
         refBookVersionEntity.setStorageCode(storageCode);
         Structure structure = new Structure();
-        structure.setAttributes(Collections.emptyList());
-        structure.setReferences(Collections.emptyList());
+        structure.setAttributes(emptyList());
+        structure.setReferences(emptyList());
         refBookVersionEntity.setStructure(structure);
 
         RefBookVersionEntity savedVersion = repository.save(refBookVersionEntity);
@@ -374,7 +381,11 @@ public class RefBookServiceImpl implements RefBookService {
         Structure structure = entity.getStructure();
         List<Structure.Attribute> primaryAttributes = (structure != null) ? structure.getPrimary() : null;
         model.setHasPrimaryAttribute(!CollectionUtils.isEmpty(primaryAttributes));
-        model.setHasConflicts(false);
+
+        model.setHasConflicts(lastPublishedVersion.isPresent()
+                ? conflictRepository.existsByReferrerVersionId(lastPublishedVersion.get().getId())
+                : false
+        );
 
         return model;
     }
@@ -434,19 +445,19 @@ public class RefBookServiceImpl implements RefBookService {
 
     private void validateRefBookExists(Integer refBookId) {
         if (refBookId == null || !refBookRepository.existsById(refBookId)) {
-            throw new NotFoundException(new Message("refbook.not.found", refBookId));
+            throw new NotFoundException(new Message(REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
         }
     }
 
     private void validateVersionExists(Integer versionId) {
         if (versionId == null || !repository.existsById(versionId)) {
-            throw new NotFoundException(new Message("version.not.found", versionId));
+            throw new NotFoundException(new Message(VersionServiceImpl.VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
         }
     }
 
     private void validateVersionNotArchived(Integer versionId) {
         if (versionId != null && repository.exists(hasVersionId(versionId).and(isArchived()))) {
-            throw new UserException("refbook.is.archived");
+            throw new UserException(REFBOOK_IS_ARCHIVED_EXCEPTION_CODE);
         }
     }
 

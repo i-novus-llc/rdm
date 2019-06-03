@@ -50,9 +50,9 @@ import static ru.inovus.ms.rdm.util.ModelGenerator.versionModel;
 @Primary
 public class VersionServiceImpl implements VersionService {
 
-    public static final String ROW_NOT_FOUND = "row.not.found";
-    public static final String VERSION_NOT_FOUND = "version.not.found";
-    public static final String LAST_PUBLISHED_VERSION_NOT_FOUND = "last.published.version.not.found";
+    private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
+    static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
+    private static final String LAST_PUBLISHED_VERSION_NOT_FOUND_EXCEPTION_CODE = "last.published.version.not.found";
 
     private RefBookVersionRepository versionRepository;
     private SearchDataService searchDataService;
@@ -95,7 +95,7 @@ public class VersionServiceImpl implements VersionService {
     public Page<RefBookRowValue> search(Integer versionId, SearchDataCriteria criteria) {
         RefBookVersionEntity version = versionRepository
                 .findById(versionId)
-                .orElseThrow(() -> new NotFoundException(new Message(VERSION_NOT_FOUND, versionId)));
+                .orElseThrow(() -> new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId)));
         return getRowValuesOfVersion(criteria, version);
     }
 
@@ -104,7 +104,7 @@ public class VersionServiceImpl implements VersionService {
     public RefBookVersion getById(Integer versionId) {
         RefBookVersionEntity version = versionRepository
                 .findById(versionId)
-                .orElseThrow(() -> new NotFoundException(new Message(VERSION_NOT_FOUND, versionId)));
+                .orElseThrow(() -> new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId)));
         return versionModel(version);
     }
 
@@ -113,7 +113,7 @@ public class VersionServiceImpl implements VersionService {
     public RefBookVersion getVersion(String version, String refBookCode) {
         RefBookVersionEntity versionEntity = versionRepository.findByVersionAndRefBookCode(version, refBookCode);
         if (versionEntity == null)
-            throw new NotFoundException(new Message(VERSION_NOT_FOUND, version));
+            throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, version));
         return versionModel(versionEntity);
     }
 
@@ -122,7 +122,7 @@ public class VersionServiceImpl implements VersionService {
     public RefBookVersion getLastPublishedVersion(String refBookCode) {
         RefBookVersionEntity versionEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.PUBLISHED);
         if (versionEntity == null)
-            throw new NotFoundException(new Message(LAST_PUBLISHED_VERSION_NOT_FOUND));
+            throw new NotFoundException(new Message(LAST_PUBLISHED_VERSION_NOT_FOUND_EXCEPTION_CODE));
         return versionModel(versionEntity);
     }
 
@@ -165,7 +165,7 @@ public class VersionServiceImpl implements VersionService {
             return null;
         RefBookVersionEntity versionEntity = versionRepository
                 .findById(versionId)
-                .orElseThrow(() -> new NotFoundException(new Message(VERSION_NOT_FOUND, versionId)));
+                .orElseThrow(() -> new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId)));
 
         VersionFileEntity fileEntity = versionFileRepository.findByVersionIdAndType(versionId, fileType);
         String path = null;
@@ -186,7 +186,7 @@ public class VersionServiceImpl implements VersionService {
         RefBookVersionEntity refBookVersionEntity = versionRepository
                 .findById(refBookUpdateRequest.getVersionId())
                 .orElseThrow(() ->
-                        new NotFoundException(new Message(VERSION_NOT_FOUND, refBookUpdateRequest.getVersionId())));
+                        new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, refBookUpdateRequest.getVersionId())));
 
         updateVersionFromPassport(refBookVersionEntity, refBookUpdateRequest.getPassport());
         return versionModel(refBookVersionEntity);
@@ -227,12 +227,13 @@ public class VersionServiceImpl implements VersionService {
 
     @Override
     public RefBookRowValue getRow(String rowId) {
-        if (!rowId.matches("^.+\\$\\d+$")) throw new NotFoundException(ROW_NOT_FOUND);
+        if (!rowId.matches("^.+\\$\\d+$"))
+            throw new NotFoundException(ROW_NOT_FOUND_EXCEPTION_CODE);
 
         String[] split = rowId.split("\\$");
         RefBookVersionEntity version = versionRepository
                 .findById(Integer.parseInt(split[1]))
-                .orElseThrow(() -> new NotFoundException(ROW_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(ROW_NOT_FOUND_EXCEPTION_CODE));
 
         DataCriteria criteria = new DataCriteria(
                 version.getStorageCode(),
@@ -243,7 +244,7 @@ public class VersionServiceImpl implements VersionService {
 
         List<RowValue> data = searchDataService.getData(criteria);
         if (CollectionUtils.isEmpty(data))
-            throw new NotFoundException(ROW_NOT_FOUND);
+            throw new NotFoundException(ROW_NOT_FOUND_EXCEPTION_CODE);
         if (data.size() > 1)
             throw new IllegalStateException("more than one row with id " + rowId);
         return new RefBookRowValue((LongRowValue) data.get(0), version.getId());
