@@ -219,7 +219,7 @@ public class DraftServiceTest {
         expectedVersionEntity.setFromDate(now);
 
         when(versionRepository.findById(eq(draft.getId()))).thenReturn(java.util.Optional.of(draft));
-        when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(anyInt(), eq(RefBookVersionStatus.PUBLISHED)))
+        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(anyString(), eq(RefBookVersionStatus.PUBLISHED)))
                 .thenReturn(versionEntity);
 
         when(versionService.getById(eq(draft.getId())))
