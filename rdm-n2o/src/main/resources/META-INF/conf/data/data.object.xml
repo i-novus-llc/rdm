@@ -1,7 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <object xmlns="http://n2oapp.net/framework/config/schema/object-3.0" name="Справочник">
 
-
     <operations>
         <operation id="delete" submit-label="Удалить" success-text="Запись успешно удалена"
                    confirm="true" confirm-text="Вы точно хотите удалить запись?">

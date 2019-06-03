@@ -13,6 +13,7 @@ import static ru.inovus.ms.rdm.RdmUiUtil.deletePrefix;
  * Created by znurgaliev on 14.11.2018.
  */
 public class DataCriteria extends Criteria {
+
     private Integer versionId;
     private Map<String, Serializable> filter;
 
