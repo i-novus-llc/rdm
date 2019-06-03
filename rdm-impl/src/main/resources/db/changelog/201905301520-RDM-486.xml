@@ -4,7 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
 
-    <changeSet id="201905301520-RDM-486_1.0" author="arahmatullin" dbms="postgresql">
+    <changeSet id="201905301520-RDM-486_1.1" author="arahmatullin" dbms="postgresql">
         <comment>Изменение вычисления hash только по value для jsonb</comment>
         <sql splitStatements="false">
             <![CDATA[
@@ -19,8 +19,7 @@ begin
     for r in
         select l_t.table_catalog, l_t.table_schema, l_t.table_name
           from information_schema.tables as l_t
-         where l_t.table_catalog = 'rdm'
-           and l_t.table_schema = 'data'
+         where l_t.table_schema = 'data'
            and l_t.table_type = 'BASE TABLE'
            and exists(
                select 1
