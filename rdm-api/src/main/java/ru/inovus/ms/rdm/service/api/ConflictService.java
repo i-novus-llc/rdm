@@ -28,7 +28,7 @@ public interface ConflictService {
                                               Integer refToId);
 
     @POST
-    @Path("/update/displays")
+    @Path("/update/displayvalue")
     @ApiOperation("Обновление отображаемых значений ссылок")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
