@@ -7,6 +7,8 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
@@ -81,10 +83,9 @@ public class RefBookServiceTest {
         RefBookVersion referrerDifVersion = createReferrerDifVersion();
         RefBookVersion referrerNonVersion = createReferrerNonVersion();
 
-        // Iterable is required.
         ArrayList<RefBookVersion> versions = new ArrayList<>(asList(referrerOneVersion, referrerTwoVersion, referrerDifVersion, referrerNonVersion));
-        ArrayList<RefBookVersionEntity> entitites = new ArrayList<>(versions.stream().map(this::modelToEntity).collect(Collectors.toCollection(ArrayList::new)));
-        when(versionRepository.findAll(any(BooleanBuilder.class))).thenReturn(entitites);
+        List<RefBookVersionEntity> entitites = versions.stream().map(this::modelToEntity).collect(Collectors.toList());
+        when(versionRepository.findAll(any(BooleanBuilder.class), any(Pageable.class))).thenReturn(new PageImpl<>(entitites));
 
         List<RefBookVersion> actualList = refBookService.getReferrerVersions(CHECKING_REF_BOOK_CODE);
         List<RefBookVersion> expectedList = new ArrayList<>(asList(referrerOneVersion, referrerTwoVersion, referrerDifVersion));

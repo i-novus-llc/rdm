@@ -190,8 +190,8 @@ public class RefBookServiceImpl implements RefBookService {
         BooleanBuilder where = new BooleanBuilder();
         where.and(isActual()).andNot(isArchived());
 
-        Iterable<RefBookVersionEntity> iterable = repository.findAll(where, Pageable.unpaged());
-        List<RefBookVersionEntity> list = StreamSupport.stream(iterable.spliterator(), false)
+        Page<RefBookVersionEntity> all = repository.findAll(where, Pageable.unpaged());
+        List<RefBookVersionEntity> list = StreamSupport.stream(all.spliterator(), false)
                 .filter(actual ->
                         Objects.nonNull(actual.getStructure())
                                 && !actual.getStructure().getRefCodeReferences(refBookCode).isEmpty())
