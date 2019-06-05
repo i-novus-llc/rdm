@@ -7,6 +7,8 @@ import java.util.List;
 
 public class Conflict {
 
+    private String refAttributeCode;
+
     private ConflictType conflictType;
 
     private List<FieldValue> primaryValues;
@@ -14,9 +16,23 @@ public class Conflict {
     public Conflict() {
     }
 
+    public Conflict(String refAttributeCode, ConflictType conflictType, List<FieldValue> primaryValues) {
+        this.refAttributeCode = refAttributeCode;
+        this.conflictType = conflictType;
+        this.primaryValues = primaryValues;
+    }
+
     public Conflict(ConflictType conflictType, List<FieldValue> primaryValues) {
         this.conflictType = conflictType;
         this.primaryValues = primaryValues;
+    }
+
+    public String getRefAttributeCode() {
+        return refAttributeCode;
+    }
+
+    public void setRefAttributeCode(String refAttributeCode) {
+        this.refAttributeCode = refAttributeCode;
     }
 
     public ConflictType getConflictType() {
