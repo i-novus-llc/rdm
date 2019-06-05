@@ -77,13 +77,13 @@ public class ComparableUtils {
      * @param rowValues    список записей, среди которых ведется поиск
      * @return Найденная запись либо null
      */
-    public static RefBookRowValue findRefBookRowValue(List<Structure.Attribute> primaries, List<Structure.Attribute> refAttributes, DiffRowValue diffRowValue,
-                                                      List<RefBookRowValue> rowValues) {
+    public static RefBookRowValue findRefBookRowValue(List<Structure.Attribute> primaries, Structure.Attribute refAttribute,
+                                                      DiffRowValue diffRowValue, List<RefBookRowValue> rowValues) {
         return rowValues
                 .stream()
                 .filter(rowValue -> {
                     DiffFieldValue diffFieldValue = diffRowValue.getDiffFieldValue(primaries.get(0).getCode());
-                    return castRefValue(rowValue.getFieldValue(refAttributes.get(0).getCode()), primaries.get(0).getType())
+                    return castRefValue(rowValue.getFieldValue(refAttribute.getCode()), primaries.get(0).getType())
                             .equals(
                                     DiffStatusEnum.DELETED.equals(diffRowValue.getStatus())
                                             ? diffFieldValue.getOldValue()

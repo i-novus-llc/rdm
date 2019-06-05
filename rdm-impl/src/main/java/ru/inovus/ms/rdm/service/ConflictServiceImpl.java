@@ -92,7 +92,7 @@ public class ConflictServiceImpl implements ConflictService {
                 .getRefCodeReferences(refToVersion.getCode())
                 .stream()
                 .map(ref ->
-                        ref.findReferenceAttribute(refFromVersion.getStructure()))
+                        refFromVersion.getStructure().getAttribute(ref.getAttribute()))
                 .collect(toList());
 
         Page<RefBookRowValue> refFromRowValues = versionService.search(refFromId, new SearchDataCriteria());
@@ -106,25 +106,30 @@ public class ConflictServiceImpl implements ConflictService {
     private List<Conflict> createConflicts(List<DiffRowValue> diffRowValues, List<RefBookRowValue> refFromRowValues,
                                            Structure refToStructure, Structure refFromStructure,
                                            List<Structure.Attribute> refFromAttributes) {
-        return diffRowValues
-                .stream()
-                .filter(diffRowValue ->
-                        asList(DiffStatusEnum.DELETED, DiffStatusEnum.UPDATED)
-                                .contains(diffRowValue.getStatus()))
-                .map(diffRowValue -> {
-                    RefBookRowValue refFromRowValue = findRefBookRowValue(refToStructure.getPrimary(), refFromAttributes,
-                            diffRowValue, refFromRowValues);
-                    if (refFromRowValue == null)
-                        return null;
+        List<Conflict> conflicts = new ArrayList<>();
+        refFromAttributes.forEach(refFromAttribute ->
+                conflicts.addAll(diffRowValues
+                        .stream()
+                        .filter(diffRowValue ->
+                                asList(DiffStatusEnum.DELETED, DiffStatusEnum.UPDATED)
+                                        .contains(diffRowValue.getStatus()))
+                        .map(diffRowValue -> {
+                            RefBookRowValue refFromRowValue = findRefBookRowValue(refToStructure.getPrimary(), refFromAttribute,
+                                    diffRowValue, refFromRowValues);
+                            if (refFromRowValue == null)
+                                return null;
 
-                    return createConflict(diffRowValue, refFromRowValue, refFromStructure);
-                })
-                .filter(Objects::nonNull)
-                .collect(toList());
+                            return createConflict(diffRowValue, refFromRowValue, refFromAttribute, refFromStructure);
+                        })
+                        .filter(Objects::nonNull)
+                        .collect(toList())));
+        return conflicts;
     }
 
-    private Conflict createConflict(DiffRowValue diffRowValue, RefBookRowValue refFromRowValue, Structure refFromStructure) {
+    private Conflict createConflict(DiffRowValue diffRowValue, RefBookRowValue refFromRowValue,
+                                    Structure.Attribute refFromAttribute, Structure refFromStructure) {
         Conflict conflict = new Conflict();
+        conflict.setRefAttributeCode(refFromAttribute.getCode());
         conflict.setConflictType(
                 diffRowValue.getStatus().equals(DiffStatusEnum.DELETED)
                         ? ConflictType.DELETED

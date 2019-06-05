@@ -1521,9 +1521,9 @@ public class ApplicationTest {
         draftService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null);
 
         List<Conflict> expectedConflicts = asList(
-                new Conflict(ConflictType.UPDATED, singletonList(
+                new Conflict(ref_id.getCode(), ConflictType.UPDATED, singletonList(
                         new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(3)))),
-                new Conflict(ConflictType.DELETED, singletonList(
+                new Conflict(ref_id.getCode(), ConflictType.DELETED, singletonList(
                         new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1))))
         );
 
@@ -1714,7 +1714,8 @@ public class ApplicationTest {
         assertEquals(expectedConflicts.size(), actualConflicts.size());
         expectedConflicts.forEach(expectedConflict -> {
             if (actualConflicts.stream().noneMatch(actualConflict ->
-                    expectedConflict.getConflictType().equals(actualConflict.getConflictType())
+                    expectedConflict.getRefAttributeCode().equals(actualConflict.getRefAttributeCode())
+                            && expectedConflict.getConflictType().equals(actualConflict.getConflictType())
                             && expectedConflict.getPrimaryValues().size() == actualConflict.getPrimaryValues().size()
                             && actualConflict.getPrimaryValues().containsAll(expectedConflict.getPrimaryValues())))
                 fail();
