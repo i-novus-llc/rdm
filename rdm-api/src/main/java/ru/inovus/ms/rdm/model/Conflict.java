@@ -1,5 +1,7 @@
 package ru.inovus.ms.rdm.model;
 
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 
@@ -49,5 +51,9 @@ public class Conflict {
 
     public void setPrimaryValues(List<FieldValue> primaryValues) {
         this.primaryValues = primaryValues;
+    }
+
+    public boolean isEmpty() {
+        return StringUtils.isEmpty(refAttributeCode) || CollectionUtils.isEmpty(primaryValues);
     }
 }
