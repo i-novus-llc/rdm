@@ -20,6 +20,7 @@ import ru.inovus.ms.rdm.model.compare.ComparableRow;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -69,7 +70,7 @@ public class ComparableUtils {
     }
 
     /**
-     * В списке записей #refBookRowValues ищется запись, которая соответствует строке об изменениях #diffRowValue
+     * В списке записей #rowValues ищется запись, которая соответствует строке об изменениях #diffRowValue
      * на основании набора первичных ключей primaries.
      *
      * @param primaries    список первичных атрибутов для идентификации записи
@@ -92,6 +93,22 @@ public class ComparableUtils {
                 })
                 .findFirst()
                 .orElse(null);
+    }
+
+    public static List<RefBookRowValue> findRefBookRowValues(List<Structure.Attribute> primaries, Structure.Attribute refAttribute,
+                                                             DiffRowValue diffRowValue, List<RefBookRowValue> rowValues) {
+        return rowValues
+                .stream()
+                .filter(rowValue -> {
+                    DiffFieldValue diffFieldValue = diffRowValue.getDiffFieldValue(primaries.get(0).getCode());
+                    return castRefValue(rowValue.getFieldValue(refAttribute.getCode()), primaries.get(0).getType())
+                            .equals(
+                                    DiffStatusEnum.DELETED.equals(diffRowValue.getStatus())
+                                            ? diffFieldValue.getOldValue()
+                                            : diffFieldValue.getNewValue()
+                            );
+                })
+                .collect(Collectors.toList());
     }
 
     /**

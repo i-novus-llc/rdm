@@ -33,12 +33,14 @@ import ru.inovus.ms.rdm.util.RowUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static ru.inovus.ms.rdm.util.ComparableUtils.findRefBookRowValue;
+import static ru.inovus.ms.rdm.util.ComparableUtils.findRefBookRowValues;
 
 @Primary
 @Service
@@ -120,12 +122,15 @@ public class ConflictServiceImpl implements ConflictService {
                                 asList(DiffStatusEnum.DELETED, DiffStatusEnum.UPDATED)
                                         .contains(diffRowValue.getStatus()))
                         .map(diffRowValue -> {
-                            RefBookRowValue refFromRowValue = findRefBookRowValue(refToStructure.getPrimary(), refFromAttribute,
+                            List<RefBookRowValue> rowValues = findRefBookRowValues(refToStructure.getPrimary(), refFromAttribute,
                                     diffRowValue, refFromRowValues);
-                            if (refFromRowValue == null)
+                            if (CollectionUtils.isEmpty(rowValues))
                                 return null;
 
-                            return createConflict(diffRowValue, refFromRowValue, refFromAttribute, refFromStructure);
+                            return rowValues.stream()
+                                    .map(rowValue ->
+                                            createConflict(diffRowValue, rowValue, refFromAttribute, refFromStructure))
+                                    .collect(Collectors.toList());
                         })
                         .filter(Objects::nonNull)
                         .collect(toList())));
