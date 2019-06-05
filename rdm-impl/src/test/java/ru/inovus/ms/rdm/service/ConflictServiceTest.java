@@ -48,6 +48,11 @@ public class ConflictServiceTest {
 
     private static final Integer REFERRER_DRAFT_ID = -5; //REFERRER_VERSION_ID;
     private static final String REFERRER_DRAFT_STORAGE_CODE = "TEST_REFERRER_STORAGE";
+    private static final String REFERRER_PRIMARY_CODE = "str";
+
+    private static final String REFERRER_PRIMARY_UPDATED_VALUE = "r2";
+    private static final String REFERRER_PRIMARY_UNUPDATED_VALUE = "r3";
+    private static final String REFERRER_PRIMARY_DELETED_VALUE = "r202";
 
     private static final Integer PUBLISHING_DRAFT_ID = -6; //PUBLISHING_VERSION_ID;
     private static final String PUBLISHING_DRAFT_STORAGE_CODE = "TEST_PUBLISHING_STORAGE";
@@ -93,7 +98,7 @@ public class ConflictServiceTest {
 
         Structure structure = new Structure(
                 asList(
-                        Structure.Attribute.buildPrimary("str", "string", FieldType.STRING, "строка"),
+                        Structure.Attribute.buildPrimary(REFERRER_PRIMARY_CODE, "string", FieldType.STRING, "строка"),
                         Structure.Attribute.build(REFERRER_REFERENCE_ATTRIBUTE_CODE, "reference", FieldType.REFERENCE, "ссылка")
                 ),
                 singletonList(
@@ -172,6 +177,14 @@ public class ConflictServiceTest {
 
         List<Conflict> conflicts = createUpdateReferenceConflicts();
 
+        SearchDataCriteria referrerUpdatedCriteria = createUpdateReferenceReferrerCriteria(REFERRER_PRIMARY_UPDATED_VALUE);
+        PageImpl<RefBookRowValue> referrerUpdatedRows = createUpdateReferenceReferrerRows(PUBLISHING_PRIMARY_UPDATED_VALUE, "Two: 22");
+        when(versionService.search(eq(REFERRER_DRAFT_ID), eq(referrerUpdatedCriteria))).thenReturn(referrerUpdatedRows);
+
+        SearchDataCriteria referrerUnupdatedCriteria = createUpdateReferenceReferrerCriteria(REFERRER_PRIMARY_UNUPDATED_VALUE);
+        PageImpl<RefBookRowValue> referrerUnupdatedRows = createUpdateReferenceReferrerRows(PUBLISHING_PRIMARY_UNUPDATED_VALUE, "Three: 33");
+        when(versionService.search(eq(REFERRER_DRAFT_ID), eq(referrerUnupdatedCriteria))).thenReturn(referrerUnupdatedRows);
+
         SearchDataCriteria publishingUpdatedCriteria = createUpdateReferencePublishingCriteria(PUBLISHING_PRIMARY_UPDATED_VALUE);
         PageImpl<RefBookRowValue> publishingUpdatedRows = createUpdateReferencePublishingRows("Doubled_Two", 2222);
         when(versionService.search(eq(PUBLISHING_VERSION_ID), eq(publishingUpdatedCriteria))).thenReturn(publishingUpdatedRows);
@@ -179,14 +192,6 @@ public class ConflictServiceTest {
         SearchDataCriteria publishingUnupdatedCriteria = createUpdateReferencePublishingCriteria(PUBLISHING_PRIMARY_UNUPDATED_VALUE);
         PageImpl<RefBookRowValue> publishingUnupdatedRows = createUpdateReferencePublishingRows("Three", 33);
         when(versionService.search(eq(PUBLISHING_VERSION_ID), eq(publishingUnupdatedCriteria))).thenReturn(publishingUnupdatedRows);
-
-        SearchDataCriteria referrerUpdatedCriteria = createUpdateReferenceReferrerCriteria(PUBLISHING_PRIMARY_UPDATED_VALUE);
-        PageImpl<RefBookRowValue> referrerUpdatedRows = createUpdateReferenceReferrerRows(PUBLISHING_PRIMARY_UPDATED_VALUE, "Two: 22");
-        when(versionService.search(eq(REFERRER_DRAFT_ID), eq(referrerUpdatedCriteria))).thenReturn(referrerUpdatedRows);
-
-        SearchDataCriteria referrerUnupdatedCriteria = createUpdateReferenceReferrerCriteria(PUBLISHING_PRIMARY_UNUPDATED_VALUE);
-        PageImpl<RefBookRowValue> referrerUnupdatedRows = createUpdateReferenceReferrerRows(PUBLISHING_PRIMARY_UNUPDATED_VALUE, "Three: 33");
-        when(versionService.search(eq(REFERRER_DRAFT_ID), eq(referrerUnupdatedCriteria))).thenReturn(referrerUnupdatedRows);
 
         ArgumentCaptor<RefBookRowValue> rowValueCaptor = ArgumentCaptor.forClass(RefBookRowValue.class);
 
@@ -216,48 +221,26 @@ public class ConflictServiceTest {
 
         List<FieldValue> updatedValues = new ArrayList<>(
                 singletonList(
-                        new StringFieldValue(PUBLISHING_PRIMARY_CODE, PUBLISHING_PRIMARY_UPDATED_VALUE)
+                        new StringFieldValue(REFERRER_PRIMARY_CODE, REFERRER_PRIMARY_UPDATED_VALUE)
                 )
         );
-        conflicts.add(new Conflict(ConflictType.UPDATED, updatedValues));
+        conflicts.add(new Conflict(REFERRER_REFERENCE_ATTRIBUTE_CODE, ConflictType.UPDATED, updatedValues));
 
         List<FieldValue> unupdatedValues = new ArrayList<>(
                 singletonList(
-                        new StringFieldValue(PUBLISHING_PRIMARY_CODE, PUBLISHING_PRIMARY_UNUPDATED_VALUE)
+                        new StringFieldValue(REFERRER_PRIMARY_CODE, REFERRER_PRIMARY_UNUPDATED_VALUE)
                 )
         );
-        conflicts.add(new Conflict(ConflictType.UPDATED, unupdatedValues));
+        conflicts.add(new Conflict(REFERRER_REFERENCE_ATTRIBUTE_CODE, ConflictType.UPDATED, unupdatedValues));
 
         List<FieldValue> deletedValues = new ArrayList<>(
                 singletonList(
-                        new StringFieldValue(PUBLISHING_PRIMARY_CODE, PUBLISHING_PRIMARY_DELETED_VALUE)
+                        new StringFieldValue(REFERRER_PRIMARY_CODE, REFERRER_PRIMARY_DELETED_VALUE)
                 )
         );
-        conflicts.add(new Conflict(ConflictType.DELETED, deletedValues));
+        conflicts.add(new Conflict(REFERRER_REFERENCE_ATTRIBUTE_CODE, ConflictType.DELETED, deletedValues));
 
         return conflicts;
-    }
-
-    public static SearchDataCriteria createUpdateReferencePublishingCriteria(String codeValue) {
-
-        SearchDataCriteria criteria = new SearchDataCriteria();
-
-        List<AttributeFilter> filters = new ArrayList<>();
-        AttributeFilter filter = new AttributeFilter(PUBLISHING_PRIMARY_CODE, codeValue, FieldType.STRING, SearchTypeEnum.EXACT);
-        filters.add(filter);
-        criteria.setAttributeFilter(singleton(filters));
-
-        return criteria;
-    }
-
-    public static PageImpl<RefBookRowValue> createUpdateReferencePublishingRows(String nameValue, Integer amountValue) {
-        return new PageImpl<>(singletonList(
-                new RefBookRowValue(new LongRowValue(
-                        new StringFieldValue(PUBLISHING_PRIMARY_CODE, PUBLISHING_PRIMARY_UPDATED_VALUE),
-                        new StringFieldValue("name", nameValue),
-                        new IntegerFieldValue("amount", BigInteger.valueOf(amountValue))
-                ), PUBLISHING_VERSION_ID)
-        ), PageRequest.of(0, 10), 1);
     }
 
     public static SearchDataCriteria createUpdateReferenceReferrerCriteria(String referenceValue) {
@@ -265,7 +248,7 @@ public class ConflictServiceTest {
         SearchDataCriteria criteria = new SearchDataCriteria();
 
         List<AttributeFilter> filters = new ArrayList<>();
-        AttributeFilter filter = new AttributeFilter(REFERRER_REFERENCE_ATTRIBUTE_CODE, referenceValue, FieldType.REFERENCE, SearchTypeEnum.EXACT);
+        AttributeFilter filter = new AttributeFilter(REFERRER_PRIMARY_CODE, referenceValue, FieldType.STRING, SearchTypeEnum.EXACT);
         filters.add(filter);
         criteria.setAttributeFilter(singleton(filters));
 
@@ -286,6 +269,29 @@ public class ConflictServiceTest {
                                         referenceValue,
                                         displayValue))
                 ), REFERRER_DRAFT_ID)
+        ), PageRequest.of(0, 10), 1);
+    }
+
+    public static SearchDataCriteria createUpdateReferencePublishingCriteria(String codeValue) {
+
+        SearchDataCriteria criteria = new SearchDataCriteria();
+
+        List<AttributeFilter> filters = new ArrayList<>();
+        //AttributeFilter filter = new AttributeFilter(REFERRER_PRIMARY_CODE, referenceValue, FieldType.REFERENCE, SearchTypeEnum.EXACT);
+        AttributeFilter filter = new AttributeFilter(PUBLISHING_PRIMARY_CODE, codeValue, FieldType.STRING, SearchTypeEnum.EXACT);
+        filters.add(filter);
+        criteria.setAttributeFilter(singleton(filters));
+
+        return criteria;
+    }
+
+    public static PageImpl<RefBookRowValue> createUpdateReferencePublishingRows(String nameValue, Integer amountValue) {
+        return new PageImpl<>(singletonList(
+                new RefBookRowValue(new LongRowValue(
+                        new StringFieldValue(PUBLISHING_PRIMARY_CODE, PUBLISHING_PRIMARY_UPDATED_VALUE),
+                        new StringFieldValue("name", nameValue),
+                        new IntegerFieldValue("amount", BigInteger.valueOf(amountValue))
+                ), PUBLISHING_VERSION_ID)
         ), PageRequest.of(0, 10), 1);
     }
 

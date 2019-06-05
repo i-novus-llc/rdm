@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
@@ -54,7 +55,9 @@ public class ConflictServiceImpl implements ConflictService {
     private RefBookVersionRepository versionRepository;
 
     private static final String VERSION_NOT_FOUND = "version.not.found";
-    private static final String CONFLICTED_ROW_NOT_FOUND = "conflicted.row.not.found";
+    private static final String CONFLICTED_FROM_ROW_NOT_FOUND = "conflicted.from.row.not.found";
+    private static final String CONFLICTED_TO_ROW_NOT_FOUND = "conflicted.to.row.not.found";
+    private static final String CONFLICTED_REFERENCE_NOT_FOUND = "conflicted.reference.row.not.found";
 
     @Autowired
     public ConflictServiceImpl(CompareService compareService,
@@ -82,10 +85,13 @@ public class ConflictServiceImpl implements ConflictService {
         return calculateConflicts(refFromId, refToId, refToDraftId);
     }
 
-    private List<Conflict> calculateConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId) {
-
-        RefBookVersion refFromVersion = versionService.getById(refFromId);
-        RefBookVersion refToVersion = versionService.getById(oldRefToId);
+//        на данный момент может быть только: 1 поле -> 1 первичный ключ (ссылка на составной ключ невозможна)
+        List<Structure.Attribute> refAttributes = refFromVersion.getStructure()
+                .getRefCodeReferences(refToVersion.getCode())
+                .stream()
+                .map(ref ->
+                        refFromVersion.getStructure().getAttribute(ref.getAttribute()))
+                .collect(toList());
 
 //        на данный момент может быть только: 1 поле -> 1 первичный ключ (ссылка на составной ключ невозможна)
         List<Structure.Attribute> refAttributes = refFromVersion.getStructure()
@@ -150,17 +156,15 @@ public class ConflictServiceImpl implements ConflictService {
     /**
      * Получение конфликтной записи по конфликту.
      */
-    private RefBookRowValue getRefToRowValue(RefBookVersion version, Conflict conflict) {
+    private RefBookRowValue getRefFromRowValue(RefBookVersion version, List<FieldValue> fieldValues) {
 
-        if (version == null || conflict == null ||
-                CollectionUtils.isEmpty(conflict.getPrimaryValues()))
+        if (version == null || CollectionUtils.isEmpty(fieldValues))
             return null;
 
-        // Convert conflict to criteria.
         SearchDataCriteria criteria = new SearchDataCriteria();
 
         List<AttributeFilter> filters = new ArrayList<>();
-        conflict.getPrimaryValues().forEach(fieldValue -> {
+        fieldValues.forEach(fieldValue -> {
             FieldType fieldType = version.getStructure().getAttribute(fieldValue.getField()).getType();
             filters.add(new AttributeFilter(fieldValue.getField(), fieldValue.getValue(), fieldType, SearchTypeEnum.EXACT));
         });
@@ -171,25 +175,24 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Получение записей со ссылками на конфликтную запись по конфликту.
+     * Получение записи по ссылке из конфликтной записи.
      */
-    private Page<RefBookRowValue> getRefFromRowValues(RefBookVersion version, Conflict conflict,
-                                                      Structure.Reference reference, String referenceValue) {
+    private RefBookRowValue getRefToRowValue(RefBookVersion version, Conflict conflict, Reference reference) {
 
         if (version == null || conflict == null ||
-                CollectionUtils.isEmpty(conflict.getPrimaryValues()))
+                StringUtils.isEmpty(conflict.getRefAttributeCode()))
             return null;
 
-        // Convert conflict to criteria.
         SearchDataCriteria criteria = new SearchDataCriteria();
 
         List<AttributeFilter> filters = new ArrayList<>();
-        AttributeFilter filter = new AttributeFilter(reference.getAttribute(), referenceValue, FieldType.REFERENCE, SearchTypeEnum.EXACT);
+        Structure.Attribute attribute = version.getStructure().getAttribute(reference.getKeyField());
+        AttributeFilter filter = new AttributeFilter(attribute.getCode(), reference.getValue(), attribute.getType(), SearchTypeEnum.EXACT);
         filters.add(filter);
         criteria.setAttributeFilter(singleton(filters));
 
         Page<RefBookRowValue> rowValues = versionService.search(version.getId(), criteria);
-        return (rowValues != null && !rowValues.isEmpty()) ? rowValues : null;
+        return (rowValues != null && !rowValues.isEmpty()) ? rowValues.get().findFirst().orElse(null) : null;
     }
 
     /**
@@ -223,47 +226,40 @@ public class ConflictServiceImpl implements ConflictService {
                                        Conflict conflict,
                                        String refFromStorageCode,
                                        String refToStorageCode) {
-        if (conflict == null ||
-                CollectionUtils.isEmpty(conflict.getPrimaryValues()))
+        if (conflict == null || conflict.isEmpty())
             return;
 
-        RefBookRowValue refToRow = getRefToRowValue(refToVersion, conflict);
+        RefBookRowValue refFromRow = getRefFromRowValue(refFromDraftVersion, conflict.getPrimaryValues());
+        if (refFromRow == null)
+            throw new RdmException(CONFLICTED_FROM_ROW_NOT_FOUND);
+
+        FieldValue referenceFieldValue = refFromRow.getFieldValue(conflict.getRefAttributeCode());
+        if (!(referenceFieldValue instanceof ReferenceFieldValue))
+            throw new RdmException(CONFLICTED_REFERENCE_NOT_FOUND);
+
+        Reference oldReference = ((ReferenceFieldValue) referenceFieldValue).getValue();
+        RefBookRowValue refToRow = getRefToRowValue(refToVersion, conflict, oldReference);
         if (refToRow == null)
-            throw new RdmException(CONFLICTED_ROW_NOT_FOUND);
+            throw new RdmException(CONFLICTED_TO_ROW_NOT_FOUND);
 
-        String primaryName = conflict.getPrimaryValues().get(0).getField();
-        String primaryValue = conflict.getPrimaryValues().get(0).getValue().toString();
+        Structure.Reference reference = refFromDraftVersion.getStructure().getReference(conflict.getRefAttributeCode());
+        String displayValue = RowUtils.toDisplayValue(reference.getDisplayExpression(), refToRow);
 
-        List<Structure.Reference> references = refFromDraftVersion.getStructure().getRefCodeReferences(refToVersion.getCode());
-        references.forEach(reference -> {
-            Page<RefBookRowValue> refFromRows = getRefFromRowValues(refFromDraftVersion, conflict, reference, primaryValue);
-            if (refFromRows == null || refFromRows.isEmpty())
-                return;
+        if (!Objects.equals(oldReference.getDisplayValue(), displayValue)) {
+            Reference newReference = new Reference(
+                    refToStorageCode,
+                    null, // SYS_PUBLISH_TIME is not exist for publishing draft
+                    oldReference.getKeyField(), // referenceAttribute
+                    new DisplayExpression(reference.getDisplayExpression()),
+                    oldReference.getValue(),
+                    displayValue);
 
-            refFromRows.forEach(refBookRowValue -> {
-                FieldValue fieldValue = refBookRowValue.getFieldValue(reference.getAttribute());
-                if (fieldValue instanceof ReferenceFieldValue) {
-                    Reference oldReference = ((ReferenceFieldValue) fieldValue).getValue();
-                    String displayValue = RowUtils.toDisplayValue(reference.getDisplayExpression(), refToRow);
-
-                    if (!Objects.equals(oldReference.getDisplayValue(), displayValue)) {
-                        Reference newReference = new Reference(
-                                refToStorageCode,
-                                null, // SYS_PUBLISH_TIME is not exist for publishing draft
-                                primaryName, // referenceAttribute
-                                new DisplayExpression(reference.getDisplayExpression()),
-                                oldReference.getValue(),
-                                displayValue);
-
-                        updateReferenceValue(refFromDraftVersion.getId(),
-                                refFromStorageCode,
-                                refBookRowValue.getSystemId(),
-                                reference.getAttribute(),
-                                newReference);
-                    }
-                }
-            });
-        });
+            updateReferenceValue(refFromDraftVersion.getId(),
+                    refFromStorageCode,
+                    refFromRow.getSystemId(),
+                    reference.getAttribute(),
+                    newReference);
+        }
     }
 
     /**
