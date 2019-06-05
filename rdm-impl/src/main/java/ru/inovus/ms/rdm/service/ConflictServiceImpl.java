@@ -127,10 +127,10 @@ public class ConflictServiceImpl implements ConflictService {
                             if (CollectionUtils.isEmpty(rowValues))
                                 return null;
 
-                            return rowValues.stream()
-                                    .map(rowValue ->
-                                            createConflict(diffRowValue, rowValue, refFromAttribute, refFromStructure))
-                                    .collect(Collectors.toList());
+//                            return rowValues.stream()
+//                                    .map(rowValue ->
+//                                            createConflict(diffRowValue, rowValue, refFromAttribute, refFromStructure))
+//                                    .collect(Collectors.toList());
                         })
                         .filter(Objects::nonNull)
                         .collect(toList())));
