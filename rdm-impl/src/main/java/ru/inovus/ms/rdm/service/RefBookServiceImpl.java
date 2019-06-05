@@ -33,6 +33,7 @@ import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static java.util.Collections.singletonList;
 import static java.util.Objects.nonNull;
@@ -184,6 +185,22 @@ public class RefBookServiceImpl implements RefBookService {
 
         RefBookVersionEntity refBookVersion = repository.getOne(versionId);
         return refBookModel(refBookVersion, getLastPublishedVersions(singletonList(refBookVersion.getRefBook().getId())));
+    }
+
+    @Override
+    @Transactional
+    public List<RefBookVersion> getReferrerVersions(String refBookCode) {
+        BooleanBuilder where = new BooleanBuilder();
+        where.and(isActual()).andNot(isArchived());
+
+        Iterable<RefBookVersionEntity> iterable = repository.findAll(where);
+        List<RefBookVersionEntity> list = StreamSupport.stream(iterable.spliterator(), false)
+                .filter(actual ->
+                        Objects.nonNull(actual.getStructure())
+                                && !actual.getStructure().getRefCodeReferences(refBookCode).isEmpty())
+                .collect(Collectors.toList());
+
+        return list.stream().map(ModelGenerator::versionModel).collect(Collectors.toList());
     }
 
     @Override
