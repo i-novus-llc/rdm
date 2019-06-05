@@ -13,9 +13,9 @@ import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
-import ru.i_novus.platform.datastorage.temporal.model.value.*;
+import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.NotFoundException;
@@ -23,7 +23,10 @@ import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
-import ru.inovus.ms.rdm.service.api.*;
+import ru.inovus.ms.rdm.service.api.CompareService;
+import ru.inovus.ms.rdm.service.api.ConflictService;
+import ru.inovus.ms.rdm.service.api.DraftService;
+import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.RowUtils;
 
 import java.util.ArrayList;
@@ -72,10 +75,17 @@ public class ConflictServiceImpl implements ConflictService {
         validateVersionsExistence(refFromId);
         validateVersionsExistence(refToId);
 
-        RefBookVersion refFromVersion = versionService.getById(refFromId);
         RefBookVersion refToVersion = versionService.getById(refToId);
-        RefBookVersionEntity refToDraftVersion = versionRepository
-                .findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refToVersion.getRefBookId());
+        Integer refToDraftId = versionRepository
+                .findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refToVersion.getRefBookId()).getId();
+
+        return calculateConflicts(refFromId, refToId, refToDraftId);
+    }
+
+    private List<Conflict> calculateConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId) {
+
+        RefBookVersion refFromVersion = versionService.getById(refFromId);
+        RefBookVersion refToVersion = versionService.getById(oldRefToId);
 
 //        на данный момент может быть только: 1 поле -> 1 первичный ключ (ссылка на составной ключ невозможна)
         List<Structure.Attribute> refAttributes = refFromVersion.getStructure()
@@ -87,7 +97,7 @@ public class ConflictServiceImpl implements ConflictService {
 
         Page<RefBookRowValue> refFromRowValues = versionService.search(refFromId, new SearchDataCriteria());
 
-        RefBookDataDiff dataDiff = compareService.compareData(new CompareDataCriteria(refToId, refToDraftVersion.getId()));
+        RefBookDataDiff dataDiff = compareService.compareData(new CompareDataCriteria(oldRefToId, newRefToId));
 
         return createConflicts(dataDiff.getRows().getContent(), refFromRowValues.getContent(),
                 refToVersion.getStructure(), refFromVersion.getStructure(), refAttributes);
