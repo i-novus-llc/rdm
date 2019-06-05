@@ -9,10 +9,7 @@ import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
@@ -193,7 +190,7 @@ public class RefBookServiceImpl implements RefBookService {
         BooleanBuilder where = new BooleanBuilder();
         where.and(isActual()).andNot(isArchived());
 
-        Iterable<RefBookVersionEntity> iterable = repository.findAll(where);
+        Iterable<RefBookVersionEntity> iterable = repository.findAll(where, Pageable.unpaged());
         List<RefBookVersionEntity> list = StreamSupport.stream(iterable.spliterator(), false)
                 .filter(actual ->
                         Objects.nonNull(actual.getStructure())
