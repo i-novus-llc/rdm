@@ -33,13 +33,11 @@ import ru.inovus.ms.rdm.util.RowUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-import static ru.inovus.ms.rdm.util.ComparableUtils.findRefBookRowValue;
 import static ru.inovus.ms.rdm.util.ComparableUtils.findRefBookRowValues;
 
 @Primary
@@ -87,13 +85,10 @@ public class ConflictServiceImpl implements ConflictService {
         return calculateConflicts(refFromId, refToId, refToDraftId);
     }
 
-//        на данный момент может быть только: 1 поле -> 1 первичный ключ (ссылка на составной ключ невозможна)
-        List<Structure.Attribute> refAttributes = refFromVersion.getStructure()
-                .getRefCodeReferences(refToVersion.getCode())
-                .stream()
-                .map(ref ->
-                        refFromVersion.getStructure().getAttribute(ref.getAttribute()))
-                .collect(toList());
+    private List<Conflict> calculateConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId) {
+
+        RefBookVersion refFromVersion = versionService.getById(refFromId);
+        RefBookVersion refToVersion = versionService.getById(oldRefToId);
 
 //        на данный момент может быть только: 1 поле -> 1 первичный ключ (ссылка на составной ключ невозможна)
         List<Structure.Attribute> refAttributes = refFromVersion.getStructure()
@@ -114,27 +109,23 @@ public class ConflictServiceImpl implements ConflictService {
     private List<Conflict> createConflicts(List<DiffRowValue> diffRowValues, List<RefBookRowValue> refFromRowValues,
                                            Structure refToStructure, Structure refFromStructure,
                                            List<Structure.Attribute> refFromAttributes) {
-        List<Conflict> conflicts = new ArrayList<>();
-        refFromAttributes.forEach(refFromAttribute ->
-                conflicts.addAll(diffRowValues
-                        .stream()
-                        .filter(diffRowValue ->
-                                asList(DiffStatusEnum.DELETED, DiffStatusEnum.UPDATED)
-                                        .contains(diffRowValue.getStatus()))
-                        .map(diffRowValue -> {
-                            List<RefBookRowValue> rowValues = findRefBookRowValues(refToStructure.getPrimary(), refFromAttribute,
-                                    diffRowValue, refFromRowValues);
-                            if (CollectionUtils.isEmpty(rowValues))
-                                return null;
-
-//                            return rowValues.stream()
-//                                    .map(rowValue ->
-//                                            createConflict(diffRowValue, rowValue, refFromAttribute, refFromStructure))
-//                                    .collect(Collectors.toList());
-                        })
-                        .filter(Objects::nonNull)
-                        .collect(toList())));
-        return conflicts;
+        return refFromAttributes
+                .stream()
+                .flatMap(refFromAttribute ->
+                        diffRowValues
+                                .stream()
+                                .filter(diffRowValue ->
+                                        asList(DiffStatusEnum.DELETED, DiffStatusEnum.UPDATED)
+                                                .contains(diffRowValue.getStatus()))
+                                .flatMap(diffRowValue -> {
+                                    List<RefBookRowValue> rowValues =
+                                            findRefBookRowValues(refToStructure.getPrimary(), refFromAttribute,
+                                                    diffRowValue, refFromRowValues);
+                                    return rowValues.stream()
+                                            .map(rowValue ->
+                                                    createConflict(diffRowValue, rowValue, refFromAttribute, refFromStructure));
+                                })
+                ).collect(toList());
     }
 
     private Conflict createConflict(DiffRowValue diffRowValue, RefBookRowValue refFromRowValue,
