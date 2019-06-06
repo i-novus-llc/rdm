@@ -91,14 +91,6 @@ public class ConflictServiceImpl implements ConflictService {
         return calculateConflicts(refFromId, refToId, refToDraftId);
     }
 
-    private RefBookVersionEntity getRefBookDraftVersion(Integer refBookId) {
-        RefBookVersionEntity entity = versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
-        if (entity == null)
-            throw new NotFoundException(new Message(REFBOOK_DRAFT_NOT_FOUND, refBookId));
-
-        return entity;
-    }
-
     /**
      * Вычисление конфликтов справочников при наличии ссылочных атрибутов.
      *
@@ -235,10 +227,12 @@ public class ConflictServiceImpl implements ConflictService {
                 .map(refFromAttribute ->
                         diffRowValues
                                 .stream()
-                                .filter(diffRowValue -> status.equals(diffRowValue.getStatus()))
+                                .filter(diffRowValue ->
+                                        status.equals(diffRowValue.getStatus()))
                                 .map(diffRowValue -> {
-                                    RefBookRowValue rowValue = findRefBookRowValue(refToStructure.getPrimary(), refFromAttribute,
-                                            diffRowValue, refFromRowValues);
+                                    RefBookRowValue rowValue =
+                                            findRefBookRowValue(refToStructure.getPrimary(), refFromAttribute,
+                                                    diffRowValue, refFromRowValues);
                                     return (rowValue == null) ? null : Boolean.TRUE;
                                 })
                                 .filter(Objects::nonNull)
@@ -281,57 +275,6 @@ public class ConflictServiceImpl implements ConflictService {
                 .forEach(conflict -> updateReferenceValues(refFromDraftVersion, refToVersion, conflict,
                         refFromDraft.getStorageCode(),
                         refToDraft.getStorageCode()));
-    }
-
-    private List<Structure.Attribute> getRefAttributes(RefBookVersion refFromVersion, RefBookVersion refToVersion) {
-        return refFromVersion.getStructure()
-                .getRefCodeReferences(refToVersion.getCode())
-                .stream()
-                .map(ref ->
-                        refFromVersion.getStructure().getAttribute(ref.getAttribute()))
-                .collect(toList());
-    }
-
-    /**
-     * Получение конфликтной записи по конфликту.
-     */
-    private RefBookRowValue getRefFromRowValue(RefBookVersion version, List<FieldValue> fieldValues) {
-
-        if (version == null || CollectionUtils.isEmpty(fieldValues))
-            return null;
-
-        SearchDataCriteria criteria = new SearchDataCriteria();
-
-        List<AttributeFilter> filters = new ArrayList<>();
-        fieldValues.forEach(fieldValue -> {
-            FieldType fieldType = version.getStructure().getAttribute(fieldValue.getField()).getType();
-            filters.add(new AttributeFilter(fieldValue.getField(), fieldValue.getValue(), fieldType, SearchTypeEnum.EXACT));
-        });
-        criteria.setAttributeFilter(singleton(filters));
-
-        Page<RefBookRowValue> rowValues = versionService.search(version.getId(), criteria);
-        return (rowValues != null && !rowValues.isEmpty()) ? rowValues.get().findFirst().orElse(null) : null;
-    }
-
-    /**
-     * Получение записи по ссылке из конфликтной записи.
-     */
-    private RefBookRowValue getRefToRowValue(RefBookVersion version, Conflict conflict, Reference reference) {
-
-        if (version == null || conflict == null ||
-                StringUtils.isEmpty(conflict.getRefAttributeCode()))
-            return null;
-
-        SearchDataCriteria criteria = new SearchDataCriteria();
-
-        List<AttributeFilter> filters = new ArrayList<>();
-        Structure.Attribute attribute = version.getStructure().getAttribute(reference.getKeyField());
-        AttributeFilter filter = new AttributeFilter(attribute.getCode(), reference.getValue(), attribute.getType(), SearchTypeEnum.EXACT);
-        filters.add(filter);
-        criteria.setAttributeFilter(singleton(filters));
-
-        Page<RefBookRowValue> rowValues = versionService.search(version.getId(), criteria);
-        return (rowValues != null && !rowValues.isEmpty()) ? rowValues.get().findFirst().orElse(null) : null;
     }
 
     /**
@@ -399,6 +342,65 @@ public class ConflictServiceImpl implements ConflictService {
                     reference.getAttribute(),
                     newReference);
         }
+    }
+
+    private List<Structure.Attribute> getRefAttributes(RefBookVersion refFromVersion, RefBookVersion refToVersion) {
+        return refFromVersion.getStructure()
+                .getRefCodeReferences(refToVersion.getCode())
+                .stream()
+                .map(ref ->
+                        refFromVersion.getStructure().getAttribute(ref.getAttribute()))
+                .collect(toList());
+    }
+
+    private RefBookVersionEntity getRefBookDraftVersion(Integer refBookId) {
+        RefBookVersionEntity entity = versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
+        if (entity == null)
+            throw new NotFoundException(new Message(REFBOOK_DRAFT_NOT_FOUND, refBookId));
+
+        return entity;
+    }
+
+    /**
+     * Получение конфликтной записи по конфликту.
+     */
+    private RefBookRowValue getRefFromRowValue(RefBookVersion version, List<FieldValue> fieldValues) {
+
+        if (version == null || CollectionUtils.isEmpty(fieldValues))
+            return null;
+
+        SearchDataCriteria criteria = new SearchDataCriteria();
+
+        List<AttributeFilter> filters = new ArrayList<>();
+        fieldValues.forEach(fieldValue -> {
+            FieldType fieldType = version.getStructure().getAttribute(fieldValue.getField()).getType();
+            filters.add(new AttributeFilter(fieldValue.getField(), fieldValue.getValue(), fieldType, SearchTypeEnum.EXACT));
+        });
+        criteria.setAttributeFilter(singleton(filters));
+
+        Page<RefBookRowValue> rowValues = versionService.search(version.getId(), criteria);
+        return (rowValues != null && !rowValues.isEmpty()) ? rowValues.get().findFirst().orElse(null) : null;
+    }
+
+    /**
+     * Получение записи по ссылке из конфликтной записи.
+     */
+    private RefBookRowValue getRefToRowValue(RefBookVersion version, Conflict conflict, Reference reference) {
+
+        if (version == null || conflict == null ||
+                StringUtils.isEmpty(conflict.getRefAttributeCode()))
+            return null;
+
+        SearchDataCriteria criteria = new SearchDataCriteria();
+
+        List<AttributeFilter> filters = new ArrayList<>();
+        Structure.Attribute attribute = version.getStructure().getAttribute(reference.getKeyField());
+        AttributeFilter filter = new AttributeFilter(attribute.getCode(), reference.getValue(), attribute.getType(), SearchTypeEnum.EXACT);
+        filters.add(filter);
+        criteria.setAttributeFilter(singleton(filters));
+
+        Page<RefBookRowValue> rowValues = versionService.search(version.getId(), criteria);
+        return (rowValues != null && !rowValues.isEmpty()) ? rowValues.get().findFirst().orElse(null) : null;
     }
 
     private void validateVersionsExistence(Integer versionId) {
