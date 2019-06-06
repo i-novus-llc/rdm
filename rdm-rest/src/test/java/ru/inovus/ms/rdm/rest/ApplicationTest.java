@@ -1532,6 +1532,56 @@ public class ApplicationTest {
     }
 
     /*
+     * testing check conflicts for two refBooks
+     *
+     * @see #testCalculateConflictWhenConflictsExist
+     */
+    @Test
+    public void testCheckConflictWhenConflictsExist() {
+        final String OLD_FILE_NAME = "oldRefToData.xlsx";
+        final String NEW_FILE_NAME = "newRefToData.xlsx";
+        final String REF_FILE_NAME = "refData.xlsx";
+
+        Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
+        Structure.Attribute code = Structure.Attribute.build("CODE", "code", FieldType.STRING, "code");
+
+        Structure structure = new Structure(asList(id, code), emptyList());
+
+        RefBook refToRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_to_confl_chk", null));
+        Integer refToVersionId = refToRefBook.getId();
+        draftService.createAttribute(new CreateAttribute(refToVersionId, id, null));
+        draftService.createAttribute(new CreateAttribute(refToVersionId, code, null));
+        draftService.updateData(refToVersionId, createFileModel(OLD_FILE_NAME, "testConflicts/" + OLD_FILE_NAME));
+        draftService.publish(refToVersionId, "1.0", LocalDateTime.now(), null);
+
+        Integer refToDraftId = draftService.create(
+                new CreateDraftRequest(
+                        refToRefBook.getRefBookId(),
+                        structure))
+                .getId();
+        draftService.updateData(refToDraftId, createFileModel(NEW_FILE_NAME, "testConflicts/" + NEW_FILE_NAME));
+
+        Structure.Attribute id_id = Structure.Attribute.buildPrimary("ID_ID", "id_id", FieldType.INTEGER, "id_id");
+        Structure.Attribute ref_id = Structure.Attribute.build("REF_ID", "ref_id", FieldType.REFERENCE, "ref_id");
+        Structure.Reference ref_id_ref = new Structure.Reference(ref_id.getCode(), refToRefBook.getCode(), "${" + id.getCode() + "}");
+
+        RefBook refFromRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_from_confl_chk", null));
+        Integer refFromVersionId = refFromRefBook.getId();
+        draftService.createAttribute(new CreateAttribute(refFromVersionId, id_id, null));
+        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id, ref_id_ref));
+        draftService.createAttribute(new CreateAttribute(refFromVersionId, code, null));
+        draftService.updateData(refFromVersionId, createFileModel(REF_FILE_NAME, "testConflicts/" + REF_FILE_NAME));
+        draftService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null);
+
+        EnumMap<ConflictType, Boolean> expectedCheck = new EnumMap<>(ConflictType.class);
+        expectedCheck.put(ConflictType.UPDATED, Boolean.TRUE);
+        expectedCheck.put(ConflictType.DELETED, Boolean.TRUE);
+
+        Map<ConflictType, Boolean> actualCheck = conflictService.checkConflicts(refFromVersionId, refToVersionId);
+        assertCheckConflicts(expectedCheck, actualCheck);
+    }
+
+    /*
      * testing calculate conflicts for two refBooks
      * published and versions of referenced refToRefBook have different PK
      *
@@ -1711,6 +1761,7 @@ public class ApplicationTest {
     }
 
     private void assertConflicts(List<Conflict> expectedConflicts, List<Conflict> actualConflicts) {
+        assertNotNull(actualConflicts);
         assertEquals(expectedConflicts.size(), actualConflicts.size());
         expectedConflicts.forEach(expectedConflict -> {
             if (actualConflicts.stream().noneMatch(actualConflict ->
@@ -1719,6 +1770,16 @@ public class ApplicationTest {
                             && expectedConflict.getPrimaryValues().size() == actualConflict.getPrimaryValues().size()
                             && actualConflict.getPrimaryValues().containsAll(expectedConflict.getPrimaryValues())))
                 fail();
+        });
+    }
+
+    private void assertCheckConflicts(Map<ConflictType, Boolean> expectedChecks, Map<ConflictType, Boolean> actualChecks) {
+        assertNotNull(actualChecks);
+        assertEquals(expectedChecks.size(), actualChecks.size());
+        assertTrue(actualChecks.keySet().containsAll(expectedChecks.keySet()));
+
+        expectedChecks.keySet().forEach(key -> {
+            assertEquals(expectedChecks.get(key), actualChecks.get(key));
         });
     }
 

@@ -1,11 +1,13 @@
 package ru.inovus.ms.rdm.service.api;
 
 import io.swagger.annotations.*;
+import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.model.Conflict;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
+import java.util.Map;
 
 @Path("/conflicts")
 @Produces(MediaType.APPLICATION_JSON)
@@ -26,6 +28,20 @@ public interface ConflictService {
                                       @ApiParam("Идентификатор бесконфликтной версии, на которую ссылается")
                                       @QueryParam("refToId")
                                               Integer refToId);
+
+    @GET
+    @Path("/check")
+    @ApiOperation("Проверка на наличие конфликтов для двух версий")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    Map<ConflictType, Boolean> checkConflicts(@ApiParam("Идентификатор версии, которая ссылается")
+                                              @QueryParam("refFromId")
+                                                      Integer refFromId,
+                                              @ApiParam("Идентификатор бесконфликтной версии, на которую ссылается")
+                                              @QueryParam("refToId")
+                                                      Integer refToId);
 
     @POST
     @Path("/update/displayvalue")

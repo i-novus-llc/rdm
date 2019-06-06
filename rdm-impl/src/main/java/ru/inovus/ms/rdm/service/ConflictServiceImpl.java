@@ -186,7 +186,7 @@ public class ConflictServiceImpl implements ConflictService {
      * 
      * @see #calculateConflicts
      */
-    //@Override
+    @Override
     public Map<ConflictType, Boolean> checkConflicts(Integer refFromId, Integer refToId) {
         validateVersionsExistence(refFromId);
         validateVersionsExistence(refToId);
