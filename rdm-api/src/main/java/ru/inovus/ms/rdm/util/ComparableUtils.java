@@ -69,8 +69,21 @@ public class ComparableUtils {
                 .orElse(null);
     }
 
+    private static boolean isRefBookRowValue(List<Structure.Attribute> primaries, Structure.Attribute refAttribute,
+                                             DiffRowValue diffRowValue, RefBookRowValue rowValue) {
+
+        DiffFieldValue diffFieldValue = diffRowValue.getDiffFieldValue(primaries.get(0).getCode());
+        return castRefValue(rowValue.getFieldValue(refAttribute.getCode()), primaries.get(0).getType())
+                .equals(
+                        DiffStatusEnum.DELETED.equals(diffRowValue.getStatus())
+                                ? diffFieldValue.getOldValue()
+                                : diffFieldValue.getNewValue()
+                );
+    }
+
     /**
-     * В списке записей #rowValues ищется запись, которая соответствует строке об изменениях #diffRowValue
+     * В списке записей #rowValues ищется первая запись,
+     * которая соответствует строке об изменениях #diffRowValue
      * на основании набора первичных ключей primaries.
      *
      * @param primaries    список первичных атрибутов для идентификации записи
@@ -82,32 +95,26 @@ public class ComparableUtils {
                                                       DiffRowValue diffRowValue, List<RefBookRowValue> rowValues) {
         return rowValues
                 .stream()
-                .filter(rowValue -> {
-                    DiffFieldValue diffFieldValue = diffRowValue.getDiffFieldValue(primaries.get(0).getCode());
-                    return castRefValue(rowValue.getFieldValue(refAttribute.getCode()), primaries.get(0).getType())
-                            .equals(
-                                    DiffStatusEnum.DELETED.equals(diffRowValue.getStatus())
-                                            ? diffFieldValue.getOldValue()
-                                            : diffFieldValue.getNewValue()
-                            );
-                })
+                .filter(rowValue -> isRefBookRowValue(primaries, refAttribute, diffRowValue, rowValue))
                 .findFirst()
                 .orElse(null);
     }
 
+    /**
+     * В списке записей #rowValues ищутся записи,
+     * которые соответствует строке об изменениях #diffRowValue
+     * на основании набора первичных ключей primaries.
+     *
+     * @param primaries    список первичных атрибутов для идентификации записи
+     * @param diffRowValue diff-запись, для которой ведется поиск в полученном списке записей
+     * @param rowValues    список записей, среди которых ведется поиск
+     * @return Список найденных записей
+     */
     public static List<RefBookRowValue> findRefBookRowValues(List<Structure.Attribute> primaries, Structure.Attribute refAttribute,
                                                              DiffRowValue diffRowValue, List<RefBookRowValue> rowValues) {
         return rowValues
                 .stream()
-                .filter(rowValue -> {
-                    DiffFieldValue diffFieldValue = diffRowValue.getDiffFieldValue(primaries.get(0).getCode());
-                    return castRefValue(rowValue.getFieldValue(refAttribute.getCode()), primaries.get(0).getType())
-                            .equals(
-                                    DiffStatusEnum.DELETED.equals(diffRowValue.getStatus())
-                                            ? diffFieldValue.getOldValue()
-                                            : diffFieldValue.getNewValue()
-                            );
-                })
+                .filter(rowValue -> isRefBookRowValue(primaries, refAttribute, diffRowValue, rowValue))
                 .collect(Collectors.toList());
     }
 
