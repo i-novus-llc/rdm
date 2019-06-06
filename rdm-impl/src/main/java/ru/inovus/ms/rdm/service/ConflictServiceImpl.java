@@ -224,23 +224,18 @@ public class ConflictServiceImpl implements ConflictService {
                                    Structure refToStructure, List<Structure.Attribute> refFromAttributes, DiffStatusEnum status) {
         return refFromAttributes
                 .stream()
-                .map(refFromAttribute ->
+                .anyMatch(refFromAttribute ->
                         diffRowValues
                                 .stream()
                                 .filter(diffRowValue ->
                                         status.equals(diffRowValue.getStatus()))
-                                .map(diffRowValue -> {
+                                .anyMatch(diffRowValue -> {
                                     RefBookRowValue rowValue =
                                             findRefBookRowValue(refToStructure.getPrimary(), refFromAttribute,
                                                     diffRowValue, refFromRowValues);
-                                    return (rowValue == null) ? null : Boolean.TRUE;
+                                    return rowValue != null;
                                 })
-                                .filter(Objects::nonNull)
-                                .findFirst()
-                                .orElse(Boolean.FALSE)
-                )
-                .findFirst()
-                .orElse(Boolean.FALSE);
+                );
     }
 
     /**
