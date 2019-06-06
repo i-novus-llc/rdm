@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.service.api;
 import io.swagger.annotations.*;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.model.Conflict;
+import ru.inovus.ms.rdm.model.RefBookVersion;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -44,6 +45,20 @@ public interface ConflictService {
                            @ApiParam("Тип конфликта")
                            @PathParam("type")
                                    ConflictType conflictType);
+
+    @GET
+    @Path("/{versionId}/check/{type}")
+    @ApiOperation("Получение конфликтующих версий справочников")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    List<RefBookVersion> getConflictReferrers(@ApiParam("Идентификатор проверяемой версии")
+                                              @PathParam("versionId")
+                                                      Integer versionId,
+                                              @ApiParam("Тип конфликта")
+                                              @PathParam("type")
+                                                      ConflictType conflictType);
 
     @POST
     @Path("/update/displayvalue")

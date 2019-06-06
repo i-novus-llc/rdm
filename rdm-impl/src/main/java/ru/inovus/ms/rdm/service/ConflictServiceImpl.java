@@ -25,13 +25,11 @@ import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
-import ru.inovus.ms.rdm.service.api.CompareService;
-import ru.inovus.ms.rdm.service.api.ConflictService;
-import ru.inovus.ms.rdm.service.api.DraftService;
-import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.service.api.*;
 import ru.inovus.ms.rdm.util.RowUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
@@ -45,13 +43,11 @@ import static ru.inovus.ms.rdm.util.ComparableUtils.findRefBookRowValues;
 public class ConflictServiceImpl implements ConflictService {
 
     private CompareService compareService;
-
-    private VersionService versionService;
-
-    private DraftService draftService;
-
     private DraftDataService draftDataService;
 
+    private RefBookService refBookService;
+    private VersionService versionService;
+    private DraftService draftService;
     private RefBookVersionRepository versionRepository;
 
     private static final String VERSION_NOT_FOUND = "version.not.found";
@@ -62,15 +58,17 @@ public class ConflictServiceImpl implements ConflictService {
 
     @Autowired
     public ConflictServiceImpl(CompareService compareService,
+                               DraftDataService draftDataService,
+                               RefBookService refBookService,
                                VersionService versionService,
                                DraftService draftService,
-                               DraftDataService draftDataService,
                                RefBookVersionRepository versionRepository) {
         this.compareService = compareService;
-        this.versionService = versionService;
-        this.draftService = draftService;
         this.draftDataService = draftDataService;
 
+        this.refBookService = refBookService;
+        this.versionService = versionService;
+        this.draftService = draftService;
         this.versionRepository = versionRepository;
     }
 
@@ -259,6 +257,22 @@ public class ConflictServiceImpl implements ConflictService {
                 )
                 .findFirst()
                 .orElse(Boolean.FALSE);
+    }
+
+    /**
+     * Получение справочников, имеющих конфликты с проверяемым справочником.
+     *
+     */
+    @Override
+    public List<RefBookVersion> getConflictReferrers(Integer versionId, ConflictType conflictType) {
+        validateVersionsExistence(versionId);
+
+        RefBookVersion version = versionService.getById(versionId);
+
+        List<RefBookVersion> referrers = refBookService.getReferrerVersions(version.getCode());
+        return referrers.stream()
+                .filter(referrer -> checkConflicts(referrer.getId(), versionId, conflictType))
+                .collect(Collectors.toList());
     }
 
     /**
