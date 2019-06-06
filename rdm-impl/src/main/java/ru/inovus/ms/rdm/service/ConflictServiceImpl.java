@@ -90,7 +90,6 @@ public class ConflictServiceImpl implements ConflictService {
         RefBookVersion refFromVersion = versionService.getById(refFromId);
         RefBookVersion refToVersion = versionService.getById(oldRefToId);
 
-//        на данный момент может быть только: 1 поле -> 1 первичный ключ (ссылка на составной ключ невозможна)
         List<Structure.Attribute> refAttributes = refFromVersion.getStructure()
                 .getRefCodeReferences(refToVersion.getCode())
                 .stream()

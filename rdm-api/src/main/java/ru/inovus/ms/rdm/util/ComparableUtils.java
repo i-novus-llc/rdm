@@ -72,6 +72,7 @@ public class ComparableUtils {
     private static boolean isRefBookRowValue(List<Structure.Attribute> primaries, Structure.Attribute refAttribute,
                                              DiffRowValue diffRowValue, RefBookRowValue rowValue) {
 
+//        на данный момент может быть только: 1 поле -> 1 первичный ключ (ссылка на составной ключ невозможна)
         DiffFieldValue diffFieldValue = diffRowValue.getDiffFieldValue(primaries.get(0).getCode());
         return castRefValue(rowValue.getFieldValue(refAttribute.getCode()), primaries.get(0).getType())
                 .equals(
