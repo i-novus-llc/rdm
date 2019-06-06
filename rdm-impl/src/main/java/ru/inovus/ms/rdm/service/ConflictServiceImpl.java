@@ -112,12 +112,7 @@ public class ConflictServiceImpl implements ConflictService {
         RefBookVersion refFromVersion = versionService.getById(refFromId);
         RefBookVersion refToVersion = versionService.getById(oldRefToId);
 
-        List<Structure.Attribute> refAttributes = refFromVersion.getStructure()
-                .getRefCodeReferences(refToVersion.getCode())
-                .stream()
-                .map(ref ->
-                        refFromVersion.getStructure().getAttribute(ref.getAttribute()))
-                .collect(toList());
+        List<Structure.Attribute> refAttributes = getRefAttributes(refFromVersion, refToVersion);
 
         Page<RefBookRowValue> refFromRowValues = versionService.search(refFromId, new SearchDataCriteria());
 
@@ -210,12 +205,7 @@ public class ConflictServiceImpl implements ConflictService {
         RefBookVersion refFromVersion = versionService.getById(refFromId);
         RefBookVersion refToVersion = versionService.getById(oldRefToId);
 
-        List<Structure.Attribute> refAttributes = refFromVersion.getStructure()
-                .getRefCodeReferences(refToVersion.getCode())
-                .stream()
-                .map(ref ->
-                        refFromVersion.getStructure().getAttribute(ref.getAttribute()))
-                .collect(toList());
+        List<Structure.Attribute> refAttributes = getRefAttributes(refFromVersion, refToVersion);
 
         Page<RefBookRowValue> refFromRowValues = versionService.search(refFromId, new SearchDataCriteria());
 
@@ -291,6 +281,15 @@ public class ConflictServiceImpl implements ConflictService {
                 .forEach(conflict -> updateReferenceValues(refFromDraftVersion, refToVersion, conflict,
                         refFromDraft.getStorageCode(),
                         refToDraft.getStorageCode()));
+    }
+
+    private List<Structure.Attribute> getRefAttributes(RefBookVersion refFromVersion, RefBookVersion refToVersion) {
+        return refFromVersion.getStructure()
+                .getRefCodeReferences(refToVersion.getCode())
+                .stream()
+                .map(ref ->
+                        refFromVersion.getStructure().getAttribute(ref.getAttribute()))
+                .collect(toList());
     }
 
     /**
