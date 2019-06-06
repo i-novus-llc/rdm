@@ -35,17 +35,6 @@ public interface RefBookService {
     RefBook getByVersionId(@PathParam("id") @ApiParam("Идентификатор версии") Integer versionId);
 
     @GET
-    @Path("/version/referrer/{refBookCode}")
-    @ApiOperation("Поиск по наличию ссылки на справочник")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Список справочников"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    List<RefBookVersion> getReferrerVersions(@ApiParam("Код справочника")
-                                             @PathParam("refBookCode")
-                                                     String refBookCode);
-
-    @GET
     @Path("/{id}")
     @ApiOperation("Код справочника по идентификатору")
     @ApiResponses({
@@ -116,4 +105,15 @@ public interface RefBookService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     Page<RefBookVersion> getVersions(@BeanParam VersionCriteria criteria);
+
+    @GET
+    @Path("versions/referrers/{refBookCode}")
+    @ApiOperation("Поиск по наличию ссылки на справочник")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Список справочников"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    List<RefBookVersion> getReferrerVersions(@ApiParam("Код справочника")
+                                             @PathParam("refBookCode")
+                                                     String refBookCode);
 }

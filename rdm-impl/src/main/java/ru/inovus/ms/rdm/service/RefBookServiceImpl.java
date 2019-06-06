@@ -184,23 +184,6 @@ public class RefBookServiceImpl implements RefBookService {
         return refBookModel(refBookVersion, getLastPublishedVersions(singletonList(refBookVersion.getRefBook().getId())));
     }
 
-    // NB: Необходим также для отображения справочников, ссылающихся на текущий справочник.
-    @Override
-    @Transactional
-    public List<RefBookVersion> getReferrerVersions(String refBookCode) {
-        BooleanBuilder where = new BooleanBuilder();
-        where.and(isActual()).andNot(isArchived());
-
-        Page<RefBookVersionEntity> all = repository.findAll(where, Pageable.unpaged());
-        List<RefBookVersionEntity> list = StreamSupport.stream(all.spliterator(), false)
-                .filter(actual ->
-                        Objects.nonNull(actual.getStructure())
-                                && !actual.getStructure().getRefCodeReferences(refBookCode).isEmpty())
-                .collect(Collectors.toList());
-
-        return list.stream().map(ModelGenerator::versionModel).collect(Collectors.toList());
-    }
-
     @Override
     @Transactional
     public String getCode(Integer refBookId) {
@@ -365,6 +348,23 @@ public class RefBookServiceImpl implements RefBookService {
             where.and(hasPrimaryAttribute());
 
         return where.getValue();
+    }
+
+    // NB: Необходим также для отображения справочников, ссылающихся на текущий справочник.
+    @Override
+    @Transactional
+    public List<RefBookVersion> getReferrerVersions(String refBookCode) {
+        BooleanBuilder where = new BooleanBuilder();
+        where.and(isActual()).andNot(isArchived());
+
+        Page<RefBookVersionEntity> all = repository.findAll(where, Pageable.unpaged());
+        List<RefBookVersionEntity> list = StreamSupport.stream(all.spliterator(), false)
+                .filter(actual ->
+                        Objects.nonNull(actual.getStructure())
+                                && !actual.getStructure().getRefCodeReferences(refBookCode).isEmpty())
+                .collect(Collectors.toList());
+
+        return list.stream().map(ModelGenerator::versionModel).collect(Collectors.toList());
     }
 
     private boolean isRefBookRemovable(Integer refBookId) {
