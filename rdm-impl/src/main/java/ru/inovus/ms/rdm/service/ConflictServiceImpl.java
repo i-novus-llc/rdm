@@ -147,6 +147,14 @@ public class ConflictServiceImpl implements ConflictService {
         return conflict;
     }
 
+    /**
+     * Получение значений первичных ключей
+     * по записи #refFromRowValue на основании структуры #refFromStructure.
+     *
+     * @param refFromRowValue  запись справочника
+     * @param refFromStructure структура справочника
+     * @return Список значений полей для первичных ключей
+     */
     private List<FieldValue> convertToFieldValues(RefBookRowValue refFromRowValue, Structure refFromStructure) {
         return refFromRowValue
                 .getFieldValues()
