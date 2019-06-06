@@ -7,7 +7,6 @@ import ru.inovus.ms.rdm.model.Conflict;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
-import java.util.Map;
 
 @Path("/conflicts")
 @Produces(MediaType.APPLICATION_JSON)
@@ -30,18 +29,21 @@ public interface ConflictService {
                                               Integer refToId);
 
     @GET
-    @Path("/check")
-    @ApiOperation("Проверка на наличие конфликтов для двух версий")
+    @Path("/check/{type}")
+    @ApiOperation("Проверка на наличие конфликта для двух версий")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Map<ConflictType, Boolean> checkConflicts(@ApiParam("Идентификатор версии, которая ссылается")
-                                              @QueryParam("refFromId")
-                                                      Integer refFromId,
-                                              @ApiParam("Идентификатор бесконфликтной версии, на которую ссылается")
-                                              @QueryParam("refToId")
-                                                      Integer refToId);
+    Boolean checkConflicts(@ApiParam("Идентификатор версии, которая ссылается")
+                           @QueryParam("refFromId")
+                                   Integer refFromId,
+                           @ApiParam("Идентификатор бесконфликтной версии, на которую ссылается")
+                           @QueryParam("refToId")
+                                   Integer refToId,
+                           @ApiParam("Тип конфликта")
+                           @PathParam("type")
+                                   ConflictType conflictType);
 
     @POST
     @Path("/update/displayvalue")

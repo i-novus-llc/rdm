@@ -32,7 +32,6 @@ import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.RowUtils;
 
 import java.util.*;
-import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
@@ -158,10 +157,24 @@ public class ConflictServiceImpl implements ConflictService {
         return conflict;
     }
 
+    // NB: move to ConflictUtils.
     private ConflictType diffStatusToConflictType(DiffStatusEnum diffStatus) {
+        if (diffStatus == null)
+            return null;
+
         return diffStatus.equals(DiffStatusEnum.DELETED)
                 ? ConflictType.DELETED
                 : ConflictType.UPDATED;
+    }
+
+    // NB: move to ConflictUtils.
+    private DiffStatusEnum conflictTypeToDiffStatus(ConflictType conflictType) {
+        if (conflictType == null)
+            return null;
+
+        return conflictType.equals(ConflictType.DELETED)
+                ? DiffStatusEnum.DELETED
+                : DiffStatusEnum.UPDATED;
     }
 
     /**
@@ -182,30 +195,30 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Проверка на наличие конфликтов справочников при наличии ссылочных атрибутов.
+     * Проверка на наличие конфликта справочников при наличии ссылочных атрибутов.
      * 
      * @see #calculateConflicts
      */
     @Override
-    public Map<ConflictType, Boolean> checkConflicts(Integer refFromId, Integer refToId) {
+    public Boolean checkConflicts(Integer refFromId, Integer refToId, ConflictType conflictType) {
         validateVersionsExistence(refFromId);
         validateVersionsExistence(refToId);
 
         RefBookVersion refToVersion = versionService.getById(refToId);
         Integer refToDraftId = getRefBookDraftVersion(refToVersion.getRefBookId()).getId();
 
-        return checkConflicts(refFromId, refToId, refToDraftId);
+        return checkConflicts(refFromId, refToId, refToDraftId, conflictType);
     }
 
     /**
-     * Проверка на наличие конфликтов справочников при наличии ссылочных атрибутов.
+     * Проверка на наличие конфликта справочников при наличии ссылочных атрибутов.
      *
      * @param refFromId  идентификатор версии, которая ссылается
      * @param oldRefToId идентификатор старой версии, на которую ссылаются
      * @param newRefToId идентификатор новой версии, на которую будут ссылаться
      * @return Наличие конфликтов
      */
-    private Map<ConflictType, Boolean> checkConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId) {
+    private Boolean checkConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId, ConflictType conflictType) {
 
         RefBookVersion refFromVersion = versionService.getById(refFromId);
         RefBookVersion refToVersion = versionService.getById(oldRefToId);
@@ -220,32 +233,21 @@ public class ConflictServiceImpl implements ConflictService {
         Page<RefBookRowValue> refFromRowValues = versionService.search(refFromId, new SearchDataCriteria());
 
         RefBookDataDiff dataDiff = compareService.compareData(new CompareDataCriteria(oldRefToId, newRefToId));
+        DiffStatusEnum diffStatus = conflictTypeToDiffStatus(conflictType);
 
         return checkConflicts(dataDiff.getRows().getContent(), refFromRowValues.getContent(),
-                refToVersion.getStructure(), refAttributes);
-    }
-
-    private Map<ConflictType, Boolean> checkConflicts(List<DiffRowValue> diffRowValues, List<RefBookRowValue> refFromRowValues,
-                                                      Structure refToStructure, List<Structure.Attribute> refFromAttributes) {
-        EnumMap<ConflictType, Boolean> result = new EnumMap<>(ConflictType.class);
-        Stream.of(DiffStatusEnum.DELETED, DiffStatusEnum.UPDATED)
-                .forEach(diffStatusEnum ->
-                    result.put(diffStatusToConflictType(diffStatusEnum),
-                            checkConflicts(diffRowValues, refFromRowValues,
-                                    refToStructure, refFromAttributes, diffStatusEnum)
-                    )
-                );
-        return result;
+                refToVersion.getStructure(), refAttributes, diffStatus);
     }
 
     private Boolean checkConflicts(List<DiffRowValue> diffRowValues, List<RefBookRowValue> refFromRowValues,
-                                   Structure refToStructure, List<Structure.Attribute> refFromAttributes, DiffStatusEnum status) {
+                                                      Structure refToStructure, List<Structure.Attribute> refFromAttributes,
+                                                      DiffStatusEnum diffStatus) {
         return refFromAttributes
                 .stream()
                 .map(refFromAttribute ->
                         diffRowValues
                                 .stream()
-                                .filter(diffRowValue -> status.equals(diffRowValue.getStatus()))
+                                .filter(diffRowValue -> diffStatus.equals(diffRowValue.getStatus()))
                                 .map(diffRowValue -> {
                                     RefBookRowValue rowValue = findRefBookRowValue(refToStructure.getPrimary(), refFromAttribute,
                                             diffRowValue, refFromRowValues);

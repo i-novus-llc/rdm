@@ -1573,12 +1573,11 @@ public class ApplicationTest {
         draftService.updateData(refFromVersionId, createFileModel(REF_FILE_NAME, "testConflicts/" + REF_FILE_NAME));
         draftService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null);
 
-        EnumMap<ConflictType, Boolean> expectedCheck = new EnumMap<>(ConflictType.class);
-        expectedCheck.put(ConflictType.UPDATED, Boolean.TRUE);
-        expectedCheck.put(ConflictType.DELETED, Boolean.TRUE);
+        Boolean actualUpdateCheck = conflictService.checkConflicts(refFromVersionId, refToVersionId, ConflictType.UPDATED);
+        assertEquals(Boolean.TRUE, actualUpdateCheck);
 
-        Map<ConflictType, Boolean> actualCheck = conflictService.checkConflicts(refFromVersionId, refToVersionId);
-        assertCheckConflicts(expectedCheck, actualCheck);
+        Boolean actualDeleteCheck = conflictService.checkConflicts(refFromVersionId, refToVersionId, ConflictType.DELETED);
+        assertEquals(Boolean.TRUE, actualDeleteCheck);
     }
 
     /*
