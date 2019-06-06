@@ -17,6 +17,7 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.NotFoundException;
@@ -30,14 +31,14 @@ import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.RowUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static ru.inovus.ms.rdm.util.ComparableUtils.findRefBookRowValue;
 import static ru.inovus.ms.rdm.util.ComparableUtils.findRefBookRowValues;
 
 @Primary
@@ -55,6 +56,7 @@ public class ConflictServiceImpl implements ConflictService {
     private RefBookVersionRepository versionRepository;
 
     private static final String VERSION_NOT_FOUND = "version.not.found";
+    private static final String REFBOOK_DRAFT_NOT_FOUND = "refbook.draft.not.found";
     private static final String CONFLICTED_FROM_ROW_NOT_FOUND = "conflicted.from.row.not.found";
     private static final String CONFLICTED_TO_ROW_NOT_FOUND = "conflicted.to.row.not.found";
     private static final String CONFLICTED_REFERENCE_NOT_FOUND = "conflicted.reference.row.not.found";
@@ -73,16 +75,28 @@ public class ConflictServiceImpl implements ConflictService {
         this.versionRepository = versionRepository;
     }
 
+    /**
+     * Вычисление конфликтов справочников при наличии ссылочных атрибутов.
+     *
+     * @see #checkConflicts
+     */
     @Override
     public List<Conflict> calculateConflicts(Integer refFromId, Integer refToId) {
         validateVersionsExistence(refFromId);
         validateVersionsExistence(refToId);
 
         RefBookVersion refToVersion = versionService.getById(refToId);
-        Integer refToDraftId = versionRepository
-                .findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refToVersion.getRefBookId()).getId();
+        Integer refToDraftId = getRefBookDraftVersion(refToVersion.getRefBookId()).getId();
 
         return calculateConflicts(refFromId, refToId, refToDraftId);
+    }
+
+    private RefBookVersionEntity getRefBookDraftVersion(Integer refBookId) {
+        RefBookVersionEntity entity = versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
+        if (entity == null)
+            throw new NotFoundException(new Message(REFBOOK_DRAFT_NOT_FOUND, refBookId));
+
+        return entity;
     }
 
     /**
@@ -139,12 +153,15 @@ public class ConflictServiceImpl implements ConflictService {
                                     Structure.Attribute refFromAttribute, Structure refFromStructure) {
         Conflict conflict = new Conflict();
         conflict.setRefAttributeCode(refFromAttribute.getCode());
-        conflict.setConflictType(
-                diffRowValue.getStatus().equals(DiffStatusEnum.DELETED)
-                        ? ConflictType.DELETED
-                        : ConflictType.UPDATED);
+        conflict.setConflictType(diffStatusToConflictType(diffRowValue.getStatus()));
         conflict.setPrimaryValues(convertToFieldValues(refFromRowValue, refFromStructure));
         return conflict;
+    }
+
+    private ConflictType diffStatusToConflictType(DiffStatusEnum diffStatus) {
+        return diffStatus.equals(DiffStatusEnum.DELETED)
+                ? ConflictType.DELETED
+                : ConflictType.UPDATED;
     }
 
     /**
@@ -162,6 +179,84 @@ public class ConflictServiceImpl implements ConflictService {
                 .filter(fieldValue ->
                         refFromStructure.getAttribute(fieldValue.getField()).getIsPrimary())
                 .collect(toList());
+    }
+
+    /**
+     * Проверка на наличие конфликтов справочников при наличии ссылочных атрибутов.
+     * 
+     * @see #calculateConflicts
+     */
+    //@Override
+    public Map<ConflictType, Boolean> checkConflicts(Integer refFromId, Integer refToId) {
+        validateVersionsExistence(refFromId);
+        validateVersionsExistence(refToId);
+
+        RefBookVersion refToVersion = versionService.getById(refToId);
+        Integer refToDraftId = getRefBookDraftVersion(refToVersion.getRefBookId()).getId();
+
+        return checkConflicts(refFromId, refToId, refToDraftId);
+    }
+
+    /**
+     * Проверка на наличие конфликтов справочников при наличии ссылочных атрибутов.
+     *
+     * @param refFromId  идентификатор версии, которая ссылается
+     * @param oldRefToId идентификатор старой версии, на которую ссылаются
+     * @param newRefToId идентификатор новой версии, на которую будут ссылаться
+     * @return Наличие конфликтов
+     */
+    private Map<ConflictType, Boolean> checkConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId) {
+
+        RefBookVersion refFromVersion = versionService.getById(refFromId);
+        RefBookVersion refToVersion = versionService.getById(oldRefToId);
+
+        List<Structure.Attribute> refAttributes = refFromVersion.getStructure()
+                .getRefCodeReferences(refToVersion.getCode())
+                .stream()
+                .map(ref ->
+                        refFromVersion.getStructure().getAttribute(ref.getAttribute()))
+                .collect(toList());
+
+        Page<RefBookRowValue> refFromRowValues = versionService.search(refFromId, new SearchDataCriteria());
+
+        RefBookDataDiff dataDiff = compareService.compareData(new CompareDataCriteria(oldRefToId, newRefToId));
+
+        return checkConflicts(dataDiff.getRows().getContent(), refFromRowValues.getContent(),
+                refToVersion.getStructure(), refAttributes);
+    }
+
+    private Map<ConflictType, Boolean> checkConflicts(List<DiffRowValue> diffRowValues, List<RefBookRowValue> refFromRowValues,
+                                                      Structure refToStructure, List<Structure.Attribute> refFromAttributes) {
+        EnumMap<ConflictType, Boolean> result = new EnumMap<>(ConflictType.class);
+        Stream.of(DiffStatusEnum.DELETED, DiffStatusEnum.UPDATED)
+                .forEach(diffStatusEnum ->
+                    result.put(diffStatusToConflictType(diffStatusEnum),
+                            checkConflicts(diffRowValues, refFromRowValues,
+                                    refToStructure, refFromAttributes, diffStatusEnum)
+                    )
+                );
+        return result;
+    }
+
+    private Boolean checkConflicts(List<DiffRowValue> diffRowValues, List<RefBookRowValue> refFromRowValues,
+                                   Structure refToStructure, List<Structure.Attribute> refFromAttributes, DiffStatusEnum status) {
+        return refFromAttributes
+                .stream()
+                .map(refFromAttribute ->
+                        diffRowValues
+                                .stream()
+                                .filter(diffRowValue -> status.equals(diffRowValue.getStatus()))
+                                .map(diffRowValue -> {
+                                    RefBookRowValue rowValue = findRefBookRowValue(refToStructure.getPrimary(), refFromAttribute,
+                                            diffRowValue, refFromRowValues);
+                                    return (rowValue == null) ? null : Boolean.TRUE;
+                                })
+                                .filter(Objects::nonNull)
+                                .findFirst()
+                                .orElse(Boolean.FALSE)
+                )
+                .findFirst()
+                .orElse(Boolean.FALSE);
     }
 
     /**
