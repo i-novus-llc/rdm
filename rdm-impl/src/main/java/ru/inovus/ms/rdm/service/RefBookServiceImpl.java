@@ -184,6 +184,7 @@ public class RefBookServiceImpl implements RefBookService {
         return refBookModel(refBookVersion, getLastPublishedVersions(singletonList(refBookVersion.getRefBook().getId())));
     }
 
+    // NB: Необходим также для отображения справочников, ссылающихся на текущий справочник.
     @Override
     @Transactional
     public List<RefBookVersion> getReferrerVersions(String refBookCode) {
