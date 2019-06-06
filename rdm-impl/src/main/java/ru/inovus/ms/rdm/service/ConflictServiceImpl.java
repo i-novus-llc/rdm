@@ -157,6 +157,40 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
+     * Обновление ссылок в справочнике по списку конфликтов.
+     *
+     * @param refFromId идентификатор версии справочника со ссылками
+     * @param refToId   идентификатор версии изменённого справочника
+     * @param conflicts список конфликтов
+     */
+    @Override
+    public void updateReferenceValues(Integer refFromId, Integer refToId, List<Conflict> conflicts) {
+
+        if (CollectionUtils.isEmpty(conflicts))
+            return;
+
+        validateVersionsExistence(refFromId);
+        validateVersionsExistence(refToId);
+
+        RefBookVersion refFromVersion = versionService.getById(refFromId);
+        RefBookVersion refToVersion = versionService.getById(refToId);
+
+        Draft refFromDraft;
+        if (RefBookVersionStatus.DRAFT.equals(refFromVersion.getStatus()))
+            refFromDraft = draftService.getDraft(refFromId);
+        else
+            refFromDraft = draftService.createFromVersion(refFromId);
+        RefBookVersion refFromDraftVersion = versionService.getById(refFromDraft.getId());
+        Draft refToDraft = draftService.getDraft(refToId);
+
+        conflicts.stream()
+                .filter(conflict -> ConflictType.UPDATED.equals(conflict.getConflictType()))
+                .forEach(conflict -> updateReferenceValues(refFromDraftVersion, refToVersion, conflict,
+                        refFromDraft.getStorageCode(),
+                        refToDraft.getStorageCode()));
+    }
+
+    /**
      * Получение конфликтной записи по конфликту.
      */
     private RefBookRowValue getRefFromRowValue(RefBookVersion version, List<FieldValue> fieldValues) {
@@ -263,40 +297,6 @@ public class ConflictServiceImpl implements ConflictService {
                     reference.getAttribute(),
                     newReference);
         }
-    }
-
-    /**
-     * Обновление ссылок в справочнике по списку конфликтов.
-     *
-     * @param refFromId идентификатор версии справочника со ссылками
-     * @param refToId   идентификатор версии изменённого справочника
-     * @param conflicts список конфликтов
-     */
-    @Override
-    public void updateReferenceValues(Integer refFromId, Integer refToId, List<Conflict> conflicts) {
-
-        if (CollectionUtils.isEmpty(conflicts))
-            return;
-
-        validateVersionsExistence(refFromId);
-        validateVersionsExistence(refToId);
-
-        RefBookVersion refFromVersion = versionService.getById(refFromId);
-        RefBookVersion refToVersion = versionService.getById(refToId);
-
-        Draft refFromDraft;
-        if (RefBookVersionStatus.DRAFT.equals(refFromVersion.getStatus()))
-            refFromDraft = draftService.getDraft(refFromId);
-        else
-            refFromDraft = draftService.createFromVersion(refFromId);
-        RefBookVersion refFromDraftVersion = versionService.getById(refFromDraft.getId());
-        Draft refToDraft = draftService.getDraft(refToId);
-
-        conflicts.stream()
-                .filter(conflict -> ConflictType.UPDATED.equals(conflict.getConflictType()))
-                .forEach(conflict -> updateReferenceValues(refFromDraftVersion, refToVersion, conflict,
-                        refFromDraft.getStorageCode(),
-                        refToDraft.getStorageCode()));
     }
 
     private void validateVersionsExistence(Integer versionId) {
