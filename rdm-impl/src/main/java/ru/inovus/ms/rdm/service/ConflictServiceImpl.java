@@ -85,6 +85,14 @@ public class ConflictServiceImpl implements ConflictService {
         return calculateConflicts(refFromId, refToId, refToDraftId);
     }
 
+    /**
+     * Вычисление конфликтов справочников при наличии ссылочных атрибутов.
+     *
+     * @param refFromId  идентификатор версии, которая ссылается
+     * @param oldRefToId идентификатор старой версии, на которую ссылались
+     * @param newRefToId идентификатор новой версии, на которую будут ссылаться
+     * @return Список конфликтов для версии, которая ссылается
+     */
     private List<Conflict> calculateConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId) {
 
         RefBookVersion refFromVersion = versionService.getById(refFromId);
