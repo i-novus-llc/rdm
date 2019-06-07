@@ -146,7 +146,7 @@ public class ConflictServiceImpl implements ConflictService {
 
     /**
      * Получение значений первичных ключей
-     * по записи #refFromRowValue на основании структуры #refFromStructure.
+     * по записи {@code refFromRowValue} на основании структуры {@code refFromStructure}.
      *
      * @param refFromRowValue  запись справочника
      * @param refFromStructure структура справочника
@@ -271,23 +271,6 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Обновление ссылки в справочнике.
-     *
-     * @param refFromId          идентификатор версии справочника
-     * @param refFromStorageCode код хранилища версии справочника
-     * @param rowSystemId        системный идентификатор записи
-     * @param referenceFieldName название поля-ссылки
-     * @param fieldReference     данные для обновления
-     */
-    private void updateReferenceValue(Integer refFromId, String refFromStorageCode, Long rowSystemId,
-                                      String referenceFieldName, Reference fieldReference) {
-        FieldValue fieldValue = new ReferenceFieldValue(referenceFieldName, fieldReference);
-        LongRowValue rowValue = new LongRowValue(rowSystemId, singletonList(fieldValue));
-
-        draftDataService.updateRow(refFromStorageCode, new RefBookRowValue(rowValue, refFromId));
-    }
-
-    /**
      * Обновление ссылок в справочнике по конфликту.
      *
      * @param refFromDraftVersion версия справочника со ссылками
@@ -337,6 +320,30 @@ public class ConflictServiceImpl implements ConflictService {
         }
     }
 
+    /**
+     * Обновление ссылки в справочнике.
+     *
+     * @param refFromId          идентификатор версии справочника
+     * @param refFromStorageCode код хранилища версии справочника
+     * @param rowSystemId        системный идентификатор записи
+     * @param referenceFieldName название поля-ссылки
+     * @param fieldReference     данные для обновления
+     */
+    private void updateReferenceValue(Integer refFromId, String refFromStorageCode, Long rowSystemId,
+                                      String referenceFieldName, Reference fieldReference) {
+        FieldValue fieldValue = new ReferenceFieldValue(referenceFieldName, fieldReference);
+        LongRowValue rowValue = new LongRowValue(rowSystemId, singletonList(fieldValue));
+
+        draftDataService.updateRow(refFromStorageCode, new RefBookRowValue(rowValue, refFromId));
+    }
+
+    /**
+     * Получение ссылочных атрибутов.
+     *
+     * @param refFromVersion версия, которая ссылается
+     * @param refToVersion   версия, на которую ссылаются
+     * @return Список атрибутов
+     */
     private List<Structure.Attribute> getRefAttributes(RefBookVersion refFromVersion, RefBookVersion refToVersion) {
         return refFromVersion.getStructure()
                 .getRefCodeReferences(refToVersion.getCode())
@@ -346,6 +353,12 @@ public class ConflictServiceImpl implements ConflictService {
                 .collect(toList());
     }
 
+    /**
+     * Получение черновика справочника.
+     *
+     * @param refBookId идентификатор справочника
+     * @return Черновик справочника
+     */
     private RefBookVersionEntity getRefBookDraftVersion(Integer refBookId) {
         RefBookVersionEntity entity = versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
         if (entity == null)
@@ -396,6 +409,11 @@ public class ConflictServiceImpl implements ConflictService {
         return (rowValues != null && !rowValues.isEmpty()) ? rowValues.get().findFirst().orElse(null) : null;
     }
 
+    /**
+     * Проверка существования версии справочника.
+     *
+     * @param versionId идентификатор версии
+     */
     private void validateVersionsExistence(Integer versionId) {
         if (versionId == null || !versionRepository.existsById(versionId))
             throw new NotFoundException(new Message(VERSION_NOT_FOUND, versionId));
