@@ -1591,10 +1591,10 @@ public class ApplicationTest {
         draftService.updateData(refFromVersionId, createFileModel(REF_FILE_NAME, "testConflicts/" + REF_FILE_NAME));
         draftService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null);
 
-        Boolean actualUpdateCheck = conflictService.checkConflicts(refFromVersionId, refToVersionId, ConflictType.UPDATED);
+        Boolean actualUpdateCheck = conflictService.checkConflicts(refFromVersionId, refToDraftId, ConflictType.UPDATED);
         assertEquals(Boolean.TRUE, actualUpdateCheck);
 
-        Boolean actualDeleteCheck = conflictService.checkConflicts(refFromVersionId, refToVersionId, ConflictType.DELETED);
+        Boolean actualDeleteCheck = conflictService.checkConflicts(refFromVersionId, refToDraftId, ConflictType.DELETED);
         assertEquals(Boolean.TRUE, actualDeleteCheck);
     }
 
