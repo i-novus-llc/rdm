@@ -63,6 +63,7 @@
             <in-parameters>
                 <param id="version.id" mapping="draftId" domain="integer" mapper="spel"/>
             </in-parameters>
+            <validations white-list="hasDeletedConflicts,hasUpdatedConflicts"/>
         </operation>
 
         <operation id="createFromFile" submit-label="Создать из файла" success-text="Справочник успешно сохранен">
@@ -149,4 +150,50 @@
 
     </operations>
 
+    <validations>
+        <constraint id="hasDeletedConflicts" client-moment="before-load" severity="warning"
+                    result="#this.length() == 0"
+                    message="Были удалены строки, на которые ссылались справочники системы: {referrerNames}">
+            <!--    NB: Реализовать как модальное окно перед операцией -->
+            <!--                    "Продолжить публикацию?"-->
+            <invocation>
+                <java method="getConflictReferrerNames" class="ru.inovus.ms.rdm.service.ConflictController">
+                    <spring/>
+                    <arguments>
+                        <argument name="versionId" type="primitive"/>
+                        <argument name="conflictType" type="class"/>
+                    </arguments>
+                </java>
+            </invocation>
+            <in-parameters>
+                <param id="version.id" mapping="[0]" domain="integer"/>
+                <param id="conflictType" default-value="DELETED" normalize="T(ru.inovus.ms.rdm.enumeration.ConflictType).valueOf(#this)"/>
+            </in-parameters>
+            <out-parameters>
+                <param id="referrerNames" domain="string" mapping="#this"/>
+            </out-parameters>
+        </constraint>
+        <constraint id="hasUpdatedConflicts" client-moment="before-load" severity="warning"
+                    result="#this.length() == 0"
+                    message="Были изменены строки, на которые ссылались справочники системы: {referrerNames}">
+            <!--    NB: Реализовать как модальное окно перед операцией -->
+<!--                    "Продолжить публикацию и обновить ссылки в связанных справочниках?"-->
+            <invocation>
+                <java method="getConflictReferrerNames" class="ru.inovus.ms.rdm.service.ConflictController">
+                    <spring/>
+                    <arguments>
+                        <argument name="versionId" type="primitive"/>
+                        <argument name="conflictType" type="class"/>
+                    </arguments>
+                </java>
+            </invocation>
+            <in-parameters>
+                <param id="version.id" mapping="[0]" domain="integer"/>
+                <param id="conflictType" default-value="UPDATED" normalize="T(ru.inovus.ms.rdm.enumeration.ConflictType).valueOf(#this)"/>
+            </in-parameters>
+            <out-parameters>
+                <param id="referrerNames" domain="string" mapping="#this"/>
+            </out-parameters>
+        </constraint>
+    </validations>
 </object>
