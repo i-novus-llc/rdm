@@ -17,7 +17,6 @@ import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.inovus.ms.rdm.entity.*;
 import ru.inovus.ms.rdm.enumeration.RefBookInfo;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
-import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.PassportValueRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
@@ -25,6 +24,7 @@ import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.util.ModelGenerator;
 import ru.inovus.ms.rdm.util.PassportPredicateProducer;
+import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
@@ -54,29 +54,42 @@ public class RefBookServiceImpl implements RefBookService {
     private static final String REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.already.exists";
     private static final String CANNOT_ORDER_BY_EXCEPTION_CODE = "cannot.order.by \"{0}\"";
 
-    private RefBookVersionRepository repository;
     private RefBookRepository refBookRepository;
+    private RefBookVersionRepository versionRepository;
+
     private DraftDataService draftDataService;
     private DropDataService dropDataService;
+
+    private RefBookLockService refBookLockService;
+
+    private VersionValidation versionValidation;
+
     private PassportValueRepository passportValueRepository;
     private PassportPredicateProducer passportPredicateProducer;
+
     private EntityManager entityManager;
-    private RefBookLockService refBookLockService;
 
     @Autowired
     @SuppressWarnings("all")
-    public RefBookServiceImpl(RefBookVersionRepository repository, RefBookRepository refBookRepository,
+    public RefBookServiceImpl(RefBookRepository refBookRepository, RefBookVersionRepository versionRepository,
                               DraftDataService draftDataService, DropDataService dropDataService,
+                              RefBookLockService refBookLockService, VersionValidation versionValidation,
                               PassportValueRepository passportValueRepository, PassportPredicateProducer passportPredicateProducer,
-                              EntityManager entityManager, RefBookLockService refBookLockService) {
-        this.repository = repository;
+                              EntityManager entityManager) {
         this.refBookRepository = refBookRepository;
+        this.versionRepository = versionRepository;
+
         this.draftDataService = draftDataService;
         this.dropDataService = dropDataService;
+
+        this.refBookLockService = refBookLockService;
+
+        this.versionValidation = versionValidation;
+
         this.passportValueRepository = passportValueRepository;
         this.passportPredicateProducer = passportPredicateProducer;
+
         this.entityManager = entityManager;
-        this.refBookLockService = refBookLockService;
     }
 
     @Override
@@ -178,9 +191,9 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional
     public RefBook getByVersionId(Integer versionId) {
 
-        validateVersionExists(versionId);
+        versionValidation.validateVersionExists(versionId);
 
-        RefBookVersionEntity refBookVersion = repository.getOne(versionId);
+        RefBookVersionEntity refBookVersion = versionRepository.getOne(versionId);
         return refBookModel(refBookVersion, getLastPublishedVersions(singletonList(refBookVersion.getRefBook().getId())));
     }
 
@@ -188,7 +201,7 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional
     public String getCode(Integer refBookId) {
 
-        validateRefBookExists(refBookId);
+        versionValidation.validateRefBookExists(refBookId);
 
         final RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
         return refBookEntity.getCode();
@@ -227,18 +240,18 @@ public class RefBookServiceImpl implements RefBookService {
         structure.setReferences(Collections.emptyList());
         refBookVersionEntity.setStructure(structure);
 
-        RefBookVersionEntity savedVersion = repository.save(refBookVersionEntity);
+        RefBookVersionEntity savedVersion = versionRepository.save(refBookVersionEntity);
         return refBookModel(savedVersion, getLastPublishedVersions(singletonList(savedVersion.getRefBook().getId())));
     }
 
     @Override
     @Transactional
     public RefBook update(RefBookUpdateRequest request) {
-        validateVersionExists(request.getVersionId());
-        validateVersionNotArchived(request.getVersionId());
+
+        versionValidation.validateVersion(request.getVersionId());
         refBookLockService.validateRefBookNotBusyByVersionId(request.getVersionId());
 
-        RefBookVersionEntity refBookVersionEntity = repository.getOne(request.getVersionId());
+        RefBookVersionEntity refBookVersionEntity = versionRepository.getOne(request.getVersionId());
         RefBookEntity refBookEntity = refBookVersionEntity.getRefBook();
         if (!refBookEntity.getCode().equals(request.getCode())) {
             if (refBookRepository.existsByCode((request.getCode())))
@@ -256,7 +269,8 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional
     public void delete(int refBookId) {
 
-        validateRefBookExists(refBookId);
+        versionValidation.validateRefBookExists(refBookId);
+
         RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
         refBookLockService.validateRefBookNotBusy(refBookEntity);
 
@@ -270,7 +284,9 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     @Transactional
     public void toArchive(int refBookId) {
-        validateRefBookExists(refBookId);
+
+        versionValidation.validateRefBookExists(refBookId);
+
         RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
         // NB: Add checking references to this refBook.
         refBookEntity.setArchived(Boolean.TRUE);
@@ -280,7 +296,9 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     @Transactional
     public void fromArchive(int refBookId) {
-        validateRefBookExists(refBookId);
+
+        versionValidation.validateRefBookExists(refBookId);
+
         RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
         refBookEntity.setArchived(Boolean.FALSE);
         refBookRepository.save(refBookEntity);
@@ -290,7 +308,7 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional
     public Page<RefBookVersion> getVersions(VersionCriteria criteria) {
         criteria.setOrders(singletonList(new Sort.Order(Sort.Direction.DESC, REF_BOOK_FROM_DATE_SORT_PROPERTY, Sort.NullHandling.NULLS_FIRST)));
-        Page<RefBookVersionEntity> list = repository.findAll(toPredicate(criteria), criteria);
+        Page<RefBookVersionEntity> list = versionRepository.findAll(toPredicate(criteria), criteria);
         return list.map(ModelGenerator::versionModel);
     }
 
@@ -357,7 +375,7 @@ public class RefBookServiceImpl implements RefBookService {
         BooleanBuilder where = new BooleanBuilder();
         where.and(isLastVersion()).andNot(isArchived());
 
-        Page<RefBookVersionEntity> all = repository.findAll(where, Pageable.unpaged());
+        Page<RefBookVersionEntity> all = versionRepository.findAll(where, Pageable.unpaged());
         List<RefBookVersionEntity> list = StreamSupport.stream(all.spliterator(), false)
                 .filter(actual ->
                         Objects.nonNull(actual.getStructure())
@@ -371,7 +389,7 @@ public class RefBookServiceImpl implements RefBookService {
         BooleanBuilder where = new BooleanBuilder();
         where.and(isVersionOfRefBook(refBookId));
         where.and(isRemovable().not().or(isArchived()).or(isPublished()));
-        return !repository.exists(where.getValue());
+        return !versionRepository.exists(where.getValue());
     }
 
     private RefBook refBookModel(RefBookVersionEntity entity, List<RefBookVersionEntity> lastPublishVersions) {
@@ -442,26 +460,7 @@ public class RefBookServiceImpl implements RefBookService {
         RefBookCriteria lastPublishVersionCriteria = new RefBookCriteria();
         lastPublishVersionCriteria.setRefBookInfo(RefBookInfo.PUBLISHED);
         lastPublishVersionCriteria.setRefBookIds(refBookIds);
-        return repository.findAll(toPredicate(lastPublishVersionCriteria),
+        return versionRepository.findAll(toPredicate(lastPublishVersionCriteria),
                 PageRequest.of(0, refBookIds.size())).getContent();
     }
-
-    private void validateRefBookExists(Integer refBookId) {
-        if (refBookId == null || !refBookRepository.existsById(refBookId)) {
-            throw new NotFoundException(new Message("refbook.not.found", refBookId));
-        }
-    }
-
-    private void validateVersionExists(Integer versionId) {
-        if (versionId == null || !repository.existsById(versionId)) {
-            throw new NotFoundException(new Message("version.not.found", versionId));
-        }
-    }
-
-    private void validateVersionNotArchived(Integer versionId) {
-        if (versionId != null && repository.exists(hasVersionId(versionId).and(isArchived()))) {
-            throw new UserException("refbook.is.archived");
-        }
-    }
-
 }

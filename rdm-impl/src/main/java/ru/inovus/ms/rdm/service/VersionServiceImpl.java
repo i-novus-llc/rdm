@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.*;
 import static org.springframework.util.StringUtils.isEmpty;
-import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.hasVersionId;
+import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
 import static ru.inovus.ms.rdm.util.ConverterUtil.*;
 import static ru.inovus.ms.rdm.util.ModelGenerator.versionModel;
 
@@ -50,9 +50,9 @@ import static ru.inovus.ms.rdm.util.ModelGenerator.versionModel;
 @Primary
 public class VersionServiceImpl implements VersionService {
 
-    public static final String ROW_NOT_FOUND = "row.not.found";
-    public static final String VERSION_NOT_FOUND = "version.not.found";
-    public static final String LAST_PUBLISHED_VERSION_NOT_FOUND = "last.published.version.not.found";
+    private static final String ROW_NOT_FOUND = "row.not.found";
+    private static final String VERSION_NOT_FOUND = "version.not.found";
+    private static final String LAST_PUBLISHED_VERSION_NOT_FOUND = "last.published.version.not.found";
 
     private RefBookVersionRepository versionRepository;
     private SearchDataService searchDataService;
@@ -61,7 +61,6 @@ public class VersionServiceImpl implements VersionService {
     private FileStorage fileStorage;
     private PassportValueRepository passportValueRepository;
     private PerRowFileGeneratorFactory perRowFileGeneratorFactory;
-
 
     private String passportFileHead;
     private boolean includePassport;
@@ -332,5 +331,4 @@ public class VersionServiceImpl implements VersionService {
             throw new RdmException(e);
         }
     }
-
 }
