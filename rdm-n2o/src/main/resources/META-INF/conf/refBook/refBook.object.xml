@@ -46,7 +46,7 @@
 
         <!-- WARN: confirm + confirm-text должен заработать после NNO-3132 -->
         <operation id="delete" submit-label="Удалить" success-text="Справочник удален"
-                   confirm="true" confirm-text="Вы уверены что хотите удалить этот справочник?">
+                   confirm="true" confirm-text="Вы уверены, что хотите удалить этот справочник?">
             <invocation>
                 <rest method="DELETE">/refBook?refBookId={refBookId}</rest>
             </invocation>
@@ -56,7 +56,7 @@
         </operation>
 
         <operation id="publish" submit-label="Опубликовать" success-text="Справочник опубликован"
-                   confirm="true" confirm-text="Вы уверены что хотите опубликовать этот справочник?">
+                   confirm="true" confirm-text="Вы уверены, что хотите опубликовать этот справочник?">
             <invocation>
                 <rest method="POST">/draft/{draftId}/publish</rest>
             </invocation>
