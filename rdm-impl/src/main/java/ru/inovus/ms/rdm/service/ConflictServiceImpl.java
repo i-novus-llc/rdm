@@ -30,6 +30,7 @@ import ru.inovus.ms.rdm.util.RowUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
@@ -109,12 +110,7 @@ public class ConflictServiceImpl implements ConflictService {
         RefBookVersion refFromVersion = versionService.getById(refFromId);
         RefBookVersion refToVersion = versionService.getById(oldRefToId);
 
-        List<Structure.Attribute> refAttributes = refFromVersion.getStructure()
-                .getRefCodeReferences(refToVersion.getCode())
-                .stream()
-                .map(ref ->
-                        refFromVersion.getStructure().getAttribute(ref.getAttribute()))
-                .collect(toList());
+        List<Structure.Attribute> refAttributes = getRefAttributes(refFromVersion, refToVersion);
 
         Page<RefBookRowValue> refFromRowValues = versionService.search(refFromId, new SearchDataCriteria());
 
@@ -221,12 +217,7 @@ public class ConflictServiceImpl implements ConflictService {
         RefBookVersion refFromVersion = versionService.getById(refFromId);
         RefBookVersion refToVersion = versionService.getById(oldRefToId);
 
-        List<Structure.Attribute> refAttributes = refFromVersion.getStructure()
-                .getRefCodeReferences(refToVersion.getCode())
-                .stream()
-                .map(ref ->
-                        refFromVersion.getStructure().getAttribute(ref.getAttribute()))
-                .collect(toList());
+        List<Structure.Attribute> refAttributes = getRefAttributes(refFromVersion, refToVersion);
 
         Page<RefBookRowValue> refFromRowValues = versionService.search(refFromId, new SearchDataCriteria());
 
@@ -238,25 +229,22 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     private Boolean checkConflicts(List<DiffRowValue> diffRowValues, List<RefBookRowValue> refFromRowValues,
-                                                      Structure refToStructure, List<Structure.Attribute> refFromAttributes,
-                                                      DiffStatusEnum diffStatus) {
+                                   Structure refToStructure, List<Structure.Attribute> refFromAttributes,
+                                   DiffStatusEnum diffStatus) {
         return refFromAttributes
                 .stream()
-                .map(refFromAttribute ->
+                .anyMatch(refFromAttribute ->
                         diffRowValues
                                 .stream()
-                                .filter(diffRowValue -> diffStatus.equals(diffRowValue.getStatus()))
-                                .map(diffRowValue -> {
-                                    RefBookRowValue rowValue = findRefBookRowValue(refToStructure.getPrimary(), refFromAttribute,
-                                            diffRowValue, refFromRowValues);
-                                    return (rowValue == null) ? null : Boolean.TRUE;
+                                .filter(diffRowValue ->
+                                        status.equals(diffRowValue.getStatus()))
+                                .anyMatch(diffRowValue -> {
+                                    RefBookRowValue rowValue =
+                                            findRefBookRowValue(refToStructure.getPrimary(), refFromAttribute,
+                                                    diffRowValue, refFromRowValues);
+                                    return rowValue != null;
                                 })
-                                .filter(Objects::nonNull)
-                                .findFirst()
-                                .orElse(Boolean.FALSE)
-                )
-                .findFirst()
-                .orElse(Boolean.FALSE);
+                );
     }
 
     /**
@@ -416,6 +404,65 @@ public class ConflictServiceImpl implements ConflictService {
                     reference.getAttribute(),
                     newReference);
         }
+    }
+
+    private List<Structure.Attribute> getRefAttributes(RefBookVersion refFromVersion, RefBookVersion refToVersion) {
+        return refFromVersion.getStructure()
+                .getRefCodeReferences(refToVersion.getCode())
+                .stream()
+                .map(ref ->
+                        refFromVersion.getStructure().getAttribute(ref.getAttribute()))
+                .collect(toList());
+    }
+
+    private RefBookVersionEntity getRefBookDraftVersion(Integer refBookId) {
+        RefBookVersionEntity entity = versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
+        if (entity == null)
+            throw new NotFoundException(new Message(REFBOOK_DRAFT_NOT_FOUND, refBookId));
+
+        return entity;
+    }
+
+    /**
+     * Получение конфликтной записи по конфликту.
+     */
+    private RefBookRowValue getRefFromRowValue(RefBookVersion version, List<FieldValue> fieldValues) {
+
+        if (version == null || CollectionUtils.isEmpty(fieldValues))
+            return null;
+
+        SearchDataCriteria criteria = new SearchDataCriteria();
+
+        List<AttributeFilter> filters = new ArrayList<>();
+        fieldValues.forEach(fieldValue -> {
+            FieldType fieldType = version.getStructure().getAttribute(fieldValue.getField()).getType();
+            filters.add(new AttributeFilter(fieldValue.getField(), fieldValue.getValue(), fieldType, SearchTypeEnum.EXACT));
+        });
+        criteria.setAttributeFilter(singleton(filters));
+
+        Page<RefBookRowValue> rowValues = versionService.search(version.getId(), criteria);
+        return (rowValues != null && !rowValues.isEmpty()) ? rowValues.get().findFirst().orElse(null) : null;
+    }
+
+    /**
+     * Получение записи по ссылке из конфликтной записи.
+     */
+    private RefBookRowValue getRefToRowValue(RefBookVersion version, Conflict conflict, Reference reference) {
+
+        if (version == null || conflict == null ||
+                StringUtils.isEmpty(conflict.getRefAttributeCode()))
+            return null;
+
+        SearchDataCriteria criteria = new SearchDataCriteria();
+
+        List<AttributeFilter> filters = new ArrayList<>();
+        Structure.Attribute attribute = version.getStructure().getAttribute(reference.getKeyField());
+        AttributeFilter filter = new AttributeFilter(attribute.getCode(), reference.getValue(), attribute.getType(), SearchTypeEnum.EXACT);
+        filters.add(filter);
+        criteria.setAttributeFilter(singleton(filters));
+
+        Page<RefBookRowValue> rowValues = versionService.search(version.getId(), criteria);
+        return (rowValues != null && !rowValues.isEmpty()) ? rowValues.get().findFirst().orElse(null) : null;
     }
 
     private void validateVersionsExistence(Integer versionId) {

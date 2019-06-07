@@ -19,6 +19,7 @@ import ru.inovus.ms.rdm.model.compare.ComparableRow;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -74,12 +75,12 @@ public class ComparableUtils {
 
 //        на данный момент может быть только: 1 поле -> 1 первичный ключ (ссылка на составной ключ невозможна)
         DiffFieldValue diffFieldValue = diffRowValue.getDiffFieldValue(primaries.get(0).getCode());
-        return castRefValue(rowValue.getFieldValue(refAttribute.getCode()), primaries.get(0).getType())
-                .equals(
-                        DiffStatusEnum.DELETED.equals(diffRowValue.getStatus())
-                                ? diffFieldValue.getOldValue()
-                                : diffFieldValue.getNewValue()
-                );
+        return Objects.equals(
+                castRefValue(rowValue.getFieldValue(refAttribute.getCode()), primaries.get(0).getType()),
+                DiffStatusEnum.DELETED.equals(diffRowValue.getStatus())
+                        ? diffFieldValue.getOldValue()
+                        : diffFieldValue.getNewValue()
+        );
     }
 
     /**
@@ -249,7 +250,7 @@ public class ComparableUtils {
         if (fieldValue instanceof ReferenceFieldValue) {
             Reference value = (Reference) fieldValue.getValue();
             if (refFieldType == FieldType.INTEGER) {
-                return BigInteger.valueOf(Integer.valueOf(value.getValue()));
+                return value.getValue() != null ? BigInteger.valueOf(Integer.valueOf(value.getValue())) : null;
             }
             return value.getValue();
         }
