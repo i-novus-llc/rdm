@@ -250,7 +250,7 @@ public class ComparableUtils {
         if (fieldValue instanceof ReferenceFieldValue) {
             Reference value = (Reference) fieldValue.getValue();
             if (refFieldType == FieldType.INTEGER) {
-                return value.getValue() != null ? BigInteger.valueOf(Integer.valueOf(value.getValue())) : null;
+                return value.getValue() != null ? new BigInteger(value.getValue()) : null;
             }
             return value.getValue();
         }
