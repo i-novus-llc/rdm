@@ -20,7 +20,7 @@ public final class RefBookVersionPredicates {
             TimeZone.getDefault().toZoneId());
 
     public static final String EXISTS_VERSION = "existsVersion";
-    public static final String IS_LAST_VERSION = "isLastVersion";
+    public static final String IS_LAST_DATE_VERSION = "isLastDateVersion";
 
     private RefBookVersionPredicates() {
     }
@@ -68,7 +68,7 @@ public final class RefBookVersionPredicates {
     }
 
     public static BooleanExpression isLastPublished() {
-        QRefBookVersionEntity whereVersion = new QRefBookVersionEntity(IS_LAST_VERSION);
+        QRefBookVersionEntity whereVersion = new QRefBookVersionEntity(IS_LAST_DATE_VERSION);
         return isPublished().and(
                 QRefBookVersionEntity.refBookVersionEntity.fromDate
                     .eq(JPAExpressions
@@ -76,9 +76,13 @@ public final class RefBookVersionPredicates {
                         .where(whereVersion.refBook.eq(QRefBookVersionEntity.refBookVersionEntity.refBook))));
     }
 
+    public static BooleanExpression isLastVersion() {
+        return refBookHasDraft().not().and(isLastPublished()).or(isDraft());
+    }
+
     public static BooleanExpression hasLastPublishedVersion() {
         QRefBookVersionEntity fieldVersion = new QRefBookVersionEntity(EXISTS_VERSION);
-        QRefBookVersionEntity whereVersion = new QRefBookVersionEntity(IS_LAST_VERSION);
+        QRefBookVersionEntity whereVersion = new QRefBookVersionEntity(IS_LAST_DATE_VERSION);
         return JPAExpressions
                 .select(fieldVersion.version).from(fieldVersion)
                 .where(fieldVersion.refBook.eq(QRefBookVersionEntity.refBookVersionEntity.refBook)
@@ -94,7 +98,7 @@ public final class RefBookVersionPredicates {
 
     public static BooleanExpression hasPrimaryAttribute() {
         QRefBookVersionEntity fieldVersion = new QRefBookVersionEntity(EXISTS_VERSION);
-        QRefBookVersionEntity whereVersion = new QRefBookVersionEntity(IS_LAST_VERSION);
+        QRefBookVersionEntity whereVersion = new QRefBookVersionEntity(IS_LAST_DATE_VERSION);
         return JPAExpressions
                 .select(fieldVersion.version).from(fieldVersion)
                 .where(fieldVersion.refBook.eq(QRefBookVersionEntity.refBookVersionEntity.refBook)

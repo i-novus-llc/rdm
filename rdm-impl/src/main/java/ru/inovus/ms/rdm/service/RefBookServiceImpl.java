@@ -312,7 +312,7 @@ public class RefBookServiceImpl implements RefBookService {
         else if (RefBookInfo.PUBLISHED.equals(criteria.getRefBookInfo()))
             where.and(isLastPublished());
         else
-            where.and(refBookHasDraft().not().and(isLastPublished()).or(isDraft()));
+            where.and(isLastVersion());
 
         if (nonNull(criteria.getFromDateBegin()))
             where.and(isMaxFromDateEqOrAfter(criteria.getFromDateBegin()));
@@ -355,7 +355,7 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional
     public List<RefBookVersion> getReferrerVersions(String refBookCode) {
         BooleanBuilder where = new BooleanBuilder();
-        where.and(isActual()).andNot(isArchived());
+        where.and(isLastVersion()).andNot(isArchived());
 
         Page<RefBookVersionEntity> all = repository.findAll(where, Pageable.unpaged());
         List<RefBookVersionEntity> list = StreamSupport.stream(all.spliterator(), false)
