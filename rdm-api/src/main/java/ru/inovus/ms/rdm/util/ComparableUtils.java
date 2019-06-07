@@ -19,7 +19,9 @@ import ru.inovus.ms.rdm.model.compare.ComparableRow;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -68,8 +70,22 @@ public class ComparableUtils {
                 .orElse(null);
     }
 
+    private static boolean isRefBookRowValue(List<Structure.Attribute> primaries, Structure.Attribute refAttribute,
+                                             DiffRowValue diffRowValue, RefBookRowValue rowValue) {
+
+//        на данный момент может быть только: 1 поле -> 1 первичный ключ (ссылка на составной ключ невозможна)
+        DiffFieldValue diffFieldValue = diffRowValue.getDiffFieldValue(primaries.get(0).getCode());
+        return Objects.equals(
+                castRefValue(rowValue.getFieldValue(refAttribute.getCode()), primaries.get(0).getType()),
+                DiffStatusEnum.DELETED.equals(diffRowValue.getStatus())
+                        ? diffFieldValue.getOldValue()
+                        : diffFieldValue.getNewValue()
+        );
+    }
+
     /**
-     * В списке записей #refBookRowValues ищется запись, которая соответствует строке об изменениях #diffRowValue
+     * В списке записей #rowValues ищется первая запись,
+     * которая соответствует строке об изменениях #diffRowValue
      * на основании набора первичных ключей primaries.
      *
      * @param primaries    список первичных атрибутов для идентификации записи
@@ -77,21 +93,31 @@ public class ComparableUtils {
      * @param rowValues    список записей, среди которых ведется поиск
      * @return Найденная запись либо null
      */
-    public static RefBookRowValue findRefBookRowValue(List<Structure.Attribute> primaries, List<Structure.Attribute> refAttributes, DiffRowValue diffRowValue,
-                                                      List<RefBookRowValue> rowValues) {
+    public static RefBookRowValue findRefBookRowValue(List<Structure.Attribute> primaries, Structure.Attribute refAttribute,
+                                                      DiffRowValue diffRowValue, List<RefBookRowValue> rowValues) {
         return rowValues
                 .stream()
-                .filter(rowValue -> {
-                    DiffFieldValue diffFieldValue = diffRowValue.getDiffFieldValue(primaries.get(0).getCode());
-                    return castRefValue(rowValue.getFieldValue(refAttributes.get(0).getCode()), primaries.get(0).getType())
-                            .equals(
-                                    DiffStatusEnum.DELETED.equals(diffRowValue.getStatus())
-                                            ? diffFieldValue.getOldValue()
-                                            : diffFieldValue.getNewValue()
-                            );
-                })
+                .filter(rowValue -> isRefBookRowValue(primaries, refAttribute, diffRowValue, rowValue))
                 .findFirst()
                 .orElse(null);
+    }
+
+    /**
+     * В списке записей #rowValues ищутся записи,
+     * которые соответствует строке об изменениях #diffRowValue
+     * на основании набора первичных ключей primaries.
+     *
+     * @param primaries    список первичных атрибутов для идентификации записи
+     * @param diffRowValue diff-запись, для которой ведется поиск в полученном списке записей
+     * @param rowValues    список записей, среди которых ведется поиск
+     * @return Список найденных записей
+     */
+    public static List<RefBookRowValue> findRefBookRowValues(List<Structure.Attribute> primaries, Structure.Attribute refAttribute,
+                                                             DiffRowValue diffRowValue, List<RefBookRowValue> rowValues) {
+        return rowValues
+                .stream()
+                .filter(rowValue -> isRefBookRowValue(primaries, refAttribute, diffRowValue, rowValue))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -224,7 +250,7 @@ public class ComparableUtils {
         if (fieldValue instanceof ReferenceFieldValue) {
             Reference value = (Reference) fieldValue.getValue();
             if (refFieldType == FieldType.INTEGER) {
-                return BigInteger.valueOf(Integer.valueOf(value.getValue()));
+                return value.getValue() != null ? BigInteger.valueOf(Integer.valueOf(value.getValue())) : null;
             }
             return value.getValue();
         }

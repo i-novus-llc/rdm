@@ -24,8 +24,6 @@ public interface RefBookVersionRepository extends
     @Query("select v from RefBookVersionEntity v where v.refBook.code = ?1 and v.fromDate <= ?2 and (v.toDate > ?2 or v.toDate is null)")
     RefBookVersionEntity findActualOnDate(String refBookCode, LocalDateTime date);
 
-    RefBookVersionEntity findFirstByRefBookIdAndStatusOrderByFromDateDesc(Integer refBookId, RefBookVersionStatus status);
-
     RefBookVersionEntity findFirstByRefBookCodeAndStatusOrderByFromDateDesc(String refBookCode, RefBookVersionStatus status);
 
 }
