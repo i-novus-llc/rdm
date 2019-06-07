@@ -172,9 +172,9 @@ public class ConflictServiceImpl implements ConflictService {
         validateVersionsExistence(refToId);
 
         RefBookVersion refToVersion = versionService.getById(refToId);
-        Integer refToDraftId = getRefBookDraftVersion(refToVersion.getRefBookId()).getId();
+        Integer refToLastPublishedId = versionService.getLastPublishedVersion(refToVersion.getCode()).getId();
 
-        return checkConflicts(refFromId, refToId, refToDraftId, conflictType);
+        return checkConflicts(refFromId, refToLastPublishedId, refToId, conflictType);
     }
 
     /**
