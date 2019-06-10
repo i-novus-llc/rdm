@@ -15,7 +15,7 @@ import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.inovus.ms.rdm.entity.*;
-import ru.inovus.ms.rdm.enumeration.RefBookInfo;
+import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.PassportValueRepository;
@@ -454,6 +454,21 @@ public class RefBookServiceImpl implements RefBookService {
                 .collect(toList()));
 
         versionEntity.setPassportValues(newPassportValues);
+    }
+
+    /**
+     * Получение списка версий справочников с заданным типом источника.
+     *
+     * @param refBookIds        список идентификаторов справочников
+     * @param refBookSourceType источник данных справочника
+     * @return Список требуемых версий справочников
+     */
+    private List<RefBookVersionEntity> getSourceTypeVersions(List<Integer> refBookIds, RefBookSourceType refBookSourceType) {
+        RefBookCriteria versionCriteria = new RefBookCriteria();
+        versionCriteria.setRefBookSourceType(refBookSourceType);
+        versionCriteria.setRefBookIds(refBookIds);
+        return versionRepository.findAll(toPredicate(versionCriteria),
+                PageRequest.of(0, refBookIds.size())).getContent();
     }
 
     private List<RefBookVersionEntity> getLastPublishedVersions(List<Integer> refBookIds) {
