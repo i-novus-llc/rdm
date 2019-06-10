@@ -180,7 +180,7 @@ public class DraftServiceTest {
 
         Integer draftId = 0;
 
-        doThrow(new NotFoundException(new Message(VersionValidationImpl.DRAFT_NOT_FOUND_EXCEPTION_CODE, draftId)))
+        doThrow(new NotFoundException(new Message(VersionValidationImpl.DRAFT_NOT_FOUND, draftId)))
                 .when(versionValidation).validateDraft(eq(draftId));
         when(versionRepository.exists(hasVersionId(testDraftVersion.getId()).and(isDraft()))).thenReturn(true);
 
