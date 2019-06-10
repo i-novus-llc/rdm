@@ -27,6 +27,7 @@ import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.*;
 import ru.inovus.ms.rdm.util.RowUtils;
+import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -50,9 +51,10 @@ public class ConflictServiceImpl implements ConflictService {
     private RefBookService refBookService;
     private VersionService versionService;
     private DraftService draftService;
+
+    private VersionValidation versionValidation;
     private RefBookVersionRepository versionRepository;
 
-    private static final String VERSION_NOT_FOUND = "version.not.found";
     private static final String REFBOOK_DRAFT_NOT_FOUND = "refbook.draft.not.found";
     private static final String CONFLICTED_FROM_ROW_NOT_FOUND = "conflicted.from.row.not.found";
     private static final String CONFLICTED_TO_ROW_NOT_FOUND = "conflicted.to.row.not.found";
@@ -64,6 +66,7 @@ public class ConflictServiceImpl implements ConflictService {
                                RefBookService refBookService,
                                VersionService versionService,
                                DraftService draftService,
+                               VersionValidation versionValidation,
                                RefBookVersionRepository versionRepository) {
         this.compareService = compareService;
         this.draftDataService = draftDataService;
@@ -71,6 +74,8 @@ public class ConflictServiceImpl implements ConflictService {
         this.refBookService = refBookService;
         this.versionService = versionService;
         this.draftService = draftService;
+
+        this.versionValidation = versionValidation;
         this.versionRepository = versionRepository;
     }
 
@@ -81,8 +86,9 @@ public class ConflictServiceImpl implements ConflictService {
      */
     @Override
     public List<Conflict> calculateConflicts(Integer refFromId, Integer refToId) {
-        validateVersionsExistence(refFromId);
-        validateVersionsExistence(refToId);
+
+        versionValidation.validateVersionExists(refFromId);
+        versionValidation.validateVersionExists(refToId);
 
         RefBookVersion refToVersion = versionService.getById(refToId);
         Integer refToDraftId = getRefBookDraftVersion(refToVersion.getRefBookId()).getId();
@@ -168,8 +174,9 @@ public class ConflictServiceImpl implements ConflictService {
      */
     @Override
     public Boolean checkConflicts(Integer refFromId, Integer refToId, ConflictType conflictType) {
-        validateVersionsExistence(refFromId);
-        validateVersionsExistence(refToId);
+
+        versionValidation.validateVersionExists(refFromId);
+        versionValidation.validateVersionExists(refToId);
 
         RefBookVersion refToVersion = versionService.getById(refToId);
         Integer refToLastPublishedId = versionService.getLastPublishedVersion(refToVersion.getCode()).getId();
@@ -226,7 +233,8 @@ public class ConflictServiceImpl implements ConflictService {
      */
     @Override
     public List<RefBookVersion> getConflictReferrers(Integer versionId, ConflictType conflictType) {
-        validateVersionsExistence(versionId);
+
+        versionValidation.validateVersionExists(versionId);
 
         RefBookVersion version = versionService.getById(versionId);
 
@@ -249,8 +257,8 @@ public class ConflictServiceImpl implements ConflictService {
         if (CollectionUtils.isEmpty(conflicts))
             return;
 
-        validateVersionsExistence(refFromId);
-        validateVersionsExistence(refToId);
+        versionValidation.validateVersionExists(refFromId);
+        versionValidation.validateVersionExists(refToId);
 
         RefBookVersion refFromVersion = versionService.getById(refFromId);
         RefBookVersion refToVersion = versionService.getById(refToId);
@@ -407,15 +415,5 @@ public class ConflictServiceImpl implements ConflictService {
 
         Page<RefBookRowValue> rowValues = versionService.search(version.getId(), criteria);
         return (rowValues != null && !rowValues.isEmpty()) ? rowValues.get().findFirst().orElse(null) : null;
-    }
-
-    /**
-     * Проверка существования версии справочника.
-     *
-     * @param versionId идентификатор версии
-     */
-    private void validateVersionsExistence(Integer versionId) {
-        if (versionId == null || !versionRepository.existsById(versionId))
-            throw new NotFoundException(new Message(VERSION_NOT_FOUND, versionId));
     }
 }
