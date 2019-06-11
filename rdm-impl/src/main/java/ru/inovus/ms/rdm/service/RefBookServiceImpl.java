@@ -380,14 +380,15 @@ public class RefBookServiceImpl implements RefBookService {
         BooleanBuilder where = new BooleanBuilder();
         where.and(isLastVersion()).andNot(isArchived());
 
-        Page<RefBookVersionEntity> all = versionRepository.findAll(where, Pageable.unpaged());
-        List<RefBookVersionEntity> list = StreamSupport.stream(all.spliterator(), false)
-                .filter(actual ->
-                        Objects.nonNull(actual.getStructure())
-                                && !actual.getStructure().getRefCodeReferences(refBookCode).isEmpty())
+        Page<RefBookVersionEntity> allEntities = versionRepository.findAll(where, Pageable.unpaged());
+        List<RefBookVersionEntity> entities = StreamSupport
+                .stream(allEntities.spliterator(), false)
+                .filter(entity ->
+                        Objects.nonNull(entity.getStructure())
+                                && !entity.getStructure().getRefCodeReferences(refBookCode).isEmpty())
                 .collect(Collectors.toList());
 
-        return list.stream().map(ModelGenerator::versionModel).collect(Collectors.toList());
+        return entities.stream().map(ModelGenerator::versionModel).collect(Collectors.toList());
     }
 
     private boolean isRefBookRemovable(Integer refBookId) {
