@@ -292,7 +292,8 @@ public class ApplicationTest {
         refBookService.delete(REMOVABLE_REF_BOOK_ID);
         RefBookCriteria criteria = new RefBookCriteria();
         criteria.setCode(REMOVABLE_REF_BOOK_CODE);
-        assertEquals(0, refBookService.search(criteria).getTotalElements());
+        Page<RefBook> refBooks = refBookService.search(criteria);
+        assertEquals(0, refBooks.getTotalElements());
     }
 
     /**
@@ -1282,28 +1283,32 @@ public class ApplicationTest {
                 refBook1,
                 refBook2,
                 refBook3).iterator();
-        refBookService.search(criteria).getContent().forEach(actual -> assertRefBooksEqual(expected1.next(), actual));
+        refBookService.search(criteria).getContent()
+                .forEach(actual -> assertRefBooksEqual(expected1.next(), actual));
 
         criteria.setOrders(singletonList(new Sort.Order(Sort.Direction.ASC, "code")));
         Iterator<RefBook> expected2 = asList(
                 refBook3,
                 refBook1,
                 refBook2).iterator();
-        refBookService.search(criteria).getContent().forEach(actual -> assertRefBooksEqual(expected2.next(), actual));
+        refBookService.search(criteria).getContent()
+                .forEach(actual -> assertRefBooksEqual(expected2.next(), actual));
 
         criteria.setOrders(singletonList(new Sort.Order(Sort.Direction.DESC, "code")));
         Iterator<RefBook> expected3 = asList(
                 refBook2,
                 refBook1,
                 refBook3).iterator();
-        refBookService.search(criteria).getContent().forEach(actual -> assertRefBooksEqual(expected3.next(), actual));
+        refBookService.search(criteria).getContent()
+                .forEach(actual -> assertRefBooksEqual(expected3.next(), actual));
 
         criteria.setOrders(singletonList(new Sort.Order(Sort.Direction.ASC, "passport." + PASSPORT_ATTRIBUTE_SHORT_NAME)));
         Iterator<RefBook> expected4 = asList(
                 refBook3,
                 refBook2,
                 refBook1).iterator();
-        refBookService.search(criteria).getContent().forEach(actual -> assertRefBooksEqual(expected4.next(), actual));
+        refBookService.search(criteria).getContent()
+                .forEach(actual -> assertRefBooksEqual(expected4.next(), actual));
 
         criteria.setOrders(asList(
                 new Sort.Order(Sort.Direction.ASC, "passport." + PASSPORT_ATTRIBUTE_FULL_NAME),
@@ -1312,7 +1317,8 @@ public class ApplicationTest {
                 refBook1,
                 refBook3,
                 refBook2).iterator();
-        refBookService.search(criteria).getContent().forEach(actual -> assertRefBooksEqual(expected5.next(), actual));
+        refBookService.search(criteria).getContent()
+                .forEach(actual -> assertRefBooksEqual(expected5.next(), actual));
     }
 
     /*
