@@ -123,16 +123,18 @@ public class CreateDraftController {
 
     private Long calculateNewSystemId(Long oldSystemId, Integer oldVersionId, Integer newVersionId) {
         if (oldSystemId == null) return null;
+
         SearchDataCriteria criteria = new SearchDataCriteria();
         AttributeFilter recordIdFilter = new AttributeFilter("SYS_RECORDID", oldSystemId.intValue(), FieldType.INTEGER);
         criteria.setAttributeFilter(singleton(singletonList(recordIdFilter)));
+
         Page<RefBookRowValue> oldRow = versionService.search(oldVersionId, criteria);
         if (CollectionUtils.isEmpty(oldRow.getContent())) throw new NotFoundException("record not found");
-
         String hash = oldRow.getContent().get(0).getHash();
 
         AttributeFilter hashFilter = new AttributeFilter("SYS_HASH", hash, FieldType.STRING);
         final SearchDataCriteria hashCriteria = new SearchDataCriteria(ImmutableSet.of(singletonList(hashFilter)), null);
+
         final Page<RefBookRowValue> newRow = versionService.search(newVersionId, hashCriteria);
         if (CollectionUtils.isEmpty(newRow.getContent())) throw new NotFoundException("record not found");
         return newRow.getContent().get(0).getSystemId();
