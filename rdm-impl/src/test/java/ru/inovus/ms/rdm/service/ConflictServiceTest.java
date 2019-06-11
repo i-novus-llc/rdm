@@ -23,6 +23,7 @@ import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -70,8 +71,12 @@ public class ConflictServiceTest {
     private VersionService versionService;
     @Mock
     private DraftService draftService;
+
     @Mock
     private DraftDataService draftDataService;
+
+    @Mock
+    private VersionValidation versionValidation;
 
     @Mock
     private RefBookVersionRepository versionRepository;
@@ -84,7 +89,8 @@ public class ConflictServiceTest {
         referrerVersion = createReferrerVersion();
         publishingVersion = createPublishingVersion();
 
-        when(versionRepository.existsById(anyInt())).thenReturn(true);
+        doNothing().when(versionValidation).validateVersionExists(anyInt());
+
         when(versionService.getById(eq(REFERRER_VERSION_ID))).thenReturn(referrerVersion);
         when(versionService.getById(eq(PUBLISHING_VERSION_ID))).thenReturn(publishingVersion);
     }
