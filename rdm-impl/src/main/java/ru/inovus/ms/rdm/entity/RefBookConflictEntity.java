@@ -1,7 +1,6 @@
 package ru.inovus.ms.rdm.entity;
 
 import ru.inovus.ms.rdm.enumeration.ConflictType;
-import ru.inovus.ms.rdm.util.TimeUtils;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -25,7 +24,7 @@ public class RefBookConflictEntity {
     private RefBookVersionEntity publishedVersion;
 
     @Column(name = "ref_recordid", nullable = false)
-    private Integer refRecordId;
+    private Long refRecordId;
 
     @Column(name = "ref_field_code", nullable = false)
     private String refFieldCode;
@@ -42,7 +41,7 @@ public class RefBookConflictEntity {
 
     @PrePersist
     public void prePersist() {
-        LocalDateTime now = TimeUtils.now();
+        LocalDateTime now = LocalDateTime.now();
 
         if (creationDate == null)
             creationDate = now;
@@ -100,11 +99,11 @@ public class RefBookConflictEntity {
         this.publishedVersion = publishedVersion;
     }
 
-    public Integer getRefRecordId() {
+    public Long getRefRecordId() {
         return refRecordId;
     }
 
-    public void setRefRecordId(Integer refRecordId) {
+    public void setRefRecordId(Long refRecordId) {
         this.refRecordId = refRecordId;
     }
 
