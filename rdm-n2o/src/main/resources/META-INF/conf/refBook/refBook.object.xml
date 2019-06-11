@@ -151,7 +151,7 @@
     </operations>
 
     <validations>
-        <constraint id="hasDeletedConflicts" client-moment="before-load" severity="warning"
+        <constraint id="hasDeletedConflicts" severity="warning" client-moment="before-load"
                     result="#this.length() == 0"
                     message="Были удалены строки, на которые ссылались справочники системы: {referrerNames}">
             <!--    NB: Реализовать как модальное окно перед операцией -->
@@ -173,7 +173,8 @@
                 <param id="referrerNames" domain="string" mapping="#this"/>
             </out-parameters>
         </constraint>
-        <constraint id="hasUpdatedConflicts" client-moment="before-load" severity="warning"
+
+        <constraint id="hasUpdatedConflicts" severity="warning" client-moment="before-load"
                     result="#this.length() == 0"
                     message="Были изменены строки, на которые ссылались справочники системы: {referrerNames}">
             <!--    NB: Реализовать как модальное окно перед операцией -->
@@ -195,5 +196,6 @@
                 <param id="referrerNames" domain="string" mapping="#this"/>
             </out-parameters>
         </constraint>
+
     </validations>
 </object>
