@@ -1602,6 +1602,12 @@ public class ApplicationTest {
 
         Boolean actualDeleteCheck = conflictService.checkConflicts(refFromVersionId, refToDraftId, ConflictType.DELETED);
         assertEquals(Boolean.TRUE, actualDeleteCheck);
+
+        List<RefBookVersion> updatedReferrers = conflictService.getConflictReferrers(refToDraftId, ConflictType.UPDATED);
+        assertEquals(1, updatedReferrers.size());
+
+        List<RefBookVersion> deletedReferrers = conflictService.getConflictReferrers(refToDraftId, ConflictType.DELETED);
+        assertEquals(1, deletedReferrers.size());
     }
 
     /*
