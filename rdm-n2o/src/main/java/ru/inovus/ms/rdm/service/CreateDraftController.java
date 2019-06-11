@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.service;
 
+import com.google.common.collect.ImmutableSet;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.apache.cxf.common.util.CollectionUtils;
@@ -18,7 +19,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.google.common.collect.ImmutableSet.of;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 
@@ -124,15 +124,15 @@ public class CreateDraftController {
     private Long calculateNewSystemId(Long oldSystemId, Integer oldVersionId, Integer newVersionId) {
         if (oldSystemId == null) return null;
         SearchDataCriteria criteria = new SearchDataCriteria();
-        AttributeFilter recordId = new AttributeFilter("SYS_RECORDID", oldSystemId.intValue(), FieldType.INTEGER);
-        criteria.setAttributeFilter(singleton(singletonList(recordId)));
+        AttributeFilter recordIdFilter = new AttributeFilter("SYS_RECORDID", oldSystemId.intValue(), FieldType.INTEGER);
+        criteria.setAttributeFilter(singleton(singletonList(recordIdFilter)));
         Page<RefBookRowValue> oldRow = versionService.search(oldVersionId, criteria);
         if (CollectionUtils.isEmpty(oldRow.getContent())) throw new NotFoundException("record not found");
 
         String hash = oldRow.getContent().get(0).getHash();
 
-        final SearchDataCriteria hashCriteria = new SearchDataCriteria(of(singletonList(
-                new AttributeFilter("SYS_HASH", hash, FieldType.STRING))), null);
+        AttributeFilter hashFilter = new AttributeFilter("SYS_HASH", hash, FieldType.STRING);
+        final SearchDataCriteria hashCriteria = new SearchDataCriteria(ImmutableSet.of(singletonList(hashFilter)), null);
         final Page<RefBookRowValue> newRow = versionService.search(newVersionId, hashCriteria);
         if (CollectionUtils.isEmpty(newRow.getContent())) throw new NotFoundException("record not found");
         return newRow.getContent().get(0).getSystemId();
