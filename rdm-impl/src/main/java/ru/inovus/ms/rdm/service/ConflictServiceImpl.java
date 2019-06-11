@@ -9,32 +9,31 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
-import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.inovus.ms.rdm.entity.RefBookConflictEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.NotFoundException;
-import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
+import ru.inovus.ms.rdm.repositiory.RefBookConflictRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.*;
 import ru.inovus.ms.rdm.util.RowUtils;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
+import javax.transaction.Transactional;
+import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static ru.inovus.ms.rdm.util.ComparableUtils.findRefBookRowValue;
 import static ru.inovus.ms.rdm.util.ComparableUtils.findRefBookRowValues;
@@ -44,6 +43,8 @@ import static ru.inovus.ms.rdm.util.ConflictUtils.diffStatusToConflictType;
 @Primary
 @Service
 public class ConflictServiceImpl implements ConflictService {
+
+    private RefBookConflictRepository conflictRepository;
 
     private CompareService compareService;
     private DraftDataService draftDataService;
@@ -56,18 +57,23 @@ public class ConflictServiceImpl implements ConflictService {
     private RefBookVersionRepository versionRepository;
 
     private static final String REFBOOK_DRAFT_NOT_FOUND = "refbook.draft.not.found";
+    private static final String CONFLICT_NOT_FOUND = "conflict.not.found";
     private static final String CONFLICTED_FROM_ROW_NOT_FOUND = "conflicted.from.row.not.found";
     private static final String CONFLICTED_TO_ROW_NOT_FOUND = "conflicted.to.row.not.found";
     private static final String CONFLICTED_REFERENCE_NOT_FOUND = "conflicted.reference.row.not.found";
 
     @Autowired
-    public ConflictServiceImpl(CompareService compareService,
+    @SuppressWarnings("all")
+    public ConflictServiceImpl(RefBookConflictRepository conflictRepository,
+                               CompareService compareService,
                                DraftDataService draftDataService,
                                RefBookService refBookService,
                                VersionService versionService,
                                DraftService draftService,
                                VersionValidation versionValidation,
                                RefBookVersionRepository versionRepository) {
+        this.conflictRepository = conflictRepository;
+
         this.compareService = compareService;
         this.draftDataService = draftDataService;
 
@@ -80,9 +86,61 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
+     * Сохранение информации о конфликте.
+     *
+     * @param refFromId идентификатор черновика справочника со ссылками
+     * @param refToId   идентификатор версии изменённого справочника
+     * @param conflict  конфликт
+     * @return Конфликт
+     */
+    //@Override
+    @Transactional
+    public Conflict create(Integer refFromId, Integer refToId, Conflict conflict) {
+        if (conflict == null)
+            throw new NotFoundException(CONFLICT_NOT_FOUND);
+
+        RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
+        RefBookVersionEntity refToEntity = versionRepository.getOne(refToId);
+        RefBookRowValue refFromRowValue = getRefFromRowValue(refFromEntity, conflict.getPrimaryValues());
+        if (refFromRowValue == null)
+            throw new NotFoundException(CONFLICTED_FROM_ROW_NOT_FOUND);
+
+        return create(refFromEntity, refToEntity, refFromRowValue, conflict);
+    }
+
+    private Conflict create(RefBookVersionEntity referrerEntity, RefBookVersionEntity publishedEntity,
+                            RefBookRowValue referrerRowValue, Conflict conflict) {
+        RefBookConflictEntity entity = new RefBookConflictEntity();
+        entity.setReferrerVersion(referrerEntity);
+        entity.setPublishedVersion(publishedEntity);
+
+        entity.setRefRecordId(referrerRowValue.getSystemId());
+        entity.setRefFieldCode(conflict.getRefAttributeCode());
+        entity.setConflictType(conflict.getConflictType());
+
+        RefBookConflictEntity savedEntity = conflictRepository.save(entity);
+
+        return conflictModel(savedEntity);
+    }
+
+    private Conflict conflictModel(RefBookConflictEntity entity) {
+        if (entity == null)
+            return null;
+
+        Conflict conflict = new Conflict();
+        conflict.setRefAttributeCode(entity.getRefFieldCode());
+        conflict.setConflictType(entity.getConflictType());
+
+        RefBookRowValue referrerRowValue = getSystemRowValue(entity.getReferrerVersion(), entity.getRefRecordId());
+        conflict.setPrimaryValues(getRowPrimaryValues(referrerRowValue, entity.getReferrerVersion().getStructure()));
+
+        return conflict;
+    }
+
+    /**
      * Вычисление конфликтов справочников при наличии ссылочных атрибутов.
      *
-     * @see #checkConflicts
+     * @see #checkDiffConflicts
      */
     @Override
     public List<Conflict> calculateConflicts(Integer refFromId, Integer refToId) {
@@ -90,8 +148,8 @@ public class ConflictServiceImpl implements ConflictService {
         versionValidation.validateVersionExists(refFromId);
         versionValidation.validateVersionExists(refToId);
 
-        RefBookVersion refToVersion = versionService.getById(refToId);
-        Integer refToDraftId = getRefBookDraftVersion(refToVersion.getRefBookId()).getId();
+        RefBookVersionEntity refToEntity = versionRepository.getOne(refToId);
+        Integer refToDraftId = getRefBookDraftVersion(refToEntity.getRefBook().getId()).getId();
 
         return calculateConflicts(refFromId, refToId, refToDraftId);
     }
@@ -106,22 +164,22 @@ public class ConflictServiceImpl implements ConflictService {
      */
     private List<Conflict> calculateConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId) {
 
-        RefBookVersion refFromVersion = versionService.getById(refFromId);
-        RefBookVersion refToVersion = versionService.getById(oldRefToId);
+        RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
+        RefBookVersionEntity refToEntity = versionRepository.getOne(oldRefToId);
 
-        List<Structure.Attribute> refAttributes = getRefAttributes(refFromVersion, refToVersion);
+        List<Structure.Attribute> refAttributes = getRefAttributes(refFromEntity, refToEntity);
 
         Page<RefBookRowValue> refFromRowValues = versionService.search(refFromId, new SearchDataCriteria());
 
         RefBookDataDiff dataDiff = compareService.compareData(new CompareDataCriteria(oldRefToId, newRefToId));
 
-        return createConflicts(dataDiff.getRows().getContent(), refFromRowValues.getContent(),
-                refToVersion.getStructure(), refFromVersion.getStructure(), refAttributes);
+        return createDiffConflicts(dataDiff.getRows().getContent(), refFromRowValues.getContent(),
+                refToEntity.getStructure(), refFromEntity.getStructure(), refAttributes);
     }
 
-    private List<Conflict> createConflicts(List<DiffRowValue> diffRowValues, List<RefBookRowValue> refFromRowValues,
-                                           Structure refToStructure, Structure refFromStructure,
-                                           List<Structure.Attribute> refFromAttributes) {
+    private List<Conflict> createDiffConflicts(List<DiffRowValue> diffRowValues, List<RefBookRowValue> refFromRowValues,
+                                               Structure refToStructure, Structure refFromStructure,
+                                               List<Structure.Attribute> refFromAttributes) {
         return refFromAttributes
                 .stream()
                 .flatMap(refFromAttribute ->
@@ -136,35 +194,19 @@ public class ConflictServiceImpl implements ConflictService {
                                                     diffRowValue, refFromRowValues);
                                     return rowValues.stream()
                                             .map(rowValue ->
-                                                    createConflict(diffRowValue, rowValue, refFromAttribute, refFromStructure));
+                                                    createDiffConflict(diffRowValue, rowValue, refFromAttribute, refFromStructure));
                                 })
                 ).collect(toList());
     }
 
-    private Conflict createConflict(DiffRowValue diffRowValue, RefBookRowValue refFromRowValue,
-                                    Structure.Attribute refFromAttribute, Structure refFromStructure) {
+    private Conflict createDiffConflict(DiffRowValue diffRowValue, RefBookRowValue refFromRowValue,
+                                        Structure.Attribute refFromAttribute, Structure refFromStructure) {
         Conflict conflict = new Conflict();
         conflict.setRefAttributeCode(refFromAttribute.getCode());
         conflict.setConflictType(diffStatusToConflictType(diffRowValue.getStatus()));
-        conflict.setPrimaryValues(convertToFieldValues(refFromRowValue, refFromStructure));
-        return conflict;
-    }
+        conflict.setPrimaryValues(getRowPrimaryValues(refFromRowValue, refFromStructure));
 
-    /**
-     * Получение значений первичных ключей
-     * по записи {@code refFromRowValue} на основании структуры {@code refFromStructure}.
-     *
-     * @param refFromRowValue  запись справочника
-     * @param refFromStructure структура справочника
-     * @return Список значений полей для первичных ключей
-     */
-    private List<FieldValue> convertToFieldValues(RefBookRowValue refFromRowValue, Structure refFromStructure) {
-        return refFromRowValue
-                .getFieldValues()
-                .stream()
-                .filter(fieldValue ->
-                        refFromStructure.getAttribute(fieldValue.getField()).getIsPrimary())
-                .collect(toList());
+        return conflict;
     }
 
     /**
@@ -178,8 +220,8 @@ public class ConflictServiceImpl implements ConflictService {
         versionValidation.validateVersionExists(refFromId);
         versionValidation.validateVersionExists(refToId);
 
-        RefBookVersion refToVersion = versionService.getById(refToId);
-        Integer refToLastPublishedId = versionService.getLastPublishedVersion(refToVersion.getCode()).getId();
+        RefBookVersionEntity refToEntity = versionRepository.getOne(refToId);
+        Integer refToLastPublishedId = versionService.getLastPublishedVersion(refToEntity.getRefBook().getCode()).getId();
 
         return checkConflicts(refFromId, refToLastPublishedId, refToId, conflictType);
     }
@@ -194,23 +236,23 @@ public class ConflictServiceImpl implements ConflictService {
      */
     private Boolean checkConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId, ConflictType conflictType) {
 
-        RefBookVersion refFromVersion = versionService.getById(refFromId);
-        RefBookVersion refToVersion = versionService.getById(oldRefToId);
+        RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
+        RefBookVersionEntity refToEntity = versionRepository.getOne(oldRefToId);
 
-        List<Structure.Attribute> refAttributes = getRefAttributes(refFromVersion, refToVersion);
+        List<Structure.Attribute> refAttributes = getRefAttributes(refFromEntity, refToEntity);
 
         Page<RefBookRowValue> refFromRowValues = versionService.search(refFromId, new SearchDataCriteria());
 
         RefBookDataDiff dataDiff = compareService.compareData(new CompareDataCriteria(oldRefToId, newRefToId));
         DiffStatusEnum diffStatus = conflictTypeToDiffStatus(conflictType);
 
-        return checkConflicts(dataDiff.getRows().getContent(), refFromRowValues.getContent(),
-                refToVersion.getStructure(), refAttributes, diffStatus);
+        return checkDiffConflicts(dataDiff.getRows().getContent(), refFromRowValues.getContent(),
+                refToEntity.getStructure(), refAttributes, diffStatus);
     }
 
-    private Boolean checkConflicts(List<DiffRowValue> diffRowValues, List<RefBookRowValue> refFromRowValues,
-                                   Structure refToStructure, List<Structure.Attribute> refFromAttributes,
-                                   DiffStatusEnum diffStatus) {
+    private Boolean checkDiffConflicts(List<DiffRowValue> diffRowValues, List<RefBookRowValue> refFromRowValues,
+                                       Structure refToStructure, List<Structure.Attribute> refFromAttributes,
+                                       DiffStatusEnum diffStatus) {
         return refFromAttributes
                 .stream()
                 .anyMatch(refFromAttribute ->
@@ -236,9 +278,8 @@ public class ConflictServiceImpl implements ConflictService {
 
         versionValidation.validateVersionExists(versionId);
 
-        RefBookVersion version = versionService.getById(versionId);
-
-        List<RefBookVersion> referrers = refBookService.getReferrerVersions(version.getCode());
+        RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
+        List<RefBookVersion> referrers = refBookService.getReferrerVersions(versionEntity.getRefBook().getCode());
         return referrers.stream()
                 .filter(referrer -> checkConflicts(referrer.getId(), versionId, conflictType))
                 .collect(Collectors.toList());
@@ -260,20 +301,20 @@ public class ConflictServiceImpl implements ConflictService {
         versionValidation.validateVersionExists(refFromId);
         versionValidation.validateVersionExists(refToId);
 
-        RefBookVersion refFromVersion = versionService.getById(refFromId);
-        RefBookVersion refToVersion = versionService.getById(refToId);
+        RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
+        RefBookVersionEntity refToEntity = versionRepository.getOne(refToId);
 
         Draft refFromDraft;
-        if (RefBookVersionStatus.DRAFT.equals(refFromVersion.getStatus()))
+        if (RefBookVersionStatus.DRAFT.equals(refFromEntity.getStatus()))
             refFromDraft = draftService.getDraft(refFromId);
         else
             refFromDraft = draftService.createFromVersion(refFromId);
-        RefBookVersion refFromDraftVersion = versionService.getById(refFromDraft.getId());
+        RefBookVersionEntity refFromDraftEntity = versionRepository.getOne(refFromDraft.getId());
         Draft refToDraft = draftService.getDraft(refToId);
 
         conflicts.stream()
                 .filter(conflict -> ConflictType.UPDATED.equals(conflict.getConflictType()))
-                .forEach(conflict -> updateReferenceValues(refFromDraftVersion, refToVersion, conflict,
+                .forEach(conflict -> updateReferenceValues(refFromDraftEntity, refToEntity, conflict,
                         refFromDraft.getStorageCode(),
                         refToDraft.getStorageCode()));
     }
@@ -281,34 +322,34 @@ public class ConflictServiceImpl implements ConflictService {
     /**
      * Обновление ссылок в справочнике по конфликту.
      *
-     * @param refFromDraftVersion версия справочника со ссылками
-     * @param refToVersion        версия изменённого справочника
+     * @param refFromDraftEntity версия справочника со ссылками
+     * @param refToEntity        версия изменённого справочника
      * @param conflict            конфликт
      * @param refFromStorageCode  код хранилища справочника со ссылками
      * @param refToStorageCode    код хранилища изменённого справочника
      */
-    private void updateReferenceValues(RefBookVersion refFromDraftVersion,
-                                       RefBookVersion refToVersion,
+    private void updateReferenceValues(RefBookVersionEntity refFromDraftEntity,
+                                       RefBookVersionEntity refToEntity,
                                        Conflict conflict,
                                        String refFromStorageCode,
                                        String refToStorageCode) {
         if (conflict == null || conflict.isEmpty())
             return;
 
-        RefBookRowValue refFromRow = getRefFromRowValue(refFromDraftVersion, conflict.getPrimaryValues());
+        RefBookRowValue refFromRow = getRefFromRowValue(refFromDraftEntity, conflict.getPrimaryValues());
         if (refFromRow == null)
-            throw new RdmException(CONFLICTED_FROM_ROW_NOT_FOUND);
+            throw new NotFoundException(CONFLICTED_FROM_ROW_NOT_FOUND);
 
         FieldValue referenceFieldValue = refFromRow.getFieldValue(conflict.getRefAttributeCode());
         if (!(referenceFieldValue instanceof ReferenceFieldValue))
-            throw new RdmException(CONFLICTED_REFERENCE_NOT_FOUND);
+            throw new NotFoundException(CONFLICTED_REFERENCE_NOT_FOUND);
 
         Reference oldReference = ((ReferenceFieldValue) referenceFieldValue).getValue();
-        RefBookRowValue refToRow = getRefToRowValue(refToVersion, conflict, oldReference);
+        RefBookRowValue refToRow = getRefToRowValue(refToEntity, conflict, oldReference);
         if (refToRow == null)
-            throw new RdmException(CONFLICTED_TO_ROW_NOT_FOUND);
+            throw new NotFoundException(CONFLICTED_TO_ROW_NOT_FOUND);
 
-        Structure.Reference reference = refFromDraftVersion.getStructure().getReference(conflict.getRefAttributeCode());
+        Structure.Reference reference = refFromDraftEntity.getStructure().getReference(conflict.getRefAttributeCode());
         String displayValue = RowUtils.toDisplayValue(reference.getDisplayExpression(), refToRow);
 
         if (!Objects.equals(oldReference.getDisplayValue(), displayValue)) {
@@ -320,7 +361,7 @@ public class ConflictServiceImpl implements ConflictService {
                     oldReference.getValue(),
                     displayValue);
 
-            updateReferenceValue(refFromDraftVersion.getId(),
+            updateReferenceValue(refFromDraftEntity.getId(),
                     refFromStorageCode,
                     refFromRow.getSystemId(),
                     reference.getAttribute(),
@@ -348,16 +389,37 @@ public class ConflictServiceImpl implements ConflictService {
     /**
      * Получение ссылочных атрибутов.
      *
-     * @param refFromVersion версия, которая ссылается
-     * @param refToVersion   версия, на которую ссылаются
+     * @param refFromEntity версия справочника, которая ссылается
+     * @param refToEntity   версия справочника, на который ссылаются
      * @return Список атрибутов
      */
-    private List<Structure.Attribute> getRefAttributes(RefBookVersion refFromVersion, RefBookVersion refToVersion) {
-        return refFromVersion.getStructure()
-                .getRefCodeReferences(refToVersion.getCode())
+    private List<Structure.Attribute> getRefAttributes(RefBookVersionEntity refFromEntity, RefBookVersionEntity refToEntity) {
+        return refFromEntity.getStructure()
+                .getRefCodeReferences(refToEntity.getRefBook().getCode())
                 .stream()
                 .map(ref ->
-                        refFromVersion.getStructure().getAttribute(ref.getAttribute()))
+                        refFromEntity.getStructure().getAttribute(ref.getAttribute()))
+                .collect(toList());
+    }
+
+    /**
+     * Получение значений первичных ключей
+     * по записи {@code rowValue} на основании структуры {@code structure}.
+     *
+     * @param rowValue  запись справочника
+     * @param structure структура справочника
+     * @return Список значений полей для первичных ключей
+     */
+    private List<FieldValue> getRowPrimaryValues(RefBookRowValue rowValue, Structure structure) {
+
+        if (rowValue == null || structure == null)
+            return emptyList();
+
+        return rowValue
+                .getFieldValues()
+                .stream()
+                .filter(fieldValue ->
+                        structure.getAttribute(fieldValue.getField()).getIsPrimary())
                 .collect(toList());
     }
 
@@ -378,42 +440,58 @@ public class ConflictServiceImpl implements ConflictService {
     /**
      * Получение конфликтной записи по конфликту.
      */
-    private RefBookRowValue getRefFromRowValue(RefBookVersion version, List<FieldValue> fieldValues) {
+    private RefBookRowValue getSystemRowValue(RefBookVersionEntity entity, Long systemId) {
 
-        if (version == null || CollectionUtils.isEmpty(fieldValues))
+        if (entity == null || systemId == null)
+            return null;
+
+        SearchDataCriteria criteria = new SearchDataCriteria();
+        AttributeFilter recordIdFilter = new AttributeFilter("SYS_RECORDID", BigInteger.valueOf(systemId), FieldType.INTEGER);
+        criteria.setAttributeFilter(singleton(singletonList(recordIdFilter)));
+
+        Page<RefBookRowValue> rowValues = versionService.search(entity.getId(), criteria);
+        return (rowValues != null && !rowValues.isEmpty()) ? rowValues.get().findFirst().orElse(null) : null;
+    }
+
+    /**
+     * Получение конфликтной записи по конфликту.
+     */
+    private RefBookRowValue getRefFromRowValue(RefBookVersionEntity entity, List<FieldValue> fieldValues) {
+
+        if (entity == null || CollectionUtils.isEmpty(fieldValues))
             return null;
 
         SearchDataCriteria criteria = new SearchDataCriteria();
 
         List<AttributeFilter> filters = new ArrayList<>();
         fieldValues.forEach(fieldValue -> {
-            FieldType fieldType = version.getStructure().getAttribute(fieldValue.getField()).getType();
+            FieldType fieldType = entity.getStructure().getAttribute(fieldValue.getField()).getType();
             filters.add(new AttributeFilter(fieldValue.getField(), fieldValue.getValue(), fieldType, SearchTypeEnum.EXACT));
         });
         criteria.setAttributeFilter(singleton(filters));
 
-        Page<RefBookRowValue> rowValues = versionService.search(version.getId(), criteria);
+        Page<RefBookRowValue> rowValues = versionService.search(entity.getId(), criteria);
         return (rowValues != null && !rowValues.isEmpty()) ? rowValues.get().findFirst().orElse(null) : null;
     }
 
     /**
      * Получение записи по ссылке из конфликтной записи.
      */
-    private RefBookRowValue getRefToRowValue(RefBookVersion version, Conflict conflict, Reference reference) {
+    private RefBookRowValue getRefToRowValue(RefBookVersionEntity entity, Conflict conflict, Reference reference) {
 
-        if (version == null || conflict == null ||
+        if (entity == null || conflict == null ||
                 StringUtils.isEmpty(conflict.getRefAttributeCode()))
             return null;
 
         SearchDataCriteria criteria = new SearchDataCriteria();
 
         List<AttributeFilter> filters = new ArrayList<>();
-        Structure.Attribute attribute = version.getStructure().getAttribute(reference.getKeyField());
+        Structure.Attribute attribute = entity.getStructure().getAttribute(reference.getKeyField());
         AttributeFilter filter = new AttributeFilter(attribute.getCode(), reference.getValue(), attribute.getType(), SearchTypeEnum.EXACT);
         filters.add(filter);
         criteria.setAttributeFilter(singleton(filters));
 
-        Page<RefBookRowValue> rowValues = versionService.search(version.getId(), criteria);
+        Page<RefBookRowValue> rowValues = versionService.search(entity.getId(), criteria);
         return (rowValues != null && !rowValues.isEmpty()) ? rowValues.get().findFirst().orElse(null) : null;
     }
 }

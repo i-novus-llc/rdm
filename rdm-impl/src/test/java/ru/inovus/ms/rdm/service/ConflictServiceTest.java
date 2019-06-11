@@ -17,6 +17,8 @@ import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.inovus.ms.rdm.entity.RefBookEntity;
+import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
@@ -28,6 +30,7 @@ import ru.inovus.ms.rdm.validation.VersionValidation;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
@@ -81,26 +84,29 @@ public class ConflictServiceTest {
     @Mock
     private RefBookVersionRepository versionRepository;
 
-    private RefBookVersion referrerVersion;
-    private RefBookVersion publishingVersion;
+    private RefBookVersionEntity referrerEntity;
+    private RefBookVersionEntity publishingEntity;
 
     @Before
     public void setUp() {
-        referrerVersion = createReferrerVersion();
-        publishingVersion = createPublishingVersion();
+        referrerEntity = createReferrerEntity();
+        publishingEntity = createPublishingEntity();
 
         doNothing().when(versionValidation).validateVersionExists(anyInt());
 
-        when(versionService.getById(eq(REFERRER_VERSION_ID))).thenReturn(referrerVersion);
-        when(versionService.getById(eq(PUBLISHING_VERSION_ID))).thenReturn(publishingVersion);
+        when(versionRepository.getOne(eq(REFERRER_VERSION_ID))).thenReturn(referrerEntity);
+        when(versionRepository.getOne(eq(PUBLISHING_VERSION_ID))).thenReturn(publishingEntity);
     }
 
-    private RefBookVersion createReferrerVersion() {
-        RefBookVersion version = new RefBookVersion();
-        version.setCode(REFERRER_REF_BOOK_CODE);
-        version.setId(REFERRER_VERSION_ID);
-        version.setRefBookId(REFERRER_REF_BOOK_ID);
-        version.setStatus(RefBookVersionStatus.DRAFT);
+    private RefBookVersionEntity createReferrerEntity() {
+        RefBookEntity refBookEntity = new RefBookEntity();
+        refBookEntity.setId(REFERRER_REF_BOOK_ID);
+        refBookEntity.setCode(REFERRER_REF_BOOK_CODE);
+
+        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
+        versionEntity.setId(REFERRER_VERSION_ID);
+        versionEntity.setRefBook(refBookEntity);
+        versionEntity.setStatus(RefBookVersionStatus.DRAFT);
 
         Structure structure = new Structure(
                 asList(
@@ -111,17 +117,20 @@ public class ConflictServiceTest {
                         new Structure.Reference(REFERRER_REFERENCE_ATTRIBUTE_CODE, PUBLISHING_REF_BOOK_CODE, REFERRER_REFERENCE_DISPLAY_EXPRESSION)
                 )
             );
-        version.setStructure(structure);
+        versionEntity.setStructure(structure);
 
-        return version;
+        return versionEntity;
     }
 
-    private RefBookVersion createPublishingVersion() {
-        RefBookVersion version = new RefBookVersion();
-        version.setCode(PUBLISHING_REF_BOOK_CODE);
-        version.setId(PUBLISHING_VERSION_ID);
-        version.setRefBookId(PUBLISHING_REF_BOOK_ID);
-        version.setStatus(RefBookVersionStatus.DRAFT);
+    private RefBookVersionEntity createPublishingEntity() {
+        RefBookEntity refBookEntity = new RefBookEntity();
+        refBookEntity.setId(PUBLISHING_REF_BOOK_ID);
+        refBookEntity.setCode(PUBLISHING_REF_BOOK_CODE);
+
+        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
+        versionEntity.setId(PUBLISHING_VERSION_ID);
+        versionEntity.setRefBook(refBookEntity);
+        versionEntity.setStatus(RefBookVersionStatus.DRAFT);
 
         Structure structure = new Structure(
                 asList(
@@ -131,9 +140,9 @@ public class ConflictServiceTest {
                 ),
                 emptyList()
         );
-        version.setStructure(structure);
+        versionEntity.setStructure(structure);
 
-        return version;
+        return versionEntity;
     }
 
     private Draft createReferrerDraft() {
@@ -144,17 +153,20 @@ public class ConflictServiceTest {
         return draft;
     }
 
-    private RefBookVersion createReferrerDraftVersion() {
-        RefBookVersion version = new RefBookVersion();
-        version.setCode(REFERRER_REF_BOOK_CODE);
-        version.setId(REFERRER_DRAFT_ID);
-        version.setRefBookId(REFERRER_REF_BOOK_ID);
-        version.setStatus(RefBookVersionStatus.DRAFT);
+    private RefBookVersionEntity createReferrerDraftEntity() {
+        RefBookEntity refBookEntity = new RefBookEntity();
+        refBookEntity.setId(REFERRER_REF_BOOK_ID);
+        refBookEntity.setCode(REFERRER_REF_BOOK_CODE);
 
-        Structure structure = new Structure(referrerVersion.getStructure());
-        version.setStructure(structure);
+        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
+        versionEntity.setId(REFERRER_DRAFT_ID);
+        versionEntity.setRefBook(refBookEntity);
+        versionEntity.setStatus(RefBookVersionStatus.DRAFT);
 
-        return version;
+        Structure structure = new Structure(referrerEntity.getStructure());
+        versionEntity.setStructure(structure);
+
+        return versionEntity;
     }
 
     private Draft createPublishingDraft() {
@@ -173,11 +185,11 @@ public class ConflictServiceTest {
     public void testUpdateReferenceValues() {
 
         Draft referrerDraft = createReferrerDraft();
-        RefBookVersion referrerDraftVersion = createReferrerDraftVersion();
+        RefBookVersionEntity referrerDraftEntity = createReferrerDraftEntity();
         Draft publishingDraft = createPublishingDraft();
 
         when(draftService.getDraft(eq(REFERRER_VERSION_ID))).thenReturn(referrerDraft);
-        when(versionService.getById(eq(REFERRER_DRAFT_ID))).thenReturn(referrerDraftVersion);
+        when(versionRepository.getOne(eq(REFERRER_DRAFT_ID))).thenReturn(referrerDraftEntity);
 
         when(draftService.getDraft(eq(PUBLISHING_VERSION_ID))).thenReturn(publishingDraft);
 
