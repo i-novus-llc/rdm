@@ -21,8 +21,8 @@ public final class RefBookVersionPredicates {
     public static final LocalDateTime MIN_TIMESTAMP = LocalDateTime.ofInstant(Instant.ofEpochMilli(0L),
             TimeZone.getDefault().toZoneId());
 
-    public static final String EXISTS_VERSION = "existsVersion";
-    public static final String IS_LAST_DATE_VERSION = "isLastDateVersion";
+    private static final String EXISTS_VERSION = "existsVersion";
+    private static final String IS_LAST_DATE_VERSION = "isLastDateVersion";
 
     private RefBookVersionPredicates() {
     }
@@ -58,6 +58,9 @@ public final class RefBookVersionPredicates {
     }
 
     public static BooleanExpression isSourceType(RefBookSourceType sourceType) {
+        if (sourceType == null)
+            return isLastVersion();
+
         switch (sourceType) {
             case ACTUAL: return isActual();
             case DRAFT: return isDraft();
