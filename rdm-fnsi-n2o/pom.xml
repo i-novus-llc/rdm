@@ -7,6 +7,10 @@
         <version>1.30-SNAPSHOT</version>
     </parent>
 
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>rdm-fnsi-n2o</artifactId>
