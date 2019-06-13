@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.service.api;
 
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
+import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.model.*;
 
 import javax.ws.rs.*;
@@ -115,5 +116,8 @@ public interface RefBookService {
     })
     List<RefBookVersion> getReferrerVersions(@ApiParam("Код справочника")
                                              @PathParam("refBookCode")
-                                                     String refBookCode);
+                                                     String refBookCode,
+                                             @ApiParam("Тип источника")
+                                             @QueryParam("sourceType")
+                                                     RefBookSourceType sourceType);
 }

@@ -62,6 +62,7 @@ public final class RefBookVersionPredicates {
             return isLastVersion();
 
         switch (sourceType) {
+            case ALL: return null;
             case ACTUAL: return isActual();
             case DRAFT: return isDraft();
             case LAST_PUBLISHED: return isLastPublished();

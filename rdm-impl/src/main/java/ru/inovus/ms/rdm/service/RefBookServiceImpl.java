@@ -376,9 +376,9 @@ public class RefBookServiceImpl implements RefBookService {
     // NB: Необходим также для отображения справочников, ссылающихся на текущий справочник.
     @Override
     @Transactional
-    public List<RefBookVersion> getReferrerVersions(String refBookCode) {
+    public List<RefBookVersion> getReferrerVersions(String refBookCode, RefBookSourceType sourceType) {
         BooleanBuilder where = new BooleanBuilder();
-        where.and(isLastVersion()).andNot(isArchived());
+        where.and(isSourceType(sourceType)).andNot(isArchived());
 
         Page<RefBookVersionEntity> allEntities = versionRepository.findAll(where, Pageable.unpaged());
         List<RefBookVersionEntity> entities = StreamSupport
