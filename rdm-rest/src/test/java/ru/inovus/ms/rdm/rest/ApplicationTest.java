@@ -120,6 +120,10 @@ public class ApplicationTest {
     private DraftService draftService;
 
     @Autowired
+    @Qualifier("publishServiceJaxRsProxyClient")
+    private PublishService publishService;
+
+    @Autowired
     @Qualifier("versionServiceJaxRsProxyClient")
     private VersionService versionService;
 
@@ -459,7 +463,7 @@ public class ApplicationTest {
 
     @Test
     public void testPublishFirstDraft() {
-        draftService.publish(TEST_PUBLISHING_VERSION_ID, "1.0", LocalDateTime.now(), null);
+        publishService.publish(TEST_PUBLISHING_VERSION_ID, "1.0", LocalDateTime.now(), null);
         Page<RefBookRowValue> rowValuesInVersion = versionService.search(TEST_PUBLISHING_BOOK_CODE, OffsetDateTime.now(), new SearchDataCriteria());
 
         List fieldValues = rowValuesInVersion.getContent().get(0).getFieldValues();
@@ -579,7 +583,7 @@ public class ApplicationTest {
                         draftService.createAttribute(new CreateAttribute(oldVersionId, attribute, null))
                 );
         draftService.updateData(oldVersionId, createFileModel(OLD_FILE_NAME, "testCompare/" + OLD_FILE_NAME));
-        draftService.publish(oldVersionId, "1.0", LocalDateTime.now(), null);
+        publishService.publish(oldVersionId, "1.0", LocalDateTime.now(), null);
 
         Map<String, Object> rowMap = new HashMap<>(){{
             put(id.getCode(), BigInteger.valueOf(1));
@@ -636,13 +640,13 @@ public class ApplicationTest {
                         draftService.createAttribute(new CreateAttribute(oldVersionId, attribute, null))
                 );
         draftService.updateData(oldVersionId, createFileModel(OLD_FILE_NAME, "testCompare/" + OLD_FILE_NAME));
-        draftService.publish(oldVersionId, "1.0", publishDate1, closeDate1);
+        publishService.publish(oldVersionId, "1.0", publishDate1, closeDate1);
 
         Integer newVersionId = draftService
                 .create(new CreateDraftRequest(refBook.getRefBookId(), new Structure(asList(id, code, common, name, upd, type), emptyList())))
                 .getId();
         draftService.updateData(newVersionId, createFileModel(NEW_FILE_NAME, "testCompare/" + NEW_FILE_NAME));
-        draftService.publish(newVersionId, "1.1", publishDate2, closeDate2);
+        publishService.publish(newVersionId, "1.1", publishDate2, closeDate2);
 
         Set<List<AttributeFilter>> filters = new HashSet<>(){{
             add(asList(
@@ -750,7 +754,7 @@ public class ApplicationTest {
                 rowValue(row1, structure),
                 rowValue(row2, structure));
         draftDataService.addRows(draft.getStorageCode(), rowValues);
-        draftService.publish(draft.getId(), null, null, null);
+        publishService.publish(draft.getId(), null, null, null);
 
         try {
             draftService.createFromVersion(0);
@@ -1121,7 +1125,7 @@ public class ApplicationTest {
         RefBook relRefBook = refBookService.create(new RefBookCreateRequest(RELATION_REFBOOK_CODE, null));
         draftService.createAttribute(new CreateAttribute(relRefBook.getId(), Structure.Attribute.buildPrimary(RELATION_ATTR_CODE, "string", FieldType.STRING, "string"), null));
         draftService.updateData(relRefBook.getId(), createFileModel(RELATION_FILENAME, RELATION_FILENAME));
-        draftService.publish(relRefBook.getId(), "1.0", LocalDateTime.now(), null);
+        publishService.publish(relRefBook.getId(), "1.0", LocalDateTime.now(), null);
 
         //create new refbook
         RefBook refBook = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE, null));
@@ -1180,14 +1184,14 @@ public class ApplicationTest {
 
         //Публикация левой версии
         Integer leftId = draftService.create(refBook.getRefBookId(), createFileModel(LEFT_FILE, "testPublishing/" + LEFT_FILE)).getId();
-        draftService.publish(leftId, null, parseLocalDateTime("01.02.2018 00:00:00"), null);
+        publishService.publish(leftId, null, parseLocalDateTime("01.02.2018 00:00:00"), null);
 
         List<RefBookRowValue> actual = versionService.search(leftId, new SearchDataCriteria(null, null)).getContent();
         assertEqualRow(expectedLeft, actual);
 
         //Публикация средней версии
         Integer midId = draftService.create(refBook.getRefBookId(), createFileModel(MID_FILE, "testPublishing/" + MID_FILE)).getId();
-        draftService.publish(midId, null, parseLocalDateTime("05.02.2018 00:00:00"),null);
+        publishService.publish(midId, null, parseLocalDateTime("05.02.2018 00:00:00"),null);
 
         actual = versionService.search(leftId, new SearchDataCriteria(null, null)).getContent();
         assertEqualRow(expectedLeft, actual);
@@ -1196,7 +1200,7 @@ public class ApplicationTest {
 
         //Публикация правой версии
         Integer rightId = draftService.create(refBook.getRefBookId(), createFileModel(RIGHT_FILE, "testPublishing/" + RIGHT_FILE)).getId();
-        draftService.publish(rightId, null, parseLocalDateTime("11.02.2018 00:00:00"), null);
+        publishService.publish(rightId, null, parseLocalDateTime("11.02.2018 00:00:00"), null);
 
         actual = versionService.search(leftId, new SearchDataCriteria(null, null)).getContent();
         assertEqualRow(expectedLeft, actual);
@@ -1211,7 +1215,7 @@ public class ApplicationTest {
         //Средняя - удалится
         //Правая - останется неизменной
         Integer allDataId = draftService.create(refBook.getRefBookId(), createFileModel(ALL_DATA, "testPublishing/" + ALL_DATA)).getId();
-        draftService.publish(allDataId, null, parseLocalDateTime("02.02.2018 00:00:00"), parseLocalDateTime("10.02.2018 00:00:00"));
+        publishService.publish(allDataId, null, parseLocalDateTime("02.02.2018 00:00:00"), parseLocalDateTime("10.02.2018 00:00:00"));
 
         actual = versionService.search(leftId, new SearchDataCriteria(null, null)).getContent();
         assertEqualRow(expectedLeft, actual);
@@ -1229,7 +1233,7 @@ public class ApplicationTest {
         //Перекрывание предыдущей версии новой, не содержащей предыдущие данные
         //Ожидается: последняя версия удалится
         Integer noDataId = draftService.create(refBook.getRefBookId(), createFileModel(NO_DATA, "testPublishing/" + NO_DATA)).getId();
-        draftService.publish(noDataId, null, parseLocalDateTime("02.02.2018 00:00:00"), parseLocalDateTime("10.02.2018 00:00:00"));
+        publishService.publish(noDataId, null, parseLocalDateTime("02.02.2018 00:00:00"), parseLocalDateTime("10.02.2018 00:00:00"));
 
         actual = versionService.search(leftId, new SearchDataCriteria(null, null)).getContent();
         assertEqualRow(expectedLeft, actual);
@@ -1357,11 +1361,11 @@ public class ApplicationTest {
                         draftService.createAttribute(new CreateAttribute(oldVersionId, attribute, null))
                 );
         draftService.updateData(oldVersionId, createFileModel(OLD_FILE_NAME, "testCompare/" + OLD_FILE_NAME));
-        draftService.publish(oldVersionId, "1.0", publishDate1, closeDate1);
+        publishService.publish(oldVersionId, "1.0", publishDate1, closeDate1);
 
         Integer newVersionId = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), new Structure(asList(id, code, common, name, upd2, typeI), emptyList()))).getId();
         draftService.updateData(newVersionId, createFileModel(NEW_FILE_NAME, "testCompare/" + NEW_FILE_NAME));
-        draftService.publish(newVersionId, "1.1", publishDate2, closeDate2);
+        publishService.publish(newVersionId, "1.1", publishDate2, closeDate2);
 
         Field idField = new CommonField(id.getCode());
         Field codeField = new CommonField(code.getCode());
@@ -1418,7 +1422,7 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(refBook.getId(), id, null));
         draftService.createAttribute(new CreateAttribute(refBook.getId(), code, null));
         draftService.updateData(refBook.getId(), createFileModel(FILE_NAME, "testCompare/" + FILE_NAME));
-        draftService.publish(refBook.getId(), "1.0", publishDate1, null);
+        publishService.publish(refBook.getId(), "1.0", publishDate1, null);
 
         Integer newVersionId = draftService.create(
                 new CreateDraftRequest(
@@ -1430,7 +1434,7 @@ public class ApplicationTest {
                                 emptyList())))
                 .getId();
         draftService.updateData(newVersionId, createFileModel(FILE_NAME, "testCompare/" + FILE_NAME));
-        draftService.publish(newVersionId, "1.1", publishDate2, null);
+        publishService.publish(newVersionId, "1.1", publishDate2, null);
 
         List<DiffRowValue> expectedDiffRowValues = new ArrayList<>();
         RefBookDataDiff expectedRefBookDataDiff = new RefBookDataDiff(
@@ -1460,7 +1464,7 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(refBook.getId(), id, null));
         draftService.createAttribute(new CreateAttribute(refBook.getId(), code, null));
         draftService.updateData(refBook.getId(), createFileModel(FILE_NAME, "testCompare/" + FILE_NAME));
-        draftService.publish(refBook.getId(), "1.0", LocalDateTime.now(), null);
+        publishService.publish(refBook.getId(), "1.0", LocalDateTime.now(), null);
 
         Integer newVersionId = draftService.create(
                 new CreateDraftRequest(
@@ -1471,7 +1475,7 @@ public class ApplicationTest {
                                 emptyList())))
                 .getId();
         draftService.updateData(newVersionId, createFileModel(FILE_NAME, "testCompare/" + FILE_NAME));
-        draftService.publish(newVersionId, "1.1", LocalDateTime.now().plusYears(1), null);
+        publishService.publish(newVersionId, "1.1", LocalDateTime.now().plusYears(1), null);
 
         try {
             compareService.compareData(new CompareDataCriteria(oldVersionId, newVersionId));
@@ -1513,7 +1517,7 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(refToVersionId, id, null));
         draftService.createAttribute(new CreateAttribute(refToVersionId, code, null));
         draftService.updateData(refToVersionId, createFileModel(OLD_FILE_NAME, "testConflicts/" + OLD_FILE_NAME));
-        draftService.publish(refToVersionId, "1.0", LocalDateTime.now(), null);
+        publishService.publish(refToVersionId, "1.0", LocalDateTime.now(), null);
 
         Integer refToDraftId = draftService.create(
                 new CreateDraftRequest(
@@ -1535,7 +1539,7 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id_2, ref_id_2_ref));
         draftService.createAttribute(new CreateAttribute(refFromVersionId, code, null));
         draftService.updateData(refFromVersionId, createFileModel(REF_FILE_NAME, "testConflicts/" + REF_FILE_NAME));
-        draftService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null);
+        publishService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null);
 
         List<Conflict> expectedConflicts = asList(
                 new Conflict(ref_id_1.getCode(), ConflictType.DELETED, singletonList(
@@ -1573,7 +1577,7 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(refToVersionId, id, null));
         draftService.createAttribute(new CreateAttribute(refToVersionId, code, null));
         draftService.updateData(refToVersionId, createFileModel(OLD_FILE_NAME, "testConflicts/" + OLD_FILE_NAME));
-        draftService.publish(refToVersionId, "1.0", LocalDateTime.now(), null);
+        publishService.publish(refToVersionId, "1.0", LocalDateTime.now(), null);
 
         Integer refToDraftId = draftService.create(
                 new CreateDraftRequest(
@@ -1595,7 +1599,7 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id_2, ref_id_2_ref));
         draftService.createAttribute(new CreateAttribute(refFromVersionId, code, null));
         draftService.updateData(refFromVersionId, createFileModel(REF_FILE_NAME, "testConflicts/" + REF_FILE_NAME));
-        draftService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null);
+        publishService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null);
 
         Boolean actualUpdateCheck = conflictService.checkConflicts(refFromVersionId, refToDraftId, ConflictType.UPDATED);
         assertEquals(Boolean.TRUE, actualUpdateCheck);
@@ -1623,7 +1627,7 @@ public class ApplicationTest {
         RefBook refToRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_to_diff_pk", null));
         Integer refToVersionId = refToRefBook.getId();
         draftService.createAttribute(new CreateAttribute(refToVersionId, id, null));
-        draftService.publish(refToVersionId, "1.0", LocalDateTime.now(), null);
+        publishService.publish(refToVersionId, "1.0", LocalDateTime.now(), null);
 
         Structure.Attribute id_id = Structure.Attribute.buildPrimary("ID_ID", "id_id", FieldType.INTEGER, "id_id");
         Structure.Attribute ref_id = Structure.Attribute.build("REF_ID", "ref_id", FieldType.REFERENCE, "ref_id");
@@ -1633,7 +1637,7 @@ public class ApplicationTest {
         Integer refFromVersionId = refFromRefBook.getId();
         draftService.createAttribute(new CreateAttribute(refFromVersionId, id_id, null));
         draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id, ref_id_ref));
-        draftService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null);
+        publishService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null);
 
         draftService.create(
                 new CreateDraftRequest(

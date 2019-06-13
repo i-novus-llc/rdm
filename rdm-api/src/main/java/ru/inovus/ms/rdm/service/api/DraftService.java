@@ -9,7 +9,6 @@ import ru.inovus.ms.rdm.model.validation.AttributeValidationType;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Path("/draft")
@@ -110,19 +109,6 @@ public interface DraftService {
     })
     Page<RefBookRowValue> search(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
                           @BeanParam SearchDataCriteria criteria);
-
-    @POST
-    @Path("{draftId}/publish")
-    @ApiOperation("Публикация черновика")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Черновик опубликован"),
-            @ApiResponse(code = 400, message = "Некорректный запрос"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    void publish(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
-                 @ApiParam("Версия") @QueryParam("version") String version,
-                 @ApiParam("Дата начала действия версии") @QueryParam("fromDate") LocalDateTime fromDate,
-                 @ApiParam("Дата окончания действия версии") @QueryParam("toDate") LocalDateTime toDate);
 
     @POST
     @Path("{draftId}/remove")

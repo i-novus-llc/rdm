@@ -34,13 +34,11 @@ import ru.inovus.ms.rdm.service.api.*;
 import ru.inovus.ms.rdm.util.*;
 import ru.inovus.ms.rdm.validation.PrimaryKeyUniqueValidation;
 import ru.inovus.ms.rdm.validation.ReferenceValidation;
-import ru.inovus.ms.rdm.validation.VersionPeriodPublishValidation;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 import ru.kirkazan.common.exception.CodifiedException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.*;
 
@@ -67,29 +65,20 @@ public class DraftServiceImpl implements DraftService {
 
     private FileStorage fileStorage;
     private FileNameGenerator fileNameGenerator;
-
-    private VersionFileRepository versionFileRepository;
-    private VersionNumberStrategy versionNumberStrategy;
+    private VersionFileService versionFileService;
 
     private VersionValidation versionValidation;
-    private VersionPeriodPublishValidation versionPeriodPublishValidation;
 
     private PassportValueRepository passportValueRepository;
 
     private AttributeValidationRepository attributeValidationRepository;
 
-    private PerRowFileGeneratorFactory fileGeneratorFactory;
-
     private int errorCountLimit = 100;
-    private String passportFileHead = "fullName";
-    private boolean includePassport = false;
 
     private static final String ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE = "Can not update structure, illegal update attribute";
     private static final String INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE = "incompatible.new.structure";
     private static final String INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE = "incompatible.new.type";
     private static final String REFBOOK_NOT_FOUND_EXCEPTION_CODE = "refbook.not.found";
-    private static final String INVALID_VERSION_NAME_EXCEPTION_CODE = "invalid.version.name";
-    private static final String INVALID_VERSION_PERIOD_EXCEPTION_CODE = "invalid.version.period";
     private static final String ROW_NOT_UNIQUE_EXCEPTION_CODE = "row.not.unique";
     private static final String ROW_IS_EMPTY_EXCEPTION_CODE = "row.is.empty";
     private static final String REQUIRED_FIELD_EXCEPTION_CODE = "validation.required.err";
@@ -100,10 +89,9 @@ public class DraftServiceImpl implements DraftService {
                             DraftDataService draftDataService, DropDataService dropDataService, SearchDataService searchDataService,
                             RefBookService refBookService, RefBookLockService refBookLockService, VersionService versionService,
                             FileStorage fileStorage, FileNameGenerator fileNameGenerator,
-                            VersionFileRepository versionFileRepository, VersionNumberStrategy versionNumberStrategy,
-                            VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation,
-                            PassportValueRepository passportValueRepository, AttributeValidationRepository attributeValidationRepository,
-                            PerRowFileGeneratorFactory fileGeneratorFactory) {
+                            VersionFileService versionFileService,
+                            VersionValidation versionValidation,
+                            PassportValueRepository passportValueRepository, AttributeValidationRepository attributeValidationRepository) {
         this.versionRepository = versionRepository;
 
         this.draftDataService = draftDataService;
@@ -116,32 +104,17 @@ public class DraftServiceImpl implements DraftService {
 
         this.fileStorage = fileStorage;
         this.fileNameGenerator = fileNameGenerator;
-
-        this.versionFileRepository = versionFileRepository;
-        this.versionNumberStrategy = versionNumberStrategy;
+        this.versionFileService = versionFileService;
 
         this.versionValidation = versionValidation;
-        this.versionPeriodPublishValidation = versionPeriodPublishValidation;
 
         this.passportValueRepository = passportValueRepository;
         this.attributeValidationRepository = attributeValidationRepository;
-
-        this.fileGeneratorFactory = fileGeneratorFactory;
     }
 
     @Value("${rdm.validation-errors-count}")
     public void setErrorCountLimit(int errorCountLimit) {
         this.errorCountLimit = errorCountLimit;
-    }
-
-    @Value("${rdm.download.passport.head}")
-    public void setPassportFileHead(String passportFileHead) {
-        this.passportFileHead = passportFileHead;
-    }
-
-    @Value("${rdm.download.passport-enable}")
-    public void setIncludePassport(boolean includePassport) {
-        this.includePassport = includePassport;
     }
 
     @Override
@@ -460,86 +433,6 @@ public class DraftServiceImpl implements DraftService {
         return new RowValuePage(pagedData).map(rv -> new RefBookRowValue((LongRowValue) rv, draft.getId()));
     }
 
-
-    @Override
-    public void publish(Integer draftId, String versionName, LocalDateTime fromDate, LocalDateTime toDate) {
-
-        versionValidation.validateDraft(draftId);
-
-        RefBookVersionEntity draftVersion = versionRepository.findById(draftId).orElseThrow();
-        Integer refBookId = draftVersion.getRefBook().getId();
-        refBookLockService.setRefBookPublishing(refBookId);
-        try {
-            if (versionName == null) {
-                versionName = versionNumberStrategy.next(refBookId);
-            } else if (!versionNumberStrategy.check(versionName, refBookId)) {
-                throw new UserException(new Message(INVALID_VERSION_NAME_EXCEPTION_CODE, versionName));
-            }
-
-            if (fromDate == null) fromDate = TimeUtils.now();
-            if (toDate != null && fromDate.isAfter(toDate)) throw new UserException(INVALID_VERSION_PERIOD_EXCEPTION_CODE);
-
-            versionPeriodPublishValidation.validate(fromDate, toDate, refBookId);
-
-            RefBookVersionEntity lastPublishedVersion = getLastPublishedVersion(draftVersion);
-            String storageCode = draftDataService.applyDraft(
-                    lastPublishedVersion != null ? lastPublishedVersion.getStorageCode() : null,
-                    draftVersion.getStorageCode(),
-                    fromDate,
-                    toDate
-            );
-
-            Set<String> dataStorageToDelete = new HashSet<>();
-            dataStorageToDelete.add(draftVersion.getStorageCode());
-
-            draftVersion.setStorageCode(storageCode);
-            draftVersion.setVersion(versionName);
-            draftVersion.setStatus(RefBookVersionStatus.PUBLISHED);
-            draftVersion.setFromDate(fromDate);
-            draftVersion.setToDate(toDate);
-            resolveOverlappingPeriodsInFuture(fromDate, toDate, refBookId);
-            versionRepository.save(draftVersion);
-
-            if (lastPublishedVersion != null && lastPublishedVersion.getStorageCode() != null && draftVersion.getStructure().storageEquals(lastPublishedVersion.getStructure())) {
-                dataStorageToDelete.add(lastPublishedVersion.getStorageCode());
-                versionRepository.findByStorageCode(lastPublishedVersion.getStorageCode()).stream()
-                        .peek(version -> version.setStorageCode(storageCode))
-                        .forEach(versionRepository::save);
-            }
-
-            dropDataService.drop(dataStorageToDelete);
-
-            RefBookVersion versionModel = versionService.getById(draftId);
-            for (FileType fileType : PerRowFileGeneratorFactory.getAvailableTypes())
-                saveVersionFile(versionModel, fileType, generateVersionFile(versionModel, fileType));
-        } finally {
-            refBookLockService.deleteRefBookAction(refBookId);
-        }
-    }
-
-    private RefBookVersionEntity getLastPublishedVersion(RefBookVersionEntity draftVersion) {
-        return versionRepository
-                .findFirstByRefBookCodeAndStatusOrderByFromDateDesc(draftVersion.getRefBook().getCode(), RefBookVersionStatus.PUBLISHED);
-    }
-
-    private void resolveOverlappingPeriodsInFuture(LocalDateTime fromDate, LocalDateTime toDate, Integer refBookId) {
-
-        if (toDate == null) toDate = MAX_TIMESTAMP;
-        Iterable<RefBookVersionEntity> versions = versionRepository.findAll(
-                hasOverlappingPeriods(fromDate, toDate)
-                        .and(isVersionOfRefBook(refBookId))
-                        .and(isPublished())
-        );
-        versions.forEach(version -> {
-            if (fromDate.isAfter(version.getFromDate())) {
-                version.setToDate(fromDate);
-                versionRepository.save(version);
-            } else {
-                versionRepository.deleteById(version.getId());
-            }
-        });
-    }
-
     private RefBookVersionEntity getLastRefBookVersion(Integer refBookId) {
         Page<RefBookVersionEntity> lastPublishedVersions = versionRepository
                 .findAll(isPublished().and(isVersionOfRefBook(refBookId)),
@@ -855,42 +748,10 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateDraftExists(draftId);
 
         RefBookVersion versionModel = ModelGenerator.versionModel(versionRepository.getOne(draftId));
+        VersionDataIterator dataIterator = new VersionDataIterator(versionService, singletonList(versionModel.getId()));
 
         return new ExportFile(
-                generateVersionFile(versionModel, fileType),
+                versionFileService.generate(versionModel, fileType, dataIterator),
                 fileNameGenerator.generateZipName(versionModel, fileType));
     }
-
-    private InputStream generateVersionFile(RefBookVersion versionModel, FileType fileType) {
-        VersionDataIterator dataIterator = new VersionDataIterator(versionService, singletonList(versionModel.getId()));
-        try (FileGenerator fileGenerator = fileGeneratorFactory
-                .getFileGenerator(dataIterator, versionModel, fileType);
-             Archiver archiver = new Archiver()) {
-            if (includePassport) {
-                try (FileGenerator passportPdfFileGenerator =
-                             new PassportPdfFileGenerator(passportValueRepository, versionModel.getId(), passportFileHead,
-                                     versionModel.getCode())) {
-                    archiver.addEntry(passportPdfFileGenerator, fileNameGenerator.generateName(versionModel, FileType.PDF));
-                }
-            }
-            return archiver
-                    .addEntry(fileGenerator, fileNameGenerator.generateName(versionModel, fileType))
-                    .getArchive();
-        } catch (IOException e) {
-            throw new RdmException(e);
-        }
-    }
-
-    private void saveVersionFile(RefBookVersion version, FileType fileType, InputStream is) {
-        try (InputStream inputStream = is) {
-            if (inputStream == null) return;
-            RefBookVersionEntity versionEntity = new RefBookVersionEntity();
-            versionEntity.setId(version.getId());
-            versionFileRepository.save(new VersionFileEntity(versionEntity, fileType,
-                    fileStorage.saveContent(inputStream, fileNameGenerator.generateZipName(version, fileType))));
-        } catch (IOException e) {
-            throw new RdmException(e);
-        }
-    }
-
 }
