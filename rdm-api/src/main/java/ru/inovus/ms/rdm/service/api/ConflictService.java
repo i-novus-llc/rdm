@@ -30,7 +30,7 @@ public interface ConflictService {
                                               Integer refToId);
 
     @GET
-    @Path("/check/{type}")
+    @Path("/check")
     @ApiOperation("Проверка на наличие конфликта для двух версий")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
@@ -43,11 +43,11 @@ public interface ConflictService {
                            @QueryParam("refToId")
                                    Integer refToId,
                            @ApiParam("Тип конфликта")
-                           @PathParam("type")
+                           @QueryParam("type")
                                    ConflictType conflictType);
 
     @GET
-    @Path("/{versionId}/check/{type}")
+    @Path("/{versionId}/check")
     @ApiOperation("Получение конфликтующих версий справочников")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
@@ -57,7 +57,7 @@ public interface ConflictService {
                                               @PathParam("versionId")
                                                       Integer versionId,
                                               @ApiParam("Тип конфликта")
-                                              @PathParam("type")
+                                              @QueryParam("type")
                                                       ConflictType conflictType);
 
     @POST

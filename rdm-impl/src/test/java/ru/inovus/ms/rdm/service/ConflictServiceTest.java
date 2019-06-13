@@ -22,6 +22,7 @@ import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.repositiory.RefBookConflictRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.VersionService;
@@ -83,6 +84,8 @@ public class ConflictServiceTest {
 
     @Mock
     private RefBookVersionRepository versionRepository;
+    @Mock
+    private RefBookConflictRepository conflictRepository;
 
     private RefBookVersionEntity referrerEntity;
     private RefBookVersionEntity publishingEntity;
