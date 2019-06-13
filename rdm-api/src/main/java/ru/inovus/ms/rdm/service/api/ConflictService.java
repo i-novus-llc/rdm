@@ -61,7 +61,7 @@ public interface ConflictService {
                                                       ConflictType conflictType);
 
     @POST
-    @Path("/create/")
+    @Path("/create")
     @ApiOperation("Сохранение информации о конфликтах")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
@@ -91,4 +91,18 @@ public interface ConflictService {
                                        Integer refToId,
                                @ApiParam("Список конфликтов")
                                        List<Conflict> conflicts);
+
+    @POST
+    @Path("/discover")
+    @ApiOperation("Обнаружение конфликтов")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void discover(@ApiParam("Идентификатор старой версии, на которую ссылаются")
+                  @QueryParam("oldVersionId")
+                          Integer oldVersionId,
+                  @ApiParam("Идентификатор новой версии, на которую будут ссылаться")
+                  @QueryParam("newVersionId")
+                          Integer newVersionId);
 }

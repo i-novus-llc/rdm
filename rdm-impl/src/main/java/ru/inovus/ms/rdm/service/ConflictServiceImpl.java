@@ -392,6 +392,19 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
+     * Обнаружение конфликтов при смене версий.
+     *
+     * @param oldVersionId идентификатор старой версии справочника
+     * @param newVersionId идентификатор новой версии справочника
+     */
+    @Override
+    public void discover(Integer oldVersionId, Integer newVersionId) {
+        //  For version calculate conflicts and
+        //    1. Save conflicts for all versions of referrers.
+        //    2. Update references for UPDATED conflicts.
+    }
+
+    /**
      * Получение ссылочных атрибутов.
      *
      * @param refFromEntity версия справочника, которая ссылается
