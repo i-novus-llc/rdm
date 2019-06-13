@@ -108,13 +108,6 @@ public class PublishServiceTest {
     public void setUp() {
         reset(draftDataService, fileNameGenerator, fileGeneratorFactory);
         when(draftDataService.applyDraft(any(), any(), any(), any())).thenReturn(TEST_STORAGE_CODE);
-
-//        when(fileNameGenerator.generateName(any(RefBookVersion.class), eq(FileType.XLSX))).thenReturn("version.xlsx");
-//        when(fileNameGenerator.generateZipName(any(RefBookVersion.class), eq(FileType.XLSX))).thenReturn("version_xlsx.zip");
-//        when(fileNameGenerator.generateName(any(RefBookVersion.class), eq(FileType.XML))).thenReturn("version.xml");
-//        when(fileNameGenerator.generateZipName(any(RefBookVersion.class), eq(FileType.XML))).thenReturn("version_xml.zip");
-//        when(fileGeneratorFactory.getFileGenerator(any(Iterator.class), any(RefBookVersion.class), any(FileType.class)))
-//                .thenReturn(perRowFileGenerator);
     }
 
     @Test
