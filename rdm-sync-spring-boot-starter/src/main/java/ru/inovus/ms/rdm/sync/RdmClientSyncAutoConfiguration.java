@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.sync;
 
 import liquibase.integration.spring.SpringLiquibase;
 import net.n2oapp.platform.jaxrs.LocalDateTimeISOParameterConverter;
+import net.n2oapp.platform.jaxrs.TypedParamConverter;
 import net.n2oapp.platform.jaxrs.autoconfigure.EnableJaxRsProxyClient;
 import net.n2oapp.platform.jaxrs.autoconfigure.MissingGenericBean;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.util.StringUtils;
+import ru.inovus.ms.rdm.model.AttributeFilter;
 import ru.inovus.ms.rdm.provider.*;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
@@ -23,6 +25,8 @@ import ru.inovus.ms.rdm.sync.service.*;
 import ru.inovus.ms.rdm.util.json.LocalDateTimeMapperPreparer;
 
 import javax.sql.DataSource;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 /**
  * @author lgalimova
@@ -86,38 +90,38 @@ public class RdmClientSyncAutoConfiguration {
 
     @Bean
     @Conditional(MissingGenericBean.class)
-    MskUtcLocalDateTimeParamConverter mskUtcLocalDateTimeParamConverter() {
+    public TypedParamConverter<LocalDateTime> mskUtcLocalDateTimeParamConverter() {
         return new MskUtcLocalDateTimeParamConverter(new LocalDateTimeISOParameterConverter());
     }
 
     @Bean
     @Conditional(MissingGenericBean.class)
-    public AttributeFilterConverter attributeFilterConverter() {
+    public  TypedParamConverter<AttributeFilter> attributeFilterConverter() {
         return new AttributeFilterConverter();
     }
 
     @Bean
     @Conditional(MissingGenericBean.class)
-    public OffsetDateTimeParamConverter offsetDateTimeParamConverter() {
+    public TypedParamConverter<OffsetDateTime> offsetDateTimeParamConverter() {
         return new OffsetDateTimeParamConverter();
     }
 
 
     @Bean
     @ConditionalOnMissingBean
-    LocalDateTimeMapperPreparer localDateTimeMapperPreparer() {
+    public LocalDateTimeMapperPreparer localDateTimeMapperPreparer() {
         return new LocalDateTimeMapperPreparer();
     }
 
     @Bean
     @ConditionalOnMissingBean
-    ExportFileProvider exportFileProvider() {
+    public ExportFileProvider exportFileProvider() {
         return new ExportFileProvider();
     }
 
     @Bean
     @ConditionalOnMissingBean
-    RdmMapperConfigurer rdmMapperConfigurer() {
+    public RdmMapperConfigurer rdmMapperConfigurer() {
         return new RdmMapperConfigurer();
     }
 }
