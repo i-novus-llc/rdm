@@ -22,7 +22,7 @@ public class VersionValidationImpl implements VersionValidation {
     private RefBookVersionRepository versionRepository;
 
     @Autowired
-    public void setVersionRepository(RefBookVersionRepository versionRepository) {
+    public VersionValidationImpl(RefBookVersionRepository versionRepository) {
         this.versionRepository = versionRepository;
     }
 
