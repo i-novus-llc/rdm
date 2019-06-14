@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.util;
 
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
+import ru.inovus.ms.rdm.model.Conflict;
 
 public class ConflictUtils {
 
@@ -24,5 +25,15 @@ public class ConflictUtils {
         return conflictType.equals(ConflictType.DELETED)
                 ? DiffStatusEnum.DELETED
                 : DiffStatusEnum.UPDATED;
+    }
+
+    /**
+     * Проверка типа конфликат на UPDATED.
+     *
+     * @param conflict конфликт
+     * @return Результат проверки
+     */
+    public static boolean isUpdatedConflict(Conflict conflict) {
+        return ConflictType.UPDATED.equals(conflict.getConflictType());
     }
 }

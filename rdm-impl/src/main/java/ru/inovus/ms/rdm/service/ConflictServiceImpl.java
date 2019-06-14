@@ -26,6 +26,7 @@ import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.repositiory.RefBookConflictRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.*;
+import ru.inovus.ms.rdm.util.ConflictUtils;
 import ru.inovus.ms.rdm.util.RowUtils;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
@@ -331,7 +332,7 @@ public class ConflictServiceImpl implements ConflictService {
         RefBookVersionEntity refToEntity = versionRepository.getOne(refToId);
 
         conflicts.stream()
-                .filter(conflict -> ConflictType.UPDATED.equals(conflict.getConflictType()))
+                .filter(ConflictUtils::isUpdatedConflict)
                 .forEach(conflict -> updateReferenceValue(refFromEntity, refToEntity, conflict,
                         refFromEntity.getStorageCode(),
                         refToEntity.getStorageCode()));
@@ -372,9 +373,9 @@ public class ConflictServiceImpl implements ConflictService {
 
         String displayValue = RowUtils.toDisplayValue(refFromReference.getDisplayExpression(), refToRow);
         if (!Objects.equals(oldReference.getDisplayValue(), displayValue)) {
-            LocalDateTime publishDate = RefBookVersionStatus.PUBLISHED.equals(refToEntity.getStatus())
-                    ? LocalDateTime.now()
-                    : null; // SYS_PUBLISH_TIME is not exist for publishing draft
+            LocalDateTime publishDate = RefBookVersionStatus.DRAFT.equals(refToEntity.getStatus())
+                    ? null // SYS_PUBLISH_TIME is not exist for draft
+                    : LocalDateTime.now();
             Reference newReference = new Reference(
                     refToStorageCode,
                     publishDate,
@@ -451,9 +452,11 @@ public class ConflictServiceImpl implements ConflictService {
 
             conflicts.forEach(conflict -> create(referrer.getId(), newVersionId, conflict));
 
-            if (lastVersionIds.contains(referrer.getId())) {
+            if (lastVersionIds.contains(referrer.getId())
+                    && conflicts.stream().anyMatch(ConflictUtils::isUpdatedConflict)) {
                 Integer referrerVersionId = referrer.getId();
                 if (!RefBookVersionStatus.DRAFT.equals(referrer.getStatus())) {
+                    // NB: Изменение данных возможно только в черновике.
                     Draft draft = draftService.createFromVersion(referrer.getId());
                     conflicts.forEach(conflict -> create(draft.getId(), newVersionId, conflict));
                     referrerVersionId = draft.getId();
@@ -538,7 +541,7 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Получение конфликтной записи по конфликту.
+     * Получение записи по системному идентификатору.
      */
     private RefBookRowValue getSystemRowValue(RefBookVersionEntity entity, Long systemId) {
 
