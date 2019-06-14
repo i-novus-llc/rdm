@@ -165,19 +165,12 @@ public class ConflictServiceTest {
         versionEntity.setId(REFERRER_DRAFT_ID);
         versionEntity.setRefBook(refBookEntity);
         versionEntity.setStatus(RefBookVersionStatus.DRAFT);
+        versionEntity.setStorageCode(REFERRER_DRAFT_STORAGE_CODE);
 
         Structure structure = new Structure(referrerEntity.getStructure());
         versionEntity.setStructure(structure);
 
         return versionEntity;
-    }
-
-    private Draft createPublishingDraft() {
-        Draft draft = new Draft();
-        draft.setId(PUBLISHING_DRAFT_ID);
-        draft.setStorageCode(PUBLISHING_DRAFT_STORAGE_CODE);
-
-        return draft;
     }
 
     @Test
@@ -189,12 +182,11 @@ public class ConflictServiceTest {
 
         Draft referrerDraft = createReferrerDraft();
         RefBookVersionEntity referrerDraftEntity = createReferrerDraftEntity();
-        Draft publishingDraft = createPublishingDraft();
 
         when(draftService.getDraft(eq(REFERRER_VERSION_ID))).thenReturn(referrerDraft);
         when(versionRepository.getOne(eq(REFERRER_DRAFT_ID))).thenReturn(referrerDraftEntity);
 
-        when(draftService.getDraft(eq(PUBLISHING_VERSION_ID))).thenReturn(publishingDraft);
+        publishingEntity.setStorageCode(PUBLISHING_DRAFT_STORAGE_CODE);
 
         List<Conflict> conflicts = createUpdateReferenceConflicts();
 
@@ -224,16 +216,16 @@ public class ConflictServiceTest {
         RefBookRowValue updatedRow = updatedRows.get().findFirst().orElse(null);
         Assert.assertNotNull(updatedRow);
 
-        Reference fieldReference = new Reference(
+        Reference expectedReference = new Reference(
                 PUBLISHING_DRAFT_STORAGE_CODE,
                 null,
                 PUBLISHING_PRIMARY_CODE, // referenceAttribute
                 new DisplayExpression(REFERRER_REFERENCE_DISPLAY_EXPRESSION),
                 PUBLISHING_PRIMARY_UPDATED_VALUE,
                 PUBLISHING_PRIMARY_UPDATED_DISPLAY);
-        ReferenceFieldValue fieldValue = new ReferenceFieldValue(REFERRER_REFERENCE_ATTRIBUTE_CODE, fieldReference);
-        LongRowValue rowValue = new LongRowValue(updatedRow.getSystemId(), singletonList(fieldValue));
-        Assert.assertEquals(new RefBookRowValue(rowValue, REFERRER_DRAFT_ID), rowValueCaptor.getValue());
+        ReferenceFieldValue expectedFieldValue = new ReferenceFieldValue(REFERRER_REFERENCE_ATTRIBUTE_CODE, expectedReference);
+        LongRowValue expectedRowValue = new LongRowValue(updatedRow.getSystemId(), singletonList(expectedFieldValue));
+        Assert.assertEquals(new RefBookRowValue(expectedRowValue, REFERRER_DRAFT_ID), rowValueCaptor.getValue());
     }
 
     private List<Conflict> createUpdateReferenceConflicts() {

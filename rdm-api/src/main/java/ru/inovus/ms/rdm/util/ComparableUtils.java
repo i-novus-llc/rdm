@@ -252,7 +252,7 @@ public class ComparableUtils {
         return comparableFields;
     }
 
-    private static Object castRefValue(FieldValue fieldValue, FieldType refFieldType) {
+    public static Object castRefValue(FieldValue fieldValue, FieldType refFieldType) {
         if (fieldValue instanceof ReferenceFieldValue) {
             Reference value = (Reference) fieldValue.getValue();
             if (refFieldType == FieldType.INTEGER) {
