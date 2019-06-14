@@ -88,7 +88,7 @@ public class RefBookServiceTest {
         List<RefBookVersionEntity> entitites = versions.stream().map(this::modelToEntity).collect(Collectors.toList());
         when(versionRepository.findAll(any(BooleanBuilder.class), any(Pageable.class))).thenReturn(new PageImpl<>(entitites));
 
-        List<RefBookVersion> actualList = refBookService.getReferrerVersions(CHECKING_REF_BOOK_CODE, RefBookSourceType.LAST_VERSION);
+        List<RefBookVersion> actualList = refBookService.getReferrerVersions(CHECKING_REF_BOOK_CODE, RefBookSourceType.LAST_VERSION, null);
         List<RefBookVersion> expectedList = new ArrayList<>(asList(referrerOneVersion, referrerTwoVersion, referrerDifVersion));
 
         Assert.assertNotNull(actualList);

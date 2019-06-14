@@ -109,7 +109,7 @@ public interface RefBookService {
 
     @GET
     @Path("versions/referrers/{refBookCode}")
-    @ApiOperation("Поиск по наличию ссылки на справочник")
+    @ApiOperation("Поиск версий ссылающихся справочников")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Список справочников"),
             @ApiResponse(code = 404, message = "Нет ресурса")
@@ -119,5 +119,7 @@ public interface RefBookService {
                                                      String refBookCode,
                                              @ApiParam("Тип источника")
                                              @QueryParam("sourceType")
-                                                     RefBookSourceType sourceType);
+                                                     RefBookSourceType sourceType,
+                                             @ApiParam("Список ссылающихся справочников")
+                                                     List<Integer> referrerIds);
 }

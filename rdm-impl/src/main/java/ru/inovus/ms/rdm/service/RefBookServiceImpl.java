@@ -374,17 +374,35 @@ public class RefBookServiceImpl implements RefBookService {
     }
 
     // NB: Необходим также для отображения справочников, ссылающихся на текущий справочник.
+
+    /**
+     * Поиск версий справочников, ссылающихся на указанный справочник.
+     *
+     * Ссылающийся справочник должен иметь:
+     *   1) структуру,
+     *   2) первичный ключ,
+     *   3) ссылку на указанный справочник.
+     *
+     * @param refBookCode код справочника, на который ссылаются
+     * @param sourceType  типа выбираемых версий справочников
+     * @param referrerIds список идентификаторов ссылающихся справочников
+     * @return Список справочников
+     */
     @Override
     @Transactional
-    public List<RefBookVersion> getReferrerVersions(String refBookCode, RefBookSourceType sourceType) {
+    public List<RefBookVersion> getReferrerVersions(String refBookCode, RefBookSourceType sourceType, List<Integer> referrerIds) {
         BooleanBuilder where = new BooleanBuilder();
         where.and(isSourceType(sourceType)).andNot(isArchived());
+
+        if (!CollectionUtils.isEmpty(referrerIds))
+            where.and(isVersionOfRefBook(referrerIds));
 
         Page<RefBookVersionEntity> allEntities = versionRepository.findAll(where, Pageable.unpaged());
         List<RefBookVersionEntity> entities = StreamSupport
                 .stream(allEntities.spliterator(), false)
                 .filter(entity ->
                         Objects.nonNull(entity.getStructure())
+                                && !CollectionUtils.isEmpty(entity.getStructure().getPrimary())
                                 && !entity.getStructure().getRefCodeReferences(refBookCode).isEmpty())
                 .collect(Collectors.toList());
 
@@ -395,7 +413,7 @@ public class RefBookServiceImpl implements RefBookService {
         BooleanBuilder where = new BooleanBuilder();
         where.and(isVersionOfRefBook(refBookId));
         where.and(isRemovable().not().or(isArchived()).or(isPublished()));
-        return !versionRepository.exists(where.getValue());
+        return (where.getValue() != null) && !versionRepository.exists(where.getValue());
     }
 
     private RefBook refBookModel(RefBookVersionEntity entity, List<RefBookVersionEntity> draftVersions, List<RefBookVersionEntity> lastPublishVersions) {
