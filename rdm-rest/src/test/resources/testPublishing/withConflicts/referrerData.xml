@@ -1,0 +1,101 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<refBook>
+    <code>PUBLISH_CONFLICTED_REFERRER</code>
+
+    <passport>
+        <name>Тестовый справочник, который ссылается</name>
+        <shortName>Тестовый ссылающийся справочник</shortName>
+        <description>Справочник, который ссылается на исходный справочник</description>
+
+    </passport>
+
+    <structure>
+        <row>
+            <code>REF_BASE</code>
+            <name>Код</name>
+            <type>STRING</type>
+            <description>Базовый код</description>
+            <primary>true</primary>
+        </row>
+        <row>
+            <code>REF_NUMB</code>
+            <name>Ссылка-число</name>
+            <type>REFERENCE</type>
+            <description>Ссылка "Числовой номер"</description>
+            <primary>false</primary>
+            <referenceCode>PUBLISH_CONFLICTED_VERSION</referenceCode>
+            <displayExpresssion>${CAR_NUMB}</displayExpresssion>
+        </row>
+        <row>
+            <code>REF_CHAR</code>
+            <name>Ссылка-строка</name>
+            <type>REFERENCE</type>
+            <description>Ссылка "Строковое значение"</description>
+            <primary>false</primary>
+            <referenceCode>PUBLISH_CONFLICTED_VERSION</referenceCode>
+            <displayExpresssion>${CAR_CHAR}</displayExpresssion>
+        </row>
+        <row>
+            <code>REF_MADE</code>
+            <name>Ссылка-сборка</name>
+            <type>REFERENCE</type>
+            <description>Ссылка "Выражение"</description>
+            <primary>false</primary>
+            <referenceCode>PUBLISH_CONFLICTED_VERSION</referenceCode>
+            <displayExpresssion>${CAR_NUMB} :: ${CAR_CHAR}</displayExpresssion>
+        </row>
+
+    </structure>
+
+    <data>
+        <!-- null -->
+        <row>
+            <REF_BASE>empty</REF_BASE>
+            <REF_NUMB></REF_NUMB>
+            <REF_CHAR></REF_CHAR>
+            <REF_MADE></REF_MADE>
+        </row>
+        <!-- readonly -->
+        <row>
+            <REF_BASE>REF_111</REF_BASE>
+            <REF_NUMB>TEST_1</REF_NUMB>
+            <REF_CHAR>TEST_1</REF_CHAR>
+            <REF_MADE>TEST_1</REF_MADE>
+        </row>
+        <row>
+            <REF_BASE>REF_123</REF_BASE>
+            <REF_NUMB>TEST_1</REF_NUMB>
+            <REF_CHAR>TEST_2</REF_CHAR>
+            <REF_MADE>TEST_3</REF_MADE>
+        </row>
+        <!-- for update -->
+        <row>
+            <REF_BASE>REF_4__</REF_BASE>
+            <REF_NUMB>TEST_4</REF_NUMB>
+            <REF_CHAR></REF_CHAR>
+            <REF_MADE></REF_MADE>
+        </row>
+        <row>
+            <REF_BASE>REF_14_</REF_BASE>
+            <REF_NUMB>TEST_1</REF_NUMB>
+            <REF_CHAR>TEST_4</REF_CHAR>
+            <REF_MADE></REF_MADE>
+        </row>
+        <!-- for delete -->
+        <row>
+            <REF_BASE>REF_9__</REF_BASE>
+            <REF_NUMB>TEST_9</REF_NUMB>
+            <REF_CHAR></REF_CHAR>
+            <REF_MADE></REF_MADE>
+        </row>
+        <row>
+            <REF_BASE>REF_19_</REF_BASE>
+            <REF_NUMB>TEST_1</REF_NUMB>
+            <REF_CHAR>TEST_9</REF_CHAR>
+            <REF_MADE></REF_MADE>
+        </row>
+        <!-- for combo -->
+
+    </data>
+
+</refBook>

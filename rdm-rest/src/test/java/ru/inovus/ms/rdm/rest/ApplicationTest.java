@@ -82,8 +82,11 @@ public class ApplicationTest {
     private static final int REMOVABLE_REF_BOOK_ID = 501;
     private static final String REMOVABLE_REF_BOOK_CODE = "A082";
     private static final String ALL_TYPES_REF_BOOK_CODE = "all_types_ref_book";
+
     private static final String COMPARABLE_REF_BOOK_CODE = "comparable_ref_book";
+
     private static final String CONFLICTS_REF_BOOK_CODE = "conflicts_ref_book";
+
     private static final String SEARCH_CODE_STR = "78 ";
     private static final String SEARCH_BY_NAME_STR = "отличное от последней версии ";
     private static final String SEARCH_BY_NAME_STR_ASSERT_CODE = "Z001";
@@ -255,14 +258,10 @@ public class ApplicationTest {
         refBook.setComment(refBookUpdateRequest.getComment());
         assertRefBooksEqual(refBook, updatedRefBook);
 
-        // добавление атрибута
+        // добавление атрибута и проверка
         CreateAttribute createAttributeModel = new CreateAttribute(draft.getId(), createAttribute, createReference);
         draftService.createAttribute(createAttributeModel);
-
-        // получение структуры
         Structure structure = versionService.getStructure(draft.getId());
-
-        // проверка добавленного атрибута
         assertEquals(1, structure.getAttributes().size());
         assertEquals(createAttribute, structure.getAttribute(createAttribute.getCode()));
         assertEquals(createReference, structure.getReference(createAttribute.getCode()));
@@ -441,6 +440,7 @@ public class ApplicationTest {
     public void testDraftRemove() {
         Structure structure = createStructure();
         Draft draft = draftService.create(new CreateDraftRequest(1, structure));
+
         draftService.remove(draft.getId());
         try{
             draftService.getDraft(draft.getId());
@@ -1255,6 +1255,17 @@ public class ApplicationTest {
         assertEqualRow(expectedNoData, actual);
     }
 
+    /**
+     * Тест публикации с конфликтами.
+     */
+    @Test
+    public void testPublishWithConflicts() {
+        final String REFERRER_FILE_NAME = "referrerData.xml";
+        final String CARDINAL_FILE_NAME = "cardinalData.xml";
+        final String REF_BOOK_FILE_FOLDER = "/testPublishing/withConflicts";
+
+    }
+
     @Test
     public void testToArchive() {
         RefBook refBook = refBookService.create(new RefBookCreateRequest("testArchive", null));
@@ -1803,16 +1814,6 @@ public class ApplicationTest {
                             && expectedConflict.getPrimaryValues().size() == actualConflict.getPrimaryValues().size()
                             && actualConflict.getPrimaryValues().containsAll(expectedConflict.getPrimaryValues())))
                 fail();
-        });
-    }
-
-    private void assertCheckConflicts(Map<ConflictType, Boolean> expectedChecks, Map<ConflictType, Boolean> actualChecks) {
-        assertNotNull(actualChecks);
-        assertEquals(expectedChecks.size(), actualChecks.size());
-        assertTrue(actualChecks.keySet().containsAll(expectedChecks.keySet()));
-
-        expectedChecks.keySet().forEach(key -> {
-            assertEquals(expectedChecks.get(key), actualChecks.get(key));
         });
     }
 
