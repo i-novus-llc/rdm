@@ -28,7 +28,7 @@ public class ConflictUtils {
     }
 
     /**
-     * Проверка типа конфликат на UPDATED.
+     * Проверка типа конфликта на UPDATED.
      *
      * @param conflict конфликт
      * @return Результат проверки
