@@ -148,31 +148,6 @@ public class ConflictServiceTest {
         return versionEntity;
     }
 
-    private Draft createReferrerDraft() {
-        Draft draft = new Draft();
-        draft.setId(REFERRER_DRAFT_ID);
-        draft.setStorageCode(REFERRER_DRAFT_STORAGE_CODE);
-
-        return draft;
-    }
-
-    private RefBookVersionEntity createReferrerDraftEntity() {
-        RefBookEntity refBookEntity = new RefBookEntity();
-        refBookEntity.setId(REFERRER_REF_BOOK_ID);
-        refBookEntity.setCode(REFERRER_REF_BOOK_CODE);
-
-        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
-        versionEntity.setId(REFERRER_DRAFT_ID);
-        versionEntity.setRefBook(refBookEntity);
-        versionEntity.setStatus(RefBookVersionStatus.DRAFT);
-        versionEntity.setStorageCode(REFERRER_DRAFT_STORAGE_CODE);
-
-        Structure structure = new Structure(referrerEntity.getStructure());
-        versionEntity.setStructure(structure);
-
-        return versionEntity;
-    }
-
     @Test
     public void testCalculateConflicts() {
     }
@@ -180,23 +155,18 @@ public class ConflictServiceTest {
     @Test
     public void testUpdateReferenceValues() {
 
-        Draft referrerDraft = createReferrerDraft();
-        RefBookVersionEntity referrerDraftEntity = createReferrerDraftEntity();
-
-        when(draftService.getDraft(eq(REFERRER_VERSION_ID))).thenReturn(referrerDraft);
-        when(versionRepository.getOne(eq(REFERRER_DRAFT_ID))).thenReturn(referrerDraftEntity);
-
+        referrerEntity.setStorageCode(REFERRER_DRAFT_STORAGE_CODE);
         publishingEntity.setStorageCode(PUBLISHING_DRAFT_STORAGE_CODE);
 
         List<Conflict> conflicts = createUpdateReferenceConflicts();
 
         SearchDataCriteria referrerUpdatedCriteria = createUpdateReferenceReferrerCriteria(REFERRER_PRIMARY_UPDATED_VALUE);
         PageImpl<RefBookRowValue> referrerUpdatedRows = createUpdateReferenceReferrerRows(PUBLISHING_PRIMARY_UPDATED_VALUE, "Two: 22");
-        when(versionService.search(eq(REFERRER_DRAFT_ID), eq(referrerUpdatedCriteria))).thenReturn(referrerUpdatedRows);
+        when(versionService.search(eq(REFERRER_VERSION_ID), eq(referrerUpdatedCriteria))).thenReturn(referrerUpdatedRows);
 
         SearchDataCriteria referrerUnupdatedCriteria = createUpdateReferenceReferrerCriteria(REFERRER_PRIMARY_UNUPDATED_VALUE);
         PageImpl<RefBookRowValue> referrerUnupdatedRows = createUpdateReferenceReferrerRows(PUBLISHING_PRIMARY_UNUPDATED_VALUE, "Three: 33");
-        when(versionService.search(eq(REFERRER_DRAFT_ID), eq(referrerUnupdatedCriteria))).thenReturn(referrerUnupdatedRows);
+        when(versionService.search(eq(REFERRER_VERSION_ID), eq(referrerUnupdatedCriteria))).thenReturn(referrerUnupdatedRows);
 
         SearchDataCriteria publishingUpdatedCriteria = createUpdateReferencePublishingCriteria(PUBLISHING_PRIMARY_UPDATED_VALUE);
         PageImpl<RefBookRowValue> publishingUpdatedRows = createUpdateReferencePublishingRows("Doubled_Two", 2222);
@@ -225,7 +195,7 @@ public class ConflictServiceTest {
                 PUBLISHING_PRIMARY_UPDATED_DISPLAY);
         ReferenceFieldValue expectedFieldValue = new ReferenceFieldValue(REFERRER_REFERENCE_ATTRIBUTE_CODE, expectedReference);
         LongRowValue expectedRowValue = new LongRowValue(updatedRow.getSystemId(), singletonList(expectedFieldValue));
-        Assert.assertEquals(new RefBookRowValue(expectedRowValue, REFERRER_DRAFT_ID), rowValueCaptor.getValue());
+        Assert.assertEquals(new RefBookRowValue(expectedRowValue, REFERRER_VERSION_ID), rowValueCaptor.getValue());
     }
 
     private List<Conflict> createUpdateReferenceConflicts() {
@@ -281,7 +251,7 @@ public class ConflictServiceTest {
                                         displayExpression,
                                         referenceValue,
                                         displayValue))
-                ), REFERRER_DRAFT_ID)
+                ), REFERRER_VERSION_ID)
         ), PageRequest.of(0, 10), 1);
     }
 
@@ -290,7 +260,6 @@ public class ConflictServiceTest {
         SearchDataCriteria criteria = new SearchDataCriteria();
 
         List<AttributeFilter> filters = new ArrayList<>();
-        //AttributeFilter filter = new AttributeFilter(REFERRER_PRIMARY_CODE, referenceValue, FieldType.REFERENCE, SearchTypeEnum.EXACT);
         AttributeFilter filter = new AttributeFilter(PUBLISHING_PRIMARY_CODE, codeValue, FieldType.STRING, SearchTypeEnum.EXACT);
         filters.add(filter);
         criteria.setAttributeFilter(singleton(filters));

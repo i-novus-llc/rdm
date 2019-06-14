@@ -20,6 +20,7 @@ import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.NotFoundException;
+import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.repositiory.RefBookConflictRepository;
@@ -46,6 +47,13 @@ import static ru.inovus.ms.rdm.util.ConflictUtils.diffStatusToConflictType;
 @Service
 public class ConflictServiceImpl implements ConflictService {
 
+    private static final String REFBOOK_DRAFT_NOT_FOUND = "refbook.draft.not.found";
+    private static final String VERSION_IS_NOT_DRAFT = "version.is.not.draft";
+    private static final String CONFLICT_NOT_FOUND = "conflict.not.found";
+    private static final String CONFLICTED_FROM_ROW_NOT_FOUND = "conflicted.from.row.not.found";
+    private static final String CONFLICTED_TO_ROW_NOT_FOUND = "conflicted.to.row.not.found";
+    private static final String CONFLICTED_REFERENCE_NOT_FOUND = "conflicted.reference.row.not.found";
+
     private RefBookConflictRepository conflictRepository;
 
     private CompareService compareService;
@@ -57,12 +65,6 @@ public class ConflictServiceImpl implements ConflictService {
 
     private VersionValidation versionValidation;
     private RefBookVersionRepository versionRepository;
-
-    private static final String REFBOOK_DRAFT_NOT_FOUND = "refbook.draft.not.found";
-    private static final String CONFLICT_NOT_FOUND = "conflict.not.found";
-    private static final String CONFLICTED_FROM_ROW_NOT_FOUND = "conflicted.from.row.not.found";
-    private static final String CONFLICTED_TO_ROW_NOT_FOUND = "conflicted.to.row.not.found";
-    private static final String CONFLICTED_REFERENCE_NOT_FOUND = "conflicted.reference.row.not.found";
 
     @Autowired
     @SuppressWarnings("all")
@@ -160,7 +162,7 @@ public class ConflictServiceImpl implements ConflictService {
 
     /**
      * Проверка на наличие конфликта справочников при наличии ссылочных атрибутов.
-     * 
+     *
      * @see #calculateConflicts
      */
     @Override
@@ -218,7 +220,6 @@ public class ConflictServiceImpl implements ConflictService {
 
     /**
      * Получение справочников, имеющих конфликты с проверяемым справочником.
-     *
      */
     @Override
     @Transactional(readOnly = true)
@@ -324,19 +325,15 @@ public class ConflictServiceImpl implements ConflictService {
         versionValidation.validateVersionExists(refToId);
 
         RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
-        RefBookVersionEntity refToEntity = versionRepository.getOne(refToId);
+        if (!RefBookVersionStatus.DRAFT.equals(refFromEntity.getStatus()))
+            throw new RdmException(VERSION_IS_NOT_DRAFT);
 
-        Draft refFromDraft;
-        if (RefBookVersionStatus.DRAFT.equals(refFromEntity.getStatus()))
-            refFromDraft = draftService.getDraft(refFromId);
-        else
-            refFromDraft = draftService.createFromVersion(refFromId);
-        RefBookVersionEntity refFromDraftEntity = versionRepository.getOne(refFromDraft.getId());
+        RefBookVersionEntity refToEntity = versionRepository.getOne(refToId);
 
         conflicts.stream()
                 .filter(conflict -> ConflictType.UPDATED.equals(conflict.getConflictType()))
-                .forEach(conflict -> updateReferenceValue(refFromDraftEntity, refToEntity, conflict,
-                        refFromDraft.getStorageCode(),
+                .forEach(conflict -> updateReferenceValue(refFromEntity, refToEntity, conflict,
+                        refFromEntity.getStorageCode(),
                         refToEntity.getStorageCode()));
     }
 
@@ -377,10 +374,10 @@ public class ConflictServiceImpl implements ConflictService {
         if (!Objects.equals(oldReference.getDisplayValue(), displayValue)) {
             LocalDateTime publishDate = RefBookVersionStatus.PUBLISHED.equals(refToEntity.getStatus())
                     ? LocalDateTime.now()
-                    : null;
+                    : null; // SYS_PUBLISH_TIME is not exist for publishing draft
             Reference newReference = new Reference(
                     refToStorageCode,
-                    publishDate, //null, // SYS_PUBLISH_TIME is not exist for publishing draft
+                    publishDate,
                     refToAttribute.getCode(),
                     new DisplayExpression(refFromReference.getDisplayExpression()),
                     oldReference.getValue(),
@@ -455,7 +452,14 @@ public class ConflictServiceImpl implements ConflictService {
             conflicts.forEach(conflict -> create(referrer.getId(), newVersionId, conflict));
 
             if (lastVersionIds.contains(referrer.getId())) {
-                updateReferenceValues(referrer.getId(), newVersionId, conflicts);
+                Integer referrerVersionId = referrer.getId();
+                if (!RefBookVersionStatus.DRAFT.equals(referrer.getStatus())) {
+                    Draft draft = draftService.createFromVersion(referrer.getId());
+                    conflicts.forEach(conflict -> create(draft.getId(), newVersionId, conflict));
+                    referrerVersionId = draft.getId();
+                }
+
+                updateReferenceValues(referrerVersionId, newVersionId, conflicts);
             }
         });
     }
