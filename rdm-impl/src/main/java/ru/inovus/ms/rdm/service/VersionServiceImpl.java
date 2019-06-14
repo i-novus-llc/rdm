@@ -32,6 +32,7 @@ import ru.inovus.ms.rdm.service.api.ExistsData;
 import ru.inovus.ms.rdm.service.api.VersionFileService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.FileNameGenerator;
+import ru.inovus.ms.rdm.util.VersionUtils;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
@@ -300,7 +301,7 @@ public class VersionServiceImpl implements VersionService {
             throw new RdmException("cannot generate file");
 
         VersionFileEntity fileEntity = versionFileRepository.findByVersionIdAndType(versionModel.getId(), fileType);
-        if (fileEntity == null && !RefBookVersionStatus.DRAFT.equals(version.getStatus())) {
+        if (fileEntity == null && !VersionUtils.isDraft(versionModel)) {
             RefBookVersionEntity versionEntity = new RefBookVersionEntity();
             versionEntity.setId(versionModel.getId());
             fileEntity = new VersionFileEntity(versionEntity, fileType, path);

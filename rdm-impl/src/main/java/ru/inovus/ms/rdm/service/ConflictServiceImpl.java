@@ -28,6 +28,7 @@ import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.*;
 import ru.inovus.ms.rdm.util.ConflictUtils;
 import ru.inovus.ms.rdm.util.RowUtils;
+import ru.inovus.ms.rdm.util.VersionUtils;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import java.math.BigInteger;
@@ -455,7 +456,7 @@ public class ConflictServiceImpl implements ConflictService {
             if (lastVersionIds.contains(referrer.getId())
                     && conflicts.stream().anyMatch(ConflictUtils::isUpdatedConflict)) {
                 Integer referrerVersionId = referrer.getId();
-                if (!RefBookVersionStatus.DRAFT.equals(referrer.getStatus())) {
+                if (!VersionUtils.isDraft(referrer)) {
                     // NB: Изменение данных возможно только в черновике.
                     Draft draft = draftService.createFromVersion(referrer.getId());
                     conflicts.forEach(conflict -> create(draft.getId(), newVersionId, conflict));
