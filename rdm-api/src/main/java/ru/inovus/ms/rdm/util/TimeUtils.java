@@ -91,7 +91,7 @@ public final class TimeUtils {
     }
 
     public static String format(LocalDateTime localDateTime) {
-        return localDateTime.format(DATE_TIME_PATTERN_EUROPEAN_FORMATTER);
+        return localDateTime.format(DATE_TIME_PATTERN_ISO_WITH_TIME_DELIMITER_FORMATTER);
     }
 
     public static LocalDateTime now() {
