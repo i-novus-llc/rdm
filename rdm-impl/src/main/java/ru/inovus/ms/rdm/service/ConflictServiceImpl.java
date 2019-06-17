@@ -334,9 +334,7 @@ public class ConflictServiceImpl implements ConflictService {
 
         conflicts.stream()
                 .filter(ConflictUtils::isUpdatedConflict)
-                .forEach(conflict -> updateReferenceValue(refFromEntity, refToEntity, conflict,
-                        refFromEntity.getStorageCode(),
-                        refToEntity.getStorageCode()));
+                .forEach(conflict -> updateReferenceValue(refFromEntity, refToEntity, conflict));
     }
 
     /**
@@ -345,14 +343,10 @@ public class ConflictServiceImpl implements ConflictService {
      * @param refFromEntity      версия справочника со ссылками
      * @param refToEntity        версия изменённого справочника
      * @param conflict           конфликт
-     * @param refFromStorageCode код хранилища справочника со ссылками
-     * @param refToStorageCode   код хранилища изменённого справочника
      */
     private void updateReferenceValue(RefBookVersionEntity refFromEntity,
                                       RefBookVersionEntity refToEntity,
-                                      Conflict conflict,
-                                      String refFromStorageCode,
-                                      String refToStorageCode) {
+                                      Conflict conflict) {
         if (conflict == null || conflict.isEmpty())
             return;
 
@@ -374,19 +368,16 @@ public class ConflictServiceImpl implements ConflictService {
 
         String displayValue = RowUtils.toDisplayValue(refFromReference.getDisplayExpression(), refToRow);
         if (!Objects.equals(oldReference.getDisplayValue(), displayValue)) {
-            LocalDateTime publishDate = RefBookVersionStatus.DRAFT.equals(refToEntity.getStatus())
-                    ? null // SYS_PUBLISH_TIME is not exist for draft
-                    : LocalDateTime.now();
             Reference newReference = new Reference(
-                    refToStorageCode,
-                    publishDate,
+                    refToEntity.getStorageCode(),
+                    refToEntity.getFromDate(), // SYS_PUBLISH_TIME is not exist for draft
                     refToAttribute.getCode(),
                     new DisplayExpression(refFromReference.getDisplayExpression()),
                     oldReference.getValue(),
                     displayValue);
 
             updateReferenceValue(refFromEntity.getId(),
-                    refFromStorageCode,
+                    refFromEntity.getStorageCode(),
                     refFromRow.getSystemId(),
                     refFromReference.getAttribute(),
                     newReference);
@@ -459,6 +450,7 @@ public class ConflictServiceImpl implements ConflictService {
                 if (!VersionUtils.isDraft(referrer)) {
                     // NB: Изменение данных возможно только в черновике.
                     Draft draft = draftService.createFromVersion(referrer.getId());
+                    // NB: Исключить, если создание конфликтов будет добавлено в код создания черновика.
                     conflicts.forEach(conflict -> create(draft.getId(), newVersionId, conflict));
                     referrerVersionId = draft.getId();
                 }
@@ -554,7 +546,7 @@ public class ConflictServiceImpl implements ConflictService {
         criteria.setAttributeFilter(singleton(singletonList(recordIdFilter)));
 
         Page<RefBookRowValue> rowValues = versionService.search(entity.getId(), criteria);
-        return (rowValues != null && !rowValues.isEmpty()) ? rowValues.get().findFirst().orElse(null) : null;
+        return (rowValues != null && !CollectionUtils.isEmpty(rowValues.getContent())) ? rowValues.getContent().get(0) : null;
     }
 
     /**
@@ -575,7 +567,7 @@ public class ConflictServiceImpl implements ConflictService {
         criteria.setAttributeFilter(singleton(filters));
 
         Page<RefBookRowValue> rowValues = versionService.search(entity.getId(), criteria);
-        return (rowValues != null && !rowValues.isEmpty()) ? rowValues.get().findFirst().orElse(null) : null;
+        return (rowValues != null && !CollectionUtils.isEmpty(rowValues.getContent())) ? rowValues.getContent().get(0) : null;
     }
 
     /**
@@ -595,6 +587,6 @@ public class ConflictServiceImpl implements ConflictService {
         criteria.setAttributeFilter(singleton(filters));
 
         Page<RefBookRowValue> rowValues = versionService.search(entity.getId(), criteria);
-        return (rowValues != null && !rowValues.isEmpty()) ? rowValues.get().findFirst().orElse(null) : null;
+        return (rowValues != null && !CollectionUtils.isEmpty(rowValues.getContent())) ? rowValues.getContent().get(0) : null;
     }
 }
