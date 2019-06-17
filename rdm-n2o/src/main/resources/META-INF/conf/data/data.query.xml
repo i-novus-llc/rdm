@@ -36,5 +36,9 @@
             </filters>
         </field>
 
+<!--        <field id="cellOptions">-->
+<!--            <select/>-->
+<!--        </field>-->
+
     </fields>
 </query>

@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.service;
 
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import net.n2oapp.criteria.api.Direction;
 import net.n2oapp.framework.api.MetadataEnvironment;
@@ -34,19 +33,19 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.google.common.collect.ImmutableMap.of;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static ru.inovus.ms.rdm.RdmUiUtil.addPrefix;
 import static ru.inovus.ms.rdm.RdmUiUtil.deletePrefix;
-import static ru.inovus.ms.rdm.util.TimeUtils.*;
-
+import static ru.inovus.ms.rdm.util.TimeUtils.DATE_PATTERN_EUROPEAN;
+import static ru.inovus.ms.rdm.util.TimeUtils.DATE_TIME_PATTERN_EUROPEAN_FORMATTER;
 
 @Component
 public class RefBookDataController {
@@ -65,10 +64,11 @@ public class RefBookDataController {
         SearchDataCriteria searchDataCriteria = toSearchDataCriteria(criteria, structure);
         Page<RefBookRowValue> search = versionService.search(criteria.getVersionId(), searchDataCriteria);
 
+
         DataGridRow dataGridHead = new DataGridRow(createHead(structure));
         List<DataGridRow> dataGridRows = search.getContent().stream()
                 .map(rowValue -> toDataGridRow(rowValue, criteria.getVersionId()))
-                .collect(Collectors.toList());
+                .collect(toList());
 
         List<DataGridRow> result = new ArrayList<>();
         result.add(dataGridHead);
@@ -82,13 +82,26 @@ public class RefBookDataController {
     }
 
     private DataGridRow toDataGridRow(RowValue rowValue, Integer versionId) {
-        Map<String, String> row = new HashMap<>();
-        LongRowValue longRow = (LongRowValue) rowValue;
-        longRow.getFieldValues().forEach(fieldValue -> row.put(addPrefix(fieldValue.getField()), toStringValue(fieldValue)));
+        Map<String, Object> cellOptions = new HashMap<>() {{
+            put("src", "TextCell");
+            put("styles", new HashMap<>() {{
+                put("backgroundColor", "#f8c8c6");
+            }});
+        }};
 
-        row.put("id", String.valueOf(longRow.getSystemId()));
-        row.put("versionId", String.valueOf(versionId));
-        return new DataGridRow(longRow.getSystemId(), row);
+        Map<String, DataGridCell> row = new HashMap<>();
+        LongRowValue longRowValue = (LongRowValue) rowValue;
+        longRowValue
+                .getFieldValues()
+                .forEach(fieldValue ->
+                        row.put(
+                                addPrefix(fieldValue.getField()),
+                                new DataGridCell(toStringValue(fieldValue), cellOptions)
+                        )
+                );
+        row.put("id", new DataGridCell(String.valueOf(longRowValue.getSystemId())));
+        row.put("versionId", new DataGridCell(String.valueOf(versionId)));
+        return new DataGridRow(longRowValue.getSystemId(), row);
     }
 
     private String toStringValue(FieldValue value) {
@@ -106,23 +119,25 @@ public class RefBookDataController {
     }
 
     private String referenceToString(Reference reference) {
-        return (reference.getValue() != null) ? reference.getValue() + ": " + reference.getDisplayValue() : null;
+        return reference.getValue() != null
+                ? reference.getValue() + ": " + reference.getDisplayValue()
+                : null;
     }
 
-    private List<DataColumn> createHead(Structure structure) {
+    private List<DataGridColumn> createHead(Structure structure) {
         return structure.getAttributes().stream()
                 .map(this::toDataColumn)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
-    private DataColumn toDataColumn(Structure.Attribute attribute) {
+    private DataGridColumn toDataColumn(Structure.Attribute attribute) {
         N2oField n2oField = toN2oField(attribute);
         n2oField.setId(addPrefix(attribute.getCode()));
         CompilePipeline pipeline = N2oPipelineSupport.compilePipeline(env);
         CompileContext<?, ?> ctx = new WidgetContext("");
         StandardField field = pipeline.compile().get(n2oField, ctx);
 
-        return new DataColumn(addPrefix(attribute.getCode()), attribute.getName(), true, true, true, field.getControl());
+        return new DataGridColumn(addPrefix(attribute.getCode()), attribute.getName(), true, true, true, field.getControl());
     }
 
     private N2oField toN2oField(Structure.Attribute attribute) {
@@ -205,18 +220,18 @@ public class RefBookDataController {
         @JsonProperty
         Long id;
         @JsonProperty
-        List<DataColumn> columns;
+        List<DataGridColumn> columns;
         @JsonProperty
-        Map<String, String> row;
+        Map<String, DataGridCell> row;
 
         public DataGridRow() {
         }
 
-        public DataGridRow(List<DataColumn> columns) {
+        public DataGridRow(List<DataGridColumn> columns) {
             this.columns = columns;
         }
 
-        public DataGridRow(Long id, Map<String, String> row) {
+        public DataGridRow(Long id, Map<String, DataGridCell> row) {
             this.id = id;
             this.row = row;
         }
@@ -229,20 +244,56 @@ public class RefBookDataController {
             this.id = id;
         }
 
-        public List<DataColumn> getColumns() {
+        public List<DataGridColumn> getColumns() {
             return columns;
         }
 
-        public void setColumns(List<DataColumn> columns) {
+        public void setColumns(List<DataGridColumn> columns) {
             this.columns = columns;
         }
 
-        public Map<String, String> getRow() {
+        public Map<String, DataGridCell> getRow() {
             return row;
         }
 
-        public void setRow(Map<String, String> row) {
+        public void setRow(Map<String, DataGridCell> row) {
             this.row = row;
+        }
+
+    }
+
+    public static class DataGridCell {
+        @JsonProperty
+        String value;
+        @JsonProperty
+        Map<String, Object> cellOptions;
+
+        public DataGridCell() {
+        }
+
+        public DataGridCell(String value) {
+            this.value = value;
+        }
+
+        public DataGridCell(String value, Map<String, Object> cellOptions) {
+            this.value = value;
+            this.cellOptions = cellOptions;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public void setValue(String value) {
+            this.value = value;
+        }
+
+        public Map<String, Object> getCellOptions() {
+            return cellOptions;
+        }
+
+        public void setCellOptions(Map<String, Object> cellOptions) {
+            this.cellOptions = cellOptions;
         }
     }
 }
