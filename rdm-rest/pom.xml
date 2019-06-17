@@ -4,10 +4,14 @@
 
     <artifactId>rdm-rest</artifactId>
 
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
     <parent>
         <groupId>ru.inovus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
-        <version>1.29-SNAPSHOT</version>
+        <version>1.35-SNAPSHOT</version>
     </parent>
 
     <dependencies>
@@ -18,19 +22,24 @@
         </dependency>
 
         <dependency>
-            <groupId>net.n2oapp.platform</groupId>
-            <artifactId>n2o-platform-jaxrs-commons</artifactId>
-        </dependency>
-
-
-        <dependency>
             <groupId>ru.inovus.ms.rdm</groupId>
             <artifactId>rdm-impl</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-jaxrs-commons</artifactId>
         </dependency>
 
         <dependency>
             <groupId>net.n2oapp.platform</groupId>
             <artifactId>n2o-platform-starter-jaxrs-server</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-ms</artifactId>
         </dependency>
 
         <dependency>
@@ -44,7 +53,7 @@
         </dependency>
 
         <dependency>
-            <groupId>org.liquibase</groupId>
+            <groupId>ru.i-novus.components</groupId>
             <artifactId>liquibase-core</artifactId>
         </dependency>
 
@@ -74,11 +83,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.opentable.components</groupId>
-            <artifactId>otj-pg-embedded</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>net.n2oapp.platform</groupId>
             <artifactId>n2o-platform-starter-jaxrs-client</artifactId>
             <scope>test</scope>
@@ -94,7 +98,6 @@
             <groupId>com.sun.xml.ws</groupId>
             <artifactId>rt</artifactId>
         </dependency>
-
     </dependencies>
 
     <build>
@@ -129,6 +132,18 @@
                     <groupId>ru.inovus.ms.rdm</groupId>
                     <artifactId>rdm-fnsi-impl</artifactId>
                     <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>external-tracing-tool</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-sleuth-zipkin</artifactId>
                 </dependency>
             </dependencies>
         </profile>
