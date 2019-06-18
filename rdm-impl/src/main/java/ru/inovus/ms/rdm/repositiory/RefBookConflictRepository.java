@@ -15,7 +15,7 @@ public interface RefBookConflictRepository extends
         JpaRepository<RefBookConflictEntity, Integer>,
         QuerydslPredicateExecutor<RefBookConflictEntity> {
 
-    RefBookConflictEntity findByReferrerVersionIdAndPublishedVersionIdAndRefRecordId(Integer referrerId, Integer publishedId, Long refRecordId);
+    RefBookConflictEntity findByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdAndRefFieldCode(Integer referrerId, Integer publishedId, Long refRecordId, String refFieldCode);
 
     List<RefBookConflictEntity> findAllByReferrerVersionId(Integer referrerId);
 

@@ -7,6 +7,7 @@ import ru.inovus.ms.rdm.model.RefBookVersion;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Path("/conflicts")
@@ -77,20 +78,34 @@ public interface ConflictService {
                         List<Conflict> conflicts);
 
     @POST
-    @Path("/update/displayvalue")
+    @Path("/handle/{id}")
+    @ApiOperation("Отработка записи о конфликте")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void handle(@ApiParam("Идентификатор записи о конфликте")
+                @PathParam("id")
+                        Integer id,
+                @ApiParam("Дата отработки конфликта")
+                @QueryParam("handlingDate")
+                        LocalDateTime handlingDate);
+
+    @POST
+    @Path("/refresh/displayvalue")
     @ApiOperation("Обновление отображаемых значений ссылок")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void updateReferenceValues(@ApiParam("Идентификатор версии, которая ссылается")
-                               @QueryParam("refFromId")
-                                       Integer refFromId,
-                               @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
-                               @QueryParam("refToId")
-                                       Integer refToId,
-                               @ApiParam("Список конфликтов")
-                                       List<Conflict> conflicts);
+    void refreshReferencesByPrimary(@ApiParam("Идентификатор версии, которая ссылается")
+                                    @QueryParam("refFromId")
+                                            Integer refFromId,
+                                    @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
+                                    @QueryParam("refToId")
+                                            Integer refToId,
+                                    @ApiParam("Список конфликтов")
+                                            List<Conflict> conflicts);
 
     @POST
     @Path("/discover")

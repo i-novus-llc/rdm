@@ -153,7 +153,7 @@ public class ConflictServiceTest {
     }
 
     @Test
-    public void testUpdateReferenceValues() {
+    public void testRefreshReferencesByPrimary() {
 
         referrerEntity.setStorageCode(REFERRER_DRAFT_STORAGE_CODE);
         publishingEntity.setStorageCode(PUBLISHING_DRAFT_STORAGE_CODE);
@@ -178,7 +178,7 @@ public class ConflictServiceTest {
 
         ArgumentCaptor<RefBookRowValue> rowValueCaptor = ArgumentCaptor.forClass(RefBookRowValue.class);
 
-        conflictService.updateReferenceValues(REFERRER_VERSION_ID, PUBLISHING_VERSION_ID, conflicts);
+        conflictService.refreshReferencesByPrimary(REFERRER_VERSION_ID, PUBLISHING_VERSION_ID, conflicts);
 
         verify(draftDataService, times(1)).updateRow(eq(REFERRER_DRAFT_STORAGE_CODE), rowValueCaptor.capture());
 

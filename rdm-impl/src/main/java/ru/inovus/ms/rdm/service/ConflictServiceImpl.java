@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.service;
 
+import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
@@ -10,10 +11,13 @@ import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.*;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.RefBookConflictEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
@@ -28,7 +32,6 @@ import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.*;
 import ru.inovus.ms.rdm.util.ConflictUtils;
 import ru.inovus.ms.rdm.util.RowUtils;
-import ru.inovus.ms.rdm.util.VersionUtils;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import java.math.BigInteger;
@@ -44,6 +47,7 @@ import static ru.inovus.ms.rdm.util.ComparableUtils.findRefBookRowValue;
 import static ru.inovus.ms.rdm.util.ComparableUtils.findRefBookRowValues;
 import static ru.inovus.ms.rdm.util.ConflictUtils.conflictTypeToDiffStatus;
 import static ru.inovus.ms.rdm.util.ConflictUtils.diffStatusToConflictType;
+import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
 
 @Primary
 @Service
@@ -51,6 +55,7 @@ public class ConflictServiceImpl implements ConflictService {
 
     private static final String REFBOOK_DRAFT_NOT_FOUND = "refbook.draft.not.found";
     private static final String VERSION_IS_NOT_DRAFT = "version.is.not.draft";
+    private static final String VERSION_IS_NOT_LAST_PUBLISHED = "version.is.not.last.published";
     private static final String CONFLICT_NOT_FOUND = "conflict.not.found";
     private static final String CONFLICTED_FROM_ROW_NOT_FOUND = "conflicted.from.row.not.found";
     private static final String CONFLICTED_TO_ROW_NOT_FOUND = "conflicted.to.row.not.found";
@@ -60,6 +65,7 @@ public class ConflictServiceImpl implements ConflictService {
 
     private CompareService compareService;
     private DraftDataService draftDataService;
+    private SearchDataService searchDataService;
 
     private RefBookService refBookService;
     private VersionService versionService;
@@ -73,6 +79,7 @@ public class ConflictServiceImpl implements ConflictService {
     public ConflictServiceImpl(RefBookConflictRepository conflictRepository,
                                CompareService compareService,
                                DraftDataService draftDataService,
+                               SearchDataService searchDataService,
                                RefBookService refBookService,
                                VersionService versionService,
                                DraftService draftService,
@@ -82,6 +89,7 @@ public class ConflictServiceImpl implements ConflictService {
 
         this.compareService = compareService;
         this.draftDataService = draftDataService;
+        this.searchDataService = searchDataService;
 
         this.refBookService = refBookService;
         this.versionService = versionService;
@@ -123,7 +131,7 @@ public class ConflictServiceImpl implements ConflictService {
         RefBookVersionEntity refToEntity = versionRepository.getOne(oldRefToId);
 
         return createDiffConflicts(getDataDiffContent(oldRefToId, newRefToId),
-                getDataRowContent(refFromId),
+                getDataAllRowContent(refFromEntity),
                 refToEntity.getStructure(),
                 refFromEntity.getStructure(),
                 getRefAttributes(refFromEntity.getStructure(), refToEntity.getRefBook().getCode())
@@ -194,7 +202,7 @@ public class ConflictServiceImpl implements ConflictService {
         RefBookVersionEntity refToEntity = versionRepository.getOne(oldRefToId);
 
         return checkDiffConflicts(getDataDiffContent(oldRefToId, newRefToId),
-                getDataRowContent(refFromId),
+                getDataAllRowContent(refFromEntity),
                 refToEntity.getStructure(),
                 getRefAttributes(refFromEntity.getStructure(), refToEntity.getRefBook().getCode()),
                 conflictTypeToDiffStatus(conflictType)
@@ -295,22 +303,24 @@ public class ConflictServiceImpl implements ConflictService {
         return conflict;
     }
 
-    private void handle(Integer id, LocalDateTime handlingDate) {
+    @Override
+    @Transactional
+    public void handle(Integer id, LocalDateTime handlingDate) {
         if (handlingDate == null)
             handlingDate = LocalDateTime.now();
 
         conflictRepository.setHandlingDate(id, handlingDate);
     }
 
-    private void handle(Integer refFromId, Integer refToId, Long rowSystemId, LocalDateTime handlingDate) {
+    private void handle(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode, LocalDateTime handlingDate) {
 
-        RefBookConflictEntity entity = conflictRepository.findByReferrerVersionIdAndPublishedVersionIdAndRefRecordId(refFromId, refToId, rowSystemId);
+        RefBookConflictEntity entity = conflictRepository.findByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdAndRefFieldCode(refFromId, refToId, rowSystemId, refFieldCode);
         if (Objects.nonNull(entity))
             handle(entity.getId(), handlingDate);
     }
 
     /**
-     * Обновление ссылок в справочнике по списку конфликтов.
+     * Обновление ссылок в справочнике по первичным ключам.
      *
      * @param refFromId идентификатор версии справочника со ссылками
      * @param refToId   идентификатор версии изменённого справочника
@@ -318,19 +328,43 @@ public class ConflictServiceImpl implements ConflictService {
      */
     @Override
     @Transactional
-    public void updateReferenceValues(Integer refFromId, Integer refToId, List<Conflict> conflicts) {
+    public void refreshReferencesByPrimary(Integer refFromId, Integer refToId, List<Conflict> conflicts) {
 
-        if (CollectionUtils.isEmpty(conflicts))
+        if (CollectionUtils.isEmpty(conflicts)
+                || conflicts.stream().noneMatch(ConflictUtils::isUpdatedConflict))
             return;
 
         versionValidation.validateVersionExists(refFromId);
         versionValidation.validateVersionExists(refToId);
 
         RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
-        if (!RefBookVersionStatus.DRAFT.equals(refFromEntity.getStatus()))
-            throw new RdmException(VERSION_IS_NOT_DRAFT);
+        if (!isDraftEntity(refFromEntity)) {
+            RefBookVersionEntity refLastEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refFromEntity.getRefBook().getCode(), RefBookVersionStatus.PUBLISHED);
+            if (refLastEntity != null && !refLastEntity.getId().equals(refFromId))
+                throw new RdmException(VERSION_IS_NOT_LAST_PUBLISHED);
+
+            // NB: Изменение данных возможно только в черновике.
+            Draft draft = draftService.createFromVersion(refFromId);
+            // NB: Исключить, если создание конфликтов будет добавлено в код создания черновика.
+            conflicts.forEach(conflict -> create(draft.getId(), refToId, conflict));
+            refFromEntity = versionRepository.getOne(draft.getId());
+        }
 
         RefBookVersionEntity refToEntity = versionRepository.getOne(refToId);
+
+        updateReferenceValues(refFromEntity, refToEntity, conflicts);
+    }
+
+    /**
+     * Обновление ссылок в справочнике по списку конфликтов.
+     *
+     * @param refFromEntity версия справочника со ссылками
+     * @param refToEntity   версия изменённого справочника
+     * @param conflicts     список конфликтов
+     */
+    private void updateReferenceValues(RefBookVersionEntity refFromEntity, RefBookVersionEntity refToEntity, List<Conflict> conflicts) {
+        if (!isDraftEntity(refFromEntity))
+            throw new RdmException(VERSION_IS_NOT_DRAFT);
 
         conflicts.stream()
                 .filter(ConflictUtils::isUpdatedConflict)
@@ -340,9 +374,9 @@ public class ConflictServiceImpl implements ConflictService {
     /**
      * Обновление ссылки в справочнике по конфликту.
      *
-     * @param refFromEntity      версия справочника со ссылками
-     * @param refToEntity        версия изменённого справочника
-     * @param conflict           конфликт
+     * @param refFromEntity версия справочника со ссылками
+     * @param refToEntity   версия изменённого справочника
+     * @param conflict      конфликт
      */
     private void updateReferenceValue(RefBookVersionEntity refFromEntity,
                                       RefBookVersionEntity refToEntity,
@@ -381,9 +415,9 @@ public class ConflictServiceImpl implements ConflictService {
                     refFromRow.getSystemId(),
                     refFromReference.getAttribute(),
                     newReference);
-
-            handle(refFromEntity.getId(), refToEntity.getId(), refFromRow.getSystemId(), null);
         }
+
+        handle(refFromEntity.getId(), refToEntity.getId(), refFromRow.getSystemId(), conflict.getRefAttributeCode(), null);
     }
 
     /**
@@ -433,8 +467,9 @@ public class ConflictServiceImpl implements ConflictService {
         List<Integer> lastVersionIds = lastReferrers.stream().map(RefBookVersion::getId).collect(Collectors.toList());
 
         allReferrers.forEach(referrer -> {
+            RefBookVersionEntity referrerEntity = versionRepository.getOne(referrer.getId());
             List<Conflict> conflicts = createDiffConflicts(diffRowValues,
-                    getDataRowContent(referrer.getId()),
+                    getDataAllRowContent(referrerEntity),
                     newVersionEntity.getStructure(),
                     referrer.getStructure(),
                     getRefAttributes(referrer.getStructure(), newVersionEntity.getRefBook().getCode())
@@ -446,16 +481,7 @@ public class ConflictServiceImpl implements ConflictService {
 
             if (lastVersionIds.contains(referrer.getId())
                     && conflicts.stream().anyMatch(ConflictUtils::isUpdatedConflict)) {
-                Integer referrerVersionId = referrer.getId();
-                if (!VersionUtils.isDraft(referrer)) {
-                    // NB: Изменение данных возможно только в черновике.
-                    Draft draft = draftService.createFromVersion(referrer.getId());
-                    // NB: Исключить, если создание конфликтов будет добавлено в код создания черновика.
-                    conflicts.forEach(conflict -> create(draft.getId(), newVersionId, conflict));
-                    referrerVersionId = draft.getId();
-                }
-
-                updateReferenceValues(referrerVersionId, newVersionId, conflicts);
+                refreshReferencesByPrimary(referrer.getId(), newVersionId, conflicts);
             }
         });
     }
@@ -488,14 +514,30 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Получение записей данных версии справочника.
+     * Получение всех записей данных версии справочника.
      *
-     * @param versionId идентификатор версии
-     * @return Список записей
+     * @param version версия
+     * @return Список всех записей
      */
-    private List<RefBookRowValue> getDataRowContent(Integer versionId) {
-        Page<RefBookRowValue> rowValues = versionService.search(versionId, new SearchDataCriteria());
-        return rowValues.getContent();
+    private List<RefBookRowValue> getDataAllRowContent(RefBookVersionEntity version) {
+        return getDataAllRowContent(version.getId(), version.getStorageCode(), version.getStructure(),
+                version.getFromDate(), version.getToDate());
+    }
+
+    private List<RefBookRowValue> getDataAllRowContent(Integer versionId, String storageCode,
+                                                       Structure structure,
+                                                       LocalDateTime bdate, LocalDateTime edate) {
+        DataCriteria criteria = new DataCriteria(storageCode, bdate, edate, fields(structure), null);
+        criteria.setPage(0);
+        criteria.setSize(0);
+
+        CollectionPage<RowValue> pagedData = searchDataService.getPagedData(criteria);
+        if (pagedData.getCollection() == null)
+            return emptyList();
+
+        return pagedData.getCollection().stream()
+                .map(rowValue -> new RefBookRowValue((LongRowValue) rowValue, versionId))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -588,5 +630,15 @@ public class ConflictServiceImpl implements ConflictService {
 
         Page<RefBookRowValue> rowValues = versionService.search(entity.getId(), criteria);
         return (rowValues != null && !CollectionUtils.isEmpty(rowValues.getContent())) ? rowValues.getContent().get(0) : null;
+    }
+
+    /**
+     * Проверка статуса версии на DRAFT.
+     *
+     * @param versionEntity версия
+     * @return Результат проверки
+     */
+    private static boolean isDraftEntity(RefBookVersionEntity versionEntity) {
+        return RefBookVersionStatus.DRAFT.equals(versionEntity.getStatus());
     }
 }
