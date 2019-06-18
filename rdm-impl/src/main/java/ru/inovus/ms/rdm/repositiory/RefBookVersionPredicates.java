@@ -5,7 +5,9 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import ru.inovus.ms.rdm.entity.QPassportValueEntity;
 import ru.inovus.ms.rdm.entity.QRefBookVersionEntity;
+import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.exception.RdmException;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -19,8 +21,8 @@ public final class RefBookVersionPredicates {
     public static final LocalDateTime MIN_TIMESTAMP = LocalDateTime.ofInstant(Instant.ofEpochMilli(0L),
             TimeZone.getDefault().toZoneId());
 
-    public static final String EXISTS_VERSION = "existsVersion";
-    public static final String IS_LAST_VERSION = "isLastVersion";
+    private static final String EXISTS_VERSION = "existsVersion";
+    private static final String IS_LAST_DATE_VERSION = "isLastDateVersion";
 
     private RefBookVersionPredicates() {
     }
@@ -55,6 +57,30 @@ public final class RefBookVersionPredicates {
         return anyVersion.status.eq(RefBookVersionStatus.DRAFT);
     }
 
+    public static BooleanExpression isSourceType(RefBookSourceType sourceType) {
+        if (sourceType == null)
+            return isLastVersion();
+
+        switch (sourceType) {
+            case ALL: return null;
+            case ACTUAL: return isActual();
+            case DRAFT: return isDraft();
+            case LAST_PUBLISHED: return isLastPublished();
+            case LAST_VERSION: return isLastVersion();
+
+            default:
+                throw new RdmException("unknown.refbook.source.type");
+        }
+    }
+
+    public static BooleanExpression isActual() {
+        LocalDateTime now = LocalDateTime.now();
+        return isPublished().and(
+                QRefBookVersionEntity.refBookVersionEntity.fromDate.loe(now).and(
+                        QRefBookVersionEntity.refBookVersionEntity.toDate.after(now).or(
+                                QRefBookVersionEntity.refBookVersionEntity.toDate.isNull())));
+    }
+
     public static BooleanExpression isDraft() {
         return QRefBookVersionEntity.refBookVersionEntity.status.eq(RefBookVersionStatus.DRAFT);
     }
@@ -68,7 +94,7 @@ public final class RefBookVersionPredicates {
     }
 
     public static BooleanExpression isLastPublished() {
-        QRefBookVersionEntity whereVersion = new QRefBookVersionEntity(IS_LAST_VERSION);
+        QRefBookVersionEntity whereVersion = new QRefBookVersionEntity(IS_LAST_DATE_VERSION);
         return isPublished().and(
                 QRefBookVersionEntity.refBookVersionEntity.fromDate
                     .eq(JPAExpressions
@@ -76,9 +102,13 @@ public final class RefBookVersionPredicates {
                         .where(whereVersion.refBook.eq(QRefBookVersionEntity.refBookVersionEntity.refBook))));
     }
 
+    public static BooleanExpression isLastVersion() {
+        return refBookHasDraft().not().and(isLastPublished()).or(isDraft());
+    }
+
     public static BooleanExpression hasLastPublishedVersion() {
         QRefBookVersionEntity fieldVersion = new QRefBookVersionEntity(EXISTS_VERSION);
-        QRefBookVersionEntity whereVersion = new QRefBookVersionEntity(IS_LAST_VERSION);
+        QRefBookVersionEntity whereVersion = new QRefBookVersionEntity(IS_LAST_DATE_VERSION);
         return JPAExpressions
                 .select(fieldVersion.version).from(fieldVersion)
                 .where(fieldVersion.refBook.eq(QRefBookVersionEntity.refBookVersionEntity.refBook)
@@ -94,7 +124,7 @@ public final class RefBookVersionPredicates {
 
     public static BooleanExpression hasPrimaryAttribute() {
         QRefBookVersionEntity fieldVersion = new QRefBookVersionEntity(EXISTS_VERSION);
-        QRefBookVersionEntity whereVersion = new QRefBookVersionEntity(IS_LAST_VERSION);
+        QRefBookVersionEntity whereVersion = new QRefBookVersionEntity(IS_LAST_DATE_VERSION);
         return JPAExpressions
                 .select(fieldVersion.version).from(fieldVersion)
                 .where(fieldVersion.refBook.eq(QRefBookVersionEntity.refBookVersionEntity.refBook)
@@ -105,17 +135,10 @@ public final class RefBookVersionPredicates {
                                     .where(whereVersion.refBook.eq(fieldVersion.refBook)
                                             .and(whereVersion.status.eq(RefBookVersionStatus.PUBLISHED)))
                             ))
+                    // NB: Реализовать проверку на наличие первичного ключа
                     .and(fieldVersion.structure.isNotNull())
                 ).exists();
 
-    }
-
-    public static BooleanExpression isActual() {
-        LocalDateTime now = LocalDateTime.now();
-        return isPublished().and(
-                QRefBookVersionEntity.refBookVersionEntity.fromDate.loe(now).and(
-                        QRefBookVersionEntity.refBookVersionEntity.toDate.after(now).or(
-                                QRefBookVersionEntity.refBookVersionEntity.toDate.isNull())));
     }
 
     public static BooleanExpression isCodeContains(String code) {

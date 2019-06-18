@@ -41,11 +41,18 @@
             <select/>
         </field>
 
+        <field id="draftVersionId" domain="integer">
+            <select/>
+        </field>
+
+        <field id="lastPublishedVersionId" domain="integer">
+            <select/>
+        </field>
+
         <!--Хак, для обновления detail виджетов, если в master нет изменений после рефреша-->
         <field id="now" domain="string">
             <select mapping="new java.util.Date()"/>
         </field>
-
 
     </fields>
 </query>

@@ -12,7 +12,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
-import ru.inovus.ms.rdm.enumeration.RefBookInfo;
+import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.service.api.CompareService;
@@ -115,7 +115,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     private RefBook getNewVersionFromRdm(String refbookCode) {
         RefBookCriteria refBookCriteria = new RefBookCriteria();
         refBookCriteria.setCode(refbookCode);
-        refBookCriteria.setRefBookInfo(RefBookInfo.PUBLISHED);
+        refBookCriteria.setRefBookSourceType(RefBookSourceType.LAST_PUBLISHED);
         Page<RefBook> rdmRefbooks = refBookService.search(refBookCriteria);
         if (rdmRefbooks.getContent() == null || rdmRefbooks.getContent().isEmpty()) {
             throw new IllegalStateException(String.format("Справочник с кодом %s не найден в системе", refbookCode));

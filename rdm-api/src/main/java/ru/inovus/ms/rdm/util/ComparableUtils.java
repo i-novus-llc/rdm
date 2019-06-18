@@ -183,19 +183,21 @@ public class ComparableUtils {
      * @return Множество фильтров по первичным полям версии
      */
     public static Set<List<AttributeFilter>> createPrimaryAttributesFilters(RefBookDataDiff refBookDataDiff, Structure structure) {
-        return refBookDataDiff.getRows().getContent().stream().map(row ->
-                structure.getPrimary()
-                        .stream()
-                        .map(pk ->
-                                new AttributeFilter(
-                                        pk.getCode(),
-                                        DiffStatusEnum.DELETED.equals(row.getStatus())
-                                                ? row.getDiffFieldValue(pk.getCode()).getOldValue()
-                                                : row.getDiffFieldValue(pk.getCode()).getNewValue(),
-                                        pk.getType())
-                        )
-                        .collect(toList())
-        ).collect(toSet());
+        return refBookDataDiff.getRows().getContent()
+                .stream()
+                .map(row ->
+                        structure.getPrimary()
+                                .stream()
+                                .map(pk ->
+                                        new AttributeFilter(
+                                                pk.getCode(),
+                                                DiffStatusEnum.DELETED.equals(row.getStatus())
+                                                        ? row.getDiffFieldValue(pk.getCode()).getOldValue()
+                                                        : row.getDiffFieldValue(pk.getCode()).getNewValue(),
+                                                pk.getType())
+                                )
+                                .collect(toList())
+                ).collect(toSet());
     }
 
     /**
@@ -206,14 +208,16 @@ public class ComparableUtils {
      * @return Множество фильтров по первичным полям версии
      */
     public static Set<List<AttributeFilter>> createPrimaryAttributesFilters(Page<? extends RowValue> data, Structure structure) {
-        return data.getContent().stream().map(row ->
-                structure.getPrimary()
-                        .stream()
-                        .map(pk ->
-                                new AttributeFilter(pk.getCode(), row.getFieldValue(pk.getCode()).getValue(), pk.getType())
-                        )
-                        .collect(toList())
-        ).collect(toSet());
+        return data.getContent()
+                .stream()
+                .map(row ->
+                        structure.getPrimary()
+                                .stream()
+                                .map(pk ->
+                                        new AttributeFilter(pk.getCode(), row.getFieldValue(pk.getCode()).getValue(), pk.getType())
+                                )
+                                .collect(toList())
+                ).collect(toSet());
     }
 
     /**
@@ -228,14 +232,16 @@ public class ComparableUtils {
      */
     public static List<ComparableField> createCommonComparableFieldsList(RefBookDataDiff refBookDataDiff,
                                                                          Structure newStructure, Structure oldStructure) {
-        List<ComparableField> comparableFields = newStructure.getAttributes().stream().map(attribute -> {
-            DiffStatusEnum fieldStatus = null;
-            if (refBookDataDiff.getUpdatedAttributes().contains(attribute.getCode()))
-                fieldStatus = DiffStatusEnum.UPDATED;
-            if (refBookDataDiff.getNewAttributes().contains(attribute.getCode()))
-                fieldStatus = DiffStatusEnum.INSERTED;
-            return new ComparableField(attribute.getCode(), attribute.getName(), fieldStatus);
-        }).collect(toList());
+        List<ComparableField> comparableFields = newStructure.getAttributes()
+                .stream()
+                .map(attribute -> {
+                    DiffStatusEnum fieldStatus = null;
+                    if (refBookDataDiff.getUpdatedAttributes().contains(attribute.getCode()))
+                        fieldStatus = DiffStatusEnum.UPDATED;
+                    if (refBookDataDiff.getNewAttributes().contains(attribute.getCode()))
+                        fieldStatus = DiffStatusEnum.INSERTED;
+                    return new ComparableField(attribute.getCode(), attribute.getName(), fieldStatus);
+                }).collect(toList());
 
         refBookDataDiff.getOldAttributes()
                 .forEach(oldAttribute ->
@@ -246,11 +252,11 @@ public class ComparableUtils {
         return comparableFields;
     }
 
-    private static Object castRefValue(FieldValue fieldValue, FieldType refFieldType) {
+    public static Object castRefValue(FieldValue fieldValue, FieldType refFieldType) {
         if (fieldValue instanceof ReferenceFieldValue) {
             Reference value = (Reference) fieldValue.getValue();
             if (refFieldType == FieldType.INTEGER) {
-                return value.getValue() != null ? BigInteger.valueOf(Integer.valueOf(value.getValue())) : null;
+                return value.getValue() != null ? new BigInteger(value.getValue()) : null;
             }
             return value.getValue();
         }

@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.util;
+package ru.inovus.ms.rdm.validation;
 
 import java.time.LocalDateTime;
 

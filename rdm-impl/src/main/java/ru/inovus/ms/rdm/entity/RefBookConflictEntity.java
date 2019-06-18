@@ -1,7 +1,6 @@
 package ru.inovus.ms.rdm.entity;
 
 import ru.inovus.ms.rdm.enumeration.ConflictType;
-import ru.inovus.ms.rdm.util.TimeUtils;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -25,7 +24,7 @@ public class RefBookConflictEntity {
     private RefBookVersionEntity publishedVersion;
 
     @Column(name = "ref_recordid", nullable = false)
-    private Integer refRecordId;
+    private Long refRecordId;
 
     @Column(name = "ref_field_code", nullable = false)
     private String refFieldCode;
@@ -40,48 +39,12 @@ public class RefBookConflictEntity {
     @Column(name = "handling_date")
     private LocalDateTime handlingDate;
 
-    @PrePersist
-    public void prePersist() {
-        LocalDateTime now = TimeUtils.now();
-
-        if (creationDate == null)
-            creationDate = now;
+    public Integer getId() {
+        return id;
     }
 
-    @SuppressWarnings("all")
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        RefBookConflictEntity that = (RefBookConflictEntity) o;
-        return Objects.equals(referrerVersion, that.referrerVersion) &&
-                Objects.equals(publishedVersion, that.publishedVersion) &&
-                Objects.equals(refRecordId, that.refRecordId) &&
-                Objects.equals(refFieldCode, that.refFieldCode) &&
-                Objects.equals(conflictType, that.conflictType) &&
-                Objects.equals(creationDate, that.creationDate) &&
-                Objects.equals(handlingDate, that.handlingDate);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(referrerVersion, publishedVersion, refRecordId,
-                refFieldCode, conflictType, creationDate, handlingDate);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("RefBookConflictEntity{");
-        sb.append("referrerVersion=").append(referrerVersion);
-        sb.append(", publishedVersion=").append(publishedVersion);
-        sb.append(", refRecordId=").append(refRecordId);
-        sb.append(", refFieldCode='").append(refFieldCode).append('\'');
-        sb.append(", conflictType=").append(conflictType);
-        sb.append(", creationDate=").append(creationDate);
-        sb.append(", handlingDate=").append(handlingDate);
-        sb.append('}');
-        return sb.toString();
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public RefBookVersionEntity getReferrerVersion() {
@@ -100,11 +63,11 @@ public class RefBookConflictEntity {
         this.publishedVersion = publishedVersion;
     }
 
-    public Integer getRefRecordId() {
+    public Long getRefRecordId() {
         return refRecordId;
     }
 
-    public void setRefRecordId(Integer refRecordId) {
+    public void setRefRecordId(Long refRecordId) {
         this.refRecordId = refRecordId;
     }
 
@@ -138,5 +101,51 @@ public class RefBookConflictEntity {
 
     public void setHandlingDate(LocalDateTime handlingDate) {
         this.handlingDate = handlingDate;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+
+        if (creationDate == null)
+            creationDate = now;
+    }
+
+    @SuppressWarnings("all")
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RefBookConflictEntity that = (RefBookConflictEntity) o;
+        return Objects.equals(id, that.id) &&
+                Objects.equals(referrerVersion, that.referrerVersion) &&
+                Objects.equals(publishedVersion, that.publishedVersion) &&
+                Objects.equals(refRecordId, that.refRecordId) &&
+                Objects.equals(refFieldCode, that.refFieldCode) &&
+                Objects.equals(conflictType, that.conflictType) &&
+                Objects.equals(creationDate, that.creationDate) &&
+                Objects.equals(handlingDate, that.handlingDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, referrerVersion, publishedVersion, refRecordId,
+                refFieldCode, conflictType, creationDate, handlingDate);
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("RefBookConflictEntity{");
+        sb.append("id=").append(id);
+        sb.append(", referrerVersion=").append(referrerVersion);
+        sb.append(", publishedVersion=").append(publishedVersion);
+        sb.append(", refRecordId=").append(refRecordId);
+        sb.append(", refFieldCode='").append(refFieldCode).append('\'');
+        sb.append(", conflictType=").append(conflictType);
+        sb.append(", creationDate=").append(creationDate);
+        sb.append(", handlingDate=").append(handlingDate);
+        sb.append('}');
+        return sb.toString();
     }
 }

@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.service.api;
 
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
+import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.model.*;
 
 import javax.ws.rs.*;
@@ -33,17 +34,6 @@ public interface RefBookService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     RefBook getByVersionId(@PathParam("id") @ApiParam("Идентификатор версии") Integer versionId);
-
-    @GET
-    @Path("/version/referrer/{refBookCode}")
-    @ApiOperation("Поиск по наличию ссылки на справочник")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Список справочников"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    List<RefBookVersion> getReferrerVersions(@ApiParam("Код справочника")
-                                             @PathParam("refBookCode")
-                                                     String refBookCode);
 
     @GET
     @Path("/{id}")
@@ -116,4 +106,20 @@ public interface RefBookService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     Page<RefBookVersion> getVersions(@BeanParam VersionCriteria criteria);
+
+    @GET
+    @Path("versions/referrers/{refBookCode}")
+    @ApiOperation("Поиск версий ссылающихся справочников")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Список справочников"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    List<RefBookVersion> getReferrerVersions(@ApiParam("Код справочника")
+                                             @PathParam("refBookCode")
+                                                     String refBookCode,
+                                             @ApiParam("Тип источника")
+                                             @QueryParam("sourceType")
+                                                     RefBookSourceType sourceType,
+                                             @ApiParam("Список ссылающихся справочников")
+                                                     List<Integer> referrerIds);
 }

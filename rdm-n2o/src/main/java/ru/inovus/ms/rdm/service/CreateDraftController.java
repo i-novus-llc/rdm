@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.service;
 
+import com.google.common.collect.ImmutableSet;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.apache.cxf.common.util.CollectionUtils;
@@ -7,18 +8,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.util.VersionUtils;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.google.common.collect.ImmutableSet.of;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 
@@ -43,7 +43,7 @@ public class CreateDraftController {
 
     private UiDraft getOrCreateDraft(Integer versionId) {
         final RefBookVersion version = versionService.getById(versionId);
-        if (RefBookVersionStatus.DRAFT.equals(version.getStatus()))
+        if (VersionUtils.isDraft(version))
             return new UiDraft(versionId, version.getRefBookId());
         else
             return new UiDraft(draftService.createFromVersion(versionId).getId(), version.getRefBookId());
@@ -123,16 +123,18 @@ public class CreateDraftController {
 
     private Long calculateNewSystemId(Long oldSystemId, Integer oldVersionId, Integer newVersionId) {
         if (oldSystemId == null) return null;
+
         SearchDataCriteria criteria = new SearchDataCriteria();
-        AttributeFilter recordId = new AttributeFilter("SYS_RECORDID", oldSystemId.intValue(), FieldType.INTEGER);
-        criteria.setAttributeFilter(singleton(singletonList(recordId)));
+        AttributeFilter recordIdFilter = new AttributeFilter("SYS_RECORDID", oldSystemId.intValue(), FieldType.INTEGER);
+        criteria.setAttributeFilter(singleton(singletonList(recordIdFilter)));
+
         Page<RefBookRowValue> oldRow = versionService.search(oldVersionId, criteria);
         if (CollectionUtils.isEmpty(oldRow.getContent())) throw new NotFoundException("record not found");
-
         String hash = oldRow.getContent().get(0).getHash();
 
-        final SearchDataCriteria hashCriteria = new SearchDataCriteria(of(singletonList(
-                new AttributeFilter("SYS_HASH", hash, FieldType.STRING))), null);
+        AttributeFilter hashFilter = new AttributeFilter("SYS_HASH", hash, FieldType.STRING);
+        final SearchDataCriteria hashCriteria = new SearchDataCriteria(ImmutableSet.of(singletonList(hashFilter)), null);
+
         final Page<RefBookRowValue> newRow = versionService.search(newVersionId, hashCriteria);
         if (CollectionUtils.isEmpty(newRow.getContent())) throw new NotFoundException("record not found");
         return newRow.getContent().get(0).getSystemId();
@@ -163,9 +165,11 @@ public class CreateDraftController {
         if (version == null)
             throw new UserException(new Message("version.not.found", versionId));
 
-        if (!RefBookVersionStatus.DRAFT.equals(version.getStatus()))
+        if (!VersionUtils.isDraft(version))
             throw new UserException(new Message("version.is.not.draft", versionId));
-        if (version.getStructure() == null || CollectionUtils.isEmpty(version.getStructure().getAttributes()))
+
+        if (version.getStructure() == null
+                || CollectionUtils.isEmpty(version.getStructure().getAttributes()))
             throw new UserException(new Message("version.has.not.structure", versionId));
 
         draftService.updateData(versionId, fileModel);

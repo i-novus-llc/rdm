@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
+import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.RefBookVersion;
 import ru.inovus.ms.rdm.model.Structure;
@@ -87,7 +88,7 @@ public class RefBookServiceTest {
         List<RefBookVersionEntity> entitites = versions.stream().map(this::modelToEntity).collect(Collectors.toList());
         when(versionRepository.findAll(any(BooleanBuilder.class), any(Pageable.class))).thenReturn(new PageImpl<>(entitites));
 
-        List<RefBookVersion> actualList = refBookService.getReferrerVersions(CHECKING_REF_BOOK_CODE);
+        List<RefBookVersion> actualList = refBookService.getReferrerVersions(CHECKING_REF_BOOK_CODE, RefBookSourceType.LAST_VERSION, null);
         List<RefBookVersion> expectedList = new ArrayList<>(asList(referrerOneVersion, referrerTwoVersion, referrerDifVersion));
 
         Assert.assertNotNull(actualList);

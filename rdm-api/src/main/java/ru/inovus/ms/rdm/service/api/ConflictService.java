@@ -3,11 +3,12 @@ package ru.inovus.ms.rdm.service.api;
 import io.swagger.annotations.*;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.model.Conflict;
+import ru.inovus.ms.rdm.model.RefBookVersion;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 @Path("/conflicts")
 @Produces(MediaType.APPLICATION_JSON)
@@ -31,31 +32,92 @@ public interface ConflictService {
 
     @GET
     @Path("/check")
-    @ApiOperation("Проверка на наличие конфликтов для двух версий")
+    @ApiOperation("Проверка на наличие конфликта для двух версий")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Map<ConflictType, Boolean> checkConflicts(@ApiParam("Идентификатор версии, которая ссылается")
-                                              @QueryParam("refFromId")
-                                                      Integer refFromId,
-                                              @ApiParam("Идентификатор бесконфликтной версии, на которую ссылается")
-                                              @QueryParam("refToId")
-                                                      Integer refToId);
+    Boolean checkConflicts(@ApiParam("Идентификатор версии, которая ссылается")
+                           @QueryParam("refFromId")
+                                   Integer refFromId,
+                           @ApiParam("Идентификатор бесконфликтной версии, на которую ссылается")
+                           @QueryParam("refToId")
+                                   Integer refToId,
+                           @ApiParam("Тип конфликта")
+                           @QueryParam("type")
+                                   ConflictType conflictType);
+
+    @GET
+    @Path("/{versionId}/check")
+    @ApiOperation("Получение конфликтующих версий справочников")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    List<RefBookVersion> getConflictReferrers(@ApiParam("Идентификатор проверяемой версии")
+                                              @PathParam("versionId")
+                                                      Integer versionId,
+                                              @ApiParam("Тип конфликта")
+                                              @QueryParam("type")
+                                                      ConflictType conflictType);
 
     @POST
-    @Path("/update/displayvalue")
+    @Path("/create")
+    @ApiOperation("Сохранение информации о конфликтах")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void create(@ApiParam("Идентификатор версии, которая ссылается")
+                @QueryParam("refFromId")
+                        Integer refFromId,
+                @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
+                @QueryParam("refToId")
+                        Integer refToId,
+                @ApiParam("Список конфликтов")
+                        List<Conflict> conflicts);
+
+    @POST
+    @Path("/handle/{id}")
+    @ApiOperation("Отработка записи о конфликте")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void handle(@ApiParam("Идентификатор записи о конфликте")
+                @PathParam("id")
+                        Integer id,
+                @ApiParam("Дата отработки конфликта")
+                @QueryParam("handlingDate")
+                        LocalDateTime handlingDate);
+
+    @POST
+    @Path("/refresh/displayvalue")
     @ApiOperation("Обновление отображаемых значений ссылок")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void updateReferenceValues(@ApiParam("Идентификатор версии, которая ссылается")
-                               @QueryParam("refFromId")
-                                       Integer refFromId,
-                               @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
-                               @QueryParam("refToId")
-                                       Integer refToId,
-                               @ApiParam("Список конфликтов")
-                                       List<Conflict> conflicts);
+    void refreshReferencesByPrimary(@ApiParam("Идентификатор версии, которая ссылается")
+                                    @QueryParam("refFromId")
+                                            Integer refFromId,
+                                    @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
+                                    @QueryParam("refToId")
+                                            Integer refToId,
+                                    @ApiParam("Список конфликтов")
+                                            List<Conflict> conflicts);
+
+    @POST
+    @Path("/discover")
+    @ApiOperation("Обнаружение конфликтов")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void discover(@ApiParam("Идентификатор старой версии, на которую ссылаются")
+                  @QueryParam("oldVersionId")
+                          Integer oldVersionId,
+                  @ApiParam("Идентификатор новой версии, на которую будут ссылаться")
+                  @QueryParam("newVersionId")
+                          Integer newVersionId);
 }

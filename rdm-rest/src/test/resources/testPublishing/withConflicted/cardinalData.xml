@@ -1,0 +1,112 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<refBook>
+    <code>PUBLISH_CONFLICTED_CARDINAL</code>
+
+    <passport>
+        <name>Тестовый справочник, на который ссылаются</name>
+        <shortName>Тестовый исходный справочник</shortName>
+        <description>Справочник, на который ссылаются справочники</description>
+
+    </passport>
+
+    <structure>
+        <row>
+            <code>CAR_CODE</code>
+            <name>Код</name>
+            <type>STRING</type>
+            <description>Некоторый код</description>
+            <primary>true</primary>
+        </row>
+        <row>
+            <code>CAR_NUMB</code>
+            <name>Номер</name>
+            <type>INTEGER</type>
+            <description>Числовой номер</description>
+            <primary>false</primary>
+            <validation>
+                <type>INT_RANGE</type>
+                <value>1;100</value>
+            </validation>
+        </row>
+        <row>
+            <code>CAR_CHAR</code>
+            <name>Строка</name>
+            <type>STRING</type>
+            <description>Строковое значение</description>
+            <primary>false</primary>
+        </row>
+
+    </structure>
+
+    <data>
+        <row>
+            <CAR_CODE>TEST_A</CAR_CODE>
+            <CAR_NUMB>100</CAR_NUMB>
+            <CAR_CHAR>A`A`A</CAR_CHAR>
+        </row>
+        <row>
+            <CAR_CODE>TEST_B</CAR_CODE>
+            <CAR_NUMB>200</CAR_NUMB>
+            <CAR_CHAR>B'B'B</CAR_CHAR>
+        </row>
+        <row>
+            <CAR_CODE>TEST_C</CAR_CODE>
+            <CAR_NUMB>300</CAR_NUMB>
+            <CAR_CHAR>C"C"C</CAR_CHAR>
+        </row>
+        <row>
+            <CAR_CODE>TEST_D</CAR_CODE>
+            <CAR_NUMB>400</CAR_NUMB>
+            <CAR_CHAR>D~D~D</CAR_CHAR>
+        </row>
+
+        <row>
+            <CAR_CODE>TEST_1</CAR_CODE>
+            <CAR_NUMB>1</CAR_NUMB>
+            <CAR_CHAR>1-1-1</CAR_CHAR>
+        </row>
+        <row>
+            <CAR_CODE>TEST_2</CAR_CODE>
+            <CAR_NUMB>2</CAR_NUMB>
+            <CAR_CHAR>2+2+2</CAR_CHAR>
+        </row>
+        <row>
+            <CAR_CODE>TEST_3</CAR_CODE>
+            <CAR_NUMB>3</CAR_NUMB>
+            <CAR_CHAR>3/3/3</CAR_CHAR>
+        </row>
+
+        <row>
+            <CAR_CODE>TEST_4</CAR_CODE>
+            <CAR_NUMB>4</CAR_NUMB>
+            <CAR_CHAR>4*4*4</CAR_CHAR>
+        </row>
+        <row>
+            <CAR_CODE>TEST_5</CAR_CODE>
+            <CAR_NUMB>5</CAR_NUMB>
+            <CAR_CHAR>5^5^5</CAR_CHAR>
+        </row>
+        <row>
+            <CAR_CODE>TEST_6</CAR_CODE>
+            <CAR_NUMB>6</CAR_NUMB>
+            <CAR_CHAR>6#6#6</CAR_CHAR>
+        </row>
+
+        <row>
+            <CAR_CODE>TEST_7</CAR_CODE>
+            <CAR_NUMB>7</CAR_NUMB>
+            <CAR_CHAR>7=7=7</CAR_CHAR>
+        </row>
+        <row>
+            <CAR_CODE>TEST_8</CAR_CODE>
+            <CAR_NUMB>8</CAR_NUMB>
+            <CAR_CHAR>8%8%8</CAR_CHAR>
+        </row>
+        <row>
+            <CAR_CODE>TEST_9</CAR_CODE>
+            <CAR_NUMB>9</CAR_NUMB>
+            <CAR_CHAR>9:9:9</CAR_CHAR>
+        </row>
+
+    </data>
+</refBook>

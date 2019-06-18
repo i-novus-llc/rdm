@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.util;
 
 import org.apache.commons.text.StringSubstitutor;
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 
@@ -15,6 +16,6 @@ public class RowUtils {
     public static String toDisplayValue(String displayExpression, RowValue rowValue) {
         Map<String, Object> map = new HashMap<>();
         ((LongRowValue)rowValue).getFieldValues().forEach(fieldValue -> map.put(fieldValue.getField(), fieldValue.getValue()));
-        return new StringSubstitutor(map).replace(displayExpression);
+        return new StringSubstitutor(map, DisplayExpression.PLACEHOLDER_START, DisplayExpression.PLACEHOLDER_END).replace(displayExpression);
     }
 }
