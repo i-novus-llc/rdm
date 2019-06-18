@@ -154,7 +154,7 @@
         <constraint id="hasDeletedConflicts" severity="warning" client-moment="before-load"
                     result="#this.length() == 0"
                     message="Были удалены строки, на которые ссылались справочники системы: {referrerNames}">
-            <!--    NB: Реализовать как модальное окно перед операцией -->
+            <!--    NB: Реализовать как модальное окно перед операцией // NNO-1644 -->
             <!--                    "Продолжить публикацию?"-->
             <invocation>
                 <java method="getConflictReferrerNames" class="ru.inovus.ms.rdm.service.ConflictController">
@@ -177,7 +177,7 @@
         <constraint id="hasUpdatedConflicts" severity="warning" client-moment="before-load"
                     result="#this.length() == 0"
                     message="Были изменены строки, на которые ссылались справочники системы: {referrerNames}">
-            <!--    NB: Реализовать как модальное окно перед операцией -->
+            <!--    NB: Реализовать как модальное окно перед операцией // NNO-1644 -->
 <!--                    "Продолжить публикацию и обновить ссылки в связанных справочниках?"-->
             <invocation>
                 <java method="getConflictReferrerNames" class="ru.inovus.ms.rdm.service.ConflictController">

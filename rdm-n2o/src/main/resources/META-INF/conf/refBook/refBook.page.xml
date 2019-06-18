@@ -44,6 +44,7 @@
                             </show-modal>
                         </menu-item>
                         <menu-item label="Загрузить из файла">
+<!--                        NB: Реализовать для черновика предупреждение перед открытием диалога // NNO-1644 -->
                             <show-modal page-id="uploadFile" submit-operation-id="uploadFromFile" upload="defaults"
                                         redirect-target-after-submit="self"
                                         redirect-url-after-submit="${server.servlet.context-path}/#/main/:refBookId/edit">
