@@ -305,18 +305,26 @@ public class ConflictServiceImpl implements ConflictService {
 
     @Override
     @Transactional
-    public void handle(Integer id, LocalDateTime handlingDate) {
+    public Integer getConflictId(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode) {
+
+        RefBookConflictEntity entity = conflictRepository.findByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdAndRefFieldCode(refFromId, refToId, rowSystemId, refFieldCode);
+        return Objects.nonNull(entity) ? entity.getId() : null;
+    }
+
+    @Override
+    @Transactional
+    public void handleConflict(Integer id, LocalDateTime handlingDate) {
         if (handlingDate == null)
             handlingDate = LocalDateTime.now();
 
         conflictRepository.setHandlingDate(id, handlingDate);
     }
 
-    private void handle(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode, LocalDateTime handlingDate) {
+    private void handleConflict(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode, LocalDateTime handlingDate) {
 
-        RefBookConflictEntity entity = conflictRepository.findByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdAndRefFieldCode(refFromId, refToId, rowSystemId, refFieldCode);
-        if (Objects.nonNull(entity))
-            handle(entity.getId(), handlingDate);
+        Integer id = getConflictId(refFromId, refToId, rowSystemId, refFieldCode);
+        if (id != null)
+            handleConflict(id, handlingDate);
     }
 
     /**
@@ -417,7 +425,7 @@ public class ConflictServiceImpl implements ConflictService {
                     newReference);
         }
 
-        handle(refFromEntity.getId(), refToEntity.getId(), refFromRow.getSystemId(), conflict.getRefAttributeCode(), null);
+        handleConflict(refFromEntity.getId(), refToEntity.getId(), refFromRow.getSystemId(), conflict.getRefAttributeCode(), null);
     }
 
     /**
@@ -445,7 +453,7 @@ public class ConflictServiceImpl implements ConflictService {
      */
     @Override
     @Transactional
-    public void discover(Integer oldVersionId, Integer newVersionId) {
+    public void discoverConflicts(Integer oldVersionId, Integer newVersionId, boolean processResolvables) {
 
         versionValidation.validateVersionExists(oldVersionId);
         versionValidation.validateVersionExists(newVersionId);
@@ -479,7 +487,8 @@ public class ConflictServiceImpl implements ConflictService {
 
             conflicts.forEach(conflict -> create(referrer.getId(), newVersionId, conflict));
 
-            if (lastVersionIds.contains(referrer.getId())
+            if (processResolvables
+                    && lastVersionIds.contains(referrer.getId())
                     && conflicts.stream().anyMatch(ConflictUtils::isUpdatedConflict)) {
                 refreshReferencesByPrimary(referrer.getId(), newVersionId, conflicts);
             }

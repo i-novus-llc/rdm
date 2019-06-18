@@ -77,6 +77,26 @@ public interface ConflictService {
                 @ApiParam("Список конфликтов")
                         List<Conflict> conflicts);
 
+    @GET
+    @Path("/getid")
+    @ApiOperation("Поиск конфликта по основным параметрам")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    Integer getConflictId(@ApiParam("Идентификатор версии, которая ссылается")
+                          @QueryParam("refFromId")
+                                  Integer refFromId,
+                          @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
+                          @QueryParam("refToId")
+                                  Integer refToId,
+                          @ApiParam("Строка-конфликт версии, которая ссылается")
+                          @QueryParam("rowSystemId")
+                                  Long rowSystemId,
+                          @ApiParam("Атрибут версии, которая ссылается")
+                          @QueryParam("refFieldCode")
+                                  String refFieldCode);
+
     @POST
     @Path("/handle/{id}")
     @ApiOperation("Отработка записи о конфликте")
@@ -84,12 +104,12 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void handle(@ApiParam("Идентификатор записи о конфликте")
-                @PathParam("id")
-                        Integer id,
-                @ApiParam("Дата отработки конфликта")
-                @QueryParam("handlingDate")
-                        LocalDateTime handlingDate);
+    void handleConflict(@ApiParam("Идентификатор записи о конфликте")
+                        @PathParam("id")
+                                Integer id,
+                        @ApiParam("Дата отработки конфликта")
+                        @QueryParam("handlingDate")
+                                LocalDateTime handlingDate);
 
     @POST
     @Path("/refresh/displayvalue")
@@ -114,10 +134,13 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void discover(@ApiParam("Идентификатор старой версии, на которую ссылаются")
-                  @QueryParam("oldVersionId")
-                          Integer oldVersionId,
-                  @ApiParam("Идентификатор новой версии, на которую будут ссылаться")
-                  @QueryParam("newVersionId")
-                          Integer newVersionId);
+    void discoverConflicts(@ApiParam("Идентификатор старой версии, на которую ссылаются")
+                           @QueryParam("oldVersionId")
+                                   Integer oldVersionId,
+                           @ApiParam("Идентификатор новой версии, на которую будут ссылаться")
+                           @QueryParam("newVersionId")
+                                   Integer newVersionId,
+                           @ApiParam("Признак обработки разрешимых конфликтов")
+                           @QueryParam("processResolvables")
+                                   boolean processResolvables);
 }
