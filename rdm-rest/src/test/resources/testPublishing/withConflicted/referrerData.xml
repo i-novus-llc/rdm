@@ -23,8 +23,8 @@
             <type>REFERENCE</type>
             <description>Ссылка "Числовой номер"</description>
             <primary>false</primary>
-            <referenceCode>PUBLISH_CONFLICTED_VERSION</referenceCode>
-            <displayExpresssion>${CAR_NUMB}</displayExpresssion>
+            <referenceCode>PUBLISH_CONFLICTED_CARDINAL</referenceCode>
+            <displayExpression>${CAR_NUMB}</displayExpression>
         </row>
         <row>
             <code>REF_CHAR</code>
@@ -32,8 +32,8 @@
             <type>REFERENCE</type>
             <description>Ссылка "Строковое значение"</description>
             <primary>false</primary>
-            <referenceCode>PUBLISH_CONFLICTED_VERSION</referenceCode>
-            <displayExpresssion>${CAR_CHAR}</displayExpresssion>
+            <referenceCode>PUBLISH_CONFLICTED_CARDINAL</referenceCode>
+            <displayExpression>${CAR_CHAR}</displayExpression>
         </row>
         <row>
             <code>REF_MADE</code>
@@ -41,21 +41,20 @@
             <type>REFERENCE</type>
             <description>Ссылка "Выражение"</description>
             <primary>false</primary>
-            <referenceCode>PUBLISH_CONFLICTED_VERSION</referenceCode>
-            <displayExpresssion>${CAR_NUMB} :: ${CAR_CHAR}</displayExpresssion>
+            <referenceCode>PUBLISH_CONFLICTED_CARDINAL</referenceCode>
+            <displayExpression>${CAR_NUMB} :: ${CAR_CHAR}</displayExpression>
         </row>
 
     </structure>
 
     <data>
-        <!-- null -->
         <row>
             <REF_BASE>empty</REF_BASE>
-            <REF_NUMB></REF_NUMB>
-            <REF_CHAR></REF_CHAR>
-            <REF_MADE></REF_MADE>
+            <REF_NUMB/>
+            <REF_CHAR/>
+            <REF_MADE/>
         </row>
-        <!-- readonly -->
+
         <row>
             <REF_BASE>REF_111</REF_BASE>
             <REF_NUMB>TEST_1</REF_NUMB>
@@ -68,33 +67,63 @@
             <REF_CHAR>TEST_2</REF_CHAR>
             <REF_MADE>TEST_3</REF_MADE>
         </row>
-        <!-- for update -->
+
         <row>
             <REF_BASE>REF_4__</REF_BASE>
             <REF_NUMB>TEST_4</REF_NUMB>
-            <REF_CHAR></REF_CHAR>
-            <REF_MADE></REF_MADE>
+            <REF_CHAR/>
+            <REF_MADE/>
         </row>
         <row>
             <REF_BASE>REF_14_</REF_BASE>
             <REF_NUMB>TEST_1</REF_NUMB>
             <REF_CHAR>TEST_4</REF_CHAR>
-            <REF_MADE></REF_MADE>
-        </row>
-        <!-- for delete -->
-        <row>
-            <REF_BASE>REF_9__</REF_BASE>
-            <REF_NUMB>TEST_9</REF_NUMB>
-            <REF_CHAR></REF_CHAR>
-            <REF_MADE></REF_MADE>
+            <REF_MADE/>
         </row>
         <row>
-            <REF_BASE>REF_19_</REF_BASE>
+            <REF_BASE>REF_444</REF_BASE>
+            <REF_NUMB>TEST_4</REF_NUMB>
+            <REF_CHAR>TEST_4</REF_CHAR>
+            <REF_MADE>TEST_4</REF_MADE>
+        </row>
+
+        <row>
+            <REF_BASE>REF_8__</REF_BASE>
+            <REF_NUMB>TEST_8</REF_NUMB>
+            <REF_CHAR/>
+            <REF_MADE/>
+        </row>
+        <row>
+            <REF_BASE>REF_18_</REF_BASE>
             <REF_NUMB>TEST_1</REF_NUMB>
-            <REF_CHAR>TEST_9</REF_CHAR>
-            <REF_MADE></REF_MADE>
+            <REF_CHAR>TEST_8</REF_CHAR>
+            <REF_MADE/>
         </row>
-        <!-- for combo -->
+        <row>
+            <REF_BASE>REF_888</REF_BASE>
+            <REF_NUMB>TEST_8</REF_NUMB>
+            <REF_CHAR>TEST_8</REF_CHAR>
+            <REF_MADE>TEST_8</REF_MADE>
+        </row>
+
+        <row>
+            <REF_BASE>REF_69_</REF_BASE>
+            <REF_NUMB>TEST_6</REF_NUMB>
+            <REF_CHAR>TEST_9</REF_CHAR>
+            <REF_MADE/>
+        </row>
+        <row>
+            <REF_BASE>REF_169</REF_BASE>
+            <REF_NUMB>TEST_1</REF_NUMB>
+            <REF_CHAR>TEST_6</REF_CHAR>
+            <REF_MADE>TEST_9</REF_MADE>
+        </row>
+        <row>
+            <REF_BASE>REF__84</REF_BASE>
+            <REF_NUMB/>
+            <REF_CHAR>TEST_8</REF_CHAR>
+            <REF_MADE>TEST_4</REF_MADE>
+        </row>
 
     </data>
 

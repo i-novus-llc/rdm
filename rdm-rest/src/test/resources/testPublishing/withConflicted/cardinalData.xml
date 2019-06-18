@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <refBook>
-    <code>PUBLISH_CONFLICTED_VERSION</code>
+    <code>PUBLISH_CONFLICTED_CARDINAL</code>
 
     <passport>
         <name>Тестовый справочник, на который ссылаются</name>
@@ -25,7 +25,7 @@
             <primary>false</primary>
             <validation>
                 <type>INT_RANGE</type>
-                <value>1;10</value>
+                <value>1;100</value>
             </validation>
         </row>
         <row>
@@ -39,7 +39,27 @@
     </structure>
 
     <data>
-        <!-- for readonly -->
+        <row>
+            <CAR_CODE>TEST_A</CAR_CODE>
+            <CAR_NUMB>100</CAR_NUMB>
+            <CAR_CHAR>A`A`A</CAR_CHAR>
+        </row>
+        <row>
+            <CAR_CODE>TEST_B</CAR_CODE>
+            <CAR_NUMB>200</CAR_NUMB>
+            <CAR_CHAR>B'B'B</CAR_CHAR>
+        </row>
+        <row>
+            <CAR_CODE>TEST_C</CAR_CODE>
+            <CAR_NUMB>300</CAR_NUMB>
+            <CAR_CHAR>C"C"C</CAR_CHAR>
+        </row>
+        <row>
+            <CAR_CODE>TEST_D</CAR_CODE>
+            <CAR_NUMB>400</CAR_NUMB>
+            <CAR_CHAR>D~D~D</CAR_CHAR>
+        </row>
+
         <row>
             <CAR_CODE>TEST_1</CAR_CODE>
             <CAR_NUMB>1</CAR_NUMB>
@@ -55,7 +75,7 @@
             <CAR_NUMB>3</CAR_NUMB>
             <CAR_CHAR>3/3/3</CAR_CHAR>
         </row>
-        <!-- for update -->
+
         <row>
             <CAR_CODE>TEST_4</CAR_CODE>
             <CAR_NUMB>4</CAR_NUMB>
@@ -71,7 +91,7 @@
             <CAR_NUMB>6</CAR_NUMB>
             <CAR_CHAR>6#6#6</CAR_CHAR>
         </row>
-        <!-- for delete -->
+
         <row>
             <CAR_CODE>TEST_7</CAR_CODE>
             <CAR_NUMB>7</CAR_NUMB>
@@ -87,14 +107,6 @@
             <CAR_NUMB>9</CAR_NUMB>
             <CAR_CHAR>9:9:9</CAR_CHAR>
         </row>
-        <!-- for insert -->
 
-<!--
-        <row>
-            <CAR_CODE>TEST_0</CAR_CODE>
-            <CAR_NUMB>0</CAR_NUMB>
-            <CAR_CHAR>0|0|0</CAR_CHAR>
-        </row>
--->
     </data>
 </refBook>

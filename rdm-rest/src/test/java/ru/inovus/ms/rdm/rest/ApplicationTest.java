@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.rest;
 
+import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.jaxrs.RestMessage;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.CollectionUtils;
 import ru.i_novus.common.file.storage.api.FileStorage;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -23,15 +25,20 @@ import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
+import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.service.api.*;
+import ru.inovus.ms.rdm.util.TimeUtils;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -42,14 +49,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
@@ -119,16 +126,16 @@ public class ApplicationTest {
     private RefBookService refBookService;
 
     @Autowired
+    @Qualifier("versionServiceJaxRsProxyClient")
+    private VersionService versionService;
+
+    @Autowired
     @Qualifier("draftServiceJaxRsProxyClient")
     private DraftService draftService;
 
     @Autowired
     @Qualifier("publishServiceJaxRsProxyClient")
     private PublishService publishService;
-
-    @Autowired
-    @Qualifier("versionServiceJaxRsProxyClient")
-    private VersionService versionService;
 
     @Autowired
     @Qualifier("compareServiceJaxRsProxyClient")
@@ -150,6 +157,9 @@ public class ApplicationTest {
 
     @Autowired
     private DraftDataService draftDataService;
+
+    @Autowired
+    private SearchDataService searchDataService;
 
     @BeforeClass
     public static void initialize() {
@@ -1256,14 +1266,264 @@ public class ApplicationTest {
     }
 
     /**
-     * Тест публикации с конфликтами.
+     * Тест публикации исходного справочника при наличии конфликтов в связанном справочнике.
+     *
+     * cardinalData.xml - исходный справочник для публикации после изменений в нём
+     * referrerData.xml - связанный справочник с конфликтными ссылками на изменённый справочник
      */
     @Test
-    public void testPublishWithConflicts() {
+    public void testPublishWithConflictedReferrer() {
+
         final String REFERRER_FILE_NAME = "referrerData.xml";
         final String CARDINAL_FILE_NAME = "cardinalData.xml";
-        final String REF_BOOK_FILE_FOLDER = "/testPublishing/withConflicts";
+        final String REF_BOOK_FILE_FOLDER = "testPublishing/withConflicted/";
 
+        final String REFERRER_REF_BOOK_CODE = "PUBLISH_CONFLICTED_REFERRER";
+        final String CARDINAL_REF_BOOK_CODE = "PUBLISH_CONFLICTED_CARDINAL";
+
+        final int REFERRER_DATA_ROW_COUNT = 1 + 2 + 3 + 3 + 3;
+        final int CARDINAL_DATA_ROW_COUNT = 4 + 3 + 3 + 3;
+
+        final int REFERRER_REFERENCE_COUNT = 3;
+        final int REFERRER_ATTRIBUTE_COUNT = REFERRER_REFERENCE_COUNT + 1; // + primary
+        final int CARDINAL_ATTRIBUTE_COUNT = 3;
+
+        final String REFERRER_PRIMARY_ATTRIBUTE_CODE = "REF_BASE";
+        final String REFERRER_NUMBER_ATTRIBUTE_CODE = "REF_NUMB";
+        final String REFERRER_STRING_ATTRIBUTE_CODE = "REF_CHAR";
+        final String REFERRER_MADEOF_ATTRIBUTE_CODE = "REF_MADE";
+
+        final String REFERRER_PRIMARY_VALUE_111 = "REF_111";
+        final String REFERRER_PRIMARY_VALUE_4__ = "REF_4__";
+        final String REFERRER_PRIMARY_VALUE_69_ = "REF_69_";
+
+        final List<String> referrerUnchangedPrimaries = asList("REF_111", "REF_123");
+        final List<String> referrerUpdatedNumberPrimaries = asList("REF_4__", "REF_444", "REF_69_");
+        final List<String> referrerUpdatedStringPrimaries = asList("REF_14_", "REF_444", "REF_169");
+        final List<String> referrerUpdatedMadeofPrimaries = asList("REF_444", "REF__84");
+
+        final String CARDINAL_PRIMARY_ATTRIBUTE_CODE = "CAR_CODE";
+        final String CARDINAL_NUMBER_ATTRIBUTE_CODE = "CAR_NUMB";
+        final String CARDINAL_STRING_ATTRIBUTE_CODE = "CAR_CHAR";
+
+        final String CARDINAL_PRIMARY_VALUE_1_UNCHANGED = "TEST_1";
+        final String CARDINAL_PRIMARY_VALUE_2_UNCHANGED = "TEST_2";
+        final String CARDINAL_PRIMARY_VALUE_3_UNCHANGED = "TEST_3";
+        final String CARDINAL_PRIMARY_VALUE_4_UPDATED = "TEST_4";
+        final String CARDINAL_PRIMARY_VALUE_5_UPDATED = "TEST_5";
+        final String CARDINAL_PRIMARY_VALUE_6_UPDATED = "TEST_6";
+        final String CARDINAL_PRIMARY_VALUE_7_DELETED = "TEST_7";
+        final String CARDINAL_PRIMARY_VALUE_8_DELETED = "TEST_8";
+        final String CARDINAL_PRIMARY_VALUE_9_DELETED = "TEST_9";
+        final String CARDINAL_PRIMARY_VALUE_0_INSERTED = "TEST_0";
+
+//      1. Исходный справочник.
+        // Загрузка из файла.
+        FileModel cardinalFileModel = createFileModel(CARDINAL_FILE_NAME, REF_BOOK_FILE_FOLDER + CARDINAL_FILE_NAME);
+        assertNotNull(cardinalFileModel);
+        Draft cardinalDraft = draftService.create(cardinalFileModel);
+        assertNotNull(cardinalDraft);
+        RefBookVersion cardinalVersion = versionService.getById(cardinalDraft.getId());
+        assertNotNull(cardinalVersion);
+        assertEquals(CARDINAL_REF_BOOK_CODE, cardinalVersion.getCode());
+        assertEquals(cardinalDraft.getId(), cardinalVersion.getId());
+        // Проверка структуры.
+        Structure cardinalStructure = cardinalVersion.getStructure();
+        assertEquals(CARDINAL_ATTRIBUTE_COUNT, cardinalStructure.getAttributes().size());
+        Structure.Attribute cardinalPrimary = cardinalStructure.getAttribute(CARDINAL_PRIMARY_ATTRIBUTE_CODE);
+        assertNotNull(cardinalPrimary);
+        // Наличие данных.
+        List<RefBookRowValue> cardinalContent = getVersionAllRowContent(cardinalVersion, cardinalDraft);
+        assertNotNull(cardinalContent);
+        assertEquals(CARDINAL_DATA_ROW_COUNT, cardinalContent.size());
+
+        // Проверка данных.
+        RefBookRowValue cardinalRowValue = getVersionRowValue(cardinalVersion.getId(), cardinalPrimary, CARDINAL_PRIMARY_VALUE_1_UNCHANGED);
+        assertNotNull(cardinalRowValue);
+        cardinalRowValue = getVersionRowValue(cardinalVersion.getId(), cardinalPrimary, CARDINAL_PRIMARY_VALUE_0_INSERTED);
+        assertNull(cardinalRowValue);
+
+        // Публикация для возможности создания ссылок на него.
+        publishService.publish(cardinalDraft.getId(), null, TimeUtils.now().minus(1, ChronoUnit.HOURS), null);
+        RefBookVersion publishedVersion = versionService.getLastPublishedVersion(cardinalVersion.getCode());
+        assertNotNull(publishedVersion);
+
+//      2. Связанный справочник.
+        // Загрузка из файла.
+        FileModel referrerFileModel = createFileModel(REFERRER_FILE_NAME, REF_BOOK_FILE_FOLDER + REFERRER_FILE_NAME);
+        assertNotNull(referrerFileModel);
+        Draft referrerDraft = draftService.create(referrerFileModel);
+        assertNotNull(referrerDraft);
+        RefBookVersion referrerVersion = versionService.getById(referrerDraft.getId());
+        assertNotNull(referrerVersion);
+        assertEquals(REFERRER_REF_BOOK_CODE, referrerVersion.getCode());
+        assertEquals(referrerDraft.getId(), referrerVersion.getId());
+        // Проверка структуры.
+        Structure referrerStructure = referrerVersion.getStructure();
+        assertNotNull(referrerStructure);
+        assertEquals(REFERRER_ATTRIBUTE_COUNT, referrerStructure.getAttributes().size());
+        assertEquals(REFERRER_REFERENCE_COUNT, referrerStructure.getReferences().size());
+        Structure.Attribute referrerPrimary = referrerStructure.getAttribute(REFERRER_PRIMARY_ATTRIBUTE_CODE);
+        assertNotNull(referrerPrimary);
+        // Наличие данных.
+        List<RefBookRowValue> referrerContent = getVersionAllRowContent(referrerVersion, referrerDraft);
+        assertNotNull(referrerContent);
+        assertEquals(REFERRER_DATA_ROW_COUNT, referrerContent.size());
+
+        // Проверка данных.
+        Map<String, BigInteger> expectedNumberValues = new HashMap<>();
+        Map<String, String> expectedStringValues = new HashMap<>();
+        Map<String, String> expectedMadeofValues = new HashMap<>();
+
+        referrerUnchangedPrimaries.forEach(primary -> {
+            RefBookRowValue referrerRowValue = getVersionRowValue(referrerVersion.getId(), referrerPrimary, primary);
+            String displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_NUMBER_ATTRIBUTE_CODE);
+            BigInteger numberValue = new BigInteger(displayValue);
+            expectedNumberValues.put(primary, numberValue);
+            displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_STRING_ATTRIBUTE_CODE);
+            expectedStringValues.put(primary, displayValue);
+            displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_MADEOF_ATTRIBUTE_CODE);
+            expectedMadeofValues.put(primary, displayValue);
+        });
+
+        referrerUpdatedNumberPrimaries.forEach(primary -> {
+            RefBookRowValue referrerRowValue = getVersionRowValue(referrerVersion.getId(), referrerPrimary, primary);
+            String displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_NUMBER_ATTRIBUTE_CODE);
+            BigInteger numberValue = getPublishWithConflictedReferrerNewNumberValue(new BigInteger(displayValue));
+            expectedNumberValues.put(primary, numberValue);
+        });
+
+        referrerUpdatedStringPrimaries.forEach(primary -> {
+            RefBookRowValue referrerRowValue = getVersionRowValue(referrerVersion.getId(), referrerPrimary, primary);
+            String displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_STRING_ATTRIBUTE_CODE);
+            String stringValue = getPublishWithConflictedReferrerNewStringValue(displayValue);
+            expectedStringValues.put(primary, stringValue);
+        });
+
+//      3. Изменение исходного справочника.
+        Draft changingDraft = draftService.createFromVersion(publishedVersion.getId());
+        assertNotNull(changingDraft);
+        RefBookVersion changingVersion = versionService.getById(changingDraft.getId());
+        assertNotNull(changingVersion);
+        // Изменение данных.
+        updatePublishWithConflictedReferrerNumberValue(changingDraft, cardinalPrimary, CARDINAL_PRIMARY_VALUE_4_UPDATED, CARDINAL_NUMBER_ATTRIBUTE_CODE);
+        updatePublishWithConflictedReferrerNumberValue(changingDraft, cardinalPrimary, CARDINAL_PRIMARY_VALUE_5_UPDATED, CARDINAL_NUMBER_ATTRIBUTE_CODE);
+        updatePublishWithConflictedReferrerNumberValue(changingDraft, cardinalPrimary, CARDINAL_PRIMARY_VALUE_6_UPDATED, CARDINAL_NUMBER_ATTRIBUTE_CODE);
+
+        updatePublishWithConflictedReferrerStringValue(changingDraft, cardinalPrimary, CARDINAL_PRIMARY_VALUE_4_UPDATED, CARDINAL_STRING_ATTRIBUTE_CODE);
+        updatePublishWithConflictedReferrerStringValue(changingDraft, cardinalPrimary, CARDINAL_PRIMARY_VALUE_5_UPDATED, CARDINAL_STRING_ATTRIBUTE_CODE);
+        updatePublishWithConflictedReferrerStringValue(changingDraft, cardinalPrimary, CARDINAL_PRIMARY_VALUE_6_UPDATED, CARDINAL_STRING_ATTRIBUTE_CODE);
+
+        deletePublishWithConflictedReferrerValue(changingDraft, cardinalPrimary, CARDINAL_PRIMARY_VALUE_7_DELETED);
+        deletePublishWithConflictedReferrerValue(changingDraft, cardinalPrimary, CARDINAL_PRIMARY_VALUE_8_DELETED);
+        deletePublishWithConflictedReferrerValue(changingDraft, cardinalPrimary, CARDINAL_PRIMARY_VALUE_9_DELETED);
+
+        // NB: insert.
+
+        // Публикация изменений.
+        publishService.publish(changingDraft.getId(), null, TimeUtils.now(), null);
+        RefBookVersion changedVersion = versionService.getLastPublishedVersion(cardinalVersion.getCode());
+        assertNotNull(changedVersion);
+
+//      4. Проверка связанного справочника.
+        // Проверка данных.
+        referrerUnchangedPrimaries.forEach(primary -> {
+            RefBookRowValue referrerRowValue = getVersionRowValue(referrerVersion.getId(), referrerPrimary, primary);
+            String displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_NUMBER_ATTRIBUTE_CODE);
+            assertEquals(expectedNumberValues.get(primary), new BigInteger(displayValue));
+            displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_STRING_ATTRIBUTE_CODE);
+            assertEquals(expectedStringValues.get(primary), displayValue);
+            displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_MADEOF_ATTRIBUTE_CODE);
+            assertEquals(expectedMadeofValues.get(primary), displayValue);
+        });
+
+        referrerUpdatedNumberPrimaries.forEach(primary -> {
+            RefBookRowValue referrerRowValue = getVersionRowValue(referrerVersion.getId(), referrerPrimary, primary);
+            String displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_NUMBER_ATTRIBUTE_CODE);
+            assertEquals(expectedNumberValues.get(primary), new BigInteger(displayValue));
+        });
+
+        referrerUpdatedStringPrimaries.forEach(primary -> {
+            RefBookRowValue referrerRowValue = getVersionRowValue(referrerVersion.getId(), referrerPrimary, primary);
+            String displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_STRING_ATTRIBUTE_CODE);
+            assertEquals(expectedStringValues.get(primary), displayValue);
+        });
+
+        // Проверка конфликтов.
+}
+
+    private String getPublishWithConflictedReferrerDisplayValue(RefBookRowValue rowValue, String attributeCode) {
+        assertNotNull(rowValue);
+        FieldValue referrerFieldValue = rowValue.getFieldValue(attributeCode);
+        assertTrue(referrerFieldValue instanceof ReferenceFieldValue);
+        Reference referrerReference = ((ReferenceFieldValue)referrerFieldValue).getValue();
+        assertNotNull(referrerReference);
+        return referrerReference.getDisplayValue();
+    }
+
+    private BigInteger getPublishWithConflictedReferrerNewNumberValue(BigInteger value) {
+        return value.multiply(BigInteger.valueOf(11));
+    }
+
+    private String getPublishWithConflictedReferrerNewStringValue(String value) {
+        return value + "___" + value;
+    }
+
+    private void updatePublishWithConflictedReferrerNumberValue(Draft draft, Structure.Attribute primary, String primaryValue, String fieldName) {
+        RefBookRowValue rowValue = getVersionRowValue(draft.getId(), primary, primaryValue);
+        assertNotNull(rowValue);
+        assertNotNull(rowValue.getSystemId());
+
+        FieldValue fieldValue = rowValue.getFieldValue(fieldName);
+        assertTrue(fieldValue instanceof IntegerFieldValue);
+        IntegerFieldValue typedFieldValue = (IntegerFieldValue)fieldValue;
+        BigInteger newTypedValue = getPublishWithConflictedReferrerNewNumberValue(typedFieldValue.getValue());
+        typedFieldValue.setValue(newTypedValue);
+
+        draftDataService.updateRow(draft.getStorageCode(), rowValue);
+
+        rowValue = getVersionRowValue(draft.getId(), primary, primaryValue);
+        assertNotNull(rowValue);
+        assertNotNull(rowValue.getSystemId());
+
+        fieldValue = rowValue.getFieldValue(fieldName);
+        assertTrue(fieldValue instanceof IntegerFieldValue);
+        typedFieldValue = (IntegerFieldValue)fieldValue;
+        assertEquals(newTypedValue, typedFieldValue.getValue());
+    }
+
+    private void updatePublishWithConflictedReferrerStringValue(Draft draft, Structure.Attribute primary, String primaryValue, String fieldName) {
+        RefBookRowValue rowValue = getVersionRowValue(draft.getId(), primary, primaryValue);
+        assertNotNull(rowValue);
+        assertNotNull(rowValue.getSystemId());
+
+        FieldValue fieldValue = rowValue.getFieldValue(fieldName);
+        assertTrue(fieldValue instanceof StringFieldValue);
+        StringFieldValue typedFieldValue = (StringFieldValue)fieldValue;
+        String newTypedValue = getPublishWithConflictedReferrerNewStringValue(typedFieldValue.getValue());
+        typedFieldValue.setValue(newTypedValue);
+
+        draftDataService.updateRow(draft.getStorageCode(), rowValue);
+
+        rowValue = getVersionRowValue(draft.getId(), primary, primaryValue);
+        assertNotNull(rowValue);
+        assertNotNull(rowValue.getSystemId());
+
+        fieldValue = rowValue.getFieldValue(fieldName);
+        assertTrue(fieldValue instanceof StringFieldValue);
+        typedFieldValue = (StringFieldValue)fieldValue;
+        assertEquals(newTypedValue, typedFieldValue.getValue());
+    }
+
+    private void deletePublishWithConflictedReferrerValue(Draft draft, Structure.Attribute primary, String primaryValue) {
+        RefBookRowValue rowValue = getVersionRowValue(draft.getId(), primary, primaryValue);
+        assertNotNull(rowValue);
+        assertNotNull(rowValue.getSystemId());
+
+        draftService.deleteRow(draft.getId(), rowValue.getSystemId());
+
+        rowValue = getVersionRowValue(draft.getId(), primary, primaryValue);
+        assertNull(rowValue);
     }
 
     @Test
@@ -1880,6 +2140,7 @@ public class ApplicationTest {
     private FileModel createFileModel(String path, String name) {
         try (InputStream input = ApplicationTest.class.getResourceAsStream("/" + name)) {
             return fileStorageService.save(input, path);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -1903,6 +2164,69 @@ public class ApplicationTest {
             default:
                 return null;
         }
+    }
+
+    /**
+     * Получение записей данных версии справочника.
+     *
+     * @param versionId идентификатор версии
+     * @return Список записей
+     */
+    private List<RefBookRowValue> getVersionPageRowContent(Integer versionId) {
+        SearchDataCriteria criteria = new SearchDataCriteria(null, null);
+        Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
+        return rowValues.getContent();
+    }
+
+    /**
+     * Получение всех записей данных версии справочника.
+     *
+     * @param version версия
+     * @return Список всех записей
+     */
+    private List<RefBookRowValue> getVersionAllRowContent(RefBookVersion version, Draft draft) {
+        return getVersionAllRowContent(draft.getId(), draft.getStorageCode(), version.getStructure(),
+                version.getFromDate(), version.getToDate());
+    }
+
+    private List<RefBookRowValue> getVersionAllRowContent(Integer versionId, String storageCode,
+                                                          Structure structure,
+                                                          LocalDateTime bdate, LocalDateTime edate) {
+        DataCriteria criteria = new DataCriteria(storageCode, bdate, edate, fields(structure), null);
+        criteria.setPage(0);
+        criteria.setSize(0);
+
+        CollectionPage<RowValue> pagedData = searchDataService.getPagedData(criteria);
+        if (pagedData.getCollection() == null)
+            return null;
+
+        return pagedData.getCollection().stream()
+                .map(rowValue -> new RefBookRowValue((LongRowValue) rowValue, versionId))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Получение записи данных по значению одного атрибута.
+     *
+     * @param versionId      идентификатор версии
+     * @param attribute      атрибут (обычно первичный ключ)
+     * @param attributeValue значение атрибута
+     * @return Одна запись или null
+     */
+    private RefBookRowValue getVersionRowValue(Integer versionId, Structure.Attribute attribute, Object attributeValue) {
+
+        if (versionId == null || attribute == null || attributeValue == null)
+            return null;
+
+        SearchDataCriteria criteria = new SearchDataCriteria();
+
+        List<AttributeFilter> filters = new ArrayList<>();
+        AttributeFilter filter = new AttributeFilter(attribute.getCode(), attributeValue, attribute.getType(), SearchTypeEnum.EXACT);
+        filters.add(filter);
+        criteria.setAttributeFilter(singleton(filters));
+
+        Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
+        return (rowValues != null && !CollectionUtils.isEmpty(rowValues.getContent())) ? rowValues.getContent().get(0) : null;
     }
 
 }
