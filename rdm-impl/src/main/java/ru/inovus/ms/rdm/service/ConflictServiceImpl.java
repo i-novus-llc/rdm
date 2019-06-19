@@ -31,6 +31,7 @@ import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.*;
 import ru.inovus.ms.rdm.util.ConflictUtils;
 import ru.inovus.ms.rdm.util.RowUtils;
+import ru.inovus.ms.rdm.util.VersionEntityUtils;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import java.math.BigInteger;
@@ -434,7 +435,7 @@ public class ConflictServiceImpl implements ConflictService {
         versionValidation.validateVersionExists(refToId);
 
         RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
-        if (!isDraftEntity(refFromEntity)) {
+        if (!VersionEntityUtils.isDraft(refFromEntity)) {
             RefBookVersionEntity refLastEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refFromEntity.getRefBook().getCode(), RefBookVersionStatus.PUBLISHED);
             if (refLastEntity != null && !refLastEntity.getId().equals(refFromId))
                 throw new RdmException(VERSION_IS_NOT_LAST_PUBLISHED_EXCEPTION_CODE);
@@ -459,7 +460,7 @@ public class ConflictServiceImpl implements ConflictService {
      * @param conflicts     список конфликтов
      */
     private void updateReferenceValues(RefBookVersionEntity refFromEntity, RefBookVersionEntity refToEntity, List<Conflict> conflicts) {
-        if (!isDraftEntity(refFromEntity))
+        if (!VersionEntityUtils.isDraft(refFromEntity))
             throw new RdmException(VERSION_IS_NOT_DRAFT_EXCEPTION_CODE);
 
         conflicts.stream()
@@ -733,15 +734,5 @@ public class ConflictServiceImpl implements ConflictService {
         return (rowValues != null && !isEmpty(rowValues.getContent()))
                 ? rowValues.getContent().get(0)
                 : null;
-    }
-
-    /**
-     * Проверка статуса версии на DRAFT.
-     *
-     * @param versionEntity версия
-     * @return Результат проверки
-     */
-    private static boolean isDraftEntity(RefBookVersionEntity versionEntity) {
-        return RefBookVersionStatus.DRAFT.equals(versionEntity.getStatus());
     }
 }
