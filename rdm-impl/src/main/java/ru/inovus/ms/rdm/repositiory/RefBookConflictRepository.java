@@ -23,6 +23,8 @@ public interface RefBookConflictRepository extends
 
     List<RefBookConflictEntity> findAllByReferrerVersionIdAndConflictType(Integer referrerId, ConflictType conflictType);
 
+    List<RefBookConflictEntity> findAllByReferrerVersionIdAndRefRecordIdIn(Integer referrerId, List<Long> refRecordIds);
+
     @Modifying
     @Query("update RefBookConflictEntity c set c.handlingDate = :handlingDate where c.id = :id")
     void setHandlingDate(@Param("id") Integer id, @Param("handlingDate")LocalDateTime handlingDate);

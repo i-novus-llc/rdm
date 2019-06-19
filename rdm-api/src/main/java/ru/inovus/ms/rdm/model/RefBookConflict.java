@@ -11,9 +11,6 @@ import java.time.LocalDateTime;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RefBookConflict {
 
-    @ApiModelProperty("Идентификатор записи о конфликте")
-    private Integer id;
-
     @ApiModelProperty("Идентификатор версии справочника со ссылками")
     private Integer referrerVersionId;
 
@@ -21,7 +18,7 @@ public class RefBookConflict {
     private Integer publishedVersionId;
 
     @ApiModelProperty("Системный идентификатор записи с конфликтом")
-    private Integer refRecordId;
+    private Long refRecordId;
 
     @ApiModelProperty("Название поля-ссылки с конфликтом по отображаемому значению")
     private String refFieldCode;
@@ -38,10 +35,9 @@ public class RefBookConflict {
     public RefBookConflict() {
     }
 
-    public RefBookConflict(Integer id, Integer referrerVersionId, Integer publishedVersionId, Integer refRecordId,
+    public RefBookConflict(Integer referrerVersionId, Integer publishedVersionId, Long refRecordId,
                            String refFieldCode, ConflictType conflictType,
                            LocalDateTime creationDate, LocalDateTime handlingDate) {
-        this.id = id;
         this.referrerVersionId = referrerVersionId;
         this.publishedVersionId = publishedVersionId;
         this.refRecordId = refRecordId;
@@ -49,14 +45,6 @@ public class RefBookConflict {
         this.conflictType = conflictType;
         this.creationDate = creationDate;
         this.handlingDate = handlingDate;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public Integer getReferrerVersionId() {
@@ -75,11 +63,11 @@ public class RefBookConflict {
         this.publishedVersionId = publishedVersionId;
     }
 
-    public Integer getRefRecordId() {
+    public Long getRefRecordId() {
         return refRecordId;
     }
 
-    public void setRefRecordId(Integer refRecordId) {
+    public void setRefRecordId(Long refRecordId) {
         this.refRecordId = refRecordId;
     }
 

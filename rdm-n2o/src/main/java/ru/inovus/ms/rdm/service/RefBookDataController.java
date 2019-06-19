@@ -27,6 +27,7 @@ import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.criteria.DataCriteria;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.provider.N2oDomain;
+import ru.inovus.ms.rdm.service.api.ConflictService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.math.BigDecimal;
@@ -36,8 +37,7 @@ import java.util.*;
 
 import static com.google.common.collect.ImmutableMap.of;
 import static java.time.format.DateTimeFormatter.ofPattern;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singleton;
+import static java.util.Collections.*;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.data.domain.Sort.Direction.ASC;
@@ -52,23 +52,39 @@ public class RefBookDataController {
 
     public static final String BOOL_FIELD_ID = "id";
     public static final String BOOL_FIELD_NAME = "name";
+    private Map<String, Object> cellOptions = new HashMap<>() {{
+        put("src", "TextCell");
+        put("styles", new HashMap<>() {{
+            put("backgroundColor", "#f8c8c6");
+        }});
+    }};
 
     @Autowired
     private MetadataEnvironment env;
     @Autowired
     private VersionService versionService;
+    @Autowired
+    private ConflictService conflictService;
 
     public Page<DataGridRow> getList(DataCriteria criteria) {
 
         Structure structure = versionService.getStructure(criteria.getVersionId());
         SearchDataCriteria searchDataCriteria = toSearchDataCriteria(criteria, structure);
         Page<RefBookRowValue> search = versionService.search(criteria.getVersionId(), searchDataCriteria);
-
+        List<RefBookConflict> conflicts = conflictService.getConflicts(
+                criteria.getVersionId(),
+                getRowSystemIds(search.getContent())
+        );
 
         DataGridRow dataGridHead = new DataGridRow(createHead(structure));
         List<DataGridRow> dataGridRows = search.getContent().stream()
-                .map(rowValue -> toDataGridRow(rowValue, criteria.getVersionId()))
-                .collect(toList());
+                .map(rowValue ->
+                        toDataGridRow(
+                                rowValue,
+                                criteria.getVersionId(),
+                                hasConflict(rowValue, conflicts)
+                        )
+                ).collect(toList());
 
         List<DataGridRow> result = new ArrayList<>();
         result.add(dataGridHead);
@@ -81,26 +97,35 @@ public class RefBookDataController {
         return new RestPage<>(result, searchDataCriteria, search.getTotalElements() + 1);
     }
 
-    private DataGridRow toDataGridRow(RowValue rowValue, Integer versionId) {
-        Map<String, Object> cellOptions = new HashMap<>() {{
-            put("src", "TextCell");
-            put("styles", new HashMap<>() {{
-                put("backgroundColor", "#f8c8c6");
-            }});
-        }};
+    private List<Long> getRowSystemIds(List<RefBookRowValue> rowValues) {
+        return rowValues
+                .stream()
+                .map(RowValue::getSystemId)
+                .collect(toList());
+    }
 
-        Map<String, DataGridCell> row = new HashMap<>();
+    private boolean hasConflict(RefBookRowValue row, List<RefBookConflict> conflicts) {
+        return conflicts
+                .stream()
+                .anyMatch(conflict ->
+                        row.getSystemId().equals(conflict.getRefRecordId())
+                );
+    }
+
+    private DataGridRow toDataGridRow(RowValue rowValue, Integer versionId, boolean hasConflict) {
+        Map<String, Object> row = new HashMap<>();
         LongRowValue longRowValue = (LongRowValue) rowValue;
         longRowValue
                 .getFieldValues()
-                .forEach(fieldValue ->
-                        row.put(
-                                addPrefix(fieldValue.getField()),
-                                new DataGridCell(toStringValue(fieldValue), cellOptions)
-                        )
+                .forEach(fieldValue -> {
+                            Object cell = hasConflict
+                                    ? new DataGridCell(toStringValue(fieldValue), cellOptions)
+                                    : toStringValue(fieldValue);
+                            row.put(addPrefix(fieldValue.getField()), cell);
+                        }
                 );
-        row.put("id", new DataGridCell(String.valueOf(longRowValue.getSystemId())));
-        row.put("versionId", new DataGridCell(String.valueOf(versionId)));
+        row.put("id", String.valueOf(longRowValue.getSystemId()));
+        row.put("versionId", String.valueOf(versionId));
         return new DataGridRow(longRowValue.getSystemId(), row);
     }
 
@@ -137,7 +162,9 @@ public class RefBookDataController {
         CompileContext<?, ?> ctx = new WidgetContext("");
         StandardField field = pipeline.compile().get(n2oField, ctx);
 
-        return new DataGridColumn(addPrefix(attribute.getCode()), attribute.getName(), true, true, true, field.getControl());
+        return new DataGridColumn(addPrefix(attribute.getCode()), attribute.getName(),
+                true, true, true,
+                field.getControl());
     }
 
     private N2oField toN2oField(Structure.Attribute attribute) {
@@ -222,7 +249,7 @@ public class RefBookDataController {
         @JsonProperty
         List<DataGridColumn> columns;
         @JsonProperty
-        Map<String, DataGridCell> row;
+        Map<String, Object> row;
 
         public DataGridRow() {
         }
@@ -231,7 +258,7 @@ public class RefBookDataController {
             this.columns = columns;
         }
 
-        public DataGridRow(Long id, Map<String, DataGridCell> row) {
+        public DataGridRow(Long id, Map<String, Object> row) {
             this.id = id;
             this.row = row;
         }
@@ -252,14 +279,13 @@ public class RefBookDataController {
             this.columns = columns;
         }
 
-        public Map<String, DataGridCell> getRow() {
+        public Map<String, Object> getRow() {
             return row;
         }
 
-        public void setRow(Map<String, DataGridCell> row) {
+        public void setRow(Map<String, Object> row) {
             this.row = row;
         }
-
     }
 
     public static class DataGridCell {
@@ -269,10 +295,6 @@ public class RefBookDataController {
         Map<String, Object> cellOptions;
 
         public DataGridCell() {
-        }
-
-        public DataGridCell(String value) {
-            this.value = value;
         }
 
         public DataGridCell(String value, Map<String, Object> cellOptions) {

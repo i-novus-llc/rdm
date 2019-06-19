@@ -19,7 +19,6 @@ import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.inovus.ms.rdm.entity.PassportAttributeEntity;
 import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
-import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.compare.ComparableField;
 import ru.inovus.ms.rdm.model.compare.ComparableFieldValue;
@@ -29,6 +28,7 @@ import ru.inovus.ms.rdm.repositiory.PassportAttributeRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,18 +51,21 @@ public class CompareServiceImpl implements CompareService {
     private RefBookVersionRepository versionRepository;
     private PassportAttributeRepository passportAttributeRepository;
     private FieldFactory fieldFactory;
+    private VersionValidation versionValidation;
 
     private static final String DATA_COMPARING_UNAVAILABLE_EXCEPTION_CODE = "data.comparing.unavailable";
 
     @Autowired
     public CompareServiceImpl(CompareDataService compareDataService,
                               VersionService versionService, RefBookVersionRepository versionRepository,
-                              PassportAttributeRepository passportAttributeRepository, FieldFactory fieldFactory) {
+                              PassportAttributeRepository passportAttributeRepository, FieldFactory fieldFactory,
+                              VersionValidation versionValidation) {
         this.compareDataService = compareDataService;
         this.versionService = versionService;
         this.versionRepository = versionRepository;
         this.passportAttributeRepository = passportAttributeRepository;
         this.fieldFactory = fieldFactory;
+        this.versionValidation = versionValidation;
     }
 
     @Override
@@ -189,10 +192,9 @@ public class CompareServiceImpl implements CompareService {
     }
 
     private void validateVersionsExistence(Integer oldVersionId, Integer newVersionId) {
-        if (oldVersionId == null || !versionRepository.existsById(oldVersionId))
-            throw new NotFoundException(new Message(VersionServiceImpl.VERSION_NOT_FOUND_EXCEPTION_CODE, oldVersionId));
-        if (newVersionId == null || !versionRepository.existsById(newVersionId))
-            throw new NotFoundException(new Message(VersionServiceImpl.VERSION_NOT_FOUND_EXCEPTION_CODE, newVersionId));
+        System.out.println(oldVersionId + " " + newVersionId);
+        versionValidation.validateVersionExists(oldVersionId);
+        versionValidation.validateVersionExists(newVersionId);
     }
 
     private void validatePrimaryAttributesEquality(List<Structure.Attribute> oldPrimaries, List<Structure.Attribute> newPrimaries) {

@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.service.api;
 import io.swagger.annotations.*;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.model.Conflict;
+import ru.inovus.ms.rdm.model.RefBookConflict;
 import ru.inovus.ms.rdm.model.RefBookVersion;
 
 import javax.ws.rs.*;
@@ -15,6 +16,19 @@ import java.util.List;
 @Consumes(MediaType.APPLICATION_JSON)
 @Api("Методы работы с конфликтами")
 public interface ConflictService {
+
+    @GET
+    @ApiOperation("Получение конфликтов для версии")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    List<RefBookConflict> getConflicts(@ApiParam("Идентификатор версии, которая ссылается")
+                                       @QueryParam("versionId")
+                                               Integer versionId,
+                                       @ApiParam("Список системных идентификаторов строк")
+                                       @QueryParam("refRecordIds")
+                                               List<Long> refRecordIds);
 
     @GET
     @Path("/calculate")
