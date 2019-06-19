@@ -98,11 +98,11 @@ public class ArchiveValidationTest {
 
     private void assertArchiveValidationError(MethodExecutor executor) {
 
-        doThrow(new NotFoundException(new Message(VersionValidationImpl.REFBOOK_IS_ARCHIVED, refBookId)))
+        doThrow(new NotFoundException(new Message(VersionValidationImpl.REFBOOK_IS_ARCHIVED_EXCEPTION_CODE, refBookId)))
                 .when(versionValidation).validateRefBook(eq(refBookId));
-        doThrow(new NotFoundException(new Message(VersionValidationImpl.REFBOOK_IS_ARCHIVED, refBookId)))
+        doThrow(new NotFoundException(new Message(VersionValidationImpl.REFBOOK_IS_ARCHIVED_EXCEPTION_CODE, refBookId)))
                 .when(versionValidation).validateDraft(eq(draftId));
-        doThrow(new NotFoundException(new Message(VersionValidationImpl.REFBOOK_IS_ARCHIVED, refBookId)))
+        doThrow(new NotFoundException(new Message(VersionValidationImpl.REFBOOK_IS_ARCHIVED_EXCEPTION_CODE, refBookId)))
                 .when(versionValidation).validateVersion(eq(versionId));
 
         try {

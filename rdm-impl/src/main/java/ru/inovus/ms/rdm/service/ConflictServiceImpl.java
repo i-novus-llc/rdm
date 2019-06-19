@@ -53,13 +53,13 @@ import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
 @Service
 public class ConflictServiceImpl implements ConflictService {
 
-    private static final String REFBOOK_DRAFT_NOT_FOUND = "refbook.draft.not.found";
-    private static final String VERSION_IS_NOT_DRAFT = "version.is.not.draft";
-    private static final String VERSION_IS_NOT_LAST_PUBLISHED = "version.is.not.last.published";
-    private static final String CONFLICT_NOT_FOUND = "conflict.not.found";
-    private static final String CONFLICTED_FROM_ROW_NOT_FOUND = "conflicted.from.row.not.found";
-    private static final String CONFLICTED_TO_ROW_NOT_FOUND = "conflicted.to.row.not.found";
-    private static final String CONFLICTED_REFERENCE_NOT_FOUND = "conflicted.reference.row.not.found";
+    private static final String REFBOOK_DRAFT_NOT_FOUND_EXCEPTION_CODE = "refbook.draft.not.found";
+    private static final String VERSION_IS_NOT_DRAFT_EXCEPTION_CODE = "version.is.not.draft";
+    private static final String VERSION_IS_NOT_LAST_PUBLISHED_EXCEPTION_CODE = "version.is.not.last.published";
+    private static final String CONFLICT_NOT_FOUND_EXCEPTION_CODE = "conflict.not.found";
+    private static final String CONFLICTED_FROM_ROW_NOT_FOUND_EXCEPTION_CODE = "conflicted.from.row.not.found";
+    private static final String CONFLICTED_TO_ROW_NOT_FOUND_EXCEPTION_CODE = "conflicted.to.row.not.found";
+    private static final String CONFLICTED_REFERENCE_NOT_FOUND_EXCEPTION_CODE = "conflicted.reference.row.not.found";
 
     private RefBookConflictRepository conflictRepository;
 
@@ -255,7 +255,7 @@ public class ConflictServiceImpl implements ConflictService {
     @Transactional
     public void create(Integer refFromId, Integer refToId, List<Conflict> conflicts) {
         if (CollectionUtils.isEmpty(conflicts))
-            throw new NotFoundException(CONFLICT_NOT_FOUND);
+            throw new NotFoundException(CONFLICT_NOT_FOUND_EXCEPTION_CODE);
 
         conflicts.forEach(conflict -> create(refFromId, refToId, conflict));
     }
@@ -269,7 +269,7 @@ public class ConflictServiceImpl implements ConflictService {
 
         RefBookRowValue refFromRowValue = getRefFromRowValue(refFromEntity, conflict.getPrimaryValues());
         if (refFromRowValue == null)
-            throw new NotFoundException(CONFLICTED_FROM_ROW_NOT_FOUND);
+            throw new NotFoundException(CONFLICTED_FROM_ROW_NOT_FOUND_EXCEPTION_CODE);
 
         return create(refFromEntity, refToEntity, refFromRowValue, conflict);
     }
@@ -349,7 +349,7 @@ public class ConflictServiceImpl implements ConflictService {
         if (!isDraftEntity(refFromEntity)) {
             RefBookVersionEntity refLastEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refFromEntity.getRefBook().getCode(), RefBookVersionStatus.PUBLISHED);
             if (refLastEntity != null && !refLastEntity.getId().equals(refFromId))
-                throw new RdmException(VERSION_IS_NOT_LAST_PUBLISHED);
+                throw new RdmException(VERSION_IS_NOT_LAST_PUBLISHED_EXCEPTION_CODE);
 
             // NB: Изменение данных возможно только в черновике.
             Draft draft = draftService.createFromVersion(refFromId);
@@ -372,7 +372,7 @@ public class ConflictServiceImpl implements ConflictService {
      */
     private void updateReferenceValues(RefBookVersionEntity refFromEntity, RefBookVersionEntity refToEntity, List<Conflict> conflicts) {
         if (!isDraftEntity(refFromEntity))
-            throw new RdmException(VERSION_IS_NOT_DRAFT);
+            throw new RdmException(VERSION_IS_NOT_DRAFT_EXCEPTION_CODE);
 
         conflicts.stream()
                 .filter(ConflictUtils::isUpdatedConflict)
@@ -394,11 +394,11 @@ public class ConflictServiceImpl implements ConflictService {
 
         RefBookRowValue refFromRow = getRefFromRowValue(refFromEntity, conflict.getPrimaryValues());
         if (refFromRow == null)
-            throw new NotFoundException(CONFLICTED_FROM_ROW_NOT_FOUND);
+            throw new NotFoundException(CONFLICTED_FROM_ROW_NOT_FOUND_EXCEPTION_CODE);
 
         FieldValue referenceFieldValue = refFromRow.getFieldValue(conflict.getRefAttributeCode());
         if (!(referenceFieldValue instanceof ReferenceFieldValue))
-            throw new NotFoundException(CONFLICTED_REFERENCE_NOT_FOUND);
+            throw new NotFoundException(CONFLICTED_REFERENCE_NOT_FOUND_EXCEPTION_CODE);
 
         Structure.Reference refFromReference = refFromEntity.getStructure().getReference(conflict.getRefAttributeCode());
         Structure.Attribute refToAttribute = refFromReference.findReferenceAttribute(refToEntity.getStructure());
@@ -406,7 +406,7 @@ public class ConflictServiceImpl implements ConflictService {
         Reference oldReference = ((ReferenceFieldValue) referenceFieldValue).getValue();
         RefBookRowValue refToRow = getRefToRowValue(refToEntity, refToAttribute, (ReferenceFieldValue) referenceFieldValue);
         if (refToRow == null)
-            throw new NotFoundException(CONFLICTED_TO_ROW_NOT_FOUND);
+            throw new NotFoundException(CONFLICTED_TO_ROW_NOT_FOUND_EXCEPTION_CODE);
 
         String displayValue = RowUtils.toDisplayValue(refFromReference.getDisplayExpression(), refToRow);
         if (!Objects.equals(oldReference.getDisplayValue(), displayValue)) {
@@ -579,7 +579,7 @@ public class ConflictServiceImpl implements ConflictService {
     private RefBookVersionEntity getRefBookDraftVersion(Integer refBookId) {
         RefBookVersionEntity entity = versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
         if (entity == null)
-            throw new NotFoundException(new Message(REFBOOK_DRAFT_NOT_FOUND, refBookId));
+            throw new NotFoundException(new Message(REFBOOK_DRAFT_NOT_FOUND_EXCEPTION_CODE, refBookId));
 
         return entity;
     }

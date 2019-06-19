@@ -13,11 +13,11 @@ import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
 @Component
 public class VersionValidationImpl implements VersionValidation {
 
-    private static final String REFBOOK_NOT_FOUND = "refbook.not.found";
-    private static final String VERSION_NOT_FOUND = "version.not.found";
-    public static final String DRAFT_NOT_FOUND = "draft.not.found";
-    public static final String REFBOOK_IS_ARCHIVED = "refbook.is.archived";
-    private static final String DRAFT_ATTRIBUTE_NOT_FOUND = "draft.attribute.not.found";
+    private static final String REFBOOK_NOT_FOUND_EXCEPTION_CODE = "refbook.not.found";
+    private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
+    public static final String DRAFT_NOT_FOUND_EXCEPTION_CODE = "draft.not.found";
+    public static final String REFBOOK_IS_ARCHIVED_EXCEPTION_CODE = "refbook.is.archived";
+    private static final String DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "draft.attribute.not.found";
 
     private RefBookVersionRepository versionRepository;
 
@@ -67,7 +67,7 @@ public class VersionValidationImpl implements VersionValidation {
     @Override
     public void validateRefBookExists(Integer refBookId) {
         if (refBookId == null || !versionRepository.exists(isVersionOfRefBook(refBookId))) {
-            throw new NotFoundException(new Message(REFBOOK_NOT_FOUND, refBookId));
+            throw new NotFoundException(new Message(REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
         }
     }
 
@@ -79,7 +79,7 @@ public class VersionValidationImpl implements VersionValidation {
     @Override
     public void validateVersionExists(Integer versionId) {
         if (versionId == null || !versionRepository.exists(hasVersionId(versionId))) {
-            throw new NotFoundException(new Message(VERSION_NOT_FOUND, versionId));
+            throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
         }
     }
 
@@ -91,7 +91,7 @@ public class VersionValidationImpl implements VersionValidation {
     @Override
     public void validateDraftExists(Integer draftId) {
         if (draftId == null || !versionRepository.exists(hasVersionId(draftId).and(isDraft()))) {
-            throw new NotFoundException(new Message(DRAFT_NOT_FOUND, draftId));
+            throw new NotFoundException(new Message(DRAFT_NOT_FOUND_EXCEPTION_CODE, draftId));
         }
     }
 
@@ -102,7 +102,7 @@ public class VersionValidationImpl implements VersionValidation {
      */
     private void validateRefBookNotArchived(Integer refBookId) {
         if (refBookId != null && versionRepository.exists(isVersionOfRefBook(refBookId).and(isArchived()))) {
-            throw new UserException(new Message(REFBOOK_IS_ARCHIVED));
+            throw new UserException(new Message(REFBOOK_IS_ARCHIVED_EXCEPTION_CODE));
         }
     }
 
@@ -113,7 +113,7 @@ public class VersionValidationImpl implements VersionValidation {
      */
     private void validateVersionNotArchived(Integer versionId) {
         if (versionId != null && versionRepository.exists(hasVersionId(versionId).and(isArchived()))) {
-            throw new UserException(new Message(REFBOOK_IS_ARCHIVED));
+            throw new UserException(new Message(REFBOOK_IS_ARCHIVED_EXCEPTION_CODE));
         }
     }
 
@@ -124,7 +124,7 @@ public class VersionValidationImpl implements VersionValidation {
      */
     private void validateDraftNotArchived(Integer draftId) {
         if (draftId != null && versionRepository.exists(hasVersionId(draftId).and(isArchived()))) {
-            throw new UserException(new Message(REFBOOK_IS_ARCHIVED));
+            throw new UserException(new Message(REFBOOK_IS_ARCHIVED_EXCEPTION_CODE));
         }
     }
 
@@ -140,7 +140,7 @@ public class VersionValidationImpl implements VersionValidation {
 
         Structure structure = versionRepository.getOne(versionId).getStructure();
         if (structure.getAttribute(attribute) == null) {
-            throw new NotFoundException(new Message(DRAFT_ATTRIBUTE_NOT_FOUND, versionId, attribute));
+            throw new NotFoundException(new Message(DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, versionId, attribute));
         }
     }
 }

@@ -134,7 +134,7 @@ public class PublishServiceTest {
 
         Integer draftId = 0;
 
-        doThrow(new NotFoundException(new Message(VersionValidationImpl.DRAFT_NOT_FOUND, draftId)))
+        doThrow(new NotFoundException(new Message(VersionValidationImpl.DRAFT_NOT_FOUND_EXCEPTION_CODE, draftId)))
                 .when(versionValidation).validateDraft(eq(draftId));
         when(versionRepository.exists(hasVersionId(draftVersionEntity.getId()).and(isDraft()))).thenReturn(true);
 
