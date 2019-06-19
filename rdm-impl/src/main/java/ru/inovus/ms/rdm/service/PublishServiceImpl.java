@@ -45,7 +45,7 @@ public class PublishServiceImpl implements PublishService {
     private VersionNumberStrategy versionNumberStrategy;
 
     private VersionValidation versionValidation;
-    private VersionPeriodPublishValidation versionPeriodPublishValidation; // for publish only
+    private VersionPeriodPublishValidation versionPeriodPublishValidation;
 
     private static final String INVALID_VERSION_NAME_EXCEPTION_CODE = "invalid.version.name";
     private static final String INVALID_VERSION_PERIOD_EXCEPTION_CODE = "invalid.version.period";
@@ -74,12 +74,15 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
-    public void publish(Integer draftId, String versionName, LocalDateTime fromDate, LocalDateTime toDate, boolean processResolvableConflicts) {
+    public void publish(Integer draftId, String versionName,
+                        LocalDateTime fromDate, LocalDateTime toDate,
+                        boolean processResolvableConflicts) {
 
         versionValidation.validateDraft(draftId);
 
-        RefBookVersionEntity draftVersion = versionRepository.findById(draftId).orElseThrow();
-        Integer refBookId = draftVersion.getRefBook().getId();
+        RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
+        Integer refBookId = draftEntity.getRefBook().getId();
+
         refBookLockService.setRefBookPublishing(refBookId);
         try {
             if (versionName == null) {
@@ -90,31 +93,32 @@ public class PublishServiceImpl implements PublishService {
             }
 
             if (fromDate == null) fromDate = TimeUtils.now();
-            if (toDate != null && fromDate.isAfter(toDate)) throw new UserException(INVALID_VERSION_PERIOD_EXCEPTION_CODE);
+            if (toDate != null && fromDate.isAfter(toDate))
+                throw new UserException(INVALID_VERSION_PERIOD_EXCEPTION_CODE);
 
             versionPeriodPublishValidation.validate(fromDate, toDate, refBookId);
 
-            RefBookVersionEntity lastPublishedVersion = getLastPublishedVersionEntity(draftVersion);
+            RefBookVersionEntity lastPublishedVersion = getLastPublishedVersionEntity(draftEntity);
             String storageCode = draftDataService.applyDraft(
                     lastPublishedVersion != null ? lastPublishedVersion.getStorageCode() : null,
-                    draftVersion.getStorageCode(),
+                    draftEntity.getStorageCode(),
                     fromDate,
                     toDate
             );
 
             Set<String> dataStorageToDelete = new HashSet<>();
-            dataStorageToDelete.add(draftVersion.getStorageCode());
+            dataStorageToDelete.add(draftEntity.getStorageCode());
 
-            draftVersion.setStorageCode(storageCode);
-            draftVersion.setVersion(versionName);
-            draftVersion.setStatus(RefBookVersionStatus.PUBLISHED);
-            draftVersion.setFromDate(fromDate);
-            draftVersion.setToDate(toDate);
+            draftEntity.setStorageCode(storageCode);
+            draftEntity.setVersion(versionName);
+            draftEntity.setStatus(RefBookVersionStatus.PUBLISHED);
+            draftEntity.setFromDate(fromDate);
+            draftEntity.setToDate(toDate);
             resolveOverlappingPeriodsInFuture(fromDate, toDate, refBookId);
-            versionRepository.save(draftVersion);
+            versionRepository.save(draftEntity);
 
             if (lastPublishedVersion != null && lastPublishedVersion.getStorageCode() != null
-                    && draftVersion.getStructure().storageEquals(lastPublishedVersion.getStructure())) {
+                    && draftEntity.getStructure().storageEquals(lastPublishedVersion.getStructure())) {
                 dataStorageToDelete.add(lastPublishedVersion.getStorageCode());
                 versionRepository.findByStorageCode(lastPublishedVersion.getStorageCode()).stream()
                         .peek(version -> version.setStorageCode(storageCode))
@@ -141,8 +145,7 @@ public class PublishServiceImpl implements PublishService {
     }
 
     private RefBookVersionEntity getLastPublishedVersionEntity(RefBookVersionEntity draftVersion) {
-        return versionRepository
-                .findFirstByRefBookCodeAndStatusOrderByFromDateDesc(draftVersion.getRefBook().getCode(), RefBookVersionStatus.PUBLISHED);
+        return versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(draftVersion.getRefBook().getCode(), RefBookVersionStatus.PUBLISHED);
     }
 
     private void resolveOverlappingPeriodsInFuture(LocalDateTime fromDate, LocalDateTime toDate, Integer refBookId) {
