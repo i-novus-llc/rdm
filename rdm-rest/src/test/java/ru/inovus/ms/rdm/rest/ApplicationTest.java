@@ -51,6 +51,7 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -1300,6 +1301,21 @@ public class ApplicationTest {
         final List<String> referrerUpdatedNumberPrimaries = asList("REF_4__", "REF_444", "REF_69_");
         final List<String> referrerUpdatedStringPrimaries = asList("REF_14_", "REF_444", "REF_169");
         final List<String> referrerUpdatedMadeofPrimaries = asList("REF_444", "REF__84");
+        final List<String> referrerDeletedNumberPrimaries = asList("REF_8__", "REF_888");
+        final List<String> referrerDeletedStringPrimaries = asList("REF_18_", "REF_888", "REF_69_", "REF__84");
+        final List<String> referrerDeletedMadeofPrimaries = asList("REF_888", "REF_169");
+
+        final Map<String, List<String>> referrerUpdatedPrimaries = Map.of(
+                REFERRER_NUMBER_ATTRIBUTE_CODE, referrerUpdatedNumberPrimaries,
+                REFERRER_STRING_ATTRIBUTE_CODE, referrerUpdatedStringPrimaries,
+                REFERRER_MADEOF_ATTRIBUTE_CODE, referrerUpdatedMadeofPrimaries
+        );
+
+        final Map<String, List<String>> referrerDeletedPrimaries = Map.of(
+                REFERRER_NUMBER_ATTRIBUTE_CODE, referrerDeletedNumberPrimaries,
+                REFERRER_STRING_ATTRIBUTE_CODE, referrerDeletedStringPrimaries,
+                REFERRER_MADEOF_ATTRIBUTE_CODE, referrerDeletedMadeofPrimaries
+        );
 
         final String CARDINAL_PRIMARY_ATTRIBUTE_CODE = "CAR_CODE";
         final String CARDINAL_NUMBER_ATTRIBUTE_CODE = "CAR_NUMB";
@@ -1374,29 +1390,35 @@ public class ApplicationTest {
         Map<String, String> expectedStringValues = new HashMap<>();
         Map<String, String> expectedMadeofValues = new HashMap<>();
 
-        referrerUnchangedPrimaries.forEach(primary -> {
-            RefBookRowValue referrerRowValue = getVersionRowValue(referrerVersion.getId(), referrerPrimary, primary);
+        referrerUnchangedPrimaries.forEach(primaryValue -> {
+            RefBookRowValue referrerRowValue = getVersionRowValue(referrerVersion.getId(), referrerPrimary, primaryValue);
             String displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_NUMBER_ATTRIBUTE_CODE);
             BigInteger numberValue = new BigInteger(displayValue);
-            expectedNumberValues.put(primary, numberValue);
+            expectedNumberValues.put(primaryValue, numberValue);
             displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_STRING_ATTRIBUTE_CODE);
-            expectedStringValues.put(primary, displayValue);
+            expectedStringValues.put(primaryValue, displayValue);
             displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_MADEOF_ATTRIBUTE_CODE);
-            expectedMadeofValues.put(primary, displayValue);
+            expectedMadeofValues.put(primaryValue, displayValue);
         });
 
-        referrerUpdatedNumberPrimaries.forEach(primary -> {
-            RefBookRowValue referrerRowValue = getVersionRowValue(referrerVersion.getId(), referrerPrimary, primary);
+        referrerUpdatedNumberPrimaries.forEach(primaryValue -> {
+            RefBookRowValue referrerRowValue = getVersionRowValue(referrerVersion.getId(), referrerPrimary, primaryValue);
             String displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_NUMBER_ATTRIBUTE_CODE);
             BigInteger numberValue = getPublishWithConflictedReferrerNewNumberValue(new BigInteger(displayValue));
-            expectedNumberValues.put(primary, numberValue);
+            expectedNumberValues.put(primaryValue, numberValue);
         });
 
-        referrerUpdatedStringPrimaries.forEach(primary -> {
-            RefBookRowValue referrerRowValue = getVersionRowValue(referrerVersion.getId(), referrerPrimary, primary);
+        referrerUpdatedStringPrimaries.forEach(primaryValue -> {
+            RefBookRowValue referrerRowValue = getVersionRowValue(referrerVersion.getId(), referrerPrimary, primaryValue);
             String displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_STRING_ATTRIBUTE_CODE);
             String stringValue = getPublishWithConflictedReferrerNewStringValue(displayValue);
-            expectedStringValues.put(primary, stringValue);
+            expectedStringValues.put(primaryValue, stringValue);
+        });
+
+        referrerUpdatedMadeofPrimaries.forEach(primaryValue -> {
+            RefBookRowValue referrerRowValue = getVersionRowValue(referrerVersion.getId(), referrerPrimary, primaryValue);
+            String displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_MADEOF_ATTRIBUTE_CODE);
+            expectedMadeofValues.put(primaryValue, displayValue);
         });
 
 //      3. Изменение исходного справочника.
@@ -1419,43 +1441,74 @@ public class ApplicationTest {
 
         // NB: insert.
 
-        // Публикация изменений.
+        // Публикация изменений с обновлением ссылок. // NB: Разделить операции и код проверок.
         publishService.publish(changingDraft.getId(), null, TimeUtils.now(), null);
         RefBookVersion changedVersion = versionService.getLastPublishedVersion(cardinalVersion.getCode());
         assertNotNull(changedVersion);
 
 //      4. Проверка связанного справочника.
         // Проверка данных.
-        referrerUnchangedPrimaries.forEach(primary -> {
-            RefBookRowValue referrerRowValue = getVersionRowValue(referrerVersion.getId(), referrerPrimary, primary);
+        referrerUnchangedPrimaries.forEach(primaryValue -> {
+            RefBookRowValue referrerRowValue = getVersionRowValue(referrerVersion.getId(), referrerPrimary, primaryValue);
             String displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_NUMBER_ATTRIBUTE_CODE);
-            assertEquals(expectedNumberValues.get(primary), new BigInteger(displayValue));
+            assertEquals(expectedNumberValues.get(primaryValue), new BigInteger(displayValue));
             displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_STRING_ATTRIBUTE_CODE);
-            assertEquals(expectedStringValues.get(primary), displayValue);
+            assertEquals(expectedStringValues.get(primaryValue), displayValue);
             displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_MADEOF_ATTRIBUTE_CODE);
-            assertEquals(expectedMadeofValues.get(primary), displayValue);
+            assertEquals(expectedMadeofValues.get(primaryValue), displayValue);
         });
 
-        referrerUpdatedNumberPrimaries.forEach(primary -> {
-            RefBookRowValue referrerRowValue = getVersionRowValue(referrerVersion.getId(), referrerPrimary, primary);
-            String displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_NUMBER_ATTRIBUTE_CODE);
-            assertEquals(expectedNumberValues.get(primary), new BigInteger(displayValue));
+        referrerUpdatedPrimaries.forEach((primaryField, primaryList) -> {
+            primaryList.forEach(primaryValue -> {
+                RefBookRowValue referrerRowValue = getVersionRowValue(referrerVersion.getId(), referrerPrimary, primaryValue);
+                String displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, primaryField);
+                switch(primaryField) {
+                    case REFERRER_NUMBER_ATTRIBUTE_CODE:
+                        assertEquals(expectedNumberValues.get(primaryValue), new BigInteger(displayValue));
+                        break;
+
+                    case REFERRER_STRING_ATTRIBUTE_CODE:
+                        assertEquals(expectedStringValues.get(primaryValue), displayValue);
+                        break;
+
+                    case REFERRER_MADEOF_ATTRIBUTE_CODE:
+                        assertNotEquals(expectedMadeofValues.get(primaryValue), displayValue);
+                        break;
+
+                    default:
+                        break;
+                }
+            });
         });
 
-        referrerUpdatedStringPrimaries.forEach(primary -> {
-            RefBookRowValue referrerRowValue = getVersionRowValue(referrerVersion.getId(), referrerPrimary, primary);
-            String displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_STRING_ATTRIBUTE_CODE);
-            assertEquals(expectedStringValues.get(primary), displayValue);
-        });
+        // NB: Use `refreshReferencesByPrimary(changingDraft.getId(), changedVersion.getId())` to separate operations.
 
         // Проверка конфликтов.
-        referrerUnchangedPrimaries.forEach(primary -> {
-            RefBookRowValue referrerRowValue = getVersionRowValue(referrerVersion.getId(), referrerPrimary, primary);
-            assertNotNull(referrerRowValue);
-            Integer conflictId = conflictService.find(referrerVersion.getId(), cardinalVersion.getId(), referrerRowValue.getSystemId(), REFERRER_NUMBER_ATTRIBUTE_CODE);
+        referrerUnchangedPrimaries.forEach(primaryValue -> {
+            Integer conflictId = findPublishWithConflictedReferrerConflictId(
+                    referrerVersion.getId(), changedVersion.getId(),
+                    referrerPrimary, primaryValue, REFERRER_NUMBER_ATTRIBUTE_CODE);
             assertNull(conflictId);
         });
-}
+
+        referrerUpdatedPrimaries.forEach((primaryField, primaryList) -> {
+            primaryList.forEach(primaryValue -> {
+                Integer conflictId = findPublishWithConflictedReferrerConflictId(
+                        referrerVersion.getId(), changedVersion.getId(),
+                        referrerPrimary, primaryValue, primaryField);
+                assertNull(conflictId);
+            });
+        });
+
+        referrerDeletedPrimaries.forEach((primaryField, primaryList) -> {
+            primaryList.forEach(primaryValue -> {
+                Integer conflictId = findPublishWithConflictedReferrerConflictId(
+                        referrerVersion.getId(), changedVersion.getId(),
+                        referrerPrimary, primaryValue, primaryField);
+                assertNotNull(conflictId);
+            });
+        });
+    }
 
     private String getPublishWithConflictedReferrerDisplayValue(RefBookRowValue rowValue, String attributeCode) {
         assertNotNull(rowValue);
@@ -1474,7 +1527,9 @@ public class ApplicationTest {
         return value + "___" + value;
     }
 
-    private void updatePublishWithConflictedReferrerNumberValue(Draft draft, Structure.Attribute primary, String primaryValue, String fieldName) {
+    private void updatePublishWithConflictedReferrerNumberValue(Draft draft,
+                                                                Structure.Attribute primary, String primaryValue,
+                                                                String fieldName) {
         RefBookRowValue rowValue = getVersionRowValue(draft.getId(), primary, primaryValue);
         assertNotNull(rowValue);
         assertNotNull(rowValue.getSystemId());
@@ -1497,7 +1552,9 @@ public class ApplicationTest {
         assertEquals(newTypedValue, typedFieldValue.getValue());
     }
 
-    private void updatePublishWithConflictedReferrerStringValue(Draft draft, Structure.Attribute primary, String primaryValue, String fieldName) {
+    private void updatePublishWithConflictedReferrerStringValue(Draft draft,
+                                                                Structure.Attribute primary, String primaryValue,
+                                                                String fieldName) {
         RefBookRowValue rowValue = getVersionRowValue(draft.getId(), primary, primaryValue);
         assertNotNull(rowValue);
         assertNotNull(rowValue.getSystemId());
@@ -1529,6 +1586,16 @@ public class ApplicationTest {
 
         rowValue = getVersionRowValue(draft.getId(), primary, primaryValue);
         assertNull(rowValue);
+    }
+
+    private Integer findPublishWithConflictedReferrerConflictId(Integer referrerId, Integer cardinalId,
+                                                                Structure.Attribute primary, String primaryValue,
+                                                                String fieldName) {
+        RefBookRowValue rowValue = getVersionRowValue(referrerId, primary, primaryValue);
+        assertNotNull(rowValue);
+        assertNotNull(rowValue.getSystemId());
+
+        return conflictService.findId(referrerId, cardinalId, rowValue.getSystemId(), fieldName);
     }
 
     @Test
@@ -1883,10 +1950,10 @@ public class ApplicationTest {
         Boolean actualDeleteCheck = conflictService.checkConflicts(refFromVersionId, refToDraftId, ConflictType.DELETED);
         assertEquals(Boolean.TRUE, actualDeleteCheck);
 
-        List<RefBookVersion> updatedReferrers = conflictService.getConflictReferrers(refToDraftId, ConflictType.UPDATED);
+        List<RefBookVersion> updatedReferrers = conflictService.getCheckConflictReferrers(refToDraftId, ConflictType.UPDATED);
         assertEquals(1, updatedReferrers.size());
 
-        List<RefBookVersion> deletedReferrers = conflictService.getConflictReferrers(refToDraftId, ConflictType.DELETED);
+        List<RefBookVersion> deletedReferrers = conflictService.getCheckConflictReferrers(refToDraftId, ConflictType.DELETED);
         assertEquals(1, deletedReferrers.size());
     }
 

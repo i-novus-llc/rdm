@@ -47,18 +47,18 @@ public interface ConflictService {
                                    ConflictType conflictType);
 
     @GET
-    @Path("/{versionId}/conflicted")
-    @ApiOperation("Получение конфликтующих версий справочников")
+    @Path("/check/{versionId}/referrer")
+    @ApiOperation("Получение конфликтующих версий справочников для неопубликованной версии")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    List<RefBookVersion> getConflictReferrers(@ApiParam("Идентификатор проверяемой версии")
-                                              @PathParam("versionId")
-                                                      Integer versionId,
-                                              @ApiParam("Тип конфликта")
-                                              @QueryParam("type")
-                                                      ConflictType conflictType);
+    List<RefBookVersion> getCheckConflictReferrers(@ApiParam("Идентификатор проверяемой версии")
+                                                   @PathParam("versionId")
+                                                           Integer versionId,
+                                                   @ApiParam("Тип конфликта")
+                                                   @QueryParam("type")
+                                                           ConflictType conflictType);
 
     @POST
     @Path("/create")
@@ -83,18 +83,38 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Integer find(@ApiParam("Идентификатор версии, которая ссылается")
-                 @QueryParam("refFromId")
-                         Integer refFromId,
-                 @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
-                 @QueryParam("refToId")
-                         Integer refToId,
-                 @ApiParam("Строка-конфликт версии, которая ссылается")
-                 @QueryParam("rowSystemId")
-                         Long rowSystemId,
-                 @ApiParam("Атрибут версии, которая ссылается")
-                 @QueryParam("refFieldCode")
-                         String refFieldCode);
+    Conflict find(@ApiParam("Идентификатор версии, которая ссылается")
+                  @QueryParam("refFromId")
+                          Integer refFromId,
+                  @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
+                  @QueryParam("refToId")
+                          Integer refToId,
+                  @ApiParam("Строка-конфликт версии, которая ссылается")
+                  @QueryParam("rowSystemId")
+                          Long rowSystemId,
+                  @ApiParam("Атрибут версии, которая ссылается")
+                  @QueryParam("refFieldCode")
+                          String refFieldCode);
+
+    @GET
+    @Path("/findId")
+    @ApiOperation("Поиск конфликта по основным параметрам")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    Integer findId(@ApiParam("Идентификатор версии, которая ссылается")
+                   @QueryParam("refFromId")
+                           Integer refFromId,
+                   @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
+                   @QueryParam("refToId")
+                           Integer refToId,
+                   @ApiParam("Строка-конфликт версии, которая ссылается")
+                   @QueryParam("rowSystemId")
+                           Long rowSystemId,
+                   @ApiParam("Атрибут версии, которая ссылается")
+                   @QueryParam("refFieldCode")
+                           String refFieldCode);
 
     @POST
     @Path("/delete/{id}")
@@ -107,9 +127,59 @@ public interface ConflictService {
                 @PathParam("id")
                         Integer id);
 
+    @GET
+    @Path("/{versionId}/hasConflict")
+    @ApiOperation("Проверка версии на наличие конфликта с любым справочником")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    boolean hasConflict(@ApiParam("Идентификатор проверяемой версии")
+                        @PathParam("versionId")
+                                Integer referrerVersionId);
+
+    @GET
+    @Path("/{versionId}/hasConflict/typed")
+    @ApiOperation("Проверка версии на наличие конфликта обновления записи с любым справочником")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    boolean hasTypedConflict(@ApiParam("Идентификатор проверяемой версии")
+                             @PathParam("versionId")
+                                     Integer referrerVersionId,
+                             @ApiParam("Тип конфликта")
+                             @QueryParam("type")
+                                     ConflictType conflictType);
+
+    @GET
+    @Path("/{versionId}/isConflicted")
+    @ApiOperation("Проверка версии на наличие конфликта в любом справочнике")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    boolean isConflicted(@ApiParam("Идентификатор проверяемой версии")
+                         @PathParam("versionId")
+                                 Integer publishedVersionId);
+
     @POST
-    @Path("/refresh/displayvalue")
+    @Path("/refresh/all/byPrimary")
     @ApiOperation("Обновление отображаемых значений ссылок")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void refreshReferencesByPrimary(@ApiParam("Идентификатор старой версии, на которую ссылаются")
+                                    @QueryParam("oldVersionId")
+                                            Integer oldVersionId,
+                                    @ApiParam("Идентификатор новой версии, на которую будут ссылаться")
+                                    @QueryParam("newVersionId")
+                                            Integer newVersionId);
+
+    @POST
+    @Path("/refresh/byPrimary")
+    @ApiOperation("Обновление отображаемых значений ссылок версии")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")

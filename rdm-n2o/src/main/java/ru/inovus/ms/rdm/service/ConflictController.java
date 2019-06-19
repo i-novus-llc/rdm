@@ -25,8 +25,8 @@ public class ConflictController {
      * @param conflictType тип конфликта
      * @return Названия справочников (через запятую)
      */
-    public String getConflictReferrerNames(Integer versionId, ConflictType conflictType) {
-        return conflictService.getConflictReferrers(versionId, conflictType)
+    public String getCheckConflictReferrerNames(Integer versionId, ConflictType conflictType) {
+        return conflictService.getCheckConflictReferrers(versionId, conflictType)
                 .stream()
                 .map(this::getReferrerDisplayName)
                 .collect(Collectors.joining(REFERRER_NAME_SEPARATOR));
