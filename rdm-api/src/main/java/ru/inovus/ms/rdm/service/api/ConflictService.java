@@ -7,7 +7,6 @@ import ru.inovus.ms.rdm.model.RefBookVersion;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Path("/conflicts")
@@ -48,7 +47,7 @@ public interface ConflictService {
                                    ConflictType conflictType);
 
     @GET
-    @Path("/{versionId}/check")
+    @Path("/{versionId}/conflicted")
     @ApiOperation("Получение конфликтующих версий справочников")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
@@ -78,38 +77,35 @@ public interface ConflictService {
                         List<Conflict> conflicts);
 
     @GET
-    @Path("/getid")
+    @Path("/find")
     @ApiOperation("Поиск конфликта по основным параметрам")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Integer getConflictId(@ApiParam("Идентификатор версии, которая ссылается")
-                          @QueryParam("refFromId")
-                                  Integer refFromId,
-                          @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
-                          @QueryParam("refToId")
-                                  Integer refToId,
-                          @ApiParam("Строка-конфликт версии, которая ссылается")
-                          @QueryParam("rowSystemId")
-                                  Long rowSystemId,
-                          @ApiParam("Атрибут версии, которая ссылается")
-                          @QueryParam("refFieldCode")
-                                  String refFieldCode);
+    Integer find(@ApiParam("Идентификатор версии, которая ссылается")
+                 @QueryParam("refFromId")
+                         Integer refFromId,
+                 @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
+                 @QueryParam("refToId")
+                         Integer refToId,
+                 @ApiParam("Строка-конфликт версии, которая ссылается")
+                 @QueryParam("rowSystemId")
+                         Long rowSystemId,
+                 @ApiParam("Атрибут версии, которая ссылается")
+                 @QueryParam("refFieldCode")
+                         String refFieldCode);
 
     @POST
-    @Path("/handle/{id}")
-    @ApiOperation("Отработка записи о конфликте")
+    @Path("/delete/{id}")
+    @ApiOperation("Удаление записи о конфликте")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void handleConflict(@ApiParam("Идентификатор записи о конфликте")
-                        @PathParam("id")
-                                Integer id,
-                        @ApiParam("Дата отработки конфликта")
-                        @QueryParam("handlingDate")
-                                LocalDateTime handlingDate);
+    void delete(@ApiParam("Идентификатор записи о конфликте")
+                @PathParam("id")
+                        Integer id);
 
     @POST
     @Path("/refresh/displayvalue")

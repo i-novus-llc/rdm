@@ -73,4 +73,14 @@
         </sql>
     </changeSet>
 
+    <changeSet id="201905291320-RDM-469_4.0" author="arahmatullin" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="ref_book_conflict" columnName="handling_date" schemaName="n2o_rdm_management"/>
+        </preConditions>
+        <sql>
+            ALTER TABLE n2o_rdm_management.ref_book_conflict
+                DROP COLUMN handling_date;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

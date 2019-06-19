@@ -305,26 +305,26 @@ public class ConflictServiceImpl implements ConflictService {
 
     @Override
     @Transactional
-    public Integer getConflictId(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode) {
-
-        RefBookConflictEntity entity = conflictRepository.findByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdAndRefFieldCode(refFromId, refToId, rowSystemId, refFieldCode);
+    public Integer find(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode) {
+        RefBookConflictEntity entity = getConflictEntity(refFromId, refToId, rowSystemId, refFieldCode);
         return Objects.nonNull(entity) ? entity.getId() : null;
+    }
+
+    public RefBookConflictEntity getConflictEntity(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode) {
+        return conflictRepository.findByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdAndRefFieldCode(refFromId, refToId, rowSystemId, refFieldCode);
     }
 
     @Override
     @Transactional
-    public void handleConflict(Integer id, LocalDateTime handlingDate) {
-        if (handlingDate == null)
-            handlingDate = LocalDateTime.now();
-
-        conflictRepository.setHandlingDate(id, handlingDate);
+    public void delete(Integer id) {
+        conflictRepository.deleteById(id);
     }
 
-    private void handleConflict(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode, LocalDateTime handlingDate) {
+    private void delete(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode) {
 
-        Integer id = getConflictId(refFromId, refToId, rowSystemId, refFieldCode);
+        Integer id = find(refFromId, refToId, rowSystemId, refFieldCode);
         if (id != null)
-            handleConflict(id, handlingDate);
+            delete(id);
     }
 
     /**
@@ -425,7 +425,7 @@ public class ConflictServiceImpl implements ConflictService {
                     newReference);
         }
 
-        handleConflict(refFromEntity.getId(), refToEntity.getId(), refFromRow.getSystemId(), conflict.getRefAttributeCode(), null);
+        delete(refFromEntity.getId(), refToEntity.getId(), refFromRow.getSystemId(), conflict.getRefAttributeCode());
     }
 
     /**

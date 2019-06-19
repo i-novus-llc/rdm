@@ -31,7 +31,6 @@ import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
-import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
@@ -1450,6 +1449,12 @@ public class ApplicationTest {
         });
 
         // Проверка конфликтов.
+        referrerUnchangedPrimaries.forEach(primary -> {
+            RefBookRowValue referrerRowValue = getVersionRowValue(referrerVersion.getId(), referrerPrimary, primary);
+            assertNotNull(referrerRowValue);
+            Integer conflictId = conflictService.find(referrerVersion.getId(), cardinalVersion.getId(), referrerRowValue.getSystemId(), REFERRER_NUMBER_ATTRIBUTE_CODE);
+            assertNull(conflictId);
+        });
 }
 
     private String getPublishWithConflictedReferrerDisplayValue(RefBookRowValue rowValue, String attributeCode) {

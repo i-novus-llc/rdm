@@ -36,9 +36,6 @@ public class RefBookConflictEntity {
     @Column(name = "creation_date")
     private LocalDateTime creationDate;
 
-    @Column(name = "handling_date")
-    private LocalDateTime handlingDate;
-
     public Integer getId() {
         return id;
     }
@@ -95,14 +92,6 @@ public class RefBookConflictEntity {
         this.creationDate = creationDate;
     }
 
-    public LocalDateTime getHandlingDate() {
-        return handlingDate;
-    }
-
-    public void setHandlingDate(LocalDateTime handlingDate) {
-        this.handlingDate = handlingDate;
-    }
-
     @PrePersist
     public void prePersist() {
         LocalDateTime now = LocalDateTime.now();
@@ -124,14 +113,13 @@ public class RefBookConflictEntity {
                 Objects.equals(refRecordId, that.refRecordId) &&
                 Objects.equals(refFieldCode, that.refFieldCode) &&
                 Objects.equals(conflictType, that.conflictType) &&
-                Objects.equals(creationDate, that.creationDate) &&
-                Objects.equals(handlingDate, that.handlingDate);
+                Objects.equals(creationDate, that.creationDate);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(id, referrerVersion, publishedVersion, refRecordId,
-                refFieldCode, conflictType, creationDate, handlingDate);
+                refFieldCode, conflictType, creationDate);
     }
 
     @Override
@@ -144,7 +132,6 @@ public class RefBookConflictEntity {
         sb.append(", refFieldCode='").append(refFieldCode).append('\'');
         sb.append(", conflictType=").append(conflictType);
         sb.append(", creationDate=").append(creationDate);
-        sb.append(", handlingDate=").append(handlingDate);
         sb.append('}');
         return sb.toString();
     }
