@@ -1,19 +1,22 @@
 package ru.inovus.ms.rdm.sync;
 
 import liquibase.integration.spring.SpringLiquibase;
+import net.n2oapp.platform.jaxrs.LocalDateTimeISOParameterConverter;
+import net.n2oapp.platform.jaxrs.TypedParamConverter;
 import net.n2oapp.platform.jaxrs.autoconfigure.EnableJaxRsProxyClient;
+import net.n2oapp.platform.jaxrs.autoconfigure.MissingGenericBean;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.util.StringUtils;
-import ru.inovus.ms.rdm.provider.ExportFileProvider;
-import ru.inovus.ms.rdm.provider.RdmParamConverterProvider;
-import ru.inovus.ms.rdm.provider.RdmMapperConfigurer;
+import ru.inovus.ms.rdm.model.AttributeFilter;
+import ru.inovus.ms.rdm.provider.*;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
@@ -22,6 +25,8 @@ import ru.inovus.ms.rdm.sync.service.*;
 import ru.inovus.ms.rdm.util.json.LocalDateTimeMapperPreparer;
 
 import javax.sql.DataSource;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 /**
  * @author lgalimova
@@ -84,26 +89,39 @@ public class RdmClientSyncAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean
-    RdmParamConverterProvider rdmParamConverterProvider() {
-        return new RdmParamConverterProvider();
+    @Conditional(MissingGenericBean.class)
+    public TypedParamConverter<LocalDateTime> mskUtcLocalDateTimeParamConverter() {
+        return new MskUtcLocalDateTimeParamConverter(new LocalDateTimeISOParameterConverter());
     }
 
     @Bean
+    @Conditional(MissingGenericBean.class)
+    public  TypedParamConverter<AttributeFilter> attributeFilterConverter() {
+        return new AttributeFilterConverter();
+    }
+
+    @Bean
+    @Conditional(MissingGenericBean.class)
+    public TypedParamConverter<OffsetDateTime> offsetDateTimeParamConverter() {
+        return new OffsetDateTimeParamConverter();
+    }
+
+
+    @Bean
     @ConditionalOnMissingBean
-    LocalDateTimeMapperPreparer localDateTimeMapperPreparer() {
+    public LocalDateTimeMapperPreparer localDateTimeMapperPreparer() {
         return new LocalDateTimeMapperPreparer();
     }
 
     @Bean
     @ConditionalOnMissingBean
-    ExportFileProvider exportFileProvider() {
+    public ExportFileProvider exportFileProvider() {
         return new ExportFileProvider();
     }
 
     @Bean
     @ConditionalOnMissingBean
-    RdmMapperConfigurer rdmMapperConfigurer() {
+    public RdmMapperConfigurer rdmMapperConfigurer() {
         return new RdmMapperConfigurer();
     }
 }

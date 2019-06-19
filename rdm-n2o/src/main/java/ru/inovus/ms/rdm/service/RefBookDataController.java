@@ -45,8 +45,7 @@ import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static ru.inovus.ms.rdm.RdmUiUtil.addPrefix;
 import static ru.inovus.ms.rdm.RdmUiUtil.deletePrefix;
-import static ru.inovus.ms.rdm.util.TimeUtils.DATE_PATTERN_WITH_POINT;
-import static ru.inovus.ms.rdm.util.TimeUtils.DATE_TIME_PATTERN_FORMATTER;
+import static ru.inovus.ms.rdm.util.TimeUtils.*;
 
 
 @Component
@@ -100,7 +99,7 @@ public class RefBookDataController {
 
         else if (value instanceof DateFieldValue)
             return valueOptional.filter(o -> o instanceof LocalDate).map(o -> (LocalDate) o)
-                    .map(localDate -> localDate.format(ofPattern(DATE_PATTERN_WITH_POINT)))
+                    .map(localDate -> localDate.format(ofPattern(DATE_PATTERN_EUROPEAN)))
                     .orElse(null);
 
         return valueOptional.map(String::valueOf).orElse(null);
@@ -179,7 +178,7 @@ public class RefBookDataController {
                             v = new BigDecimal(((String) v).replace(",", ".").trim());
                             break;
                         case DATE:
-                            v = LocalDate.parse((String) v, DATE_TIME_PATTERN_FORMATTER);
+                            v = LocalDate.parse((String) v, DATE_TIME_PATTERN_EUROPEAN_FORMATTER);
                             break;
                         case BOOLEAN:
                             v = Boolean.valueOf((String) ((Map) v).get(BOOL_FIELD_ID));

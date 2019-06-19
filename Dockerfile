@@ -1,6 +1,6 @@
 FROM adoptopenjdk/openjdk11:alpine-slim
 
-RUN apk --no-cache add tzdata ttf-dejavu fontconfig
+RUN apk --no-cache add tzdata ttf-dejavu fontconfig curl
 ENV TZ=Europe/Moscow
 
 RUN ln -s /usr/lib/libfontconfig.so.1 /usr/lib/libfontconfig.so && \
