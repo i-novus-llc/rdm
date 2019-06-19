@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.*;
@@ -42,6 +41,7 @@ import java.util.stream.Collectors;
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
+import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.util.ComparableUtils.castRefValue;
 import static ru.inovus.ms.rdm.util.ComparableUtils.findRefBookRowValue;
 import static ru.inovus.ms.rdm.util.ComparableUtils.findRefBookRowValues;
@@ -259,7 +259,7 @@ public class ConflictServiceImpl implements ConflictService {
     @Override
     @Transactional
     public void create(Integer refFromId, Integer refToId, List<Conflict> conflicts) {
-        if (CollectionUtils.isEmpty(conflicts))
+        if (isEmpty(conflicts))
             throw new NotFoundException(CONFLICT_NOT_FOUND_EXCEPTION_CODE);
 
         conflicts.forEach(conflict -> create(refFromId, refToId, conflict));
@@ -391,11 +391,11 @@ public class ConflictServiceImpl implements ConflictService {
         RefBookVersionEntity oldVersionEntity = versionRepository.getOne(oldVersionId);
 
         List<RefBookVersion> lastReferrers = refBookService.getReferrerVersions(oldVersionEntity.getRefBook().getCode(), RefBookSourceType.LAST_VERSION, null);
-        if (CollectionUtils.isEmpty(lastReferrers))
+        if (isEmpty(lastReferrers))
             return;
 
         List<DiffRowValue> diffRowValues = getDataDiffContent(oldVersionId, newVersionId);
-        if (CollectionUtils.isEmpty(diffRowValues))
+        if (isEmpty(diffRowValues))
             return;
 
         RefBookVersionEntity newVersionEntity = versionRepository.getOne(newVersionId);
@@ -408,7 +408,7 @@ public class ConflictServiceImpl implements ConflictService {
                     referrer.getStructure(),
                     getRefAttributes(referrer.getStructure(), newVersionEntity.getRefBook().getCode())
             );
-            if (CollectionUtils.isEmpty(conflicts))
+            if (isEmpty(conflicts))
                 return;
 
             refreshReferencesByPrimary(referrer.getId(), newVersionId, conflicts);
@@ -426,7 +426,7 @@ public class ConflictServiceImpl implements ConflictService {
     @Transactional
     public void refreshReferencesByPrimary(Integer refFromId, Integer refToId, List<Conflict> conflicts) {
 
-        if (CollectionUtils.isEmpty(conflicts)
+        if (isEmpty(conflicts)
                 || conflicts.stream().noneMatch(ConflictUtils::isUpdatedConflict))
             return;
 
@@ -549,11 +549,11 @@ public class ConflictServiceImpl implements ConflictService {
         RefBookVersionEntity oldVersionEntity = versionRepository.getOne(oldVersionId);
 
         List<RefBookVersion> allReferrers = refBookService.getReferrerVersions(oldVersionEntity.getRefBook().getCode(), RefBookSourceType.ALL, null);
-        if (CollectionUtils.isEmpty(allReferrers))
+        if (isEmpty(allReferrers))
             return;
 
         List<DiffRowValue> diffRowValues = getDataDiffContent(oldVersionId, newVersionId);
-        if (CollectionUtils.isEmpty(diffRowValues))
+        if (isEmpty(diffRowValues))
             return;
 
         RefBookVersionEntity newVersionEntity = versionRepository.getOne(newVersionId);
@@ -570,7 +570,7 @@ public class ConflictServiceImpl implements ConflictService {
                     referrer.getStructure(),
                     getRefAttributes(referrer.getStructure(), newVersionEntity.getRefBook().getCode())
             );
-            if (CollectionUtils.isEmpty(conflicts))
+            if (isEmpty(conflicts))
                 return;
 
             conflicts.forEach(conflict -> create(referrer.getId(), newVersionId, conflict));
@@ -685,7 +685,9 @@ public class ConflictServiceImpl implements ConflictService {
         criteria.setAttributeFilter(singleton(singletonList(recordIdFilter)));
 
         Page<RefBookRowValue> rowValues = versionService.search(versionEntity.getId(), criteria);
-        return (rowValues != null && !CollectionUtils.isEmpty(rowValues.getContent())) ? rowValues.getContent().get(0) : null;
+        return (rowValues != null && !isEmpty(rowValues.getContent()))
+                ? rowValues.getContent().get(0)
+                : null;
     }
 
     /**
@@ -693,7 +695,7 @@ public class ConflictServiceImpl implements ConflictService {
      */
     private RefBookRowValue getRefFromRowValue(RefBookVersionEntity versionEntity, List<FieldValue> fieldValues) {
 
-        if (versionEntity == null || CollectionUtils.isEmpty(fieldValues))
+        if (versionEntity == null || isEmpty(fieldValues))
             return null;
 
         SearchDataCriteria criteria = new SearchDataCriteria();
@@ -706,7 +708,9 @@ public class ConflictServiceImpl implements ConflictService {
         criteria.setAttributeFilter(singleton(filters));
 
         Page<RefBookRowValue> rowValues = versionService.search(versionEntity.getId(), criteria);
-        return (rowValues != null && !CollectionUtils.isEmpty(rowValues.getContent())) ? rowValues.getContent().get(0) : null;
+        return (rowValues != null && !isEmpty(rowValues.getContent()))
+                ? rowValues.getContent().get(0)
+                : null;
     }
 
     /**
@@ -726,7 +730,9 @@ public class ConflictServiceImpl implements ConflictService {
         criteria.setAttributeFilter(singleton(filters));
 
         Page<RefBookRowValue> rowValues = versionService.search(versionEntity.getId(), criteria);
-        return (rowValues != null && !CollectionUtils.isEmpty(rowValues.getContent())) ? rowValues.getContent().get(0) : null;
+        return (rowValues != null && !isEmpty(rowValues.getContent()))
+                ? rowValues.getContent().get(0)
+                : null;
     }
 
     /**
