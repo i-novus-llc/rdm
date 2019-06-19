@@ -140,7 +140,7 @@ public class PublishServiceTest {
 
         //invalid draftId
         try {
-            publishService.publish(draftId, "1.0", now, null);
+            publishService.publish(draftId, "1.0", now, null, false);
             fail();
         } catch (UserException e) {
             Assert.assertEquals("draft.not.found", e.getCode());
@@ -150,7 +150,7 @@ public class PublishServiceTest {
         //invalid versionName
         when(versionRepository.exists(eq(isVersionOfRefBook(REFBOOK_ID)))).thenReturn(true);
         try {
-            publishService.publish(draftVersionEntity.getId(), "1.1", now, null);
+            publishService.publish(draftVersionEntity.getId(), "1.1", now, null, false);
             fail();
         } catch (UserException e) {
             Assert.assertEquals("invalid.version.name", e.getCode());
@@ -160,14 +160,14 @@ public class PublishServiceTest {
         //invalid version period
         when(versionRepository.exists(eq(isVersionOfRefBook(REFBOOK_ID)))).thenReturn(true);
         try {
-            publishService.publish(draftVersionEntity.getId(), null, now, LocalDateTime.MIN);
+            publishService.publish(draftVersionEntity.getId(), null, now, LocalDateTime.MIN, false);
             fail();
         } catch (UserException e) {
             Assert.assertEquals("invalid.version.period", e.getCode());
         }
 
         //valid publishing, null version name
-        publishService.publish(draftVersionEntity.getId(), null, now, null);
+        publishService.publish(draftVersionEntity.getId(), null, now, null, false);
         assertEquals("1.1", draftVersionEntity.getVersion());
 
         verify(draftDataService).applyDraft(isNull(), eq(expectedDraftStorageCode), eq(now), any());
@@ -204,7 +204,7 @@ public class PublishServiceTest {
         when(versionNumberStrategy.check("2.2", REFBOOK_ID)).thenReturn(true);
         when(versionRepository.exists(hasVersionId(draft.getId()).and(isDraft()))).thenReturn(true);
 
-        publishService.publish(draft.getId(), expectedVersionEntity.getVersion(), now, null);
+        publishService.publish(draft.getId(), expectedVersionEntity.getVersion(), now, null, false);
 
         verify(draftDataService)
                 .applyDraft(eq(versionEntity.getStorageCode()), eq(expectedDraftStorageCode), eq(now), any());
@@ -230,7 +230,7 @@ public class PublishServiceTest {
                 .when(versionRepository).deleteById(anyInt());
         when(versionRepository.exists(eq(hasVersionId(draftVersion.getId()).and(isDraft())))).thenReturn(true);
 
-        publishService.publish(draftVersion.getId(), "2.4", LocalDateTime.of(2017, 1, 4, 1, 1), LocalDateTime.of(2017, 1, 9, 1, 1));
+        publishService.publish(draftVersion.getId(), "2.4", LocalDateTime.of(2017, 1, 4, 1, 1), LocalDateTime.of(2017, 1, 9, 1, 1), false);
         assertEquals(expected, actual);
         reset(versionRepository, versionService, versionNumberStrategy);
 

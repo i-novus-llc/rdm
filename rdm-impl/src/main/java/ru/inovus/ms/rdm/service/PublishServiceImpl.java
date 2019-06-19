@@ -74,7 +74,7 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
-    public void publish(Integer draftId, String versionName, LocalDateTime fromDate, LocalDateTime toDate) {
+    public void publish(Integer draftId, String versionName, LocalDateTime fromDate, LocalDateTime toDate, boolean processResolvableConflicts) {
 
         versionValidation.validateDraft(draftId);
 
@@ -132,7 +132,7 @@ public class PublishServiceImpl implements PublishService {
             if (lastPublishedVersion != null) {
                 // NB: Конфликты могут быть только при наличии
                 // ссылочных атрибутов со значениями для ранее опубликованной версии.
-                conflictService.discoverConflicts(lastPublishedVersion.getId(), draftId, true);
+                conflictService.discoverConflicts(lastPublishedVersion.getId(), draftId, processResolvableConflicts);
             }
 
         } finally {

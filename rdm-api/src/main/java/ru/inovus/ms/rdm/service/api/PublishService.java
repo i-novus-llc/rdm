@@ -20,8 +20,20 @@ public interface PublishService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void publish(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
-                 @ApiParam("Версия") @QueryParam("version") String version,
-                 @ApiParam("Дата начала действия версии") @QueryParam("fromDate") LocalDateTime fromDate,
-                 @ApiParam("Дата окончания действия версии") @QueryParam("toDate") LocalDateTime toDate);
+    void publish(@ApiParam("Идентификатор черновика")
+                 @PathParam("draftId")
+                         Integer draftId,
+                 @ApiParam("Версия")
+                 @QueryParam("version")
+                         String version,
+                 @ApiParam("Дата начала действия версии")
+                 @QueryParam("fromDate")
+                         LocalDateTime fromDate,
+                 @ApiParam("Дата окончания действия версии")
+                 @QueryParam("toDate")
+                         LocalDateTime toDate,
+                 @ApiParam("Обработка разрешаемых конфликтов")
+                 @DefaultValue("false")
+                 @QueryParam("processResolvableConflicts")
+                 boolean processResolvableConflicts);
 }
