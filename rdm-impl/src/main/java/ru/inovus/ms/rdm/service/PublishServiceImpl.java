@@ -80,7 +80,7 @@ public class PublishServiceImpl implements PublishService {
 
         versionValidation.validateDraft(draftId);
 
-        RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
+        RefBookVersionEntity draftEntity = versionRepository.findById(draftId).orElseThrow();
         Integer refBookId = draftEntity.getRefBook().getId();
 
         refBookLockService.setRefBookPublishing(refBookId);
