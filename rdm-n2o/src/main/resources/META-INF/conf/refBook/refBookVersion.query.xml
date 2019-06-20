@@ -49,6 +49,10 @@
             <select/>
         </field>
 
+        <field id="version.hasUpdatedConflict" domain="boolean">
+            <select mapping="hasUpdatedConflict"/>
+        </field>
+
         <!--Хак, для обновления detail виджетов, если в master нет изменений после рефреша-->
         <field id="now" domain="string">
             <select mapping="new java.util.Date()"/>

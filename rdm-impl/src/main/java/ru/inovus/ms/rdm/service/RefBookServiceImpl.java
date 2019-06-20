@@ -15,6 +15,7 @@ import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.inovus.ms.rdm.entity.*;
+import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
@@ -53,14 +54,13 @@ public class RefBookServiceImpl implements RefBookService {
     private static final String REF_BOOK_FROM_DATE_SORT_PROPERTY = "fromDate";
     private static final String REF_BOOK_CATEGORY_SORT_PROPERTY = "category";
 
-    static final String REFBOOK_IS_ARCHIVED_EXCEPTION_CODE = "refbook.is.archived";
     static final String REFBOOK_NOT_FOUND_EXCEPTION_CODE = "refbook.not.found";
     private static final String REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.already.exists";
     private static final String CANNOT_ORDER_BY_EXCEPTION_CODE = "cannot.order.by \"{0}\"";
 
-    private RefBookConflictRepository conflictRepository;
     private RefBookRepository refBookRepository;
     private RefBookVersionRepository versionRepository;
+    private RefBookConflictRepository conflictRepository;
 
     private DraftDataService draftDataService;
     private DropDataService dropDataService;
@@ -76,15 +76,14 @@ public class RefBookServiceImpl implements RefBookService {
 
     @Autowired
     @SuppressWarnings("all")
-    public RefBookServiceImpl(RefBookConflictRepository conflictRepository,
-                              RefBookRepository refBookRepository, RefBookVersionRepository versionRepository,
+    public RefBookServiceImpl(RefBookRepository refBookRepository, RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
                               DraftDataService draftDataService, DropDataService dropDataService,
                               RefBookLockService refBookLockService, VersionValidation versionValidation,
                               PassportValueRepository passportValueRepository, PassportPredicateProducer passportPredicateProducer,
                               EntityManager entityManager) {
-        this.conflictRepository = conflictRepository;
         this.refBookRepository = refBookRepository;
         this.versionRepository = versionRepository;
+        this.conflictRepository = conflictRepository;
 
         this.draftDataService = draftDataService;
         this.dropDataService = dropDataService;
@@ -453,9 +452,15 @@ public class RefBookServiceImpl implements RefBookService {
         List<Structure.Attribute> primaryAttributes = (structure != null) ? structure.getPrimary() : null;
         model.setHasPrimaryAttribute(!CollectionUtils.isEmpty(primaryAttributes));
 
-        model.setHasConflicts(lastPublishedVersion != null
-                ? conflictRepository.existsByReferrerVersionId(lastPublishedVersion.getId())
-                : false
+        boolean hasUpdatedConflict = conflictRepository.existsByReferrerVersionIdAndConflictType(model.getId(), ConflictType.UPDATED);
+        model.setHasUpdatedConflict(hasUpdatedConflict);
+
+        model.setHasConflict(hasUpdatedConflict
+                || conflictRepository.existsByReferrerVersionId(model.getId())
+        );
+
+        model.setLastHasConflict(lastPublishedVersion != null
+                && conflictRepository.existsByReferrerVersionId(lastPublishedVersion.getId())
         );
 
         return model;

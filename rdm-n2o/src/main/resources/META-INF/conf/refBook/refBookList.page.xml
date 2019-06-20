@@ -3,7 +3,7 @@
     <table query-id="refBook" route="/main">
         <pagination/>
         <rows>
-            <switch value-field-id="hasConflicts">
+            <switch value-field-id="lastHasConflict">
                 <case value="true">danger</case>
             </switch>
         </rows>
@@ -29,11 +29,13 @@
             <sub-menu label="Создать справочник" icon="fa fa-plus">
                 <menu-item label="Создать справочник" model="filter">
                     <open-page page-id="createRefBook" page-name="Создание справочника" upload="defaults"
-                               submit-operation-id="create" redirect-url-after-submit="/main/:refBookId/edit"/>
+                               submit-operation-id="create"
+                               redirect-url-after-submit="/main/:refBookId/edit"/>
                 </menu-item>
                 <menu-item label="Создать справочник из файла" model="filter">
                     <show-modal page-id="createFromFile" page-name="Создание справочника из файла" upload="defaults"
-                                submit-operation-id="createFromFile" redirect-url-after-submit="${server.servlet.context-path}/#/main/:refBookId/edit"
+                                submit-operation-id="createFromFile"
+                                redirect-url-after-submit="${server.servlet.context-path}/#/main/:refBookId/edit"
                                 redirect-target-after-submit="self">
                     </show-modal>
                 </menu-item>
@@ -63,9 +65,9 @@
                 <text format="date DD.MM.YYYY"/>
             </column>
 <!--            вывод tooltip-сообщения пока не работает-->
-            <column text-field-id="hasConflicts" label="" type="icon" tooltip-field-id="hasConflictsMsg">
+            <column text-field-id="lastHasConflict" label="" type="icon" tooltip-field-id="lastHasConflictMsg">
                 <icon>
-                    <switch value-field-id="hasConflicts">
+                    <switch value-field-id="lastHasConflict">
                         <case value="true">fa fa-question-circle-o</case>
                     </switch>
                 </icon>

@@ -35,8 +35,14 @@ public class RefBook extends RefBookVersion {
     @ApiModelProperty("Наличие первичного ключа")
     private Boolean hasPrimaryAttribute;
 
-    @ApiModelProperty("Наличие конфликтов для версий справочника")
-    private Boolean hasConflicts;
+    @ApiModelProperty("Наличие конфликта")
+    private Boolean hasConflict;
+
+    @ApiModelProperty("Наличие конфликта обновления записи")
+    private Boolean hasUpdatedConflict;
+
+    @ApiModelProperty("Наличие конфликта в последней опубликованной версии")
+    private Boolean lastHasConflict;
 
     public RefBook() {
     }
@@ -49,13 +55,18 @@ public class RefBook extends RefBookVersion {
         super(refBook);
 
         this.removable = refBook.getRemovable();
+
         this.draftVersionId = refBook.getDraftVersionId();
         this.lastPublishedVersionId = refBook.getLastPublishedVersionId();
         this.lastPublishedVersion = refBook.getLastPublishedVersion();
         this.lastPublishedVersionFromDate = refBook.getLastPublishedVersionFromDate();
+
         this.currentOperation = refBook.getCurrentOperation();
         this.hasPrimaryAttribute = refBook.getHasPrimaryAttribute();
-        this.hasConflicts = refBook.getHasConflicts();
+
+        this.hasConflict = refBook.getHasConflict();
+        this.hasUpdatedConflict = refBook.getHasUpdatedConflict();
+        this.lastHasConflict = refBook.getLastHasConflict();
     }
 
     public Boolean getRemovable() {
@@ -122,11 +133,27 @@ public class RefBook extends RefBookVersion {
         this.hasPrimaryAttribute = hasPrimaryAttribute;
     }
 
-    public Boolean getHasConflicts() {
-        return hasConflicts;
+    public Boolean getHasConflict() {
+        return hasConflict;
     }
 
-    public void setHasConflicts(Boolean hasConflicts) {
-        this.hasConflicts = hasConflicts;
+    public void setHasConflict(Boolean hasConflict) {
+        this.hasConflict = hasConflict;
+    }
+
+    public Boolean getHasUpdatedConflict() {
+        return hasUpdatedConflict;
+    }
+
+    public void setHasUpdatedConflict(Boolean hasUpdatedConflict) {
+        this.hasUpdatedConflict = hasUpdatedConflict;
+    }
+
+    public Boolean getLastHasConflict() {
+        return lastHasConflict;
+    }
+
+    public void setLastHasConflict(Boolean lastHasConflict) {
+        this.lastHasConflict = lastHasConflict;
     }
 }

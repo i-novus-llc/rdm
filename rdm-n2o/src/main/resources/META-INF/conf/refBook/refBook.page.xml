@@ -4,12 +4,18 @@
         <region place="single">
             <form id="version_select" query-id="refBookVersion">
                 <fields>
-                    <!--для передачи динамичного атрибута при редактировании записи-->
+                    <!-- Поля для передачи динамичных атрибутов из versionList при редактировании записи -->
                     <output-text id="id" visible="false">
                         <dependencies>
                             <set-value on="version">version.id</set-value>
                         </dependencies>
                     </output-text>
+
+                    <checkbox id="versionHasUpdatedConflict" label="Есть конфликт обновления" visible="false">
+                        <dependencies>
+                            <set-value on="version">version.hasUpdatedConflict</set-value>
+                        </dependencies>
+                    </checkbox>
 
                     <select id="version" label="Версия" query-id="versionList" label-field-id="version" cleanable="false">
                         <pre-filters>
@@ -33,6 +39,9 @@
                     <sub-menu label="Действия">
                         <menu-item label="Опубликовать" visibility-condition="version.status=='DRAFT'">
                             <invoke operation-id="publish"/>
+                        </menu-item>
+                        <menu-item label="Обновить ссылки" visibility-condition="versionHasUpdatedConflict">
+                            <invoke operation-id="refreshReferrer"/>
                         </menu-item>
                         <menu-item label="Загрузить данные" visibility-condition="version.status=='DRAFT'">
                             <show-modal page-id="uploadData" submit-operation-id="uploadData" upload="defaults"
@@ -82,7 +91,6 @@
                     detail-field-id="versionId" upload="query">
                 <toolbar place="bottomRight">
                     <button label="Добавить" id="create_r" model="resolve" widget-id="version_select">
-<!--                        <invoke operation-id="checkEditable" ref-id="refBook" close-after-success="false" />-->
                         <show-modal page-id="attribute" submit-operation-id="create" upload="defaults">
                             <pre-filters>
                                 <eq field-id="versionId" value="{version.id}" ref-model="resolve"

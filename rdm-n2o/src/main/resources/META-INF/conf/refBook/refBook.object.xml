@@ -58,12 +58,36 @@
         <operation id="publish" submit-label="Опубликовать" success-text="Справочник опубликован"
                    confirm="true" confirm-text="Вы уверены, что хотите опубликовать этот справочник?">
             <invocation>
-                <rest method="POST">/publish/{draftId}</rest>
+                <java class="ru.inovus.ms.rdm.service.RefBookVersionController"
+                      method="publishDraft">
+                    <spring/>
+                    <arguments>
+                        <argument type="primitive" name="draftId" class="java.lang.Integer"/>
+                        <argument type="primitive" name="processResolvableConflicts" class="java.lang.Boolean"/>
+                    </arguments>
+                </java>
             </invocation>
             <in-parameters>
-                <param id="version.id" mapping="draftId" domain="integer" mapper="spel"/>
+                <param id="version.id" mapping="[0]" domain="integer" mapper="spel"/>
+                <param id="processResolvableConflicts" mapping="[1]" default-value="false" domain="boolean"/>
             </in-parameters>
             <validations white-list="checkDeletedConflicts,checkUpdatedConflicts"/>
+        </operation>
+
+        <operation id="refreshReferrer" submit-label="Обновить ссылки" success-text="Обновлены ссылки по первичным ключам"
+                   confirm="true" confirm-text="Вы уверены, что хотите обновить ссылки?">
+            <invocation>
+                <java class="ru.inovus.ms.rdm.service.RefBookVersionController"
+                      method="refreshReferrer">
+                    <spring/>
+                    <arguments>
+                        <argument type="primitive" name="versionId" class="java.lang.Integer"/>
+                    </arguments>
+                </java>
+            </invocation>
+            <in-parameters>
+                <param id="version.id" mapping="[0]" domain="integer" mapper="spel"/>
+            </in-parameters>
         </operation>
 
         <operation id="createFromFile" submit-label="Создать из файла" success-text="Справочник успешно сохранен">
@@ -160,7 +184,7 @@
                 <java method="getCheckConflictReferrerNames" class="ru.inovus.ms.rdm.service.ConflictController">
                     <spring/>
                     <arguments>
-                        <argument name="versionId" type="primitive"/>
+                        <argument name="versionId" type="primitive" class="java.lang.Integer"/>
                         <argument name="conflictType" type="class"/>
                     </arguments>
                 </java>
@@ -183,7 +207,7 @@
                 <java method="getCheckConflictReferrerNames" class="ru.inovus.ms.rdm.service.ConflictController">
                     <spring/>
                     <arguments>
-                        <argument name="versionId" type="primitive"/>
+                        <argument name="versionId" type="primitive" class="java.lang.Integer"/>
                         <argument name="conflictType" type="class"/>
                     </arguments>
                 </java>
