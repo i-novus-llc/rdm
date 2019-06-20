@@ -50,14 +50,9 @@ import static ru.inovus.ms.rdm.util.TimeUtils.DATE_TIME_PATTERN_EUROPEAN_FORMATT
 @Component
 public class RefBookDataController {
 
-    public static final String BOOL_FIELD_ID = "id";
-    public static final String BOOL_FIELD_NAME = "name";
-    private Map<String, Object> cellOptions = new HashMap<>() {{
-        put("src", "TextCell");
-        put("styles", new HashMap<>() {{
-            put("backgroundColor", "#f8c8c6");
-        }});
-    }};
+    private static final String BOOL_FIELD_ID = "id";
+    private static final String BOOL_FIELD_NAME = "name";
+    private static Map<String, Object> cellOptions = getConflictedCellOptions();
 
     @Autowired
     private MetadataEnvironment env;
@@ -127,6 +122,17 @@ public class RefBookDataController {
         row.put("id", String.valueOf(longRowValue.getSystemId()));
         row.put("versionId", String.valueOf(versionId));
         return new DataGridRow(longRowValue.getSystemId(), row);
+    }
+
+    private static Map<String, Object> getConflictedCellOptions () {
+        Map<String, Object> cellOptions = new HashMap<>();
+        cellOptions.put("src", "TextCell");
+
+        Map<String, Object> styleOptions = new HashMap<>();
+        styleOptions.put("backgroundColor", "#f8c8c6");
+        cellOptions.put("styles", styleOptions);
+
+        return cellOptions;
     }
 
     private String toStringValue(FieldValue value) {
