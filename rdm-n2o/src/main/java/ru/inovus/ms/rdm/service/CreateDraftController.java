@@ -13,7 +13,6 @@ import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
-import ru.inovus.ms.rdm.util.VersionUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,7 +42,7 @@ public class CreateDraftController {
 
     private UiDraft getOrCreateDraft(Integer versionId) {
         final RefBookVersion version = versionService.getById(versionId);
-        if (VersionUtils.isDraft(version))
+        if (version.isDraft())
             return new UiDraft(versionId, version.getRefBookId());
         else
             return new UiDraft(draftService.createFromVersion(versionId).getId(), version.getRefBookId());
@@ -165,7 +164,7 @@ public class CreateDraftController {
         if (version == null)
             throw new UserException(new Message("version.not.found", versionId));
 
-        if (!VersionUtils.isDraft(version))
+        if (!version.isDraft())
             throw new UserException(new Message("version.is.not.draft", versionId));
 
         if (version.getStructure() == null
