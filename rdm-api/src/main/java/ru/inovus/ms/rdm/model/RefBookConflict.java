@@ -29,22 +29,18 @@ public class RefBookConflict {
     @ApiModelProperty("Дата создания записи")
     private LocalDateTime creationDate;
 
-    @ApiModelProperty("Дата обработки записи")
-    private LocalDateTime handlingDate;
-
     public RefBookConflict() {
     }
 
-    public RefBookConflict(Integer referrerVersionId, Integer publishedVersionId, Long refRecordId,
-                           String refFieldCode, ConflictType conflictType,
-                           LocalDateTime creationDate, LocalDateTime handlingDate) {
+    public RefBookConflict(Integer referrerVersionId, Integer publishedVersionId,
+                           Long refRecordId, String refFieldCode, ConflictType conflictType,
+                           LocalDateTime creationDate) {
         this.referrerVersionId = referrerVersionId;
         this.publishedVersionId = publishedVersionId;
         this.refRecordId = refRecordId;
         this.refFieldCode = refFieldCode;
         this.conflictType = conflictType;
         this.creationDate = creationDate;
-        this.handlingDate = handlingDate;
     }
 
     public Integer getReferrerVersionId() {
@@ -93,13 +89,5 @@ public class RefBookConflict {
 
     public void setCreationDate(LocalDateTime creationDate) {
         this.creationDate = creationDate;
-    }
-
-    public LocalDateTime getHandlingDate() {
-        return handlingDate;
-    }
-
-    public void setHandlingDate(LocalDateTime handlingDate) {
-        this.handlingDate = handlingDate;
     }
 }
