@@ -12,15 +12,13 @@ public interface RefBookConflictRepository extends
         QuerydslPredicateExecutor<RefBookConflictEntity> {
 
     Boolean existsByReferrerVersionId(Integer referrerVersionId);
+    Boolean existsByReferrerVersionIdAndConflictType(Integer referrerVersionId, ConflictType conflictType);
+    Boolean existsByPublishedVersionId(Integer publishedVersionId);
 
-    RefBookConflictEntity findByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdAndRefFieldCode(Integer referrerVersionId, Integer publishedVersionId, Long refRecordId, String refFieldCode);
-
-    RefBookConflictEntity findFirstByReferrerVersionId(Integer referrerVersionId);
-    RefBookConflictEntity findFirstByReferrerVersionIdAndConflictType(Integer referrerVersionId, ConflictType conflictType);
-    RefBookConflictEntity findFirstByPublishedVersionId(Integer publishedVersionId);
-
-    List<RefBookConflictEntity> findAllByReferrerVersionId(Integer referrerVersionId);
-    List<RefBookConflictEntity> findAllByReferrerVersionIdAndConflictType(Integer referrerId, ConflictType conflictType);
+    RefBookConflictEntity findByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdAndRefFieldCode(
+            Integer referrerVersionId, Integer publishedVersionId,
+            Long refRecordId, String refFieldCode
+    );
 
     List<RefBookConflictEntity> findAllByReferrerVersionIdAndRefRecordIdIn(Integer referrerId, List<Long> refRecordIds);
 }

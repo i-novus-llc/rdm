@@ -17,19 +17,6 @@ import java.util.List;
 public interface ConflictService {
 
     @GET
-    @ApiOperation("Получение конфликтов для версии")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Успех"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    List<RefBookConflict> getConflicts(@ApiParam("Идентификатор версии, которая ссылается")
-                                       @QueryParam("versionId")
-                                               Integer versionId,
-                                       @ApiParam("Список системных идентификаторов строк")
-                                       @QueryParam("refRecordIds")
-                                               List<Long> refRecordIds);
-
-    @GET
     @Path("/calculate")
     @ApiOperation("Вычисление конфликтов для двух версий")
     @ApiResponses({
@@ -74,8 +61,25 @@ public interface ConflictService {
                                                    @QueryParam("type")
                                                            ConflictType conflictType);
 
+
     @POST
     @Path("/create")
+    @ApiOperation("Сохранение информации о конфликте")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void create(@ApiParam("Идентификатор версии, которая ссылается")
+                @QueryParam("refFromId")
+                        Integer refFromId,
+                @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
+                @QueryParam("refToId")
+                        Integer refToId,
+                @ApiParam("Конфликт")
+                        Conflict conflict);
+
+    @POST
+    @Path("/create/list")
     @ApiOperation("Сохранение информации о конфликтах")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
@@ -90,6 +94,17 @@ public interface ConflictService {
                 @ApiParam("Список конфликтов")
                         List<Conflict> conflicts);
 
+    @POST
+    @Path("/delete/{id}")
+    @ApiOperation("Удаление записи о конфликте")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void delete(@ApiParam("Идентификатор записи о конфликте")
+                @PathParam("id")
+                        Integer id);
+
     @GET
     @Path("/find")
     @ApiOperation("Поиск конфликта по основным параметрам")
@@ -97,18 +112,18 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Conflict find(@ApiParam("Идентификатор версии, которая ссылается")
-                  @QueryParam("refFromId")
-                          Integer refFromId,
-                  @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
-                  @QueryParam("refToId")
-                          Integer refToId,
-                  @ApiParam("Строка-конфликт версии, которая ссылается")
-                  @QueryParam("rowSystemId")
-                          Long rowSystemId,
-                  @ApiParam("Атрибут версии, которая ссылается")
-                  @QueryParam("refFieldCode")
-                          String refFieldCode);
+    RefBookConflict find(@ApiParam("Идентификатор версии, которая ссылается")
+                         @QueryParam("refFromId")
+                                 Integer refFromId,
+                         @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
+                         @QueryParam("refToId")
+                                 Integer refToId,
+                         @ApiParam("Строка-конфликт версии, которая ссылается")
+                         @QueryParam("rowSystemId")
+                                 Long rowSystemId,
+                         @ApiParam("Атрибут версии, которая ссылается")
+                         @QueryParam("refFieldCode")
+                                 String refFieldCode);
 
     @GET
     @Path("/findId")
@@ -130,16 +145,18 @@ public interface ConflictService {
                    @QueryParam("refFieldCode")
                            String refFieldCode);
 
-    @POST
-    @Path("/delete/{id}")
-    @ApiOperation("Удаление записи о конфликте")
+    @GET
+    @ApiOperation("Получение конфликтов для версии с любыми справочниками")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void delete(@ApiParam("Идентификатор записи о конфликте")
-                @PathParam("id")
-                        Integer id);
+    List<RefBookConflict> getConflicts(@ApiParam("Идентификатор версии, которая ссылается")
+                                       @QueryParam("versionId")
+                                               Integer referrerVersionId,
+                                       @ApiParam("Список системных идентификаторов строк")
+                                       @QueryParam("refRecordIds")
+                                               List<Long> refRecordIds);
 
     @GET
     @Path("/{versionId}/hasConflict")

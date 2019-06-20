@@ -33,7 +33,6 @@ import ru.inovus.ms.rdm.util.ConflictUtils;
 import ru.inovus.ms.rdm.util.RowUtils;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
-import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -95,25 +94,6 @@ public class ConflictServiceImpl implements ConflictService {
         this.draftService = draftService;
 
         this.versionValidation = versionValidation;
-    }
-
-    @Override
-    public List<RefBookConflict> getConflicts(Integer versionId, List<Long> refRecordIds) {
-        versionValidation.validateVersionExists(versionId);
-
-        List<RefBookConflictEntity> refBookConflicts =
-                conflictRepository.findAllByReferrerVersionIdAndRefRecordIdIn(versionId, refRecordIds);
-        return refBookConflicts
-                .stream()
-                .map(refBookConflictEntity ->
-                        new RefBookConflict(refBookConflictEntity.getReferrerVersion().getId(),
-                                refBookConflictEntity.getPublishedVersion().getId(),
-                                refBookConflictEntity.getRefRecordId(),
-                                refBookConflictEntity.getRefFieldCode(),
-                                refBookConflictEntity.getConflictType(),
-                                refBookConflictEntity.getCreationDate()
-                        ))
-                .collect(toList());
     }
 
     /**
@@ -267,6 +247,23 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
+     * Сохранение информации о конфликте.
+     *
+     * @param refFromId идентификатор черновика справочника со ссылками
+     * @param refToId   идентификатор версии изменённого справочника
+     * @param conflict  конфликт
+     */
+    @Override
+    @Transactional
+    public void create(Integer refFromId, Integer refToId, Conflict conflict) {
+        if (conflict == null || conflict.isEmpty())
+            return;
+
+        RefBookConflictEntity entity = createRefBookConflictEntity(refFromId, refToId, conflict);
+        conflictRepository.save(entity);
+    }
+
+    /**
      * Сохранение информации о конфликтах.
      *
      * @param refFromId идентификатор черновика справочника со ссылками
@@ -276,68 +273,37 @@ public class ConflictServiceImpl implements ConflictService {
     @Override
     @Transactional
     public void create(Integer refFromId, Integer refToId, List<Conflict> conflicts) {
-        // NB: Use JPA batch insert.
-        conflicts.forEach(conflict -> create(refFromId, refToId, conflict));
+
+        List<RefBookConflictEntity> entities = conflicts.stream()
+                .map(conflict -> createRefBookConflictEntity(refFromId, refToId, conflict))
+                .collect(toList());
+
+        conflictRepository.saveAll(entities);
     }
 
-    private void create(Integer refFromId, Integer refToId, Conflict conflict) {
-        if (conflict == null || conflict.isEmpty())
-            return;
+    private RefBookConflictEntity createRefBookConflictEntity (Integer refFromId, Integer refToId, Conflict conflict) {
 
         RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
         RefBookVersionEntity refToEntity = versionRepository.getOne(refToId);
+
         RefBookRowValue refFromRowValue = getRefFromRowValue(refFromEntity, conflict.getPrimaryValues());
-
-        create(refFromEntity, refToEntity, refFromRowValue, conflict);
-    }
-
-    private void create(RefBookVersionEntity referrerEntity, RefBookVersionEntity publishedEntity,
-                        RefBookRowValue referrerRowValue, Conflict conflict) {
-        if (referrerRowValue == null)
+        if (refFromRowValue == null)
             throw new NotFoundException(REFERRER_ROW_NOT_FOUND_EXCEPTION_CODE);
 
+        return createRefBookConflictEntity(refFromEntity, refToEntity, refFromRowValue.getSystemId(), conflict);
+    }
+
+    private RefBookConflictEntity createRefBookConflictEntity (RefBookVersionEntity referrerEntity, RefBookVersionEntity publishedEntity,
+                                                               Long referrerRowSystemId, Conflict conflict) {
         RefBookConflictEntity entity = new RefBookConflictEntity();
         entity.setReferrerVersion(referrerEntity);
         entity.setPublishedVersion(publishedEntity);
 
-        entity.setRefRecordId(referrerRowValue.getSystemId());
+        entity.setRefRecordId(referrerRowSystemId);
         entity.setRefFieldCode(conflict.getRefAttributeCode());
         entity.setConflictType(conflict.getConflictType());
 
-        conflictRepository.save(entity);
-    }
-
-    private Conflict conflictModel(RefBookConflictEntity entity) {
-        if (entity == null)
-            return null;
-
-        Conflict conflict = new Conflict();
-        conflict.setRefAttributeCode(entity.getRefFieldCode());
-        conflict.setConflictType(entity.getConflictType());
-
-        RefBookRowValue referrerRowValue = getSystemRowValue(entity.getReferrerVersion(), entity.getRefRecordId());
-        conflict.setPrimaryValues(getRowPrimaryValues(referrerRowValue, entity.getReferrerVersion().getStructure()));
-
-        return conflict;
-    }
-
-    @Override
-    @Transactional
-    public Conflict find(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode) {
-        RefBookConflictEntity entity = findEntity(refFromId, refToId, rowSystemId, refFieldCode);
-        return Objects.nonNull(entity) ? conflictModel(entity) : null;
-    }
-
-
-    @Override
-    @Transactional
-    public Integer findId(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode) {
-        RefBookConflictEntity entity = findEntity(refFromId, refToId, rowSystemId, refFieldCode);
-        return Objects.nonNull(entity) ? entity.getId() : null;
-    }
-
-    private RefBookConflictEntity findEntity(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode) {
-        return conflictRepository.findByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdAndRefFieldCode(refFromId, refToId, rowSystemId, refFieldCode);
+        return entity;
     }
 
     @Override
@@ -353,6 +319,43 @@ public class ConflictServiceImpl implements ConflictService {
             delete(id);
     }
 
+    @Override
+    public RefBookConflict find(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode) {
+        RefBookConflictEntity entity = findEntity(refFromId, refToId, rowSystemId, refFieldCode);
+        return Objects.nonNull(entity) ? refBookConflictModel(entity) : null;
+    }
+
+    @Override
+    public Integer findId(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode) {
+        RefBookConflictEntity entity = findEntity(refFromId, refToId, rowSystemId, refFieldCode);
+        return Objects.nonNull(entity) ? entity.getId() : null;
+    }
+
+    private RefBookConflictEntity findEntity(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode) {
+        return conflictRepository.findByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdAndRefFieldCode(refFromId, refToId, rowSystemId, refFieldCode);
+    }
+
+    /**
+     * Получение конфликтов для версии, которая ссылается,
+     * с любыми справочниками по указанным записям.
+     *
+     * @param referrerVersionId идентификатор версии справочника, который ссылается
+     * @param refRecordIds      список системных идентификаторов записей версии
+     * @return Список конфликтов
+     */
+    @Override
+    public List<RefBookConflict> getConflicts(Integer referrerVersionId, List<Long> refRecordIds) {
+
+        versionValidation.validateVersionExists(referrerVersionId);
+
+        List<RefBookConflictEntity> refBookConflicts =
+                conflictRepository.findAllByReferrerVersionIdAndRefRecordIdIn(referrerVersionId, refRecordIds);
+        return refBookConflicts
+                .stream()
+                .map(this::refBookConflictModel)
+                .collect(toList());
+    }
+
     /**
      * Проверка версии справочника, который ссылается,
      * на наличие конфликта любого типа с любым справочником.
@@ -362,7 +365,7 @@ public class ConflictServiceImpl implements ConflictService {
      */
     @Override
     public boolean hasConflict(Integer referrerVersionId) {
-        return (conflictRepository.findFirstByReferrerVersionId(referrerVersionId) != null);
+        return conflictRepository.existsByReferrerVersionId(referrerVersionId);
     }
 
     /**
@@ -375,7 +378,7 @@ public class ConflictServiceImpl implements ConflictService {
      */
     @Override
     public boolean hasTypedConflict(Integer referrerVersionId, ConflictType conflictType) {
-        return (conflictRepository.findFirstByReferrerVersionIdAndConflictType(referrerVersionId, conflictType) != null);
+        return conflictRepository.existsByReferrerVersionIdAndConflictType(referrerVersionId, conflictType);
     }
 
     /**
@@ -387,7 +390,7 @@ public class ConflictServiceImpl implements ConflictService {
      */
     @Override
     public boolean isConflicted(Integer publishedVersionId) {
-        return (conflictRepository.findFirstByPublishedVersionId(publishedVersionId) != null);
+        return conflictRepository.existsByPublishedVersionId(publishedVersionId);
     }
 
     /**
@@ -606,6 +609,19 @@ public class ConflictServiceImpl implements ConflictService {
         });
     }
 
+    private RefBookConflict refBookConflictModel(RefBookConflictEntity entity) {
+        if (entity == null)
+            return null;
+
+        return new RefBookConflict(entity.getReferrerVersion().getId(),
+                entity.getPublishedVersion().getId(),
+                entity.getRefRecordId(),
+                entity.getRefFieldCode(),
+                entity.getConflictType(),
+                entity.getCreationDate()
+        );
+    }
+
     /**
      * Получение ссылочных атрибутов.
      *
@@ -693,24 +709,6 @@ public class ConflictServiceImpl implements ConflictService {
             throw new NotFoundException(new Message(REFBOOK_DRAFT_NOT_FOUND_EXCEPTION_CODE, refBookId));
 
         return entity;
-    }
-
-    /**
-     * Получение записи по системному идентификатору.
-     */
-    private RefBookRowValue getSystemRowValue(RefBookVersionEntity versionEntity, Long systemId) {
-
-        if (versionEntity == null || systemId == null)
-            return null;
-
-        SearchDataCriteria criteria = new SearchDataCriteria();
-        AttributeFilter recordIdFilter = new AttributeFilter("SYS_RECORDID", BigInteger.valueOf(systemId), FieldType.INTEGER);
-        criteria.setAttributeFilter(singleton(singletonList(recordIdFilter)));
-
-        Page<RefBookRowValue> rowValues = versionService.search(versionEntity.getId(), criteria);
-        return (rowValues != null && !isEmpty(rowValues.getContent()))
-                ? rowValues.getContent().get(0)
-                : null;
     }
 
     /**
