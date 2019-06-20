@@ -9,10 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
-import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
@@ -34,7 +31,6 @@ import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.*;
 import ru.inovus.ms.rdm.util.ConflictUtils;
 import ru.inovus.ms.rdm.util.RowUtils;
-import ru.inovus.ms.rdm.util.VersionEntityUtils;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import java.math.BigInteger;
@@ -59,8 +55,7 @@ public class ConflictServiceImpl implements ConflictService {
     private static final String REFBOOK_DRAFT_NOT_FOUND_EXCEPTION_CODE = "refbook.draft.not.found";
     private static final String VERSION_IS_NOT_DRAFT_EXCEPTION_CODE = "version.is.not.draft";
     private static final String VERSION_IS_NOT_LAST_PUBLISHED_EXCEPTION_CODE = "version.is.not.last.published";
-    private static final String CONFLICT_NOT_FOUND_EXCEPTION_CODE = "conflict.not.found";
-    private static final String CONFLICTED_FROM_ROW_NOT_FOUND_EXCEPTION_CODE = "conflicted.from.row.not.found";
+    private static final String REFERRER_ROW_NOT_FOUND_EXCEPTION_CODE = "referrer.row.not.found";
     private static final String CONFLICTED_TO_ROW_NOT_FOUND_EXCEPTION_CODE = "conflicted.to.row.not.found";
     private static final String CONFLICTED_REFERENCE_NOT_FOUND_EXCEPTION_CODE = "conflicted.reference.row.not.found";
 
@@ -116,8 +111,7 @@ public class ConflictServiceImpl implements ConflictService {
                                 refBookConflictEntity.getRefRecordId(),
                                 refBookConflictEntity.getRefFieldCode(),
                                 refBookConflictEntity.getConflictType(),
-                                refBookConflictEntity.getCreationDate(),
-                                refBookConflictEntity.getHandlingDate()
+                                refBookConflictEntity.getCreationDate()
                         ))
                 .collect(toList());
     }
@@ -282,9 +276,7 @@ public class ConflictServiceImpl implements ConflictService {
     @Override
     @Transactional
     public void create(Integer refFromId, Integer refToId, List<Conflict> conflicts) {
-        if (isEmpty(conflicts))
-            throw new NotFoundException(CONFLICT_NOT_FOUND_EXCEPTION_CODE);
-
+        // NB: Use JPA batch insert.
         conflicts.forEach(conflict -> create(refFromId, refToId, conflict));
     }
 
@@ -294,16 +286,16 @@ public class ConflictServiceImpl implements ConflictService {
 
         RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
         RefBookVersionEntity refToEntity = versionRepository.getOne(refToId);
-
         RefBookRowValue refFromRowValue = getRefFromRowValue(refFromEntity, conflict.getPrimaryValues());
-        if (refFromRowValue == null)
-            throw new NotFoundException(CONFLICTED_FROM_ROW_NOT_FOUND_EXCEPTION_CODE);
 
         create(refFromEntity, refToEntity, refFromRowValue, conflict);
     }
 
     private void create(RefBookVersionEntity referrerEntity, RefBookVersionEntity publishedEntity,
                         RefBookRowValue referrerRowValue, Conflict conflict) {
+        if (referrerRowValue == null)
+            throw new NotFoundException(REFERRER_ROW_NOT_FOUND_EXCEPTION_CODE);
+
         RefBookConflictEntity entity = new RefBookConflictEntity();
         entity.setReferrerVersion(referrerEntity);
         entity.setPublishedVersion(publishedEntity);
@@ -458,7 +450,7 @@ public class ConflictServiceImpl implements ConflictService {
         versionValidation.validateVersionExists(refToId);
 
         RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
-        if (!VersionEntityUtils.isDraft(refFromEntity)) {
+        if (!refFromEntity.isDraft()) {
             RefBookVersionEntity refLastEntity =
                     versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(
                             refFromEntity.getRefBook().getCode(),
@@ -488,7 +480,7 @@ public class ConflictServiceImpl implements ConflictService {
      */
     private void updateReferenceValues(RefBookVersionEntity refFromEntity, RefBookVersionEntity refToEntity,
                                        List<Conflict> conflicts) {
-        if (!VersionEntityUtils.isDraft(refFromEntity))
+        if (!refFromEntity.isDraft())
             throw new RdmException(VERSION_IS_NOT_DRAFT_EXCEPTION_CODE);
 
         conflicts.stream()
@@ -511,7 +503,7 @@ public class ConflictServiceImpl implements ConflictService {
 
         RefBookRowValue refFromRow = getRefFromRowValue(refFromEntity, conflict.getPrimaryValues());
         if (refFromRow == null)
-            throw new NotFoundException(CONFLICTED_FROM_ROW_NOT_FOUND_EXCEPTION_CODE);
+            throw new NotFoundException(REFERRER_ROW_NOT_FOUND_EXCEPTION_CODE);
 
         FieldValue referenceFieldValue = refFromRow.getFieldValue(conflict.getRefAttributeCode());
         if (!(referenceFieldValue instanceof ReferenceFieldValue))
@@ -577,8 +569,6 @@ public class ConflictServiceImpl implements ConflictService {
 
         RefBookVersionEntity oldVersionEntity = versionRepository.getOne(oldVersionId);
 
-        List<RefBookVersion> allReferrers = refBookService.getReferrerVersions(oldVersionEntity.getRefBook().getCode(), RefBookSourceType.ALL, null);
-        if (isEmpty(allReferrers))
         List<RefBookVersion> allReferrers = refBookService.getReferrerVersions(oldVersionEntity.getRefBook().getCode(),
                 RefBookSourceType.ALL, null);
         if (isEmpty(allReferrers))
