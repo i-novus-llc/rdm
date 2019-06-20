@@ -70,6 +70,19 @@ public class ComparableUtils {
                 .orElse(null);
     }
 
+    /**
+     * Проверяет, что запись об изменениях #diffRowValue соответствует записи #rowValue
+     * на основании набора первичных ключей #primaries и ссылочного атрибута #refAttribute
+     * Возвращает true, если значение ссылочного атрибута из rowValue равно значению первичного поля из diffRowValue
+     *
+     * @param primaries    список первичных атрибутов версии, НА которую ссылаемся;
+     *                     (для получения данных из записи diffRowValue)
+     * @param refAttribute ссылочный атрибут версии, которая ссылается;
+     *                     (для получения данных из записи rowValue)
+     * @param diffRowValue diff-запись об изменениях в версии, на которую ссылаемся
+     * @param rowValue     запись, которая ссылается
+     * @return true, если #diffRowValue соответсвует #rowValue; иначе false
+     */
     private static boolean isRefBookRowValue(List<Structure.Attribute> primaries, Structure.Attribute refAttribute,
                                              DiffRowValue diffRowValue, RefBookRowValue rowValue) {
 
@@ -252,6 +265,14 @@ public class ComparableUtils {
         return comparableFields;
     }
 
+    /**
+     * Возвращает типизированное значение ссылочного атрибута
+     * При приведении типа используется тип атрибута, НА который ссылаемся
+     *
+     * @param fieldValue   занчение ссылочного атрибута
+     * @param refFieldType тип атрибута, на который ссылаемся
+     * @return Типизированное значение ссылочного атрибута
+     */
     public static Object castRefValue(FieldValue fieldValue, FieldType refFieldType) {
         if (fieldValue instanceof ReferenceFieldValue) {
             Reference value = (Reference) fieldValue.getValue();
