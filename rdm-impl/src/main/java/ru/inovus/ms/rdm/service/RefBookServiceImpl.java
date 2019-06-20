@@ -19,6 +19,7 @@ import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.PassportValueRepository;
+import ru.inovus.ms.rdm.repositiory.RefBookConflictRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.RefBookService;
@@ -32,6 +33,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
@@ -51,9 +53,12 @@ public class RefBookServiceImpl implements RefBookService {
     private static final String REF_BOOK_FROM_DATE_SORT_PROPERTY = "fromDate";
     private static final String REF_BOOK_CATEGORY_SORT_PROPERTY = "category";
 
+    static final String REFBOOK_IS_ARCHIVED_EXCEPTION_CODE = "refbook.is.archived";
+    static final String REFBOOK_NOT_FOUND_EXCEPTION_CODE = "refbook.not.found";
     private static final String REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.already.exists";
     private static final String CANNOT_ORDER_BY_EXCEPTION_CODE = "cannot.order.by \"{0}\"";
 
+    private RefBookConflictRepository conflictRepository;
     private RefBookRepository refBookRepository;
     private RefBookVersionRepository versionRepository;
 
@@ -71,11 +76,13 @@ public class RefBookServiceImpl implements RefBookService {
 
     @Autowired
     @SuppressWarnings("all")
-    public RefBookServiceImpl(RefBookRepository refBookRepository, RefBookVersionRepository versionRepository,
+    public RefBookServiceImpl(RefBookConflictRepository conflictRepository,
+                              RefBookRepository refBookRepository, RefBookVersionRepository versionRepository,
                               DraftDataService draftDataService, DropDataService dropDataService,
                               RefBookLockService refBookLockService, VersionValidation versionValidation,
                               PassportValueRepository passportValueRepository, PassportPredicateProducer passportPredicateProducer,
                               EntityManager entityManager) {
+        this.conflictRepository = conflictRepository;
         this.refBookRepository = refBookRepository;
         this.versionRepository = versionRepository;
 
@@ -239,11 +246,11 @@ public class RefBookServiceImpl implements RefBookService {
         refBookVersionEntity.setRefBook(refBookEntity);
         refBookVersionEntity.setStatus(RefBookVersionStatus.DRAFT);
 
-        String storageCode = draftDataService.createDraft(Collections.emptyList());
+        String storageCode = draftDataService.createDraft(emptyList());
         refBookVersionEntity.setStorageCode(storageCode);
         Structure structure = new Structure();
-        structure.setAttributes(Collections.emptyList());
-        structure.setReferences(Collections.emptyList());
+        structure.setAttributes(emptyList());
+        structure.setReferences(emptyList());
         refBookVersionEntity.setStructure(structure);
 
         RefBookVersionEntity savedVersion = versionRepository.save(refBookVersionEntity);
@@ -445,6 +452,11 @@ public class RefBookServiceImpl implements RefBookService {
         Structure structure = entity.getStructure();
         List<Structure.Attribute> primaryAttributes = (structure != null) ? structure.getPrimary() : null;
         model.setHasPrimaryAttribute(!CollectionUtils.isEmpty(primaryAttributes));
+
+        model.setHasConflicts(lastPublishedVersion != null
+                ? conflictRepository.existsByReferrerVersionId(lastPublishedVersion.getId())
+                : false
+        );
 
         return model;
     }

@@ -145,5 +145,13 @@
                 "/>
         </field>
 
+        <field id="hasConflicts" domain="boolean">
+            <select mapping="hasConflicts"/>
+        </field>
+
+        <field id="hasConflictsMsg" domain="string">
+            <select mapping="'В опубликованной версии справочника есть ссылки на неактуальные данные'"/>
+        </field>
+
     </fields>
 </query>

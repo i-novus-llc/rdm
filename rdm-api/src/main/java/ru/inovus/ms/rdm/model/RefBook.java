@@ -35,6 +35,9 @@ public class RefBook extends RefBookVersion {
     @ApiModelProperty("Наличие первичного ключа")
     private Boolean hasPrimaryAttribute;
 
+    @ApiModelProperty("Наличие конфликтов для версий справочника")
+    private Boolean hasConflicts;
+
     public RefBook() {
     }
 
@@ -52,6 +55,7 @@ public class RefBook extends RefBookVersion {
         this.lastPublishedVersionFromDate = refBook.getLastPublishedVersionFromDate();
         this.currentOperation = refBook.getCurrentOperation();
         this.hasPrimaryAttribute = refBook.getHasPrimaryAttribute();
+        this.hasConflicts = refBook.getHasConflicts();
     }
 
     public Boolean getRemovable() {
@@ -116,5 +120,13 @@ public class RefBook extends RefBookVersion {
 
     public void setHasPrimaryAttribute(Boolean hasPrimaryAttribute) {
         this.hasPrimaryAttribute = hasPrimaryAttribute;
+    }
+
+    public Boolean getHasConflicts() {
+        return hasConflicts;
+    }
+
+    public void setHasConflicts(Boolean hasConflicts) {
+        this.hasConflicts = hasConflicts;
     }
 }

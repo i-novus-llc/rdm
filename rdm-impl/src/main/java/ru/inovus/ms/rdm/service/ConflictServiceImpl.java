@@ -9,7 +9,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.*;
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
+import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
@@ -36,16 +39,15 @@ import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static ru.inovus.ms.rdm.util.ComparableUtils.castRefValue;
-import static ru.inovus.ms.rdm.util.ComparableUtils.findRefBookRowValue;
-import static ru.inovus.ms.rdm.util.ComparableUtils.findRefBookRowValues;
+import static ru.inovus.ms.rdm.util.ComparableUtils.*;
 import static ru.inovus.ms.rdm.util.ConflictUtils.conflictTypeToDiffStatus;
 import static ru.inovus.ms.rdm.util.ConflictUtils.diffStatusToConflictType;
 import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
@@ -63,6 +65,7 @@ public class ConflictServiceImpl implements ConflictService {
     private static final String CONFLICTED_REFERENCE_NOT_FOUND_EXCEPTION_CODE = "conflicted.reference.row.not.found";
 
     private RefBookConflictRepository conflictRepository;
+    private RefBookVersionRepository versionRepository;
 
     private CompareService compareService;
     private DraftDataService draftDataService;
@@ -73,20 +76,20 @@ public class ConflictServiceImpl implements ConflictService {
     private DraftService draftService;
 
     private VersionValidation versionValidation;
-    private RefBookVersionRepository versionRepository;
 
     @Autowired
     @SuppressWarnings("all")
     public ConflictServiceImpl(RefBookConflictRepository conflictRepository,
+                               RefBookVersionRepository versionRepository,
                                CompareService compareService,
                                DraftDataService draftDataService,
                                SearchDataService searchDataService,
                                RefBookService refBookService,
                                VersionService versionService,
                                DraftService draftService,
-                               VersionValidation versionValidation,
-                               RefBookVersionRepository versionRepository) {
+                               VersionValidation versionValidation) {
         this.conflictRepository = conflictRepository;
+        this.versionRepository = versionRepository;
 
         this.compareService = compareService;
         this.draftDataService = draftDataService;
@@ -97,7 +100,26 @@ public class ConflictServiceImpl implements ConflictService {
         this.draftService = draftService;
 
         this.versionValidation = versionValidation;
-        this.versionRepository = versionRepository;
+    }
+
+    @Override
+    public List<RefBookConflict> getConflicts(Integer versionId, List<Long> refRecordIds) {
+        versionValidation.validateVersionExists(versionId);
+
+        List<RefBookConflictEntity> refBookConflicts =
+                conflictRepository.findAllByReferrerVersionIdAndRefRecordIdIn(versionId, refRecordIds);
+        return refBookConflicts
+                .stream()
+                .map(refBookConflictEntity ->
+                        new RefBookConflict(refBookConflictEntity.getReferrerVersion().getId(),
+                                refBookConflictEntity.getPublishedVersion().getId(),
+                                refBookConflictEntity.getRefRecordId(),
+                                refBookConflictEntity.getRefFieldCode(),
+                                refBookConflictEntity.getConflictType(),
+                                refBookConflictEntity.getCreationDate(),
+                                refBookConflictEntity.getHandlingDate()
+                        ))
+                .collect(toList());
     }
 
     /**
@@ -247,7 +269,7 @@ public class ConflictServiceImpl implements ConflictService {
         List<RefBookVersion> referrers = refBookService.getReferrerVersions(versionEntity.getRefBook().getCode(), RefBookSourceType.LAST_VERSION, null);
         return referrers.stream()
                 .filter(referrer -> checkConflicts(referrer.getId(), versionId, conflictType))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     /**
@@ -306,6 +328,7 @@ public class ConflictServiceImpl implements ConflictService {
 
         return conflict;
     }
+
     @Override
     @Transactional
     public Conflict find(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode) {
@@ -436,7 +459,11 @@ public class ConflictServiceImpl implements ConflictService {
 
         RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
         if (!VersionEntityUtils.isDraft(refFromEntity)) {
-            RefBookVersionEntity refLastEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refFromEntity.getRefBook().getCode(), RefBookVersionStatus.PUBLISHED);
+            RefBookVersionEntity refLastEntity =
+                    versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(
+                            refFromEntity.getRefBook().getCode(),
+                            RefBookVersionStatus.PUBLISHED
+                    );
             if (refLastEntity != null && !refLastEntity.getId().equals(refFromId))
                 throw new RdmException(VERSION_IS_NOT_LAST_PUBLISHED_EXCEPTION_CODE);
 
@@ -459,7 +486,8 @@ public class ConflictServiceImpl implements ConflictService {
      * @param refToEntity   версия изменённого справочника
      * @param conflicts     список конфликтов
      */
-    private void updateReferenceValues(RefBookVersionEntity refFromEntity, RefBookVersionEntity refToEntity, List<Conflict> conflicts) {
+    private void updateReferenceValues(RefBookVersionEntity refFromEntity, RefBookVersionEntity refToEntity,
+                                       List<Conflict> conflicts) {
         if (!VersionEntityUtils.isDraft(refFromEntity))
             throw new RdmException(VERSION_IS_NOT_DRAFT_EXCEPTION_CODE);
 
@@ -551,6 +579,9 @@ public class ConflictServiceImpl implements ConflictService {
 
         List<RefBookVersion> allReferrers = refBookService.getReferrerVersions(oldVersionEntity.getRefBook().getCode(), RefBookSourceType.ALL, null);
         if (isEmpty(allReferrers))
+        List<RefBookVersion> allReferrers = refBookService.getReferrerVersions(oldVersionEntity.getRefBook().getCode(),
+                RefBookSourceType.ALL, null);
+        if (isEmpty(allReferrers))
             return;
 
         List<DiffRowValue> diffRowValues = getDataDiffContent(oldVersionId, newVersionId);
@@ -559,9 +590,10 @@ public class ConflictServiceImpl implements ConflictService {
 
         RefBookVersionEntity newVersionEntity = versionRepository.getOne(newVersionId);
 
-        List<Integer> referrerIds = allReferrers.stream().map(RefBookVersion::getRefBookId).distinct().collect(Collectors.toList());
-        List<RefBookVersion> lastReferrers = refBookService.getReferrerVersions(oldVersionEntity.getRefBook().getCode(), RefBookSourceType.LAST_VERSION, referrerIds);
-        List<Integer> lastVersionIds = lastReferrers.stream().map(RefBookVersion::getId).collect(Collectors.toList());
+        List<Integer> referrerIds = allReferrers.stream().map(RefBookVersion::getRefBookId).distinct().collect(toList());
+        List<RefBookVersion> lastReferrers = refBookService.getReferrerVersions(oldVersionEntity.getRefBook().getCode(),
+                RefBookSourceType.LAST_VERSION, referrerIds);
+        List<Integer> lastVersionIds = lastReferrers.stream().map(RefBookVersion::getId).collect(toList());
 
         allReferrers.forEach(referrer -> {
             RefBookVersionEntity referrerEntity = versionRepository.getOne(referrer.getId());
@@ -635,7 +667,7 @@ public class ConflictServiceImpl implements ConflictService {
 
         return pagedData.getCollection().stream()
                 .map(rowValue -> new RefBookRowValue((LongRowValue) rowValue, versionId))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     /**
