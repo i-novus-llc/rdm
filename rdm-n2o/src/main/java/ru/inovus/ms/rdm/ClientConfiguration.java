@@ -10,10 +10,6 @@ import net.n2oapp.framework.config.compile.pipeline.operation.CompileCacheOperat
 import net.n2oapp.framework.config.compile.pipeline.operation.SourceCacheOperation;
 import net.n2oapp.framework.engine.data.N2oInvocationFactory;
 import net.n2oapp.framework.engine.data.N2oQueryProcessor;
-import net.n2oapp.platform.jaxrs.LocalDateTimeISOParameterConverter;
-import net.n2oapp.platform.jaxrs.TypedParamConverter;
-import org.apache.cxf.jaxrs.provider.JavaTimeTypesParamConverterProvider;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,8 +18,6 @@ import ru.inovus.ms.rdm.operation.RdmCompileCacheOperation;
 import ru.inovus.ms.rdm.operation.RdmSourceCacheOperation;
 import ru.inovus.ms.rdm.provider.*;
 import ru.inovus.ms.rdm.util.json.RdmN2oLocalDateTimeMapperPreparer;
-
-import java.time.LocalDateTime;
 
 @Configuration
 public class ClientConfiguration {

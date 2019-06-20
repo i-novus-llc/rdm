@@ -34,7 +34,6 @@ import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.service.api.*;
-import ru.inovus.ms.rdm.util.TimeUtils;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -43,8 +42,6 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -470,7 +467,7 @@ public class ApplicationTest {
     @Test
     public void testPublishFirstDraft() {
         publishService.publish(TEST_PUBLISHING_VERSION_ID, "1.0", LocalDateTime.now(), null, false);
-        Page<RefBookRowValue> rowValuesInVersion = versionService.search(TEST_PUBLISHING_BOOK_CODE, OffsetDateTime.now(), new SearchDataCriteria());
+        Page<RefBookRowValue> rowValuesInVersion = versionService.search(TEST_PUBLISHING_BOOK_CODE, LocalDateTime.now(), new SearchDataCriteria());
 
         List fieldValues = rowValuesInVersion.getContent().get(0).getFieldValues();
         FieldValue name = new StringFieldValue("name", "name");
@@ -479,7 +476,7 @@ public class ApplicationTest {
         assertEquals(fieldValues.get(0), name);
         assertEquals(fieldValues.get(1), count);
 
-        Page<RefBookRowValue> rowValuesOutVersion = versionService.search(TEST_PUBLISHING_BOOK_CODE, OffsetDateTime.now().minusDays(1), new SearchDataCriteria());
+        Page<RefBookRowValue> rowValuesOutVersion = versionService.search(TEST_PUBLISHING_BOOK_CODE, LocalDateTime.now().minusDays(1), new SearchDataCriteria());
         assertEquals(new PageImpl<RowValue>(emptyList()), rowValuesOutVersion);
     }
 
@@ -589,8 +586,7 @@ public class ApplicationTest {
                         draftService.createAttribute(new CreateAttribute(oldVersionId, attribute, null))
                 );
         draftService.updateData(oldVersionId, createFileModel(OLD_FILE_NAME, "testCompare/" + OLD_FILE_NAME));
-        publishService.publish(oldVersionId, "1.0", TimeUtils.now(), null, false);
-        //publishService.publish(oldVersionId, "1.0", LocalDateTime.now(), null, false);
+        publishService.publish(oldVersionId, "1.0", LocalDateTime.now(), null, false);
 
         Map<String, Object> rowMap = new HashMap<>(){{
             put(id.getCode(), BigInteger.valueOf(1));
@@ -607,8 +603,7 @@ public class ApplicationTest {
             ));
         }};
 
-        Page<RefBookRowValue> actualRow = versionService
-                .search(REFBOOK_CODE, OffsetDateTime.now(), new SearchDataCriteria(filters, null));
+        Page<RefBookRowValue> actualRow = versionService.search(REFBOOK_CODE, LocalDateTime.now(), new SearchDataCriteria(filters, null));
         assertEquals(1, actualRow.getContent().size());
         assertRows(fields(structure), singletonList(rowValue(new Row(rowMap), structure)), actualRow.getContent());
     }
@@ -626,6 +621,7 @@ public class ApplicationTest {
         final String REFBOOK_CODE = "A002";
         final String OLD_FILE_NAME = "oldData.xlsx";
         final String NEW_FILE_NAME = "newData.xlsx";
+
         LocalDateTime publishDate1 = LocalDateTime.now();
         LocalDateTime closeDate1 = LocalDateTime.from(publishDate1.plusYears(2));
         LocalDateTime publishDate2 = LocalDateTime.from(publishDate1.plusYears(3));
@@ -662,10 +658,10 @@ public class ApplicationTest {
             ));
         }};
 
-        Page<RefBookRowValue> actualRow = versionService
-                .search(REFBOOK_CODE,
-                        OffsetDateTime.of(publishDate1.plusYears(4), ZoneOffset.UTC),
-                        new SearchDataCriteria(filters, null));
+        Page<RefBookRowValue> actualRow = versionService .search(REFBOOK_CODE,
+                LocalDateTime.from(publishDate1.plusYears(4)),
+                new SearchDataCriteria(filters, null)
+        );
         assertEquals(0, actualRow.getContent().size());
     }
 
@@ -1356,7 +1352,7 @@ public class ApplicationTest {
         assertNull(cardinalRowValue);
 
         // Публикация для возможности создания ссылок на него.
-        publishService.publish(cardinalDraft.getId(), null, TimeUtils.now().minus(1, ChronoUnit.HOURS), null, false);
+        publishService.publish(cardinalDraft.getId(), null, LocalDateTime.now().minus(1, ChronoUnit.HOURS), null, false);
         RefBookVersion publishedVersion = versionService.getLastPublishedVersion(cardinalVersion.getCode());
         assertNotNull(publishedVersion);
 
@@ -1439,7 +1435,7 @@ public class ApplicationTest {
         // NB: insert.
 
         // Публикация изменений с обновлением ссылок. // NB: Разделить операции и код проверок.
-        publishService.publish(changingDraft.getId(), null, TimeUtils.now(), null, true);
+        publishService.publish(changingDraft.getId(), null, LocalDateTime.now(), null, true);
         RefBookVersion changedVersion = versionService.getLastPublishedVersion(cardinalVersion.getCode());
         assertNotNull(changedVersion);
 
@@ -1679,6 +1675,7 @@ public class ApplicationTest {
     public void testCompareVersionsData() {
         final String OLD_FILE_NAME = "oldData.xlsx";
         final String NEW_FILE_NAME = "newData.xlsx";
+
         LocalDateTime publishDate1 = LocalDateTime.now();
         LocalDateTime closeDate1 = publishDate1.plusYears(2);
         LocalDateTime publishDate2 = publishDate1.plusYears(3);

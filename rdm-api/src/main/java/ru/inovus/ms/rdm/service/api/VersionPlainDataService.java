@@ -6,8 +6,9 @@ import ru.inovus.ms.rdm.model.SearchDataCriteria;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.Map;
+
 @Path("/plainData/version")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -33,7 +34,7 @@ public interface VersionPlainDataService {
             @ApiResponse(code = 404, message = "Нет версии")
     })
     Page<Map<String, Object>> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
-                                 @ApiParam("Дата получения данных") @PathParam("date") OffsetDateTime date,
+                                 @ApiParam("Дата получения данных") @PathParam("date") LocalDateTime date,
                                  @BeanParam SearchDataCriteria criteria);
 
 

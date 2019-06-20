@@ -10,7 +10,7 @@ import ru.inovus.ms.rdm.service.api.VersionPlainDataService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Service
@@ -32,7 +32,7 @@ public class VersionPlainDataServiceImpl implements VersionPlainDataService{
     }
 
     @Override
-    public Page<Map<String, Object>> search(String refBookCode, OffsetDateTime date, SearchDataCriteria criteria) {
+    public Page<Map<String, Object>> search(String refBookCode, LocalDateTime date, SearchDataCriteria criteria) {
         return versionService.search(refBookCode, date, criteria).map(ConverterUtil::toStringObjectMap);
     }
 

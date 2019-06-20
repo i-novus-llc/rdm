@@ -192,7 +192,7 @@ public class CompareServiceImpl implements CompareService {
     }
 
     private void validateVersionsExistence(Integer oldVersionId, Integer newVersionId) {
-        System.out.println(oldVersionId + " " + newVersionId);
+
         versionValidation.validateVersionExists(oldVersionId);
         versionValidation.validateVersionExists(newVersionId);
     }

@@ -32,11 +32,12 @@ import ru.inovus.ms.rdm.service.api.ExistsData;
 import ru.inovus.ms.rdm.service.api.VersionFileService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.FileNameGenerator;
+import ru.inovus.ms.rdm.util.TimeUtils;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -120,14 +121,14 @@ public class VersionServiceImpl implements VersionService {
     }
 
     @Override
-    public Page<RefBookRowValue> search(String refBookCode, OffsetDateTime date, SearchDataCriteria criteria) {
-        RefBookVersionEntity version = versionRepository.findActualOnDate(refBookCode, date.toLocalDateTime());
+    public Page<RefBookRowValue> search(String refBookCode, LocalDateTime date, SearchDataCriteria criteria) {
+        RefBookVersionEntity version = versionRepository.findActualOnDate(refBookCode, date);
         return version != null ? getRowValuesOfVersion(criteria, version) : new PageImpl<>(emptyList());
     }
 
     @Override
     public Page<RefBookRowValue> search(String refBookCode, SearchDataCriteria criteria) {
-        return search(refBookCode, OffsetDateTime.now(), criteria);
+        return search(refBookCode, TimeUtils.now(), criteria);
     }
 
     private Page<RefBookRowValue> getRowValuesOfVersion(SearchDataCriteria criteria, RefBookVersionEntity version) {
