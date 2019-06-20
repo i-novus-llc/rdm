@@ -73,7 +73,18 @@ public class PublishServiceImpl implements PublishService {
         this.versionPeriodPublishValidation = versionPeriodPublishValidation;
     }
 
+    /**
+     * Публикация черновика справочника.
+     *
+     * @param draftId                    идентификатор черновика справочника
+     * @param versionName                версия, под которой публикуется черновик
+     *                                   (если не указано, используется встроенная нумерация)
+     * @param fromDate                   дата начала действия опубликованной версии
+     * @param toDate                     дата окончания действия опубликованной версии
+     * @param processResolvableConflicts признак обработка разрешаемых конфликтов
+     */
     @Override
+    // NB: Добавление @Transactional приводит к падению в тестах.
     public void publish(Integer draftId, String versionName,
                         LocalDateTime fromDate, LocalDateTime toDate,
                         boolean processResolvableConflicts) {
