@@ -84,7 +84,7 @@ public class PublishServiceImpl implements PublishService {
      * @param processResolvableConflicts признак обработка разрешаемых конфликтов
      */
     @Override
-    // NB: Добавление @Transactional приводит к падению в тестах.
+    // NB: Добавление Transactional приводит к падению в тестах.
     public void publish(Integer draftId, String versionName,
                         LocalDateTime fromDate, LocalDateTime toDate,
                         boolean processResolvableConflicts) {
