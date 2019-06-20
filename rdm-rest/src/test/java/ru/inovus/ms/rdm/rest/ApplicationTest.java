@@ -593,7 +593,8 @@ public class ApplicationTest {
                         draftService.createAttribute(new CreateAttribute(oldVersionId, attribute, null))
                 );
         draftService.updateData(oldVersionId, createFileModel(OLD_FILE_NAME, "testCompare/" + OLD_FILE_NAME));
-        publishService.publish(oldVersionId, "1.0", LocalDateTime.now(), null, false);
+        publishService.publish(oldVersionId, "1.0", TimeUtils.now(), null, false);
+        //publishService.publish(oldVersionId, "1.0", LocalDateTime.now(), null, false);
 
         Map<String, Object> rowMap = new HashMap<>(){{
             put(id.getCode(), BigInteger.valueOf(1));
