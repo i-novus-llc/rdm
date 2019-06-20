@@ -147,17 +147,17 @@ public interface ConflictService {
 
     @GET
     @Path("/find/all")
-    @ApiOperation("Получение конфликтов для версии с любыми справочниками")
+    @ApiOperation("Получение всех конфликтов по идентификаторам строк для версии, которая ссылается")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    List<RefBookConflict> getConflicts(@ApiParam("Идентификатор версии, которая ссылается")
-                                       @QueryParam("versionId")
-                                               Integer referrerVersionId,
-                                       @ApiParam("Список системных идентификаторов строк")
-                                       @QueryParam("refRecordIds")
-                                               List<Long> refRecordIds);
+    List<RefBookConflict> getReferrerConflicts(@ApiParam("Идентификатор версии, которая ссылается")
+                                               @QueryParam("versionId")
+                                                       Integer referrerVersionId,
+                                               @ApiParam("Список системных идентификаторов строк")
+                                               @QueryParam("refRecordIds")
+                                                       List<Long> refRecordIds);
 
     @GET
     @Path("/{versionId}/hasConflict")
@@ -224,6 +224,7 @@ public interface ConflictService {
                                             Integer refToId,
                                     @ApiParam("Список конфликтов")
                                             List<Conflict> conflicts);
+
     @POST
     @Path("/{versionId}/refresh/byPrimary")
     @ApiOperation("Обновление ссылок в справочнике")

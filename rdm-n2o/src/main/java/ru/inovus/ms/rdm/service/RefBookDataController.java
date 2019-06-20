@@ -71,7 +71,7 @@ public class RefBookDataController {
         Structure structure = versionService.getStructure(criteria.getVersionId());
         SearchDataCriteria searchDataCriteria = toSearchDataCriteria(criteria, structure);
         Page<RefBookRowValue> search = versionService.search(criteria.getVersionId(), searchDataCriteria);
-        List<RefBookConflict> conflicts = conflictService.getConflicts(
+        List<RefBookConflict> conflicts = conflictService.getReferrerConflicts(
                 criteria.getVersionId(),
                 getRowSystemIds(search.getContent())
         );

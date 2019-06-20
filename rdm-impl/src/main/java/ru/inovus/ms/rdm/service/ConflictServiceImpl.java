@@ -344,7 +344,7 @@ public class ConflictServiceImpl implements ConflictService {
      * @return Список конфликтов
      */
     @Override
-    public List<RefBookConflict> getConflicts(Integer referrerVersionId, List<Long> refRecordIds) {
+    public List<RefBookConflict> getReferrerConflicts(Integer referrerVersionId, List<Long> refRecordIds) {
 
         versionValidation.validateVersionExists(referrerVersionId);
 
