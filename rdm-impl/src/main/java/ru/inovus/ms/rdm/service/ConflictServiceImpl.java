@@ -350,6 +350,7 @@ public class ConflictServiceImpl implements ConflictService {
 
         List<RefBookConflictEntity> refBookConflicts =
                 conflictRepository.findAllByReferrerVersionIdAndRefRecordIdIn(referrerVersionId, refRecordIds);
+
         return refBookConflicts
                 .stream()
                 .map(this::refBookConflictModel)
@@ -465,7 +466,8 @@ public class ConflictServiceImpl implements ConflictService {
             // NB: Изменение данных возможно только в черновике.
             Draft draft = draftService.createFromVersion(refFromId);
             // NB: Исключить, если создание конфликтов будет добавлено в код создания черновика.
-            conflicts.forEach(conflict -> create(draft.getId(), refToId, conflict));
+            // Вместо этого добавить вызов refreshReferrerByPrimary.
+            create(draft.getId(), refToId, conflicts);
             refFromEntity = versionRepository.getOne(draft.getId());
         }
 
@@ -555,6 +557,20 @@ public class ConflictServiceImpl implements ConflictService {
         LongRowValue rowValue = new LongRowValue(rowSystemId, singletonList(fieldValue));
 
         draftDataService.updateRow(refFromStorageCode, new RefBookRowValue(rowValue, refFromId));
+    }
+
+    /**
+     * Обновление ссылок в справочнике по таблице конфликтов.
+     *
+     * @param referrerVersionId идентификатор версии справочника
+     */
+    @Override
+    @Transactional
+    public void refreshReferrerByPrimary(Integer referrerVersionId) {
+        // NB:
+        // 1. Найти в таблице конфликтов все конфликты, связанные с версией referrerVersionId.
+        //      Реализовать ConflictCriteria + предикаты + search.
+        // 2. Выполнить обновление значений ссылок по найденным конфликтам.
     }
 
     /**

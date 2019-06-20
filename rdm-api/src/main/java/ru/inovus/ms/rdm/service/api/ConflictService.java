@@ -94,7 +94,7 @@ public interface ConflictService {
                 @ApiParam("Список конфликтов")
                         List<Conflict> conflicts);
 
-    @POST
+    @DELETE
     @Path("/delete/{id}")
     @ApiOperation("Удаление записи о конфликте")
     @ApiResponses({
@@ -126,7 +126,7 @@ public interface ConflictService {
                                  String refFieldCode);
 
     @GET
-    @Path("/findId")
+    @Path("/find/id")
     @ApiOperation("Поиск конфликта по основным параметрам")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
@@ -146,6 +146,7 @@ public interface ConflictService {
                            String refFieldCode);
 
     @GET
+    @Path("/find/all")
     @ApiOperation("Получение конфликтов для версии с любыми справочниками")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
@@ -195,7 +196,7 @@ public interface ConflictService {
                                  Integer publishedVersionId);
 
     @POST
-    @Path("/refresh/all/byPrimary")
+    @Path("/refresh/byPrimary/all")
     @ApiOperation("Обновление отображаемых значений ссылок")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
@@ -209,7 +210,7 @@ public interface ConflictService {
                                             Integer newVersionId);
 
     @POST
-    @Path("/refresh/byPrimary")
+    @Path("/refresh/byPrimary/list")
     @ApiOperation("Обновление отображаемых значений ссылок версии")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
@@ -223,6 +224,16 @@ public interface ConflictService {
                                             Integer refToId,
                                     @ApiParam("Список конфликтов")
                                             List<Conflict> conflicts);
+    @POST
+    @Path("/{versionId}/refresh/byPrimary")
+    @ApiOperation("Обновление ссылок в справочнике")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void refreshReferrerByPrimary(@ApiParam("Идентификатор версии")
+                                  @PathParam("versionId")
+                                          Integer referrerVersionId);
 
     @POST
     @Path("/discover")
