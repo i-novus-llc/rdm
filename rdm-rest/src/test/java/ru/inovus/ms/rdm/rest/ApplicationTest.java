@@ -21,10 +21,7 @@ import org.springframework.util.CollectionUtils;
 import ru.i_novus.common.file.storage.api.FileStorage;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
@@ -1869,8 +1866,8 @@ public class ApplicationTest {
         Structure.Attribute id_id = Structure.Attribute.buildPrimary("ID_ID", "id_id", FieldType.INTEGER, "id_id");
         Structure.Attribute ref_id_1 = Structure.Attribute.build("REF_ID_1", "ref_id_1", FieldType.REFERENCE, "ref_id_1");
         Structure.Attribute ref_id_2 = Structure.Attribute.build("REF_ID_2", "ref_id_2", FieldType.REFERENCE, "ref_id_2");
-        Structure.Reference ref_id_1_ref = new Structure.Reference(ref_id_1.getCode(), refToRefBook.getCode(), "${" + id.getCode() + "}");
-        Structure.Reference ref_id_2_ref = new Structure.Reference(ref_id_2.getCode(), refToRefBook.getCode(), "${" + id.getCode() + "}");
+        Structure.Reference ref_id_1_ref = new Structure.Reference(ref_id_1.getCode(), refToRefBook.getCode(), DisplayExpression.PLACEHOLDER_START + id.getCode() + DisplayExpression.PLACEHOLDER_END);
+        Structure.Reference ref_id_2_ref = new Structure.Reference(ref_id_2.getCode(), refToRefBook.getCode(), DisplayExpression.PLACEHOLDER_START + id.getCode() + DisplayExpression.PLACEHOLDER_END);
 
         RefBook refFromRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_from_confl", null));
         Integer refFromVersionId = refFromRefBook.getId();
@@ -1929,8 +1926,8 @@ public class ApplicationTest {
         Structure.Attribute id_id = Structure.Attribute.buildPrimary("ID_ID", "id_id", FieldType.INTEGER, "id_id");
         Structure.Attribute ref_id_1 = Structure.Attribute.build("REF_ID_1", "ref_id_1", FieldType.REFERENCE, "ref_id_1");
         Structure.Attribute ref_id_2 = Structure.Attribute.build("REF_ID_2", "ref_id_2", FieldType.REFERENCE, "ref_id_2");
-        Structure.Reference ref_id_1_ref = new Structure.Reference(ref_id_1.getCode(), refToRefBook.getCode(), "${" + id.getCode() + "}");
-        Structure.Reference ref_id_2_ref = new Structure.Reference(ref_id_2.getCode(), refToRefBook.getCode(), "${" + id.getCode() + "}");
+        Structure.Reference ref_id_1_ref = new Structure.Reference(ref_id_1.getCode(), refToRefBook.getCode(), DisplayExpression.PLACEHOLDER_START + id.getCode() + DisplayExpression.PLACEHOLDER_END);
+        Structure.Reference ref_id_2_ref = new Structure.Reference(ref_id_2.getCode(), refToRefBook.getCode(), DisplayExpression.PLACEHOLDER_START + id.getCode() + DisplayExpression.PLACEHOLDER_END);
 
         RefBook refFromRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_from_confl_chk", null));
         Integer refFromVersionId = refFromRefBook.getId();
@@ -1971,7 +1968,7 @@ public class ApplicationTest {
 
         Structure.Attribute id_id = Structure.Attribute.buildPrimary("ID_ID", "id_id", FieldType.INTEGER, "id_id");
         Structure.Attribute ref_id = Structure.Attribute.build("REF_ID", "ref_id", FieldType.REFERENCE, "ref_id");
-        Structure.Reference ref_id_ref = new Structure.Reference(ref_id.getCode(), refToRefBook.getCode(), "${" + id.getCode() + "}");
+        Structure.Reference ref_id_ref = new Structure.Reference(ref_id.getCode(), refToRefBook.getCode(), DisplayExpression.PLACEHOLDER_START + id.getCode() + DisplayExpression.PLACEHOLDER_END);
 
         RefBook refFromRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_from_diff_pk", null));
         Integer refFromVersionId = refFromRefBook.getId();

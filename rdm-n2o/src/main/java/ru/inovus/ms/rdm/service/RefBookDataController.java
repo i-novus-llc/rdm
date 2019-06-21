@@ -125,14 +125,12 @@ public class RefBookDataController {
     }
 
     private static Map<String, Object> getConflictedCellOptions () {
-        Map<String, Object> cellOptions = new HashMap<>();
-        cellOptions.put("src", "TextCell");
-
-        Map<String, Object> styleOptions = new HashMap<>();
-        styleOptions.put("backgroundColor", "#f8c8c6");
-        cellOptions.put("styles", styleOptions);
-
-        return cellOptions;
+        return new HashMap<>() {{
+            put("src", "TextCell");
+            put("styles", new HashMap<>() {{
+                put("backgroundColor", "#f8c8c6");
+            }});
+        }};
     }
 
     private String toStringValue(FieldValue value) {
