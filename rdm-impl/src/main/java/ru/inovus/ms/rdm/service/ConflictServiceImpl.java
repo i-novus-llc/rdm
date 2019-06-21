@@ -104,7 +104,12 @@ public class ConflictServiceImpl implements ConflictService {
     /**
      * Вычисление конфликтов справочников при наличии ссылочных атрибутов.
      *
-     * @see #checkDiffConflicts
+     * @param refFromId идентификатор версии, которая ссылается
+     * @param refToId   идентификатор последней опубликованной версии
+     *                  (идентификатор публикуемого черновика определяется автоматически)
+     * @return Список конфликтов для версии, которая ссылается
+     *
+     * @see #checkConflicts
      */
     @Override
     @Transactional(readOnly = true)
@@ -137,6 +142,16 @@ public class ConflictServiceImpl implements ConflictService {
         return calculateDiffConflicts(refFromEntity, refToEntity, diffRowValues);
     }
 
+    /**
+     * Вычисление конфликтов справочников по diff-записям.
+     *
+     * @param refFromEntity версия, которая ссылается
+     * @param refToEntity   версия, на которую ссылаются
+     * @param diffRowValues diff-записи
+     * @return Список конфликтов для версии, которая ссылается
+     *
+     * @see #checkDiffConflicts
+     */
     private List<Conflict> calculateDiffConflicts(RefBookVersionEntity refFromEntity, RefBookVersionEntity refToEntity,
                                                   List<DiffRowValue> diffRowValues) {
         List<Structure.Attribute> refFromAttributes = getRefAttributes(refFromEntity.getStructure(),
@@ -160,6 +175,15 @@ public class ConflictServiceImpl implements ConflictService {
                 ).collect(toList());
     }
 
+    /**
+     * Создание записи о diff-конфликте.
+     *
+     * @param diffRowValue     diff-запись
+     * @param refFromRowValue  запись из версии, которая ссылается
+     * @param refFromAttribute ссылочный атрибут версии, которая ссылается
+     * @param refFromStructure структура версии, которая ссылается
+     * @return Запись о diff-конфликте
+     */
     private Conflict createDiffConflict(DiffRowValue diffRowValue, RefBookRowValue refFromRowValue,
                                         Structure.Attribute refFromAttribute, Structure refFromStructure) {
         Conflict conflict = new Conflict();
@@ -172,6 +196,11 @@ public class ConflictServiceImpl implements ConflictService {
 
     /**
      * Проверка на наличие конфликта справочников при наличии ссылочных атрибутов.
+     *
+     * @param refFromId идентификатор версии, которая ссылается
+     * @param refToId   идентификатор публикуемой версии
+     *                  (идентификатор последней опубликованной версии определяется автоматически)
+     * @return Наличие конфликтов для версии, которая ссылается
      *
      * @see #calculateConflicts
      */
@@ -194,7 +223,7 @@ public class ConflictServiceImpl implements ConflictService {
      * @param refFromId  идентификатор версии, которая ссылается
      * @param oldRefToId идентификатор старой версии, на которую ссылаются
      * @param newRefToId идентификатор новой версии, на которую будут ссылаться
-     * @return Наличие конфликтов
+     * @return Наличие конфликтов для версии, которая ссылается
      */
     private Boolean checkConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId, ConflictType conflictType) {
 
@@ -206,12 +235,24 @@ public class ConflictServiceImpl implements ConflictService {
         return checkDiffConflicts(refFromEntity, refToEntity, diffRowValues, conflictTypeToDiffStatus(conflictType));
     }
 
+    /**
+     * Проверка на наличие конфликтов справочников по diff-записям.
+     *
+     * @param refFromEntity версия, которая ссылается
+     * @param refToEntity   версия, на которую ссылаются
+     * @param diffRowValues diff-записи
+     * @param diffStatus    статус diff-записи
+     * @return Наличие конфликтов для версии, которая ссылается
+     *
+     * @see #calculateDiffConflicts
+     */
     private Boolean checkDiffConflicts(RefBookVersionEntity refFromEntity, RefBookVersionEntity refToEntity,
                                        List<DiffRowValue> diffRowValues, DiffStatusEnum diffStatus) {
         List<Structure.Attribute> refFromAttributes = getRefAttributes(refFromEntity.getStructure(),
                 refToEntity.getRefBook().getCode());
         List<RefBookRowValue> refFromRowValues = getConflictedRowContent(refFromEntity, diffRowValues,
                 refToEntity.getStructure().getPrimary(), refFromAttributes);
+
         return refFromAttributes
                 .stream()
                 .anyMatch(refFromAttribute ->
@@ -402,6 +443,7 @@ public class ConflictServiceImpl implements ConflictService {
      *
      * @param oldVersionId идентификатор старой версии справочника
      * @param newVersionId идентификатор новой версии справочника
+     *
      * @see #discoverConflicts(Integer, Integer, boolean)
      */
     @Override
@@ -562,10 +604,21 @@ public class ConflictServiceImpl implements ConflictService {
     @Override
     @Transactional
     public void refreshReferrerByPrimary(Integer referrerVersionId) {
+
+        versionValidation.validateVersionExists(referrerVersionId);
+
         // NB:
         // 1. Найти в таблице конфликтов все конфликты, связанные с версией referrerVersionId.
         //      Реализовать ConflictCriteria + предикаты + search.
         // 2. Выполнить обновление значений ссылок по найденным конфликтам.
+
+        List<RefBookConflictEntity> conflictEntities =
+                conflictRepository.findAllByReferrerVersionIdAndConflictType(referrerVersionId, ConflictType.UPDATED);
+
+        // NB: Add updateReferenceInRows to vds.
+        conflictEntities.forEach(conflict -> {
+            // NB: get systemIds
+        });
     }
 
     /**
@@ -660,14 +713,17 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Получение записей данных версии справочника для списка конфликтов по идентификаторам строк
+     * Получение записей данных версии справочника для diff-записей.
      *
-     * @param refFromVersion версия
+     * @param refFromVersion    версия справочника, который ссылается
+     * @param diffRowValues     diff-записи
+     * @param refToPrimaries    первичные ключи справочника, на который ссылаются
+     * @param refFromAttributes ссылочные атрибуты версии, которая ссылается
      * @return Список всех записей
      */
-    private List<RefBookRowValue> getConflictedRowContent(RefBookVersionEntity refFromVersion, List<DiffRowValue> diffs,
+    private List<RefBookRowValue> getConflictedRowContent(RefBookVersionEntity refFromVersion, List<DiffRowValue> diffRowValues,
                                                           List<Structure.Attribute> refToPrimaries, List<Structure.Attribute> refFromAttributes) {
-        Set<List<FieldSearchCriteria>> filters = createFiltersForDiffRowValues(diffs, refToPrimaries, refFromAttributes);
+        Set<List<FieldSearchCriteria>> filters = createFiltersForDiffRowValues(diffRowValues, refToPrimaries, refFromAttributes);
         return getConflictedRowContent(refFromVersion.getId(), refFromVersion.getStorageCode(), refFromVersion.getStructure(),
                 refFromVersion.getFromDate(), refFromVersion.getToDate(), filters);
     }
@@ -677,6 +733,7 @@ public class ConflictServiceImpl implements ConflictService {
                                                           LocalDateTime bdate, LocalDateTime edate,
                                                           Set<List<FieldSearchCriteria>> filters) {
         DataCriteria criteria = new DataCriteria(storageCode, bdate, edate, fields(structure), filters, null);
+        // NB: Get all required rows.
         criteria.setPage(0);
         criteria.setSize(0);
 
@@ -769,10 +826,18 @@ public class ConflictServiceImpl implements ConflictService {
                 : null;
     }
 
-    private Set<List<FieldSearchCriteria>> createFiltersForDiffRowValues(List<DiffRowValue> diffs,
+    /**
+     * Создание фильтров для получения записей данных версии справочника по первичным ключам.
+     *
+     * @param diffRowValues     diff-записи
+     * @param refToPrimaries    первичные ключи справочника, на который ссылаются
+     * @param refFromAttributes ссылочные атрибуты версии, которая ссылается
+     * @return Множество списков фильтров
+     */
+    private Set<List<FieldSearchCriteria>> createFiltersForDiffRowValues(List<DiffRowValue> diffRowValues,
                                                                          List<Structure.Attribute> refToPrimaries,
                                                                          List<Structure.Attribute> refFromAttributes) {
-        return diffs
+        return diffRowValues
                 .stream()
                 .flatMap(diff -> {
                     DiffFieldValue diffFieldValue = diff.getDiffFieldValue(refToPrimaries.get(0).getCode());
