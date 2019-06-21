@@ -4,12 +4,16 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import ru.inovus.ms.rdm.entity.AuditLogEntity;
 import ru.inovus.ms.rdm.model.audit.AuditLog;
 import ru.inovus.ms.rdm.model.audit.AuditLogCriteria;
 import ru.inovus.ms.rdm.repositiory.AuditLogRepository;
 import ru.inovus.ms.rdm.service.api.AuditLogService;
+
+import java.util.Collections;
 
 import static ru.inovus.ms.rdm.entity.QAuditLogEntity.auditLogEntity;
 
@@ -37,6 +41,9 @@ public class AuditLogServiceImpl implements AuditLogService {
 
     @Override
     public Page<AuditLog> getActions(AuditLogCriteria criteria) {
+        if(CollectionUtils.isEmpty(criteria.getOrders())) {
+            criteria.setOrders(Collections.singletonList(new Sort.Order(Sort.Direction.DESC, "date")));
+        }
         return auditLogRepository.findAll(toPredicate(criteria), criteria).map(this::auditActionModel);
     }
 
