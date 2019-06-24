@@ -40,7 +40,7 @@
                         <menu-item label="Опубликовать" visibility-condition="version.status=='DRAFT'">
                             <invoke operation-id="publish"/>
                         </menu-item>
-                        <menu-item label="Обновить ссылки" visibility-condition="versionHasUpdatedConflict">
+                        <menu-item label="Обновить ссылки" visibility-condition="version.status=='DRAFT' &amp;&amp; versionHasUpdatedConflict">
                             <invoke operation-id="refreshReferrer"/>
                         </menu-item>
                         <menu-item label="Загрузить данные" visibility-condition="version.status=='DRAFT'">
