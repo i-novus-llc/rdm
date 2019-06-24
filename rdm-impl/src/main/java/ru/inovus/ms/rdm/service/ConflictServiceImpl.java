@@ -607,17 +607,44 @@ public class ConflictServiceImpl implements ConflictService {
 
         versionValidation.validateVersionExists(referrerVersionId);
 
-        // NB:
-        // 1. Найти в таблице конфликтов все конфликты, связанные с версией referrerVersionId.
-        //      Реализовать ConflictCriteria + предикаты + search.
-        // 2. Выполнить обновление значений ссылок по найденным конфликтам.
+        RefBookVersionEntity referrerEntity = versionRepository.getOne(referrerVersionId);
+        List<Structure.Reference> references = referrerEntity.getStructure().getReferences();
+        if (isEmpty(references))
+            return;
 
-        List<RefBookConflictEntity> conflictEntities =
-                conflictRepository.findAllByReferrerVersionIdAndConflictType(referrerVersionId, ConflictType.UPDATED);
+        references.forEach(reference -> {
+            List<RefBookConflictEntity> conflicts =
+                    conflictRepository.findAllByReferrerVersionIdAndRefFieldCodeAndConflictType(referrerVersionId, reference.getAttribute(), ConflictType.UPDATED);
 
-        // NB: Add updateReferenceInRows to vds.
-        conflictEntities.forEach(conflict -> {
-            // NB: get systemIds
+            List<RefBookVersionEntity> publishedVersions = conflicts.stream()
+                    .map(RefBookConflictEntity::getPublishedVersion)
+                    .distinct()
+                    .collect(toList());
+
+            publishedVersions.forEach(publishedVersion -> {
+                Structure.Attribute refToAttribute = reference.findReferenceAttribute(publishedVersion.getStructure());
+                Reference updatedReference = new Reference(
+                        publishedVersion.getStorageCode(),
+                        publishedVersion.getFromDate(), // SYS_PUBLISH_TIME is not exist for draft
+                        refToAttribute.getCode(),
+                        new DisplayExpression(reference.getDisplayExpression()),
+                        null, // NB: Old value is not changed
+                        null // NB: Display value will be recalculated
+                );
+                ReferenceFieldValue fieldValue = new ReferenceFieldValue(reference.getAttribute(), updatedReference);
+
+                List<RefBookConflictEntity> updatedConflicts = conflicts.stream()
+                        .filter(conflict -> conflict.getPublishedVersion() == publishedVersion)
+                        .collect(toList());
+
+                List<Object> systemIds = updatedConflicts.stream()
+                        .map(RefBookConflictEntity::getRefRecordId)
+                        .collect(toList());
+
+                draftDataService.updateReferenceInRows(referrerEntity.getStorageCode(), fieldValue, systemIds);
+
+                conflictRepository.deleteInBatch(updatedConflicts);
+            });
         });
     }
 
@@ -851,5 +878,4 @@ public class ConflictServiceImpl implements ConflictService {
                             );
                 }).collect(toSet());
     }
-
 }
