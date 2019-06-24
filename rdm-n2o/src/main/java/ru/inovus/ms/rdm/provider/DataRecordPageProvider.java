@@ -20,6 +20,7 @@ import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Collections.singletonList;
 import static ru.inovus.ms.rdm.RdmUiUtil.addPrefix;
@@ -28,6 +29,10 @@ import static ru.inovus.ms.rdm.RdmUiUtil.addPrefix;
 public class DataRecordPageProvider implements DynamicMetadataProvider {
 
     private static final String FORM_PROVIDER_ID = "dataRecordPage";
+    private static final Map<String, String> pageNames = Map.of(
+            "create", "Добавление новой записи",
+            "edit", "Редактирование записи"
+    );
 
     @Autowired
     private VersionService versionService;
@@ -41,18 +46,21 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
     }
 
     /**
-     * @param context Параметры провайдера (ID версии)
+     * @param context Параметры провайдера (ID версии и тип действия) в формате versionId_pageType,
+     *                где pageType - create (Создание записи) или edit (Редактирование записи)
      */
     @Override
     public List<? extends SourceMetadata> read(String context) {
 
-        Integer versionId = Integer.parseInt(context);
+        String[] params = context.split("_");
+
+        Integer versionId = Integer.parseInt(params[0]);
         Structure structure = versionService.getStructure(versionId);
 
         N2oSimplePage page = new N2oSimplePage();
         N2oForm form = createForm(versionId, structure);
         page.setWidget(form);
-        page.setName("Редактирование записи");
+        page.setName(pageNames.get(params[1]));
         page.setId(FORM_PROVIDER_ID + "?" + context);
         return singletonList(page);
     }
