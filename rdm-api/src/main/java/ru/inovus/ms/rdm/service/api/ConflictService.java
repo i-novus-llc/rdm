@@ -61,6 +61,36 @@ public interface ConflictService {
                                                    @QueryParam("type")
                                                            ConflictType conflictType);
 
+    //@POST
+    //@Path("/refresh/byPrimary/all")
+    @ApiOperation("Обновление отображаемых значений ссылок")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void refreshReferencesByPrimary(@ApiParam("Идентификатор старой версии, на которую ссылаются")
+                                    @QueryParam("oldVersionId")
+                                            Integer oldVersionId,
+                                    @ApiParam("Идентификатор новой версии, на которую будут ссылаться")
+                                    @QueryParam("newVersionId")
+                                            Integer newVersionId);
+
+    //@POST
+    //@Path("/refresh/byPrimary/list")
+    @ApiOperation("Обновление отображаемых значений ссылок версии")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void refreshReferencesByPrimary(@ApiParam("Идентификатор версии, которая ссылается")
+                                    @QueryParam("refFromId")
+                                            Integer refFromId,
+                                    @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
+                                    @QueryParam("refToId")
+                                            Integer refToId,
+                                    @ApiParam("Список конфликтов")
+                                            List<Conflict> conflicts);
+
 
     @POST
     @Path("/create")
@@ -196,36 +226,6 @@ public interface ConflictService {
                                  Integer publishedVersionId);
 
     @POST
-    @Path("/refresh/byPrimary/all")
-    @ApiOperation("Обновление отображаемых значений ссылок")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Успех"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    void refreshReferencesByPrimary(@ApiParam("Идентификатор старой версии, на которую ссылаются")
-                                    @QueryParam("oldVersionId")
-                                            Integer oldVersionId,
-                                    @ApiParam("Идентификатор новой версии, на которую будут ссылаться")
-                                    @QueryParam("newVersionId")
-                                            Integer newVersionId);
-
-    @POST
-    @Path("/refresh/byPrimary/list")
-    @ApiOperation("Обновление отображаемых значений ссылок версии")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Успех"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    void refreshReferencesByPrimary(@ApiParam("Идентификатор версии, которая ссылается")
-                                    @QueryParam("refFromId")
-                                            Integer refFromId,
-                                    @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
-                                    @QueryParam("refToId")
-                                            Integer refToId,
-                                    @ApiParam("Список конфликтов")
-                                            List<Conflict> conflicts);
-
-    @POST
     @Path("/{versionId}/refresh/byPrimary")
     @ApiOperation("Обновление ссылок в справочнике")
     @ApiResponses({
@@ -235,6 +235,17 @@ public interface ConflictService {
     void refreshReferrerByPrimary(@ApiParam("Идентификатор версии")
                                   @PathParam("versionId")
                                           Integer referrerVersionId);
+
+    @POST
+    @Path("/refresh/byPrimary")
+    @ApiOperation("Обновление ссылок в связанных справочниках")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void refreshLastReferrersByPrimary(@ApiParam("Код справочника, на который ссылаются")
+                                       @QueryParam("refFieldCode")
+                                               String refBookCode);
 
     @POST
     @Path("/discover")
@@ -248,8 +259,5 @@ public interface ConflictService {
                                    Integer oldVersionId,
                            @ApiParam("Идентификатор новой версии, на которую будут ссылаться")
                            @QueryParam("newVersionId")
-                                   Integer newVersionId,
-                           @ApiParam("Признак обработки разрешимых конфликтов")
-                           @QueryParam("processResolvables")
-                                   boolean processResolvables);
+                                   Integer newVersionId);
 }

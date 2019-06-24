@@ -1434,10 +1434,13 @@ public class ApplicationTest {
 
         // NB: insert.
 
-        // Публикация изменений с обновлением ссылок. // NB: Разделить операции и код проверок.
-        publishService.publish(changingDraft.getId(), null, LocalDateTime.now(), null, true);
+        // Публикация изменений без обновления ссылок.
+        publishService.publish(changingDraft.getId(), null, LocalDateTime.now(), null, false);
         RefBookVersion changedVersion = versionService.getLastPublishedVersion(cardinalVersion.getCode());
         assertNotNull(changedVersion);
+
+        // Обновление ссылок.
+        conflictService.refreshLastReferrersByPrimary(changedVersion.getCode());
 
 //      4. Проверка связанного справочника.
         // Проверка данных.
@@ -1473,8 +1476,6 @@ public class ApplicationTest {
                 }
             });
         });
-
-        // NB: Use `refreshReferencesByPrimary(changingDraft.getId(), changedVersion.getId())` to separate operations.
 
         // Проверка конфликтов.
         referrerUnchangedPrimaries.forEach(primaryValue -> {
