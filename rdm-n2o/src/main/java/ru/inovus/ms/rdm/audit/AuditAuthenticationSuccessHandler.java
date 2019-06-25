@@ -20,6 +20,10 @@ public class AuditAuthenticationSuccessHandler extends SavedRequestAwareAuthenti
     @Autowired
     AuditLogService auditLogService;
 
+    public AuditAuthenticationSuccessHandler() {
+        setUseReferer(true);
+    }
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
