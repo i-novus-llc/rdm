@@ -354,9 +354,6 @@ public class ConflictServiceImpl implements ConflictService {
 
             // NB: Изменение данных возможно только в черновике.
             Draft draft = draftService.createFromVersion(refFromId);
-            // NB: Исключить, если создание конфликтов будет добавлено в код создания черновика.
-            // Вместо этого добавить вызов refreshReferrerByPrimary.
-            create(draft.getId(), refToId, conflicts);
             refFromEntity = versionRepository.getOne(draft.getId());
         }
 
@@ -543,9 +540,13 @@ public class ConflictServiceImpl implements ConflictService {
 
         versionValidation.validateVersionExists(referrerVersionId);
 
-        RefBookVersionEntity referrerEntity = versionRepository.getOne(referrerVersionId);
-        if (!referrerEntity.isDraft())
-            return;
+        RefBookVersionEntity entity = versionRepository.getOne(referrerVersionId);
+        if (!entity.isDraft()) {
+            // NB: Изменение данных возможно только в черновике.
+            Draft draft = draftService.createFromVersion(referrerVersionId);
+            entity = versionRepository.getOne(draft.getId());
+        }
+        RefBookVersionEntity referrerEntity = entity;
 
         List<Structure.Reference> references = referrerEntity.getStructure().getReferences();
         if (isEmpty(references))
@@ -595,18 +596,8 @@ public class ConflictServiceImpl implements ConflictService {
     @Override
     @Transactional
     public void refreshLastReferrersByPrimary(String refBookCode) {
-
         List<RefBookVersion> lastReferrers = refBookService.getReferrerVersions(refBookCode, RefBookSourceType.LAST_VERSION, null);
-        lastReferrers.forEach(referrer -> {
-            Integer referrerVersionId = referrer.getId();
-            if (!referrer.isDraft()) {
-                // NB: Изменение данных возможно только в черновике.
-                Draft draft = draftService.createFromVersion(referrerVersionId);
-                referrerVersionId = draft.getId();
-            }
-
-            refreshReferrerByPrimary(referrerVersionId);
-        });
+        lastReferrers.forEach(referrer -> refreshReferrerByPrimary(referrer.getId()));
     }
 
     /**
