@@ -8,11 +8,14 @@ import ru.inovus.ms.rdm.service.api.PublishService;
 @Controller
 public class RefBookVersionController {
 
-    @Autowired
     private PublishService publishService;
+    private ConflictService conflictService;
 
     @Autowired
-    private ConflictService conflictService;
+    public RefBookVersionController(PublishService publishService, ConflictService conflictService) {
+        this.publishService = publishService;
+        this.conflictService = conflictService;
+    }
 
     public void publishDraft(Integer draftId, boolean processResolvableConflicts) {
         publishService.publish(draftId, null, null, null, processResolvableConflicts);

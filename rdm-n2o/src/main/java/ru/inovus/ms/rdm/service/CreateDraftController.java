@@ -24,18 +24,20 @@ import static java.util.Collections.singletonList;
 @Controller
 public class CreateDraftController {
 
-    private DraftService draftService;
     private RefBookService refBookService;
     private VersionService versionService;
+    private DraftService draftService;
+
     private StructureController structureController;
     private DataRecordController dataRecordController;
 
     @Autowired
-    public CreateDraftController(DraftService draftService, RefBookService refBookService, VersionService versionService,
+    public CreateDraftController(RefBookService refBookService, VersionService versionService, DraftService draftService,
                                  StructureController structureController, DataRecordController dataRecordController) {
-        this.draftService = draftService;
         this.refBookService = refBookService;
         this.versionService = versionService;
+        this.draftService = draftService;
+
         this.structureController = structureController;
         this.dataRecordController = dataRecordController;
     }
