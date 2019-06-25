@@ -1434,10 +1434,13 @@ public class ApplicationTest {
 
         // NB: insert.
 
-        // Публикация изменений с обновлением ссылок. // NB: Разделить операции и код проверок.
-        publishService.publish(changingDraft.getId(), null, LocalDateTime.now(), null, true);
+        // Публикация изменений без обновления ссылок.
+        publishService.publish(changingDraft.getId(), null, LocalDateTime.now(), null, false);
         RefBookVersion changedVersion = versionService.getLastPublishedVersion(cardinalVersion.getCode());
         assertNotNull(changedVersion);
+
+        // Обновление ссылок.
+        conflictService.refreshLastReferrersByPrimary(changedVersion.getCode());
 
 //      4. Проверка связанного справочника.
         // Проверка данных.
@@ -1474,8 +1477,6 @@ public class ApplicationTest {
             });
         });
 
-        // NB: Use `refreshReferencesByPrimary(changingDraft.getId(), changedVersion.getId())` to separate operations.
-
         // Проверка конфликтов.
         referrerUnchangedPrimaries.forEach(primaryValue -> {
             Integer conflictId = findPublishWithConflictedReferrerConflictId(
@@ -1501,6 +1502,22 @@ public class ApplicationTest {
                 assertNotNull(conflictId);
             });
         });
+
+//      5. Создание черновика связанного справочника.
+        List<RefBookConflict> referrerConflicts = conflictService.getReferrerConflicts(referrerVersion.getId(), null);
+
+        // Публикация связанного справочника.
+        publishService.publish(referrerDraft.getId(), null, LocalDateTime.now(), null, false);
+        RefBookVersion lastReferrerVersion = versionService.getLastPublishedVersion(referrerVersion.getCode());
+        assertNotNull(lastReferrerVersion);
+
+        conflictService.copyConflicts(referrerVersion.getId(), lastReferrerVersion.getId());
+
+        // Создание черновика из версии.
+        referrerDraft = draftService.createFromVersion(referrerVersion.getId());
+        List<RefBookConflict> lastReferrerConflicts = conflictService.getReferrerConflicts(referrerDraft.getId(), null);
+        assertRefBookConflicts(referrerConflicts, lastReferrerConflicts);
+
     }
 
     private String getPublishWithConflictedReferrerDisplayValue(RefBookRowValue rowValue, String attributeCode) {
@@ -2132,6 +2149,7 @@ public class ApplicationTest {
 
     private void assertConflicts(List<Conflict> expectedConflicts, List<Conflict> actualConflicts) {
         assertNotNull(actualConflicts);
+        assertNotNull(expectedConflicts);
         assertEquals(expectedConflicts.size(), actualConflicts.size());
         expectedConflicts.forEach(expectedConflict -> {
             if (actualConflicts.stream().noneMatch(actualConflict ->
@@ -2139,6 +2157,21 @@ public class ApplicationTest {
                             && expectedConflict.getConflictType().equals(actualConflict.getConflictType())
                             && expectedConflict.getPrimaryValues().size() == actualConflict.getPrimaryValues().size()
                             && actualConflict.getPrimaryValues().containsAll(expectedConflict.getPrimaryValues())))
+                fail();
+        });
+    }
+
+    private void assertRefBookConflicts(List<RefBookConflict> expectedConflicts, List<RefBookConflict> actualConflicts) {
+        assertNotNull(actualConflicts);
+        assertNotNull(expectedConflicts);
+        assertEquals(expectedConflicts.size(), actualConflicts.size());
+        expectedConflicts.forEach(expectedConflict -> {
+            if (actualConflicts.stream().noneMatch(actualConflict ->
+                    expectedConflict.getPublishedVersionId().equals(actualConflict.getPublishedVersionId())
+                            && expectedConflict.getRefRecordId().equals(actualConflict.getRefRecordId())
+                            && expectedConflict.getRefFieldCode().equals(actualConflict.getRefFieldCode())
+                            && expectedConflict.getConflictType().equals(actualConflict.getConflictType())
+            ))
                 fail();
         });
     }
@@ -2230,18 +2263,6 @@ public class ApplicationTest {
             default:
                 return null;
         }
-    }
-
-    /**
-     * Получение записей данных версии справочника.
-     *
-     * @param versionId идентификатор версии
-     * @return Список записей
-     */
-    private List<RefBookRowValue> getVersionPageRowContent(Integer versionId) {
-        SearchDataCriteria criteria = new SearchDataCriteria(null, null);
-        Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
-        return rowValues.getContent();
     }
 
     /**

@@ -392,6 +392,7 @@ public class RefBookServiceImpl implements RefBookService {
      * @param refBookCode код справочника, на который ссылаются
      * @param sourceType  типа выбираемых версий справочников
      * @param referrerIds список идентификаторов ссылающихся справочников
+     *                    (если списка нет, выбираются все подходящие справочники)
      * @return Список справочников
      */
     @Override
