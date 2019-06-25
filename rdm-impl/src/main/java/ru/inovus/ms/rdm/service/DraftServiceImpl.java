@@ -54,6 +54,7 @@ import static ru.inovus.ms.rdm.util.ConverterUtil.*;
 public class DraftServiceImpl implements DraftService {
 
     private RefBookVersionRepository versionRepository;
+    private RefBookConflictRepository conflictRepository;
 
     private DraftDataService draftDataService;
     private DropDataService dropDataService;
@@ -84,7 +85,7 @@ public class DraftServiceImpl implements DraftService {
 
     @Autowired
     @SuppressWarnings("all")
-    public DraftServiceImpl(RefBookVersionRepository versionRepository,
+    public DraftServiceImpl(RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
                             DraftDataService draftDataService, DropDataService dropDataService, SearchDataService searchDataService,
                             RefBookService refBookService, RefBookLockService refBookLockService, VersionService versionService,
                             FileStorage fileStorage, FileNameGenerator fileNameGenerator,
@@ -92,6 +93,7 @@ public class DraftServiceImpl implements DraftService {
                             VersionValidation versionValidation,
                             PassportValueRepository passportValueRepository, AttributeValidationRepository attributeValidationRepository) {
         this.versionRepository = versionRepository;
+        this.conflictRepository = conflictRepository;
 
         this.draftDataService = draftDataService;
         this.dropDataService = dropDataService;
@@ -304,6 +306,8 @@ public class DraftServiceImpl implements DraftService {
         Draft draft = create(draftRequest);
 
         draftDataService.loadData(draft.getStorageCode(), sourceVersion.getStorageCode(), sourceVersion.getFromDate(), sourceVersion.getToDate());
+        conflictRepository.copyByReferrerVersion(versionId, draft.getId());
+
         return draft;
     }
 

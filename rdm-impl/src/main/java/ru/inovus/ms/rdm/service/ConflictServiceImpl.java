@@ -485,7 +485,9 @@ public class ConflictServiceImpl implements ConflictService {
         versionValidation.validateVersionExists(referrerVersionId);
 
         List<RefBookConflictEntity> refBookConflicts =
-                conflictRepository.findAllByReferrerVersionIdAndRefRecordIdIn(referrerVersionId, refRecordIds);
+                isEmpty(refRecordIds)
+                        ? conflictRepository.findAllByReferrerVersionId(referrerVersionId)
+                        : conflictRepository.findAllByReferrerVersionIdAndRefRecordIdIn(referrerVersionId, refRecordIds);
 
         return refBookConflicts
                 .stream()
@@ -638,6 +640,23 @@ public class ConflictServiceImpl implements ConflictService {
 
             conflicts.forEach(conflict -> create(referrer.getId(), newVersionId, conflict));
         });
+    }
+
+    /**
+     * Копирование конфликтов при смене версий справочника.
+     *
+     * @param oldVersionId идентификатор старой версии справочника
+     * @param newVersionId идентификатор новой версии справочника
+     */
+    @Override
+    @Transactional
+    public void copyConflicts(Integer oldVersionId, Integer newVersionId) {
+
+        versionValidation.validateVersionExists(oldVersionId);
+        versionValidation.validateVersionExists(newVersionId);
+
+        if (!newVersionId.equals(oldVersionId))
+            conflictRepository.copyByReferrerVersion(oldVersionId, newVersionId);
     }
 
     private RefBookConflict refBookConflictModel(RefBookConflictEntity entity) {

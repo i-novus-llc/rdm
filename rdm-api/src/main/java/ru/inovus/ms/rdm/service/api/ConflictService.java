@@ -260,4 +260,18 @@ public interface ConflictService {
                            @ApiParam("Идентификатор новой версии, на которую будут ссылаться")
                            @QueryParam("newVersionId")
                                    Integer newVersionId);
+
+    @POST
+    @Path("/copy")
+    @ApiOperation("Копирование конфликтов")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void copyConflicts(@ApiParam("Идентификатор старой версии, на которую ссылаются")
+                       @QueryParam("oldVersionId")
+                               Integer oldVersionId,
+                       @ApiParam("Идентификатор новой версии, на которую будут ссылаться")
+                       @QueryParam("newVersionId")
+                               Integer newVersionId);
 }
