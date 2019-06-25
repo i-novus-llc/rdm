@@ -49,6 +49,10 @@
             <select/>
         </field>
 
+        <field id="version.hasConflict" domain="boolean">
+            <select mapping="hasConflict"/>
+        </field>
+
         <field id="version.hasUpdatedConflict" domain="boolean">
             <select mapping="hasUpdatedConflict"/>
         </field>

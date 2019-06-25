@@ -11,6 +11,12 @@
                         </dependencies>
                     </output-text>
 
+                    <checkbox id="versionHasConflict" label="Есть конфликт" visible="false">
+                        <dependencies>
+                            <set-value on="version">version.hasConflict</set-value>
+                        </dependencies>
+                    </checkbox>
+
                     <checkbox id="versionHasUpdatedConflict" label="Есть конфликт обновления" visible="false">
                         <dependencies>
                             <set-value on="version">version.hasUpdatedConflict</set-value>
@@ -37,7 +43,7 @@
 
                 <toolbar place="bottomLeft">
                     <sub-menu label="Действия">
-                        <menu-item label="Опубликовать" visibility-condition="version.status=='DRAFT'">
+                        <menu-item label="Опубликовать" visibility-condition="version.status=='DRAFT' &amp;&amp; !versionHasConflict">
                             <show-modal page-id="publish" upload="defaults">
                                 <pre-filters>
                                     <eq field-id="version.id" value="{version.id}"/>
