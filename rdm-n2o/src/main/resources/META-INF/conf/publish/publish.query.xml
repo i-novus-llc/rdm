@@ -1,0 +1,138 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="publish">
+
+    <unique filters="version.id" result-mapping="#this">
+        <java class="ru.inovus.ms.rdm.service.RefBookPublishController"
+              method="getByVersionId">
+            <spring/>
+            <arguments>
+                <argument type="primitive"/>
+            </arguments>
+        </java>
+    </unique>
+
+    <fields>
+        <field id="id" domain="integer">
+            <select mapping="refBookId"/>
+            <filters>
+                <eq filter-id="id" mapping="refbookId"/>
+            </filters>
+        </field>
+
+        <field id="refBookId" domain="integer">
+            <select mapping="refBookId"/>
+        </field>
+
+        <field id="version.id" domain="integer">
+            <select mapping="id"/>
+            <filters>
+                <eq filter-id="version.id" mapping="[0]" domain="integer"/>
+            </filters>
+        </field>
+
+        <field id="version.version" domain="string">
+            <select mapping="
+                (archived ? 'В архиве: ' : '') +
+                (status?.toString()!='DRAFT' ?
+                 version :
+                 'Новая (изм. ' +
+                    editDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy')) +
+                    ')')
+                "/>
+        </field>
+
+        <field id="code" domain="string">
+            <select/>
+            <filters>
+                <eq filter-id="code" mapping="code"/>
+            </filters>
+            <sorting/>
+        </field>
+
+        <field id="status" domain="string">
+            <filters>
+                <eq filter-id="status.id" mapping="status" domain="string"/>
+            </filters>
+        </field>
+
+        <field id="archived" domain="boolean">
+            <select mapping="archived"/>
+        </field>
+
+        <!-- Passport values -->
+        <field id="name" domain="string">
+            <select mapping="passport['name']"/>
+            <filters>
+                <eq filter-id="name" mapping="passport['name']"/>
+            </filters>
+            <sorting/>
+        </field>
+
+        <field id="shortName" domain="string">
+            <select mapping="passport['shortName']"/>
+        </field>
+
+        <field id="description" domain="string">
+            <select mapping="passport['description']"/>
+        </field>
+        <!-- / Passport values -->
+
+        <field id="category.id" domain="string" name="Категория">
+            <select mapping="category"/>
+            <filters>
+                <eq filter-id="category.id" mapping="category" domain="string"/>
+            </filters>
+            <sorting/>
+        </field>
+
+<!--        <field id="lastPublishedVersion" domain="string">-->
+<!--            <select mapping="lastPublishedVersion"/>-->
+<!--        </field>-->
+
+<!--        <field id="hasPublishedVersion" domain="boolean">-->
+<!--            <select mapping="lastPublishedVersion != null"/>-->
+<!--            <filters>-->
+<!--                <eq filter-id="hasPublishedVersion" mapping="hasPublishedVersion"/>-->
+<!--            </filters>-->
+<!--        </field>-->
+
+        <!-- Checking conflicts -->
+        <field id="hasCheckDeletedConflicts" domain="string">
+            <select mapping="conflictReferrerNames['DELETED']?.length() > 0"/>
+        </field>
+        <field id="hasCheckUpdatedConflicts" domain="string">
+            <select mapping="conflictReferrerNames['UPDATED']?.length() > 0"/>
+        </field>
+
+        <field id="checkDeletedConflictReferrers" domain="string">
+            <select mapping="conflictReferrerNames['DELETED']"/>
+        </field>
+        <field id="checkUpdatedConflictReferrers" domain="string">
+            <select mapping="conflictReferrerNames['UPDATED']"/>
+        </field>
+        <!-- / Checking conflicts -->
+
+        <!-- Existing conflicts -->
+        <field id="hasConflict" domain="boolean">
+            <select/>
+        </field>
+
+        <field id="hasUpdatedConflict" domain="boolean">
+            <select/>
+        </field>
+        <!-- / Existing conflicts -->
+
+        <field id="editDate" domain="date">
+            <select/>
+        </field>
+
+        <field id="mayBePublished" domain="boolean">
+            <select mapping="
+                (!archived) and
+                (status?.toString()=='DRAFT') and
+                (!hasConflict)
+                "/>
+        </field>
+
+    </fields>
+</query>

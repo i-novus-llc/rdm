@@ -55,24 +55,6 @@
             </in-parameters>
         </operation>
 
-        <operation id="publish" submit-label="Опубликовать" success-text="Справочник опубликован"
-                   confirm="true" confirm-text="Вы уверены, что хотите опубликовать этот справочник?">
-            <invocation>
-                <java class="ru.inovus.ms.rdm.service.RefBookVersionController"
-                      method="publishDraft">
-                    <spring/>
-                    <arguments>
-                        <argument type="primitive" name="draftId" class="java.lang.Integer"/>
-                        <argument type="primitive" name="processResolvableConflicts" class="java.lang.Boolean"/>
-                    </arguments>
-                </java>
-            </invocation>
-            <in-parameters>
-                <param id="version.id" mapping="[0]" domain="integer" mapper="spel"/>
-                <param id="processResolvableConflicts" mapping="[1]" default-value="false" domain="boolean"/>
-            </in-parameters>
-        </operation>
-
         <operation id="refreshReferrer" submit-label="Обновить ссылки" success-text="Обновлены ссылки по первичным ключам"
                    confirm="true" confirm-text="Вы уверены, что хотите обновить ссылки?">
             <invocation>

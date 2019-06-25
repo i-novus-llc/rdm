@@ -38,7 +38,11 @@
                 <toolbar place="bottomLeft">
                     <sub-menu label="Действия">
                         <menu-item label="Опубликовать" visibility-condition="version.status=='DRAFT'">
-                            <invoke operation-id="publish"/>
+                            <show-modal page-id="publish" upload="defaults">
+                                <pre-filters>
+                                    <eq field-id="version.id" value="{version.id}"/>
+                                </pre-filters>
+                            </show-modal>
                         </menu-item>
                         <menu-item label="Обновить ссылки" visibility-condition="version.status=='DRAFT' &amp;&amp; versionHasUpdatedConflict">
                             <invoke operation-id="refreshReferrer"/>
