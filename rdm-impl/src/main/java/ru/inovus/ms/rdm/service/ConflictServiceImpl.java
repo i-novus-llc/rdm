@@ -342,21 +342,7 @@ public class ConflictServiceImpl implements ConflictService {
         versionValidation.validateVersionExists(refFromId);
         versionValidation.validateVersionExists(refToId);
 
-        RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
-        if (!refFromEntity.isDraft()) {
-            RefBookVersionEntity refLastEntity =
-                    versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(
-                            refFromEntity.getRefBook().getCode(),
-                            RefBookVersionStatus.PUBLISHED
-                    );
-            if (refLastEntity != null && !refLastEntity.getId().equals(refFromId))
-                throw new RdmException(VERSION_IS_NOT_LAST_PUBLISHED_EXCEPTION_CODE);
-
-            // NB: Изменение данных возможно только в черновике.
-            Draft draft = draftService.createFromVersion(refFromId);
-            refFromEntity = versionRepository.getOne(draft.getId());
-        }
-
+        RefBookVersionEntity refFromEntity = getOrCreateDraftEntity(refFromId);
         RefBookVersionEntity refToEntity = versionRepository.getOne(refToId);
 
         updateReferenceValues(refFromEntity, refToEntity, conflicts);
@@ -540,14 +526,7 @@ public class ConflictServiceImpl implements ConflictService {
 
         versionValidation.validateVersionExists(referrerVersionId);
 
-        RefBookVersionEntity entity = versionRepository.getOne(referrerVersionId);
-        if (!entity.isDraft()) {
-            // NB: Изменение данных возможно только в черновике.
-            Draft draft = draftService.createFromVersion(referrerVersionId);
-            entity = versionRepository.getOne(draft.getId());
-        }
-        RefBookVersionEntity referrerEntity = entity;
-
+        RefBookVersionEntity referrerEntity = getOrCreateDraftEntity(referrerVersionId);
         List<Structure.Reference> references = referrerEntity.getStructure().getReferences();
         if (isEmpty(references))
             return;
@@ -901,5 +880,30 @@ public class ConflictServiceImpl implements ConflictService {
                                     singletonList(new FieldSearchCriteria(field(refFromAttribute), SearchTypeEnum.EXACT, singletonList(value)))
                             );
                 }).collect(toSet());
+    }
+
+    /**
+     * Получение или создание entity версии-черновика справочника.
+     *
+     * @param versionId версия справочника
+     * @return Entity версии-черновика справочника
+     */
+    private RefBookVersionEntity getOrCreateDraftEntity(Integer versionId) {
+
+        RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
+        if (versionEntity.isDraft())
+            return versionEntity;
+
+        RefBookVersionEntity refLastEntity =
+                versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(
+                        versionEntity.getRefBook().getCode(),
+                        RefBookVersionStatus.PUBLISHED
+                );
+        if (refLastEntity != null && !refLastEntity.getId().equals(versionId))
+            throw new RdmException(VERSION_IS_NOT_LAST_PUBLISHED_EXCEPTION_CODE);
+
+        // NB: Изменение данных возможно только в черновике.
+        Draft draft = draftService.createFromVersion(versionId);
+        return versionRepository.getOne(draft.getId());
     }
 }
