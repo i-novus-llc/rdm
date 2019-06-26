@@ -27,12 +27,13 @@
         </fields>
 
         <toolbar place="bottomRight">
-            <button id="publishDraft" label="Опубликовать">
+            <button id="publishDraft" label="Опубликовать"
+                    visibility-condition="isPublishing">
                 <invoke operation-id="publishDraft" close-after-success="true"/>
             </button>
 
             <button id="publishAndRefresh" label="Опубликовать и обновить ссылки"
-                    visibility-condition="hasCheckUpdatedConflicts">
+                    visibility-condition="isPublishing &amp;&amp; hasCheckUpdatedConflicts">
                 <invoke operation-id="publishAndRefresh" close-after-success="true"/>
             </button>
 
