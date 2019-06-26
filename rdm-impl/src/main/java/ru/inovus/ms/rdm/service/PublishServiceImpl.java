@@ -147,6 +147,7 @@ public class PublishServiceImpl implements PublishService {
             if (lastPublishedVersion != null) {
                 // NB: Конфликты могут быть только при наличии
                 // ссылочных атрибутов со значениями для ранее опубликованной версии.
+                conflictService.dropPublishedConflicts(lastPublishedVersion.getRefBook().getId());
                 conflictService.discoverConflicts(lastPublishedVersion.getId(), draftId);
 
                 if (resolveConflicts) {
