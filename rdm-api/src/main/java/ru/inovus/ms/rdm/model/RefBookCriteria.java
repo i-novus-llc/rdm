@@ -44,7 +44,7 @@ public class RefBookCriteria extends AbstractCriteria {
     @QueryParam("hasPublished")
     private boolean hasPublished;
 
-    @ApiModelProperty("У справочника есть черновик")
+    @ApiModelProperty("Наличие черновика")
     @QueryParam("hasDraft")
     private boolean hasDraft;
 

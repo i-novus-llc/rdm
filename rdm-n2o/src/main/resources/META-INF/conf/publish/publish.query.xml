@@ -59,43 +59,6 @@
             <select mapping="archived"/>
         </field>
 
-        <!-- Passport values -->
-        <field id="name" domain="string">
-            <select mapping="passport['name']"/>
-            <filters>
-                <eq filter-id="name" mapping="passport['name']"/>
-            </filters>
-            <sorting/>
-        </field>
-
-        <field id="shortName" domain="string">
-            <select mapping="passport['shortName']"/>
-        </field>
-
-        <field id="description" domain="string">
-            <select mapping="passport['description']"/>
-        </field>
-        <!-- / Passport values -->
-
-        <field id="category.id" domain="string" name="Категория">
-            <select mapping="category"/>
-            <filters>
-                <eq filter-id="category.id" mapping="category" domain="string"/>
-            </filters>
-            <sorting/>
-        </field>
-
-<!--        <field id="lastPublishedVersion" domain="string">-->
-<!--            <select mapping="lastPublishedVersion"/>-->
-<!--        </field>-->
-
-<!--        <field id="hasPublishedVersion" domain="boolean">-->
-<!--            <select mapping="lastPublishedVersion != null"/>-->
-<!--            <filters>-->
-<!--                <eq filter-id="hasPublishedVersion" mapping="hasPublishedVersion"/>-->
-<!--            </filters>-->
-<!--        </field>-->
-
         <!-- Checking conflicts -->
         <field id="hasCheckDeletedConflicts" domain="string">
             <select mapping="conflictReferrerNames['DELETED']?.length() > 0"/>

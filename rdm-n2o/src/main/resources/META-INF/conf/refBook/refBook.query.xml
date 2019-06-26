@@ -95,12 +95,24 @@
             <sorting/>
         </field>
 
+        <field id="draftVersionId" domain="integer">
+            <select/>
+        </field>
+
+        <field id="lastPublishedVersionId" domain="integer">
+            <select/>
+        </field>
+
+        <field id="version.isLast" domain="boolean">
+            <select mapping="id == draftVersionId or (id == lastPublishedVersionId and draftVersionId == null)"/>
+        </field>
+
         <field id="lastPublishedVersion" domain="string">
             <select mapping="lastPublishedVersion"/>
         </field>
 
         <field id="hasPublishedVersion" domain="boolean">
-            <select mapping="lastPublishedVersion != null"/>
+            <select mapping="lastPublishedVersionId != null"/>
             <filters>
                 <eq filter-id="hasPublishedVersion" mapping="hasPublishedVersion"/>
             </filters>
@@ -122,12 +134,12 @@
             </filters>
         </field>
 
-        <field id="hasConflict" domain="boolean">
-            <select/>
+        <field id="version.hasConflict" domain="boolean">
+            <select mapping="hasConflict"/>
         </field>
 
-        <field id="hasUpdatedConflict" domain="boolean">
-            <select/>
+        <field id="version.hasUpdatedConflict" domain="boolean">
+            <select mapping="hasUpdatedConflict"/>
         </field>
 
         <field id="lastHasConflict" domain="boolean">

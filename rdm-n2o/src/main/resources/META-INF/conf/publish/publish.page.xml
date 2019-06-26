@@ -29,12 +29,14 @@
         <toolbar place="bottomRight">
             <button id="publishDraft" label="Опубликовать">
                 <invoke operation-id="publishDraft"
+                        redirect-target-after-submit="self"
                         redirect-url="${server.servlet.context-path}/#/main/:refBookId/edit"/>
             </button>
 
             <button id="publishAndRefresh" label="Опубликовать и обновить ссылки"
                     visibility-condition="hasCheckUpdatedConflicts">
                 <invoke operation-id="publishAndRefresh"
+                        redirect-target-after-submit="self"
                         redirect-url="${server.servlet.context-path}/#/main/:refBookId/edit"/>
             </button>
 
