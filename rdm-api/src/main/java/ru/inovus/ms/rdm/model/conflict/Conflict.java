@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.model;
+package ru.inovus.ms.rdm.model.conflict;
 
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;

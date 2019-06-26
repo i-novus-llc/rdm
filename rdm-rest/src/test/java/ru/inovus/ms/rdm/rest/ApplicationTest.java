@@ -33,6 +33,8 @@ import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
+import ru.inovus.ms.rdm.model.conflict.Conflict;
+import ru.inovus.ms.rdm.model.conflict.RefBookConflict;
 import ru.inovus.ms.rdm.service.api.*;
 
 import javax.sql.DataSource;

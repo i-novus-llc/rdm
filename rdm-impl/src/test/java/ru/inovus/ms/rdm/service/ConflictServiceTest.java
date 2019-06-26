@@ -22,6 +22,7 @@ import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.conflict.Conflict;
 import ru.inovus.ms.rdm.repositiory.RefBookConflictRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.DraftService;
@@ -31,7 +32,6 @@ import ru.inovus.ms.rdm.validation.VersionValidation;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;

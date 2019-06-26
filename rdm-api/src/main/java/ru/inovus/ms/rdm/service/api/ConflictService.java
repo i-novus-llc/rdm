@@ -2,8 +2,8 @@ package ru.inovus.ms.rdm.service.api;
 
 import io.swagger.annotations.*;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
-import ru.inovus.ms.rdm.model.Conflict;
-import ru.inovus.ms.rdm.model.RefBookConflict;
+import ru.inovus.ms.rdm.model.conflict.Conflict;
+import ru.inovus.ms.rdm.model.conflict.RefBookConflict;
 import ru.inovus.ms.rdm.model.RefBookVersion;
 
 import javax.ws.rs.*;
