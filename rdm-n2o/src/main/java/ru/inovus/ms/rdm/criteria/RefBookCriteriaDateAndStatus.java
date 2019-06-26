@@ -1,7 +1,7 @@
 package ru.inovus.ms.rdm.criteria;
 
 import io.swagger.annotations.ApiModel;
-import ru.inovus.ms.rdm.model.RefBookCriteria;
+import ru.inovus.ms.rdm.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.model.RefBookStatus;
 
 import java.time.LocalDateTime;

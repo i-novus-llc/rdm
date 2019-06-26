@@ -1,7 +1,8 @@
-package ru.inovus.ms.rdm.model;
+package ru.inovus.ms.rdm.model.version;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import ru.inovus.ms.rdm.model.AbstractCriteria;
 
 import javax.ws.rs.QueryParam;
 

@@ -1,7 +1,8 @@
-package ru.inovus.ms.rdm.model;
+package ru.inovus.ms.rdm.model.draft;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import ru.inovus.ms.rdm.model.Structure;
 
 import java.io.Serializable;
 import java.util.Map;

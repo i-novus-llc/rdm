@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.model;
+package ru.inovus.ms.rdm.model.draft;
 
 public class Draft {
     private Integer id;

@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.model;
+package ru.inovus.ms.rdm.model.refdata;
 
 import java.util.Map;
 import java.util.Objects;

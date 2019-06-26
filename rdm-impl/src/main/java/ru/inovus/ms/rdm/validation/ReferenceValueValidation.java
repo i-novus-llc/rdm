@@ -8,6 +8,11 @@ import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.version.AttributeFilter;
+import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.model.refdata.Row;
+import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.util.*;

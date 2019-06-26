@@ -4,6 +4,13 @@ import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.version.CreateAttribute;
+import ru.inovus.ms.rdm.model.version.UpdateAttribute;
+import ru.inovus.ms.rdm.model.draft.CreateDraftRequest;
+import ru.inovus.ms.rdm.model.draft.Draft;
+import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.model.refdata.Row;
+import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.validation.AttributeValidation;
 import ru.inovus.ms.rdm.model.validation.AttributeValidationType;
 
@@ -108,7 +115,7 @@ public interface DraftService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     Page<RefBookRowValue> search(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
-                          @BeanParam SearchDataCriteria criteria);
+                                 @BeanParam SearchDataCriteria criteria);
 
     @POST
     @Path("{draftId}/remove")

@@ -1,9 +1,11 @@
-package ru.inovus.ms.rdm.model;
+package ru.inovus.ms.rdm.model.version;
 
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.model.UpdatableDto;
 import ru.inovus.ms.rdm.util.TimeUtils;
 
-import static ru.inovus.ms.rdm.model.UpdateValue.of;
+import static ru.inovus.ms.rdm.model.version.UpdateValue.of;
 
 public class UpdateAttribute extends UpdatableDto {
 

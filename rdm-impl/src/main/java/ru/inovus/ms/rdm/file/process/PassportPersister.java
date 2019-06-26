@@ -1,6 +1,6 @@
 package ru.inovus.ms.rdm.file.process;
 
-import ru.inovus.ms.rdm.model.RefBookUpdateRequest;
+import ru.inovus.ms.rdm.model.refbook.RefBookUpdateRequest;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.util.Map;

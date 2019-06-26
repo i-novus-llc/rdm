@@ -1,4 +1,6 @@
-package ru.inovus.ms.rdm.model;
+package ru.inovus.ms.rdm.model.diff;
+
+import ru.inovus.ms.rdm.model.version.PassportAttribute;
 
 import java.util.Objects;
 

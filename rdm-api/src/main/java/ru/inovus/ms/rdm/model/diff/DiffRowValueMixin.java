@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.model;
+package ru.inovus.ms.rdm.model.diff;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

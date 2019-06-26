@@ -11,7 +11,7 @@ import ru.inovus.ms.rdm.entity.*;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.export.*;
-import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.ConflictService;
 import ru.inovus.ms.rdm.service.api.PublishService;

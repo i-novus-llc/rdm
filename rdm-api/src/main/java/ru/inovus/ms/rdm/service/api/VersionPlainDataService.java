@@ -2,7 +2,7 @@ package ru.inovus.ms.rdm.service.api;
 
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
-import ru.inovus.ms.rdm.model.SearchDataCriteria;
+import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;

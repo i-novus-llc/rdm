@@ -15,9 +15,9 @@ import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.*;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.service.FieldFactoryImpl;
 import ru.inovus.ms.rdm.exception.RdmException;
-import ru.inovus.ms.rdm.model.AttributeFilter;
-import ru.inovus.ms.rdm.model.RefBookRowValue;
-import ru.inovus.ms.rdm.model.Row;
+import ru.inovus.ms.rdm.model.version.AttributeFilter;
+import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.Structure;
 
 import java.math.BigInteger;

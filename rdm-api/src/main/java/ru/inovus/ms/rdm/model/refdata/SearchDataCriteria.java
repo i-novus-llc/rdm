@@ -1,7 +1,9 @@
-package ru.inovus.ms.rdm.model;
+package ru.inovus.ms.rdm.model.refdata;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import ru.inovus.ms.rdm.model.AbstractCriteria;
+import ru.inovus.ms.rdm.model.version.AttributeFilter;
 
 import javax.ws.rs.QueryParam;
 import java.util.List;
@@ -10,6 +12,7 @@ import java.util.Set;
 
 @ApiModel("Критерии поиска данных справочника")
 public class SearchDataCriteria extends AbstractCriteria {
+
     @ApiModelProperty("Множество фильтров по отдельным полям")
     @QueryParam("attributeFilter")
     private Set<List<AttributeFilter>> attributeFilter;

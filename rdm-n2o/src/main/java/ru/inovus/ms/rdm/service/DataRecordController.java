@@ -5,10 +5,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.inovus.ms.rdm.model.AttributeFilter;
-import ru.inovus.ms.rdm.model.RefBookRowValue;
-import ru.inovus.ms.rdm.model.Row;
-import ru.inovus.ms.rdm.model.SearchDataCriteria;
+import ru.inovus.ms.rdm.model.version.AttributeFilter;
+import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.model.refdata.Row;
+import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 

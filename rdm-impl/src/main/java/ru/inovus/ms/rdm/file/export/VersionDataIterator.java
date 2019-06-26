@@ -2,9 +2,9 @@ package ru.inovus.ms.rdm.file.export;
 
 import org.springframework.data.domain.Page;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.inovus.ms.rdm.model.RefBookRowValue;
-import ru.inovus.ms.rdm.model.Row;
-import ru.inovus.ms.rdm.model.SearchDataCriteria;
+import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.model.refdata.Row;
+import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 

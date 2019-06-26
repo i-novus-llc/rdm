@@ -1,8 +1,9 @@
-package ru.inovus.ms.rdm.model;
+package ru.inovus.ms.rdm.model.version;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.model.Structure;
 
 import java.time.LocalDateTime;
 import java.util.Map;

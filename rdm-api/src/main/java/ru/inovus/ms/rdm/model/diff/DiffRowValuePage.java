@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.model;
+package ru.inovus.ms.rdm.model.diff;
 
 import net.n2oapp.criteria.api.CollectionPage;
 import org.springframework.data.domain.PageImpl;

@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.model;
+package ru.inovus.ms.rdm.model.refbook;
 
 public class RefBookUpdateRequest extends RefBookCreateRequest {
 

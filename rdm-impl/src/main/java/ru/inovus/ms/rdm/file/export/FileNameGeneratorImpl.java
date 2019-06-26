@@ -2,7 +2,7 @@ package ru.inovus.ms.rdm.file.export;
 
 import org.springframework.stereotype.Component;
 import ru.inovus.ms.rdm.enumeration.FileType;
-import ru.inovus.ms.rdm.model.RefBookVersion;
+import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.util.FileNameGenerator;
 
 /**

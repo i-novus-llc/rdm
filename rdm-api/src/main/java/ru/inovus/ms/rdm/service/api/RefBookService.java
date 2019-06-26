@@ -3,7 +3,12 @@ package ru.inovus.ms.rdm.service.api;
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
 import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
-import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.refbook.RefBook;
+import ru.inovus.ms.rdm.model.refbook.RefBookCreateRequest;
+import ru.inovus.ms.rdm.model.refbook.RefBookCriteria;
+import ru.inovus.ms.rdm.model.refbook.RefBookUpdateRequest;
+import ru.inovus.ms.rdm.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.model.version.VersionCriteria;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;

@@ -19,7 +19,7 @@ import ru.i_novus.platform.versioned_data_storage.pg_impl.model.IntegerField;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 import ru.inovus.ms.rdm.file.process.BufferedRowsPersister;
 import ru.inovus.ms.rdm.model.Result;
-import ru.inovus.ms.rdm.model.Row;
+import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.Structure;
 
 import java.math.BigInteger;

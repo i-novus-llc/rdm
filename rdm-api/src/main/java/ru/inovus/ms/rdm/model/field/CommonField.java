@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.model;
+package ru.inovus.ms.rdm.model.field;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import ru.i_novus.platform.datastorage.temporal.model.Field;

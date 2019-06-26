@@ -1,8 +1,9 @@
-package ru.inovus.ms.rdm.model;
+package ru.inovus.ms.rdm.model.refbook;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
+import ru.inovus.ms.rdm.model.AbstractCriteria;
 
 import javax.ws.rs.QueryParam;
 import java.time.LocalDateTime;

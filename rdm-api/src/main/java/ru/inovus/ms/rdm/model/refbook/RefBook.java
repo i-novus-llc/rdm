@@ -1,9 +1,10 @@
-package ru.inovus.ms.rdm.model;
+package ru.inovus.ms.rdm.model.refbook;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import ru.inovus.ms.rdm.enumeration.RefBookOperation;
+import ru.inovus.ms.rdm.model.version.RefBookVersion;
 
 import java.time.LocalDateTime;
 

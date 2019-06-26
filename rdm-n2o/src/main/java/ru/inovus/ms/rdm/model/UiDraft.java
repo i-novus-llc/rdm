@@ -1,5 +1,7 @@
 package ru.inovus.ms.rdm.model;
 
+import ru.inovus.ms.rdm.model.draft.Draft;
+
 import java.util.Objects;
 
 public class UiDraft extends Draft {

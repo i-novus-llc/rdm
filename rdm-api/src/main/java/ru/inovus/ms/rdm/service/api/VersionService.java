@@ -4,6 +4,10 @@ import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.refbook.RefBookUpdateRequest;
+import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.model.version.RefBookVersion;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;

@@ -4,7 +4,7 @@ import io.swagger.annotations.*;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.model.conflict.Conflict;
 import ru.inovus.ms.rdm.model.conflict.RefBookConflict;
-import ru.inovus.ms.rdm.model.RefBookVersion;
+import ru.inovus.ms.rdm.model.version.RefBookVersion;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;

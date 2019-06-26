@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.model;
+package ru.inovus.ms.rdm.model.diff;
 
 import org.springframework.data.domain.Page;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;

@@ -10,7 +10,7 @@ import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
-import ru.inovus.ms.rdm.model.Row;
+import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 
