@@ -81,13 +81,13 @@ public class PublishServiceImpl implements PublishService {
      *                                   (если не указано, используется встроенная нумерация)
      * @param fromDate                   дата начала действия опубликованной версии
      * @param toDate                     дата окончания действия опубликованной версии
-     * @param processResolvableConflicts признак обработка разрешаемых конфликтов
+     * @param resolveConflicts признак обработка разрешаемых конфликтов
      */
     @Override
     // NB: Добавление Transactional приводит к падению в тестах.
     public void publish(Integer draftId, String versionName,
                         LocalDateTime fromDate, LocalDateTime toDate,
-                        boolean processResolvableConflicts) {
+                        boolean resolveConflicts) {
 
         versionValidation.validateDraft(draftId);
 
@@ -149,7 +149,7 @@ public class PublishServiceImpl implements PublishService {
                 // ссылочных атрибутов со значениями для ранее опубликованной версии.
                 conflictService.discoverConflicts(lastPublishedVersion.getId(), draftId);
 
-                if (processResolvableConflicts) {
+                if (resolveConflicts) {
                     conflictService.refreshLastReferrersByPrimary(lastPublishedVersion.getRefBook().getCode());
                 }
             }

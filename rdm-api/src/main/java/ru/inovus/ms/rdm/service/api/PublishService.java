@@ -34,6 +34,6 @@ public interface PublishService {
                          LocalDateTime toDate,
                  @ApiParam("Обработка разрешаемых конфликтов")
                  @DefaultValue("false")
-                 @QueryParam("processResolvableConflicts")
-                 boolean processResolvableConflicts);
+                 @QueryParam("resolveConflicts")
+                 boolean resolveConflicts);
 }

@@ -58,7 +58,7 @@
         <operation id="refreshReferrer" submit-label="Обновить ссылки" success-text="Обновлены ссылки по первичным ключам"
                    confirm="true" confirm-text="Вы уверены, что хотите обновить ссылки?">
             <invocation>
-                <java class="ru.inovus.ms.rdm.service.RefBookVersionController"
+                <java class="ru.inovus.ms.rdm.service.ConflictController"
                       method="refreshReferrer">
                     <spring/>
                     <arguments>

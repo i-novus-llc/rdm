@@ -7,6 +7,7 @@ import ru.inovus.ms.rdm.model.RefBook;
 import ru.inovus.ms.rdm.model.RefBookVersion;
 import ru.inovus.ms.rdm.model.UiRefBookPublish;
 import ru.inovus.ms.rdm.service.api.ConflictService;
+import ru.inovus.ms.rdm.service.api.PublishService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 
 import java.util.Map;
@@ -23,11 +24,15 @@ public class RefBookPublishController {
     private static final String REFERRER_NAME_SEPARATOR = ", ";
 
     private RefBookService refBookService;
+    private PublishService publishService;
     private ConflictService conflictService;
 
     @Autowired
-    public RefBookPublishController(RefBookService refBookService, ConflictService conflictService) {
+    public RefBookPublishController(RefBookService refBookService,
+                                    PublishService publishService, ConflictService conflictService) {
         this.refBookService = refBookService;
+
+        this.publishService = publishService;
         this.conflictService = conflictService;
     }
 
@@ -47,6 +52,24 @@ public class RefBookPublishController {
         uiRefBookPublish.setConflictReferrerNames(conflictReferrerNames);
 
         return uiRefBookPublish;
+    }
+
+    /**
+     * Публикация черновика справочника.
+     *
+     * @param draftId идентификатор черновика
+     */
+    void publishDraft(Integer draftId) {
+        publishService.publish(draftId, null, null, null, false);
+    }
+
+    /**
+     * Публикация черновика справочника с обновлением ссылок.
+     *
+     * @param draftId идентификатор черновика
+     */
+    void publishAndRefresh(Integer draftId) {
+        publishService.publish(draftId, null, null, null, true);
     }
 
     /**

@@ -27,9 +27,14 @@ public interface RefBookConflictRepository extends
 
     List<RefBookConflictEntity> findAllByReferrerVersionId(Integer referrerId);
 
-    List<RefBookConflictEntity> findAllByReferrerVersionIdAndRefRecordIdIn(Integer referrerId, List<Long> refRecordIds);
+    // NB: refRecordIds is limited by page size.
+    List<RefBookConflictEntity> findAllByReferrerVersionIdAndRefRecordIdIn(
+            Integer referrerVersionId, List<Long> refRecordIds
+    );
 
-    List<RefBookConflictEntity> findAllByReferrerVersionIdAndRefFieldCodeAndConflictType(Integer referrerId, String refFieldCode, ConflictType conflictType);
+    List<RefBookConflictEntity> findAllByReferrerVersionIdAndRefFieldCodeAndConflictType(
+            Integer referrerVersionId, String refFieldCode, ConflictType conflictType
+    );
 
     @Modifying
     @Query(nativeQuery = true,
@@ -42,4 +47,6 @@ public interface RefBookConflictRepository extends
                     " where referrer_id = :oldReferrerVersionId")
     void copyByReferrerVersion(@Param("oldReferrerVersionId") Integer oldReferrerVersionId,
                                @Param("newReferrerVersionId") Integer newReferrerVersionId);
+
+    void deleteByPublishedVersionRefBookId(Integer publishedRefBookId);
 }
