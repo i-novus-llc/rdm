@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.file.export;
 
 import org.springframework.data.domain.Page;
+import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.Row;
@@ -47,7 +48,7 @@ public class VersionDataIterator implements Iterator<Row> {
         criteria.setPageSize(BUFFER_SIZE);
         criteria.setPageNumber(currentPage++);
         Page<RefBookRowValue> page = versionService.search(currentVersionId, criteria);
-        if (page != null && page.getContent() != null && !page.getContent().isEmpty()){
+        if (page != null && !CollectionUtils.isEmpty(page.getContent())){
             buffer = page.getContent().iterator();
             return true;
         } else if (versionIdIterator.hasNext()){
