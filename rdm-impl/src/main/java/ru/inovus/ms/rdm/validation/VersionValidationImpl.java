@@ -13,7 +13,7 @@ import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
 @Component
 public class VersionValidationImpl implements VersionValidation {
 
-    private static final String REFBOOK_NOT_FOUND_EXCEPTION_CODE = "refbook.not.found";
+    public static final String REFBOOK_NOT_FOUND_EXCEPTION_CODE = "refbook.not.found";
     private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
     public static final String DRAFT_NOT_FOUND_EXCEPTION_CODE = "draft.not.found";
     public static final String REFBOOK_IS_ARCHIVED_EXCEPTION_CODE = "refbook.is.archived";

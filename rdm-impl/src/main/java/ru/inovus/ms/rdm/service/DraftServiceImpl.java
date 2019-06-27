@@ -46,6 +46,7 @@ import ru.inovus.ms.rdm.util.*;
 import ru.inovus.ms.rdm.validation.PrimaryKeyUniqueValidation;
 import ru.inovus.ms.rdm.validation.ReferenceValidation;
 import ru.inovus.ms.rdm.validation.VersionValidation;
+import ru.inovus.ms.rdm.validation.VersionValidationImpl;
 import ru.kirkazan.common.exception.CodifiedException;
 
 import java.io.IOException;
@@ -244,7 +245,7 @@ public class DraftServiceImpl implements DraftService {
             RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
             RefBookVersionEntity draftVersion = getDraftByRefBook(refBookId);
             if (draftVersion == null && lastRefBookVersion == null)
-                throw new NotFoundException(new Message(RefBookServiceImpl.REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
+                throw new NotFoundException(new Message(VersionValidationImpl.REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
 
             // NB: structure == null means that draft was created during passport saving
             if (draftVersion != null && draftVersion.getStructure() != null) {
