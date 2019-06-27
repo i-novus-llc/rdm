@@ -84,7 +84,7 @@ public class PublishServiceImpl implements PublishService {
      * @param resolveConflicts признак разрешения конфликтов
      */
     @Override
-    // NB: Добавление Transactional приводит к падению в тестах.
+    // NB: Добавление @Transactional приводит к ошибке "deleted instance passed to merge" в тестах.
     public void publish(Integer draftId, String versionName,
                         LocalDateTime fromDate, LocalDateTime toDate,
                         boolean resolveConflicts) {
