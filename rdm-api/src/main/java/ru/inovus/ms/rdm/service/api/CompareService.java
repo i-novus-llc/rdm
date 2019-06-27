@@ -39,7 +39,9 @@ public interface CompareService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    RefBookDataDiff compareData(@BeanParam CompareDataCriteria compareDataCriteria);
+    RefBookDataDiff compareData(@ApiParam("Критерий сравнения")
+                                @BeanParam
+                                        CompareDataCriteria compareDataCriteria);
 
     @GET
     @Path("/getCommonComparableRows")
@@ -49,7 +51,9 @@ public interface CompareService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Page<ComparableRow> getCommonComparableRows(@BeanParam CompareDataCriteria criteria);
+    Page<ComparableRow> getCommonComparableRows(@ApiParam("Критерий сравнения")
+                                                @BeanParam
+                                                        CompareDataCriteria criteria);
 
     @GET
     @Path("/structures")
@@ -60,9 +64,9 @@ public interface CompareService {
     })
     StructureDiff compareStructures(@ApiParam("Идентификатор старой версии")
                                     @QueryParam("oldVersionId")
-                                    Integer oldVersionId,
+                                            Integer oldVersionId,
                                     @ApiParam("Идентификатор новой версии")
                                     @QueryParam("newVersionId")
-                                    Integer newVersionId);
+                                            Integer newVersionId);
 
 }

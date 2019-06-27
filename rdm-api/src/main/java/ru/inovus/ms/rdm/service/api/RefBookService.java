@@ -21,15 +21,17 @@ import java.util.List;
 public interface RefBookService {
 
     @GET
-    @ApiOperation("Поиск справочников по критериям")
-    @ApiImplicitParams(@ApiImplicitParam(name = "sort", value = "Параметры сортировки", required = false, allowMultiple = true,
-            paramType = "query", dataType = "string"))
+    @ApiOperation("Поиск справочников по параметрам критерия")
+    @ApiImplicitParams(@ApiImplicitParam(name = "sort", value = "Параметры сортировки",
+            required = false, allowMultiple = true, paramType = "query", dataType = "string"))
 
     @ApiResponses({
             @ApiResponse(code = 200, message = "Список справочников"),
             @ApiResponse(code = 400, message = "Некорректный запрос")
     })
-    Page<RefBook> search(@BeanParam RefBookCriteria criteria);
+    Page<RefBook> search(@ApiParam("Критерий поиска")
+                         @BeanParam
+                                 RefBookCriteria criteria);
 
     @GET
     @Path("/version/{id}")
@@ -38,7 +40,9 @@ public interface RefBookService {
             @ApiResponse(code = 200, message = "Справочник"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    RefBook getByVersionId(@PathParam("id") @ApiParam("Идентификатор версии") Integer versionId);
+    RefBook getByVersionId(@ApiParam("Идентификатор версии")
+                           @PathParam("id")
+                                   Integer versionId);
 
     @GET
     @Path("/{id}")
@@ -47,7 +51,9 @@ public interface RefBookService {
             @ApiResponse(code = 200, message = "Справочник"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    String getCode(@ApiParam("Идентификатор справочника") @PathParam("id") Integer refBookId);
+    String getCode(@ApiParam("Идентификатор справочника")
+                   @PathParam("id")
+                           Integer refBookId);
 
     @GET
     @Path("/code/{refBookCode}")
@@ -56,7 +62,9 @@ public interface RefBookService {
             @ApiResponse(code = 200, message = "Справочник"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Integer getId(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode);
+    Integer getId(@ApiParam("Код справочника")
+                  @PathParam("refBookCode")
+                          String refBookCode);
 
     @POST
     @ApiOperation("Создание нового справочника")
@@ -82,7 +90,9 @@ public interface RefBookService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void delete(@QueryParam("refBookId") int refBookId);
+    void delete(@ApiParam("Идентификатор справочника")
+                @QueryParam("refBookId")
+                        int refBookId);
 
     @POST
     @Path("/{refBookId}/toArchive")
@@ -91,7 +101,9 @@ public interface RefBookService {
             @ApiResponse(code = 200, message = "Справочник в архиве"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void toArchive(@ApiParam("Идентификатор справочника") @PathParam("refBookId") int refBookId);
+    void toArchive(@ApiParam("Идентификатор справочника")
+                   @PathParam("refBookId")
+                           int refBookId);
 
     @POST
     @Path("/{refBookId}/fromArchive")
@@ -100,7 +112,9 @@ public interface RefBookService {
             @ApiResponse(code = 200, message = "Справочник возвращен из архива"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void fromArchive(@ApiParam("Идентификатор справочника") @PathParam("refBookId") int refBookId);
+    void fromArchive(@ApiParam("Идентификатор справочника")
+                     @PathParam("refBookId")
+                             int refBookId);
 
     @GET
     @Path("/versions")
@@ -110,7 +124,8 @@ public interface RefBookService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Page<RefBookVersion> getVersions(@BeanParam VersionCriteria criteria);
+    Page<RefBookVersion> getVersions(@BeanParam
+                                             VersionCriteria criteria);
 
     @GET
     @Path("versions/referrers/{refBookCode}")
