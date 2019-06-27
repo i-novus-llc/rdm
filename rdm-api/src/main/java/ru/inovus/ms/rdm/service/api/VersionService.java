@@ -21,7 +21,7 @@ import java.util.List;
 public interface VersionService {
 
     @GET
-    @ApiOperation("Получения записей версии, с фильтрацией")
+    @ApiOperation("Получение записей версии, с фильтрацией")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 400, message = "Некорректный запрос"),
