@@ -1,9 +1,11 @@
 package ru.inovus.ms.rdm.service.api;
 
 import io.swagger.annotations.*;
+import org.springframework.data.domain.Page;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.model.conflict.Conflict;
 import ru.inovus.ms.rdm.model.conflict.RefBookConflict;
+import ru.inovus.ms.rdm.model.conflict.RefBookConflictCriteria;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
 
 import javax.ws.rs.*;
@@ -91,6 +93,19 @@ public interface ConflictService {
                                     @ApiParam("Список конфликтов")
                                             List<Conflict> conflicts);
 
+
+    @GET
+    @ApiOperation("Поиск конфликтов по параметрам критерия")
+    @ApiImplicitParams(@ApiImplicitParam(name = "sort", value = "Параметры сортировки", required = false, allowMultiple = true,
+            paramType = "query", dataType = "string"))
+
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Список конфликтов"),
+            @ApiResponse(code = 400, message = "Некорректный запрос")
+    })
+    Page<RefBookConflict> search(@ApiParam("Критерий поиска")
+                                 @BeanParam
+                                         RefBookConflictCriteria criteria);
 
     @POST
     @Path("/create")
