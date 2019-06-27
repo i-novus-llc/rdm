@@ -24,11 +24,6 @@ public class Conflict {
         this.primaryValues = primaryValues;
     }
 
-    public Conflict(ConflictType conflictType, List<FieldValue> primaryValues) {
-        this.conflictType = conflictType;
-        this.primaryValues = primaryValues;
-    }
-
     public String getRefAttributeCode() {
         return refAttributeCode;
     }
