@@ -76,12 +76,12 @@ public class PublishServiceImpl implements PublishService {
     /**
      * Публикация черновика справочника.
      *
-     * @param draftId                    идентификатор черновика справочника
-     * @param versionName                версия, под которой публикуется черновик
-     *                                   (если не указано, используется встроенная нумерация)
-     * @param fromDate                   дата начала действия опубликованной версии
-     * @param toDate                     дата окончания действия опубликованной версии
-     * @param resolveConflicts признак обработка разрешаемых конфликтов
+     * @param draftId          идентификатор черновика справочника
+     * @param versionName      версия, под которой публикуется черновик
+     *                         (если не указано, используется встроенная нумерация)
+     * @param fromDate         дата начала действия опубликованной версии
+     * @param toDate           дата окончания действия опубликованной версии
+     * @param resolveConflicts признак разрешения конфликтов
      */
     @Override
     // NB: Добавление Transactional приводит к падению в тестах.
@@ -125,10 +125,11 @@ public class PublishServiceImpl implements PublishService {
             draftEntity.setStatus(RefBookVersionStatus.PUBLISHED);
             draftEntity.setFromDate(fromDate);
             draftEntity.setToDate(toDate);
-            resolveOverlappingPeriodsInFuture(fromDate, toDate, refBookId);
+            resolveOverlappingPeriodsInFuture(fromDate, toDate, refBookId, draftEntity.getId());
             versionRepository.save(draftEntity);
 
-            if (lastPublishedVersion != null && lastPublishedVersion.getStorageCode() != null
+            if (lastPublishedVersion != null
+                    && lastPublishedVersion.getStorageCode() != null
                     && draftEntity.getStructure().storageEquals(lastPublishedVersion.getStructure())) {
                 dataStorageToDelete.add(lastPublishedVersion.getStorageCode());
                 versionRepository.findByStorageCode(lastPublishedVersion.getStorageCode()).stream()
@@ -164,7 +165,8 @@ public class PublishServiceImpl implements PublishService {
         return versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(draftVersion.getRefBook().getCode(), RefBookVersionStatus.PUBLISHED);
     }
 
-    private void resolveOverlappingPeriodsInFuture(LocalDateTime fromDate, LocalDateTime toDate, Integer refBookId) {
+    private void resolveOverlappingPeriodsInFuture(LocalDateTime fromDate, LocalDateTime toDate,
+                                                   Integer refBookId, Integer draftId) {
 
         if (toDate == null)
             toDate = MAX_TIMESTAMP;
@@ -175,7 +177,8 @@ public class PublishServiceImpl implements PublishService {
                         .and(isPublished())
         );
         versions.forEach(version -> {
-            if (fromDate.isAfter(version.getFromDate())) {
+            if (!version.getId().equals(draftId)
+                    && fromDate.isAfter(version.getFromDate())) {
                 version.setToDate(fromDate);
                 versionRepository.save(version);
             } else {
