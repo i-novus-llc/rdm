@@ -1,17 +1,11 @@
 package ru.inovus.ms.rdm.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import ru.inovus.ms.rdm.model.refbook.RefBook;
 
 import java.util.Map;
 
-@ApiModel("Данные для публикации справочника")
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class UiRefBookPublish extends RefBook {
 
-    @ApiModelProperty("Конфликтующие справочники")
     private Map<String, String> conflictReferrerNames;
 
     public UiRefBookPublish(RefBook refBook) {
