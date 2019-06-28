@@ -13,14 +13,25 @@ import net.n2oapp.framework.engine.data.N2oQueryProcessor;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import ru.inovus.ms.rdm.criteria.RestCriteriaConstructor;
+import ru.inovus.ms.rdm.handler.RdmExceptionHandler;
 import ru.inovus.ms.rdm.operation.RdmCompileCacheOperation;
 import ru.inovus.ms.rdm.operation.RdmSourceCacheOperation;
-import ru.inovus.ms.rdm.provider.*;
+import ru.inovus.ms.rdm.provider.AttributeFilterConverter;
+import ru.inovus.ms.rdm.provider.ExportFileProvider;
+import ru.inovus.ms.rdm.provider.OffsetDateTimeParamConverter;
+import ru.inovus.ms.rdm.provider.RdmMapperConfigurer;
 import ru.inovus.ms.rdm.util.json.RdmN2oLocalDateTimeMapperPreparer;
 
 @Configuration
 public class ClientConfiguration {
+
+    @Bean
+    @Primary
+    public RdmExceptionHandler exceptionHandler() {
+        return new RdmExceptionHandler();
+    }
 
     @Bean
     public AttributeFilterConverter attributeFilterConverter() {
