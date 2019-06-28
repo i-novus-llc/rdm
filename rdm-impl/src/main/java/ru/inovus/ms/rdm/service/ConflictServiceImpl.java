@@ -529,8 +529,7 @@ public class ConflictServiceImpl implements ConflictService {
                         ? conflictRepository.findAllByReferrerVersionId(referrerVersionId)
                         : conflictRepository.findAllByReferrerVersionIdAndRefRecordIdIn(referrerVersionId, refRecordIds);
 
-        return refBookConflicts
-                .stream()
+        return refBookConflicts.stream()
                 .map(this::refBookConflictModel)
                 .collect(toList());
     }
@@ -559,6 +558,7 @@ public class ConflictServiceImpl implements ConflictService {
 
         RefBookVersionEntity refToEntity = versionRepository.getOne(oldRefToId);
 
+        // NB: Extract to separated method `toFilterValues`.
         List<ReferenceFilterValue> filterValues = new ArrayList<>(conflicts.getSize());
         conflicts.forEach(conflict -> {
             RefBookRowValue refBookRowValue = refFromRowValues.stream()
@@ -589,21 +589,18 @@ public class ConflictServiceImpl implements ConflictService {
      */
     private List<Conflict> recalculateConflicts(RefBookVersionEntity refFromEntity, RefBookVersionEntity refToEntity,
                                                 Page<RefBookConflict> conflicts, List<RefBookRowValue> refFromRowValues, List<DiffRowValue> diffRowValues) {
-        // NB: Use map filter toList
-        List<Conflict> list = new ArrayList<>(conflicts.getSize());
-        conflicts.forEach(conflict -> {
-            RefBookRowValue refFromRowValue = refFromRowValues.stream()
-                    .filter(rowValue -> rowValue.getSystemId().equals(conflict.getRefRecordId()))
-                    .findFirst().orElse(null);
-            if (refFromRowValue == null)
-                return;
+        return conflicts.stream()
+                .map(conflict -> {
+                    RefBookRowValue refFromRowValue = refFromRowValues.stream()
+                            .filter(rowValue -> rowValue.getSystemId().equals(conflict.getRefRecordId()))
+                            .findFirst().orElse(null);
+                    if (refFromRowValue == null)
+                        return null;
 
-            Conflict item = recalculateConflict(refFromEntity, refToEntity, conflict, refFromRowValue, diffRowValues);
-            if (item != null)
-                list.add(item);
-        });
-
-        return list;
+                    return recalculateConflict(refFromEntity, refToEntity, conflict, refFromRowValue, diffRowValues);
+                })
+                .filter(Objects::nonNull)
+                .collect(toList());
     }
 
     /**
