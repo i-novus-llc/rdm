@@ -8,8 +8,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.*;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
@@ -35,6 +34,7 @@ import ru.inovus.ms.rdm.validation.VersionValidation;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
@@ -58,16 +58,17 @@ public class ConflictServiceTest {
     private static final String REFERRER_DRAFT_STORAGE_CODE = "TEST_REFERRER_STORAGE";
     private static final String REFERRER_PRIMARY_CODE = "str";
 
-    private static final String REFERRER_PRIMARY_UPDATED_VALUE = "r2";
-    private static final String REFERRER_PRIMARY_UNUPDATED_VALUE = "r3";
-    private static final String REFERRER_PRIMARY_DELETED_VALUE = "r202";
-
     private static final Integer PUBLISHING_DRAFT_ID = -6;
     private static final String PUBLISHING_DRAFT_STORAGE_CODE = "TEST_PUBLISHING_STORAGE";
     private static final String PUBLISHING_PRIMARY_CODE = "code";
 
+    // for `testRefreshReferencesByPrimary`:
+    private static final String REFERRER_PRIMARY_UNCHANGED_VALUE = "r3";
+    private static final String REFERRER_PRIMARY_UPDATED_VALUE = "r2";
+    private static final String REFERRER_PRIMARY_DELETED_VALUE = "r202";
+
+    private static final String PUBLISHING_PRIMARY_UNCHANGED_VALUE = "3";
     private static final String PUBLISHING_PRIMARY_UPDATED_VALUE = "2";
-    private static final String PUBLISHING_PRIMARY_UNUPDATED_VALUE = "3";
     private static final String PUBLISHING_PRIMARY_DELETED_VALUE = "202";
     private static final String PUBLISHING_PRIMARY_UPDATED_DISPLAY = "Doubled_Two: 2222";
 
@@ -163,21 +164,21 @@ public class ConflictServiceTest {
 
         List<Conflict> conflicts = createRefreshReferencesConflicts();
 
+        SearchDataCriteria referrerUnchangedCriteria = createRefreshReferencesReferrerCriteria(REFERRER_PRIMARY_UNCHANGED_VALUE);
+        PageImpl<RefBookRowValue> referrerUnchangedRows = createRefreshReferencesReferrerRows(PUBLISHING_PRIMARY_UNCHANGED_VALUE, "Three: 33");
+        when(versionService.search(eq(REFERRER_VERSION_ID), eq(referrerUnchangedCriteria))).thenReturn(referrerUnchangedRows);
+
         SearchDataCriteria referrerUpdatedCriteria = createRefreshReferencesReferrerCriteria(REFERRER_PRIMARY_UPDATED_VALUE);
         PageImpl<RefBookRowValue> referrerUpdatedRows = createRefreshReferencesReferrerRows(PUBLISHING_PRIMARY_UPDATED_VALUE, "Two: 22");
         when(versionService.search(eq(REFERRER_VERSION_ID), eq(referrerUpdatedCriteria))).thenReturn(referrerUpdatedRows);
 
-        SearchDataCriteria referrerUnupdatedCriteria = createRefreshReferencesReferrerCriteria(REFERRER_PRIMARY_UNUPDATED_VALUE);
-        PageImpl<RefBookRowValue> referrerUnupdatedRows = createRefreshReferencesReferrerRows(PUBLISHING_PRIMARY_UNUPDATED_VALUE, "Three: 33");
-        when(versionService.search(eq(REFERRER_VERSION_ID), eq(referrerUnupdatedCriteria))).thenReturn(referrerUnupdatedRows);
+        SearchDataCriteria publishingUnchangedCriteria = createRefreshReferencesPublishingCriteria(PUBLISHING_PRIMARY_UNCHANGED_VALUE);
+        PageImpl<RefBookRowValue> publishingUnchangedRows = createRefreshReferencesPublishingRows("Three", 33);
+        when(versionService.search(eq(PUBLISHED_VERSION_ID), eq(publishingUnchangedCriteria))).thenReturn(publishingUnchangedRows);
 
         SearchDataCriteria publishingUpdatedCriteria = createRefreshReferencesPublishingCriteria(PUBLISHING_PRIMARY_UPDATED_VALUE);
         PageImpl<RefBookRowValue> publishingUpdatedRows = createRefreshReferencesPublishingRows("Doubled_Two", 2222);
         when(versionService.search(eq(PUBLISHED_VERSION_ID), eq(publishingUpdatedCriteria))).thenReturn(publishingUpdatedRows);
-
-        SearchDataCriteria publishingUnupdatedCriteria = createRefreshReferencesPublishingCriteria(PUBLISHING_PRIMARY_UNUPDATED_VALUE);
-        PageImpl<RefBookRowValue> publishingUnupdatedRows = createRefreshReferencesPublishingRows("Three", 33);
-        when(versionService.search(eq(PUBLISHED_VERSION_ID), eq(publishingUnupdatedCriteria))).thenReturn(publishingUnupdatedRows);
 
         ArgumentCaptor<RefBookRowValue> rowValueCaptor = ArgumentCaptor.forClass(RefBookRowValue.class);
 
@@ -205,19 +206,19 @@ public class ConflictServiceTest {
         // NB: Multiple primary keys are not supported yet.
         List<Conflict> conflicts = new ArrayList<>();
 
+        List<FieldValue> unchangedValues = new ArrayList<>(
+                singletonList(
+                        new StringFieldValue(REFERRER_PRIMARY_CODE, REFERRER_PRIMARY_UNCHANGED_VALUE)
+                )
+        );
+        conflicts.add(new Conflict(REFERRER_REFERENCE_ATTRIBUTE_CODE, ConflictType.UPDATED, unchangedValues));
+
         List<FieldValue> updatedValues = new ArrayList<>(
                 singletonList(
                         new StringFieldValue(REFERRER_PRIMARY_CODE, REFERRER_PRIMARY_UPDATED_VALUE)
                 )
         );
         conflicts.add(new Conflict(REFERRER_REFERENCE_ATTRIBUTE_CODE, ConflictType.UPDATED, updatedValues));
-
-        List<FieldValue> unupdatedValues = new ArrayList<>(
-                singletonList(
-                        new StringFieldValue(REFERRER_PRIMARY_CODE, REFERRER_PRIMARY_UNUPDATED_VALUE)
-                )
-        );
-        conflicts.add(new Conflict(REFERRER_REFERENCE_ATTRIBUTE_CODE, ConflictType.UPDATED, unupdatedValues));
 
         List<FieldValue> deletedValues = new ArrayList<>(
                 singletonList(
