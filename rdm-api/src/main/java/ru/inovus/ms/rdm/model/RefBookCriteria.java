@@ -2,7 +2,7 @@ package ru.inovus.ms.rdm.model;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import ru.inovus.ms.rdm.enumeration.RefBookInfo;
+import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
 
 import javax.ws.rs.QueryParam;
 import java.time.LocalDateTime;
@@ -28,9 +28,9 @@ public class RefBookCriteria extends AbstractCriteria {
     @QueryParam("fromDateEnd")
     private LocalDateTime fromDateEnd;
 
-    @ApiModelProperty("Источник данных справочника")
-    @QueryParam("refBookInfo")
-    private RefBookInfo refBookInfo;
+    @ApiModelProperty("Тип источника данных")
+    @QueryParam("refBookSourceType")
+    private RefBookSourceType refBookSourceType;
 
     @ApiModelProperty("Категория")
     @QueryParam("category")
@@ -84,12 +84,12 @@ public class RefBookCriteria extends AbstractCriteria {
         this.fromDateEnd = fromDateEnd;
     }
 
-    public RefBookInfo getRefBookInfo() {
-        return refBookInfo;
+    public RefBookSourceType getRefBookSourceType() {
+        return refBookSourceType;
     }
 
-    public void setRefBookInfo(RefBookInfo refBookInfo) {
-        this.refBookInfo = refBookInfo;
+    public void setRefBookSourceType(RefBookSourceType refBookSourceType) {
+        this.refBookSourceType = refBookSourceType;
     }
 
     public Map<String, String> getPassport() {

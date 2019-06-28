@@ -159,4 +159,13 @@ public class RefBookVersion {
     public void setEditDate(LocalDateTime editDate) {
         this.editDate = editDate;
     }
+
+    /**
+     * Проверка статуса версии на DRAFT.
+     *
+     * @return Результат проверки
+     */
+    public boolean isDraft() {
+        return RefBookVersionStatus.DRAFT.equals(status);
+    }
 }

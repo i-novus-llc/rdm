@@ -153,6 +153,15 @@ public class RefBookVersionEntity {
         this.passportValues = passportValues;
     }
 
+    /**
+     * Проверка статуса версии на DRAFT.
+     *
+     * @return Результат проверки
+     */
+    public boolean isDraft() {
+        return RefBookVersionStatus.DRAFT.equals(status);
+    }
+
     @PrePersist
     public void prePersist() {
         LocalDateTime now = LocalDateTime.now();

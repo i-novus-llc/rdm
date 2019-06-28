@@ -15,8 +15,6 @@ import ru.inovus.ms.rdm.model.RefBookRowValue;
 import ru.inovus.ms.rdm.model.SearchDataCriteria;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
-import java.time.OffsetDateTime;
-
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
@@ -38,7 +36,7 @@ public class CategoryController {
 
         SearchDataCriteria criteria = toSearchDataCriteria(categoryCriteria);
 
-        Page<RefBookRowValue> rowValues = versionService.search(CATEGORY_REFBOOK_CODE, OffsetDateTime.now(), criteria);
+        Page<RefBookRowValue> rowValues = versionService.search(CATEGORY_REFBOOK_CODE, criteria);
 
         return new RestPage<>(rowValues.getContent(), criteria, rowValues.getTotalElements())
                 .map(CategoryController::toCategory);

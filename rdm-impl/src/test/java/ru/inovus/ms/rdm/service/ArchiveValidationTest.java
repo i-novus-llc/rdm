@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.service;
 
+import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,6 +12,7 @@ import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
+import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
@@ -19,12 +21,13 @@ import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.FileNameGenerator;
 import ru.inovus.ms.rdm.util.VersionNumberStrategy;
-import ru.inovus.ms.rdm.util.VersionPeriodPublishValidation;
+import ru.inovus.ms.rdm.validation.VersionPeriodPublishValidation;
+import ru.inovus.ms.rdm.validation.VersionValidation;
+import ru.inovus.ms.rdm.validation.VersionValidationImpl;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ArchiveValidationTest {
@@ -43,21 +46,18 @@ public class ArchiveValidationTest {
 
     @Mock
     private DraftDataService draftDataService;
+    @Mock
+    private DropDataService dropDataService;
+    @Mock
+    private SearchDataService searchDataService;
 
+    @Mock
+    private RefBookRepository refBookRepository;
     @Mock
     private VersionService versionService;
 
     @Mock
     private FieldFactory fieldFactory;
-
-    @Mock
-    private DropDataService dropDataService;
-
-    @Mock
-    private RefBookRepository refBookRepository;
-
-    @Mock
-    private SearchDataService searchDataService;
 
     @Mock
     private FileStorage fileStorage;
@@ -67,18 +67,16 @@ public class ArchiveValidationTest {
 
     @Mock
     private VersionFileRepository versionFileRepository;
-
     @Mock
     private VersionNumberStrategy versionNumberStrategy;
 
+    @Mock
+    private VersionValidation versionValidation;
     @Mock
     private VersionPeriodPublishValidation versionPeriodPublishValidation;
 
     @Before
     public void setUp() {
-        when(versionRepository.exists(eq(isVersionOfRefBook(refBookId)))).thenReturn(true);
-        when(versionRepository.exists(eq(hasVersionId(draftId).and(isDraft())))).thenReturn(true);
-        when(versionRepository.existsById(eq(versionId))).thenReturn(true);
     }
 
     @Test
@@ -100,9 +98,13 @@ public class ArchiveValidationTest {
 
     private void assertArchiveValidationError(MethodExecutor executor) {
 
-        when(versionRepository.exists(eq(hasVersionId(draftId).and(isArchived())))).thenReturn(true);
-        when(versionRepository.exists(eq(isVersionOfRefBook(refBookId).and(isArchived())))).thenReturn(true);
-        when(versionRepository.exists(eq(hasVersionId(versionId).and(isArchived())))).thenReturn(true);
+        doThrow(new NotFoundException(new Message(VersionValidationImpl.REFBOOK_IS_ARCHIVED_EXCEPTION_CODE, refBookId)))
+                .when(versionValidation).validateRefBook(eq(refBookId));
+        doThrow(new NotFoundException(new Message(VersionValidationImpl.REFBOOK_IS_ARCHIVED_EXCEPTION_CODE, refBookId)))
+                .when(versionValidation).validateDraft(eq(draftId));
+        doThrow(new NotFoundException(new Message(VersionValidationImpl.REFBOOK_IS_ARCHIVED_EXCEPTION_CODE, refBookId)))
+                .when(versionValidation).validateVersion(eq(versionId));
+
         try {
             executor.execute();
             fail();
@@ -110,9 +112,13 @@ public class ArchiveValidationTest {
             assertEquals("refbook.is.archived", e.getMessage());
         }
 
-        when(versionRepository.exists(eq(hasVersionId(draftId).and(isArchived())))).thenReturn(false);
-        when(versionRepository.exists(eq(isVersionOfRefBook(refBookId).and(isArchived())))).thenReturn(false);
-        when(versionRepository.exists(eq(hasVersionId(versionId).and(isArchived())))).thenReturn(false);
+        doNothing()
+                .when(versionValidation).validateRefBook(eq(refBookId));
+        doNothing()
+                .when(versionValidation).validateDraft(eq(draftId));
+        doNothing()
+                .when(versionValidation).validateVersion(eq(versionId));
+
         try {
             executor.execute();
         } catch (UserException e) {

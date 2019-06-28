@@ -17,16 +17,21 @@ import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.inovus.ms.rdm.entity.RefBookEntity;
+import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.repositiory.RefBookConflictRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
@@ -70,31 +75,41 @@ public class ConflictServiceTest {
     private VersionService versionService;
     @Mock
     private DraftService draftService;
+
     @Mock
     private DraftDataService draftDataService;
 
     @Mock
-    private RefBookVersionRepository versionRepository;
+    private VersionValidation versionValidation;
 
-    private RefBookVersion referrerVersion;
-    private RefBookVersion publishingVersion;
+    @Mock
+    private RefBookVersionRepository versionRepository;
+    @Mock
+    private RefBookConflictRepository conflictRepository;
+
+    private RefBookVersionEntity referrerEntity;
+    private RefBookVersionEntity publishingEntity;
 
     @Before
     public void setUp() {
-        referrerVersion = createReferrerVersion();
-        publishingVersion = createPublishingVersion();
+        referrerEntity = createReferrerEntity();
+        publishingEntity = createPublishingEntity();
 
-        when(versionRepository.existsById(anyInt())).thenReturn(true);
-        when(versionService.getById(eq(REFERRER_VERSION_ID))).thenReturn(referrerVersion);
-        when(versionService.getById(eq(PUBLISHING_VERSION_ID))).thenReturn(publishingVersion);
+        doNothing().when(versionValidation).validateVersionExists(anyInt());
+
+        when(versionRepository.getOne(eq(REFERRER_VERSION_ID))).thenReturn(referrerEntity);
+        when(versionRepository.getOne(eq(PUBLISHING_VERSION_ID))).thenReturn(publishingEntity);
     }
 
-    private RefBookVersion createReferrerVersion() {
-        RefBookVersion version = new RefBookVersion();
-        version.setCode(REFERRER_REF_BOOK_CODE);
-        version.setId(REFERRER_VERSION_ID);
-        version.setRefBookId(REFERRER_REF_BOOK_ID);
-        version.setStatus(RefBookVersionStatus.DRAFT);
+    private RefBookVersionEntity createReferrerEntity() {
+        RefBookEntity refBookEntity = new RefBookEntity();
+        refBookEntity.setId(REFERRER_REF_BOOK_ID);
+        refBookEntity.setCode(REFERRER_REF_BOOK_CODE);
+
+        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
+        versionEntity.setId(REFERRER_VERSION_ID);
+        versionEntity.setRefBook(refBookEntity);
+        versionEntity.setStatus(RefBookVersionStatus.DRAFT);
 
         Structure structure = new Structure(
                 asList(
@@ -105,17 +120,20 @@ public class ConflictServiceTest {
                         new Structure.Reference(REFERRER_REFERENCE_ATTRIBUTE_CODE, PUBLISHING_REF_BOOK_CODE, REFERRER_REFERENCE_DISPLAY_EXPRESSION)
                 )
             );
-        version.setStructure(structure);
+        versionEntity.setStructure(structure);
 
-        return version;
+        return versionEntity;
     }
 
-    private RefBookVersion createPublishingVersion() {
-        RefBookVersion version = new RefBookVersion();
-        version.setCode(PUBLISHING_REF_BOOK_CODE);
-        version.setId(PUBLISHING_VERSION_ID);
-        version.setRefBookId(PUBLISHING_REF_BOOK_ID);
-        version.setStatus(RefBookVersionStatus.DRAFT);
+    private RefBookVersionEntity createPublishingEntity() {
+        RefBookEntity refBookEntity = new RefBookEntity();
+        refBookEntity.setId(PUBLISHING_REF_BOOK_ID);
+        refBookEntity.setCode(PUBLISHING_REF_BOOK_CODE);
+
+        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
+        versionEntity.setId(PUBLISHING_VERSION_ID);
+        versionEntity.setRefBook(refBookEntity);
+        versionEntity.setStatus(RefBookVersionStatus.DRAFT);
 
         Structure structure = new Structure(
                 asList(
@@ -125,38 +143,9 @@ public class ConflictServiceTest {
                 ),
                 emptyList()
         );
-        version.setStructure(structure);
+        versionEntity.setStructure(structure);
 
-        return version;
-    }
-
-    private Draft createReferrerDraft() {
-        Draft draft = new Draft();
-        draft.setId(REFERRER_DRAFT_ID);
-        draft.setStorageCode(REFERRER_DRAFT_STORAGE_CODE);
-
-        return draft;
-    }
-
-    private RefBookVersion createReferrerDraftVersion() {
-        RefBookVersion version = new RefBookVersion();
-        version.setCode(REFERRER_REF_BOOK_CODE);
-        version.setId(REFERRER_DRAFT_ID);
-        version.setRefBookId(REFERRER_REF_BOOK_ID);
-        version.setStatus(RefBookVersionStatus.DRAFT);
-
-        Structure structure = new Structure(referrerVersion.getStructure());
-        version.setStructure(structure);
-
-        return version;
-    }
-
-    private Draft createPublishingDraft() {
-        Draft draft = new Draft();
-        draft.setId(PUBLISHING_DRAFT_ID);
-        draft.setStorageCode(PUBLISHING_DRAFT_STORAGE_CODE);
-
-        return draft;
+        return versionEntity;
     }
 
     @Test
@@ -164,26 +153,20 @@ public class ConflictServiceTest {
     }
 
     @Test
-    public void testUpdateReferenceValues() {
+    public void testRefreshReferencesByPrimary() {
 
-        Draft referrerDraft = createReferrerDraft();
-        RefBookVersion referrerDraftVersion = createReferrerDraftVersion();
-        Draft publishingDraft = createPublishingDraft();
-
-        when(draftService.getDraft(eq(REFERRER_VERSION_ID))).thenReturn(referrerDraft);
-        when(versionService.getById(eq(REFERRER_DRAFT_ID))).thenReturn(referrerDraftVersion);
-
-        when(draftService.getDraft(eq(PUBLISHING_VERSION_ID))).thenReturn(publishingDraft);
+        referrerEntity.setStorageCode(REFERRER_DRAFT_STORAGE_CODE);
+        publishingEntity.setStorageCode(PUBLISHING_DRAFT_STORAGE_CODE);
 
         List<Conflict> conflicts = createUpdateReferenceConflicts();
 
         SearchDataCriteria referrerUpdatedCriteria = createUpdateReferenceReferrerCriteria(REFERRER_PRIMARY_UPDATED_VALUE);
         PageImpl<RefBookRowValue> referrerUpdatedRows = createUpdateReferenceReferrerRows(PUBLISHING_PRIMARY_UPDATED_VALUE, "Two: 22");
-        when(versionService.search(eq(REFERRER_DRAFT_ID), eq(referrerUpdatedCriteria))).thenReturn(referrerUpdatedRows);
+        when(versionService.search(eq(REFERRER_VERSION_ID), eq(referrerUpdatedCriteria))).thenReturn(referrerUpdatedRows);
 
         SearchDataCriteria referrerUnupdatedCriteria = createUpdateReferenceReferrerCriteria(REFERRER_PRIMARY_UNUPDATED_VALUE);
         PageImpl<RefBookRowValue> referrerUnupdatedRows = createUpdateReferenceReferrerRows(PUBLISHING_PRIMARY_UNUPDATED_VALUE, "Three: 33");
-        when(versionService.search(eq(REFERRER_DRAFT_ID), eq(referrerUnupdatedCriteria))).thenReturn(referrerUnupdatedRows);
+        when(versionService.search(eq(REFERRER_VERSION_ID), eq(referrerUnupdatedCriteria))).thenReturn(referrerUnupdatedRows);
 
         SearchDataCriteria publishingUpdatedCriteria = createUpdateReferencePublishingCriteria(PUBLISHING_PRIMARY_UPDATED_VALUE);
         PageImpl<RefBookRowValue> publishingUpdatedRows = createUpdateReferencePublishingRows("Doubled_Two", 2222);
@@ -195,7 +178,7 @@ public class ConflictServiceTest {
 
         ArgumentCaptor<RefBookRowValue> rowValueCaptor = ArgumentCaptor.forClass(RefBookRowValue.class);
 
-        conflictService.updateReferenceValues(REFERRER_VERSION_ID, PUBLISHING_VERSION_ID, conflicts);
+        conflictService.refreshReferencesByPrimary(REFERRER_VERSION_ID, PUBLISHING_VERSION_ID, conflicts);
 
         verify(draftDataService, times(1)).updateRow(eq(REFERRER_DRAFT_STORAGE_CODE), rowValueCaptor.capture());
 
@@ -203,16 +186,16 @@ public class ConflictServiceTest {
         RefBookRowValue updatedRow = updatedRows.get().findFirst().orElse(null);
         Assert.assertNotNull(updatedRow);
 
-        Reference fieldReference = new Reference(
+        Reference expectedReference = new Reference(
                 PUBLISHING_DRAFT_STORAGE_CODE,
                 null,
                 PUBLISHING_PRIMARY_CODE, // referenceAttribute
                 new DisplayExpression(REFERRER_REFERENCE_DISPLAY_EXPRESSION),
                 PUBLISHING_PRIMARY_UPDATED_VALUE,
                 PUBLISHING_PRIMARY_UPDATED_DISPLAY);
-        ReferenceFieldValue fieldValue = new ReferenceFieldValue(REFERRER_REFERENCE_ATTRIBUTE_CODE, fieldReference);
-        LongRowValue rowValue = new LongRowValue(updatedRow.getSystemId(), singletonList(fieldValue));
-        Assert.assertEquals(new RefBookRowValue(rowValue, REFERRER_DRAFT_ID), rowValueCaptor.getValue());
+        ReferenceFieldValue expectedFieldValue = new ReferenceFieldValue(REFERRER_REFERENCE_ATTRIBUTE_CODE, expectedReference);
+        LongRowValue expectedRowValue = new LongRowValue(updatedRow.getSystemId(), singletonList(expectedFieldValue));
+        Assert.assertEquals(new RefBookRowValue(expectedRowValue, REFERRER_VERSION_ID), rowValueCaptor.getValue());
     }
 
     private List<Conflict> createUpdateReferenceConflicts() {
@@ -268,7 +251,7 @@ public class ConflictServiceTest {
                                         displayExpression,
                                         referenceValue,
                                         displayValue))
-                ), REFERRER_DRAFT_ID)
+                ), REFERRER_VERSION_ID)
         ), PageRequest.of(0, 10), 1);
     }
 
@@ -277,7 +260,6 @@ public class ConflictServiceTest {
         SearchDataCriteria criteria = new SearchDataCriteria();
 
         List<AttributeFilter> filters = new ArrayList<>();
-        //AttributeFilter filter = new AttributeFilter(REFERRER_PRIMARY_CODE, referenceValue, FieldType.REFERENCE, SearchTypeEnum.EXACT);
         AttributeFilter filter = new AttributeFilter(PUBLISHING_PRIMARY_CODE, codeValue, FieldType.STRING, SearchTypeEnum.EXACT);
         filters.add(filter);
         criteria.setAttributeFilter(singleton(filters));

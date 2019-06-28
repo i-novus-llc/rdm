@@ -37,6 +37,7 @@ import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.repositiory.PassportAttributeRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -74,6 +75,9 @@ public class CompareServiceTest {
 
     @Mock
     private RefBookVersionRepository versionRepository;
+
+    @Mock
+    private VersionValidation versionValidation;
 
     @Mock
     private PassportAttributeRepository passportAttributeRepository;
@@ -191,9 +195,7 @@ public class CompareServiceTest {
         newVersionP.setStatus(RefBookVersionStatus.PUBLISHED);
 
         when(versionRepository.getOne(OLD_ID_P)).thenReturn(oldVersionP);
-        when(versionRepository.existsById(OLD_ID_P)).thenReturn(true);
         when(versionRepository.getOne(NEW_ID_P)).thenReturn(newVersionP);
-        when(versionRepository.existsById(NEW_ID_P)).thenReturn(true);
 
         RefBookVersionEntity oldVersion = new RefBookVersionEntity();
         oldVersion.setId(OLD_ID);
@@ -208,9 +210,7 @@ public class CompareServiceTest {
         newVersion.setStorageCode("storage" + NEW_ID);
 
         when(versionRepository.getOne(OLD_ID)).thenReturn(oldVersion);
-        when(versionRepository.existsById(OLD_ID)).thenReturn(true);
         when(versionRepository.getOne(NEW_ID)).thenReturn(newVersion);
-        when(versionRepository.existsById(NEW_ID)).thenReturn(true);
 
         RefBookVersionEntity oldVersion1 = new RefBookVersionEntity();
         oldVersion1.setId(OLD_ID_1);
@@ -225,9 +225,7 @@ public class CompareServiceTest {
         newVersion1.setStorageCode("storage" + NEW_ID_1);
 
         when(versionRepository.getOne(OLD_ID_1)).thenReturn(oldVersion1);
-        when(versionRepository.existsById(OLD_ID_1)).thenReturn(true);
         when(versionRepository.getOne(NEW_ID_1)).thenReturn(newVersion1);
-        when(versionRepository.existsById(NEW_ID_1)).thenReturn(true);
     }
 
     private void prepareOldVersionData() {
