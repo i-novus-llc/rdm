@@ -75,6 +75,12 @@ public class Structure implements Serializable {
         this.references = references;
     }
 
+    /**
+     * Получение всех ссылок с указанным кодом справочника
+     *
+     * @param referenceCode код справочника, на который ссылаются
+     * @return Список ссылок
+     */
     public List<Reference> getRefCodeReferences(String referenceCode) {
         if (isEmpty(references)) {
             return Collections.emptyList();
@@ -194,17 +200,17 @@ public class Structure implements Serializable {
     public static class Reference implements Serializable {
 
         /**
-         * Поле, которое ссылается
+         * Поле, которое ссылается.
          */
         private String attribute;
 
         /**
-         * Код справочника, на который ссылаемся
+         * Код справочника, на который ссылаются.
          */
         private String referenceCode;
 
         /**
-         * Вид отображаемого ссылочного значения.
+         * Выражение для вычисления отображаемого ссылочного значения.
          * Поля справочника указываются через placeholder ${~}, например ${field}
          */
         private String displayExpression;
@@ -242,6 +248,13 @@ public class Structure implements Serializable {
             this.displayExpression = displayExpression;
         }
 
+        /**
+         * Поиск атрибута в справочнике, на который ссылаются.
+         * В текущей реализации это может быть только первичный ключ версии справочника.
+         *
+         * @param referenceStructure структура версии справочника, на который ссылаются
+         * @return Атрибут версии справочника
+         */
         public Structure.Attribute findReferenceAttribute(Structure referenceStructure) {
 
             List<Structure.Attribute> primaryAttributes = referenceStructure.getPrimary();

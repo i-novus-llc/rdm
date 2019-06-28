@@ -116,10 +116,28 @@
         </field>
 
         <field id="hasPrimaryAttribute" domain="boolean">
-            <select />
+            <select/>
             <filters>
                 <eq filter-id="hasPrimaryAttribute" mapping="hasPrimaryAttribute"/>
             </filters>
+        </field>
+
+        <field id="hasConflict" domain="boolean">
+            <select/>
+        </field>
+
+        <field id="hasUpdatedConflict" domain="boolean">
+            <select/>
+        </field>
+
+        <field id="lastHasConflict" domain="boolean">
+            <select/>
+        </field>
+
+        <field id="lastHasConflictMsg" domain="string">
+            <select mapping="
+                (lastHasConflict ? 'В опубликованной версии справочника есть ссылки на неактуальные данные' : '')
+                "/>
         </field>
 
         <field id="editDate" domain="date">

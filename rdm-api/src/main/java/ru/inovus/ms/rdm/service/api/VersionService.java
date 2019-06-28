@@ -7,7 +7,7 @@ import ru.inovus.ms.rdm.model.*;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Path("/version")
@@ -65,8 +65,8 @@ public interface VersionService {
             @ApiResponse(code = 404, message = "Нет версии")
     })
     Page<RefBookRowValue> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
-                          @ApiParam("Дата получения данных") @PathParam("date") OffsetDateTime date,
-                          @BeanParam SearchDataCriteria criteria);
+                                 @ApiParam("Дата получения данных") @PathParam("date") LocalDateTime date,
+                                 @BeanParam SearchDataCriteria criteria);
 
     @GET
     @Path("/refBook/{refBookCode}")

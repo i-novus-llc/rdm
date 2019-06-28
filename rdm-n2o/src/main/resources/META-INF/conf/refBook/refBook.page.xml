@@ -4,22 +4,44 @@
         <region place="single">
             <form id="version_select" query-id="refBookVersion">
                 <fields>
-                    <!--для передачи динамичного атрибута при редактировании записи-->
+                    <!-- Поля для передачи динамичных атрибутов из versionList при редактировании записи -->
                     <output-text id="id" visible="false">
                         <dependencies>
                             <set-value on="version">version.id</set-value>
                         </dependencies>
                     </output-text>
+
+                    <checkbox id="versionHasUpdatedConflict" label="Есть конфликт обновления" visible="false">
+                        <dependencies>
+                            <set-value on="version">version.hasUpdatedConflict</set-value>
+                        </dependencies>
+                    </checkbox>
+
                     <select id="version" label="Версия" query-id="versionList" label-field-id="version" cleanable="false">
                         <pre-filters>
                             <eq field-id="refBookId" value="{refBookId}"/>
                         </pre-filters>
+<!--                        NB: Реализовать единую точку перехода в режим редактирования -->
+                        <validations>
+                            <condition id="refBookHasDraft" severity="warning"
+                                       message="Справочник содержит неопубликованную версию">
+                                (draftVersionId == null || version.id == draftVersionId)
+                            </condition>
+                            <condition id="isNotLastPublished" severity="warning"
+                                       message="Выбранная версия справочника не является последней опубликованной версией">
+                                (version.id == draftVersionId || version.id == lastPublishedVersionId)
+                            </condition>
+                        </validations>
                     </select>
                 </fields>
+
                 <toolbar place="bottomLeft">
                     <sub-menu label="Действия">
                         <menu-item label="Опубликовать" visibility-condition="version.status=='DRAFT'">
                             <invoke operation-id="publish"/>
+                        </menu-item>
+                        <menu-item label="Обновить ссылки" visibility-condition="version.status=='DRAFT' &amp;&amp; versionHasUpdatedConflict">
+                            <invoke operation-id="refreshReferrer"/>
                         </menu-item>
                         <menu-item label="Загрузить данные" visibility-condition="version.status=='DRAFT'">
                             <show-modal page-id="uploadData" submit-operation-id="uploadData" upload="defaults"
@@ -31,6 +53,7 @@
                             </show-modal>
                         </menu-item>
                         <menu-item label="Загрузить из файла">
+<!--                        NB: Реализовать для черновика предупреждение перед открытием диалога // NNO-1644 -->
                             <show-modal page-id="uploadFile" submit-operation-id="uploadFromFile" upload="defaults"
                                         redirect-target-after-submit="self"
                                         redirect-url-after-submit="${server.servlet.context-path}/#/main/:refBookId/edit">
@@ -50,6 +73,7 @@
                 </toolbar>
             </form>
         </region>
+
         <tabs place="single">
             <form ref-id="passport" name="Паспорт" id="passport_form" depends-on="version_select"
                    detail-field-id="version.id" object-id="refBook">
@@ -62,6 +86,7 @@
                     </button>
                 </toolbar>
             </form>
+
             <table ref-id="structure" name="Структура" id="structure_table" depends-on="version_select"
                     detail-field-id="versionId" upload="query">
                 <toolbar place="bottomRight">
@@ -86,6 +111,7 @@
                     </button>
                 </toolbar>
             </table>
+
             <table src="DataGrid" name="Данные" id="dataTable" query-id="data" depends-on="version_select"
                    detail-field-id="versionId" object-id="data">
                 <toolbar place="topRight">

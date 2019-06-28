@@ -2,10 +2,12 @@ package ru.inovus.ms.rdm.service.api;
 
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
+import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.model.*;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.util.List;
 
 @Path("/refBook")
 @Produces(MediaType.APPLICATION_JSON)
@@ -40,7 +42,7 @@ public interface RefBookService {
             @ApiResponse(code = 200, message = "Справочник"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    String getCode(@PathParam("id") @ApiParam("Идентификатор справочника") Integer refBookId);
+    String getCode(@ApiParam("Идентификатор справочника") @PathParam("id") Integer refBookId);
 
     @GET
     @Path("/code/{refBookCode}")
@@ -49,7 +51,7 @@ public interface RefBookService {
             @ApiResponse(code = 200, message = "Справочник"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Integer getId(@PathParam("refBookCode") @ApiParam("Код справочника") String refBookCode);
+    Integer getId(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode);
 
     @POST
     @ApiOperation("Создание нового справочника")
@@ -104,4 +106,20 @@ public interface RefBookService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     Page<RefBookVersion> getVersions(@BeanParam VersionCriteria criteria);
+
+    @GET
+    @Path("versions/referrers/{refBookCode}")
+    @ApiOperation("Поиск версий ссылающихся справочников")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Список справочников"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    List<RefBookVersion> getReferrerVersions(@ApiParam("Код справочника")
+                                             @PathParam("refBookCode")
+                                                     String refBookCode,
+                                             @ApiParam("Тип источника")
+                                             @QueryParam("sourceType")
+                                                     RefBookSourceType sourceType,
+                                             @ApiParam("Список ссылающихся справочников")
+                                                     List<Integer> referrerIds);
 }

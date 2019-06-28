@@ -17,6 +17,12 @@ public class RefBook extends RefBookVersion {
     @ApiModelProperty("Категория")
     private String category;
 
+    @ApiModelProperty("Идентификатор черновика")
+    private Integer draftVersionId;
+
+    @ApiModelProperty("Идентификатор последней опубликованной версии")
+    private Integer lastPublishedVersionId;
+
     @ApiModelProperty("Последняя опубликованная версия")
     private String lastPublishedVersion;
 
@@ -29,6 +35,15 @@ public class RefBook extends RefBookVersion {
     @ApiModelProperty("Наличие первичного ключа")
     private Boolean hasPrimaryAttribute;
 
+    @ApiModelProperty("Наличие конфликта")
+    private Boolean hasConflict;
+
+    @ApiModelProperty("Наличие конфликта обновления записи")
+    private Boolean hasUpdatedConflict;
+
+    @ApiModelProperty("Наличие конфликта в последней опубликованной версии")
+    private Boolean lastHasConflict;
+
     public RefBook() {
     }
 
@@ -40,10 +55,18 @@ public class RefBook extends RefBookVersion {
         super(refBook);
 
         this.removable = refBook.getRemovable();
+
+        this.draftVersionId = refBook.getDraftVersionId();
+        this.lastPublishedVersionId = refBook.getLastPublishedVersionId();
         this.lastPublishedVersion = refBook.getLastPublishedVersion();
         this.lastPublishedVersionFromDate = refBook.getLastPublishedVersionFromDate();
+
         this.currentOperation = refBook.getCurrentOperation();
         this.hasPrimaryAttribute = refBook.getHasPrimaryAttribute();
+
+        this.hasConflict = refBook.getHasConflict();
+        this.hasUpdatedConflict = refBook.getHasUpdatedConflict();
+        this.lastHasConflict = refBook.getLastHasConflict();
     }
 
     public Boolean getRemovable() {
@@ -60,6 +83,22 @@ public class RefBook extends RefBookVersion {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public Integer getDraftVersionId() {
+        return draftVersionId;
+    }
+
+    public void setDraftVersionId(Integer draftVersionId) {
+        this.draftVersionId = draftVersionId;
+    }
+
+    public Integer getLastPublishedVersionId() {
+        return lastPublishedVersionId;
+    }
+
+    public void setLastPublishedVersionId(Integer lastPublishedVersionId) {
+        this.lastPublishedVersionId = lastPublishedVersionId;
     }
 
     public String getLastPublishedVersion() {
@@ -92,5 +131,29 @@ public class RefBook extends RefBookVersion {
 
     public void setHasPrimaryAttribute(Boolean hasPrimaryAttribute) {
         this.hasPrimaryAttribute = hasPrimaryAttribute;
+    }
+
+    public Boolean getHasConflict() {
+        return hasConflict;
+    }
+
+    public void setHasConflict(Boolean hasConflict) {
+        this.hasConflict = hasConflict;
+    }
+
+    public Boolean getHasUpdatedConflict() {
+        return hasUpdatedConflict;
+    }
+
+    public void setHasUpdatedConflict(Boolean hasUpdatedConflict) {
+        this.hasUpdatedConflict = hasUpdatedConflict;
+    }
+
+    public Boolean getLastHasConflict() {
+        return lastHasConflict;
+    }
+
+    public void setLastHasConflict(Boolean lastHasConflict) {
+        this.lastHasConflict = lastHasConflict;
     }
 }
