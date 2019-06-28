@@ -5,7 +5,7 @@
   "homepage": ".",
   "dependencies": {
     "n2o": "7.1.10",
-    "n2o-config-rdm": "^1.0.0",
+    "n2o-config-rdm": "^1.0.1",
     "react": "^16.8.6",
     "react-dom": "^16.8.6"
   },

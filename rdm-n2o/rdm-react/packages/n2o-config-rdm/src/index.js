@@ -1,3 +1,4 @@
+import React from 'react';
 import '@babel/polyfill';
 import { authProvider } from 'n2o-auth';
 import DataGrid from 'n2o-data-grid';
