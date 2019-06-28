@@ -82,8 +82,6 @@ public class ConflictServiceImpl implements ConflictService {
     private static final String VERSION_IS_NOT_LAST_PUBLISHED_EXCEPTION_CODE = "version.is.not.last.published";
 
     private static final String REFERRER_ROW_NOT_FOUND_EXCEPTION_CODE = "referrer.row.not.found";
-    private static final String CONFLICTED_TO_ROW_NOT_FOUND_EXCEPTION_CODE = "conflicted.to.row.not.found";
-    private static final String CONFLICTED_REFERENCE_NOT_FOUND_EXCEPTION_CODE = "conflicted.reference.row.not.found";
 
     private static final String CANNOT_ORDER_BY_EXCEPTION_CODE = "cannot.order.by \"{0}\"";
 
@@ -128,7 +126,7 @@ public class ConflictServiceImpl implements ConflictService {
     /**
      * Вычисление конфликтов справочников при наличии ссылочных атрибутов.
      *
-     * <p><br/>Метод используется пока только для тестирования вызываемого метода.</p>
+     * <p><br/>Метод используется пока только для интеграционного тестирования вызываемого метода.</p>
      *
      * @param refFromId идентификатор версии, которая ссылается
      * @param refToId   идентификатор последней опубликованной версии
@@ -321,14 +319,12 @@ public class ConflictServiceImpl implements ConflictService {
     /**
      * Обновление ссылок в справочниках по первичным ключам.
      *
+     * <p><br/>Метод планируется использовать для модульного тестирования.</p>
+     *
      * @param oldVersionId идентификатор старой версии справочника
      * @param newVersionId идентификатор новой версии справочника
-     *
-     * @see #discoverConflicts(Integer, Integer)
      */
-    @Override
-    @Transactional
-    public void refreshReferencesByPrimary(Integer oldVersionId, Integer newVersionId) {
+    void refreshReferencesByPrimary(Integer oldVersionId, Integer newVersionId) {
 
         versionValidation.validateVersionExists(oldVersionId);
         versionValidation.validateVersionExists(newVersionId);
@@ -356,13 +352,13 @@ public class ConflictServiceImpl implements ConflictService {
     /**
      * Обновление ссылок в версии справочника по первичным ключам.
      *
+     * <p><br/>Метод используется пока только для модульного тестирования.</p>
+     *
      * @param refFromId идентификатор версии справочника со ссылками
      * @param refToId   идентификатор версии изменённого справочника
      * @param conflicts список конфликтов
      */
-    @Override
-    @Transactional
-    public void refreshReferencesByPrimary(Integer refFromId, Integer refToId, List<Conflict> conflicts) {
+    void refreshReferencesByPrimary(Integer refFromId, Integer refToId, List<Conflict> conflicts) {
 
         if (isEmpty(conflicts)
                 || conflicts.stream().noneMatch(ConflictUtils::isUpdatedConflict))
@@ -835,13 +831,13 @@ public class ConflictServiceImpl implements ConflictService {
     /**
      * Получение записей данных версии справочника для diff-записей.
      *
-     * @param refFromVersion    версия справочника, который ссылается
+     * @param refFromEntity    версия справочника, который ссылается
      * @param diffRowValues     diff-записи
      * @param refToPrimaries    первичные ключи справочника, на который ссылаются
      * @param refFromAttributes ссылочные атрибуты версии, которая ссылается
      * @return Список всех записей
      */
-    private List<RefBookRowValue> getConflictedRowContent(RefBookVersionEntity refFromVersion, List<DiffRowValue> diffRowValues,
+    private List<RefBookRowValue> getConflictedRowContent(RefBookVersionEntity refFromEntity, List<DiffRowValue> diffRowValues,
                                                           List<Structure.Attribute> refToPrimaries, List<Structure.Attribute> refFromAttributes) {
         Set<List<FieldSearchCriteria>> filters = createFiltersForDiffRowValues(diffRowValues, refToPrimaries, refFromAttributes);
         return getConflictedRowContent(refFromEntity.getId(), refFromEntity.getStorageCode(), refFromEntity.getStructure(),
@@ -972,8 +968,7 @@ public class ConflictServiceImpl implements ConflictService {
      * Получение конфликтной записи по конфликту.
      */
     private RefBookRowValue getRefFromRowValue(RefBookVersionEntity versionEntity, List<FieldValue> fieldValues) {
-
-        if (versionEntity == null || isEmpty(fieldValues))
+        if (versionEntity == null)
             return null;
 
         SearchDataCriteria criteria = new SearchDataCriteria();

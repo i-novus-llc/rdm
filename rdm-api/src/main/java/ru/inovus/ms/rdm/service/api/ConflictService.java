@@ -63,37 +63,6 @@ public interface ConflictService {
                                                    @QueryParam("type")
                                                            ConflictType conflictType);
 
-    //@POST
-    //@Path("/refresh/byPrimary/all")
-    @ApiOperation("Обновление отображаемых значений ссылок")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Успех"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    void refreshReferencesByPrimary(@ApiParam("Идентификатор старой версии, на которую ссылаются")
-                                    @QueryParam("oldVersionId")
-                                            Integer oldVersionId,
-                                    @ApiParam("Идентификатор новой версии, на которую будут ссылаться")
-                                    @QueryParam("newVersionId")
-                                            Integer newVersionId);
-
-    //@POST
-    //@Path("/refresh/byPrimary/list")
-    @ApiOperation("Обновление отображаемых значений ссылок версии")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Успех"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    void refreshReferencesByPrimary(@ApiParam("Идентификатор версии, которая ссылается")
-                                    @QueryParam("refFromId")
-                                            Integer refFromId,
-                                    @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
-                                    @QueryParam("refToId")
-                                            Integer refToId,
-                                    @ApiParam("Список конфликтов")
-                                            List<Conflict> conflicts);
-
-
     @GET
     @ApiOperation("Поиск конфликтов по параметрам критерия")
     @ApiImplicitParams(@ApiImplicitParam(name = "sort", value = "Параметры сортировки", required = false, allowMultiple = true,
@@ -203,42 +172,6 @@ public interface ConflictService {
                                                @ApiParam("Список системных идентификаторов строк")
                                                @QueryParam("refRecordIds")
                                                        List<Long> refRecordIds);
-
-    @GET
-    @Path("/{versionId}/hasConflict")
-    @ApiOperation("Проверка версии на наличие конфликта с любым справочником")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Успех"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    boolean hasConflict(@ApiParam("Идентификатор проверяемой версии")
-                        @PathParam("versionId")
-                                Integer referrerVersionId);
-
-    @GET
-    @Path("/{versionId}/hasConflict/typed")
-    @ApiOperation("Проверка версии на наличие конфликта обновления записи с любым справочником")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Успех"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    boolean hasTypedConflict(@ApiParam("Идентификатор проверяемой версии")
-                             @PathParam("versionId")
-                                     Integer referrerVersionId,
-                             @ApiParam("Тип конфликта")
-                             @QueryParam("type")
-                                     ConflictType conflictType);
-
-    @GET
-    @Path("/{versionId}/isConflicted")
-    @ApiOperation("Проверка версии на наличие конфликта в любом справочнике")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Успех"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    boolean isConflicted(@ApiParam("Идентификатор проверяемой версии")
-                         @PathParam("versionId")
-                                 Integer publishedVersionId);
 
     @POST
     @Path("/{versionId}/refresh/byPrimary")
