@@ -42,7 +42,7 @@ public class RdmExceptionHandler extends N2oOperationExceptionHandler implements
     }
 
     private boolean isMultipleErrorsException(Exception e) {
-        if (e instanceof N2oException) {
+        if (e instanceof N2oException && e.getCause() instanceof RestException) {
             RestException restException = (RestException) e.getCause();
             return restException.getErrors() != null;
         }
