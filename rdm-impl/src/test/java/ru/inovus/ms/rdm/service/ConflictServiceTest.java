@@ -21,20 +21,26 @@ import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.conflict.RefBookConflict;
+import ru.inovus.ms.rdm.model.diff.RefBookDataDiff;
+import ru.inovus.ms.rdm.model.field.ReferenceFilterValue;
 import ru.inovus.ms.rdm.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.model.conflict.Conflict;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.repositiory.RefBookConflictRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
+import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.util.TimeUtils;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
@@ -62,6 +68,39 @@ public class ConflictServiceTest {
     private static final String PUBLISHING_DRAFT_STORAGE_CODE = "TEST_PUBLISHING_STORAGE";
     private static final String PUBLISHING_PRIMARY_CODE = "code";
 
+    // for `testRecalculateConflicts`:
+    final Long REFERRER_PRIMARY_CODE_MULTIPLIER = 10L;
+
+    private static final Long PUBLISHED_ROW_SYS_ID_UNCHANGED_UNCHANGING = 1L;
+    private static final Long PUBLISHED_ROW_SYS_ID_UNCHANGED_UPDATING = 2L;
+    private static final Long PUBLISHED_ROW_SYS_ID_UNCHANGED_DELETING = 3L;
+    private static final Long PUBLISHED_ROW_SYS_ID_UPDATED_UNCHANGING = 4L; // reuse conflict
+    private static final Long PUBLISHED_ROW_SYS_ID_UPDATED_UPDATING = 5L;
+    private static final Long PUBLISHED_ROW_SYS_ID_UPDATED_DELETING = 6L;
+    private static final Long PUBLISHED_ROW_SYS_ID_DELETED_UNCHANGING = 7L; // reuse conflict
+    private static final Long PUBLISHED_ROW_SYS_ID_DELETED_RESTORING = 8L;
+    private static final Long PUBLISHED_ROW_SYS_ID_DELETED_REMOLDING = 9L;  // emend conflict
+    private static final Long PUBLISHED_ROW_SYS_ID_ABSENT_INSERTING = 10L;
+
+    public static final List<Long> CONFLICTED_PUBLISHED_ROW_SYS_IDS_UPDATED = asList(
+            PUBLISHED_ROW_SYS_ID_UPDATED_UNCHANGING,
+            PUBLISHED_ROW_SYS_ID_UPDATED_UPDATING,
+            PUBLISHED_ROW_SYS_ID_UPDATED_DELETING
+    );
+
+    public static final List<Long> CONFLICTED_PUBLISHED_ROW_SYS_IDS_DELETED = asList(
+            PUBLISHED_ROW_SYS_ID_DELETED_UNCHANGING,
+            PUBLISHED_ROW_SYS_ID_DELETED_RESTORING,
+            PUBLISHED_ROW_SYS_ID_DELETED_REMOLDING
+    );
+
+    public static final List<Long> CONFLICTED_PUBLISHED_ROW_SYS_IDS =
+            Stream.of(
+                    CONFLICTED_PUBLISHED_ROW_SYS_IDS_UPDATED,
+                    CONFLICTED_PUBLISHED_ROW_SYS_IDS_DELETED)
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
+
     // for `testRefreshReferencesByPrimary`:
     private static final String REFERRER_PRIMARY_UNCHANGED_VALUE = "r3";
     private static final String REFERRER_PRIMARY_UPDATED_VALUE = "r2";
@@ -79,6 +118,8 @@ public class ConflictServiceTest {
     private VersionService versionService;
     @Mock
     private DraftService draftService;
+    @Mock
+    private CompareService compareService;
 
     @Mock
     private DraftDataService draftDataService;
@@ -154,6 +195,91 @@ public class ConflictServiceTest {
 
     @Test
     public void testCalculateConflicts() {
+    }
+
+    //@Test
+    public void testRecalculateConflicts() {
+
+        //RefBookVersionEntity referrerDraftEntity = createReferrerEntity(REFERRER_DRAFT_ID);
+        RefBookVersionEntity publishingEntity = createPublishingEntity(PUBLISHING_DRAFT_ID);
+
+        Page<RefBookConflict> conflicts = createRecalculateConflictsPage();
+
+        when(versionRepository.getOne(eq(referrerEntity.getId()))).thenReturn(referrerEntity);
+        when(versionRepository.getOne(eq(publishedEntity.getId()))).thenReturn(publishedEntity);
+
+        Page<RefBookRowValue> refFromRowValues = createRecalculateConflictsRowValues();
+        when(versionService.search(eq(referrerEntity.getId()), any())).thenReturn(refFromRowValues);
+
+        RefBookDataDiff refBookDataDiff = null;
+        when(compareService.compareData(any())).thenReturn(refBookDataDiff);
+
+        List<Conflict> list = conflictService.recalculateConflicts(referrerEntity.getId(),
+                publishedEntity.getId(), publishingEntity.getId(), conflicts);
+    }
+    
+    private Page<RefBookConflict> createRecalculateConflictsPage() {
+
+        List<RefBookConflict> conflicts = new ArrayList<>(CONFLICTED_PUBLISHED_ROW_SYS_IDS.size());
+
+        CONFLICTED_PUBLISHED_ROW_SYS_IDS_UPDATED.forEach(systemId -> {
+            conflicts.add(new RefBookConflict(referrerEntity.getId(),
+                    publishedEntity.getId(),
+                    systemId,
+                    REFERRER_REFERENCE_ATTRIBUTE_CODE,
+                    ConflictType.UPDATED,
+                    TimeUtils.now())
+            );
+        });
+
+        CONFLICTED_PUBLISHED_ROW_SYS_IDS_DELETED.forEach(systemId -> {
+            conflicts.add(new RefBookConflict(referrerEntity.getId(),
+                    publishedEntity.getId(),
+                    systemId,
+                    REFERRER_REFERENCE_ATTRIBUTE_CODE,
+                    ConflictType.DELETED,
+                    TimeUtils.now())
+            );
+        });
+
+        return new PageImpl<>(conflicts, Pageable.unpaged(), conflicts.size());
+    }
+
+    private Page<RefBookRowValue> createRecalculateConflictsRowValues () {
+
+        List<RefBookRowValue> rowValues = new ArrayList<>(CONFLICTED_PUBLISHED_ROW_SYS_IDS.size());
+        CONFLICTED_PUBLISHED_ROW_SYS_IDS.forEach(systemId -> {
+            LongRowValue longRowValue = new LongRowValue(systemId,
+                    asList(new StringFieldValue(REFERRER_PRIMARY_CODE, getRecalculateConflictsReferrerPrimaryValue(systemId)),
+                            new ReferenceFieldValue(REFERRER_REFERENCE_ATTRIBUTE_CODE, createRecalculateConflictsReferrerReference(systemId))
+                    )
+            );
+            rowValues.add(new RefBookRowValue(longRowValue, referrerEntity.getId()));
+        });
+
+        return new PageImpl<>(rowValues, Pageable.unpaged(), rowValues.size());
+    }
+
+    private String getRecalculateConflictsReferrerPrimaryValue(Long publishedRowSystemId) {
+        return String.valueOf(PUBLISHED_ROW_SYS_ID_UPDATED_UNCHANGING * REFERRER_PRIMARY_CODE_MULTIPLIER);
+    }
+
+    private String getRecalculateConflictsReferrerDisplayValue(Long publishedRowSystemId) {
+        String publishedRowCode = String.valueOf(publishedRowSystemId);
+        return publishedRowCode + ": " + publishedRowCode + publishedRowCode;
+    }
+
+    private Reference createRecalculateConflictsReferrerReference(Long publishedRowSystemId) {
+
+        String publishedRowCode = String.valueOf(publishedRowSystemId);
+
+        return new Reference(REFERRER_DRAFT_STORAGE_CODE,
+                null,
+                PUBLISHING_PRIMARY_CODE,
+                new DisplayExpression(REFERRER_REFERENCE_DISPLAY_EXPRESSION),
+                publishedRowCode,
+                getRecalculateConflictsReferrerDisplayValue(publishedRowSystemId)
+        );
     }
 
     @Test
