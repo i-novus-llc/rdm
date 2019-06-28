@@ -551,27 +551,13 @@ public class ConflictServiceImpl implements ConflictService {
                 .collect(toList());
 
         RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
-        List<RefBookRowValue> refFromRowValues = getSystemRowValues(refFromId, refFromSystemIds);
-
         RefBookVersionEntity refToEntity = versionRepository.getOne(oldRefToId);
 
-        // NB: Extract to separated method `toFilterValues`.
-        List<ReferenceFilterValue> filterValues = new ArrayList<>(conflicts.getSize());
-        conflicts.forEach(conflict -> {
-            RefBookRowValue refBookRowValue = refFromRowValues.stream()
-                    .filter(rowValue -> rowValue.getSystemId().equals(conflict.getRefRecordId()))
-                    .findFirst().orElse(null);
-            if (refBookRowValue == null)
-                return;
-
-            Structure.Reference refFromReference = refFromEntity.getStructure().getReference(conflict.getRefFieldCode());
-            Structure.Attribute refToAttribute = refFromReference.findReferenceAttribute(refToEntity.getStructure());
-            ReferenceFieldValue fieldValue = (ReferenceFieldValue) (refBookRowValue.getFieldValue(conflict.getRefFieldCode()));
-            filterValues.add(new ReferenceFilterValue(refToAttribute, fieldValue));
-        });
+        List<RefBookRowValue> refFromRowValues = getSystemRowValues(refFromId, refFromSystemIds);
+        List<ReferenceFilterValue> filterValues = toFilterValues(refFromEntity, refToEntity, conflicts.getContent(), refFromRowValues);
         List<DiffRowValue> diffRowValues = getRefToDiffRowValues(oldRefToId, newRefToId, filterValues);
 
-        return recalculateConflicts(refFromEntity, refToEntity, conflicts, refFromRowValues, diffRowValues);
+        return recalculateConflicts(refFromEntity, refToEntity, conflicts.getContent(), refFromRowValues, diffRowValues);
     }
 
     /**
@@ -585,7 +571,7 @@ public class ConflictServiceImpl implements ConflictService {
      * @return Список конфликтов
      */
     private List<Conflict> recalculateConflicts(RefBookVersionEntity refFromEntity, RefBookVersionEntity refToEntity,
-                                                Page<RefBookConflict> conflicts, List<RefBookRowValue> refFromRowValues, List<DiffRowValue> diffRowValues) {
+                                                List<RefBookConflict> conflicts, List<RefBookRowValue> refFromRowValues, List<DiffRowValue> diffRowValues) {
         return conflicts.stream()
                 .map(conflict -> {
                     RefBookRowValue refFromRowValue = refFromRowValues.stream()
@@ -1070,13 +1056,12 @@ public class ConflictServiceImpl implements ConflictService {
      * @param systemIds системные идентификаторы записей
      */
     private List<RefBookRowValue> getSystemRowValues(Integer versionId, List<Long> systemIds) {
-
-        if (versionId == null || isEmpty(systemIds))
+        if (versionId == null)
             return emptyList();
 
         SearchDataCriteria criteria = new SearchDataCriteria();
         Set<List<AttributeFilter>> filterSet = systemIds.stream()
-                .map(systemId -> new AttributeFilter("SYS_RECORDID", BigInteger.valueOf(systemId), FieldType.INTEGER))
+                .map(systemId -> new AttributeFilter(DataConstants.SYS_PRIMARY_COLUMN, BigInteger.valueOf(systemId), FieldType.INTEGER))
                 .map(Collections::singletonList)
                 .collect(toSet());
         criteria.setAttributeFilter(filterSet);
@@ -1143,6 +1128,34 @@ public class ConflictServiceImpl implements ConflictService {
                 })
                 .findFirst()
                 .orElseThrow();
+    }
+
+    /**
+     * Получение ссылочных значений для фильтрации
+     *
+     * @param refFromEntity    версия справочника, которая ссылается
+     * @param refToEntity      версия справочника, на которую ссылались
+     * @param conflicts        список конфликтов
+     * @param refFromRowValues список записей версии справочника, которая ссылается
+     * @return Список ссылочных значений
+     */
+    private List<ReferenceFilterValue> toFilterValues(RefBookVersionEntity refFromEntity, RefBookVersionEntity refToEntity,
+                                                      List<RefBookConflict> conflicts, List<RefBookRowValue> refFromRowValues) {
+        return conflicts.stream()
+                .map(conflict -> {
+                    RefBookRowValue refBookRowValue = refFromRowValues.stream()
+                            .filter(rowValue -> rowValue.getSystemId().equals(conflict.getRefRecordId()))
+                            .findFirst().orElse(null);
+                    if (refBookRowValue == null)
+                        return null;
+
+                    Structure.Reference refFromReference = refFromEntity.getStructure().getReference(conflict.getRefFieldCode());
+                    Structure.Attribute refToAttribute = refFromReference.findReferenceAttribute(refToEntity.getStructure());
+                    ReferenceFieldValue fieldValue = (ReferenceFieldValue) (refBookRowValue.getFieldValue(conflict.getRefFieldCode()));
+                    return new ReferenceFilterValue(refToAttribute, fieldValue);
+                })
+                .filter(Objects::nonNull)
+                .collect(toList());
     }
 
     /**
