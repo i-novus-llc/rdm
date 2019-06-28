@@ -55,29 +55,10 @@
             </in-parameters>
         </operation>
 
-        <operation id="publish" submit-label="Опубликовать" success-text="Справочник опубликован"
-                   confirm="true" confirm-text="Вы уверены, что хотите опубликовать этот справочник?">
-            <invocation>
-                <java class="ru.inovus.ms.rdm.service.RefBookVersionController"
-                      method="publishDraft">
-                    <spring/>
-                    <arguments>
-                        <argument type="primitive" name="draftId" class="java.lang.Integer"/>
-                        <argument type="primitive" name="processResolvableConflicts" class="java.lang.Boolean"/>
-                    </arguments>
-                </java>
-            </invocation>
-            <in-parameters>
-                <param id="version.id" mapping="[0]" domain="integer" mapper="spel"/>
-                <param id="processResolvableConflicts" mapping="[1]" default-value="false" domain="boolean"/>
-            </in-parameters>
-            <validations white-list="checkDeletedConflicts,checkUpdatedConflicts"/>
-        </operation>
-
         <operation id="refreshReferrer" submit-label="Обновить ссылки" success-text="Обновлены ссылки по первичным ключам"
                    confirm="true" confirm-text="Вы уверены, что хотите обновить ссылки?">
             <invocation>
-                <java class="ru.inovus.ms.rdm.service.RefBookVersionController"
+                <java class="ru.inovus.ms.rdm.service.ConflictController"
                       method="refreshReferrer">
                     <spring/>
                     <arguments>
@@ -174,52 +155,4 @@
 
     </operations>
 
-    <validations>
-        <constraint id="checkDeletedConflicts" severity="warning" client-moment="before-load"
-                    result="#this.length() == 0"
-                    message="Были удалены строки, на которые ссылались справочники системы: {referrerNames}">
-            <!--    NB: Реализовать как модальное окно перед операцией // NNO-1644 -->
-            <!--                    "Продолжить публикацию?"-->
-            <invocation>
-                <java method="getCheckConflictReferrerNames" class="ru.inovus.ms.rdm.service.ConflictController">
-                    <spring/>
-                    <arguments>
-                        <argument name="versionId" type="primitive" class="java.lang.Integer"/>
-                        <argument name="conflictType" type="class"/>
-                    </arguments>
-                </java>
-            </invocation>
-            <in-parameters>
-                <param id="version.id" mapping="[0]" domain="integer"/>
-                <param id="conflictType" default-value="DELETED" normalize="T(ru.inovus.ms.rdm.enumeration.ConflictType).valueOf(#this)"/>
-            </in-parameters>
-            <out-parameters>
-                <param id="referrerNames" domain="string" mapping="#this"/>
-            </out-parameters>
-        </constraint>
-
-        <constraint id="checkUpdatedConflicts" severity="warning" client-moment="before-load"
-                    result="#this.length() == 0"
-                    message="Были изменены строки, на которые ссылались справочники системы: {referrerNames}">
-            <!--    NB: Реализовать как модальное окно перед операцией // NNO-1644 -->
-<!--                    "Продолжить публикацию и обновить ссылки в связанных справочниках?"-->
-            <invocation>
-                <java method="getCheckConflictReferrerNames" class="ru.inovus.ms.rdm.service.ConflictController">
-                    <spring/>
-                    <arguments>
-                        <argument name="versionId" type="primitive" class="java.lang.Integer"/>
-                        <argument name="conflictType" type="class"/>
-                    </arguments>
-                </java>
-            </invocation>
-            <in-parameters>
-                <param id="version.id" mapping="[0]" domain="integer"/>
-                <param id="conflictType" default-value="UPDATED" normalize="T(ru.inovus.ms.rdm.enumeration.ConflictType).valueOf(#this)"/>
-            </in-parameters>
-            <out-parameters>
-                <param id="referrerNames" domain="string" mapping="#this"/>
-            </out-parameters>
-        </constraint>
-
-    </validations>
 </object>

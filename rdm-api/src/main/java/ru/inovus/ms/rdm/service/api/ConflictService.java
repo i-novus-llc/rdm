@@ -247,6 +247,17 @@ public interface ConflictService {
                                        @QueryParam("refFieldCode")
                                                String refBookCode);
 
+    @DELETE
+    @Path("/drop/published")
+    @ApiOperation("Удаление конфликтов со справочником, на которую ссылаются")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void dropPublishedConflicts(@ApiParam("Идентификатор справочника, на которую ссылаются")
+                                @QueryParam("refBookId")
+                                        Integer publishedRefBookId);
+
     @POST
     @Path("/discover")
     @ApiOperation("Обнаружение конфликтов")

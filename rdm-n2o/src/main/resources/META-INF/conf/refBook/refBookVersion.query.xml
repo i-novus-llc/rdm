@@ -49,6 +49,14 @@
             <select/>
         </field>
 
+        <field id="version.isLast" domain="boolean">
+            <select mapping="id == draftVersionId or (id == lastPublishedVersionId and draftVersionId == null)"/>
+        </field>
+
+        <field id="version.hasConflict" domain="boolean">
+            <select mapping="hasConflict"/>
+        </field>
+
         <field id="version.hasUpdatedConflict" domain="boolean">
             <select mapping="hasUpdatedConflict"/>
         </field>

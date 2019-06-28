@@ -26,11 +26,11 @@ import static ru.inovus.ms.rdm.model.UpdateValue.of;
 public class StructureController {
 
     @Autowired
+    private RefBookService refBookService;
+    @Autowired
     private VersionService versionService;
     @Autowired
     private DraftService draftService;
-    @Autowired
-    private RefBookService refBookService;
 
     public RestPage<ReadAttribute> getPage(AttributeCriteria criteria) {
         List<ReadAttribute> list = new ArrayList<>();

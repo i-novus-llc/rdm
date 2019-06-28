@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<simple-page xmlns="http://n2oapp.net/framework/config/schema/page-2.0" name="Публикация справочника">
+    <form object-id="publish" default-values-query-id="publish">
+
+        <fields>
+<!--            <output-text id="version.version" label="Версия"/>-->
+
+            <output-text id="checkDeletedConflictReferrers"
+                         label="Были удалены строки, на которые ссылались справочники системы:">
+                <dependencies>
+                    <visibility>hasCheckDeletedConflicts</visibility>
+                </dependencies>
+            </output-text>
+
+            <output-text id="checkUpdatedConflictReferrers"
+                         label="Были изменены строки, на которые ссылались справочники системы:">
+                <dependencies>
+                    <visibility>hasCheckUpdatedConflicts</visibility>
+                </dependencies>
+            </output-text>
+
+<!--            <line collapsible="false">-->
+                <output-text id="confirmPublish"
+                             label="Вы уверены, что хотите опубликовать этот справочник?"/>
+<!--            </line>-->
+
+        </fields>
+
+        <toolbar place="bottomRight">
+            <button id="publishDraft" label="Опубликовать"
+                    visibility-condition="isPublishing">
+                <invoke operation-id="publishDraft" close-after-success="true"/>
+            </button>
+
+            <button id="publishAndRefresh" label="Опубликовать и обновить ссылки"
+                    visibility-condition="isPublishing &amp;&amp; hasCheckUpdatedConflicts">
+                <invoke operation-id="publishAndRefresh" close-after-success="true"/>
+            </button>
+
+            <button id="cancel" label="Отмена">
+                <close/>
+            </button>
+
+        </toolbar>
+
+    </form>
+</simple-page>
