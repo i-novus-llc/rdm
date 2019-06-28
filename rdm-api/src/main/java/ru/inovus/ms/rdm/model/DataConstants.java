@@ -8,7 +8,7 @@ public class DataConstants {
     public static final String SYS_CLOSETIME = "SYS_CLOSETIME";
     public static final String SYS_HASH = "SYS_HASH";
     public static final String SYS_PATH = "SYS_PATH";
-    public static final String FULL_TEXT_SEARCH = "FTS";
+    public static final String SYS_FULL_TEXT_SEARCH = "FTS";
 
     private DataConstants() {
     }
