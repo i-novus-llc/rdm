@@ -271,7 +271,10 @@ public interface ConflictService {
     })
     void dropPublishedConflicts(@ApiParam("Идентификатор справочника, на которую ссылаются")
                                 @QueryParam("refBookId")
-                                        Integer publishedRefBookId);
+                                        Integer publishedRefBookId,
+                                @ApiParam("Идентификатор версии, на которую будут ссылаться")
+                                @QueryParam("excludeId")
+                                        Integer excludePublishedVersionId);
 
     @POST
     @Path("/discover")

@@ -51,11 +51,9 @@ import ru.inovus.ms.rdm.util.RowUtils;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import javax.persistence.EntityManager;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
@@ -130,12 +128,12 @@ public class ConflictServiceImpl implements ConflictService {
     /**
      * Вычисление конфликтов справочников при наличии ссылочных атрибутов.
      *
+     * <p><br/>Метод используется пока только для тестирования вызываемого метода.</p>
+     *
      * @param refFromId идентификатор версии, которая ссылается
      * @param refToId   идентификатор последней опубликованной версии
      *                  (идентификатор публикуемого черновика определяется автоматически)
      * @return Список конфликтов для версии, которая ссылается
-     *
-     * @see #checkConflicts
      */
     @Override
     @Transactional(readOnly = true)
@@ -157,12 +155,15 @@ public class ConflictServiceImpl implements ConflictService {
      * @param oldRefToId идентификатор старой версии, на которую ссылались
      * @param newRefToId идентификатор новой версии, на которую будут ссылаться
      * @return Список конфликтов для версии, которая ссылается
+     *
+     * @see #checkConflicts(Integer, Integer, Integer, ConflictType)
      */
     private List<Conflict> calculateConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId) {
 
         RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
         RefBookVersionEntity refToEntity = versionRepository.getOne(oldRefToId);
 
+        // NB: Calculate by pageable diffRowValues and new pageable recalculate.
         List<DiffRowValue> diffRowValues = getDataDiffContent(oldRefToId, newRefToId);
 
         return calculateDiffConflicts(refFromEntity, refToEntity, diffRowValues);
@@ -256,6 +257,7 @@ public class ConflictServiceImpl implements ConflictService {
         RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
         RefBookVersionEntity refToEntity = versionRepository.getOne(oldRefToId);
 
+        // NB: Check by pageable diffRowValues and new pageable recheck = checked-analog of recalculate.
         List<DiffRowValue> diffRowValues = getDataDiffContent(oldRefToId, newRefToId);
 
         return checkDiffConflicts(refFromEntity, refToEntity, diffRowValues, conflictTypeToDiffStatus(conflictType));
@@ -342,6 +344,7 @@ public class ConflictServiceImpl implements ConflictService {
             return;
 
         lastReferrers.forEach(referrer -> {
+            // NB: Refresh by pageable calculateConflicts.
             List<Conflict> conflicts = calculateConflicts(referrer.getId(), oldVersionId, newVersionId);
             if (isEmpty(conflicts))
                 return;
@@ -585,7 +588,8 @@ public class ConflictServiceImpl implements ConflictService {
             return;
 
         references.forEach(reference -> {
-            List<RefBookConflictEntity> conflicts =
+            // NB: Refresh by pageable search.
+            List<RefBookConflictEntity> conflicts = // NB: use search with criteria
                     conflictRepository.findAllByReferrerVersionIdAndRefFieldCodeAndConflictType(referrerVersionId, reference.getAttribute(), ConflictType.UPDATED);
 
             List<RefBookVersionEntity> publishedVersions = conflicts.stream()
@@ -600,8 +604,8 @@ public class ConflictServiceImpl implements ConflictService {
                         publishedVersion.getFromDate(), // SYS_PUBLISH_TIME is not exist for draft
                         refToAttribute.getCode(),
                         new DisplayExpression(reference.getDisplayExpression()),
-                        null, // NB: Old value is not changed
-                        null // NB: Display value will be recalculated
+                        null, // Old value is not changed
+                        null // Display value will be recalculated
                 );
                 ReferenceFieldValue fieldValue = new ReferenceFieldValue(reference.getAttribute(), updatedReference);
 
@@ -621,7 +625,7 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Обновление ссылок в свяазанных справочниках по таблице конфликтов.
+     * Обновление ссылок в связанных справочниках по таблице конфликтов.
      *
      * @param refBookCode код справочника, на который ссылаются
      */
@@ -633,13 +637,15 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Удаление конфиктов со всеми версиями справочника, на который ссылаются.
+     * Удаление конфиктов со всеми версиями справочника, на который ссылаются,
+     * кроме указанной версии справочника, на которую будут ссылаться.
      *
-     * @param publishedRefBookId идентификатор справочника, на который ссылаются
+     * @param publishedRefBookId        идентификатор справочника, на который ссылаются
+     * @param excludePublishedVersionId идентификатор версии, на которую будут ссылаться
      */
     @Transactional
-    public void dropPublishedConflicts(Integer publishedRefBookId) {
-        conflictRepository.deleteByPublishedVersionRefBookId(publishedRefBookId);
+    public void dropPublishedConflicts(Integer publishedRefBookId, Integer excludePublishedVersionId) {
+        conflictRepository.deleteByPublishedVersionRefBookIdAndPublishedVersionIdNot(publishedRefBookId, excludePublishedVersionId);
     }
 
     /**
@@ -662,6 +668,7 @@ public class ConflictServiceImpl implements ConflictService {
         if (isEmpty(allReferrers))
             return;
 
+        // NB: Discover by pageable.
         List<DiffRowValue> diffRowValues = getDataDiffContent(oldVersionId, newVersionId);
         if (isEmpty(diffRowValues))
             return;
@@ -693,10 +700,10 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Формирование предиката на основе критерия.
+     * Формирование предиката на основе критерия поиска.
      *
-     * @param criteria критерий
-     * @return Предикат
+     * @param criteria критерий поиска
+     * @return Предикат для запроса поиска
      */
     private Predicate toPredicate(RefBookConflictCriteria criteria) {
         BooleanBuilder where = new BooleanBuilder();
@@ -729,7 +736,7 @@ public class ConflictServiceImpl implements ConflictService {
      * Добавление сортировки в запрос на основе критерия.
      *
      * @param jpaQuery запрос
-     * @param criteria критерий
+     * @param criteria критерий поиска
      */
     private void sortQuery(JPAQuery<RefBookConflictEntity> jpaQuery, RefBookConflictCriteria criteria) {
 
@@ -745,8 +752,8 @@ public class ConflictServiceImpl implements ConflictService {
     /**
      * Добавление сортировки в запрос по заданному порядку.
      *
-     * @param jpaQuery запрос
-     * @param order    порядок
+     * @param jpaQuery запрос поиска
+     * @param order    порядок сортировки
      */
     private void addSortOrder(JPAQuery<RefBookConflictEntity> jpaQuery, Sort.Order order) {
 
@@ -806,12 +813,14 @@ public class ConflictServiceImpl implements ConflictService {
 
     /**
      * Сравнение записей данных версий справочников.
-     * Список записей о сравнении фильтруется по статусу изменения: остаются только DELETED, UPDATED
+     *
+     * <p>Список записей о сравнении фильтруется по статусу изменения: остаются только DELETED, UPDATED.</p>
      *
      * @param oldVersionId идентификатор старой версии
      * @param newVersionId идентификатор новой версии
      * @return Список различий
      */
+    // NB: Use Page<>
     private List<DiffRowValue> getDataDiffContent(Integer oldVersionId, Integer newVersionId) {
         return compareService.compareData(new CompareDataCriteria(oldVersionId, newVersionId))
                 .getRows()
@@ -835,10 +844,11 @@ public class ConflictServiceImpl implements ConflictService {
     private List<RefBookRowValue> getConflictedRowContent(RefBookVersionEntity refFromVersion, List<DiffRowValue> diffRowValues,
                                                           List<Structure.Attribute> refToPrimaries, List<Structure.Attribute> refFromAttributes) {
         Set<List<FieldSearchCriteria>> filters = createFiltersForDiffRowValues(diffRowValues, refToPrimaries, refFromAttributes);
-        return getConflictedRowContent(refFromVersion.getId(), refFromVersion.getStorageCode(), refFromVersion.getStructure(),
-                refFromVersion.getFromDate(), refFromVersion.getToDate(), filters);
+        return getConflictedRowContent(refFromEntity.getId(), refFromEntity.getStorageCode(), refFromEntity.getStructure(),
+                refFromEntity.getFromDate(), refFromEntity.getToDate(), filters);
     }
 
+    // NB: Converty to Page<> and then use it iterating over all pages.
     private List<RefBookRowValue> getConflictedRowContent(Integer versionId, String storageCode,
                                                           Structure structure,
                                                           LocalDateTime bdate, LocalDateTime edate,
