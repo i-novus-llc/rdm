@@ -1477,10 +1477,18 @@ public class ApplicationTest {
 
     /*
      * testing calculate conflicts for two refBooks
-     * refFromRefBook has a link to a published version of refToRefBook
-     * create new draft version of refToRefBook with INSERTED, UPDATED, DELETED rows
+     * refFromRefBook has two links to a published version of refToRefBook (REF_ID_1, REF_ID_2)
+     * refFromRefBook version has 5 rows:
+     *   ref_1, ref_2
+     * 1) DEL, UPD (2 conflicts for 1st row)
+     * 2) -, - (no conflicts)
+     * 3) DEL, - (1 conflict for 3rd row)
+     * 4) -, UPD (1 conflict for 4th row)
+     * 5) null, null (no conflicts)
+     * create new draft version of refToRefBook with INSERTED (no matter), UPDATED (ref_id=3), DELETED (ref_id=1) rows
      *
-     * calculate conflicts must return 2 conflicts: for DELETED and UPDATED rows
+     * calculate conflicts must return 4 conflicts
+     * for DELETED and UPDATED rows
      * only for the rows, which were referenced by refFromRefBook
      */
     @Test
@@ -1509,26 +1517,86 @@ public class ApplicationTest {
         draftService.updateData(refToDraftId, createFileModel(NEW_FILE_NAME, "testConflicts/" + NEW_FILE_NAME));
 
         Structure.Attribute id_id = Structure.Attribute.buildPrimary("ID_ID", "id_id", FieldType.INTEGER, "id_id");
-        Structure.Attribute ref_id = Structure.Attribute.build("REF_ID", "ref_id", FieldType.REFERENCE, "ref_id");
-        Structure.Reference ref_id_ref = new Structure.Reference(ref_id.getCode(), refToRefBook.getCode(), "${" + id.getCode() + "}");
+        Structure.Attribute ref_id_1 = Structure.Attribute.build("REF_ID_1", "ref_id_1", FieldType.REFERENCE, "ref_id_1");
+        Structure.Attribute ref_id_2 = Structure.Attribute.build("REF_ID_2", "ref_id_2", FieldType.REFERENCE, "ref_id_2");
+        Structure.Reference ref_id_1_ref = new Structure.Reference(ref_id_1.getCode(), refToRefBook.getCode(), "${" + id.getCode() + "}");
+        Structure.Reference ref_id_2_ref = new Structure.Reference(ref_id_2.getCode(), refToRefBook.getCode(), "${" + id.getCode() + "}");
 
         RefBook refFromRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_from_confl", null));
         Integer refFromVersionId = refFromRefBook.getId();
         draftService.createAttribute(new CreateAttribute(refFromVersionId, id_id, null));
-        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id, ref_id_ref));
+        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id_1, ref_id_1_ref));
+        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id_2, ref_id_2_ref));
         draftService.createAttribute(new CreateAttribute(refFromVersionId, code, null));
         draftService.updateData(refFromVersionId, createFileModel(REF_FILE_NAME, "testConflicts/" + REF_FILE_NAME));
         draftService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null);
 
         List<Conflict> expectedConflicts = asList(
-                new Conflict(ConflictType.UPDATED, singletonList(
+                new Conflict(ref_id_1.getCode(), ConflictType.DELETED, singletonList(
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1)))),
+                new Conflict(ref_id_2.getCode(), ConflictType.UPDATED, singletonList(
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1)))),
+                new Conflict(ref_id_1.getCode(), ConflictType.DELETED, singletonList(
                         new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(3)))),
-                new Conflict(ConflictType.DELETED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1))))
+                new Conflict(ref_id_2.getCode(), ConflictType.UPDATED, singletonList(
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4))))
         );
 
         List<Conflict> actualConflicts = conflictService.calculateConflicts(refFromVersionId, refToVersionId);
         assertConflicts(expectedConflicts, actualConflicts);
+    }
+
+    /*
+     * testing check conflicts for two refBooks
+     *
+     * @see #testCalculateConflictWhenConflictsExist
+     */
+    @Test
+    public void testCheckConflictWhenConflictsExist() {
+        final String OLD_FILE_NAME = "oldRefToData.xlsx";
+        final String NEW_FILE_NAME = "newRefToData.xlsx";
+        final String REF_FILE_NAME = "refData.xlsx";
+
+        Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
+        Structure.Attribute code = Structure.Attribute.build("CODE", "code", FieldType.STRING, "code");
+
+        Structure structure = new Structure(asList(id, code), emptyList());
+
+        RefBook refToRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_to_confl_chk", null));
+        Integer refToVersionId = refToRefBook.getId();
+        draftService.createAttribute(new CreateAttribute(refToVersionId, id, null));
+        draftService.createAttribute(new CreateAttribute(refToVersionId, code, null));
+        draftService.updateData(refToVersionId, createFileModel(OLD_FILE_NAME, "testConflicts/" + OLD_FILE_NAME));
+        draftService.publish(refToVersionId, "1.0", LocalDateTime.now(), null);
+
+        Integer refToDraftId = draftService.create(
+                new CreateDraftRequest(
+                        refToRefBook.getRefBookId(),
+                        structure))
+                .getId();
+        draftService.updateData(refToDraftId, createFileModel(NEW_FILE_NAME, "testConflicts/" + NEW_FILE_NAME));
+
+        Structure.Attribute id_id = Structure.Attribute.buildPrimary("ID_ID", "id_id", FieldType.INTEGER, "id_id");
+        Structure.Attribute ref_id_1 = Structure.Attribute.build("REF_ID_1", "ref_id_1", FieldType.REFERENCE, "ref_id_1");
+        Structure.Attribute ref_id_2 = Structure.Attribute.build("REF_ID_2", "ref_id_2", FieldType.REFERENCE, "ref_id_2");
+        Structure.Reference ref_id_1_ref = new Structure.Reference(ref_id_1.getCode(), refToRefBook.getCode(), "${" + id.getCode() + "}");
+        Structure.Reference ref_id_2_ref = new Structure.Reference(ref_id_2.getCode(), refToRefBook.getCode(), "${" + id.getCode() + "}");
+
+        RefBook refFromRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_from_confl_chk", null));
+        Integer refFromVersionId = refFromRefBook.getId();
+        draftService.createAttribute(new CreateAttribute(refFromVersionId, id_id, null));
+        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id_1, ref_id_1_ref));
+        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id_2, ref_id_2_ref));
+        draftService.createAttribute(new CreateAttribute(refFromVersionId, code, null));
+        draftService.updateData(refFromVersionId, createFileModel(REF_FILE_NAME, "testConflicts/" + REF_FILE_NAME));
+        draftService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null);
+
+        EnumMap<ConflictType, Boolean> expectedCheck = new EnumMap<>(ConflictType.class);
+        expectedCheck.put(ConflictType.UPDATED, Boolean.TRUE);
+        expectedCheck.put(ConflictType.DELETED, Boolean.TRUE);
+
+        Map<ConflictType, Boolean> actualCheck = conflictService.checkConflicts(refFromVersionId, refToVersionId);
+        assertCheckConflicts(expectedCheck, actualCheck);
     }
 
     /*
@@ -1711,13 +1779,25 @@ public class ApplicationTest {
     }
 
     private void assertConflicts(List<Conflict> expectedConflicts, List<Conflict> actualConflicts) {
+        assertNotNull(actualConflicts);
         assertEquals(expectedConflicts.size(), actualConflicts.size());
         expectedConflicts.forEach(expectedConflict -> {
             if (actualConflicts.stream().noneMatch(actualConflict ->
-                    expectedConflict.getConflictType().equals(actualConflict.getConflictType())
+                    expectedConflict.getRefAttributeCode().equals(actualConflict.getRefAttributeCode())
+                            && expectedConflict.getConflictType().equals(actualConflict.getConflictType())
                             && expectedConflict.getPrimaryValues().size() == actualConflict.getPrimaryValues().size()
                             && actualConflict.getPrimaryValues().containsAll(expectedConflict.getPrimaryValues())))
                 fail();
+        });
+    }
+
+    private void assertCheckConflicts(Map<ConflictType, Boolean> expectedChecks, Map<ConflictType, Boolean> actualChecks) {
+        assertNotNull(actualChecks);
+        assertEquals(expectedChecks.size(), actualChecks.size());
+        assertTrue(actualChecks.keySet().containsAll(expectedChecks.keySet()));
+
+        expectedChecks.keySet().forEach(key -> {
+            assertEquals(expectedChecks.get(key), actualChecks.get(key));
         });
     }
 

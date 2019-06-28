@@ -9,10 +9,7 @@ import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
@@ -33,6 +30,7 @@ import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static java.util.Collections.singletonList;
 import static java.util.Objects.nonNull;
@@ -184,6 +182,22 @@ public class RefBookServiceImpl implements RefBookService {
 
         RefBookVersionEntity refBookVersion = repository.getOne(versionId);
         return refBookModel(refBookVersion, getLastPublishedVersions(singletonList(refBookVersion.getRefBook().getId())));
+    }
+
+    @Override
+    @Transactional
+    public List<RefBookVersion> getReferrerVersions(String refBookCode) {
+        BooleanBuilder where = new BooleanBuilder();
+        where.and(isActual()).andNot(isArchived());
+
+        Page<RefBookVersionEntity> all = repository.findAll(where, Pageable.unpaged());
+        List<RefBookVersionEntity> list = StreamSupport.stream(all.spliterator(), false)
+                .filter(actual ->
+                        Objects.nonNull(actual.getStructure())
+                                && !actual.getStructure().getRefCodeReferences(refBookCode).isEmpty())
+                .collect(Collectors.toList());
+
+        return list.stream().map(ModelGenerator::versionModel).collect(Collectors.toList());
     }
 
     @Override
