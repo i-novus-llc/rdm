@@ -540,21 +540,18 @@ public class ConflictServiceImpl implements ConflictService {
      * @param refFromId  идентификатор версии, которая ссылается
      * @param oldRefToId идентификатор старой версии, на которую ссылались
      * @param newRefToId идентификатор новой версии, на которую будут ссылаться
+     * @param conflicts  страничный список конфликтов
      * @return Список перевычисленных конфликтов для версии, которая ссылается
      */
     public List<Conflict> recalculateConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId,
-                                               RefBookConflictCriteria criteria) {
+                                               Page<RefBookConflict> conflicts) {
 
-        Page<RefBookConflict> conflicts = search(criteria);
-        if (isEmpty(conflicts.getContent()))
-            return emptyList();
-
-        List<Long> refBookConflictRecordIds = conflicts.getContent().stream()
+        List<Long> refFromSystemIds = conflicts.getContent().stream()
                 .map(RefBookConflict::getRefRecordId)
                 .collect(toList());
 
         RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
-        List<RefBookRowValue> refFromRowValues = getSystemRowValues(refFromId, refBookConflictRecordIds);
+        List<RefBookRowValue> refFromRowValues = getSystemRowValues(refFromId, refFromSystemIds);
 
         RefBookVersionEntity refToEntity = versionRepository.getOne(oldRefToId);
 
