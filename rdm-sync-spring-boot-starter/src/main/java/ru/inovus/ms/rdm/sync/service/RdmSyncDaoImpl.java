@@ -7,6 +7,7 @@ import ru.inovus.ms.rdm.sync.model.DataTypeEnum;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.Log;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
+import ru.inovus.ms.rdm.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,6 +16,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static ru.inovus.ms.rdm.util.StringUtils.addDoubleQuotes;
 
 /**
  * @author lgalimova
@@ -87,7 +90,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
 
     @Override
     public void insertRow(String table, Map<String, Object> row) {
-        String keys = row.keySet().stream().map(this::addDoubleQuotes).collect(Collectors.joining(","));
+        String keys = row.keySet().stream().map(StringUtils::addDoubleQuotes).collect(Collectors.joining(","));
         List<String> values = new ArrayList<>();
         List<Object> data = new ArrayList<>();
         for (Map.Entry<String, Object> entry : row.entrySet()) {
@@ -153,9 +156,5 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
                         rs.getString(7),
                         rs.getString(8)),
                 args.toArray());
-    }
-
-    private String addDoubleQuotes(String value) {
-        return "\"" + value + "\"";
     }
 }

@@ -580,6 +580,16 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
+     * Удаление конфиктов со всеми версиями справочника, на который ссылаются.
+     *
+     * @param publishedRefBookId идентификатор справочника, на который ссылаются
+     */
+    @Transactional
+    public void dropPublishedConflicts(Integer publishedRefBookId) {
+        conflictRepository.deleteByPublishedVersionRefBookId(publishedRefBookId);
+    }
+
+    /**
      * Обнаружение конфликтов при смене версий.
      *
      * @param oldVersionId идентификатор старой версии справочника
