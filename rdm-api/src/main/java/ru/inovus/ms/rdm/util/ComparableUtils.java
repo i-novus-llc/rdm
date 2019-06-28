@@ -273,7 +273,8 @@ public class ComparableUtils {
 
     /**
      * Возвращает типизированное значение ссылочного атрибута.
-     * При приведении типа используется тип атрибута, НА который ссылаемся.
+     *
+     * <p>При приведении типа используется тип атрибута, НА который ссылаемся.</p>
      *
      * @param fieldValue   занчение ссылочного атрибута
      * @param refFieldType тип атрибута, на который ссылаемся
@@ -281,13 +282,25 @@ public class ComparableUtils {
      */
     public static Object castRefValue(FieldValue fieldValue, FieldType refFieldType) {
         if (fieldValue instanceof ReferenceFieldValue) {
-            Reference value = (Reference) fieldValue.getValue();
-            if (refFieldType == FieldType.INTEGER) {
-                return value.getValue() != null ? new BigInteger(value.getValue()) : null;
-            }
-            return value.getValue();
+            return castRefValue((Reference) (fieldValue.getValue()), refFieldType);
         }
         return fieldValue.getValue();
+    }
+
+    /**
+     * Возвращает типизированное значение ссылки.
+     *
+     * <p>При приведении типа используется тип атрибута, НА который ссылаемся.</p>
+     *
+     * @param value        ссылка
+     * @param refFieldType тип атрибута, на который ссылаемся
+     * @return Типизированное значение ссылочного атрибута
+     */
+    private static Object castRefValue(Reference value, FieldType refFieldType) {
+        if (refFieldType == FieldType.INTEGER) {
+            return value.getValue() != null ? new BigInteger(value.getValue()) : null;
+        }
+        return value.getValue();
     }
 
 }
