@@ -250,7 +250,7 @@ public class ConflictServiceTest {
         when(compareService.compareData(any())).thenReturn(refBookDataDiff);
 
         List<Conflict> list = conflictService.recalculateConflicts(referrerEntity.getId(),
-                publishedEntity.getId(), publishingEntity.getId(), conflicts);
+                publishedEntity.getId(), publishingEntity.getId(), conflicts.getContent());
     }
     
     private Page<RefBookConflict> createRecalculateConflictsPage() {

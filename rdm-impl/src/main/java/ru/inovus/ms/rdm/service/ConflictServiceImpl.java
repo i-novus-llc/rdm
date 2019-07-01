@@ -73,6 +73,8 @@ import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
 @Service
 public class ConflictServiceImpl implements ConflictService {
 
+    private static final int REF_BOOK_CONFLICT_PAGE_SIZE = 100;
+
     private static final String CONFLICT_REFERRER_VERSION_ID_SORT_PROPERTY = "referrerVersionId";
     private static final String CONFLICT_PUBLISHED_VERSION_ID_SORT_PROPERTY = "publishedVersionId";
     private static final String CONFLICT_REF_RECORD_ID_SORT_PROPERTY = "refRecordId";
@@ -508,9 +510,9 @@ public class ConflictServiceImpl implements ConflictService {
      * @return Список перевычисленных конфликтов для версии, которая ссылается
      */
     public List<Conflict> recalculateConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId,
-                                               Page<RefBookConflict> conflicts) {
+                                               List<RefBookConflict> conflicts) {
 
-        List<Long> refFromSystemIds = conflicts.getContent().stream()
+        List<Long> refFromSystemIds = conflicts.stream()
                 .map(RefBookConflict::getRefRecordId)
                 .collect(toList());
 
@@ -518,10 +520,10 @@ public class ConflictServiceImpl implements ConflictService {
         RefBookVersionEntity refToEntity = versionRepository.getOne(oldRefToId);
 
         List<RefBookRowValue> refFromRowValues = getSystemRowValues(refFromId, refFromSystemIds);
-        List<ReferenceFilterValue> filterValues = toFilterValues(refFromEntity, refToEntity, conflicts.getContent(), refFromRowValues);
+        List<ReferenceFilterValue> filterValues = toFilterValues(refFromEntity, refToEntity, conflicts, refFromRowValues);
         List<DiffRowValue> diffRowValues = getRefToDiffRowValues(oldRefToId, newRefToId, filterValues);
 
-        return recalculateConflicts(refFromEntity, refToEntity, conflicts.getContent(), refFromRowValues, diffRowValues);
+        return recalculateConflicts(refFromEntity, refToEntity, conflicts, refFromRowValues, diffRowValues);
     }
 
     /**
@@ -714,6 +716,8 @@ public class ConflictServiceImpl implements ConflictService {
 
             conflicts.forEach(conflict -> create(referrer.getId(), newVersionId, conflict));
         });
+
+        allReferrers.forEach(referrer -> createRecalculatedConflicts(referrer.getId(), oldVersionId, newVersionId));
     }
 
     /**
@@ -1207,5 +1211,36 @@ public class ConflictServiceImpl implements ConflictService {
         // NB: Изменение данных возможно только в черновике.
         Draft draft = draftService.createFromVersion(versionId);
         return versionRepository.getOne(draft.getId());
+    }
+
+    /**
+     * Сохранение информации о перевычисленных конфликтах.
+     *
+     * @param refFromId  идентификатор версии, которая ссылается
+     * @param oldRefToId идентификатор старой версии, на которую ссылались
+     * @param newRefToId идентификатор новой версии, на которую будут ссылаться
+     */
+    private void createRecalculatedConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId) {
+
+        RefBookConflictCriteria criteria = new RefBookConflictCriteria();
+        criteria.setReferrerVersionId(refFromId);
+        criteria.setPublishedVersionId(oldRefToId);
+        criteria.setOrders(asList(
+                new Sort.Order(Sort.Direction.ASC, CONFLICT_REF_RECORD_ID_SORT_PROPERTY),
+                new Sort.Order(Sort.Direction.ASC, CONFLICT_REF_FIELD_CODE_SORT_PROPERTY)
+        ));
+
+        criteria.setPageNumber(0);
+        criteria.setPageSize(REF_BOOK_CONFLICT_PAGE_SIZE);
+
+        Page<RefBookConflict> conflicts = search(criteria);
+        while (!conflicts.getContent().isEmpty()) {
+
+            List<Conflict> list = recalculateConflicts(refFromId, oldRefToId, newRefToId, conflicts.getContent());
+            list.forEach(conflict -> create(refFromId, newRefToId, conflict));
+
+            criteria.setPageNumber(criteria.getPageNumber() + 1);
+            conflicts = search(criteria);
+        }
     }
 }
