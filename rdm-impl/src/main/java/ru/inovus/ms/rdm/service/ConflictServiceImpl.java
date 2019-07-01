@@ -520,6 +520,8 @@ public class ConflictServiceImpl implements ConflictService {
      * @return Список конфликтов
      */
     @Override
+    // NB: Converty to Page<> and then use it as list.
+    // Get only one conflict row for one refRecordId to fit all required conflicts in one page.
     public List<RefBookConflict> getReferrerConflicts(Integer referrerVersionId, List<Long> refRecordIds) {
 
         versionValidation.validateVersionExists(referrerVersionId);
@@ -617,25 +619,25 @@ public class ConflictServiceImpl implements ConflictService {
                                         diffRowValue.getValues(), DiffStatusEnum.INSERTED);
 
                         if (Objects.equals(displayValue, referenceFieldValue.getValue().getDisplayValue()))
-                            return null; // variant 8
+                            return null; // Восстановление удалённой строки
 
-                        conflict.setConflictType(ConflictType.UPDATED); // variant 9
+                        conflict.setConflictType(ConflictType.UPDATED); // Вставка удалённой строки с изменениями
 
                     } else
-                        return null;
+                        return null; // Для удалённых записей не может быть удалений и обновлений
                 }
 
-                break; // variant 7
+                break; // Есть только старое удаление
 
             case UPDATED:
                 diffRowValue = findDiffRowValue(diffRowValues, referenceFilterValue);
                 if (Objects.nonNull(diffRowValue))
-                    return null; // variants 5-6
+                    return null; // Есть новые изменения
 
-                break; // variant 4
+                break; // Есть только старое обновление
 
             default:
-                break; // variants 1-3, 10
+                break; // Нет старых конфликтов, только новые.
         }
 
         return toConflict(conflict, refFromEntity.getStructure(), refFromRowValue);
@@ -1118,8 +1120,9 @@ public class ConflictServiceImpl implements ConflictService {
     private DiffRowValue findDiffRowValue(List<DiffRowValue> diffRowValues, ReferenceFilterValue filterValue) {
         return diffRowValues.stream()
                 .filter(diffRowValue -> {
-                    DiffFieldValue diffFieldValue = diffRowValue.getDiffFieldValue(filterValue.getReferenceValue().getField());
-                    return Objects.equals(
+                    DiffFieldValue diffFieldValue = diffRowValue.getDiffFieldValue(filterValue.getAttribute().getCode());
+                    return Objects.nonNull(diffFieldValue)
+                            && Objects.equals(
                             castRefValue(filterValue.getReferenceValue(), filterValue.getAttribute().getType()),
                             DiffStatusEnum.DELETED.equals(diffRowValue.getStatus())
                                     ? diffFieldValue.getOldValue()
@@ -1127,7 +1130,7 @@ public class ConflictServiceImpl implements ConflictService {
                     );
                 })
                 .findFirst()
-                .orElseThrow();
+                .orElse(null);
     }
 
     /**
