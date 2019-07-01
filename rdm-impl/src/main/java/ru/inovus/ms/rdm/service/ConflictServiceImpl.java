@@ -282,39 +282,6 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Обновление ссылок в справочниках по первичным ключам.
-     *
-     * <p><br/>Метод планируется использовать для модульного тестирования.</p>
-     *
-     * @param oldVersionId идентификатор старой версии справочника
-     * @param newVersionId идентификатор новой версии справочника
-     */
-    void refreshReferencesByPrimary(Integer oldVersionId, Integer newVersionId) {
-
-        versionValidation.validateVersionExists(oldVersionId);
-        versionValidation.validateVersionExists(newVersionId);
-
-        RefBookVersionEntity oldVersionEntity = versionRepository.getOne(oldVersionId);
-
-        List<RefBookVersion> lastReferrers = refBookService.getReferrerVersions(oldVersionEntity.getRefBook().getCode(), RefBookSourceType.LAST_VERSION, null);
-        if (isEmpty(lastReferrers))
-            return;
-
-        List<DiffRowValue> diffRowValues = getDataDiffContent(oldVersionId, newVersionId);
-        if (isEmpty(diffRowValues))
-            return;
-
-        lastReferrers.forEach(referrer -> {
-            // NB: Refresh by pageable calculateConflicts.
-            List<Conflict> conflicts = calculateConflicts(referrer.getId(), oldVersionId, newVersionId);
-            if (isEmpty(conflicts))
-                return;
-
-            refreshReferencesByPrimary(referrer.getId(), newVersionId, conflicts);
-        });
-    }
-
-    /**
      * Обновление ссылок в версии справочника по первичным ключам.
      *
      * <p><br/>Метод используется пока только для модульного тестирования.</p>
@@ -509,8 +476,8 @@ public class ConflictServiceImpl implements ConflictService {
      * @param conflicts  страничный список конфликтов
      * @return Список перевычисленных конфликтов для версии, которая ссылается
      */
-    public List<Conflict> recalculateConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId,
-                                               List<RefBookConflict> conflicts) {
+    List<Conflict> recalculateConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId,
+                                        List<RefBookConflict> conflicts) {
 
         List<Long> refFromSystemIds = conflicts.stream()
                 .map(RefBookConflict::getRefRecordId)
