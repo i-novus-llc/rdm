@@ -375,6 +375,8 @@ public class ConflictServiceImpl implements ConflictService {
     @Override
     @Transactional
     public void create(Integer refFromId, Integer refToId, List<Conflict> conflicts) {
+        if (isEmpty(conflicts))
+            return;
 
         List<RefBookConflictEntity> entities = conflicts.stream()
                 .map(conflict -> createRefBookConflictEntity(refFromId, refToId, conflict))
@@ -593,7 +595,7 @@ public class ConflictServiceImpl implements ConflictService {
         references.forEach(reference -> {
             // NB: Refresh by pageable search.
             List<RefBookConflictEntity> conflicts = // NB: use search with criteria
-                    conflictRepository.findAllByReferrerVersionIdAndRefFieldCodeAndConflictType(referrerVersionId, reference.getAttribute(), ConflictType.UPDATED);
+                    conflictRepository.findAllByReferrerVersionIdAndRefFieldCodeAndConflictType(referrerEntity.getId(), reference.getAttribute(), ConflictType.UPDATED);
 
             List<RefBookVersionEntity> publishedVersions = conflicts.stream()
                     .map(RefBookConflictEntity::getPublishedVersion)
@@ -646,6 +648,7 @@ public class ConflictServiceImpl implements ConflictService {
      * @param publishedRefBookId        идентификатор справочника, на который ссылаются
      * @param excludePublishedVersionId идентификатор версии, на которую будут ссылаться
      */
+    @Override
     @Transactional
     public void dropPublishedConflicts(Integer publishedRefBookId, Integer excludePublishedVersionId) {
         conflictRepository.deleteByPublishedVersionRefBookIdAndPublishedVersionIdNot(publishedRefBookId, excludePublishedVersionId);
@@ -677,11 +680,8 @@ public class ConflictServiceImpl implements ConflictService {
             return;
 
         allReferrers.forEach(referrer -> {
-            List<Conflict> conflicts = calculateConflicts(referrer.getId(), oldVersionId, newVersionId);
-            if (isEmpty(conflicts))
-                return;
-
-            conflicts.forEach(conflict -> create(referrer.getId(), newVersionId, conflict));
+            List<Conflict> list = calculateConflicts(referrer.getId(), oldVersionId, newVersionId);
+            create(referrer.getId(), newVersionId, list);
         });
 
         allReferrers.forEach(referrer -> createRecalculatedConflicts(referrer.getId(), oldVersionId, newVersionId));
@@ -1202,9 +1202,8 @@ public class ConflictServiceImpl implements ConflictService {
 
         Page<RefBookConflict> conflicts = search(criteria);
         while (!conflicts.getContent().isEmpty()) {
-
             List<Conflict> list = recalculateConflicts(refFromId, oldRefToId, newRefToId, conflicts.getContent());
-            list.forEach(conflict -> create(refFromId, newRefToId, conflict));
+            create(refFromId, newRefToId, list);
 
             criteria.setPageNumber(criteria.getPageNumber() + 1);
             conflicts = search(criteria);
