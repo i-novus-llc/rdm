@@ -1924,7 +1924,7 @@ public class ApplicationTest {
                         new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4))))
         );
 
-        List<Conflict> actualConflicts = conflictService.calculateConflicts(refFromVersionId, refToVersionId);
+        List<Conflict> actualConflicts = conflictService.calculateConflicts(refFromVersionId, refToVersionId, refToDraftId);
         assertConflicts(expectedConflicts, actualConflicts);
     }
 
@@ -1973,10 +1973,10 @@ public class ApplicationTest {
         draftService.updateData(refFromVersionId, createFileModel(REF_FILE_NAME, "testConflicts/" + REF_FILE_NAME));
         publishService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
 
-        Boolean actualUpdateCheck = conflictService.checkConflicts(refFromVersionId, refToDraftId, ConflictType.UPDATED);
+        Boolean actualUpdateCheck = conflictService.checkConflicts(refFromVersionId, refToVersionId,refToDraftId, ConflictType.UPDATED);
         assertEquals(Boolean.TRUE, actualUpdateCheck);
 
-        Boolean actualDeleteCheck = conflictService.checkConflicts(refFromVersionId, refToDraftId, ConflictType.DELETED);
+        Boolean actualDeleteCheck = conflictService.checkConflicts(refFromVersionId, refToVersionId, refToDraftId, ConflictType.DELETED);
         assertEquals(Boolean.TRUE, actualDeleteCheck);
 
         List<RefBookVersion> updatedReferrers = conflictService.getCheckConflictReferrers(refToDraftId, ConflictType.UPDATED);
@@ -2011,13 +2011,14 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id, ref_id_ref));
         publishService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
 
-        draftService.create(
+        Draft draft = draftService.create(
                 new CreateDraftRequest(
                         refToRefBook.getRefBookId(),
-                        new Structure(singletonList(id_id), emptyList())));
+                        new Structure(singletonList(id_id), emptyList()))
+        );
 
         try {
-            conflictService.calculateConflicts(refFromVersionId, refToVersionId);
+            conflictService.calculateConflicts(refFromVersionId, refToVersionId, draft.getId());
             fail();
         } catch (RestException re) {
             assertEquals("data.comparing.unavailable", re.getMessage());

@@ -78,7 +78,6 @@ public class ConflictServiceImpl implements ConflictService {
     private static final String CONFLICT_REF_RECORD_ID_SORT_PROPERTY = "refRecordId";
     private static final String CONFLICT_REF_FIELD_CODE_SORT_PROPERTY = "refFieldCode";
 
-    private static final String REFBOOK_DRAFT_NOT_FOUND_EXCEPTION_CODE = "refbook.draft.not.found";
     private static final String VERSION_IS_NOT_DRAFT_EXCEPTION_CODE = "version.is.not.draft";
     private static final String VERSION_IS_NOT_LAST_PUBLISHED_EXCEPTION_CODE = "version.is.not.last.published";
 
@@ -127,29 +126,6 @@ public class ConflictServiceImpl implements ConflictService {
     /**
      * Вычисление конфликтов справочников при наличии ссылочных атрибутов.
      *
-     * <p><br/>Метод используется пока только для интеграционного тестирования вызываемого метода.</p>
-     *
-     * @param refFromId идентификатор версии, которая ссылается
-     * @param refToId   идентификатор последней опубликованной версии
-     *                  (идентификатор публикуемого черновика определяется автоматически)
-     * @return Список конфликтов для версии, которая ссылается
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public List<Conflict> calculateConflicts(Integer refFromId, Integer refToId) {
-
-        versionValidation.validateVersionExists(refFromId);
-        versionValidation.validateVersionExists(refToId);
-
-        RefBookVersionEntity refToEntity = versionRepository.getOne(refToId);
-        Integer refToDraftId = getRefBookDraftVersion(refToEntity.getRefBook().getId()).getId();
-
-        return calculateConflicts(refFromId, refToId, refToDraftId);
-    }
-
-    /**
-     * Вычисление конфликтов справочников при наличии ссылочных атрибутов.
-     *
      * @param refFromId  идентификатор версии, которая ссылается
      * @param oldRefToId идентификатор старой версии, на которую ссылались
      * @param newRefToId идентификатор новой версии, на которую будут ссылаться
@@ -157,7 +133,9 @@ public class ConflictServiceImpl implements ConflictService {
      *
      * @see #checkConflicts(Integer, Integer, Integer, ConflictType)
      */
-    private List<Conflict> calculateConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId) {
+    @Override
+    @Transactional(readOnly = true)
+    public List<Conflict> calculateConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId) {
 
         RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
         RefBookVersionEntity refToEntity = versionRepository.getOne(oldRefToId);
@@ -223,27 +201,6 @@ public class ConflictServiceImpl implements ConflictService {
     /**
      * Проверка на наличие конфликта справочников при наличии ссылочных атрибутов.
      *
-     * @param refFromId идентификатор версии, которая ссылается
-     * @param refToId   идентификатор публикуемой версии
-     *                  (идентификатор последней опубликованной версии определяется автоматически)
-     * @return Наличие конфликтов для версии, которая ссылается
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public Boolean checkConflicts(Integer refFromId, Integer refToId, ConflictType conflictType) {
-
-        versionValidation.validateVersionExists(refFromId);
-        versionValidation.validateVersionExists(refToId);
-
-        RefBookVersionEntity refToEntity = versionRepository.getOne(refToId);
-        Integer refToLastPublishedId = versionService.getLastPublishedVersion(refToEntity.getRefBook().getCode()).getId();
-
-        return checkConflicts(refFromId, refToLastPublishedId, refToId, conflictType);
-    }
-
-    /**
-     * Проверка на наличие конфликта справочников при наличии ссылочных атрибутов.
-     *
      * @param refFromId  идентификатор версии, которая ссылается
      * @param oldRefToId идентификатор старой версии, на которую ссылаются
      * @param newRefToId идентификатор новой версии, на которую будут ссылаться
@@ -251,7 +208,9 @@ public class ConflictServiceImpl implements ConflictService {
      *
      * @see #calculateConflicts(Integer, Integer, Integer)  
      */
-    private Boolean checkConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId, ConflictType conflictType) {
+    @Override
+    @Transactional(readOnly = true)
+    public Boolean checkConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId, ConflictType conflictType) {
 
         RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
         RefBookVersionEntity refToEntity = versionRepository.getOne(oldRefToId);
@@ -313,7 +272,10 @@ public class ConflictServiceImpl implements ConflictService {
         RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
         List<RefBookVersion> referrers = refBookService.getReferrerVersions(versionEntity.getRefBook().getCode(), RefBookSourceType.LAST_VERSION, null);
         return referrers.stream()
-                .filter(referrer -> checkConflicts(referrer.getId(), versionId, conflictType))
+                .filter(referrer -> {
+                    Integer lastPublishedId = versionService.getLastPublishedVersion(versionEntity.getRefBook().getCode()).getId();
+                    return checkConflicts(referrer.getId(), lastPublishedId, versionId, conflictType);
+                })
                 .collect(toList());
     }
 
@@ -972,20 +934,6 @@ public class ConflictServiceImpl implements ConflictService {
                 .filter(fieldValue ->
                         structure.getAttribute(fieldValue.getField()).getIsPrimary())
                 .collect(toList());
-    }
-
-    /**
-     * Получение черновика справочника.
-     *
-     * @param refBookId идентификатор справочника
-     * @return Черновик справочника
-     */
-    private RefBookVersionEntity getRefBookDraftVersion(Integer refBookId) {
-        RefBookVersionEntity entity = versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
-        if (entity == null)
-            throw new NotFoundException(new Message(REFBOOK_DRAFT_NOT_FOUND_EXCEPTION_CODE, refBookId));
-
-        return entity;
     }
 
     /**

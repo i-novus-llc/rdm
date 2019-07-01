@@ -28,9 +28,12 @@ public interface ConflictService {
     List<Conflict> calculateConflicts(@ApiParam("Идентификатор версии, которая ссылается")
                                       @QueryParam("refFromId")
                                               Integer refFromId,
-                                      @ApiParam("Идентификатор бесконфликтной версии, на которую ссылается")
-                                      @QueryParam("refToId")
-                                              Integer refToId);
+                                      @ApiParam("Идентификатор старой версии, на которую ссылаются")
+                                      @QueryParam("oldRefToId")
+                                              Integer oldRefToId,
+                                      @ApiParam("Идентификатор новой версии, на которую будут ссылаться")
+                                      @QueryParam("newRefToId")
+                                              Integer newRefToId);
 
     @GET
     @Path("/check")
@@ -42,9 +45,12 @@ public interface ConflictService {
     Boolean checkConflicts(@ApiParam("Идентификатор версии, которая ссылается")
                            @QueryParam("refFromId")
                                    Integer refFromId,
-                           @ApiParam("Идентификатор бесконфликтной версии, на которую ссылается")
-                           @QueryParam("refToId")
-                                   Integer refToId,
+                           @ApiParam("Идентификатор старой версии, на которую ссылаются")
+                           @QueryParam("oldRefToId")
+                                   Integer oldRefToId,
+                           @ApiParam("Идентификатор новой версии, на которую будут ссылаться")
+                           @QueryParam("newRefToId")
+                                   Integer newRefToId,
                            @ApiParam("Тип конфликта")
                            @QueryParam("type")
                                    ConflictType conflictType);
