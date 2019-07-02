@@ -38,7 +38,6 @@ import ru.inovus.ms.rdm.validation.VersionValidation;
 import javax.persistence.EntityManager;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -101,32 +100,26 @@ public class RefBookServiceImpl implements RefBookService {
         this.entityManager = entityManager;
     }
 
+    /**
+     * Поиск справочников по критерию.
+     *
+     * @param criteria критерий поиска
+     * @return Список сущностей
+     */
     @Override
     @Transactional
     public Page<RefBook> search(RefBookCriteria criteria) {
-        JPAQuery<RefBookVersionEntity> jpaQuery =
-                new JPAQuery<>(entityManager)
-                        .select(QRefBookVersionEntity.refBookVersionEntity)
-                        .from(QRefBookVersionEntity.refBookVersionEntity)
-                        .where(toPredicate(criteria));
 
-        long count = jpaQuery.fetchCount();
+        Page<RefBookVersionEntity> entities = findVersionEntities(criteria);
 
-        sortQuery(jpaQuery, criteria);
-        List<RefBookVersionEntity> refBookVersionEntityList = jpaQuery
-                .offset(criteria.getOffset())
-                .limit(criteria.getPageSize())
-                .fetch();
-
-        Page<RefBookVersionEntity> list = new PageImpl<>(refBookVersionEntityList, criteria, count);
-        List<Integer> refBookIdsInPage = list.getContent()
-                .stream()
+        List<Integer> refBookIds = entities.getContent().stream()
                 .map(v -> v.getRefBook().getId())
                 .collect(toList());
-        return list.map(entity ->
+
+        return entities.map(entity ->
                 refBookModel(entity,
-                        getSourceTypeVersions(refBookIdsInPage, RefBookSourceType.DRAFT),
-                        getSourceTypeVersions(refBookIdsInPage, RefBookSourceType.LAST_PUBLISHED))
+                        getSourceTypeVersions(refBookIds, RefBookSourceType.DRAFT),
+                        getSourceTypeVersions(refBookIds, RefBookSourceType.LAST_PUBLISHED))
         );
     }
 
@@ -285,8 +278,7 @@ public class RefBookServiceImpl implements RefBookService {
             where.and(isVersionOfRefBook(referrerIds));
 
         Page<RefBookVersionEntity> allEntities = versionRepository.findAll(where, Pageable.unpaged());
-        List<RefBookVersionEntity> entities = StreamSupport
-                .stream(allEntities.spliterator(), false)
+        List<RefBookVersionEntity> entities = allEntities.getContent().stream()
                 .filter(entity ->
                         Objects.nonNull(entity.getStructure())
                                 && !CollectionUtils.isEmpty(entity.getStructure().getPrimary())
@@ -296,6 +288,37 @@ public class RefBookServiceImpl implements RefBookService {
         return entities.stream().map(ModelGenerator::versionModel).collect(Collectors.toList());
     }
 
+    /**
+     * Поиск сущностей версий по критерию.
+     *
+     * @param criteria критерий поиска
+     * @return Список сущностей
+     */
+    private Page<RefBookVersionEntity> findVersionEntities(RefBookCriteria criteria) {
+
+        JPAQuery<RefBookVersionEntity> jpaQuery =
+                new JPAQuery<>(entityManager)
+                        .select(QRefBookVersionEntity.refBookVersionEntity)
+                        .from(QRefBookVersionEntity.refBookVersionEntity)
+                        .where(toPredicate(criteria));
+
+        long count = jpaQuery.fetchCount();
+
+        sortQuery(jpaQuery, criteria);
+        List<RefBookVersionEntity> refBookVersionEntityList = jpaQuery
+                .offset(criteria.getOffset())
+                .limit(criteria.getPageSize())
+                .fetch();
+
+        return new PageImpl<>(refBookVersionEntityList, criteria, count);
+    }
+
+    /**
+     * Формирование предиката на основе критерия поиска.
+     *
+     * @param criteria критерий поиска
+     * @return Предикат для запроса поиска
+     */
     private Predicate toPredicate(RefBookCriteria criteria) {
         BooleanBuilder where = new BooleanBuilder();
 
@@ -337,6 +360,12 @@ public class RefBookServiceImpl implements RefBookService {
         return where.getValue();
     }
 
+    /**
+     * Добавление сортировки в запрос на основе критерия.
+     *
+     * @param jpaQuery запрос
+     * @param criteria критерий поиска
+     */
     private void sortQuery(JPAQuery<RefBookVersionEntity> jpaQuery, RefBookCriteria criteria) {
 
         List<Sort.Order> orders = criteria.getOrders();
@@ -351,6 +380,12 @@ public class RefBookServiceImpl implements RefBookService {
         }
     }
 
+    /**
+     * Добавление сортировки в запрос по заданному порядку.
+     *
+     * @param jpaQuery запрос поиска
+     * @param order    порядок сортировки
+     */
     private void addSortOrder(JPAQuery<RefBookVersionEntity> jpaQuery, Sort.Order order) {
 
         ComparableExpressionBase sortExpression;
@@ -413,10 +448,13 @@ public class RefBookServiceImpl implements RefBookService {
     private Predicate toPredicate(VersionCriteria criteria) {
         BooleanBuilder where = new BooleanBuilder();
         where.and(isVersionOfRefBook(criteria.getRefBookId()));
+
         if (criteria.getExcludeDraft())
             where.andNot(isDraft());
+
         if (nonNull(criteria.getVersion()))
             where.and(isVersionNumberContains(criteria.getVersion()));
+
         return where.getValue();
     }
 
@@ -425,6 +463,7 @@ public class RefBookServiceImpl implements RefBookService {
 
         RefBookVersionEntity draftVersion = getRefBookSourceTypeVersion(entity.getRefBook().getId(), draftVersions);
         RefBookVersionEntity lastPublishedVersion = getRefBookSourceTypeVersion(entity.getRefBook().getId(), lastPublishVersions);
+
         return refBookModel(entity, draftVersion, lastPublishedVersion);
     }
 
