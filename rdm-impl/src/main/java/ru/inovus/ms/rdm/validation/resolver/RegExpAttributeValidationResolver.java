@@ -12,12 +12,12 @@ import ru.inovus.ms.rdm.model.validation.RegExpAttributeValidation;
 public class RegExpAttributeValidationResolver implements AttributeValidationResolver<String> {
 
 
-    public static final String REG_EXP_EXCEPTION_CODE = "validation.reg.exp.not.match";
+    static final String REG_EXP_EXCEPTION_CODE = "validation.reg.exp.not.match";
 
     private final Structure.Attribute attribute;
     private final String regExp;
 
-    public RegExpAttributeValidationResolver(Structure.Attribute attribute, String regExp) {
+    RegExpAttributeValidationResolver(Structure.Attribute attribute, String regExp) {
         if (!FieldType.STRING.equals(attribute.getType()))
             throw new UserException("attribute.validation.type.invalid");
         this.attribute = attribute;
@@ -31,6 +31,6 @@ public class RegExpAttributeValidationResolver implements AttributeValidationRes
     @Override
     public Message resolve(String value) {
         if (value == null || regExp == null || value.matches(regExp)) return null;
-        else return new Message(REG_EXP_EXCEPTION_CODE, attribute.getName(), value, value);
+        else return new Message(REG_EXP_EXCEPTION_CODE, attribute.getName(), value, regExp);
     }
 }

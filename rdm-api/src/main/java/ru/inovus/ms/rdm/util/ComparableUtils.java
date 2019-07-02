@@ -13,7 +13,9 @@ import ru.inovus.ms.rdm.model.compare.ComparableField;
 import ru.inovus.ms.rdm.model.compare.ComparableFieldValue;
 import ru.inovus.ms.rdm.model.compare.ComparableRow;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,6 +32,33 @@ public class ComparableUtils {
         if (status1 == DiffStatusEnum.UPDATED || status2 == DiffStatusEnum.UPDATED)
             return DiffStatusEnum.UPDATED;
         return null;
+    }
+
+    /**
+     * В списке записей #rowValues ищется строка, которая соответствует строке с данными #attributeValues
+     * на основании набора значений первичных атрибутов #primaries.
+     *
+     * @param primaries список кодов первичных атрибутов со значениями для идентификации записи
+     * @param attributeValues значения атрибутов строки, для которой ведется поиск
+     * @param rowValues список записей, среди которых ведется поиск
+     * @return Найденная запись либо null
+     */
+    public static RowValue findRowValue(List<String> primaries,
+                                        Map<String, Object> attributeValues,
+                                        Collection<? extends RowValue> rowValues) {
+        return rowValues
+                .stream()
+                .filter(rowValue ->
+                        primaries.stream().allMatch(primary -> {
+                            Object primaryValue = attributeValues.get(primary);
+                            FieldValue fieldValue = rowValue.getFieldValue(primary);
+                            return primaryValue != null
+                                    && fieldValue != null
+                                    && primaryValue.equals(fieldValue.getValue());
+                        })
+                )
+                .findFirst()
+                .orElse(null);
     }
 
     /**

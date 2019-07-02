@@ -43,9 +43,10 @@ public class TypeValidation extends ErrorAttributeHolderValidation {
         return messages;
     }
 
-    private Message checkType(FieldType type, String name, Object value) {
+    public static Message checkType(FieldType type, String name, Object value) {
         switch (type) {
             case STRING:
+            case TREE:
                 return checkInstance(name, value, String.class);
             case INTEGER:
                 return checkInstance(name, value, BigInteger.class);
@@ -57,14 +58,12 @@ public class TypeValidation extends ErrorAttributeHolderValidation {
                 return checkInstance(name, value, Boolean.class);
             case REFERENCE:
                 return checkInstance(name, value, Reference.class);
-            case TREE:
-                return checkInstance(name, value, String.class);
             default:
                 throw new RdmException("invalid type: " + type);
         }
     }
 
-    private Message checkInstance(String name, Object value, Class cls) {
+    private static Message checkInstance(String name, Object value, Class cls) {
         if (value != null && !(cls.isInstance(value))) {
             return new Message(VALIDATION_TYPE_EXCEPTION_CODE, name, value);
         }

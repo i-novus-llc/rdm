@@ -18,7 +18,7 @@ public abstract class ErrorAttributeHolderValidation implements RdmValidation {
             this.errorAttributes = new HashSet<>(errorAttributes);
     }
 
-    protected void addErrorAttribute(String errorAttribute) {
+    void addErrorAttribute(String errorAttribute) {
         if (errorAttributes == null)
             errorAttributes = new HashSet<>();
         errorAttributes.add(errorAttribute);
