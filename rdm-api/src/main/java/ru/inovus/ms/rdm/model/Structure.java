@@ -33,16 +33,18 @@ public class Structure implements Serializable {
         if (isEmpty(references)) {
             return null;
         }
-        return references.stream().filter(reference -> reference.getAttribute().equals(attributeCode)).findAny()
-                .orElse(null);
+        return references.stream()
+                .filter(reference -> reference.getAttribute().equals(attributeCode))
+                .findAny().orElse(null);
     }
 
     public Attribute getAttribute(String code) {
         if (isEmpty(attributes)) {
             return null;
         }
-        return attributes.stream().filter(attribute -> attribute.getCode().equals(code)).findAny()
-                .orElse(null);
+        return attributes.stream()
+                .filter(attribute -> attribute.getCode().equals(code))
+                .findAny().orElse(null);
     }
 
     public void clearPrimary() {
@@ -56,7 +58,9 @@ public class Structure implements Serializable {
     }
 
     public List<Attribute> getPrimary() {
-        return attributes.stream().filter(attribute -> attribute.isPrimary).collect(Collectors.toList());
+        return attributes.stream()
+                .filter(attribute -> attribute.isPrimary)
+                .collect(Collectors.toList());
     }
 
     public List<Attribute> getAttributes() {
@@ -92,14 +96,29 @@ public class Structure implements Serializable {
 
     public static class Attribute implements Serializable {
 
+        /**
+         * Код атрибута.
+         */
         private String code;
 
+        /**
+         * Наименование атрибута.
+         */
         private String name;
 
+        /**
+         * Тип атрибута.
+         */
         private FieldType type;
 
+        /**
+         * Признак первичного атрибута.
+         */
         private Boolean isPrimary;
 
+        /**
+         * Описание атрибута.
+         */
         private String description;
 
         public static Attribute buildPrimary(String code, String name, FieldType type, String description) {
@@ -162,38 +181,29 @@ public class Structure implements Serializable {
             this.description = description;
         }
 
-        public boolean storageEquals(Attribute a) {
-            if (!Objects.equals(code, a.code))
-                return false;
-            if (!Objects.equals(name, a.name))
-                return false;
-            return type == a.type;
+        public boolean storageEquals(Attribute that) {
+            return Objects.equals(code, that.code) &&
+                    Objects.equals(name, that.name) &&
+                    Objects.equals(type, that.type);
         }
 
         @Override
+        @SuppressWarnings("all")
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            Attribute attribute = (Attribute) o;
-
-            if (isPrimary != attribute.isPrimary) return false;
-            if (!Objects.equals(code, attribute.code))
-                return false;
-            if (!Objects.equals(name, attribute.name))
-                return false;
-            if (!Objects.equals(description, attribute.description))
-                return false;
-            return type == attribute.type;
+            Attribute that = (Attribute) o;
+            return Objects.equals(isPrimary, that.isPrimary) &&
+                    Objects.equals(code, that.code) &&
+                    Objects.equals(name, that.name) &&
+                    Objects.equals(type, that.type) &&
+                    Objects.equals(description, that.description);
         }
 
         @Override
         public int hashCode() {
-            int result = code != null ? code.hashCode() : 0;
-            result = 31 * result + (name != null ? name.hashCode() : 0);
-            result = 31 * result + (type != null ? type.hashCode() : 0);
-            result = 31 * result + (isPrimary ? 1 : 0);
-            return result;
+            return Objects.hash(code, name, type, isPrimary);
         }
     }
 
@@ -271,28 +281,22 @@ public class Structure implements Serializable {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            Reference reference = (Reference) o;
-
-            if (!Objects.equals(attribute, reference.attribute))
-                return false;
-            if (!Objects.equals(referenceCode, reference.referenceCode))
-                return false;
-            return Objects.equals(displayExpression, reference.displayExpression);
+            Reference that = (Reference) o;
+            return Objects.equals(attribute, that.attribute) &&
+                    Objects.equals(referenceCode, that.referenceCode) &&
+                    Objects.equals(displayExpression, that.displayExpression);
         }
 
         @Override
         public int hashCode() {
-            int result = attribute != null ? attribute.hashCode() : 0;
-            result = 31 * result + (referenceCode != null ? referenceCode.hashCode() : 0);
-            result = 31 * result + (displayExpression != null ? displayExpression.hashCode() : 0);
-            return result;
+            return Objects.hash(attribute, referenceCode, displayExpression);
         }
     }
 
     public boolean storageEquals(Structure s) {
         return isEmpty(attributes)
                 ? isEmpty(s.getAttributes())
-                : attributes.stream().noneMatch(attribute -> s.attributes.stream().noneMatch(attribute::storageEquals));
+                : attributes.stream() .noneMatch(attribute -> s.attributes.stream().noneMatch(attribute::storageEquals));
     }
 
     @Override
@@ -300,16 +304,13 @@ public class Structure implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Structure structure = (Structure) o;
-
-        if (!Objects.equals(attributes, structure.attributes)) return false;
-        return Objects.equals(references, structure.references);
+        Structure that = (Structure) o;
+        return  Objects.equals(attributes, that.attributes) &&
+                Objects.equals(references, that.references);
     }
 
     @Override
     public int hashCode() {
-        int result = attributes != null ? attributes.hashCode() : 0;
-        result = 31 * result + (references != null ? references.hashCode() : 0);
-        return result;
+        return Objects.hash(attributes, references);
     }
 }
