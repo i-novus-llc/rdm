@@ -41,9 +41,7 @@ public interface DraftService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/createFromVersion/{versionId}")
-    Draft createFromVersion(@ApiParam("Идентификатор версии")
-                            @PathParam("versionId")
-                                    Integer versionId);
+    Draft createFromVersion(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId);
 
     @POST
     @ApiOperation("Создание нового черновика из файла")
@@ -53,11 +51,8 @@ public interface DraftService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/createByFile/{refBookId}")
-    Draft create(@ApiParam("Идентификатор справочника")
-                 @PathParam("refBookId")
-                         Integer refBookId,
-                 @ApiParam("Файл")
-                         FileModel fileModel);
+    Draft create(@ApiParam("Идентификатор справочника") @PathParam("refBookId") Integer refBookId,
+                 @ApiParam("Файл") FileModel fileModel);
 
     @POST
     @ApiOperation("Создание нового черновика из файла без справочника")
@@ -67,8 +62,7 @@ public interface DraftService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/createByFile")
-    Draft create(@ApiParam("Файл")
-                         FileModel fileModel);
+    Draft create(@ApiParam("Файл") FileModel fileModel);
 
 
     @POST
@@ -79,11 +73,8 @@ public interface DraftService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/update/{draftId}")
-    void updateData(@ApiParam("Идентификатор черновика")
-                    @PathParam("draftId")
-                            Integer draftId,
-                    @ApiParam("Запись черновика")
-                            Row row);
+    void updateData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
+                    @ApiParam("Запись черновика") Row row);
 
     @DELETE
     @ApiOperation("Удаление записи черновика")
@@ -93,12 +84,8 @@ public interface DraftService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/delete/{draftId}/{systemId}")
-    void deleteRow(@ApiParam("Идентификатор черновика")
-                   @PathParam("draftId")
-                           Integer draftId,
-                   @ApiParam("Идентификатор записи")
-                   @PathParam("systemId")
-                           Long systemId);
+    void deleteRow(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
+                   @ApiParam("Идентификатор записи") @PathParam("systemId") Long systemId);
 
     @DELETE
     @ApiOperation("Удаление всех записей черновика")
@@ -108,9 +95,7 @@ public interface DraftService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/deleteAll/{draftId}")
-    void deleteAllRows(@ApiParam("Идентификатор черновика")
-                       @PathParam("draftId")
-                               Integer draftId);
+    void deleteAllRows(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId);
 
     @POST
     @ApiOperation("Обновление черновика из файла")
@@ -121,11 +106,8 @@ public interface DraftService {
     })
 
     @Path("/updateFromFile/{draftId}")
-    void updateData(@ApiParam("Идентификатор черновика")
-                    @PathParam("draftId")
-                            Integer draftId,
-                    @ApiParam("Файл")
-                            FileModel fileModel);
+    void updateData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
+                    @ApiParam("Файл") FileModel fileModel);
 
     @GET
     @Path("/{draftId}/data")
@@ -135,12 +117,8 @@ public interface DraftService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Page<RefBookRowValue> search(@ApiParam("Идентификатор черновика")
-                                 @PathParam("draftId")
-                                         Integer draftId,
-                                 @ApiParam("Критерий поиска")
-                                 @BeanParam
-                                         SearchDataCriteria criteria);
+    Page<RefBookRowValue> search(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
+                                 @ApiParam("Критерий поиска") @BeanParam SearchDataCriteria criteria);
 
     @POST
     @Path("{draftId}/remove")
@@ -150,9 +128,7 @@ public interface DraftService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void remove(@ApiParam("Идентификатор черновика")
-                @PathParam("draftId")
-                        Integer draftId);
+    void remove(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId);
 
     @GET
     @Path("/{draftId}")
@@ -161,9 +137,7 @@ public interface DraftService {
             @ApiResponse(code = 200, message = "Черновик найден"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Draft getDraft(@ApiParam("Идентификатор черновика")
-                   @PathParam("draftId")
-                           Integer draftId);
+    Draft getDraft(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId);
 
     @POST
     @Path("/attribute")
@@ -173,8 +147,7 @@ public interface DraftService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void createAttribute(@ApiParam("Модель создаваемого атрибута")
-                                 CreateAttribute createAttribute);
+    void createAttribute(@ApiParam("Модель создаваемого атрибута") CreateAttribute createAttribute);
 
     @PUT
     @Path("/attribute")
@@ -184,8 +157,7 @@ public interface DraftService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void updateAttribute(@ApiParam("Модель изменяемого атрибута")
-                                 UpdateAttribute updateAttribute);
+    void updateAttribute(@ApiParam("Модель изменяемого атрибута") UpdateAttribute updateAttribute);
 
     @DELETE
     @Path("/{versionId}/attribute/{code}")
@@ -195,12 +167,8 @@ public interface DraftService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void deleteAttribute(@ApiParam("Идентификатор версии")
-                         @PathParam("versionId")
-                                 Integer versionId,
-                         @ApiParam("Код атрибута")
-                         @PathParam("code")
-                                 String attributeCode);
+    void deleteAttribute(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
+                         @ApiParam("Код атрибута") @PathParam("code") String attributeCode);
 
     @POST
     @Path("/{versionId}/attribute/{attribute}/validation")
@@ -210,14 +178,9 @@ public interface DraftService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void addAttributeValidation(@ApiParam("Идентификатор версии")
-                                @PathParam("versionId")
-                                        Integer versionId,
-                                @ApiParam("Атрибут")
-                                @PathParam("attribute")
-                                        String attribute,
-                                @ApiParam("Пользовательская проверка")
-                                        AttributeValidation attributeValidation);
+    void addAttributeValidation(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
+                                @ApiParam("Атрибут") @PathParam("attribute") String attribute,
+                                @ApiParam("Пользовательская проверка") AttributeValidation attributeValidation);
 
 
     @DELETE
@@ -227,15 +190,9 @@ public interface DraftService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void deleteAttributeValidation(@ApiParam("Идентификатор версии")
-                                   @PathParam("versionId")
-                                           Integer versionId,
-                                   @ApiParam("Атрибут")
-                                   @QueryParam("attribute")
-                                           String attribute,
-                                   @ApiParam("Тип проверки")
-                                   @QueryParam("type")
-                                           AttributeValidationType type);
+    void deleteAttributeValidation(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
+                                   @ApiParam("Атрибут") @QueryParam("attribute") String attribute,
+                                   @ApiParam("Тип проверки") @QueryParam("type") AttributeValidationType type);
 
 
     @GET
@@ -245,12 +202,8 @@ public interface DraftService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    List<AttributeValidation> getAttributeValidations(@ApiParam("Идентификатор версии")
-                                                      @PathParam("versionId")
-                                                              Integer versionId,
-                                                      @ApiParam("Атрибут")
-                                                      @QueryParam("attribute")
-                                                              String attribute);
+    List<AttributeValidation> getAttributeValidations(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
+                                                      @ApiParam("Атрибут") @QueryParam("attribute") String attribute);
 
 
     @PUT
@@ -261,14 +214,9 @@ public interface DraftService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void updateAttributeValidations(@ApiParam("Идентификатор версии")
-                                    @PathParam("versionId")
-                                            Integer versionId,
-                                    @ApiParam("Атрибут")
-                                    @PathParam("attribute")
-                                            String attribute,
-                                    @ApiParam("Настраиваемые проверки")
-                                            List<AttributeValidation> validations);
+    void updateAttributeValidations(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
+                                    @ApiParam("Атрибут") @PathParam("attribute") String attribute,
+                                    @ApiParam("Настраиваемые проверки") List<AttributeValidation> validations);
 
     @GET
     @Path("/{draftId}/getFile")
@@ -278,10 +226,6 @@ public interface DraftService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    ExportFile getDraftFile(@ApiParam("Идентификатор черновика")
-                            @PathParam("draftId")
-                                    Integer draftId,
-                            @ApiParam(value = "Тип файла", required = true, allowableValues = "XLSX, XML")
-                            @QueryParam("type")
-                                    FileType fileType);
+    ExportFile getDraftFile(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
+                            @ApiParam(value = "Тип файла", required = true, allowableValues = "XLSX, XML") @QueryParam("type") FileType fileType);
 }

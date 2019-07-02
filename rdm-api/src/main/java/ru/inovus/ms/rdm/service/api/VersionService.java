@@ -28,12 +28,8 @@ public interface VersionService {
             @ApiResponse(code = 404, message = "Нет версии")
     })
     @Path("/{versionId}/data")
-    Page<RefBookRowValue> search(@ApiParam("Идентификатор версии")
-                                 @PathParam("versionId")
-                                         Integer versionId,
-                                 @ApiParam("Критерий поиска")
-                                 @BeanParam
-                                         SearchDataCriteria criteria);
+    Page<RefBookRowValue> search(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
+                                 @ApiParam("Критерий поиска") @BeanParam SearchDataCriteria criteria);
 
     @GET
     @ApiOperation("Получение версии по идентификатору")
@@ -42,9 +38,7 @@ public interface VersionService {
             @ApiResponse(code = 404, message = "Нет версии")
     })
     @Path("/{versionId}")
-    RefBookVersion getById(@ApiParam("Идентификатор версии")
-                           @PathParam("versionId")
-                                   Integer versionId);
+    RefBookVersion getById(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId);
 
     @GET
     @ApiOperation("Получение версии по коду справочника и номеру")
@@ -53,12 +47,8 @@ public interface VersionService {
             @ApiResponse(code = 404, message = "Нет версии")
     })
     @Path("/{version}/refbook/{refBookCode}")
-    RefBookVersion getVersion(@ApiParam("Номер версии")
-                              @PathParam("version")
-                                      String version,
-                              @ApiParam("Код справочника")
-                              @PathParam("refBookCode")
-                                      String refBookCode);
+    RefBookVersion getVersion(@ApiParam("Номер версии") @PathParam("version") String version,
+                              @ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode);
 
     @GET
     @ApiOperation("Получение последней опубликованной версии по коду справочника")
@@ -67,9 +57,7 @@ public interface VersionService {
             @ApiResponse(code = 404, message = "Нет версии")
     })
     @Path("/refBook/{refBookCode}/last")
-    RefBookVersion getLastPublishedVersion(@ApiParam("Код справочника")
-                                           @PathParam("refBookCode")
-                                                   String refBookCode);
+    RefBookVersion getLastPublishedVersion(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode);
 
     @GET
     @Path("/refBook/{refBookCode}/{date}")
@@ -79,14 +67,9 @@ public interface VersionService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет версии")
     })
-    Page<RefBookRowValue> search(@ApiParam("Код справочника")
-                                 @PathParam("refBookCode")
-                                         String refBookCode,
-                                 @ApiParam("Дата получения данных")
-                                 @PathParam("date")
-                                         LocalDateTime date,
-                                 @BeanParam
-                                         SearchDataCriteria criteria);
+    Page<RefBookRowValue> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
+                                 @ApiParam("Дата получения данных") @PathParam("date") LocalDateTime date,
+                                 @ApiParam("Критерий поиска") @BeanParam SearchDataCriteria criteria);
 
     @GET
     @Path("/refBook/{refBookCode}")
@@ -96,11 +79,8 @@ public interface VersionService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет версии")
     })
-    Page<RefBookRowValue> search(@ApiParam("Код справочника")
-                                 @PathParam("refBookCode")
-                                         String refBookCode,
-                                 @BeanParam
-                                         SearchDataCriteria criteria);
+    Page<RefBookRowValue> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
+                                 @ApiParam("Критерий поиска") @BeanParam SearchDataCriteria criteria);
 
     @GET
     @Path("/structure")
@@ -109,9 +89,7 @@ public interface VersionService {
             @ApiResponse(code = 200, message = "Структура версии справочника"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Structure getStructure(@ApiParam("Идентификатор версии")
-                           @QueryParam("versionId")
-                                   Integer versionId);
+    Structure getStructure(@ApiParam("Идентификатор версии") @QueryParam("versionId") Integer versionId);
 
     @GET
     @Path("/{versionId}/getFile")
@@ -121,12 +99,8 @@ public interface VersionService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    ExportFile getVersionFile(@ApiParam("Идентификатор версии")
-                              @PathParam("versionId")
-                                      Integer versionId,
-                              @ApiParam(value = "Тип файла", required = true, allowableValues = "XLSX, XML")
-                              @QueryParam("type")
-                                      FileType fileType);
+    ExportFile getVersionFile(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
+                              @ApiParam(value = "Тип файла", required = true, allowableValues = "XLSX, XML") @QueryParam("type") FileType fileType);
 
     @PUT
     @ApiOperation("Изменение метаданных версии")
@@ -143,9 +117,7 @@ public interface VersionService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/row/exists")
-    ExistsData existsData(@ApiParam("Идентификаторы записи")
-                          @QueryParam("rowId")
-                                  List<String> rowIds);
+    ExistsData existsData(@ApiParam("Идентификаторы записи") @QueryParam("rowId") List<String> rowIds);
 
     @GET
     @ApiOperation("Получение записи по идентификатору")
@@ -154,7 +126,5 @@ public interface VersionService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/row/{rowId}")
-    RefBookRowValue getRow(@ApiParam("Идентификатор записи")
-                           @PathParam("rowId")
-                                   String rowId);
+    RefBookRowValue getRow(@ApiParam("Идентификатор записи") @PathParam("rowId") String rowId);
 }
