@@ -291,10 +291,8 @@ public class RefBookServiceImpl implements RefBookService {
      * @param sourceType  типа выбираемых версий справочников
      * @param processor  обработчик списков сущностей версий
      */
-    @Override
-    @Transactional(readOnly = true)
-    public void processReferrerVersionEntities(String refBookCode, RefBookSourceType sourceType,
-                                               RefBookVersionListProcessor processor) {
+    private void processReferrerVersionEntities(String refBookCode, RefBookSourceType sourceType,
+                                                RefBookVersionListProcessor processor) {
         RefBookCriteria criteria = new RefBookCriteria();
         criteria.setSourceType(sourceType);
         criteria.setIsNotArchived(true);
