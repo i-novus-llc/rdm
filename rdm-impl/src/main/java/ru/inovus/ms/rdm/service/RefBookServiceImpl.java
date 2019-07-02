@@ -299,7 +299,7 @@ public class RefBookServiceImpl implements RefBookService {
     private Predicate toPredicate(RefBookCriteria criteria) {
         BooleanBuilder where = new BooleanBuilder();
 
-        where.and(isSourceType(criteria.getRefBookSourceType()));
+        where.and(isSourceType(criteria.getSourceType()));
 
         if (nonNull(criteria.getFromDateBegin()))
             where.and(isMaxFromDateEqOrAfter(criteria.getFromDateBegin()));
@@ -525,7 +525,7 @@ public class RefBookServiceImpl implements RefBookService {
      */
     private List<RefBookVersionEntity> getSourceTypeVersions(List<Integer> refBookIds, RefBookSourceType refBookSourceType) {
         RefBookCriteria versionCriteria = new RefBookCriteria();
-        versionCriteria.setRefBookSourceType(refBookSourceType);
+        versionCriteria.setSourceType(refBookSourceType);
         versionCriteria.setRefBookIds(refBookIds);
 
         return versionRepository.findAll(toPredicate(versionCriteria),

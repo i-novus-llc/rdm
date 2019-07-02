@@ -30,8 +30,8 @@ public class RefBookCriteria extends AbstractCriteria {
     private LocalDateTime fromDateEnd;
 
     @ApiModelProperty("Тип источника данных")
-    @QueryParam("refBookSourceType")
-    private RefBookSourceType refBookSourceType;
+    @QueryParam("sourceType")
+    private RefBookSourceType sourceType;
 
     @ApiModelProperty("Категория")
     @QueryParam("category")
@@ -85,12 +85,12 @@ public class RefBookCriteria extends AbstractCriteria {
         this.fromDateEnd = fromDateEnd;
     }
 
-    public RefBookSourceType getRefBookSourceType() {
-        return refBookSourceType;
+    public RefBookSourceType getSourceType() {
+        return sourceType;
     }
 
-    public void setRefBookSourceType(RefBookSourceType refBookSourceType) {
-        this.refBookSourceType = refBookSourceType;
+    public void setSourceType(RefBookSourceType sourceType) {
+        this.sourceType = sourceType;
     }
 
     public Map<String, String> getPassport() {
