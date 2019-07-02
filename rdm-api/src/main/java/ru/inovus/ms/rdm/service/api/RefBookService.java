@@ -129,7 +129,7 @@ public interface RefBookService {
             @ApiResponse(code = 200, message = "Список справочников"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void processReferrerVersionEntities(@ApiParam("Код справочника")                                        @QueryParam("refBookCode")                                                 String refBookCode,
-                                        @ApiParam("Тип источника")                                        @QueryParam("sourceType")                                                RefBookSourceType sourceType,
-                                        @ApiParam("Обработчик списков")                                                RefBookVersionListProcessor processor);
+    void processReferrerVersionEntities(@ApiParam("Код справочника") @QueryParam("refBookCode") String refBookCode,
+                                        @ApiParam("Тип источника") @QueryParam("sourceType") RefBookSourceType sourceType,
+                                        @ApiParam("Обработчик списков") RefBookVersionListProcessor processor);
 }
