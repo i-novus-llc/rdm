@@ -309,7 +309,7 @@ public class ConflictServiceImpl implements ConflictService {
         versionValidation.validateVersionExists(versionId);
 
         RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
-        List<RefBookVersion> referrers = refBookService.getReferrerVersions(versionEntity.getRefBook().getCode(), RefBookSourceType.LAST_VERSION, null);
+        List<RefBookVersion> referrers = refBookService.getReferrerVersions(versionEntity.getRefBook().getCode(), RefBookSourceType.LAST_VERSION);
         return referrers.stream()
                 .filter(referrer -> {
                     Integer lastPublishedId = versionService.getLastPublishedVersion(versionEntity.getRefBook().getCode()).getId();
@@ -674,7 +674,7 @@ public class ConflictServiceImpl implements ConflictService {
     @Override
     @Transactional
     public void refreshLastReferrersByPrimary(String refBookCode) {
-        List<RefBookVersion> lastReferrers = refBookService.getReferrerVersions(refBookCode, RefBookSourceType.LAST_VERSION, null);
+        List<RefBookVersion> lastReferrers = refBookService.getReferrerVersions(refBookCode, RefBookSourceType.LAST_VERSION);
         lastReferrers.forEach(referrer -> refreshReferrerByPrimary(referrer.getId()));
     }
 
@@ -705,7 +705,7 @@ public class ConflictServiceImpl implements ConflictService {
         versionValidation.validateVersionExists(newVersionId);
 
         RefBookVersionEntity oldVersionEntity = versionRepository.getOne(oldVersionId);
-        List<RefBookVersion> allReferrers = refBookService.getReferrerVersions(oldVersionEntity.getRefBook().getCode(), RefBookSourceType.ALL, null);
+        List<RefBookVersion> allReferrers = refBookService.getReferrerVersions(oldVersionEntity.getRefBook().getCode(), RefBookSourceType.ALL);
         if (isEmpty(allReferrers))
             return;
 

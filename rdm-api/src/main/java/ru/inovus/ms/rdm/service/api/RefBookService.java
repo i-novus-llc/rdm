@@ -139,7 +139,5 @@ public interface RefBookService {
                                                      String refBookCode,
                                              @ApiParam("Тип источника")
                                              @QueryParam("sourceType")
-                                                     RefBookSourceType sourceType,
-                                             @ApiParam("Список ссылающихся справочников")
-                                                     List<Integer> referrerIds);
+                                                     RefBookSourceType sourceType);
 }

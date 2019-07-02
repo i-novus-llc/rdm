@@ -41,6 +41,10 @@ public class RefBookCriteria extends AbstractCriteria {
     @QueryParam("isArchived")
     private boolean isArchived;
 
+    @ApiModelProperty("Не в архиве")
+    @QueryParam("isNotArchived")
+    private boolean isNotArchived;
+
     @ApiModelProperty("Справочник опубликован")
     @QueryParam("hasPublished")
     private boolean hasPublished;
@@ -107,6 +111,14 @@ public class RefBookCriteria extends AbstractCriteria {
 
     public void setIsArchived(boolean isArchived) {
         this.isArchived = isArchived;
+    }
+
+    public boolean getIsNotArchived() {
+        return isNotArchived;
+    }
+
+    public void setIsNotArchived(boolean isNotArchived) {
+        this.isNotArchived = isNotArchived;
     }
 
     public boolean getHasPublished() {

@@ -33,6 +33,7 @@ import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.util.ModelGenerator;
 import ru.inovus.ms.rdm.util.PassportPredicateProducer;
+import ru.inovus.ms.rdm.util.VersionEntityListProcessor;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import javax.persistence.EntityManager;
@@ -49,6 +50,8 @@ import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
 @Primary
 @Service
 public class RefBookServiceImpl implements RefBookService {
+
+    private static final int REF_BOOK_VERSION_PAGE_SIZE = 100;
 
     private static final String PASSPORT_SORT_PREFIX = "passport";
     private static final String VERSION_ID_SORT_PROPERTY = "id";
@@ -264,28 +267,59 @@ public class RefBookServiceImpl implements RefBookService {
      *
      * @param refBookCode код справочника, на который ссылаются
      * @param sourceType  типа выбираемых версий справочников
-     * @param referrerIds список идентификаторов ссылающихся справочников
-     *                    (если списка нет, выбираются все подходящие справочники)
      * @return Список справочников
      */
     @Override
     @Transactional
-    public List<RefBookVersion> getReferrerVersions(String refBookCode, RefBookSourceType sourceType, List<Integer> referrerIds) {
-        BooleanBuilder where = new BooleanBuilder();
-        where.and(isSourceType(sourceType)).andNot(isArchived().and(hasStructure()));
+    public List<RefBookVersion> getReferrerVersions(String refBookCode, RefBookSourceType sourceType) {
 
-        if (!CollectionUtils.isEmpty(referrerIds))
-            where.and(isVersionOfRefBook(referrerIds));
+        List<RefBookVersion> versions = new ArrayList<>();
+        VersionEntityListProcessor listAdder = list -> versions.addAll(
+                list.stream()
+                        .map(ModelGenerator::versionModel)
+                        .collect(Collectors.toList())
+        );
+        processReferrerVersionEntities(refBookCode, sourceType, listAdder);
 
-        Page<RefBookVersionEntity> allEntities = versionRepository.findAll(where, Pageable.unpaged());
-        List<RefBookVersionEntity> entities = allEntities.getContent().stream()
-                .filter(entity ->
-                        Objects.nonNull(entity.getStructure())
-                                && !CollectionUtils.isEmpty(entity.getStructure().getPrimary())
-                                && !entity.getStructure().getRefCodeReferences(refBookCode).isEmpty())
-                .collect(Collectors.toList());
+        return versions;
+    }
 
-        return entities.stream().map(ModelGenerator::versionModel).collect(Collectors.toList());
+    /**
+     * Поиск сущностей версий справочников, ссылающихся на указанный справочник.
+     *
+     * Ссылающийся справочник должен иметь:
+     *   1) структуру,
+     *   2) первичный ключ,
+     *   3) ссылку на указанный справочник.
+     *
+     * @param refBookCode код справочника, на который ссылаются
+     * @param sourceType  типа выбираемых версий справочников
+     * @param processor  обработчик списков сущностей версий
+     */
+    private void processReferrerVersionEntities(String refBookCode, RefBookSourceType sourceType, VersionEntityListProcessor processor) {
+
+        RefBookCriteria criteria = new RefBookCriteria();
+        criteria.setSourceType(sourceType);
+        criteria.setIsNotArchived(true);
+
+        criteria.setPageNumber(0);
+        criteria.setPageSize(REF_BOOK_VERSION_PAGE_SIZE);
+
+        Page<RefBookVersionEntity> entities = findVersionEntities(criteria);
+        while (!entities.getContent().isEmpty()) {
+            List<RefBookVersionEntity> list = entities.getContent().stream()
+                    .filter(entity ->
+                            Objects.nonNull(entity.getStructure())
+                                    && !CollectionUtils.isEmpty(entity.getStructure().getPrimary())
+                                    && !entity.getStructure().getRefCodeReferences(refBookCode).isEmpty())
+                    .collect(Collectors.toList());
+
+            if(!isEmpty(list))
+                processor.process(list);
+
+            criteria.setPageNumber(criteria.getPageNumber() + 1);
+            entities = findVersionEntities(criteria);
+        }
     }
 
     /**
@@ -345,6 +379,9 @@ public class RefBookServiceImpl implements RefBookService {
         if (criteria.getIsArchived())
             where.and(isArchived());
 
+        else if (criteria.getIsNotArchived())
+            where.andNot(isArchived());
+
         if (criteria.getHasPublished())
             where.andNot(isArchived()).and(isAnyPublished());
 
@@ -355,7 +392,7 @@ public class RefBookServiceImpl implements RefBookService {
             where.andNot(isArchived()).and(hasLastPublishedVersion());
 
         if (criteria.getHasPrimaryAttribute())
-            where.and(hasPrimaryAttribute());
+            where.and(hasStructure()).and(hasPrimaryAttribute());
 
         return where.getValue();
     }
