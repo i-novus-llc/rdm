@@ -83,22 +83,6 @@ public interface ConflictService {
                                          RefBookConflictCriteria criteria);
 
     @POST
-    @Path("/create")
-    @ApiOperation("Сохранение информации о конфликте")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Успех"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    void create(@ApiParam("Идентификатор версии, которая ссылается")
-                @QueryParam("refFromId")
-                        Integer refFromId,
-                @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
-                @QueryParam("refToId")
-                        Integer refToId,
-                @ApiParam("Конфликт")
-                        Conflict conflict);
-
-    @POST
     @Path("/create/list")
     @ApiOperation("Сохранение информации о конфликтах")
     @ApiResponses({
@@ -167,17 +151,17 @@ public interface ConflictService {
 
     @GET
     @Path("/find/all")
-    @ApiOperation("Получение всех конфликтов по идентификаторам строк для версии, которая ссылается")
+    @ApiOperation("Получение конфликтных идентификаторов из идентификаторов записей для версии, которая ссылается")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    List<RefBookConflict> getReferrerConflicts(@ApiParam("Идентификатор версии, которая ссылается")
-                                               @QueryParam("versionId")
-                                                       Integer referrerVersionId,
-                                               @ApiParam("Список системных идентификаторов строк")
-                                               @QueryParam("refRecordIds")
-                                                       List<Long> refRecordIds);
+    List<Long> getReferrerConflictedIds(@ApiParam("Идентификатор версии, которая ссылается")
+                                        @QueryParam("versionId")
+                                                Integer referrerVersionId,
+                                        @ApiParam("Список системных идентификаторов записей")
+                                        @QueryParam("refRecordIds")
+                                                List<Long> refRecordIds);
 
     @POST
     @Path("/{versionId}/refresh/byPrimary")

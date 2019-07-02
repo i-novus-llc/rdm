@@ -14,7 +14,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.*;
@@ -387,26 +386,9 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Сохранение информации о конфликте.
-     *
-     * @param refFromId идентификатор черновика справочника со ссылками
-     * @param refToId   идентификатор версии изменённого справочника
-     * @param conflict  конфликт
-     */
-    @Override
-    @Transactional
-    public void create(Integer refFromId, Integer refToId, Conflict conflict) {
-        if (conflict == null || conflict.isEmpty())
-            return;
-
-        RefBookConflictEntity entity = createRefBookConflictEntity(refFromId, refToId, conflict);
-        conflictRepository.save(entity);
-    }
-
-    /**
      * Сохранение информации о конфликтах.
      *
-     * @param refFromId идентификатор черновика справочника со ссылками
+     * @param refFromId идентификатор версии справочника со ссылками
      * @param refToId   идентификатор версии изменённого справочника
      * @param conflicts список конфликтов
      */
@@ -423,6 +405,14 @@ public class ConflictServiceImpl implements ConflictService {
         conflictRepository.saveAll(entities);
     }
 
+    /**
+     * Создание сущности из конфликта для сохранения.
+     *
+     * @param refFromId идентификатор версии справочника со ссылками
+     * @param refToId   идентификатор версии изменённого справочника
+     * @param conflict  конфликт
+     * @return Сущность
+     */
     private RefBookConflictEntity createRefBookConflictEntity(Integer refFromId, Integer refToId, Conflict conflict) {
 
         RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
@@ -431,6 +421,14 @@ public class ConflictServiceImpl implements ConflictService {
         return createRefBookConflictEntity(refFromEntity, refToEntity, conflict);
     }
 
+    /**
+     * Создание сущности из конфликта для сохранения.
+     *
+     * @param referrerEntity  версия справочника со ссылками
+     * @param publishedEntity версия изменённого справочника
+     * @param conflict        конфликт
+     * @return Сущность
+     */
     private RefBookConflictEntity createRefBookConflictEntity(RefBookVersionEntity referrerEntity, RefBookVersionEntity publishedEntity, Conflict conflict) {
 
         RefBookRowValue refFromRowValue = getRefFromRowValue(referrerEntity, conflict.getPrimaryValues());
@@ -440,6 +438,16 @@ public class ConflictServiceImpl implements ConflictService {
         return createRefBookConflictEntity(referrerEntity, publishedEntity, refFromRowValue.getSystemId(), conflict);
     }
 
+    /**
+     * Создание сущности из конфликта для сохранения.
+     *
+     * @param referrerEntity      версия справочника со ссылками
+     * @param publishedEntity     версия изменённого справочника
+     * @param referrerRowSystemId системный идентификатор конфликтной записи
+     *                            версии справочника со ссылками
+     * @param conflict            конфликт
+     * @return Сущность
+     */
     private RefBookConflictEntity createRefBookConflictEntity(RefBookVersionEntity referrerEntity, RefBookVersionEntity publishedEntity,
                                                               Long referrerRowSystemId, Conflict conflict) {
         RefBookConflictEntity entity = new RefBookConflictEntity();
@@ -483,28 +491,19 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Получение всех конфликтов для версии, которая ссылается,
-     * с любыми справочниками по указанным записям.
+     * Получение конфликтных идентификаторов для версии, которая ссылается,
+     * с любыми справочниками по указанным системным идентификаторам записей.
      *
      * @param referrerVersionId идентификатор версии справочника, который ссылается
      * @param refRecordIds      список системных идентификаторов записей версии
-     * @return Список конфликтов
+     * @return Список конфликтных идентификаторов
      */
     @Override
-    // NB: Convert to Page<> and then use it as list.
-    // Get only one conflict row for one refRecordId to fit all required conflicts in one page.
-    public List<RefBookConflict> getReferrerConflicts(Integer referrerVersionId, List<Long> refRecordIds) {
+    public List<Long> getReferrerConflictedIds(Integer referrerVersionId, List<Long> refRecordIds) {
 
         versionValidation.validateVersionExists(referrerVersionId);
 
-        List<RefBookConflictEntity> refBookConflicts =
-                isEmpty(refRecordIds)
-                        ? conflictRepository.findAllByReferrerVersionId(referrerVersionId) // NB: Test only
-                        : conflictRepository.findAllByReferrerVersionIdAndRefRecordIdIn(referrerVersionId, refRecordIds);
-
-        return refBookConflicts.stream()
-                .map(this::refBookConflictModel)
-                .collect(toList());
+        return conflictRepository.findReferrerConflictedIds(referrerVersionId, refRecordIds);
     }
 
     /**
@@ -777,7 +776,7 @@ public class ConflictServiceImpl implements ConflictService {
 
         List<Sort.Order> orders = criteria.getOrders();
 
-        if (!CollectionUtils.isEmpty(orders)) {
+        if (!isEmpty(orders)) {
             criteria.getOrders().stream()
                     .filter(Objects::nonNull)
                     .forEach(order -> addSortOrder(jpaQuery, order));
@@ -853,8 +852,7 @@ public class ConflictServiceImpl implements ConflictService {
      * @return Список атрибутов
      */
     private List<Structure.Attribute> getRefAttributes(Structure refFromStructure, String refToBookCode) {
-        return refFromStructure.getRefCodeReferences(refToBookCode)
-                .stream()
+        return refFromStructure.getRefCodeReferences(refToBookCode).stream()
                 .map(ref ->
                         refFromStructure.getAttribute(ref.getAttribute()))
                 .collect(toList());
@@ -924,9 +922,7 @@ public class ConflictServiceImpl implements ConflictService {
         if (rowValue == null || structure == null)
             return emptyList();
 
-        return rowValue
-                .getFieldValues()
-                .stream()
+        return rowValue.getFieldValues().stream()
                 .filter(fieldValue ->
                         structure.getAttribute(fieldValue.getField()).getIsPrimary())
                 .collect(toList());
@@ -1165,15 +1161,14 @@ public class ConflictServiceImpl implements ConflictService {
     private Set<List<FieldSearchCriteria>> createFiltersForDiffRowValues(List<DiffRowValue> diffRowValues,
                                                                          List<Structure.Attribute> refToPrimaries,
                                                                          List<Structure.Attribute> refFromAttributes) {
-        return diffRowValues
-                .stream()
+        return diffRowValues.stream()
                 .flatMap(diff -> {
                     DiffFieldValue diffFieldValue = diff.getDiffFieldValue(refToPrimaries.get(0).getCode());
                     Object value = DiffStatusEnum.DELETED.equals(diff.getStatus())
                             ? diffFieldValue.getOldValue()
                             : diffFieldValue.getNewValue();
-                    return refFromAttributes
-                            .stream()
+
+                    return refFromAttributes.stream()
                             .map(refFromAttribute ->
                                     singletonList(new FieldSearchCriteria(field(refFromAttribute), SearchTypeEnum.EXACT, singletonList(value)))
                             );

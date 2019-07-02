@@ -27,7 +27,6 @@ import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.criteria.DataCriteria;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.version.AttributeFilter;
-import ru.inovus.ms.rdm.model.conflict.RefBookConflict;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.provider.N2oDomain;
@@ -70,7 +69,7 @@ public class RefBookDataController {
         Structure structure = versionService.getStructure(criteria.getVersionId());
         SearchDataCriteria searchDataCriteria = toSearchDataCriteria(criteria, structure);
         Page<RefBookRowValue> search = versionService.search(criteria.getVersionId(), searchDataCriteria);
-        List<RefBookConflict> conflicts = conflictService.getReferrerConflicts(
+        List<Long> conflictedIds = conflictService.getReferrerConflictedIds(
                 criteria.getVersionId(),
                 getRowSystemIds(search.getContent())
         );
@@ -81,7 +80,7 @@ public class RefBookDataController {
                         toDataGridRow(
                                 rowValue,
                                 criteria.getVersionId(),
-                                hasConflict(rowValue, conflicts)
+                                hasConflict(rowValue, conflictedIds)
                         )
                 ).collect(toList());
 
@@ -103,12 +102,8 @@ public class RefBookDataController {
                 .collect(toList());
     }
 
-    private boolean hasConflict(RefBookRowValue row, List<RefBookConflict> conflicts) {
-        return conflicts
-                .stream()
-                .anyMatch(conflict ->
-                        row.getSystemId().equals(conflict.getRefRecordId())
-                );
+    private boolean hasConflict(RefBookRowValue row, List<Long> conflictedIds) {
+        return conflictedIds.contains(row.getSystemId());
     }
 
     private DataGridRow toDataGridRow(RowValue rowValue, Integer versionId, boolean hasConflict) {

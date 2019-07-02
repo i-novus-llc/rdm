@@ -63,6 +63,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -1522,7 +1523,9 @@ public class ApplicationTest {
         });
 
 //      5. Создание черновика связанного справочника.
-        List<RefBookConflict> referrerConflicts = conflictService.getReferrerConflicts(referrerVersion.getId(), null);
+        List<Long> systemIds = LongStream.range(1, 100).boxed().collect(toList());
+
+        List<Long> referrerConflictedIds = conflictService.getReferrerConflictedIds(referrerVersion.getId(), systemIds);
 
         // Публикация связанного справочника.
         publishService.publish(referrerDraft.getId(), null, LocalDateTime.now(), null, false);
@@ -1533,8 +1536,8 @@ public class ApplicationTest {
 
         // Создание черновика из версии.
         referrerDraft = draftService.createFromVersion(referrerVersion.getId());
-        List<RefBookConflict> lastReferrerConflicts = conflictService.getReferrerConflicts(referrerDraft.getId(), null);
-        assertRefBookConflicts(referrerConflicts, lastReferrerConflicts);
+        List<Long> lastReferrerConflictedIds = conflictService.getReferrerConflictedIds(referrerDraft.getId(), systemIds);
+        assertEquals(referrerConflictedIds, lastReferrerConflictedIds);
 
     }
 
