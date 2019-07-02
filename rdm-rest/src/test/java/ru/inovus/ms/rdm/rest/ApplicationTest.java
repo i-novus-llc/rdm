@@ -30,6 +30,7 @@ import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.enumeration.FileType;
+import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.version.AttributeFilter;
@@ -1432,6 +1433,12 @@ public class ApplicationTest {
             String displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_MADEOF_ATTRIBUTE_CODE);
             expectedMadeofValues.put(primaryValue, displayValue);
         });
+
+        // Проверка связанности.
+        List<RefBookVersion> actualReferrerVersions = refBookService.getReferrerVersions(CARDINAL_REF_BOOK_CODE, RefBookSourceType.LAST_VERSION);
+        assertNotNull(actualReferrerVersions);
+        assertEquals(1, actualReferrerVersions.size());
+        assertVersion(referrerVersion, actualReferrerVersions.get(0));
 
 //      3. Изменение исходного справочника.
         Draft changingDraft = draftService.createFromVersion(publishedVersion.getId());
