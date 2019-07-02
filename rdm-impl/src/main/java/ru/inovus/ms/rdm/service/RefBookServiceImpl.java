@@ -261,8 +261,6 @@ public class RefBookServiceImpl implements RefBookService {
         return list.map(ModelGenerator::versionModel);
     }
 
-    // NB: Необходим также для отображения справочников, ссылающихся на текущий справочник.
-
     /**
      * Поиск версий справочников, ссылающихся на указанный справочник.
      *
@@ -290,7 +288,8 @@ public class RefBookServiceImpl implements RefBookService {
         List<RefBookVersionEntity> entities = StreamSupport
                 .stream(allEntities.spliterator(), false)
                 .filter(entity ->
-                        !CollectionUtils.isEmpty(entity.getStructure().getPrimary())
+                        Objects.nonNull(entity.getStructure())
+                                && !CollectionUtils.isEmpty(entity.getStructure().getPrimary())
                                 && !entity.getStructure().getRefCodeReferences(refBookCode).isEmpty())
                 .collect(Collectors.toList());
 
