@@ -25,15 +25,9 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    List<Conflict> calculateConflicts(@ApiParam("Идентификатор версии, которая ссылается")
-                                      @QueryParam("refFromId")
-                                              Integer refFromId,
-                                      @ApiParam("Идентификатор старой версии, на которую ссылаются")
-                                      @QueryParam("oldRefToId")
-                                              Integer oldRefToId,
-                                      @ApiParam("Идентификатор новой версии, на которую будут ссылаться")
-                                      @QueryParam("newRefToId")
-                                              Integer newRefToId);
+    List<Conflict> calculateConflicts(@ApiParam("Идентификатор версии, которая ссылается") @QueryParam("refFromId") Integer refFromId,
+                                      @ApiParam("Идентификатор старой версии, на которую ссылаются") @QueryParam("oldRefToId") Integer oldRefToId,
+                                      @ApiParam("Идентификатор новой версии, на которую будут ссылаться") @QueryParam("newRefToId") Integer newRefToId);
 
     @GET
     @Path("/check")
@@ -42,18 +36,10 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Boolean checkConflicts(@ApiParam("Идентификатор версии, которая ссылается")
-                           @QueryParam("refFromId")
-                                   Integer refFromId,
-                           @ApiParam("Идентификатор старой версии, на которую ссылаются")
-                           @QueryParam("oldRefToId")
-                                   Integer oldRefToId,
-                           @ApiParam("Идентификатор новой версии, на которую будут ссылаться")
-                           @QueryParam("newRefToId")
-                                   Integer newRefToId,
-                           @ApiParam("Тип конфликта")
-                           @QueryParam("type")
-                                   ConflictType conflictType);
+    Boolean checkConflicts(@ApiParam("Идентификатор версии, которая ссылается") @QueryParam("refFromId") Integer refFromId,
+                           @ApiParam("Идентификатор старой версии, на которую ссылаются") @QueryParam("oldRefToId") Integer oldRefToId,
+                           @ApiParam("Идентификатор новой версии, на которую будут ссылаться") @QueryParam("newRefToId") Integer newRefToId,
+                           @ApiParam("Тип конфликта") @QueryParam("type") ConflictType conflictType);
 
     @GET
     @Path("/check/{versionId}/referrer")
@@ -62,25 +48,18 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    List<RefBookVersion> getCheckConflictReferrers(@ApiParam("Идентификатор проверяемой версии")
-                                                   @PathParam("versionId")
-                                                           Integer versionId,
-                                                   @ApiParam("Тип конфликта")
-                                                   @QueryParam("type")
-                                                           ConflictType conflictType);
+    List<RefBookVersion> getCheckConflictReferrers(@ApiParam("Идентификатор проверяемой версии") @PathParam("versionId") Integer versionId,
+                                                   @ApiParam("Тип конфликта") @QueryParam("type") ConflictType conflictType);
 
     @GET
     @ApiOperation("Поиск конфликтов по параметрам критерия")
     @ApiImplicitParams(@ApiImplicitParam(name = "sort", value = "Параметры сортировки", required = false, allowMultiple = true,
             paramType = "query", dataType = "string"))
-
     @ApiResponses({
             @ApiResponse(code = 200, message = "Список конфликтов"),
             @ApiResponse(code = 400, message = "Некорректный запрос")
     })
-    Page<RefBookConflict> search(@ApiParam("Критерий поиска")
-                                 @BeanParam
-                                         RefBookConflictCriteria criteria);
+    Page<RefBookConflict> search(@ApiParam("Критерий поиска") @BeanParam RefBookConflictCriteria criteria);
 
     @POST
     @Path("/create")
@@ -89,14 +68,9 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void create(@ApiParam("Идентификатор версии, которая ссылается")
-                @QueryParam("refFromId")
-                        Integer refFromId,
-                @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
-                @QueryParam("refToId")
-                        Integer refToId,
-                @ApiParam("Конфликт")
-                        Conflict conflict);
+    void create(@ApiParam("Идентификатор версии, которая ссылается") @QueryParam("refFromId") Integer refFromId,
+                @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются") @QueryParam("refToId") Integer refToId,
+                @ApiParam("Конфликт") Conflict conflict);
 
     @POST
     @Path("/create/list")
@@ -105,14 +79,9 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void create(@ApiParam("Идентификатор версии, которая ссылается")
-                @QueryParam("refFromId")
-                        Integer refFromId,
-                @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
-                @QueryParam("refToId")
-                        Integer refToId,
-                @ApiParam("Список конфликтов")
-                        List<Conflict> conflicts);
+    void create(@ApiParam("Идентификатор версии, которая ссылается") @QueryParam("refFromId") Integer refFromId,
+                @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются") @QueryParam("refToId") Integer refToId,
+                @ApiParam("Список конфликтов") List<Conflict> conflicts);
 
     @DELETE
     @Path("/delete/{id}")
@@ -121,9 +90,7 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void delete(@ApiParam("Идентификатор записи о конфликте")
-                @PathParam("id")
-                        Integer id);
+    void delete(@ApiParam("Идентификатор записи о конфликте") @PathParam("id") Integer id);
 
     @GET
     @Path("/find")
@@ -132,18 +99,10 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    RefBookConflict find(@ApiParam("Идентификатор версии, которая ссылается")
-                         @QueryParam("refFromId")
-                                 Integer refFromId,
-                         @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
-                         @QueryParam("refToId")
-                                 Integer refToId,
-                         @ApiParam("Строка-конфликт версии, которая ссылается")
-                         @QueryParam("rowSystemId")
-                                 Long rowSystemId,
-                         @ApiParam("Атрибут версии, которая ссылается")
-                         @QueryParam("refFieldCode")
-                                 String refFieldCode);
+    RefBookConflict find(@ApiParam("Идентификатор версии, которая ссылается") @QueryParam("refFromId") Integer refFromId,
+                         @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются") @QueryParam("refToId") Integer refToId,
+                         @ApiParam("Строка-конфликт версии, которая ссылается") @QueryParam("rowSystemId") Long rowSystemId,
+                         @ApiParam("Атрибут версии, которая ссылается") @QueryParam("refFieldCode") String refFieldCode);
 
     @GET
     @Path("/find/id")
@@ -152,18 +111,10 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Integer findId(@ApiParam("Идентификатор версии, которая ссылается")
-                   @QueryParam("refFromId")
-                           Integer refFromId,
-                   @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются")
-                   @QueryParam("refToId")
-                           Integer refToId,
-                   @ApiParam("Строка-конфликт версии, которая ссылается")
-                   @QueryParam("rowSystemId")
-                           Long rowSystemId,
-                   @ApiParam("Атрибут версии, которая ссылается")
-                   @QueryParam("refFieldCode")
-                           String refFieldCode);
+    Integer findId(@ApiParam("Идентификатор версии, которая ссылается") @QueryParam("refFromId") Integer refFromId,
+                   @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются") @QueryParam("refToId") Integer refToId,
+                   @ApiParam("Строка-конфликт версии, которая ссылается") @QueryParam("rowSystemId") Long rowSystemId,
+                   @ApiParam("Атрибут версии, которая ссылается") @QueryParam("refFieldCode") String refFieldCode);
 
     @GET
     @Path("/find/all")
@@ -172,12 +123,8 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    List<RefBookConflict> getReferrerConflicts(@ApiParam("Идентификатор версии, которая ссылается")
-                                               @QueryParam("versionId")
-                                                       Integer referrerVersionId,
-                                               @ApiParam("Список системных идентификаторов строк")
-                                               @QueryParam("refRecordIds")
-                                                       List<Long> refRecordIds);
+    List<RefBookConflict> getReferrerConflicts(@ApiParam("Идентификатор версии, которая ссылается") @QueryParam("versionId") Integer referrerVersionId,
+                                               @ApiParam("Список системных идентификаторов строк") @QueryParam("refRecordIds") List<Long> refRecordIds);
 
     @POST
     @Path("/{versionId}/refresh/byPrimary")
@@ -186,9 +133,7 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void refreshReferrerByPrimary(@ApiParam("Идентификатор версии")
-                                  @PathParam("versionId")
-                                          Integer referrerVersionId);
+    void refreshReferrerByPrimary(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer referrerVersionId);
 
     @POST
     @Path("/refresh/byPrimary")
@@ -197,9 +142,7 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void refreshLastReferrersByPrimary(@ApiParam("Код справочника, на который ссылаются")
-                                       @QueryParam("refFieldCode")
-                                               String refBookCode);
+    void refreshLastReferrersByPrimary(@ApiParam("Код справочника, на который ссылаются") @QueryParam("refFieldCode") String refBookCode);
 
     @DELETE
     @Path("/drop/published")
@@ -208,12 +151,8 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void dropPublishedConflicts(@ApiParam("Идентификатор справочника, на который ссылаются")
-                                @QueryParam("refBookId")
-                                        Integer publishedRefBookId,
-                                @ApiParam("Идентификатор версии, на которую будут ссылаться")
-                                @QueryParam("excludeId")
-                                        Integer excludePublishedVersionId);
+    void dropPublishedConflicts(@ApiParam("Идентификатор справочника, на который ссылаются") @QueryParam("refBookId") Integer publishedRefBookId,
+                                @ApiParam("Идентификатор версии, на которую будут ссылаться") @QueryParam("excludeId") Integer excludePublishedVersionId);
 
     @POST
     @Path("/discover")
@@ -222,12 +161,8 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void discoverConflicts(@ApiParam("Идентификатор старой версии, на которую ссылаются")
-                           @QueryParam("oldVersionId")
-                                   Integer oldVersionId,
-                           @ApiParam("Идентификатор новой версии, на которую будут ссылаться")
-                           @QueryParam("newVersionId")
-                                   Integer newVersionId);
+    void discoverConflicts(@ApiParam("Идентификатор старой версии, на которую ссылаются") @QueryParam("oldVersionId") Integer oldVersionId,
+                           @ApiParam("Идентификатор новой версии, на которую будут ссылаться") @QueryParam("newVersionId") Integer newVersionId);
 
     @POST
     @Path("/copy")
@@ -236,10 +171,6 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void copyConflicts(@ApiParam("Идентификатор старой версии, на которую ссылаются")
-                       @QueryParam("oldVersionId")
-                               Integer oldVersionId,
-                       @ApiParam("Идентификатор новой версии, на которую будут ссылаться")
-                       @QueryParam("newVersionId")
-                               Integer newVersionId);
+    void copyConflicts(@ApiParam("Идентификатор старой версии, на которую ссылаются") @QueryParam("oldVersionId") Integer oldVersionId,
+                       @ApiParam("Идентификатор новой версии, на которую будут ссылаться") @QueryParam("newVersionId") Integer newVersionId);
 }

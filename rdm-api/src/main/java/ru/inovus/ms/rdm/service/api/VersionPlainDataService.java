@@ -23,10 +23,8 @@ public interface VersionPlainDataService {
             @ApiResponse(code = 404, message = "Нет версии")
     })
     @Path("/{versionId}/data")
-    Page<Map<String, Object>> search(@PathParam("versionId")
-                                             Integer versionId,
-                                     @BeanParam
-                                             SearchDataCriteria criteria);
+    Page<Map<String, Object>> search(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
+                                     @ApiParam("Критерий поиска") @BeanParam SearchDataCriteria criteria);
 
     @GET
     @Path("/refBook/{refBookCode}/{date}")
@@ -36,14 +34,9 @@ public interface VersionPlainDataService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет версии")
     })
-    Page<Map<String, Object>> search(@ApiParam("Код справочника")
-                                     @PathParam("refBookCode")
-                                             String refBookCode,
-                                     @ApiParam("Дата получения данных")
-                                     @PathParam("date")
-                                             LocalDateTime date,
-                                     @BeanParam
-                                             SearchDataCriteria criteria);
+    Page<Map<String, Object>> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
+                                     @ApiParam("Дата получения данных") @PathParam("date") LocalDateTime date,
+                                     @ApiParam("Критерий поиска") @BeanParam SearchDataCriteria criteria);
 
     @GET
     @Path("/refBook/{refBookCode}")
@@ -53,11 +46,8 @@ public interface VersionPlainDataService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет версии")
     })
-    Page<Map<String, Object>> search(@ApiParam("Код справочника")
-                                     @PathParam("refBookCode")
-                                             String refBookCode,
-                                     @BeanParam
-                                             SearchDataCriteria criteria);
+    Page<Map<String, Object>> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
+                                     @ApiParam("Критерий поиска") @BeanParam SearchDataCriteria criteria);
 
     @GET
     @ApiOperation("Получение записи по идентификатору")
@@ -66,7 +56,5 @@ public interface VersionPlainDataService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/row/{rowId}")
-    Map<String, Object> getRow(@ApiParam("Идентификатор записи")
-                               @PathParam("rowId")
-                                       String rowId);
+    Map<String, Object> getRow(@ApiParam("Идентификатор записи") @PathParam("rowId") String rowId);
 }
