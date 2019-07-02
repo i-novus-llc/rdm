@@ -203,12 +203,12 @@ public interface ConflictService {
 
     @DELETE
     @Path("/drop/published")
-    @ApiOperation("Удаление конфликтов со справочником, на которую ссылаются")
+    @ApiOperation("Удаление конфликтов для справочника, на который ссылаются")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void dropPublishedConflicts(@ApiParam("Идентификатор справочника, на которую ссылаются")
+    void dropPublishedConflicts(@ApiParam("Идентификатор справочника, на который ссылаются")
                                 @QueryParam("refBookId")
                                         Integer publishedRefBookId,
                                 @ApiParam("Идентификатор версии, на которую будут ссылаться")
