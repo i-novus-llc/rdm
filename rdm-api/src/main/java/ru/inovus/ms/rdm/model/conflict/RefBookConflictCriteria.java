@@ -7,6 +7,7 @@ import ru.inovus.ms.rdm.model.AbstractCriteria;
 
 import javax.ws.rs.QueryParam;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @ApiModel("Критерии поиска конфликта")
 public class RefBookConflictCriteria extends AbstractCriteria {
@@ -30,6 +31,10 @@ public class RefBookConflictCriteria extends AbstractCriteria {
     @ApiModelProperty("Системный идентификатор записи с конфликтом")
     @QueryParam("refRecordId")
     private Long refRecordId;
+
+    @ApiModelProperty("Системные идентификаторы записи с конфликтом")
+    @QueryParam("refRecordIds")
+    List<Long> refRecordIds;
 
     @ApiModelProperty("Название поля-ссылки с конфликтом по отображаемому значению")
     @QueryParam("refFieldCode")
@@ -81,6 +86,14 @@ public class RefBookConflictCriteria extends AbstractCriteria {
 
     public void setRefRecordId(Long refRecordId) {
         this.refRecordId = refRecordId;
+    }
+
+    public List<Long> getRefRecordIds() {
+        return refRecordIds;
+    }
+
+    public void setRefRecordIds(List<Long> refRecordIds) {
+        this.refRecordIds = refRecordIds;
     }
 
     public String getRefFieldCode() {
