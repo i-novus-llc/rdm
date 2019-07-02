@@ -126,6 +126,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Value("${rdm.validation-errors-count}")
+    @SuppressWarnings("unused")
     public void setErrorCountLimit(int errorCountLimit) {
         this.errorCountLimit = errorCountLimit;
     }
@@ -202,10 +203,10 @@ public class DraftServiceImpl implements DraftService {
         }
     }
 
-    /** Обновление данных черновика.
+    /** Обновление данных черновика из файла.
      *
-     * @param draft
-     * @param fileModel
+     * @param draft     черновик
+     * @param fileModel файл
      */
     private void updateDraftData(RefBookVersionEntity draft, FileModel fileModel) {
 

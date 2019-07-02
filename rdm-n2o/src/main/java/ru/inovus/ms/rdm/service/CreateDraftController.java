@@ -56,6 +56,7 @@ public class CreateDraftController {
             return new UiDraft(draftService.createFromVersion(versionId).getId(), version.getRefBookId());
     }
 
+    @SuppressWarnings("unused")
     UiDraft editPassport(Integer versionId, UiPassport uiPassport) {
         final UiDraft uiDraft = getOrCreateDraft(versionId);
         Integer draftId = uiDraft.getId();
@@ -76,6 +77,7 @@ public class CreateDraftController {
         return refBookUpdateRequest;
     }
 
+    @SuppressWarnings("unused")
     UiDraft createAttribute(Integer versionId, FormAttribute formAttribute) {
         final UiDraft uiDraft = getOrCreateDraft(versionId);
         Integer draftId = uiDraft.getId();
@@ -83,6 +85,7 @@ public class CreateDraftController {
         return uiDraft;
     }
 
+    @SuppressWarnings("unused")
     UiDraft updateAttribute(Integer versionId, FormAttribute formAttribute) {
         final UiDraft uiDraft = getOrCreateDraft(versionId);
         Integer draftId = uiDraft.getId();
@@ -90,6 +93,7 @@ public class CreateDraftController {
         return uiDraft;
     }
 
+    @SuppressWarnings("unused")
     UiDraft deleteAttribute(Integer versionId, String attributeCode) {
         final UiDraft uiDraft = getOrCreateDraft(versionId);
         Integer draftId = uiDraft.getId();
@@ -97,6 +101,7 @@ public class CreateDraftController {
         return uiDraft;
     }
 
+    @SuppressWarnings("unused")
     UiDraft updateDataRecord(Integer versionId, Row row) {
 
         UiDraft uiDraft = getOrCreateDraft(versionId);
@@ -109,6 +114,7 @@ public class CreateDraftController {
 
     }
 
+    @SuppressWarnings("unused")
     UiDraft deleteDataRecord(Integer versionId, Long systemId) {
 
         UiDraft uiDraft = getOrCreateDraft(versionId);
@@ -120,6 +126,7 @@ public class CreateDraftController {
         return uiDraft;
     }
 
+    @SuppressWarnings("unused")
     UiDraft deleteAllDataRecords(Integer versionId) {
 
         UiDraft uiDraft = getOrCreateDraft(versionId);
@@ -147,6 +154,7 @@ public class CreateDraftController {
         return newRow.getContent().get(0).getSystemId();
     }
 
+    @SuppressWarnings("unused")
     public UiDraft createFromFile(FileModel fileModel) {
 
         Integer versionId = draftService.create(fileModel).getId();
@@ -155,6 +163,7 @@ public class CreateDraftController {
         return new UiDraft(versionId, version.getRefBookId());
     }
 
+    @SuppressWarnings("unused")
     public UiDraft uploadFromFile(Integer versionId, FileModel fileModel) {
 
         RefBookVersion version = versionService.getById(versionId);
@@ -166,6 +175,7 @@ public class CreateDraftController {
         return new UiDraft(versionId, version.getRefBookId());
     }
 
+    @SuppressWarnings("unused")
     public UiDraft uploadData(Integer versionId, FileModel fileModel) {
 
         RefBookVersion version = versionService.getById(versionId);

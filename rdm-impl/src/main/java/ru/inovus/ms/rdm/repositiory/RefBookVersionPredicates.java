@@ -18,7 +18,7 @@ public final class RefBookVersionPredicates {
 
     public static final LocalDateTime MAX_TIMESTAMP = LocalDateTime.ofInstant(Instant.ofEpochMilli(Integer.MAX_VALUE * 1000L),
             TimeZone.getDefault().toZoneId());
-    public static final LocalDateTime MIN_TIMESTAMP = LocalDateTime.ofInstant(Instant.ofEpochMilli(0L),
+    private static final LocalDateTime MIN_TIMESTAMP = LocalDateTime.ofInstant(Instant.ofEpochMilli(0L),
             TimeZone.getDefault().toZoneId());
 
     private static final String WHERE_EXISTS_VERSION = "existsVersion";
@@ -73,7 +73,7 @@ public final class RefBookVersionPredicates {
         }
     }
 
-    public static BooleanExpression isActual() {
+    private static BooleanExpression isActual() {
         LocalDateTime now = LocalDateTime.now();
         return isPublished().and(
                 QRefBookVersionEntity.refBookVersionEntity.fromDate.loe(now).and(
@@ -93,7 +93,7 @@ public final class RefBookVersionPredicates {
         return QRefBookVersionEntity.refBookVersionEntity.refBook.removable.isTrue();
     }
 
-    public static BooleanExpression isLastPublished() {
+    private static BooleanExpression isLastPublished() {
         QRefBookVersionEntity whereVersion = new QRefBookVersionEntity(WHERE_IS_LAST_DATE_VERSION);
         return isPublished().and(
                 QRefBookVersionEntity.refBookVersionEntity.fromDate
@@ -102,7 +102,7 @@ public final class RefBookVersionPredicates {
                         .where(whereVersion.refBook.eq(QRefBookVersionEntity.refBookVersionEntity.refBook))));
     }
 
-    public static BooleanExpression isLastVersion() {
+    private static BooleanExpression isLastVersion() {
         return refBookHasDraft().not().and(isLastPublished()).or(isDraft());
     }
 

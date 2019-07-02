@@ -30,6 +30,7 @@ public class ReferenceController {
     /**
      * Поиск списка значений справочника для ссылки.
      */
+    @SuppressWarnings("unused")
     public Page<Reference> getList(ReferenceCriteria referenceCriteria) {
 
         Structure.Reference reference = versionService
