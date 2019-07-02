@@ -9,6 +9,7 @@ import ru.inovus.ms.rdm.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.model.refbook.RefBookUpdateRequest;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.model.version.VersionCriteria;
+import ru.inovus.ms.rdm.provider.RefBookVersionListProcessor;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -140,4 +141,19 @@ public interface RefBookService {
                                              @ApiParam("Тип источника")
                                              @QueryParam("sourceType")
                                                      RefBookSourceType sourceType);
+
+    @POST
+    @ApiOperation("Поиск версий ссылающихся справочников")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Список справочников"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void processReferrerVersionEntities(@ApiParam("Код справочника")
+                                        @QueryParam("refBookCode")
+                                                String refBookCode,
+                                        @ApiParam("Тип источника")
+                                        @QueryParam("sourceType")
+                                                RefBookSourceType sourceType,
+                                        @ApiParam("Обработчик списков")
+                                                RefBookVersionListProcessor processor);
 }

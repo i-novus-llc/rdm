@@ -33,7 +33,7 @@ import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.util.ModelGenerator;
 import ru.inovus.ms.rdm.util.PassportPredicateProducer;
-import ru.inovus.ms.rdm.util.VersionEntityListProcessor;
+import ru.inovus.ms.rdm.provider.RefBookVersionListProcessor;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import javax.persistence.EntityManager;
@@ -270,22 +270,17 @@ public class RefBookServiceImpl implements RefBookService {
      * @return Список справочников
      */
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<RefBookVersion> getReferrerVersions(String refBookCode, RefBookSourceType sourceType) {
 
-        List<RefBookVersion> versions = new ArrayList<>();
-        VersionEntityListProcessor listAdder = list -> versions.addAll(
-                list.stream()
-                        .map(ModelGenerator::versionModel)
-                        .collect(Collectors.toList())
-        );
+        List<RefBookVersion> list = new ArrayList<>();
+        RefBookVersionListProcessor listAdder = list::addAll;
         processReferrerVersionEntities(refBookCode, sourceType, listAdder);
-
-        return versions;
+        return list;
     }
 
     /**
-     * Поиск сущностей версий справочников, ссылающихся на указанный справочник.
+     * Обработка сущностей версий справочников, ссылающихся на указанный справочник.
      *
      * Ссылающийся справочник должен иметь:
      *   1) структуру,
@@ -296,8 +291,10 @@ public class RefBookServiceImpl implements RefBookService {
      * @param sourceType  типа выбираемых версий справочников
      * @param processor  обработчик списков сущностей версий
      */
-    private void processReferrerVersionEntities(String refBookCode, RefBookSourceType sourceType, VersionEntityListProcessor processor) {
-
+    @Override
+    @Transactional(readOnly = true)
+    public void processReferrerVersionEntities(String refBookCode, RefBookSourceType sourceType,
+                                               RefBookVersionListProcessor processor) {
         RefBookCriteria criteria = new RefBookCriteria();
         criteria.setSourceType(sourceType);
         criteria.setIsNotArchived(true);
@@ -315,7 +312,10 @@ public class RefBookServiceImpl implements RefBookService {
                     .collect(Collectors.toList());
 
             if(!isEmpty(list))
-                processor.process(list);
+                processor.process(list.stream()
+                        .map(ModelGenerator::versionModel)
+                        .collect(Collectors.toList())
+                );
 
             criteria.setPageNumber(criteria.getPageNumber() + 1);
             entities = findVersionEntities(criteria);

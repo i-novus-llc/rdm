@@ -43,6 +43,7 @@ import ru.inovus.ms.rdm.model.draft.Draft;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.provider.RefBookVersionListProcessor;
 import ru.inovus.ms.rdm.repositiory.RefBookConflictRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.*;
@@ -309,13 +310,21 @@ public class ConflictServiceImpl implements ConflictService {
         versionValidation.validateVersionExists(versionId);
 
         RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
-        List<RefBookVersion> referrers = refBookService.getReferrerVersions(versionEntity.getRefBook().getCode(), RefBookSourceType.LAST_VERSION);
-        return referrers.stream()
-                .filter(referrer -> {
-                    Integer lastPublishedId = versionService.getLastPublishedVersion(versionEntity.getRefBook().getCode()).getId();
-                    return checkConflicts(referrer.getId(), lastPublishedId, versionId, conflictType);
-                })
-                .collect(toList());
+        String refBookCode = versionEntity.getRefBook().getCode();
+
+        List<RefBookVersion> versions = new ArrayList<>();
+        RefBookVersionListProcessor listAdder = list ->
+                versions.addAll(
+                        list.stream()
+                                .filter(referrer -> {
+                                    Integer lastPublishedId = versionService.getLastPublishedVersion(refBookCode).getId();
+                                    return checkConflicts(referrer.getId(), lastPublishedId, versionId, conflictType);
+                                })
+                                .collect(toList())
+                );
+        refBookService.processReferrerVersionEntities(versionEntity.getRefBook().getCode(), RefBookSourceType.LAST_VERSION, listAdder);
+
+        return versions;
     }
 
     /**
