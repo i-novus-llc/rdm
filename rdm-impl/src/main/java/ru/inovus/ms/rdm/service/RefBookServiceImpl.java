@@ -281,7 +281,7 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional
     public List<RefBookVersion> getReferrerVersions(String refBookCode, RefBookSourceType sourceType, List<Integer> referrerIds) {
         BooleanBuilder where = new BooleanBuilder();
-        where.and(isSourceType(sourceType)).andNot(isArchived());
+        where.and(isSourceType(sourceType)).andNot(isArchived().and(hasStructure()));
 
         if (!CollectionUtils.isEmpty(referrerIds))
             where.and(isVersionOfRefBook(referrerIds));
@@ -290,8 +290,7 @@ public class RefBookServiceImpl implements RefBookService {
         List<RefBookVersionEntity> entities = StreamSupport
                 .stream(allEntities.spliterator(), false)
                 .filter(entity ->
-                        Objects.nonNull(entity.getStructure())
-                                && !CollectionUtils.isEmpty(entity.getStructure().getPrimary())
+                        !CollectionUtils.isEmpty(entity.getStructure().getPrimary())
                                 && !entity.getStructure().getRefCodeReferences(refBookCode).isEmpty())
                 .collect(Collectors.toList());
 

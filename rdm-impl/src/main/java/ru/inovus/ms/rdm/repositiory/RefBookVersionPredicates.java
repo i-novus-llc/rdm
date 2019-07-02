@@ -122,6 +122,10 @@ public final class RefBookVersionPredicates {
                 ).exists();
     }
 
+    public static BooleanExpression hasStructure() {
+        return QRefBookVersionEntity.refBookVersionEntity.structure.isNotNull();
+    }
+
     public static BooleanExpression hasPrimaryAttribute() {
         QRefBookVersionEntity fieldVersion = new QRefBookVersionEntity(WHERE_EXISTS_VERSION);
         QRefBookVersionEntity whereVersion = new QRefBookVersionEntity(WHERE_IS_LAST_DATE_VERSION);
