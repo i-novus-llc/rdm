@@ -984,9 +984,7 @@ public class ConflictServiceImpl implements ConflictService {
         criteria.setAttributeFilter(filterSet);
 
         Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
-        return (rowValues != null && !isEmpty(rowValues.getContent()))
-                ? rowValues.getContent()
-                : emptyList();
+        return (rowValues != null && !isEmpty(rowValues.getContent())) ? rowValues.getContent() : emptyList();
     }
 
     /**
@@ -1004,9 +1002,7 @@ public class ConflictServiceImpl implements ConflictService {
         criteria.setAttributeFilter(toAttributeFilters(filterValues));
 
         Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
-        return (rowValues != null && !isEmpty(rowValues.getContent()))
-                ? rowValues.getContent()
-                : emptyList();
+        return (rowValues != null && !isEmpty(rowValues.getContent())) ? rowValues.getContent() : emptyList();
     }
 
     /**
@@ -1109,9 +1105,7 @@ public class ConflictServiceImpl implements ConflictService {
         criteria.setAttributeFilter(singleton(filterList));
 
         Page<RefBookRowValue> rowValues = versionService.search(versionEntity.getId(), criteria);
-        return (rowValues != null && !isEmpty(rowValues.getContent()))
-                ? rowValues.getContent().get(0)
-                : null;
+        return (rowValues != null && !isEmpty(rowValues.getContent())) ? rowValues.getContent().get(0) : null;
     }
 
     /**
