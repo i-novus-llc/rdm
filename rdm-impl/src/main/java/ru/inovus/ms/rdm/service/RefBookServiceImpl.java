@@ -82,7 +82,7 @@ public class RefBookServiceImpl implements RefBookService {
     private EntityManager entityManager;
 
     @Autowired
-    @SuppressWarnings("all")
+    @SuppressWarnings("squid:S00107")
     public RefBookServiceImpl(RefBookRepository refBookRepository, RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
                               DraftDataService draftDataService, DropDataService dropDataService,
                               RefBookLockService refBookLockService,

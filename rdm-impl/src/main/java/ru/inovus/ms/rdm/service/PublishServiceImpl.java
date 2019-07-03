@@ -11,6 +11,7 @@ import ru.inovus.ms.rdm.entity.*;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.export.*;
+import ru.inovus.ms.rdm.model.conflict.DeleteRefBookConflictCriteria;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.ConflictService;
@@ -145,11 +146,18 @@ public class PublishServiceImpl implements PublishService {
                         versionFileService.generate(versionModel, fileType, dataIterator));
             }
 
+            // NB: Конфликты могут быть только при наличии
+            // ссылочных атрибутов со значениями для ранее опубликованной версии.
             if (lastPublishedVersion != null) {
-                // NB: Конфликты могут быть только при наличии
-                // ссылочных атрибутов со значениями для ранее опубликованной версии.
+
                 conflictService.discoverConflicts(lastPublishedVersion.getId(), draftId);
-                conflictService.dropPublishedConflicts(lastPublishedVersion.getRefBook().getId(), draftId);
+
+                // Удаление конфликтов для всех версий справочника, на который ссылаются,
+                // кроме указанной версии справочника, на которую будут ссылаться.
+                DeleteRefBookConflictCriteria criteria = new DeleteRefBookConflictCriteria();
+                criteria.setPublishedVersionRefBookId(lastPublishedVersion.getRefBook().getId());
+                criteria.setExcludedPublishedVersionId(draftId);
+                conflictService.delete(criteria);
 
                 if (resolveConflicts) {
                     conflictService.refreshLastReferrersByPrimary(lastPublishedVersion.getRefBook().getCode());
