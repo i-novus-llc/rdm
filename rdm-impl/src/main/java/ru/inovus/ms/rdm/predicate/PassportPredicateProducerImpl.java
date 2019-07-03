@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.util;
+package ru.inovus.ms.rdm.predicate;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
@@ -6,8 +6,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
-import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.hasAttributeValue;
-
+import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.hasAttributeValue;
 
 @Component
 public class PassportPredicateProducerImpl implements PassportPredicateProducer {

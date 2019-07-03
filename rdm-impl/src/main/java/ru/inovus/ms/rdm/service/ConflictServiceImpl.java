@@ -44,7 +44,8 @@ import ru.inovus.ms.rdm.model.draft.Draft;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.repositiory.RefBookConflictPredicator;
+import ru.inovus.ms.rdm.predicate.DeleteRefBookConflictPredicateProducer;
+import ru.inovus.ms.rdm.predicate.RefBookConflictPredicateProducer;
 import ru.inovus.ms.rdm.repositiory.RefBookConflictRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.*;
@@ -60,11 +61,9 @@ import java.util.*;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
-import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static ru.inovus.ms.rdm.repositiory.RefBookConflictPredicates.*;
 import static ru.inovus.ms.rdm.util.ComparableUtils.*;
 import static ru.inovus.ms.rdm.util.ConflictUtils.conflictTypeToDiffStatus;
 import static ru.inovus.ms.rdm.util.ConflictUtils.diffStatusToConflictType;
@@ -376,7 +375,7 @@ public class ConflictServiceImpl implements ConflictService {
                 new JPAQuery<>(entityManager)
                         .select(QRefBookConflictEntity.refBookConflictEntity)
                         .from(QRefBookConflictEntity.refBookConflictEntity)
-                        .where(RefBookConflictPredicator.toPredicate(criteria));
+                        .where(RefBookConflictPredicateProducer.toPredicate(criteria));
 
         long count = jpaQuery.fetchCount();
 
@@ -486,7 +485,7 @@ public class ConflictServiceImpl implements ConflictService {
                         .where(QRefBookConflictEntity.refBookConflictEntity.id.in(
                                 JPAExpressions.select(QRefBookConflictEntity.refBookConflictEntity.id)
                                 .from(QRefBookConflictEntity.refBookConflictEntity)
-                                .where(RefBookConflictPredicator.toPredicate(criteria))
+                                .where(DeleteRefBookConflictPredicateProducer.toPredicate(criteria))
                         ));
         jpaDelete.execute();
     }

@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.repositiory;
+package ru.inovus.ms.rdm.predicate;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;

@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static java.util.Collections.singletonList;
-import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
+import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.*;
 
 @Primary
 @Service

@@ -26,13 +26,13 @@ import ru.inovus.ms.rdm.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.model.refbook.RefBookUpdateRequest;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.model.version.VersionCriteria;
+import ru.inovus.ms.rdm.predicate.RefBookPredicateProducer;
 import ru.inovus.ms.rdm.repositiory.PassportValueRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookConflictRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.util.ModelGenerator;
-import ru.inovus.ms.rdm.util.PassportPredicateProducer;
 import ru.inovus.ms.rdm.provider.ListProcessor;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
@@ -45,8 +45,7 @@ import static java.util.Collections.singletonList;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static org.springframework.util.StringUtils.isEmpty;
-import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
+import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.*;
 
 @Primary
 @Service
@@ -76,7 +75,7 @@ public class RefBookServiceImpl implements RefBookService {
     private RefBookLockService refBookLockService;
 
     private PassportValueRepository passportValueRepository;
-    private PassportPredicateProducer passportPredicateProducer;
+    private RefBookPredicateProducer refBookPredicateProducer;
 
     private VersionValidation versionValidation;
     private EntityManager entityManager;
@@ -86,7 +85,7 @@ public class RefBookServiceImpl implements RefBookService {
     public RefBookServiceImpl(RefBookRepository refBookRepository, RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
                               DraftDataService draftDataService, DropDataService dropDataService,
                               RefBookLockService refBookLockService,
-                              PassportValueRepository passportValueRepository, PassportPredicateProducer passportPredicateProducer,
+                              PassportValueRepository passportValueRepository, RefBookPredicateProducer refBookPredicateProducer,
                               VersionValidation versionValidation, EntityManager entityManager) {
         this.refBookRepository = refBookRepository;
         this.versionRepository = versionRepository;
@@ -98,7 +97,7 @@ public class RefBookServiceImpl implements RefBookService {
         this.refBookLockService = refBookLockService;
 
         this.passportValueRepository = passportValueRepository;
-        this.passportPredicateProducer = passportPredicateProducer;
+        this.refBookPredicateProducer = refBookPredicateProducer;
 
         this.versionValidation = versionValidation;
         this.entityManager = entityManager;
@@ -333,7 +332,7 @@ public class RefBookServiceImpl implements RefBookService {
                 new JPAQuery<>(entityManager)
                         .select(QRefBookVersionEntity.refBookVersionEntity)
                         .from(QRefBookVersionEntity.refBookVersionEntity)
-                        .where(toPredicate(criteria));
+                        .where(refBookPredicateProducer.toPredicate(criteria));
 
         long count = jpaQuery.fetchCount();
 
@@ -344,56 +343,6 @@ public class RefBookServiceImpl implements RefBookService {
                 .fetch();
 
         return new PageImpl<>(refBookVersionEntityList, criteria, count);
-    }
-
-    /**
-     * Формирование предиката на основе критерия поиска.
-     *
-     * @param criteria критерий поиска
-     * @return Предикат для запроса поиска
-     */
-    private Predicate toPredicate(RefBookCriteria criteria) {
-        BooleanBuilder where = new BooleanBuilder();
-
-        where.and(isSourceType(criteria.getSourceType()));
-
-        if (nonNull(criteria.getFromDateBegin()))
-            where.and(isMaxFromDateEqOrAfter(criteria.getFromDateBegin()));
-
-        if (nonNull(criteria.getFromDateEnd()))
-            where.and(isMaxFromDateEqOrBefore(criteria.getFromDateEnd()));
-
-        if (!isEmpty(criteria.getCode()))
-            where.and(isCodeContains(criteria.getCode()));
-
-        if (!CollectionUtils.isEmpty(criteria.getPassport()))
-            where.and(passportPredicateProducer.toPredicate(criteria.getPassport()));
-
-        if (!isEmpty(criteria.getCategory()))
-            where.and(refBookHasCategory(criteria.getCategory()));
-
-        if (!CollectionUtils.isEmpty(criteria.getRefBookIds()))
-            where.and(isVersionOfRefBook(criteria.getRefBookIds()));
-
-        if (criteria.getIsArchived())
-            where.and(isArchived());
-
-        else if (criteria.getIsNotArchived())
-            where.andNot(isArchived());
-
-        if (criteria.getHasPublished())
-            where.andNot(isArchived()).and(isAnyPublished());
-
-        if (criteria.getHasDraft())
-            where.andNot(isArchived()).and(refBookHasDraft());
-
-        if (criteria.getHasPublishedVersion())
-            where.andNot(isArchived()).and(hasLastPublishedVersion());
-
-        if (criteria.getHasPrimaryAttribute())
-            where.and(hasStructure()).and(hasPrimaryAttribute());
-
-        return where.getValue();
     }
 
     /**
@@ -607,7 +556,7 @@ public class RefBookServiceImpl implements RefBookService {
         versionCriteria.setSourceType(refBookSourceType);
         versionCriteria.setRefBookIds(refBookIds);
 
-        return versionRepository.findAll(toPredicate(versionCriteria),
+        return versionRepository.findAll(refBookPredicateProducer.toPredicate(versionCriteria),
                 PageRequest.of(0, refBookIds.size())).getContent();
     }
 
