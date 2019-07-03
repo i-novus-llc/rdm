@@ -48,7 +48,7 @@ public class RefBookPredicateProducer implements CriteriaPredicateProducer {
             where.and(refBookHasCategory(criteria.getCategory()));
 
         if (!CollectionUtils.isEmpty(criteria.getRefBookIds()))
-            where.and(isVersionOfRefBook(criteria.getRefBookIds()));
+            where.and(isVersionOfRefBooks(criteria.getRefBookIds()));
 
         if (criteria.getIsArchived())
             where.and(isArchived());
