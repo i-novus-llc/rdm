@@ -62,7 +62,7 @@ public class RowsValidatorImpl implements RowsValidator {
                              int errorCountLimit,
                              List<AttributeValidationEntity> attributeValidations) {
         this(versionService, searchDataService, structure, storageCode, errorCountLimit, attributeValidations);
-        this.size = 3;
+        this.size = size;
     }
 
     @Override

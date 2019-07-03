@@ -93,10 +93,9 @@ public class RowsValidatorTest {
         Row notValidRow = new Row(new LinkedHashMap<>() {{
             put(ATTRIBUTE_NAME, new Reference(newAttributeValue, newAttributeValue));
         }});
-        Result expected = new Result(1, 2, singletonList(new Message("validation.reference.err", ATTRIBUTE_NAME, newAttributeValue)));
 
         rowsValidator.append(validRow);
-        Result appendActual = rowsValidator.append(notValidRow);
+        rowsValidator.append(notValidRow);
 
         try {
             rowsValidator.process();
@@ -105,8 +104,6 @@ public class RowsValidatorTest {
             Assert.assertEquals(1, e.getMessages().size());
             Assert.assertEquals(new Message(ReferenceValueValidation.REFERENCE_ERROR_CODE, ATTRIBUTE_NAME, ATTRIBUTE_VALUE + "_1"), e.getMessages().get(0));
         }
-
-        Assert.assertEquals(expected, appendActual);
     }
 
     /**
