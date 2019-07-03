@@ -5,5 +5,5 @@ import java.util.List;
 @FunctionalInterface
 public interface ListProcessor<T> {
 
-    void process(List<T> list);
+    boolean process(List<T> list);
 }

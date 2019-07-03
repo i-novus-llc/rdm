@@ -145,7 +145,7 @@ public class ConflictServiceImpl implements ConflictService {
         versionValidation.validateVersionExists(newRefToId);
 
         List<Conflict> conflicts = new ArrayList<>();
-        ListProcessor<Conflict> listAdder = conflicts::addAll;
+        ListProcessor<Conflict> listAdder = list -> { conflicts.addAll(list); return true; };
         calculateConflicts(refFromId, oldRefToId, newRefToId, listAdder);
         return conflicts;
     }
@@ -170,7 +170,8 @@ public class ConflictServiceImpl implements ConflictService {
 
         List<DiffRowValue> diffRowValues = getDataDiffContent(criteria);
         while (!diffRowValues.isEmpty()) {
-            processor.process(calculateDiffConflicts(refFromEntity, refToEntity, diffRowValues));
+            if (processor.process(calculateDiffConflicts(refFromEntity, refToEntity, diffRowValues)))
+                return;
 
             criteria.setPageNumber(criteria.getPageNumber() + 1);
             diffRowValues = getDataDiffContent(criteria);
@@ -1211,7 +1212,7 @@ public class ConflictServiceImpl implements ConflictService {
      */
     private void createCalculatedConflicts(List<RefBookVersion> referrers, Integer oldRefToId, Integer newRefToId) {
         referrers.forEach(referrer -> {
-            ListProcessor<Conflict> createConflict = list -> create(referrer.getId(), newRefToId, list);
+            ListProcessor<Conflict> createConflict = list -> { create(referrer.getId(), newRefToId, list); return true; };
             calculateConflicts(referrer.getId(), oldRefToId, newRefToId, createConflict);
         });
     }

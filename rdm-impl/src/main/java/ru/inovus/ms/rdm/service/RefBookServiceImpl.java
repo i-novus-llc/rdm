@@ -44,6 +44,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
+import static org.springframework.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.isEmpty;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
 
@@ -273,10 +274,10 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional(readOnly = true)
     public List<RefBookVersion> getReferrerVersions(String refBookCode, RefBookSourceType sourceType) {
 
-        List<RefBookVersion> list = new ArrayList<>();
-        ListProcessor<RefBookVersion> listAdder = list::addAll;
+        List<RefBookVersion> versions = new ArrayList<>();
+        ListProcessor<RefBookVersion> listAdder = list -> { versions.addAll(list); return true; };
         processReferrerVersionEntities(refBookCode, sourceType, listAdder);
-        return list;
+        return versions;
     }
 
     /**
@@ -309,11 +310,11 @@ public class RefBookServiceImpl implements RefBookService {
                                     && !entity.getStructure().getRefCodeReferences(refBookCode).isEmpty())
                     .collect(Collectors.toList());
 
-            if(!isEmpty(list))
-                processor.process(list.stream()
-                        .map(ModelGenerator::versionModel)
-                        .collect(Collectors.toList())
-                );
+            if (!isEmpty(list)
+                    && processor.process(list.stream()
+                    .map(ModelGenerator::versionModel)
+                    .collect(Collectors.toList())))
+                return;
 
             criteria.setPageNumber(criteria.getPageNumber() + 1);
             entities = findVersionEntities(criteria);
@@ -523,6 +524,10 @@ public class RefBookServiceImpl implements RefBookService {
         Structure structure = entity.getStructure();
         List<Structure.Attribute> primaryAttributes = (structure != null) ? structure.getPrimary() : null;
         model.setHasPrimaryAttribute(!CollectionUtils.isEmpty(primaryAttributes));
+
+        model.setHasReferrer(false);
+        ListProcessor<RefBookVersion> processor = list -> { model.setHasReferrer(true); return false; };
+        processReferrerVersionEntities(model.getCode(), RefBookSourceType.ALL, processor);
 
         boolean hasUpdatedConflict = conflictRepository.existsByReferrerVersionIdAndConflictType(model.getId(), ConflictType.UPDATED);
         model.setHasUpdatedConflict(hasUpdatedConflict);
