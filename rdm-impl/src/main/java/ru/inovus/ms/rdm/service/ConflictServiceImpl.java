@@ -1,8 +1,8 @@
 package ru.inovus.ms.rdm.service;
 
-import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.ComparableExpressionBase;
+import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.impl.JPADeleteClause;
 import com.querydsl.jpa.impl.JPAQuery;
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
@@ -34,6 +34,7 @@ import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.conflict.DeleteRefBookConflictCriteria;
 import ru.inovus.ms.rdm.model.conflict.RefBookConflictCriteria;
 import ru.inovus.ms.rdm.model.field.ReferenceFilterValue;
 import ru.inovus.ms.rdm.model.version.AttributeFilter;
@@ -44,6 +45,7 @@ import ru.inovus.ms.rdm.model.draft.Draft;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.repositiory.RefBookConflictPredicator;
 import ru.inovus.ms.rdm.repositiory.RefBookConflictRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.*;
@@ -334,7 +336,7 @@ public class ConflictServiceImpl implements ConflictService {
                 new JPAQuery<>(entityManager)
                         .select(QRefBookConflictEntity.refBookConflictEntity)
                         .from(QRefBookConflictEntity.refBookConflictEntity)
-                        .where(toPredicate(criteria));
+                        .where(RefBookConflictPredicator.toPredicate(criteria));
 
         long count = jpaQuery.fetchCount();
 
@@ -419,6 +421,25 @@ public class ConflictServiceImpl implements ConflictService {
     @Transactional
     public void delete(Integer id) {
         conflictRepository.deleteById(id);
+    }
+
+    /**
+     * Удаление конфликтов по заданному критерию.
+     *
+     * @param criteria критерий удаления
+     */
+    @Override
+    @Transactional
+    public void delete(DeleteRefBookConflictCriteria criteria) {
+
+        JPADeleteClause jpaDelete =
+                new JPADeleteClause(entityManager, QRefBookConflictEntity.refBookConflictEntity)
+                        .where(QRefBookConflictEntity.refBookConflictEntity.id.in(
+                                JPAExpressions.select(QRefBookConflictEntity.refBookConflictEntity.id)
+                                .from(QRefBookConflictEntity.refBookConflictEntity)
+                                .where(RefBookConflictPredicator.toPredicate(criteria))
+                        ));
+        jpaDelete.execute();
     }
 
     private void delete(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode) {
@@ -642,19 +663,6 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Удаление конфликтов для всех версий справочника, на который ссылаются,
-     * кроме указанной версии справочника, на которую будут ссылаться.
-     *
-     * @param publishedRefBookId        идентификатор справочника, на который ссылаются
-     * @param excludePublishedVersionId идентификатор версии, на которую будут ссылаться
-     */
-    @Override
-    @Transactional
-    public void dropPublishedConflicts(Integer publishedRefBookId, Integer excludePublishedVersionId) {
-        conflictRepository.deleteByPublishedVersionRefBookIdAndPublishedVersionIdNot(publishedRefBookId, excludePublishedVersionId);
-    }
-
-    /**
      * Обнаружение конфликтов при смене версий.
      *
      * @param oldVersionId идентификатор старой версии справочника
@@ -702,39 +710,6 @@ public class ConflictServiceImpl implements ConflictService {
 
         if (!newVersionId.equals(oldVersionId))
             conflictRepository.copyByReferrerVersion(oldVersionId, newVersionId);
-    }
-
-    /**
-     * Формирование предиката на основе критерия поиска.
-     *
-     * @param criteria критерий поиска
-     * @return Предикат для запроса поиска
-     */
-    private Predicate toPredicate(RefBookConflictCriteria criteria) {
-        BooleanBuilder where = new BooleanBuilder();
-
-        if (nonNull(criteria.getReferrerVersionId()))
-            where.and(isReferrerVersionId(criteria.getReferrerVersionId()));
-
-        if (nonNull(criteria.getReferrerVersionRefBookId()))
-            where.and(isReferrerVersionRefBookId(criteria.getReferrerVersionRefBookId()));
-
-        if (nonNull(criteria.getPublishedVersionId()))
-            where.and(isPublishedVersionId(criteria.getPublishedVersionId()));
-
-        if (nonNull(criteria.getPublishedVersionRefBookId()))
-            where.and(isPublishedVersionRefBookId(criteria.getPublishedVersionRefBookId()));
-
-        if (nonNull(criteria.getRefRecordId()))
-            where.and(isRefRecordId(criteria.getRefRecordId()));
-
-        if (nonNull(criteria.getRefFieldCode()))
-            where.and(isRefFieldCode(criteria.getRefFieldCode()));
-
-        if (nonNull(criteria.getConflictType()))
-            where.and(isConflictType(criteria.getConflictType()));
-
-        return where.getValue();
     }
 
     /**

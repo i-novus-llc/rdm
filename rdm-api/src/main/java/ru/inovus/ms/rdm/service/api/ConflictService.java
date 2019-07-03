@@ -4,6 +4,7 @@ import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.model.conflict.Conflict;
+import ru.inovus.ms.rdm.model.conflict.DeleteRefBookConflictCriteria;
 import ru.inovus.ms.rdm.model.conflict.RefBookConflict;
 import ru.inovus.ms.rdm.model.conflict.RefBookConflictCriteria;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
@@ -84,13 +85,21 @@ public interface ConflictService {
                 @ApiParam("Список конфликтов") List<Conflict> conflicts);
 
     @DELETE
-    @Path("/delete/{id}")
+    @Path("/{id}")
     @ApiOperation("Удаление записи о конфликте")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     void delete(@ApiParam("Идентификатор записи о конфликте") @PathParam("id") Integer id);
+
+    @DELETE
+    @ApiOperation("Удаление конфликтов по параметрам критерия")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    void delete(@ApiParam("Критерий удаления") @BeanParam DeleteRefBookConflictCriteria criteria);
 
     @GET
     @Path("/find")
@@ -143,16 +152,6 @@ public interface ConflictService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     void refreshLastReferrersByPrimary(@ApiParam("Код справочника, на который ссылаются") @QueryParam("refFieldCode") String refBookCode);
-
-    @DELETE
-    @Path("/delete/published")
-    @ApiOperation("Удаление конфликтов для справочника, на который ссылаются")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Успех"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    void dropPublishedConflicts(@ApiParam("Идентификатор справочника, на который ссылаются") @QueryParam("refBookId") Integer publishedRefBookId,
-                                @ApiParam("Идентификатор версии, на которую будут ссылаться") @QueryParam("excludeId") Integer excludePublishedVersionId);
 
     @POST
     @Path("/discover")
