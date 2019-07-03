@@ -33,7 +33,7 @@ import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.util.ModelGenerator;
 import ru.inovus.ms.rdm.util.PassportPredicateProducer;
-import ru.inovus.ms.rdm.provider.RefBookVersionListProcessor;
+import ru.inovus.ms.rdm.provider.ListProcessor;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import javax.persistence.EntityManager;
@@ -274,7 +274,7 @@ public class RefBookServiceImpl implements RefBookService {
     public List<RefBookVersion> getReferrerVersions(String refBookCode, RefBookSourceType sourceType) {
 
         List<RefBookVersion> list = new ArrayList<>();
-        RefBookVersionListProcessor listAdder = list::addAll;
+        ListProcessor<RefBookVersion> listAdder = list::addAll;
         processReferrerVersionEntities(refBookCode, sourceType, listAdder);
         return list;
     }
@@ -292,7 +292,7 @@ public class RefBookServiceImpl implements RefBookService {
      * @param processor  обработчик списков сущностей версий
      */
     private void processReferrerVersionEntities(String refBookCode, RefBookSourceType sourceType,
-                                                RefBookVersionListProcessor processor) {
+                                                ListProcessor<RefBookVersion> processor) {
         RefBookCriteria criteria = new RefBookCriteria();
         criteria.setSourceType(sourceType);
         criteria.setIsNotArchived(true);

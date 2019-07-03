@@ -46,7 +46,7 @@ import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.repositiory.RefBookConflictRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.*;
-import ru.inovus.ms.rdm.provider.ConflictListProcessor;
+import ru.inovus.ms.rdm.provider.ListProcessor;
 import ru.inovus.ms.rdm.util.ConflictUtils;
 import ru.inovus.ms.rdm.util.RowUtils;
 import ru.inovus.ms.rdm.validation.VersionValidation;
@@ -145,7 +145,7 @@ public class ConflictServiceImpl implements ConflictService {
         versionValidation.validateVersionExists(newRefToId);
 
         List<Conflict> conflicts = new ArrayList<>();
-        ConflictListProcessor listAdder = conflicts::addAll;
+        ListProcessor<Conflict> listAdder = conflicts::addAll;
         calculateConflicts(refFromId, oldRefToId, newRefToId, listAdder);
         return conflicts;
     }
@@ -159,7 +159,7 @@ public class ConflictServiceImpl implements ConflictService {
      * @param processor  обработчик списков конфликтов
      */
     private void calculateConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId,
-                                    ConflictListProcessor processor) {
+                                    ListProcessor<Conflict> processor) {
 
         RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
         RefBookVersionEntity refToEntity = versionRepository.getOne(oldRefToId);
@@ -1211,7 +1211,7 @@ public class ConflictServiceImpl implements ConflictService {
      */
     private void createCalculatedConflicts(List<RefBookVersion> referrers, Integer oldRefToId, Integer newRefToId) {
         referrers.forEach(referrer -> {
-            ConflictListProcessor createConflict = list -> create(referrer.getId(), newRefToId, list);
+            ListProcessor<Conflict> createConflict = list -> create(referrer.getId(), newRefToId, list);
             calculateConflicts(referrer.getId(), oldRefToId, newRefToId, createConflict);
         });
     }
