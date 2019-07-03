@@ -104,7 +104,7 @@ public class ConflictServiceImpl implements ConflictService {
     private EntityManager entityManager;
 
     @Autowired
-    @SuppressWarnings("all")
+    @SuppressWarnings("squid:S00107")
     public ConflictServiceImpl(RefBookConflictRepository conflictRepository, RefBookVersionRepository versionRepository,
                                DraftDataService draftDataService, SearchDataService searchDataService,
                                RefBookService refBookService, VersionService versionService,
