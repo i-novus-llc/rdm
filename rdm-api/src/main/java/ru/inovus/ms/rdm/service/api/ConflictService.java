@@ -134,7 +134,7 @@ public interface ConflictService {
     void refreshLastReferrersByPrimary(@ApiParam("Код справочника, на который ссылаются") @QueryParam("refFieldCode") String refBookCode);
 
     @DELETE
-    @Path("/drop/published")
+    @Path("/delete/published")
     @ApiOperation("Удаление конфликтов для справочника, на который ссылаются")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),

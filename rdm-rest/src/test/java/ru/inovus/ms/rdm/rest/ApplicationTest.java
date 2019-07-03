@@ -2176,16 +2176,23 @@ public class ApplicationTest {
         });
     }
 
-    private void assertConflicts(List<Conflict> expectedConflicts, List<Conflict> actualConflicts) {
-        assertNotNull(actualConflicts);
-        assertNotNull(expectedConflicts);
-        assertEquals(expectedConflicts.size(), actualConflicts.size());
-        expectedConflicts.forEach(expectedConflict -> {
-            if (actualConflicts.stream().noneMatch(actualConflict ->
-                    expectedConflict.getRefAttributeCode().equals(actualConflict.getRefAttributeCode())
-                            && expectedConflict.getConflictType().equals(actualConflict.getConflictType())
-                            && expectedConflict.getPrimaryValues().size() == actualConflict.getPrimaryValues().size()
-                            && actualConflict.getPrimaryValues().containsAll(expectedConflict.getPrimaryValues())))
+    /**
+     * Проверка на совпадение списка конфликтов.
+     * 
+     * @param expectedList ожидаемый список
+     * @param actualList   актуальный список
+     */
+    private void assertConflicts(List<Conflict> expectedList, List<Conflict> actualList) {
+        assertNotNull(actualList);
+        assertNotNull(expectedList);
+        assertEquals(expectedList.size(), actualList.size());
+        expectedList.forEach(expectedConflict -> {
+            if (actualList.stream()
+                    .noneMatch(actualConflict ->
+                            expectedConflict.getRefAttributeCode().equals(actualConflict.getRefAttributeCode())
+                                    && expectedConflict.getConflictType().equals(actualConflict.getConflictType())
+                                    && expectedConflict.getPrimaryValues().size() == actualConflict.getPrimaryValues().size()
+                                    && actualConflict.getPrimaryValues().containsAll(expectedConflict.getPrimaryValues())))
                 fail();
         });
     }

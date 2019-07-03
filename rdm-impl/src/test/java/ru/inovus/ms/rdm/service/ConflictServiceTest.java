@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.service;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,9 +38,11 @@ import ru.inovus.ms.rdm.validation.VersionValidation;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.junit.Assert.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -86,24 +87,30 @@ public class ConflictServiceTest {
     private static final Long PUBLISHED_ROW_SYS_ID_DELETED_REMOLDING = 9L;  // emend conflict
     private static final Long PUBLISHED_ROW_SYS_ID_ABSENT_INSERTING = 10L;
 
-    public static final List<Long> CONFLICTED_PUBLISHED_ROW_SYS_IDS_UPDATED = asList(
+    private static final List<Long> CONFLICTED_PUBLISHED_ROW_SYS_IDS_UPDATED = asList(
             PUBLISHED_ROW_SYS_ID_UPDATED_UNCHANGING,
             PUBLISHED_ROW_SYS_ID_UPDATED_UPDATING,
             PUBLISHED_ROW_SYS_ID_UPDATED_DELETING
     );
 
-    public static final List<Long> CONFLICTED_PUBLISHED_ROW_SYS_IDS_DELETED = asList(
+    private static final List<Long> CONFLICTED_PUBLISHED_ROW_SYS_IDS_DELETED = asList(
             PUBLISHED_ROW_SYS_ID_DELETED_UNCHANGING,
             PUBLISHED_ROW_SYS_ID_DELETED_RESTORING,
             PUBLISHED_ROW_SYS_ID_DELETED_REMOLDING
     );
 
-    public static final List<Long> CONFLICTED_PUBLISHED_ROW_SYS_IDS =
+    private static final List<Long> CONFLICTED_PUBLISHED_ROW_SYS_IDS =
             Stream.of(
                     CONFLICTED_PUBLISHED_ROW_SYS_IDS_UPDATED,
                     CONFLICTED_PUBLISHED_ROW_SYS_IDS_DELETED)
             .flatMap(List::stream)
             .collect(Collectors.toList());
+
+    private static final List<Long> CONFLICTED_PUBLISHED_ROW_SYS_IDS_EXPECTED = asList(
+            PUBLISHED_ROW_SYS_ID_UPDATED_UNCHANGING,
+            PUBLISHED_ROW_SYS_ID_DELETED_UNCHANGING,
+            PUBLISHED_ROW_SYS_ID_DELETED_REMOLDING
+    );
 
     // for `testRefreshReferencesByPrimary`:
     private static final String REFERRER_PRIMARY_UNCHANGED_VALUE = "r3";
@@ -230,7 +237,7 @@ public class ConflictServiceTest {
      *
      * <p>Изменение в конфликтах:<br/>
      * для записей 4 и 7 сохраняется старый конфликт,<br/>
-     * для записи 9 меняется тип старого конфликта с удаления на вставку.</p>
+     * для записи 9 меняется тип старого конфликта с удаления на обновление.</p>
      */
     @Test
     public void testRecalculateConflicts() {
@@ -249,8 +256,21 @@ public class ConflictServiceTest {
         RefBookDataDiff refBookDataDiff = createRecalculateConflictsDataDiff();
         when(compareService.compareData(any())).thenReturn(refBookDataDiff);
 
-        List<Conflict> list = conflictService.recalculateConflicts(referrerEntity.getId(),
+        List<Conflict> expectedList = new ArrayList<>(CONFLICTED_PUBLISHED_ROW_SYS_IDS_EXPECTED.size());
+        CONFLICTED_PUBLISHED_ROW_SYS_IDS_EXPECTED.forEach(systemId -> {
+            ConflictType conflictType =
+                    PUBLISHED_ROW_SYS_ID_DELETED_UNCHANGING.equals(systemId)
+                            ? ConflictType.DELETED
+                            : ConflictType.UPDATED;
+            expectedList.add(
+                    new Conflict(REFERRER_ATTRIBUTE_REFERENCE, conflictType,
+                            singletonList(new StringFieldValue(REFERRER_ATTRIBUTE_CODE, getRecalculateConflictsReferrerPrimaryValue(systemId))))
+            );
+        });
+
+        List<Conflict> actualList = conflictService.recalculateConflicts(referrerEntity.getId(),
                 publishedEntity.getId(), publishingEntity.getId(), conflicts.getContent());
+        assertConflicts(expectedList, actualList);
     }
     
     private Page<RefBookConflict> createRecalculateConflictsPage() {
@@ -444,7 +464,7 @@ public class ConflictServiceTest {
 
         PageImpl<RefBookRowValue> updatedRows = createRefreshReferencesReferrerRows(PUBLISHING_PRIMARY_UPDATED_VALUE, PUBLISHING_PRIMARY_UPDATED_DISPLAY);
         RefBookRowValue updatedRow = updatedRows.get().findFirst().orElse(null);
-        Assert.assertNotNull(updatedRow);
+        assertNotNull(updatedRow);
 
         Reference expectedReference = new Reference(
                 PUBLISHING_DRAFT_STORAGE_CODE,
@@ -455,7 +475,7 @@ public class ConflictServiceTest {
                 PUBLISHING_PRIMARY_UPDATED_DISPLAY);
         ReferenceFieldValue expectedFieldValue = new ReferenceFieldValue(REFERRER_ATTRIBUTE_REFERENCE, expectedReference);
         LongRowValue expectedRowValue = new LongRowValue(updatedRow.getSystemId(), singletonList(expectedFieldValue));
-        Assert.assertEquals(new RefBookRowValue(expectedRowValue, REFERRER_VERSION_ID), rowValueCaptor.getValue());
+        assertEquals(new RefBookRowValue(expectedRowValue, REFERRER_VERSION_ID), rowValueCaptor.getValue());
     }
 
     private List<Conflict> createRefreshReferencesConflicts() {
@@ -537,4 +557,24 @@ public class ConflictServiceTest {
         ), PageRequest.of(0, 10), 1);
     }
 
+    /**
+     * Проверка на совпадение списка конфликтов.
+     *
+     * @param expectedList ожидаемый список
+     * @param actualList   актуальный список
+     */
+    private void assertConflicts(List<Conflict> expectedList, List<Conflict> actualList) {
+        assertNotNull(actualList);
+        assertNotNull(expectedList);
+        assertEquals(expectedList.size(), actualList.size());
+        expectedList.forEach(expectedConflict -> {
+            if (actualList.stream()
+                    .noneMatch(actualConflict ->
+                            expectedConflict.getRefAttributeCode().equals(actualConflict.getRefAttributeCode())
+                                    && expectedConflict.getConflictType().equals(actualConflict.getConflictType())
+                                    && expectedConflict.getPrimaryValues().size() == actualConflict.getPrimaryValues().size()
+                                    && actualConflict.getPrimaryValues().containsAll(expectedConflict.getPrimaryValues())))
+                fail();
+        });
+    }
 }
