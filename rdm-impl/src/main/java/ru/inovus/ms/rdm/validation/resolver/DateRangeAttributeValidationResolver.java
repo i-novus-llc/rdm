@@ -5,6 +5,7 @@ import net.n2oapp.platform.i18n.UserException;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.model.validation.DateRangeAttributeValidation;
+import ru.inovus.ms.rdm.util.TimeUtils;
 
 import java.time.LocalDate;
 
@@ -28,7 +29,8 @@ public class DateRangeAttributeValidationResolver implements AttributeValidation
         this.max = max;
     }
 
-    public DateRangeAttributeValidationResolver(Structure.Attribute attribute, DateRangeAttributeValidation validationValue) {
+    public DateRangeAttributeValidationResolver(Structure.Attribute attribute,
+                                                DateRangeAttributeValidation validationValue) {
         this(attribute, validationValue.getMin(), validationValue.getMax());
     }
 
@@ -39,6 +41,6 @@ public class DateRangeAttributeValidationResolver implements AttributeValidation
         boolean isLessThanMax = max == null || value.compareTo(max) <= 0;
         return isLargerThanMin && isLessThanMax
                 ? null
-                : new Message(DATE_RANGE_EXCEPTION_CODE, attribute.getName(), value);
+                : new Message(DATE_RANGE_EXCEPTION_CODE, attribute.getName(), TimeUtils.format(value));
     }
 }
