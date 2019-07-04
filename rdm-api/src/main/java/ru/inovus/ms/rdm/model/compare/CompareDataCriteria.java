@@ -52,6 +52,7 @@ public class CompareDataCriteria extends CompareCriteria {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
+
         CompareDataCriteria that = (CompareDataCriteria) o;
         return Objects.equals(primaryAttributesFilters, that.primaryAttributesFilters) &&
                 Objects.equals(countOnly, that.countOnly);
