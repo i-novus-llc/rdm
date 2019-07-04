@@ -134,7 +134,7 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
      * @param rowValues список записей, среди которых ведется поиск
      * @return Найденная запись либо null
      */
-    private static RowValue findRowValue(List<String> primaries,
+    private RowValue findRowValue(List<String> primaries,
                                          Map<String, Object> attributeValues,
                                          Collection<? extends RowValue> rowValues) {
         return rowValues
