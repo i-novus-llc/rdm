@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.validation;
 import net.n2oapp.platform.i18n.Message;
 import org.apache.commons.collections4.MapUtils;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
+import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
@@ -10,7 +11,6 @@ import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.model.Row;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.util.ComparableUtils;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 
 import java.util.*;
@@ -62,7 +62,7 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
         if (!isEmpty(primaryKeyAttributes) &&
                 primaryKeyAttributes.stream().noneMatch(a -> getErrorAttributes().contains(a))) {
 
-            RowValue refBookRow = ComparableUtils.findRowValue(primaryKeyAttributes, attributeValues, rowValues);
+            RowValue refBookRow = findRowValue(primaryKeyAttributes, attributeValues, rowValues);
             if (refBookRow != null && !refBookRow.getSystemId().equals(systemId)) {
                 primaryKeyAttributes.forEach(this::addErrorAttribute);
                 return singletonList(toMessageFromValues(attributeValues));
@@ -123,6 +123,33 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
                 .map(primaryKey ->
                         primaryKey.getName() + "\" - \"" + attributeValues.get(primaryKey.getCode())
                 ).collect(Collectors.joining("\", \"")));
+    }
+
+    /**
+     * В списке записей #rowValues ищется строка, которая соответствует строке с данными #attributeValues
+     * на основании набора значений первичных атрибутов #primaries.
+     *
+     * @param primaries список кодов первичных атрибутов со значениями для идентификации записи
+     * @param attributeValues значения атрибутов строки, для которой ведется поиск
+     * @param rowValues список записей, среди которых ведется поиск
+     * @return Найденная запись либо null
+     */
+    private static RowValue findRowValue(List<String> primaries,
+                                         Map<String, Object> attributeValues,
+                                         Collection<? extends RowValue> rowValues) {
+        return rowValues
+                .stream()
+                .filter(rowValue ->
+                        primaries.stream().allMatch(primary -> {
+                            Object primaryValue = attributeValues.get(primary);
+                            FieldValue fieldValue = rowValue.getFieldValue(primary);
+                            return primaryValue != null
+                                    && fieldValue != null
+                                    && primaryValue.equals(fieldValue.getValue());
+                        })
+                )
+                .findFirst()
+                .orElse(null);
     }
 
 }

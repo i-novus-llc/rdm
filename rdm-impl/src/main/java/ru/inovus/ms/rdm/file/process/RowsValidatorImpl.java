@@ -68,7 +68,7 @@ public class RowsValidatorImpl implements RowsValidator {
     @Override
     public Result append(Row row) {
 
-        if (row.getData().values().stream().anyMatch(Objects::nonNull)) {
+        if (row.getData().values().stream().filter(Objects::nonNull).anyMatch(v -> !"".equals(v))) {
             buffer.add(row);
 
             if (buffer.size() == size) {
@@ -95,24 +95,22 @@ public class RowsValidatorImpl implements RowsValidator {
         buffer.forEach(row -> {
             List<Message> errors = new ArrayList<>();
             Set<String> errorAttributes = new HashSet<>();
-            if (row.getData().values().stream().filter(Objects::nonNull).anyMatch(v -> !"".equals(v))) {
-                List<ErrorAttributeHolderValidation> validations = Arrays.asList(
-                        new PkRequiredValidation(row, structure),
-                        new TypeValidation(row.getData(), structure),
-                        new ReferenceValueValidation(versionService, row, structure),
-                        dbPrimaryKeyValidation,
-                        pkUniqueRowAppendValidation,
-                        attributeCustomValidation
-                );
-                dbPrimaryKeyValidation.appendRow(row);
-                pkUniqueRowAppendValidation.appendRow(row);
-                attributeCustomValidation.appendRow(row);
+            List<ErrorAttributeHolderValidation> validations = Arrays.asList(
+                    new PkRequiredValidation(row, structure),
+                    new TypeValidation(row.getData(), structure),
+                    new ReferenceValueValidation(versionService, row, structure),
+                    dbPrimaryKeyValidation,
+                    pkUniqueRowAppendValidation,
+                    attributeCustomValidation
+            );
+            dbPrimaryKeyValidation.appendRow(row);
+            pkUniqueRowAppendValidation.appendRow(row);
+            attributeCustomValidation.appendRow(row);
 
-                for (ErrorAttributeHolderValidation validation : validations) {
-                    validation.setErrorAttributes(errorAttributes);
-                    errors.addAll(validation.validate());
-                    errorAttributes.addAll(validation.getErrorAttributes());
-                }
+            for (ErrorAttributeHolderValidation validation : validations) {
+                validation.setErrorAttributes(errorAttributes);
+                errors.addAll(validation.validate());
+                errorAttributes.addAll(validation.getErrorAttributes());
             }
             if (isEmpty(errors)) {
                 addResult(new Result(1, 1, null));
