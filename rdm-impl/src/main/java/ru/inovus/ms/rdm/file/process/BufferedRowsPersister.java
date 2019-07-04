@@ -24,10 +24,10 @@ public class BufferedRowsPersister implements RowsProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(BufferedRowsPersister.class);
 
-    public static final String ROWS_ERROR_EXCEPTION_CODE = "rows.error";
-    public static final String ROW_NOT_UNIQUE_EXCEPTION_CODE = "row.not.unique";
+    private static final String ROWS_ERROR_EXCEPTION_CODE = "rows.error";
+    private static final String ROW_NOT_UNIQUE_EXCEPTION_CODE = "row.not.unique";
 
-    private int size = 100;
+    private int size = 500;
 
     private List<Row> buffer = new ArrayList<>();
 
