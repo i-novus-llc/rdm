@@ -3,10 +3,8 @@ package ru.inovus.ms.rdm.service.api;
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
-import ru.inovus.ms.rdm.model.conflict.Conflict;
-import ru.inovus.ms.rdm.model.conflict.DeleteRefBookConflictCriteria;
-import ru.inovus.ms.rdm.model.conflict.RefBookConflict;
-import ru.inovus.ms.rdm.model.conflict.RefBookConflictCriteria;
+import ru.inovus.ms.rdm.model.FilteredContent;
+import ru.inovus.ms.rdm.model.conflict.*;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
 
 import javax.ws.rs.*;
@@ -21,14 +19,13 @@ public interface ConflictService {
 
     @GET
     @Path("/calculate")
-    @ApiOperation("Вычисление конфликтов для двух версий")
+    @ApiOperation("Вычисление конфликтов по параметрам критерия")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    List<Conflict> calculateConflicts(@ApiParam("Идентификатор версии, которая ссылается") @QueryParam("refFromId") Integer refFromId,
-                                      @ApiParam("Идентификатор старой версии, на которую ссылаются") @QueryParam("oldRefToId") Integer oldRefToId,
-                                      @ApiParam("Идентификатор новой версии, на которую будут ссылаться") @QueryParam("newRefToId") Integer newRefToId);
+    FilteredContent<Conflict> calculateConflicts(@ApiParam("Критерий вычисления") @BeanParam CalculateConflictCriteria criteria);
+
 
     @GET
     @Path("/check")

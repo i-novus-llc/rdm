@@ -33,13 +33,10 @@ import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.model.conflict.DeleteRefBookConflictCriteria;
-import ru.inovus.ms.rdm.model.conflict.RefBookConflictCriteria;
+import ru.inovus.ms.rdm.model.conflict.*;
 import ru.inovus.ms.rdm.model.field.ReferenceFilterValue;
 import ru.inovus.ms.rdm.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
-import ru.inovus.ms.rdm.model.conflict.Conflict;
-import ru.inovus.ms.rdm.model.conflict.RefBookConflict;
 import ru.inovus.ms.rdm.model.draft.Draft;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
@@ -49,7 +46,6 @@ import ru.inovus.ms.rdm.predicate.RefBookConflictPredicateProducer;
 import ru.inovus.ms.rdm.repositiory.RefBookConflictRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.*;
-import ru.inovus.ms.rdm.provider.ListProcessor;
 import ru.inovus.ms.rdm.util.ConflictUtils;
 import ru.inovus.ms.rdm.util.RowUtils;
 import ru.inovus.ms.rdm.validation.VersionValidation;
@@ -128,55 +124,26 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Вычисление конфликтов справочников при наличии ссылочных атрибутов.
+     * Вычисление конфликтов справочников по критерию.
      *
-     * <p><br/>Метод используется только для интеграционного тестирования вызываемого метода.</p>
-     *
-     * @param refFromId  идентификатор версии, которая ссылается
-     * @param oldRefToId идентификатор старой версии, на которую ссылались
-     * @param newRefToId идентификатор новой версии, на которую будут ссылаться
-     * @return Список конфликтов для версии, которая ссылается
+     * @param criteria критерий вычисления
+     * @return Список конфликтов
      */
     @Override
     @Transactional(readOnly = true)
-    public List<Conflict> calculateConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId) {
+    public FilteredContent<Conflict> calculateConflicts(CalculateConflictCriteria criteria) {
 
-        versionValidation.validateVersionExists(refFromId);
-        versionValidation.validateVersionExists(oldRefToId);
-        versionValidation.validateVersionExists(newRefToId);
+        CompareDataCriteria dataCriteria = new CompareDataCriteria(criteria);
+        dataCriteria.setPageNumber(criteria.getPageNumber());
+        dataCriteria.setPageSize(criteria.getPageSize());
+        FilteredContent<DiffRowValue> diffRowValues = getDataDiffContent(dataCriteria);
 
-        List<Conflict> conflicts = new ArrayList<>();
-        ListProcessor<Conflict> listAdder = list -> { conflicts.addAll(list); return true; };
-        calculateConflicts(refFromId, oldRefToId, newRefToId, listAdder);
-        return conflicts;
-    }
+        RefBookVersionEntity referrerVersionEntity = versionRepository.getOne(criteria.getReferrerVersionId());
+        RefBookVersionEntity oldVersionEntity = versionRepository.getOne(criteria.getOldVersionId());
 
-    /**
-     * Вычисление конфликтов справочников при наличии ссылочных атрибутов.
-     *
-     * @param refFromId  идентификатор версии, которая ссылается
-     * @param oldRefToId идентификатор старой версии, на которую ссылались
-     * @param newRefToId идентификатор новой версии, на которую будут ссылаться
-     * @param processor  обработчик списков конфликтов
-     */
-    private void calculateConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId,
-                                    ListProcessor<Conflict> processor) {
+        List<Conflict> conflicts = calculateDiffConflicts(referrerVersionEntity, oldVersionEntity, diffRowValues.getPage().getContent());
 
-        RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
-        RefBookVersionEntity refToEntity = versionRepository.getOne(oldRefToId);
-
-        CompareDataCriteria criteria = new CompareDataCriteria(oldRefToId, newRefToId);
-        criteria.setPageNumber(0);
-        criteria.setPageSize(REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
-
-        List<DiffRowValue> diffRowValues = getDataDiffContent(criteria);
-        while (!diffRowValues.isEmpty()) {
-            if (processor.process(calculateDiffConflicts(refFromEntity, refToEntity, diffRowValues)))
-                return;
-
-            criteria.setPageNumber(criteria.getPageNumber() + 1);
-            diffRowValues = getDataDiffContent(criteria);
-        }
+        return new FilteredContent<>(conflicts, criteria, conflicts.size(), diffRowValues.getOriginalSize());
     }
 
     /**
@@ -253,9 +220,9 @@ public class ConflictServiceImpl implements ConflictService {
         criteria.setPageNumber(0);
         criteria.setPageSize(REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
 
-        List<DiffRowValue> diffRowValues = getDataDiffContent(criteria);
+        FilteredContent<DiffRowValue> diffRowValues = getDataDiffContent(criteria);
         while (!diffRowValues.isEmpty()) {
-            if (checkDiffConflicts(refFromEntity, refToEntity, diffRowValues, diffStatus))
+            if (checkDiffConflicts(refFromEntity, refToEntity, diffRowValues.getPage().getContent(), diffStatus))
                 return true;
 
             criteria.setPageNumber(criteria.getPageNumber() + 1);
@@ -835,17 +802,20 @@ public class ConflictServiceImpl implements ConflictService {
     /**
      * Сравнение записей данных версий справочников.
      *
-     * <p>Список записей о сравнении фильтруется по статусу изменения: остаются только DELETED, UPDATED.</p>
+     * <p><br/>Список записей фильтруется по статусу изменения: остаются только DELETED, UPDATED.</p>
      *
      * @param criteria критерий поиска
      * @return Список различий
      */
-    private List<DiffRowValue> getDataDiffContent(CompareDataCriteria criteria) {
-        return compareService.compareData(criteria).getRows().getContent().stream()
+    private FilteredContent<DiffRowValue> getDataDiffContent(CompareDataCriteria criteria) {
+        List<DiffRowValue> diffRowValues = compareService.compareData(criteria).getRows().getContent();
+        List<DiffRowValue> filteredValues = diffRowValues.stream()
                 .filter(diffRowValue ->
                         asList(DiffStatusEnum.DELETED, DiffStatusEnum.UPDATED)
                                 .contains(diffRowValue.getStatus()))
                 .collect(toList());
+
+        return new FilteredContent<>(filteredValues, criteria, filteredValues.size(), diffRowValues.size());
     }
 
     /**
@@ -1177,8 +1147,19 @@ public class ConflictServiceImpl implements ConflictService {
      */
     private void createCalculatedConflicts(List<RefBookVersion> referrers, Integer oldRefToId, Integer newRefToId) {
         referrers.forEach(referrer -> {
-            ListProcessor<Conflict> createConflict = list -> { create(referrer.getId(), newRefToId, list); return true; };
-            calculateConflicts(referrer.getId(), oldRefToId, newRefToId, createConflict);
+            CalculateConflictCriteria criteria = new CalculateConflictCriteria(referrer.getId(),oldRefToId, newRefToId);
+            criteria.setPageNumber(0);
+            criteria.setPageSize(REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
+
+            FilteredContent<Conflict> conflicts = calculateConflicts(criteria);
+            while (!conflicts.isEmpty()) {
+                if (!isEmpty(conflicts.getPage().getContent())) {
+                    create(referrer.getId(), newRefToId, conflicts.getPage().getContent());
+                }
+
+                criteria.setPageNumber(criteria.getPageNumber() + 1);
+                conflicts = calculateConflicts(criteria);
+            }
         });
     }
 
