@@ -391,8 +391,10 @@ public class DraftServiceImpl implements DraftService {
         RowValue rowValue = rowValue(new StructureRowMapper(draft.getStructure(), versionRepository).map(row), draft.getStructure());
         if (rowValue.getSystemId() == null)
             draftDataService.addRows(draft.getStorageCode(), singletonList(rowValue));
-        else
+        else {
+            conflictRepository.deleteByReferrerVersionIdAndRefRecordId(draft.getId(), (Long) rowValue.getSystemId());
             draftDataService.updateRow(draft.getStorageCode(), rowValue);
+        }
     }
 
     @Override
@@ -402,6 +404,7 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateDraft(draftId);
 
         RefBookVersionEntity draft = versionRepository.getOne(draftId);
+        conflictRepository.deleteByReferrerVersionIdAndRefRecordId(draft.getId(), systemId);
         draftDataService.deleteRows(draft.getStorageCode(), singletonList(systemId));
     }
 
@@ -412,6 +415,7 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateDraft(draftId);
 
         RefBookVersionEntity draft = versionRepository.getOne(draftId);
+        conflictRepository.deleteByReferrerVersionId(draft.getId());
         draftDataService.deleteAllRows(draft.getStorageCode());
     }
 
