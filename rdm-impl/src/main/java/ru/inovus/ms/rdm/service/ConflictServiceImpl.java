@@ -48,7 +48,6 @@ import ru.inovus.ms.rdm.predicate.RefBookConflictPredicateProducer;
 import ru.inovus.ms.rdm.repositiory.RefBookConflictRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.*;
-import ru.inovus.ms.rdm.util.ConflictUtils;
 import ru.inovus.ms.rdm.util.RowUtils;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
@@ -303,7 +302,7 @@ public class ConflictServiceImpl implements ConflictService {
     void refreshReferencesByPrimary(Integer refFromId, Integer refToId, List<Conflict> conflicts) {
 
         if (isEmpty(conflicts)
-                || conflicts.stream().noneMatch(ConflictUtils::isUpdatedConflict))
+                || conflicts.stream().noneMatch(Conflict::isUpdated))
             return;
 
         versionValidation.validateVersionExists(refFromId);
@@ -328,7 +327,7 @@ public class ConflictServiceImpl implements ConflictService {
             throw new RdmException(VERSION_IS_NOT_DRAFT_EXCEPTION_CODE);
 
         conflicts.stream()
-                .filter(ConflictUtils::isUpdatedConflict)
+                .filter(Conflict::isUpdated)
                 .forEach(conflict -> updateReferenceValue(refFromEntity, refToEntity, conflict));
     }
 
