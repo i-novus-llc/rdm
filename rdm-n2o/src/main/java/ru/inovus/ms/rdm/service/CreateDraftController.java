@@ -58,66 +58,68 @@ public class CreateDraftController {
 
     @SuppressWarnings("unused")
     UiDraft editPassport(Integer versionId, UiPassport uiPassport) {
+
         final UiDraft uiDraft = getOrCreateDraft(versionId);
-        Integer draftId = uiDraft.getId();
-        refBookService.update(toRefBookUpdateRequest(draftId, uiPassport));
+        refBookService.update(toRefBookUpdateRequest(uiDraft.getId(), uiPassport));
         return uiDraft;
     }
 
     private RefBookUpdateRequest toRefBookUpdateRequest(Integer versionId, UiPassport uiPassport) {
+
         final RefBookUpdateRequest refBookUpdateRequest = new RefBookUpdateRequest();
         refBookUpdateRequest.setVersionId(versionId);
         refBookUpdateRequest.setCode(uiPassport.getCode());
         refBookUpdateRequest.setCategory(uiPassport.getCategory());
+
         Map<String, String> passport = new HashMap<>();
         passport.put("name", uiPassport.getName());
         passport.put("shortName", uiPassport.getShortName());
         passport.put("description", uiPassport.getDescription());
         refBookUpdateRequest.setPassport(passport);
+
         return refBookUpdateRequest;
     }
 
     @SuppressWarnings("unused")
     UiDraft createAttribute(Integer versionId, FormAttribute formAttribute) {
+
         final UiDraft uiDraft = getOrCreateDraft(versionId);
-        Integer draftId = uiDraft.getId();
-        structureController.createAttribute(draftId, formAttribute);
+        structureController.createAttribute(uiDraft.getId(), formAttribute);
         return uiDraft;
     }
 
     @SuppressWarnings("unused")
     UiDraft updateAttribute(Integer versionId, FormAttribute formAttribute) {
+
         final UiDraft uiDraft = getOrCreateDraft(versionId);
-        Integer draftId = uiDraft.getId();
-        structureController.updateAttribute(draftId, formAttribute);
+        structureController.updateAttribute(uiDraft.getId(), formAttribute);
         return uiDraft;
     }
 
     @SuppressWarnings("unused")
     UiDraft deleteAttribute(Integer versionId, String attributeCode) {
+
         final UiDraft uiDraft = getOrCreateDraft(versionId);
-        Integer draftId = uiDraft.getId();
-        draftService.deleteAttribute(draftId, attributeCode);
+        draftService.deleteAttribute(uiDraft.getId(), attributeCode);
         return uiDraft;
     }
 
     @SuppressWarnings("unused")
     UiDraft updateDataRecord(Integer versionId, Row row) {
 
-        UiDraft uiDraft = getOrCreateDraft(versionId);
+        final UiDraft uiDraft = getOrCreateDraft(versionId);
 
         if (!Objects.equals(versionId, uiDraft.getId())) {
             row.setSystemId(calculateNewSystemId(row.getSystemId(), versionId, uiDraft.getId()));
         }
         dataRecordController.updateData(uiDraft.getId(), row);
         return uiDraft;
-
     }
 
     @SuppressWarnings("unused")
     UiDraft deleteDataRecord(Integer versionId, Long systemId) {
 
-        UiDraft uiDraft = getOrCreateDraft(versionId);
+        final UiDraft uiDraft = getOrCreateDraft(versionId);
 
         if (!Objects.equals(versionId, uiDraft.getId())) {
             systemId = calculateNewSystemId(systemId, versionId, uiDraft.getId());
@@ -129,8 +131,7 @@ public class CreateDraftController {
     @SuppressWarnings("unused")
     UiDraft deleteAllDataRecords(Integer versionId) {
 
-        UiDraft uiDraft = getOrCreateDraft(versionId);
-
+        final UiDraft uiDraft = getOrCreateDraft(versionId);
         draftService.deleteAllRows(uiDraft.getId());
         return uiDraft;
     }

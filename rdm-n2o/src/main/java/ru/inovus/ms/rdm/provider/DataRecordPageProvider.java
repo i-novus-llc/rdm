@@ -26,6 +26,7 @@ import static java.util.Collections.singletonList;
 import static ru.inovus.ms.rdm.RdmUiUtil.addPrefix;
 
 @Service
+@SuppressWarnings("unused")
 public class DataRecordPageProvider implements DynamicMetadataProvider {
 
     private static final String FORM_PROVIDER_ID = "dataRecordPage";
@@ -50,6 +51,7 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
      *                где pageType - create (Создание записи) или edit (Редактирование записи)
      */
     @Override
+    @SuppressWarnings("unchecked")
     public List<? extends SourceMetadata> read(String context) {
 
         String[] params = context.split("_");
