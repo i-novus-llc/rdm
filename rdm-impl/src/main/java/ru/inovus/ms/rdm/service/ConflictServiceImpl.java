@@ -55,6 +55,7 @@ import javax.persistence.EntityManager;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Consumer;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
@@ -155,7 +156,6 @@ public class ConflictServiceImpl implements ConflictService {
      * @param refToEntity   версия, на которую ссылаются
      * @param diffRowValues diff-записи
      * @return Список конфликтов для версии, которая ссылается
-     *
      * @see #checkDiffConflicts
      */
     private List<Conflict> calculateDiffConflicts(RefBookVersionEntity refFromEntity, RefBookVersionEntity refToEntity,
@@ -241,7 +241,6 @@ public class ConflictServiceImpl implements ConflictService {
      * @param diffRowValues diff-записи
      * @param diffStatus    статус diff-записи
      * @return Наличие конфликтов для версии, которая ссылается
-     *
      * @see #calculateDiffConflicts
      */
     private Boolean checkDiffConflicts(RefBookVersionEntity refFromEntity, RefBookVersionEntity refToEntity,
@@ -281,13 +280,19 @@ public class ConflictServiceImpl implements ConflictService {
         RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
         String refBookCode = versionEntity.getRefBook().getCode();
 
-        List<RefBookVersion> referrers = getReferrerVersions(refBookCode, RefBookSourceType.LAST_VERSION);
-        return referrers.stream()
-                .filter(referrer -> {
-                    Integer lastPublishedId = versionService.getLastPublishedVersion(refBookCode).getId();
-                    return checkConflicts(referrer.getId(), lastPublishedId, versionId, conflictType);
-                })
-                .collect(toList());
+        List<RefBookVersion> conflictedReferrers = new ArrayList<>(REF_BOOK_VERSION_PAGE_SIZE);
+        Consumer<List<RefBookVersion>> consumer = referrers -> {
+            List<RefBookVersion> list = referrers.stream()
+                    .filter(referrer -> {
+                        Integer lastPublishedId = versionService.getLastPublishedVersion(refBookCode).getId();
+                        return checkConflicts(referrer.getId(), lastPublishedId, versionId, conflictType);
+                    })
+                    .collect(toList());
+            conflictedReferrers.addAll(list);
+        };
+        processReferrerVersions(refBookCode, RefBookSourceType.LAST_VERSION, consumer);
+
+        return conflictedReferrers;
     }
 
     /**
@@ -452,8 +457,8 @@ public class ConflictServiceImpl implements ConflictService {
                 new JPADeleteClause(entityManager, QRefBookConflictEntity.refBookConflictEntity)
                         .where(QRefBookConflictEntity.refBookConflictEntity.id.in(
                                 JPAExpressions.select(QRefBookConflictEntity.refBookConflictEntity.id)
-                                .from(QRefBookConflictEntity.refBookConflictEntity)
-                                .where(DeleteRefBookConflictPredicateProducer.toPredicate(criteria))
+                                        .from(QRefBookConflictEntity.refBookConflictEntity)
+                                        .where(DeleteRefBookConflictPredicateProducer.toPredicate(criteria))
                         ));
         jpaDelete.execute();
     }
@@ -552,11 +557,11 @@ public class ConflictServiceImpl implements ConflictService {
     /**
      * Перевычисление существующих конфликтов справочников.
      *
-     * @param refFromEntity    версия справочника, которая ссылается
-     * @param refToEntity      версия справочника, на которую ссылались
-     * @param conflict         конфликт
-     * @param refFromRowValue  запись версии справочника, которая ссылается
-     * @param diffRowValues    список различий версий справочника, на которую ссылаются
+     * @param refFromEntity   версия справочника, которая ссылается
+     * @param refToEntity     версия справочника, на которую ссылались
+     * @param conflict        конфликт
+     * @param refFromRowValue запись версии справочника, которая ссылается
+     * @param diffRowValues   список различий версий справочника, на которую ссылаются
      * @return Список конфликтов
      */
     private Conflict recalculateConflict(RefBookVersionEntity refFromEntity, RefBookVersionEntity refToEntity,
@@ -665,8 +670,10 @@ public class ConflictServiceImpl implements ConflictService {
     @Override
     @Transactional
     public void refreshLastReferrersByPrimary(String refBookCode) {
-        List<RefBookVersion> lastReferrers = getReferrerVersions(refBookCode, RefBookSourceType.LAST_VERSION);
-        lastReferrers.forEach(referrer -> refreshReferrerByPrimary(referrer.getId()));
+
+        Consumer<List<RefBookVersion>> consumer =
+                referrers -> referrers.forEach(referrer -> refreshReferrerByPrimary(referrer.getId()));
+        processReferrerVersions(refBookCode, RefBookSourceType.LAST_VERSION, consumer);
     }
 
     /**
@@ -682,13 +689,12 @@ public class ConflictServiceImpl implements ConflictService {
         versionValidation.validateVersionExists(oldVersionId);
         versionValidation.validateVersionExists(newVersionId);
 
+        Consumer<List<RefBookVersion>> consumer = referrers -> {
+            createCalculatedConflicts(referrers, oldVersionId, newVersionId);
+            referrers.forEach(referrer -> createRecalculatedConflicts(referrer.getId(), oldVersionId, newVersionId));
+        };
         RefBookVersionEntity oldVersionEntity = versionRepository.getOne(oldVersionId);
-        List<RefBookVersion> allReferrers = getReferrerVersions(oldVersionEntity.getRefBook().getCode(), RefBookSourceType.ALL);
-        if (isEmpty(allReferrers))
-            return;
-
-        createCalculatedConflicts(allReferrers, oldVersionId, newVersionId);
-        allReferrers.forEach(referrer -> createRecalculatedConflicts(referrer.getId(), oldVersionId, newVersionId));
+        processReferrerVersions(oldVersionEntity.getRefBook().getCode(), RefBookSourceType.ALL, consumer);
     }
 
     /**
@@ -1148,7 +1154,7 @@ public class ConflictServiceImpl implements ConflictService {
      */
     private void createCalculatedConflicts(List<RefBookVersion> referrers, Integer oldRefToId, Integer newRefToId) {
         referrers.forEach(referrer -> {
-            CalculateConflictCriteria criteria = new CalculateConflictCriteria(referrer.getId(),oldRefToId, newRefToId);
+            CalculateConflictCriteria criteria = new CalculateConflictCriteria(referrer.getId(), oldRefToId, newRefToId);
             criteria.firstPageNumber(REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
 
             FilteredContent<Conflict> conflicts = calculateConflicts(criteria);
@@ -1193,27 +1199,23 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Поиск версий справочников, ссылающихся на указанный справочник.
+     * Обработка версий справочников, ссылающихся на указанный справочник.
      *
      * @param refBookCode код справочника, на который ссылаются
      * @param sourceType  тип выбираемых версий справочников
-     * @return Список справочников
+     * @param consumer    обработчик списков версий
      */
-    private List<RefBookVersion> getReferrerVersions(String refBookCode, RefBookSourceType sourceType) {
+    private void processReferrerVersions(String refBookCode, RefBookSourceType sourceType, Consumer<List<RefBookVersion>> consumer) {
 
         ReferrerVersionCriteria criteria = new ReferrerVersionCriteria(refBookCode, RefBookStatusType.USED, sourceType);
         criteria.firstPageNumber(REF_BOOK_VERSION_PAGE_SIZE);
 
-        List<RefBookVersion> versions = new ArrayList<>(REF_BOOK_VERSION_PAGE_SIZE);
-
         Page<RefBookVersion> page = refBookService.searchReferrerVersions(criteria);
         while (!page.getContent().isEmpty()) {
-            versions.addAll(page.getContent());
+            consumer.accept(page.getContent());
 
             criteria.nextPageNumber();
             page = refBookService.searchReferrerVersions(criteria);
         }
-
-        return versions;
     }
 }
