@@ -1,7 +1,6 @@
 package ru.inovus.ms.rdm.service;
 
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.ComparableExpressionBase;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -18,22 +17,21 @@ import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.inovus.ms.rdm.entity.*;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
+import ru.inovus.ms.rdm.enumeration.RefBookStatusType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.model.refbook.RefBook;
-import ru.inovus.ms.rdm.model.refbook.RefBookCreateRequest;
-import ru.inovus.ms.rdm.model.refbook.RefBookCriteria;
-import ru.inovus.ms.rdm.model.refbook.RefBookUpdateRequest;
+import ru.inovus.ms.rdm.model.refbook.*;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.model.version.ReferrerVersionCriteria;
 import ru.inovus.ms.rdm.model.version.VersionCriteria;
 import ru.inovus.ms.rdm.predicate.RefBookPredicateProducer;
+import ru.inovus.ms.rdm.predicate.VersionPredicateProducer;
 import ru.inovus.ms.rdm.repositiory.PassportValueRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookConflictRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.util.ModelGenerator;
-import ru.inovus.ms.rdm.provider.ListProcessor;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import javax.persistence.EntityManager;
@@ -42,16 +40,12 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
-import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.*;
 
 @Primary
 @Service
 public class RefBookServiceImpl implements RefBookService {
-
-    private static final int REF_BOOK_VERSION_PAGE_SIZE = 100;
 
     private static final String PASSPORT_SORT_PREFIX = "passport";
     private static final String VERSION_ID_SORT_PROPERTY = "id";
@@ -249,75 +243,37 @@ public class RefBookServiceImpl implements RefBookService {
         refBookRepository.save(refBookEntity);
     }
 
+    /**
+     * Получение списка версий справочника по параметрам критерия.
+     *
+     * @param criteria критерий поиска
+     * @return Список версий справочника
+     */
     @Override
     @Transactional
     public Page<RefBookVersion> getVersions(VersionCriteria criteria) {
         criteria.setOrders(singletonList(new Sort.Order(Sort.Direction.DESC, REF_BOOK_FROM_DATE_SORT_PROPERTY, Sort.NullHandling.NULLS_FIRST)));
-        Page<RefBookVersionEntity> list = versionRepository.findAll(toPredicate(criteria), criteria);
+        Page<RefBookVersionEntity> list = versionRepository.findAll(VersionPredicateProducer.toPredicate(criteria), criteria);
         return list.map(ModelGenerator::versionModel);
     }
 
     /**
-     * Поиск версий справочников, ссылающихся на указанный справочник.
+     * Поиск версий ссылающихся справочников по параметрам критерия.
      *
-     * Ссылающийся справочник должен иметь:
-     *   1) структуру,
-     *   2) первичный ключ,
-     *   3) ссылку на указанный справочник.
-     *
-     * @param refBookCode код справочника, на который ссылаются
-     * @param sourceType  типа выбираемых версий справочников
-     * @return Список справочников
+     * @param criteria критерий поиска
+     * @return Страница версий ссылающихся справочников
      */
     @Override
     @Transactional(readOnly = true)
-    public List<RefBookVersion> getReferrerVersions(String refBookCode, RefBookSourceType sourceType) {
+    public Page<RefBookVersion> searchReferrerVersions(ReferrerVersionCriteria criteria) {
 
-        List<RefBookVersion> versions = new ArrayList<>();
-        ListProcessor<RefBookVersion> listAdder = list -> { versions.addAll(list); return true; };
-        processReferrerVersionEntities(refBookCode, sourceType, listAdder);
-        return versions;
-    }
+        PageRequest pageRequest = PageRequest.of(criteria.getPageNumber(), criteria.getPageSize());
+        Page<RefBookVersionEntity> entities = versionRepository.findReferrerVersions(criteria.getRefBookCode(), criteria.getStatusType().name(), criteria.getSourceType().name(), pageRequest);
+        List<RefBookVersion> versions = entities.getContent().stream()
+                .map(ModelGenerator::versionModel)
+                .collect(Collectors.toList());
 
-    /**
-     * Обработка сущностей версий справочников, ссылающихся на указанный справочник.
-     *
-     * Ссылающийся справочник должен иметь:
-     *   1) структуру,
-     *   2) первичный ключ,
-     *   3) ссылку на указанный справочник.
-     *
-     * @param refBookCode код справочника, на который ссылаются
-     * @param sourceType  типа выбираемых версий справочников
-     * @param processor  обработчик списков сущностей версий
-     */
-    private void processReferrerVersionEntities(String refBookCode, RefBookSourceType sourceType,
-                                                ListProcessor<RefBookVersion> processor) {
-        RefBookCriteria criteria = new RefBookCriteria();
-        criteria.setSourceType(sourceType);
-        criteria.setIsNotArchived(true);
-
-        criteria.setPageNumber(0);
-        criteria.setPageSize(REF_BOOK_VERSION_PAGE_SIZE);
-
-        Page<RefBookVersionEntity> entities = findVersionEntities(criteria);
-        while (!entities.getContent().isEmpty()) {
-            List<RefBookVersionEntity> list = entities.getContent().stream()
-                    .filter(entity ->
-                            Objects.nonNull(entity.getStructure())
-                                    && !CollectionUtils.isEmpty(entity.getStructure().getPrimary())
-                                    && !entity.getStructure().getRefCodeReferences(refBookCode).isEmpty())
-                    .collect(Collectors.toList());
-
-            if (!isEmpty(list)
-                    && processor.process(list.stream()
-                    .map(ModelGenerator::versionModel)
-                    .collect(Collectors.toList())))
-                return;
-
-            criteria.setPageNumber(criteria.getPageNumber() + 1);
-            entities = findVersionEntities(criteria);
-        }
+        return new PageImpl<>(versions, criteria, versions.size());
     }
 
     /**
@@ -430,19 +386,6 @@ public class RefBookServiceImpl implements RefBookService {
         return qSortFromDateVersion.fromDate;
     }
 
-    private Predicate toPredicate(VersionCriteria criteria) {
-        BooleanBuilder where = new BooleanBuilder();
-        where.and(isVersionOfRefBook(criteria.getRefBookId()));
-
-        if (criteria.getExcludeDraft())
-            where.andNot(isDraft());
-
-        if (nonNull(criteria.getVersion()))
-            where.and(isVersionNumberContains(criteria.getVersion()));
-
-        return where.getValue();
-    }
-
     private RefBook refBookModel(RefBookVersionEntity entity, List<RefBookVersionEntity> draftVersions, List<RefBookVersionEntity> lastPublishVersions) {
         if (entity == null) return null;
 
@@ -474,9 +417,10 @@ public class RefBookServiceImpl implements RefBookService {
         List<Structure.Attribute> primaryAttributes = (structure != null) ? structure.getPrimary() : null;
         model.setHasPrimaryAttribute(!CollectionUtils.isEmpty(primaryAttributes));
 
-        model.setHasReferrer(false);
-        ListProcessor<RefBookVersion> processor = list -> { model.setHasReferrer(true); return false; };
-        processReferrerVersionEntities(model.getCode(), RefBookSourceType.ALL, processor);
+        ReferrerVersionCriteria criteria = new ReferrerVersionCriteria(model.getCode(), RefBookStatusType.ALL, RefBookSourceType.ALL);
+        criteria.firstPageNumber(1);
+        List<RefBookVersion> referrerVersions = searchReferrerVersions(criteria).getContent();
+        model.setHasReferrer(!referrerVersions.isEmpty());
 
         boolean hasUpdatedConflict = conflictRepository.existsByReferrerVersionIdAndConflictType(model.getId(), ConflictType.UPDATED);
         model.setHasUpdatedConflict(hasUpdatedConflict);

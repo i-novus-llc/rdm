@@ -18,11 +18,8 @@ public class CalculateConflictCriteria extends CompareCriteria {
     @QueryParam("referrerVersionId")
     private Integer referrerVersionId;
 
-    @ApiModelProperty("Максимальное количество вычисляемых конфликтов")
-    @QueryParam("maxResultLimit")
-    private Integer maxResultLimit;
-
     //@ApiModelProperty("Тип конфликта")
+    // NB: Тип конфликта автоматически преобразуется в статус сравнения записи.
 
     @SuppressWarnings("unused")
     public CalculateConflictCriteria() {
@@ -45,14 +42,6 @@ public class CalculateConflictCriteria extends CompareCriteria {
         this.referrerVersionId = referrerVersionId;
     }
 
-    public Integer getMaxResultLimit() {
-        return maxResultLimit;
-    }
-
-    public void setMaxResultLimit(Integer maxResultLimit) {
-        this.maxResultLimit = maxResultLimit;
-    }
-
     public ConflictType getConflictType() {
         return diffStatusToConflictType(getDiffStatus());
     }
@@ -68,12 +57,11 @@ public class CalculateConflictCriteria extends CompareCriteria {
         if (!super.equals(o)) return false;
 
         CalculateConflictCriteria that = (CalculateConflictCriteria) o;
-        return Objects.equals(referrerVersionId, that.referrerVersionId) &&
-                Objects.equals(maxResultLimit, that.maxResultLimit);
+        return Objects.equals(referrerVersionId, that.referrerVersionId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), referrerVersionId, maxResultLimit);
+        return Objects.hash(super.hashCode(), referrerVersionId);
     }
 }

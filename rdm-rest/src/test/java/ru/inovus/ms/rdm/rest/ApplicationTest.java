@@ -28,15 +28,10 @@ import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
-import ru.inovus.ms.rdm.enumeration.ConflictType;
-import ru.inovus.ms.rdm.enumeration.FileType;
-import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
-import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.enumeration.*;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.conflict.CalculateConflictCriteria;
-import ru.inovus.ms.rdm.model.version.AttributeFilter;
-import ru.inovus.ms.rdm.model.version.CreateAttribute;
-import ru.inovus.ms.rdm.model.version.UpdateAttribute;
+import ru.inovus.ms.rdm.model.version.*;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.model.conflict.Conflict;
 import ru.inovus.ms.rdm.model.conflict.RefBookConflict;
@@ -51,8 +46,6 @@ import ru.inovus.ms.rdm.model.refbook.RefBookUpdateRequest;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
-import ru.inovus.ms.rdm.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.model.version.VersionCriteria;
 import ru.inovus.ms.rdm.service.api.*;
 
 import javax.sql.DataSource;
@@ -232,15 +225,18 @@ public class ApplicationTest {
     }
 
     private static void deleteFile(File file) {
-        if (!file.exists())
+        if (Objects.isNull(file) || !file.exists())
             return;
+
         if (file.isDirectory()) {
-            for (File f : file.listFiles())
-                deleteFile(f);
-            file.delete();
-        } else {
-            file.delete();
+            File[] files = file.listFiles();
+            if (!Objects.isNull(files)) {
+                for (File f : files)
+                    deleteFile(f);
+            }
         }
+
+        file.delete();
     }
 
     /**
@@ -1437,7 +1433,9 @@ public class ApplicationTest {
         });
 
         // Проверка связанности.
-        List<RefBookVersion> actualReferrerVersions = refBookService.getReferrerVersions(CARDINAL_REF_BOOK_CODE, RefBookSourceType.LAST_VERSION);
+        ReferrerVersionCriteria criteria = new ReferrerVersionCriteria(CARDINAL_REF_BOOK_CODE, RefBookStatusType.USED, RefBookSourceType.LAST_VERSION);
+        criteria.firstPageNumber(10);
+        List<RefBookVersion> actualReferrerVersions = refBookService.searchReferrerVersions(criteria).getContent();
         assertNotNull(actualReferrerVersions);
         assertEquals(1, actualReferrerVersions.size());
         assertVersion(referrerVersion, actualReferrerVersions.get(0));
@@ -2044,8 +2042,7 @@ public class ApplicationTest {
         List<Conflict> list = new ArrayList<>();
 
         CalculateConflictCriteria criteria = new CalculateConflictCriteria(refFromId,oldRefToId, newRefToId);
-        criteria.setPageNumber(0);
-        criteria.setPageSize(REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
+        criteria.firstPageNumber(REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
 
         FilteredContent<Conflict> conflicts = conflictService.calculateConflicts(criteria);
         while (!conflicts.isEmpty()) {
@@ -2053,7 +2050,7 @@ public class ApplicationTest {
                 list.addAll(conflicts.getPage().getContent());
             }
 
-            criteria.setPageNumber(criteria.getPageNumber() + 1);
+            criteria.nextPageNumber();
             conflicts = conflictService.calculateConflicts(criteria);
         }
 

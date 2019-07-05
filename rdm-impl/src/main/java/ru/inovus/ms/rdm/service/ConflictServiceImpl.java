@@ -29,6 +29,7 @@ import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.*;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
+import ru.inovus.ms.rdm.enumeration.RefBookStatusType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.exception.RdmException;
@@ -41,6 +42,7 @@ import ru.inovus.ms.rdm.model.draft.Draft;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.model.version.ReferrerVersionCriteria;
 import ru.inovus.ms.rdm.predicate.DeleteRefBookConflictPredicateProducer;
 import ru.inovus.ms.rdm.predicate.RefBookConflictPredicateProducer;
 import ru.inovus.ms.rdm.repositiory.RefBookConflictRepository;
@@ -70,6 +72,7 @@ import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
 @Service
 public class ConflictServiceImpl implements ConflictService {
 
+    private static final int REF_BOOK_VERSION_PAGE_SIZE = 100;
     private static final int REF_BOOK_CONFLICT_PAGE_SIZE = 100;
     private static final int REF_BOOK_DIFF_CONFLICT_PAGE_SIZE = 100;
 
@@ -217,15 +220,14 @@ public class ConflictServiceImpl implements ConflictService {
         DiffStatusEnum diffStatus = conflictTypeToDiffStatus(conflictType);
 
         CompareDataCriteria criteria = new CompareDataCriteria(oldRefToId, newRefToId);
-        criteria.setPageNumber(0);
-        criteria.setPageSize(REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
+        criteria.firstPageNumber(REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
 
         FilteredContent<DiffRowValue> diffRowValues = getDataDiffContent(criteria);
         while (!diffRowValues.isEmpty()) {
             if (checkDiffConflicts(refFromEntity, refToEntity, diffRowValues.getPage().getContent(), diffStatus))
                 return true;
 
-            criteria.setPageNumber(criteria.getPageNumber() + 1);
+            criteria.nextPageNumber();
             diffRowValues = getDataDiffContent(criteria);
         }
 
@@ -280,7 +282,7 @@ public class ConflictServiceImpl implements ConflictService {
         RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
         String refBookCode = versionEntity.getRefBook().getCode();
 
-        List<RefBookVersion> referrers = refBookService.getReferrerVersions(refBookCode, RefBookSourceType.LAST_VERSION);
+        List<RefBookVersion> referrers = getReferrerVersions(refBookCode, RefBookSourceType.LAST_VERSION);
         return referrers.stream()
                 .filter(referrer -> {
                     Integer lastPublishedId = versionService.getLastPublishedVersion(refBookCode).getId();
@@ -664,7 +666,7 @@ public class ConflictServiceImpl implements ConflictService {
     @Override
     @Transactional
     public void refreshLastReferrersByPrimary(String refBookCode) {
-        List<RefBookVersion> lastReferrers = refBookService.getReferrerVersions(refBookCode, RefBookSourceType.LAST_VERSION);
+        List<RefBookVersion> lastReferrers = getReferrerVersions(refBookCode, RefBookSourceType.LAST_VERSION);
         lastReferrers.forEach(referrer -> refreshReferrerByPrimary(referrer.getId()));
     }
 
@@ -682,7 +684,7 @@ public class ConflictServiceImpl implements ConflictService {
         versionValidation.validateVersionExists(newVersionId);
 
         RefBookVersionEntity oldVersionEntity = versionRepository.getOne(oldVersionId);
-        List<RefBookVersion> allReferrers = refBookService.getReferrerVersions(oldVersionEntity.getRefBook().getCode(), RefBookSourceType.ALL);
+        List<RefBookVersion> allReferrers = getReferrerVersions(oldVersionEntity.getRefBook().getCode(), RefBookSourceType.ALL);
         if (isEmpty(allReferrers))
             return;
 
@@ -1148,8 +1150,7 @@ public class ConflictServiceImpl implements ConflictService {
     private void createCalculatedConflicts(List<RefBookVersion> referrers, Integer oldRefToId, Integer newRefToId) {
         referrers.forEach(referrer -> {
             CalculateConflictCriteria criteria = new CalculateConflictCriteria(referrer.getId(),oldRefToId, newRefToId);
-            criteria.setPageNumber(0);
-            criteria.setPageSize(REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
+            criteria.firstPageNumber(REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
 
             FilteredContent<Conflict> conflicts = calculateConflicts(criteria);
             while (!conflicts.isEmpty()) {
@@ -1157,7 +1158,7 @@ public class ConflictServiceImpl implements ConflictService {
                     create(referrer.getId(), newRefToId, conflicts.getPage().getContent());
                 }
 
-                criteria.setPageNumber(criteria.getPageNumber() + 1);
+                criteria.nextPageNumber();
                 conflicts = calculateConflicts(criteria);
             }
         });
@@ -1180,16 +1181,40 @@ public class ConflictServiceImpl implements ConflictService {
                 new Sort.Order(Sort.Direction.ASC, CONFLICT_REF_FIELD_CODE_SORT_PROPERTY)
         ));
 
-        criteria.setPageNumber(0);
-        criteria.setPageSize(REF_BOOK_CONFLICT_PAGE_SIZE);
+        criteria.firstPageNumber(REF_BOOK_CONFLICT_PAGE_SIZE);
 
         Page<RefBookConflict> conflicts = search(criteria);
         while (!conflicts.getContent().isEmpty()) {
             List<Conflict> list = recalculateConflicts(refFromId, oldRefToId, newRefToId, conflicts.getContent());
             create(refFromId, newRefToId, list);
 
-            criteria.setPageNumber(criteria.getPageNumber() + 1);
+            criteria.nextPageNumber();
             conflicts = search(criteria);
         }
+    }
+
+    /**
+     * Поиск версий справочников, ссылающихся на указанный справочник.
+     *
+     * @param refBookCode код справочника, на который ссылаются
+     * @param sourceType  тип выбираемых версий справочников
+     * @return Список справочников
+     */
+    private List<RefBookVersion> getReferrerVersions(String refBookCode, RefBookSourceType sourceType) {
+
+        ReferrerVersionCriteria criteria = new ReferrerVersionCriteria(refBookCode, RefBookStatusType.USED, sourceType);
+        criteria.firstPageNumber(REF_BOOK_VERSION_PAGE_SIZE);
+
+        List<RefBookVersion> versions = new ArrayList<>(REF_BOOK_VERSION_PAGE_SIZE);
+
+        Page<RefBookVersion> page = refBookService.searchReferrerVersions(criteria);
+        while (!page.getContent().isEmpty()) {
+            versions.addAll(page.getContent());
+
+            criteria.nextPageNumber();
+            page = refBookService.searchReferrerVersions(criteria);
+        }
+
+        return versions;
     }
 }
