@@ -33,6 +33,9 @@ import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.*;
 @Service
 public class PublishServiceImpl implements PublishService {
 
+    private static final String INVALID_VERSION_NAME_EXCEPTION_CODE = "invalid.version.name";
+    private static final String INVALID_VERSION_PERIOD_EXCEPTION_CODE = "invalid.version.period";
+
     private RefBookVersionRepository versionRepository;
 
     private DraftDataService draftDataService;
@@ -48,11 +51,8 @@ public class PublishServiceImpl implements PublishService {
     private VersionValidation versionValidation;
     private VersionPeriodPublishValidation versionPeriodPublishValidation;
 
-    private static final String INVALID_VERSION_NAME_EXCEPTION_CODE = "invalid.version.name";
-    private static final String INVALID_VERSION_PERIOD_EXCEPTION_CODE = "invalid.version.period";
-
     @Autowired
-    @SuppressWarnings("all")
+    @SuppressWarnings("squid:S00107")
     public PublishServiceImpl(RefBookVersionRepository versionRepository,
                               DraftDataService draftDataService, DropDataService dropDataService,
                               RefBookLockService refBookLockService, VersionService versionService, ConflictService conflictService,

@@ -65,6 +65,13 @@ import static ru.inovus.ms.rdm.util.ConverterUtil.*;
 @Service
 public class DraftServiceImpl implements DraftService {
 
+    private static final String ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE = "Can not update structure, illegal update attribute";
+    private static final String INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE = "incompatible.new.structure";
+    private static final String INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE = "incompatible.new.type";
+    private static final String ROW_NOT_UNIQUE_EXCEPTION_CODE = "row.not.unique";
+    private static final String ROW_IS_EMPTY_EXCEPTION_CODE = "row.is.empty";
+    private static final String REQUIRED_FIELD_EXCEPTION_CODE = "validation.required.err";
+
     private RefBookVersionRepository versionRepository;
     private RefBookConflictRepository conflictRepository;
 
@@ -88,15 +95,8 @@ public class DraftServiceImpl implements DraftService {
 
     private int errorCountLimit = 100;
 
-    private static final String ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE = "Can not update structure, illegal update attribute";
-    private static final String INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE = "incompatible.new.structure";
-    private static final String INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE = "incompatible.new.type";
-    private static final String ROW_NOT_UNIQUE_EXCEPTION_CODE = "row.not.unique";
-    private static final String ROW_IS_EMPTY_EXCEPTION_CODE = "row.is.empty";
-    private static final String REQUIRED_FIELD_EXCEPTION_CODE = "validation.required.err";
-
     @Autowired
-    @SuppressWarnings("all")
+    @SuppressWarnings("squid:S00107")
     public DraftServiceImpl(RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
                             DraftDataService draftDataService, DropDataService dropDataService, SearchDataService searchDataService,
                             RefBookService refBookService, RefBookLockService refBookLockService, VersionService versionService,
