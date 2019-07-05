@@ -30,6 +30,7 @@ public class DataRecordController {
     @Autowired
     private DraftService draftService;
 
+    @SuppressWarnings("unused")
     public Map<String, Object> getRow(Integer versionId, Integer sysRecordId) {
 
         SearchDataCriteria criteria = new SearchDataCriteria();

@@ -96,8 +96,7 @@ public class RefBookDataController {
     }
 
     private List<Long> getRowSystemIds(List<RefBookRowValue> rowValues) {
-        return rowValues
-                .stream()
+        return rowValues.stream()
                 .map(RowValue::getSystemId)
                 .collect(toList());
     }
@@ -109,8 +108,7 @@ public class RefBookDataController {
     private DataGridRow toDataGridRow(RowValue rowValue, Integer versionId, boolean hasConflict) {
         Map<String, Object> row = new HashMap<>();
         LongRowValue longRowValue = (LongRowValue) rowValue;
-        longRowValue
-                .getFieldValues()
+        longRowValue.getFieldValues()
                 .forEach(fieldValue -> {
                             Object cell = hasConflict
                                     ? new DataGridCell(toStringValue(fieldValue), cellOptions)
