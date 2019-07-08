@@ -4,21 +4,24 @@ import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.inovus.ms.rdm.entity.*;
 import ru.inovus.ms.rdm.enumeration.FileType;
+import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
+import ru.inovus.ms.rdm.enumeration.RefBookStatusType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.export.*;
 import ru.inovus.ms.rdm.model.conflict.DeleteRefBookConflictCriteria;
+import ru.inovus.ms.rdm.model.conflict.RefBookConflict;
+import ru.inovus.ms.rdm.model.conflict.RefBookConflictCriteria;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.model.version.ReferrerVersionCriteria;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
-import ru.inovus.ms.rdm.service.api.ConflictService;
-import ru.inovus.ms.rdm.service.api.PublishService;
-import ru.inovus.ms.rdm.service.api.VersionFileService;
-import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.service.api.*;
 import ru.inovus.ms.rdm.util.TimeUtils;
 import ru.inovus.ms.rdm.util.VersionNumberStrategy;
 import ru.inovus.ms.rdm.validation.VersionPeriodPublishValidation;
@@ -34,6 +37,8 @@ import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.*;
 @Service
 public class PublishServiceImpl implements PublishService {
 
+    private static final int REF_BOOK_VERSION_PAGE_SIZE = 100;
+
     private static final String INVALID_VERSION_NAME_EXCEPTION_CODE = "invalid.version.name";
     private static final String INVALID_VERSION_PERIOD_EXCEPTION_CODE = "invalid.version.period";
 
@@ -42,6 +47,7 @@ public class PublishServiceImpl implements PublishService {
     private DraftDataService draftDataService;
     private DropDataService dropDataService;
 
+    private RefBookService refBookService;
     private RefBookLockService refBookLockService;
     private VersionService versionService;
     private ConflictService conflictService;
@@ -56,7 +62,8 @@ public class PublishServiceImpl implements PublishService {
     @SuppressWarnings("squid:S00107")
     public PublishServiceImpl(RefBookVersionRepository versionRepository,
                               DraftDataService draftDataService, DropDataService dropDataService,
-                              RefBookLockService refBookLockService, VersionService versionService, ConflictService conflictService,
+                              RefBookService refBookService, RefBookLockService refBookLockService,
+                              VersionService versionService, ConflictService conflictService,
                               VersionFileService versionFileService, VersionNumberStrategy versionNumberStrategy,
                               VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation) {
         this.versionRepository = versionRepository;
@@ -64,6 +71,7 @@ public class PublishServiceImpl implements PublishService {
         this.draftDataService = draftDataService;
         this.dropDataService = dropDataService;
 
+        this.refBookService = refBookService;
         this.refBookLockService = refBookLockService;
         this.versionService = versionService;
         this.conflictService = conflictService;
@@ -87,6 +95,7 @@ public class PublishServiceImpl implements PublishService {
      */
     @Override
     @Transactional
+    // NB: Use PublishCriteria, required for publishNonConflictReferrers.
     public void publish(Integer draftId, String versionName,
                         LocalDateTime fromDate, LocalDateTime toDate,
                         boolean resolveConflicts) {
@@ -153,19 +162,8 @@ public class PublishServiceImpl implements PublishService {
             // NB: Конфликты могут быть только при наличии
             // ссылочных атрибутов со значениями для ранее опубликованной версии.
             if (lastPublishedVersion != null) {
-
                 conflictService.discoverConflicts(lastPublishedVersion.getId(), draftId);
-
-                // Удаление конфликтов для всех версий справочника, на который ссылаются,
-                // кроме указанной версии справочника, на которую будут ссылаться.
-                DeleteRefBookConflictCriteria criteria = new DeleteRefBookConflictCriteria();
-                criteria.setPublishedVersionRefBookId(lastPublishedVersion.getRefBook().getId());
-                criteria.setExcludedPublishedVersionId(draftId);
-                conflictService.delete(criteria);
-
-                if (resolveConflicts) {
-                    conflictService.refreshLastReferrersByPrimary(lastPublishedVersion.getRefBook().getCode());
-                }
+                processDiscoveredConflicts(lastPublishedVersion, draftId, resolveConflicts);
             }
 
         } finally {
@@ -199,5 +197,78 @@ public class PublishServiceImpl implements PublishService {
                 versionRepository.deleteById(version.getId());
             }
         });
+    }
+
+    private void processDiscoveredConflicts(RefBookVersionEntity oldVersion, Integer newVersionId, boolean resolveConflicts) {
+
+        deleteOldConflicts(oldVersion.getRefBook().getId(), newVersionId);
+
+        if (resolveConflicts) {
+            resolveReferrerConflicts(oldVersion.getRefBook().getCode());
+            publishNonConflictReferrers(oldVersion.getRefBook().getCode(), newVersionId);
+        }
+    }
+
+    /**
+     * Удаление конфликтов для всех версий справочника, на который ссылаются,
+     * кроме указанной версии справочника, на которую будут ссылаться.
+     *
+     * @param refBookId        идентификатор справочника, на который ссылаются
+     * @param excludeVersionId идентификатор исключаемой версии справочника
+     */
+    private void deleteOldConflicts(Integer refBookId, Integer excludeVersionId) {
+        DeleteRefBookConflictCriteria deleteCriteria = new DeleteRefBookConflictCriteria();
+        deleteCriteria.setPublishedVersionRefBookId(refBookId);
+        deleteCriteria.setExcludedPublishedVersionId(excludeVersionId);
+        conflictService.delete(deleteCriteria);
+    }
+
+    /**
+     * Обработка разрешаемых конфликтов.
+     *
+     * @param refBookCode код справочника, на который ссылаются
+     */
+    private void resolveReferrerConflicts(String refBookCode) {
+        conflictService.refreshLastReferrersByPrimary(refBookCode);
+    }
+
+    /**
+     * Публикация бесконфликтных справочников, который ссылаются на указанный справочник.
+     *
+     * @param refBookCode        код справочника, на который ссылаются
+     * @param publishedVersionId идентификатор версии справочника
+     */
+    private void publishNonConflictReferrers(String refBookCode, Integer publishedVersionId) {
+
+        ReferrerVersionCriteria criteria = new ReferrerVersionCriteria(refBookCode, RefBookStatusType.USED, RefBookSourceType.DRAFT);
+        criteria.firstPageNumber(REF_BOOK_VERSION_PAGE_SIZE);
+
+        Page<RefBookVersion> page = refBookService.searchReferrerVersions(criteria);
+        while (!page.getContent().isEmpty()) {
+            page.getContent().forEach(referrerVersion -> {
+                if (notExistsConflict(referrerVersion.getId(), publishedVersionId))
+                    publish(referrerVersion.getId(), null, null, null, false);
+            });
+
+            criteria.nextPageNumber();
+            page = refBookService.searchReferrerVersions(criteria);
+        }
+    }
+
+    /**
+     * Проверка на отсутствие конфликтов версий справочников.
+     *
+     * @param referrerVersionId  идентификатор версии, которая ссылается
+     * @param publishedVersionId идентификатор версии, на которую ссылаются
+     * @return Отсутствие конфликта
+     */
+    private boolean notExistsConflict(Integer referrerVersionId, Integer publishedVersionId) {
+        RefBookConflictCriteria criteria = new RefBookConflictCriteria();
+        criteria.setReferrerVersionId(referrerVersionId);
+        criteria.setPublishedVersionId(publishedVersionId);
+
+        criteria.firstPageNumber(1);
+        Page<RefBookConflict> conflicts = conflictService.search(criteria);
+        return conflicts.getContent().isEmpty();
     }
 }
