@@ -19,8 +19,6 @@ public interface RefBookConflictRepository extends
 
     Boolean existsByReferrerVersionIdAndConflictType(Integer referrerVersionId, ConflictType conflictType);
 
-    Boolean existsByPublishedVersionId(Integer publishedVersionId);
-
     RefBookConflictEntity findByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdAndRefFieldCode(
             Integer referrerVersionId, Integer publishedVersionId,
             Long refRecordId, String refFieldCode
@@ -54,4 +52,8 @@ public interface RefBookConflictRepository extends
                     " where referrer_id = :oldReferrerVersionId")
     void copyByReferrerVersion(@Param("oldReferrerVersionId") Integer oldReferrerVersionId,
                                @Param("newReferrerVersionId") Integer newReferrerVersionId);
+
+    void deleteByReferrerVersionId(Integer referrerVersionId);
+
+    void deleteByReferrerVersionIdAndRefRecordId(Integer referrerVersionId, Long refRecordId);
 }
