@@ -182,11 +182,11 @@ public class PublishServiceImpl implements PublishService {
         Iterable<RefBookVersionEntity> versions = versionRepository.findAll(
                 hasOverlappingPeriods(fromDate, toDate)
                         .and(isVersionOfRefBook(refBookId))
+                        .and(hasVersionId(draftId).not())
                         .and(isPublished())
         );
         versions.forEach(version -> {
-            if (!version.getId().equals(draftId)
-                    && fromDate.isAfter(version.getFromDate())) {
+            if (fromDate.isAfter(version.getFromDate())) {
                 version.setToDate(fromDate);
                 versionRepository.save(version);
             } else {
