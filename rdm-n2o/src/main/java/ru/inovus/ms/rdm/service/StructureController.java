@@ -66,7 +66,7 @@ public class StructureController {
         return new RestPage<>(currentPageAttributes, PageRequest.of(criteria.getPage(), criteria.getSize()), list.size());
     }
 
-    public void createAttribute(Integer versionId, FormAttribute formAttribute) {
+    void createAttribute(Integer versionId, FormAttribute formAttribute) {
 
         CreateAttribute attributeModel = new CreateAttribute();
         attributeModel.setVersionId(versionId);
@@ -83,7 +83,7 @@ public class StructureController {
         }
     }
 
-    public void updateAttribute(Integer versionId, FormAttribute formAttribute) {
+    void updateAttribute(Integer versionId, FormAttribute formAttribute) {
 
         Structure.Attribute oldAttribute = versionService.getStructure(versionId).getAttribute(formAttribute.getCode());
         Structure.Reference oldReference = versionService.getStructure(versionId).getReference(formAttribute.getCode());
@@ -98,9 +98,10 @@ public class StructureController {
         }
     }
 
-    public void deleteAttribute(Integer versionId, FormAttribute formAttribute) {
-        draftService.deleteAttribute(versionId, formAttribute.getCode());
-        draftService.deleteAttributeValidation(versionId, formAttribute.getCode(), null);
+    void deleteAttribute(Integer versionId, String attributeCode) {
+
+        draftService.deleteAttribute(versionId, attributeCode);
+        draftService.deleteAttributeValidation(versionId, attributeCode, null);
     }
 
     private List<AttributeValidation> createValidations(FormAttribute formAttribute) {

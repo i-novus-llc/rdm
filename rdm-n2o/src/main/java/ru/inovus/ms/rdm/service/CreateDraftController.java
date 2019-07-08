@@ -100,7 +100,7 @@ public class CreateDraftController {
     UiDraft deleteAttribute(Integer versionId, String attributeCode) {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
-        draftService.deleteAttribute(uiDraft.getId(), attributeCode);
+        structureController.deleteAttribute(uiDraft.getId(), attributeCode);
         return uiDraft;
     }
 
