@@ -5,6 +5,7 @@ import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.inovus.ms.rdm.entity.*;
@@ -85,7 +86,7 @@ public class PublishServiceImpl implements PublishService {
      * @param resolveConflicts признак разрешения конфликтов
      */
     @Override
-    // NB: Добавление @Transactional приводит к ошибке "deleted instance passed to merge" в тестах.
+    @Transactional
     public void publish(Integer draftId, String versionName,
                         LocalDateTime fromDate, LocalDateTime toDate,
                         boolean resolveConflicts) {
@@ -126,13 +127,16 @@ public class PublishServiceImpl implements PublishService {
             draftEntity.setStatus(RefBookVersionStatus.PUBLISHED);
             draftEntity.setFromDate(fromDate);
             draftEntity.setToDate(toDate);
+
             resolveOverlappingPeriodsInFuture(fromDate, toDate, refBookId, draftEntity.getId());
+
             versionRepository.save(draftEntity);
 
             if (lastPublishedVersion != null
                     && lastPublishedVersion.getStorageCode() != null
                     && draftEntity.getStructure().storageEquals(lastPublishedVersion.getStructure())) {
                 dataStorageToDelete.add(lastPublishedVersion.getStorageCode());
+
                 versionRepository.findByStorageCode(lastPublishedVersion.getStorageCode()).stream()
                         .peek(version -> version.setStorageCode(storageCode))
                         .forEach(versionRepository::save);
@@ -183,10 +187,12 @@ public class PublishServiceImpl implements PublishService {
                 hasOverlappingPeriods(fromDate, toDate)
                         .and(isVersionOfRefBook(refBookId))
                         .and(isPublished())
+                        // NB: Exclude error "deleted instance passed to merge".
+                        .and(hasVersionId(draftId).not())
         );
+
         versions.forEach(version -> {
-            if (!version.getId().equals(draftId)
-                    && fromDate.isAfter(version.getFromDate())) {
+            if (fromDate.isAfter(version.getFromDate())) {
                 version.setToDate(fromDate);
                 versionRepository.save(version);
             } else {
