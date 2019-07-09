@@ -636,12 +636,12 @@ public class ConflictServiceImpl implements ConflictService {
             return;
 
         references.forEach(reference -> {
-            List<RefBookVersionEntity> publishedVersions =
+            List<RefBookVersionEntity> publishedEntities =
                     conflictRepository.findPublishedVersionsRefreshingByPrimary(
                             referrerEntity.getId(), reference.getAttribute(), ConflictType.UPDATED);
 
-            publishedVersions.forEach(publishedVersion ->
-                    refreshReferenceByPrimary(referrerEntity, reference, publishedVersion)
+            publishedEntities.forEach(publishedEntity ->
+                    refreshReferenceByPrimary(referrerEntity, reference, publishedEntity)
             );
         });
     }
@@ -652,15 +652,16 @@ public class ConflictServiceImpl implements ConflictService {
      *
      * @param referrerEntity   версия справочника, который ссылается
      * @param reference        поле справочника, которое ссылается
-     * @param publishedVersion версия справочника, на который ссылаются
+     * @param publishedEntity версия справочника, на который ссылаются
      */
-    private void refreshReferenceByPrimary(RefBookVersionEntity referrerEntity, Structure.Reference reference, RefBookVersionEntity publishedVersion) {
+    private void refreshReferenceByPrimary(RefBookVersionEntity referrerEntity, Structure.Reference reference, RefBookVersionEntity publishedEntity) {
 
-        Structure.Attribute refToAttribute = reference.findReferenceAttribute(publishedVersion.getStructure());
+        Structure.Attribute referenceAttribute = reference.findReferenceAttribute(publishedEntity.getStructure());
+
         Reference updatedReference = new Reference(
-                publishedVersion.getStorageCode(),
-                publishedVersion.getFromDate(), // SYS_PUBLISH_TIME is not exist for draft
-                refToAttribute.getCode(),
+                publishedEntity.getStorageCode(),
+                publishedEntity.getFromDate(), // SYS_PUBLISH_TIME is not exist for draft
+                referenceAttribute.getCode(),
                 new DisplayExpression(reference.getDisplayExpression()),
                 null, // Old value is not changed
                 null // Display value will be recalculated
@@ -669,7 +670,7 @@ public class ConflictServiceImpl implements ConflictService {
 
         RefBookConflictCriteria criteria = new RefBookConflictCriteria();
         criteria.setReferrerVersionId(referrerEntity.getId());
-        criteria.setPublishedVersionId(publishedVersion.getId());
+        criteria.setPublishedVersionId(publishedEntity.getId());
         criteria.setRefFieldCode(reference.getAttribute());
         criteria.setConflictType(ConflictType.UPDATED);
         criteria.setOrders(SORT_BY_REF_RECORD_ID_AND_REF_FIELD_CODE);
