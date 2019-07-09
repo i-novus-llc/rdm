@@ -564,6 +564,9 @@ public class DraftServiceImpl implements DraftService {
             } else {
                 reference = new Structure.Reference();
             }
+
+            String oldDisplayExpression = reference.getDisplayExpression();
+
             int updatableReferenceIndex = structure.getReferences().indexOf(reference);
             updateReference(updateAttribute, reference);
             if (updatableReferenceIndex >= 0)
@@ -571,13 +574,50 @@ public class DraftServiceImpl implements DraftService {
             else
                 structure.getReferences().add(reference);
 
+            if (Objects.isNull(oldDisplayExpression)
+                    || !oldDisplayExpression.equals(updateAttribute.getDisplayExpression().get())) {
+                refreshReferenceDisplayValues(draftEntity, reference);
+            }
+
         } else if (FieldType.REFERENCE.equals(oldType)) {
             structure.getReferences().remove(structure.getReference(updateAttribute.getCode()));
         }
 
-        if (Objects.equals(oldType, updateAttribute.getType()))
+        if (Objects.equals(oldType, updateAttribute.getType())) {
             attributeValidationRepository.deleteAll(
                     attributeValidationRepository.findAllByVersionIdAndAttribute(updateAttribute.getVersionId(), updateAttribute.getCode()));
+        }
+    }
+
+    /**
+     * Обновление отображаемого значения ссылки во всех записях с заполненным значением ссылки.
+     *
+     * @param draftEntity сущность-черновик
+     * @param reference   атрибут-ссылка
+     */
+    private void refreshReferenceDisplayValues(RefBookVersionEntity draftEntity, Structure.Reference reference) {
+
+        RefBookVersionEntity publishedEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
+        if (publishedEntity == null)
+            return;
+
+        Structure.Attribute referenceAttribute = reference.findReferenceAttribute(publishedEntity.getStructure());
+        if (referenceAttribute == null)
+            return;
+
+        Reference updatedReference = new Reference(
+                publishedEntity.getStorageCode(),
+                publishedEntity.getFromDate(), // SYS_PUBLISH_TIME is not exist for draft
+                referenceAttribute.getCode(),
+                new DisplayExpression(reference.getDisplayExpression()),
+                null, // Old value is not changed
+                null // Display value will be recalculated
+        );
+        ReferenceFieldValue fieldValue = new ReferenceFieldValue(reference.getAttribute(), updatedReference);
+
+        draftDataService.updateReferenceInRefRows(draftEntity.getStorageCode(), fieldValue,
+                null, null
+        );
     }
 
     private void updateReference(UpdateAttribute updateAttribute, Structure.Reference updatableReference) {
@@ -602,8 +642,9 @@ public class DraftServiceImpl implements DraftService {
             throw new IllegalArgumentException(ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE);
 
         if (FieldType.REFERENCE.equals(updateAttribute.getType()) &&
-                (FieldType.REFERENCE.equals(attribute.getType()) && isValidUpdateReferenceValues(updateAttribute, this::isUpdateValueNotNullAndEmpty)
-                        || (!FieldType.REFERENCE.equals(attribute.getType()) && isValidUpdateReferenceValues(updateAttribute, this::isUpdateValueNullOrEmpty))))
+                ((FieldType.REFERENCE.equals(attribute.getType()) && isValidUpdateReferenceValues(updateAttribute, this::isUpdateValueNotNullAndEmpty))
+                        || (!FieldType.REFERENCE.equals(attribute.getType()) && isValidUpdateReferenceValues(updateAttribute, this::isUpdateValueNullOrEmpty))
+                ))
             throw new IllegalArgumentException(ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE);
 
         // проверка отсутствия пустых значений в поле при установке первичного ключа
