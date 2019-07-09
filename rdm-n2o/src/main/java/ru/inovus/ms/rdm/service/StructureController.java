@@ -35,7 +35,7 @@ public class StructureController {
     @Autowired
     private DraftService draftService;
 
-    public RestPage<ReadAttribute> getPage(AttributeCriteria criteria) {
+    RestPage<ReadAttribute> getPage(AttributeCriteria criteria) {
         List<ReadAttribute> list = new ArrayList<>();
 
         Structure structure = versionService.getStructure(criteria.getVersionId());
@@ -85,8 +85,9 @@ public class StructureController {
 
     void updateAttribute(Integer versionId, FormAttribute formAttribute) {
 
-        Structure.Attribute oldAttribute = versionService.getStructure(versionId).getAttribute(formAttribute.getCode());
-        Structure.Reference oldReference = versionService.getStructure(versionId).getReference(formAttribute.getCode());
+        Structure oldStructure = versionService.getStructure(versionId);
+        Structure.Attribute oldAttribute = oldStructure.getAttribute(formAttribute.getCode());
+        Structure.Reference oldReference = oldStructure.getReference(formAttribute.getCode());
 
         draftService.updateAttribute(getUpdateAttribute(versionId, formAttribute));
         try {
@@ -154,6 +155,7 @@ public class StructureController {
     }
 
     private void enrich(ReadAttribute attribute, Structure.Reference reference) {
+
         Integer refRefBookId = refBookService.getId(reference.getReferenceCode());
         attribute.setReferenceRefBookId(refRefBookId);
 
@@ -223,7 +225,9 @@ public class StructureController {
     }
 
     private List<AttributeValidation> filterByAttribute(List<AttributeValidation> validations, String attribute) {
-        return validations.stream().filter(v -> Objects.equals(attribute, v.getAttribute())).collect(Collectors.toList());
+        return validations.stream()
+                .filter(v -> Objects.equals(attribute, v.getAttribute()))
+                .collect(Collectors.toList());
     }
 
     private Structure.Attribute buildAttribute(FormAttribute request) {
@@ -248,6 +252,7 @@ public class StructureController {
         updateAttribute.setLastActionDate(TimeUtils.nowZoned());
         updateAttribute.setVersionId(versionId);
         updateAttribute.setCode(formAttribute.getCode());
+
         if (formAttribute.getName() != null)
             updateAttribute.setName(of(formAttribute.getName()));
         updateAttribute.setType(formAttribute.getType());
