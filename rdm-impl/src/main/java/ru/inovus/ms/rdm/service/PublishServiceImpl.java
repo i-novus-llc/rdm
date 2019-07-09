@@ -120,18 +120,14 @@ public class PublishServiceImpl implements PublishService {
 
             versionPeriodPublishValidation.validate(fromDate, toDate, refBookId);
 
-            RefBookVersionEntity lastPublishedVersion = getLastPublishedVersionEntity(draftEntity);
-            String storageCode = draftDataService.applyDraft(
-                    lastPublishedVersion != null ? lastPublishedVersion.getStorageCode() : null,
-                    draftEntity.getStorageCode(),
-                    fromDate,
-                    toDate
-            );
+            RefBookVersionEntity lastPublishedEntity = getLastPublishedVersionEntity(draftEntity);
+            String lastStorageCode = lastPublishedEntity != null ? lastPublishedEntity.getStorageCode() : null;
+            String newStorageCode = draftDataService.applyDraft(lastStorageCode, draftEntity.getStorageCode(), fromDate, toDate);
 
-            Set<String> dataStorageToDelete = new HashSet<>();
-            dataStorageToDelete.add(draftEntity.getStorageCode());
+            Set<String> droppedDataStorages = new HashSet<>();
+            droppedDataStorages.add(draftEntity.getStorageCode());
 
-            draftEntity.setStorageCode(storageCode);
+            draftEntity.setStorageCode(newStorageCode);
             draftEntity.setVersion(versionName);
             draftEntity.setStatus(RefBookVersionStatus.PUBLISHED);
             draftEntity.setFromDate(fromDate);
@@ -141,29 +137,23 @@ public class PublishServiceImpl implements PublishService {
 
             versionRepository.save(draftEntity);
 
-            if (lastPublishedVersion != null
-                    && lastPublishedVersion.getStorageCode() != null
-                    && draftEntity.getStructure().storageEquals(lastPublishedVersion.getStructure())) {
-                dataStorageToDelete.add(lastPublishedVersion.getStorageCode());
+            if (lastPublishedEntity != null && lastStorageCode != null
+                    && draftEntity.getStructure().storageEquals(lastPublishedEntity.getStructure())) {
+                droppedDataStorages.add(lastStorageCode);
 
-                versionRepository.findByStorageCode(lastPublishedVersion.getStorageCode()).stream()
-                        .peek(version -> version.setStorageCode(storageCode))
+                versionRepository.findByStorageCode(lastStorageCode).stream()
+                        .peek(entity -> entity.setStorageCode(newStorageCode))
                         .forEach(versionRepository::save);
             }
-            dropDataService.drop(dataStorageToDelete);
+            dropDataService.drop(droppedDataStorages);
 
-            RefBookVersion versionModel = versionService.getById(draftId);
-            for (FileType fileType : PerRowFileGeneratorFactory.getAvailableTypes()) {
-                VersionDataIterator dataIterator = new VersionDataIterator(versionService, singletonList(versionModel.getId()));
-                versionFileService.save(versionModel, fileType,
-                        versionFileService.generate(versionModel, fileType, dataIterator));
-            }
+            saveDraftToFiles(draftId);
 
             // NB: Конфликты могут быть только при наличии
             // ссылочных атрибутов со значениями для ранее опубликованной версии.
-            if (lastPublishedVersion != null) {
-                conflictService.discoverConflicts(lastPublishedVersion.getId(), draftId);
-                processDiscoveredConflicts(lastPublishedVersion, draftId, resolveConflicts);
+            if (lastPublishedEntity != null) {
+                conflictService.discoverConflicts(lastPublishedEntity.getId(), draftId);
+                processDiscoveredConflicts(lastPublishedEntity, draftId, resolveConflicts);
             }
 
         } finally {
@@ -181,7 +171,7 @@ public class PublishServiceImpl implements PublishService {
         if (toDate == null)
             toDate = MAX_TIMESTAMP;
 
-        Iterable<RefBookVersionEntity> versions = versionRepository.findAll(
+        Iterable<RefBookVersionEntity> entities = versionRepository.findAll(
                 hasOverlappingPeriods(fromDate, toDate)
                         .and(isVersionOfRefBook(refBookId))
                         .and(isPublished())
@@ -189,14 +179,25 @@ public class PublishServiceImpl implements PublishService {
                         .and(hasVersionId(draftId).not())
         );
 
-        versions.forEach(version -> {
-            if (fromDate.isAfter(version.getFromDate())) {
-                version.setToDate(fromDate);
-                versionRepository.save(version);
+        entities.forEach(entity -> {
+            if (fromDate.isAfter(entity.getFromDate())) {
+                entity.setToDate(fromDate);
+                versionRepository.save(entity);
             } else {
-                versionRepository.deleteById(version.getId());
+                versionRepository.deleteById(entity.getId());
             }
         });
+    }
+
+    private void saveDraftToFiles(Integer draftId) {
+
+        RefBookVersion draftVersion = versionService.getById(draftId);
+
+        for (FileType fileType : PerRowFileGeneratorFactory.getAvailableTypes()) {
+            VersionDataIterator dataIterator = new VersionDataIterator(versionService, singletonList(draftVersion.getId()));
+            versionFileService.save(draftVersion, fileType,
+                    versionFileService.generate(draftVersion, fileType, dataIterator));
+        }
     }
 
     private void processDiscoveredConflicts(RefBookVersionEntity oldVersion, Integer newVersionId, boolean resolveConflicts) {
