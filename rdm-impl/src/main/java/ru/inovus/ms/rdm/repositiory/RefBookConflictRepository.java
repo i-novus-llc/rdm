@@ -24,16 +24,16 @@ public interface RefBookConflictRepository extends
             Long refRecordId, String refFieldCode
     );
 
-    @Query("select distinct c.refRecordId from RefBookConflictEntity c \n" +
-            " where c.referrerVersion.id = :referrerVersionId \n" +
+    @Query("select distinct c.refRecordId from RefBookConflictEntity c\n" +
+            " where c.referrerVersion.id = :referrerVersionId\n" +
             "   and c.refRecordId in (:refRecordIds)")
     List<Long> findReferrerConflictedIds(@Param("referrerVersionId") Integer referrerVersionId,
                                          @Param("refRecordIds") List<Long> refRecordIds);
 
-    @Query("select distinct c.publishedVersion \n" +
-            "  from RefBookConflictEntity c \n" +
-            " where c.referrerVersion.id = :referrerVersionId \n" +
-            "   and c.refFieldCode = :refFieldCode \n" +
+    @Query("select distinct c.publishedVersion\n" +
+            "  from RefBookConflictEntity c\n" +
+            " where c.referrerVersion.id = :referrerVersionId\n" +
+            "   and c.refFieldCode = :refFieldCode\n" +
             "   and c.conflictType = :conflictType")
     List<RefBookVersionEntity> findPublishedVersionsRefreshingByPrimary(
             @Param("referrerVersionId") Integer referrerVersionId,
