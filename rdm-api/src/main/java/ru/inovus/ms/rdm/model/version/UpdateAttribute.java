@@ -123,4 +123,8 @@ public class UpdateAttribute extends UpdatableDto {
     public void setDisplayExpression(UpdateValue<String> displayExpression) {
         this.displayExpression = displayExpression;
     }
+
+    public Boolean isReferenceType() {
+        return FieldType.REFERENCE.equals(getType());
+    }
 }

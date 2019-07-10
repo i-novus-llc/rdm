@@ -187,6 +187,10 @@ public class Structure implements Serializable {
                     Objects.equals(type, that.type);
         }
 
+        public Boolean isReferenceType() {
+            return FieldType.REFERENCE.equals(getType());
+        }
+
         @Override
         @SuppressWarnings("all")
         public boolean equals(Object o) {
