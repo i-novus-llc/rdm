@@ -119,9 +119,9 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     private RefBook getNewVersionFromRdm(String refbookCode) {
         RefBookCriteria refBookCriteria = new RefBookCriteria();
         refBookCriteria.setCode(refbookCode);
-        refBookCriteria.setRefBookSourceType(RefBookSourceType.LAST_PUBLISHED);
+        refBookCriteria.setSourceType(RefBookSourceType.LAST_PUBLISHED);
         Page<RefBook> rdmRefbooks = refBookService.search(refBookCriteria);
-        if (rdmRefbooks.getContent() == null || rdmRefbooks.getContent().isEmpty()) {
+        if (CollectionUtils.isEmpty(rdmRefbooks.getContent())) {
             throw new IllegalStateException(String.format("Справочник с кодом %s не найден в системе", refbookCode));
         }
         RefBook rdmRefbook = rdmRefbooks.getContent().get(0);

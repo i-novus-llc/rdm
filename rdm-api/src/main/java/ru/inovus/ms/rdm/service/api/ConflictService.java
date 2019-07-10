@@ -3,10 +3,8 @@ package ru.inovus.ms.rdm.service.api;
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
-import ru.inovus.ms.rdm.model.conflict.Conflict;
-import ru.inovus.ms.rdm.model.conflict.DeleteRefBookConflictCriteria;
-import ru.inovus.ms.rdm.model.conflict.RefBookConflict;
-import ru.inovus.ms.rdm.model.conflict.RefBookConflictCriteria;
+import ru.inovus.ms.rdm.model.FilteredContent;
+import ru.inovus.ms.rdm.model.conflict.*;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
 
 import javax.ws.rs.*;
@@ -21,14 +19,13 @@ public interface ConflictService {
 
     @GET
     @Path("/calculate")
-    @ApiOperation("Вычисление конфликтов для двух версий")
+    @ApiOperation("Вычисление конфликтов по параметрам критерия")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    List<Conflict> calculateConflicts(@ApiParam("Идентификатор версии, которая ссылается") @QueryParam("refFromId") Integer refFromId,
-                                      @ApiParam("Идентификатор старой версии, на которую ссылаются") @QueryParam("oldRefToId") Integer oldRefToId,
-                                      @ApiParam("Идентификатор новой версии, на которую будут ссылаться") @QueryParam("newRefToId") Integer newRefToId);
+    FilteredContent<Conflict> calculateConflicts(@ApiParam("Критерий вычисления") @BeanParam CalculateConflictCriteria criteria);
+
 
     @GET
     @Path("/check")
@@ -61,17 +58,6 @@ public interface ConflictService {
             @ApiResponse(code = 400, message = "Некорректный запрос")
     })
     Page<RefBookConflict> search(@ApiParam("Критерий поиска") @BeanParam RefBookConflictCriteria criteria);
-
-    @POST
-    @Path("/create")
-    @ApiOperation("Сохранение информации о конфликте")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Успех"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    void create(@ApiParam("Идентификатор версии, которая ссылается") @QueryParam("refFromId") Integer refFromId,
-                @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются") @QueryParam("refToId") Integer refToId,
-                @ApiParam("Конфликт") Conflict conflict);
 
     @POST
     @Path("/create/list")
@@ -127,13 +113,13 @@ public interface ConflictService {
 
     @GET
     @Path("/find/all")
-    @ApiOperation("Получение всех конфликтов по идентификаторам строк для версии, которая ссылается")
+    @ApiOperation("Получение конфликтных идентификаторов из идентификаторов записей для версии, которая ссылается")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    List<RefBookConflict> getReferrerConflicts(@ApiParam("Идентификатор версии, которая ссылается") @QueryParam("versionId") Integer referrerVersionId,
-                                               @ApiParam("Список системных идентификаторов строк") @QueryParam("refRecordIds") List<Long> refRecordIds);
+    List<Long> getReferrerConflictedIds(@ApiParam("Идентификатор версии, которая ссылается") @QueryParam("versionId") Integer referrerVersionId,
+                                        @ApiParam("Список системных идентификаторов записей") @QueryParam("refRecordIds") List<Long> refRecordIds);
 
     @POST
     @Path("/{versionId}/refresh/byPrimary")

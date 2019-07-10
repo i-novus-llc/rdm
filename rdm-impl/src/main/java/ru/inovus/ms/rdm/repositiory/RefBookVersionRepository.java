@@ -1,8 +1,11 @@
 package ru.inovus.ms.rdm.repositiory;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+import org.springframework.data.repository.query.Param;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 
@@ -26,4 +29,21 @@ public interface RefBookVersionRepository extends
 
     RefBookVersionEntity findFirstByRefBookCodeAndStatusOrderByFromDateDesc(String refBookCode, RefBookVersionStatus status);
 
+    @Query(nativeQuery = true,
+            value = RefBookVersionConstants.FIND_REFERRER_VERSIONS +
+                    RefBookVersionConstants.WHERE_REF_BOOK_STATUS +
+                    RefBookVersionConstants.WHERE_REF_BOOK_SOURCE)
+    List<RefBookVersionEntity> findReferrerVersions(@Param("refBookCode") String refBookCode,
+                                                    @Param("refBookStatus") String refBookStatus,
+                                                    @Param("refBookSource") String refBookSource);
+
+
+    @Query(nativeQuery = true,
+            value = RefBookVersionConstants.FIND_REFERRER_VERSIONS +
+                    RefBookVersionConstants.WHERE_REF_BOOK_STATUS +
+                    RefBookVersionConstants.WHERE_REF_BOOK_SOURCE)
+    Page<RefBookVersionEntity> findReferrerVersions(@Param("refBookCode") String refBookCode,
+                                                    @Param("refBookStatus") String refBookStatus,
+                                                    @Param("refBookSource") String refBookSource,
+                                                    Pageable pageable);
 }

@@ -28,13 +28,10 @@ import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
-import ru.inovus.ms.rdm.enumeration.ConflictType;
-import ru.inovus.ms.rdm.enumeration.FileType;
-import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.enumeration.*;
 import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.model.version.AttributeFilter;
-import ru.inovus.ms.rdm.model.version.CreateAttribute;
-import ru.inovus.ms.rdm.model.version.UpdateAttribute;
+import ru.inovus.ms.rdm.model.conflict.CalculateConflictCriteria;
+import ru.inovus.ms.rdm.model.version.*;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.model.conflict.Conflict;
 import ru.inovus.ms.rdm.model.conflict.RefBookConflict;
@@ -49,8 +46,6 @@ import ru.inovus.ms.rdm.model.refbook.RefBookUpdateRequest;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
-import ru.inovus.ms.rdm.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.model.version.VersionCriteria;
 import ru.inovus.ms.rdm.service.api.*;
 
 import javax.sql.DataSource;
@@ -63,6 +58,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -72,6 +68,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.junit.Assert.*;
+import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
 import static ru.inovus.ms.rdm.util.ConverterUtil.rowValue;
@@ -228,15 +225,18 @@ public class ApplicationTest {
     }
 
     private static void deleteFile(File file) {
-        if (!file.exists())
+        if (Objects.isNull(file) || !file.exists())
             return;
+
         if (file.isDirectory()) {
-            for (File f : file.listFiles())
-                deleteFile(f);
-            file.delete();
-        } else {
-            file.delete();
+            File[] files = file.listFiles();
+            if (!Objects.isNull(files)) {
+                for (File f : files)
+                    deleteFile(f);
+            }
         }
+
+        file.delete();
     }
 
     /**
@@ -1432,6 +1432,14 @@ public class ApplicationTest {
             expectedMadeofValues.put(primaryValue, displayValue);
         });
 
+        // Проверка связанности.
+        ReferrerVersionCriteria criteria = new ReferrerVersionCriteria(CARDINAL_REF_BOOK_CODE, RefBookStatusType.USED, RefBookSourceType.LAST_VERSION);
+        criteria.firstPageNumber(10);
+        List<RefBookVersion> actualReferrerVersions = refBookService.searchReferrerVersions(criteria).getContent();
+        assertNotNull(actualReferrerVersions);
+        assertEquals(1, actualReferrerVersions.size());
+        assertVersion(referrerVersion, actualReferrerVersions.get(0));
+
 //      3. Изменение исходного справочника.
         Draft changingDraft = draftService.createFromVersion(publishedVersion.getId());
         assertNotNull(changingDraft);
@@ -1522,7 +1530,9 @@ public class ApplicationTest {
         });
 
 //      5. Создание черновика связанного справочника.
-        List<RefBookConflict> referrerConflicts = conflictService.getReferrerConflicts(referrerVersion.getId(), null);
+        List<Long> systemIds = LongStream.range(1, 100).boxed().collect(toList());
+
+        List<Long> referrerConflictedIds = conflictService.getReferrerConflictedIds(referrerVersion.getId(), systemIds);
 
         // Публикация связанного справочника.
         publishService.publish(referrerDraft.getId(), null, LocalDateTime.now(), null, false);
@@ -1533,8 +1543,8 @@ public class ApplicationTest {
 
         // Создание черновика из версии.
         referrerDraft = draftService.createFromVersion(referrerVersion.getId());
-        List<RefBookConflict> lastReferrerConflicts = conflictService.getReferrerConflicts(referrerDraft.getId(), null);
-        assertRefBookConflicts(referrerConflicts, lastReferrerConflicts);
+        List<Long> lastReferrerConflictedIds = conflictService.getReferrerConflictedIds(referrerDraft.getId(), systemIds);
+        assertEquals(referrerConflictedIds, lastReferrerConflictedIds);
 
     }
 
@@ -1924,7 +1934,7 @@ public class ApplicationTest {
                         new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4))))
         );
 
-        List<Conflict> actualConflicts = conflictService.calculateConflicts(refFromVersionId, refToVersionId, refToDraftId);
+        List<Conflict> actualConflicts = calculateConflicts(refFromVersionId, refToVersionId, refToDraftId);
         assertConflicts(expectedConflicts, actualConflicts);
     }
 
@@ -2018,11 +2028,33 @@ public class ApplicationTest {
         );
 
         try {
-            conflictService.calculateConflicts(refFromVersionId, refToVersionId, draft.getId());
+            calculateConflicts(refFromVersionId, refToVersionId, draft.getId());
             fail();
         } catch (RestException re) {
             assertEquals("data.comparing.unavailable", re.getMessage());
         }
+    }
+
+    private List<Conflict> calculateConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId) {
+
+        final int REF_BOOK_DIFF_CONFLICT_PAGE_SIZE = 100;
+
+        List<Conflict> list = new ArrayList<>();
+
+        CalculateConflictCriteria criteria = new CalculateConflictCriteria(refFromId,oldRefToId, newRefToId);
+        criteria.firstPageNumber(REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
+
+        FilteredContent<Conflict> conflicts = conflictService.calculateConflicts(criteria);
+        while (!conflicts.isEmpty()) {
+            if (!isEmpty(conflicts.getPage().getContent())) {
+                list.addAll(conflicts.getPage().getContent());
+            }
+
+            criteria.nextPageNumber();
+            conflicts = conflictService.calculateConflicts(criteria);
+        }
+
+        return list;
     }
 
     /**

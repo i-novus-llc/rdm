@@ -7,13 +7,13 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
-import ru.inovus.ms.rdm.util.PassportPredicateProducer;
+import ru.inovus.ms.rdm.predicate.PassportPredicateProducer;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.hasAttributeValue;
+import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.hasAttributeValue;
 
 @Component
 @Primary

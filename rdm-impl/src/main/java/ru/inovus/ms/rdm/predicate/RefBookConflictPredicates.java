@@ -1,9 +1,12 @@
-package ru.inovus.ms.rdm.repositiory;
+package ru.inovus.ms.rdm.predicate;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import ru.inovus.ms.rdm.entity.QRefBookConflictEntity;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 
+import java.util.List;
+
+@SuppressWarnings("WeakerAccess")
 public final class RefBookConflictPredicates {
 
     private RefBookConflictPredicates() {
@@ -27,6 +30,10 @@ public final class RefBookConflictPredicates {
 
     public static BooleanExpression isRefRecordId(Long refRecordId) {
         return QRefBookConflictEntity.refBookConflictEntity.refRecordId.eq(refRecordId);
+    }
+
+    public static BooleanExpression isRefRecordIdIn(List<Long> refRecordIds) {
+        return QRefBookConflictEntity.refBookConflictEntity.refRecordId.in(refRecordIds);
     }
 
     public static BooleanExpression isRefFieldCode(String refFieldCode) {

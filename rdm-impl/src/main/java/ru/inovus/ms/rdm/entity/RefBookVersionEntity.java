@@ -173,11 +173,12 @@ public class RefBookVersionEntity {
             lastActionDate = now;
     }
 
-    @SuppressWarnings("all")
     @Override
+    @SuppressWarnings("all")
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         RefBookVersionEntity that = (RefBookVersionEntity) o;
         return Objects.equals(id, that.id) &&
                 Objects.equals(refBook, that.refBook) &&

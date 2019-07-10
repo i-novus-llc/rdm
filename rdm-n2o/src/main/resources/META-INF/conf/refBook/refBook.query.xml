@@ -134,6 +134,10 @@
             </filters>
         </field>
 
+        <field id="hasReferrer" domain="boolean">
+            <select/>
+        </field>
+
         <field id="version.hasConflict" domain="boolean">
             <select mapping="hasConflict"/>
         </field>

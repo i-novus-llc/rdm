@@ -51,4 +51,13 @@ public class Conflict {
     public boolean isEmpty() {
         return StringUtils.isEmpty(refAttributeCode) || CollectionUtils.isEmpty(primaryValues);
     }
+
+    /**
+     * Проверка типа на UPDATED.
+     *
+     * @return Результат проверки
+     */
+    public boolean isUpdated() {
+        return ConflictType.UPDATED.equals(getConflictType());
+    }
 }

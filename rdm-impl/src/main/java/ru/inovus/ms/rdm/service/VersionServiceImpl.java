@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.*;
 import static org.springframework.util.StringUtils.isEmpty;
-import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
+import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.*;
 import static ru.inovus.ms.rdm.util.ConverterUtil.*;
 import static ru.inovus.ms.rdm.util.ModelGenerator.versionModel;
 

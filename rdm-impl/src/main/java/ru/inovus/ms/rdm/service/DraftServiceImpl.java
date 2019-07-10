@@ -58,12 +58,19 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
-import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
+import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.*;
 import static ru.inovus.ms.rdm.util.ConverterUtil.*;
 
 @Primary
 @Service
 public class DraftServiceImpl implements DraftService {
+
+    private static final String ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE = "Can not update structure, illegal update attribute";
+    private static final String INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE = "incompatible.new.structure";
+    private static final String INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE = "incompatible.new.type";
+    private static final String ROW_NOT_UNIQUE_EXCEPTION_CODE = "row.not.unique";
+    private static final String ROW_IS_EMPTY_EXCEPTION_CODE = "row.is.empty";
+    private static final String REQUIRED_FIELD_EXCEPTION_CODE = "validation.required.err";
 
     private RefBookVersionRepository versionRepository;
     private RefBookConflictRepository conflictRepository;
@@ -88,15 +95,8 @@ public class DraftServiceImpl implements DraftService {
 
     private int errorCountLimit = 100;
 
-    private static final String ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE = "Can not update structure, illegal update attribute";
-    private static final String INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE = "incompatible.new.structure";
-    private static final String INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE = "incompatible.new.type";
-    private static final String ROW_NOT_UNIQUE_EXCEPTION_CODE = "row.not.unique";
-    private static final String ROW_IS_EMPTY_EXCEPTION_CODE = "row.is.empty";
-    private static final String REQUIRED_FIELD_EXCEPTION_CODE = "validation.required.err";
-
     @Autowired
-    @SuppressWarnings("all")
+    @SuppressWarnings("squid:S00107")
     public DraftServiceImpl(RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
                             DraftDataService draftDataService, DropDataService dropDataService, SearchDataService searchDataService,
                             RefBookService refBookService, RefBookLockService refBookLockService, VersionService versionService,
@@ -126,6 +126,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Value("${rdm.validation-errors-count}")
+    @SuppressWarnings("unused")
     public void setErrorCountLimit(int errorCountLimit) {
         this.errorCountLimit = errorCountLimit;
     }
@@ -202,10 +203,10 @@ public class DraftServiceImpl implements DraftService {
         }
     }
 
-    /** Обновление данных черновика.
+    /** Обновление данных черновика из файла.
      *
-     * @param draft
-     * @param fileModel
+     * @param draft     черновик
+     * @param fileModel файл
      */
     private void updateDraftData(RefBookVersionEntity draft, FileModel fileModel) {
 

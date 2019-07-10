@@ -2,17 +2,13 @@ package ru.inovus.ms.rdm.service.api;
 
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
-import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
-import ru.inovus.ms.rdm.model.refbook.RefBook;
-import ru.inovus.ms.rdm.model.refbook.RefBookCreateRequest;
-import ru.inovus.ms.rdm.model.refbook.RefBookCriteria;
-import ru.inovus.ms.rdm.model.refbook.RefBookUpdateRequest;
+import ru.inovus.ms.rdm.model.refbook.*;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.model.version.ReferrerVersionCriteria;
 import ru.inovus.ms.rdm.model.version.VersionCriteria;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.util.List;
 
 @Path("/refBook")
 @Produces(MediaType.APPLICATION_JSON)
@@ -24,7 +20,6 @@ public interface RefBookService {
     @ApiOperation("Поиск справочников по параметрам критерия")
     @ApiImplicitParams(@ApiImplicitParam(name = "sort", value = "Параметры сортировки",
             required = false, allowMultiple = true, paramType = "query", dataType = "string"))
-
     @ApiResponses({
             @ApiResponse(code = 200, message = "Список справочников"),
             @ApiResponse(code = 400, message = "Некорректный запрос")
@@ -110,16 +105,16 @@ public interface RefBookService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Page<RefBookVersion> getVersions(@BeanParam VersionCriteria criteria);
+    Page<RefBookVersion> getVersions(@ApiParam("Критерий получения") @BeanParam VersionCriteria criteria);
 
     @GET
-    @Path("versions/referrers/{refBookCode}")
-    @ApiOperation("Поиск версий ссылающихся справочников")
+    @Path("/referrers")
+    @ApiOperation("Поиск версий ссылающихся справочников по параметрам критерия")
+    @ApiImplicitParams(@ApiImplicitParam(name = "sort", value = "Параметры сортировки",
+            required = false, allowMultiple = true, paramType = "query", dataType = "string"))
     @ApiResponses({
             @ApiResponse(code = 200, message = "Список справочников"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    List<RefBookVersion> getReferrerVersions(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
-                                             @ApiParam("Тип источника") @QueryParam("sourceType") RefBookSourceType sourceType,
-                                             @ApiParam("Список ссылающихся справочников") List<Integer> referrerIds);
+    Page<RefBookVersion> searchReferrerVersions(@ApiParam("Критерий поиска") @BeanParam ReferrerVersionCriteria criteria);
 }

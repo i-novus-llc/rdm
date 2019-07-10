@@ -36,6 +36,7 @@ public class RefBookPublishController {
         this.conflictService = conflictService;
     }
 
+    @SuppressWarnings("unused")
     UiRefBookPublish getByVersionId(Integer versionId) {
 
         RefBook refBook = refBookService.getByVersionId(versionId);
@@ -59,6 +60,7 @@ public class RefBookPublishController {
      *
      * @param draftId идентификатор черновика
      */
+    @SuppressWarnings("unused")
     void publishDraft(Integer draftId) {
         publishService.publish(draftId, null, null, null, false);
     }
@@ -68,6 +70,7 @@ public class RefBookPublishController {
      *
      * @param draftId идентификатор черновика
      */
+    @SuppressWarnings("unused")
     void publishAndRefresh(Integer draftId) {
         publishService.publish(draftId, null, null, null, true);
     }

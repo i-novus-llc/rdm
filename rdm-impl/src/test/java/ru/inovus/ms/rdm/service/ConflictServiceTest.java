@@ -38,7 +38,6 @@ import ru.inovus.ms.rdm.validation.VersionValidation;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -458,7 +457,7 @@ public class ConflictServiceTest {
 
         ArgumentCaptor<RefBookRowValue> rowValueCaptor = ArgumentCaptor.forClass(RefBookRowValue.class);
 
-        conflictService.refreshReferencesByPrimary(REFERRER_VERSION_ID, PUBLISHED_VERSION_ID, conflicts);
+        conflictService.refreshReferencesByConflicts(REFERRER_VERSION_ID, PUBLISHED_VERSION_ID, conflicts);
 
         verify(draftDataService, times(1)).updateRow(eq(REFERRER_DRAFT_STORAGE_CODE), rowValueCaptor.capture());
 

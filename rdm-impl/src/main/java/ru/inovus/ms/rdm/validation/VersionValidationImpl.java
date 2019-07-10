@@ -8,7 +8,7 @@ import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 
-import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
+import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.*;
 
 @Component
 public class VersionValidationImpl implements VersionValidation {

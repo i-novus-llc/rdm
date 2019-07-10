@@ -27,6 +27,7 @@ public class CompareCriteria extends AbstractCriteria {
     @QueryParam("diffStatus")
     private DiffStatusEnum diffStatus;
 
+    @SuppressWarnings("WeakerAccess")
     public CompareCriteria() {
     }
 
@@ -64,6 +65,7 @@ public class CompareCriteria extends AbstractCriteria {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         CompareCriteria that = (CompareCriteria) o;
         return Objects.equals(oldVersionId, that.oldVersionId) &&
                 Objects.equals(newVersionId, that.newVersionId) &&
@@ -72,7 +74,6 @@ public class CompareCriteria extends AbstractCriteria {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(oldVersionId, newVersionId, diffStatus);
     }
 

@@ -36,6 +36,9 @@ public class RefBook extends RefBookVersion {
     @ApiModelProperty("Наличие первичного ключа")
     private Boolean hasPrimaryAttribute;
 
+    @ApiModelProperty("Наличие связанного справочника")
+    private Boolean hasReferrer;
+
     @ApiModelProperty("Наличие конфликта")
     private Boolean hasConflict;
 
@@ -132,6 +135,14 @@ public class RefBook extends RefBookVersion {
 
     public void setHasPrimaryAttribute(Boolean hasPrimaryAttribute) {
         this.hasPrimaryAttribute = hasPrimaryAttribute;
+    }
+
+    public Boolean getHasReferrer() {
+        return hasReferrer;
+    }
+
+    public void setHasReferrer(Boolean hasReferrer) {
+        this.hasReferrer = hasReferrer;
     }
 
     public Boolean getHasConflict() {

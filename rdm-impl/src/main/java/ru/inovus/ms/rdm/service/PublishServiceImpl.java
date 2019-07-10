@@ -27,11 +27,14 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static java.util.Collections.singletonList;
-import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
+import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.*;
 
 @Primary
 @Service
 public class PublishServiceImpl implements PublishService {
+
+    private static final String INVALID_VERSION_NAME_EXCEPTION_CODE = "invalid.version.name";
+    private static final String INVALID_VERSION_PERIOD_EXCEPTION_CODE = "invalid.version.period";
 
     private RefBookVersionRepository versionRepository;
 
@@ -48,11 +51,8 @@ public class PublishServiceImpl implements PublishService {
     private VersionValidation versionValidation;
     private VersionPeriodPublishValidation versionPeriodPublishValidation;
 
-    private static final String INVALID_VERSION_NAME_EXCEPTION_CODE = "invalid.version.name";
-    private static final String INVALID_VERSION_PERIOD_EXCEPTION_CODE = "invalid.version.period";
-
     @Autowired
-    @SuppressWarnings("all")
+    @SuppressWarnings("squid:S00107")
     public PublishServiceImpl(RefBookVersionRepository versionRepository,
                               DraftDataService draftDataService, DropDataService dropDataService,
                               RefBookLockService refBookLockService, VersionService versionService, ConflictService conflictService,
@@ -182,11 +182,11 @@ public class PublishServiceImpl implements PublishService {
         Iterable<RefBookVersionEntity> versions = versionRepository.findAll(
                 hasOverlappingPeriods(fromDate, toDate)
                         .and(isVersionOfRefBook(refBookId))
+                        .and(hasVersionId(draftId).not())
                         .and(isPublished())
         );
         versions.forEach(version -> {
-            if (!version.getId().equals(draftId)
-                    && fromDate.isAfter(version.getFromDate())) {
+            if (fromDate.isAfter(version.getFromDate())) {
                 version.setToDate(fromDate);
                 versionRepository.save(version);
             } else {
