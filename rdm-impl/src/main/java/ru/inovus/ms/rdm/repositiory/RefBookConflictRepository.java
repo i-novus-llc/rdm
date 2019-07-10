@@ -24,7 +24,8 @@ public interface RefBookConflictRepository extends
             Long refRecordId, String refFieldCode
     );
 
-    @Query("select distinct c.publishedVersion in from RefBookConflictEntity c\n" +
+    @Query("select distinct c.publishedVersion\n" +
+            "  from RefBookConflictEntity c\n" +
             " where c.referrerVersion.id = :referrerVersionId\n" +
             "   and c.refRecordId in (:refRecordIds)")
     List<RefBookVersionEntity> findReferrerConflictedPublishedVersions(
@@ -63,7 +64,7 @@ public interface RefBookConflictRepository extends
     void copyByReferrerVersion(@Param("oldReferrerVersionId") Integer oldReferrerVersionId,
                                @Param("newReferrerVersionId") Integer newReferrerVersionId);
 
-    void deleteByReferrerVersionId(Integer referrerVersionId);
+    void deleteByReferrerVersionIdAndRefRecordIdIsNotNull(Integer referrerVersionId);
 
     void deleteByReferrerVersionIdAndRefRecordId(Integer referrerVersionId, Long refRecordId);
 }
