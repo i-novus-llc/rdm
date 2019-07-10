@@ -1938,6 +1938,120 @@ public class ApplicationTest {
         assertConflicts(expectedConflicts, actualConflicts);
     }
 
+    @Test
+    public void testCalculateConflictWhenStructureChanged() {
+        final String OLD_FILE_NAME = "oldRefToData.xlsx";
+        final String NEW_FILE_NAME = "newRefToData.xlsx";
+        final String REF_FILE_NAME = "refData.xlsx";
+
+        Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
+        Structure.Attribute fixedAttr = Structure.Attribute.build("FIX_ATTR", "fix-attr", FieldType.STRING, "fixed attribute");
+        Structure.Attribute updatedAttr = Structure.Attribute.build("UPD_ATTR", "upd-attr", FieldType.STRING, "updated attribute");
+        Structure.Attribute deletedAttr = Structure.Attribute.build("DEL_ATTR", "del-attr", FieldType.STRING, "deleted attribute");
+
+        Structure structure = new Structure(asList(id, fixedAttr, updatedAttr, deletedAttr), emptyList());
+
+        RefBook refToRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_to_struc", null));
+        Integer refToVersionId = refToRefBook.getId();
+        draftService.createAttribute(new CreateAttribute(refToVersionId, id, null));
+        draftService.createAttribute(new CreateAttribute(refToVersionId, fixedAttr, null));
+        draftService.createAttribute(new CreateAttribute(refToVersionId, updatedAttr, null));
+        draftService.createAttribute(new CreateAttribute(refToVersionId, deletedAttr, null));
+        draftService.updateData(refToVersionId, createFileModel(OLD_FILE_NAME, "testConflicts/structured/" + OLD_FILE_NAME));
+        publishService.publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
+
+        Integer refToDraftId = draftService.create(
+                new CreateDraftRequest(
+                        refToRefBook.getRefBookId(),
+                        structure))
+                .getId();
+        draftService.updateData(refToDraftId, createFileModel(NEW_FILE_NAME, "testConflicts/structured/" + NEW_FILE_NAME));
+
+        Structure.Attribute id_id = Structure.Attribute.buildPrimary("ID_ID", "id_id", FieldType.INTEGER, "id_id");
+        Structure.Attribute ref_fix = Structure.Attribute.build("REF_FIX", "ref_fix", FieldType.REFERENCE, "ref to fixed attr");
+        Structure.Attribute ref_upd = Structure.Attribute.build("REF_UPD", "ref_upd", FieldType.REFERENCE, "ref to updated attr");
+        Structure.Attribute ref_del = Structure.Attribute.build("REF_DEL", "ref_del", FieldType.REFERENCE, "ref to deleted attr");
+        Structure.Reference ref_fix_ref = new Structure.Reference(ref_fix.getCode(), refToRefBook.getCode(), DisplayExpression.toPlaceholder(fixedAttr.getCode()));
+        Structure.Reference ref_upd_ref = new Structure.Reference(ref_upd.getCode(), refToRefBook.getCode(), DisplayExpression.toPlaceholder(updatedAttr.getCode()));
+        Structure.Reference ref_del_ref = new Structure.Reference(ref_del.getCode(), refToRefBook.getCode(), DisplayExpression.toPlaceholder(deletedAttr.getCode()));
+
+        RefBook refFromRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_from_struc", null));
+        Integer refFromVersionId = refFromRefBook.getId();
+        draftService.createAttribute(new CreateAttribute(refFromVersionId, id_id, null));
+        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_fix, ref_fix_ref));
+        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_upd, ref_upd_ref));
+        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_del, ref_del_ref));
+        draftService.updateData(refFromVersionId, createFileModel(REF_FILE_NAME, "testConflicts/structured/" + REF_FILE_NAME));
+        publishService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
+
+        Structure.Attribute insertedAttribute = Structure.Attribute.build("INS_ATTR", "ins-attr", FieldType.INTEGER, "inserted attribute");
+        draftService.createAttribute(new CreateAttribute(refToDraftId, insertedAttribute, null));
+        Structure.Attribute updatedAttribute = Structure.Attribute.build("UPD_ATTR", "upd-attr", FieldType.INTEGER, "updated attribute");
+        draftService.updateAttribute(new UpdateAttribute(refToDraftId, updatedAttribute, null));
+        draftService.deleteAttribute(refToDraftId, deletedAttr.getCode());
+
+        List<Conflict> expectedConflicts = asList(
+                new Conflict(ref_fix.getCode(), ConflictType.DELETED, singletonList(
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1)))),
+                new Conflict(ref_fix.getCode(), ConflictType.DELETED, singletonList(
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(3)))),
+
+                new Conflict(ref_upd.getCode(), ConflictType.UPDATED, singletonList(
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1)))),
+                new Conflict(ref_upd.getCode(), ConflictType.UPDATED, singletonList(
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4)))),
+
+                new Conflict(ref_del.getCode(), ConflictType.DELETED, singletonList(
+                    new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1)))),
+                new Conflict(ref_del.getCode(), ConflictType.UPDATED, singletonList(
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(3)))),
+                new Conflict(ref_del.getCode(), ConflictType.UPDATED, singletonList(
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4))))
+        );
+
+        List<Conflict> actualConflicts = calculateConflicts(refFromVersionId, refToVersionId, refToDraftId);
+        assertConflicts(expectedConflicts, actualConflicts);
+    }
+
+    /*
+     * testing calculate conflicts for two refBooks
+     * published and versions of referenced refToRefBook have different PK
+     *
+     * exception is expected
+     */
+    @Test
+    public void testCalculateConflictWhenPkChanged() {
+        Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
+
+        RefBook refToRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_to_diff_pk", null));
+        Integer refToVersionId = refToRefBook.getId();
+        draftService.createAttribute(new CreateAttribute(refToVersionId, id, null));
+        publishService.publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
+
+        Structure.Attribute id_id = Structure.Attribute.buildPrimary("ID_ID", "id_id", FieldType.INTEGER, "id_id");
+        Structure.Attribute ref_id = Structure.Attribute.build("REF_ID", "ref_id", FieldType.REFERENCE, "ref_id");
+        Structure.Reference ref_id_ref = new Structure.Reference(ref_id.getCode(), refToRefBook.getCode(), DisplayExpression.toPlaceholder(id.getCode()));
+
+        RefBook refFromRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_from_diff_pk", null));
+        Integer refFromVersionId = refFromRefBook.getId();
+        draftService.createAttribute(new CreateAttribute(refFromVersionId, id_id, null));
+        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id, ref_id_ref));
+        publishService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
+
+        Draft draft = draftService.create(
+                new CreateDraftRequest(
+                        refToRefBook.getRefBookId(),
+                        new Structure(singletonList(id_id), emptyList()))
+        );
+
+        try {
+            calculateConflicts(refFromVersionId, refToVersionId, draft.getId());
+            fail();
+        } catch (RestException re) {
+            assertEquals("data.comparing.unavailable", re.getMessage());
+        }
+    }
+
     /*
      * testing check conflicts for two refBooks
      *
