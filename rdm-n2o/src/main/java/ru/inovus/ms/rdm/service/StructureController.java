@@ -151,7 +151,7 @@ public class StructureController {
 
         RefBookVersion version = versionService.getLastPublishedVersion(refBookCode);
         Structure.Attribute attribute = version.getStructure().getAttribute(attributeCode);
-        return attribute.getName();
+        return (attribute != null) ? attribute.getName() : null;
     }
 
     private void enrich(ReadAttribute attribute, Structure.Reference reference) {
