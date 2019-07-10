@@ -15,7 +15,6 @@ import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.enumeration.RefBookStatusType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.export.*;
-import ru.inovus.ms.rdm.model.conflict.DeleteRefBookConflictCriteria;
 import ru.inovus.ms.rdm.model.conflict.RefBookConflict;
 import ru.inovus.ms.rdm.model.conflict.RefBookConflictCriteria;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
@@ -202,26 +201,12 @@ public class PublishServiceImpl implements PublishService {
 
     private void processDiscoveredConflicts(RefBookVersionEntity oldVersion, Integer newVersionId, boolean resolveConflicts) {
 
-        deleteOldConflicts(oldVersion.getRefBook().getId(), newVersionId);
+        // NB: Old conflicts are not deleted.
 
         if (resolveConflicts) {
             resolveReferrerConflicts(oldVersion.getRefBook().getCode());
             publishNonConflictReferrers(oldVersion.getRefBook().getCode(), newVersionId);
         }
-    }
-
-    /**
-     * Удаление конфликтов для всех версий справочника, на который ссылаются,
-     * кроме указанной версии справочника, на которую будут ссылаться.
-     *
-     * @param refBookId        идентификатор справочника, на который ссылаются
-     * @param excludeVersionId идентификатор исключаемой версии справочника
-     */
-    private void deleteOldConflicts(Integer refBookId, Integer excludeVersionId) {
-        DeleteRefBookConflictCriteria deleteCriteria = new DeleteRefBookConflictCriteria();
-        deleteCriteria.setPublishedVersionRefBookId(refBookId);
-        deleteCriteria.setExcludedPublishedVersionId(excludeVersionId);
-        conflictService.delete(deleteCriteria);
     }
 
     /**
