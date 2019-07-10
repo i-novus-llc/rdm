@@ -33,15 +33,6 @@ public interface RefBookVersionRepository extends
             value = RefBookVersionConstants.FIND_REFERRER_VERSIONS +
                     RefBookVersionConstants.WHERE_REF_BOOK_STATUS +
                     RefBookVersionConstants.WHERE_REF_BOOK_SOURCE)
-    List<RefBookVersionEntity> findReferrerVersions(@Param("refBookCode") String refBookCode,
-                                                    @Param("refBookStatus") String refBookStatus,
-                                                    @Param("refBookSource") String refBookSource);
-
-
-    @Query(nativeQuery = true,
-            value = RefBookVersionConstants.FIND_REFERRER_VERSIONS +
-                    RefBookVersionConstants.WHERE_REF_BOOK_STATUS +
-                    RefBookVersionConstants.WHERE_REF_BOOK_SOURCE)
     Page<RefBookVersionEntity> findReferrerVersions(@Param("refBookCode") String refBookCode,
                                                     @Param("refBookStatus") String refBookStatus,
                                                     @Param("refBookSource") String refBookSource,
