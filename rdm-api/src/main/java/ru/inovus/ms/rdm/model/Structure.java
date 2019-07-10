@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.model;
 
+import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.exception.RdmException;
 
@@ -278,6 +279,10 @@ public class Structure implements Serializable {
                 throw new RdmException("primary.attribute.multiple");
 
             return primaryAttributes.get(0);
+        }
+
+        public boolean isNull() {
+            return StringUtils.isEmpty(attribute) || StringUtils.isEmpty(referenceCode);
         }
 
         @Override

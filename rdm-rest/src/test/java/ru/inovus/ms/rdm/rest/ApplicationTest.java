@@ -296,7 +296,7 @@ public class ApplicationTest {
 
         // удаление атрибута и проверка
         createAttributeModel.setAttribute(deleteAttribute);
-        createAttributeModel.setReference(null);
+        createAttributeModel.setReference(new Structure.Reference(null, null, null));
         draftService.createAttribute(createAttributeModel);
 
         draftService.deleteAttribute(draft.getId(), deleteAttribute.getCode());

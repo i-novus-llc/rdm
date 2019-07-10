@@ -416,7 +416,7 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateDraft(draftId);
 
         RefBookVersionEntity draft = versionRepository.getOne(draftId);
-        conflictRepository.deleteByReferrerVersionId(draft.getId());
+        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draft.getId());
         draftDataService.deleteAllRows(draft.getStorageCode());
     }
 
@@ -499,7 +499,7 @@ public class DraftServiceImpl implements DraftService {
             structure.clearPrimary();
 
         Structure.Reference reference = createAttribute.getReference();
-        if (Objects.nonNull(reference) != attribute.isReferenceType())
+        if ((Objects.isNull(reference) || reference.isNull()) == attribute.isReferenceType())
             throw new IllegalArgumentException(ILLEGAL_CREATE_ATTRIBUTE_EXCEPTION_CODE);
 
         draftDataService.addField(draftEntity.getStorageCode(), field(attribute));
@@ -512,7 +512,7 @@ public class DraftServiceImpl implements DraftService {
 
         structure.getAttributes().add(attribute);
 
-        if (Objects.nonNull(reference)) {
+        if (attribute.isReferenceType()) {
             if (structure.getReferences() == null)
                 structure.setReferences(new ArrayList<>());
             structure.getReferences().add(reference);

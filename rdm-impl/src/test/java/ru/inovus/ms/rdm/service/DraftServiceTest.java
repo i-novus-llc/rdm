@@ -132,7 +132,7 @@ public class DraftServiceTest {
 
         nameReference = new Structure.Reference(nameAttribute.getCode(), "REF_801", null);
         updateNameReference = new Structure.Reference(nameAttribute.getCode(), "REF_802", DisplayExpression.toPlaceholder(codeAttribute.getCode()));
-        nullReference = null;
+        nullReference = new Structure.Reference(null, null, null);
     }
 
     @Before
