@@ -20,6 +20,11 @@ public interface RefBookConflictRepository extends
 
     Boolean existsByPublishedVersionId(Integer publishedVersionId);
 
+    RefBookConflictEntity findByReferrerVersionIdAndRefRecordIdAndRefFieldCode(
+            Integer referrerVersionId,
+            Long refRecordId, String refFieldCode
+    );
+
     RefBookConflictEntity findByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdAndRefFieldCode(
             Integer referrerVersionId, Integer publishedVersionId,
             Long refRecordId, String refFieldCode

@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.provider;
 
 import net.n2oapp.criteria.filters.FilterType;
+import net.n2oapp.framework.api.exception.SeverityType;
 import net.n2oapp.framework.api.metadata.SourceMetadata;
 import net.n2oapp.framework.api.metadata.control.N2oField;
 import net.n2oapp.framework.api.metadata.control.N2oStandardField;
@@ -8,7 +9,14 @@ import net.n2oapp.framework.api.metadata.control.list.N2oInputSelect;
 import net.n2oapp.framework.api.metadata.control.plain.N2oCheckbox;
 import net.n2oapp.framework.api.metadata.control.plain.N2oDatePicker;
 import net.n2oapp.framework.api.metadata.control.plain.N2oInputText;
+import net.n2oapp.framework.api.metadata.dataprovider.N2oJavaDataProvider;
+import net.n2oapp.framework.api.metadata.dataprovider.SpringProvider;
 import net.n2oapp.framework.api.metadata.global.dao.N2oPreFilter;
+import net.n2oapp.framework.api.metadata.global.dao.invocation.model.Argument;
+import net.n2oapp.framework.api.metadata.global.dao.object.MapperType;
+import net.n2oapp.framework.api.metadata.global.dao.object.N2oObject;
+import net.n2oapp.framework.api.metadata.global.dao.validation.N2oConstraint;
+import net.n2oapp.framework.api.metadata.global.dao.validation.N2oValidation;
 import net.n2oapp.framework.api.metadata.global.view.page.N2oPage;
 import net.n2oapp.framework.api.metadata.global.view.page.N2oSimplePage;
 import net.n2oapp.framework.api.metadata.global.view.widget.N2oForm;
@@ -16,6 +24,7 @@ import net.n2oapp.framework.api.register.DynamicMetadataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.service.api.ConflictService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
 import java.util.Collection;
@@ -120,6 +129,7 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
                 //NB: value-field-id is deprecated:
                 referenceField.setValueFieldId("value");
                 referenceField.setLabelFieldId("displayValue");
+                referenceField.setDomain(N2oDomain.STRING);
 
                 N2oPreFilter versionFilter = new N2oPreFilter();
                 versionFilter.setType(FilterType.eq);
@@ -133,6 +143,11 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
 
                 referenceField.setPreFilters(new N2oPreFilter[]{versionFilter, referenceFilter});
 
+                N2oValidation validation = createRefValueValidation(attribute.getCode());
+                N2oField.Validations validations = new N2oField.Validations();
+                validations.setInlineValidations(new N2oValidation[]{validation});
+                referenceField.setValidations(validations);
+
                 n2oField = referenceField;
                 break;
 
@@ -144,5 +159,68 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         n2oField.setLabel(attribute.getName());
 
         return n2oField;
+    }
+
+    private N2oValidation createRefValueValidation(String attributeCode) {
+        String attributeCodeWithPrefix = addPrefix(attributeCode);
+
+        N2oJavaDataProvider java = new N2oJavaDataProvider();
+        java.setClassName(ConflictService.class.getName());
+        java.setMethod("findConflict");
+        java.setSpringProvider(new SpringProvider());
+
+        Argument refFromIdArgument = new Argument();
+        refFromIdArgument.setType(Argument.Type.PRIMITIVE);
+        refFromIdArgument.setClassName("java.lang.Integer");
+        refFromIdArgument.setName("refFromId");
+
+        Argument rowSystemIdArgument = new Argument();
+        rowSystemIdArgument.setType(Argument.Type.PRIMITIVE);
+        rowSystemIdArgument.setClassName("java.lang.Long");
+        rowSystemIdArgument.setName("rowSystemId");
+
+        Argument refFieldCodeArgument = new Argument();
+        refFieldCodeArgument.setType(Argument.Type.PRIMITIVE);
+        refFieldCodeArgument.setClassName("java.lang.String");
+        refFieldCodeArgument.setName("refFieldCode");
+
+        Argument refValueArgument = new Argument();
+        refValueArgument.setType(Argument.Type.PRIMITIVE);
+        refValueArgument.setClassName("java.lang.String");
+        refValueArgument.setName("refValue");
+
+        java.setArguments(new Argument[] {refFromIdArgument, rowSystemIdArgument, refFieldCodeArgument, refValueArgument});
+
+        N2oConstraint constraint = new N2oConstraint();
+        constraint.setId("_constraint_validation");
+        constraint.setFieldId(attributeCodeWithPrefix);
+        constraint.setMessage("В связанном справочнике была {conflictType} строка");
+        constraint.setSeverity(SeverityType.danger);
+        constraint.setResult("#this == null");
+
+        N2oObject.Parameter refFromIdParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, "versionId", "[0]");
+        refFromIdParam.setDomain(N2oDomain.INTEGER);
+        N2oObject.Parameter rowSystemIdParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, "id", "[1]");
+        rowSystemIdParam.setDomain(N2oDomain.LONG);
+        N2oObject.Parameter refFieldCodeParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, attributeCode, "[2]");
+        refFieldCodeParam.setDefaultValue(attributeCode);
+        refFieldCodeParam.setDomain(N2oDomain.STRING);
+        N2oObject.Parameter refValueParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, attributeCodeWithPrefix + ".value", "[3]");
+        refValueParam.setMapper(MapperType.spel);
+        refValueParam.setDomain(N2oDomain.STRING);
+
+        constraint.setInParameters(new N2oObject.Parameter[]{refFromIdParam, rowSystemIdParam, refFieldCodeParam, refValueParam});
+
+        N2oObject.Parameter conflictTypeParam = new N2oObject.Parameter(N2oObject.Parameter.Type.out, "conflictType",
+                "\"UPDATED\".equals(conflictType.name()) ? \"изменена\" : \"удалена\"");
+        conflictTypeParam.setDomain(N2oDomain.STRING);
+        N2oObject.Parameter[] outParams = new N2oObject.Parameter[]{conflictTypeParam};
+        constraint.setOutParameters(outParams);
+        constraint.setServerMoment(N2oValidation.ServerMoment.afterSuccessQuery);
+        constraint.setSide("server");
+
+        constraint.setN2oInvocation(java);
+
+        return constraint;
     }
 }

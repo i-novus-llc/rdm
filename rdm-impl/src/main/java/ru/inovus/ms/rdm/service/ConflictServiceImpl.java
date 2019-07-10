@@ -471,6 +471,12 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     @Override
+    public RefBookConflict findConflict(Integer refFromId, Long rowSystemId, String refFieldCode, String refValue) {
+        RefBookConflictEntity entity = findEntity(refFromId, rowSystemId, refFieldCode);
+        return Objects.nonNull(entity) ? refBookConflictModel(entity) : null;
+    }
+
+    @Override
     public RefBookConflict find(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode) {
         RefBookConflictEntity entity = findEntity(refFromId, refToId, rowSystemId, refFieldCode);
         return Objects.nonNull(entity) ? refBookConflictModel(entity) : null;
@@ -480,6 +486,10 @@ public class ConflictServiceImpl implements ConflictService {
     public Integer findId(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode) {
         RefBookConflictEntity entity = findEntity(refFromId, refToId, rowSystemId, refFieldCode);
         return Objects.nonNull(entity) ? entity.getId() : null;
+    }
+
+    private RefBookConflictEntity findEntity(Integer refFromId, Long rowSystemId, String refFieldCode) {
+        return conflictRepository.findByReferrerVersionIdAndRefRecordIdAndRefFieldCode(refFromId, rowSystemId, refFieldCode);
     }
 
     private RefBookConflictEntity findEntity(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode) {

@@ -88,6 +88,18 @@ public interface ConflictService {
     void delete(@ApiParam("Критерий удаления") @BeanParam DeleteRefBookConflictCriteria criteria);
 
     @GET
+    @Path("/findConflict")
+    @ApiOperation("Поиск конфликта по ссылаемой версии, идентификатору строки и названию атрибута")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    RefBookConflict findConflict(@ApiParam("Идентификатор версии, которая ссылается") @QueryParam("refFromId") Integer refFromId,
+                                 @ApiParam("Строка-конфликт версии, которая ссылается") @QueryParam("rowSystemId") Long rowSystemId,
+                                 @ApiParam("Атрибут версии, которая ссылается") @QueryParam("refFieldCode") String refFieldCode,
+                                 @ApiParam("Значение ссылочного атрибута версии, которая ссылается") @QueryParam("refValue") String refValue);
+
+    @GET
     @Path("/find")
     @ApiOperation("Поиск конфликта по основным параметрам")
     @ApiResponses({
