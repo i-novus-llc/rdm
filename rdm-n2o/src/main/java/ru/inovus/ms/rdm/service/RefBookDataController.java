@@ -69,10 +69,10 @@ public class RefBookDataController {
         Structure structure = versionService.getStructure(criteria.getVersionId());
         SearchDataCriteria searchDataCriteria = toSearchDataCriteria(criteria, structure);
         Page<RefBookRowValue> search = versionService.search(criteria.getVersionId(), searchDataCriteria);
-        List<Long> conflictedIds = conflictService.getReferrerConflictedIds(
-                criteria.getVersionId(),
-                getRowSystemIds(search.getContent())
-        );
+        List<Long> rowSystemIds = getRowSystemIds(search.getContent());
+        List<Long> conflictedIds = (!rowSystemIds.isEmpty())
+                ? conflictService.getReferrerConflictedIds(criteria.getVersionId(), rowSystemIds)
+                : emptyList();
 
         DataGridRow dataGridHead = new DataGridRow(createHead(structure));
         List<DataGridRow> dataGridRows = search.getContent().stream()
