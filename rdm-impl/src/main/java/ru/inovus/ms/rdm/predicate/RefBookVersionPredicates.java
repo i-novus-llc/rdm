@@ -14,11 +14,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.TimeZone;
 
+@SuppressWarnings("WeakerAccess")
 public final class RefBookVersionPredicates {
 
     public static final LocalDateTime MAX_TIMESTAMP = LocalDateTime.ofInstant(Instant.ofEpochMilli(Integer.MAX_VALUE * 1000L),
             TimeZone.getDefault().toZoneId());
-    private static final LocalDateTime MIN_TIMESTAMP = LocalDateTime.ofInstant(Instant.ofEpochMilli(0L),
+    public static final LocalDateTime MIN_TIMESTAMP = LocalDateTime.ofInstant(Instant.ofEpochMilli(0L),
             TimeZone.getDefault().toZoneId());
 
     private static final String WHERE_EXISTS_VERSION = "existsVersion";
@@ -31,11 +32,11 @@ public final class RefBookVersionPredicates {
         return QRefBookVersionEntity.refBookVersionEntity.refBook.id.eq(refBookId);
     }
 
-    static BooleanExpression isVersionOfRefBooks(List<Integer> refBookIds) {
+    public static BooleanExpression isVersionOfRefBooks(List<Integer> refBookIds) {
         return QRefBookVersionEntity.refBookVersionEntity.refBook.id.in(refBookIds);
     }
 
-    static BooleanExpression refBookHasCategory(String category) {
+    public static BooleanExpression refBookHasCategory(String category) {
         return QRefBookVersionEntity.refBookVersionEntity.refBook.category.eq(category);
     }
 
@@ -47,17 +48,17 @@ public final class RefBookVersionPredicates {
         return QRefBookVersionEntity.refBookVersionEntity.status.eq(RefBookVersionStatus.PUBLISHED);
     }
 
-    static BooleanExpression isAnyPublished() {
+    public static BooleanExpression isAnyPublished() {
         QRefBookVersionEntity anyVersion = QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
         return anyVersion.status.eq(RefBookVersionStatus.PUBLISHED);
     }
 
-    static BooleanExpression refBookHasDraft() {
+    public static BooleanExpression refBookHasDraft() {
         QRefBookVersionEntity anyVersion = QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
         return anyVersion.status.eq(RefBookVersionStatus.DRAFT);
     }
 
-    static BooleanExpression isSourceType(RefBookSourceType sourceType) {
+    public static BooleanExpression isSourceType(RefBookSourceType sourceType) {
         if (sourceType == null)
             return isLastVersion();
 
@@ -106,7 +107,7 @@ public final class RefBookVersionPredicates {
         return refBookHasDraft().not().and(isLastPublished()).or(isDraft());
     }
 
-    static BooleanExpression hasLastPublishedVersion() {
+    public static BooleanExpression hasLastPublishedVersion() {
         QRefBookVersionEntity fieldVersion = new QRefBookVersionEntity(WHERE_EXISTS_VERSION);
         QRefBookVersionEntity whereVersion = new QRefBookVersionEntity(WHERE_IS_LAST_DATE_VERSION);
         return JPAExpressions
@@ -122,11 +123,11 @@ public final class RefBookVersionPredicates {
                 ).exists();
     }
 
-    static BooleanExpression hasStructure() {
+    public static BooleanExpression hasStructure() {
         return QRefBookVersionEntity.refBookVersionEntity.structure.isNotNull();
     }
 
-    static BooleanExpression hasPrimaryAttribute() {
+    public static BooleanExpression hasPrimaryAttribute() {
         QRefBookVersionEntity fieldVersion = new QRefBookVersionEntity(WHERE_EXISTS_VERSION);
         QRefBookVersionEntity whereVersion = new QRefBookVersionEntity(WHERE_IS_LAST_DATE_VERSION);
         return JPAExpressions
@@ -145,7 +146,7 @@ public final class RefBookVersionPredicates {
 
     }
 
-    static BooleanExpression isCodeContains(String code) {
+    public static BooleanExpression isCodeContains(String code) {
         return QRefBookVersionEntity.refBookVersionEntity.refBook.code.containsIgnoreCase(code.trim());
     }
 
@@ -153,12 +154,12 @@ public final class RefBookVersionPredicates {
         return QRefBookVersionEntity.refBookVersionEntity.version.containsIgnoreCase(version.trim());
     }
 
-    static BooleanExpression isMaxFromDateEqOrAfter(LocalDateTime dateTime) {
+    public static BooleanExpression isMaxFromDateEqOrAfter(LocalDateTime dateTime) {
         QRefBookVersionEntity anyVersion = QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
         return anyVersion.fromDate.eq(dateTime).or(anyVersion.fromDate.after(dateTime));
     }
 
-    static BooleanExpression isMaxFromDateEqOrBefore(LocalDateTime dateTime) {
+    public static BooleanExpression isMaxFromDateEqOrBefore(LocalDateTime dateTime) {
         QRefBookVersionEntity anyVersion = QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
 
         return anyVersion.fromDate.eq(dateTime).or(anyVersion.fromDate.before(dateTime))
