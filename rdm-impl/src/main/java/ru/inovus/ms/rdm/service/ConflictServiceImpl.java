@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.service;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.ComparableExpressionBase;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPADeleteClause;
@@ -9,9 +10,7 @@ import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
@@ -62,6 +61,8 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.springframework.util.CollectionUtils.isEmpty;
+import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.isSourceType;
+import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.isVersionOfRefBooks;
 import static ru.inovus.ms.rdm.util.ComparableUtils.*;
 import static ru.inovus.ms.rdm.util.ConflictUtils.conflictTypeToDiffStatus;
 import static ru.inovus.ms.rdm.util.ConflictUtils.diffStatusToConflictType;
@@ -509,7 +510,21 @@ public class ConflictServiceImpl implements ConflictService {
 
         versionValidation.validateVersionExists(referrerVersionId);
 
-        return conflictRepository.findReferrerConflictedIds(referrerVersionId, refRecordIds);
+        List<RefBookVersionEntity> publishedVersions = conflictRepository.findReferrerConflictedPublishedVersions(referrerVersionId, refRecordIds);
+        if (isEmpty(publishedVersions))
+            return emptyList();
+
+        BooleanBuilder where = new BooleanBuilder();
+        where.and(isSourceType(RefBookSourceType.ACTUAL));
+
+        List<Integer> refBookIds = publishedVersions.stream().map(entity -> entity.getRefBook().getId()).collect(toList());
+        where.and(isVersionOfRefBooks(refBookIds));
+
+        Pageable pageRequest = PageRequest.of(0, refBookIds.size());
+        List<RefBookVersionEntity> actualVersions = (where.getValue() != null) ? versionRepository.findAll(where.getValue(), pageRequest).getContent() : emptyList();
+        List<Integer> actualIds = actualVersions.stream().map(RefBookVersionEntity::getId).collect(toList());
+
+        return conflictRepository.findReferrerConflictedIds(referrerVersionId, actualIds, refRecordIds);
     }
 
     /**
