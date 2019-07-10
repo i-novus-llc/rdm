@@ -517,7 +517,7 @@ public class ConflictServiceImpl implements ConflictService {
         BooleanBuilder where = new BooleanBuilder();
         where.and(isSourceType(RefBookSourceType.ACTUAL));
 
-        List<Integer> refBookIds = publishedVersions.stream().map(entity -> entity.getRefBook().getId()).collect(toList());
+        List<Integer> refBookIds = publishedVersions.stream().map(entity -> entity.getRefBook().getId()).distinct().collect(toList());
         where.and(isVersionOfRefBooks(refBookIds));
 
         Pageable pageRequest = PageRequest.of(0, refBookIds.size());
