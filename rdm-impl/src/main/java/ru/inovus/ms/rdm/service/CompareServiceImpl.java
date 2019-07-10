@@ -150,16 +150,18 @@ public class CompareServiceImpl implements CompareService {
         List<String> oldAttributes = new ArrayList<>();
         List<String> updatedAttributes = new ArrayList<>();
         newStructure.getAttributes().forEach(newAttribute -> {
-            Structure.Attribute old = oldStructure.getAttribute(newAttribute.getCode());
-            if (old == null)
+            Structure.Attribute oldAttribute = oldStructure.getAttribute(newAttribute.getCode());
+            if (oldAttribute == null)
                 newAttributes.add(newAttribute.getCode());
-            else if (!old.storageEquals(newAttribute))
+            else if (!oldAttribute.storageEquals(newAttribute))
                 updatedAttributes.add(newAttribute.getCode());
         });
         oldStructure.getAttributes().forEach(oldAttribute -> {
-            if (newStructure.getAttribute(oldAttribute.getCode()) == null)
+            Structure.Attribute newAttribute = newStructure.getAttribute(oldAttribute.getCode());
+            if (newAttribute == null)
                 oldAttributes.add(oldAttribute.getCode());
         });
+
         DataDifference dataDifference = compareDataService.getDataDifference(compareDataCriteria);
 
         return new RefBookDataDiff(new DiffRowValuePage(dataDifference.getRows()), oldAttributes, newAttributes, updatedAttributes);
