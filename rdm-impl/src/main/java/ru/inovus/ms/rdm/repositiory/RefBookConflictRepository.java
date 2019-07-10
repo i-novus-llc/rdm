@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.query.Param;
 import ru.inovus.ms.rdm.entity.RefBookConflictEntity;
+import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 
 import java.util.List;
@@ -30,14 +31,21 @@ public interface RefBookConflictRepository extends
             Long refRecordId, String refFieldCode
     );
 
-    @Query("select distinct c.refRecordId from RefBookConflictEntity c\n" +
-            " where c.referrerVersion.id = :referrerVersionId\n" +
+    @Query("select distinct c.refRecordId from RefBookConflictEntity c \n" +
+            " where c.referrerVersion.id = :referrerVersionId \n" +
             "   and c.refRecordId in (:refRecordIds)")
     List<Long> findReferrerConflictedIds(@Param("referrerVersionId") Integer referrerVersionId,
                                          @Param("refRecordIds") List<Long> refRecordIds);
 
-    List<RefBookConflictEntity> findAllByReferrerVersionIdAndRefFieldCodeAndConflictType(
-            Integer referrerVersionId, String refFieldCode, ConflictType conflictType
+    @Query("select distinct c.publishedVersion \n" +
+            "  from RefBookConflictEntity c \n" +
+            " where c.referrerVersion.id = :referrerVersionId \n" +
+            "   and c.refFieldCode = :refFieldCode \n" +
+            "   and c.conflictType = :conflictType")
+    List<RefBookVersionEntity> findPublishedVersionsRefreshingByPrimary(
+            @Param("referrerVersionId") Integer referrerVersionId,
+            @Param("refFieldCode") String refFieldCode,
+            @Param("conflictType") ConflictType conflictType
     );
 
     @Modifying
@@ -51,9 +59,4 @@ public interface RefBookConflictRepository extends
                     " where referrer_id = :oldReferrerVersionId")
     void copyByReferrerVersion(@Param("oldReferrerVersionId") Integer oldReferrerVersionId,
                                @Param("newReferrerVersionId") Integer newReferrerVersionId);
-
-    void deleteByReferrerVersionId(Integer referrerVersionId);
-
-    void deleteByReferrerVersionIdAndRefRecordId(Integer referrerVersionId,
-                                                 Long refRecordId);
 }

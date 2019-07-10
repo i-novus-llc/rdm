@@ -81,6 +81,11 @@ public class ConflictServiceImpl implements ConflictService {
     private static final String CONFLICT_REF_RECORD_ID_SORT_PROPERTY = "refRecordId";
     private static final String CONFLICT_REF_FIELD_CODE_SORT_PROPERTY = "refFieldCode";
 
+    private static final List<Sort.Order> SORT_BY_REF_RECORD_ID_AND_REF_FIELD_CODE = asList(
+            new Sort.Order(Sort.Direction.ASC, CONFLICT_REF_RECORD_ID_SORT_PROPERTY),
+            new Sort.Order(Sort.Direction.ASC, CONFLICT_REF_FIELD_CODE_SORT_PROPERTY)
+    );
+
     private static final String VERSION_IS_NOT_DRAFT_EXCEPTION_CODE = "version.is.not.draft";
     private static final String VERSION_IS_NOT_LAST_PUBLISHED_EXCEPTION_CODE = "version.is.not.last.published";
 
@@ -304,7 +309,7 @@ public class ConflictServiceImpl implements ConflictService {
      * @param refToId   идентификатор версии изменённого справочника
      * @param conflicts список конфликтов
      */
-    void refreshReferencesByPrimary(Integer refFromId, Integer refToId, List<Conflict> conflicts) {
+    void refreshReferencesByConflicts(Integer refFromId, Integer refToId, List<Conflict> conflicts) {
 
         if (isEmpty(conflicts)
                 || conflicts.stream().noneMatch(Conflict::isUpdated))
@@ -344,6 +349,12 @@ public class ConflictServiceImpl implements ConflictService {
      */
     @Override
     public Page<RefBookConflict> search(RefBookConflictCriteria criteria) {
+
+        Page<RefBookConflictEntity> entities = findConflictEntities(criteria);
+        return entities.map(this::refBookConflictModel);
+    }
+
+    private Page<RefBookConflictEntity> findConflictEntities(RefBookConflictCriteria criteria) {
         JPAQuery<RefBookConflictEntity> jpaQuery =
                 new JPAQuery<>(entityManager)
                         .select(QRefBookConflictEntity.refBookConflictEntity)
@@ -358,8 +369,7 @@ public class ConflictServiceImpl implements ConflictService {
                 .limit(criteria.getPageSize())
                 .fetch();
 
-        Page<RefBookConflictEntity> list = new PageImpl<>(entities, criteria, count);
-        return list.map(this::refBookConflictModel);
+        return new PageImpl<>(entities, criteria, count);
     }
 
     /**
@@ -636,40 +646,59 @@ public class ConflictServiceImpl implements ConflictService {
             return;
 
         references.forEach(reference -> {
-            // NB: Refresh by pageable search.
-            List<RefBookConflictEntity> conflicts = // NB: use search with criteria
-                    conflictRepository.findAllByReferrerVersionIdAndRefFieldCodeAndConflictType(referrerEntity.getId(), reference.getAttribute(), ConflictType.UPDATED);
+            List<RefBookVersionEntity> publishedVersions =
+                    conflictRepository.findPublishedVersionsRefreshingByPrimary(
+                            referrerEntity.getId(), reference.getAttribute(), ConflictType.UPDATED);
 
-            List<RefBookVersionEntity> publishedVersions = conflicts.stream()
-                    .map(RefBookConflictEntity::getPublishedVersion)
-                    .distinct()
+            publishedVersions.forEach(publishedVersion ->
+                    refreshReferenceByPrimary(referrerEntity, reference, publishedVersion)
+            );
+        });
+    }
+
+    /**
+     * Обновление заданной ссылки в справочнике,
+     * связанном с указанным справочником, по таблице конфликтов.
+     *
+     * @param referrerEntity   версия справочника, который ссылается
+     * @param reference        поле справочника, которое ссылается
+     * @param publishedVersion версия справочника, на который ссылаются
+     */
+    private void refreshReferenceByPrimary(RefBookVersionEntity referrerEntity, Structure.Reference reference, RefBookVersionEntity publishedVersion) {
+
+        Structure.Attribute refToAttribute = reference.findReferenceAttribute(publishedVersion.getStructure());
+        Reference updatedReference = new Reference(
+                publishedVersion.getStorageCode(),
+                publishedVersion.getFromDate(), // SYS_PUBLISH_TIME is not exist for draft
+                refToAttribute.getCode(),
+                new DisplayExpression(reference.getDisplayExpression()),
+                null, // Old value is not changed
+                null // Display value will be recalculated
+        );
+        ReferenceFieldValue fieldValue = new ReferenceFieldValue(reference.getAttribute(), updatedReference);
+
+        RefBookConflictCriteria criteria = new RefBookConflictCriteria();
+        criteria.setReferrerVersionId(referrerEntity.getId());
+        criteria.setPublishedVersionId(publishedVersion.getId());
+        criteria.setRefFieldCode(reference.getAttribute());
+        criteria.setConflictType(ConflictType.UPDATED);
+        criteria.setOrders(SORT_BY_REF_RECORD_ID_AND_REF_FIELD_CODE);
+
+        criteria.firstPageNumber(REF_BOOK_CONFLICT_PAGE_SIZE);
+
+        Page<RefBookConflictEntity> conflicts = findConflictEntities(criteria);
+        while (!conflicts.getContent().isEmpty()) {
+            List<Object> systemIds = conflicts.getContent().stream()
+                    .map(RefBookConflictEntity::getRefRecordId)
                     .collect(toList());
 
-            publishedVersions.forEach(publishedVersion -> {
-                Structure.Attribute refToAttribute = reference.findReferenceAttribute(publishedVersion.getStructure());
-                Reference updatedReference = new Reference(
-                        publishedVersion.getStorageCode(),
-                        publishedVersion.getFromDate(), // SYS_PUBLISH_TIME is not exist for draft
-                        refToAttribute.getCode(),
-                        new DisplayExpression(reference.getDisplayExpression()),
-                        null, // Old value is not changed
-                        null // Display value will be recalculated
-                );
-                ReferenceFieldValue fieldValue = new ReferenceFieldValue(reference.getAttribute(), updatedReference);
+            draftDataService.updateReferenceInRows(referrerEntity.getStorageCode(), fieldValue, systemIds);
 
-                List<RefBookConflictEntity> updatedConflicts = conflicts.stream()
-                        .filter(conflict -> conflict.getPublishedVersion() == publishedVersion)
-                        .collect(toList());
+            conflictRepository.deleteInBatch(conflicts);
 
-                List<Object> systemIds = updatedConflicts.stream()
-                        .map(RefBookConflictEntity::getRefRecordId)
-                        .collect(toList());
-
-                draftDataService.updateReferenceInRows(referrerEntity.getStorageCode(), fieldValue, systemIds);
-
-                conflictRepository.deleteInBatch(updatedConflicts);
-            });
-        });
+            criteria.nextPageNumber();
+            conflicts = findConflictEntities(criteria);
+        }
     }
 
     /**
@@ -1191,10 +1220,7 @@ public class ConflictServiceImpl implements ConflictService {
         RefBookConflictCriteria criteria = new RefBookConflictCriteria();
         criteria.setReferrerVersionId(refFromId);
         criteria.setPublishedVersionId(oldRefToId);
-        criteria.setOrders(asList(
-                new Sort.Order(Sort.Direction.ASC, CONFLICT_REF_RECORD_ID_SORT_PROPERTY),
-                new Sort.Order(Sort.Direction.ASC, CONFLICT_REF_FIELD_CODE_SORT_PROPERTY)
-        ));
+        criteria.setOrders(SORT_BY_REF_RECORD_ID_AND_REF_FIELD_CODE);
 
         criteria.firstPageNumber(REF_BOOK_CONFLICT_PAGE_SIZE);
 
