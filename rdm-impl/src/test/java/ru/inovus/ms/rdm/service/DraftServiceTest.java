@@ -28,15 +28,18 @@ import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.file.MockFileStorage;
 import ru.inovus.ms.rdm.file.UploadFileTestData;
-import ru.inovus.ms.rdm.file.export.PerRowFileGenerator;
 import ru.inovus.ms.rdm.file.export.PerRowFileGeneratorFactory;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.version.CreateAttribute;
+import ru.inovus.ms.rdm.model.version.UpdateAttribute;
+import ru.inovus.ms.rdm.model.draft.CreateDraftRequest;
+import ru.inovus.ms.rdm.model.draft.Draft;
+import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.repositiory.*;
-import ru.inovus.ms.rdm.service.api.VersionFileService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.FileNameGenerator;
 import ru.inovus.ms.rdm.util.ModelGenerator;
-import ru.inovus.ms.rdm.util.VersionNumberStrategy;
 import ru.inovus.ms.rdm.validation.VersionPeriodPublishValidation;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
@@ -53,7 +56,7 @@ import static junit.framework.TestCase.assertTrue;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
-import static ru.inovus.ms.rdm.model.UpdateValue.of;
+import static ru.inovus.ms.rdm.model.version.UpdateValue.of;
 import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.*;
 
 @RunWith(MockitoJUnitRunner.class)

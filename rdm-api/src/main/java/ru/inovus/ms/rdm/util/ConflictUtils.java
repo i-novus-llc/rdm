@@ -2,7 +2,7 @@ package ru.inovus.ms.rdm.util;
 
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
-import ru.inovus.ms.rdm.model.Conflict;
+import ru.inovus.ms.rdm.model.conflict.Conflict;
 
 public class ConflictUtils {
 

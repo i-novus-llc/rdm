@@ -27,11 +27,6 @@ public interface FileStorageService {
             @ApiResponse(code = 400, message = "Неверный формат имени файла")
     })
     @Path("/save")
-    FileModel save(@ApiParam(hidden = true)
-                   @Multipart(value = "file")
-                           InputStream is,
-                   @ApiParam(hidden = true)
-                   @QueryParam("fileName")
-                   @Pattern(regexp = "^[\\w@()-][\\w@()-.]*[\\w@()-]+$", message = "Invalid file name")
-                           String fileName);
+    FileModel save(@ApiParam(hidden = true) @Multipart(value = "file") InputStream is,
+                   @ApiParam(hidden = true) @QueryParam("fileName") @Pattern(regexp = "^[\\w@()-][\\w@()-.]*[\\w@()-]+$", message = "Invalid file name") String fileName);
 }

@@ -9,7 +9,7 @@ import ru.inovus.ms.rdm.entity.PassportAttributeEntity;
 import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
-import ru.inovus.ms.rdm.model.RefBookRowValue;
+import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.Structure;
 
 import java.math.BigInteger;

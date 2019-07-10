@@ -20,10 +20,6 @@ public interface DownloadCompareService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    ExportFile getCompareFile(@ApiParam("Идентификатор старой версии")
-                              @QueryParam("oldVersionId")
-                              Integer oldVersionId,
-                              @ApiParam("Идентификатор новой версии")
-                              @QueryParam("newVersionId")
-                              Integer newVersionId);
+    ExportFile getCompareFile(@ApiParam("Идентификатор старой версии") @QueryParam("oldVersionId") Integer oldVersionId,
+                              @ApiParam("Идентификатор новой версии") @QueryParam("newVersionId") Integer newVersionId);
 }

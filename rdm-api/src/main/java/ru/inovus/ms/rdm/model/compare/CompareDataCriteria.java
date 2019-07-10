@@ -2,7 +2,7 @@ package ru.inovus.ms.rdm.model.compare;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import ru.inovus.ms.rdm.model.AttributeFilter;
+import ru.inovus.ms.rdm.model.version.AttributeFilter;
 
 import javax.ws.rs.QueryParam;
 import java.util.List;

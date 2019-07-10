@@ -10,6 +10,12 @@ import org.springframework.stereotype.Controller;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.version.AttributeFilter;
+import ru.inovus.ms.rdm.model.refbook.RefBookUpdateRequest;
+import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.model.refdata.Row;
+import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
@@ -24,18 +30,20 @@ import static java.util.Collections.singletonList;
 @Controller
 public class CreateDraftController {
 
-    private DraftService draftService;
     private RefBookService refBookService;
     private VersionService versionService;
+    private DraftService draftService;
+
     private StructureController structureController;
     private DataRecordController dataRecordController;
 
     @Autowired
-    public CreateDraftController(DraftService draftService, RefBookService refBookService, VersionService versionService,
+    public CreateDraftController(RefBookService refBookService, VersionService versionService, DraftService draftService,
                                  StructureController structureController, DataRecordController dataRecordController) {
-        this.draftService = draftService;
         this.refBookService = refBookService;
         this.versionService = versionService;
+        this.draftService = draftService;
+
         this.structureController = structureController;
         this.dataRecordController = dataRecordController;
     }
@@ -124,14 +132,14 @@ public class CreateDraftController {
         if (oldSystemId == null) return null;
 
         SearchDataCriteria criteria = new SearchDataCriteria();
-        AttributeFilter recordIdFilter = new AttributeFilter("SYS_RECORDID", oldSystemId.intValue(), FieldType.INTEGER);
+        AttributeFilter recordIdFilter = new AttributeFilter(DataConstants.SYS_PRIMARY_COLUMN, oldSystemId.intValue(), FieldType.INTEGER);
         criteria.setAttributeFilter(singleton(singletonList(recordIdFilter)));
 
         Page<RefBookRowValue> oldRow = versionService.search(oldVersionId, criteria);
         if (CollectionUtils.isEmpty(oldRow.getContent())) throw new NotFoundException("record not found");
         String hash = oldRow.getContent().get(0).getHash();
 
-        AttributeFilter hashFilter = new AttributeFilter("SYS_HASH", hash, FieldType.STRING);
+        AttributeFilter hashFilter = new AttributeFilter(DataConstants.SYS_HASH, hash, FieldType.STRING);
         final SearchDataCriteria hashCriteria = new SearchDataCriteria(ImmutableSet.of(singletonList(hashFilter)), null);
 
         final Page<RefBookRowValue> newRow = versionService.search(newVersionId, hashCriteria);

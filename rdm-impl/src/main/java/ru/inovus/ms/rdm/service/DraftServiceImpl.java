@@ -28,13 +28,25 @@ import ru.inovus.ms.rdm.file.*;
 import ru.inovus.ms.rdm.file.export.*;
 import ru.inovus.ms.rdm.file.process.*;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.version.CreateAttribute;
+import ru.inovus.ms.rdm.model.version.UpdateAttribute;
+import ru.inovus.ms.rdm.model.version.UpdateValue;
+import ru.inovus.ms.rdm.model.draft.CreateDraftRequest;
+import ru.inovus.ms.rdm.model.draft.Draft;
+import ru.inovus.ms.rdm.model.refbook.RefBook;
+import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.model.refdata.Row;
+import ru.inovus.ms.rdm.model.refdata.RowValuePage;
+import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.validation.*;
+import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.repositiory.*;
 import ru.inovus.ms.rdm.service.api.*;
 import ru.inovus.ms.rdm.util.*;
 import ru.inovus.ms.rdm.validation.PrimaryKeyUniqueValidation;
 import ru.inovus.ms.rdm.validation.ReferenceValidation;
 import ru.inovus.ms.rdm.validation.VersionValidation;
+import ru.inovus.ms.rdm.validation.VersionValidationImpl;
 import ru.kirkazan.common.exception.CodifiedException;
 
 import java.io.IOException;
@@ -233,7 +245,7 @@ public class DraftServiceImpl implements DraftService {
             RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
             RefBookVersionEntity draftVersion = getDraftByRefBook(refBookId);
             if (draftVersion == null && lastRefBookVersion == null)
-                throw new NotFoundException(new Message(RefBookServiceImpl.REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
+                throw new NotFoundException(new Message(VersionValidationImpl.REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
 
             // NB: structure == null means that draft was created during passport saving
             if (draftVersion != null && draftVersion.getStructure() != null) {

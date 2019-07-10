@@ -7,7 +7,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import ru.inovus.ms.rdm.model.RefBookCreateRequest;
+import ru.inovus.ms.rdm.model.refbook.RefBookCreateRequest;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 
 import static org.mockito.Mockito.*;

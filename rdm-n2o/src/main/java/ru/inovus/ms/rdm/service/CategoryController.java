@@ -9,10 +9,10 @@ import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.criteria.CategoryCriteria;
-import ru.inovus.ms.rdm.model.AttributeFilter;
+import ru.inovus.ms.rdm.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.model.Category;
-import ru.inovus.ms.rdm.model.RefBookRowValue;
-import ru.inovus.ms.rdm.model.SearchDataCriteria;
+import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
 import static java.util.Collections.singleton;

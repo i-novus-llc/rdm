@@ -3,7 +3,12 @@ package ru.inovus.ms.rdm.service.api;
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
 import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
-import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.refbook.RefBook;
+import ru.inovus.ms.rdm.model.refbook.RefBookCreateRequest;
+import ru.inovus.ms.rdm.model.refbook.RefBookCriteria;
+import ru.inovus.ms.rdm.model.refbook.RefBookUpdateRequest;
+import ru.inovus.ms.rdm.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.model.version.VersionCriteria;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -16,15 +21,15 @@ import java.util.List;
 public interface RefBookService {
 
     @GET
-    @ApiOperation("Поиск справочников по критериям")
-    @ApiImplicitParams(@ApiImplicitParam(name = "sort", value = "Параметры сортировки", required = false, allowMultiple = true,
-            paramType = "query", dataType = "string"))
+    @ApiOperation("Поиск справочников по параметрам критерия")
+    @ApiImplicitParams(@ApiImplicitParam(name = "sort", value = "Параметры сортировки",
+            required = false, allowMultiple = true, paramType = "query", dataType = "string"))
 
     @ApiResponses({
             @ApiResponse(code = 200, message = "Список справочников"),
             @ApiResponse(code = 400, message = "Некорректный запрос")
     })
-    Page<RefBook> search(@BeanParam RefBookCriteria criteria);
+    Page<RefBook> search(@ApiParam("Критерий поиска") @BeanParam RefBookCriteria criteria);
 
     @GET
     @Path("/version/{id}")
@@ -33,7 +38,7 @@ public interface RefBookService {
             @ApiResponse(code = 200, message = "Справочник"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    RefBook getByVersionId(@PathParam("id") @ApiParam("Идентификатор версии") Integer versionId);
+    RefBook getByVersionId(@ApiParam("Идентификатор версии") @PathParam("id") Integer versionId);
 
     @GET
     @Path("/{id}")
@@ -77,7 +82,7 @@ public interface RefBookService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void delete(@QueryParam("refBookId") int refBookId);
+    void delete(@ApiParam("Идентификатор справочника") @QueryParam("refBookId") int refBookId);
 
     @POST
     @Path("/{refBookId}/toArchive")
@@ -114,12 +119,7 @@ public interface RefBookService {
             @ApiResponse(code = 200, message = "Список справочников"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    List<RefBookVersion> getReferrerVersions(@ApiParam("Код справочника")
-                                             @PathParam("refBookCode")
-                                                     String refBookCode,
-                                             @ApiParam("Тип источника")
-                                             @QueryParam("sourceType")
-                                                     RefBookSourceType sourceType,
-                                             @ApiParam("Список ссылающихся справочников")
-                                                     List<Integer> referrerIds);
+    List<RefBookVersion> getReferrerVersions(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
+                                             @ApiParam("Тип источника") @QueryParam("sourceType") RefBookSourceType sourceType,
+                                             @ApiParam("Список ссылающихся справочников") List<Integer> referrerIds);
 }

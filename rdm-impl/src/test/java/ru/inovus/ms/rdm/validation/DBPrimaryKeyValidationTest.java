@@ -13,7 +13,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.inovus.ms.rdm.model.Row;
+import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.Structure;
 
 import java.util.*;

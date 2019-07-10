@@ -9,7 +9,10 @@ import org.springframework.stereotype.Controller;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.version.CreateAttribute;
+import ru.inovus.ms.rdm.model.version.UpdateAttribute;
 import ru.inovus.ms.rdm.model.validation.*;
+import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
@@ -20,17 +23,17 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static ru.inovus.ms.rdm.model.UpdateValue.of;
+import static ru.inovus.ms.rdm.model.version.UpdateValue.of;
 
 @Controller
 public class StructureController {
 
     @Autowired
+    private RefBookService refBookService;
+    @Autowired
     private VersionService versionService;
     @Autowired
     private DraftService draftService;
-    @Autowired
-    private RefBookService refBookService;
 
     public RestPage<ReadAttribute> getPage(AttributeCriteria criteria) {
         List<ReadAttribute> list = new ArrayList<>();
