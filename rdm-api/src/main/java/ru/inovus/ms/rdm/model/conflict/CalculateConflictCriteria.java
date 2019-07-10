@@ -18,9 +18,6 @@ public class CalculateConflictCriteria extends CompareCriteria {
     @QueryParam("referrerVersionId")
     private Integer referrerVersionId;
 
-    //@ApiModelProperty("Тип конфликта")
-    // NB: Тип конфликта автоматически преобразуется в статус сравнения записи.
-
     @SuppressWarnings("unused")
     public CalculateConflictCriteria() {
     }
@@ -42,6 +39,7 @@ public class CalculateConflictCriteria extends CompareCriteria {
         this.referrerVersionId = referrerVersionId;
     }
 
+    @ApiModelProperty("Тип конфликта")
     public ConflictType getConflictType() {
         return diffStatusToConflictType(getDiffStatus());
     }
