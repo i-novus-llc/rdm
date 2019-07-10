@@ -296,7 +296,7 @@ public class ApplicationTest {
 
         // удаление атрибута и проверка
         createAttributeModel.setAttribute(deleteAttribute);
-        createAttributeModel.setReference(new Structure.Reference(null, null, null));
+        createAttributeModel.setReference(null);
         draftService.createAttribute(createAttributeModel);
 
         draftService.deleteAttribute(draft.getId(), deleteAttribute.getCode());
@@ -1996,45 +1996,6 @@ public class ApplicationTest {
         assertEquals(1, deletedReferrers.size());
     }
 
-    /*
-     * testing calculate conflicts for two refBooks
-     * published and versions of referenced refToRefBook have different PK
-     *
-     * exception is expected
-     */
-    @Test
-    public void testCalculateConflictWhenPkChanged() {
-        Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
-
-        RefBook refToRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_to_diff_pk", null));
-        Integer refToVersionId = refToRefBook.getId();
-        draftService.createAttribute(new CreateAttribute(refToVersionId, id, null));
-        publishService.publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
-
-        Structure.Attribute id_id = Structure.Attribute.buildPrimary("ID_ID", "id_id", FieldType.INTEGER, "id_id");
-        Structure.Attribute ref_id = Structure.Attribute.build("REF_ID", "ref_id", FieldType.REFERENCE, "ref_id");
-        Structure.Reference ref_id_ref = new Structure.Reference(ref_id.getCode(), refToRefBook.getCode(), DisplayExpression.toPlaceholder(id.getCode()));
-
-        RefBook refFromRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_from_diff_pk", null));
-        Integer refFromVersionId = refFromRefBook.getId();
-        draftService.createAttribute(new CreateAttribute(refFromVersionId, id_id, null));
-        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id, ref_id_ref));
-        publishService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
-
-        Draft draft = draftService.create(
-                new CreateDraftRequest(
-                        refToRefBook.getRefBookId(),
-                        new Structure(singletonList(id_id), emptyList()))
-        );
-
-        try {
-            calculateConflicts(refFromVersionId, refToVersionId, draft.getId());
-            fail();
-        } catch (RestException re) {
-            assertEquals("data.comparing.unavailable", re.getMessage());
-        }
-    }
-
     private List<Conflict> calculateConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId) {
 
         final int REF_BOOK_DIFF_CONFLICT_PAGE_SIZE = 100;
@@ -2134,10 +2095,14 @@ public class ApplicationTest {
     }
 
     private void assertPassportEqual(Map<String, String> expected, Map<String, String> actual) {
-        if (expected == null)
+        if (expected == null) {
             assertNull(actual);
-        else
-            assertNotNull(actual);
+
+            return;
+        }
+
+        assertNotNull(actual);
+
         expected.forEach((k, v) -> {
             if (v == null)
                 assertNull(actual.get(k));

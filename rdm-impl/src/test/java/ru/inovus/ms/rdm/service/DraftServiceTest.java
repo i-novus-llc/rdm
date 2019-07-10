@@ -132,7 +132,7 @@ public class DraftServiceTest {
 
         nameReference = new Structure.Reference(nameAttribute.getCode(), "REF_801", null);
         updateNameReference = new Structure.Reference(nameAttribute.getCode(), "REF_802", DisplayExpression.toPlaceholder(codeAttribute.getCode()));
-        nullReference = new Structure.Reference(null, null, null);
+        nullReference = null;
     }
 
     @Before
@@ -374,6 +374,7 @@ public class DraftServiceTest {
         assertEquals(updateNameAttribute, structure.getAttributes().stream().filter(Structure.Attribute::getIsPrimary).findFirst().orElse(null));
         CreateAttribute primaryCreateAttributeModel = new CreateAttribute(draftVersion.getId(), pkAttribute, nullReference);
         draftService.createAttribute(primaryCreateAttributeModel);
+
         structure = versionService.getStructure(draftVersion.getId());
         List<Structure.Attribute> pks = structure.getPrimary();
         assertEquals(1, pks.size());
