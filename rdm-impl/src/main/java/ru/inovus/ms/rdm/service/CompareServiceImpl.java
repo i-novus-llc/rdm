@@ -40,8 +40,6 @@ import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
@@ -110,24 +108,26 @@ public class CompareServiceImpl implements CompareService {
         RefBookVersionEntity oldVersion = versionRepository.getOne(oldVersionId);
         RefBookVersionEntity newVersion = versionRepository.getOne(newVersionId);
 
+        Structure oldStructure = oldVersion.getStructure();
+        Structure newStructure = newVersion.getStructure();
+
         List<StructureDiff.AttributeDiff> inserted = new ArrayList<>();
         List<StructureDiff.AttributeDiff> updated = new ArrayList<>();
         List<StructureDiff.AttributeDiff> deleted = new ArrayList<>();
 
-        newVersion.getStructure().getAttributes().forEach(newAttribute -> {
-            Optional<Structure.Attribute> oldAttribute = oldVersion.getStructure().getAttributes().stream()
-                    .filter(o -> Objects.equals(newAttribute.getCode(), o.getCode())).findAny();
-            if (oldAttribute.isEmpty()) {
+        newStructure.getAttributes().forEach(newAttribute -> {
+            Structure.Attribute oldAttribute = oldStructure.getAttribute(newAttribute.getCode());
+            if (oldAttribute == null)
                 inserted.add(new StructureDiff.AttributeDiff(null, newAttribute));
-            } else if (!oldAttribute.get().equals(newAttribute)) {
-                updated.add(new StructureDiff.AttributeDiff(oldAttribute.get(), newAttribute));
-            }
+            else if (!oldAttribute.equals(newAttribute))
+                updated.add(new StructureDiff.AttributeDiff(oldAttribute, newAttribute));
         });
-        oldVersion.getStructure().getAttributes().stream()
-                .filter(oldAttribute -> newVersion.getStructure().getAttributes().stream()
-                        .noneMatch(n -> Objects.equals(oldAttribute.getCode(), n.getCode())))
-                .map(oldAttribute -> new StructureDiff.AttributeDiff(oldAttribute, null))
-                .forEach(deleted::add);
+
+        oldStructure.getAttributes().forEach(oldAttribute -> {
+            Structure.Attribute newAttribute = newStructure.getAttribute(oldAttribute.getCode());
+            if (newAttribute == null)
+                deleted.add(new StructureDiff.AttributeDiff(oldAttribute, null));
+        });
 
         return new StructureDiff(inserted, updated, deleted);
     }
@@ -149,6 +149,7 @@ public class CompareServiceImpl implements CompareService {
         List<String> newAttributes = new ArrayList<>();
         List<String> oldAttributes = new ArrayList<>();
         List<String> updatedAttributes = new ArrayList<>();
+
         newStructure.getAttributes().forEach(newAttribute -> {
             Structure.Attribute oldAttribute = oldStructure.getAttribute(newAttribute.getCode());
             if (oldAttribute == null)
@@ -156,6 +157,7 @@ public class CompareServiceImpl implements CompareService {
             else if (!oldAttribute.storageEquals(newAttribute))
                 updatedAttributes.add(newAttribute.getCode());
         });
+
         oldStructure.getAttributes().forEach(oldAttribute -> {
             Structure.Attribute newAttribute = newStructure.getAttribute(oldAttribute.getCode());
             if (newAttribute == null)
