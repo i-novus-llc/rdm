@@ -37,7 +37,7 @@ public class VersionFileServiceImpl implements VersionFileService {
     private boolean includePassport = false;
 
     @Autowired
-    @SuppressWarnings("all")
+    @SuppressWarnings("squid:S00107")
     public VersionFileServiceImpl(VersionFileRepository versionFileRepository,
                                   FileStorage fileStorage,
                                   FileNameGenerator fileNameGenerator,

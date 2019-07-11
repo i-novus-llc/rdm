@@ -609,7 +609,7 @@ public class DraftServiceImpl implements DraftService {
         }
     }
 
-    @SuppressWarnings("all")
+    @SuppressWarnings({"squid:S1067", "squid:S3776"})
     private void validateUpdateAttribute(UpdateAttribute updateAttribute, Structure.Attribute attribute, String storageCode) {
         if (attribute == null
                 || updateAttribute.getVersionId() == null

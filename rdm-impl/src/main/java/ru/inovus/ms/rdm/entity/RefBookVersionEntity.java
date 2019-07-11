@@ -174,7 +174,7 @@ public class RefBookVersionEntity {
     }
 
     @Override
-    @SuppressWarnings("all")
+    @SuppressWarnings("squid:S1067")
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
