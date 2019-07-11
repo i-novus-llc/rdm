@@ -373,6 +373,34 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
+     * Поиск идентификаторов строк с конфликтами
+     *
+     * @param criteria критерий поиска
+     * @return Страница идентификаторов конфликтных строк
+     */
+    @Override
+    public Page<Long> searchConflictedRowIds(RefBookConflictCriteria criteria) {
+
+        JPAQuery<Long> jpaQuery =
+                new JPAQuery<>(entityManager)
+                        .select(QRefBookConflictEntity.refBookConflictEntity.refRecordId)
+                        .from(QRefBookConflictEntity.refBookConflictEntity)
+                        .where(RefBookConflictPredicateProducer.toPredicate(criteria))
+                        .distinct();
+
+        long count = jpaQuery.fetchCount();
+
+        jpaQuery.orderBy(QRefBookConflictEntity.refBookConflictEntity.refRecordId.asc());
+
+        List<Long> entities = jpaQuery
+                .offset(criteria.getOffset())
+                .limit(criteria.getPageSize())
+                .fetch();
+
+        return new PageImpl<>(entities, criteria, count);
+    }
+
+    /**
      * Сохранение информации о конфликтах.
      *
      * @param refFromId идентификатор версии справочника со ссылками

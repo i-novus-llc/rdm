@@ -8,6 +8,7 @@ import ru.inovus.ms.rdm.model.version.AttributeFilter;
 import javax.ws.rs.QueryParam;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 @ApiModel("Критерии поиска данных справочника")
@@ -20,6 +21,10 @@ public class SearchDataCriteria extends AbstractCriteria {
     @ApiModelProperty("Простые фильтры по полям")
     @QueryParam("plainAttributeFilter")
     private Map<String, String> plainAttributeFilter;
+
+    @ApiModelProperty("Системные идентификаторы строк")
+    @QueryParam("rowSystemIds")
+    private List<Long> rowSystemIds;
 
     @ApiModelProperty("Фильтр по всем полям")
     @QueryParam("commonFilter")
@@ -61,6 +66,14 @@ public class SearchDataCriteria extends AbstractCriteria {
         this.attributeFilter = attributeFilter;
     }
 
+    public List<Long> getRowSystemIds() {
+        return rowSystemIds;
+    }
+
+    public void setRowSystemIds(List<Long> rowSystemIds) {
+        this.rowSystemIds = rowSystemIds;
+    }
+
     public String getCommonFilter() {
         return commonFilter;
     }
@@ -76,9 +89,9 @@ public class SearchDataCriteria extends AbstractCriteria {
 
         SearchDataCriteria that = (SearchDataCriteria) o;
 
-        if (attributeFilter != null ? !attributeFilter.equals(that.attributeFilter) : that.attributeFilter != null)
+        if (!Objects.equals(attributeFilter, that.attributeFilter))
             return false;
-        return commonFilter != null ? commonFilter.equals(that.commonFilter) : that.commonFilter == null;
+        return Objects.equals(commonFilter, that.commonFilter);
     }
 
     @Override
