@@ -17,13 +17,9 @@ public class AbstractCriteria extends RestCriteria {
         setPageNumber(DEFAULT_PAGE_NUMBER);
     }
 
-    private void firstPageNumber(int pageNumber, int pageSize) {
+    public void startPageNumber(int pageNumber, int pageSize) {
         setPageSize(pageSize);
         setPageNumber(pageNumber);
-    }
-
-    public void firstPageNumber(int pageSize) {
-        firstPageNumber(FIRST_PAGE_NUMBER, pageSize);
     }
 
     public void nextPageNumber() {

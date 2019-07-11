@@ -66,6 +66,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static net.n2oapp.platform.jaxrs.RestCriteria.FIRST_PAGE_NUMBER;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.junit.Assert.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -1434,7 +1435,7 @@ public class ApplicationTest {
 
         // Проверка связанности.
         ReferrerVersionCriteria criteria = new ReferrerVersionCriteria(CARDINAL_REF_BOOK_CODE, RefBookStatusType.USED, RefBookSourceType.LAST_VERSION);
-        criteria.firstPageNumber(10);
+        criteria.startPageNumber(FIRST_PAGE_NUMBER,10);
         List<RefBookVersion> actualReferrerVersions = refBookService.searchReferrerVersions(criteria).getContent();
         assertNotNull(actualReferrerVersions);
         assertEquals(1, actualReferrerVersions.size());
@@ -2117,7 +2118,7 @@ public class ApplicationTest {
         List<Conflict> list = new ArrayList<>();
 
         CalculateConflictCriteria criteria = new CalculateConflictCriteria(refFromId,oldRefToId, newRefToId);
-        criteria.firstPageNumber(REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
+        criteria.startPageNumber(FIRST_PAGE_NUMBER, REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
 
         FilteredContent<Conflict> conflicts = conflictService.calculateConflicts(criteria);
         while (!conflicts.isEmpty()) {

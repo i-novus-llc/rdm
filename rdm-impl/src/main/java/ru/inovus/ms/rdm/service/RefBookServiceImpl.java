@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static net.n2oapp.platform.jaxrs.RestCriteria.FIRST_PAGE_NUMBER;
 import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.*;
 
 @Primary
@@ -418,7 +419,7 @@ public class RefBookServiceImpl implements RefBookService {
         model.setHasPrimaryAttribute(!CollectionUtils.isEmpty(primaryAttributes));
 
         ReferrerVersionCriteria criteria = new ReferrerVersionCriteria(model.getCode(), RefBookStatusType.ALL, RefBookSourceType.ALL);
-        criteria.firstPageNumber(1);
+        criteria.startPageNumber(FIRST_PAGE_NUMBER, 1);
         List<RefBookVersion> referrerVersions = searchReferrerVersions(criteria).getContent();
         model.setHasReferrer(!referrerVersions.isEmpty());
 
