@@ -61,6 +61,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static net.n2oapp.platform.jaxrs.RestCriteria.FIRST_PAGE_NUMBER;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.util.ComparableUtils.*;
 import static ru.inovus.ms.rdm.util.ConflictUtils.conflictTypeToDiffStatus;
@@ -224,7 +225,7 @@ public class ConflictServiceImpl implements ConflictService {
         DiffStatusEnum diffStatus = conflictTypeToDiffStatus(conflictType);
 
         CompareDataCriteria criteria = new CompareDataCriteria(oldRefToId, newRefToId);
-        criteria.firstPageNumber(REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
+        criteria.startPageNumber(FIRST_PAGE_NUMBER, REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
 
         FilteredContent<DiffRowValue> diffRowValues = getDataDiffContent(criteria);
         while (!diffRowValues.isEmpty()) {
@@ -674,7 +675,7 @@ public class ConflictServiceImpl implements ConflictService {
         criteria.setConflictType(ConflictType.UPDATED);
         criteria.setOrders(SORT_BY_REF_RECORD_ID_AND_REF_FIELD_CODE);
 
-        criteria.firstPageNumber(REF_BOOK_CONFLICT_PAGE_SIZE);
+        criteria.startPageNumber(FIRST_PAGE_NUMBER, REF_BOOK_CONFLICT_PAGE_SIZE);
 
         Page<RefBookConflictEntity> conflicts = findConflictEntities(criteria);
         while (!conflicts.getContent().isEmpty()) {
@@ -1184,7 +1185,7 @@ public class ConflictServiceImpl implements ConflictService {
     private void createCalculatedConflicts(List<RefBookVersion> referrers, Integer oldRefToId, Integer newRefToId) {
         referrers.forEach(referrer -> {
             CalculateConflictCriteria criteria = new CalculateConflictCriteria(referrer.getId(), oldRefToId, newRefToId);
-            criteria.firstPageNumber(REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
+            criteria.startPageNumber(FIRST_PAGE_NUMBER, REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
 
             FilteredContent<Conflict> conflicts = calculateConflicts(criteria);
             while (!conflicts.isEmpty()) {
@@ -1212,7 +1213,7 @@ public class ConflictServiceImpl implements ConflictService {
         criteria.setPublishedVersionId(oldRefToId);
         criteria.setOrders(SORT_BY_REF_RECORD_ID_AND_REF_FIELD_CODE);
 
-        criteria.firstPageNumber(REF_BOOK_CONFLICT_PAGE_SIZE);
+        criteria.startPageNumber(FIRST_PAGE_NUMBER, REF_BOOK_CONFLICT_PAGE_SIZE);
 
         Page<RefBookConflict> conflicts = search(criteria);
         while (!conflicts.getContent().isEmpty()) {
@@ -1234,7 +1235,7 @@ public class ConflictServiceImpl implements ConflictService {
     private void processReferrerVersions(String refBookCode, RefBookSourceType sourceType, Consumer<List<RefBookVersion>> consumer) {
 
         ReferrerVersionCriteria criteria = new ReferrerVersionCriteria(refBookCode, RefBookStatusType.USED, sourceType);
-        criteria.firstPageNumber(REF_BOOK_VERSION_PAGE_SIZE);
+        criteria.startPageNumber(FIRST_PAGE_NUMBER, REF_BOOK_VERSION_PAGE_SIZE);
 
         Page<RefBookVersion> page = refBookService.searchReferrerVersions(criteria);
         while (!page.getContent().isEmpty()) {
