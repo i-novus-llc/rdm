@@ -36,6 +36,18 @@ public class RefBookConflictEntity {
     @Column(name = "creation_date")
     private LocalDateTime creationDate;
 
+    public RefBookConflictEntity() {
+    }
+
+    public RefBookConflictEntity(RefBookVersionEntity referrerVersion, RefBookVersionEntity publishedVersion,
+                                 Long refRecordId, String refFieldCode, ConflictType conflictType) {
+        this.referrerVersion = referrerVersion;
+        this.publishedVersion = publishedVersion;
+        this.refRecordId = refRecordId;
+        this.refFieldCode = refFieldCode;
+        this.conflictType = conflictType;
+    }
+
     public Integer getId() {
         return id;
     }
@@ -100,8 +112,8 @@ public class RefBookConflictEntity {
             creationDate = now;
     }
 
-    @SuppressWarnings("all")
     @Override
+    @SuppressWarnings("squid:S1067")
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
