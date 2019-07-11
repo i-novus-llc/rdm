@@ -12,17 +12,25 @@ public class ConflictUtils {
         if (diffStatus == null)
             return null;
 
-        return diffStatus.equals(DiffStatusEnum.DELETED)
-                ? ConflictType.DELETED
-                : ConflictType.UPDATED;
+        if (diffStatus.equals(DiffStatusEnum.DELETED))
+            return ConflictType.DELETED;
+
+        if (diffStatus.equals(DiffStatusEnum.UPDATED))
+            return ConflictType.UPDATED;
+
+        return null;
     }
 
     public static DiffStatusEnum conflictTypeToDiffStatus(ConflictType conflictType) {
         if (conflictType == null)
             return null;
 
-        return conflictType.equals(ConflictType.DELETED)
-                ? DiffStatusEnum.DELETED
-                : DiffStatusEnum.UPDATED;
+        if (conflictType.equals(ConflictType.DELETED))
+            return DiffStatusEnum.DELETED;
+
+        if (conflictType.equals(ConflictType.UPDATED))
+            return DiffStatusEnum.UPDATED;
+
+        return null;
     }
 }
