@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class Structure implements Serializable {
@@ -81,7 +82,7 @@ public class Structure implements Serializable {
     }
 
     /**
-     * Получение всех ссылок с указанным кодом справочника
+     * Получение всех ссылок на справочник с указанным кодом.
      *
      * @param referenceCode код справочника, на который ссылаются
      * @return Список ссылок
@@ -93,6 +94,21 @@ public class Structure implements Serializable {
         return references.stream()
                 .filter(reference -> reference.getReferenceCode().equals(referenceCode))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Получение всех атрибутов-ссылок на справочник с указанным кодом.
+     *
+     * @param referenceCode код справочника, на который ссылаются
+     * @return Список атрибутов
+     */
+    public List<Attribute> getRefCodeAttributes(String referenceCode) {
+        if (isEmpty(attributes)) {
+            return Collections.emptyList();
+        }
+        return getRefCodeReferences(referenceCode).stream()
+                .map(ref -> getAttribute(ref.getAttribute()))
+                .collect(toList());
     }
 
     public static class Attribute implements Serializable {
@@ -193,7 +209,7 @@ public class Structure implements Serializable {
         }
 
         @Override
-        @SuppressWarnings("all")
+        @SuppressWarnings("squid:S1067")
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
@@ -305,7 +321,7 @@ public class Structure implements Serializable {
     public boolean storageEquals(Structure s) {
         return isEmpty(attributes)
                 ? isEmpty(s.getAttributes())
-                : attributes.stream() .noneMatch(attribute -> s.attributes.stream().noneMatch(attribute::storageEquals));
+                : attributes.stream().noneMatch(attribute -> s.attributes.stream().noneMatch(attribute::storageEquals));
     }
 
     @Override
