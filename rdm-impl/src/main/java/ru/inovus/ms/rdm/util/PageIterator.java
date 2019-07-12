@@ -1,13 +1,14 @@
 package ru.inovus.ms.rdm.util;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import ru.inovus.ms.rdm.model.AbstractCriteria;
 
 import java.util.Iterator;
 import java.util.function.Function;
 
 public class PageIterator<T, C extends AbstractCriteria> implements Iterator<Page<T>> {
+
+    private static final String SORT_CANNOT_BE_NULL_EXCEPTION_CODE = "sort.cannot.be.null";
 
     private Function<C, Page<T>> pageSource;
 
@@ -19,7 +20,7 @@ public class PageIterator<T, C extends AbstractCriteria> implements Iterator<Pag
 
     public PageIterator(Function<C, Page<T>> pageSource, C criteria) {
         if(criteria.getSort() == null) {
-            throw new IllegalArgumentException("sort cannot be null");
+            throw new IllegalArgumentException(SORT_CANNOT_BE_NULL_EXCEPTION_CODE);
         }
         this.pageSource = pageSource;
         this.criteria = criteria;
@@ -34,6 +35,7 @@ public class PageIterator<T, C extends AbstractCriteria> implements Iterator<Pag
     }
 
     @Override
+    @SuppressWarnings("squid:S2272")
     public Page<T> next() {
         Page<T> result;
         if (nextPage != null) {
