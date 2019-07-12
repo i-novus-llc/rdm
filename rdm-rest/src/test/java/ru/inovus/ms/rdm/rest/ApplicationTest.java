@@ -69,7 +69,6 @@ import static java.util.stream.Collectors.toSet;
 import static net.n2oapp.platform.jaxrs.RestCriteria.FIRST_PAGE_NUMBER;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.junit.Assert.*;
-import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
 import static ru.inovus.ms.rdm.util.ConverterUtil.rowValue;
@@ -1935,6 +1934,7 @@ public class ApplicationTest {
                         new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4))))
         );
 
+        // NB: Use createCalculatedDataConflicts + load conflicts from DB.
         List<Conflict> actualConflicts = calculateConflicts(refFromVersionId, refToVersionId, refToDraftId);
         assertConflicts(expectedConflicts, actualConflicts);
     }
@@ -2029,6 +2029,7 @@ public class ApplicationTest {
         );
 
         try {
+            // NB: Use createCalculatedDataConflicts + load conflicts from DB.
             calculateConflicts(refFromVersionId, refToVersionId, draft.getId());
             fail();
         } catch (RestException re) {
@@ -2038,24 +2039,8 @@ public class ApplicationTest {
 
     private List<Conflict> calculateConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId) {
 
-        final int REF_BOOK_DIFF_CONFLICT_PAGE_SIZE = 100;
-
-        List<Conflict> list = new ArrayList<>();
-
-        CalculateConflictCriteria criteria = new CalculateConflictCriteria(refFromId,oldRefToId, newRefToId);
-        criteria.startPageNumber(FIRST_PAGE_NUMBER, REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
-
-        FilteredContent<Conflict> conflicts = conflictService.calculateConflicts(criteria);
-        while (!conflicts.isEmpty()) {
-            if (!isEmpty(conflicts.getPage().getContent())) {
-                list.addAll(conflicts.getPage().getContent());
-            }
-
-            criteria.nextPageNumber();
-            conflicts = conflictService.calculateConflicts(criteria);
-        }
-
-        return list;
+        CalculateConflictCriteria criteria = new CalculateConflictCriteria(refFromId, oldRefToId, newRefToId);
+        return conflictService.calculateConflicts(criteria);
     }
 
     /**
