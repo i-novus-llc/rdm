@@ -64,6 +64,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.util.ComparableUtils.*;
 import static ru.inovus.ms.rdm.util.ConflictUtils.conflictTypeToDiffStatus;
@@ -554,7 +555,9 @@ public class ConflictServiceImpl implements ConflictService {
 
         versionValidation.validateVersionExists(referrerVersionId);
 
-        return conflictRepository.findReferrerConflictedIds(referrerVersionId, refRecordIds);
+        return isNotEmpty(refRecordIds)
+                ? conflictRepository.findReferrerConflictedIds(referrerVersionId, refRecordIds)
+                : emptyList();
     }
 
     /**
