@@ -45,18 +45,14 @@ public class RowUtils {
      * Получение отображаемого значения.
      *
      * @param displayExpression выражение для вычисления отображаемого значения
-     * @param fieldValues       список отличий значений подставляемых полей
+     * @param diffFieldValues   список отличий значений подставляемых полей
      * @param diffStatus        статус отличия значения
      * @return Отображаемое значение
      */
-    public static String toDisplayValue(String displayExpression, List<DiffFieldValue> fieldValues, DiffStatusEnum diffStatus) {
+    public static String toDisplayValue(String displayExpression, List<DiffFieldValue> diffFieldValues, DiffStatusEnum diffStatus) {
         Map<String, Object> map = new HashMap<>();
-        fieldValues.forEach(fieldValue ->
-            map.put(fieldValue.getField().getName(),
-                    (DiffStatusEnum.DELETED.equals(diffStatus ))
-                            ? fieldValue.getOldValue()
-                            : fieldValue.getNewValue()
-            )
+        diffFieldValues.forEach(fieldValue ->
+            map.put(fieldValue.getField().getName(), fieldValue.getValue(diffStatus))
         );
         return new StringSubstitutor(map, DisplayExpression.PLACEHOLDER_START, DisplayExpression.PLACEHOLDER_END).replace(displayExpression);
     }
