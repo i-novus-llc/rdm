@@ -100,6 +100,7 @@ public class ConflictServiceImpl implements ConflictService {
             new Sort.Order(Sort.Direction.ASC, CONFLICT_REF_FIELD_CODE_SORT_PROPERTY)
     );
 
+    private static final String VERSION_IS_NOT_DRAFT_EXCEPTION_CODE = "version.is.not.draft";
     private static final String VERSION_IS_NOT_LAST_PUBLISHED_EXCEPTION_CODE = "version.is.not.last.published";
 
     private static final String REFERRER_ROW_NOT_FOUND_EXCEPTION_CODE = "referrer.row.not.found";
@@ -147,6 +148,7 @@ public class ConflictServiceImpl implements ConflictService {
     /**
      * Вычисление конфликтов справочников по критерию.
      *
+     * @param criteria критерий вычисления
      * @return Список конфликтов
      */
     @Override
