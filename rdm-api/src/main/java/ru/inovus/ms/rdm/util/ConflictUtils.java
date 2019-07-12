@@ -28,7 +28,8 @@ public class ConflictUtils {
         if (conflictType.equals(ConflictType.DELETED))
             return DiffStatusEnum.DELETED;
 
-        if (conflictType.equals(ConflictType.UPDATED))
+        if (conflictType.equals(ConflictType.UPDATED)
+                || conflictType.equals(ConflictType.ALTERED))
             return DiffStatusEnum.UPDATED;
 
         return null;
