@@ -47,6 +47,7 @@ import ru.inovus.ms.rdm.predicate.RefBookConflictPredicateProducer;
 import ru.inovus.ms.rdm.repositiory.RefBookConflictRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.*;
+import ru.inovus.ms.rdm.util.PageIterator;
 import ru.inovus.ms.rdm.util.RowUtils;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
@@ -55,6 +56,7 @@ import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
@@ -75,6 +77,9 @@ import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
 public class ConflictServiceImpl implements ConflictService {
 
     private static final int REF_BOOK_VERSION_PAGE_SIZE = 100;
+
+    private static final String VERSION_ID_SORT_PROPERTY = "id";
+
     private static final int REF_BOOK_CONFLICT_PAGE_SIZE = 100;
     private static final int REF_BOOK_DIFF_CONFLICT_PAGE_SIZE = 100;
 
@@ -83,7 +88,11 @@ public class ConflictServiceImpl implements ConflictService {
     private static final String CONFLICT_REF_RECORD_ID_SORT_PROPERTY = "refRecordId";
     private static final String CONFLICT_REF_FIELD_CODE_SORT_PROPERTY = "refFieldCode";
 
-    private static final List<Sort.Order> SORT_BY_REF_RECORD_ID_AND_REF_FIELD_CODE = asList(
+    private static final List<Sort.Order> SORT_REFERRER_VERSIONS = singletonList(
+            new Sort.Order(Sort.Direction.ASC, VERSION_ID_SORT_PROPERTY)
+    );
+
+    private static final List<Sort.Order> SORT_REF_BOOK_CONFLICTS = asList(
             new Sort.Order(Sort.Direction.ASC, CONFLICT_REF_RECORD_ID_SORT_PROPERTY),
             new Sort.Order(Sort.Direction.ASC, CONFLICT_REF_FIELD_CODE_SORT_PROPERTY)
     );
@@ -689,22 +698,24 @@ public class ConflictServiceImpl implements ConflictService {
         criteria.setPublishedVersionId(publishedEntity.getId());
         criteria.setRefFieldCode(reference.getAttribute());
         criteria.setConflictType(ConflictType.UPDATED);
-        criteria.setOrders(SORT_BY_REF_RECORD_ID_AND_REF_FIELD_CODE);
-
+        criteria.setOrders(SORT_REF_BOOK_CONFLICTS);
         criteria.startPageNumber(FIRST_PAGE_NUMBER, REF_BOOK_CONFLICT_PAGE_SIZE);
 
-        Page<RefBookConflictEntity> conflicts = findConflictEntities(criteria);
-        while (!conflicts.getContent().isEmpty()) {
-            List<Object> systemIds = conflicts.getContent().stream()
-                    .map(RefBookConflictEntity::getRefRecordId)
-                    .collect(toList());
+        Function<RefBookConflictCriteria, Page<RefBookConflictEntity>> pageSource = this::findConflictEntities;
+        PageIterator<RefBookConflictEntity, RefBookConflictCriteria> pageIterator = new PageIterator<>(pageSource, criteria);
 
-            draftDataService.updateReferenceInRows(referrerEntity.getStorageCode(), fieldValue, systemIds);
+        while (pageIterator.hasNext()) {
+            Page<RefBookConflictEntity> page = pageIterator.next();
 
-            conflictRepository.deleteInBatch(conflicts);
+            if (!isEmpty(page.getContent())) {
+                List<Object> systemIds = page.getContent().stream()
+                        .map(RefBookConflictEntity::getRefRecordId)
+                        .collect(toList());
 
-            criteria.nextPageNumber();
-            conflicts = findConflictEntities(criteria);
+                draftDataService.updateReferenceInRows(referrerEntity.getStorageCode(), fieldValue, systemIds);
+
+                conflictRepository.deleteInBatch(page.getContent());
+            }
         }
     }
 
@@ -1227,17 +1238,19 @@ public class ConflictServiceImpl implements ConflictService {
         RefBookConflictCriteria criteria = new RefBookConflictCriteria();
         criteria.setReferrerVersionId(refFromId);
         criteria.setPublishedVersionId(oldRefToId);
-        criteria.setOrders(SORT_BY_REF_RECORD_ID_AND_REF_FIELD_CODE);
-
+        criteria.setOrders(SORT_REF_BOOK_CONFLICTS);
         criteria.startPageNumber(FIRST_PAGE_NUMBER, REF_BOOK_CONFLICT_PAGE_SIZE);
 
-        Page<RefBookConflict> conflicts = search(criteria);
-        while (!conflicts.getContent().isEmpty()) {
-            List<Conflict> list = recalculateConflicts(refFromId, oldRefToId, newRefToId, conflicts.getContent());
-            create(refFromId, newRefToId, list);
+        Function<RefBookConflictCriteria, Page<RefBookConflict>> pageSource = this::search;
+        PageIterator<RefBookConflict, RefBookConflictCriteria> pageIterator = new PageIterator<>(pageSource, criteria);
 
-            criteria.nextPageNumber();
-            conflicts = search(criteria);
+        while (pageIterator.hasNext()) {
+            Page<RefBookConflict> page = pageIterator.next();
+
+            if (!isEmpty(page.getContent())) {
+                List<Conflict> list = recalculateConflicts(refFromId, oldRefToId, newRefToId, page.getContent());
+                create(refFromId, newRefToId, list);
+            }
         }
     }
 
@@ -1251,14 +1264,18 @@ public class ConflictServiceImpl implements ConflictService {
     private void processReferrerVersions(String refBookCode, RefBookSourceType sourceType, Consumer<List<RefBookVersion>> consumer) {
 
         ReferrerVersionCriteria criteria = new ReferrerVersionCriteria(refBookCode, RefBookStatusType.USED, sourceType);
+        criteria.setOrders(SORT_REFERRER_VERSIONS);
         criteria.startPageNumber(FIRST_PAGE_NUMBER, REF_BOOK_VERSION_PAGE_SIZE);
 
-        Page<RefBookVersion> page = refBookService.searchReferrerVersions(criteria);
-        while (!page.getContent().isEmpty()) {
-            consumer.accept(page.getContent());
+        Function<ReferrerVersionCriteria, Page<RefBookVersion>> pageSource = refBookService::searchReferrerVersions;
+        PageIterator<RefBookVersion, ReferrerVersionCriteria> pageIterator = new PageIterator<>(pageSource, criteria);
 
-            criteria.nextPageNumber();
-            page = refBookService.searchReferrerVersions(criteria);
+        while (pageIterator.hasNext()) {
+            Page<RefBookVersion> page = pageIterator.next();
+
+            if (!isEmpty(page.getContent())) {
+                consumer.accept(page.getContent());
+            }
         }
     }
 }
