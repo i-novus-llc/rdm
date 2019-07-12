@@ -73,18 +73,28 @@ public class RefBookDataController {
 
         Structure structure = versionService.getStructure(criteria.getVersionId());
 
-        Page<Long> conflictedRowsIdsPage = getConflictedRowIds(criteria);
+        Page<RefBookRowValue> search;
+        List<DataGridRow> result;
+        Page<Long> conflictedRowsIdsPage = Page.empty();
 
         SearchDataCriteria searchDataCriteria;
         if (BooleanUtils.isTrue(criteria.getHasConflict())) {
-            searchDataCriteria = toSearchDataCriteria(criteria, structure, conflictedRowsIdsPage.getContent());
-            searchDataCriteria.setPageNumber(0);
+
+            long conflictsCount = conflictService.getRefBookConflictsCount(toRefBookConflictCriteria(criteria));
+            long dataCount = versionService.search(criteria.getVersionId(), new SearchDataCriteria()).getTotalElements();
+
+            if (conflictsCount == dataCount) {
+                searchDataCriteria = toSearchDataCriteria(criteria, structure, emptyList());
+            } else {
+                conflictedRowsIdsPage = getConflictedRowIds(criteria, (int) conflictsCount);
+                searchDataCriteria = toSearchDataCriteria(criteria, structure, conflictedRowsIdsPage.getContent());
+            }
         } else {
             searchDataCriteria = toSearchDataCriteria(criteria, structure, emptyList());
         }
-        Page<RefBookRowValue> search = versionService.search(criteria.getVersionId(), searchDataCriteria);
 
-        List<DataGridRow> result = getDataGridRows(criteria, search.getContent(), structure);
+        search = versionService.search(criteria.getVersionId(), searchDataCriteria);
+        result = getDataGridContent(criteria, search.getContent(), structure, BooleanUtils.isTrue(criteria.getHasConflict()));
 
         // NB: (костыль)
         // Прибавляется 1 к количеству элементов
@@ -99,10 +109,10 @@ public class RefBookDataController {
         );
     }
 
-    private Page<Long> getConflictedRowIds(DataCriteria criteria) {
+    private Page<Long> getConflictedRowIds(DataCriteria criteria, int conflictsCount) {
         RefBookConflictCriteria refBookConflictCriteria = toRefBookConflictCriteria(criteria);
-        Page<Long> conflictedRowIds = conflictService.searchConflictedRowIds(refBookConflictCriteria);
-        return conflictedRowIds;
+        refBookConflictCriteria.setPageSize(conflictsCount);
+        return conflictService.searchConflictedRowIds(refBookConflictCriteria);
     }
 
     private SearchDataCriteria toSearchDataCriteria(DataCriteria criteria, Structure structure, List<Long> conflictedRowIds) {
@@ -153,34 +163,15 @@ public class RefBookDataController {
 
     private RefBookConflictCriteria toRefBookConflictCriteria(DataCriteria criteria) {
         RefBookConflictCriteria refBookConflictCriteria = new RefBookConflictCriteria();
-        refBookConflictCriteria.setPageNumber(criteria.getPage() - 1);
+        refBookConflictCriteria.setPageNumber(0);
         refBookConflictCriteria.setPageSize(criteria.getSize());
         refBookConflictCriteria.setReferrerVersionId(criteria.getVersionId());
         return refBookConflictCriteria;
     }
 
-    private List<DataGridRow> getDataGridRows(DataCriteria criteria, List<RefBookRowValue> search, Structure structure) {
-        List<Long> conflictedRowsIds = conflictService.getReferrerConflictedIds(
-                criteria.getVersionId(),
-                getRowSystemIds(search)
-        );
-
+    private List<DataGridRow> getDataGridContent(DataCriteria criteria, List<RefBookRowValue> search, Structure structure, boolean allWithConflicts) {
         DataGridRow dataGridHead = new DataGridRow(createHead(structure));
-        List<DataGridRow> dataGridRows = search.stream()
-                .map(rowValue -> {
-                            boolean rowHasConflict = rowHasConflict(rowValue, conflictedRowsIds);
-
-                            if (BooleanUtils.isTrue(criteria.getHasConflict()) && !rowHasConflict)
-                                return null;
-                            return toDataGridRow(
-                                    rowValue,
-                                    criteria.getVersionId(),
-                                    rowHasConflict
-                            );
-                        }
-                )
-                .filter(Objects::nonNull)
-                .collect(toList());
+        List<DataGridRow> dataGridRows = getDataGridRows(criteria, search, allWithConflicts);
 
         List<DataGridRow> resultRows = new ArrayList<>();
         resultRows.add(dataGridHead);
@@ -188,15 +179,30 @@ public class RefBookDataController {
         return resultRows;
     }
 
+    private List<DataGridRow> getDataGridRows(DataCriteria criteria, List<RefBookRowValue> search, boolean allWithConflicts) {
+        List<Long> conflictedRowsIds = allWithConflicts
+                ? emptyList()
+                : conflictService.getReferrerConflictedIds(criteria.getVersionId(), getRowSystemIds(search));
+
+        return search.stream()
+                .map(rowValue -> {
+                            boolean rowHasConflict = allWithConflicts || conflictedRowsIds.contains(rowValue.getSystemId());
+
+                            return toDataGridRow(
+                                    rowValue,
+                                    criteria.getVersionId(),
+                                    rowHasConflict
+                            );
+                        }
+                )
+                .collect(toList());
+    }
+
     private List<Long> getRowSystemIds(List<RefBookRowValue> rowValues) {
         return rowValues
                 .stream()
                 .map(RowValue::getSystemId)
                 .collect(toList());
-    }
-
-    private boolean rowHasConflict(RefBookRowValue row, List<Long> conflictedIds) {
-        return conflictedIds.contains(row.getSystemId());
     }
 
     private DataGridRow toDataGridRow(RowValue rowValue, Integer versionId, boolean hasConflict) {
