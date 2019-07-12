@@ -9,6 +9,7 @@ import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.inovus.ms.rdm.model.diff.StructureDiff;
 import ru.inovus.ms.rdm.model.field.ReferenceFilterValue;
 import ru.inovus.ms.rdm.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.model.diff.RefBookDataDiff;
@@ -247,6 +248,20 @@ public class ComparableUtils {
                                         DiffStatusEnum.DELETED))
                 );
         return comparableFields;
+    }
+
+    /**
+     * Проверка на наличие изменения структуры.
+     *
+     * @param diff различие в структурах версий
+     * @return Наличие изменения структуры
+     */
+    public static boolean isRefBookAltered(StructureDiff diff) {
+        return !diff.getInserted().isEmpty()
+                || !diff.getDeleted().isEmpty()
+                || diff.getUpdated().stream().anyMatch(
+                updated -> !updated.getNewAttribute().getType()
+                        .equals(updated.getOldAttribute().getType()));
     }
 
     /**
