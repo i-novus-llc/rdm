@@ -54,7 +54,7 @@ public class PageIteratorTest {
             int offset = criteria.getPageNumber() * criteria.getPageSize();
             List<String> content = allContent.subList(Math.min(offset, total), Math.min(offset + criteria.getPageSize(), total));
             List<String> subContent = content.stream().filter(value -> Integer.parseInt(value) % 4 == 0).collect(Collectors.toUnmodifiableList());
-            return new PageImpl<>(subContent, criteria, subContent.size());
+            return new PageImpl<>(subContent, criteria, total);
         };
 
         TestCriteria criteria = new TestCriteria();
