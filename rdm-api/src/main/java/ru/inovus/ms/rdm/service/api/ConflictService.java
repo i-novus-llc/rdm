@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.service.api;
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
-import ru.inovus.ms.rdm.model.FilteredContent;
 import ru.inovus.ms.rdm.model.conflict.*;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
 
@@ -24,7 +23,7 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    FilteredContent<Conflict> calculateConflicts(@ApiParam("Критерий вычисления") @BeanParam CalculateConflictCriteria criteria);
+    List<Conflict> calculateConflicts(@ApiParam("Критерий вычисления") @BeanParam CalculateConflictCriteria criteria);
 
 
     @GET
