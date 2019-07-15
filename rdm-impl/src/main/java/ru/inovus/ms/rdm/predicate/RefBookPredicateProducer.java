@@ -12,7 +12,7 @@ import static org.springframework.util.StringUtils.isEmpty;
 import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.*;
 
 @Component
-public class RefBookPredicateProducer implements CriteriaPredicateProducer {
+public class RefBookPredicateProducer {
 
     private PassportPredicateProducer passportPredicateProducer;
 
