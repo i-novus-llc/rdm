@@ -250,9 +250,7 @@ public class PublishServiceImpl implements PublishService {
      */
     private boolean notExistsConflict(Integer referrerVersionId, Integer publishedVersionId) {
 
-        RefBookConflictCriteria criteria = new RefBookConflictCriteria();
-        criteria.setReferrerVersionId(referrerVersionId);
-        criteria.setPublishedVersionId(publishedVersionId);
+        RefBookConflictCriteria criteria = new RefBookConflictCriteria(referrerVersionId, publishedVersionId);
         criteria.setPageSize(1);
 
         Page<RefBookConflict> conflicts = conflictService.search(criteria);

@@ -657,11 +657,8 @@ public class ConflictServiceImpl implements ConflictService {
         );
         ReferenceFieldValue fieldValue = new ReferenceFieldValue(reference.getAttribute(), updatedReference);
 
-        RefBookConflictCriteria criteria = new RefBookConflictCriteria();
-        criteria.setReferrerVersionId(referrerEntity.getId());
-        criteria.setPublishedVersionId(publishedEntity.getId());
-        criteria.setRefFieldCode(reference.getAttribute());
-        criteria.setConflictType(conflictType);
+        RefBookConflictCriteria criteria = new RefBookConflictCriteria(referrerEntity.getId(),
+                publishedEntity.getId(), reference.getAttribute(), conflictType);
         criteria.setOrders(SORT_REF_BOOK_CONFLICTS);
         criteria.setPageSize(REF_BOOK_CONFLICT_PAGE_SIZE);
 
@@ -1178,9 +1175,7 @@ public class ConflictServiceImpl implements ConflictService {
         RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
         RefBookVersionEntity oldRefToEntity = versionRepository.getOne(oldRefToId);
 
-        RefBookConflictCriteria criteria = new RefBookConflictCriteria();
-        criteria.setReferrerVersionId(refFromId);
-        criteria.setPublishedVersionId(oldRefToId);
+        RefBookConflictCriteria criteria = new RefBookConflictCriteria(refFromId, oldRefToId);
         criteria.setOrders(SORT_REF_BOOK_CONFLICTS);
         criteria.setPageSize(REF_BOOK_CONFLICT_PAGE_SIZE);
 

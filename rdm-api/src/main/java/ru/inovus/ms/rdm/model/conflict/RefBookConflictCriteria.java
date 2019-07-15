@@ -48,6 +48,22 @@ public class RefBookConflictCriteria extends AbstractCriteria {
     @QueryParam("creationDate")
     private LocalDateTime creationDate;
 
+    @SuppressWarnings("unused")
+    public RefBookConflictCriteria() {
+    }
+
+    public RefBookConflictCriteria(Integer referrerVersionId, Integer publishedVersionId) {
+        this.referrerVersionId = referrerVersionId;
+        this.publishedVersionId = publishedVersionId;
+    }
+
+    public RefBookConflictCriteria(Integer referrerVersionId, Integer publishedVersionId, String refFieldCode, ConflictType conflictType) {
+        this.referrerVersionId = referrerVersionId;
+        this.publishedVersionId = publishedVersionId;
+        this.refFieldCode = refFieldCode;
+        this.conflictType = conflictType;
+    }
+
     public Integer getReferrerVersionId() {
         return referrerVersionId;
     }
