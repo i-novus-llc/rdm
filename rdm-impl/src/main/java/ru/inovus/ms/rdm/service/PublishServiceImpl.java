@@ -30,7 +30,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static java.util.Collections.singletonList;
-import static net.n2oapp.platform.jaxrs.RestCriteria.FIRST_PAGE_NUMBER;
 import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.*;
 
 @Primary
@@ -228,7 +227,7 @@ public class PublishServiceImpl implements PublishService {
     private void publishNonConflictReferrers(String refBookCode, Integer publishedVersionId) {
 
         ReferrerVersionCriteria criteria = new ReferrerVersionCriteria(refBookCode, RefBookStatusType.USED, RefBookSourceType.DRAFT);
-        criteria.startPageNumber(FIRST_PAGE_NUMBER, REF_BOOK_VERSION_PAGE_SIZE);
+        criteria.setPageSize(REF_BOOK_VERSION_PAGE_SIZE);
 
         Page<RefBookVersion> page = refBookService.searchReferrerVersions(criteria);
         while (!page.getContent().isEmpty()) {
@@ -250,11 +249,12 @@ public class PublishServiceImpl implements PublishService {
      * @return Отсутствие конфликта
      */
     private boolean notExistsConflict(Integer referrerVersionId, Integer publishedVersionId) {
+
         RefBookConflictCriteria criteria = new RefBookConflictCriteria();
         criteria.setReferrerVersionId(referrerVersionId);
         criteria.setPublishedVersionId(publishedVersionId);
+        criteria.setPageSize(1);
 
-        criteria.startPageNumber(FIRST_PAGE_NUMBER, 1);
         Page<RefBookConflict> conflicts = conflictService.search(criteria);
         return conflicts.getContent().isEmpty();
     }
