@@ -164,8 +164,7 @@ public class ConflictServiceImpl implements ConflictService {
 
         CompareDataCriteria dataCriteria = new CompareDataCriteria(criteria.getOldVersionId(), criteria.getNewVersionId());
         dataCriteria.setOrders(SORT_VERSION_DATA);
-        dataCriteria.setPageNumber(FIRST_PAGE_NUMBER);
-        dataCriteria.setPageSize(REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
+        dataCriteria.startPageNumber(FIRST_PAGE_NUMBER, REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
 
         RefBookVersionEntity referrerVersionEntity = versionRepository.getOne(criteria.getReferrerVersionId());
         RefBookVersionEntity oldVersionEntity = versionRepository.getOne(criteria.getOldVersionId());
@@ -367,19 +366,16 @@ public class ConflictServiceImpl implements ConflictService {
 
     /**
      * Сохранение информации о конфликтах.
-     *
-     * @param refFromId идентификатор версии справочника со ссылками
-     * @param refToId   идентификатор версии изменённого справочника
-     * @param conflicts список конфликтов
      */
     @Override
     @Transactional
-    public void create(Integer refFromId, Integer refToId, List<Conflict> conflicts) {
-        if (isEmpty(conflicts))
+    public void create(CreateConflictsRequest request) {
+        if (Objects.isNull(request)
+                || isEmpty(request.getConflicts()))
             return;
 
-        List<RefBookConflictEntity> entities = conflicts.stream()
-                .map(conflict -> createRefBookConflictEntity(refFromId, refToId, conflict))
+        List<RefBookConflictEntity> entities = request.getConflicts().stream()
+                .map(conflict -> createRefBookConflictEntity(request.getRefFromId(), request.getRefToId(), conflict))
                 .collect(toList());
 
         conflictRepository.saveAll(entities);
@@ -1189,7 +1185,7 @@ public class ConflictServiceImpl implements ConflictService {
         PageIterator<DiffRowValue, CompareDataCriteria> pageIterator = new PageIterator<>(pageSource, criteria);
         pageIterator.forEachRemaining(page -> {
             List<Conflict> conflicts = calculateDataDiffConflicts(referrerVersionEntity, oldVersionEntity, getDataDiffContent(page, isAltered));
-            create(referrerId, newRefToId, conflicts);
+            create(new CreateConflictsRequest(referrerId, newRefToId, conflicts));
         });
     }
 
@@ -1215,8 +1211,8 @@ public class ConflictServiceImpl implements ConflictService {
         Function<RefBookConflictCriteria, Page<RefBookConflict>> pageSource = this::search;
         PageIterator<RefBookConflict, RefBookConflictCriteria> pageIterator = new PageIterator<>(pageSource, criteria);
         pageIterator.forEachRemaining(page -> {
-                List<Conflict> list = recalculateConflicts(refFromEntity, oldRefToEntity, newRefToId, page.getContent(), isAltered);
-                create(refFromId, newRefToId, list);
+            List<Conflict> conflicts = recalculateConflicts(refFromId, oldRefToId, newRefToId, page.getContent(), isAltered);
+            create(new CreateConflictsRequest(refFromId, newRefToId, conflicts));
         });
     }
 

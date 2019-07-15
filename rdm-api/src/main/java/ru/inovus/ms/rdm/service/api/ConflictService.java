@@ -60,15 +60,13 @@ public interface ConflictService {
     Page<RefBookConflict> search(@ApiParam("Критерий поиска") @BeanParam RefBookConflictCriteria criteria);
 
     @POST
-    @Path("/create/list")
+    @Path("/create")
     @ApiOperation("Сохранение информации о конфликтах")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void create(@ApiParam("Идентификатор версии, которая ссылается") @QueryParam("refFromId") Integer refFromId,
-                @ApiParam("Идентификатор версии с конфликтами, на которую ссылаются") @QueryParam("refToId") Integer refToId,
-                @ApiParam("Список конфликтов") List<Conflict> conflicts);
+    void create(CreateConflictsRequest request);
 
     @DELETE
     @Path("/{id}")

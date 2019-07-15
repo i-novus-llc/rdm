@@ -1,5 +1,7 @@
 package ru.inovus.ms.rdm.model.conflict;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.swagger.annotations.ApiModel;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
@@ -7,6 +9,8 @@ import ru.inovus.ms.rdm.enumeration.ConflictType;
 
 import java.util.List;
 
+@ApiModel(value = "Вычисленный конфликт")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Conflict {
 
     private String refAttributeCode;
@@ -15,6 +19,7 @@ public class Conflict {
 
     private List<FieldValue> primaryValues;
 
+    @SuppressWarnings("unused")
     public Conflict() {
     }
 
