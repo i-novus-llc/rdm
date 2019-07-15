@@ -232,12 +232,11 @@ public class ConflictServiceTest {
         RefBookDataDiff refBookDataDiff = createRecalculateConflictsDataDiff();
         when(compareService.compareData(any())).thenReturn(refBookDataDiff);
 
+        // Проверка в случае изменения только данных.
         List<Conflict> expectedList = new ArrayList<>(CONFLICTED_PUBLISHED_ROW_SYS_IDS_EXPECTED.size());
         CONFLICTED_PUBLISHED_ROW_SYS_IDS_EXPECTED.forEach(systemId -> {
             ConflictType conflictType =
-                    PUBLISHED_ROW_SYS_ID_DELETED_UNCHANGING.equals(systemId)
-                            ? ConflictType.DELETED
-                            : ConflictType.UPDATED;
+                    PUBLISHED_ROW_SYS_ID_DELETED_UNCHANGING.equals(systemId) ? ConflictType.DELETED : ConflictType.UPDATED;
             expectedList.add(
                     new Conflict(REFERRER_ATTRIBUTE_REFERENCE, conflictType,
                             singletonList(new StringFieldValue(REFERRER_ATTRIBUTE_CODE, getRecalculateConflictsReferrerPrimaryValue(systemId))))
@@ -249,6 +248,26 @@ public class ConflictServiceTest {
                 conflicts.getContent(), false
         );
         assertConflicts(expectedList, actualList);
+
+        // Проверка в случае изменения данных и структуры.
+        List<Conflict> expectedAlteredList = new ArrayList<>(CONFLICTED_PUBLISHED_ROW_SYS_IDS_EXPECTED.size());
+        CONFLICTED_PUBLISHED_ROW_SYS_IDS_EXPECTED.forEach(systemId -> {
+            ConflictType conflictType =
+                    PUBLISHED_ROW_SYS_ID_DELETED_UNCHANGING.equals(systemId) ? ConflictType.DELETED : ConflictType.UPDATED;
+
+            if (!ConflictType.UPDATED.equals(conflictType)) {
+                expectedAlteredList.add(
+                        new Conflict(REFERRER_ATTRIBUTE_REFERENCE, conflictType,
+                                singletonList(new StringFieldValue(REFERRER_ATTRIBUTE_CODE, getRecalculateConflictsReferrerPrimaryValue(systemId))))
+                );
+            }
+        });
+
+        List<Conflict> actualAlteredList = conflictService.recalculateConflicts(
+                referrerEntity, publishedEntity, publishingEntity.getId(),
+                conflicts.getContent(), true
+        );
+        assertConflicts(expectedAlteredList, actualAlteredList);
     }
     
     private Page<RefBookConflict> createRecalculateConflictsPage() {
