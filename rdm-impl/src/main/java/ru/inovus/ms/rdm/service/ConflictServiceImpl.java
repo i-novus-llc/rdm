@@ -243,8 +243,8 @@ public class ConflictServiceImpl implements ConflictService {
         versionValidation.validateVersionExists(newRefToId);
 
         if (ConflictType.ALTERED.equals(conflictType)) {
-            // NB: Проверить сначала, есть ли реальные ссылки из refFromId.
             StructureDiff diff = compareService.compareStructures(oldRefToId, newRefToId);
+            // NB: to-do: Проверить сначала, есть ли реальные ссылки из refFromId ?!
             return isRefBookAltered(diff);
         }
 
@@ -1046,8 +1046,9 @@ public class ConflictServiceImpl implements ConflictService {
                                                          RefBookVersionEntity oldRefToEntity,
                                                          RefBookVersionEntity newRefToEntity,
                                                          List<Structure.Reference> refFromReferences) {
-        SearchDataCriteria criteria = new SearchDataCriteria(FIRST_PAGE_NUMBER, REF_BOOK_VERSION_DATA_PAGE_SIZE, null);
+        SearchDataCriteria criteria = new SearchDataCriteria();
         criteria.setOrders(SORT_VERSION_DATA);
+        criteria.setPageSize(REF_BOOK_VERSION_DATA_PAGE_SIZE);
 
         Function<SearchDataCriteria, Page<RefBookRowValue>> pageSource = pageCriteria -> versionService.search(refFromEntity.getId(), criteria);
         PageIterator<RefBookRowValue, SearchDataCriteria> pageIterator = new PageIterator<>(pageSource, criteria);
