@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.entity;
 import ru.inovus.ms.rdm.enumeration.RefBookOperation;
 
 import javax.persistence.*;
+import java.time.Clock;
 import java.time.LocalDateTime;
 
 @Entity
@@ -43,7 +44,7 @@ public class RefBookOperationEntity {
     @PrePersist
     public void prePersist() {
         if (creationDate == null)
-            creationDate = LocalDateTime.now();
+            creationDate = LocalDateTime.now(Clock.systemUTC());
     }
 
     public Integer getId() {

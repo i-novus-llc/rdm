@@ -39,7 +39,7 @@
         </preConditions>
         <sql>
             ALTER TABLE n2o_rdm_management.ref_book_operation
-            ADD COLUMN creation_date timestamp DEFAULT current_timestamp;
+            ADD COLUMN creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 
             COMMENT ON COLUMN n2o_rdm_management.ref_book_operation.creation_date IS 'Дата создания записи';
         </sql>

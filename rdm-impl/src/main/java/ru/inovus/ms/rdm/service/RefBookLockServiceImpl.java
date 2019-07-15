@@ -17,6 +17,7 @@ import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import javax.annotation.PostConstruct;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -91,7 +92,7 @@ public class RefBookLockServiceImpl implements RefBookLockService {
         RefBookOperationEntity refBookOperationEntity = operationRepository.findByRefBookId(refBookId);
 
         if (refBookOperationEntity != null) {
-            if (Duration.between(refBookOperationEntity.getCreationDate(), LocalDateTime.now())
+            if (Duration.between(refBookOperationEntity.getCreationDate(), LocalDateTime.now(Clock.systemUTC()))
                     .compareTo(OPERATION_MAX_LIVE_PERIOD) > 0) {
                 operationRepository.deleteById(refBookOperationEntity.getId());
                 return;
