@@ -29,9 +29,6 @@ public class RefBookEntity {
     @OneToMany(mappedBy="refBook", cascade = CascadeType.ALL)
     List<RefBookVersionEntity> versionList = new ArrayList<>();
 
-    @OneToOne(mappedBy = "refBook")
-    RefBookOperationEntity currentOperation;
-
     public Integer getId() {
         return id;
     }
@@ -72,14 +69,6 @@ public class RefBookEntity {
         this.versionList = versionList;
     }
 
-    public void setCurrentOperation(RefBookOperationEntity currentOperation) {
-        this.currentOperation = currentOperation;
-    }
-
-    public RefBookOperationEntity getCurrentOperation() {
-        return currentOperation;
-    }
-
     public String getCategory() {
         return category;
     }
@@ -98,12 +87,11 @@ public class RefBookEntity {
                 Objects.equals(code, that.code) &&
                 Objects.equals(removable, that.removable) &&
                 Objects.equals(archived, that.archived) &&
-                Objects.equals(currentOperation, that.currentOperation) &&
                 Objects.equals(category, that.category);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, code, removable, archived, currentOperation, category);
+        return Objects.hash(id, code, removable, archived, category);
     }
 }

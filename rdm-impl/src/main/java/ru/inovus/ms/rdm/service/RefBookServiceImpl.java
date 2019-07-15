@@ -259,9 +259,9 @@ public class RefBookServiceImpl implements RefBookService {
     public void delete(int refBookId) {
 
         validateRefBookExists(refBookId);
-        RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
-        refBookLockService.validateRefBookNotBusy(refBookEntity);
+        refBookLockService.validateRefBookNotBusyByRefBookId(refBookId);
 
+        RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
         refBookEntity.getVersionList().forEach(v ->
                 dropDataService.drop(refBookRepository.getOne(refBookId).getVersionList().stream()
                         .map(RefBookVersionEntity::getStorageCode)

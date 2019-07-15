@@ -12,12 +12,13 @@ import ru.inovus.ms.rdm.entity.RefBookOperationEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookOperation;
 import ru.inovus.ms.rdm.repositiory.RefBookOperationRepository;
-import ru.inovus.ms.rdm.repositiory.RefBookRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 
 import javax.annotation.PostConstruct;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -25,17 +26,16 @@ public class RefBookLockServiceImpl implements RefBookLockService {
 
     private static final Logger logger = LoggerFactory.getLogger(RefBookLockServiceImpl.class);
 
+    private static final Duration OPERATION_MAX_LIVE_PERIOD = Duration.ofHours(4);
     private static final String DEFAULT_USER = "admin";
     private String instanceId = "localhost";
 
-    private RefBookRepository refBookRepository;
     private RefBookOperationRepository operationRepository;
     private RefBookVersionRepository versionRepository;
 
     @Autowired
-    public RefBookLockServiceImpl(RefBookRepository refBookRepository, RefBookOperationRepository operationRepository,
+    public RefBookLockServiceImpl(RefBookOperationRepository operationRepository,
                                   RefBookVersionRepository versionRepository) {
-        this.refBookRepository = refBookRepository;
         this.operationRepository = operationRepository;
         this.versionRepository = versionRepository;
         try {
@@ -43,7 +43,6 @@ public class RefBookLockServiceImpl implements RefBookLockService {
         } catch (UnknownHostException e) {
             logger.error("cannot.read.host.address", e);
         }
-
     }
 
     @PostConstruct
@@ -55,27 +54,27 @@ public class RefBookLockServiceImpl implements RefBookLockService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void setRefBookPublishing(Integer refBookId) {
-        RefBookEntity refBook = refBookRepository.getOne(refBookId);
-        validateRefBookNotBusy(refBook);
-        operationRepository.save(new RefBookOperationEntity(refBook, RefBookOperation.PUBLISHING, instanceId, DEFAULT_USER));
+        saveRefBookOperation(refBookId, RefBookOperation.PUBLISHING);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void setRefBookUploading(Integer refBookId) {
-        RefBookEntity refBook = refBookRepository.getOne(refBookId);
-        validateRefBookNotBusy(refBook);
-        operationRepository.save(new RefBookOperationEntity(refBook, RefBookOperation.UPLOADING, instanceId, DEFAULT_USER));
+        saveRefBookOperation(refBookId, RefBookOperation.UPLOADING);
+    }
+
+    private void saveRefBookOperation(Integer refBookId, RefBookOperation operation) {
+        validateRefBookNotBusyByRefBookId(refBookId);
+
+        RefBookEntity refBook = new RefBookEntity();
+        refBook.setId(refBookId);
+        operationRepository.save(new RefBookOperationEntity(refBook, operation, instanceId, DEFAULT_USER));
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void deleteRefBookAction(Integer refBookId) {
-        Optional<RefBookEntity> refBook = refBookRepository.findById(refBookId);
-        if (refBook.isPresent() && refBook.get().getCurrentOperation() != null) {
-            operationRepository.deleteById(refBook.get().getCurrentOperation().getId());
-            refBook.get().setCurrentOperation(null);
-        }
+        operationRepository.deleteByRefBookId(refBookId);
     }
 
     @Override
@@ -83,16 +82,24 @@ public class RefBookLockServiceImpl implements RefBookLockService {
         Optional<RefBookVersionEntity> versionEntity = versionRepository.findById(versionId);
         versionEntity.ifPresent(
                 refBookVersionEntity ->
-                        validateRefBookNotBusy(refBookVersionEntity.getRefBook())
+                        validateRefBookNotBusyByRefBookId(refBookVersionEntity.getRefBook().getId())
         );
     }
 
     @Override
-    public void validateRefBookNotBusy(RefBookEntity refBookEntity) {
-        if (refBookEntity.getCurrentOperation() != null) {
-            if (RefBookOperation.PUBLISHING.equals(refBookEntity.getCurrentOperation().getOperation())) {
+    public void validateRefBookNotBusyByRefBookId(Integer refBookId) {
+        RefBookOperationEntity refBookOperationEntity = operationRepository.findByRefBookId(refBookId);
+
+        if (refBookOperationEntity != null) {
+            if (Duration.between(refBookOperationEntity.getCreationDate(), LocalDateTime.now())
+                    .compareTo(OPERATION_MAX_LIVE_PERIOD) > 0) {
+                operationRepository.deleteById(refBookOperationEntity.getId());
+                return;
+            }
+
+            if (RefBookOperation.PUBLISHING.equals(refBookOperationEntity.getOperation())) {
                 throw new UserException("draft.is.publishing");
-            } else if (RefBookOperation.UPLOADING.equals(refBookEntity.getCurrentOperation().getOperation())) {
+            } else if (RefBookOperation.UPLOADING.equals(refBookOperationEntity.getOperation())) {
                 throw new UserException("draft.is.uploading");
             }
         }

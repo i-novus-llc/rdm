@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.entity;
 import ru.inovus.ms.rdm.enumeration.RefBookOperation;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "ref_book_operation", schema = "n2o_rdm_management")
@@ -26,6 +27,9 @@ public class RefBookOperationEntity {
     @Column(name = "user_name")
     private String userName;
 
+    @Column(name = "creation_date")
+    private LocalDateTime creationDate;
+
     public RefBookOperationEntity(RefBookEntity refBook, RefBookOperation operation, String instanceId, String userName) {
         this.refBook = refBook;
         this.operation = operation;
@@ -34,6 +38,12 @@ public class RefBookOperationEntity {
     }
 
     public RefBookOperationEntity() {
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (creationDate == null)
+            creationDate = LocalDateTime.now();
     }
 
     public Integer getId() {
@@ -75,4 +85,13 @@ public class RefBookOperationEntity {
     public void setUserName(String userName) {
         this.userName = userName;
     }
+
+    public LocalDateTime getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(LocalDateTime creationDate) {
+        this.creationDate = creationDate;
+    }
+
 }

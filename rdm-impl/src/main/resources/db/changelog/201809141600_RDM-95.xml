@@ -31,4 +31,18 @@
         </sql>
     </changeSet>
 
+    <changeSet id="201809141600_RDM-95_2" author="amardanova" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="ref_book_operation" columnName="creation_date" schemaName="n2o_rdm_management"/>
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE n2o_rdm_management.ref_book_operation
+            ADD COLUMN creation_date timestamp DEFAULT current_timestamp;
+
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_operation.creation_date IS 'Дата создания записи';
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
