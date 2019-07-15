@@ -703,9 +703,8 @@ public class DraftServiceImpl implements DraftService {
         );
         ReferenceFieldValue fieldValue = new ReferenceFieldValue(reference.getAttribute(), updatedReference);
 
-        draftDataService.updateReferenceInRefRows(draftEntity.getStorageCode(), fieldValue,
-                null, null
-        );
+        draftDataService.updateReferenceInRefRows(draftEntity.getStorageCode(), fieldValue, null, null);
+        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draftEntity.getId());
     }
 
     @Override
