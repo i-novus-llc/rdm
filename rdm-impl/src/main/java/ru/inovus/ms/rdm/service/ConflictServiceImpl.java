@@ -53,7 +53,6 @@ import ru.inovus.ms.rdm.util.PageIterator;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import javax.persistence.EntityManager;
-import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Consumer;
@@ -725,13 +724,14 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Копирование конфликтов при смене версий справочника.
+     * Копирование конфликтов при смене версий справочника без изменений.
      *
      * @param oldVersionId идентификатор старой версии справочника
      * @param newVersionId идентификатор новой версии справочника
      */
     @Override
     @Transactional
+    // for ApplicationTest
     public void copyConflicts(Integer oldVersionId, Integer newVersionId) {
 
         versionValidation.validateVersionExists(oldVersionId);
@@ -849,25 +849,6 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Получение значений первичных ключей
-     * по записи {@code rowValue} на основании структуры {@code structure}.
-     *
-     * @param rowValue  запись справочника
-     * @param structure структура справочника
-     * @return Список значений полей для первичных ключей
-     */
-    private List<FieldValue> getRowPrimaryValues(RefBookRowValue rowValue, Structure structure) {
-
-        if (rowValue == null || structure == null)
-            return emptyList();
-
-        return rowValue.getFieldValues().stream()
-                .filter(fieldValue ->
-                        structure.getAttribute(fieldValue.getField()).getIsPrimary())
-                .collect(toList());
-    }
-
-    /**
      * Получение записей по системным идентификаторам.
      *
      * @param versionId идентификатор версии
@@ -877,13 +858,7 @@ public class ConflictServiceImpl implements ConflictService {
         if (versionId == null)
             return emptyList();
 
-        SearchDataCriteria criteria = new SearchDataCriteria();
-        Set<List<AttributeFilter>> filterSet = systemIds.stream()
-                .map(systemId -> new AttributeFilter(DataConstants.SYS_PRIMARY_COLUMN, BigInteger.valueOf(systemId), FieldType.INTEGER))
-                .map(Collections::singletonList)
-                .collect(toSet());
-        criteria.setAttributeFilter(filterSet);
-
+        SearchDataCriteria criteria = new SearchDataCriteria(toSystemIdFilters(systemIds), null);
         Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
         return (rowValues != null && !isEmpty(rowValues.getContent())) ? rowValues.getContent() : emptyList();
     }
@@ -931,6 +906,7 @@ public class ConflictServiceImpl implements ConflictService {
     private List<ReferenceFilterValue> toFilterValues(RefBookVersionEntity refFromEntity, RefBookVersionEntity refToEntity,
                                                       List<RefBookConflict> conflicts, List<RefBookRowValue> refFromRowValues) {
         return conflicts.stream()
+                .filter(conflict -> Objects.nonNull(conflict.getRefRecordId()))
                 .map(conflict -> {
                     RefBookRowValue refBookRowValue = refFromRowValues.stream()
                             .filter(rowValue -> rowValue.getSystemId().equals(conflict.getRefRecordId()))
@@ -954,15 +930,14 @@ public class ConflictServiceImpl implements ConflictService {
         if (versionEntity == null)
             return null;
 
-        SearchDataCriteria criteria = new SearchDataCriteria();
         List<AttributeFilter> filterList = fieldValues.stream()
                 .map(fieldValue -> {
                     FieldType fieldType = versionEntity.getStructure().getAttribute(fieldValue.getField()).getType();
                     return new AttributeFilter(fieldValue.getField(), fieldValue.getValue(), fieldType, SearchTypeEnum.EXACT);
                 })
                 .collect(toList());
-        criteria.setAttributeFilter(singleton(filterList));
 
+        SearchDataCriteria criteria = new SearchDataCriteria(singleton(filterList), null);
         Page<RefBookRowValue> rowValues = versionService.search(versionEntity.getId(), criteria);
         return (rowValues != null && !isEmpty(rowValues.getContent())) ? rowValues.getContent().get(0) : null;
     }
@@ -1055,15 +1030,15 @@ public class ConflictServiceImpl implements ConflictService {
         if (StringUtils.isEmpty(deletedCodes))
             return;
 
-        List<RefBookConflictEntity> conflictEntities = refFromReferences.stream()
+        List<RefBookConflictEntity> entities = refFromReferences.stream()
                 .filter(reference -> containsAnyPlaceholder(reference.getDisplayExpression(), deletedCodes))
                 .map(reference ->
                         new RefBookConflictEntity(refFromEntity, newRefToEntity,
                                 null, reference.getAttribute(), ConflictType.ABSENT))
                 .collect(toList());
 
-        if (!isEmpty(conflictEntities))
-            conflictRepository.saveAll(conflictEntities);
+        if (!isEmpty(entities))
+            conflictRepository.saveAll(entities);
     }
 
     /**
@@ -1078,57 +1053,64 @@ public class ConflictServiceImpl implements ConflictService {
                                                          RefBookVersionEntity oldRefToEntity,
                                                          RefBookVersionEntity newRefToEntity,
                                                          List<Structure.Reference> refFromReferences) {
-        SearchDataCriteria criteria = new SearchDataCriteria();
+        SearchDataCriteria criteria = new SearchDataCriteria(FIRST_PAGE_NUMBER, REF_BOOK_VERSION_DATA_PAGE_SIZE, null);
         criteria.setOrders(SORT_VERSION_DATA);
-        criteria.startPageNumber(FIRST_PAGE_NUMBER, REF_BOOK_VERSION_DATA_PAGE_SIZE);
 
         Function<SearchDataCriteria, Page<RefBookRowValue>> pageSource = pageCriteria -> versionService.search(refFromEntity.getId(), criteria);
         PageIterator<RefBookRowValue, SearchDataCriteria> pageIterator = new PageIterator<>(pageSource, criteria);
-        pageIterator.forEachRemaining(page -> {
-            List<RefBookRowValue> refFromRows = page.getContent();
-
+        pageIterator.forEachRemaining(page ->
             refFromReferences.forEach(refFromReference -> {
-                // NB: extract to `createCalculatedStructureConflicts`.
-                Structure.Attribute refToAttribute = refFromReference.findReferenceAttribute(oldRefToEntity.getStructure());
+                List<RefBookConflictEntity> entities = calculateStructureAlterConflicts(refFromEntity, oldRefToEntity, newRefToEntity, refFromReference, page.getContent());
+                if (!isEmpty(entities))
+                    conflictRepository.saveAll(entities);
+            })
+        );
+    }
 
-                List<AbstractMap.SimpleEntry<Long, ReferenceFieldValue>> fieldEntries = refFromRows.stream()
-                        .map(refFromRow -> {
-                            ReferenceFieldValue referenceFieldValue = (ReferenceFieldValue) (refFromRow.getFieldValue(refFromReference.getAttribute()));
-                            if (!StringUtils.isEmpty(referenceFieldValue.getValue()))
-                                return new AbstractMap.SimpleEntry<>(refFromRow.getSystemId(), referenceFieldValue);
+    /**
+     * Создание конфликтов, связанных с изменением структуры.
+     *
+     * @param refFromEntity    версия, которая ссылается
+     * @param oldRefToEntity   старая версия, на которую ссылаются
+     * @param newRefToEntity   новая версия, на которую будут ссылаться
+     * @param refFromReference ссылка версии, которая ссылается
+     * @param refFromRows      строки версии, которая ссылается
+     */
+    private List<RefBookConflictEntity> calculateStructureAlterConflicts(RefBookVersionEntity refFromEntity,
+                                                                         RefBookVersionEntity oldRefToEntity,
+                                                                         RefBookVersionEntity newRefToEntity,
+                                                                         Structure.Reference refFromReference,
+                                                                         List<RefBookRowValue> refFromRows) {
+        Structure.Attribute refToAttribute = refFromReference.findReferenceAttribute(oldRefToEntity.getStructure());
 
-                            return null;
-                        })
-                        .filter(Objects::nonNull)
-                        .collect(toList());
+        List<AbstractMap.SimpleEntry<Long, ReferenceFieldValue>> fieldEntries = refFromRows.stream()
+                .map(refFromRow -> {
+                    ReferenceFieldValue referenceFieldValue = (ReferenceFieldValue) (refFromRow.getFieldValue(refFromReference.getAttribute()));
+                    if (!StringUtils.isEmpty(referenceFieldValue.getValue()))
+                        return new AbstractMap.SimpleEntry<>(refFromRow.getSystemId(), referenceFieldValue);
 
-                List<ReferenceFilterValue> filterValues = fieldEntries.stream()
-                        .map(fieldEntry -> new ReferenceFilterValue(refToAttribute, fieldEntry.getValue()))
-                        .collect(toList());
-                List<RefBookRowValue> refToRowValues = getRefToRowValues(newRefToEntity.getId(), filterValues);
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .collect(toList());
 
-                List<RefBookConflictEntity> conflictEntities = fieldEntries.stream()
-                        .map(fieldEntry -> {
-                            ReferenceFieldValue referenceFieldValue = fieldEntry.getValue();
-                            boolean hasFieldRow = refToRowValues.stream()
-                                    .anyMatch(refToRow -> {
-                                        FieldValue fieldValue = refToRow.getFieldValue(refToAttribute.getCode());
-                                        return Objects.equals(fieldValue.getValue(),
-                                                castFieldValue(referenceFieldValue, refToAttribute.getType()));
-                                    });
-                            if (hasFieldRow) {
-                                return new RefBookConflictEntity(refFromEntity, newRefToEntity,
-                                        fieldEntry.getKey(), referenceFieldValue.getField(), ConflictType.ALTERED);
-                            }
+        List<ReferenceFilterValue> filterValues = fieldEntries.stream()
+                .map(fieldEntry -> new ReferenceFilterValue(refToAttribute, fieldEntry.getValue()))
+                .collect(toList());
+        List<RefBookRowValue> refToRowValues = getRefToRowValues(newRefToEntity.getId(), filterValues);
 
-                            return null;
-                        })
-                        .filter(Objects::nonNull)
-                        .collect(toList());
+        return fieldEntries.stream()
+                .map(fieldEntry -> {
+                    Object castedFieldValue = castFieldValue(fieldEntry.getValue(), refToAttribute.getType());
+                    if (isFieldValueRow(refToAttribute.getCode(), castedFieldValue, refToRowValues)) {
+                        return new RefBookConflictEntity(refFromEntity, newRefToEntity,
+                                fieldEntry.getKey(), fieldEntry.getValue().getField(), ConflictType.ALTERED);
+                    }
 
-                conflictRepository.saveAll(conflictEntities);
-            });
-        });
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .collect(toList());
     }
 
     /**
@@ -1139,13 +1121,10 @@ public class ConflictServiceImpl implements ConflictService {
      * @return Список записей
      */
     private List<RefBookRowValue> getRefToRowValues(Integer versionId, List<ReferenceFilterValue> filterValues) {
-
         if (versionId == null || isEmpty(filterValues))
             return emptyList();
 
-        SearchDataCriteria criteria = new SearchDataCriteria();
-        criteria.setAttributeFilter(toAttributeFilters(filterValues));
-
+        SearchDataCriteria criteria = new SearchDataCriteria(toAttributeFilters(filterValues), null);
         Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
         return (rowValues != null && !isEmpty(rowValues.getContent())) ? rowValues.getContent() : emptyList();
     }
@@ -1211,7 +1190,7 @@ public class ConflictServiceImpl implements ConflictService {
         Function<RefBookConflictCriteria, Page<RefBookConflict>> pageSource = this::search;
         PageIterator<RefBookConflict, RefBookConflictCriteria> pageIterator = new PageIterator<>(pageSource, criteria);
         pageIterator.forEachRemaining(page -> {
-            List<Conflict> conflicts = recalculateConflicts(refFromId, oldRefToId, newRefToId, page.getContent(), isAltered);
+            List<Conflict> conflicts = recalculateConflicts(refFromEntity, oldRefToEntity, newRefToId, page.getContent(), isAltered);
             create(new CreateConflictsRequest(refFromId, newRefToId, conflicts));
         });
     }

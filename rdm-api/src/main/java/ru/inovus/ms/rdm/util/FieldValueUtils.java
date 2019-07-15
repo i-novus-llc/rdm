@@ -4,21 +4,23 @@ import org.apache.commons.text.StringSubstitutor;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
-import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.model.field.ReferenceFilterValue;
+import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.version.AttributeFilter;
 
 import java.math.BigInteger;
 import java.util.*;
 
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static ru.i_novus.platform.datastorage.temporal.model.DataConstants.*;
 
 public class FieldValueUtils {
 
@@ -105,6 +107,50 @@ public class FieldValueUtils {
             return value.getValue() != null ? new BigInteger(value.getValue()) : null;
         }
         return value.getValue();
+    }
+
+    /**
+     * Получение значений первичных ключей
+     * по записи {@code rowValue} на основании структуры {@code structure}.
+     *
+     * @param rowValue  запись справочника
+     * @param structure структура справочника
+     * @return Список значений полей для первичных ключей
+     */
+    public static List<FieldValue> getRowPrimaryValues(RefBookRowValue rowValue, Structure structure) {
+        if (rowValue == null || structure == null)
+            return emptyList();
+
+        return rowValue.getFieldValues().stream()
+                .filter(fieldValue ->
+                        structure.getAttribute(fieldValue.getField()).getIsPrimary())
+                .collect(toList());
+    }
+
+    /**
+     * Проверка на наличие записи со значением поля.
+     *
+     * @param field     код поля
+     * @param value     значение поля
+     * @param rowValues список записей
+     * @return Наличие строки
+     */
+    public static boolean isFieldValueRow(String field, Object value, List<RefBookRowValue> rowValues) {
+        return rowValues.stream()
+                .anyMatch(rowValue -> Objects.equals(rowValue.getFieldValue(field).getValue(), value));
+    }
+
+    /**
+     * Получение множества фильтров атрибута по системным идентификаторам.
+     *
+     * @param systemIds системные идентификаторы
+     * @return Множество фильтров
+     */
+    public static Set<List<AttributeFilter>> toSystemIdFilters(List<Long> systemIds) {
+        return systemIds.stream()
+                .map(systemId -> new AttributeFilter(SYS_PRIMARY_COLUMN, BigInteger.valueOf(systemId), FieldType.INTEGER))
+                .map(Collections::singletonList)
+                .collect(toSet());
     }
 
     /**

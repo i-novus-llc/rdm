@@ -65,6 +65,7 @@ public class ReferenceController {
 
         if (isNotBlank(referenceCriteria.getDisplayValue()))
             criteria.setCommonFilter(referenceCriteria.getDisplayValue());
+
         criteria.setPageNumber(referenceCriteria.getPage() - 1);
         criteria.setPageSize(referenceCriteria.getSize());
 
