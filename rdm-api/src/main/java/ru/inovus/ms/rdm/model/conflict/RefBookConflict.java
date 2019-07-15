@@ -90,4 +90,14 @@ public class RefBookConflict {
     public void setCreationDate(LocalDateTime creationDate) {
         this.creationDate = creationDate;
     }
+
+
+    /**
+     * Проверка типа на CLEANED.
+     *
+     * @return Результат проверки
+     */
+    public boolean isCleaned() {
+        return ConflictType.CLEANED.equals(getConflictType());
+    }
 }

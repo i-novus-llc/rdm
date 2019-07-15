@@ -522,6 +522,11 @@ public class ConflictServiceImpl implements ConflictService {
                                                 List<RefBookConflict> conflicts, List<RefBookRowValue> refFromRowValues, List<DiffRowValue> diffRowValues) {
         return conflicts.stream()
                 .map(conflict -> {
+                    if (conflict.isCleaned()) {
+                        // NB: Analyze dipslayExpression ?!
+                        return toConflict(conflict, refFromEntity.getStructure(), null);
+                    }
+
                     RefBookRowValue refFromRowValue = refFromRowValues.stream()
                             .filter(rowValue -> rowValue.getSystemId().equals(conflict.getRefRecordId()))
                             .findFirst().orElse(null);
@@ -799,8 +804,9 @@ public class ConflictServiceImpl implements ConflictService {
         conflict.setRefAttributeCode(refBookConflict.getRefFieldCode());
         conflict.setConflictType(refBookConflict.getConflictType());
 
-        List<FieldValue> primaryValues = getRowPrimaryValues(referrerRowValue, referrerStructure);
-        conflict.setPrimaryValues(primaryValues);
+        if (Objects.nonNull(referrerRowValue)) {
+            conflict.setPrimaryValues(getRowPrimaryValues(referrerRowValue, referrerStructure));
+        }
 
         return conflict;
     }
