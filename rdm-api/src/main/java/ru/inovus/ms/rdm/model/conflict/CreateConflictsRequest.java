@@ -5,12 +5,13 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.ws.rs.QueryParam;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
 @ApiModel(value = "Модель создания конфликтов", description = "Набор данных для создания конфликтов")
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CreateConflictsRequest {
+public class CreateConflictsRequest implements Serializable {
 
     @ApiModelProperty("Идентификатор версии, которая ссылается")
     @QueryParam("refFromId")
@@ -24,7 +25,9 @@ public class CreateConflictsRequest {
     @QueryParam("conflicts")
     private List<Conflict> conflicts;
 
+    @SuppressWarnings("unused")
     public CreateConflictsRequest() {
+
     }
 
     public CreateConflictsRequest(Integer refFromId, Integer refToId, List<Conflict> conflicts) {

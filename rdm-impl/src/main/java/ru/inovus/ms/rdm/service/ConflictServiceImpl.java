@@ -62,7 +62,6 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static net.n2oapp.platform.jaxrs.RestCriteria.FIRST_PAGE_NUMBER;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.isSourceType;
 import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.isVersionOfRefBooks;
@@ -163,7 +162,7 @@ public class ConflictServiceImpl implements ConflictService {
 
         CompareDataCriteria dataCriteria = new CompareDataCriteria(criteria.getOldVersionId(), criteria.getNewVersionId());
         dataCriteria.setOrders(SORT_VERSION_DATA);
-        dataCriteria.startPageNumber(FIRST_PAGE_NUMBER, REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
+        dataCriteria.setPageSize(REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
 
         RefBookVersionEntity referrerVersionEntity = versionRepository.getOne(criteria.getReferrerVersionId());
         RefBookVersionEntity oldVersionEntity = versionRepository.getOne(criteria.getOldVersionId());
@@ -256,7 +255,7 @@ public class ConflictServiceImpl implements ConflictService {
 
         CompareDataCriteria criteria = new CompareDataCriteria(oldRefToId, newRefToId);
         criteria.setOrders(SORT_VERSION_DATA);
-        criteria.startPageNumber(FIRST_PAGE_NUMBER, REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
+        criteria.setPageSize(REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
 
         Function<CompareDataCriteria, Page<DiffRowValue>> pageSource = pageCriteria -> compareService.compareData(pageCriteria).getRows();
         PageIterator<DiffRowValue, CompareDataCriteria> pageIterator = new PageIterator<>(pageSource, criteria);
@@ -440,13 +439,7 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     @Override
-    public RefBookConflict find(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode) {
-        RefBookConflictEntity entity = findEntity(refFromId, refToId, rowSystemId, refFieldCode);
-        return Objects.nonNull(entity) ? refBookConflictModel(entity) : null;
-    }
-
-    @Override
-    public Integer findId(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode) {
+    public Integer findId(Integer refFromId, Integer refToId, String refFieldCode, Long rowSystemId) {
         RefBookConflictEntity entity = findEntity(refFromId, refToId, rowSystemId, refFieldCode);
         return Objects.nonNull(entity) ? entity.getId() : null;
     }
@@ -667,7 +660,7 @@ public class ConflictServiceImpl implements ConflictService {
         criteria.setRefFieldCode(reference.getAttribute());
         criteria.setConflictType(conflictType);
         criteria.setOrders(SORT_REF_BOOK_CONFLICTS);
-        criteria.startPageNumber(FIRST_PAGE_NUMBER, REF_BOOK_CONFLICT_PAGE_SIZE);
+        criteria.setPageSize(REF_BOOK_CONFLICT_PAGE_SIZE);
 
         Function<RefBookConflictCriteria, Page<RefBookConflictEntity>> pageSource = this::findConflictEntities;
         PageIterator<RefBookConflictEntity, RefBookConflictCriteria> pageIterator = new PageIterator<>(pageSource, criteria);
@@ -1154,7 +1147,6 @@ public class ConflictServiceImpl implements ConflictService {
 
         CompareDataCriteria criteria = new CompareDataCriteria(oldRefToId, newRefToId);
         criteria.setOrders(SORT_VERSION_DATA);
-        criteria.setPageNumber(FIRST_PAGE_NUMBER);
         criteria.setPageSize(REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
 
         RefBookVersionEntity referrerVersionEntity = versionRepository.getOne(referrerId);
@@ -1185,7 +1177,7 @@ public class ConflictServiceImpl implements ConflictService {
         criteria.setReferrerVersionId(refFromId);
         criteria.setPublishedVersionId(oldRefToId);
         criteria.setOrders(SORT_REF_BOOK_CONFLICTS);
-        criteria.startPageNumber(FIRST_PAGE_NUMBER, REF_BOOK_CONFLICT_PAGE_SIZE);
+        criteria.setPageSize(REF_BOOK_CONFLICT_PAGE_SIZE);
 
         Function<RefBookConflictCriteria, Page<RefBookConflict>> pageSource = this::search;
         PageIterator<RefBookConflict, RefBookConflictCriteria> pageIterator = new PageIterator<>(pageSource, criteria);
@@ -1206,7 +1198,7 @@ public class ConflictServiceImpl implements ConflictService {
 
         ReferrerVersionCriteria criteria = new ReferrerVersionCriteria(refBookCode, RefBookStatusType.USED, sourceType);
         criteria.setOrders(SORT_REFERRER_VERSIONS);
-        criteria.startPageNumber(FIRST_PAGE_NUMBER, REF_BOOK_VERSION_PAGE_SIZE);
+        criteria.setPageSize(REF_BOOK_VERSION_PAGE_SIZE);
 
         Function<ReferrerVersionCriteria, Page<RefBookVersion>> pageSource = refBookService::searchReferrerVersions;
         PageIterator<RefBookVersion, ReferrerVersionCriteria> pageIterator = new PageIterator<>(pageSource, criteria);

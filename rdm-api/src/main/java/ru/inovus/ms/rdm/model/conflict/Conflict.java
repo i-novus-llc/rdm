@@ -2,21 +2,30 @@ package ru.inovus.ms.rdm.model.conflict;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 
+import javax.ws.rs.QueryParam;
+import java.io.Serializable;
 import java.util.List;
 
-@ApiModel(value = "Вычисленный конфликт")
+@ApiModel(value = "Вычисленный конфликт версии, которая ссылаются")
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Conflict {
+public class Conflict implements Serializable {
 
+    @ApiModelProperty("Код атрибута")
+    @QueryParam("refAttributeCode")
     private String refAttributeCode;
 
+    @ApiModelProperty("Тип конфликта")
+    @QueryParam("conflictType")
     private ConflictType conflictType;
 
+    @ApiModelProperty("Список первичных ключей")
+    @QueryParam("primaryValues")
     private List<FieldValue> primaryValues;
 
     @SuppressWarnings("unused")
