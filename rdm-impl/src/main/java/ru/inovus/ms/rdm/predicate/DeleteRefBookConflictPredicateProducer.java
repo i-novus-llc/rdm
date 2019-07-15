@@ -8,7 +8,7 @@ import ru.inovus.ms.rdm.model.conflict.DeleteRefBookConflictCriteria;
 import static java.util.Objects.nonNull;
 import static ru.inovus.ms.rdm.predicate.RefBookConflictPredicates.*;
 
-public class DeleteRefBookConflictPredicateProducer implements CriteriaPredicateProducer {
+public class DeleteRefBookConflictPredicateProducer {
 
     private DeleteRefBookConflictPredicateProducer() {
     }

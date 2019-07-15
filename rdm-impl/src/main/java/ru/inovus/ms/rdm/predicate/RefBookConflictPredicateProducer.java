@@ -8,7 +8,7 @@ import static java.util.Objects.nonNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static ru.inovus.ms.rdm.predicate.RefBookConflictPredicates.*;
 
-public class RefBookConflictPredicateProducer implements CriteriaPredicateProducer {
+public class RefBookConflictPredicateProducer {
 
     private RefBookConflictPredicateProducer() {
     }

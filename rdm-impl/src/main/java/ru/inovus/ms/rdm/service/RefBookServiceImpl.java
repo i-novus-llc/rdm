@@ -418,7 +418,7 @@ public class RefBookServiceImpl implements RefBookService {
         model.setHasPrimaryAttribute(!CollectionUtils.isEmpty(primaryAttributes));
 
         ReferrerVersionCriteria criteria = new ReferrerVersionCriteria(model.getCode(), RefBookStatusType.ALL, RefBookSourceType.ALL);
-        criteria.firstPageNumber(1);
+        criteria.setPageSize(1);
         List<RefBookVersion> referrerVersions = searchReferrerVersions(criteria).getContent();
         model.setHasReferrer(!referrerVersions.isEmpty());
 
