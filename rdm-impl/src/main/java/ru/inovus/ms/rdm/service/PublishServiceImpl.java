@@ -21,6 +21,7 @@ import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.model.version.ReferrerVersionCriteria;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.*;
+import ru.inovus.ms.rdm.util.PageIterator;
 import ru.inovus.ms.rdm.util.TimeUtils;
 import ru.inovus.ms.rdm.util.VersionNumberStrategy;
 import ru.inovus.ms.rdm.validation.VersionPeriodPublishValidation;
@@ -28,6 +29,7 @@ import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
 
 import static java.util.Collections.singletonList;
 import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.*;
@@ -229,16 +231,14 @@ public class PublishServiceImpl implements PublishService {
         ReferrerVersionCriteria criteria = new ReferrerVersionCriteria(refBookCode, RefBookStatusType.USED, RefBookSourceType.DRAFT);
         criteria.setPageSize(REF_BOOK_VERSION_PAGE_SIZE);
 
-        Page<RefBookVersion> page = refBookService.searchReferrerVersions(criteria);
-        while (!page.getContent().isEmpty()) {
-            page.getContent().forEach(referrerVersion -> {
-                if (notExistsConflict(referrerVersion.getId(), publishedVersionId))
-                    publish(referrerVersion.getId(), null, null, null, false);
-            });
-
-            criteria.nextPageNumber();
-            page = refBookService.searchReferrerVersions(criteria);
-        }
+        Function<ReferrerVersionCriteria, Page<RefBookVersion>> pageSource = refBookService::searchReferrerVersions;
+        PageIterator<RefBookVersion, ReferrerVersionCriteria> pageIterator = new PageIterator<>(pageSource, criteria);
+        pageIterator.forEachRemaining(page ->
+                page.getContent().forEach(referrerVersion -> {
+                    if (notExistsConflict(referrerVersion.getId(), publishedVersionId))
+                        publish(referrerVersion.getId(), null, null, null, false);
+                })
+        );
     }
 
     /**
