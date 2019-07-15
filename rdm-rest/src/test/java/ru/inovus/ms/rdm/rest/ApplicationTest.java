@@ -1632,7 +1632,7 @@ public class ApplicationTest {
         assertNotNull(rowValue);
         assertNotNull(rowValue.getSystemId());
 
-        return conflictService.findId(referrerId, cardinalId, rowValue.getSystemId(), fieldName);
+        return conflictService.findId(referrerId, cardinalId, fieldName, rowValue.getSystemId());
     }
 
     @Test

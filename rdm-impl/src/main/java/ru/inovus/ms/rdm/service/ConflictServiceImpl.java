@@ -450,13 +450,7 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     @Override
-    public RefBookConflict find(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode) {
-        RefBookConflictEntity entity = findEntity(refFromId, refToId, rowSystemId, refFieldCode);
-        return Objects.nonNull(entity) ? refBookConflictModel(entity) : null;
-    }
-
-    @Override
-    public Integer findId(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode) {
+    public Integer findId(Integer refFromId, Integer refToId, String refFieldCode, Long rowSystemId) {
         RefBookConflictEntity entity = findEntity(refFromId, refToId, rowSystemId, refFieldCode);
         return Objects.nonNull(entity) ? entity.getId() : null;
     }
