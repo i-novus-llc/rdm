@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.service;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -11,7 +10,6 @@ import org.springframework.data.domain.*;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.*;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.IntegerField;
@@ -23,10 +21,8 @@ import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.conflict.RefBookConflict;
 import ru.inovus.ms.rdm.model.diff.RefBookDataDiff;
-import ru.inovus.ms.rdm.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.model.conflict.Conflict;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
-import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.repositiory.RefBookConflictRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.CompareService;
@@ -110,16 +106,6 @@ public class ConflictServiceTest {
             PUBLISHED_ROW_SYS_ID_DELETED_UNCHANGING,
             PUBLISHED_ROW_SYS_ID_DELETED_REMOLDING
     );
-
-    // for `testRefreshReferencesByPrimary`:
-    private static final String REFERRER_PRIMARY_UNCHANGED_VALUE = "r3";
-    private static final String REFERRER_PRIMARY_UPDATED_VALUE = "r2";
-    private static final String REFERRER_PRIMARY_DELETED_VALUE = "r202";
-
-    private static final String PUBLISHING_PRIMARY_UNCHANGED_VALUE = "3";
-    private static final String PUBLISHING_PRIMARY_UPDATED_VALUE = "2";
-    private static final String PUBLISHING_PRIMARY_DELETED_VALUE = "202";
-    private static final String PUBLISHING_PRIMARY_UPDATED_DISPLAY = "Doubled_Two: 2222";
 
     @InjectMocks
     private ConflictServiceImpl conflictService;
@@ -236,13 +222,9 @@ public class ConflictServiceTest {
     @Test
     public void testRecalculateConflicts() {
 
-        //RefBookVersionEntity referrerDraftEntity = createReferrerEntity(REFERRER_DRAFT_ID);
         RefBookVersionEntity publishingEntity = createPublishingEntity(PUBLISHING_DRAFT_ID);
 
         Page<RefBookConflict> conflicts = createRecalculateConflictsPage();
-
-        when(versionRepository.getOne(eq(referrerEntity.getId()))).thenReturn(referrerEntity);
-        when(versionRepository.getOne(eq(publishedEntity.getId()))).thenReturn(publishedEntity);
 
         Page<RefBookRowValue> refFromRowValues = createRecalculateConflictsRowValues();
         when(versionService.search(eq(referrerEntity.getId()), any())).thenReturn(refFromRowValues);
@@ -262,8 +244,10 @@ public class ConflictServiceTest {
             );
         });
 
-        List<Conflict> actualList = conflictService.recalculateConflicts(referrerEntity.getId(),
-                publishedEntity.getId(), publishingEntity.getId(), conflicts.getContent());
+        List<Conflict> actualList = conflictService.recalculateConflicts(
+                referrerEntity, publishedEntity, publishingEntity.getId(),
+                conflicts.getContent(), false
+        );
         assertConflicts(expectedList, actualList);
     }
     

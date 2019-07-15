@@ -2,12 +2,9 @@ package ru.inovus.ms.rdm.util;
 
 import org.springframework.data.domain.Page;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.model.diff.StructureDiff;
 import ru.inovus.ms.rdm.model.field.ReferenceFilterValue;
@@ -19,7 +16,6 @@ import ru.inovus.ms.rdm.model.compare.ComparableField;
 import ru.inovus.ms.rdm.model.compare.ComparableFieldValue;
 import ru.inovus.ms.rdm.model.compare.ComparableRow;
 
-import java.math.BigInteger;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -27,6 +23,7 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static ru.inovus.ms.rdm.util.FieldValueUtils.*;
 
 public class ComparableUtils {
 
@@ -86,7 +83,7 @@ public class ComparableUtils {
 //        на данный момент может быть только: 1 поле -> 1 первичный ключ (ссылка на составной ключ невозможна)
         DiffFieldValue diffFieldValue = diffRowValue.getDiffFieldValue(primaries.get(0).getCode());
         return Objects.equals(diffFieldValue.getValue(diffRowValue.getStatus()),
-                castRefValue(rowValue.getFieldValue(refAttribute.getCode()), primaries.get(0).getType())
+                castFieldValue(rowValue.getFieldValue(refAttribute.getCode()), primaries.get(0).getType())
         );
     }
 
@@ -278,40 +275,8 @@ public class ComparableUtils {
                     DiffFieldValue diffFieldValue = diffRowValue.getDiffFieldValue(filterValue.getAttribute().getCode());
                     return Objects.nonNull(diffFieldValue)
                             && Objects.equals(diffFieldValue.getValue(diffRowValue.getStatus()),
-                            castRefValue(filterValue.getReferenceValue(), filterValue.getAttribute().getType()));
+                            castFieldValue(filterValue.getReferenceValue(), filterValue.getAttribute().getType()));
                 })
                 .findFirst().orElse(null);
-    }
-
-    /**
-     * Возвращает типизированное значение ссылочного атрибута.
-     *
-     * <p>При приведении типа используется тип атрибута, НА который ссылаемся.</p>
-     *
-     * @param fieldValue   занчение ссылочного атрибута
-     * @param refFieldType тип атрибута, на который ссылаемся
-     * @return Типизированное значение ссылочного атрибута
-     */
-    public static Object castRefValue(FieldValue fieldValue, FieldType refFieldType) {
-        if (fieldValue instanceof ReferenceFieldValue) {
-            return castRefValue((Reference) (fieldValue.getValue()), refFieldType);
-        }
-        return fieldValue.getValue();
-    }
-
-    /**
-     * Возвращает типизированное значение ссылки.
-     *
-     * <p>При приведении типа используется тип атрибута, НА который ссылаемся.</p>
-     *
-     * @param value        ссылка
-     * @param refFieldType тип атрибута, на который ссылаемся
-     * @return Типизированное значение ссылочного атрибута
-     */
-    private static Object castRefValue(Reference value, FieldType refFieldType) {
-        if (refFieldType == FieldType.INTEGER) {
-            return value.getValue() != null ? new BigInteger(value.getValue()) : null;
-        }
-        return value.getValue();
     }
 }

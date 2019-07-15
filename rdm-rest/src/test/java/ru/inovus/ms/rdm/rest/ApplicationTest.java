@@ -1935,7 +1935,7 @@ public class ApplicationTest {
         );
 
         // NB: Use createCalculatedDataConflicts + load conflicts from DB.
-        List<Conflict> actualConflicts = calculateConflicts(refFromVersionId, refToVersionId, refToDraftId);
+        List<Conflict> actualConflicts = calculateDataConflicts(refFromVersionId, refToVersionId, refToDraftId);
         assertConflicts(expectedConflicts, actualConflicts);
     }
 
@@ -2010,7 +2010,8 @@ public class ApplicationTest {
                         new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4))))
         );
 
-        List<Conflict> actualConflicts = calculateConflicts(refFromVersionId, refToVersionId, refToDraftId);
+        // NB: Use createCalculatedDataConflicts + load conflicts from DB.
+        List<Conflict> actualConflicts = calculateDataConflicts(refFromVersionId, refToVersionId, refToDraftId);
         assertConflicts(expectedConflicts, actualConflicts);
     }
 
@@ -2047,7 +2048,7 @@ public class ApplicationTest {
 
         try {
             // NB: Use createCalculatedDataConflicts + load conflicts from DB.
-            calculateConflicts(refFromVersionId, refToVersionId, draft.getId());
+            calculateDataConflicts(refFromVersionId, refToVersionId, draft.getId());
             fail();
         } catch (RestException re) {
             assertEquals("data.comparing.unavailable", re.getMessage());
@@ -2112,10 +2113,10 @@ public class ApplicationTest {
         assertEquals(1, deletedReferrers.size());
     }
 
-    private List<Conflict> calculateConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId) {
+    private List<Conflict> calculateDataConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId) {
 
         CalculateConflictCriteria criteria = new CalculateConflictCriteria(refFromId, oldRefToId, newRefToId);
-        return conflictService.calculateConflicts(criteria);
+        return conflictService.calculateDataConflicts(criteria);
     }
 
     /**

@@ -16,6 +16,7 @@ import java.util.List;
 @Api("Методы работы с конфликтами")
 public interface ConflictService {
 
+    // NB: Published for ApplicationTest only.
     @GET
     @Path("/calculate")
     @ApiOperation("Вычисление конфликтов по параметрам критерия")
@@ -23,7 +24,7 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    List<Conflict> calculateConflicts(@ApiParam("Критерий вычисления") @BeanParam CalculateConflictCriteria criteria);
+    List<Conflict> calculateDataConflicts(@ApiParam("Критерий вычисления") @BeanParam CalculateConflictCriteria criteria);
 
 
     @GET
