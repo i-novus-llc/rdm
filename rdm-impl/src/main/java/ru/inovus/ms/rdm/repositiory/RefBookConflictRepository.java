@@ -45,7 +45,12 @@ public interface RefBookConflictRepository extends
             "  from RefBookConflictEntity c\n" +
             " where c.referrerVersion.id = :referrerVersionId\n" +
             "   and c.refFieldCode = :refFieldCode\n" +
-            "   and c.conflictType = :conflictType")
+            "   and c.conflictType = :conflictType\n" +
+            // NB: Last published versions only.
+            "   and c.publishedVersion.fromDate = (\n" +
+            "       select max(v.fromDate)\n" +
+            "         from RefBookVersionEntity v\n" +
+            "        where v.refBook.id = c.publishedVersion.refBook.id )")
     List<RefBookVersionEntity> findPublishedVersionsRefreshingByPrimary(
             @Param("referrerVersionId") Integer referrerVersionId,
             @Param("refFieldCode") String refFieldCode,
