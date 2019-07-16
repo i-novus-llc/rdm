@@ -46,34 +46,6 @@ public class PageIteratorTest {
         }
     }
 
-    //@Test
-    public void testFilteredIteration() {
-
-        Function<TestCriteria, Page<String>> pageSource = (criteria) -> {
-            int total = allContent.size();
-            int offset = criteria.getPageNumber() * criteria.getPageSize();
-            List<String> content = allContent.subList(Math.min(offset, total), Math.min(offset + criteria.getPageSize(), total));
-            List<String> subContent = content.stream().filter(value -> Integer.parseInt(value) % 4 == 0).collect(Collectors.toUnmodifiableList());
-            return new PageImpl<>(subContent, criteria, total);
-        };
-
-        TestCriteria criteria = new TestCriteria();
-        criteria.setPageSize(3);
-        criteria.setOrders(Collections.singletonList(new Sort.Order(Sort.Direction.ASC, "id")));
-        PageIterator<String, TestCriteria> pageIterator = new PageIterator<>(pageSource, criteria);
-        List<List<String>> expectedPages = new ArrayList<>();
-        expectedPages.add(Collections.emptyList());
-        expectedPages.add(Collections.singletonList("4"));
-        expectedPages.add(Collections.singletonList("8"));
-
-        for (int i = 0; i < 3; i++) {
-            Assert.assertTrue((i+1) + " - page number of 3 not found", pageIterator.hasNext());
-            Page<String> page = pageIterator.next();
-            String displayContent = String.join(",", page.getContent());
-            Assert.assertTrue(displayContent + " - unexpected content", expectedPages.remove(page.getContent()));
-        }
-    }
-
     private class TestCriteria extends AbstractCriteria {
 
     }
