@@ -41,6 +41,9 @@ public class RefBookPredicateProducer {
         if (!isEmpty(criteria.getCode()))
             where.and(isCodeContains(criteria.getCode()));
 
+        if (nonNull(criteria.getExcludeByVersionId()))
+            where.andNot(refBookHasVersion(criteria.getExcludeByVersionId()));
+
         if (!CollectionUtils.isEmpty(criteria.getPassport()))
             where.and(passportPredicateProducer.toPredicate(criteria.getPassport()));
 

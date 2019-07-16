@@ -21,6 +21,10 @@ public class RefBookCriteria extends AbstractCriteria {
     @QueryParam("code")
     private String code;
 
+    @ApiModelProperty("Версия для исключения справочника")
+    @QueryParam("excludeByVersionId")
+    private Integer excludeByVersionId;
+
     @ApiModelProperty("Дата последней публикации")
     @QueryParam("fromDateBegin")
     private LocalDateTime fromDateBegin;
@@ -71,6 +75,14 @@ public class RefBookCriteria extends AbstractCriteria {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public Integer getExcludeByVersionId() {
+        return excludeByVersionId;
+    }
+
+    public void setExcludeByVersionId(Integer excludeByVersionId) {
+        this.excludeByVersionId = excludeByVersionId;
     }
 
     public LocalDateTime getFromDateBegin() {
