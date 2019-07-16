@@ -28,6 +28,7 @@ import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
+import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.*;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.conflict.CalculateConflictCriteria;
@@ -47,6 +48,7 @@ import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.service.api.*;
+import ru.inovus.ms.rdm.util.FieldValueUtils;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -68,6 +70,8 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.junit.Assert.*;
+import static org.springframework.util.CollectionUtils.isEmpty;
+import static ru.i_novus.platform.datastorage.temporal.model.DataConstants.SYS_PRIMARY_COLUMN;
 import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
 import static ru.inovus.ms.rdm.util.ConverterUtil.rowValue;
@@ -2120,8 +2124,40 @@ public class ApplicationTest {
 
     private List<Conflict> calculateDataConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId) {
 
+        RefBookVersion refFromVersion = versionService.getById(refFromId);
+
         CalculateConflictCriteria criteria = new CalculateConflictCriteria(refFromId, oldRefToId, newRefToId);
-        return conflictService.calculateDataConflicts(criteria);
+        List<RefBookConflict> conflicts = conflictService.calculateDataConflicts(criteria);
+
+        return conflicts.stream()
+                .map(conflict -> {
+                    RefBookRowValue rowValue = getSystemRowValue(refFromId, conflict.getRefRecordId());
+                    if (Objects.isNull(rowValue))
+                        return null;
+
+                    List<FieldValue> primaryValues = FieldValueUtils.getRowPrimaryValues(rowValue, refFromVersion.getStructure());
+                    return new Conflict(conflict.getRefFieldCode(), conflict.getConflictType(), primaryValues);
+
+                })
+                .filter(Objects::nonNull)
+                .collect(toList());
+    }
+
+    /**
+     * Получение записи по системному идентификатору.
+     *
+     * @param versionId идентификатор версии
+     * @param systemId  системный идентификатор записи
+     */
+    private RefBookRowValue getSystemRowValue(Integer versionId, Long systemId) {
+        if (versionId == null || systemId == null)
+            return null;
+
+        AttributeFilter systemIdFilter = new AttributeFilter(SYS_PRIMARY_COLUMN, BigInteger.valueOf(systemId), FieldType.INTEGER);
+        SearchDataCriteria criteria = new SearchDataCriteria(singleton(singletonList(systemIdFilter)), null);
+
+        Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
+        return (rowValues != null && !isEmpty(rowValues.getContent())) ? rowValues.getContent().get(0) : null;
     }
 
     /**
@@ -2279,28 +2315,15 @@ public class ApplicationTest {
         assertNotNull(actualList);
         assertNotNull(expectedList);
         assertEquals(expectedList.size(), actualList.size());
+
         expectedList.forEach(expectedConflict -> {
             if (actualList.stream()
                     .noneMatch(actualConflict ->
                             expectedConflict.getRefAttributeCode().equals(actualConflict.getRefAttributeCode())
                                     && expectedConflict.getConflictType().equals(actualConflict.getConflictType())
                                     && expectedConflict.getPrimaryValues().size() == actualConflict.getPrimaryValues().size()
-                                    && actualConflict.getPrimaryValues().containsAll(expectedConflict.getPrimaryValues())))
-                fail();
-        });
-    }
-
-    private void assertRefBookConflicts(List<RefBookConflict> expectedConflicts, List<RefBookConflict> actualConflicts) {
-        assertNotNull(actualConflicts);
-        assertNotNull(expectedConflicts);
-        assertEquals(expectedConflicts.size(), actualConflicts.size());
-        expectedConflicts.forEach(expectedConflict -> {
-            if (actualConflicts.stream().noneMatch(actualConflict ->
-                    expectedConflict.getPublishedVersionId().equals(actualConflict.getPublishedVersionId())
-                            && expectedConflict.getRefRecordId().equals(actualConflict.getRefRecordId())
-                            && expectedConflict.getRefFieldCode().equals(actualConflict.getRefFieldCode())
-                            && expectedConflict.getConflictType().equals(actualConflict.getConflictType())
-            ))
+                                    && actualConflict.getPrimaryValues().containsAll(expectedConflict.getPrimaryValues())
+                    ))
                 fail();
         });
     }

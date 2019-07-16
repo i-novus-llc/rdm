@@ -104,6 +104,15 @@ public class RefBookConflictEntity {
         this.creationDate = creationDate;
     }
 
+    /**
+     * Проверка типа на CLEANED.
+     *
+     * @return Результат проверки
+     */
+    public boolean isCleaned() {
+        return ConflictType.CLEANED.equals(getConflictType());
+    }
+
     @PrePersist
     public void prePersist() {
         LocalDateTime now = LocalDateTime.now();

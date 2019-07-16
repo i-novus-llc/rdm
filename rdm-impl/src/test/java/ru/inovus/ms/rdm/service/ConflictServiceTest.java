@@ -14,12 +14,12 @@ import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.IntegerField;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
+import ru.inovus.ms.rdm.entity.RefBookConflictEntity;
 import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.model.conflict.RefBookConflict;
 import ru.inovus.ms.rdm.model.diff.RefBookDataDiff;
 import ru.inovus.ms.rdm.model.conflict.Conflict;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
@@ -28,7 +28,6 @@ import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.VersionService;
-import ru.inovus.ms.rdm.util.TimeUtils;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import java.math.BigInteger;
@@ -224,7 +223,7 @@ public class ConflictServiceTest {
 
         RefBookVersionEntity publishingEntity = createPublishingEntity(PUBLISHING_DRAFT_ID);
 
-        Page<RefBookConflict> conflicts = createRecalculateConflictsPage();
+        Page<RefBookConflictEntity> conflicts = createRecalculateConflictsPage();
 
         Page<RefBookRowValue> refFromRowValues = createRecalculateConflictsRowValues();
         when(versionService.search(eq(referrerEntity.getId()), any())).thenReturn(refFromRowValues);
@@ -233,64 +232,56 @@ public class ConflictServiceTest {
         when(compareService.compareData(any())).thenReturn(refBookDataDiff);
 
         // Проверка в случае изменения только данных.
-        List<Conflict> expectedList = new ArrayList<>(CONFLICTED_PUBLISHED_ROW_SYS_IDS_EXPECTED.size());
+        List<RefBookConflictEntity> expectedList = new ArrayList<>(CONFLICTED_PUBLISHED_ROW_SYS_IDS_EXPECTED.size());
         CONFLICTED_PUBLISHED_ROW_SYS_IDS_EXPECTED.forEach(systemId -> {
             ConflictType conflictType =
                     PUBLISHED_ROW_SYS_ID_DELETED_UNCHANGING.equals(systemId) ? ConflictType.DELETED : ConflictType.UPDATED;
             expectedList.add(
-                    new Conflict(REFERRER_ATTRIBUTE_REFERENCE, conflictType,
-                            singletonList(new StringFieldValue(REFERRER_ATTRIBUTE_CODE, getRecalculateConflictsReferrerPrimaryValue(systemId))))
+                    new RefBookConflictEntity(referrerEntity, publishingEntity, null, REFERRER_ATTRIBUTE_REFERENCE, conflictType)
             );
         });
 
-        List<Conflict> actualList = conflictService.recalculateConflicts(
-                referrerEntity, publishedEntity, publishingEntity.getId(),
-                conflicts.getContent(), false
-        );
-        assertConflicts(expectedList, actualList);
+        List<RefBookConflictEntity> actualList = conflictService.recalculateConflicts(referrerEntity,
+                publishedEntity, publishingEntity, conflicts.getContent(), false);
+        assertConflictEntities(expectedList, actualList);
 
         // Проверка в случае изменения данных и структуры.
-        List<Conflict> expectedAlteredList = new ArrayList<>(CONFLICTED_PUBLISHED_ROW_SYS_IDS_EXPECTED.size());
+        List<RefBookConflictEntity> expectedAlteredList = new ArrayList<>(CONFLICTED_PUBLISHED_ROW_SYS_IDS_EXPECTED.size());
         CONFLICTED_PUBLISHED_ROW_SYS_IDS_EXPECTED.forEach(systemId -> {
             ConflictType conflictType =
                     PUBLISHED_ROW_SYS_ID_DELETED_UNCHANGING.equals(systemId) ? ConflictType.DELETED : ConflictType.UPDATED;
 
             if (!ConflictType.UPDATED.equals(conflictType)) {
                 expectedAlteredList.add(
-                        new Conflict(REFERRER_ATTRIBUTE_REFERENCE, conflictType,
-                                singletonList(new StringFieldValue(REFERRER_ATTRIBUTE_CODE, getRecalculateConflictsReferrerPrimaryValue(systemId))))
+                        new RefBookConflictEntity(referrerEntity, publishingEntity, null, REFERRER_ATTRIBUTE_REFERENCE, conflictType)
                 );
             }
         });
 
-        List<Conflict> actualAlteredList = conflictService.recalculateConflicts(
-                referrerEntity, publishedEntity, publishingEntity.getId(),
-                conflicts.getContent(), true
-        );
-        assertConflicts(expectedAlteredList, actualAlteredList);
+        List<RefBookConflictEntity> actualAlteredList = conflictService.recalculateConflicts(referrerEntity,
+                publishedEntity, publishingEntity, conflicts.getContent(), true);
+        assertConflictEntities(expectedAlteredList, actualAlteredList);
     }
     
-    private Page<RefBookConflict> createRecalculateConflictsPage() {
+    private Page<RefBookConflictEntity> createRecalculateConflictsPage() {
 
-        List<RefBookConflict> conflicts = new ArrayList<>(CONFLICTED_PUBLISHED_ROW_SYS_IDS.size());
+        List<RefBookConflictEntity> conflicts = new ArrayList<>(CONFLICTED_PUBLISHED_ROW_SYS_IDS.size());
 
         CONFLICTED_PUBLISHED_ROW_SYS_IDS_UPDATED.forEach(systemId -> {
-            conflicts.add(new RefBookConflict(referrerEntity.getId(),
-                    publishedEntity.getId(),
+            conflicts.add(new RefBookConflictEntity(referrerEntity,
+                    publishedEntity,
                     systemId,
                     REFERRER_ATTRIBUTE_REFERENCE,
-                    ConflictType.UPDATED,
-                    TimeUtils.now())
+                    ConflictType.UPDATED)
             );
         });
 
         CONFLICTED_PUBLISHED_ROW_SYS_IDS_DELETED.forEach(systemId -> {
-            conflicts.add(new RefBookConflict(referrerEntity.getId(),
-                    publishedEntity.getId(),
+            conflicts.add(new RefBookConflictEntity(referrerEntity,
+                    publishedEntity,
                     systemId,
                     REFERRER_ATTRIBUTE_REFERENCE,
-                    ConflictType.DELETED,
-                    TimeUtils.now())
+                    ConflictType.DELETED)
             );
         });
 
@@ -435,17 +426,19 @@ public class ConflictServiceTest {
      * @param expectedList ожидаемый список
      * @param actualList   актуальный список
      */
-    private void assertConflicts(List<Conflict> expectedList, List<Conflict> actualList) {
+    private void assertConflictEntities(List<RefBookConflictEntity> expectedList, List<RefBookConflictEntity> actualList) {
         assertNotNull(actualList);
         assertNotNull(expectedList);
         assertEquals(expectedList.size(), actualList.size());
+
         expectedList.forEach(expectedConflict -> {
             if (actualList.stream()
                     .noneMatch(actualConflict ->
-                            expectedConflict.getRefAttributeCode().equals(actualConflict.getRefAttributeCode())
+                            expectedConflict.getReferrerVersion().equals(actualConflict.getReferrerVersion())
+                                    && expectedConflict.getPublishedVersion().equals(actualConflict.getPublishedVersion())
+                                    && expectedConflict.getRefFieldCode().equals(actualConflict.getRefFieldCode())
                                     && expectedConflict.getConflictType().equals(actualConflict.getConflictType())
-                                    && expectedConflict.getPrimaryValues().size() == actualConflict.getPrimaryValues().size()
-                                    && actualConflict.getPrimaryValues().containsAll(expectedConflict.getPrimaryValues())))
+                    ))
                 fail();
         });
     }

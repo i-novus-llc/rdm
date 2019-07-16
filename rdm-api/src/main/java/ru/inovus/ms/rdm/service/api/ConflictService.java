@@ -24,7 +24,7 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    List<Conflict> calculateDataConflicts(@ApiParam("Критерий вычисления") @BeanParam CalculateConflictCriteria criteria);
+    List<RefBookConflict> calculateDataConflicts(@ApiParam("Критерий вычисления") @BeanParam CalculateConflictCriteria criteria);
 
 
     @GET
