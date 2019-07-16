@@ -2319,8 +2319,8 @@ public class ApplicationTest {
         expectedList.forEach(expectedConflict -> {
             if (actualList.stream()
                     .noneMatch(actualConflict ->
-                            expectedConflict.getRefAttributeCode().equals(actualConflict.getRefAttributeCode())
-                                    && expectedConflict.getConflictType().equals(actualConflict.getConflictType())
+                            Objects.equals(expectedConflict.getRefAttributeCode(), actualConflict.getRefAttributeCode())
+                                    && Objects.equals(expectedConflict.getConflictType(), actualConflict.getConflictType())
                                     && expectedConflict.getPrimaryValues().size() == actualConflict.getPrimaryValues().size()
                                     && actualConflict.getPrimaryValues().containsAll(expectedConflict.getPrimaryValues())
                     ))
