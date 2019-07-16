@@ -33,6 +33,7 @@ import ru.inovus.ms.rdm.validation.VersionValidation;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -184,7 +185,7 @@ public class ConflictServiceTest {
     }
 
     @Test
-    public void testCalculateConflicts() {
+    public void testCalculateDataConflicts() {
     }
 
     /**
@@ -237,7 +238,7 @@ public class ConflictServiceTest {
             ConflictType conflictType =
                     PUBLISHED_ROW_SYS_ID_DELETED_UNCHANGING.equals(systemId) ? ConflictType.DELETED : ConflictType.UPDATED;
             expectedList.add(
-                    new RefBookConflictEntity(referrerEntity, publishingEntity, null, REFERRER_ATTRIBUTE_REFERENCE, conflictType)
+                    new RefBookConflictEntity(referrerEntity, publishingEntity, systemId, REFERRER_ATTRIBUTE_REFERENCE, conflictType)
             );
         });
 
@@ -253,7 +254,7 @@ public class ConflictServiceTest {
 
             if (!ConflictType.UPDATED.equals(conflictType)) {
                 expectedAlteredList.add(
-                        new RefBookConflictEntity(referrerEntity, publishingEntity, null, REFERRER_ATTRIBUTE_REFERENCE, conflictType)
+                        new RefBookConflictEntity(referrerEntity, publishingEntity, systemId, REFERRER_ATTRIBUTE_REFERENCE, conflictType)
                 );
             }
         });
@@ -434,10 +435,11 @@ public class ConflictServiceTest {
         expectedList.forEach(expectedConflict -> {
             if (actualList.stream()
                     .noneMatch(actualConflict ->
-                            expectedConflict.getReferrerVersion().equals(actualConflict.getReferrerVersion())
-                                    && expectedConflict.getPublishedVersion().equals(actualConflict.getPublishedVersion())
-                                    && expectedConflict.getRefFieldCode().equals(actualConflict.getRefFieldCode())
-                                    && expectedConflict.getConflictType().equals(actualConflict.getConflictType())
+                            Objects.equals(expectedConflict.getReferrerVersion(), actualConflict.getReferrerVersion())
+                                    && Objects.equals(expectedConflict.getPublishedVersion(), actualConflict.getPublishedVersion())
+                                    && Objects.equals(expectedConflict.getRefRecordId(), actualConflict.getRefRecordId())
+                                    && Objects.equals(expectedConflict.getRefFieldCode(), actualConflict.getRefFieldCode())
+                                    && Objects.equals(expectedConflict.getConflictType(), actualConflict.getConflictType())
                     ))
                 fail();
         });
