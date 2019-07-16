@@ -5,6 +5,7 @@ import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
@@ -29,6 +30,7 @@ import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static java.util.Collections.singletonList;
@@ -39,6 +41,12 @@ import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.*;
 public class PublishServiceImpl implements PublishService {
 
     private static final int REF_BOOK_VERSION_PAGE_SIZE = 100;
+
+    private static final String VERSION_ID_SORT_PROPERTY = "id";
+
+    private static final List<Sort.Order> SORT_REFERRER_VERSIONS = singletonList(
+            new Sort.Order(Sort.Direction.ASC, VERSION_ID_SORT_PROPERTY)
+    );
 
     private static final String INVALID_VERSION_NAME_EXCEPTION_CODE = "invalid.version.name";
     private static final String INVALID_VERSION_PERIOD_EXCEPTION_CODE = "invalid.version.period";
@@ -228,17 +236,12 @@ public class PublishServiceImpl implements PublishService {
      */
     private void publishNonConflictReferrers(String refBookCode, Integer publishedVersionId) {
 
-        ReferrerVersionCriteria criteria = new ReferrerVersionCriteria(refBookCode, RefBookStatusType.USED, RefBookSourceType.DRAFT);
-        criteria.setPageSize(REF_BOOK_VERSION_PAGE_SIZE);
-
-        Function<ReferrerVersionCriteria, Page<RefBookVersion>> pageSource = refBookService::searchReferrerVersions;
-        PageIterator<RefBookVersion, ReferrerVersionCriteria> pageIterator = new PageIterator<>(pageSource, criteria);
-        pageIterator.forEachRemaining(page ->
-                page.getContent().forEach(referrerVersion -> {
+        Consumer<List<RefBookVersion>> consumer = referrers ->
+                referrers.forEach(referrerVersion -> {
                     if (notExistsConflict(referrerVersion.getId(), publishedVersionId))
                         publish(referrerVersion.getId(), null, null, null, false);
-                })
-        );
+                });
+        processReferrerVersions(refBookCode, RefBookSourceType.DRAFT, consumer);
     }
 
     /**
@@ -255,5 +258,23 @@ public class PublishServiceImpl implements PublishService {
 
         Page<RefBookConflict> conflicts = conflictService.search(criteria);
         return conflicts.getContent().isEmpty();
+    }
+
+    /**
+     * Обработка версий справочников, ссылающихся на указанный справочник.
+     *
+     * @param refBookCode код справочника, на который ссылаются
+     * @param sourceType  тип выбираемых версий справочников
+     * @param consumer    обработчик списков версий
+     */
+    private void processReferrerVersions(String refBookCode, RefBookSourceType sourceType, Consumer<List<RefBookVersion>> consumer) {
+
+        ReferrerVersionCriteria criteria = new ReferrerVersionCriteria(refBookCode, RefBookStatusType.USED, sourceType);
+        criteria.setOrders(SORT_REFERRER_VERSIONS);
+        criteria.setPageSize(REF_BOOK_VERSION_PAGE_SIZE);
+
+        Function<ReferrerVersionCriteria, Page<RefBookVersion>> pageSource = refBookService::searchReferrerVersions;
+        PageIterator<RefBookVersion, ReferrerVersionCriteria> pageIterator = new PageIterator<>(pageSource, criteria);
+        pageIterator.forEachRemaining(page -> consumer.accept(page.getContent()));
     }
 }
