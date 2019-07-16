@@ -32,6 +32,7 @@ public class PlainSizeAttributeValidationResolver implements AttributeValidation
     @Override
     public Message resolve(Object o) {
         return o == null || String.valueOf(o).length() > size
-                ? new Message(PLAIN_SIZE_EXCEPTION_CODE, attribute, o, size) : null;
+                ? new Message(PLAIN_SIZE_EXCEPTION_CODE, attribute.getName(), o, size)
+                : null;
     }
 }
