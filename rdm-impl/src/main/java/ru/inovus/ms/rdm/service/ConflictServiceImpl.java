@@ -26,21 +26,24 @@ import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.inovus.ms.rdm.entity.*;
+import ru.inovus.ms.rdm.entity.QRefBookConflictEntity;
+import ru.inovus.ms.rdm.entity.RefBookConflictEntity;
+import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.enumeration.RefBookStatusType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.exception.RdmException;
-import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.model.conflict.*;
-import ru.inovus.ms.rdm.model.field.ReferenceFilterValue;
-import ru.inovus.ms.rdm.model.version.AttributeFilter;
+import ru.inovus.ms.rdm.model.FilteredContent;
+import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
+import ru.inovus.ms.rdm.model.conflict.*;
 import ru.inovus.ms.rdm.model.draft.Draft;
+import ru.inovus.ms.rdm.model.field.ReferenceFilterValue;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.model.version.ReferrerVersionCriteria;
 import ru.inovus.ms.rdm.predicate.DeleteRefBookConflictPredicateProducer;
@@ -63,6 +66,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.util.ComparableUtils.*;
 import static ru.inovus.ms.rdm.util.ConflictUtils.conflictTypeToDiffStatus;
@@ -351,6 +355,48 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
+     * Получение количества строк с конфликтами на основании уникальных идентификаторов строк
+     *
+     * @param criteria критерий поиска
+     * @return Количество конфликтных строк
+     */
+    @Override
+    public Long getRefBookConflictsCount(RefBookConflictCriteria criteria) {
+        return getConflictedRowIdsQuery(criteria).fetchCount();
+    }
+
+    /**
+     * Поиск идентификаторов строк с конфликтами
+     *
+     * @param criteria критерий поиска
+     * @return Страница идентификаторов конфликтных строк
+     */
+    @Override
+    public Page<Long> searchConflictedRowIds(RefBookConflictCriteria criteria) {
+
+        JPAQuery<Long> jpaQuery = getConflictedRowIdsQuery(criteria);
+
+        long count = jpaQuery.fetchCount();
+
+        jpaQuery.orderBy(QRefBookConflictEntity.refBookConflictEntity.refRecordId.asc());
+
+        List<Long> entities = jpaQuery
+                .offset(criteria.getOffset())
+                .limit(criteria.getPageSize())
+                .fetch();
+
+        return new PageImpl<>(entities, criteria, count);
+    }
+
+    private JPAQuery<Long> getConflictedRowIdsQuery(RefBookConflictCriteria criteria) {
+        return new JPAQuery<>(entityManager)
+                .select(QRefBookConflictEntity.refBookConflictEntity.refRecordId)
+                .from(QRefBookConflictEntity.refBookConflictEntity)
+                .where(RefBookConflictPredicateProducer.toPredicate(criteria))
+                .distinct();
+    }
+
+    /**
      * Сохранение информации о конфликтах.
      */
     @Override
@@ -472,7 +518,9 @@ public class ConflictServiceImpl implements ConflictService {
 
         versionValidation.validateVersionExists(referrerVersionId);
 
-        return conflictRepository.findReferrerConflictedIds(referrerVersionId, refRecordIds);
+        return isNotEmpty(refRecordIds)
+                ? conflictRepository.findReferrerConflictedIds(referrerVersionId, refRecordIds)
+                : emptyList();
     }
 
     /**

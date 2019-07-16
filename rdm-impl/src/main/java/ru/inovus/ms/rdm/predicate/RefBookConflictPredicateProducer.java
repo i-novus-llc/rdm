@@ -5,8 +5,8 @@ import com.querydsl.core.types.Predicate;
 import ru.inovus.ms.rdm.model.conflict.RefBookConflictCriteria;
 
 import static java.util.Objects.nonNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static ru.inovus.ms.rdm.predicate.RefBookConflictPredicates.*;
-import static ru.inovus.ms.rdm.predicate.RefBookConflictPredicates.isConflictType;
 
 public class RefBookConflictPredicateProducer {
 
@@ -37,7 +37,7 @@ public class RefBookConflictPredicateProducer {
         if (nonNull(criteria.getRefRecordId()))
             where.and(isRefRecordId(criteria.getRefRecordId()));
 
-        if (nonNull(criteria.getRefRecordIds()))
+        if (isNotEmpty(criteria.getRefRecordIds()))
             where.and(isRefRecordIdIn(criteria.getRefRecordIds()));
 
         if (nonNull(criteria.getRefFieldCode()))

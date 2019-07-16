@@ -143,7 +143,7 @@ public class VersionServiceImpl implements VersionService {
         fieldSearchCriteriaList.addAll(getFieldSearchCriteriaList(criteria.getPlainAttributeFilter(), version.getStructure()));
 
         DataCriteria dataCriteria = new DataCriteria(version.getStorageCode(), version.getFromDate(), version.getToDate(),
-                fields, fieldSearchCriteriaList, criteria.getCommonFilter());
+                fields, fieldSearchCriteriaList, criteria.getRowSystemIds(), criteria.getCommonFilter());
         dataCriteria.setPage(criteria.getPageNumber() + 1);
         dataCriteria.setSize(criteria.getPageSize());
         Optional.ofNullable(criteria.getSort()).ifPresent(sort -> dataCriteria.setSortings(sortings(sort)));
