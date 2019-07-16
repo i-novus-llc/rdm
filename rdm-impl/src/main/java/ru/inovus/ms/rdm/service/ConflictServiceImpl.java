@@ -601,9 +601,9 @@ public class ConflictServiceImpl implements ConflictService {
     /**
      * Обновление заданной ссылки в справочнике по таблице конфликтов.
      *
-     * @param referrerEntity  версия справочника, который ссылается
-     * @param reference       поле справочника, которое ссылается
-     * @param conflictType    тип конфликта
+     * @param referrerEntity версия справочника, который ссылается
+     * @param reference      поле справочника, которое ссылается
+     * @param conflictType   тип конфликта
      */
     private void refreshReferenceByPrimary(RefBookVersionEntity referrerEntity, Structure.Reference reference, ConflictType conflictType) {
 
@@ -693,8 +693,7 @@ public class ConflictServiceImpl implements ConflictService {
             referrers.forEach(referrer -> {
                 RefBookVersionEntity refFromEntity = versionRepository.getOne(referrer.getId());
                 discoverConflicts(refFromEntity, oldRefToEntity, newRefToEntity, structureDiff);
-            })
-        ;
+            });
         processReferrerVersions(oldRefToEntity.getRefBook().getCode(), RefBookSourceType.ALL, consumer);
     }
 
@@ -704,7 +703,7 @@ public class ConflictServiceImpl implements ConflictService {
      * @param refFromEntity  версия, которая ссылается
      * @param oldRefToEntity старая версия, на которую ссылались
      * @param newRefToEntity новая версия, на которую будут ссылаться
-     * @param structureDiff различие в структурах версий
+     * @param structureDiff  различие в структурах версий
      */
     private void discoverConflicts(RefBookVersionEntity refFromEntity,
                                    RefBookVersionEntity oldRefToEntity,
@@ -712,6 +711,8 @@ public class ConflictServiceImpl implements ConflictService {
                                    StructureDiff structureDiff) {
         boolean isAltered = isRefBookAltered(structureDiff);
 
+        // NB: CalculateConflictRequest: refFromEntity, oldRefToEntity, newRefToEntity + isAltered
+        // NB: CalculateStructureConflictRequest: + refFromReferences, structureDiff && -> isAltered
         if (isAltered) {
             List<Structure.Reference> refFromReferences = refFromEntity.getStructure().getRefCodeReferences(oldRefToEntity.getRefBook().getCode());
 
@@ -945,8 +946,8 @@ public class ConflictServiceImpl implements ConflictService {
                     Object value = diffFieldValue.getValue(diff.getStatus());
 
                     return refFromAttributes.stream()
-                            .map(refFromAttribute ->
-                                    singletonList(new FieldSearchCriteria(field(refFromAttribute), SearchTypeEnum.EXACT, singletonList(value)))
+                            .map(attribute ->
+                                    singletonList(new FieldSearchCriteria(field(attribute), SearchTypeEnum.EXACT, singletonList(value)))
                             );
                 }).collect(toSet());
     }
