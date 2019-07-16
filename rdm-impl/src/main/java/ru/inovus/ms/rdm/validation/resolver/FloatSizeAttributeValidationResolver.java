@@ -14,13 +14,12 @@ import java.math.BigDecimal;
  */
 public class FloatSizeAttributeValidationResolver implements AttributeValidationResolver<BigDecimal> {
 
-    public static final String FLOAT_INT_SIZE_EXCEPTION_CODE = "validation.float.int.size.err";
-    public static final String FLOAT_FRAC_SIZE_EXCEPTION_CODE = "validation.float.frac.size.err";
+    static final String FLOAT_INT_SIZE_EXCEPTION_CODE = "validation.float.int.size.err";
+    static final String FLOAT_FRAC_SIZE_EXCEPTION_CODE = "validation.float.frac.size.err";
 
     private final Structure.Attribute attribute;
     private final int intPartSize;
     private final int fractionalPartSize;
-
 
     public FloatSizeAttributeValidationResolver(Structure.Attribute attribute, int intPartSize, int fractionalPartSize) {
         if (!FieldType.FLOAT.equals(attribute.getType()))
