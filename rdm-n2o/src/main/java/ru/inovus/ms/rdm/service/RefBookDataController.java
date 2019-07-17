@@ -35,6 +35,7 @@ import ru.inovus.ms.rdm.provider.N2oDomain;
 import ru.inovus.ms.rdm.service.api.ConflictService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -72,8 +73,6 @@ public class RefBookDataController {
 
         Structure structure = versionService.getStructure(criteria.getVersionId());
 
-        Page<RefBookRowValue> search;
-        List<DataGridRow> result;
         Page<Long> conflictedRowsIdsPage = Page.empty();
 
         SearchDataCriteria searchDataCriteria;
@@ -92,8 +91,8 @@ public class RefBookDataController {
             searchDataCriteria = toSearchDataCriteria(criteria, structure, emptyList());
         }
 
-        search = versionService.search(criteria.getVersionId(), searchDataCriteria);
-        result = getDataGridContent(criteria, search.getContent(), structure, BooleanUtils.isTrue(criteria.getHasConflict()));
+        Page<RefBookRowValue> search = versionService.search(criteria.getVersionId(), searchDataCriteria);
+        List<DataGridRow> result = getDataGridContent(criteria, search.getContent(), structure, BooleanUtils.isTrue(criteria.getHasConflict()));
 
         // NB: (костыль)
         // Прибавляется 1 к количеству элементов
@@ -125,23 +124,7 @@ public class RefBookDataController {
                     if (attribute == null)
                         throw new IllegalArgumentException("Filter field not found");
 
-                    switch (attribute.getType()) {
-                        case INTEGER:
-                            v = new BigInteger((String) v);
-                            break;
-                        case FLOAT:
-                            v = new BigDecimal(((String) v).replace(",", ".").trim());
-                            break;
-                        case DATE:
-                            v = LocalDate.parse((String) v, DATE_TIME_PATTERN_EUROPEAN_FORMATTER);
-                            break;
-                        case BOOLEAN:
-                            v = Boolean.valueOf((String) ((Map) v).get(BOOL_FIELD_ID));
-                            break;
-                        default:
-                            break;
-                    }
-                    filters.add(new AttributeFilter(attributeCode, v, attribute.getType()));
+                    filters.add(new AttributeFilter(attributeCode, castValue(attribute, v), attribute.getType()));
                 });
             } catch (Exception e) {
                 throw new UserException("invalid.filter.exception", e);
@@ -158,6 +141,28 @@ public class RefBookDataController {
             searchDataCriteria.setRowSystemIds(conflictedRowIds);
         }
         return searchDataCriteria;
+    }
+
+    private Serializable castValue(Structure.Attribute attribute, Serializable value) {
+        if (attribute == null || value == null)
+            return null;
+
+        switch (attribute.getType()) {
+            case INTEGER:
+                return new BigInteger((String) value);
+
+            case FLOAT:
+                return new BigDecimal(((String) value).replace(",", ".").trim());
+
+            case DATE:
+                return LocalDate.parse((String) value, DATE_TIME_PATTERN_EUROPEAN_FORMATTER);
+
+            case BOOLEAN:
+                return Boolean.valueOf((String) ((Map) value).get(BOOL_FIELD_ID));
+
+            default:
+                return value;
+        }
     }
 
     private RefBookConflictCriteria toRefBookConflictCriteria(DataCriteria criteria) {
@@ -292,14 +297,19 @@ public class RefBookDataController {
                 N2oInputSelect booleanField = new N2oInputSelect();
                 booleanField.setValueFieldId("id");
                 booleanField.setLabelFieldId("name");
-                booleanField.setOptions(new Map[]{
-                        of(BOOL_FIELD_ID, "true", BOOL_FIELD_NAME, "ИСТИНА"),
-                        of(BOOL_FIELD_ID, "false", BOOL_FIELD_NAME, "ЛОЖЬ")});
+                booleanField.setOptions(getBooleanValues());
                 return booleanField;
 
             default:
                 return new N2oInputText();
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, String>[] getBooleanValues() {
+        return new Map[]{
+                of(BOOL_FIELD_ID, "true", BOOL_FIELD_NAME, "ИСТИНА"),
+                of(BOOL_FIELD_ID, "false", BOOL_FIELD_NAME, "ЛОЖЬ")};
     }
 
     public static class DataGridRow {
