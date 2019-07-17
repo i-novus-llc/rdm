@@ -623,7 +623,8 @@ public class DraftServiceImpl implements DraftService {
             throw new IllegalArgumentException(ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE);
 
         // проверка отсутствия пустых значений в поле при установке первичного ключа
-        if (!isUpdateValueNullOrEmpty(updateAttribute.getIsPrimary()) && updateAttribute.getIsPrimary().get() && draftDataService.isFieldContainEmptyValues(storageCode, updateAttribute.getCode()))
+        if (!isUpdateValueNullOrEmpty(updateAttribute.getIsPrimary()) && updateAttribute.getIsPrimary().get()
+                && draftDataService.isFieldContainEmptyValues(storageCode, updateAttribute.getCode()))
             throw new UserException(new Message(INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE, attribute.getName()));
 
         if (!isUpdateValueNullOrEmpty(updateAttribute.getIsPrimary()) && updateAttribute.getIsPrimary().get()) {
@@ -638,7 +639,7 @@ public class DraftServiceImpl implements DraftService {
         } else
             return;
 
-        if (FieldType.REFERENCE.equals(updateAttribute.getType()) && !attribute.isReferenceType()) {
+        if (updateAttribute.isReferenceType() && !attribute.isReferenceType()) {
             validateReferenceValues(updateAttribute);
         }
     }
