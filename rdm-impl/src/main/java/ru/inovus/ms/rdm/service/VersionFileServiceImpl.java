@@ -12,8 +12,8 @@ import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.file.export.*;
 import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.repositiory.PassportValueRepository;
-import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
+import ru.inovus.ms.rdm.repository.PassportValueRepository;
+import ru.inovus.ms.rdm.repository.VersionFileRepository;
 import ru.inovus.ms.rdm.service.api.VersionFileService;
 import ru.inovus.ms.rdm.util.FileNameGenerator;
 

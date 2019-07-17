@@ -138,7 +138,7 @@ public class RefBookConflictQueryProvider {
      * @param criteria критерий поиска
      * @return Предикат для запроса поиска
      */
-    public static Predicate toPredicate(RefBookConflictCriteria criteria) {
+    private static Predicate toPredicate(RefBookConflictCriteria criteria) {
         BooleanBuilder where = new BooleanBuilder();
 
         if (nonNull(criteria.getReferrerVersionId()))

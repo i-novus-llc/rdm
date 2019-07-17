@@ -12,7 +12,7 @@ import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
+import ru.inovus.ms.rdm.repository.RefBookVersionRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -30,7 +30,7 @@ import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.t
 public class NonStrictOnTypeRowMapperTest {
 
     private final String referenceCode = "test_storage";
-    private final int referenceVersion = -1;
+    private final int referenceVersionId = -1;
 
     @Mock
     private RefBookVersionRepository versionRepository;
@@ -75,7 +75,7 @@ public class NonStrictOnTypeRowMapperTest {
                 FieldType.INTEGER, "count")), null));
 
         RefBookVersionEntity m1VersionEntity = new RefBookVersionEntity();
-        m1VersionEntity.setId(referenceVersion);
+        m1VersionEntity.setId(referenceVersionId);
         when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(referenceCode), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(m1VersionEntity);
 
         Map<String, Object> data = new LinkedHashMap<>() {{

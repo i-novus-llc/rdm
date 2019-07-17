@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.repositiory;
+package ru.inovus.ms.rdm.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import ru.inovus.ms.rdm.entity.PassportAttributeEntity;

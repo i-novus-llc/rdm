@@ -40,7 +40,7 @@ import ru.inovus.ms.rdm.model.refdata.RowValuePage;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.validation.*;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.repositiory.*;
+import ru.inovus.ms.rdm.repository.*;
 import ru.inovus.ms.rdm.service.api.*;
 import ru.inovus.ms.rdm.util.*;
 import ru.inovus.ms.rdm.validation.PrimaryKeyUniqueValidation;

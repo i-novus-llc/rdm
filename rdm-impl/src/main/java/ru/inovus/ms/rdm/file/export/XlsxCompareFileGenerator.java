@@ -26,7 +26,7 @@ import ru.inovus.ms.rdm.model.diff.RefBookDataDiff;
 import ru.inovus.ms.rdm.model.diff.StructureDiff;
 import ru.inovus.ms.rdm.model.diff.PassportDiff;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.repositiory.PassportAttributeRepository;
+import ru.inovus.ms.rdm.repository.PassportAttributeRepository;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.PageIterator;
@@ -355,6 +355,7 @@ class XlsxCompareFileGenerator implements FileGenerator {
         );
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     private Row getOrCreateRow(SXSSFSheet sheet, int rowIndex) {
         Row row = sheet.getRow(rowIndex);
         if (row == null)
