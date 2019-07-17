@@ -19,7 +19,6 @@
                 <param id="versionId" mapping="[0]" domain="integer" mapper="spel" />
                 <param id="id" mapping="[1]" domain="long" mapper="spel"/>
             </in-parameters>
-
         </operation>
 
         <operation id="deleteAll" submit-label="Удалить все" success-text="Все записи успешно удалены"
@@ -37,7 +36,6 @@
             <in-parameters>
                 <param id="versionId" mapping="[0]" domain="integer" mapper="spel" />
             </in-parameters>
-
         </operation>
     </operations>
 
