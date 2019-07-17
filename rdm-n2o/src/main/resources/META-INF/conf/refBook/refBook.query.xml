@@ -59,6 +59,12 @@
             <sorting/>
         </field>
 
+        <field id="excludeByVersionId" domain="integer">
+            <filters>
+                <eq filter-id="excludeByVersionId" mapping="excludeByVersionId"/>
+            </filters>
+        </field>
+
         <field id="status" domain="string">
             <filters>
                 <eq filter-id="status.id" mapping="status" domain="string"/>
