@@ -38,7 +38,6 @@ import ru.inovus.ms.rdm.model.conflict.*;
 import ru.inovus.ms.rdm.model.draft.Draft;
 import ru.inovus.ms.rdm.model.field.ReferenceFilterValue;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
-import ru.inovus.ms.rdm.model.draft.Draft;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.version.AttributeFilter;
@@ -358,7 +357,7 @@ public class ConflictServiceImpl implements ConflictService {
      * @return Количество конфликтных строк
      */
     @Override
-    public Long getRefBookConflictsCount(RefBookConflictCriteria criteria) {
+    public Long countConflictedRowIds(RefBookConflictCriteria criteria) {
         return getConflictedRowIdsQuery(criteria).fetchCount();
     }
 
@@ -492,27 +491,10 @@ public class ConflictServiceImpl implements ConflictService {
         jpaDelete.execute();
     }
 
-    private void delete(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode) {
-
-        Integer id = findId(refFromId, refToId, rowSystemId, refFieldCode);
-        if (id != null)
-            delete(id);
-    }
-
-    @Override
-    public RefBookConflict findConflict(Integer refFromId, Long rowSystemId, String refFieldCode, String refValue) {
-        RefBookConflictEntity entity = findEntity(refFromId, rowSystemId, refFieldCode);
-        return Objects.nonNull(entity) ? refBookConflictModel(entity) : null;
-    }
-
     @Override
     public Integer findId(Integer refFromId, Integer refToId, String refFieldCode, Long rowSystemId) {
         RefBookConflictEntity entity = findEntity(refFromId, refToId, rowSystemId, refFieldCode);
         return Objects.nonNull(entity) ? entity.getId() : null;
-    }
-
-    private RefBookConflictEntity findEntity(Integer refFromId, Long rowSystemId, String refFieldCode) {
-        return conflictRepository.findByReferrerVersionIdAndRefRecordIdAndRefFieldCode(refFromId, rowSystemId, refFieldCode);
     }
 
     private RefBookConflictEntity findEntity(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode) {

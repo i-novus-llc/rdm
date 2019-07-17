@@ -415,7 +415,7 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateDraft(draftId);
 
         RefBookVersionEntity draft = versionRepository.getOne(draftId);
-        conflictRepository.deleteByReferrerVersionId(draft.getId());
+        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draft.getId());
         draftDataService.deleteAllRows(draft.getStorageCode());
     }
 

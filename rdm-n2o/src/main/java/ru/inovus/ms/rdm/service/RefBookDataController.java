@@ -80,7 +80,7 @@ public class RefBookDataController {
         SearchDataCriteria searchDataCriteria;
         if (BooleanUtils.isTrue(criteria.getHasConflict())) {
 
-            long conflictsCount = conflictService.getRefBookConflictsCount(toRefBookConflictCriteria(criteria));
+            long conflictsCount = conflictService.countConflictedRowIds(toRefBookConflictCriteria(criteria));
             long dataCount = versionService.search(criteria.getVersionId(), new SearchDataCriteria()).getTotalElements();
 
             if (conflictsCount == dataCount) {

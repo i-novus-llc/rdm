@@ -59,4 +59,8 @@ public interface RefBookConflictRepository extends
                     " where referrer_id = :oldReferrerVersionId")
     void copyByReferrerVersion(@Param("oldReferrerVersionId") Integer oldReferrerVersionId,
                                @Param("newReferrerVersionId") Integer newReferrerVersionId);
+
+    void deleteByReferrerVersionIdAndRefRecordId(Integer referrerVersionId, Long refRecordId);
+
+    void deleteByReferrerVersionIdAndRefRecordIdIsNotNull(Integer referrerVersionId);
 }

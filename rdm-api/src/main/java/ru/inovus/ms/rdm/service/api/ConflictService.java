@@ -67,7 +67,7 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Количество конфликтов"),
             @ApiResponse(code = 400, message = "Некорректный запрос")
     })
-    Long getRefBookConflictsCount(@ApiParam("Критерий поиска") @BeanParam RefBookConflictCriteria criteria);
+    Long countConflictedRowIds(@ApiParam("Критерий поиска") @BeanParam RefBookConflictCriteria criteria);
 
     @GET
     @Path("/rows")
@@ -103,18 +103,6 @@ public interface ConflictService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     void delete(@ApiParam("Критерий удаления") @BeanParam DeleteRefBookConflictCriteria criteria);
-
-    @GET
-    @Path("/findConflict")
-    @ApiOperation("Поиск конфликта по ссылаемой версии, идентификатору строки и названию атрибута")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Успех"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    RefBookConflict findConflict(@ApiParam("Идентификатор версии, которая ссылается") @QueryParam("refFromId") Integer refFromId,
-                                 @ApiParam("Строка-конфликт версии, которая ссылается") @QueryParam("rowSystemId") Long rowSystemId,
-                                 @ApiParam("Атрибут версии, которая ссылается") @QueryParam("refFieldCode") String refFieldCode,
-                                 @ApiParam("Значение ссылочного атрибута версии, которая ссылается") @QueryParam("refValue") String refValue);
 
     @GET
     @Path("/id/{refFromId}-{refToId}-{refFieldCode}")

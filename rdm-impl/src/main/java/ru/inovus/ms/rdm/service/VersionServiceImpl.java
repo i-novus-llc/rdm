@@ -312,6 +312,7 @@ public class VersionServiceImpl implements VersionService {
         if (fileEntity == null && !versionModel.isDraft()) {
             RefBookVersionEntity versionEntity = new RefBookVersionEntity();
             versionEntity.setId(versionModel.getId());
+
             fileEntity = new VersionFileEntity(versionEntity, fileType, path);
             versionFileRepository.save(fileEntity);
         }
