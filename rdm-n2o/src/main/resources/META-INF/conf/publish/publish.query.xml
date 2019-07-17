@@ -89,7 +89,7 @@
             <select/>
         </field>
 
-        <field id="isPublishing" domain="boolean">
+        <field id="isPublishable" domain="boolean">
             <select mapping="
                 (!archived) and
                 (status?.toString()=='DRAFT') and

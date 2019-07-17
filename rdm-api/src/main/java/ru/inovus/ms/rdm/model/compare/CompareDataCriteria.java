@@ -60,6 +60,6 @@ public class CompareDataCriteria extends CompareCriteria {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), countOnly);
+        return Objects.hash(super.hashCode(), primaryAttributesFilters, countOnly);
     }
 }

@@ -7,7 +7,7 @@ import ru.inovus.ms.rdm.model.version.VersionCriteria;
 import static java.util.Objects.nonNull;
 import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.*;
 
-public class VersionPredicateProducer implements CriteriaPredicateProducer {
+public class VersionPredicateProducer {
 
     private VersionPredicateProducer() {
     }

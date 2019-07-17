@@ -300,13 +300,14 @@ class XlsxCompareFileGenerator implements FileGenerator {
                         }
                     })
                     .forEach(rowDiffValue -> insertRowDiff(rowDiffValue, sheet, dataColumnIndexes));
-            compareCriteria.setPageNumber(compareCriteria.getPageNumber() + 1);
+
+            compareCriteria.nextPageNumber();
+
         } while (!CollectionUtils.isEmpty(page.getContent()));
 
 
         headRow.cellIterator().forEachRemaining(cell -> sheet.autoSizeColumn(cell.getColumnIndex(), true));
     }
-
 
     private Row createDataHead(SXSSFSheet sheet, List<String> deletedColumns, List<String> createdColumns) {
 
@@ -328,7 +329,6 @@ class XlsxCompareFileGenerator implements FileGenerator {
 
         return headRow;
     }
-
 
     private void insertRowDiff(XlsxComparedRow rowDiff, SXSSFSheet sheet, Map<String, Integer> indexes) {
         Set<Integer> notInserted = new HashSet<>();
