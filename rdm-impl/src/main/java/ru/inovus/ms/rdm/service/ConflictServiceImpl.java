@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
@@ -31,7 +30,6 @@ import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.enumeration.RefBookStatusType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
-import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
@@ -41,7 +39,6 @@ import ru.inovus.ms.rdm.model.draft.Draft;
 import ru.inovus.ms.rdm.model.field.ReferenceFilterValue;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
-import ru.inovus.ms.rdm.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.model.version.ReferrerVersionCriteria;
 import ru.inovus.ms.rdm.predicate.DeleteRefBookConflictPredicateProducer;
@@ -104,8 +101,6 @@ public class ConflictServiceImpl implements ConflictService {
     );
 
     private static final String VERSION_IS_NOT_LAST_PUBLISHED_EXCEPTION_CODE = "version.is.not.last.published";
-
-    private static final String REFERRER_ROW_NOT_FOUND_EXCEPTION_CODE = "referrer.row.not.found";
 
     private static final String CANNOT_ORDER_BY_EXCEPTION_CODE = "cannot.order.by \"{0}\"";
 
@@ -386,44 +381,6 @@ public class ConflictServiceImpl implements ConflictService {
                 .from(QRefBookConflictEntity.refBookConflictEntity)
                 .where(RefBookConflictPredicateProducer.toPredicate(criteria))
                 .distinct();
-    }
-
-    /**
-     * Сохранение информации о конфликтах.
-     */
-    @Override
-    @Transactional
-    public void create(CreateConflictsRequest request) {
-        if (Objects.isNull(request)
-                || isEmpty(request.getConflicts()))
-            return;
-
-        List<RefBookConflictEntity> entities = request.getConflicts().stream()
-                .map(conflict -> createRefBookConflictEntity(request.getRefFromId(), request.getRefToId(), conflict))
-                .collect(toList());
-
-        conflictRepository.saveAll(entities);
-    }
-
-    /**
-     * Создание сущности из конфликта для сохранения.
-     *
-     * @param refFromId идентификатор версии справочника со ссылками
-     * @param refToId   идентификатор версии изменённого справочника
-     * @param conflict  конфликт
-     * @return Сущность
-     */
-    private RefBookConflictEntity createRefBookConflictEntity(Integer refFromId, Integer refToId, Conflict conflict) {
-
-        RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
-        RefBookVersionEntity refToEntity = versionRepository.getOne(refToId);
-
-        RefBookRowValue refFromRowValue = getRefFromRowValue(refFromEntity, conflict.getPrimaryValues());
-        if (refFromRowValue == null)
-            throw new NotFoundException(REFERRER_ROW_NOT_FOUND_EXCEPTION_CODE);
-
-        return new RefBookConflictEntity(refFromEntity, refToEntity,
-                refFromRowValue.getSystemId(), conflict.getRefAttributeCode(), conflict.getConflictType());
     }
 
     @Override
@@ -947,25 +904,6 @@ public class ConflictServiceImpl implements ConflictService {
                 })
                 .filter(Objects::nonNull)
                 .collect(toList());
-    }
-
-    /**
-     * Получение конфликтной записи по конфликтному полю записи.
-     */
-    private RefBookRowValue getRefFromRowValue(RefBookVersionEntity versionEntity, List<FieldValue> fieldValues) {
-        if (versionEntity == null)
-            return null;
-
-        List<AttributeFilter> filterList = fieldValues.stream()
-                .map(fieldValue -> {
-                    FieldType fieldType = versionEntity.getStructure().getAttribute(fieldValue.getField()).getType();
-                    return new AttributeFilter(fieldValue.getField(), fieldValue.getValue(), fieldType, SearchTypeEnum.EXACT);
-                })
-                .collect(toList());
-
-        SearchDataCriteria criteria = new SearchDataCriteria(singleton(filterList), null);
-        Page<RefBookRowValue> rowValues = versionService.search(versionEntity.getId(), criteria);
-        return (rowValues != null && !isEmpty(rowValues.getContent())) ? rowValues.getContent().get(0) : null;
     }
 
     /**

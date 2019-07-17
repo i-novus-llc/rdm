@@ -79,15 +79,6 @@ public interface ConflictService {
     })
     Page<Long> searchConflictedRowIds(@ApiParam("Критерий поиска") @BeanParam RefBookConflictCriteria criteria);
 
-    @POST
-    @Path("/create")
-    @ApiOperation("Сохранение информации о конфликтах")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Успех"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    void create(CreateConflictsRequest request);
-
     @DELETE
     @Path("/{id}")
     @ApiOperation("Удаление записи о конфликте")
