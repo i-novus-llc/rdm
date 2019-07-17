@@ -4,13 +4,11 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.ComparableExpressionBase;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPADeleteClause;
-import com.querydsl.jpa.impl.JPAQuery;
 import net.n2oapp.criteria.api.CollectionPage;
-import net.n2oapp.platform.i18n.Message;
-import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -25,7 +23,9 @@ import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.inovus.ms.rdm.entity.*;
+import ru.inovus.ms.rdm.entity.QRefBookConflictEntity;
+import ru.inovus.ms.rdm.entity.RefBookConflictEntity;
+import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.enumeration.RefBookStatusType;
@@ -39,10 +39,11 @@ import ru.inovus.ms.rdm.model.draft.Draft;
 import ru.inovus.ms.rdm.model.field.ReferenceFilterValue;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.model.version.ReferrerVersionCriteria;
 import ru.inovus.ms.rdm.predicate.DeleteRefBookConflictPredicateProducer;
-import ru.inovus.ms.rdm.predicate.RefBookConflictPredicateProducer;
+import ru.inovus.ms.rdm.predicate.RefBookConflictQueryProvider;
 import ru.inovus.ms.rdm.repositiory.RefBookConflictRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.*;
@@ -50,6 +51,8 @@ import ru.inovus.ms.rdm.util.PageIterator;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import javax.persistence.EntityManager;
+import java.math.BigInteger;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -80,8 +83,6 @@ public class ConflictServiceImpl implements ConflictService {
     private static final int REF_BOOK_CONFLICT_PAGE_SIZE = 100;
     private static final int REF_BOOK_DIFF_CONFLICT_PAGE_SIZE = 100;
 
-    private static final String CONFLICT_REFERRER_VERSION_ID_SORT_PROPERTY = "referrerVersionId";
-    private static final String CONFLICT_PUBLISHED_VERSION_ID_SORT_PROPERTY = "publishedVersionId";
     private static final String CONFLICT_REF_RECORD_ID_SORT_PROPERTY = "refRecordId";
     private static final String CONFLICT_REF_FIELD_CODE_SORT_PROPERTY = "refFieldCode";
 
@@ -102,9 +103,10 @@ public class ConflictServiceImpl implements ConflictService {
 
     private static final String VERSION_IS_NOT_LAST_PUBLISHED_EXCEPTION_CODE = "version.is.not.last.published";
 
-    private static final String CANNOT_ORDER_BY_EXCEPTION_CODE = "cannot.order.by \"{0}\"";
+    private static final String REFERRER_ROW_NOT_FOUND_EXCEPTION_CODE = "referrer.row.not.found";
 
     private RefBookConflictRepository conflictRepository;
+    private RefBookConflictQueryProvider conflictQueryProvider;
     private RefBookVersionRepository versionRepository;
 
     private DraftDataService draftDataService;
@@ -121,12 +123,14 @@ public class ConflictServiceImpl implements ConflictService {
 
     @Autowired
     @SuppressWarnings("squid:S00107")
-    public ConflictServiceImpl(RefBookConflictRepository conflictRepository, RefBookVersionRepository versionRepository,
+    public ConflictServiceImpl(RefBookConflictRepository conflictRepository, RefBookConflictQueryProvider conflictQueryProvider,
+                               RefBookVersionRepository versionRepository,
                                DraftDataService draftDataService, SearchDataService searchDataService,
                                RefBookService refBookService, VersionService versionService,
                                DraftService draftService, CompareService compareService,
                                VersionValidation versionValidation, EntityManager entityManager) {
         this.conflictRepository = conflictRepository;
+        this.conflictQueryProvider = conflictQueryProvider;
         this.versionRepository = versionRepository;
 
         this.compareService = compareService;
@@ -318,69 +322,18 @@ public class ConflictServiceImpl implements ConflictService {
     @Override
     public Page<RefBookConflict> search(RefBookConflictCriteria criteria) {
 
-        Page<RefBookConflictEntity> entities = findConflictEntities(criteria);
+        Page<RefBookConflictEntity> entities = conflictQueryProvider.search(criteria);
         return entities.map(this::refBookConflictModel);
     }
 
-    private Page<RefBookConflictEntity> findConflictEntities(RefBookConflictCriteria criteria) {
-
-        JPAQuery<RefBookConflictEntity> jpaQuery =
-                new JPAQuery<>(entityManager)
-                        .select(QRefBookConflictEntity.refBookConflictEntity)
-                        .from(QRefBookConflictEntity.refBookConflictEntity)
-                        .where(RefBookConflictPredicateProducer.toPredicate(criteria));
-
-        long count = jpaQuery.fetchCount();
-
-        sortQuery(jpaQuery, criteria);
-        List<RefBookConflictEntity> entities = jpaQuery
-                .offset(criteria.getOffset())
-                .limit(criteria.getPageSize())
-                .fetch();
-
-        return new PageImpl<>(entities, criteria, count);
-    }
-
-    /**
-     * Получение количества строк с конфликтами на основании уникальных идентификаторов строк
-     *
-     * @param criteria критерий поиска
-     * @return Количество конфликтных строк
-     */
     @Override
     public Long countConflictedRowIds(RefBookConflictCriteria criteria) {
-        return getConflictedRowIdsQuery(criteria).fetchCount();
+        return conflictQueryProvider.countConflictedRowIds(criteria);
     }
 
-    /**
-     * Поиск идентификаторов строк с конфликтами
-     *
-     * @param criteria критерий поиска
-     * @return Страница идентификаторов конфликтных строк
-     */
     @Override
     public Page<Long> searchConflictedRowIds(RefBookConflictCriteria criteria) {
-
-        JPAQuery<Long> jpaQuery = getConflictedRowIdsQuery(criteria);
-
-        long count = jpaQuery.fetchCount();
-
-        jpaQuery.orderBy(QRefBookConflictEntity.refBookConflictEntity.refRecordId.asc());
-
-        List<Long> entities = jpaQuery
-                .offset(criteria.getOffset())
-                .limit(criteria.getPageSize())
-                .fetch();
-
-        return new PageImpl<>(entities, criteria, count);
-    }
-
-    private JPAQuery<Long> getConflictedRowIdsQuery(RefBookConflictCriteria criteria) {
-        return new JPAQuery<>(entityManager)
-                .select(QRefBookConflictEntity.refBookConflictEntity.refRecordId)
-                .from(QRefBookConflictEntity.refBookConflictEntity)
-                .where(RefBookConflictPredicateProducer.toPredicate(criteria))
-                .distinct();
+        return conflictQueryProvider.searchConflictedRowIds(criteria);
     }
 
     @Override
@@ -644,7 +597,7 @@ public class ConflictServiceImpl implements ConflictService {
         criteria.setOrders(SORT_REF_BOOK_CONFLICTS);
         criteria.setPageSize(REF_BOOK_CONFLICT_PAGE_SIZE);
 
-        Function<RefBookConflictCriteria, Page<RefBookConflictEntity>> pageSource = this::findConflictEntities;
+        Function<RefBookConflictCriteria, Page<RefBookConflictEntity>> pageSource = conflictQueryProvider::search;
         PageIterator<RefBookConflictEntity, RefBookConflictCriteria> pageIterator = new PageIterator<>(pageSource, criteria);
         pageIterator.forEachRemaining(page -> {
             List<Object> systemIds = page.getContent().stream()
@@ -739,57 +692,6 @@ public class ConflictServiceImpl implements ConflictService {
 
         if (!newVersionId.equals(oldVersionId))
             conflictRepository.copyByReferrerVersion(oldVersionId, newVersionId);
-    }
-
-    /**
-     * Добавление сортировки в запрос на основе критерия.
-     *
-     * @param jpaQuery запрос
-     * @param criteria критерий поиска
-     */
-    private void sortQuery(JPAQuery<RefBookConflictEntity> jpaQuery, RefBookConflictCriteria criteria) {
-
-        List<Sort.Order> orders = criteria.getOrders();
-
-        if (!isEmpty(orders)) {
-            criteria.getOrders().stream()
-                    .filter(Objects::nonNull)
-                    .forEach(order -> addSortOrder(jpaQuery, order));
-        }
-    }
-
-    /**
-     * Добавление сортировки в запрос по заданному порядку.
-     *
-     * @param jpaQuery запрос поиска
-     * @param order    порядок сортировки
-     */
-    private void addSortOrder(JPAQuery<RefBookConflictEntity> jpaQuery, Sort.Order order) {
-
-        ComparableExpressionBase sortExpression;
-
-        switch (order.getProperty()) {
-            case CONFLICT_REFERRER_VERSION_ID_SORT_PROPERTY:
-                sortExpression = QRefBookConflictEntity.refBookConflictEntity.referrerVersion.id;
-                break;
-
-            case CONFLICT_PUBLISHED_VERSION_ID_SORT_PROPERTY:
-                sortExpression = QRefBookConflictEntity.refBookConflictEntity.publishedVersion.id;
-                break;
-
-            case CONFLICT_REF_RECORD_ID_SORT_PROPERTY:
-                sortExpression = QRefBookConflictEntity.refBookConflictEntity.refRecordId;
-                break;
-
-            case CONFLICT_REF_FIELD_CODE_SORT_PROPERTY:
-                sortExpression = QRefBookConflictEntity.refBookConflictEntity.refFieldCode;
-                break;
-
-            default:
-                throw new UserException(new Message(CANNOT_ORDER_BY_EXCEPTION_CODE, order.getProperty()));
-        }
-
-        jpaQuery.orderBy(order.isAscending() ? sortExpression.asc() : sortExpression.desc());
     }
 
     private RefBookConflict refBookConflictModel(RefBookConflictEntity entity) {
