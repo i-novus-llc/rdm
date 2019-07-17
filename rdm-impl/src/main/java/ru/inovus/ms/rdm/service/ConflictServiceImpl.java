@@ -53,7 +53,6 @@ import ru.inovus.ms.rdm.util.PageIterator;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import javax.persistence.EntityManager;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -156,6 +155,7 @@ public class ConflictServiceImpl implements ConflictService {
      */
     @Override
     @Transactional(readOnly = true)
+    // NB: for ApplicationTest only.
     public List<RefBookConflict> calculateDataConflicts(CalculateConflictCriteria criteria) {
 
         List<RefBookConflictEntity> list = new ArrayList<>();
@@ -774,7 +774,7 @@ public class ConflictServiceImpl implements ConflictService {
      */
     @Override
     @Transactional
-    // for ApplicationTest
+    // NB: for ApplicationTest only.
     public void copyConflicts(Integer oldVersionId, Integer newVersionId) {
 
         versionValidation.validateVersionExists(oldVersionId);
@@ -855,16 +855,10 @@ public class ConflictServiceImpl implements ConflictService {
     private List<RefBookRowValue> getConflictedRowContent(RefBookVersionEntity refFromEntity, List<DiffRowValue> diffRowValues,
                                                           List<Structure.Attribute> refToPrimaries, List<Structure.Attribute> refFromAttributes) {
         Set<List<FieldSearchCriteria>> filters = createFiltersForDiffRowValues(diffRowValues, refToPrimaries, refFromAttributes);
-        return getConflictedRowContent(refFromEntity.getId(), refFromEntity.getStorageCode(), refFromEntity.getStructure(),
-                refFromEntity.getFromDate(), refFromEntity.getToDate(), filters);
-    }
-
-    private List<RefBookRowValue> getConflictedRowContent(Integer versionId, String storageCode,
-                                                          Structure structure,
-                                                          LocalDateTime bdate, LocalDateTime edate,
-                                                          Set<List<FieldSearchCriteria>> filters) {
-        DataCriteria criteria = new DataCriteria(storageCode, bdate, edate, fields(structure), filters, null);
-        // NB: Get all required rows.
+        DataCriteria criteria = new DataCriteria(refFromEntity.getStorageCode(),
+                refFromEntity.getFromDate(), refFromEntity.getToDate(),
+                fields(refFromEntity.getStructure()), filters, null);
+        // NB: Get all required rows because filters.size() <= REF_BOOK_DIFF_CONFLICT_PAGE_SIZE.
         criteria.setPage(0);
         criteria.setSize(0);
 
@@ -873,7 +867,7 @@ public class ConflictServiceImpl implements ConflictService {
             return emptyList();
 
         return pagedData.getCollection().stream()
-                .map(rowValue -> new RefBookRowValue((LongRowValue) rowValue, versionId))
+                .map(rowValue -> new RefBookRowValue((LongRowValue) rowValue, refFromEntity.getId()))
                 .collect(toList());
     }
 
@@ -1071,7 +1065,7 @@ public class ConflictServiceImpl implements ConflictService {
      * @param refFromReferences ссылки версии, которая ссылается
      * @param structureDiff     различие в структурах версий
      */
-    @SuppressWarnings("WeakerAccess")
+    @SuppressWarnings("WeakerAccess") // NB: public for ConflictServiceTest only.
     public List<RefBookConflictEntity> calculateCleanedConflicts(RefBookVersionEntity refFromEntity,
                                                                  RefBookVersionEntity newRefToEntity,
                                                                  List<Structure.Reference> refFromReferences,
@@ -1099,7 +1093,7 @@ public class ConflictServiceImpl implements ConflictService {
      * @param refFromReference ссылка версии, которая ссылается
      * @param refFromRows      строки версии, которая ссылается
      */
-    @SuppressWarnings("WeakerAccess")
+    @SuppressWarnings("WeakerAccess") // NB: public for ConflictServiceTest only.
     public List<RefBookConflictEntity> calculateAlteredConflicts(RefBookVersionEntity refFromEntity,
                                                                  RefBookVersionEntity oldRefToEntity,
                                                                  RefBookVersionEntity newRefToEntity,
