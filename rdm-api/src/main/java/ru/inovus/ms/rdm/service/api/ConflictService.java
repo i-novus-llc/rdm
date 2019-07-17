@@ -68,7 +68,7 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Количество конфликтов"),
             @ApiResponse(code = 400, message = "Некорректный запрос")
     })
-    Long getRefBookConflictsCount(@ApiParam("Критерий поиска") @BeanParam RefBookConflictCriteria criteria);
+    Long countConflictedRowIds(@ApiParam("Критерий поиска") @BeanParam RefBookConflictCriteria criteria);
 
     @GET
     @Path("/rows")

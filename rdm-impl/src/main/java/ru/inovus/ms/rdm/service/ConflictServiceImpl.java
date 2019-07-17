@@ -328,6 +328,7 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     private Page<RefBookConflictEntity> findConflictEntities(RefBookConflictCriteria criteria) {
+
         JPAQuery<RefBookConflictEntity> jpaQuery =
                 new JPAQuery<>(entityManager)
                         .select(QRefBookConflictEntity.refBookConflictEntity)
@@ -352,7 +353,7 @@ public class ConflictServiceImpl implements ConflictService {
      * @return Количество конфликтных строк
      */
     @Override
-    public Long getRefBookConflictsCount(RefBookConflictCriteria criteria) {
+    public Long countConflictedRowIds(RefBookConflictCriteria criteria) {
         return getConflictedRowIdsQuery(criteria).fetchCount();
     }
 
@@ -452,12 +453,10 @@ public class ConflictServiceImpl implements ConflictService {
 
     @Override
     public Integer findId(Integer refFromId, Integer refToId, String refFieldCode, Long rowSystemId) {
-        RefBookConflictEntity entity = findEntity(refFromId, refToId, rowSystemId, refFieldCode);
+        RefBookConflictEntity entity =
+                conflictRepository.findByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdAndRefFieldCode(
+                        refFromId, refToId, rowSystemId, refFieldCode);
         return Objects.nonNull(entity) ? entity.getId() : null;
-    }
-
-    private RefBookConflictEntity findEntity(Integer refFromId, Integer refToId, Long rowSystemId, String refFieldCode) {
-        return conflictRepository.findByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdAndRefFieldCode(refFromId, refToId, rowSystemId, refFieldCode);
     }
 
     /**

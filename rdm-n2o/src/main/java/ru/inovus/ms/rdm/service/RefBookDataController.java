@@ -27,6 +27,7 @@ import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.criteria.DataCriteria;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.conflict.RefBookConflictCriteria;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.version.AttributeFilter;
@@ -78,7 +79,7 @@ public class RefBookDataController {
         SearchDataCriteria searchDataCriteria;
         if (BooleanUtils.isTrue(criteria.getHasConflict())) {
 
-            long conflictsCount = conflictService.getRefBookConflictsCount(toRefBookConflictCriteria(criteria));
+            long conflictsCount = conflictService.countConflictedRowIds(toRefBookConflictCriteria(criteria));
             long dataCount = versionService.search(criteria.getVersionId(), new SearchDataCriteria()).getTotalElements();
 
             if (conflictsCount == dataCount) {
