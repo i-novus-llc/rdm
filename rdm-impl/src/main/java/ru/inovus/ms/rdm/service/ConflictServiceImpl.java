@@ -34,14 +34,14 @@ import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.model.conflict.*;
 import ru.inovus.ms.rdm.model.diff.StructureDiff;
-import ru.inovus.ms.rdm.model.field.ReferenceFilterValue;
-import ru.inovus.ms.rdm.model.version.AttributeFilter;
-import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.model.draft.Draft;
+import ru.inovus.ms.rdm.model.field.ReferenceFilterValue;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.model.version.ReferrerVersionCriteria;
 import ru.inovus.ms.rdm.predicate.DeleteRefBookConflictPredicateProducer;
@@ -182,9 +182,9 @@ public class ConflictServiceImpl implements ConflictService {
     /**
      * Вычисление конфликтов справочников по diff-записям.
      *
-     * @param refFromEntity версия, которая ссылается
-     * @param oldRefToEntity   версия, на которую ссылаются
-     * @param diffRowValues diff-записи
+     * @param refFromEntity  версия, которая ссылается
+     * @param oldRefToEntity версия, на которую ссылаются
+     * @param diffRowValues  diff-записи
      * @return Список конфликтов для версии, которая ссылается
      * @see #checkDataDiffConflicts
      */
@@ -346,6 +346,48 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
+     * Получение количества строк с конфликтами на основании уникальных идентификаторов строк
+     *
+     * @param criteria критерий поиска
+     * @return Количество конфликтных строк
+     */
+    @Override
+    public Long getRefBookConflictsCount(RefBookConflictCriteria criteria) {
+        return getConflictedRowIdsQuery(criteria).fetchCount();
+    }
+
+    /**
+     * Поиск идентификаторов строк с конфликтами
+     *
+     * @param criteria критерий поиска
+     * @return Страница идентификаторов конфликтных строк
+     */
+    @Override
+    public Page<Long> searchConflictedRowIds(RefBookConflictCriteria criteria) {
+
+        JPAQuery<Long> jpaQuery = getConflictedRowIdsQuery(criteria);
+
+        long count = jpaQuery.fetchCount();
+
+        jpaQuery.orderBy(QRefBookConflictEntity.refBookConflictEntity.refRecordId.asc());
+
+        List<Long> entities = jpaQuery
+                .offset(criteria.getOffset())
+                .limit(criteria.getPageSize())
+                .fetch();
+
+        return new PageImpl<>(entities, criteria, count);
+    }
+
+    private JPAQuery<Long> getConflictedRowIdsQuery(RefBookConflictCriteria criteria) {
+        return new JPAQuery<>(entityManager)
+                .select(QRefBookConflictEntity.refBookConflictEntity.refRecordId)
+                .from(QRefBookConflictEntity.refBookConflictEntity)
+                .where(RefBookConflictPredicateProducer.toPredicate(criteria))
+                .distinct();
+    }
+
+    /**
      * Сохранение информации о конфликтах.
      */
     @Override
@@ -432,7 +474,8 @@ public class ConflictServiceImpl implements ConflictService {
         versionValidation.validateVersionExists(referrerVersionId);
 
         List<RefBookVersionEntity> publishedVersions = conflictRepository.findReferrerConflictedPublishedVersions(referrerVersionId, refRecordIds);
-        if (isEmpty(publishedVersions))
+        if (isEmpty(publishedVersions)
+                || isEmpty(refRecordIds))
             return emptyList();
 
         BooleanBuilder where = new BooleanBuilder();
@@ -520,7 +563,7 @@ public class ConflictServiceImpl implements ConflictService {
      * Перевычисление существующих конфликтов справочников.
      *
      * @param refFromEntity   версия справочника, которая ссылается
-     * @param oldRefToEntity     версия справочника, на которую ссылались
+     * @param oldRefToEntity  версия справочника, на которую ссылались
      * @param conflict        конфликт
      * @param refFromRowValue запись версии справочника, которая ссылается
      * @param diffRowValues   список различий версий справочника, на которую ссылаются
@@ -870,7 +913,7 @@ public class ConflictServiceImpl implements ConflictService {
      * Получение diff-записей данных версий справочников для конфликтов.
      *
      * @param diffRowValues список всех различий
-     * @param isAltered наличие изменения структуры
+     * @param isAltered     наличие изменения структуры
      * @return Список различий
      */
     private List<DiffRowValue> getDataDiffContent(Page<DiffRowValue> diffRowValues, boolean isAltered) {

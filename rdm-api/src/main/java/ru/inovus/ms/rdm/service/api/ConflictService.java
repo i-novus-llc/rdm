@@ -59,6 +59,26 @@ public interface ConflictService {
     })
     Page<RefBookConflict> search(@ApiParam("Критерий поиска") @BeanParam RefBookConflictCriteria criteria);
 
+    @GET
+    @Path("/rows/count")
+    @ApiOperation("Получение количества конфликтных строк по параметрам критерия")
+    @ApiImplicitParams(@ApiImplicitParam(name = "sort", value = "Параметры сортировки", required = false, allowMultiple = true,
+            paramType = "query", dataType = "string"))
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Количество конфликтов"),
+            @ApiResponse(code = 400, message = "Некорректный запрос")
+    })
+    Long getRefBookConflictsCount(@ApiParam("Критерий поиска") @BeanParam RefBookConflictCriteria criteria);
+
+    @GET
+    @Path("/rows")
+    @ApiOperation("Поиск идентификаторов строк с конфликтами по параметрам критерия")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Список идентификаторов конфликтующих строк"),
+            @ApiResponse(code = 400, message = "Некорректный запрос")
+    })
+    Page<Long> searchConflictedRowIds(@ApiParam("Критерий поиска") @BeanParam RefBookConflictCriteria criteria);
+
     @POST
     @Path("/create")
     @ApiOperation("Сохранение информации о конфликтах")

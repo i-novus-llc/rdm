@@ -2,12 +2,11 @@ package ru.inovus.ms.rdm.predicate;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
-import org.springframework.util.CollectionUtils;
 import ru.inovus.ms.rdm.model.conflict.RefBookConflictCriteria;
 
 import static java.util.Objects.nonNull;
+import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.predicate.RefBookConflictPredicates.*;
-import static ru.inovus.ms.rdm.predicate.RefBookConflictPredicates.isConflictType;
 
 public class RefBookConflictPredicateProducer {
 
@@ -38,7 +37,7 @@ public class RefBookConflictPredicateProducer {
         if (nonNull(criteria.getRefRecordId()))
             where.and(isRefRecordId(criteria.getRefRecordId()));
 
-        if (!CollectionUtils.isEmpty(criteria.getRefRecordIds()))
+        if (!isEmpty(criteria.getRefRecordIds()))
             where.and(isRefRecordIdIn(criteria.getRefRecordIds()));
 
         if (nonNull(criteria.getRefFieldCode()))
