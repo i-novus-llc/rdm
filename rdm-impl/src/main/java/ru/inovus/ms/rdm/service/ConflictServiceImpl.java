@@ -882,6 +882,8 @@ public class ConflictServiceImpl implements ConflictService {
             return emptyList();
 
         SearchDataCriteria criteria = new SearchDataCriteria(toSystemIdFilters(systemIds), null);
+        criteria.setPageSize(REF_BOOK_CONFLICT_PAGE_SIZE);
+
         Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
         return (rowValues != null && !isEmpty(rowValues.getContent())) ? rowValues.getContent() : emptyList();
     }
@@ -898,6 +900,7 @@ public class ConflictServiceImpl implements ConflictService {
 
         CompareDataCriteria criteria = new CompareDataCriteria(oldVersionId, newVersionId);
         criteria.setPrimaryAttributesFilters(toAttributeFilters(filterValues));
+        criteria.setPageSize(REF_BOOK_CONFLICT_PAGE_SIZE);
 
         return compareService.compareData(criteria).getRows().getContent();
     }
@@ -1144,6 +1147,8 @@ public class ConflictServiceImpl implements ConflictService {
             return emptyList();
 
         SearchDataCriteria criteria = new SearchDataCriteria(toAttributeFilters(filterValues), null);
+        criteria.setPageSize(REF_BOOK_VERSION_DATA_PAGE_SIZE);
+
         Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
         return (rowValues != null && !isEmpty(rowValues.getContent())) ? rowValues.getContent() : emptyList();
     }
