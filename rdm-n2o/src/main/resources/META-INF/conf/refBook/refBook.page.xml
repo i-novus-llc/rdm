@@ -162,7 +162,7 @@
                         <show-modal page-id="dataRecordPage?{id}_edit" upload="query" route="/update"
                                     submit-operation-id="update" refresh-widget-id="version_select">
                             <pre-filters>
-                                <eq field-id="id" value="{id}" ref-model="resolve" ref-widget-id="dataTable"/>
+                                <eq field-id="id" value="{id}" ref-model="resolve" ref-widget-id="dataTableWithConflicts"/>
                             </pre-filters>
                         </show-modal>
                     </button>
