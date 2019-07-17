@@ -96,7 +96,7 @@
         </field>
 
         <field id="displayAttribute.name" domain="string">
-            <select mapping="displayAttributeName"/>
+            <select mapping="displayAttributeName?:''"/>
         </field>
 
         <field id="displayExpression" domain="string">
