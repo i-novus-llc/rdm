@@ -560,7 +560,7 @@ public class ConflictServiceImpl implements ConflictService {
 
         RefBookConflictCriteria criteria = new RefBookConflictCriteria(referrerEntity.getId(),
                 publishedEntity.getId(), reference.getAttribute(), conflictType);
-        criteria.setOrders(RefBookConflictQueryProvider.getSortRefBookConflicts());
+        criteria.setOrders(conflictQueryProvider.getSortRefBookConflicts());
         criteria.setPageSize(REF_BOOK_CONFLICT_PAGE_SIZE);
 
         Function<RefBookConflictCriteria, Page<RefBookConflictEntity>> pageSource = conflictQueryProvider::search;
@@ -1000,7 +1000,7 @@ public class ConflictServiceImpl implements ConflictService {
                                              boolean isAltered) {
 
         RefBookConflictCriteria criteria = new RefBookConflictCriteria(refFromEntity.getId(), oldRefToEntity.getId());
-        criteria.setOrders(RefBookConflictQueryProvider.getSortRefBookConflicts());
+        criteria.setOrders(conflictQueryProvider.getSortRefBookConflicts());
         criteria.setPageSize(REF_BOOK_CONFLICT_PAGE_SIZE);
 
         Function<RefBookConflictCriteria, Page<RefBookConflictEntity>> pageSource = conflictQueryProvider::search;

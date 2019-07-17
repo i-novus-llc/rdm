@@ -53,7 +53,7 @@ public class RefBookConflictQueryProvider {
         this.entityManager = entityManager;
     }
 
-    public static List<Sort.Order> getSortRefBookConflicts() {
+    public List<Sort.Order> getSortRefBookConflicts() {
         return SORT_REF_BOOK_CONFLICTS;
     }
 
@@ -62,7 +62,7 @@ public class RefBookConflictQueryProvider {
                 new JPAQuery<>(entityManager)
                         .select(QRefBookConflictEntity.refBookConflictEntity)
                         .from(QRefBookConflictEntity.refBookConflictEntity)
-                        .where(RefBookConflictQueryProvider.toPredicate(criteria));
+                        .where(toPredicate(criteria));
 
         long count = jpaQuery.fetchCount();
 
@@ -128,7 +128,7 @@ public class RefBookConflictQueryProvider {
         return new JPAQuery<>(entityManager)
                 .select(QRefBookConflictEntity.refBookConflictEntity.refRecordId)
                 .from(QRefBookConflictEntity.refBookConflictEntity)
-                .where(RefBookConflictQueryProvider.toPredicate(criteria))
+                .where(toPredicate(criteria))
                 .distinct();
     }
 
@@ -138,7 +138,7 @@ public class RefBookConflictQueryProvider {
      * @param criteria критерий поиска
      * @return Предикат для запроса поиска
      */
-    private static Predicate toPredicate(RefBookConflictCriteria criteria) {
+    private Predicate toPredicate(RefBookConflictCriteria criteria) {
         BooleanBuilder where = new BooleanBuilder();
 
         if (nonNull(criteria.getReferrerVersionId()))
@@ -174,7 +174,7 @@ public class RefBookConflictQueryProvider {
      * @param jpaQuery запрос
      * @param criteria критерий поиска
      */
-    private static void sortQuery(JPAQuery<RefBookConflictEntity> jpaQuery, RefBookConflictCriteria criteria) {
+    private void sortQuery(JPAQuery<RefBookConflictEntity> jpaQuery, RefBookConflictCriteria criteria) {
 
         List<Sort.Order> orders = criteria.getOrders();
 
@@ -191,7 +191,7 @@ public class RefBookConflictQueryProvider {
      * @param jpaQuery запрос поиска
      * @param order    порядок сортировки
      */
-    private static void addSortOrder(JPAQuery<RefBookConflictEntity> jpaQuery, Sort.Order order) {
+    private void addSortOrder(JPAQuery<RefBookConflictEntity> jpaQuery, Sort.Order order) {
 
         ComparableExpressionBase sortExpression;
 
