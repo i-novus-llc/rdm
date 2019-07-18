@@ -19,16 +19,13 @@ public interface RefBookConflictRepository extends
 
     Boolean existsByReferrerVersionIdAndConflictType(Integer referrerVersionId, ConflictType conflictType);
 
-    Boolean existsByPublishedVersionId(Integer publishedVersionId);
-
     RefBookConflictEntity findByReferrerVersionIdAndRefRecordIdAndRefFieldCode(
             Integer referrerVersionId,
             Long refRecordId, String refFieldCode
     );
 
-    RefBookConflictEntity findByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdAndRefFieldCode(
-            Integer referrerVersionId, Integer publishedVersionId,
-            Long refRecordId, String refFieldCode
+    RefBookConflictEntity findByReferrerVersionIdAndPublishedVersionIdAndRefFieldCodeAndRefRecordId(
+            Integer referrerVersionId, Integer publishedVersionId, String refFieldCode, Long refRecordId
     );
 
     @Query("select distinct c.refRecordId from RefBookConflictEntity c \n" +

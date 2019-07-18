@@ -67,8 +67,7 @@ public interface ConflictService {
     })
     RefBookConflict findConflict(@ApiParam("Идентификатор версии, которая ссылается") @QueryParam("refFromId") Integer refFromId,
                                  @ApiParam("Строка-конфликт версии, которая ссылается") @QueryParam("rowSystemId") Long rowSystemId,
-                                 @ApiParam("Атрибут версии, которая ссылается") @QueryParam("refFieldCode") String refFieldCode,
-                                 @ApiParam("Значение ссылочного атрибута версии, которая ссылается") @QueryParam("refValue") String refValue);
+                                 @ApiParam("Атрибут версии, которая ссылается") @QueryParam("refFieldCode") String refFieldCode);
 
     @GET
     @Path("/rows/count")

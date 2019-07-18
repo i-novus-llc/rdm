@@ -1,7 +1,5 @@
 package ru.inovus.ms.rdm.service;
 
-import com.querydsl.jpa.JPAExpressions;
-import com.querydsl.jpa.impl.JPADeleteClause;
 import net.n2oapp.criteria.api.CollectionPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
@@ -21,7 +19,6 @@ import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.inovus.ms.rdm.entity.QRefBookConflictEntity;
 import ru.inovus.ms.rdm.entity.RefBookConflictEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
@@ -40,7 +37,6 @@ import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.model.version.ReferrerVersionCriteria;
-import ru.inovus.ms.rdm.predicate.DeleteRefBookConflictPredicateProducer;
 import ru.inovus.ms.rdm.predicate.RefBookConflictQueryProvider;
 import ru.inovus.ms.rdm.repositiory.RefBookConflictRepository;
 import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
@@ -49,7 +45,6 @@ import ru.inovus.ms.rdm.util.PageIterator;
 import ru.inovus.ms.rdm.util.RowUtils;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
-import javax.persistence.EntityManager;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -78,20 +73,12 @@ public class ConflictServiceImpl implements ConflictService {
     private static final int REF_BOOK_CONFLICT_PAGE_SIZE = 100;
     private static final int REF_BOOK_DIFF_CONFLICT_PAGE_SIZE = 100;
 
-    private static final String CONFLICT_REF_RECORD_ID_SORT_PROPERTY = "refRecordId";
-    private static final String CONFLICT_REF_FIELD_CODE_SORT_PROPERTY = "refFieldCode";
-
     private static final List<Sort.Order> SORT_REFERRER_VERSIONS = singletonList(
             new Sort.Order(Sort.Direction.ASC, VERSION_ID_SORT_PROPERTY)
     );
 
     private static final List<Sort.Order> SORT_VERSION_DATA = singletonList(
             new Sort.Order(Sort.Direction.ASC, DataConstants.SYS_PRIMARY_COLUMN)
-    );
-
-    private static final List<Sort.Order> SORT_REF_BOOK_CONFLICTS = asList(
-            new Sort.Order(Sort.Direction.ASC, CONFLICT_REF_RECORD_ID_SORT_PROPERTY),
-            new Sort.Order(Sort.Direction.ASC, CONFLICT_REF_FIELD_CODE_SORT_PROPERTY)
     );
 
     private static final String VERSION_IS_NOT_LAST_PUBLISHED_EXCEPTION_CODE = "version.is.not.last.published";
@@ -112,8 +99,6 @@ public class ConflictServiceImpl implements ConflictService {
 
     private VersionValidation versionValidation;
 
-    private EntityManager entityManager;
-
     @Autowired
     @SuppressWarnings("squid:S00107")
     public ConflictServiceImpl(RefBookConflictRepository conflictRepository, RefBookConflictQueryProvider conflictQueryProvider,
@@ -121,7 +106,7 @@ public class ConflictServiceImpl implements ConflictService {
                                DraftDataService draftDataService, SearchDataService searchDataService,
                                RefBookService refBookService, VersionService versionService,
                                DraftService draftService, CompareService compareService,
-                               VersionValidation versionValidation, EntityManager entityManager) {
+                               VersionValidation versionValidation) {
         this.conflictRepository = conflictRepository;
         this.conflictQueryProvider = conflictQueryProvider;
         this.versionRepository = versionRepository;
@@ -135,8 +120,6 @@ public class ConflictServiceImpl implements ConflictService {
         this.draftService = draftService;
 
         this.versionValidation = versionValidation;
-
-        this.entityManager = entityManager;
     }
 
     /**
@@ -426,19 +409,11 @@ public class ConflictServiceImpl implements ConflictService {
     @Override
     @Transactional
     public void delete(DeleteRefBookConflictCriteria criteria) {
-
-        JPADeleteClause jpaDelete =
-                new JPADeleteClause(entityManager, QRefBookConflictEntity.refBookConflictEntity)
-                        .where(QRefBookConflictEntity.refBookConflictEntity.id.in(
-                                JPAExpressions.select(QRefBookConflictEntity.refBookConflictEntity.id)
-                                        .from(QRefBookConflictEntity.refBookConflictEntity)
-                                        .where(DeleteRefBookConflictPredicateProducer.toPredicate(criteria))
-                        ));
-        jpaDelete.execute();
+        conflictQueryProvider.delete(criteria);
     }
 
     @Override
-    public RefBookConflict findConflict(Integer refFromId, Long rowSystemId, String refFieldCode, String refValue) {
+    public RefBookConflict findConflict(Integer refFromId, Long rowSystemId, String refFieldCode) {
         // NB: May be, use search ?!
         // NB: `refValue` is not used.
         RefBookConflictEntity entity = conflictRepository.findByReferrerVersionIdAndRefRecordIdAndRefFieldCode(refFromId, rowSystemId, refFieldCode);
@@ -447,7 +422,9 @@ public class ConflictServiceImpl implements ConflictService {
 
     @Override
     public Integer findId(Integer refFromId, Integer refToId, String refFieldCode, Long rowSystemId) {
-        RefBookConflictEntity entity = conflictRepository.findByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdAndRefFieldCode(refFromId, refToId, rowSystemId, refFieldCode);
+        RefBookConflictEntity entity =
+                conflictRepository.findByReferrerVersionIdAndPublishedVersionIdAndRefFieldCodeAndRefRecordId(
+                        refFromId, refToId, refFieldCode, rowSystemId);
         return Objects.nonNull(entity) ? entity.getId() : null;
     }
 
@@ -629,7 +606,7 @@ public class ConflictServiceImpl implements ConflictService {
         criteria.setPublishedVersionId(publishedVersion.getId());
         criteria.setRefFieldCode(reference.getAttribute());
         criteria.setConflictType(ConflictType.UPDATED);
-        criteria.setOrders(SORT_REF_BOOK_CONFLICTS);
+        criteria.setOrders(RefBookConflictQueryProvider.getSortRefBookConflicts());
         criteria.setPageSize(REF_BOOK_CONFLICT_PAGE_SIZE);
 
         Function<RefBookConflictCriteria, Page<RefBookConflictEntity>> pageSource = conflictQueryProvider::search;
@@ -1028,7 +1005,7 @@ public class ConflictServiceImpl implements ConflictService {
         RefBookConflictCriteria criteria = new RefBookConflictCriteria();
         criteria.setReferrerVersionId(refFromId);
         criteria.setPublishedVersionId(oldRefToId);
-        criteria.setOrders(SORT_REF_BOOK_CONFLICTS);
+        criteria.setOrders(RefBookConflictQueryProvider.getSortRefBookConflicts());
         criteria.setPageSize(REF_BOOK_CONFLICT_PAGE_SIZE);
 
         Function<RefBookConflictCriteria, Page<RefBookConflict>> pageSource = this::search;
