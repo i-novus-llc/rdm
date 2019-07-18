@@ -263,14 +263,12 @@ public class ConflictServiceImpl implements ConflictService {
 
         RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
         String refBookCode = versionEntity.getRefBook().getCode();
+        Integer lastPublishedId = versionService.getLastPublishedVersion(refBookCode).getId();
 
         List<RefBookVersion> conflictedReferrers = new ArrayList<>(REF_BOOK_VERSION_PAGE_SIZE);
         Consumer<List<RefBookVersion>> consumer = referrers -> {
             List<RefBookVersion> list = referrers.stream()
-                    .filter(referrer -> {
-                        Integer lastPublishedId = versionService.getLastPublishedVersion(refBookCode).getId();
-                        return checkConflicts(referrer.getId(), lastPublishedId, versionId, conflictType);
-                    })
+                    .filter(referrer -> checkConflicts(referrer.getId(), lastPublishedId, versionId, conflictType))
                     .collect(toList());
             conflictedReferrers.addAll(list);
         };
