@@ -19,6 +19,7 @@ public class ConflictController {
      *
      * @param referrerVersionId идентификатор версии справочника, который ссылается
      */
+    @SuppressWarnings("unused")
     void refreshReferrer(Integer referrerVersionId) {
         conflictService.refreshReferrerByPrimary(referrerVersionId);
     }
