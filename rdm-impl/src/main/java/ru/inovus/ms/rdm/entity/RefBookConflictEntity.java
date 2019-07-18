@@ -106,12 +106,12 @@ public class RefBookConflictEntity {
     }
 
     /**
-     * Проверка типа на CLEANED.
+     * Проверка типа на DISPLAY_DAMAGED.
      *
      * @return Результат проверки
      */
-    public boolean isCleaned() {
-        return ConflictType.CLEANED.equals(getConflictType());
+    public boolean isDisplayDamaged() {
+        return ConflictType.DISPLAY_DAMAGED.equals(getConflictType());
     }
 
     @PrePersist

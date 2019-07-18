@@ -226,8 +226,8 @@ public class ConflictServiceTest {
         when(compareService.compareStructures(eq(publishedEntity.getId()), eq(publishingEntity.getId()))).thenReturn(structureDiff);
 
         List<RefBookConflictEntity> expectedList = asList(
-                new RefBookConflictEntity(referrerEntity, publishingEntity, null, REFERRER_ATTRIBUTE_DELETE_REFERENCE, ConflictType.CLEANED),
-                new RefBookConflictEntity(referrerEntity, publishingEntity, null, REFERRER_ATTRIBUTE_UPDATE_CODE_REFERENCE, ConflictType.CLEANED)
+                new RefBookConflictEntity(referrerEntity, publishingEntity, null, REFERRER_ATTRIBUTE_DELETE_REFERENCE, ConflictType.DISPLAY_DAMAGED),
+                new RefBookConflictEntity(referrerEntity, publishingEntity, null, REFERRER_ATTRIBUTE_UPDATE_CODE_REFERENCE, ConflictType.DISPLAY_DAMAGED)
         );
 
         List<Structure.Reference> referrerReferences = referrerEntity.getStructure().getRefCodeReferences(publishedEntity.getRefBook().getCode());

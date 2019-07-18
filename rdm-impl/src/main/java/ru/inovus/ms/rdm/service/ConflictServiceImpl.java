@@ -424,7 +424,7 @@ public class ConflictServiceImpl implements ConflictService {
                                                              List<DiffRowValue> diffRowValues) {
         return conflicts.stream()
                 .map(conflict -> {
-                    if (conflict.isCleaned()) {
+                    if (conflict.isDisplayDamaged()) {
                         // NB: Analyze dipslayExpression ?!
                         return new RefBookConflictEntity(refFromEntity, newRefToEntity,
                                 null, conflict.getRefFieldCode(), conflict.getConflictType());
@@ -897,7 +897,7 @@ public class ConflictServiceImpl implements ConflictService {
                 .filter(reference -> containsAnyPlaceholder(reference.getDisplayExpression(), deletedCodes))
                 .map(reference ->
                         new RefBookConflictEntity(refFromEntity, newRefToEntity,
-                                null, reference.getAttribute(), ConflictType.CLEANED))
+                                null, reference.getAttribute(), ConflictType.DISPLAY_DAMAGED))
                 .collect(toList());
     }
 
