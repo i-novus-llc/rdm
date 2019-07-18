@@ -312,6 +312,7 @@ public class RefBookDataController {
                 of(BOOL_FIELD_ID, "false", BOOL_FIELD_NAME, "ЛОЖЬ")};
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static class DataGridRow {
 
         @JsonProperty
@@ -325,12 +326,10 @@ public class RefBookDataController {
         public DataGridRow() {
         }
 
-        @SuppressWarnings("WeakerAccess")
         public DataGridRow(List<DataGridColumn> columns) {
             this.columns = columns;
         }
 
-        @SuppressWarnings("WeakerAccess")
         public DataGridRow(Long id, Map<String, Object> row) {
             this.id = id;
             this.row = row;
@@ -361,6 +360,7 @@ public class RefBookDataController {
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static class DataGridCell {
         @JsonProperty
         String value;
@@ -371,7 +371,6 @@ public class RefBookDataController {
         public DataGridCell() {
         }
 
-        @SuppressWarnings("WeakerAccess")
         public DataGridCell(String value, Map<String, Object> cellOptions) {
             this.value = value;
             this.cellOptions = cellOptions;
