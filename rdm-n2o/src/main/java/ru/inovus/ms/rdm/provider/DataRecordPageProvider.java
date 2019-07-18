@@ -13,7 +13,6 @@ import net.n2oapp.framework.api.metadata.dataprovider.N2oJavaDataProvider;
 import net.n2oapp.framework.api.metadata.dataprovider.SpringProvider;
 import net.n2oapp.framework.api.metadata.global.dao.N2oPreFilter;
 import net.n2oapp.framework.api.metadata.global.dao.invocation.model.Argument;
-import net.n2oapp.framework.api.metadata.global.dao.object.MapperType;
 import net.n2oapp.framework.api.metadata.global.dao.object.N2oObject;
 import net.n2oapp.framework.api.metadata.global.dao.validation.N2oConstraint;
 import net.n2oapp.framework.api.metadata.global.dao.validation.N2oValidation;
@@ -126,7 +125,7 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
             case REFERENCE:
                 N2oInputSelect referenceField = new N2oInputSelect();
                 referenceField.setQueryId("reference");
-                //NB: value-field-id is deprecated:
+                // value-field-id is deprecated:
                 referenceField.setValueFieldId("value");
                 referenceField.setLabelFieldId("displayValue");
                 referenceField.setDomain(N2oDomain.STRING);
@@ -164,10 +163,10 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
     private N2oValidation createRefValueValidation(String attributeCode) {
         String attributeCodeWithPrefix = addPrefix(attributeCode);
 
-        N2oJavaDataProvider java = new N2oJavaDataProvider();
-        java.setClassName(ConflictService.class.getName());
-        java.setMethod("findConflict");
-        java.setSpringProvider(new SpringProvider());
+        N2oJavaDataProvider dataProvider = new N2oJavaDataProvider();
+        dataProvider.setClassName(ConflictService.class.getName());
+        dataProvider.setMethod("findConflict");
+        dataProvider.setSpringProvider(new SpringProvider());
 
         Argument refFromIdArgument = new Argument();
         refFromIdArgument.setType(Argument.Type.PRIMITIVE);
@@ -184,12 +183,7 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         refFieldCodeArgument.setClassName("java.lang.String");
         refFieldCodeArgument.setName("refFieldCode");
 
-        Argument refValueArgument = new Argument();
-        refValueArgument.setType(Argument.Type.PRIMITIVE);
-        refValueArgument.setClassName("java.lang.String");
-        refValueArgument.setName("refValue");
-
-        java.setArguments(new Argument[] {refFromIdArgument, rowSystemIdArgument, refFieldCodeArgument, refValueArgument});
+        dataProvider.setArguments(new Argument[] {refFromIdArgument, rowSystemIdArgument, refFieldCodeArgument});
 
         N2oConstraint constraint = new N2oConstraint();
         constraint.setId("_constraint_validation");
@@ -205,11 +199,8 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         N2oObject.Parameter refFieldCodeParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, attributeCode, "[2]");
         refFieldCodeParam.setDefaultValue(attributeCode);
         refFieldCodeParam.setDomain(N2oDomain.STRING);
-        N2oObject.Parameter refValueParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, attributeCodeWithPrefix + ".value", "[3]");
-        refValueParam.setMapper(MapperType.spel);
-        refValueParam.setDomain(N2oDomain.STRING);
 
-        constraint.setInParameters(new N2oObject.Parameter[]{refFromIdParam, rowSystemIdParam, refFieldCodeParam, refValueParam});
+        constraint.setInParameters(new N2oObject.Parameter[]{refFromIdParam, rowSystemIdParam, refFieldCodeParam});
 
         N2oObject.Parameter conflictTypeParam = new N2oObject.Parameter(N2oObject.Parameter.Type.out, "conflictType",
                 "\"UPDATED\".equals(conflictType.name()) ? \"изменена\" : \"удалена\"");
@@ -219,7 +210,7 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         constraint.setServerMoment(N2oValidation.ServerMoment.afterSuccessQuery);
         constraint.setSide("server");
 
-        constraint.setN2oInvocation(java);
+        constraint.setN2oInvocation(dataProvider);
 
         return constraint;
     }
