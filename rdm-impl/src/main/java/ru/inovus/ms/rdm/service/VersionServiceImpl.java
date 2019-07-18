@@ -121,7 +121,7 @@ public class VersionServiceImpl implements VersionService {
     public RefBookVersion getLastPublishedVersion(String refBookCode) {
         RefBookVersionEntity versionEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.PUBLISHED);
         if (versionEntity == null)
-            throw new NotFoundException(new Message(LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE));
+            throw new NotFoundException(new Message(LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE, refBookCode));
         return versionModel(versionEntity);
     }
 

@@ -21,6 +21,7 @@ import ru.inovus.ms.rdm.util.ConverterUtil;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
@@ -29,15 +30,19 @@ import static ru.inovus.ms.rdm.util.ConverterUtil.field;
 
 public class ReferenceValidation implements RdmValidation {
 
+    private static final Logger logger = LoggerFactory.getLogger(ReferenceValidation.class);
+
+    private static final String LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE = "last.published.not.found";
+    private static final String VERSION_HAS_NOT_STRUCTURE = "version.has.not.structure";
+    private static final String VERSION_PRIMARY_KEY_NOT_FOUND = "version.primary.key.not.found";
+    private static final String INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE = "inconvertible.new.type";
+
     private SearchDataService searchDataService;
     private RefBookVersionRepository versionRepository;
 
     private Structure.Reference reference;
     private Integer draftId;
     private Integer bufSize;
-
-    private static final Logger logger = LoggerFactory.getLogger(ReferenceValidation.class);
-    private static final String INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE = "inconvertible.new.type";
 
     public ReferenceValidation(SearchDataService searchDataService,
                                RefBookVersionRepository versionRepository,
@@ -58,24 +63,36 @@ public class ReferenceValidation implements RdmValidation {
     @Override
     @Transactional(readOnly = true)
     public List<Message> validate() {
-        RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
-        Structure.Attribute draftAttribute = draftVersion.getStructure().getAttribute(reference.getAttribute());
+        RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
+        Structure.Attribute draftAttribute = draftEntity.getStructure().getAttribute(reference.getAttribute());
         Field draftField = field(draftAttribute);
 
         // NB: Add absent referenceVersion and/or referenceAttribute error to messages and return
-        RefBookVersionEntity referenceVersion = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
-        Structure.Attribute referenceAttribute = reference.findReferenceAttribute(referenceVersion.getStructure());
+        RefBookVersionEntity referenceEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
+        if (Objects.isNull(referenceEntity))
+            return singletonList(new Message(LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE, reference.getReferenceCode()));
+        if (Objects.isNull(referenceEntity.getStructure()))
+            return singletonList(new Message(VERSION_HAS_NOT_STRUCTURE, referenceEntity.getId()));
+
+        Structure.Attribute referenceAttribute = null;
+        try {
+            referenceAttribute = reference.findReferenceAttribute(referenceEntity.getStructure());
+
+        } catch (RdmException e) {
+            logger.info(VERSION_PRIMARY_KEY_NOT_FOUND, e);
+            return singletonList(new Message(VERSION_PRIMARY_KEY_NOT_FOUND, referenceEntity.getId()));
+        }
         Field referenceField = field(referenceAttribute);
 
         // значения, которые невозможно привести к типу атрибута, на который ссылаемся, либо не найдены в ссылаемой версии
         List<String> incorrectValues = new ArrayList<>();
         List<Message> messages = new ArrayList<>();
 
-        DataCriteria draftDataCriteria = new DataCriteria(draftVersion.getStorageCode(), null, null,
+        DataCriteria draftDataCriteria = new DataCriteria(draftEntity.getStorageCode(), null, null,
                 singletonList(draftField), emptySet(), null);
         draftDataCriteria.setPage(1);
         draftDataCriteria.setSize(bufSize);
-        validateData(draftDataCriteria, incorrectValues, referenceField, referenceVersion, referenceAttribute);
+        validateData(draftDataCriteria, incorrectValues, referenceField, referenceEntity, referenceAttribute);
 
         incorrectValues.forEach(incorrectValue ->
                 messages.add(
@@ -87,6 +104,7 @@ public class ReferenceValidation implements RdmValidation {
         return messages;
     }
 
+    // NB: Странный проход по страницам.
     private void validateData(DataCriteria draftDataCriteria, List<String> incorrectValues, Field refField,
                               RefBookVersionEntity refVersion, Structure.Attribute refAttribute) {
         CollectionPage<RowValue> draftRowValues = searchDataService.getPagedData(draftDataCriteria);

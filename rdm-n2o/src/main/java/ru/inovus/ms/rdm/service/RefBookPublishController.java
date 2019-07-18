@@ -42,15 +42,13 @@ public class RefBookPublishController {
         RefBook refBook = refBookService.getByVersionId(versionId);
 
         UiRefBookPublish uiRefBookPublish = new UiRefBookPublish(refBook);
-
-        Map<String, String> conflictReferrerNames =
+        Map<String, String> conflictingReferrerNames =
                 Stream.of(ConflictType.values())
                         .collect(toMap(ConflictType::name,
                                 conflictType -> getConflictingReferrerNames(versionId, conflictType)
                                 )
                         );
-
-        uiRefBookPublish.setConflictingReferrerNames(conflictReferrerNames);
+        uiRefBookPublish.setConflictingReferrerNames(conflictingReferrerNames);
 
         return uiRefBookPublish;
     }
