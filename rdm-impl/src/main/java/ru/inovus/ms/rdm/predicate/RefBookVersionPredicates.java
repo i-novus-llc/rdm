@@ -58,6 +58,11 @@ public final class RefBookVersionPredicates {
         return anyVersion.status.eq(RefBookVersionStatus.DRAFT);
     }
 
+    public static BooleanExpression refBookHasVersion(Integer versionId) {
+        QRefBookVersionEntity anyVersion = QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
+        return anyVersion.id.eq(versionId);
+    }
+
     public static BooleanExpression isSourceType(RefBookSourceType sourceType) {
         if (sourceType == null)
             return isLastVersion();
@@ -143,7 +148,6 @@ public final class RefBookVersionPredicates {
                     // NB: Реализовать проверку на наличие первичного ключа
                     .and(fieldVersion.structure.isNotNull())
                 ).exists();
-
     }
 
     public static BooleanExpression isCodeContains(String code) {

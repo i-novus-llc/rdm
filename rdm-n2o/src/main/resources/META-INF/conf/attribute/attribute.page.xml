@@ -17,7 +17,7 @@
                     <option id="FLOAT" name="Дробный"/>
                     <option id="DATE" name="Дата"/>
                     <option id="BOOLEAN" name="Логический"/>
-<!--                    <option id="REFERENCE" name="Ссылочный"/>-->
+                    <option id="REFERENCE" name="Ссылочный"/>
                 </options>
             </select>
 
@@ -30,6 +30,7 @@
                 </dependencies>
                 <pre-filters>
                     <eq field-id="hasPublishedVersion" value="true" />
+                    <eq field-id="excludeByVersionId" value="{versionId}"/>
                 </pre-filters>
                 <validations>
                     <condition id="hasRefBook" severity="danger"
