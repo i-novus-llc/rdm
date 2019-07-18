@@ -60,6 +60,7 @@ public class PublishServiceImpl implements PublishService {
     private RefBookLockService refBookLockService;
     private VersionService versionService;
     private ConflictService conflictService;
+    private ReferenceService referenceService;
 
     private VersionFileService versionFileService;
     private VersionNumberStrategy versionNumberStrategy;
@@ -72,7 +73,7 @@ public class PublishServiceImpl implements PublishService {
     public PublishServiceImpl(RefBookVersionRepository versionRepository,
                               DraftDataService draftDataService, DropDataService dropDataService,
                               RefBookService refBookService, RefBookLockService refBookLockService,
-                              VersionService versionService, ConflictService conflictService,
+                              VersionService versionService, ConflictService conflictService, ReferenceService referenceService,
                               VersionFileService versionFileService, VersionNumberStrategy versionNumberStrategy,
                               VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation) {
         this.versionRepository = versionRepository;
@@ -84,6 +85,7 @@ public class PublishServiceImpl implements PublishService {
         this.refBookLockService = refBookLockService;
         this.versionService = versionService;
         this.conflictService = conflictService;
+        this.referenceService = referenceService;
 
         this.versionFileService = versionFileService;
         this.versionNumberStrategy = versionNumberStrategy;
@@ -225,7 +227,7 @@ public class PublishServiceImpl implements PublishService {
      * @param refBookCode код справочника, на который ссылаются
      */
     private void resolveReferrerConflicts(String refBookCode) {
-        conflictService.refreshLastReferrersByPrimary(refBookCode);
+        referenceService.refreshLastReferrers(refBookCode);
     }
 
     /**

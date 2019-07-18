@@ -156,6 +156,10 @@ public class ApplicationTest {
     private ConflictService conflictService;
 
     @Autowired
+    @Qualifier("referenceServiceJaxRsProxyClient")
+    private ReferenceService referenceService;
+
+    @Autowired
     private DataSource dataSource;
 
     @Autowired
@@ -1474,7 +1478,7 @@ public class ApplicationTest {
         assertNotNull(changedVersion);
 
         // Обновление ссылок.
-        conflictService.refreshLastReferrersByPrimary(changedVersion.getCode());
+        referenceService.refreshLastReferrers(changedVersion.getCode());
 
 //      4. Проверка связанного справочника.
         // Проверка данных.
@@ -1488,7 +1492,7 @@ public class ApplicationTest {
             assertEquals(expectedMadeofValues.get(primaryValue), displayValue);
         });
 
-        REFERRER_UPDATED_PRIMARIES.forEach((primaryField, primaryList) -> {
+        REFERRER_UPDATED_PRIMARIES.forEach((primaryField, primaryList) ->
             primaryList.forEach(primaryValue -> {
                 RefBookRowValue referrerRowValue = getVersionRowValue(referrerVersion.getId(), referrerPrimary, primaryValue);
                 String displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, primaryField);
@@ -1508,8 +1512,8 @@ public class ApplicationTest {
                     default:
                         break;
                 }
-            });
-        });
+            })
+        );
 
         // Проверка конфликтов.
         REFERRER_UNCHANGED_PRIMARIES.forEach(primaryValue -> {
@@ -1519,23 +1523,23 @@ public class ApplicationTest {
             assertNull(conflictId);
         });
 
-        REFERRER_UPDATED_PRIMARIES.forEach((primaryField, primaryList) -> {
+        REFERRER_UPDATED_PRIMARIES.forEach((primaryField, primaryList) ->
             primaryList.forEach(primaryValue -> {
                 Integer conflictId = findPublishWithConflictedReferrerConflictId(
                         referrerVersion.getId(), changedVersion.getId(),
                         referrerPrimary, primaryValue, primaryField);
                 assertNull(conflictId);
-            });
-        });
+            })
+        );
 
-        REFERRER_DELETED_PRIMARIES.forEach((primaryField, primaryList) -> {
+        REFERRER_DELETED_PRIMARIES.forEach((primaryField, primaryList) ->
             primaryList.forEach(primaryValue -> {
                 Integer conflictId = findPublishWithConflictedReferrerConflictId(
                         referrerVersion.getId(), changedVersion.getId(),
                         referrerPrimary, primaryValue, primaryField);
                 assertNotNull(conflictId);
-            });
-        });
+            })
+        );
 
 //      5. Создание черновика связанного справочника.
         List<Long> systemIds = LongStream.range(1, 100).boxed().collect(toList());
@@ -1573,6 +1577,7 @@ public class ApplicationTest {
         return value + "___" + value;
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void updatePublishWithConflictedReferrerNumberValue(Draft draft,
                                                                 Structure.Attribute primary, String primaryValue,
                                                                 String fieldName) {
@@ -1598,6 +1603,7 @@ public class ApplicationTest {
         assertEquals(newTypedValue, typedFieldValue.getValue());
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void updatePublishWithConflictedReferrerStringValue(Draft draft,
                                                                 Structure.Attribute primary, String primaryValue,
                                                                 String fieldName) {

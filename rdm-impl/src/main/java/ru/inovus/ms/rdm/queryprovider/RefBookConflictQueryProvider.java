@@ -17,7 +17,6 @@ import ru.inovus.ms.rdm.entity.QRefBookConflictEntity;
 import ru.inovus.ms.rdm.entity.RefBookConflictEntity;
 import ru.inovus.ms.rdm.model.conflict.DeleteRefBookConflictCriteria;
 import ru.inovus.ms.rdm.model.conflict.RefBookConflictCriteria;
-import ru.inovus.ms.rdm.predicate.DeleteRefBookConflictPredicateProducer;
 
 import javax.persistence.EntityManager;
 import java.util.List;
@@ -33,6 +32,9 @@ import static ru.inovus.ms.rdm.predicate.RefBookConflictPredicates.*;
  */
 @Component
 public class RefBookConflictQueryProvider {
+
+    public static final int REF_BOOK_CONFLICT_PAGE_SIZE = 100;
+    public static final int REF_BOOK_DIFF_CONFLICT_PAGE_SIZE = 100;
 
     private static final String CONFLICT_REFERRER_VERSION_ID_SORT_PROPERTY = "referrerVersionId";
     private static final String CONFLICT_PUBLISHED_VERSION_ID_SORT_PROPERTY = "publishedVersionId";
@@ -73,23 +75,6 @@ public class RefBookConflictQueryProvider {
                 .fetch();
 
         return new PageImpl<>(entities, criteria, count);
-    }
-
-    /**
-     * Удаление конфликтов по заданному критерию.
-     *
-     * @param criteria критерий удаления
-     */
-    public void delete(DeleteRefBookConflictCriteria criteria) {
-
-        JPADeleteClause jpaDelete =
-                new JPADeleteClause(entityManager, QRefBookConflictEntity.refBookConflictEntity)
-                        .where(QRefBookConflictEntity.refBookConflictEntity.id.in(
-                                JPAExpressions.select(QRefBookConflictEntity.refBookConflictEntity.id)
-                                        .from(QRefBookConflictEntity.refBookConflictEntity)
-                                        .where(DeleteRefBookConflictPredicateProducer.toPredicate(criteria))
-                        ));
-        jpaDelete.execute();
     }
 
     /**
@@ -217,6 +202,57 @@ public class RefBookConflictQueryProvider {
         }
 
         jpaQuery.orderBy(order.isAscending() ? sortExpression.asc() : sortExpression.desc());
+    }
+
+    /**
+     * Удаление конфликтов по заданному критерию.
+     *
+     * @param criteria критерий удаления
+     */
+    public void delete(DeleteRefBookConflictCriteria criteria) {
+
+        JPADeleteClause jpaDelete =
+                new JPADeleteClause(entityManager, QRefBookConflictEntity.refBookConflictEntity)
+                        .where(QRefBookConflictEntity.refBookConflictEntity.id.in(
+                                JPAExpressions.select(QRefBookConflictEntity.refBookConflictEntity.id)
+                                        .from(QRefBookConflictEntity.refBookConflictEntity)
+                                        .where(toDeletionPredicate(criteria))
+                        ));
+        jpaDelete.execute();
+    }
+
+    /**
+     * Формирование предиката на основе критерия удаления.
+     *
+     * @param criteria критерий удаления
+     * @return Предикат для удаления
+     */
+    private static Predicate toDeletionPredicate(DeleteRefBookConflictCriteria criteria) {
+
+        BooleanBuilder where = new BooleanBuilder();
+
+        if (nonNull(criteria.getReferrerVersionId()))
+            where.and(isReferrerVersionId(criteria.getReferrerVersionId()));
+
+        if (nonNull(criteria.getReferrerVersionRefBookId()))
+            where.and(isReferrerVersionRefBookId(criteria.getReferrerVersionRefBookId()));
+
+        if (nonNull(criteria.getPublishedVersionId()))
+            where.and(isPublishedVersionId(criteria.getPublishedVersionId()));
+
+        if (nonNull(criteria.getPublishedVersionRefBookId()))
+            where.and(isPublishedVersionRefBookId(criteria.getPublishedVersionRefBookId()));
+
+        if (nonNull(criteria.getExcludedPublishedVersionId()))
+            where.andNot(isPublishedVersionId(criteria.getExcludedPublishedVersionId()));
+
+        if (nonNull(criteria.getRefFieldCode()))
+            where.and(isRefFieldCode(criteria.getRefFieldCode()));
+
+        if (nonNull(criteria.getConflictType()))
+            where.and(isConflictType(criteria.getConflictType()));
+
+        return where.getValue();
     }
 
 }

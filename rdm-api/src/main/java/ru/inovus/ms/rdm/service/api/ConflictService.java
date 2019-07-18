@@ -130,24 +130,6 @@ public interface ConflictService {
                                         @ApiParam("Список системных идентификаторов записей") @QueryParam("refRecordIds") List<Long> refRecordIds);
 
     @POST
-    @Path("/{versionId}/refresh/byPrimary")
-    @ApiOperation("Обновление ссылок в справочнике")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Успех"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    void refreshReferrerByPrimary(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer referrerVersionId);
-
-    @POST
-    @Path("/refresh/byPrimary/{refFieldCode}")
-    @ApiOperation("Обновление ссылок в связанных справочниках")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Успех"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    void refreshLastReferrersByPrimary(@ApiParam("Код справочника, на который ссылаются") @PathParam("refFieldCode") String refBookCode);
-
-    @POST
     @Path("/discover/{oldVersionId}-{newVersionId}")
     @ApiOperation("Обнаружение конфликтов")
     @ApiResponses({

@@ -2,16 +2,16 @@ package ru.inovus.ms.rdm.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import ru.inovus.ms.rdm.service.api.ConflictService;
+import ru.inovus.ms.rdm.service.api.ReferenceService;
 
 @Controller
 public class ConflictController {
 
-    private ConflictService conflictService;
+    private ReferenceService referenceService;
 
     @Autowired
-    public ConflictController(ConflictService conflictService) {
-        this.conflictService = conflictService;
+    public ConflictController(ReferenceService referenceService) {
+        this.referenceService = referenceService;
     }
 
     /**
@@ -21,6 +21,6 @@ public class ConflictController {
      */
     @SuppressWarnings("unused")
     void refreshReferrer(Integer referrerVersionId) {
-        conflictService.refreshReferrerByPrimary(referrerVersionId);
+        referenceService.refreshReferrer(referrerVersionId);
     }
 }
