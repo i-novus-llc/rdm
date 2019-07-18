@@ -5,6 +5,7 @@ import net.n2oapp.platform.i18n.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
@@ -25,6 +26,7 @@ import java.util.Objects;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.util.ConverterUtil.field;
 
@@ -50,6 +52,7 @@ public class ReferenceValidation implements RdmValidation {
         this(searchDataService, versionRepository, reference, draftId, 100);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public ReferenceValidation(SearchDataService searchDataService,
                                RefBookVersionRepository versionRepository,
                                Structure.Reference reference, Integer draftId, Integer bufSize) {
@@ -67,46 +70,63 @@ public class ReferenceValidation implements RdmValidation {
         Structure.Attribute draftAttribute = draftEntity.getStructure().getAttribute(reference.getAttribute());
         Field draftField = field(draftAttribute);
 
-        // NB: Add absent referenceVersion and/or referenceAttribute error to messages and return
-        RefBookVersionEntity referenceEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
-        if (Objects.isNull(referenceEntity))
+        RefBookVersionEntity referredEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
+        if (Objects.isNull(referredEntity))
             return singletonList(new Message(LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE, reference.getReferenceCode()));
-        if (Objects.isNull(referenceEntity.getStructure()))
-            return singletonList(new Message(VERSION_HAS_NOT_STRUCTURE, referenceEntity.getId()));
+        if (Objects.isNull(referredEntity.getStructure()))
+            return singletonList(new Message(VERSION_HAS_NOT_STRUCTURE, referredEntity.getId()));
 
-        Structure.Attribute referenceAttribute = null;
+        Structure.Attribute referredAttribute;
         try {
-            referenceAttribute = reference.findReferenceAttribute(referenceEntity.getStructure());
+            referredAttribute = reference.findReferenceAttribute(referredEntity.getStructure());
 
         } catch (RdmException e) {
             logger.info(VERSION_PRIMARY_KEY_NOT_FOUND, e);
-            return singletonList(new Message(VERSION_PRIMARY_KEY_NOT_FOUND, referenceEntity.getId()));
+            return singletonList(new Message(VERSION_PRIMARY_KEY_NOT_FOUND, referredEntity.getId()));
         }
-        Field referenceField = field(referenceAttribute);
+        Field referredField = field(referredAttribute);
 
-        // значения, которые невозможно привести к типу атрибута, на который ссылаемся, либо не найдены в ссылаемой версии
-        List<String> incorrectValues = new ArrayList<>();
-        List<Message> messages = new ArrayList<>();
+        // Поля из вычисляемого выражения, отсутствующие в версии, на которую ссылаемся.
+        List<String> incorrectFields = getNotExistedPlaceholders(reference.getDisplayExpression(), referredEntity.getStructure());
+        if (!isEmpty(incorrectFields)) {
+            return incorrectFields.stream()
+                    .map(field -> new Message(VERSION_ATTRIBUTE_NOT_FOUND, referredEntity.getId(), field))
+                    .collect(toList());
+        }
 
         DataCriteria draftDataCriteria = new DataCriteria(draftEntity.getStorageCode(), null, null,
                 singletonList(draftField), emptySet(), null);
         draftDataCriteria.setPage(1);
         draftDataCriteria.setSize(bufSize);
-        validateData(draftDataCriteria, incorrectValues, referenceField, referenceEntity, referenceAttribute);
 
-        incorrectValues.forEach(incorrectValue ->
-                messages.add(
-                        new Message(INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE,
-                                draftAttribute.getDescription(),
-                                incorrectValue)
-                )
-        );
-        return messages;
+        // Значения, не приводимые к типу атрибута, на который ссылаемся,
+        // либо значения, не найденные в версии, на которую ссылаемся.
+        List<String> incorrectValues = new ArrayList<>();
+        validateData(draftDataCriteria, incorrectValues, referredEntity, referredField);
+
+        return incorrectValues.stream()
+                .map(value -> new Message(INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE, draftAttribute.getDescription(), value))
+                .collect(toList());
+    }
+
+    /**
+     * Поиск полей, которые отсутствуют в структуре.
+     *
+     * @param displayExpression выражение для вычисления отображаемого значения
+     * @param referredStructure структура версии, на которую ссылаются
+     * @return Список отсутствующих полей
+     */
+    private List<String> getNotExistedPlaceholders(String displayExpression, Structure referredStructure) {
+        DisplayExpression expression = new DisplayExpression(displayExpression);
+        List<String> placeholders = expression.getPlaceholders();
+        return placeholders.stream()
+                .filter(placeholder -> Objects.isNull(referredStructure.getAttribute(placeholder)))
+                .collect(toList());
     }
 
     // NB: Странный проход по страницам.
-    private void validateData(DataCriteria draftDataCriteria, List<String> incorrectValues, Field refField,
-                              RefBookVersionEntity refVersion, Structure.Attribute refAttribute) {
+    private void validateData(DataCriteria draftDataCriteria, List<String> incorrectValues,
+                              RefBookVersionEntity referredEntity, Field referredField) {
         CollectionPage<RowValue> draftRowValues = searchDataService.getPagedData(draftDataCriteria);
         // значения, которые приведены к типу атрибута из ссылки
         List<Object> castedValues = new ArrayList<>();
@@ -115,7 +135,7 @@ public class ReferenceValidation implements RdmValidation {
             String value = String.valueOf(rowValue.getFieldValue(reference.getAttribute()).getValue());
             Object castedValue;
             try {
-                castedValue = ConverterUtil.castReferenceValue(refField, value);
+                castedValue = ConverterUtil.castReferenceValue(referredField, value);
                 castedValues.add(castedValue);
 
             } catch (NumberFormatException | DateTimeParseException | RdmException e) {
@@ -125,17 +145,17 @@ public class ReferenceValidation implements RdmValidation {
         });
 
         if (!isEmpty(castedValues)) {
-            FieldSearchCriteria refFieldSearchCriteria = new FieldSearchCriteria(refField, SearchTypeEnum.EXACT, castedValues);
-            DataCriteria refDataCriteria =
-                    new DataCriteria(refVersion.getStorageCode(),
-                            refVersion.getFromDate(), refVersion.getToDate(),
-                            singletonList(refField), singletonList(refFieldSearchCriteria), null);
-            CollectionPage<RowValue> refRowValues = searchDataService.getPagedData(refDataCriteria);
+            FieldSearchCriteria refFieldSearchCriteria = new FieldSearchCriteria(referredField, SearchTypeEnum.EXACT, castedValues);
+            DataCriteria referredDataCriteria =
+                    new DataCriteria(referredEntity.getStorageCode(),
+                            referredEntity.getFromDate(), referredEntity.getToDate(),
+                            singletonList(referredField), singletonList(refFieldSearchCriteria), null);
+            CollectionPage<RowValue> refRowValues = searchDataService.getPagedData(referredDataCriteria);
 
             castedValues.forEach(castedValue -> {
                 if (refRowValues.getCollection().stream()
                         .noneMatch(rowValue ->
-                                castedValue.equals(rowValue.getFieldValue(refAttribute.getCode()).getValue())
+                                castedValue.equals(rowValue.getFieldValue(referredField.getName()).getValue())
                         ))
                     incorrectValues.add(String.valueOf(castedValue));
             });
@@ -147,6 +167,6 @@ public class ReferenceValidation implements RdmValidation {
 
         draftDataCriteria.setPage(draftDataCriteria.getPage() + 1);
         draftDataCriteria.setSize((remainCount >= bufSize) ? bufSize : remainCount);
-        validateData(draftDataCriteria, incorrectValues, refField, refVersion, refAttribute);
+        validateData(draftDataCriteria, incorrectValues, referredEntity, referredField);
     }
 }
