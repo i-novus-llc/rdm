@@ -328,10 +328,18 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     @Override
+    public RefBookConflict findConflict(Integer refFromId, Long rowSystemId, String refFieldCode) {
+        // NB: May be, use search ?!
+        // NB: `refValue` is not used.
+        RefBookConflictEntity entity = conflictRepository.findByReferrerVersionIdAndRefRecordIdAndRefFieldCode(refFromId, rowSystemId, refFieldCode);
+        return Objects.nonNull(entity) ? refBookConflictModel(entity) : null;
+    }
+
+    @Override
     public Integer findId(Integer refFromId, Integer refToId, String refFieldCode, Long rowSystemId) {
         RefBookConflictEntity entity =
-                conflictRepository.findByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdAndRefFieldCode(
-                        refFromId, refToId, rowSystemId, refFieldCode);
+                conflictRepository.findByReferrerVersionIdAndPublishedVersionIdAndRefFieldCodeAndRefRecordId(
+                        refFromId, refToId, refFieldCode, rowSystemId);
         return Objects.nonNull(entity) ? entity.getId() : null;
     }
 

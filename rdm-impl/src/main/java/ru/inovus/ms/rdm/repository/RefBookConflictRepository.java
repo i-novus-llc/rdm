@@ -19,9 +19,13 @@ public interface RefBookConflictRepository extends
 
     Boolean existsByReferrerVersionIdAndConflictType(Integer referrerVersionId, ConflictType conflictType);
 
-    RefBookConflictEntity findByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdAndRefFieldCode(
-            Integer referrerVersionId, Integer publishedVersionId,
+    RefBookConflictEntity findByReferrerVersionIdAndRefRecordIdAndRefFieldCode(
+            Integer referrerVersionId,
             Long refRecordId, String refFieldCode
+    );
+
+    RefBookConflictEntity findByReferrerVersionIdAndPublishedVersionIdAndRefFieldCodeAndRefRecordId(
+            Integer referrerVersionId, Integer publishedVersionId, String refFieldCode, Long refRecordId
     );
 
     @Query("select distinct c.publishedVersion\n" +
@@ -69,7 +73,7 @@ public interface RefBookConflictRepository extends
     void copyByReferrerVersion(@Param("oldReferrerVersionId") Integer oldReferrerVersionId,
                                @Param("newReferrerVersionId") Integer newReferrerVersionId);
 
-    void deleteByReferrerVersionIdAndRefRecordIdIsNotNull(Integer referrerVersionId);
-
     void deleteByReferrerVersionIdAndRefRecordId(Integer referrerVersionId, Long refRecordId);
+
+    void deleteByReferrerVersionIdAndRefRecordIdIsNotNull(Integer referrerVersionId);
 }

@@ -8,6 +8,7 @@ import ru.inovus.ms.rdm.service.api.VersionService;
 import java.util.Objects;
 
 @Service
+@SuppressWarnings("unused")
 public class ValidationController {
 
     @Autowired

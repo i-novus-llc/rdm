@@ -53,7 +53,7 @@ public class RefBookConflictQueryProvider {
         this.entityManager = entityManager;
     }
 
-    public List<Sort.Order> getSortRefBookConflicts() {
+    public static List<Sort.Order> getSortRefBookConflicts() {
         return SORT_REF_BOOK_CONFLICTS;
     }
 
@@ -138,7 +138,7 @@ public class RefBookConflictQueryProvider {
      * @param criteria критерий поиска
      * @return Предикат для запроса поиска
      */
-    private Predicate toPredicate(RefBookConflictCriteria criteria) {
+    private static Predicate toPredicate(RefBookConflictCriteria criteria) {
         BooleanBuilder where = new BooleanBuilder();
 
         if (nonNull(criteria.getReferrerVersionId()))
@@ -174,7 +174,7 @@ public class RefBookConflictQueryProvider {
      * @param jpaQuery запрос
      * @param criteria критерий поиска
      */
-    private void sortQuery(JPAQuery<RefBookConflictEntity> jpaQuery, RefBookConflictCriteria criteria) {
+    private static void sortQuery(JPAQuery<RefBookConflictEntity> jpaQuery, RefBookConflictCriteria criteria) {
 
         List<Sort.Order> orders = criteria.getOrders();
 
@@ -191,7 +191,7 @@ public class RefBookConflictQueryProvider {
      * @param jpaQuery запрос поиска
      * @param order    порядок сортировки
      */
-    private void addSortOrder(JPAQuery<RefBookConflictEntity> jpaQuery, Sort.Order order) {
+    private static void addSortOrder(JPAQuery<RefBookConflictEntity> jpaQuery, Sort.Order order) {
 
         ComparableExpressionBase sortExpression;
 

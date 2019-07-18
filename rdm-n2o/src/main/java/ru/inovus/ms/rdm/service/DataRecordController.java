@@ -23,6 +23,7 @@ import static ru.inovus.ms.rdm.RdmUiUtil.addPrefix;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDate;
 
 @Controller
+@SuppressWarnings("unused")
 public class DataRecordController {
 
     @Autowired
@@ -30,7 +31,6 @@ public class DataRecordController {
     @Autowired
     private DraftService draftService;
 
-    @SuppressWarnings("unused")
     public Map<String, Object> getRow(Integer versionId, Integer sysRecordId) {
 
         SearchDataCriteria criteria = new SearchDataCriteria();

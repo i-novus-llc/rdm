@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import static ru.inovus.ms.rdm.model.version.UpdateValue.of;
 
 @Controller
+@SuppressWarnings("WeakerAccess")
 public class StructureController {
 
     @Autowired
@@ -66,7 +67,7 @@ public class StructureController {
         return new RestPage<>(currentPageAttributes, PageRequest.of(criteria.getPage(), criteria.getSize()), list.size());
     }
 
-    void createAttribute(Integer versionId, FormAttribute formAttribute) {
+    public void createAttribute(Integer versionId, FormAttribute formAttribute) {
 
         CreateAttribute attributeModel = new CreateAttribute();
         attributeModel.setVersionId(versionId);
@@ -83,7 +84,7 @@ public class StructureController {
         }
     }
 
-    void updateAttribute(Integer versionId, FormAttribute formAttribute) {
+    public void updateAttribute(Integer versionId, FormAttribute formAttribute) {
 
         Structure oldStructure = versionService.getStructure(versionId);
         Structure.Attribute oldAttribute = oldStructure.getAttribute(formAttribute.getCode());
@@ -99,7 +100,7 @@ public class StructureController {
         }
     }
 
-    void deleteAttribute(Integer versionId, String attributeCode) {
+    public void deleteAttribute(Integer versionId, String attributeCode) {
 
         draftService.deleteAttribute(versionId, attributeCode);
         draftService.deleteAttributeValidation(versionId, attributeCode, null);

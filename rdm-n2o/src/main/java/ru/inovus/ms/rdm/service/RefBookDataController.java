@@ -306,7 +306,7 @@ public class RefBookDataController {
     }
 
     @SuppressWarnings("unchecked")
-    private Map<String, String>[] getBooleanValues() {
+    private static Map<String, String>[] getBooleanValues() {
         return new Map[]{
                 of(BOOL_FIELD_ID, "true", BOOL_FIELD_NAME, "ИСТИНА"),
                 of(BOOL_FIELD_ID, "false", BOOL_FIELD_NAME, "ЛОЖЬ")};
@@ -321,13 +321,16 @@ public class RefBookDataController {
         @JsonProperty
         Map<String, Object> row;
 
+        @SuppressWarnings("unused")
         public DataGridRow() {
         }
 
+        @SuppressWarnings("WeakerAccess")
         public DataGridRow(List<DataGridColumn> columns) {
             this.columns = columns;
         }
 
+        @SuppressWarnings("WeakerAccess")
         public DataGridRow(Long id, Map<String, Object> row) {
             this.id = id;
             this.row = row;
@@ -364,9 +367,11 @@ public class RefBookDataController {
         @JsonProperty
         Map<String, Object> cellOptions;
 
+        @SuppressWarnings("unused")
         public DataGridCell() {
         }
 
+        @SuppressWarnings("WeakerAccess")
         public DataGridCell(String value, Map<String, Object> cellOptions) {
             this.value = value;
             this.cellOptions = cellOptions;
@@ -384,6 +389,7 @@ public class RefBookDataController {
             return cellOptions;
         }
 
+        @SuppressWarnings("unused")
         public void setCellOptions(Map<String, Object> cellOptions) {
             this.cellOptions = cellOptions;
         }

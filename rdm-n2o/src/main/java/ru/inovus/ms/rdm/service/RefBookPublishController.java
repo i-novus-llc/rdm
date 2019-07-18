@@ -18,6 +18,7 @@ import static java.util.stream.Collectors.toMap;
 import static ru.inovus.ms.rdm.util.StringUtils.addDoubleQuotes;
 
 @Controller
+@SuppressWarnings("unused")
 public class RefBookPublishController {
 
     private static final String PASSPORT_ATTRIBUTE_NAME = "name";
@@ -36,8 +37,7 @@ public class RefBookPublishController {
         this.conflictService = conflictService;
     }
 
-    @SuppressWarnings("unused")
-    UiRefBookPublish getByVersionId(Integer versionId) {
+    public UiRefBookPublish getByVersionId(Integer versionId) {
 
         RefBook refBook = refBookService.getByVersionId(versionId);
 
@@ -60,8 +60,7 @@ public class RefBookPublishController {
      *
      * @param draftId идентификатор черновика
      */
-    @SuppressWarnings("unused")
-    void publishDraft(Integer draftId) {
+    public void publishDraft(Integer draftId) {
         publishService.publish(draftId, null, null, null, false);
     }
 
@@ -70,8 +69,7 @@ public class RefBookPublishController {
      *
      * @param draftId идентификатор черновика
      */
-    @SuppressWarnings("unused")
-    void publishAndRefresh(Integer draftId) {
+    public void publishAndRefresh(Integer draftId) {
         publishService.publish(draftId, null, null, null, true);
     }
 
