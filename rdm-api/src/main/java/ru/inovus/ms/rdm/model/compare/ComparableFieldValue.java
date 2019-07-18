@@ -103,10 +103,6 @@ public class ComparableFieldValue extends RdmComparable {
         this.newValue = newValue;
     }
 
-    public Object getValue(DiffStatusEnum status) {
-        return DiffStatusEnum.DELETED.equals(status) ? getOldValue() : getNewValue();
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

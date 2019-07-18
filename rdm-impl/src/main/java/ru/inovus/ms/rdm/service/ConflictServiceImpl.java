@@ -568,7 +568,7 @@ public class ConflictServiceImpl implements ConflictService {
 
         RefBookConflictCriteria criteria = new RefBookConflictCriteria(referrerEntity.getId(),
                 publishedEntity.getId(), reference.getAttribute(), conflictType);
-        criteria.setOrders(conflictQueryProvider.getSortRefBookConflicts());
+        criteria.setOrders(RefBookConflictQueryProvider.getSortRefBookConflicts());
         criteria.setPageSize(REF_BOOK_CONFLICT_PAGE_SIZE);
 
         Function<RefBookConflictCriteria, Page<RefBookConflictEntity>> pageSource = conflictQueryProvider::search;
@@ -796,7 +796,7 @@ public class ConflictServiceImpl implements ConflictService {
         return diffRowValues.stream()
                 .flatMap(diff -> {
                     DiffFieldValue diffFieldValue = diff.getDiffFieldValue(refToPrimaries.get(0).getCode());
-                    Object value = diffFieldValue.getValue(diff.getStatus());
+                    Object value = getDiffFieldValue(diffFieldValue, diff.getStatus());
 
                     return refFromAttributes.stream()
                             .map(attribute ->
@@ -1008,7 +1008,7 @@ public class ConflictServiceImpl implements ConflictService {
                                              boolean isAltered) {
 
         RefBookConflictCriteria criteria = new RefBookConflictCriteria(refFromEntity.getId(), oldRefToEntity.getId());
-        criteria.setOrders(conflictQueryProvider.getSortRefBookConflicts());
+        criteria.setOrders(RefBookConflictQueryProvider.getSortRefBookConflicts());
         criteria.setPageSize(REF_BOOK_CONFLICT_PAGE_SIZE);
 
         Function<RefBookConflictCriteria, Page<RefBookConflictEntity>> pageSource = conflictQueryProvider::search;

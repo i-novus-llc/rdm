@@ -10,6 +10,7 @@ import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.model.compare.ComparableFieldValue;
 import ru.inovus.ms.rdm.model.field.ReferenceFilterValue;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.version.AttributeFilter;
@@ -61,22 +62,6 @@ public class FieldValueUtils {
     public static boolean containsAnyPlaceholder(String displayExpression, List<String> placeholders) {
         DisplayExpression expression = new DisplayExpression(displayExpression);
         return CollectionUtils.containsAny( expression.getPlaceholders(), placeholders);
-    }
-
-    /**
-     * Получение отображаемого значения.
-     *
-     * @param displayExpression выражение для вычисления отображаемого значения
-     * @param diffFieldValues   список отличий значений подставляемых полей
-     * @param diffStatus        статус отличия значения
-     * @return Отображаемое значение
-     */
-    public static String diffValuesToDisplayValue(String displayExpression, List<DiffFieldValue> diffFieldValues, DiffStatusEnum diffStatus) {
-        Map<String, Object> map = new HashMap<>();
-        diffFieldValues.forEach(fieldValue ->
-            map.put(fieldValue.getField().getName(), fieldValue.getValue(diffStatus))
-        );
-        return new StringSubstitutor(map, DisplayExpression.PLACEHOLDER_START, DisplayExpression.PLACEHOLDER_END).replace(displayExpression);
     }
 
     /**
@@ -167,5 +152,30 @@ public class FieldValueUtils {
                 })
                 .map(Collections::singletonList)
                 .collect(toSet());
+    }
+
+    public static Object getDiffFieldValue(DiffFieldValue fieldValue, DiffStatusEnum status) {
+        return DiffStatusEnum.DELETED.equals(status) ? fieldValue.getOldValue() : fieldValue.getNewValue();
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public static Object getCompareFieldValue(ComparableFieldValue fieldValue, DiffStatusEnum status) {
+        return DiffStatusEnum.DELETED.equals(status) ? fieldValue.getOldValue() : fieldValue.getNewValue();
+    }
+
+    /**
+     * Получение отображаемого значения.
+     *
+     * @param displayExpression выражение для вычисления отображаемого значения
+     * @param diffFieldValues   список отличий значений подставляемых полей
+     * @param diffStatus        статус отличия значения
+     * @return Отображаемое значение
+     */
+    public static String diffValuesToDisplayValue(String displayExpression, List<DiffFieldValue> diffFieldValues, DiffStatusEnum diffStatus) {
+        Map<String, Object> map = new HashMap<>();
+        diffFieldValues.forEach(fieldValue ->
+                map.put(fieldValue.getField().getName(), getDiffFieldValue(fieldValue, diffStatus))
+        );
+        return new StringSubstitutor(map, DisplayExpression.PLACEHOLDER_START, DisplayExpression.PLACEHOLDER_END).replace(displayExpression);
     }
 }
