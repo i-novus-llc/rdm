@@ -46,11 +46,11 @@ public class RefBookPublishController {
         Map<String, String> conflictReferrerNames =
                 Stream.of(ConflictType.values())
                         .collect(toMap(ConflictType::name,
-                                conflictType -> getCheckConflictReferrerNames(versionId, conflictType)
+                                conflictType -> getConflictingReferrerNames(versionId, conflictType)
                                 )
                         );
 
-        uiRefBookPublish.setConflictReferrerNames(conflictReferrerNames);
+        uiRefBookPublish.setConflictingReferrerNames(conflictReferrerNames);
 
         return uiRefBookPublish;
     }
@@ -80,8 +80,8 @@ public class RefBookPublishController {
      * @param conflictType тип конфликта
      * @return Названия справочников (через запятую)
      */
-    private String getCheckConflictReferrerNames(Integer versionId, ConflictType conflictType) {
-        return conflictService.getCheckConflictReferrers(versionId, conflictType)
+    private String getConflictingReferrerNames(Integer versionId, ConflictType conflictType) {
+        return conflictService.getConflictingReferrers(versionId, conflictType)
                 .stream()
                 .map(this::getReferrerDisplayName)
                 .collect(Collectors.joining(REFERRER_NAME_SEPARATOR));

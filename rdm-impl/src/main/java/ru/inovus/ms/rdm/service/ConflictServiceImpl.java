@@ -270,7 +270,7 @@ public class ConflictServiceImpl implements ConflictService {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<RefBookVersion> getCheckConflictReferrers(Integer versionId, ConflictType conflictType) {
+    public List<RefBookVersion> getConflictingReferrers(Integer versionId, ConflictType conflictType) {
 
         versionValidation.validateVersionExists(versionId);
 

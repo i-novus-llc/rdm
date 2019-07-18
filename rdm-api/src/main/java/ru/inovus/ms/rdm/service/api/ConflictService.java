@@ -46,8 +46,8 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    List<RefBookVersion> getCheckConflictReferrers(@ApiParam("Идентификатор проверяемой версии") @PathParam("versionId") Integer versionId,
-                                                   @ApiParam("Тип конфликта") @QueryParam("type") ConflictType conflictType);
+    List<RefBookVersion> getConflictingReferrers(@ApiParam("Идентификатор проверяемой версии") @PathParam("versionId") Integer versionId,
+                                                 @ApiParam("Тип конфликта") @QueryParam("type") ConflictType conflictType);
 
     @GET
     @ApiOperation("Поиск конфликтов по параметрам критерия")

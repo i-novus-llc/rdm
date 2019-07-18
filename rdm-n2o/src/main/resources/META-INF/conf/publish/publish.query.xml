@@ -61,17 +61,17 @@
 
         <!-- Checking conflicts -->
         <field id="hasCheckDeletedConflicts" domain="string">
-            <select mapping="conflictReferrerNames['DELETED']?.length() > 0"/>
+            <select mapping="conflictingReferrerNames['DELETED']?.length() > 0"/>
         </field>
         <field id="hasCheckUpdatedConflicts" domain="string">
-            <select mapping="conflictReferrerNames['UPDATED']?.length() > 0"/>
+            <select mapping="conflictingReferrerNames['UPDATED']?.length() > 0"/>
         </field>
 
         <field id="checkDeletedConflictReferrers" domain="string">
-            <select mapping="conflictReferrerNames['DELETED']"/>
+            <select mapping="conflictingReferrerNames['DELETED']"/>
         </field>
         <field id="checkUpdatedConflictReferrers" domain="string">
-            <select mapping="conflictReferrerNames['UPDATED']"/>
+            <select mapping="conflictingReferrerNames['UPDATED']"/>
         </field>
         <!-- / Checking conflicts -->
 

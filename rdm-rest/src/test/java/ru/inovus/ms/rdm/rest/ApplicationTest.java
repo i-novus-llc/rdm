@@ -28,7 +28,6 @@ import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
-import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.*;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.conflict.CalculateConflictCriteria;
@@ -2115,10 +2114,10 @@ public class ApplicationTest {
         Boolean actualDeleteCheck = conflictService.checkConflicts(refFromVersionId, refToVersionId, refToDraftId, ConflictType.DELETED);
         assertEquals(Boolean.TRUE, actualDeleteCheck);
 
-        List<RefBookVersion> updatedReferrers = conflictService.getCheckConflictReferrers(refToDraftId, ConflictType.UPDATED);
+        List<RefBookVersion> updatedReferrers = conflictService.getConflictingReferrers(refToDraftId, ConflictType.UPDATED);
         assertEquals(1, updatedReferrers.size());
 
-        List<RefBookVersion> deletedReferrers = conflictService.getCheckConflictReferrers(refToDraftId, ConflictType.DELETED);
+        List<RefBookVersion> deletedReferrers = conflictService.getConflictingReferrers(refToDraftId, ConflictType.DELETED);
         assertEquals(1, deletedReferrers.size());
     }
 
