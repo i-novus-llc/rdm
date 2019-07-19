@@ -28,6 +28,10 @@ public class RefBookConflictCriteria extends AbstractCriteria {
     @QueryParam("publishedVersionId")
     private Integer publishedVersionRefBookId;
 
+    @ApiModelProperty("Признак последней опубликованной версии")
+    @QueryParam("isLastPublishedVersion")
+    private boolean isLastPublishedVersion;
+
     @ApiModelProperty("Системный идентификатор записи с конфликтом")
     @QueryParam("refRecordId")
     private Long refRecordId;
@@ -78,6 +82,14 @@ public class RefBookConflictCriteria extends AbstractCriteria {
 
     public void setPublishedVersionRefBookId(Integer publishedVersionRefBookId) {
         this.publishedVersionRefBookId = publishedVersionRefBookId;
+    }
+
+    public boolean getIsLastPublishedVersion() {
+        return isLastPublishedVersion;
+    }
+
+    public void setIsLastPublishedVersion(boolean isLastPublishedVersion) {
+        this.isLastPublishedVersion = isLastPublishedVersion;
     }
 
     public Long getRefRecordId() {
