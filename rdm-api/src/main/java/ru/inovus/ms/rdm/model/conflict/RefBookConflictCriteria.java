@@ -25,7 +25,7 @@ public class RefBookConflictCriteria extends AbstractCriteria {
     private Integer publishedVersionId;
 
     @ApiModelProperty("Идентификатор опубликованного справочника")
-    @QueryParam("publishedVersionId")
+    @QueryParam("publishedVersionRefBookId")
     private Integer publishedVersionRefBookId;
 
     @ApiModelProperty("Системный идентификатор записи с конфликтом")
