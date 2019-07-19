@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import ru.inovus.ms.rdm.entity.RefBookConflictEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
+import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 
 import java.util.List;
 
@@ -19,41 +20,31 @@ public interface RefBookConflictRepository extends
 
     Boolean existsByReferrerVersionIdAndConflictType(Integer referrerVersionId, ConflictType conflictType);
 
-    RefBookConflictEntity findByReferrerVersionIdAndRefFieldCodeAndRefRecordId(
-            Integer referrerVersionId, String refFieldCode, Long refRecordId
-    );
-
-    RefBookConflictEntity findByReferrerVersionIdAndPublishedVersionIdAndRefFieldCodeAndRefRecordId(
-            Integer referrerVersionId, Integer publishedVersionId, String refFieldCode, Long refRecordId
-    );
-
-    @Query("select distinct c.publishedVersion\n" +
-            "  from RefBookConflictEntity c\n" +
-            " where c.referrerVersion.id = :referrerVersionId\n" +
-            "   and c.refRecordId in (:refRecordIds)")
-    List<RefBookVersionEntity> findReferrerConflictedPublishedVersions(
-            @Param("referrerVersionId") Integer referrerVersionId,
-            @Param("refRecordIds") List<Long> refRecordIds
-    );
-
     @Query("select distinct c.refRecordId from RefBookConflictEntity c\n" +
             " where c.referrerVersion.id = :referrerVersionId\n" +
-            "   and c.publishedVersion.id in (:publishedVersionIds)\n" +
-            "   and c.refRecordId in (:refRecordIds)")
+            "   and c.refRecordId in (:refRecordIds)" +
+            // NB: Last published versions only:
+            "   and c.publishedVersion.fromDate = (\n" +
+            "       select max(v.fromDate)\n" +
+            "         from RefBookVersionEntity v\n" +
+            "        where v.refBook.id = c.publishedVersion.refBook.id\n" +
+            "          and v.status = :status\n" +
+            "       )")
     List<Long> findReferrerConflictedIds(@Param("referrerVersionId") Integer referrerVersionId,
-                                         @Param("publishedVersionIds") List<Integer> publishedVersionIds,
-                                         @Param("refRecordIds") List<Long> refRecordIds);
+                                         @Param("refRecordIds") List<Long> refRecordIds,
+                                         @Param("status") RefBookVersionStatus status);
 
     @Query("select distinct c.publishedVersion\n" +
             "  from RefBookConflictEntity c\n" +
             " where c.referrerVersion.id = :referrerVersionId\n" +
             "   and c.refFieldCode = :refFieldCode\n" +
             "   and c.conflictType = :conflictType\n" +
-            // NB: Last published versions only.
+            // NB: Last versions only:
             "   and c.publishedVersion.fromDate = (\n" +
             "       select max(v.fromDate)\n" +
             "         from RefBookVersionEntity v\n" +
-            "        where v.refBook.id = c.publishedVersion.refBook.id )")
+            "        where v.refBook.id = c.publishedVersion.refBook.id\n" +
+            "       )")
     List<RefBookVersionEntity> findPublishedVersionsRefreshingByPrimary(
             @Param("referrerVersionId") Integer referrerVersionId,
             @Param("refFieldCode") String refFieldCode,

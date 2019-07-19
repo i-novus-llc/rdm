@@ -165,7 +165,7 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
 
         N2oJavaDataProvider dataProvider = new N2oJavaDataProvider();
         dataProvider.setClassName(ConflictService.class.getName());
-        dataProvider.setMethod("findConflict");
+        dataProvider.setMethod("findDataConflict");
         dataProvider.setSpringProvider(new SpringProvider());
 
         Argument refFromIdArgument = new Argument();
