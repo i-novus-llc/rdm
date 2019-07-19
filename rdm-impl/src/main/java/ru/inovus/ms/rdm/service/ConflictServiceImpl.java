@@ -320,14 +320,6 @@ public class ConflictServiceImpl implements ConflictService {
         return Objects.nonNull(entity) ? refBookConflictModel(entity) : null;
     }
 
-    @Override
-    public Integer findId(Integer refFromId, Integer refToId, String refFieldCode, Long rowSystemId) {
-        RefBookConflictEntity entity =
-                conflictRepository.findByReferrerVersionIdAndPublishedVersionIdAndRefFieldCodeAndRefRecordId(
-                        refFromId, refToId, refFieldCode, rowSystemId);
-        return Objects.nonNull(entity) ? entity.getId() : null;
-    }
-
     /**
      * Получение конфликтных идентификаторов для версии, которая ссылается,
      * с любыми справочниками по указанным системным идентификаторам записей.
