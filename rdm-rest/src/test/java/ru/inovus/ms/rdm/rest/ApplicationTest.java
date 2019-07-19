@@ -31,6 +31,7 @@ import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 import ru.inovus.ms.rdm.enumeration.*;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.conflict.CalculateConflictCriteria;
+import ru.inovus.ms.rdm.model.conflict.RefBookConflictCriteria;
 import ru.inovus.ms.rdm.model.version.*;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.model.conflict.Conflict;
@@ -1517,27 +1518,27 @@ public class ApplicationTest {
 
         // Проверка конфликтов.
         REFERRER_UNCHANGED_PRIMARIES.forEach(primaryValue -> {
-            Integer conflictId = findPublishWithConflictedReferrerConflictId(
+            RefBookConflict conflict = findPublishWithConflictedReferrerConflict(
                     referrerVersion.getId(), changedVersion.getId(),
                     referrerPrimary, primaryValue, REFERRER_NUMBER_ATTRIBUTE_CODE);
-            assertNull(conflictId);
+            assertNull(conflict);
         });
 
         REFERRER_UPDATED_PRIMARIES.forEach((primaryField, primaryList) ->
             primaryList.forEach(primaryValue -> {
-                Integer conflictId = findPublishWithConflictedReferrerConflictId(
+                RefBookConflict conflict = findPublishWithConflictedReferrerConflict(
                         referrerVersion.getId(), changedVersion.getId(),
                         referrerPrimary, primaryValue, primaryField);
-                assertNull(conflictId);
+                assertNull(conflict);
             })
         );
 
         REFERRER_DELETED_PRIMARIES.forEach((primaryField, primaryList) ->
             primaryList.forEach(primaryValue -> {
-                Integer conflictId = findPublishWithConflictedReferrerConflictId(
+                RefBookConflict conflict = findPublishWithConflictedReferrerConflict(
                         referrerVersion.getId(), changedVersion.getId(),
                         referrerPrimary, primaryValue, primaryField);
-                assertNotNull(conflictId);
+                assertNotNull(conflict);
             })
         );
 
@@ -1640,14 +1641,18 @@ public class ApplicationTest {
         assertNull(rowValue);
     }
 
-    private Integer findPublishWithConflictedReferrerConflictId(Integer referrerId, Integer cardinalId,
-                                                                Structure.Attribute primary, String primaryValue,
-                                                                String fieldName) {
+    private RefBookConflict findPublishWithConflictedReferrerConflict(Integer referrerId, Integer cardinalId,
+                                                                      Structure.Attribute primary, String primaryValue,
+                                                                      String fieldName) {
         RefBookRowValue rowValue = getVersionRowValue(referrerId, primary, primaryValue);
         assertNotNull(rowValue);
         assertNotNull(rowValue.getSystemId());
 
-        return conflictService.findId(referrerId, cardinalId, fieldName, rowValue.getSystemId());
+        RefBookConflictCriteria criteria = new RefBookConflictCriteria(referrerId, cardinalId, fieldName, null);
+        criteria.setRefRecordId(rowValue.getSystemId());
+        criteria.setPageSize(1);
+        Page<RefBookConflict> conflicts = conflictService.search(criteria);
+        return (conflicts == null || isEmpty(conflicts.getContent())) ? null : conflicts.getContent().get(0);
     }
 
     @Test
