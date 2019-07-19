@@ -778,7 +778,6 @@ public class CompareServiceTest {
 
     private CompareDataCriteria createRdmDefaultCompareDataCriteria(Integer oldId, Integer newId) {
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria(oldId, newId);
-        compareDataCriteria.setPageNumber(0);
         compareDataCriteria.setPageSize(DEF_PAGE_SIZE);
         return compareDataCriteria;
     }

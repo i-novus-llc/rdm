@@ -110,7 +110,6 @@ public class RefBookDataController {
 
     private RefBookConflictCriteria toRefBookConflictCriteria(DataCriteria criteria) {
         RefBookConflictCriteria conflictCriteria = new RefBookConflictCriteria();
-        conflictCriteria.setPageNumber(0);
         conflictCriteria.setPageSize(criteria.getSize());
         conflictCriteria.setReferrerVersionId(criteria.getVersionId());
         conflictCriteria.setIsLastPublishedVersion(true);
