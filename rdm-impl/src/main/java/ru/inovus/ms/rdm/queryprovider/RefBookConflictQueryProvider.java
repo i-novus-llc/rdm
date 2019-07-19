@@ -156,6 +156,9 @@ public class RefBookConflictQueryProvider {
         if (nonNull(criteria.getConflictType()))
             where.and(isConflictType(criteria.getConflictType()));
 
+        if (!isEmpty(criteria.getConflictTypes()))
+            where.and(isConflictTypeIn(criteria.getConflictTypes()));
+
         return where.getValue();
     }
 

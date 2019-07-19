@@ -49,6 +49,10 @@ public final class RefBookConflictPredicates {
         return QRefBookConflictEntity.refBookConflictEntity.conflictType.eq(conflictType);
     }
 
+    public static BooleanExpression isConflictTypeIn(List<ConflictType> conflictTypes) {
+        return QRefBookConflictEntity.refBookConflictEntity.conflictType.in(conflictTypes);
+    }
+
     public static BooleanExpression isLastPublishedVersion() {
         QRefBookVersionEntity whereVersion = new QRefBookVersionEntity(WHERE_IS_LAST_DATE_VERSION);
         return QRefBookConflictEntity.refBookConflictEntity.publishedVersion.fromDate

@@ -73,7 +73,7 @@ public class ConflictServiceTest {
     private static final Integer PUBLISHING_DRAFT_ID = -6;
     private static final String PUBLISHING_DRAFT_STORAGE_CODE = "TEST_PUBLISHING_STORAGE";
 
-    // for `testCalculateCleanedConflicts` && `testCalculateAlteredConflicts`:
+    // for `testCalculateDamagedConflicts` && `testCalculateAlteredConflicts`:
     private static final String REFERRER_ATTRIBUTE_DELETE_REFERENCE = "delete_ref";
     private static final String REFERRER_REFERENCE_DELETE_EXPRESSION = "${name}: ${delete}";
     private static final String REFERRER_ATTRIBUTE_UPDATE_TYPE_REFERENCE = "update_type_ref";
@@ -215,7 +215,7 @@ public class ConflictServiceTest {
     }
 
     @Test
-    public void testCalculateCleanedConflicts() {
+    public void testCalculateDamagedConflicts() {
 
         referrerEntity.setStructure(createCalculateStructureConflictsReferrerStructure());
         publishedEntity.setStructure(createCalculateStructureConflictsVersionOldStructure());
@@ -231,7 +231,7 @@ public class ConflictServiceTest {
         );
 
         List<Structure.Reference> referrerReferences = referrerEntity.getStructure().getRefCodeReferences(publishedEntity.getRefBook().getCode());
-        List<RefBookConflictEntity> actualList = calculateCleanedConflicts(referrerEntity,
+        List<RefBookConflictEntity> actualList = calculateDamagedConflicts(referrerEntity,
                 publishedEntity, publishingEntity, referrerReferences);
         assertConflictEntities(expectedList, actualList);
     }
@@ -244,13 +244,13 @@ public class ConflictServiceTest {
      * @param newVersionEntity      новая версия, на которую будут ссылаться
      * @param referrerReferences    ссылки версии, которая ссылается
      */
-    public List<RefBookConflictEntity> calculateCleanedConflicts(RefBookVersionEntity referrerVersionEntity,
+    public List<RefBookConflictEntity> calculateDamagedConflicts(RefBookVersionEntity referrerVersionEntity,
                                                                  RefBookVersionEntity oldVersionEntity,
                                                                  RefBookVersionEntity newVersionEntity,
                                                                  List<Structure.Reference> referrerReferences) {
         StructureDiff structureDiff = compareService.compareStructures(oldVersionEntity.getId(), newVersionEntity.getId());
 
-        return conflictService.calculateCleanedConflicts(referrerVersionEntity, newVersionEntity, referrerReferences, structureDiff);
+        return conflictService.calculateDisplayDamagedConflicts(referrerVersionEntity, newVersionEntity, referrerReferences, structureDiff);
     }
 
     @Test
@@ -523,7 +523,7 @@ public class ConflictServiceTest {
             );
         });
 
-        List<RefBookConflictEntity> actualList = conflictService.recalculateConflicts(referrerEntity,
+        List<RefBookConflictEntity> actualList = conflictService.recalculateDataConflicts(referrerEntity,
                 publishedEntity, publishingEntity, conflicts.getContent(), false);
         assertConflictEntities(expectedList, actualList);
 
@@ -540,7 +540,7 @@ public class ConflictServiceTest {
             }
         });
 
-        List<RefBookConflictEntity> actualAlteredList = conflictService.recalculateConflicts(referrerEntity,
+        List<RefBookConflictEntity> actualAlteredList = conflictService.recalculateDataConflicts(referrerEntity,
                 publishedEntity, publishingEntity, conflicts.getContent(), true);
         assertConflictEntities(expectedAlteredList, actualAlteredList);
     }

@@ -48,6 +48,10 @@ public class RefBookConflictCriteria extends AbstractCriteria {
     @QueryParam("conflictType")
     private ConflictType conflictType;
 
+    @ApiModelProperty("Типы конфликта")
+    @QueryParam("conflictTypes")
+    private List<ConflictType> conflictTypes;
+
     @ApiModelProperty("Дата создания записи")
     @QueryParam("creationDate")
     private LocalDateTime creationDate;
@@ -138,6 +142,14 @@ public class RefBookConflictCriteria extends AbstractCriteria {
 
     public void setConflictType(ConflictType conflictType) {
         this.conflictType = conflictType;
+    }
+
+    public List<ConflictType> getConflictTypes() {
+        return conflictTypes;
+    }
+
+    public void setConflictTypes(List<ConflictType> conflictTypes) {
+        this.conflictTypes = conflictTypes;
     }
 
     public LocalDateTime getCreationDate() {
