@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
@@ -18,20 +17,17 @@ import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.model.conflict.DeleteRefBookConflictCriteria;
 import ru.inovus.ms.rdm.model.conflict.RefBookConflictCriteria;
 import ru.inovus.ms.rdm.model.draft.Draft;
-import ru.inovus.ms.rdm.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.model.version.ReferrerVersionCriteria;
 import ru.inovus.ms.rdm.queryprovider.RefBookConflictQueryProvider;
 import ru.inovus.ms.rdm.repository.RefBookConflictRepository;
 import ru.inovus.ms.rdm.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.*;
 import ru.inovus.ms.rdm.util.PageIterator;
+import ru.inovus.ms.rdm.util.ReferrerEntityIteratorProvider;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -39,14 +35,6 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 @Service
 @SuppressWarnings("unused")
 public class ReferenceServiceImpl implements ReferenceService {
-
-    private static final int REF_BOOK_VERSION_PAGE_SIZE = 100;
-
-    private static final String VERSION_ID_SORT_PROPERTY = "id";
-
-    private static final List<Sort.Order> SORT_REFERRER_VERSIONS = singletonList(
-            new Sort.Order(Sort.Direction.ASC, VERSION_ID_SORT_PROPERTY)
-    );
 
     private static final String VERSION_IS_NOT_LAST_PUBLISHED_EXCEPTION_CODE = "version.is.not.last.published";
 
@@ -56,7 +44,6 @@ public class ReferenceServiceImpl implements ReferenceService {
 
     private DraftDataService draftDataService;
 
-    private RefBookService refBookService;
     private DraftService draftService;
 
     private VersionValidation versionValidation;
@@ -64,9 +51,10 @@ public class ReferenceServiceImpl implements ReferenceService {
     @Autowired
     @SuppressWarnings("squid:S00107")
     public ReferenceServiceImpl(RefBookVersionRepository versionRepository,
-                                RefBookConflictRepository conflictRepository, RefBookConflictQueryProvider conflictQueryProvider,
+                                RefBookConflictRepository conflictRepository,
+                                RefBookConflictQueryProvider conflictQueryProvider,
                                 DraftDataService draftDataService,
-                                RefBookService refBookService, DraftService draftService,
+                                DraftService draftService,
                                 VersionValidation versionValidation) {
         this.versionRepository = versionRepository;
         this.conflictRepository = conflictRepository;
@@ -74,7 +62,6 @@ public class ReferenceServiceImpl implements ReferenceService {
 
         this.draftDataService = draftDataService;
 
-        this.refBookService = refBookService;
         this.draftService = draftService;
 
         this.versionValidation = versionValidation;
@@ -199,27 +186,10 @@ public class ReferenceServiceImpl implements ReferenceService {
     @Override
     @Transactional
     public void refreshLastReferrers(String refBookCode) {
-
-        Consumer<List<RefBookVersion>> consumer =
-                referrers -> referrers.forEach(referrer -> refreshReferrer(referrer.getId()));
-        processReferrerVersions(refBookCode, RefBookSourceType.LAST_VERSION, consumer);
-    }
-
-    /**
-     * Обработка версий справочников, ссылающихся на указанный справочник.
-     *
-     * @param refBookCode код справочника, на который ссылаются
-     * @param sourceType  тип выбираемых версий справочников
-     * @param consumer    обработчик списков версий
-     */
-    private void processReferrerVersions(String refBookCode, RefBookSourceType sourceType, Consumer<List<RefBookVersion>> consumer) {
-
-        ReferrerVersionCriteria criteria = new ReferrerVersionCriteria(refBookCode, RefBookStatusType.USED, sourceType);
-        criteria.setOrders(SORT_REFERRER_VERSIONS);
-        criteria.setPageSize(REF_BOOK_VERSION_PAGE_SIZE);
-
-        Function<ReferrerVersionCriteria, Page<RefBookVersion>> pageSource = refBookService::searchReferrerVersions;
-        PageIterator<RefBookVersion, ReferrerVersionCriteria> pageIterator = new PageIterator<>(pageSource, criteria);
-        pageIterator.forEachRemaining(page -> consumer.accept(page.getContent()));
+        new ReferrerEntityIteratorProvider(versionRepository, refBookCode, RefBookSourceType.LAST_VERSION)
+                .iterate().forEachRemaining(
+                        referrers -> referrers.forEach(referrer -> refreshReferrer(referrer.getId())
+                        )
+        );
     }
 }
