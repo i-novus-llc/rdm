@@ -41,7 +41,7 @@ services:
           memory: 500M
       placement:
         constraints:
-        - node.hostname == hetzner
+        - node.labels.dc == hetzner
     healthcheck:
       test: curl -f http://localhost:8080/monitoring/health | grep -io '^{"status":"UP"' || exit 1
       interval: 1m
@@ -62,7 +62,7 @@ services:
           memory: 700M
       placement:
         constraints:
-        - node.hostname == hetzner
+        - node.labels.dc == hetzner
     healthcheck:
       test: curl -f http://localhost:8080/monitoring/health | grep -io '^{"status":"UP"' || exit 1
       interval: 1m
@@ -89,7 +89,7 @@ services:
           memory: 500M
       placement:
         constraints:
-        - node.hostname == hetzner
+        - node.labels.dc == hetzner
 
   security-admin-frontend:
     environment:
@@ -107,7 +107,7 @@ services:
           memory: 700M
       placement:
         constraints:
-        - node.hostname == hetzner
+        - node.labels.dc == hetzner
 
 volumes:
   rdm-db-data:
