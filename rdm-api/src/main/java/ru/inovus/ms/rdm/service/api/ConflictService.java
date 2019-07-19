@@ -60,15 +60,15 @@ public interface ConflictService {
     Page<RefBookConflict> search(@ApiParam("Критерий поиска") @BeanParam RefBookConflictCriteria criteria);
 
     @GET
-    @Path("/findConflict")
-    @ApiOperation("Поиск конфликта по ссылаемой версии, идентификатору строки и названию атрибута")
+    @Path("/findConflict/{refFromId}-{refFieldCode}")
+    @ApiOperation("Поиск конфликта по ссылаемой версии, названию атрибута и идентификатору строки")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    RefBookConflict findConflict(@ApiParam("Идентификатор версии, которая ссылается") @QueryParam("refFromId") Integer refFromId,
-                                 @ApiParam("Строка-конфликт версии, которая ссылается") @QueryParam("rowSystemId") Long rowSystemId,
-                                 @ApiParam("Атрибут версии, которая ссылается") @QueryParam("refFieldCode") String refFieldCode);
+    RefBookConflict findConflict(@ApiParam("Идентификатор версии, которая ссылается") @PathParam("refFromId") Integer refFromId,
+                                 @ApiParam("Атрибут версии, которая ссылается") @PathParam("refFieldCode") String refFieldCode,
+                                 @ApiParam("Строка-конфликт версии, которая ссылается") @QueryParam("rowSystemId") Long rowSystemId);
 
     @GET
     @Path("/rows/count")

@@ -299,10 +299,10 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     @Override
-    public RefBookConflict findConflict(Integer refFromId, Long rowSystemId, String refFieldCode) {
+    public RefBookConflict findConflict(Integer refFromId, String refFieldCode, Long rowSystemId) {
         // NB: May be, use search ?!
         // NB: `refValue` is not used.
-        RefBookConflictEntity entity = conflictRepository.findByReferrerVersionIdAndRefRecordIdAndRefFieldCode(refFromId, rowSystemId, refFieldCode);
+        RefBookConflictEntity entity = conflictRepository.findByReferrerVersionIdAndRefFieldCodeAndRefRecordId(refFromId, refFieldCode, rowSystemId);
         return Objects.nonNull(entity) ? refBookConflictModel(entity) : null;
     }
 

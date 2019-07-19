@@ -173,17 +173,17 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         refFromIdArgument.setClassName("java.lang.Integer");
         refFromIdArgument.setName("refFromId");
 
-        Argument rowSystemIdArgument = new Argument();
-        rowSystemIdArgument.setType(Argument.Type.PRIMITIVE);
-        rowSystemIdArgument.setClassName("java.lang.Long");
-        rowSystemIdArgument.setName("rowSystemId");
-
         Argument refFieldCodeArgument = new Argument();
         refFieldCodeArgument.setType(Argument.Type.PRIMITIVE);
         refFieldCodeArgument.setClassName("java.lang.String");
         refFieldCodeArgument.setName("refFieldCode");
 
-        dataProvider.setArguments(new Argument[] {refFromIdArgument, rowSystemIdArgument, refFieldCodeArgument});
+        Argument rowSystemIdArgument = new Argument();
+        rowSystemIdArgument.setType(Argument.Type.PRIMITIVE);
+        rowSystemIdArgument.setClassName("java.lang.Long");
+        rowSystemIdArgument.setName("rowSystemId");
+
+        dataProvider.setArguments(new Argument[] {refFromIdArgument, refFieldCodeArgument, rowSystemIdArgument});
 
         N2oConstraint constraint = new N2oConstraint();
         constraint.setId("_constraint_validation");
@@ -194,13 +194,13 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
 
         N2oObject.Parameter refFromIdParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, "versionId", "[0]");
         refFromIdParam.setDomain(N2oDomain.INTEGER);
-        N2oObject.Parameter rowSystemIdParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, "id", "[1]");
-        rowSystemIdParam.setDomain(N2oDomain.LONG);
-        N2oObject.Parameter refFieldCodeParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, attributeCode, "[2]");
+        N2oObject.Parameter refFieldCodeParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, attributeCode, "[1]");
         refFieldCodeParam.setDefaultValue(attributeCode);
         refFieldCodeParam.setDomain(N2oDomain.STRING);
+        N2oObject.Parameter rowSystemIdParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, "id", "[2]");
+        rowSystemIdParam.setDomain(N2oDomain.LONG);
 
-        constraint.setInParameters(new N2oObject.Parameter[]{refFromIdParam, rowSystemIdParam, refFieldCodeParam});
+        constraint.setInParameters(new N2oObject.Parameter[]{refFromIdParam, refFieldCodeParam, rowSystemIdParam});
 
         N2oObject.Parameter conflictTypeParam = new N2oObject.Parameter(N2oObject.Parameter.Type.out, "conflictType",
                 "\"UPDATED\".equals(conflictType.name()) ? \"изменена\" : \"удалена\"");
