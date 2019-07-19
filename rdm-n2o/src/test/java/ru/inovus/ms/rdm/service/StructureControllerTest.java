@@ -106,6 +106,7 @@ public class StructureControllerTest extends TestCase {
         when(versionService.getStructure(eq(versionId)))
                 .thenReturn(new Structure(singletonList(build(testCode, null, FieldType.INTEGER, null)), null));
         when(draftService.getAttributeValidations(eq(versionId), isNull())).thenReturn(emptyList());
+        when(refBookService.getByVersionId(eq(versionId))).thenReturn(new RefBook());
 
         RestPage<ReadAttribute> page = structureController.getPage(new AttributeCriteria(null, versionId));
         ReadAttribute actual = page.getContent().get(0);
@@ -125,6 +126,7 @@ public class StructureControllerTest extends TestCase {
 
         when(versionService.getStructure(eq(versionId))).thenReturn(structure);
         when(draftService.getAttributeValidations(eq(versionId), isNull())).thenReturn(expectedValidations);
+        when(refBookService.getByVersionId(eq(versionId))).thenReturn(new RefBook());
 
         RestPage<ReadAttribute> page = structureController.getPage(new AttributeCriteria(null, versionId));
         ReadAttribute actual = page.getContent().get(0);
@@ -202,6 +204,7 @@ public class StructureControllerTest extends TestCase {
         referenceVersion.setId(referenceVersionId);
         referenceVersion.setStructure(new Structure(singletonList(build(referenceAttribute, null, FieldType.INTEGER, null)), null));
         when(versionService.getLastPublishedVersion(eq(referenceCode))).thenReturn(referenceVersion);
+        when(refBookService.getByVersionId(eq(versionId))).thenReturn(new RefBook(referenceVersion));
 
         RestPage<ReadAttribute> page = structureController.getPage(new AttributeCriteria(null, versionId));
         ReadAttribute actual = page.getContent().get(0);

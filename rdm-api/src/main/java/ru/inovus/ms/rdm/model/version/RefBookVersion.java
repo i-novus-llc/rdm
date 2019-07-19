@@ -17,7 +17,7 @@ public class RefBookVersion {
     @ApiModelProperty("Идентификатор справочника")
     private Integer refBookId;
 
-    @ApiModelProperty("Код")
+    @ApiModelProperty("Код справочника")
     private String code;
 
     @ApiModelProperty("Комментарий к версии")

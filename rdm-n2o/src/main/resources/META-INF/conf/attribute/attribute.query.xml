@@ -41,6 +41,10 @@
             </filters>
         </field>
 
+        <field id="hasReferrer" domain="boolean">
+            <select/>
+        </field>
+
         <field id="name" domain="string" name="Наименование">
             <select/>
         </field>
