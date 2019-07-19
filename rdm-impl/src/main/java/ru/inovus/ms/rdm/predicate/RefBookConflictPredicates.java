@@ -1,13 +1,18 @@
 package ru.inovus.ms.rdm.predicate;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
 import ru.inovus.ms.rdm.entity.QRefBookConflictEntity;
+import ru.inovus.ms.rdm.entity.QRefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
+import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 
 import java.util.List;
 
 @SuppressWarnings("WeakerAccess")
 public final class RefBookConflictPredicates {
+
+    private static final String WHERE_IS_LAST_DATE_VERSION = "isLastDateVersion";
 
     private RefBookConflictPredicates() {
     }
@@ -42,5 +47,16 @@ public final class RefBookConflictPredicates {
 
     public static BooleanExpression isConflictType(ConflictType conflictType) {
         return QRefBookConflictEntity.refBookConflictEntity.conflictType.eq(conflictType);
+    }
+
+    public static BooleanExpression isLastPublishedVersion() {
+        QRefBookVersionEntity whereVersion = new QRefBookVersionEntity(WHERE_IS_LAST_DATE_VERSION);
+        return QRefBookConflictEntity.refBookConflictEntity.publishedVersion.fromDate
+                .eq(JPAExpressions
+                        .select(whereVersion.fromDate.max()).from(whereVersion)
+                        .where(whereVersion.refBook
+                                .eq(QRefBookConflictEntity.refBookConflictEntity.publishedVersion.refBook)
+                                .and(whereVersion.status.eq(RefBookVersionStatus.PUBLISHED)))
+                );
     }
 }

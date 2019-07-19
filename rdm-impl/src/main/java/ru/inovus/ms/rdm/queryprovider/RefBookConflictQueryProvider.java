@@ -138,6 +138,12 @@ public class RefBookConflictQueryProvider {
         if (nonNull(criteria.getPublishedVersionRefBookId()))
             where.and(isPublishedVersionRefBookId(criteria.getPublishedVersionRefBookId()));
 
+        if (nonNull(criteria.getPublishedVersionRefBookId()))
+            where.and(isPublishedVersionRefBookId(criteria.getPublishedVersionRefBookId()));
+
+        if (criteria.getIsLastPublishedVersion())
+            where.and(isLastPublishedVersion());
+
         if (nonNull(criteria.getRefRecordId()))
             where.and(isRefRecordId(criteria.getRefRecordId()));
 
