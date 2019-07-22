@@ -49,6 +49,7 @@ import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.service.api.*;
 import ru.inovus.ms.rdm.util.FieldValueUtils;
+import ru.inovus.ms.rdm.validation.ReferenceValueValidation;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -583,8 +584,12 @@ public class ApplicationTest {
             draftService.updateData(versionId, row);
             fail();
         } catch (RestException re) {
-            Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.type.error"::equals).count());
-            Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.reference.err"::equals).count());
+            Assert.assertEquals(1, re.getErrors().stream()
+                    .map(RestMessage.Error::getMessage)
+                    .filter("validation.type.error"::equals).count());
+            Assert.assertEquals(1, re.getErrors().stream()
+                    .map(RestMessage.Error::getMessage)
+                    .filter(ReferenceValueValidation.REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE::equals).count());
         }
     }
 
@@ -726,7 +731,7 @@ public class ApplicationTest {
             fail();
 
         } catch (RestException e) {
-            assertEquals("validation.reference.err", e.getErrors().get(0).getMessage());
+            assertEquals(ReferenceValueValidation.REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE, e.getErrors().get(0).getMessage());
         }
     }
 
@@ -1181,11 +1186,16 @@ public class ApplicationTest {
 
         } catch (RestException re) {
             Assert.assertEquals(10, re.getErrors().size());
-            Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.db.contains.pk.err"::equals).count());
-            Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.required.err"::equals).count());
-            Assert.assertEquals(4, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.type.error"::equals).count());
-            Assert.assertEquals(2, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.reference.err"::equals).count());
-            Assert.assertEquals(2, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.not.unique.pk.err"::equals).count());
+            Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage)
+                    .filter("validation.db.contains.pk.err"::equals).count());
+            Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage)
+                    .filter("validation.required.err"::equals).count());
+            Assert.assertEquals(4, re.getErrors().stream().map(RestMessage.Error::getMessage)
+                    .filter("validation.type.error"::equals).count());
+            Assert.assertEquals(2, re.getErrors().stream().map(RestMessage.Error::getMessage)
+                    .filter(ReferenceValueValidation.REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE::equals).count());
+            Assert.assertEquals(2, re.getErrors().stream().map(RestMessage.Error::getMessage)
+                    .filter("validation.not.unique.pk.err"::equals).count());
         }
     }
 

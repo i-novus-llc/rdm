@@ -7,6 +7,7 @@ import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.inovus.ms.rdm.exception.NotFoundException;
+import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
@@ -27,8 +28,10 @@ import static ru.inovus.ms.rdm.util.ConverterUtil.field;
  */
 public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
 
-    public static final String REFERENCE_ERROR_CODE = "validation.reference.err";
-    public static final String REFERENCE_ERROR_VERSION = "validation.reference.version.not.found";
+    public static final String REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE = "validation.reference.value.not.found";
+    public static final String REFERRED_VERSION_NOT_FOUND_EXCEPTION_CODE = "validation.referred.version.not.found";
+
+    private static final String VERSION_PRIMARY_KEY_NOT_FOUND_EXCEPTION_CODE = "version.primary.key.not.found";
 
     private final VersionService versionService;
 
@@ -81,10 +84,9 @@ public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
     }
 
     private Message createMessage(Map.Entry<Structure.Reference, String> entry) {
-        return new Message(REFERENCE_ERROR_CODE,
+        return new Message(REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE,
                 structure.getAttribute(entry.getKey().getAttribute()).getName(),
                 entry.getValue());
-
     }
 
     private boolean isReferenceNotValid(Map.Entry<Structure.Reference, String> entry) {
@@ -95,26 +97,33 @@ public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
         Structure.Reference reference = entry.getKey();
         String referenceValue = entry.getValue();
 
-        RefBookVersion refBookVersion;
+        RefBookVersion referredVersion;
         try {
-            refBookVersion = versionService.getLastPublishedVersion(reference.getReferenceCode());
+            referredVersion = versionService.getLastPublishedVersion(reference.getReferenceCode());
 
         } catch (NotFoundException e) {
-            throw new UserException(new Message(REFERENCE_ERROR_VERSION,
+            throw new UserException(new Message(REFERRED_VERSION_NOT_FOUND_EXCEPTION_CODE,
                     reference.getReferenceCode(), reference.getAttribute()), e);
         }
-        Integer versionId = refBookVersion.getId();
-        Structure referenceStructure = refBookVersion.getStructure();
+        Integer referredVersionId = referredVersion.getId();
+        Structure referredStructure = referredVersion.getStructure();
 
-        Structure.Attribute referenceAttribute = reference.findReferenceAttribute(referenceStructure);
-        Field fieldFilter = field(referenceAttribute);
-        Object referenceValueCasted = castReferenceValue(fieldFilter, referenceValue);
-        AttributeFilter attributeFilter = new AttributeFilter(referenceAttribute.getCode(), referenceValueCasted, referenceAttribute.getType(), SearchTypeEnum.EXACT);
+        Structure.Attribute referredAttribute;
+        try {
+            referredAttribute = reference.findReferenceAttribute(referredStructure);
+
+        } catch (RdmException e) {
+            throw new UserException(new Message(VERSION_PRIMARY_KEY_NOT_FOUND_EXCEPTION_CODE, referredVersionId), e);
+        }
+        Field referredField = field(referredAttribute);
+
+        Object castedValue = castReferenceValue(referredField, referenceValue);
+        AttributeFilter attributeFilter = new AttributeFilter(referredAttribute.getCode(), castedValue, referredAttribute.getType(), SearchTypeEnum.EXACT);
         Set<List<AttributeFilter>> attributeFilters = new HashSet<>();
         attributeFilters.add(singletonList(attributeFilter));
 
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria(attributeFilters, null);
-        Page<RefBookRowValue> pagedData = versionService.search(versionId, searchDataCriteria);
+        Page<RefBookRowValue> pagedData = versionService.search(referredVersionId, searchDataCriteria);
         return (pagedData == null || !pagedData.hasContent());
     }
 

@@ -83,7 +83,7 @@ public class ReferenceValueValidationTest {
 
         List<Message> messages = new ReferenceValueValidation(versionService, referenceWithValueMap, structure, singleton(REF_ATTRIBUTE_CODE2)).validate();
         Assert.assertEquals(1, messages.size());
-        Message expected1 = new Message(ReferenceValueValidation.REFERENCE_ERROR_CODE, REF_ATTRIBUTE_NAME1, REFERENCE_VAL1);
+        Message expected1 = new Message(ReferenceValueValidation.REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE, REF_ATTRIBUTE_NAME1, REFERENCE_VAL1);
         Assert.assertTrue(messages.contains(expected1));
     }
 }
