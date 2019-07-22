@@ -53,15 +53,30 @@ public class FieldValueUtils {
     }
 
     /**
-     * Проверка на наличие хотя бы одного placeholder`а в отображаемом значении.
+     * Проверка на наличие хотя бы одного placeholder`а в выражении.
      *
      * @param displayExpression выражение для вычисления отображаемого значения
      * @param placeholders      список проверяемых подставляемых значений
      * @return Наличие
      */
+    // NB: Выделить в displayExpressionUtils ?!
     public static boolean containsAnyPlaceholder(String displayExpression, List<String> placeholders) {
         DisplayExpression expression = new DisplayExpression(displayExpression);
-        return CollectionUtils.containsAny( expression.getPlaceholders(), placeholders);
+        return CollectionUtils.containsAny(expression.getPlaceholders(), placeholders);
+    }
+
+    /**
+     * Поиск полей выражения, которые отсутствуют в структуре.
+     *
+     * @param displayExpression выражение для вычисления отображаемого значения
+     * @param structure         структура версии, на которую ссылаются
+     * @return Список отсутствующих полей
+     */
+    public static List<String> getAbsentPlaceholders(String displayExpression, Structure structure) {
+        DisplayExpression expression = new DisplayExpression(displayExpression);
+        return expression.getPlaceholders().stream()
+                .filter(placeholder -> Objects.isNull(structure.getAttribute(placeholder)))
+                .collect(toList());
     }
 
     /**

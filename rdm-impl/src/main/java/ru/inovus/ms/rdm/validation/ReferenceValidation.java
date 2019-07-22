@@ -5,7 +5,6 @@ import net.n2oapp.platform.i18n.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
-import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
@@ -18,6 +17,7 @@ import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.util.ConverterUtil;
+import ru.inovus.ms.rdm.util.FieldValueUtils;
 
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -88,7 +88,7 @@ public class ReferenceValidation implements RdmValidation {
         Field referredField = field(referredAttribute);
 
         // Поля из вычисляемого выражения, отсутствующие в версии, на которую ссылаемся.
-        List<String> incorrectFields = getNotExistedPlaceholders(reference.getDisplayExpression(), referredEntity.getStructure());
+        List<String> incorrectFields = FieldValueUtils.getAbsentPlaceholders(reference.getDisplayExpression(), referredEntity.getStructure());
         if (!isEmpty(incorrectFields)) {
             return incorrectFields.stream()
                     .map(field -> new Message(VERSION_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, referredEntity.getId(), field))
@@ -107,21 +107,6 @@ public class ReferenceValidation implements RdmValidation {
 
         return incorrectValues.stream()
                 .map(value -> new Message(INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE, draftAttribute.getDescription(), value))
-                .collect(toList());
-    }
-
-    /**
-     * Поиск полей, которые отсутствуют в структуре.
-     *
-     * @param displayExpression выражение для вычисления отображаемого значения
-     * @param referredStructure структура версии, на которую ссылаются
-     * @return Список отсутствующих полей
-     */
-    private List<String> getNotExistedPlaceholders(String displayExpression, Structure referredStructure) {
-        DisplayExpression expression = new DisplayExpression(displayExpression);
-        List<String> placeholders = expression.getPlaceholders();
-        return placeholders.stream()
-                .filter(placeholder -> Objects.isNull(referredStructure.getAttribute(placeholder)))
                 .collect(toList());
     }
 
