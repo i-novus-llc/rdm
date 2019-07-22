@@ -35,9 +35,9 @@ public class ReferenceValidation implements RdmValidation {
     private static final Logger logger = LoggerFactory.getLogger(ReferenceValidation.class);
 
     private static final String LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE = "last.published.not.found";
-    private static final String VERSION_HAS_NOT_STRUCTURE = "version.has.not.structure";
-    private static final String VERSION_PRIMARY_KEY_NOT_FOUND = "version.primary.key.not.found";
-    private static final String VERSION_ATTRIBUTE_NOT_FOUND = "version.attribute.not.found";
+    private static final String VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE = "version.has.not.structure";
+    private static final String VERSION_PRIMARY_KEY_NOT_FOUND_EXCEPTION_CODE = "version.primary.key.not.found";
+    private static final String VERSION_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "version.attribute.not.found";
     private static final String INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE = "inconvertible.new.type";
 
     private SearchDataService searchDataService;
@@ -75,15 +75,15 @@ public class ReferenceValidation implements RdmValidation {
         if (Objects.isNull(referredEntity))
             return singletonList(new Message(LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE, reference.getReferenceCode()));
         if (Objects.isNull(referredEntity.getStructure()))
-            return singletonList(new Message(VERSION_HAS_NOT_STRUCTURE, referredEntity.getId()));
+            return singletonList(new Message(VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE, referredEntity.getId()));
 
         Structure.Attribute referredAttribute;
         try {
             referredAttribute = reference.findReferenceAttribute(referredEntity.getStructure());
 
         } catch (RdmException e) {
-            logger.info(VERSION_PRIMARY_KEY_NOT_FOUND, e);
-            return singletonList(new Message(VERSION_PRIMARY_KEY_NOT_FOUND, referredEntity.getId()));
+            logger.info(VERSION_PRIMARY_KEY_NOT_FOUND_EXCEPTION_CODE, e);
+            return singletonList(new Message(VERSION_PRIMARY_KEY_NOT_FOUND_EXCEPTION_CODE, referredEntity.getId()));
         }
         Field referredField = field(referredAttribute);
 
@@ -91,7 +91,7 @@ public class ReferenceValidation implements RdmValidation {
         List<String> incorrectFields = getNotExistedPlaceholders(reference.getDisplayExpression(), referredEntity.getStructure());
         if (!isEmpty(incorrectFields)) {
             return incorrectFields.stream()
-                    .map(field -> new Message(VERSION_ATTRIBUTE_NOT_FOUND, referredEntity.getId(), field))
+                    .map(field -> new Message(VERSION_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, referredEntity.getId(), field))
                     .collect(toList());
         }
 
