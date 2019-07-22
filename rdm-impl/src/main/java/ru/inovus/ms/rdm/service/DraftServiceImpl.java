@@ -20,6 +20,7 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.*;
 import ru.inovus.ms.rdm.entity.*;
+import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.NotFoundException;
@@ -28,9 +29,7 @@ import ru.inovus.ms.rdm.file.*;
 import ru.inovus.ms.rdm.file.export.*;
 import ru.inovus.ms.rdm.file.process.*;
 import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.model.version.CreateAttribute;
-import ru.inovus.ms.rdm.model.version.UpdateAttribute;
-import ru.inovus.ms.rdm.model.version.UpdateValue;
+import ru.inovus.ms.rdm.model.version.*;
 import ru.inovus.ms.rdm.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.model.draft.Draft;
 import ru.inovus.ms.rdm.model.refbook.RefBook;
@@ -219,8 +218,10 @@ public class DraftServiceImpl implements DraftService {
         StructureRowMapper nonStrictOnTypeRowMapper = new NonStrictOnTypeRowMapper(structure, versionRepository);
         try (FilePerRowProcessor validator = FileProcessorFactory
                 .createProcessor(extension,
-                        new RowsValidatorImpl(versionService, searchDataService, structure, storageCode, errorCountLimit,
-                                attributeValidationRepository.findAllByVersionId(draft.getId())),
+                        new RowsValidatorImpl(versionService, searchDataService,
+                                structure, storageCode, errorCountLimit, false,
+                                attributeValidationRepository.findAllByVersionId(draft.getId())
+                        ),
                         nonStrictOnTypeRowMapper)) {
             validator.process(inputStreamSupplier);
 
@@ -284,9 +285,7 @@ public class DraftServiceImpl implements DraftService {
 
         List<PassportValueEntity> passportValues = null;
         if (createDraftRequest.getPassport() != null) {
-            passportValues = createDraftRequest.getPassport()
-                    .entrySet()
-                    .stream()
+            passportValues = createDraftRequest.getPassport().entrySet().stream()
                     .map(entry -> new PassportValueEntity(new PassportAttributeEntity(entry.getKey()), entry.getValue(), null))
                     .collect(toList());
         }
@@ -380,8 +379,10 @@ public class DraftServiceImpl implements DraftService {
 
         RefBookVersionEntity draft = versionRepository.getOne(draftId);
 
-        RowsValidator validator = new RowsValidatorImpl(versionService, searchDataService, draft.getStructure(),
-                draft.getStorageCode(), errorCountLimit, attributeValidationRepository.findAllByVersionId(draftId));
+        RowsValidator validator = new RowsValidatorImpl(versionService, searchDataService,
+                draft.getStructure(), draft.getStorageCode(), errorCountLimit, false,
+                attributeValidationRepository.findAllByVersionId(draftId)
+        );
         validator.append(new NonStrictOnTypeRowMapper(draft.getStructure(), versionRepository).map(row));
         validator.process();
 
@@ -501,6 +502,8 @@ public class DraftServiceImpl implements DraftService {
         if ((Objects.isNull(reference) || reference.isNull()) == attribute.isReferenceType())
             throw new IllegalArgumentException(ILLEGAL_CREATE_ATTRIBUTE_EXCEPTION_CODE);
 
+        // NB: to-do: validate displayExpression for Reference.
+
         draftDataService.addField(draftEntity.getStorageCode(), field(attribute));
 
         if (structure == null) {
@@ -542,6 +545,9 @@ public class DraftServiceImpl implements DraftService {
 
         Structure.Attribute attribute = structure.getAttribute(updateAttribute.getCode());
         validateUpdateAttribute(updateAttribute, attribute, draftEntity.getStorageCode());
+
+        // NB: to-do: validate displayExpression for Reference
+        // when attribute type or displayExpression changed (see below, too).
 
         //clear previous primary keys
         if (updateAttribute.getIsPrimary() != null
@@ -740,12 +746,12 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateDraftAttributeExists(versionId, attribute);
 
         RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
-        AttributeValidationEntity attributeValidationEntity = new AttributeValidationEntity(versionEntity, attribute,
+        AttributeValidationEntity validationEntity = new AttributeValidationEntity(versionEntity, attribute,
                 attributeValidation.getType(), attributeValidation.valuesToString());
-        validateDataBase(versionEntity, singletonList(attributeValidationEntity));
+        validateVersionData(versionEntity, false, singletonList(validationEntity));
 
         deleteAttributeValidation(versionId, attribute, attributeValidation.getType());
-        attributeValidationRepository.save(attributeValidationEntity);
+        attributeValidationRepository.save(validationEntity);
     }
 
     @Override
@@ -782,26 +788,56 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void updateAttributeValidations(Integer versionId, String attribute, List<AttributeValidation> validations) {
+    public void updateAttributeValidations(Integer versionId, AttributeValidationRequest request) {
 
-        versionValidation.validateAttributeExists(versionId, attribute);
+        versionValidation.validateDraftExists(versionId);
 
         RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
-        List<AttributeValidationEntity> validationEntities = validations.stream()
-                .map(validation -> new AttributeValidationEntity(versionEntity, attribute, validation.getType(),
-                        validation.valuesToString())).collect(toList());
-        validateDataBase(versionEntity, validationEntities);
+        updateAttributeValidations(versionEntity, request.getOldAttribute(), request.getNewAttribute(), request.getValidations());
+    }
 
-        deleteAttributeValidation(versionId, attribute, null);
+    private void updateAttributeValidations(RefBookVersionEntity versionEntity,
+                                            RefBookVersionAttribute oldVersionAttribute,
+                                            RefBookVersionAttribute newVersionAttribute,
+                                            List<AttributeValidation> validations) {
+
+        String attributeCode = newVersionAttribute.getAttribute().getCode();
+        Structure structure = versionEntity.getStructure();
+
+        versionValidation.validateAttributeExists(versionEntity.getId(), structure, attributeCode);
+
+        List<AttributeValidationEntity> validationEntities = validations.stream()
+                .map(validation -> new AttributeValidationEntity(versionEntity, attributeCode, validation.getType(),
+                        validation.valuesToString())).collect(toList());
+
+        boolean skipReferenceValidation = false;
+        if (newVersionAttribute.getAttribute().isReferenceType()
+                && Objects.nonNull(newVersionAttribute.getReference())
+                && Objects.nonNull(oldVersionAttribute)
+                && oldVersionAttribute.getAttribute().isReferenceType()) {
+            skipReferenceValidation = Objects.nonNull(oldVersionAttribute.getReference())
+                    && !Objects.equals(newVersionAttribute.getReference().getDisplayExpression(),
+                    oldVersionAttribute.getReference().getDisplayExpression())
+                    && conflictRepository.existsByReferrerVersionIdAndRefFieldCodeAndConflictType(
+                            versionEntity.getId(), attributeCode, ConflictType.DISPLAY_DAMAGED);
+        }
+
+        validateVersionData(versionEntity, skipReferenceValidation, validationEntities);
+
+        deleteAttributeValidation(versionEntity.getId(), attributeCode, null);
 
         attributeValidationRepository.saveAll(validationEntities);
     }
 
-    private void validateDataBase(RefBookVersionEntity versionEntity, List<AttributeValidationEntity> validationEntities) {
+    private void validateVersionData(RefBookVersionEntity versionEntity,
+                                     boolean skipReferenceValidation,
+                                     List<AttributeValidationEntity> validationEntities) {
 
         VersionDataIterator iterator = new VersionDataIterator(versionService, singletonList(versionEntity.getId()));
-        RowsValidator validator = new RowsValidatorImpl(versionService, searchDataService, versionEntity.getStructure(),
-                versionEntity.getStorageCode(), errorCountLimit, validationEntities);
+        RowsValidator validator = new RowsValidatorImpl(versionService, searchDataService,
+                versionEntity.getStructure(), versionEntity.getStorageCode(),
+                errorCountLimit, skipReferenceValidation, validationEntities
+        );
 
         while (iterator.hasNext()) {
             validator.append(iterator.next());

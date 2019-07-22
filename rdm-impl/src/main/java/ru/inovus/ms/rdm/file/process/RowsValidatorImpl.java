@@ -23,43 +23,51 @@ public class RowsValidatorImpl implements RowsValidator {
 
     private Result result = new Result(0, 0, null);
 
-    private Structure structure;
-
     private VersionService versionService;
 
     private SearchDataService searchDataService;
 
+    private Structure structure;
+
     private String storageCode;
+
+    private boolean skipReferenceValidation;
 
     private PkUniqueRowAppendValidation pkUniqueRowAppendValidation;
 
     private AttributeCustomValidation attributeCustomValidation;
-
 
     public RowsValidatorImpl(VersionService versionService,
                              SearchDataService searchDataService,
                              Structure structure,
                              String storageCode,
                              int errorCountLimit,
+                             boolean skipReferenceValidation,
                              List<AttributeValidationEntity> attributeValidations) {
         this.versionService = versionService;
-        this.structure = structure;
         this.searchDataService = searchDataService;
+
+        this.structure = structure;
         this.storageCode = storageCode;
+
+        if (errorCountLimit > 0)
+            this.errorCountLimit = errorCountLimit;
+
+        this.skipReferenceValidation = skipReferenceValidation;
         this.pkUniqueRowAppendValidation = new PkUniqueRowAppendValidation(structure);
         this.attributeCustomValidation = new AttributeCustomValidation(attributeValidations, structure, searchDataService, storageCode);
-        if (errorCountLimit > 0) this.errorCountLimit = errorCountLimit;
     }
 
     @Override
     public Result append(Row row) {
         List<Message> errors = new ArrayList<>();
         Set<String> errorAttributes = new HashSet<>();
+
         if (row.getData().values().stream().filter(Objects::nonNull).anyMatch(v -> !"".equals(v))) {
             List<ErrorAttributeHolderValidation> validations = Arrays.asList(
                     new PkRequiredValidation(row, structure),
                     new TypeValidation(row.getData(), structure),
-                    new ReferenceValueValidation(versionService, row, structure),
+                    skipReferenceValidation ? null : new ReferenceValueValidation(versionService, row, structure),
                     new DBPrimaryKeyValidation(searchDataService, structure, row, storageCode),
                     pkUniqueRowAppendValidation,
                     attributeCustomValidation
@@ -67,11 +75,13 @@ public class RowsValidatorImpl implements RowsValidator {
             pkUniqueRowAppendValidation.appendRow(row);
             attributeCustomValidation.appendRow(row);
 
-            for (ErrorAttributeHolderValidation validation : validations) {
-                validation.setErrorAttributes(errorAttributes);
-                errors.addAll(validation.validate());
-                errorAttributes.addAll(validation.getErrorAttributes());
-            }
+            validations.stream()
+                    .filter(Objects::nonNull)
+                    .forEach(validation -> {
+                        validation.setErrorAttributes(errorAttributes);
+                        errors.addAll(validation.validate());
+                        errorAttributes.addAll(validation.getErrorAttributes());
+                    });
         }
 
         if (isEmpty(errors)) {
@@ -93,7 +103,8 @@ public class RowsValidatorImpl implements RowsValidator {
     private void addResult(Result result) {
         this.result = this.result == null ? result : this.result.addResult(result);
         if (this.result != null && this.result.getErrors().size() > errorCountLimit) {
-            this.result.addResult(new Result(0, 0, Collections.singletonList(new Message(ERROR_COUNT_EXCEEDED, errorCountLimit))));
+            this.result.addResult(new Result(0, 0,
+                    Collections.singletonList(new Message(ERROR_COUNT_EXCEEDED, errorCountLimit))));
             throw new UserException(this.result.getErrors());
         }
     }

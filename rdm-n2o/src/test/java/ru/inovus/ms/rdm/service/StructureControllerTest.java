@@ -55,7 +55,7 @@ public class StructureControllerTest extends TestCase {
     private RefBookService refBookService;
 
     @Captor
-    ArgumentCaptor<List<AttributeValidation>> validationsArgumentCaptor;
+    ArgumentCaptor<AttributeValidationRequest> validationRequestArgumentCaptor;
     @Captor
     ArgumentCaptor<UpdateAttribute> updateAttributeArgumentCaptor;
     @Captor
@@ -147,9 +147,9 @@ public class StructureControllerTest extends TestCase {
         structureController.updateAttribute(versionId, formAttribute);
 
         verify(draftService, times(1)).updateAttribute(updateAttributeArgumentCaptor.capture());
-        verify(draftService, times(1)).updateAttributeValidations(eq(versionId), eq(testCode), validationsArgumentCaptor.capture());
+        verify(draftService, times(1)).updateAttributeValidations(eq(versionId), validationRequestArgumentCaptor.capture());
 
-        assertValidationListEquals(expectedValidations, validationsArgumentCaptor.getValue());
+        assertValidationListEquals(expectedValidations, validationRequestArgumentCaptor.getValue().getValidations());
         assertEquals(testCode, updateAttributeArgumentCaptor.getValue().getCode());
     }
 
@@ -170,7 +170,7 @@ public class StructureControllerTest extends TestCase {
         structureController.createAttribute(versionId, formAttribute);
 
         verify(draftService, times(1)).createAttribute(createAttributeArgumentCaptor.capture());
-        verify(draftService, times(1)).updateAttributeValidations(eq(versionId), eq(testCode), eq(emptyList()));
+        verify(draftService, times(1)).updateAttributeValidations(eq(versionId), any(AttributeValidationRequest.class));
 
         CreateAttribute actual = createAttributeArgumentCaptor.getValue();
         assertEquals(testCode, actual.getAttribute().getCode());

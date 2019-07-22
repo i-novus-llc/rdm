@@ -70,8 +70,10 @@ public class RowsValidatorTest {
 
     @Before
     public void setUp() {
-        rowsValidator = new RowsValidatorImpl(versionService, searchDataService, createTestStructureWithReference(), "",
-                100, emptyList());
+        rowsValidator = new RowsValidatorImpl(versionService, searchDataService,
+                createTestStructureWithReference(), "",
+                100,false, emptyList()
+        );
 
         RefBookVersionEntity versionEntity = new RefBookVersionEntity();
         versionEntity.setId(REFERENCE_VERSION);
@@ -109,7 +111,7 @@ public class RowsValidatorTest {
         Row notValidRow = new Row(new LinkedHashMap<>() {{
             put(ATTRIBUTE_NAME, new Reference(newAttributeValue, newAttributeValue));
         }});
-        Result expected = new Result(1, 2, singletonList(new Message("validation.reference.err", ATTRIBUTE_NAME, newAttributeValue)));
+        Result expected = new Result(1, 2, singletonList(new Message(ReferenceValueValidation.REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE, ATTRIBUTE_NAME, newAttributeValue)));
 
         rowsValidator.append(validRow);
         Result appendActual = rowsValidator.append(notValidRow);
@@ -119,7 +121,7 @@ public class RowsValidatorTest {
             Assert.fail();
         } catch (UserException e) {
             Assert.assertEquals(1, e.getMessages().size());
-            Assert.assertEquals(new Message(ReferenceValueValidation.REFERENCE_ERROR_CODE, ATTRIBUTE_NAME, ATTRIBUTE_VALUE + "_1"), e.getMessages().get(0));
+            Assert.assertEquals(new Message(ReferenceValueValidation.REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE, ATTRIBUTE_NAME, ATTRIBUTE_VALUE + "_1"), e.getMessages().get(0));
         }
 
         Assert.assertEquals(expected, appendActual);

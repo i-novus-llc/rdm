@@ -10,6 +10,7 @@ import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.refbook.RefBook;
 import ru.inovus.ms.rdm.model.version.CreateAttribute;
+import ru.inovus.ms.rdm.model.version.RefBookVersionAttribute;
 import ru.inovus.ms.rdm.model.version.UpdateAttribute;
 import ru.inovus.ms.rdm.model.validation.*;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
@@ -76,7 +77,11 @@ public class StructureController {
         CreateAttribute attributeModel = getCreateAttribute(versionId, formAttribute);
         draftService.createAttribute(attributeModel);
         try {
-            draftService.updateAttributeValidations(versionId, formAttribute.getCode(), createValidations(formAttribute));
+            AttributeValidationRequest validationRequest = new AttributeValidationRequest();
+            validationRequest.setNewAttribute(attributeModel);
+            validationRequest.setValidations(createValidations(formAttribute));
+
+            draftService.updateAttributeValidations(versionId, validationRequest);
 
         } catch (RestException re) {
             draftService.deleteAttribute(versionId, formAttribute.getCode());
@@ -93,7 +98,12 @@ public class StructureController {
         UpdateAttribute attributeModel = getUpdateAttribute(versionId, formAttribute);
         draftService.updateAttribute(attributeModel);
         try {
-            draftService.updateAttributeValidations(versionId, formAttribute.getCode(), createValidations(formAttribute));
+            AttributeValidationRequest validationRequest = new AttributeValidationRequest();
+            validationRequest.setOldAttribute(getVersionAttribute(versionId, oldAttribute, oldReference));
+            validationRequest.setNewAttribute(getCreateAttribute(versionId, formAttribute));
+            validationRequest.setValidations(createValidations(formAttribute));
+
+            draftService.updateAttributeValidations(versionId, validationRequest);
 
         } catch (RestException re) {
             draftService.updateAttribute(new UpdateAttribute(versionId, oldAttribute, oldReference));
@@ -247,6 +257,10 @@ public class StructureController {
         }
 
         return attribute;
+    }
+
+    private RefBookVersionAttribute getVersionAttribute(Integer versionId, Structure.Attribute attribute, Structure.Reference reference) {
+        return new RefBookVersionAttribute(versionId, attribute, reference);
     }
 
     private CreateAttribute getCreateAttribute(Integer versionId, FormAttribute formAttribute) {

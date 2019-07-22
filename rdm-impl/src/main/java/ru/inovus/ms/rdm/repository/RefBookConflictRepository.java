@@ -20,6 +20,8 @@ public interface RefBookConflictRepository extends
 
     Boolean existsByReferrerVersionIdAndConflictType(Integer referrerVersionId, ConflictType conflictType);
 
+    Boolean existsByReferrerVersionIdAndRefFieldCodeAndConflictType(Integer referrerVersionId, String refFieldCode, ConflictType conflictType);
+
     @Query("select distinct c.refRecordId from RefBookConflictEntity c\n" +
             " where c.referrerVersion.id = :referrerVersionId\n" +
             "   and c.refRecordId in (:refRecordIds)" +
