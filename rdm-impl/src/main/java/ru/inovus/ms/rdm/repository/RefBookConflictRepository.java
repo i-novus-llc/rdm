@@ -68,4 +68,6 @@ public interface RefBookConflictRepository extends
     void deleteByReferrerVersionIdAndRefRecordId(Integer referrerVersionId, Long refRecordId);
 
     void deleteByReferrerVersionIdAndRefRecordIdIsNotNull(Integer referrerVersionId);
+
+    void deleteByReferrerVersionIdAndRefFieldCodeAndRefRecordIdIsNull(Integer referrerVersionId, String refFieldCode);
 }

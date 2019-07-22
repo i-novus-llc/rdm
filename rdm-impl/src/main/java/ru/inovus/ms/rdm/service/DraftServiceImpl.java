@@ -827,6 +827,8 @@ public class DraftServiceImpl implements DraftService {
         deleteAttributeValidation(versionEntity.getId(), attributeCode, null);
 
         attributeValidationRepository.saveAll(validationEntities);
+
+        conflictRepository.deleteByReferrerVersionIdAndRefFieldCodeAndRefRecordIdIsNull(versionEntity.getId(), attributeCode);
     }
 
     private void validateVersionData(RefBookVersionEntity versionEntity,
