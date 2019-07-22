@@ -157,7 +157,7 @@ public class ReferenceServiceImpl implements ReferenceService {
                 publishedEntity.getFromDate(), // SYS_PUBLISH_TIME is not exist for draft
                 referenceAttribute.getCode(),
                 new DisplayExpression(reference.getDisplayExpression()),
-                null, // Old value is not changed
+                null, // Old value must not changed
                 null // Display value will be recalculated
         );
         ReferenceFieldValue fieldValue = new ReferenceFieldValue(reference.getAttribute(), updatedReference);
