@@ -1,5 +1,7 @@
 package ru.inovus.ms.rdm.validation;
 
+import ru.inovus.ms.rdm.model.Structure;
+
 public interface VersionValidation {
 
     void validateRefBook(Integer refBookId);
@@ -14,6 +16,8 @@ public interface VersionValidation {
 
     void validateDraftExists(Integer draftId);
 
-    void validateAttributeExists(Integer versionId, String attribute);
+    void validateAttributeExists(Integer versionId, Structure structure, String attribute);
+
+    void validateDraftAttributeExists(Integer versionId, String attribute);
 
 }

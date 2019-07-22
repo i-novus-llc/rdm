@@ -39,7 +39,6 @@ import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.refdata.RowValuePage;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.validation.*;
-import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.repository.*;
 import ru.inovus.ms.rdm.service.api.*;
 import ru.inovus.ms.rdm.util.*;
@@ -738,7 +737,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void addAttributeValidation(Integer versionId, String attribute, AttributeValidation attributeValidation) {
 
-        versionValidation.validateAttributeExists(versionId, attribute);
+        versionValidation.validateDraftAttributeExists(versionId, attribute);
 
         RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
         AttributeValidationEntity attributeValidationEntity = new AttributeValidationEntity(versionEntity, attribute,
@@ -758,7 +757,7 @@ public class DraftServiceImpl implements DraftService {
             validations = attributeValidationRepository.findAllByVersionId(draftId);
 
         } else {
-            versionValidation.validateAttributeExists(draftId, attribute);
+            versionValidation.validateDraftAttributeExists(draftId, attribute);
             if (type == null) {
                 validations = attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attribute);
             } else {
@@ -772,13 +771,13 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     public List<AttributeValidation> getAttributeValidations(Integer draftId, String attribute) {
-        List<AttributeValidationEntity> validations;
+        List<AttributeValidationEntity> validationEntities;
         if (attribute == null) {
-            validations = attributeValidationRepository.findAllByVersionId(draftId);
+            validationEntities = attributeValidationRepository.findAllByVersionId(draftId);
         } else {
-            validations = attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attribute);
+            validationEntities = attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attribute);
         }
-        return validations.stream().map(AttributeValidationEntity::attributeValidationModel).collect(toList());
+        return validationEntities.stream().map(AttributeValidationEntity::attributeValidationModel).collect(toList());
     }
 
     @Override
