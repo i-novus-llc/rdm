@@ -31,13 +31,20 @@ public class Structure implements Serializable {
         this(other.getAttributes(), other.getReferences());
     }
 
-    public Reference getReference(String attributeCode) {
-        if (isEmpty(references)) {
-            return null;
-        }
-        return references.stream()
-                .filter(reference -> reference.getAttribute().equals(attributeCode))
-                .findAny().orElse(null);
+    public List<Attribute> getAttributes() {
+        return attributes;
+    }
+
+    public void setAttributes(List<Attribute> attributes) {
+        this.attributes = attributes;
+    }
+
+    public List<Reference> getReferences() {
+        return references;
+    }
+
+    public void setReferences(List<Reference> references) {
+        this.references = references;
     }
 
     public Attribute getAttribute(String code) {
@@ -46,6 +53,15 @@ public class Structure implements Serializable {
         }
         return attributes.stream()
                 .filter(attribute -> attribute.getCode().equals(code))
+                .findAny().orElse(null);
+    }
+
+    public Reference getReference(String attributeCode) {
+        if (isEmpty(references)) {
+            return null;
+        }
+        return references.stream()
+                .filter(reference -> reference.getAttribute().equals(attributeCode))
                 .findAny().orElse(null);
     }
 
@@ -63,22 +79,6 @@ public class Structure implements Serializable {
         return attributes.stream()
                 .filter(attribute -> attribute.isPrimary)
                 .collect(Collectors.toList());
-    }
-
-    public List<Attribute> getAttributes() {
-        return attributes;
-    }
-
-    public void setAttributes(List<Attribute> attributes) {
-        this.attributes = attributes;
-    }
-
-    public List<Reference> getReferences() {
-        return references;
-    }
-
-    public void setReferences(List<Reference> references) {
-        this.references = references;
     }
 
     /**
@@ -318,10 +318,12 @@ public class Structure implements Serializable {
         }
     }
 
-    public boolean storageEquals(Structure s) {
+    public boolean storageEquals(Structure that) {
+        List<Attribute> others = that.getAttributes();
         return isEmpty(attributes)
-                ? isEmpty(s.getAttributes())
-                : attributes.stream().noneMatch(attribute -> s.attributes.stream().noneMatch(attribute::storageEquals));
+                ? isEmpty(others)
+                : attributes.size() == others.size()
+                && attributes.stream().noneMatch(attribute -> others.stream().noneMatch(attribute::storageEquals));
     }
 
     @Override
