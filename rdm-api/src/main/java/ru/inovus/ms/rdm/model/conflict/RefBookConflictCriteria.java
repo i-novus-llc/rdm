@@ -25,8 +25,12 @@ public class RefBookConflictCriteria extends AbstractCriteria {
     private Integer publishedVersionId;
 
     @ApiModelProperty("Идентификатор опубликованного справочника")
-    @QueryParam("publishedVersionId")
+    @QueryParam("publishedVersionRefBookId")
     private Integer publishedVersionRefBookId;
+
+    @ApiModelProperty("Признак последней опубликованной версии")
+    @QueryParam("isLastPublishedVersion")
+    private boolean isLastPublishedVersion;
 
     @ApiModelProperty("Системный идентификатор записи с конфликтом")
     @QueryParam("refRecordId")
@@ -44,9 +48,29 @@ public class RefBookConflictCriteria extends AbstractCriteria {
     @QueryParam("conflictType")
     private ConflictType conflictType;
 
+    @ApiModelProperty("Типы конфликта")
+    @QueryParam("conflictTypes")
+    private List<ConflictType> conflictTypes;
+
     @ApiModelProperty("Дата создания записи")
     @QueryParam("creationDate")
     private LocalDateTime creationDate;
+
+    @SuppressWarnings("unused")
+    public RefBookConflictCriteria() {
+    }
+
+    public RefBookConflictCriteria(Integer referrerVersionId, Integer publishedVersionId) {
+        this.referrerVersionId = referrerVersionId;
+        this.publishedVersionId = publishedVersionId;
+    }
+
+    public RefBookConflictCriteria(Integer referrerVersionId, Integer publishedVersionId, String refFieldCode, ConflictType conflictType) {
+        this.referrerVersionId = referrerVersionId;
+        this.publishedVersionId = publishedVersionId;
+        this.refFieldCode = refFieldCode;
+        this.conflictType = conflictType;
+    }
 
     public Integer getReferrerVersionId() {
         return referrerVersionId;
@@ -80,6 +104,14 @@ public class RefBookConflictCriteria extends AbstractCriteria {
         this.publishedVersionRefBookId = publishedVersionRefBookId;
     }
 
+    public boolean getIsLastPublishedVersion() {
+        return isLastPublishedVersion;
+    }
+
+    public void setIsLastPublishedVersion(boolean isLastPublishedVersion) {
+        this.isLastPublishedVersion = isLastPublishedVersion;
+    }
+
     public Long getRefRecordId() {
         return refRecordId;
     }
@@ -110,6 +142,14 @@ public class RefBookConflictCriteria extends AbstractCriteria {
 
     public void setConflictType(ConflictType conflictType) {
         this.conflictType = conflictType;
+    }
+
+    public List<ConflictType> getConflictTypes() {
+        return conflictTypes;
+    }
+
+    public void setConflictTypes(List<ConflictType> conflictTypes) {
+        this.conflictTypes = conflictTypes;
     }
 
     public LocalDateTime getCreationDate() {

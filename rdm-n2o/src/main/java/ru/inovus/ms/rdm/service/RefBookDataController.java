@@ -26,8 +26,7 @@ import ru.i_novus.platform.datastorage.temporal.model.value.DateFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.criteria.DataCriteria;
-import ru.inovus.ms.rdm.model.DataGridColumn;
-import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.conflict.RefBookConflictCriteria;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
@@ -36,6 +35,7 @@ import ru.inovus.ms.rdm.provider.N2oDomain;
 import ru.inovus.ms.rdm.service.api.ConflictService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -73,46 +73,47 @@ public class RefBookDataController {
 
         Structure structure = versionService.getStructure(criteria.getVersionId());
 
-        Page<RefBookRowValue> search;
-        List<DataGridRow> result;
-        Page<Long> conflictedRowsIdsPage = Page.empty();
-
-        SearchDataCriteria searchDataCriteria;
+        Page<Long> conflictedRowIdsPage = null;
         if (BooleanUtils.isTrue(criteria.getHasConflict())) {
 
             long conflictsCount = conflictService.countConflictedRowIds(toRefBookConflictCriteria(criteria));
             long dataCount = versionService.search(criteria.getVersionId(), new SearchDataCriteria()).getTotalElements();
-
-            if (conflictsCount == dataCount) {
-                searchDataCriteria = toSearchDataCriteria(criteria, structure, emptyList());
-            } else {
-                conflictedRowsIdsPage = getConflictedRowIds(criteria, (int) conflictsCount);
-                searchDataCriteria = toSearchDataCriteria(criteria, structure, conflictedRowsIdsPage.getContent());
+            if (conflictsCount != dataCount) {
+                conflictedRowIdsPage = getConflictedRowIds(criteria, (int) conflictsCount);
             }
-        } else {
-            searchDataCriteria = toSearchDataCriteria(criteria, structure, emptyList());
         }
 
-        search = versionService.search(criteria.getVersionId(), searchDataCriteria);
-        result = getDataGridContent(criteria, search.getContent(), structure, BooleanUtils.isTrue(criteria.getHasConflict()));
+        List<Long> conflictedRowIds = (conflictedRowIdsPage == null) ? emptyList() : conflictedRowIdsPage.getContent();
+        SearchDataCriteria searchDataCriteria = toSearchDataCriteria(criteria, structure, conflictedRowIds);
+
+        Page<RefBookRowValue> search = versionService.search(criteria.getVersionId(), searchDataCriteria);
+        List<DataGridRow> result = getDataGridContent(criteria, search.getContent(), structure, BooleanUtils.isTrue(criteria.getHasConflict()));
+
+        long total;
+        if (BooleanUtils.isTrue(criteria.getHasConflict()))
+            total = (conflictedRowIdsPage == null) ? 0 : conflictedRowIdsPage.getTotalElements();
+        else
+            total = search.getTotalElements();
 
         // NB: (костыль)
         // Прибавляется 1 к количеству элементов
         // из-за особенности подсчёта количества для последней страницы.
         // На клиенте отнимается 1 для всех страниц.
-        return new RestPage<>(
-                result,
-                searchDataCriteria,
-                BooleanUtils.isTrue(criteria.getHasConflict())
-                        ? conflictedRowsIdsPage.getTotalElements() + 1
-                        : search.getTotalElements() + 1
-        );
+        return new RestPage<>(result, searchDataCriteria, total + 1);
     }
 
-    private Page<Long> getConflictedRowIds(DataCriteria criteria, int conflictsCount) {
+    private Page<Long> getConflictedRowIds(DataCriteria criteria, int pageSize) {
         RefBookConflictCriteria refBookConflictCriteria = toRefBookConflictCriteria(criteria);
-        refBookConflictCriteria.setPageSize(conflictsCount);
+        refBookConflictCriteria.setPageSize(pageSize);
         return conflictService.searchConflictedRowIds(refBookConflictCriteria);
+    }
+
+    private RefBookConflictCriteria toRefBookConflictCriteria(DataCriteria criteria) {
+        RefBookConflictCriteria conflictCriteria = new RefBookConflictCriteria();
+        conflictCriteria.setPageSize(criteria.getSize());
+        conflictCriteria.setReferrerVersionId(criteria.getVersionId());
+        conflictCriteria.setIsLastPublishedVersion(true);
+        return conflictCriteria;
     }
 
     private SearchDataCriteria toSearchDataCriteria(DataCriteria criteria, Structure structure, List<Long> conflictedRowIds) {
@@ -126,23 +127,7 @@ public class RefBookDataController {
                     if (attribute == null)
                         throw new IllegalArgumentException("Filter field not found");
 
-                    switch (attribute.getType()) {
-                        case INTEGER:
-                            v = new BigInteger((String) v);
-                            break;
-                        case FLOAT:
-                            v = new BigDecimal(((String) v).replace(",", ".").trim());
-                            break;
-                        case DATE:
-                            v = LocalDate.parse((String) v, DATE_TIME_PATTERN_EUROPEAN_FORMATTER);
-                            break;
-                        case BOOLEAN:
-                            v = Boolean.valueOf((String) ((Map) v).get(BOOL_FIELD_ID));
-                            break;
-                        default:
-                            break;
-                    }
-                    filters.add(new AttributeFilter(attributeCode, v, attribute.getType()));
+                    filters.add(new AttributeFilter(attributeCode, castValue(attribute, v), attribute.getType()));
                 });
             } catch (Exception e) {
                 throw new UserException("invalid.filter.exception", e);
@@ -161,12 +146,26 @@ public class RefBookDataController {
         return searchDataCriteria;
     }
 
-    private RefBookConflictCriteria toRefBookConflictCriteria(DataCriteria criteria) {
-        RefBookConflictCriteria refBookConflictCriteria = new RefBookConflictCriteria();
-        refBookConflictCriteria.setPageNumber(0);
-        refBookConflictCriteria.setPageSize(criteria.getSize());
-        refBookConflictCriteria.setReferrerVersionId(criteria.getVersionId());
-        return refBookConflictCriteria;
+    private Serializable castValue(Structure.Attribute attribute, Serializable value) {
+        if (attribute == null || value == null)
+            return null;
+
+        switch (attribute.getType()) {
+            case INTEGER:
+                return new BigInteger((String) value);
+
+            case FLOAT:
+                return new BigDecimal(((String) value).replace(",", ".").trim());
+
+            case DATE:
+                return LocalDate.parse((String) value, DATE_TIME_PATTERN_EUROPEAN_FORMATTER);
+
+            case BOOLEAN:
+                return Boolean.valueOf((String) ((Map) value).get(BOOL_FIELD_ID));
+
+            default:
+                return value;
+        }
     }
 
     private List<DataGridRow> getDataGridContent(DataCriteria criteria, List<RefBookRowValue> search, Structure structure, boolean allWithConflicts) {
@@ -199,8 +198,7 @@ public class RefBookDataController {
     }
 
     private List<Long> getRowSystemIds(List<RefBookRowValue> rowValues) {
-        return rowValues
-                .stream()
+        return rowValues.stream()
                 .map(RowValue::getSystemId)
                 .collect(toList());
     }
@@ -208,8 +206,7 @@ public class RefBookDataController {
     private DataGridRow toDataGridRow(RowValue rowValue, Integer versionId, boolean hasConflict) {
         Map<String, Object> row = new HashMap<>();
         LongRowValue longRowValue = (LongRowValue) rowValue;
-        longRowValue
-                .getFieldValues()
+        longRowValue.getFieldValues()
                 .forEach(fieldValue -> {
                             Object cell = hasConflict
                                     ? new DataGridCell(toStringValue(fieldValue), cellOptions)
@@ -295,9 +292,7 @@ public class RefBookDataController {
                 N2oInputSelect booleanField = new N2oInputSelect();
                 booleanField.setValueFieldId("id");
                 booleanField.setLabelFieldId("name");
-                booleanField.setOptions(new Map[]{
-                        of(BOOL_FIELD_ID, "true", BOOL_FIELD_NAME, "ИСТИНА"),
-                        of(BOOL_FIELD_ID, "false", BOOL_FIELD_NAME, "ЛОЖЬ")});
+                booleanField.setOptions(getBooleanValues());
                 return booleanField;
 
             default:
@@ -305,6 +300,14 @@ public class RefBookDataController {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    private static Map<String, String>[] getBooleanValues() {
+        return new Map[]{
+                of(BOOL_FIELD_ID, "true", BOOL_FIELD_NAME, "ИСТИНА"),
+                of(BOOL_FIELD_ID, "false", BOOL_FIELD_NAME, "ЛОЖЬ")};
+    }
+
+    @SuppressWarnings("WeakerAccess")
     public static class DataGridRow {
 
         @JsonProperty
@@ -314,6 +317,7 @@ public class RefBookDataController {
         @JsonProperty
         Map<String, Object> row;
 
+        @SuppressWarnings("unused")
         public DataGridRow() {
         }
 
@@ -351,12 +355,14 @@ public class RefBookDataController {
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static class DataGridCell {
         @JsonProperty
         String value;
         @JsonProperty
         Map<String, Object> cellOptions;
 
+        @SuppressWarnings("unused")
         public DataGridCell() {
         }
 
@@ -377,6 +383,7 @@ public class RefBookDataController {
             return cellOptions;
         }
 
+        @SuppressWarnings("unused")
         public void setCellOptions(Map<String, Object> cellOptions) {
             this.cellOptions = cellOptions;
         }

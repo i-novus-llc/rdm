@@ -23,6 +23,7 @@ import static ru.inovus.ms.rdm.RdmUiUtil.addPrefix;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDate;
 
 @Controller
+@SuppressWarnings("unused")
 public class DataRecordController {
 
     @Autowired
@@ -35,8 +36,8 @@ public class DataRecordController {
         SearchDataCriteria criteria = new SearchDataCriteria();
         AttributeFilter recordIdFilter = new AttributeFilter(DataConstants.SYS_PRIMARY_COLUMN, sysRecordId, FieldType.INTEGER);
         criteria.setAttributeFilter(singleton(singletonList(recordIdFilter)));
-        Page<RefBookRowValue> search = versionService.search(versionId, criteria);
 
+        Page<RefBookRowValue> search = versionService.search(versionId, criteria);
         if (isEmpty(search.getContent()))
             return emptyMap();
 
@@ -44,15 +45,19 @@ public class DataRecordController {
         Map<String, Object> map = new HashMap<>();
         map.put("id", sysRecordId);
         map.put("versionId", versionId);
-        rowValue.getFieldValues().forEach(fieldValue ->
-                map.put(addPrefix(fieldValue.getField()), fieldValue.getValue()));
+
+        rowValue.getFieldValues()
+                .forEach(fieldValue ->
+                        map.put(addPrefix(fieldValue.getField()), fieldValue.getValue()));
         return map;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void updateData(Integer draftId, Row row) {
         row.getData().entrySet().stream()
                 .filter(e -> e.getValue() instanceof Date)
                 .forEach(e -> e.setValue(parseLocalDate(e.getValue())));
+
         draftService.updateData(draftId, row);
     }
 }

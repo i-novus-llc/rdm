@@ -4,20 +4,22 @@ import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.inovus.ms.rdm.entity.*;
 import ru.inovus.ms.rdm.enumeration.FileType;
+import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.file.export.*;
-import ru.inovus.ms.rdm.model.conflict.DeleteRefBookConflictCriteria;
+import ru.inovus.ms.rdm.model.conflict.RefBookConflict;
+import ru.inovus.ms.rdm.model.conflict.RefBookConflictCriteria;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
-import ru.inovus.ms.rdm.service.api.ConflictService;
-import ru.inovus.ms.rdm.service.api.PublishService;
-import ru.inovus.ms.rdm.service.api.VersionFileService;
-import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.repository.RefBookVersionRepository;
+import ru.inovus.ms.rdm.service.api.*;
+import ru.inovus.ms.rdm.util.ReferrerEntityIteratorProvider;
 import ru.inovus.ms.rdm.util.TimeUtils;
 import ru.inovus.ms.rdm.util.VersionNumberStrategy;
 import ru.inovus.ms.rdm.validation.VersionPeriodPublishValidation;
@@ -44,6 +46,7 @@ public class PublishServiceImpl implements PublishService {
     private RefBookLockService refBookLockService;
     private VersionService versionService;
     private ConflictService conflictService;
+    private ReferenceService referenceService;
 
     private VersionFileService versionFileService;
     private VersionNumberStrategy versionNumberStrategy;
@@ -55,7 +58,8 @@ public class PublishServiceImpl implements PublishService {
     @SuppressWarnings("squid:S00107")
     public PublishServiceImpl(RefBookVersionRepository versionRepository,
                               DraftDataService draftDataService, DropDataService dropDataService,
-                              RefBookLockService refBookLockService, VersionService versionService, ConflictService conflictService,
+                              RefBookLockService refBookLockService, VersionService versionService,
+                              ConflictService conflictService, ReferenceService referenceService,
                               VersionFileService versionFileService, VersionNumberStrategy versionNumberStrategy,
                               VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation) {
         this.versionRepository = versionRepository;
@@ -66,6 +70,7 @@ public class PublishServiceImpl implements PublishService {
         this.refBookLockService = refBookLockService;
         this.versionService = versionService;
         this.conflictService = conflictService;
+        this.referenceService = referenceService;
 
         this.versionFileService = versionFileService;
         this.versionNumberStrategy = versionNumberStrategy;
@@ -85,7 +90,8 @@ public class PublishServiceImpl implements PublishService {
      * @param resolveConflicts признак разрешения конфликтов
      */
     @Override
-    // NB: Добавление @Transactional приводит к ошибке "deleted instance passed to merge" в тестах.
+    @Transactional
+    // NB: Use PublishCriteria, required for publishNonConflictReferrers.
     public void publish(Integer draftId, String versionName,
                         LocalDateTime fromDate, LocalDateTime toDate,
                         boolean resolveConflicts) {
@@ -110,58 +116,40 @@ public class PublishServiceImpl implements PublishService {
 
             versionPeriodPublishValidation.validate(fromDate, toDate, refBookId);
 
-            RefBookVersionEntity lastPublishedVersion = getLastPublishedVersionEntity(draftEntity);
-            String storageCode = draftDataService.applyDraft(
-                    lastPublishedVersion != null ? lastPublishedVersion.getStorageCode() : null,
-                    draftEntity.getStorageCode(),
-                    fromDate,
-                    toDate
-            );
+            RefBookVersionEntity lastPublishedEntity = getLastPublishedVersionEntity(draftEntity);
+            String lastStorageCode = lastPublishedEntity != null ? lastPublishedEntity.getStorageCode() : null;
+            String newStorageCode = draftDataService.applyDraft(lastStorageCode, draftEntity.getStorageCode(), fromDate, toDate);
 
-            Set<String> dataStorageToDelete = new HashSet<>();
-            dataStorageToDelete.add(draftEntity.getStorageCode());
+            Set<String> droppedDataStorages = new HashSet<>();
+            droppedDataStorages.add(draftEntity.getStorageCode());
 
-            draftEntity.setStorageCode(storageCode);
+            draftEntity.setStorageCode(newStorageCode);
             draftEntity.setVersion(versionName);
             draftEntity.setStatus(RefBookVersionStatus.PUBLISHED);
             draftEntity.setFromDate(fromDate);
             draftEntity.setToDate(toDate);
+
             resolveOverlappingPeriodsInFuture(fromDate, toDate, refBookId, draftEntity.getId());
+
             versionRepository.save(draftEntity);
 
-            if (lastPublishedVersion != null
-                    && lastPublishedVersion.getStorageCode() != null
-                    && draftEntity.getStructure().storageEquals(lastPublishedVersion.getStructure())) {
-                dataStorageToDelete.add(lastPublishedVersion.getStorageCode());
-                versionRepository.findByStorageCode(lastPublishedVersion.getStorageCode()).stream()
-                        .peek(version -> version.setStorageCode(storageCode))
+            if (lastPublishedEntity != null && lastStorageCode != null
+                    && draftEntity.getStructure().storageEquals(lastPublishedEntity.getStructure())) {
+                droppedDataStorages.add(lastStorageCode);
+
+                versionRepository.findByStorageCode(lastStorageCode).stream()
+                        .peek(entity -> entity.setStorageCode(newStorageCode))
                         .forEach(versionRepository::save);
             }
-            dropDataService.drop(dataStorageToDelete);
+            dropDataService.drop(droppedDataStorages);
 
-            RefBookVersion versionModel = versionService.getById(draftId);
-            for (FileType fileType : PerRowFileGeneratorFactory.getAvailableTypes()) {
-                VersionDataIterator dataIterator = new VersionDataIterator(versionService, singletonList(versionModel.getId()));
-                versionFileService.save(versionModel, fileType,
-                        versionFileService.generate(versionModel, fileType, dataIterator));
-            }
+            saveDraftToFiles(draftId);
 
             // NB: Конфликты могут быть только при наличии
             // ссылочных атрибутов со значениями для ранее опубликованной версии.
-            if (lastPublishedVersion != null) {
-
-                conflictService.discoverConflicts(lastPublishedVersion.getId(), draftId);
-
-                // Удаление конфликтов для всех версий справочника, на который ссылаются,
-                // кроме указанной версии справочника, на которую будут ссылаться.
-                DeleteRefBookConflictCriteria criteria = new DeleteRefBookConflictCriteria();
-                criteria.setPublishedVersionRefBookId(lastPublishedVersion.getRefBook().getId());
-                criteria.setExcludedPublishedVersionId(draftId);
-                conflictService.delete(criteria);
-
-                if (resolveConflicts) {
-                    conflictService.refreshLastReferrersByPrimary(lastPublishedVersion.getRefBook().getCode());
-                }
+            if (lastPublishedEntity != null) {
+                conflictService.discoverConflicts(lastPublishedEntity.getId(), draftId);
+                processDiscoveredConflicts(lastPublishedEntity, draftId, resolveConflicts);
             }
 
         } finally {
@@ -179,19 +167,84 @@ public class PublishServiceImpl implements PublishService {
         if (toDate == null)
             toDate = MAX_TIMESTAMP;
 
-        Iterable<RefBookVersionEntity> versions = versionRepository.findAll(
+        Iterable<RefBookVersionEntity> entities = versionRepository.findAll(
                 hasOverlappingPeriods(fromDate, toDate)
                         .and(isVersionOfRefBook(refBookId))
-                        .and(hasVersionId(draftId).not())
                         .and(isPublished())
+                        // NB: Exclude error "deleted instance passed to merge".
+                        .and(hasVersionId(draftId).not())
         );
-        versions.forEach(version -> {
-            if (fromDate.isAfter(version.getFromDate())) {
-                version.setToDate(fromDate);
-                versionRepository.save(version);
+
+        entities.forEach(entity -> {
+            if (fromDate.isAfter(entity.getFromDate())) {
+                entity.setToDate(fromDate);
+                versionRepository.save(entity);
             } else {
-                versionRepository.deleteById(version.getId());
+                versionRepository.deleteById(entity.getId());
             }
         });
+    }
+
+    private void saveDraftToFiles(Integer draftId) {
+
+        RefBookVersion draftVersion = versionService.getById(draftId);
+
+        for (FileType fileType : PerRowFileGeneratorFactory.getAvailableTypes()) {
+            VersionDataIterator dataIterator = new VersionDataIterator(versionService, singletonList(draftVersion.getId()));
+            versionFileService.save(draftVersion, fileType,
+                    versionFileService.generate(draftVersion, fileType, dataIterator));
+        }
+    }
+
+    private void processDiscoveredConflicts(RefBookVersionEntity oldVersion, Integer newVersionId, boolean resolveConflicts) {
+
+        // NB: Old conflicts are not deleted.
+
+        if (resolveConflicts) {
+            resolveReferrerConflicts(oldVersion.getRefBook().getCode());
+            publishNonConflictReferrers(oldVersion.getRefBook().getCode(), newVersionId);
+        }
+    }
+
+    /**
+     * Обработка разрешаемых конфликтов.
+     *
+     * @param refBookCode код справочника, на который ссылаются
+     */
+    private void resolveReferrerConflicts(String refBookCode) {
+        referenceService.refreshLastReferrers(refBookCode);
+    }
+
+    /**
+     * Публикация бесконфликтных справочников, который ссылаются на указанный справочник.
+     *
+     * @param refBookCode        код справочника, на который ссылаются
+     * @param publishedVersionId идентификатор версии справочника
+     */
+    private void publishNonConflictReferrers(String refBookCode, Integer publishedVersionId) {
+
+        new ReferrerEntityIteratorProvider(versionRepository, refBookCode, RefBookSourceType.DRAFT)
+                .iterate().forEachRemaining(referrers ->
+            referrers.forEach(referrer -> {
+                if (notExistsConflict(referrer.getId(), publishedVersionId))
+                    publish(referrer.getId(), null, null, null, false);
+            })
+        );
+    }
+
+    /**
+     * Проверка на отсутствие конфликтов версий справочников.
+     *
+     * @param referrerVersionId  идентификатор версии, которая ссылается
+     * @param publishedVersionId идентификатор версии, на которую ссылаются
+     * @return Отсутствие конфликта
+     */
+    private boolean notExistsConflict(Integer referrerVersionId, Integer publishedVersionId) {
+
+        RefBookConflictCriteria criteria = new RefBookConflictCriteria(referrerVersionId, publishedVersionId);
+        criteria.setPageSize(1);
+
+        Page<RefBookConflict> conflicts = conflictService.search(criteria);
+        return conflicts.getContent().isEmpty();
     }
 }

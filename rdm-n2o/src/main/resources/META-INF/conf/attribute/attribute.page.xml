@@ -17,7 +17,7 @@
                     <option id="FLOAT" name="Дробный"/>
                     <option id="DATE" name="Дата"/>
                     <option id="BOOLEAN" name="Логический"/>
-                    <option id="REFERENCE" name="Ссылочный"/>
+<!--                    <option id="REFERENCE" name="Ссылочный"/>-->
                 </options>
             </select>
 
@@ -85,7 +85,7 @@
             <checkbox id="isPrimary" label="Первичный ключ">
                 <dependencies>
                     <enabling on="attrType">
-                        (attrType != null &amp;&amp; attrType.id != 'BOOLEAN')
+                        (!hasReferrer &amp;&amp; attrType != null &amp;&amp; attrType.id != 'BOOLEAN')
                     </enabling>
                 </dependencies>
             </checkbox>

@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.entity;
 
 import ru.inovus.ms.rdm.enumeration.ConflictType;
+import ru.inovus.ms.rdm.util.TimeUtils;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -35,6 +36,18 @@ public class RefBookConflictEntity {
 
     @Column(name = "creation_date")
     private LocalDateTime creationDate;
+
+    public RefBookConflictEntity() {
+    }
+
+    public RefBookConflictEntity(RefBookVersionEntity referrerVersion, RefBookVersionEntity publishedVersion,
+                                 Long refRecordId, String refFieldCode, ConflictType conflictType) {
+        this.referrerVersion = referrerVersion;
+        this.publishedVersion = publishedVersion;
+        this.refRecordId = refRecordId;
+        this.refFieldCode = refFieldCode;
+        this.conflictType = conflictType;
+    }
 
     public Integer getId() {
         return id;
@@ -92,16 +105,25 @@ public class RefBookConflictEntity {
         this.creationDate = creationDate;
     }
 
+    /**
+     * Проверка типа на DISPLAY_DAMAGED.
+     *
+     * @return Результат проверки
+     */
+    public boolean isDisplayDamaged() {
+        return ConflictType.DISPLAY_DAMAGED.equals(getConflictType());
+    }
+
     @PrePersist
     public void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = TimeUtils.now();
 
         if (creationDate == null)
             creationDate = now;
     }
 
-    @SuppressWarnings("all")
     @Override
+    @SuppressWarnings("squid:S1067")
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

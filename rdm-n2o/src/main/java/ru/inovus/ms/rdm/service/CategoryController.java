@@ -23,8 +23,8 @@ import static org.apache.commons.lang.StringUtils.isNotBlank;
 @Controller
 public class CategoryController {
 
-    public static final String CATEGORY_REFBOOK_CODE = "CAT";
-    public static final String CATEGORY_NAME_FIELD_CODE = "name";
+    private static final String CATEGORY_REFBOOK_CODE = "CAT";
+    private static final String CATEGORY_NAME_FIELD_CODE = "name";
 
     @Autowired
     VersionService versionService;
@@ -32,6 +32,7 @@ public class CategoryController {
     /**
      * Поиск списка категорий из справочника категорий (находится по коду)
      */
+    @SuppressWarnings("unused")
     public Page<Category> getCategories(CategoryCriteria categoryCriteria) {
 
         SearchDataCriteria criteria = toSearchDataCriteria(categoryCriteria);
@@ -54,7 +55,7 @@ public class CategoryController {
         return criteria;
     }
 
-    public static Category toCategory(RowValue rowValue) {
+    private static Category toCategory(RowValue rowValue) {
         return new Category(
                 ofNullable(rowValue.getFieldValue("code"))
                         .map(FieldValue::getValue)

@@ -40,8 +40,8 @@ import ru.inovus.ms.rdm.model.version.PassportAttribute;
 import ru.inovus.ms.rdm.model.diff.PassportAttributeDiff;
 import ru.inovus.ms.rdm.model.diff.PassportDiff;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
-import ru.inovus.ms.rdm.repositiory.PassportAttributeRepository;
-import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
+import ru.inovus.ms.rdm.repository.PassportAttributeRepository;
+import ru.inovus.ms.rdm.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
@@ -778,7 +778,6 @@ public class CompareServiceTest {
 
     private CompareDataCriteria createRdmDefaultCompareDataCriteria(Integer oldId, Integer newId) {
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria(oldId, newId);
-        compareDataCriteria.setPageNumber(0);
         compareDataCriteria.setPageSize(DEF_PAGE_SIZE);
         return compareDataCriteria;
     }

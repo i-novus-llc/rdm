@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
+import ru.inovus.ms.rdm.repository.RefBookVersionRepository;
 
 import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.*;
 
@@ -17,6 +17,7 @@ public class VersionValidationImpl implements VersionValidation {
     private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
     public static final String DRAFT_NOT_FOUND_EXCEPTION_CODE = "draft.not.found";
     public static final String REFBOOK_IS_ARCHIVED_EXCEPTION_CODE = "refbook.is.archived";
+    private static final String VERSION_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "version.attribute.not.found";
     private static final String DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "draft.attribute.not.found";
 
     private RefBookVersionRepository versionRepository;
@@ -129,13 +130,28 @@ public class VersionValidationImpl implements VersionValidation {
     }
 
     /**
+     * Проверка существования атрибута в структуре версии справочника.
+     *
+     * @param versionId идентификатор версии
+     * @param structure структура версии
+     * @param attribute код атрибута
+     */
+    @Override
+    public void validateAttributeExists(Integer versionId, Structure structure, String attribute) {
+        if (structure.getAttribute(attribute) == null) {
+            throw new NotFoundException(new Message(VERSION_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, versionId, attribute));
+        }
+    }
+
+    /**
      * Проверка существования атрибута версии справочника.
      *
      * @param versionId идентификатор версии
      * @param attribute код атрибута
      */
     @Override
-    public void validateAttributeExists(Integer versionId, String attribute) {
+    public void validateDraftAttributeExists(Integer versionId, String attribute) {
+
         validateDraftExists(versionId);
 
         Structure structure = versionRepository.getOne(versionId).getStructure();

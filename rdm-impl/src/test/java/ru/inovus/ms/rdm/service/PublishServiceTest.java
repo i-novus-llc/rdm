@@ -29,7 +29,7 @@ import ru.inovus.ms.rdm.file.export.PerRowFileGenerator;
 import ru.inovus.ms.rdm.file.export.PerRowFileGeneratorFactory;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.repositiory.*;
+import ru.inovus.ms.rdm.repository.*;
 import ru.inovus.ms.rdm.service.api.ConflictService;
 import ru.inovus.ms.rdm.service.api.VersionFileService;
 import ru.inovus.ms.rdm.service.api.VersionService;

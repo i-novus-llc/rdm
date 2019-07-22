@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.entity;
 
 import ru.inovus.ms.rdm.model.audit.AuditAction;
+import ru.inovus.ms.rdm.util.TimeUtils;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -46,7 +47,7 @@ public class AuditLogEntity {
     @PrePersist
     public void prePersist() {
         if (date == null)
-            date = LocalDateTime.now();
+            date = TimeUtils.now();
     }
 
     public Integer getId() {

@@ -55,7 +55,7 @@ public class StructureControllerTest extends TestCase {
     private RefBookService refBookService;
 
     @Captor
-    ArgumentCaptor<List<AttributeValidation>> validationsArgumentCaptor;
+    ArgumentCaptor<AttributeValidationRequest> validationRequestArgumentCaptor;
     @Captor
     ArgumentCaptor<UpdateAttribute> updateAttributeArgumentCaptor;
     @Captor
@@ -106,6 +106,7 @@ public class StructureControllerTest extends TestCase {
         when(versionService.getStructure(eq(versionId)))
                 .thenReturn(new Structure(singletonList(build(testCode, null, FieldType.INTEGER, null)), null));
         when(draftService.getAttributeValidations(eq(versionId), isNull())).thenReturn(emptyList());
+        when(refBookService.getByVersionId(eq(versionId))).thenReturn(new RefBook());
 
         RestPage<ReadAttribute> page = structureController.getPage(new AttributeCriteria(null, versionId));
         ReadAttribute actual = page.getContent().get(0);
@@ -125,6 +126,7 @@ public class StructureControllerTest extends TestCase {
 
         when(versionService.getStructure(eq(versionId))).thenReturn(structure);
         when(draftService.getAttributeValidations(eq(versionId), isNull())).thenReturn(expectedValidations);
+        when(refBookService.getByVersionId(eq(versionId))).thenReturn(new RefBook());
 
         RestPage<ReadAttribute> page = structureController.getPage(new AttributeCriteria(null, versionId));
         ReadAttribute actual = page.getContent().get(0);
@@ -145,9 +147,9 @@ public class StructureControllerTest extends TestCase {
         structureController.updateAttribute(versionId, formAttribute);
 
         verify(draftService, times(1)).updateAttribute(updateAttributeArgumentCaptor.capture());
-        verify(draftService, times(1)).updateAttributeValidations(eq(versionId), eq(testCode), validationsArgumentCaptor.capture());
+        verify(draftService, times(1)).updateAttributeValidations(eq(versionId), validationRequestArgumentCaptor.capture());
 
-        assertValidationListEquals(expectedValidations, validationsArgumentCaptor.getValue());
+        assertValidationListEquals(expectedValidations, validationRequestArgumentCaptor.getValue().getValidations());
         assertEquals(testCode, updateAttributeArgumentCaptor.getValue().getCode());
     }
 
@@ -168,7 +170,7 @@ public class StructureControllerTest extends TestCase {
         structureController.createAttribute(versionId, formAttribute);
 
         verify(draftService, times(1)).createAttribute(createAttributeArgumentCaptor.capture());
-        verify(draftService, times(1)).updateAttributeValidations(eq(versionId), eq(testCode), eq(emptyList()));
+        verify(draftService, times(1)).updateAttributeValidations(eq(versionId), any(AttributeValidationRequest.class));
 
         CreateAttribute actual = createAttributeArgumentCaptor.getValue();
         assertEquals(testCode, actual.getAttribute().getCode());
@@ -202,6 +204,7 @@ public class StructureControllerTest extends TestCase {
         referenceVersion.setId(referenceVersionId);
         referenceVersion.setStructure(new Structure(singletonList(build(referenceAttribute, null, FieldType.INTEGER, null)), null));
         when(versionService.getLastPublishedVersion(eq(referenceCode))).thenReturn(referenceVersion);
+        when(refBookService.getByVersionId(eq(versionId))).thenReturn(new RefBook(referenceVersion));
 
         RestPage<ReadAttribute> page = structureController.getPage(new AttributeCriteria(null, versionId));
         ReadAttribute actual = page.getContent().get(0);

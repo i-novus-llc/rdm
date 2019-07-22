@@ -31,6 +31,7 @@ import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 import ru.inovus.ms.rdm.enumeration.*;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.conflict.CalculateConflictCriteria;
+import ru.inovus.ms.rdm.model.conflict.RefBookConflictCriteria;
 import ru.inovus.ms.rdm.model.version.*;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.model.conflict.Conflict;
@@ -47,6 +48,8 @@ import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.service.api.*;
+import ru.inovus.ms.rdm.util.FieldValueUtils;
+import ru.inovus.ms.rdm.validation.ReferenceValueValidation;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -68,6 +71,8 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
 import static org.junit.Assert.*;
+import static org.springframework.util.CollectionUtils.isEmpty;
+import static ru.i_novus.platform.datastorage.temporal.model.DataConstants.SYS_PRIMARY_COLUMN;
 import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
 import static ru.inovus.ms.rdm.util.ConverterUtil.rowValue;
@@ -153,6 +158,10 @@ public class ApplicationTest {
     private ConflictService conflictService;
 
     @Autowired
+    @Qualifier("referenceServiceJaxRsProxyClient")
+    private ReferenceService referenceService;
+
+    @Autowired
     private DataSource dataSource;
 
     @Autowired
@@ -190,7 +199,7 @@ public class ApplicationTest {
         refBookUpdateRequest.setComment("обновленное наполнение");
 
         createAttribute = Structure.Attribute.buildPrimary("name", "Наименование", FieldType.REFERENCE, "описание");
-        createReference = new Structure.Reference(createAttribute.getCode(), "REF_801", null);
+        createReference = new Structure.Reference(createAttribute.getCode(), "REF_801", "");
         updateAttribute = Structure.Attribute.buildPrimary(createAttribute.getCode(),
                 createAttribute.getName() + "_upd", createAttribute.getType(), createAttribute.getDescription() + "_upd");
         deleteAttribute = Structure.Attribute.build("code", "Код", FieldType.STRING, "на удаление");
@@ -575,8 +584,12 @@ public class ApplicationTest {
             draftService.updateData(versionId, row);
             fail();
         } catch (RestException re) {
-            Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.type.error"::equals).count());
-            Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.reference.err"::equals).count());
+            Assert.assertEquals(1, re.getErrors().stream()
+                    .map(RestMessage.Error::getMessage)
+                    .filter("validation.type.error"::equals).count());
+            Assert.assertEquals(1, re.getErrors().stream()
+                    .map(RestMessage.Error::getMessage)
+                    .filter(ReferenceValueValidation.REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE::equals).count());
         }
     }
 
@@ -718,7 +731,7 @@ public class ApplicationTest {
             fail();
 
         } catch (RestException e) {
-            assertEquals("validation.reference.err", e.getErrors().get(0).getMessage());
+            assertEquals(ReferenceValueValidation.REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE, e.getErrors().get(0).getMessage());
         }
     }
 
@@ -1173,11 +1186,16 @@ public class ApplicationTest {
 
         } catch (RestException re) {
             Assert.assertEquals(10, re.getErrors().size());
-            Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.db.contains.pk.err"::equals).count());
-            Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.required.err"::equals).count());
-            Assert.assertEquals(4, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.type.error"::equals).count());
-            Assert.assertEquals(2, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.reference.err"::equals).count());
-            Assert.assertEquals(2, re.getErrors().stream().map(RestMessage.Error::getMessage).filter("validation.not.unique.pk.err"::equals).count());
+            Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage)
+                    .filter("validation.db.contains.pk.err"::equals).count());
+            Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage)
+                    .filter("validation.required.err"::equals).count());
+            Assert.assertEquals(4, re.getErrors().stream().map(RestMessage.Error::getMessage)
+                    .filter("validation.type.error"::equals).count());
+            Assert.assertEquals(2, re.getErrors().stream().map(RestMessage.Error::getMessage)
+                    .filter(ReferenceValueValidation.REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE::equals).count());
+            Assert.assertEquals(2, re.getErrors().stream().map(RestMessage.Error::getMessage)
+                    .filter("validation.not.unique.pk.err"::equals).count());
         }
     }
 
@@ -1277,6 +1295,12 @@ public class ApplicationTest {
 
     /**
      * Тест публикации исходного справочника при наличии конфликтов в связанном справочнике.
+     *
+     * 1. Загрузка, проверка и публикация исходного справочника.
+     * 2. Загрузка и проверка связанного справочника.
+     * 3. Изменение исходного справочника и его публикация без обновления ссылок.
+     * 4. Проверка связанного справочника и проверка конфликтов.
+     * 5. Создание черновика связанного справочника.
      *
      * cardinalData.xml - исходный справочник для публикации после изменений в нём
      * referrerData.xml - связанный справочник с конфликтными ссылками на изменённый справочник
@@ -1465,7 +1489,7 @@ public class ApplicationTest {
         assertNotNull(changedVersion);
 
         // Обновление ссылок.
-        conflictService.refreshLastReferrersByPrimary(changedVersion.getCode());
+        referenceService.refreshLastReferrers(changedVersion.getCode());
 
 //      4. Проверка связанного справочника.
         // Проверка данных.
@@ -1479,7 +1503,7 @@ public class ApplicationTest {
             assertEquals(expectedMadeofValues.get(primaryValue), displayValue);
         });
 
-        REFERRER_UPDATED_PRIMARIES.forEach((primaryField, primaryList) -> {
+        REFERRER_UPDATED_PRIMARIES.forEach((primaryField, primaryList) ->
             primaryList.forEach(primaryValue -> {
                 RefBookRowValue referrerRowValue = getVersionRowValue(referrerVersion.getId(), referrerPrimary, primaryValue);
                 String displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, primaryField);
@@ -1499,34 +1523,34 @@ public class ApplicationTest {
                     default:
                         break;
                 }
-            });
-        });
+            })
+        );
 
         // Проверка конфликтов.
         REFERRER_UNCHANGED_PRIMARIES.forEach(primaryValue -> {
-            Integer conflictId = findPublishWithConflictedReferrerConflictId(
+            RefBookConflict conflict = findPublishWithConflictedReferrerConflict(
                     referrerVersion.getId(), changedVersion.getId(),
                     referrerPrimary, primaryValue, REFERRER_NUMBER_ATTRIBUTE_CODE);
-            assertNull(conflictId);
+            assertNull(conflict);
         });
 
-        REFERRER_UPDATED_PRIMARIES.forEach((primaryField, primaryList) -> {
+        REFERRER_UPDATED_PRIMARIES.forEach((primaryField, primaryList) ->
             primaryList.forEach(primaryValue -> {
-                Integer conflictId = findPublishWithConflictedReferrerConflictId(
+                RefBookConflict conflict = findPublishWithConflictedReferrerConflict(
                         referrerVersion.getId(), changedVersion.getId(),
                         referrerPrimary, primaryValue, primaryField);
-                assertNull(conflictId);
-            });
-        });
+                assertNull(conflict);
+            })
+        );
 
-        REFERRER_DELETED_PRIMARIES.forEach((primaryField, primaryList) -> {
+        REFERRER_DELETED_PRIMARIES.forEach((primaryField, primaryList) ->
             primaryList.forEach(primaryValue -> {
-                Integer conflictId = findPublishWithConflictedReferrerConflictId(
+                RefBookConflict conflict = findPublishWithConflictedReferrerConflict(
                         referrerVersion.getId(), changedVersion.getId(),
                         referrerPrimary, primaryValue, primaryField);
-                assertNotNull(conflictId);
-            });
-        });
+                assertNotNull(conflict);
+            })
+        );
 
 //      5. Создание черновика связанного справочника.
         List<Long> systemIds = LongStream.range(1, 100).boxed().collect(toList());
@@ -1564,6 +1588,7 @@ public class ApplicationTest {
         return value + "___" + value;
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void updatePublishWithConflictedReferrerNumberValue(Draft draft,
                                                                 Structure.Attribute primary, String primaryValue,
                                                                 String fieldName) {
@@ -1589,6 +1614,7 @@ public class ApplicationTest {
         assertEquals(newTypedValue, typedFieldValue.getValue());
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void updatePublishWithConflictedReferrerStringValue(Draft draft,
                                                                 Structure.Attribute primary, String primaryValue,
                                                                 String fieldName) {
@@ -1625,14 +1651,18 @@ public class ApplicationTest {
         assertNull(rowValue);
     }
 
-    private Integer findPublishWithConflictedReferrerConflictId(Integer referrerId, Integer cardinalId,
-                                                                Structure.Attribute primary, String primaryValue,
-                                                                String fieldName) {
+    private RefBookConflict findPublishWithConflictedReferrerConflict(Integer referrerId, Integer cardinalId,
+                                                                      Structure.Attribute primary, String primaryValue,
+                                                                      String fieldName) {
         RefBookRowValue rowValue = getVersionRowValue(referrerId, primary, primaryValue);
         assertNotNull(rowValue);
         assertNotNull(rowValue.getSystemId());
 
-        return conflictService.findId(referrerId, cardinalId, fieldName, rowValue.getSystemId());
+        RefBookConflictCriteria criteria = new RefBookConflictCriteria(referrerId, cardinalId, fieldName, null);
+        criteria.setRefRecordId(rowValue.getSystemId());
+        criteria.setPageSize(1);
+        Page<RefBookConflict> conflicts = conflictService.search(criteria);
+        return (conflicts == null || isEmpty(conflicts.getContent())) ? null : conflicts.getContent().get(0);
     }
 
     @Test
@@ -1934,8 +1964,124 @@ public class ApplicationTest {
         );
 
         // NB: Use createCalculatedDataConflicts + load conflicts from DB.
-        List<Conflict> actualConflicts = calculateConflicts(refFromVersionId, refToVersionId, refToDraftId);
+        List<Conflict> actualConflicts = calculateDataConflicts(refFromVersionId, refToVersionId, refToDraftId);
         assertConflicts(expectedConflicts, actualConflicts);
+    }
+
+    @Test
+    public void testCalculateConflictWhenStructureChanged() {
+        final String OLD_FILE_NAME = "oldRefToData.xlsx";
+        final String NEW_FILE_NAME = "newRefToData.xlsx";
+        final String REF_FILE_NAME = "refData.xlsx";
+
+        Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
+        Structure.Attribute fixedAttr = Structure.Attribute.build("FIX_ATTR", "fix-attr", FieldType.STRING, "fixed attribute");
+        Structure.Attribute updatedAttr = Structure.Attribute.build("UPD_ATTR", "upd-attr", FieldType.STRING, "updated attribute");
+        Structure.Attribute deletedAttr = Structure.Attribute.build("DEL_ATTR", "del-attr", FieldType.STRING, "deleted attribute");
+
+        Structure structure = new Structure(asList(id, fixedAttr, updatedAttr, deletedAttr), emptyList());
+
+        RefBook refToRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_to_struc", null));
+        Integer refToVersionId = refToRefBook.getId();
+        draftService.createAttribute(new CreateAttribute(refToVersionId, id, null));
+        draftService.createAttribute(new CreateAttribute(refToVersionId, fixedAttr, null));
+        draftService.createAttribute(new CreateAttribute(refToVersionId, updatedAttr, null));
+        draftService.createAttribute(new CreateAttribute(refToVersionId, deletedAttr, null));
+        draftService.updateData(refToVersionId, createFileModel(OLD_FILE_NAME, "testConflicts/structured/" + OLD_FILE_NAME));
+        publishService.publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
+
+        Integer refToDraftId = draftService.create(
+                new CreateDraftRequest(
+                        refToRefBook.getRefBookId(),
+                        structure))
+                .getId();
+        draftService.updateData(refToDraftId, createFileModel(NEW_FILE_NAME, "testConflicts/structured/" + NEW_FILE_NAME));
+
+        Structure.Attribute id_id = Structure.Attribute.buildPrimary("ID_ID", "id_id", FieldType.INTEGER, "id_id");
+        Structure.Attribute ref_fix = Structure.Attribute.build("REF_FIX", "ref_fix", FieldType.REFERENCE, "ref to fixed attr");
+        Structure.Attribute ref_upd = Structure.Attribute.build("REF_UPD", "ref_upd", FieldType.REFERENCE, "ref to updated attr");
+        Structure.Attribute ref_del = Structure.Attribute.build("REF_DEL", "ref_del", FieldType.REFERENCE, "ref to deleted attr");
+        Structure.Reference ref_fix_ref = new Structure.Reference(ref_fix.getCode(), refToRefBook.getCode(), DisplayExpression.toPlaceholder(fixedAttr.getCode()));
+        Structure.Reference ref_upd_ref = new Structure.Reference(ref_upd.getCode(), refToRefBook.getCode(), DisplayExpression.toPlaceholder(updatedAttr.getCode()));
+        Structure.Reference ref_del_ref = new Structure.Reference(ref_del.getCode(), refToRefBook.getCode(), DisplayExpression.toPlaceholder(deletedAttr.getCode()));
+
+        RefBook refFromRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_from_struc", null));
+        Integer refFromVersionId = refFromRefBook.getId();
+        draftService.createAttribute(new CreateAttribute(refFromVersionId, id_id, null));
+        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_fix, ref_fix_ref));
+        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_upd, ref_upd_ref));
+        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_del, ref_del_ref));
+        draftService.updateData(refFromVersionId, createFileModel(REF_FILE_NAME, "testConflicts/structured/" + REF_FILE_NAME));
+        publishService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
+
+        Structure.Attribute insertedAttribute = Structure.Attribute.build("INS_ATTR", "ins-attr", FieldType.INTEGER, "inserted attribute");
+        draftService.createAttribute(new CreateAttribute(refToDraftId, insertedAttribute, null));
+        Structure.Attribute updatedAttribute = Structure.Attribute.build("UPD_ATTR", "upd-attr", FieldType.INTEGER, "updated attribute");
+        draftService.updateAttribute(new UpdateAttribute(refToDraftId, updatedAttribute, null));
+        draftService.deleteAttribute(refToDraftId, deletedAttr.getCode());
+
+        List<Conflict> expectedConflicts = asList(
+                new Conflict(ref_fix.getCode(), ConflictType.DELETED, singletonList(
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1)))),
+                new Conflict(ref_fix.getCode(), ConflictType.DELETED, singletonList(
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(3)))),
+
+                new Conflict(ref_upd.getCode(), ConflictType.UPDATED, singletonList(
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1)))),
+                new Conflict(ref_upd.getCode(), ConflictType.UPDATED, singletonList(
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4)))),
+
+                new Conflict(ref_del.getCode(), ConflictType.DELETED, singletonList(
+                    new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1)))),
+                new Conflict(ref_del.getCode(), ConflictType.UPDATED, singletonList(
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(3)))),
+                new Conflict(ref_del.getCode(), ConflictType.UPDATED, singletonList(
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4))))
+        );
+
+        // NB: Use createCalculatedDataConflicts + load conflicts from DB.
+        List<Conflict> actualConflicts = calculateDataConflicts(refFromVersionId, refToVersionId, refToDraftId);
+        assertConflicts(expectedConflicts, actualConflicts);
+    }
+
+    /*
+     * testing calculate conflicts for two refBooks
+     * published and versions of referenced refToRefBook have different PK
+     *
+     * exception is expected
+     */
+    @Test
+    public void testCalculateConflictWhenPkChanged() {
+        Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
+
+        RefBook refToRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_to_diff_pk", null));
+        Integer refToVersionId = refToRefBook.getId();
+        draftService.createAttribute(new CreateAttribute(refToVersionId, id, null));
+        publishService.publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
+
+        Structure.Attribute id_id = Structure.Attribute.buildPrimary("ID_ID", "id_id", FieldType.INTEGER, "id_id");
+        Structure.Attribute ref_id = Structure.Attribute.build("REF_ID", "ref_id", FieldType.REFERENCE, "ref_id");
+        Structure.Reference ref_id_ref = new Structure.Reference(ref_id.getCode(), refToRefBook.getCode(), DisplayExpression.toPlaceholder(id.getCode()));
+
+        RefBook refFromRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_from_diff_pk", null));
+        Integer refFromVersionId = refFromRefBook.getId();
+        draftService.createAttribute(new CreateAttribute(refFromVersionId, id_id, null));
+        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id, ref_id_ref));
+        publishService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
+
+        Draft draft = draftService.create(
+                new CreateDraftRequest(
+                        refToRefBook.getRefBookId(),
+                        new Structure(singletonList(id_id), emptyList()))
+        );
+
+        try {
+            // NB: Use createCalculatedDataConflicts + load conflicts from DB.
+            calculateDataConflicts(refFromVersionId, refToVersionId, draft.getId());
+            fail();
+        } catch (RestException re) {
+            assertEquals("data.comparing.unavailable", re.getMessage());
+        }
     }
 
     /*
@@ -1989,57 +2135,49 @@ public class ApplicationTest {
         Boolean actualDeleteCheck = conflictService.checkConflicts(refFromVersionId, refToVersionId, refToDraftId, ConflictType.DELETED);
         assertEquals(Boolean.TRUE, actualDeleteCheck);
 
-        List<RefBookVersion> updatedReferrers = conflictService.getCheckConflictReferrers(refToDraftId, ConflictType.UPDATED);
+        List<RefBookVersion> updatedReferrers = conflictService.getConflictingReferrers(refToDraftId, ConflictType.UPDATED);
         assertEquals(1, updatedReferrers.size());
 
-        List<RefBookVersion> deletedReferrers = conflictService.getCheckConflictReferrers(refToDraftId, ConflictType.DELETED);
+        List<RefBookVersion> deletedReferrers = conflictService.getConflictingReferrers(refToDraftId, ConflictType.DELETED);
         assertEquals(1, deletedReferrers.size());
     }
 
-    /*
-     * testing calculate conflicts for two refBooks
-     * published and versions of referenced refToRefBook have different PK
-     *
-     * exception is expected
-     */
-    @Test
-    public void testCalculateConflictWhenPkChanged() {
-        Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
+    private List<Conflict> calculateDataConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId) {
 
-        RefBook refToRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_to_diff_pk", null));
-        Integer refToVersionId = refToRefBook.getId();
-        draftService.createAttribute(new CreateAttribute(refToVersionId, id, null));
-        publishService.publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
-
-        Structure.Attribute id_id = Structure.Attribute.buildPrimary("ID_ID", "id_id", FieldType.INTEGER, "id_id");
-        Structure.Attribute ref_id = Structure.Attribute.build("REF_ID", "ref_id", FieldType.REFERENCE, "ref_id");
-        Structure.Reference ref_id_ref = new Structure.Reference(ref_id.getCode(), refToRefBook.getCode(), DisplayExpression.toPlaceholder(id.getCode()));
-
-        RefBook refFromRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_from_diff_pk", null));
-        Integer refFromVersionId = refFromRefBook.getId();
-        draftService.createAttribute(new CreateAttribute(refFromVersionId, id_id, null));
-        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id, ref_id_ref));
-        publishService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
-
-        Draft draft = draftService.create(
-                new CreateDraftRequest(
-                        refToRefBook.getRefBookId(),
-                        new Structure(singletonList(id_id), emptyList()))
-        );
-
-        try {
-            // NB: Use createCalculatedDataConflicts + load conflicts from DB.
-            calculateConflicts(refFromVersionId, refToVersionId, draft.getId());
-            fail();
-        } catch (RestException re) {
-            assertEquals("data.comparing.unavailable", re.getMessage());
-        }
-    }
-
-    private List<Conflict> calculateConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId) {
+        RefBookVersion refFromVersion = versionService.getById(refFromId);
 
         CalculateConflictCriteria criteria = new CalculateConflictCriteria(refFromId, oldRefToId, newRefToId);
-        return conflictService.calculateConflicts(criteria);
+        List<RefBookConflict> conflicts = conflictService.calculateDataConflicts(criteria);
+
+        return conflicts.stream()
+                .map(conflict -> {
+                    RefBookRowValue rowValue = getSystemRowValue(refFromId, conflict.getRefRecordId());
+                    if (Objects.isNull(rowValue))
+                        return null;
+
+                    List<FieldValue> primaryValues = FieldValueUtils.getRowPrimaryValues(rowValue, refFromVersion.getStructure());
+                    return new Conflict(conflict.getRefFieldCode(), conflict.getConflictType(), primaryValues);
+
+                })
+                .filter(Objects::nonNull)
+                .collect(toList());
+    }
+
+    /**
+     * Получение записи по системному идентификатору.
+     *
+     * @param versionId идентификатор версии
+     * @param systemId  системный идентификатор записи
+     */
+    private RefBookRowValue getSystemRowValue(Integer versionId, Long systemId) {
+        if (versionId == null || systemId == null)
+            return null;
+
+        AttributeFilter systemIdFilter = new AttributeFilter(SYS_PRIMARY_COLUMN, BigInteger.valueOf(systemId), FieldType.INTEGER);
+        SearchDataCriteria criteria = new SearchDataCriteria(singleton(singletonList(systemIdFilter)), null);
+
+        Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
+        return (rowValues != null && !isEmpty(rowValues.getContent())) ? rowValues.getContent().get(0) : null;
     }
 
     /**
@@ -2119,10 +2257,14 @@ public class ApplicationTest {
     }
 
     private void assertPassportEqual(Map<String, String> expected, Map<String, String> actual) {
-        if (expected == null)
+        if (expected == null) {
             assertNull(actual);
-        else
-            assertNotNull(actual);
+
+            return;
+        }
+
+        assertNotNull(actual);
+
         expected.forEach((k, v) -> {
             if (v == null)
                 assertNull(actual.get(k));
@@ -2193,28 +2335,15 @@ public class ApplicationTest {
         assertNotNull(actualList);
         assertNotNull(expectedList);
         assertEquals(expectedList.size(), actualList.size());
+
         expectedList.forEach(expectedConflict -> {
             if (actualList.stream()
                     .noneMatch(actualConflict ->
-                            expectedConflict.getRefAttributeCode().equals(actualConflict.getRefAttributeCode())
-                                    && expectedConflict.getConflictType().equals(actualConflict.getConflictType())
+                            Objects.equals(expectedConflict.getRefAttributeCode(), actualConflict.getRefAttributeCode())
+                                    && Objects.equals(expectedConflict.getConflictType(), actualConflict.getConflictType())
                                     && expectedConflict.getPrimaryValues().size() == actualConflict.getPrimaryValues().size()
-                                    && actualConflict.getPrimaryValues().containsAll(expectedConflict.getPrimaryValues())))
-                fail();
-        });
-    }
-
-    private void assertRefBookConflicts(List<RefBookConflict> expectedConflicts, List<RefBookConflict> actualConflicts) {
-        assertNotNull(actualConflicts);
-        assertNotNull(expectedConflicts);
-        assertEquals(expectedConflicts.size(), actualConflicts.size());
-        expectedConflicts.forEach(expectedConflict -> {
-            if (actualConflicts.stream().noneMatch(actualConflict ->
-                    expectedConflict.getPublishedVersionId().equals(actualConflict.getPublishedVersionId())
-                            && expectedConflict.getRefRecordId().equals(actualConflict.getRefRecordId())
-                            && expectedConflict.getRefFieldCode().equals(actualConflict.getRefFieldCode())
-                            && expectedConflict.getConflictType().equals(actualConflict.getConflictType())
-            ))
+                                    && actualConflict.getPrimaryValues().containsAll(expectedConflict.getPrimaryValues())
+                    ))
                 fail();
         });
     }

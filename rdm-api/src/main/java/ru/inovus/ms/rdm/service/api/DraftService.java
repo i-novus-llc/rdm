@@ -4,6 +4,7 @@ import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.validation.AttributeValidationRequest;
 import ru.inovus.ms.rdm.model.version.CreateAttribute;
 import ru.inovus.ms.rdm.model.version.UpdateAttribute;
 import ru.inovus.ms.rdm.model.draft.CreateDraftRequest;
@@ -205,9 +206,8 @@ public interface DraftService {
     List<AttributeValidation> getAttributeValidations(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
                                                       @ApiParam("Атрибут") @QueryParam("attribute") String attribute);
 
-
     @PUT
-    @Path("/{versionId}/attribute/{attribute}")
+    @Path("/{versionId}/attribute")
     @ApiOperation("Обновление настраиваемых проверок")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
@@ -215,8 +215,7 @@ public interface DraftService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     void updateAttributeValidations(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
-                                    @ApiParam("Атрибут") @PathParam("attribute") String attribute,
-                                    @ApiParam("Настраиваемые проверки") List<AttributeValidation> validations);
+                                    @ApiParam("Запрос") AttributeValidationRequest request);
 
     @GET
     @Path("/{draftId}/getFile")

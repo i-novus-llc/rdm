@@ -12,7 +12,7 @@ import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
+import ru.inovus.ms.rdm.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 
 import java.time.LocalDateTime;

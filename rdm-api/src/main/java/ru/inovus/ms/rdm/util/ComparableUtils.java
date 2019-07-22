@@ -2,13 +2,12 @@ package ru.inovus.ms.rdm.util;
 
 import org.springframework.data.domain.Page;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.inovus.ms.rdm.model.diff.StructureDiff;
+import ru.inovus.ms.rdm.model.field.ReferenceFilterValue;
 import ru.inovus.ms.rdm.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.model.diff.RefBookDataDiff;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
@@ -17,7 +16,6 @@ import ru.inovus.ms.rdm.model.compare.ComparableField;
 import ru.inovus.ms.rdm.model.compare.ComparableFieldValue;
 import ru.inovus.ms.rdm.model.compare.ComparableRow;
 
-import java.math.BigInteger;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -25,6 +23,7 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static ru.inovus.ms.rdm.util.FieldValueUtils.*;
 
 public class ComparableUtils {
 
@@ -52,22 +51,16 @@ public class ComparableUtils {
      */
     public static DiffRowValue findDiffRowValue(List<Structure.Attribute> primaries, RowValue rowValue,
                                                 List<DiffRowValue> diffRowValues) {
-        return diffRowValues
-                .stream()
+        return diffRowValues.stream()
                 .filter(diffRow ->
                         primaries.stream().allMatch(primary -> {
                             DiffFieldValue diffFieldValue = diffRow.getDiffFieldValue(primary.getCode());
                             return diffFieldValue != null &&
-                                    rowValue.getFieldValue(primary.getCode()).getValue()
-                                            .equals(
-                                                    DiffStatusEnum.DELETED.equals(diffFieldValue.getStatus())
-                                                            ? diffFieldValue.getOldValue()
-                                                            : diffFieldValue.getNewValue()
-                                            );
+                                    Objects.equals(rowValue.getFieldValue(primary.getCode()).getValue(),
+                                            getDiffFieldValue(diffFieldValue, diffFieldValue.getStatus()));
                         })
                 )
-                .findFirst()
-                .orElse(null);
+                .findFirst().orElse(null);
     }
 
     /**
@@ -89,11 +82,8 @@ public class ComparableUtils {
 
 //        на данный момент может быть только: 1 поле -> 1 первичный ключ (ссылка на составной ключ невозможна)
         DiffFieldValue diffFieldValue = diffRowValue.getDiffFieldValue(primaries.get(0).getCode());
-        return Objects.equals(
-                castRefValue(rowValue.getFieldValue(refAttribute.getCode()), primaries.get(0).getType()),
-                DiffStatusEnum.DELETED.equals(diffRowValue.getStatus())
-                        ? diffFieldValue.getOldValue()
-                        : diffFieldValue.getNewValue()
+        return Objects.equals(getDiffFieldValue(diffFieldValue, diffRowValue.getStatus()),
+                castFieldValue(rowValue.getFieldValue(refAttribute.getCode()), primaries.get(0).getType())
         );
     }
 
@@ -111,11 +101,9 @@ public class ComparableUtils {
      */
     public static RefBookRowValue findRefBookRowValue(List<Structure.Attribute> primaries, Structure.Attribute refAttribute,
                                                       DiffRowValue diffRowValue, List<RefBookRowValue> rowValues) {
-        return rowValues
-                .stream()
+        return rowValues.stream()
                 .filter(rowValue -> isRefBookRowValue(primaries, refAttribute, diffRowValue, rowValue))
-                .findFirst()
-                .orElse(null);
+                .findFirst().orElse(null);
     }
 
     /**
@@ -132,8 +120,7 @@ public class ComparableUtils {
      */
     public static List<RefBookRowValue> findRefBookRowValues(List<Structure.Attribute> primaries, Structure.Attribute refAttribute,
                                                              DiffRowValue diffRowValue, List<RefBookRowValue> rowValues) {
-        return rowValues
-                .stream()
+        return rowValues.stream()
                 .filter(rowValue -> isRefBookRowValue(primaries, refAttribute, diffRowValue, rowValue))
                 .collect(Collectors.toList());
     }
@@ -149,8 +136,7 @@ public class ComparableUtils {
      */
     public static RowValue findRowValue(List<Structure.Attribute> primaries, RowValue rowValue,
                                         List<? extends RowValue> rowValues) {
-        return rowValues
-                .stream()
+        return rowValues.stream()
                 .filter(rowValue1 ->
                         primaries.stream().allMatch(primary -> {
                             FieldValue fieldValue = rowValue.getFieldValue(primary.getCode());
@@ -161,8 +147,7 @@ public class ComparableUtils {
                                     && fieldValue.getValue().equals(fieldValue1.getValue());
                         })
                 )
-                .findFirst()
-                .orElse(null);
+                .findFirst().orElse(null);
     }
 
     /**
@@ -177,21 +162,16 @@ public class ComparableUtils {
      */
     public static ComparableRow findComparableRow(List<Structure.Attribute> primaries, RowValue rowValue,
                                                   List<ComparableRow> comparableRows, DiffStatusEnum status) {
-        return comparableRows
-                .stream()
+        return comparableRows.stream()
                 .filter(comparableRow ->
                         primaries.stream().allMatch(primary -> {
                             ComparableFieldValue comparableValue = comparableRow.getComparableFieldValue(primary.getCode());
                             return comparableValue != null &&
-                                    rowValue.getFieldValue(primary.getCode()).getValue().equals(
-                                            DiffStatusEnum.DELETED.equals(status)
-                                                    ? comparableValue.getOldValue()
-                                                    : comparableValue.getNewValue()
-                                    );
+                                    Objects.equals(getCompareFieldValue(comparableValue, status),
+                                            rowValue.getFieldValue(primary.getCode()).getValue());
                         })
                 )
-                .findFirst()
-                .orElse(null);
+                .findFirst().orElse(null);
     }
 
     /**
@@ -202,17 +182,14 @@ public class ComparableUtils {
      * @return Множество фильтров по первичным полям версии
      */
     public static Set<List<AttributeFilter>> createPrimaryAttributesFilters(RefBookDataDiff refBookDataDiff, Structure structure) {
-        return refBookDataDiff.getRows().getContent()
-                .stream()
+
+        return refBookDataDiff.getRows().getContent().stream()
                 .map(row ->
-                        structure.getPrimary()
-                                .stream()
+                        structure.getPrimary().stream()
                                 .map(pk ->
                                         new AttributeFilter(
                                                 pk.getCode(),
-                                                DiffStatusEnum.DELETED.equals(row.getStatus())
-                                                        ? row.getDiffFieldValue(pk.getCode()).getOldValue()
-                                                        : row.getDiffFieldValue(pk.getCode()).getNewValue(),
+                                                getDiffFieldValue(row.getDiffFieldValue(pk.getCode()), row.getStatus()),
                                                 pk.getType())
                                 )
                                 .collect(toList())
@@ -227,11 +204,10 @@ public class ComparableUtils {
      * @return Множество фильтров по первичным полям версии
      */
     public static Set<List<AttributeFilter>> createPrimaryAttributesFilters(Page<? extends RowValue> data, Structure structure) {
-        return data.getContent()
-                .stream()
+
+        return data.getContent().stream()
                 .map(row ->
-                        structure.getPrimary()
-                                .stream()
+                        structure.getPrimary().stream()
                                 .map(pk ->
                                         new AttributeFilter(pk.getCode(), row.getFieldValue(pk.getCode()).getValue(), pk.getType())
                                 )
@@ -251,8 +227,7 @@ public class ComparableUtils {
      */
     public static List<ComparableField> createCommonComparableFieldsList(RefBookDataDiff refBookDataDiff,
                                                                          Structure newStructure, Structure oldStructure) {
-        List<ComparableField> comparableFields = newStructure.getAttributes()
-                .stream()
+        List<ComparableField> comparableFields = newStructure.getAttributes().stream()
                 .map(attribute -> {
                     DiffStatusEnum fieldStatus = null;
                     if (refBookDataDiff.getUpdatedAttributes().contains(attribute.getCode()))
@@ -260,6 +235,7 @@ public class ComparableUtils {
                     if (refBookDataDiff.getNewAttributes().contains(attribute.getCode()))
                         fieldStatus = DiffStatusEnum.INSERTED;
                     return new ComparableField(attribute.getCode(), attribute.getName(), fieldStatus);
+
                 }).collect(toList());
 
         refBookDataDiff.getOldAttributes()
@@ -272,35 +248,35 @@ public class ComparableUtils {
     }
 
     /**
-     * Возвращает типизированное значение ссылочного атрибута.
+     * Проверка на наличие изменения структуры.
      *
-     * <p>При приведении типа используется тип атрибута, НА который ссылаемся.</p>
-     *
-     * @param fieldValue   занчение ссылочного атрибута
-     * @param refFieldType тип атрибута, на который ссылаемся
-     * @return Типизированное значение ссылочного атрибута
+     * @param diff различие в структурах версий
+     * @return Наличие изменения структуры
      */
-    public static Object castRefValue(FieldValue fieldValue, FieldType refFieldType) {
-        if (fieldValue instanceof ReferenceFieldValue) {
-            return castRefValue((Reference) (fieldValue.getValue()), refFieldType);
-        }
-        return fieldValue.getValue();
+    public static boolean isRefBookAltered(StructureDiff diff) {
+        return !diff.getInserted().isEmpty()
+                || !diff.getDeleted().isEmpty()
+                || diff.getUpdated().stream().anyMatch(
+                updated -> !updated.getNewAttribute().getType()
+                        .equals(updated.getOldAttribute().getType()));
     }
 
     /**
-     * Возвращает типизированное значение ссылки.
+     * Поиск записи о различии по ссылочному значению.
      *
-     * <p>При приведении типа используется тип атрибута, НА который ссылаемся.</p>
-     *
-     * @param value        ссылка
-     * @param refFieldType тип атрибута, на который ссылаемся
-     * @return Типизированное значение ссылочного атрибута
+     * @param filterValue   значение ссылочного поля
+     * @param diffRowValues список различий
+     * @return Запись о различии
      */
-    private static Object castRefValue(Reference value, FieldType refFieldType) {
-        if (refFieldType == FieldType.INTEGER) {
-            return value.getValue() != null ? new BigInteger(value.getValue()) : null;
-        }
-        return value.getValue();
-    }
+    public static DiffRowValue findDiffRowValue(ReferenceFilterValue filterValue, List<DiffRowValue> diffRowValues) {
 
+        return diffRowValues.stream()
+                .filter(diffRowValue -> {
+                    DiffFieldValue diffFieldValue = diffRowValue.getDiffFieldValue(filterValue.getAttribute().getCode());
+                    return Objects.nonNull(diffFieldValue)
+                            && Objects.equals(getDiffFieldValue(diffFieldValue, diffRowValue.getStatus()),
+                            castFieldValue(filterValue.getReferenceValue(), filterValue.getAttribute().getType()));
+                })
+                .findFirst().orElse(null);
+    }
 }

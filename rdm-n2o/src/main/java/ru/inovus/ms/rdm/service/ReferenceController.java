@@ -15,11 +15,11 @@ import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.service.api.VersionService;
-import ru.inovus.ms.rdm.util.RowUtils;
 
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static ru.inovus.ms.rdm.util.FieldValueUtils.rowValueToDisplayValue;
 
 @Controller
 public class ReferenceController {
@@ -51,7 +51,7 @@ public class ReferenceController {
     private Reference toReferenceValue(Structure.Attribute attribute, String displayExpression, RowValue rowValue) {
         Reference referenceValue = new Reference();
         referenceValue.setValue(String.valueOf(rowValue.getFieldValue(attribute.getCode()).getValue()));
-        referenceValue.setDisplayValue(RowUtils.toDisplayValue(displayExpression, rowValue));
+        referenceValue.setDisplayValue(rowValueToDisplayValue(displayExpression, rowValue));
         return referenceValue;
     }
 
@@ -65,6 +65,7 @@ public class ReferenceController {
 
         if (isNotBlank(referenceCriteria.getDisplayValue()))
             criteria.setCommonFilter(referenceCriteria.getDisplayValue());
+
         criteria.setPageNumber(referenceCriteria.getPage() - 1);
         criteria.setPageSize(referenceCriteria.getSize());
 

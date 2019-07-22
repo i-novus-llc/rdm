@@ -18,6 +18,10 @@ public class CalculateConflictCriteria extends CompareCriteria {
     @QueryParam("referrerVersionId")
     private Integer referrerVersionId;
 
+    @ApiModelProperty("Наличие изменения структуры")
+    @QueryParam("structureAltered")
+    private boolean structureAltered;
+
     @SuppressWarnings("unused")
     public CalculateConflictCriteria() {
     }
@@ -37,6 +41,14 @@ public class CalculateConflictCriteria extends CompareCriteria {
 
     public void setReferrerVersionId(Integer referrerVersionId) {
         this.referrerVersionId = referrerVersionId;
+    }
+
+    public boolean getStructureAltered() {
+        return structureAltered;
+    }
+
+    public void setStructureAltered(boolean structureAltered) {
+        this.structureAltered = structureAltered;
     }
 
     @ApiModelProperty("Тип конфликта")

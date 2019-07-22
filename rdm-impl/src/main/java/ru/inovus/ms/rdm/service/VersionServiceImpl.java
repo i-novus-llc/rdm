@@ -31,9 +31,9 @@ import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.RowValuePage;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.repositiory.PassportValueRepository;
-import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
-import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
+import ru.inovus.ms.rdm.repository.PassportValueRepository;
+import ru.inovus.ms.rdm.repository.RefBookVersionRepository;
+import ru.inovus.ms.rdm.repository.VersionFileRepository;
 import ru.inovus.ms.rdm.service.api.ExistsData;
 import ru.inovus.ms.rdm.service.api.VersionFileService;
 import ru.inovus.ms.rdm.service.api.VersionService;
@@ -121,7 +121,7 @@ public class VersionServiceImpl implements VersionService {
     public RefBookVersion getLastPublishedVersion(String refBookCode) {
         RefBookVersionEntity versionEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.PUBLISHED);
         if (versionEntity == null)
-            throw new NotFoundException(new Message(LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE));
+            throw new NotFoundException(new Message(LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE, refBookCode));
         return versionModel(versionEntity);
     }
 
@@ -312,6 +312,7 @@ public class VersionServiceImpl implements VersionService {
         if (fileEntity == null && !versionModel.isDraft()) {
             RefBookVersionEntity versionEntity = new RefBookVersionEntity();
             versionEntity.setId(versionModel.getId());
+
             fileEntity = new VersionFileEntity(versionEntity, fileType, path);
             versionFileRepository.save(fileEntity);
         }

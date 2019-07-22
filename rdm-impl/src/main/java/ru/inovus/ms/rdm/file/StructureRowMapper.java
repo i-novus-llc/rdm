@@ -7,7 +7,7 @@ import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
+import ru.inovus.ms.rdm.repository.RefBookVersionRepository;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

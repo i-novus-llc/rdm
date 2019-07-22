@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.model;
 
+import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.exception.RdmException;
 
@@ -9,6 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class Structure implements Serializable {
@@ -29,13 +31,20 @@ public class Structure implements Serializable {
         this(other.getAttributes(), other.getReferences());
     }
 
-    public Reference getReference(String attributeCode) {
-        if (isEmpty(references)) {
-            return null;
-        }
-        return references.stream()
-                .filter(reference -> reference.getAttribute().equals(attributeCode))
-                .findAny().orElse(null);
+    public List<Attribute> getAttributes() {
+        return attributes;
+    }
+
+    public void setAttributes(List<Attribute> attributes) {
+        this.attributes = attributes;
+    }
+
+    public List<Reference> getReferences() {
+        return references;
+    }
+
+    public void setReferences(List<Reference> references) {
+        this.references = references;
     }
 
     public Attribute getAttribute(String code) {
@@ -44,6 +53,15 @@ public class Structure implements Serializable {
         }
         return attributes.stream()
                 .filter(attribute -> attribute.getCode().equals(code))
+                .findAny().orElse(null);
+    }
+
+    public Reference getReference(String attributeCode) {
+        if (isEmpty(references)) {
+            return null;
+        }
+        return references.stream()
+                .filter(reference -> reference.getAttribute().equals(attributeCode))
                 .findAny().orElse(null);
     }
 
@@ -63,24 +81,8 @@ public class Structure implements Serializable {
                 .collect(Collectors.toList());
     }
 
-    public List<Attribute> getAttributes() {
-        return attributes;
-    }
-
-    public void setAttributes(List<Attribute> attributes) {
-        this.attributes = attributes;
-    }
-
-    public List<Reference> getReferences() {
-        return references;
-    }
-
-    public void setReferences(List<Reference> references) {
-        this.references = references;
-    }
-
     /**
-     * Получение всех ссылок с указанным кодом справочника
+     * Получение всех ссылок на справочник с указанным кодом.
      *
      * @param referenceCode код справочника, на который ссылаются
      * @return Список ссылок
@@ -92,6 +94,21 @@ public class Structure implements Serializable {
         return references.stream()
                 .filter(reference -> reference.getReferenceCode().equals(referenceCode))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Получение всех атрибутов-ссылок на справочник с указанным кодом.
+     *
+     * @param referenceCode код справочника, на который ссылаются
+     * @return Список атрибутов
+     */
+    public List<Attribute> getRefCodeAttributes(String referenceCode) {
+        if (isEmpty(attributes)) {
+            return Collections.emptyList();
+        }
+        return getRefCodeReferences(referenceCode).stream()
+                .map(ref -> getAttribute(ref.getAttribute()))
+                .collect(toList());
     }
 
     public static class Attribute implements Serializable {
@@ -187,8 +204,12 @@ public class Structure implements Serializable {
                     Objects.equals(type, that.type);
         }
 
+        public Boolean isReferenceType() {
+            return FieldType.REFERENCE.equals(getType());
+        }
+
         @Override
-        @SuppressWarnings("all")
+        @SuppressWarnings("squid:S1067")
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
@@ -276,6 +297,10 @@ public class Structure implements Serializable {
             return primaryAttributes.get(0);
         }
 
+        public boolean isNull() {
+            return StringUtils.isEmpty(attribute) || StringUtils.isEmpty(referenceCode);
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -293,10 +318,12 @@ public class Structure implements Serializable {
         }
     }
 
-    public boolean storageEquals(Structure s) {
+    public boolean storageEquals(Structure that) {
+        List<Attribute> others = that.getAttributes();
         return isEmpty(attributes)
-                ? isEmpty(s.getAttributes())
-                : attributes.stream() .noneMatch(attribute -> s.attributes.stream().noneMatch(attribute::storageEquals));
+                ? isEmpty(others)
+                : attributes.size() == others.size()
+                && attributes.stream().noneMatch(attribute -> others.stream().noneMatch(attribute::storageEquals));
     }
 
     @Override

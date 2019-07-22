@@ -42,6 +42,7 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
      * @param s Параметры провайдера (ID версии)
      */
     @Override
+    @SuppressWarnings("unchecked")
     public List<? extends SourceMetadata> read(String s) {
 
         Integer versionId = Integer.parseInt(s);
@@ -55,6 +56,7 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
         return singletonList(N2oQuery.class);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public N2oQuery createQuery(Integer versionId, Structure structure) {
         N2oQuery n2oQuery = new N2oQuery();
         n2oQuery.setUniques(new N2oQuery.Selection[]{createSelection()});
