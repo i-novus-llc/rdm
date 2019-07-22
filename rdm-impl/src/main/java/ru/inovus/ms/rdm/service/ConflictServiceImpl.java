@@ -64,6 +64,7 @@ public class ConflictServiceImpl implements ConflictService {
     static final int REF_BOOK_VERSION_DATA_PAGE_SIZE = 100;
 
     private static final List<DiffStatusEnum> CALCULATING_DIFF_STATUS_LIST = asList(DiffStatusEnum.DELETED, DiffStatusEnum.UPDATED);
+    private static final List<ConflictType> RECALCULATING_CONFLICT_TYPE_LIST = asList(ConflictType.UPDATED, ConflictType.ALTERED);
 
     static final List<Sort.Order> SORT_VERSION_DATA = singletonList(
             new Sort.Order(Sort.Direction.ASC, DataConstants.SYS_PRIMARY_COLUMN)
@@ -379,7 +380,10 @@ public class ConflictServiceImpl implements ConflictService {
         List<DiffRowValue> diffRowValues = getRefToDiffRowValues(oldRefToEntity.getId(), newRefToEntity.getId(), filterValues);
 
         List<RefBookConflictEntity> filteredConflicts = conflicts.stream()
-                .filter(conflict -> !(isAltered && ConflictType.UPDATED.equals(conflict.getConflictType())))
+                // NB: Если структура изменена, то все строки помечаются как ALTERED-конфликтные,
+                // поэтому для перевычисления достаточно отработать только удалённые конфликты
+                // (see details in javadoc of ConflictServiceTest#testRecalculateConflicts).
+                .filter(conflict -> !(isAltered && RECALCULATING_CONFLICT_TYPE_LIST.contains(conflict.getConflictType())))
                 .collect(toList());
 
         return recalculateDataConflicts(refFromEntity, oldRefToEntity, newRefToEntity, filteredConflicts, refFromRowValues, diffRowValues);
@@ -416,7 +420,7 @@ public class ConflictServiceImpl implements ConflictService {
                     if (refFromRowValue == null)
                         return null;
 
-                    return recalculateConflict(refFromEntity, oldRefToEntity, newRefToEntity, conflict, refFromRowValue, diffRowValues);
+                    return recalculateDataConflict(refFromEntity, oldRefToEntity, newRefToEntity, conflict, refFromRowValue, diffRowValues);
                 })
                 .filter(Objects::nonNull)
                 .collect(toList());
@@ -432,19 +436,19 @@ public class ConflictServiceImpl implements ConflictService {
      * @param diffRowValues   список различий версий справочника, на которую ссылаются
      * @return Список конфликтов
      */
-    private RefBookConflictEntity recalculateConflict(RefBookVersionEntity refFromEntity,
-                                                      RefBookVersionEntity oldRefToEntity,
-                                                      RefBookVersionEntity newRefToEntity,
-                                                      RefBookConflictEntity conflict,
-                                                      RefBookRowValue refFromRowValue,
-                                                      List<DiffRowValue> diffRowValues) {
+    private RefBookConflictEntity recalculateDataConflict(RefBookVersionEntity refFromEntity,
+                                                          RefBookVersionEntity oldRefToEntity,
+                                                          RefBookVersionEntity newRefToEntity,
+                                                          RefBookConflictEntity conflict,
+                                                          RefBookRowValue refFromRowValue,
+                                                          List<DiffRowValue> diffRowValues) {
 
         ReferenceFieldValue fieldValue = (ReferenceFieldValue) (refFromRowValue.getFieldValue(conflict.getRefFieldCode()));
         Structure.Reference refFromReference = refFromEntity.getStructure().getReference(conflict.getRefFieldCode());
         Structure.Attribute refToAttribute = refFromReference.findReferenceAttribute(oldRefToEntity.getStructure());
         ReferenceFilterValue filterValue = new ReferenceFilterValue(refToAttribute, fieldValue);
 
-        // NB: Extract to separated method `recalculateConflict`.
+        // NB: Extract to separated method `recalculateDataConflict`.
         // Проверка существующего конфликта с текущей diff-записью по правилам пересчёта.
         DiffRowValue diffRowValue;
         switch (conflict.getConflictType()) {
@@ -885,6 +889,11 @@ public class ConflictServiceImpl implements ConflictService {
         criteria.setConflictType(ConflictType.DISPLAY_DAMAGED);
         criteria.setOrders(RefBookConflictQueryProvider.getSortRefBookConflicts());
         criteria.setPageSize(RefBookConflictQueryProvider.REF_BOOK_CONFLICT_PAGE_SIZE);
+
+        // NB: to-do: Отфильтровать только те конфликты, что должны остаться.
+        // ? Получить структуры oldRefToEntity и newRefToEntity и проверять изменение displayExpression по placeholder`ам.
+        // ? если есть изменение, то перевычисление не нужно.
+        // ? если нет изменения, то перевычисление обязательно.
 
         Function<RefBookConflictCriteria, Page<RefBookConflictEntity>> pageSource = conflictQueryProvider::search;
         PageIterator<RefBookConflictEntity, RefBookConflictCriteria> pageIterator = new PageIterator<>(pageSource, criteria);
