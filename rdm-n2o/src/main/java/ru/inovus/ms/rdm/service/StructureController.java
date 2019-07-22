@@ -48,7 +48,7 @@ public class StructureController {
                     .filter(attribute -> Objects.isNull(criteria.getCode()) || criteria.getCode().equals(attribute.getCode()))
                     .forEach(attribute -> {
                         Structure.Reference reference = attribute.isReferenceType() ? structure.getReference(attribute.getCode()) : null;
-                        ReadAttribute readAttribute = model(attribute, reference);
+                        ReadAttribute readAttribute = getReadAttribute(attribute, reference);
                         enrichAtribute(readAttribute, filterByAttribute(attributeValidations, attribute.getCode()));
 
                         readAttribute.setVersionId(criteria.getVersionId());
@@ -73,11 +73,7 @@ public class StructureController {
 
     public void createAttribute(Integer versionId, FormAttribute formAttribute) {
 
-        CreateAttribute attributeModel = new CreateAttribute();
-        attributeModel.setVersionId(versionId);
-        attributeModel.setAttribute(buildAttribute(formAttribute));
-        attributeModel.setReference(buildReference(formAttribute));
-
+        CreateAttribute attributeModel = getCreateAttribute(versionId, formAttribute);
         draftService.createAttribute(attributeModel);
         try {
             draftService.updateAttributeValidations(versionId, formAttribute.getCode(), createValidations(formAttribute));
@@ -94,7 +90,8 @@ public class StructureController {
         Structure.Attribute oldAttribute = oldStructure.getAttribute(formAttribute.getCode());
         Structure.Reference oldReference = oldStructure.getReference(formAttribute.getCode());
 
-        draftService.updateAttribute(getUpdateAttribute(versionId, formAttribute));
+        UpdateAttribute attributeModel = getUpdateAttribute(versionId, formAttribute);
+        draftService.updateAttribute(attributeModel);
         try {
             draftService.updateAttributeValidations(versionId, formAttribute.getCode(), createValidations(formAttribute));
 
@@ -235,6 +232,27 @@ public class StructureController {
                 .collect(Collectors.toList());
     }
 
+    private ReadAttribute getReadAttribute(Structure.Attribute structureAttribute, Structure.Reference reference) {
+
+        ReadAttribute attribute = new ReadAttribute();
+        attribute.setCode(structureAttribute.getCode());
+        attribute.setName(structureAttribute.getName());
+        attribute.setDescription(structureAttribute.getDescription());
+        attribute.setType(structureAttribute.getType());
+        attribute.setIsPrimary(structureAttribute.getIsPrimary());
+
+        if (Objects.nonNull(reference)) {
+            attribute.setReferenceCode(reference.getReferenceCode());
+            attribute.setDisplayExpression(reference.getDisplayExpression());
+        }
+
+        return attribute;
+    }
+
+    private CreateAttribute getCreateAttribute(Integer versionId, FormAttribute formAttribute) {
+        return new CreateAttribute(versionId, buildAttribute(formAttribute), buildReference(formAttribute));
+    }
+
     private Structure.Attribute buildAttribute(FormAttribute request) {
         if (request.getIsPrimary())
             return Structure.Attribute.buildPrimary(request.getCode(),
@@ -253,40 +271,24 @@ public class StructureController {
 
     private UpdateAttribute getUpdateAttribute(Integer versionId, FormAttribute formAttribute) {
 
-        UpdateAttribute updateAttribute = new UpdateAttribute();
-        updateAttribute.setLastActionDate(TimeUtils.nowZoned());
-        updateAttribute.setVersionId(versionId);
-        updateAttribute.setCode(formAttribute.getCode());
+        UpdateAttribute attribute = new UpdateAttribute();
+        attribute.setLastActionDate(TimeUtils.nowZoned());
+        attribute.setVersionId(versionId);
+
+        attribute.setCode(formAttribute.getCode());
 
         if (formAttribute.getName() != null)
-            updateAttribute.setName(of(formAttribute.getName()));
-        updateAttribute.setType(formAttribute.getType());
+            attribute.setName(of(formAttribute.getName()));
+        attribute.setType(formAttribute.getType());
         if (formAttribute.getIsPrimary() != null)
-            updateAttribute.setIsPrimary(of(formAttribute.getIsPrimary()));
+            attribute.setIsPrimary(of(formAttribute.getIsPrimary()));
         if (formAttribute.getDescription() != null)
-            updateAttribute.setDescription(of(formAttribute.getDescription()));
-        updateAttribute.setAttribute(of(formAttribute.getCode()));
+            attribute.setDescription(of(formAttribute.getDescription()));
+        attribute.setAttribute(of(formAttribute.getCode()));
         if (formAttribute.getReferenceCode() != null)
-            updateAttribute.setReferenceCode(of(formAttribute.getReferenceCode()));
+            attribute.setReferenceCode(of(formAttribute.getReferenceCode()));
         if (formAttribute.getDisplayExpression() != null)
-            updateAttribute.setDisplayExpression(of(formAttribute.getDisplayExpression()));
-
-        return updateAttribute;
-    }
-
-    private ReadAttribute model(Structure.Attribute structureAttribute, Structure.Reference reference) {
-
-        ReadAttribute attribute = new ReadAttribute();
-        attribute.setCode(structureAttribute.getCode());
-        attribute.setName(structureAttribute.getName());
-        attribute.setDescription(structureAttribute.getDescription());
-        attribute.setType(structureAttribute.getType());
-        attribute.setIsPrimary(structureAttribute.getIsPrimary());
-
-        if (Objects.nonNull(reference)) {
-            attribute.setReferenceCode(reference.getReferenceCode());
-            attribute.setDisplayExpression(reference.getDisplayExpression());
-        }
+            attribute.setDisplayExpression(of(formAttribute.getDisplayExpression()));
 
         return attribute;
     }
