@@ -102,14 +102,7 @@ public class CompareServiceImpl implements CompareService {
 
     @Override
     @Transactional(readOnly = true)
-    public StructureDiff compareStructures(Integer oldVersionId, Integer newVersionId) {
-        validateVersionsExistence(oldVersionId, newVersionId);
-
-        RefBookVersionEntity oldVersion = versionRepository.getOne(oldVersionId);
-        RefBookVersionEntity newVersion = versionRepository.getOne(newVersionId);
-
-        Structure oldStructure = oldVersion.getStructure();
-        Structure newStructure = newVersion.getStructure();
+    public StructureDiff compareStructures(Structure oldStructure, Structure newStructure) {
 
         List<StructureDiff.AttributeDiff> inserted = new ArrayList<>();
         List<StructureDiff.AttributeDiff> updated = new ArrayList<>();
@@ -134,7 +127,23 @@ public class CompareServiceImpl implements CompareService {
 
     @Override
     @Transactional(readOnly = true)
+    public StructureDiff compareStructures(Integer oldVersionId, Integer newVersionId) {
+
+        validateVersionsExistence(oldVersionId, newVersionId);
+
+        RefBookVersionEntity oldVersion = versionRepository.getOne(oldVersionId);
+        RefBookVersionEntity newVersion = versionRepository.getOne(newVersionId);
+
+        Structure oldStructure = oldVersion.getStructure();
+        Structure newStructure = newVersion.getStructure();
+
+        return compareStructures(oldStructure, newStructure);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public RefBookDataDiff compareData(ru.inovus.ms.rdm.model.compare.CompareDataCriteria criteria) {
+
         validateVersionsExistence(criteria.getOldVersionId(), criteria.getNewVersionId());
 
         RefBookVersionEntity oldVersion = versionRepository.getOne(criteria.getOldVersionId());
