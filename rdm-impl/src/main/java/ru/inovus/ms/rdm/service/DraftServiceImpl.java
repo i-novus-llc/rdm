@@ -55,6 +55,7 @@ import java.util.function.*;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+import static org.springframework.util.StringUtils.isEmpty;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
 import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.*;
 import static ru.inovus.ms.rdm.util.ConverterUtil.*;
@@ -70,6 +71,8 @@ public class DraftServiceImpl implements DraftService {
     private static final String ROW_NOT_UNIQUE_EXCEPTION_CODE = "row.not.unique";
     private static final String ROW_IS_EMPTY_EXCEPTION_CODE = "row.is.empty";
     private static final String REQUIRED_FIELD_EXCEPTION_CODE = "validation.required.err";
+    private static final String REFERENCE_REFERRED_ATTRIBUTE_NOT_FOUND = "reference.referred.attribute.not.found";
+    private static final String REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND = "reference.referred.attributes.not.found";
 
     private RefBookVersionRepository versionRepository;
     private RefBookConflictRepository conflictRepository;
@@ -499,10 +502,13 @@ public class DraftServiceImpl implements DraftService {
             structure.clearPrimary();
 
         Structure.Reference reference = createAttribute.getReference();
-        if ((Objects.isNull(reference) || reference.isNull()) == attribute.isReferenceType())
+        boolean isReference = Objects.nonNull(reference) && !reference.isNull();
+        if (isReference != attribute.isReferenceType())
             throw new IllegalArgumentException(ILLEGAL_CREATE_ATTRIBUTE_EXCEPTION_CODE);
 
-        // NB: to-do: validate displayExpression for Reference.
+        if (isReference) {
+            validateDisplayExpression(reference.getDisplayExpression(), reference.getReferenceCode());
+        }
 
         draftDataService.addField(draftEntity.getStorageCode(), field(attribute));
 
@@ -514,7 +520,7 @@ public class DraftServiceImpl implements DraftService {
 
         structure.getAttributes().add(attribute);
 
-        if (attribute.isReferenceType()) {
+        if (isReference) {
             if (structure.getReferences() == null)
                 structure.setReferences(new ArrayList<>());
             structure.getReferences().add(reference);
@@ -546,8 +552,16 @@ public class DraftServiceImpl implements DraftService {
         Structure.Attribute attribute = structure.getAttribute(updateAttribute.getCode());
         validateUpdateAttribute(updateAttribute, attribute, draftEntity.getStorageCode());
 
-        // NB: to-do: validate displayExpression for Reference
-        // when attribute type or displayExpression changed (see below, too).
+        if (updateAttribute.isReferenceType()) {
+            String newDisplayExpression = updateAttribute.getDisplayExpression().get();
+            Structure.Reference reference = structure.getReference(updateAttribute.getCode());
+            String oldDisplayExpression = Objects.nonNull(reference) ? reference.getDisplayExpression() : null;
+
+            if (Objects.isNull(oldDisplayExpression)
+                    || !oldDisplayExpression.equals(newDisplayExpression)) {
+                validateDisplayExpression(newDisplayExpression, updateAttribute.getReferenceCode().get());
+            }
+        }
 
         //clear previous primary keys
         if (updateAttribute.getIsPrimary() != null
@@ -556,10 +570,7 @@ public class DraftServiceImpl implements DraftService {
             structure.clearPrimary();
 
         FieldType oldType = attribute.getType();
-        setValueIfPresent(updateAttribute::getName, attribute::setName);
-        setValueIfPresent(updateAttribute::getDescription, attribute::setDescription);
-        setValueIfPresent(updateAttribute::getIsPrimary, attribute::setPrimary);
-        attribute.setType(updateAttribute.getType());
+        fillUpdatableAttribute(updateAttribute, attribute);
 
         try {
             draftDataService.updateField(draftEntity.getStorageCode(), field(attribute));
@@ -568,6 +579,39 @@ public class DraftServiceImpl implements DraftService {
             throw new UserException(ce.getMessage(), ce);
         }
 
+        fillUpdatableReference(updateAttribute, draftEntity, structure, oldType);
+
+        if (Objects.equals(oldType, updateAttribute.getType())) {
+            attributeValidationRepository.deleteAll(
+                    attributeValidationRepository.findAllByVersionIdAndAttribute(updateAttribute.getVersionId(), updateAttribute.getCode()));
+        }
+    }
+
+    private void validateDisplayExpression(String displayExpression, String refBookCode) {
+
+        if (isEmpty(displayExpression))
+            return; // NB: to-do: throw exception and fix absent referredBook in testLifecycle.
+
+        RefBookVersion referredVersion = versionService.getLastPublishedVersion(refBookCode);
+        List<String> incorrectFields = FieldValueUtils.getAbsentPlaceholders(displayExpression, referredVersion.getStructure());
+        if (!isEmpty(incorrectFields)) {
+            if (incorrectFields.size() == 1)
+                throw new UserException(new Message(REFERENCE_REFERRED_ATTRIBUTE_NOT_FOUND, incorrectFields.get(0)));
+
+            String incorrectCodes = String.join("\",\"", incorrectFields);
+            throw new UserException(new Message(REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND, incorrectCodes));
+        }
+    }
+
+    private void fillUpdatableAttribute(UpdateAttribute updateAttribute, Structure.Attribute attribute) {
+        setValueIfPresent(updateAttribute::getName, attribute::setName);
+        setValueIfPresent(updateAttribute::getDescription, attribute::setDescription);
+        setValueIfPresent(updateAttribute::getIsPrimary, attribute::setPrimary);
+        attribute.setType(updateAttribute.getType());
+    }
+
+    private void fillUpdatableReference(UpdateAttribute updateAttribute, RefBookVersionEntity draftEntity,
+                                        Structure structure, FieldType oldType) {
         if (updateAttribute.isReferenceType()) {
             Structure.Reference reference;
             if (FieldType.REFERENCE.equals(oldType)) {
@@ -579,7 +623,7 @@ public class DraftServiceImpl implements DraftService {
             String oldDisplayExpression = reference.getDisplayExpression();
 
             int updatableReferenceIndex = structure.getReferences().indexOf(reference);
-            updateReference(updateAttribute, reference);
+            fillUpdatableReference(updateAttribute, reference);
             if (updatableReferenceIndex >= 0)
                 structure.getReferences().set(updatableReferenceIndex, reference);
             else
@@ -593,18 +637,12 @@ public class DraftServiceImpl implements DraftService {
         } else if (FieldType.REFERENCE.equals(oldType)) {
             structure.getReferences().remove(structure.getReference(updateAttribute.getCode()));
         }
-
-        if (Objects.equals(oldType, updateAttribute.getType())) {
-            attributeValidationRepository.deleteAll(
-                    attributeValidationRepository.findAllByVersionIdAndAttribute(updateAttribute.getVersionId(), updateAttribute.getCode()));
-        }
     }
 
-    private void updateReference(UpdateAttribute updateAttribute, Structure.Reference updatableReference) {
-
-        setValueIfPresent(updateAttribute::getAttribute, updatableReference::setAttribute);
-        setValueIfPresent(updateAttribute::getReferenceCode, updatableReference::setReferenceCode);
-        setValueIfPresent(updateAttribute::getDisplayExpression, updatableReference::setDisplayExpression);
+    private void fillUpdatableReference(UpdateAttribute updateAttribute, Structure.Reference reference) {
+        setValueIfPresent(updateAttribute::getAttribute, reference::setAttribute);
+        setValueIfPresent(updateAttribute::getReferenceCode, reference::setReferenceCode);
+        setValueIfPresent(updateAttribute::getDisplayExpression, reference::setDisplayExpression);
     }
 
     private <T> void setValueIfPresent(Supplier<UpdateValue<T>> updAttrValueGetter, Consumer<T> attrValueSetter) {

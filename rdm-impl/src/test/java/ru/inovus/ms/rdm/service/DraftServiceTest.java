@@ -31,6 +31,7 @@ import ru.inovus.ms.rdm.file.UploadFileTestData;
 import ru.inovus.ms.rdm.file.export.PerRowFileGeneratorFactory;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.version.CreateAttribute;
+import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.model.version.UpdateAttribute;
 import ru.inovus.ms.rdm.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.model.draft.Draft;
@@ -130,7 +131,7 @@ public class DraftServiceTest {
         codeAttribute = Structure.Attribute.buildPrimary("code", "Код", FieldType.STRING, "описание code");
         pkAttribute = Structure.Attribute.buildPrimary(nameAttribute.getCode() + PK_SUFFIX, nameAttribute.getName() + PK_SUFFIX, FieldType.STRING, nameAttribute.getDescription() + PK_SUFFIX);
 
-        nameReference = new Structure.Reference(nameAttribute.getCode(), "REF_801", null);
+        nameReference = new Structure.Reference(nameAttribute.getCode(), "REF_801", "");
         updateNameReference = new Structure.Reference(nameAttribute.getCode(), "REF_802", DisplayExpression.toPlaceholder(codeAttribute.getCode()));
         nullReference = new Structure.Reference(null, null, null);
     }
@@ -317,6 +318,11 @@ public class DraftServiceTest {
         when(versionService.getStructure(eq(draftVersion.getId()))).thenReturn(draftVersion.getStructure());
 
         // добавление атрибута, получение структуры, проверка добавленного атрибута
+//        RefBookVersion referredVersion1 = new RefBookVersion();
+//        referredVersion1.setCode("REF_801");
+//        referredVersion1.setStructure(new Structure(singletonList(codeAttribute), null));
+//        when(versionService.getLastPublishedVersion(eq(referredVersion1.getCode()))).thenReturn(referredVersion1);
+
         CreateAttribute createAttributeModel = new CreateAttribute(draftVersion.getId(), nameAttribute, nameReference);
         draftService.createAttribute(createAttributeModel);
         Structure structure = versionService.getStructure(draftVersion.getId());
@@ -325,6 +331,11 @@ public class DraftServiceTest {
         assertEquals(nameReference, structure.getReference(nameAttribute.getCode()));
 
         // изменение атрибута и проверка
+        RefBookVersion referredVersion2 = new RefBookVersion();
+        referredVersion2.setCode("REF_802");
+        referredVersion2.setStructure(new Structure(singletonList(codeAttribute), null));
+        when(versionService.getLastPublishedVersion(eq(referredVersion2.getCode()))).thenReturn(referredVersion2);
+
         when(draftDataService.isUnique(eq(TEST_DRAFT_CODE), anyList())).thenReturn(true);
         UpdateAttribute updateAttributeModel = new UpdateAttribute(draftVersion.getId(), updateNameAttribute, nameReference);
         draftService.updateAttribute(updateAttributeModel);

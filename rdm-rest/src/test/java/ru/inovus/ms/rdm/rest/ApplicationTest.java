@@ -199,7 +199,7 @@ public class ApplicationTest {
         refBookUpdateRequest.setComment("обновленное наполнение");
 
         createAttribute = Structure.Attribute.buildPrimary("name", "Наименование", FieldType.REFERENCE, "описание");
-        createReference = new Structure.Reference(createAttribute.getCode(), "REF_801", null);
+        createReference = new Structure.Reference(createAttribute.getCode(), "REF_801", "");
         updateAttribute = Structure.Attribute.buildPrimary(createAttribute.getCode(),
                 createAttribute.getName() + "_upd", createAttribute.getType(), createAttribute.getDescription() + "_upd");
         deleteAttribute = Structure.Attribute.build("code", "Код", FieldType.STRING, "на удаление");
