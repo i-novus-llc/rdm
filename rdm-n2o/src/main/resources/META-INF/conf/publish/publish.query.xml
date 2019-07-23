@@ -60,16 +60,16 @@
         </field>
 
         <!-- Checking conflicts -->
-        <field id="hasCheckDeletedConflicts" domain="string">
+        <field id="hasCheckDeletedConflicts" domain="boolean">
             <select mapping="conflictingReferrerNames['DELETED']?.length() > 0"/>
         </field>
-        <field id="hasCheckUpdatedConflicts" domain="string">
+        <field id="hasCheckUpdatedConflicts" domain="boolean">
             <select mapping="conflictingReferrerNames['UPDATED']?.length() > 0"/>
         </field>
-        <field id="hasCheckAlteredConflicts" domain="string">
+        <field id="hasCheckAlteredConflicts" domain="boolean">
             <select mapping="conflictingReferrerNames['ALTERED']?.length() > 0"/>
         </field>
-        <field id="hasCheckDisplayDamagedConflicts" domain="string">
+        <field id="hasCheckDisplayDamagedConflicts" domain="boolean">
             <select mapping="conflictingReferrerNames['DISPLAY_DAMAGED']?.length() > 0"/>
         </field>
 

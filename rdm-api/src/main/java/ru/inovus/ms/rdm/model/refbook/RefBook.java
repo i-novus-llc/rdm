@@ -77,6 +77,8 @@ public class RefBook extends RefBookVersion {
         this.hasDataConflict = refBook.getHasDataConflict();
         this.hasUpdatedConflict = refBook.getHasUpdatedConflict();
         this.hasAlteredConflict = refBook.getHasAlteredConflict();
+        this.hasStructureConflict = refBook.getHasStructureConflict();
+
         this.lastHasDataConflict = refBook.getLastHasDataConflict();
     }
 

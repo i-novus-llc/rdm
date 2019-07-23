@@ -83,10 +83,28 @@ public class ReferenceServiceImpl implements ReferenceService {
         if (isEmpty(references))
             return;
 
-        references.forEach(reference -> {
+        references.stream()
+                .filter(reference ->
+                        !conflictRepository.existsByReferrerVersionIdAndRefFieldCodeAndConflictType(referrerVersionId, reference.getAttribute(), ConflictType.DISPLAY_DAMAGED))
+                .forEach(reference -> {
             refreshReference(referrerEntity, reference, ConflictType.UPDATED);
             refreshReference(referrerEntity, reference, ConflictType.ALTERED);
         });
+    }
+
+    /**
+     * Обновление ссылок в связанных справочниках по таблице конфликтов.
+     *
+     * @param refBookCode код справочника, на который ссылаются
+     */
+    @Override
+    @Transactional
+    public void refreshLastReferrers(String refBookCode) {
+        new ReferrerEntityIteratorProvider(versionRepository, refBookCode, RefBookSourceType.LAST_VERSION)
+                .iterate().forEachRemaining(
+                referrers -> referrers.forEach(referrer -> refreshReferrer(referrer.getId())
+                )
+        );
     }
 
     /**
@@ -175,20 +193,5 @@ public class ReferenceServiceImpl implements ReferenceService {
 
             draftDataService.updateReferenceInRows(referrerEntity.getStorageCode(), fieldValue, systemIds);
         });
-    }
-
-    /**
-     * Обновление ссылок в связанных справочниках по таблице конфликтов.
-     *
-     * @param refBookCode код справочника, на который ссылаются
-     */
-    @Override
-    @Transactional
-    public void refreshLastReferrers(String refBookCode) {
-        new ReferrerEntityIteratorProvider(versionRepository, refBookCode, RefBookSourceType.LAST_VERSION)
-                .iterate().forEachRemaining(
-                        referrers -> referrers.forEach(referrer -> refreshReferrer(referrer.getId())
-                        )
-        );
     }
 }

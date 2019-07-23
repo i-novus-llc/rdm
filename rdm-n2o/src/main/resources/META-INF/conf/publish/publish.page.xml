@@ -22,12 +22,12 @@
             <output-text id="listCheckAlteredConflictReferrers"
                          label="Была изменена структура справочника, на который ссылаются справочники системы:">
                 <dependencies>
-                    <visibility>hasCheckAlteredConflicts</visibility>
+                    <visibility>hasCheckAlteredConflicts &amp;&amp; !hasCheckDisplayDamagedConflicts</visibility>
                 </dependencies>
             </output-text>
 
             <output-text id="listCheckDisplayDamagedConflictReferrers"
-                         label="Была изменена структура справочника, публикация новой версии нарушит работу ссылок у справочников системы:">
+                         label="Была изменена структура справочника, публикация новой версии нарушит работу ссылок справочников системы:">
                 <dependencies>
                     <visibility>hasCheckDisplayDamagedConflicts</visibility>
                 </dependencies>
