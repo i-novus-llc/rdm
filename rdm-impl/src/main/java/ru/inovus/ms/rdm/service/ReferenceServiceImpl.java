@@ -123,10 +123,9 @@ public class ReferenceServiceImpl implements ReferenceService {
      */
     private void refreshReference(RefBookVersionEntity referrerEntity, Structure.Reference reference, ConflictType conflictType) {
 
-        List<RefBookVersionEntity> publishedEntities =
-                conflictRepository.findPublishedVersionsRefreshingByPrimary(
-                        referrerEntity.getId(), reference.getAttribute(), conflictType);
-
+        List<RefBookVersionEntity> publishedEntities = conflictRepository.findRefreshingPublishedVersions(
+                referrerEntity.getId(), reference.getAttribute(), conflictType, RefBookVersionStatus.PUBLISHED
+        );
         publishedEntities.forEach(publishedEntity -> refreshReference(referrerEntity, publishedEntity, reference, conflictType));
 
         DeleteRefBookConflictCriteria deleteCriteria = new DeleteRefBookConflictCriteria();
