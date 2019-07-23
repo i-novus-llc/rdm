@@ -159,7 +159,8 @@ public class FieldValueUtils {
      * @return Отображаемое значение
      */
     public static String diffValuesToDisplayValue(String displayExpression, List<DiffFieldValue> diffFieldValues, DiffStatusEnum diffStatus) {
-        Map<String, Object> map = new HashMap<>();
+
+        Map<String, Object> map = new HashMap<>(diffFieldValues.size());
         diffFieldValues.forEach(fieldValue ->
                 map.put(fieldValue.getField().getName(), getDiffFieldValue(fieldValue, diffStatus))
         );

@@ -189,10 +189,7 @@ public class ConflictServiceImpl implements ConflictService {
                 return isRefBookAltered(structureDiff);
 
             List<Structure.Reference> refFromReferences = refFromEntity.getStructure().getRefCodeReferences(oldRefToEntity.getRefBook().getCode());
-            List<String> deletedAttributeCodes = structureDiff.getDeleted().stream()
-                    .map(deleted -> deleted.getOldAttribute().getCode())
-                    .collect(toList());
-            return isDisplayDamagedConflict(refFromReferences, deletedAttributeCodes);
+            return isDisplayDamagedConflict(refFromReferences, structureDiff);
         }
 
         DiffStatusEnum diffStatus = conflictTypeToDiffStatus(conflictType);
@@ -210,22 +207,6 @@ public class ConflictServiceImpl implements ConflictService {
         }
 
         return false;
-    }
-
-    /**
-     * Проверка на наличие конфликта DISPLAY_DAMAGED.
-     *
-     * @param refFromReferences список ссылок версии, которая ссылается
-     * @param attributeCodes    список кодов атрибутов, влияющих на ссылки
-     * @return Наличие конфликта
-     */
-    private static boolean isDisplayDamagedConflict(List<Structure.Reference> refFromReferences,
-                                                    List<String> attributeCodes) {
-        return refFromReferences.stream()
-                .anyMatch(reference -> {
-                    DisplayExpression expression = new DisplayExpression(reference.getDisplayExpression());
-                    return CollectionUtils.containsAny(attributeCodes, expression.getPlaceholders());
-                });
     }
 
     /**
@@ -293,7 +274,6 @@ public class ConflictServiceImpl implements ConflictService {
      */
     @Override
     public Page<RefBookConflict> search(RefBookConflictCriteria criteria) {
-
         Page<RefBookConflictEntity> entities = conflictQueryProvider.search(criteria);
         return entities.map(this::refBookConflictModel);
     }
@@ -354,14 +334,14 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Перевычисление существующих конфликтов справочников.
+     * Перевычисление существующих конфликтов данных для справочника.
      *
      * @param refFromEntity  версия справочника, которая ссылается
      * @param oldRefToEntity старая версия справочника, на которую ссылались
      * @param newRefToEntity новая версия, на которую будут ссылаться
      * @param conflicts      страничный список конфликтов
      * @param isAltered      наличие изменения структуры
-     * @return Список перевычисленных конфликтов для версии, которая ссылается
+     * @return Список перевычисленных конфликтов данных для версии, которая ссылается
      */
     @SuppressWarnings("WeakerAccess")
     public List<RefBookConflictEntity> recalculateDataConflicts(RefBookVersionEntity refFromEntity,
@@ -391,7 +371,7 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Перевычисление существующих конфликтов справочников.
+     * Перевычисление существующих конфликтов данных для справочника.
      *
      * @param refFromEntity    версия справочника, которая ссылается
      * @param oldRefToEntity   старая версия справочника, на которую ссылались
@@ -510,33 +490,6 @@ public class ConflictServiceImpl implements ConflictService {
                 discoverConflicts(refFromEntity, oldRefToEntity, newRefToEntity, structureDiff)
             )
         );
-    }
-
-    /**
-     * Обнаружение конфликтов при смене версий.
-     *
-     * @param refFromEntity  версия, которая ссылается
-     * @param oldRefToEntity старая версия, на которую ссылались
-     * @param newRefToEntity новая версия, на которую будут ссылаться
-     * @param structureDiff  различие в структурах версий
-     */
-    private void discoverConflicts(RefBookVersionEntity refFromEntity,
-                                   RefBookVersionEntity oldRefToEntity,
-                                   RefBookVersionEntity newRefToEntity,
-                                   StructureDiff structureDiff) {
-        boolean isAltered = isRefBookAltered(structureDiff);
-
-        // NB: CalculateConflictRequest: refFromEntity, oldRefToEntity, newRefToEntity + isAltered
-        // NB: CalculateStructureConflictRequest: + refFromReferences, structureDiff && -> isAltered
-        if (isAltered) {
-            List<Structure.Reference> refFromReferences = refFromEntity.getStructure().getRefCodeReferences(oldRefToEntity.getRefBook().getCode());
-
-            createCalculatedDamagedConflicts(refFromEntity, newRefToEntity, refFromReferences, structureDiff);
-            createCalculatedAlteredConflicts(refFromEntity, oldRefToEntity, newRefToEntity, refFromReferences);
-        }
-
-        createCalculatedDataConflicts(refFromEntity, oldRefToEntity, newRefToEntity, isAltered);
-        createRecalculatedConflicts(refFromEntity, oldRefToEntity, newRefToEntity, isAltered);
     }
 
     /**
@@ -692,6 +645,33 @@ public class ConflictServiceImpl implements ConflictService {
                                     singletonList(new FieldSearchCriteria(field(attribute), SearchTypeEnum.EXACT, singletonList(value)))
                             );
                 }).collect(toSet());
+    }
+
+    /**
+     * Обнаружение конфликтов при смене версий.
+     *
+     * @param refFromEntity  версия, которая ссылается
+     * @param oldRefToEntity старая версия, на которую ссылались
+     * @param newRefToEntity новая версия, на которую будут ссылаться
+     * @param structureDiff  различие в структурах версий
+     */
+    private void discoverConflicts(RefBookVersionEntity refFromEntity,
+                                   RefBookVersionEntity oldRefToEntity,
+                                   RefBookVersionEntity newRefToEntity,
+                                   StructureDiff structureDiff) {
+        boolean isAltered = isRefBookAltered(structureDiff);
+
+        // NB: CalculateConflictRequest: refFromEntity, oldRefToEntity, newRefToEntity + isAltered
+        // NB: CalculateStructureConflictRequest: + refFromReferences, structureDiff && -> isAltered
+        if (isAltered) {
+            List<Structure.Reference> refFromReferences = refFromEntity.getStructure().getRefCodeReferences(oldRefToEntity.getRefBook().getCode());
+
+            createCalculatedDamagedConflicts(refFromEntity, newRefToEntity, refFromReferences, structureDiff);
+            createCalculatedAlteredConflicts(refFromEntity, oldRefToEntity, newRefToEntity, refFromReferences);
+        }
+
+        createCalculatedDataConflicts(refFromEntity, oldRefToEntity, newRefToEntity, isAltered);
+        createRecalculatedConflicts(refFromEntity, oldRefToEntity, newRefToEntity, structureDiff);
     }
 
     /**
@@ -864,15 +844,14 @@ public class ConflictServiceImpl implements ConflictService {
      * @param refFromEntity  версия, которая ссылается
      * @param oldRefToEntity старая версия, на которую ссылались
      * @param newRefToEntity новая версия, на которую будут ссылаться
-     * @param isAltered      наличие изменения структуры
+     * @param structureDiff  различие в структурах версий
      */
     private void createRecalculatedConflicts(RefBookVersionEntity refFromEntity,
                                              RefBookVersionEntity oldRefToEntity,
                                              RefBookVersionEntity newRefToEntity,
-                                             boolean isAltered) {
-
-        recalculateStructureConflicts(refFromEntity, oldRefToEntity, newRefToEntity);
-        recalculateDataConflicts(refFromEntity, oldRefToEntity, newRefToEntity, isAltered);
+                                             StructureDiff structureDiff) {
+        recalculateStructureConflicts(refFromEntity, oldRefToEntity, newRefToEntity, structureDiff);
+        recalculateDataConflicts(refFromEntity, oldRefToEntity, newRefToEntity, structureDiff);
     }
 
     /**
@@ -881,32 +860,54 @@ public class ConflictServiceImpl implements ConflictService {
      * @param refFromEntity  версия, которая ссылается
      * @param oldRefToEntity старая версия, на которую ссылались
      * @param newRefToEntity новая версия, на которую будут ссылаться
+     * @param structureDiff  различие в структурах версий
      */
     private void recalculateStructureConflicts(RefBookVersionEntity refFromEntity,
                                                RefBookVersionEntity oldRefToEntity,
-                                               RefBookVersionEntity newRefToEntity) {
+                                               RefBookVersionEntity newRefToEntity,
+                                               StructureDiff structureDiff) {
 
         RefBookConflictCriteria criteria = new RefBookConflictCriteria(refFromEntity.getId(), oldRefToEntity.getId());
         criteria.setConflictType(ConflictType.DISPLAY_DAMAGED);
         criteria.setOrders(RefBookConflictQueryProvider.getSortRefBookConflicts());
         criteria.setPageSize(RefBookConflictQueryProvider.REF_BOOK_CONFLICT_PAGE_SIZE);
 
-        // NB: to-do: Отфильтровать только те конфликты, что должны остаться.
-        // ? Получить структуры oldRefToEntity и newRefToEntity и проверять изменение displayExpression по placeholder`ам.
-        // ? если есть изменение, то перевычисление не нужно.
-        // ? если нет изменения, то перевычисление обязательно.
-
         Function<RefBookConflictCriteria, Page<RefBookConflictEntity>> pageSource = conflictQueryProvider::search;
         PageIterator<RefBookConflictEntity, RefBookConflictCriteria> pageIterator = new PageIterator<>(pageSource, criteria);
         pageIterator.forEachRemaining(page -> {
-            // NB: extract to `recalculateStructureConflicts` as `recalculateDataConflicts`
-            List<RefBookConflictEntity> entities = page.getContent().stream()
-                    .map(conflict -> new RefBookConflictEntity(refFromEntity, newRefToEntity,
-                            null, conflict.getRefFieldCode(), conflict.getConflictType()))
-                    .collect(toList());
+            List<RefBookConflictEntity> entities = recalculateStructureConflicts(refFromEntity, newRefToEntity, page.getContent(), structureDiff);
             if (!isEmpty(entities))
                 conflictRepository.saveAll(entities);
         });
+    }
+
+    /**
+     * Перевычисление существующих конфликтов структуры для справочника.
+     *
+     * @param refFromEntity  версия справочника, которая ссылается
+     * @param newRefToEntity новая версия, на которую будут ссылаться
+     * @param conflicts      список конфликтов
+     * @param structureDiff  различие в структурах версий
+     * @return Список конфликтов
+     */
+    private List<RefBookConflictEntity> recalculateStructureConflicts(RefBookVersionEntity refFromEntity,
+                                                                      RefBookVersionEntity newRefToEntity,
+                                                                      List<RefBookConflictEntity> conflicts,
+                                                                      StructureDiff structureDiff) {
+        Structure refFromStructure = refFromEntity.getStructure();
+        boolean isAltered = isRefBookAltered(structureDiff);
+
+        return conflicts.stream()
+                .filter(conflict -> {
+                    if (!isAltered)
+                        return true;
+
+                    Structure.Reference reference = refFromStructure.getReference(conflict.getRefFieldCode());
+                    return !isDisplayDamagedConflict(singletonList(reference), structureDiff);
+                })
+                .map(conflict -> new RefBookConflictEntity(refFromEntity, newRefToEntity,
+                        null, conflict.getRefFieldCode(), conflict.getConflictType()))
+                .collect(toList());
     }
 
     /**
@@ -915,12 +916,13 @@ public class ConflictServiceImpl implements ConflictService {
      * @param refFromEntity  версия, которая ссылается
      * @param oldRefToEntity старая версия, на которую ссылались
      * @param newRefToEntity новая версия, на которую будут ссылаться
-     * @param isAltered      наличие изменения структуры
+     * @param structureDiff  различие в структурах версий
      */
     private void recalculateDataConflicts(RefBookVersionEntity refFromEntity,
                                           RefBookVersionEntity oldRefToEntity,
                                           RefBookVersionEntity newRefToEntity,
-                                          boolean isAltered) {
+                                          StructureDiff structureDiff) {
+        boolean isAltered = isRefBookAltered(structureDiff);
 
         RefBookConflictCriteria criteria = new RefBookConflictCriteria(refFromEntity.getId(), oldRefToEntity.getId());
         criteria.setConflictTypes(List.of(ConflictType.UPDATED, ConflictType.DELETED, ConflictType.ALTERED));
@@ -934,5 +936,34 @@ public class ConflictServiceImpl implements ConflictService {
             if (!isEmpty(entities))
                 conflictRepository.saveAll(entities);
         });
+    }
+
+    /**
+     * Проверка на наличие конфликта DISPLAY_DAMAGED.
+     *
+     * @param references    список ссылок версии, которая ссылается
+     * @param structureDiff различие в структурах версий
+     * @return Наличие конфликта
+     */
+    private static boolean isDisplayDamagedConflict(List<Structure.Reference> references, StructureDiff structureDiff) {
+        List<String> deletedAttributeCodes = structureDiff.getDeleted().stream()
+                .map(deleted -> deleted.getOldAttribute().getCode())
+                .collect(toList());
+        return isDisplayDamagedConflict(references, deletedAttributeCodes);
+    }
+
+    /**
+     * Проверка на наличие конфликта DISPLAY_DAMAGED.
+     *
+     * @param references     список ссылок версии, которая ссылается
+     * @param attributeCodes список кодов атрибутов, влияющих на ссылки
+     * @return Наличие конфликта
+     */
+    private static boolean isDisplayDamagedConflict(List<Structure.Reference> references, List<String> attributeCodes) {
+        return references.stream()
+                .anyMatch(reference -> {
+                    DisplayExpression expression = new DisplayExpression(reference.getDisplayExpression());
+                    return CollectionUtils.containsAny(attributeCodes, expression.getPlaceholders());
+                });
     }
 }
