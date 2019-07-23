@@ -228,15 +228,18 @@ public class ApplicationTest {
     }
 
     private static void deleteFile(File file) {
-        if (!file.exists())
+        if (Objects.isNull(file) || !file.exists())
             return;
+
         if (file.isDirectory()) {
-            for (File f : file.listFiles())
-                deleteFile(f);
-            file.delete();
-        } else {
-            file.delete();
+            File[] files = file.listFiles();
+            if (!Objects.isNull(files)) {
+                for (File f : files)
+                    deleteFile(f);
+            }
         }
+
+        file.delete();
     }
 
     /**
