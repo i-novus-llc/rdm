@@ -13,9 +13,6 @@ public abstract class AppendRowValidation extends ErrorAttributeHolderValidation
 
     private final Map<Map<String, Object>, Long> buffer = new LinkedHashMap<>();
 
-    public AppendRowValidation() {
-    }
-
     public void appendRow(Row row) {
         if (row != null) {
             Map<String, Object> rowMap = new HashMap<>(row.getData());

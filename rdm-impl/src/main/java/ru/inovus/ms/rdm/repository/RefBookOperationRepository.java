@@ -9,6 +9,10 @@ public interface RefBookOperationRepository extends
         JpaRepository<RefBookOperationEntity, Integer>,
         QuerydslPredicateExecutor<RefBookOperationEntity> {
 
+        RefBookOperationEntity findByRefBookId(Integer refBookId);
+
+        void deleteByRefBookId(Integer refBookId);
+
         @Transactional
         Integer deleteAllByInstanceId(String instanceId);
 }

@@ -31,14 +31,15 @@
                 <param id="maxInteger" mapping="[1].maxInteger" domain="integer"/>
                 <param id="minFloat" mapping="[1].minFloat" domain="numeric"/>
                 <param id="maxFloat" mapping="[1].maxFloat" domain="numeric"/>
-                <param id="dateInterval.begin"  mapping="[1].minDate" domain="date"/>
-                <param id="dateInterval.end"  mapping="[1].maxDate" domain="date"/>
+                <param id="dateInterval.begin" mapping="[1].minDate" domain="date"/>
+                <param id="dateInterval.end" mapping="[1].maxDate" domain="date"/>
                 <param id="regExp" mapping="[1].regExp" domain="string"/>
             </in-parameters>
             <validations white-list="checkCode,checkMinMaxInt"/>
         </operation>
 
-        <operation id="updateAttribute" submit-label="Сохранить" name="Изменение атрибута" success-text="Атрибут изменен">
+        <operation id="updateAttribute" submit-label="Сохранить" name="Изменение атрибута"
+                   success-text="Атрибут изменен">
             <invocation>
                 <java class="ru.inovus.ms.rdm.service.CreateDraftController"
                       method="updateAttribute">
@@ -67,8 +68,10 @@
                 <param id="maxInteger" mapping="[1].maxInteger" domain="integer"/>
                 <param id="minFloat" mapping="[1].minFloat" domain="numeric"/>
                 <param id="maxFloat" mapping="[1].maxFloat" domain="numeric"/>
-                <param id="dateInterval.begin"  mapping="[1].minDate" domain="date"/>
-                <param id="dateInterval.end"  mapping="[1].maxDate" domain="date"/>
+                <param id="dateInterval.begin" mapping="[1].minDate" domain="date"
+                       normalize="T(ru.inovus.ms.rdm.util.TimeUtils).parseLocalDate(#this)"/>
+                <param id="dateInterval.end" mapping="[1].maxDate" domain="date"
+                       normalize="T(ru.inovus.ms.rdm.util.TimeUtils).parseLocalDate(#this)"/>
                 <param id="regExp" mapping="[1].regExp" domain="string"/>
             </in-parameters>
             <validations white-list="checkCode,checkMinMaxInt"/>
@@ -102,7 +105,7 @@
 
         <condition field-id="maxInteger" id="checkMinMaxInt" severity="danger"
                    server-moment="before-operation"
-                   message="Максимальное значение должно быть больше минимального" >
+                   message="Максимальное значение должно быть больше минимального">
             typeof maxInteger == 'undefined' || maxInteger == null || maxInteger == '' ||
             typeof maxInteger == 'undefined' || maxInteger == null || maxInteger == '' ||
             maxInteger > minInteger

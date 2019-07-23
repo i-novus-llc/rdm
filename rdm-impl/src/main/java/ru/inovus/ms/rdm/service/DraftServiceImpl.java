@@ -424,17 +424,16 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
-    @Transactional(timeout = 1200000)
     public void updateData(Integer draftId, FileModel fileModel) {
 
         versionValidation.validateDraft(draftId);
 
-        RefBookVersionEntity draft = versionRepository.getOne(draftId);
-        Integer refBookId = draft.getRefBook().getId();
+        RefBookVersionEntity draftVersion = versionRepository.findById(draftId).orElseThrow();
+        Integer refBookId = draftVersion.getRefBook().getId();
 
         refBookLockService.setRefBookUploading(refBookId);
         try {
-            updateDraftData(draft, fileModel);
+            updateDraftData(draftVersion, fileModel);
 
         } finally {
             refBookLockService.deleteRefBookAction(refBookId);

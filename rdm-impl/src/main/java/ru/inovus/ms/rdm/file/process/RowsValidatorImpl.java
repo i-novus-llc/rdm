@@ -20,6 +20,8 @@ public class RowsValidatorImpl implements RowsValidator {
     public static final String ERROR_COUNT_EXCEEDED = "validation.error.count.exceeded";
 
     private Integer errorCountLimit = 100;
+    private int size = 100;
+    private List<Row> buffer = new ArrayList<>();
 
     private Result result = new Result(0, 0, null);
 
@@ -32,6 +34,8 @@ public class RowsValidatorImpl implements RowsValidator {
     private String storageCode;
 
     private boolean skipReferenceValidation;
+
+    private DBPrimaryKeyValidation dbPrimaryKeyValidation;
 
     private PkUniqueRowAppendValidation pkUniqueRowAppendValidation;
 
@@ -58,46 +62,77 @@ public class RowsValidatorImpl implements RowsValidator {
         this.attributeCustomValidation = new AttributeCustomValidation(attributeValidations, structure, searchDataService, storageCode);
     }
 
+    public RowsValidatorImpl(int size,
+                             VersionService versionService,
+                             SearchDataService searchDataService,
+                             Structure structure,
+                             String storageCode,
+                             int errorCountLimit,
+                             boolean skipReferenceValidation,
+                             List<AttributeValidationEntity> attributeValidations) {
+        this(versionService, searchDataService, structure, storageCode,
+                errorCountLimit, skipReferenceValidation, attributeValidations);
+        this.size = size;
+    }
+
     @Override
     public Result append(Row row) {
-        List<Message> errors = new ArrayList<>();
-        Set<String> errorAttributes = new HashSet<>();
 
         if (row.getData().values().stream().filter(Objects::nonNull).anyMatch(v -> !"".equals(v))) {
+            buffer.add(row);
+
+            if (buffer.size() == size) {
+                validate();
+                buffer.clear();
+            }
+        }
+        return this.result;
+    }
+
+    @Override
+    public Result process() {
+        validate();
+        if (!isEmpty(result.getErrors()))
+            throw new UserException(result.getErrors());
+        return result;
+    }
+
+    private void validate() {
+        if (buffer.isEmpty()) {
+            return;
+        }
+
+        dbPrimaryKeyValidation = new DBPrimaryKeyValidation(searchDataService, structure, buffer, storageCode);
+
+        buffer.forEach(row -> {
+            List<Message> errors = new ArrayList<>();
+            Set<String> errorAttributes = new HashSet<>();
             List<ErrorAttributeHolderValidation> validations = Arrays.asList(
                     new PkRequiredValidation(row, structure),
                     new TypeValidation(row.getData(), structure),
                     skipReferenceValidation ? null : new ReferenceValueValidation(versionService, row, structure),
-                    new DBPrimaryKeyValidation(searchDataService, structure, row, storageCode),
+                    dbPrimaryKeyValidation,
                     pkUniqueRowAppendValidation,
                     attributeCustomValidation
             );
+            dbPrimaryKeyValidation.appendRow(row);
             pkUniqueRowAppendValidation.appendRow(row);
             attributeCustomValidation.appendRow(row);
 
             validations.stream()
                     .filter(Objects::nonNull)
                     .forEach(validation -> {
-                        validation.setErrorAttributes(errorAttributes);
-                        errors.addAll(validation.validate());
-                        errorAttributes.addAll(validation.getErrorAttributes());
-                    });
-        }
+                validation.setErrorAttributes(errorAttributes);
+                errors.addAll(validation.validate());
+                errorAttributes.addAll(validation.getErrorAttributes());
+            });
 
-        if (isEmpty(errors)) {
-            addResult(new Result(1, 1, null));
-        } else {
-            addResult(new Result(0, 1, errors));
-        }
-        return this.result;
-    }
-
-
-    @Override
-    public Result process() {
-        if (!CollectionUtils.isEmpty(result.getErrors()))
-            throw new UserException(result.getErrors());
-        return result;
+            if (isEmpty(errors)) {
+                addResult(new Result(1, 1, null));
+            } else {
+                addResult(new Result(0, 1, errors));
+            }
+        });
     }
 
     private void addResult(Result result) {

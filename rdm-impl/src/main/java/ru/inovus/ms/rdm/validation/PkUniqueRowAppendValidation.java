@@ -14,7 +14,7 @@ import static java.util.Collections.singletonList;
  */
 public class PkUniqueRowAppendValidation extends AppendRowValidation {
 
-    public static final String NOT_UNIQUE_PK_ERR = "validation.not.unique.pk.err";
+    private static final String NOT_UNIQUE_PK_ERR = "validation.not.unique.pk.err";
 
     private final Set<String> uniqueRowAttributes;
 

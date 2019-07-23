@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static org.springframework.util.StringUtils.isEmpty;
 import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.*;
 
 @Primary
@@ -209,10 +210,9 @@ public class RefBookServiceImpl implements RefBookService {
     public void delete(int refBookId) {
 
         versionValidation.validateRefBookExists(refBookId);
+        refBookLockService.validateRefBookNotBusyByRefBookId(refBookId);
 
         RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
-        refBookLockService.validateRefBookNotBusy(refBookEntity);
-
         refBookEntity.getVersionList().forEach(v ->
                 dropDataService.drop(refBookRepository.getOne(refBookId).getVersionList().stream()
                         .map(RefBookVersionEntity::getStorageCode)
