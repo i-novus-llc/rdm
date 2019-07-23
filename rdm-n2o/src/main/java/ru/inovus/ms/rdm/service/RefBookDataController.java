@@ -74,7 +74,7 @@ public class RefBookDataController {
         Structure structure = versionService.getStructure(criteria.getVersionId());
 
         Page<Long> conflictedRowIdsPage = null;
-        if (BooleanUtils.isTrue(criteria.getHasConflict())) {
+        if (BooleanUtils.isTrue(criteria.getHasDataConflict())) {
 
             long conflictsCount = conflictService.countConflictedRowIds(toRefBookConflictCriteria(criteria));
             long dataCount = versionService.search(criteria.getVersionId(), new SearchDataCriteria()).getTotalElements();
@@ -87,10 +87,10 @@ public class RefBookDataController {
         SearchDataCriteria searchDataCriteria = toSearchDataCriteria(criteria, structure, conflictedRowIds);
 
         Page<RefBookRowValue> search = versionService.search(criteria.getVersionId(), searchDataCriteria);
-        List<DataGridRow> result = getDataGridContent(criteria, search.getContent(), structure, BooleanUtils.isTrue(criteria.getHasConflict()));
+        List<DataGridRow> result = getDataGridContent(criteria, search.getContent(), structure, BooleanUtils.isTrue(criteria.getHasDataConflict()));
 
         long total;
-        if (BooleanUtils.isTrue(criteria.getHasConflict()))
+        if (BooleanUtils.isTrue(criteria.getHasDataConflict()))
             total = (conflictedRowIdsPage == null) ? 0 : conflictedRowIdsPage.getTotalElements();
         else
             total = search.getTotalElements();
@@ -140,7 +140,7 @@ public class RefBookDataController {
                 .map(Collections::singletonList).orElse(emptyList());
         searchDataCriteria.setOrders(orders);
 
-        if (BooleanUtils.isTrue(criteria.getHasConflict())) {
+        if (BooleanUtils.isTrue(criteria.getHasDataConflict())) {
             searchDataCriteria.setRowSystemIds(conflictedRowIds);
         }
         return searchDataCriteria;

@@ -198,7 +198,7 @@ public class PublishServiceImpl implements PublishService {
 
     private void processDiscoveredConflicts(RefBookVersionEntity oldVersion, Integer newVersionId, boolean resolveConflicts) {
 
-        // NB: Old conflicts are not deleted.
+        // NB: Старые конфликты не удаляются.
 
         if (resolveConflicts) {
             resolveReferrerConflicts(oldVersion.getRefBook().getCode());

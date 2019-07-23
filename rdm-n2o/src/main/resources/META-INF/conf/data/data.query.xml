@@ -36,9 +36,9 @@
             </filters>
         </field>
 
-        <field id="hasConflict" domain="boolean">
+        <field id="hasDataConflict" domain="boolean">
             <filters>
-                <eq filter-id="hasConflict" mapping="hasConflict" domain="boolean"/>
+                <eq filter-id="hasDataConflict" mapping="hasDataConflict" domain="boolean"/>
             </filters>
         </field>
 

@@ -31,7 +31,7 @@
             <table src="DataGrid" name="Данные с конфликтами" id="dataTableWithConflicts" query-id="data" depends-on="version_select"
                    master-field-id="version.id" detail-field-id="versionId" object-id="data">
                 <pre-filters>
-                    <eq field-id="hasConflict" value="true"/>
+                    <eq field-id="hasDataConflict" value="true"/>
                 </pre-filters>
             </table>
         </tabs>

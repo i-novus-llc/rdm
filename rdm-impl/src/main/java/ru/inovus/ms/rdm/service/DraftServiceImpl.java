@@ -593,7 +593,7 @@ public class DraftServiceImpl implements DraftService {
             return; // NB: to-do: throw exception and fix absent referredBook in testLifecycle.
 
         RefBookVersion referredVersion = versionService.getLastPublishedVersion(refBookCode);
-        List<String> incorrectFields = FieldValueUtils.getAbsentPlaceholders(displayExpression, referredVersion.getStructure());
+        List<String> incorrectFields = StructureUtils.getAbsentPlaceholders(displayExpression, referredVersion.getStructure());
         if (!isEmpty(incorrectFields)) {
             if (incorrectFields.size() == 1)
                 throw new UserException(new Message(REFERENCE_REFERRED_ATTRIBUTE_NOT_FOUND, incorrectFields.get(0)));

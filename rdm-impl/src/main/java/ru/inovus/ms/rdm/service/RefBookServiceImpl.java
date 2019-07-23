@@ -425,12 +425,19 @@ public class RefBookServiceImpl implements RefBookService {
         boolean hasUpdatedConflict = conflictRepository.existsByReferrerVersionIdAndConflictType(model.getId(), ConflictType.UPDATED);
         model.setHasUpdatedConflict(hasUpdatedConflict);
 
-        model.setHasConflict(hasUpdatedConflict
-                || conflictRepository.existsByReferrerVersionId(model.getId())
+        boolean hasAlteredConflict = conflictRepository.existsByReferrerVersionIdAndConflictType(model.getId(), ConflictType.ALTERED);
+        model.setHasAlteredConflict(hasAlteredConflict);
+
+        model.setHasDataConflict(hasUpdatedConflict || hasAlteredConflict
+                || conflictRepository.existsByReferrerVersionIdAndRefRecordIdIsNotNull(model.getId())
         );
 
-        model.setLastHasConflict(lastPublishedVersion != null
-                && conflictRepository.existsByReferrerVersionId(lastPublishedVersion.getId())
+        model.setHasStructureConflict(
+                conflictRepository.existsByReferrerVersionIdAndRefRecordIdIsNull(model.getId())
+        );
+
+        model.setLastHasDataConflict(lastPublishedVersion != null
+                && conflictRepository.existsByReferrerVersionIdAndRefRecordIdIsNotNull(lastPublishedVersion.getId())
         );
 
         return model;

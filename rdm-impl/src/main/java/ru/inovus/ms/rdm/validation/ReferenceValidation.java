@@ -17,7 +17,7 @@ import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.util.ConverterUtil;
-import ru.inovus.ms.rdm.util.FieldValueUtils;
+import ru.inovus.ms.rdm.util.StructureUtils;
 
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -88,7 +88,7 @@ public class ReferenceValidation implements RdmValidation {
         Field referredField = field(referredAttribute);
 
         // Поля из вычисляемого выражения, отсутствующие в версии, на которую ссылаемся.
-        List<String> incorrectFields = FieldValueUtils.getAbsentPlaceholders(reference.getDisplayExpression(), referredEntity.getStructure());
+        List<String> incorrectFields = StructureUtils.getAbsentPlaceholders(reference.getDisplayExpression(), referredEntity.getStructure());
         if (!isEmpty(incorrectFields)) {
             return incorrectFields.stream()
                     .map(field -> new Message(VERSION_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, referredEntity.getId(), field))
