@@ -4,16 +4,21 @@ import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.jaxrs.RestPage;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
+import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.conflict.RefBookConflict;
+import ru.inovus.ms.rdm.model.conflict.RefBookConflictCriteria;
 import ru.inovus.ms.rdm.model.refbook.RefBook;
 import ru.inovus.ms.rdm.model.version.CreateAttribute;
 import ru.inovus.ms.rdm.model.version.RefBookVersionAttribute;
 import ru.inovus.ms.rdm.model.version.UpdateAttribute;
 import ru.inovus.ms.rdm.model.validation.*;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.service.api.ConflictService;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
@@ -25,6 +30,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.model.version.UpdateValue.of;
 
 @Controller
@@ -37,6 +43,8 @@ public class StructureController {
     private VersionService versionService;
     @Autowired
     private DraftService draftService;
+    @Autowired
+    private ConflictService conflictService;
 
     RestPage<ReadAttribute> getPage(AttributeCriteria criteria) {
         List<ReadAttribute> list = new ArrayList<>();
@@ -55,12 +63,15 @@ public class StructureController {
 
                         readAttribute.setVersionId(criteria.getVersionId());
 
-                        readAttribute.setCodeExpression(DisplayExpression.toPlaceholder(attribute.getCode()));
-                        if (reference != null)
-                            enrichReference(readAttribute, reference);
-
                         RefBook refBook = refBookService.getByVersionId(criteria.getVersionId());
                         readAttribute.setHasReferrer(refBook.getHasReferrer());
+
+                        readAttribute.setCodeExpression(DisplayExpression.toPlaceholder(attribute.getCode()));
+                        if (reference != null) {
+                            enrichReference(readAttribute, reference);
+
+                            readAttribute.setHasStructureConflict(getHasStructureConflict(refBook.getId(), readAttribute.getCode()));
+                        }
 
                         list.add(readAttribute);
                     });
@@ -71,6 +82,17 @@ public class StructureController {
                 .collect(Collectors.toList());
 
         return new RestPage<>(currentPageAttributes, PageRequest.of(criteria.getPage(), criteria.getSize()), list.size());
+    }
+
+    private Boolean getHasStructureConflict(Integer versionId, String fieldCode) {
+        RefBookConflictCriteria conflictCriteria = new RefBookConflictCriteria();
+        conflictCriteria.setReferrerVersionId(versionId);
+        conflictCriteria.setRefFieldCode(fieldCode);
+        conflictCriteria.setConflictType(ConflictType.DISPLAY_DAMAGED);
+        conflictCriteria.setPageSize(1);
+
+        Page<RefBookConflict> conflicts = conflictService.search(conflictCriteria);
+        return conflicts != null && !isEmpty(conflicts.getContent());
     }
 
     public void createAttribute(Integer versionId, FormAttribute formAttribute) {

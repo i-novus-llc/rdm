@@ -10,4 +10,6 @@ import java.util.List;
 public interface PassportValueRepository extends
         JpaRepository<PassportValueEntity, Integer>,
         QuerydslPredicateExecutor<RefBookEntity> {
-        List<PassportValueEntity> findAllByVersionIdOrderByAttributePosition(Integer versionId);}
+
+    List<PassportValueEntity> findAllByVersionIdOrderByAttributePosition(Integer versionId);
+}

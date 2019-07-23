@@ -15,8 +15,6 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.inovus.ms.rdm.entity.PassportAttributeEntity;
-import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.entity.VersionFileEntity;
 import ru.inovus.ms.rdm.enumeration.FileType;
@@ -26,12 +24,10 @@ import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.file.export.*;
 import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.model.refbook.RefBookUpdateRequest;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.RowValuePage;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.repository.PassportValueRepository;
 import ru.inovus.ms.rdm.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.repository.VersionFileRepository;
 import ru.inovus.ms.rdm.service.api.ExistsData;
@@ -44,10 +40,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.*;
-import static org.springframework.util.StringUtils.isEmpty;
 import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.*;
 import static ru.inovus.ms.rdm.util.ConverterUtil.*;
 import static ru.inovus.ms.rdm.util.ModelGenerator.versionModel;
@@ -68,7 +62,6 @@ public class VersionServiceImpl implements VersionService {
     private FileNameGenerator fileNameGenerator;
 
     private VersionFileRepository versionFileRepository;
-    private PassportValueRepository passportValueRepository;
     private VersionFileService versionFileService;
 
     @Autowired
@@ -76,7 +69,6 @@ public class VersionServiceImpl implements VersionService {
                               SearchDataService searchDataService,
                               FileStorage fileStorage, FileNameGenerator fileNameGenerator,
                               VersionFileRepository versionFileRepository,
-                              PassportValueRepository passportValueRepository,
                               VersionFileService versionFileService) {
         this.versionRepository = versionRepository;
 
@@ -86,7 +78,6 @@ public class VersionServiceImpl implements VersionService {
         this.fileNameGenerator = fileNameGenerator;
 
         this.versionFileRepository = versionFileRepository;
-        this.passportValueRepository = passportValueRepository;
         this.versionFileService = versionFileService;
     }
 
@@ -186,18 +177,6 @@ public class VersionServiceImpl implements VersionService {
 
     @Override
     @Transactional
-    public RefBookVersion updatePassport(RefBookUpdateRequest refBookUpdateRequest) {
-        RefBookVersionEntity refBookVersionEntity = versionRepository
-                .findById(refBookUpdateRequest.getVersionId())
-                .orElseThrow(() ->
-                        new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, refBookUpdateRequest.getVersionId())));
-
-        updateVersionFromPassport(refBookVersionEntity, refBookUpdateRequest.getPassport());
-        return versionModel(refBookVersionEntity);
-    }
-
-    @Override
-    @Transactional
     public ExistsData existsData(List<String> rowIds) {
         List<String> notExistent = new ArrayList<>();
         Map<Integer, List<String>> hashes = new HashMap<>();
@@ -255,41 +234,6 @@ public class VersionServiceImpl implements VersionService {
             throw new IllegalStateException("more than one row with id " + rowId);
 
         return new RefBookRowValue((LongRowValue) data.get(0), version.getId());
-    }
-
-    private void updateVersionFromPassport(RefBookVersionEntity versionEntity, Map<String, String> newPassport) {
-        if (newPassport == null) return;
-
-        List<PassportValueEntity> valuesToRemove = versionEntity
-                .getPassportValues()
-                .stream()
-                .filter(passportValue ->
-                        newPassport.get(passportValue.getAttribute().getCode()) == null
-                ).collect(Collectors.toList());
-
-        passportValueRepository.deleteAll(valuesToRemove);
-
-        versionEntity.getPassportValues()
-                .removeAll(valuesToRemove);
-
-        newPassport.entrySet()
-                .stream()
-                .filter(newPV -> !isEmpty(newPV.getValue()))
-                .forEach(newPV -> {
-                    PassportValueEntity oldPV = versionEntity.getPassportValues()
-                            .stream()
-                            .filter(pv ->
-                                    newPV.getKey().equals(pv.getAttribute().getCode())
-                            )
-                            .findFirst()
-                            .orElse(null);
-
-                    if (oldPV != null)
-                        oldPV.setValue(newPV.getValue());
-                    else
-                        versionEntity.getPassportValues()
-                                .add(new PassportValueEntity(new PassportAttributeEntity(newPV.getKey()), newPV.getValue(), versionEntity));
-                });
     }
 
 
