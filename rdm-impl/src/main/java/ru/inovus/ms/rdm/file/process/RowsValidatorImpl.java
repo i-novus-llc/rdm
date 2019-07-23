@@ -2,7 +2,6 @@ package ru.inovus.ms.rdm.file.process;
 
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
-import org.apache.cxf.common.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.AttributeValidationEntity;
 import ru.inovus.ms.rdm.model.Result;
@@ -17,7 +16,7 @@ import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 
 public class RowsValidatorImpl implements RowsValidator {
 
-    public static final String ERROR_COUNT_EXCEEDED = "validation.error.count.exceeded";
+    private static final String ERROR_COUNT_EXCEEDED = "validation.error.count.exceeded";
 
     private Integer errorCountLimit = 100;
     private int size = 100;
@@ -34,8 +33,6 @@ public class RowsValidatorImpl implements RowsValidator {
     private String storageCode;
 
     private boolean skipReferenceValidation;
-
-    private DBPrimaryKeyValidation dbPrimaryKeyValidation;
 
     private PkUniqueRowAppendValidation pkUniqueRowAppendValidation;
 
@@ -62,6 +59,7 @@ public class RowsValidatorImpl implements RowsValidator {
         this.attributeCustomValidation = new AttributeCustomValidation(attributeValidations, structure, searchDataService, storageCode);
     }
 
+    @SuppressWarnings("squid:S00107")
     public RowsValidatorImpl(int size,
                              VersionService versionService,
                              SearchDataService searchDataService,
@@ -102,7 +100,7 @@ public class RowsValidatorImpl implements RowsValidator {
             return;
         }
 
-        dbPrimaryKeyValidation = new DBPrimaryKeyValidation(searchDataService, structure, buffer, storageCode);
+        DBPrimaryKeyValidation dbPrimaryKeyValidation = new DBPrimaryKeyValidation(searchDataService, structure, buffer, storageCode);
 
         buffer.forEach(row -> {
             List<Message> errors = new ArrayList<>();
@@ -122,10 +120,10 @@ public class RowsValidatorImpl implements RowsValidator {
             validations.stream()
                     .filter(Objects::nonNull)
                     .forEach(validation -> {
-                validation.setErrorAttributes(errorAttributes);
-                errors.addAll(validation.validate());
-                errorAttributes.addAll(validation.getErrorAttributes());
-            });
+                        validation.setErrorAttributes(errorAttributes);
+                        errors.addAll(validation.validate());
+                        errorAttributes.addAll(validation.getErrorAttributes());
+                    });
 
             if (isEmpty(errors)) {
                 addResult(new Result(1, 1, null));
