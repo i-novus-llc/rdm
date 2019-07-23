@@ -1,8 +1,6 @@
 package ru.inovus.ms.rdm.util;
 
 import org.apache.commons.text.StringSubstitutor;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.*;
@@ -27,38 +25,6 @@ import static ru.i_novus.platform.datastorage.temporal.model.DataConstants.*;
 public class FieldValueUtils {
 
     private FieldValueUtils() {
-    }
-
-    /**
-     * Проверка на наличие хотя бы одного placeholder`а в выражении.
-     *
-     * @param displayExpression выражение для вычисления отображаемого значения
-     * @param placeholders      список проверяемых подставляемых значений
-     * @return Наличие
-     */
-    // NB: Выделить в StructureUtils ?!
-    public static boolean containsAnyPlaceholder(String displayExpression, List<String> placeholders) {
-        DisplayExpression expression = new DisplayExpression(displayExpression);
-        return CollectionUtils.containsAny(expression.getPlaceholders(), placeholders);
-    }
-
-    /**
-     * Поиск полей выражения, которые отсутствуют в структуре.
-     *
-     * @param displayExpression выражение для вычисления отображаемого значения
-     * @param structure         структура версии, на которую ссылаются
-     * @return Список отсутствующих полей
-     */
-    // NB: Выделить в StructureUtils ?!
-    public static List<String> getAbsentPlaceholders(String displayExpression, Structure structure) {
-
-        if (StringUtils.isEmpty(displayExpression))
-            return emptyList();
-
-        DisplayExpression expression = new DisplayExpression(displayExpression);
-        return expression.getPlaceholders().stream()
-                .filter(placeholder -> Objects.isNull(structure.getAttribute(placeholder)))
-                .collect(toList());
     }
 
     /**

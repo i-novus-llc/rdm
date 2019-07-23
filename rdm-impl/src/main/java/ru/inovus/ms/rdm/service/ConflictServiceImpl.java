@@ -39,6 +39,7 @@ import ru.inovus.ms.rdm.service.api.*;
 import ru.inovus.ms.rdm.util.ModelGenerator;
 import ru.inovus.ms.rdm.util.PageIterator;
 import ru.inovus.ms.rdm.util.ReferrerEntityIteratorProvider;
+import ru.inovus.ms.rdm.util.StructureUtils;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import java.util.*;
@@ -757,7 +758,7 @@ public class ConflictServiceImpl implements ConflictService {
             return emptyList();
 
         return refFromReferences.stream()
-                .filter(reference -> containsAnyPlaceholder(reference.getDisplayExpression(), deletedCodes))
+                .filter(reference -> StructureUtils.containsAnyPlaceholder(reference.getDisplayExpression(), deletedCodes))
                 .map(reference ->
                         new RefBookConflictEntity(refFromEntity, newRefToEntity,
                                 null, reference.getAttribute(), ConflictType.DISPLAY_DAMAGED))

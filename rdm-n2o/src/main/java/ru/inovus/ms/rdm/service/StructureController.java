@@ -17,6 +17,7 @@ import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.util.StructureUtils;
 import ru.inovus.ms.rdm.util.TimeUtils;
 
 import java.util.ArrayList;
@@ -146,19 +147,6 @@ public class StructureController {
         return validations;
     }
 
-    private String displayExpressionToAttributeCode(String displayExpression) {
-
-        DisplayExpression expression = new DisplayExpression(displayExpression);
-        List<String> attributeCodes = expression.getPlaceholders();
-        if (attributeCodes != null && attributeCodes.size() == 1) {
-            String attributeCode = attributeCodes.get(0);
-            if (DisplayExpression.toPlaceholder(attributeCode).equals(displayExpression)) {
-                return attributeCode;
-            }
-        }
-        return null;
-    }
-
     private String attributeCodeToName(String refBookCode, String attributeCode) {
 
         RefBookVersion version = versionService.getLastPublishedVersion(refBookCode);
@@ -177,7 +165,7 @@ public class StructureController {
             attribute.setDisplayExpression(displayExpression);
 
             displayType = 2;
-            String attributeCode = displayExpressionToAttributeCode(displayExpression);
+            String attributeCode = StructureUtils.displayExpressionToPlaceholder(displayExpression);
             if (attributeCode != null) {
                 displayType = 1;
                 attribute.setDisplayAttribute(attributeCode);
