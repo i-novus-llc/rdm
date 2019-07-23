@@ -16,6 +16,9 @@ public class ReadAttribute extends FormAttribute {
     private String displayAttribute;
     private String displayAttributeName;
 
+    // conflict
+    private Boolean hasStructureConflict;
+
     public Integer getVersionId() {
         return versionId;
     }
@@ -70,5 +73,13 @@ public class ReadAttribute extends FormAttribute {
 
     public void setDisplayAttributeName(String displayAttributeName) {
         this.displayAttributeName = displayAttributeName;
+    }
+
+    public Boolean getHasStructureConflict() {
+        return hasStructureConflict;
+    }
+
+    public void setHasStructureConflict(Boolean hasStructureConflict) {
+        this.hasStructureConflict = hasStructureConflict;
     }
 }

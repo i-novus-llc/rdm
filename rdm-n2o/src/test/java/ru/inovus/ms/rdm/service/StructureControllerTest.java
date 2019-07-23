@@ -17,6 +17,7 @@ import ru.inovus.ms.rdm.model.version.UpdateAttribute;
 import ru.inovus.ms.rdm.model.refbook.RefBook;
 import ru.inovus.ms.rdm.model.validation.*;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.service.api.ConflictService;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
@@ -48,11 +49,13 @@ public class StructureControllerTest extends TestCase {
     private StructureController structureController;
 
     @Mock
-    private DraftService draftService;
+    private RefBookService refBookService;
     @Mock
     private VersionService versionService;
     @Mock
-    private RefBookService refBookService;
+    private DraftService draftService;
+    @Mock
+    private ConflictService conflictService;
 
     @Captor
     ArgumentCaptor<AttributeValidationRequest> validationRequestArgumentCaptor;
