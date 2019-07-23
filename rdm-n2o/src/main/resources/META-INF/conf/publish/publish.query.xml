@@ -66,21 +66,37 @@
         <field id="hasCheckUpdatedConflicts" domain="string">
             <select mapping="conflictingReferrerNames['UPDATED']?.length() > 0"/>
         </field>
+        <field id="hasCheckAlteredConflicts" domain="string">
+            <select mapping="conflictingReferrerNames['ALTERED']?.length() > 0"/>
+        </field>
+        <field id="hasCheckDisplayDamagedConflicts" domain="string">
+            <select mapping="conflictingReferrerNames['DISPLAY_DAMAGED']?.length() > 0"/>
+        </field>
 
-        <field id="checkDeletedConflictReferrers" domain="string">
+        <field id="listCheckDeletedConflictReferrers" domain="string">
             <select mapping="conflictingReferrerNames['DELETED']"/>
         </field>
-        <field id="checkUpdatedConflictReferrers" domain="string">
+        <field id="listCheckUpdatedConflictReferrers" domain="string">
             <select mapping="conflictingReferrerNames['UPDATED']"/>
+        </field>
+        <field id="listCheckAlteredConflictReferrers" domain="string">
+            <select mapping="conflictingReferrerNames['ALTERED']"/>
+        </field>
+        <field id="listCheckDisplayDamagedConflictReferrers" domain="string">
+            <select mapping="conflictingReferrerNames['DISPLAY_DAMAGED']"/>
         </field>
         <!-- / Checking conflicts -->
 
         <!-- Existing conflicts -->
-        <field id="hasConflict" domain="boolean">
+        <field id="hasDataConflict" domain="boolean">
             <select/>
         </field>
 
         <field id="hasUpdatedConflict" domain="boolean">
+            <select/>
+        </field>
+
+        <field id="hasAlteredConflict" domain="boolean">
             <select/>
         </field>
         <!-- / Existing conflicts -->
@@ -93,7 +109,8 @@
             <select mapping="
                 (!archived) and
                 (status?.toString()=='DRAFT') and
-                (!hasConflict)
+                (!hasDataConflict) and
+                (!hasStructureConflict)
                 "/>
         </field>
 

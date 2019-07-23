@@ -144,21 +144,33 @@
             <select/>
         </field>
 
-        <field id="version.hasConflict" domain="boolean">
-            <select mapping="hasConflict"/>
+        <field id="version.hasDataConflict" domain="boolean">
+            <select mapping="hasDataConflict"/>
         </field>
 
         <field id="version.hasUpdatedConflict" domain="boolean">
             <select mapping="hasUpdatedConflict"/>
         </field>
 
-        <field id="lastHasConflict" domain="boolean">
+        <field id="version.hasAlteredConflict" domain="boolean">
+            <select mapping="hasAlteredConflict"/>
+        </field>
+
+        <field id="version.hasConflict" domain="boolean">
+            <select mapping="hasDataConflict || hasStructureConflict"/>
+        </field>
+
+        <field id="version.hasRefreshedConflict" domain="boolean">
+            <select mapping="hasUpdatedConflict || hasAlteredConflict"/>
+        </field>
+
+        <field id="lastHasDataConflict" domain="boolean">
             <select/>
         </field>
 
-        <field id="lastHasConflictMsg" domain="string">
+        <field id="lastHasDataConflictMsg" domain="string">
             <select mapping="
-                (lastHasConflict ? 'В опубликованной версии справочника есть ссылки на неактуальные данные' : '')
+                (lastHasDataConflict ? 'В опубликованной версии справочника есть ссылки на неактуальные данные' : '')
                 "/>
         </field>
 

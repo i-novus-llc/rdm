@@ -39,14 +39,20 @@ public class RefBook extends RefBookVersion {
     @ApiModelProperty("Наличие связанного справочника")
     private Boolean hasReferrer;
 
-    @ApiModelProperty("Наличие конфликта")
-    private Boolean hasConflict;
+    @ApiModelProperty("Наличие конфликта данных")
+    private Boolean hasDataConflict;
 
     @ApiModelProperty("Наличие конфликта обновления записи")
     private Boolean hasUpdatedConflict;
 
+    @ApiModelProperty("Наличие конфликта изменения структуры")
+    private Boolean hasAlteredConflict;
+
+    @ApiModelProperty("Наличие конфликта структуры")
+    private Boolean hasStructureConflict;
+
     @ApiModelProperty("Наличие конфликта в последней опубликованной версии")
-    private Boolean lastHasConflict;
+    private Boolean lastHasDataConflict;
 
     public RefBook() {
     }
@@ -68,9 +74,10 @@ public class RefBook extends RefBookVersion {
         this.currentOperation = refBook.getCurrentOperation();
         this.hasPrimaryAttribute = refBook.getHasPrimaryAttribute();
 
-        this.hasConflict = refBook.getHasConflict();
+        this.hasDataConflict = refBook.getHasDataConflict();
         this.hasUpdatedConflict = refBook.getHasUpdatedConflict();
-        this.lastHasConflict = refBook.getLastHasConflict();
+        this.hasAlteredConflict = refBook.getHasAlteredConflict();
+        this.lastHasDataConflict = refBook.getLastHasDataConflict();
     }
 
     public Boolean getRemovable() {
@@ -145,12 +152,12 @@ public class RefBook extends RefBookVersion {
         this.hasReferrer = hasReferrer;
     }
 
-    public Boolean getHasConflict() {
-        return hasConflict;
+    public Boolean getHasDataConflict() {
+        return hasDataConflict;
     }
 
-    public void setHasConflict(Boolean hasConflict) {
-        this.hasConflict = hasConflict;
+    public void setHasDataConflict(Boolean hasDataConflict) {
+        this.hasDataConflict = hasDataConflict;
     }
 
     public Boolean getHasUpdatedConflict() {
@@ -161,11 +168,27 @@ public class RefBook extends RefBookVersion {
         this.hasUpdatedConflict = hasUpdatedConflict;
     }
 
-    public Boolean getLastHasConflict() {
-        return lastHasConflict;
+    public Boolean getHasAlteredConflict() {
+        return hasAlteredConflict;
     }
 
-    public void setLastHasConflict(Boolean lastHasConflict) {
-        this.lastHasConflict = lastHasConflict;
+    public void setHasAlteredConflict(Boolean hasAlteredConflict) {
+        this.hasAlteredConflict = hasAlteredConflict;
+    }
+
+    public Boolean getHasStructureConflict() {
+        return hasStructureConflict;
+    }
+
+    public void setHasStructureConflict(Boolean hasStructureConflict) {
+        this.hasStructureConflict = hasStructureConflict;
+    }
+
+    public Boolean getLastHasDataConflict() {
+        return lastHasDataConflict;
+    }
+
+    public void setLastHasDataConflict(Boolean lastHasDataConflict) {
+        this.lastHasDataConflict = lastHasDataConflict;
     }
 }
