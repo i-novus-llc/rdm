@@ -1,7 +1,7 @@
 package ru.inovus.ms.rdm.criteria;
 
 import io.swagger.annotations.ApiModel;
-import ru.inovus.ms.rdm.model.RefBookCriteria;
+import ru.inovus.ms.rdm.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.model.RefBookStatus;
 
 import java.time.LocalDateTime;
@@ -23,7 +23,7 @@ public class RefBookCriteriaDateAndStatus extends RefBookCriteria {
     public void setStatus(RefBookStatus status) {
         setIsArchived(false);
         setHasDraft(false);
-        setHasDraft(false);
+        setHasPublished(false);
         if (RefBookStatus.ARCHIVED.equals(status))
             setIsArchived(true);
         else if (RefBookStatus.HAS_DRAFT.equals(status))

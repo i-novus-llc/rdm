@@ -17,75 +17,98 @@
                     <option id="FLOAT" name="Дробный"/>
                     <option id="DATE" name="Дата"/>
                     <option id="BOOLEAN" name="Логический"/>
-                    <!--<option id="REFERENCE" name="Ссылочный"/>-->
+                    <option id="REFERENCE" name="Ссылочный"/>
                 </options>
             </select>
 
-            <input-select id="referenceRefBook" label="Выбор справочника" query-id="refBook"
-                          label-field-id="code">
+            <input-select id="referenceRefBook" label="Выбор справочника"
+                          query-id="refBook" label-field-id="displayCode">
                 <dependencies>
                     <visibility on="attrType">
                         attrType.id == 'REFERENCE'
                     </visibility>
                 </dependencies>
-            </input-select>
-            <input-select id="referenceVersion" label="Версия" query-id="versionList"
-                          label-field-id="version">
                 <pre-filters>
-                    <eq field-id="refBookId" value="{referenceRefBook.id}"/>
+                    <eq field-id="hasPublishedVersion" value="true" />
+                    <eq field-id="excludeByVersionId" value="{versionId}"/>
                 </pre-filters>
+                <validations>
+                    <condition id="hasRefBook" severity="danger"
+                               message="Справочник не выбран">
+                        referenceRefBook != null
+                    </condition>
+                    <condition id="hasPrimaryAttribute" severity="danger"
+                               message="У справочника нет первичного ключа">
+                        referenceRefBook.hasPrimaryAttribute
+                    </condition>
+                </validations>
+            </input-select>
+
+            <!-- NB: После NNO-1629 сделать скрытие на основе toolbar\button\set-value\displayType\return 1|2; -->
+            
+            <input-select id="displayAttribute" label="Отображаемый атрибут"
+                          query-id="attribute" label-field-id="name">
                 <dependencies>
-                    <visibility on="referenceRefBook,attrType">
-                        (attrType == 'REFERENCE' || referenceRefBook.id != null)
+                    <visibility on="attrType,referenceRefBook">
+                        (attrType.id == 'REFERENCE' &amp;&amp; referenceRefBook != null)
                     </visibility>
                 </dependencies>
+                <pre-filters>
+                    <eq field-id="versionId" value="{referenceRefBook.version.id}" />
+                </pre-filters>
+                <validations>
+                    <condition id="hasAttribute" severity="danger"
+                               message="Атрибут не выбран">
+                        displayAttribute != null
+                    </condition>
+                </validations>
             </input-select>
-            <!--<input-select id="referenceAttribute" label="Связанный атрибут" depends-on="referenceVersion"-->
-                          <!--dependency-condition="isReference" query-id="attribute" value-field-id="code"-->
-                          <!--label-field-id="name"-->
-                          <!--master-field-id="id" detail-field-id="versionId">-->
-                <!--<dependencies>-->
-                    <!--<requiring on="isReference">isReference</requiring>-->
-                    <!--<set-value on="isReference">if (!isReference) undefined; else throw '!';</set-value>-->
-                <!--</dependencies>-->
-            <!--</input-select>-->
 
-            <!--<input-select id="referenceDisplayAttribute" label="Отображаемый атрибут" depends-on="referenceVersion"-->
-            <!--cache="off"-->
-            <!--dependency-condition="isReference">-->
-            <!--<query query-id="attribute" value-field-id="code" label-field-id="name"-->
-            <!--master-field-id="id" detail-field-id="versionId">-->
-            <!--</query>-->
-            <!--<set-value-expression on="isReference">if (!isReference) undefined; else throw '!';-->
-            <!--</set-value-expression>-->
-            <!--</input-select>-->
-            <!--</fields>-->
+            <input-text id="displayExpression" label="Отображаемое поле">
+                <dependencies>
+                    <visibility on="attrType,referenceRefBook">
+                        (attrType.id == 'REFERENCE' &amp;&amp; referenceRefBook != null)
+                    </visibility>
+                    <set-value on="displayAttribute">
+                        if (displayAttribute.codeExpression != null)
+                            return displayAttribute.codeExpression;
+                    </set-value>
+                </dependencies>
+                <validations>
+                    <condition id="hasExpression" severity="danger"
+                               message="Поле не заполнено">
+                        displayExpression != null
+                    </condition>
+                </validations>
+            </input-text>
 
             <checkbox id="isPrimary" label="Первичный ключ">
                 <dependencies>
                     <enabling on="attrType">
-                        (attrType != null &amp;&amp; attrType != 'BOOLEAN')
+                        (!hasReferrer &amp;&amp; attrType != null &amp;&amp; attrType.id != 'BOOLEAN')
                     </enabling>
                 </dependencies>
             </checkbox>
+
             <text-area id="description" label="Описание" rows="2"/>
 
-            <!--пользовательские проверки-->
+            <!-- Пользовательские проверки -->
 
             <checkbox id="required" label="Обязательный атрибут">
                 <dependencies>
                     <visibility on="attrType,isPrimary">
-                        (attrType != null &amp;&amp; attrType != 'BOOLEAN' &amp;&amp; !isPrimary)
+                        (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; !isPrimary)
                     </visibility>
                     <set-value on="isPrimary">
                         if (isPrimary) return false; else return;
                     </set-value>
                 </dependencies>
             </checkbox>
+
             <checkbox id="unique" label="Уникальный атрибут">
                 <dependencies>
                     <visibility on="attrType,isPrimary">
-                        (attrType != null &amp;&amp; attrType != 'BOOLEAN' &amp;&amp; !isPrimary)
+                        (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; !isPrimary)
                     </visibility>
                     <set-value on="isPrimary">
                         if (isPrimary) return false; else return;
@@ -165,6 +188,9 @@
                     </visibility>
                 </dependencies>
             </input-text>
+
+            <!-- / Пользовательские проверки -->
+
         </fields>
     </form>
 </simple-page>

@@ -3,10 +3,10 @@ package ru.inovus.ms.rdm.validation;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.inovus.ms.rdm.model.Row;
+import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.Structure;
 
 import java.util.Arrays;
@@ -39,7 +39,7 @@ public class PkUniqueRowAppendValidationTest {
 
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         pkStructure = new Structure();
         pkStructure.setAttributes(Arrays.asList(
                 Structure.Attribute.buildPrimary(PK_STRING, "string", FieldType.STRING, "string"),

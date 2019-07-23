@@ -2,7 +2,7 @@ package ru.inovus.ms.rdm.audit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import ru.inovus.ms.rdm.model.audit.AuditAction;
 import ru.inovus.ms.rdm.model.audit.AuditLog;
@@ -15,10 +15,14 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 
 @Component
-public class AuditAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
+public class AuditAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     @Autowired
     AuditLogService auditLogService;
+
+    public AuditAuthenticationSuccessHandler() {
+        setUseReferer(true);
+    }
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,

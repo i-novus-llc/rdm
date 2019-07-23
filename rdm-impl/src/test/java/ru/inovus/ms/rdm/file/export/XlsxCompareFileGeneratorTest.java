@@ -3,17 +3,16 @@ package ru.inovus.ms.rdm.file.export;
 import com.google.common.collect.ImmutableSortedMap;
 import com.monitorjbl.xlsx.StreamingReader;
 import net.n2oapp.platform.i18n.UserException;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.Row;
-import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.AdditionalMatchers;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -23,7 +22,13 @@ import ru.inovus.ms.rdm.model.compare.ComparableField;
 import ru.inovus.ms.rdm.model.compare.ComparableFieldValue;
 import ru.inovus.ms.rdm.model.compare.ComparableRow;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
-import ru.inovus.ms.rdm.repositiory.PassportAttributeRepository;
+import ru.inovus.ms.rdm.model.diff.RefBookDataDiff;
+import ru.inovus.ms.rdm.model.diff.StructureDiff;
+import ru.inovus.ms.rdm.model.version.PassportAttribute;
+import ru.inovus.ms.rdm.model.diff.PassportAttributeDiff;
+import ru.inovus.ms.rdm.model.diff.PassportDiff;
+import ru.inovus.ms.rdm.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.repository.PassportAttributeRepository;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
@@ -38,8 +43,8 @@ import java.util.Objects;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
 
 /**
@@ -136,7 +141,13 @@ public class XlsxCompareFileGeneratorTest {
                                 new ComparableFieldValue(not_edited, "ne1", null, DiffStatusEnum.DELETED),
                                 new ComparableFieldValue(deleted, "d1", null, DiffStatusEnum.DELETED)
                         ), DiffStatusEnum.DELETED))));
-        when(compareService.getCommonComparableRows(argThat(CoreMatchers.not(new CompareDataCriteriaMatcher(new CompareDataCriteria(OLD_VERSION_ID, NEW_VERSION_ID))))))
+        when(compareService.getCommonComparableRows(
+                AdditionalMatchers.not(
+                        argThat(
+                                new CompareDataCriteriaMatcher(
+                                        new CompareDataCriteria(OLD_VERSION_ID, NEW_VERSION_ID))))
+                )
+        )
                 .thenReturn(new PageImpl<>(Collections.emptyList()));
 
         when(compareService.compareData(new CompareDataCriteria(OLD_VERSION_ID, NEW_VERSION_ID)))
@@ -184,8 +195,8 @@ public class XlsxCompareFileGeneratorTest {
     }
 
     @Test
-    public void testNotComparableData() throws IOException, InvalidFormatException {
-        when(compareService.compareData(any())).thenThrow(new UserException());
+    public void testNotComparableData() throws IOException {
+        when(compareService.compareData(any())).thenThrow(new UserException("comparing is unavailable"));
 
 
         File tempFile = File.createTempFile("compare_no_data", "xlsx");
@@ -216,7 +227,7 @@ public class XlsxCompareFileGeneratorTest {
         }
     }
 
-    private static class CompareDataCriteriaMatcher extends ArgumentMatcher<CompareDataCriteria> {
+    private static class CompareDataCriteriaMatcher implements ArgumentMatcher<CompareDataCriteria> {
 
         private CompareDataCriteria expected;
 
@@ -225,16 +236,16 @@ public class XlsxCompareFileGeneratorTest {
         }
 
         @Override
-        public boolean matches(Object actual) {
-            if (!(actual instanceof CompareDataCriteria))
+        public boolean matches(CompareDataCriteria actual) {
+            if (actual == null)
                 return false;
-            CompareDataCriteria actualTyped = (CompareDataCriteria) actual;
-            return Objects.equals(expected.getOldVersionId(), actualTyped.getOldVersionId()) &&
-                    Objects.equals(expected.getNewVersionId(), actualTyped.getNewVersionId()) &&
-                    Objects.equals(expected.getPageNumber(), actualTyped.getPageNumber()) &&
-                    Objects.equals(expected.getPageSize(), actualTyped.getPageSize()) &&
-                    Objects.equals(expected.getPrimaryAttributesFilters(), actualTyped.getPrimaryAttributesFilters()) &&
-                    Objects.equals(expected.getCountOnly(), actualTyped.getCountOnly());
+
+           return Objects.equals(expected.getOldVersionId(), actual.getOldVersionId()) &&
+                    Objects.equals(expected.getNewVersionId(), actual.getNewVersionId()) &&
+                    Objects.equals(expected.getPageNumber(), actual.getPageNumber()) &&
+                    Objects.equals(expected.getPageSize(), actual.getPageSize()) &&
+                    Objects.equals(expected.getPrimaryAttributesFilters(), actual.getPrimaryAttributesFilters()) &&
+                    Objects.equals(expected.getCountOnly(), actual.getCountOnly());
         }
     }
 }

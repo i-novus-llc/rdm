@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.entity;
 
+import ru.inovus.ms.rdm.model.validation.AttributeValidation;
 import ru.inovus.ms.rdm.model.validation.AttributeValidationType;
 
 import javax.persistence.*;
@@ -78,5 +79,13 @@ public class AttributeValidationEntity {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public AttributeValidation attributeValidationModel() {
+        AttributeValidation validationModel = this.getType().getValidationInstance();
+        validationModel.valueFromString(this.getValue());
+        validationModel.setVersionId(this.getVersion().getId());
+        validationModel.setAttribute(this.getAttribute());
+        return validationModel;
     }
 }

@@ -8,19 +8,23 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.inovus.ms.rdm.model.Row;
+import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.util.ConverterUtil;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDate;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DBPrimaryKeyValidationTest {
@@ -46,7 +50,7 @@ public class DBPrimaryKeyValidationTest {
     private Row noPkRow;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         pkStructure = new Structure();
         pkStructure.setAttributes(Arrays.asList(
                 Structure.Attribute.buildPrimary(PK_STRING, "string", FieldType.STRING, "string"),
@@ -61,11 +65,11 @@ public class DBPrimaryKeyValidationTest {
         Map<String, Object> pkRowMap = new HashMap<>();
         pkRowMap.put(PK_STRING, "test Value");
         pkRowMap.put(PK_REFERENCE, new Reference());
-        pkRowMap.put(PK_FLOAT, "test Value");
-        pkRowMap.put(PK_DATE, "test Value");
-        pkRowMap.put(PK_BOOL, "test Value");
-        pkRowMap.put(PK_INTEGER, "test Value");
-        pkRowMap.put(NOT_PK, "test Value");
+        pkRowMap.put(PK_FLOAT, BigDecimal.valueOf(2.5));
+        pkRowMap.put(PK_DATE, parseLocalDate("01.01.2011"));
+        pkRowMap.put(PK_BOOL, true);
+        pkRowMap.put(PK_INTEGER, BigInteger.valueOf(5));
+        pkRowMap.put(NOT_PK, BigInteger.valueOf(6));
         pkRow = new Row(pkRowMap);
 
         noPkStructure = new Structure();
@@ -78,19 +82,22 @@ public class DBPrimaryKeyValidationTest {
         noPkRow = new Row(noPkRowMap);
     }
 
-
     @Test
-    public void testValidateWithoutCreateCriteria() throws Exception {
+    public void testValidateWithoutCreateCriteria() {
+        RowValue rowValue = ConverterUtil.rowValue(pkRow, pkStructure);
+        rowValue.setSystemId(1L);
 
-        when(searchDataService.getPagedData(anyObject())).thenReturn(new CollectionPage<>(1, Collections.singletonList(new LongRowValue(1L, emptyList())), new Criteria()));
+        when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>(1, Collections.singletonList(rowValue), new Criteria()));
 
-        ErrorAttributeHolderValidation validation = new DBPrimaryKeyValidation(searchDataService, pkStructure, pkRow, STORAGE_CODE);
+        AppendRowValidation validation = new DBPrimaryKeyValidation(searchDataService, pkStructure, pkRow, STORAGE_CODE);
+        validation.appendRow(pkRow);
         List<Message> messages = validation.validate();
         Set<String> errorAttributes = validation.getErrorAttributes();
         Assert.assertEquals(1, messages.size());
         Assert.assertEquals(6, errorAttributes.size());
 
         validation = new DBPrimaryKeyValidation(searchDataService, pkStructure, pkRow, STORAGE_CODE);
+        validation.appendRow(pkRow);
         validation.setErrorAttributes(Collections.singleton(PK_STRING));
         messages = validation.validate();
         errorAttributes = validation.getErrorAttributes();
@@ -98,21 +105,24 @@ public class DBPrimaryKeyValidationTest {
         Assert.assertEquals(1, errorAttributes.size());
 
         validation = new DBPrimaryKeyValidation(searchDataService, noPkStructure, noPkRow, STORAGE_CODE);
+        validation.appendRow(noPkRow);
         validation.setErrorAttributes(Collections.singleton(PK_STRING));
         messages = validation.validate();
         errorAttributes = validation.getErrorAttributes();
         Assert.assertEquals(0, messages.size());
         Assert.assertEquals(1, errorAttributes.size());
 
-        when(searchDataService.getPagedData(anyObject())).thenReturn(new CollectionPage<>(0, emptyList(), new Criteria()));
+        when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>(0, emptyList(), new Criteria()));
 
         validation = new DBPrimaryKeyValidation(searchDataService, pkStructure, pkRow, STORAGE_CODE);
+        validation.appendRow(pkRow);
         messages = validation.validate();
         errorAttributes = validation.getErrorAttributes();
         Assert.assertEquals(0, messages.size());
         Assert.assertEquals(0, errorAttributes.size());
 
         validation = new DBPrimaryKeyValidation(searchDataService, pkStructure, pkRow, STORAGE_CODE);
+        validation.appendRow(pkRow);
         validation.setErrorAttributes(Collections.singleton(PK_STRING));
         messages = validation.validate();
         errorAttributes = validation.getErrorAttributes();

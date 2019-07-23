@@ -3,11 +3,11 @@ package ru.inovus.ms.rdm.service;
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
@@ -26,25 +26,29 @@ import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.file.FileStorage;
 import ru.inovus.ms.rdm.file.export.*;
 import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.repositiory.PassportValueRepository;
-import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
-import ru.inovus.ms.rdm.repositiory.VersionFileRepository;
+import ru.inovus.ms.rdm.model.refbook.RefBookUpdateRequest;
+import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.model.refdata.RowValuePage;
+import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.repository.PassportValueRepository;
+import ru.inovus.ms.rdm.repository.RefBookVersionRepository;
+import ru.inovus.ms.rdm.repository.VersionFileRepository;
 import ru.inovus.ms.rdm.service.api.ExistsData;
+import ru.inovus.ms.rdm.service.api.VersionFileService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.FileNameGenerator;
+import ru.inovus.ms.rdm.util.TimeUtils;
 
-import javax.transaction.Transactional;
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 import static org.springframework.util.StringUtils.isEmpty;
-import static ru.inovus.ms.rdm.repositiory.RefBookVersionPredicates.hasVersionId;
+import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.*;
 import static ru.inovus.ms.rdm.util.ConverterUtil.*;
 import static ru.inovus.ms.rdm.util.ModelGenerator.versionModel;
 
@@ -52,58 +56,55 @@ import static ru.inovus.ms.rdm.util.ModelGenerator.versionModel;
 @Primary
 public class VersionServiceImpl implements VersionService {
 
-    public static final String ROW_NOT_FOUND = "row.not.found";
-    public static final String VERSION_NOT_FOUND = "version.not.found";
+    private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
+    private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
+    private static final String LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE = "last.published.not.found";
 
     private RefBookVersionRepository versionRepository;
+
     private SearchDataService searchDataService;
-    private FileNameGenerator fileNameGenerator;
-    private VersionFileRepository versionFileRepository;
+
     private FileStorage fileStorage;
+    private FileNameGenerator fileNameGenerator;
+
+    private VersionFileRepository versionFileRepository;
     private PassportValueRepository passportValueRepository;
-
-
-    private String passportFileHead;
-    private boolean includePassport;
+    private VersionFileService versionFileService;
 
     @Autowired
     public VersionServiceImpl(RefBookVersionRepository versionRepository,
                               SearchDataService searchDataService,
-                              FileNameGenerator fileNameGenerator, VersionFileRepository versionFileRepository,
-                              FileStorage fileStorage, PassportValueRepository passportValueRepository) {
+                              FileStorage fileStorage, FileNameGenerator fileNameGenerator,
+                              VersionFileRepository versionFileRepository,
+                              PassportValueRepository passportValueRepository,
+                              VersionFileService versionFileService) {
         this.versionRepository = versionRepository;
+
         this.searchDataService = searchDataService;
-        this.fileNameGenerator = fileNameGenerator;
-        this.versionFileRepository = versionFileRepository;
+
         this.fileStorage = fileStorage;
+        this.fileNameGenerator = fileNameGenerator;
+
+        this.versionFileRepository = versionFileRepository;
         this.passportValueRepository = passportValueRepository;
-    }
-
-    @Value("${rdm.download.passport.head}")
-    public void setPassportFileHead(String passportFileHead) {
-        this.passportFileHead = passportFileHead;
-    }
-
-    @Value("${rdm.download.passport-enable}")
-    public void setIncludePassport(boolean includePassport) {
-        this.includePassport = includePassport;
+        this.versionFileService = versionFileService;
     }
 
     @Override
     public Page<RefBookRowValue> search(Integer versionId, SearchDataCriteria criteria) {
-        RefBookVersionEntity version = versionRepository.findOne(versionId);
-        if (version == null)
-            throw new NotFoundException(new Message(VERSION_NOT_FOUND, versionId));
+        RefBookVersionEntity version = versionRepository
+                .findById(versionId)
+                .orElseThrow(() -> new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId)));
         return getRowValuesOfVersion(criteria, version);
     }
 
     @Override
     @Transactional
     public RefBookVersion getById(Integer versionId) {
-        RefBookVersionEntity versionEntity = versionRepository.findOne(versionId);
-        if (versionEntity == null)
-            throw new NotFoundException(new Message(VERSION_NOT_FOUND, versionId));
-        return versionModel(versionEntity);
+        RefBookVersionEntity version = versionRepository
+                .findById(versionId)
+                .orElseThrow(() -> new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId)));
+        return versionModel(version);
     }
 
     @Override
@@ -111,54 +112,69 @@ public class VersionServiceImpl implements VersionService {
     public RefBookVersion getVersion(String version, String refBookCode) {
         RefBookVersionEntity versionEntity = versionRepository.findByVersionAndRefBookCode(version, refBookCode);
         if (versionEntity == null)
-            throw new NotFoundException(new Message(VERSION_NOT_FOUND, version));
+            throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, version));
         return versionModel(versionEntity);
     }
 
     @Override
-    public Page<RefBookRowValue> search(String refBookCode, OffsetDateTime date, SearchDataCriteria criteria) {
-        RefBookVersionEntity version = versionRepository.findActualOnDate(refBookCode, date.toLocalDateTime());
+    @Transactional
+    public RefBookVersion getLastPublishedVersion(String refBookCode) {
+        RefBookVersionEntity versionEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.PUBLISHED);
+        if (versionEntity == null)
+            throw new NotFoundException(new Message(LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE, refBookCode));
+        return versionModel(versionEntity);
+    }
+
+    @Override
+    public Page<RefBookRowValue> search(String refBookCode, LocalDateTime date, SearchDataCriteria criteria) {
+        RefBookVersionEntity version = versionRepository.findActualOnDate(refBookCode, date);
         return version != null ? getRowValuesOfVersion(criteria, version) : new PageImpl<>(emptyList());
     }
 
     @Override
     public Page<RefBookRowValue> search(String refBookCode, SearchDataCriteria criteria) {
-        return search(refBookCode, OffsetDateTime.now(), criteria);
+        return search(refBookCode, TimeUtils.now(), criteria);
     }
 
     private Page<RefBookRowValue> getRowValuesOfVersion(SearchDataCriteria criteria, RefBookVersionEntity version) {
         List<Field> fields = fields(version.getStructure());
-        Date bdate = date(version.getFromDate());
-        Date edate = date(version.getToDate());
-
         Set<List<FieldSearchCriteria>> fieldSearchCriteriaList = new HashSet<>();
         fieldSearchCriteriaList.addAll(getFieldSearchCriteriaList(criteria.getAttributeFilter()));
         fieldSearchCriteriaList.addAll(getFieldSearchCriteriaList(criteria.getPlainAttributeFilter(), version.getStructure()));
 
-        DataCriteria dataCriteria = new DataCriteria(version.getStorageCode(), bdate, edate,
-                fields, fieldSearchCriteriaList, criteria.getCommonFilter());
+        DataCriteria dataCriteria = new DataCriteria(version.getStorageCode(), version.getFromDate(), version.getToDate(),
+                fields, fieldSearchCriteriaList, criteria.getRowSystemIds(), criteria.getCommonFilter());
         dataCriteria.setPage(criteria.getPageNumber() + 1);
         dataCriteria.setSize(criteria.getPageSize());
         Optional.ofNullable(criteria.getSort()).ifPresent(sort -> dataCriteria.setSortings(sortings(sort)));
+
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
-        return pagedData.getCollection() != null ? new RowValuePage(pagedData).map(rv -> new RefBookRowValue((LongRowValue) rv, version.getId())) : null;
+        return pagedData.getCollection() != null
+                ? new RowValuePage(pagedData).map(rv -> new RefBookRowValue((LongRowValue) rv, version.getId()))
+                : null;
     }
 
     @Override
+    @Transactional
     public Structure getStructure(Integer versionId) {
-        return versionRepository.findOne(versionId).getStructure();
+        return versionRepository.getOne(versionId).getStructure();
     }
 
     @Override
     @Transactional
     public ExportFile getVersionFile(Integer versionId, FileType fileType) {
-        RefBookVersionEntity versionEntity = versionRepository.findOne(versionId);
-        if (versionEntity == null || fileType == null) return null;
+        if (fileType == null)
+            return null;
+
+        RefBookVersionEntity versionEntity = versionRepository
+                .findById(versionId)
+                .orElseThrow(() -> new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId)));
 
         VersionFileEntity fileEntity = versionFileRepository.findByVersionIdAndType(versionId, fileType);
         String path = null;
         if (fileEntity != null)
             path = fileEntity.getPath();
+
         if (fileEntity == null || !fileStorage.isExistContent(fileEntity.getPath())) {
             path = generateVersionFile(versionEntity, fileType);
         }
@@ -171,14 +187,17 @@ public class VersionServiceImpl implements VersionService {
     @Override
     @Transactional
     public RefBookVersion updatePassport(RefBookUpdateRequest refBookUpdateRequest) {
-        RefBookVersionEntity refBookVersionEntity = versionRepository.findOne(refBookUpdateRequest.getVersionId());
-        if (refBookVersionEntity == null) return null;
+        RefBookVersionEntity refBookVersionEntity = versionRepository
+                .findById(refBookUpdateRequest.getVersionId())
+                .orElseThrow(() ->
+                        new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, refBookUpdateRequest.getVersionId())));
 
         updateVersionFromPassport(refBookVersionEntity, refBookUpdateRequest.getPassport());
         return versionModel(refBookVersionEntity);
     }
 
     @Override
+    @Transactional
     public ExistsData existsData(List<String> rowIds) {
         List<String> notExistent = new ArrayList<>();
         Map<Integer, List<String>> hashes = new HashMap<>();
@@ -200,36 +219,41 @@ public class VersionServiceImpl implements VersionService {
         }
 
         for (Map.Entry<Integer, List<String>> entry : hashes.entrySet()) {
-            RefBookVersionEntity versionEntity = versionRepository.findOne(entry.getKey());
+            RefBookVersionEntity versionEntity = versionRepository.getOne(entry.getKey());
             notExistent.addAll(searchDataService.getNotExists(
                     versionEntity.getStorageCode(),
-                    date(versionEntity.getFromDate()),
-                    date(versionEntity.getToDate()),
+                    versionEntity.getFromDate(),
+                    versionEntity.getToDate(),
                     entry.getValue()));
-
         }
-
         return new ExistsData(notExistent.isEmpty(), notExistent);
     }
 
     @Override
     public RefBookRowValue getRow(String rowId) {
-        if (!rowId.matches("^.+\\$\\d+$")) throw new NotFoundException(ROW_NOT_FOUND);
+
+        if (!rowId.matches("^.+\\$\\d+$"))
+            throw new NotFoundException(ROW_NOT_FOUND_EXCEPTION_CODE);
 
         String[] split = rowId.split("\\$");
-        RefBookVersionEntity version = versionRepository.findOne(Integer.parseInt(split[1]));
-        if (version == null) throw new NotFoundException(ROW_NOT_FOUND);
+        RefBookVersionEntity version = versionRepository
+                .findById(Integer.parseInt(split[1]))
+                .orElseThrow(() -> new NotFoundException(ROW_NOT_FOUND_EXCEPTION_CODE));
 
         DataCriteria criteria = new DataCriteria(
                 version.getStorageCode(),
-                date(version.getFromDate()),
-                date(version.getToDate()),
+                version.getFromDate(),
+                version.getToDate(),
                 fields(version.getStructure()),
                 singletonList(split[0]));
 
         List<RowValue> data = searchDataService.getData(criteria);
-        if (CollectionUtils.isEmpty(data)) throw new NotFoundException(ROW_NOT_FOUND);
-        if (data.size() > 1) throw new IllegalStateException("more than one row with id " + rowId);
+        if (CollectionUtils.isEmpty(data))
+            throw new NotFoundException(ROW_NOT_FOUND_EXCEPTION_CODE);
+
+        if (data.size() > 1)
+            throw new IllegalStateException("more than one row with id " + rowId);
+
         return new RefBookRowValue((LongRowValue) data.get(0), version.getId());
     }
 
@@ -243,19 +267,16 @@ public class VersionServiceImpl implements VersionService {
                         newPassport.get(passportValue.getAttribute().getCode()) == null
                 ).collect(Collectors.toList());
 
-        passportValueRepository.delete(valuesToRemove);
+        passportValueRepository.deleteAll(valuesToRemove);
 
-        versionEntity
-                .getPassportValues()
+        versionEntity.getPassportValues()
                 .removeAll(valuesToRemove);
 
-        newPassport
-                .entrySet()
+        newPassport.entrySet()
                 .stream()
                 .filter(newPV -> !isEmpty(newPV.getValue()))
                 .forEach(newPV -> {
-                    PassportValueEntity oldPV = versionEntity
-                            .getPassportValues()
+                    PassportValueEntity oldPV = versionEntity.getPassportValues()
                             .stream()
                             .filter(pv ->
                                     newPV.getKey().equals(pv.getAttribute().getCode())
@@ -266,8 +287,7 @@ public class VersionServiceImpl implements VersionService {
                     if (oldPV != null)
                         oldPV.setValue(newPV.getValue());
                     else
-                        versionEntity
-                                .getPassportValues()
+                        versionEntity.getPassportValues()
                                 .add(new PassportValueEntity(new PassportAttributeEntity(newPV.getKey()), newPV.getValue(), versionEntity));
                 });
     }
@@ -280,16 +300,19 @@ public class VersionServiceImpl implements VersionService {
         String path;
         try (InputStream is = generateVersionFile(versionModel, fileType)) {
             path = fileStorage.saveContent(is, fileNameGenerator.generateZipName(versionModel, fileType));
+
         } catch (IOException e) {
             throw new RdmException(e);
         }
+
         if (path == null || !fileStorage.isExistContent(path))
             throw new RdmException("cannot generate file");
 
         VersionFileEntity fileEntity = versionFileRepository.findByVersionIdAndType(versionModel.getId(), fileType);
-        if (fileEntity == null && !RefBookVersionStatus.DRAFT.equals(version.getStatus())) {
+        if (fileEntity == null && !versionModel.isDraft()) {
             RefBookVersionEntity versionEntity = new RefBookVersionEntity();
             versionEntity.setId(versionModel.getId());
+
             fileEntity = new VersionFileEntity(versionEntity, fileType, path);
             versionFileRepository.save(fileEntity);
         }
@@ -298,23 +321,7 @@ public class VersionServiceImpl implements VersionService {
     }
 
     private InputStream generateVersionFile(RefBookVersion versionModel, FileType fileType) {
-        VersionDataIterator dataIterator = new VersionDataIterator(this, singletonList(versionModel.getId()));
-        try (PerRowFileGenerator fileGenerator = PerRowFileGeneratorFactory
-                .getFileGenerator(dataIterator, versionModel, fileType);
-             Archiver archiver = new Archiver()) {
-            if (includePassport) {
-                try (FileGenerator passportPdfFileGenerator =
-                             new PassportPdfFileGenerator(passportValueRepository, versionModel.getId(),
-                                     passportFileHead, versionModel.getCode(), versionModel.getCategory())) {
-                    archiver.addEntry(passportPdfFileGenerator, fileNameGenerator.generateName(versionModel, FileType.PDF));
-                }
-            }
-            return archiver
-                    .addEntry(fileGenerator, fileNameGenerator.generateName(versionModel, fileType))
-                    .getArchive();
-        } catch (IOException e) {
-            throw new RdmException(e);
-        }
+        VersionDataIterator dataIterator = new VersionDataIterator(this, Collections.singletonList(versionModel.getId()));
+        return versionFileService.generate(versionModel, fileType, dataIterator);
     }
-
 }

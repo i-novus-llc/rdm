@@ -1,7 +1,7 @@
 package ru.inovus.ms.rdm.model.validation;
 
 import net.n2oapp.platform.i18n.UserException;
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.StringUtils;
 
 import static java.lang.Integer.parseInt;
 
@@ -47,9 +47,9 @@ public class FloatSizeAttributeValidation extends AttributeValidation {
         if (value == null || !value.matches("^\\d*;\\d*$"))
             throw new UserException("attribute.validation.value.invalid");
         String[] split = value.split(";");
-        if (StringUtils.isNotBlank(split[0]))
+        if (!StringUtils.isEmpty(split[0]))
             intPartSize = parseInt(split[0]);
-        if (StringUtils.isNotBlank(split[1]))
+        if (!StringUtils.isEmpty(split[1]))
             fracPartSize = parseInt(split[1]);
         return this;
 

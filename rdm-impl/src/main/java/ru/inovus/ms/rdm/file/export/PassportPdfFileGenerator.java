@@ -3,7 +3,7 @@ package ru.inovus.ms.rdm.file.export;
 import com.itextpdf.text.DocumentException;
 import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.exception.RdmException;
-import ru.inovus.ms.rdm.repositiory.PassportValueRepository;
+import ru.inovus.ms.rdm.repository.PassportValueRepository;
 
 import java.io.IOException;
 import java.io.OutputStream;

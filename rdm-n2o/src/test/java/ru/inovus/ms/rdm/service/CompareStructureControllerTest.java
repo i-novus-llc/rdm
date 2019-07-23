@@ -1,19 +1,18 @@
 package ru.inovus.ms.rdm.service;
 
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.model.AttributeDiff;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.model.StructureDiff;
+import ru.inovus.ms.rdm.model.diff.StructureDiff;
 import ru.inovus.ms.rdm.model.compare.CompareCriteria;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.VersionService;
@@ -22,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.singletonList;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -54,17 +54,17 @@ public class CompareStructureControllerTest {
                 Structure.Attribute.build("code4", "Код4", FieldType.STRING, "Описание4")
         ), null));
         when(compareService.compareStructures(oldId, newId)).thenReturn(new StructureDiff(
-                Arrays.asList(
+                singletonList(
                         new StructureDiff.AttributeDiff(
                                 null,
                                 Structure.Attribute.build("code5", "Код5", FieldType.STRING, "Описание5"))
                 ),
-                Arrays.asList(
+                singletonList(
                         new StructureDiff.AttributeDiff(
                                 Structure.Attribute.build("code2", "Код2", FieldType.STRING, "Описание2"),
                                 Structure.Attribute.build("code2", "Код2.1", FieldType.STRING, "Описание2.1"))
                 ),
-                Arrays.asList(
+                singletonList(
                         new StructureDiff.AttributeDiff(
                                 Structure.Attribute.build("code3", "Код3", FieldType.STRING, "Описание3"),
                                 null)
@@ -73,7 +73,7 @@ public class CompareStructureControllerTest {
     }
 
     @Test
-    public void testGetCommonDiff() throws Exception {
+    public void testGetCommonDiff() {
         List<AttributeDiff> expectedCommon = Arrays.asList(
                 createDiff(null, Structure.Attribute.build("code1", "Код1", FieldType.STRING, "Описание1"), null),
                 createDiff(Structure.Attribute.build("code2", "Код2", FieldType.STRING, "Описание2"),
@@ -122,7 +122,7 @@ public class CompareStructureControllerTest {
     }
 
     @Test
-    public void testGetOldWithDiff() throws Exception {
+    public void testGetOldWithDiff() {
         List<AttributeDiff> expectedCommon = Arrays.asList(
                 createDiff(Structure.Attribute.build("code1", "Код1", FieldType.STRING, "Описание1"), null, null),
                 createDiff(Structure.Attribute.build("code2", "Код2", FieldType.STRING, "Описание2"),
@@ -170,7 +170,7 @@ public class CompareStructureControllerTest {
     }
 
     @Test
-    public void testGetNewWithDiff() throws Exception {
+    public void testGetNewWithDiff() {
         List<AttributeDiff> expectedCommon = Arrays.asList(
                 createDiff(null, Structure.Attribute.build("code1", "Код1", FieldType.STRING, "Описание1"), null),
                 createDiff(Structure.Attribute.build("code2", "Код2", FieldType.STRING, "Описание2"),

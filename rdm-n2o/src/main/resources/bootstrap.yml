@@ -3,7 +3,5 @@ spring:
     name: rdm-frontend
   cloud:
     consul:
-      host: consul.develop.i-novus.ru
       config:
         enabled: ${config.server.enable}
-        fail-fast: false

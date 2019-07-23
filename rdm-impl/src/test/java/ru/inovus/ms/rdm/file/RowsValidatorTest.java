@@ -6,26 +6,33 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.AdditionalMatchers;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
-import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
+import ru.inovus.ms.rdm.entity.RefBookEntity;
+import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
+import ru.inovus.ms.rdm.file.process.RowsValidator;
+import ru.inovus.ms.rdm.file.process.RowsValidatorImpl;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.version.AttributeFilter;
+import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.model.refdata.Row;
+import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.util.ModelGenerator;
 import ru.inovus.ms.rdm.validation.ReferenceValueValidation;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.List;
 
-import static org.mockito.Matchers.eq;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static ru.inovus.ms.rdm.file.BufferedRowsPersisterTest.createTestStructure;
 
@@ -35,9 +42,6 @@ public class RowsValidatorTest {
     private RowsValidator rowsValidator;
 
     @Mock
-    private FieldFactory fieldFactory;
-
-    @Mock
     private VersionService versionService;
 
     @Mock
@@ -45,71 +49,67 @@ public class RowsValidatorTest {
 
     private static final String ATTRIBUTE_NAME = "ref_name";
 
-    private static final String ATTRIBUTE_NAME_WITH_WRONG_TYPE = "ref_name_wrong";
-
     private static final String ATTRIBUTE_VALUE = "ref_value";
-
-    private static final String WRONG_ATTRIBUTE_VALUE = "ref_value_wrong";
 
     private static final String REFERENCE_ATTRIBUTE = "name";
 
+    private static final String REFERENCE_CODE = "REF_CODE";
     private static final Integer REFERENCE_VERSION = 1;
-
-    private SearchDataCriteria searchDataCriteria;
 
     @Before
     public void setUp() {
-        rowsValidator = new RowsValidatorImpl(versionService, searchDataService, createTestStructureWithReference(), "",
-                100, Collections.emptyList());
-        when(fieldFactory.createField(eq(REFERENCE_ATTRIBUTE), eq(FieldType.STRING)))
-                .thenReturn(new StringField(REFERENCE_ATTRIBUTE));
-        when(versionService.getStructure(eq(REFERENCE_VERSION)))
-                .thenReturn(createTestStructure());
+        rowsValidator = new RowsValidatorImpl(2, versionService, searchDataService,
+                createTestStructureWithReference(), "",
+                100, false, emptyList());
+
+        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
+        versionEntity.setId(REFERENCE_VERSION);
+        versionEntity.setStructure(createTestStructure());
+        versionEntity.setRefBook(new RefBookEntity());
+        when(versionService.getLastPublishedVersion(eq(REFERENCE_CODE)))
+                .thenReturn(ModelGenerator.versionModel(versionEntity));
+
         AttributeFilter attributeFilter = new AttributeFilter(REFERENCE_ATTRIBUTE, ATTRIBUTE_VALUE, FieldType.STRING, SearchTypeEnum.EXACT);
-        searchDataCriteria = new SearchDataCriteria(
-                new HashSet<List<AttributeFilter>>() {{
-                    add(Collections.singletonList(attributeFilter));
+        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(
+                new HashSet<>() {{
+                    add(singletonList(attributeFilter));
                 }},
                 null);
         when(versionService.search(eq(REFERENCE_VERSION), eq(searchDataCriteria)))
-                .thenReturn(new PageImpl<>(Collections.singletonList(new RefBookRowValue())));
+                .thenReturn(new PageImpl<>(singletonList(new RefBookRowValue())));
     }
 
     @Test
     public void testAppendAndProcess() {
         Row row = createTestRowWithReference();
-        Result expected = new Result(1, 1, Collections.emptyList());
+        Result appendExpected = new Result(0, 0, null);
+        Result processExpected = new Result(1, 1, emptyList());
 
         Result appendActual = rowsValidator.append(row);
         Result processActual = rowsValidator.process();
 
-        Assert.assertEquals(expected, appendActual);
-        Assert.assertEquals(expected, processActual);
+        Assert.assertEquals(appendExpected, appendActual);
+        Assert.assertEquals(processExpected, processActual);
     }
 
     @Test
     public void testAppendAndProcessWithErrors() {
         Row validRow = createTestRowWithReference();
         String newAttributeValue = ATTRIBUTE_VALUE + "_1";
-        Row notValidRow = new Row(new LinkedHashMap() {{
+        Row notValidRow = new Row(new LinkedHashMap<>() {{
             put(ATTRIBUTE_NAME, new Reference(newAttributeValue, newAttributeValue));
         }});
-        Result expected = new Result(1, 2, Collections.singletonList(new Message("validation.reference.err", ATTRIBUTE_NAME, newAttributeValue)));
-        when(versionService.search(AdditionalMatchers.not(eq(REFERENCE_VERSION)), AdditionalMatchers.not(eq(searchDataCriteria))))
-                .thenReturn(new PageImpl<>(Collections.emptyList()));
 
         rowsValidator.append(validRow);
-        Result appendActual = rowsValidator.append(notValidRow);
+        rowsValidator.append(notValidRow);
 
         try {
             rowsValidator.process();
             Assert.fail();
         } catch (UserException e) {
             Assert.assertEquals(1, e.getMessages().size());
-            Assert.assertEquals(new Message(ReferenceValueValidation.REFERENCE_ERROR_CODE, ATTRIBUTE_NAME, ATTRIBUTE_VALUE + "_1"), e.getMessages().get(0));
+            Assert.assertEquals(new Message(ReferenceValueValidation.REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE, ATTRIBUTE_NAME, ATTRIBUTE_VALUE + "_1"), e.getMessages().get(0));
         }
-
-        Assert.assertEquals(expected, appendActual);
     }
 
     /**
@@ -117,20 +117,20 @@ public class RowsValidatorTest {
      * @throws Exception
      */
     @Test
-    public void testIgnoreAttributeIfIsHasInvalidType() throws Exception {
+    public void testIgnoreAttributeIfIsHasInvalidType() {
         //todo
     }
 
     private Row createTestRowWithReference() {
-        return new Row(new LinkedHashMap<String, Object>() {{
+        return new Row(new LinkedHashMap<>() {{
             put(ATTRIBUTE_NAME, new Reference(ATTRIBUTE_VALUE, ATTRIBUTE_VALUE));
         }});
     }
 
     private Structure createTestStructureWithReference() {
         Structure structure = new Structure();
-        structure.setAttributes(Collections.singletonList(Structure.Attribute.build(ATTRIBUTE_NAME, ATTRIBUTE_NAME, FieldType.REFERENCE, "description")));
-        structure.setReferences(Collections.singletonList(new Structure.Reference(ATTRIBUTE_NAME, REFERENCE_VERSION, REFERENCE_ATTRIBUTE, null)));
+        structure.setAttributes(singletonList(Structure.Attribute.build(ATTRIBUTE_NAME, ATTRIBUTE_NAME, FieldType.REFERENCE, "description")));
+        structure.setReferences(singletonList(new Structure.Reference(ATTRIBUTE_NAME, REFERENCE_CODE, null)));
         return structure;
     }
 }

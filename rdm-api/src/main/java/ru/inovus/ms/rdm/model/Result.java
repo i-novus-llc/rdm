@@ -1,11 +1,11 @@
 package ru.inovus.ms.rdm.model;
 
-
 import net.n2oapp.platform.i18n.Message;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 
 public class Result {
 
@@ -44,7 +44,7 @@ public class Result {
             totalErrors.addAll(result.getErrors());
         }
 
-        return  new Result(this.successCount + result.getSuccessCount(), this.getAllCount() + result.getAllCount(), new ArrayList<>(totalErrors));
+        return new Result(this.successCount + result.getSuccessCount(), this.getAllCount() + result.getAllCount(), new ArrayList<>(totalErrors));
     }
 
     @Override
@@ -56,7 +56,7 @@ public class Result {
 
         if (successCount != result.successCount) return false;
         if (allCount != result.allCount) return false;
-        return errors != null ? errors.equals(result.errors) : result.errors == null;
+        return Objects.equals(errors, result.errors);
     }
 
     @Override

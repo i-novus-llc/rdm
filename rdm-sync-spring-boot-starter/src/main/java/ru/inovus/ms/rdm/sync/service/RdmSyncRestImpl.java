@@ -12,9 +12,13 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
-import ru.inovus.ms.rdm.enumeration.RefBookInfo;
-import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
+import ru.inovus.ms.rdm.model.diff.RefBookDataDiff;
+import ru.inovus.ms.rdm.model.refbook.RefBook;
+import ru.inovus.ms.rdm.model.refbook.RefBookCriteria;
+import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
@@ -115,9 +119,9 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     private RefBook getNewVersionFromRdm(String refbookCode) {
         RefBookCriteria refBookCriteria = new RefBookCriteria();
         refBookCriteria.setCode(refbookCode);
-        refBookCriteria.setRefBookInfo(RefBookInfo.PUBLISHED);
+        refBookCriteria.setSourceType(RefBookSourceType.LAST_PUBLISHED);
         Page<RefBook> rdmRefbooks = refBookService.search(refBookCriteria);
-        if (rdmRefbooks.getContent() == null || rdmRefbooks.getContent().isEmpty()) {
+        if (CollectionUtils.isEmpty(rdmRefbooks.getContent())) {
             throw new IllegalStateException(String.format("Справочник с кодом %s не найден в системе", refbookCode));
         }
         RefBook rdmRefbook = rdmRefbooks.getContent().get(0);
@@ -134,17 +138,21 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         compareDataCriteria.setOldVersionId(versionService.getVersion(versionMapping.getVersion(), versionMapping.getCode()).getId());
         compareDataCriteria.setNewVersionId(newVersion.getId());
         compareDataCriteria.setCountOnly(true);
+        compareDataCriteria.setPageSize(1);
+        int page = 0;
         RefBookDataDiff diff = compareService.compareData(compareDataCriteria);
         //если изменилась структура, проверяем актуальность полей в маппинге
         validateStructureChanges(versionMapping, fieldMappings, diff);
         if (diff.getRows().getTotalElements() > 0) {
             compareDataCriteria.setCountOnly(false);
+            compareDataCriteria.setPageSize(MAX_SIZE);
             for (int i = 0; i < diff.getRows().getTotalElements(); i = i + MAX_SIZE) {
-                compareDataCriteria.setPageNumber(i);
+                compareDataCriteria.setPageNumber(page);
                 diff = compareService.compareData(compareDataCriteria);
                 for (DiffRowValue row : diff.getRows().getContent()) {
                     mergeRow(row, versionMapping, fieldMappings, newVersion);
                 }
+                page++;
             }
         }
     }

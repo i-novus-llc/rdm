@@ -34,7 +34,7 @@ public class UpdateDependencyTransformer implements CompileTransformer<Table, Co
             if (buttonConditions == null) {
                 buttonConditions = new ArrayList<>();
             }
-            Optional<ButtonCondition> buttonCondition = buttonConditions.stream().filter(c -> c.getExpression().equals("!_.isEmpty(this)")).findAny();
+            Optional<ButtonCondition> buttonCondition = buttonConditions.stream().filter(c -> "!_.isEmpty(this)".equals(c.getExpression())).findAny();
             if (buttonCondition.isPresent()) {
                 buttonCondition.get().setModelLink(new ModelLink(ReduxModel.RESOLVE, table.getId()).getBindLink());
             } else {

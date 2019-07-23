@@ -1,7 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <object xmlns="http://n2oapp.net/framework/config/schema/object-3.0" name="Справочник">
 
-
     <operations>
         <operation id="delete" submit-label="Удалить" success-text="Запись успешно удалена"
                    confirm="true" confirm-text="Вы точно хотите удалить запись?">
@@ -20,7 +19,6 @@
                 <param id="versionId" mapping="[0]" domain="integer" mapper="spel" />
                 <param id="id" mapping="[1]" domain="long" mapper="spel"/>
             </in-parameters>
-
         </operation>
 
         <operation id="deleteAll" submit-label="Удалить все" success-text="Все записи успешно удалены"
@@ -38,7 +36,6 @@
             <in-parameters>
                 <param id="versionId" mapping="[0]" domain="integer" mapper="spel" />
             </in-parameters>
-
         </operation>
     </operations>
 

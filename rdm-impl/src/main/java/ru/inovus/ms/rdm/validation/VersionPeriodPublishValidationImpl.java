@@ -1,7 +1,6 @@
 package ru.inovus.ms.rdm.validation;
 
 import org.springframework.stereotype.Component;
-import ru.inovus.ms.rdm.util.VersionPeriodPublishValidation;
 
 import java.time.LocalDateTime;
 

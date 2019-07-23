@@ -5,8 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Controller;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
-import ru.inovus.ms.rdm.model.RefBookRowValue;
-import ru.inovus.ms.rdm.model.SearchDataCriteria;
+import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.model.compare.ComparableFieldValue;
 import ru.inovus.ms.rdm.model.compare.ComparableRow;
@@ -22,6 +22,7 @@ import static ru.inovus.ms.rdm.util.ComparableUtils.createPrimaryAttributesFilte
 import static ru.inovus.ms.rdm.util.ComparableUtils.findComparableRow;
 
 @Controller
+@SuppressWarnings("WeakerAccess")
 public class CompareDataController {
 
     @Autowired

@@ -13,20 +13,39 @@ import net.n2oapp.framework.engine.data.N2oQueryProcessor;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import ru.inovus.ms.rdm.criteria.RestCriteriaConstructor;
-import ru.inovus.ms.rdm.message.RdmExceptionHandler;
+import ru.inovus.ms.rdm.handler.RdmExceptionHandler;
 import ru.inovus.ms.rdm.operation.RdmCompileCacheOperation;
 import ru.inovus.ms.rdm.operation.RdmSourceCacheOperation;
+import ru.inovus.ms.rdm.provider.AttributeFilterConverter;
 import ru.inovus.ms.rdm.provider.ExportFileProvider;
-import ru.inovus.ms.rdm.provider.RdmParamConverterProvider;
-import ru.inovus.ms.rdm.provider.RowValueMapperPreparer;
+import ru.inovus.ms.rdm.provider.OffsetDateTimeParamConverter;
+import ru.inovus.ms.rdm.provider.RdmMapperConfigurer;
+import ru.inovus.ms.rdm.util.json.RdmN2oLocalDateTimeMapperPreparer;
 
 @Configuration
 public class ClientConfiguration {
 
     @Bean
-    RdmParamConverterProvider rdmParamConverterProvider() {
-        return new RdmParamConverterProvider();
+    @Primary
+    public RdmExceptionHandler exceptionHandler() {
+        return new RdmExceptionHandler();
+    }
+
+    @Bean
+    public AttributeFilterConverter attributeFilterConverter() {
+        return new AttributeFilterConverter();
+    }
+
+    @Bean
+    public OffsetDateTimeParamConverter offsetDateTimeParamConverter() {
+        return new OffsetDateTimeParamConverter();
+    }
+
+    @Bean
+    RdmN2oLocalDateTimeMapperPreparer localDateTimeMapperPreparer() {
+        return new RdmN2oLocalDateTimeMapperPreparer();
     }
 
     @Bean
@@ -35,13 +54,8 @@ public class ClientConfiguration {
     }
 
     @Bean
-    RowValueMapperPreparer rowValueMapperPreparer(){
-        return new RowValueMapperPreparer();
-    }
-
-    @Bean
-    public RdmExceptionHandler exceptionHandler() {
-        return new RdmExceptionHandler();
+    RdmMapperConfigurer rdmMapperConfigurer(){
+        return new RdmMapperConfigurer();
     }
 
     @Bean

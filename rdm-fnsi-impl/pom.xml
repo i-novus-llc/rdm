@@ -7,8 +7,12 @@
     <parent>
         <groupId>ru.inovus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
-        <version>1.27-SNAPSHOT</version>
+        <version>1.42-SNAPSHOT</version>
     </parent>
+
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
 
     <build>
         <finalName>rdm-fnsi-impl</finalName>

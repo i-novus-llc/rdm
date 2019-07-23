@@ -2,37 +2,43 @@ package ru.inovus.ms.rdm.service;
 
 import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.jaxrs.RestPage;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.refbook.RefBook;
+import ru.inovus.ms.rdm.model.version.CreateAttribute;
+import ru.inovus.ms.rdm.model.version.RefBookVersionAttribute;
+import ru.inovus.ms.rdm.model.version.UpdateAttribute;
 import ru.inovus.ms.rdm.model.validation.*;
+import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.util.StructureUtils;
+import ru.inovus.ms.rdm.util.TimeUtils;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static ru.inovus.ms.rdm.model.UpdateValue.of;
+import static ru.inovus.ms.rdm.model.version.UpdateValue.of;
 
 @Controller
+@SuppressWarnings("WeakerAccess")
 public class StructureController {
 
+    @Autowired
+    private RefBookService refBookService;
     @Autowired
     private VersionService versionService;
     @Autowired
     private DraftService draftService;
-    @Autowired
-    private RefBookService refBookService;
 
-    public RestPage<ReadAttribute> getPage(AttributeCriteria criteria) {
+    RestPage<ReadAttribute> getPage(AttributeCriteria criteria) {
         List<ReadAttribute> list = new ArrayList<>();
 
         Structure structure = versionService.getStructure(criteria.getVersionId());
@@ -40,128 +46,178 @@ public class StructureController {
         List<AttributeValidation> attributeValidations = draftService.getAttributeValidations(criteria.getVersionId(), null);
 
         if (structure != null)
-            structure.getAttributes().forEach(a -> {
-                if (Objects.isNull(criteria.getCode()) || criteria.getCode().equals(a.getCode())) {
-                    Structure.Reference reference = !FieldType.REFERENCE.equals(a.getType()) ? null
-                            : structure.getReference(a.getCode());
-                    ReadAttribute attribute = model(a, reference);
-                    enrich(attribute, filterByAttribute(attributeValidations, a.getCode()));
-                    attribute.setVersionId(criteria.getVersionId());
-                    if (reference != null)
-                        enrich(attribute, reference);
-                    list.add(attribute);
-                }
-            });
+            structure.getAttributes().stream()
+                    .filter(attribute -> Objects.isNull(criteria.getCode()) || criteria.getCode().equals(attribute.getCode()))
+                    .forEach(attribute -> {
+                        Structure.Reference reference = attribute.isReferenceType() ? structure.getReference(attribute.getCode()) : null;
+                        ReadAttribute readAttribute = getReadAttribute(attribute, reference);
+                        enrichAtribute(readAttribute, filterByAttribute(attributeValidations, attribute.getCode()));
+
+                        readAttribute.setVersionId(criteria.getVersionId());
+
+                        readAttribute.setCodeExpression(DisplayExpression.toPlaceholder(attribute.getCode()));
+                        if (reference != null)
+                            enrichReference(readAttribute, reference);
+
+                        RefBook refBook = refBookService.getByVersionId(criteria.getVersionId());
+                        readAttribute.setHasReferrer(refBook.getHasReferrer());
+
+                        list.add(readAttribute);
+                    });
+
         List<ReadAttribute> currentPageAttributes = list.stream()
                 .skip((long) (criteria.getPage() - 1) * criteria.getSize())
                 .limit(criteria.getSize())
                 .collect(Collectors.toList());
 
-        return new RestPage<>(currentPageAttributes, new PageRequest(criteria.getPage(), criteria.getSize()), list.size());
+        return new RestPage<>(currentPageAttributes, PageRequest.of(criteria.getPage(), criteria.getSize()), list.size());
     }
 
-    public void createAttribute(Integer versionId, Attribute attribute) {
-        CreateAttribute attributeModel = new CreateAttribute();
-        attributeModel.setVersionId(versionId);
-        attributeModel.setAttribute(buildAttribute(attribute));
-        attributeModel.setReference(buildReference(attribute));
+    public void createAttribute(Integer versionId, FormAttribute formAttribute) {
+
+        CreateAttribute attributeModel = getCreateAttribute(versionId, formAttribute);
         draftService.createAttribute(attributeModel);
         try {
-            draftService.updateAttributeValidations(versionId, attribute.getCode(), createValidations(attribute));
+            AttributeValidationRequest validationRequest = new AttributeValidationRequest();
+            validationRequest.setNewAttribute(attributeModel);
+            validationRequest.setValidations(createValidations(formAttribute));
+
+            draftService.updateAttributeValidations(versionId, validationRequest);
+
         } catch (RestException re) {
-            draftService.deleteAttribute(versionId, attribute.getCode());
+            draftService.deleteAttribute(versionId, formAttribute.getCode());
             throw re;
         }
     }
 
-    public void updateAttribute(Integer versionId, Attribute attribute) {
-        Structure.Attribute oldAttribute = versionService.getStructure(versionId).getAttribute(attribute.getCode());
-        Structure.Reference oldReference = versionService.getStructure(versionId).getReference(attribute.getCode());
-        draftService.updateAttribute(getUpdateAttribute(versionId, attribute));
+    public void updateAttribute(Integer versionId, FormAttribute formAttribute) {
+
+        Structure oldStructure = versionService.getStructure(versionId);
+        Structure.Attribute oldAttribute = oldStructure.getAttribute(formAttribute.getCode());
+        Structure.Reference oldReference = oldStructure.getReference(formAttribute.getCode());
+
+        UpdateAttribute attributeModel = getUpdateAttribute(versionId, formAttribute);
+        draftService.updateAttribute(attributeModel);
         try {
-            draftService.updateAttributeValidations(versionId, attribute.getCode(), createValidations(attribute));
+            AttributeValidationRequest validationRequest = new AttributeValidationRequest();
+            validationRequest.setOldAttribute(getVersionAttribute(versionId, oldAttribute, oldReference));
+            validationRequest.setNewAttribute(getCreateAttribute(versionId, formAttribute));
+            validationRequest.setValidations(createValidations(formAttribute));
+
+            draftService.updateAttributeValidations(versionId, validationRequest);
+
         } catch (RestException re) {
             draftService.updateAttribute(new UpdateAttribute(versionId, oldAttribute, oldReference));
             throw re;
         }
     }
 
-    public void deleteAttribute(Integer versionId, Attribute attribute) {
-        draftService.deleteAttribute(versionId, attribute.getCode());
-        draftService.deleteAttributeValidation(versionId, attribute.getCode(), null);
+    public void deleteAttribute(Integer versionId, String attributeCode) {
+
+        draftService.deleteAttribute(versionId, attributeCode);
+        draftService.deleteAttributeValidation(versionId, attributeCode, null);
     }
 
-    private List<AttributeValidation> createValidations(Attribute attribute) {
+    private List<AttributeValidation> createValidations(FormAttribute formAttribute) {
         List<AttributeValidation> validations = new ArrayList<>();
-        if (Boolean.TRUE.equals(attribute.getRequired()))
+        if (Boolean.TRUE.equals(formAttribute.getRequired())) {
             validations.add(new RequiredAttributeValidation());
-        if (Boolean.TRUE.equals(attribute.getUnique()))
+        }
+        if (Boolean.TRUE.equals(formAttribute.getUnique())) {
             validations.add(new UniqueAttributeValidation());
-        if (attribute.getPlainSize() != null)
-            validations.add(new PlainSizeAttributeValidation(attribute.getPlainSize()));
-        if (attribute.getIntPartSize() != null || attribute.getFracPartSize() != null) {
-            validations.add(new FloatSizeAttributeValidation(attribute.getIntPartSize(), attribute.getFracPartSize()));
         }
-        if (attribute.getMinInteger() != null || attribute.getMaxInteger() != null) {
-            validations.add(new IntRangeAttributeValidation(attribute.getMinInteger(), attribute.getMaxInteger()));
+        if (formAttribute.getPlainSize() != null) {
+            validations.add(new PlainSizeAttributeValidation(formAttribute.getPlainSize()));
         }
-        if (attribute.getMinFloat() != null || attribute.getMaxFloat() != null) {
-            validations.add(new FloatRangeAttributeValidation(attribute.getMinFloat(), attribute.getMaxFloat()));
+        if (formAttribute.getIntPartSize() != null || formAttribute.getFracPartSize() != null) {
+            validations.add(new FloatSizeAttributeValidation(formAttribute.getIntPartSize(), formAttribute.getFracPartSize()));
         }
-        if (attribute.getMinDate() != null || attribute.getMaxDate() != null) {
-            validations.add(new DateRangeAttributeValidation(attribute.getMinDate(), attribute.getMaxDate()));
+        if (formAttribute.getMinInteger() != null || formAttribute.getMaxInteger() != null) {
+            validations.add(new IntRangeAttributeValidation(formAttribute.getMinInteger(), formAttribute.getMaxInteger()));
         }
-        if (attribute.getRegExp() != null) {
-            validations.add(new RegExpAttributeValidation(attribute.getRegExp()));
+        if (formAttribute.getMinFloat() != null || formAttribute.getMaxFloat() != null) {
+            validations.add(new FloatRangeAttributeValidation(formAttribute.getMinFloat(), formAttribute.getMaxFloat()));
+        }
+        if (formAttribute.getMinDate() != null || formAttribute.getMaxDate() != null) {
+            validations.add(new DateRangeAttributeValidation(formAttribute.getMinDate(), formAttribute.getMaxDate()));
+        }
+        if (formAttribute.getRegExp() != null) {
+            validations.add(new RegExpAttributeValidation(formAttribute.getRegExp()));
         }
         return validations;
     }
 
-    private void enrich(ReadAttribute attribute, Structure.Reference reference) {
-        Integer refRefBookId = refBookService.getByVersionId(reference.getReferenceVersion()).getRefBookId();
-        attribute.setReferenceRefBookId(refRefBookId);
+    private String attributeCodeToName(String refBookCode, String attributeCode) {
 
-        String attributeName = getAttributeName(reference.getReferenceAttribute(), attribute.getReferenceVersion());
-        attribute.setReferenceAttributeName(attributeName);
-
-        attribute.setReferenceDisplayExpression(reference.getDisplayExpression());
+        RefBookVersion version = versionService.getLastPublishedVersion(refBookCode);
+        Structure.Attribute attribute = version.getStructure().getAttribute(attributeCode);
+        return (attribute != null) ? attribute.getName() : null;
     }
 
-    private void enrich(ReadAttribute attribute, List<AttributeValidation> validations) {
+    private void enrichReference(ReadAttribute attribute, Structure.Reference reference) {
+
+        Integer refRefBookId = refBookService.getId(reference.getReferenceCode());
+        attribute.setReferenceRefBookId(refRefBookId);
+
+        int displayType = 1;
+        String displayExpression = reference.getDisplayExpression();
+        if (StringUtils.isNotEmpty(displayExpression)) {
+            attribute.setDisplayExpression(displayExpression);
+
+            displayType = 2;
+            String attributeCode = StructureUtils.displayExpressionToPlaceholder(displayExpression);
+            if (attributeCode != null) {
+                displayType = 1;
+                attribute.setDisplayAttribute(attributeCode);
+                attribute.setDisplayAttributeName(attributeCodeToName(reference.getReferenceCode(), attributeCode));
+            }
+        }
+        attribute.setDisplayType(displayType);
+    }
+
+    private void enrichAtribute(ReadAttribute attribute, List<AttributeValidation> validations) {
         for (AttributeValidation validation : validations) {
             switch (validation.getType()) {
                 case REQUIRED:
                     attribute.setRequired(true);
                     break;
+
                 case UNIQUE:
                     attribute.setUnique(true);
                     break;
+
                 case PLAIN_SIZE:
                     attribute.setPlainSize(((PlainSizeAttributeValidation) validation).getSize());
                     break;
+
                 case FLOAT_SIZE:
                     FloatSizeAttributeValidation floatSize = (FloatSizeAttributeValidation) validation;
                     attribute.setIntPartSize(floatSize.getIntPartSize());
                     attribute.setFracPartSize(floatSize.getFracPartSize());
                     break;
+
                 case INT_RANGE:
                     IntRangeAttributeValidation intRange = (IntRangeAttributeValidation) validation;
                     attribute.setMinInteger(intRange.getMin());
                     attribute.setMaxInteger(intRange.getMax());
                     break;
+
                 case FLOAT_RANGE:
                     FloatRangeAttributeValidation floatRange = (FloatRangeAttributeValidation) validation;
                     attribute.setMinFloat(floatRange.getMin());
                     attribute.setMaxFloat(floatRange.getMax());
                     break;
+
                 case DATE_RANGE:
                     DateRangeAttributeValidation dateRange = (DateRangeAttributeValidation) validation;
                     attribute.setMinDate(dateRange.getMin());
                     attribute.setMaxDate(dateRange.getMax());
                     break;
+
                 case REG_EXP:
                     attribute.setRegExp(((RegExpAttributeValidation) validation).getRegExp());
                     break;
+
                 default:
                     break;
             }
@@ -169,14 +225,37 @@ public class StructureController {
     }
 
     private List<AttributeValidation> filterByAttribute(List<AttributeValidation> validations, String attribute) {
-        return validations.stream().filter(v -> Objects.equals(attribute, v.getAttribute())).collect(Collectors.toList());
+        return validations.stream()
+                .filter(v -> Objects.equals(attribute, v.getAttribute()))
+                .collect(Collectors.toList());
     }
 
-    private String getAttributeName(String attributeCode, Integer versionId) {
-        return versionService.getStructure(versionId).getAttribute(attributeCode).getName();
+    private ReadAttribute getReadAttribute(Structure.Attribute structureAttribute, Structure.Reference reference) {
+
+        ReadAttribute attribute = new ReadAttribute();
+        attribute.setCode(structureAttribute.getCode());
+        attribute.setName(structureAttribute.getName());
+        attribute.setDescription(structureAttribute.getDescription());
+        attribute.setType(structureAttribute.getType());
+        attribute.setIsPrimary(structureAttribute.getIsPrimary());
+
+        if (Objects.nonNull(reference)) {
+            attribute.setReferenceCode(reference.getReferenceCode());
+            attribute.setDisplayExpression(reference.getDisplayExpression());
+        }
+
+        return attribute;
     }
 
-    private Structure.Attribute buildAttribute(Attribute request) {
+    private RefBookVersionAttribute getVersionAttribute(Integer versionId, Structure.Attribute attribute, Structure.Reference reference) {
+        return new RefBookVersionAttribute(versionId, attribute, reference);
+    }
+
+    private CreateAttribute getCreateAttribute(Integer versionId, FormAttribute formAttribute) {
+        return new CreateAttribute(versionId, buildAttribute(formAttribute), buildReference(formAttribute));
+    }
+
+    private Structure.Attribute buildAttribute(FormAttribute request) {
         if (request.getIsPrimary())
             return Structure.Attribute.buildPrimary(request.getCode(),
                     request.getName(), request.getType(), request.getDescription());
@@ -186,46 +265,33 @@ public class StructureController {
         }
     }
 
-    private Structure.Reference buildReference(Attribute request) {
+    private Structure.Reference buildReference(FormAttribute request) {
         return new Structure.Reference(request.getCode(),
-                request.getReferenceVersion(), request.getReferenceAttribute(),
-                request.getReferenceDisplayExpression());
+                request.getReferenceCode(),
+                request.getDisplayExpression());
     }
 
-    private UpdateAttribute getUpdateAttribute(Integer versionId, Attribute attribute) {
-        UpdateAttribute updateAttribute = new UpdateAttribute();
-        updateAttribute.setLastActionDate(LocalDateTime.of(LocalDate.now(), LocalTime.now()));
-        updateAttribute.setVersionId(versionId);
-        updateAttribute.setCode(attribute.getCode());
-        if (attribute.getName() != null)
-            updateAttribute.setName(of(attribute.getName()));
-        updateAttribute.setType(attribute.getType());
-        if (attribute.getIsPrimary() != null)
-            updateAttribute.setIsPrimary(of(attribute.getIsPrimary()));
-        if (attribute.getDescription() != null)
-            updateAttribute.setDescription(of(attribute.getDescription()));
-        updateAttribute.setAttribute(of(attribute.getCode()));
-        if (attribute.getReferenceVersion() != null)
-            updateAttribute.setReferenceVersion(of(attribute.getReferenceVersion()));
-        if (attribute.getReferenceAttribute() != null)
-            updateAttribute.setReferenceAttribute(of(attribute.getReferenceAttribute()));
-        if (attribute.getReferenceDisplayExpression() != null)
-            updateAttribute.setDisplayExpression(of(attribute.getReferenceDisplayExpression()));
-        return updateAttribute;
-    }
+    private UpdateAttribute getUpdateAttribute(Integer versionId, FormAttribute formAttribute) {
 
-    private ReadAttribute model(Structure.Attribute structureAttribute, Structure.Reference reference) {
-        ReadAttribute attribute = new ReadAttribute();
-        attribute.setCode(structureAttribute.getCode());
-        attribute.setName(structureAttribute.getName());
-        attribute.setDescription(structureAttribute.getDescription());
-        attribute.setType(structureAttribute.getType());
-        attribute.setIsPrimary(structureAttribute.getIsPrimary());
-        if (Objects.nonNull(reference)) {
-            attribute.setReferenceVersion(reference.getReferenceVersion());
-            attribute.setReferenceAttribute(reference.getReferenceAttribute());
-            attribute.setReferenceDisplayExpression(reference.getDisplayExpression());
-        }
+        UpdateAttribute attribute = new UpdateAttribute();
+        attribute.setLastActionDate(TimeUtils.nowZoned());
+        attribute.setVersionId(versionId);
+
+        attribute.setCode(formAttribute.getCode());
+
+        if (formAttribute.getName() != null)
+            attribute.setName(of(formAttribute.getName()));
+        attribute.setType(formAttribute.getType());
+        if (formAttribute.getIsPrimary() != null)
+            attribute.setIsPrimary(of(formAttribute.getIsPrimary()));
+        if (formAttribute.getDescription() != null)
+            attribute.setDescription(of(formAttribute.getDescription()));
+        attribute.setAttribute(of(formAttribute.getCode()));
+        if (formAttribute.getReferenceCode() != null)
+            attribute.setReferenceCode(of(formAttribute.getReferenceCode()));
+        if (formAttribute.getDisplayExpression() != null)
+            attribute.setDisplayExpression(of(formAttribute.getDisplayExpression()));
+
         return attribute;
     }
 }

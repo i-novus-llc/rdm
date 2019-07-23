@@ -1,28 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-    <groupId>ru.inovus.ms.rdm</groupId>
-    <artifactId>rdm-sync-spring-boot-starter</artifactId>
-    <version>1.27-SNAPSHOT</version>
-    <packaging>jar</packaging>
-
     <parent>
-        <groupId>net.n2oapp.platform</groupId>
-        <artifactId>n2o-platform-parent</artifactId>
-        <version>2.1</version>
-        <relativePath />
+        <groupId>ru.inovus.ms.rdm</groupId>
+        <artifactId>rdm</artifactId>
+        <version>1.42-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
-    <properties>
-        <rdm.version>1.27-SNAPSHOT</rdm.version>
-    </properties>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>rdm-sync-spring-boot-starter</artifactId>
+    <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>ru.inovus.ms.rdm</groupId>
             <artifactId>rdm-api</artifactId>
-            <version>${rdm.version}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -71,9 +64,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.liquibase</groupId>
+            <groupId>ru.i-novus.components</groupId>
             <artifactId>liquibase-core</artifactId>
-            <version>3.6.2.inovus</version>
         </dependency>
 
         <dependency>

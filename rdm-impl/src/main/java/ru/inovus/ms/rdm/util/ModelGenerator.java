@@ -2,7 +2,7 @@ package ru.inovus.ms.rdm.util;
 
 import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
-import ru.inovus.ms.rdm.model.RefBookVersion;
+import ru.inovus.ms.rdm.model.version.RefBookVersion;
 
 import java.util.LinkedHashMap;
 import java.util.Objects;
@@ -19,6 +19,7 @@ public class ModelGenerator {
 
     public static RefBookVersion versionModel(RefBookVersionEntity entity) {
         if (entity == null) return null;
+
         RefBookVersion model = new RefBookVersion();
         model.setId(entity.getId());
         model.setRefBookId(entity.getRefBook().getId());
@@ -28,10 +29,9 @@ public class ModelGenerator {
         model.setVersion(entity.getVersion());
         model.setFromDate(entity.getFromDate());
         model.setToDate(entity.getToDate());
-        model.setArchived(entity.getRefBook().getArchived());
         model.setStatus(entity.getStatus());
-        model.setEditDate(entity.getLastActionDate());
-        model.setStructure(entity.getStructure());
+        model.setArchived(entity.getRefBook().getArchived());
+
         if (entity.getPassportValues() != null)
             model.setPassport(entity.getPassportValues().stream()
                     .filter(v -> Objects.nonNull(v.getValue()))
@@ -45,6 +45,10 @@ public class ModelGenerator {
                             PassportValueEntity::getValue,
                             (e1, e2) -> e2,
                             LinkedHashMap::new)));
+
+        model.setStructure(entity.getStructure());
+        model.setEditDate(entity.getLastActionDate());
+
         return model;
     }
 }

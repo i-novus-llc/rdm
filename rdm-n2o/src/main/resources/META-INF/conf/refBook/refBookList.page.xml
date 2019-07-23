@@ -1,7 +1,12 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <simple-page xmlns="http://n2oapp.net/framework/config/schema/page-2.0" name="Реестр НСИ">
-    <table query-id="refBook">
+    <table query-id="refBook" route="/main">
         <pagination/>
+        <rows>
+            <switch value-field-id="lastHasDataConflict">
+                <case value="true">danger</case>
+            </switch>
+        </rows>
         <filters>
             <row>
                 <input-text id="name" label="Название справочника"/>
@@ -21,15 +26,34 @@
             <button id="view" label="Просмотр">
                 <open-page page-id="refBookView" page-name="Просмотр справочника" detail-field-id="refBookId"/>
             </button>
-            <button id="create" label="Создать справочник" model="filter" icon="fa fa-plus">
-                <open-page page-id="createRefBook" upload="defaults" submit-operation-id="create" redirect-url-after-submit="/main/:refBookId/edit"
-                           page-name="Создание справочника"/>
-            </button>
-            <button id="edit" label="Изменить справочник" icon="fa fa-pencil">
-                <open-page page-id="refbook" page-name="Редактирование справочника" detail-field-id="refBookId"/>
+            <sub-menu label="Создать справочник" icon="fa fa-plus">
+                <menu-item label="Создать справочник" model="filter">
+                    <open-page page-id="createRefBook" page-name="Создание справочника" upload="defaults"
+                               submit-operation-id="create"
+                               redirect-url-after-submit="/main/:refBookId/edit"/>
+                </menu-item>
+                <menu-item label="Создать справочник из файла" model="filter">
+                    <show-modal page-id="createFromFile" page-name="Создание справочника из файла" upload="defaults"
+                                submit-operation-id="createFromFile"
+                                redirect-url-after-submit="${server.servlet.context-path}/#/main/:refBookId/edit"
+                                redirect-target-after-submit="self">
+                    </show-modal>
+                </menu-item>
+            </sub-menu>
+            <button id="edit" label="Изменить справочник" icon="fa fa-pencil" enabling-condition="!archived">
+                <open-page page-id="refBook" page-name="Редактирование справочника" detail-field-id="refBookId"
+                           route="/:refBookId/edit"/>
             </button>
             <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger">
                 <invoke operation-id="delete"/>
+            </button>
+            <button id="toArchive" label="Отправить в архив" icon="fa fa-lock"
+                    visibility-condition="!archived">
+                <invoke operation-id="toArchive"/>
+            </button>
+            <button id="fromArchive" label="Вернуть из архива" icon="fa fa-unlock"
+                    visibility-condition="archived">
+                <invoke operation-id="fromArchive"/>
             </button>
         </toolbar>
         <columns>
@@ -39,6 +63,14 @@
             <column text-field-id="category.id" label="Категория"/>
             <column text-field-id="lastPublishedVersionFromDate" label="Последняя публикация">
                 <text format="date DD.MM.YYYY"/>
+            </column>
+<!--            вывод tooltip-сообщения пока не работает-->
+            <column text-field-id="lastHasDataConflict" label="" type="icon" tooltip-field-id="lastHasDataConflictMsg">
+                <icon>
+                    <switch value-field-id="lastHasDataConflict">
+                        <case value="true">fa fa-question-circle-o</case>
+                    </switch>
+                </icon>
             </column>
         </columns>
     </table>

@@ -1,7 +1,5 @@
 package ru.inovus.ms.rdm.service;
 
-import ru.inovus.ms.rdm.entity.RefBookEntity;
-
 /**
  * Created by znurgaliev on 19.09.2018.
  */
@@ -17,5 +15,5 @@ public interface RefBookLockService {
 
     void validateRefBookNotBusyByVersionId(Integer versionId);
 
-    void validateRefBookNotBusy(RefBookEntity refBookEntity);
+    void validateRefBookNotBusyByRefBookId(Integer refBookId);
 }

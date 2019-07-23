@@ -9,21 +9,19 @@
                     <spring/>
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
-                        <argument type="class" name="attribute" class="ru.inovus.ms.rdm.model.Attribute"/>
+                        <argument type="class" name="attribute" class="ru.inovus.ms.rdm.model.FormAttribute"/>
                     </arguments>
                 </java>
             </invocation>
             <in-parameters>
-
                 <param id="versionId" mapping="[0]" domain="integer"/>
                 <param id="code" mapping="[1].code" domain="string"/>
                 <param id="name" mapping="[1].name" domain="string"/>
                 <param id="attrType.id" mapping="[1].type" domain="string"/>
                 <param id="isPrimary" mapping="[1].isPrimary" domain="boolean"/>
                 <param id="description" mapping="[1].description" domain="string"/>
-                <!--<param id="referenceVersion.id" mapping="[1].referenceVersion"/>-->
-                <!--<param id="referenceAttribute.code" mapping="[1].referenceAttribute"/>-->
-                <!--<param id="referenceDisplayAttribute.code" mapping="[1].referenceDisplayAttribute"/>-->
+                <param id="referenceRefBook.code" mapping="[1].referenceCode" domain="string"/>
+                <param id="displayExpression" mapping="[1].displayExpression"/>
                 <param id="required" mapping="[1].required" domain="boolean"/>
                 <param id="unique" mapping="[1].unique" domain="boolean"/>
                 <param id="plainSize" mapping="[1].plainSize" domain="integer"/>
@@ -33,21 +31,22 @@
                 <param id="maxInteger" mapping="[1].maxInteger" domain="integer"/>
                 <param id="minFloat" mapping="[1].minFloat" domain="numeric"/>
                 <param id="maxFloat" mapping="[1].maxFloat" domain="numeric"/>
-                <param id="dateInterval.begin"  mapping="[1].minDate" domain="date"/>
-                <param id="dateInterval.end"  mapping="[1].maxDate" domain="date"/>
+                <param id="dateInterval.begin" mapping="[1].minDate" domain="date"/>
+                <param id="dateInterval.end" mapping="[1].maxDate" domain="date"/>
                 <param id="regExp" mapping="[1].regExp" domain="string"/>
             </in-parameters>
             <validations white-list="checkCode,checkMinMaxInt"/>
         </operation>
 
-        <operation id="updateAttribute" submit-label="Сохранить" name="Изменение атрибута" success-text="Атрибут изменен">
+        <operation id="updateAttribute" submit-label="Сохранить" name="Изменение атрибута"
+                   success-text="Атрибут изменен">
             <invocation>
                 <java class="ru.inovus.ms.rdm.service.CreateDraftController"
                       method="updateAttribute">
                     <spring/>
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
-                        <argument type="class" name="attribute" class="ru.inovus.ms.rdm.model.Attribute"/>
+                        <argument type="class" name="attribute" class="ru.inovus.ms.rdm.model.FormAttribute"/>
                     </arguments>
                 </java>
             </invocation>
@@ -58,9 +57,8 @@
                 <param id="attrType.id" mapping="[1].type" domain="string"/>
                 <param id="isPrimary" mapping="[1].isPrimary" domain="boolean"/>
                 <param id="description" mapping="[1].description" domain="string"/>
-                <!--<param id="referenceVersion.id" mapping="[1].referenceVersion"/>-->
-                <!--<param id="referenceAttribute.code" mapping="[1].referenceAttribute"/>-->
-                <!--<param id="referenceDisplayAttribute.code" mapping="[1].referenceDisplayAttribute"/>-->
+                <param id="referenceRefBook.code" mapping="[1].referenceCode" domain="string"/>
+                <param id="displayExpression" mapping="[1].displayExpression"/>
                 <param id="required" mapping="[1].required" domain="boolean"/>
                 <param id="unique" mapping="[1].unique" domain="boolean"/>
                 <param id="plainSize" mapping="[1].plainSize" domain="integer"/>
@@ -70,8 +68,10 @@
                 <param id="maxInteger" mapping="[1].maxInteger" domain="integer"/>
                 <param id="minFloat" mapping="[1].minFloat" domain="numeric"/>
                 <param id="maxFloat" mapping="[1].maxFloat" domain="numeric"/>
-                <param id="dateInterval.begin"  mapping="[1].minDate" domain="date"/>
-                <param id="dateInterval.end"  mapping="[1].maxDate" domain="date"/>
+                <param id="dateInterval.begin" mapping="[1].minDate" domain="date"
+                       normalize="T(ru.inovus.ms.rdm.util.TimeUtils).parseLocalDate(#this)"/>
+                <param id="dateInterval.end" mapping="[1].maxDate" domain="date"
+                       normalize="T(ru.inovus.ms.rdm.util.TimeUtils).parseLocalDate(#this)"/>
                 <param id="regExp" mapping="[1].regExp" domain="string"/>
             </in-parameters>
             <validations white-list="checkCode,checkMinMaxInt"/>
@@ -105,7 +105,7 @@
 
         <condition field-id="maxInteger" id="checkMinMaxInt" severity="danger"
                    server-moment="before-operation"
-                   message="Максимальное значение должно быть больше минимального" >
+                   message="Максимальное значение должно быть больше минимального">
             typeof maxInteger == 'undefined' || maxInteger == null || maxInteger == '' ||
             typeof maxInteger == 'undefined' || maxInteger == null || maxInteger == '' ||
             maxInteger > minInteger

@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.rest;
 
 import net.n2oapp.platform.i18n.Messages;
+import net.n2oapp.platform.jaxrs.LocalDateTimeISOParameterConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -10,6 +11,7 @@ import org.springframework.context.annotation.Primary;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.inovus.ms.rdm.provider.*;
 import ru.inovus.ms.rdm.util.FileNameGenerator;
+import ru.inovus.ms.rdm.util.json.LocalDateTimeMapperPreparer;
 
 @Configuration
 public class BackendConfiguration {
@@ -18,8 +20,23 @@ public class BackendConfiguration {
     private FieldFactory fieldFactory;
 
     @Bean
-    RdmParamConverterProvider rdmParamConverterProvider() {
-        return new RdmParamConverterProvider();
+    MskUtcLocalDateTimeParamConverter mskUtcLocalDateTimeParamConverter() {
+        return new MskUtcLocalDateTimeParamConverter(new LocalDateTimeISOParameterConverter());
+    }
+
+    @Bean
+    public AttributeFilterConverter attributeFilterConverter() {
+        return new AttributeFilterConverter();
+    }
+
+    @Bean
+    public OffsetDateTimeParamConverter offsetDateTimeParamConverter() {
+        return new OffsetDateTimeParamConverter();
+    }
+
+    @Bean
+    LocalDateTimeMapperPreparer localDateTimeMapperPreparer() {
+        return new LocalDateTimeMapperPreparer();
     }
 
     @Bean
@@ -28,8 +45,8 @@ public class BackendConfiguration {
     }
 
     @Bean
-    RowValueMapperPreparer rowValueMapperPreparer(){
-        return new RowValueMapperPreparer();
+    RdmMapperConfigurer rdmMapperConfigurer(){
+        return new RdmMapperConfigurer();
     }
 
     @Bean("fnsiFileNameGenerator")

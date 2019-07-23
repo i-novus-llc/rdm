@@ -4,14 +4,14 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.inovus.ms.rdm.model.Row;
-import ru.inovus.ms.rdm.model.SearchDataCriteria;
+import ru.inovus.ms.rdm.model.refdata.Row;
+import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.service.VersionServiceImpl;
 import ru.inovus.ms.rdm.util.ConverterUtil;
 
@@ -50,25 +50,8 @@ public class VersionDataIteratorTest {
         }
 
         //в зависимости от параметров, возвращаем разные строки из тестовых данных
-        when(versionService.search(eq(1), any())).then(invocationOnMock -> {
-            SearchDataCriteria criteria = (SearchDataCriteria) invocationOnMock.getArguments()[1];
-            int fromIndex = criteria.getOffset();
-            int toIndex = fromIndex + criteria.getPageSize();
-            toIndex = toIndex > firstVersionRows.size() ? firstVersionRows.size() : toIndex;
-            if (fromIndex < 0 || fromIndex >= toIndex) return null;
-            List<RowValue> currentPage1 = firstVersionRows.subList(fromIndex, toIndex);
-            return new PageImpl<>(currentPage1, new PageRequest(criteria.getPageNumber(), criteria.getPageSize()), firstVersionRows.size());
-        });
-        when(versionService.search(eq(2), any())).then(invocationOnMock -> {
-            SearchDataCriteria criteria = (SearchDataCriteria) invocationOnMock.getArguments()[1];
-            int fromIndex = criteria.getOffset();
-            int toIndex = fromIndex + criteria.getPageSize();
-            toIndex = toIndex > secondVersionRows.size() ? secondVersionRows.size() : toIndex;
-            if (fromIndex < 0 || fromIndex >= toIndex) return null;
-            List<RowValue> currentPage1 = secondVersionRows.subList(fromIndex, toIndex);
-            return new PageImpl<>(currentPage1, new PageRequest(criteria.getPageNumber(), criteria.getPageSize()), secondVersionRows.size());
-        });
-
+        setReturnVersionRowsOnMockInvocation(1, firstVersionRows);
+        setReturnVersionRowsOnMockInvocation(2, secondVersionRows);
 
         List<RowValue> allRows = new ArrayList<>();
         allRows.addAll(firstVersionRows);
@@ -88,6 +71,19 @@ public class VersionDataIteratorTest {
         expectedRows.forEach(row -> Assert.assertEquals(row, dataIterator2.next()));
         Assert.assertFalse(dataIterator.hasNext());
 
+    }
+
+    private void setReturnVersionRowsOnMockInvocation(int versionId, List<RowValue> versionRows) {
+        when(versionService.search(eq(versionId), any())).then(invocationOnMock -> {
+            SearchDataCriteria criteria = (SearchDataCriteria) invocationOnMock.getArguments()[1];
+            int fromIndex = (int) criteria.getOffset();
+            int toIndex = fromIndex + criteria.getPageSize();
+            toIndex = toIndex > versionRows.size() ? versionRows.size() : toIndex;
+            if (fromIndex < 0 || fromIndex >= toIndex)
+                return null;
+            List<RowValue> currentPage1 = versionRows.subList(fromIndex, toIndex);
+            return new PageImpl<>(currentPage1, PageRequest.of(criteria.getPageNumber(), criteria.getPageSize()), versionRows.size());
+        });
     }
 
 }

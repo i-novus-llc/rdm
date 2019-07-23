@@ -13,15 +13,18 @@ import static ru.inovus.ms.rdm.RdmUiUtil.deletePrefix;
  * Created by znurgaliev on 14.11.2018.
  */
 public class DataCriteria extends Criteria {
+
     private Integer versionId;
     private Map<String, Serializable> filter;
+    private Boolean hasDataConflict;
 
     public DataCriteria() {
     }
 
-    public DataCriteria(Integer versionId, Map<String, Serializable> filter) {
+    public DataCriteria(Integer versionId, Map<String, Serializable> filter, Boolean hasDataConflict) {
         this.versionId = versionId;
         this.filter = filter;
+        this.hasDataConflict = hasDataConflict;
     }
 
     public Integer getVersionId() {
@@ -38,6 +41,14 @@ public class DataCriteria extends Criteria {
 
     public void setFilter(Map<String, Serializable> filter) {
         this.filter = filter;
+    }
+
+    public Boolean getHasDataConflict() {
+        return hasDataConflict;
+    }
+
+    public void setHasDataConflict(Boolean hasDataConflict) {
+        this.hasDataConflict = hasDataConflict;
     }
 
     @Override

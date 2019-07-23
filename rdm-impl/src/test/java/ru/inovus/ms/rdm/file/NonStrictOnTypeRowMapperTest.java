@@ -4,43 +4,46 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
-import ru.inovus.ms.rdm.model.Row;
+import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
-import ru.inovus.ms.rdm.util.ConverterUtil;
+import ru.inovus.ms.rdm.repository.RefBookVersionRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static org.mockito.Matchers.eq;
+import static java.util.Collections.singletonList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 
 @RunWith(MockitoJUnitRunner.class)
 public class NonStrictOnTypeRowMapperTest {
 
+    private final String referenceCode = "test_storage";
+    private final int referenceVersionId = -1;
 
     @Mock
     private RefBookVersionRepository versionRepository;
 
     @Test
     public void testMap() {
-        int referenceVersion = -1;
         RefBookVersionEntity versionEntity = new RefBookVersionEntity();
-        versionEntity.setStructure(new Structure(Collections.singletonList(Structure.Attribute.build("count", "count",
+        versionEntity.setStructure(new Structure(singletonList(Structure.Attribute.buildPrimary("count", "count",
                 FieldType.INTEGER, "count")), null));
-        when(versionRepository.findOne(eq(referenceVersion))).thenReturn(versionEntity);
-        Map<String, Object> data = new LinkedHashMap<String, Object>() {{
+        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(referenceCode), eq(RefBookVersionStatus.PUBLISHED)))
+                .thenReturn(versionEntity);
+
+        Map<String, Object> data = new LinkedHashMap<>() {{
             put("string", "abc");
             put("reference", "2");
             put("float", "2.1");
@@ -49,16 +52,17 @@ public class NonStrictOnTypeRowMapperTest {
         }};
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         LocalDate date = LocalDate.parse("01.01.2011", formatter);
-        Map<String, Object> expectedData = new LinkedHashMap<String, Object>() {{
+
+        Map<String, Object> expectedData = new LinkedHashMap<>() {{
             put("string", "abc");
-            put("reference", new Reference(versionEntity.getStorageCode(), ConverterUtil.date(versionEntity.getFromDate()), "count", DisplayExpression.ofField("count"), "2"));
+            put("reference", new Reference(versionEntity.getStorageCode(), versionEntity.getFromDate(), "count", DisplayExpression.ofField("count"), "2"));
             put("float", new BigDecimal("2.1"));
             put("date", date);
             put("boolean", true);
         }};
         Row expected = new Row(expectedData);
 
-        NonStrictOnTypeRowMapper rowMapper = new NonStrictOnTypeRowMapper(createTestStructure(referenceVersion), versionRepository);
+        NonStrictOnTypeRowMapper rowMapper = new NonStrictOnTypeRowMapper(createTestStructure(referenceCode), versionRepository);
         Row actual = rowMapper.map(new Row(data));
 
         Assert.assertEquals(expected, actual);
@@ -66,12 +70,15 @@ public class NonStrictOnTypeRowMapperTest {
 
     @Test
     public void testMapWithWrongData(){
-        int referenceVersion = -1;
         RefBookVersionEntity versionEntity = new RefBookVersionEntity();
-        versionEntity.setStructure(new Structure(Collections.singletonList(Structure.Attribute.build("count", "count",
+        versionEntity.setStructure(new Structure(singletonList(Structure.Attribute.build("count", "count",
                 FieldType.INTEGER, "count")), null));
-        when(versionRepository.findOne(eq(referenceVersion))).thenReturn(versionEntity);
-        Map<String, Object> data = new LinkedHashMap<String, Object>() {{
+
+        RefBookVersionEntity m1VersionEntity = new RefBookVersionEntity();
+        m1VersionEntity.setId(referenceVersionId);
+        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(referenceCode), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(m1VersionEntity);
+
+        Map<String, Object> data = new LinkedHashMap<>() {{
             put("string", "abc");
             put("reference", "wrong value");
             put("float", "wrong value");
@@ -79,14 +86,13 @@ public class NonStrictOnTypeRowMapperTest {
             put("boolean", "wrong value");
         }};
 
-        NonStrictOnTypeRowMapper rowMapper = new NonStrictOnTypeRowMapper(createTestStructure(referenceVersion), versionRepository);
+        NonStrictOnTypeRowMapper rowMapper = new NonStrictOnTypeRowMapper(createTestStructure(referenceCode), versionRepository);
         Row actual = rowMapper.map(new Row(data));
 
         Assert.assertEquals(new Row(data), actual);
-
     }
 
-    private Structure createTestStructure(int referenceVersion) {
+    private Structure createTestStructure(String referenceCode) {
         Structure structure = new Structure();
         structure.setAttributes(Arrays.asList(
                 Structure.Attribute.build("string", "string", FieldType.STRING, "string"),
@@ -95,7 +101,8 @@ public class NonStrictOnTypeRowMapperTest {
                 Structure.Attribute.build("date", "date", FieldType.DATE, "date"),
                 Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, "boolean")
         ));
-        structure.setReferences(Collections.singletonList(new Structure.Reference("reference", referenceVersion, "count", toPlaceholder("count"))));
+        structure.setReferences(singletonList(new Structure.Reference("reference", referenceCode, toPlaceholder("count"))));
+
         return structure;
     }
 }
