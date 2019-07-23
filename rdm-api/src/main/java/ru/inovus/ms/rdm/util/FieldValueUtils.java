@@ -30,6 +30,38 @@ public class FieldValueUtils {
     }
 
     /**
+     * Проверка на наличие хотя бы одного placeholder`а в выражении.
+     *
+     * @param displayExpression выражение для вычисления отображаемого значения
+     * @param placeholders      список проверяемых подставляемых значений
+     * @return Наличие
+     */
+    // NB: Выделить в StructureUtils ?!
+    public static boolean containsAnyPlaceholder(String displayExpression, List<String> placeholders) {
+        DisplayExpression expression = new DisplayExpression(displayExpression);
+        return CollectionUtils.containsAny(expression.getPlaceholders(), placeholders);
+    }
+
+    /**
+     * Поиск полей выражения, которые отсутствуют в структуре.
+     *
+     * @param displayExpression выражение для вычисления отображаемого значения
+     * @param structure         структура версии, на которую ссылаются
+     * @return Список отсутствующих полей
+     */
+    // NB: Выделить в StructureUtils ?!
+    public static List<String> getAbsentPlaceholders(String displayExpression, Structure structure) {
+
+        if (StringUtils.isEmpty(displayExpression))
+            return emptyList();
+
+        DisplayExpression expression = new DisplayExpression(displayExpression);
+        return expression.getPlaceholders().stream()
+                .filter(placeholder -> Objects.isNull(structure.getAttribute(placeholder)))
+                .collect(toList());
+    }
+
+    /**
      * Получение отображаемого значения.
      *
      * @param displayExpression выражение для вычисления отображаемого значения
@@ -51,37 +83,6 @@ public class FieldValueUtils {
         Map<String, Object> map = new HashMap<>();
         fieldValues.forEach(fieldValue -> map.put(fieldValue.getField(), fieldValue.getValue()));
         return new StringSubstitutor(map, DisplayExpression.PLACEHOLDER_START, DisplayExpression.PLACEHOLDER_END).replace(displayExpression);
-    }
-
-    /**
-     * Проверка на наличие хотя бы одного placeholder`а в выражении.
-     *
-     * @param displayExpression выражение для вычисления отображаемого значения
-     * @param placeholders      список проверяемых подставляемых значений
-     * @return Наличие
-     */
-    // NB: Выделить в displayExpressionUtils ?!
-    public static boolean containsAnyPlaceholder(String displayExpression, List<String> placeholders) {
-        DisplayExpression expression = new DisplayExpression(displayExpression);
-        return CollectionUtils.containsAny(expression.getPlaceholders(), placeholders);
-    }
-
-    /**
-     * Поиск полей выражения, которые отсутствуют в структуре.
-     *
-     * @param displayExpression выражение для вычисления отображаемого значения
-     * @param structure         структура версии, на которую ссылаются
-     * @return Список отсутствующих полей
-     */
-    public static List<String> getAbsentPlaceholders(String displayExpression, Structure structure) {
-
-        if (StringUtils.isEmpty(displayExpression))
-            return emptyList();
-
-        DisplayExpression expression = new DisplayExpression(displayExpression);
-        return expression.getPlaceholders().stream()
-                .filter(placeholder -> Objects.isNull(structure.getAttribute(placeholder)))
-                .collect(toList());
     }
 
     /**
