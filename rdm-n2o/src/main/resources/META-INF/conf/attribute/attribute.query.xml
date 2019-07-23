@@ -107,6 +107,16 @@
             <select/>
         </field>
 
+        <field id="hasStructureConflict" domain="boolean">
+            <select/>
+        </field>
+
+        <field id="hasStructureConflictMsg" domain="string">
+            <select mapping="
+                (hasStructureConflict?:false ? 'Выражение для вычисления отображаемого значения содержит ошибочные поля для подстановки' : '')
+                "/>
+        </field>
+
         <field id="isPrimary" domain="boolean">
             <select/>
         </field>
