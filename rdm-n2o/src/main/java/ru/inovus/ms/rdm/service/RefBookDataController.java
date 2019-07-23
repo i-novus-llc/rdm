@@ -77,6 +77,9 @@ public class RefBookDataController {
         if (BooleanUtils.isTrue(criteria.getHasDataConflict())) {
 
             long conflictsCount = conflictService.countConflictedRowIds(toRefBookConflictCriteria(criteria));
+            if (conflictsCount == 0)
+                return new RestPage<>(emptyList(), new SearchDataCriteria(), 0);
+
             long dataCount = versionService.search(criteria.getVersionId(), new SearchDataCriteria()).getTotalElements();
             if (conflictsCount != dataCount) {
                 conflictedRowIdsPage = getConflictedRowIds(criteria, (int) conflictsCount);
