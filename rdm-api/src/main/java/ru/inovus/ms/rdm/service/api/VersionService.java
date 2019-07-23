@@ -4,7 +4,6 @@ import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.model.refbook.RefBookUpdateRequest;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
@@ -101,14 +100,6 @@ public interface VersionService {
     })
     ExportFile getVersionFile(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
                               @ApiParam(value = "Тип файла", required = true, allowableValues = "XLSX, XML") @QueryParam("type") FileType fileType);
-
-    @PUT
-    @ApiOperation("Изменение метаданных версии")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Успех"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    RefBookVersion updatePassport(RefBookUpdateRequest refBookUpdateRequest);
 
     @GET
     @ApiOperation("Информация о существовании записей в системе")
