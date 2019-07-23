@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static org.springframework.util.CollectionUtils.isEmpty;
+import static org.springframework.util.StringUtils.isEmpty;
 
 public class PassportPdfFileGenerator implements FileGenerator {
 
@@ -49,7 +49,7 @@ public class PassportPdfFileGenerator implements FileGenerator {
         Map<String, String> passportToWrite = new LinkedHashMap<>();
 
         passportToWrite.put("Код справочника", code);
-        if (!category.isEmpty())
+        if (!isEmpty(category))
             passportToWrite.put("Категория справочника", category);
 
         for (PassportValueEntity value : values) {
