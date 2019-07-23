@@ -21,6 +21,10 @@ public class RefBookCriteria extends AbstractCriteria {
     @QueryParam("code")
     private String code;
 
+    @ApiModelProperty("Версия для исключения справочника")
+    @QueryParam("excludeByVersionId")
+    private Integer excludeByVersionId;
+
     @ApiModelProperty("Дата последней публикации")
     @QueryParam("fromDateBegin")
     private LocalDateTime fromDateBegin;
@@ -30,8 +34,8 @@ public class RefBookCriteria extends AbstractCriteria {
     private LocalDateTime fromDateEnd;
 
     @ApiModelProperty("Тип источника данных")
-    @QueryParam("refBookSourceType")
-    private RefBookSourceType refBookSourceType;
+    @QueryParam("sourceType")
+    private RefBookSourceType sourceType;
 
     @ApiModelProperty("Категория")
     @QueryParam("category")
@@ -40,6 +44,10 @@ public class RefBookCriteria extends AbstractCriteria {
     @ApiModelProperty("В архиве")
     @QueryParam("isArchived")
     private boolean isArchived;
+
+    @ApiModelProperty("Не в архиве")
+    @QueryParam("isNotArchived")
+    private boolean isNotArchived;
 
     @ApiModelProperty("Справочник опубликован")
     @QueryParam("hasPublished")
@@ -69,6 +77,14 @@ public class RefBookCriteria extends AbstractCriteria {
         this.code = code;
     }
 
+    public Integer getExcludeByVersionId() {
+        return excludeByVersionId;
+    }
+
+    public void setExcludeByVersionId(Integer excludeByVersionId) {
+        this.excludeByVersionId = excludeByVersionId;
+    }
+
     public LocalDateTime getFromDateBegin() {
         return fromDateBegin;
     }
@@ -85,12 +101,12 @@ public class RefBookCriteria extends AbstractCriteria {
         this.fromDateEnd = fromDateEnd;
     }
 
-    public RefBookSourceType getRefBookSourceType() {
-        return refBookSourceType;
+    public RefBookSourceType getSourceType() {
+        return sourceType;
     }
 
-    public void setRefBookSourceType(RefBookSourceType refBookSourceType) {
-        this.refBookSourceType = refBookSourceType;
+    public void setSourceType(RefBookSourceType sourceType) {
+        this.sourceType = sourceType;
     }
 
     public Map<String, String> getPassport() {
@@ -107,6 +123,14 @@ public class RefBookCriteria extends AbstractCriteria {
 
     public void setIsArchived(boolean isArchived) {
         this.isArchived = isArchived;
+    }
+
+    public boolean getIsNotArchived() {
+        return isNotArchived;
+    }
+
+    public void setIsNotArchived(boolean isNotArchived) {
+        this.isNotArchived = isNotArchived;
     }
 
     public boolean getHasPublished() {

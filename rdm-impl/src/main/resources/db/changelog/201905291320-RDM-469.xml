@@ -83,4 +83,14 @@
         </sql>
     </changeSet>
 
+    <changeSet id="201907170924-RDM-490_1.0" author="arahmatullin" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="ref_book_conflict" columnName="ref_recordid" schemaName="n2o_rdm_management"/>
+        </preConditions>
+        <sql>
+            ALTER TABLE n2o_rdm_management.ref_book_conflict
+                ALTER COLUMN ref_recordid DROP NOT NULL;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

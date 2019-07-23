@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.model;
 
+import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.exception.RdmException;
 
@@ -9,6 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class Structure implements Serializable {
@@ -29,36 +31,6 @@ public class Structure implements Serializable {
         this(other.getAttributes(), other.getReferences());
     }
 
-    public Reference getReference(String attributeCode) {
-        if (isEmpty(references)) {
-            return null;
-        }
-        return references.stream().filter(reference -> reference.getAttribute().equals(attributeCode)).findAny()
-                .orElse(null);
-    }
-
-    public Attribute getAttribute(String code) {
-        if (isEmpty(attributes)) {
-            return null;
-        }
-        return attributes.stream().filter(attribute -> attribute.getCode().equals(code)).findAny()
-                .orElse(null);
-    }
-
-    public void clearPrimary() {
-        if (isEmpty(attributes)) {
-            return;
-        }
-        attributes.forEach(a -> {
-            if (a.getIsPrimary())
-                a.setPrimary(false);
-        });
-    }
-
-    public List<Attribute> getPrimary() {
-        return attributes.stream().filter(attribute -> attribute.isPrimary).collect(Collectors.toList());
-    }
-
     public List<Attribute> getAttributes() {
         return attributes;
     }
@@ -75,8 +47,42 @@ public class Structure implements Serializable {
         this.references = references;
     }
 
+    public Attribute getAttribute(String code) {
+        if (isEmpty(attributes)) {
+            return null;
+        }
+        return attributes.stream()
+                .filter(attribute -> attribute.getCode().equals(code))
+                .findAny().orElse(null);
+    }
+
+    public Reference getReference(String attributeCode) {
+        if (isEmpty(references)) {
+            return null;
+        }
+        return references.stream()
+                .filter(reference -> reference.getAttribute().equals(attributeCode))
+                .findAny().orElse(null);
+    }
+
+    public void clearPrimary() {
+        if (isEmpty(attributes)) {
+            return;
+        }
+        attributes.forEach(a -> {
+            if (a.getIsPrimary())
+                a.setPrimary(false);
+        });
+    }
+
+    public List<Attribute> getPrimary() {
+        return attributes.stream()
+                .filter(attribute -> attribute.isPrimary)
+                .collect(Collectors.toList());
+    }
+
     /**
-     * Получение всех ссылок с указанным кодом справочника
+     * Получение всех ссылок на справочник с указанным кодом.
      *
      * @param referenceCode код справочника, на который ссылаются
      * @return Список ссылок
@@ -90,16 +96,46 @@ public class Structure implements Serializable {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Получение всех атрибутов-ссылок на справочник с указанным кодом.
+     *
+     * @param referenceCode код справочника, на который ссылаются
+     * @return Список атрибутов
+     */
+    public List<Attribute> getRefCodeAttributes(String referenceCode) {
+        if (isEmpty(attributes)) {
+            return Collections.emptyList();
+        }
+        return getRefCodeReferences(referenceCode).stream()
+                .map(ref -> getAttribute(ref.getAttribute()))
+                .collect(toList());
+    }
+
     public static class Attribute implements Serializable {
 
+        /**
+         * Код атрибута.
+         */
         private String code;
 
+        /**
+         * Наименование атрибута.
+         */
         private String name;
 
+        /**
+         * Тип атрибута.
+         */
         private FieldType type;
 
+        /**
+         * Признак первичного атрибута.
+         */
         private Boolean isPrimary;
 
+        /**
+         * Описание атрибута.
+         */
         private String description;
 
         public static Attribute buildPrimary(String code, String name, FieldType type, String description) {
@@ -162,38 +198,33 @@ public class Structure implements Serializable {
             this.description = description;
         }
 
-        public boolean storageEquals(Attribute a) {
-            if (!Objects.equals(code, a.code))
-                return false;
-            if (!Objects.equals(name, a.name))
-                return false;
-            return type == a.type;
+        public boolean storageEquals(Attribute that) {
+            return Objects.equals(code, that.code) &&
+                    Objects.equals(name, that.name) &&
+                    Objects.equals(type, that.type);
+        }
+
+        public Boolean isReferenceType() {
+            return FieldType.REFERENCE.equals(getType());
         }
 
         @Override
+        @SuppressWarnings("squid:S1067")
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            Attribute attribute = (Attribute) o;
-
-            if (isPrimary != attribute.isPrimary) return false;
-            if (!Objects.equals(code, attribute.code))
-                return false;
-            if (!Objects.equals(name, attribute.name))
-                return false;
-            if (!Objects.equals(description, attribute.description))
-                return false;
-            return type == attribute.type;
+            Attribute that = (Attribute) o;
+            return Objects.equals(isPrimary, that.isPrimary) &&
+                    Objects.equals(code, that.code) &&
+                    Objects.equals(name, that.name) &&
+                    Objects.equals(type, that.type) &&
+                    Objects.equals(description, that.description);
         }
 
         @Override
         public int hashCode() {
-            int result = code != null ? code.hashCode() : 0;
-            result = 31 * result + (name != null ? name.hashCode() : 0);
-            result = 31 * result + (type != null ? type.hashCode() : 0);
-            result = 31 * result + (isPrimary ? 1 : 0);
-            return result;
+            return Objects.hash(code, name, type, isPrimary);
         }
     }
 
@@ -266,33 +297,33 @@ public class Structure implements Serializable {
             return primaryAttributes.get(0);
         }
 
+        public boolean isNull() {
+            return StringUtils.isEmpty(attribute) || StringUtils.isEmpty(referenceCode);
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            Reference reference = (Reference) o;
-
-            if (!Objects.equals(attribute, reference.attribute))
-                return false;
-            if (!Objects.equals(referenceCode, reference.referenceCode))
-                return false;
-            return Objects.equals(displayExpression, reference.displayExpression);
+            Reference that = (Reference) o;
+            return Objects.equals(attribute, that.attribute) &&
+                    Objects.equals(referenceCode, that.referenceCode) &&
+                    Objects.equals(displayExpression, that.displayExpression);
         }
 
         @Override
         public int hashCode() {
-            int result = attribute != null ? attribute.hashCode() : 0;
-            result = 31 * result + (referenceCode != null ? referenceCode.hashCode() : 0);
-            result = 31 * result + (displayExpression != null ? displayExpression.hashCode() : 0);
-            return result;
+            return Objects.hash(attribute, referenceCode, displayExpression);
         }
     }
 
-    public boolean storageEquals(Structure s) {
+    public boolean storageEquals(Structure that) {
+        List<Attribute> others = that.getAttributes();
         return isEmpty(attributes)
-                ? isEmpty(s.getAttributes())
-                : attributes.stream().noneMatch(attribute -> s.attributes.stream().noneMatch(attribute::storageEquals));
+                ? isEmpty(others)
+                : attributes.size() == others.size()
+                && attributes.stream().noneMatch(attribute -> others.stream().noneMatch(attribute::storageEquals));
     }
 
     @Override
@@ -300,16 +331,13 @@ public class Structure implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Structure structure = (Structure) o;
-
-        if (!Objects.equals(attributes, structure.attributes)) return false;
-        return Objects.equals(references, structure.references);
+        Structure that = (Structure) o;
+        return  Objects.equals(attributes, that.attributes) &&
+                Objects.equals(references, that.references);
     }
 
     @Override
     public int hashCode() {
-        int result = attributes != null ? attributes.hashCode() : 0;
-        result = 31 * result + (references != null ? references.hashCode() : 0);
-        return result;
+        return Objects.hash(attributes, references);
     }
 }

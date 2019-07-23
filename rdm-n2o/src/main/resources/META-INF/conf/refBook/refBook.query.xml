@@ -59,6 +59,12 @@
             <sorting/>
         </field>
 
+        <field id="excludeByVersionId" domain="integer">
+            <filters>
+                <eq filter-id="excludeByVersionId" mapping="excludeByVersionId"/>
+            </filters>
+        </field>
+
         <field id="status" domain="string">
             <filters>
                 <eq filter-id="status.id" mapping="status" domain="string"/>
@@ -132,6 +138,10 @@
             <filters>
                 <eq filter-id="hasPrimaryAttribute" mapping="hasPrimaryAttribute"/>
             </filters>
+        </field>
+
+        <field id="hasReferrer" domain="boolean">
+            <select/>
         </field>
 
         <field id="version.hasConflict" domain="boolean">

@@ -28,7 +28,7 @@ import ru.inovus.ms.rdm.model.version.PassportAttribute;
 import ru.inovus.ms.rdm.model.diff.PassportAttributeDiff;
 import ru.inovus.ms.rdm.model.diff.PassportDiff;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.repositiory.PassportAttributeRepository;
+import ru.inovus.ms.rdm.repository.PassportAttributeRepository;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
@@ -239,6 +239,7 @@ public class XlsxCompareFileGeneratorTest {
         public boolean matches(CompareDataCriteria actual) {
             if (actual == null)
                 return false;
+
            return Objects.equals(expected.getOldVersionId(), actual.getOldVersionId()) &&
                     Objects.equals(expected.getNewVersionId(), actual.getNewVersionId()) &&
                     Objects.equals(expected.getPageNumber(), actual.getPageNumber()) &&

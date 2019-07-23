@@ -88,11 +88,12 @@ public class RefBookEntity {
         this.category = category;
     }
 
-    @SuppressWarnings("all")
     @Override
+    @SuppressWarnings("squid:S1067")
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         RefBookEntity that = (RefBookEntity) o;
         return Objects.equals(id, that.id) &&
                 Objects.equals(code, that.code) &&

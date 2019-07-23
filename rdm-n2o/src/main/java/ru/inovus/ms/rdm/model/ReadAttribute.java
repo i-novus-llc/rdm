@@ -5,6 +5,7 @@ public class ReadAttribute extends FormAttribute {
 
     // refBook
     private Integer versionId;
+    private Boolean hasReferrer;
 
     // attribute
     private String codeExpression;
@@ -21,6 +22,14 @@ public class ReadAttribute extends FormAttribute {
 
     public void setVersionId(Integer versionId) {
         this.versionId = versionId;
+    }
+
+    public Boolean getHasReferrer() {
+        return hasReferrer;
+    }
+
+    public void setHasReferrer(Boolean hasReferrer) {
+        this.hasReferrer = hasReferrer;
     }
 
     public String getCodeExpression() {

@@ -13,8 +13,9 @@ import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
-import org.springframework.util.CollectionUtils;
+import org.springframework.data.domain.Sort;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
+import ru.i_novus.platform.datastorage.temporal.model.DataConstants;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.inovus.ms.rdm.entity.PassportAttributeEntity;
 import ru.inovus.ms.rdm.exception.RdmException;
@@ -25,9 +26,10 @@ import ru.inovus.ms.rdm.model.diff.RefBookDataDiff;
 import ru.inovus.ms.rdm.model.diff.StructureDiff;
 import ru.inovus.ms.rdm.model.diff.PassportDiff;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.repositiory.PassportAttributeRepository;
+import ru.inovus.ms.rdm.repository.PassportAttributeRepository;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.util.PageIterator;
 
 import java.awt.Color;
 import java.io.IOException;
@@ -36,8 +38,11 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.util.Collections.singletonList;
 
 /**
  * Created by znurgaliev on 26.09.2018.
@@ -281,32 +286,31 @@ class XlsxCompareFileGenerator implements FileGenerator {
         sheet.trackAllColumnsForAutoSizing();
 
         CompareDataCriteria compareCriteria = new CompareDataCriteria(oldVersion.getId(), newVersion.getId());
-        Page<ComparableRow> page;
-        do {
-            page = compareService.getCommonComparableRows(compareCriteria);
-            page.getContent().stream()
-                    .map(comparableRow -> {
-                        Map<String, XlsxComparedCell> diffValueMap = new HashMap<>();
-                        comparableRow.getFieldValues()
-                                .forEach(cfv -> diffValueMap.put(
-                                        cfv.getComparableField().getCode(),
-                                        new XlsxComparedCell(cfv.getOldValue(), cfv.getNewValue(), cfv.getStatus())));
-                        return new XlsxComparedRow(diffValueMap, comparableRow.getStatus());
-                    })
-                    .peek(rowDiffValue -> {
-                        if (rowDiffValue.getCells().values().stream()
-                                .anyMatch(cellDiffValue -> DiffStatusEnum.UPDATED.equals(cellDiffValue.getStatus()))) {
-                            rowDiffValue.setDiffStatus(DiffStatusEnum.UPDATED);
-                        }
-                    })
-                    .forEach(rowDiffValue -> insertRowDiff(rowDiffValue, sheet, dataColumnIndexes));
-            compareCriteria.setPageNumber(compareCriteria.getPageNumber() + 1);
-        } while (!CollectionUtils.isEmpty(page.getContent()));
+        compareCriteria.setOrders(singletonList(new Sort.Order(Sort.Direction.ASC, DataConstants.SYS_PRIMARY_COLUMN)));
 
+        Function<CompareDataCriteria, Page<ComparableRow>> pageSource = compareService::getCommonComparableRows;
+        PageIterator<ComparableRow, CompareDataCriteria> pageIterator = new PageIterator<>(pageSource, compareCriteria);
+        pageIterator.forEachRemaining(page ->
+                page.getContent().stream()
+                        .map(comparableRow -> {
+                            Map<String, XlsxComparedCell> diffValueMap = new HashMap<>();
+                            comparableRow.getFieldValues()
+                                    .forEach(cfv -> diffValueMap.put(
+                                            cfv.getComparableField().getCode(),
+                                            new XlsxComparedCell(cfv.getOldValue(), cfv.getNewValue(), cfv.getStatus())));
+                            return new XlsxComparedRow(diffValueMap, comparableRow.getStatus());
+                        })
+                        .peek(rowDiffValue -> {
+                            if (rowDiffValue.getCells().values().stream()
+                                    .anyMatch(cellDiffValue -> DiffStatusEnum.UPDATED.equals(cellDiffValue.getStatus()))) {
+                                rowDiffValue.setDiffStatus(DiffStatusEnum.UPDATED);
+                            }
+                        })
+                        .forEach(rowDiffValue -> insertRowDiff(rowDiffValue, sheet, dataColumnIndexes))
+        );
 
         headRow.cellIterator().forEachRemaining(cell -> sheet.autoSizeColumn(cell.getColumnIndex(), true));
     }
-
 
     private Row createDataHead(SXSSFSheet sheet, List<String> deletedColumns, List<String> createdColumns) {
 
@@ -328,7 +332,6 @@ class XlsxCompareFileGenerator implements FileGenerator {
 
         return headRow;
     }
-
 
     private void insertRowDiff(XlsxComparedRow rowDiff, SXSSFSheet sheet, Map<String, Integer> indexes) {
         Set<Integer> notInserted = new HashSet<>();
@@ -352,6 +355,7 @@ class XlsxCompareFileGenerator implements FileGenerator {
         );
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     private Row getOrCreateRow(SXSSFSheet sheet, int rowIndex) {
         Row row = sheet.getRow(rowIndex);
         if (row == null)

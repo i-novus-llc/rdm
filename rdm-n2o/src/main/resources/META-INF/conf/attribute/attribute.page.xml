@@ -30,6 +30,7 @@
                 </dependencies>
                 <pre-filters>
                     <eq field-id="hasPublishedVersion" value="true" />
+                    <eq field-id="excludeByVersionId" value="{versionId}"/>
                 </pre-filters>
                 <validations>
                     <condition id="hasRefBook" severity="danger"
@@ -84,7 +85,7 @@
             <checkbox id="isPrimary" label="Первичный ключ">
                 <dependencies>
                     <enabling on="attrType">
-                        (attrType != null &amp;&amp; attrType.id != 'BOOLEAN')
+                        (!hasReferrer &amp;&amp; attrType != null &amp;&amp; attrType.id != 'BOOLEAN')
                     </enabling>
                 </dependencies>
             </checkbox>

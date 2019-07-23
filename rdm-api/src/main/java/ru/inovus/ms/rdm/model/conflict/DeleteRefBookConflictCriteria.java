@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.model.conflict;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.model.AbstractCriteria;
 
 import javax.ws.rs.QueryParam;
@@ -24,6 +25,14 @@ public class DeleteRefBookConflictCriteria extends AbstractCriteria {
     @ApiModelProperty("Идентификатор опубликованного справочника")
     @QueryParam("publishedVersionId")
     private Integer publishedVersionRefBookId;
+
+    @ApiModelProperty("Название поля-ссылки с конфликтом по отображаемому значению")
+    @QueryParam("refFieldCode")
+    private String refFieldCode;
+
+    @ApiModelProperty("Тип конфликта")
+    @QueryParam("conflictType")
+    private ConflictType conflictType;
 
     @ApiModelProperty("Идентификатор исключаемой версии опубликованного справочника")
     @QueryParam("excludedPublishedVersionId")
@@ -59,6 +68,22 @@ public class DeleteRefBookConflictCriteria extends AbstractCriteria {
 
     public void setPublishedVersionRefBookId(Integer publishedVersionRefBookId) {
         this.publishedVersionRefBookId = publishedVersionRefBookId;
+    }
+
+    public String getRefFieldCode() {
+        return refFieldCode;
+    }
+
+    public void setRefFieldCode(String refFieldCode) {
+        this.refFieldCode = refFieldCode;
+    }
+
+    public ConflictType getConflictType() {
+        return conflictType;
+    }
+
+    public void setConflictType(ConflictType conflictType) {
+        this.conflictType = conflictType;
     }
 
     public Integer getExcludedPublishedVersionId() {

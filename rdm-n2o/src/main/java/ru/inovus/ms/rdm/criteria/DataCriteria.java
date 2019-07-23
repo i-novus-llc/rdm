@@ -16,13 +16,15 @@ public class DataCriteria extends Criteria {
 
     private Integer versionId;
     private Map<String, Serializable> filter;
+    private Boolean hasConflict;
 
     public DataCriteria() {
     }
 
-    public DataCriteria(Integer versionId, Map<String, Serializable> filter) {
+    public DataCriteria(Integer versionId, Map<String, Serializable> filter, Boolean hasConflict) {
         this.versionId = versionId;
         this.filter = filter;
+        this.hasConflict = hasConflict;
     }
 
     public Integer getVersionId() {
@@ -39,6 +41,14 @@ public class DataCriteria extends Criteria {
 
     public void setFilter(Map<String, Serializable> filter) {
         this.filter = filter;
+    }
+
+    public Boolean getHasConflict() {
+        return hasConflict;
+    }
+
+    public void setHasConflict(Boolean hasConflict) {
+        this.hasConflict = hasConflict;
     }
 
     @Override

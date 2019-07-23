@@ -41,6 +41,7 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
      * @param s Параметры провайдера (ID версии)
      */
     @Override
+    @SuppressWarnings("unchecked")
     public List<? extends SourceMetadata> read(String s) {
 
         Integer versionId = Integer.parseInt(s);

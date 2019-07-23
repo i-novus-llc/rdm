@@ -293,7 +293,6 @@ public class CompareDataControllerTest {
 
     private CompareDataCriteria createRdmDefaultCompareDataCriteria(Integer oldId, Integer newId) {
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria(oldId, newId);
-        compareDataCriteria.setPageNumber(0);
         compareDataCriteria.setPageSize(10);
         return compareDataCriteria;
     }

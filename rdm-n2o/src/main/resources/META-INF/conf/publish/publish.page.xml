@@ -28,12 +28,12 @@
 
         <toolbar place="bottomRight">
             <button id="publishDraft" label="Опубликовать"
-                    visibility-condition="isPublishing">
+                    visibility-condition="isPublishable">
                 <invoke operation-id="publishDraft" close-after-success="true"/>
             </button>
 
             <button id="publishAndRefresh" label="Опубликовать и обновить ссылки"
-                    visibility-condition="isPublishing &amp;&amp; hasCheckUpdatedConflicts">
+                    visibility-condition="isPublishable &amp;&amp; hasCheckUpdatedConflicts">
                 <invoke operation-id="publishAndRefresh" close-after-success="true"/>
             </button>
 

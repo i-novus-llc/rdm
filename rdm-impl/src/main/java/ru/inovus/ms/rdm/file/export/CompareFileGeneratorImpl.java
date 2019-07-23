@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import ru.inovus.ms.rdm.exception.RdmException;
 import ru.inovus.ms.rdm.model.ExportFile;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.repositiory.PassportAttributeRepository;
+import ru.inovus.ms.rdm.repository.PassportAttributeRepository;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
@@ -14,11 +14,12 @@ import java.io.IOException;
 @Component
 public class CompareFileGeneratorImpl implements CompareFileGenerator {
 
-    CompareService compareService;
-    VersionService versionService;
-    PassportAttributeRepository passportAttributeRepository;
+    private CompareService compareService;
+    private VersionService versionService;
+    private PassportAttributeRepository passportAttributeRepository;
 
     @Autowired
+    @SuppressWarnings("unused")
     public CompareFileGeneratorImpl(CompareService compareService, VersionService versionService, PassportAttributeRepository passportAttributeRepository) {
         this.compareService = compareService;
         this.versionService = versionService;

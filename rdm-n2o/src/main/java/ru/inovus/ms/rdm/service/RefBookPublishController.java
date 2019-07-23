@@ -18,6 +18,7 @@ import static java.util.stream.Collectors.toMap;
 import static ru.inovus.ms.rdm.util.StringUtils.addDoubleQuotes;
 
 @Controller
+@SuppressWarnings("unused")
 public class RefBookPublishController {
 
     private static final String PASSPORT_ATTRIBUTE_NAME = "name";
@@ -36,20 +37,18 @@ public class RefBookPublishController {
         this.conflictService = conflictService;
     }
 
-    UiRefBookPublish getByVersionId(Integer versionId) {
+    public UiRefBookPublish getByVersionId(Integer versionId) {
 
         RefBook refBook = refBookService.getByVersionId(versionId);
 
         UiRefBookPublish uiRefBookPublish = new UiRefBookPublish(refBook);
-
-        Map<String, String> conflictReferrerNames =
+        Map<String, String> conflictingReferrerNames =
                 Stream.of(ConflictType.values())
                         .collect(toMap(ConflictType::name,
-                                conflictType -> getCheckConflictReferrerNames(versionId, conflictType)
+                                conflictType -> getConflictingReferrerNames(versionId, conflictType)
                                 )
                         );
-
-        uiRefBookPublish.setConflictReferrerNames(conflictReferrerNames);
+        uiRefBookPublish.setConflictingReferrerNames(conflictingReferrerNames);
 
         return uiRefBookPublish;
     }
@@ -59,7 +58,7 @@ public class RefBookPublishController {
      *
      * @param draftId идентификатор черновика
      */
-    void publishDraft(Integer draftId) {
+    public void publishDraft(Integer draftId) {
         publishService.publish(draftId, null, null, null, false);
     }
 
@@ -68,7 +67,7 @@ public class RefBookPublishController {
      *
      * @param draftId идентификатор черновика
      */
-    void publishAndRefresh(Integer draftId) {
+    public void publishAndRefresh(Integer draftId) {
         publishService.publish(draftId, null, null, null, true);
     }
 
@@ -79,8 +78,8 @@ public class RefBookPublishController {
      * @param conflictType тип конфликта
      * @return Названия справочников (через запятую)
      */
-    private String getCheckConflictReferrerNames(Integer versionId, ConflictType conflictType) {
-        return conflictService.getCheckConflictReferrers(versionId, conflictType)
+    private String getConflictingReferrerNames(Integer versionId, ConflictType conflictType) {
+        return conflictService.getConflictingReferrers(versionId, conflictType)
                 .stream()
                 .map(this::getReferrerDisplayName)
                 .collect(Collectors.joining(REFERRER_NAME_SEPARATOR));

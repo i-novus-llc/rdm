@@ -22,6 +22,7 @@ import static ru.inovus.ms.rdm.util.ComparableUtils.createPrimaryAttributesFilte
 import static ru.inovus.ms.rdm.util.ComparableUtils.findComparableRow;
 
 @Controller
+@SuppressWarnings("WeakerAccess")
 public class CompareDataController {
 
     @Autowired
