@@ -188,7 +188,7 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         N2oConstraint constraint = new N2oConstraint();
         constraint.setId("_constraint_validation");
         constraint.setFieldId(attributeCodeWithPrefix);
-        constraint.setMessage("В связанном справочнике была {conflictType} строка");
+        constraint.setMessage("В связанном справочнике была {conflictType}");
         constraint.setSeverity(SeverityType.danger);
         constraint.setResult("#this == null");
 
@@ -203,7 +203,7 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         constraint.setInParameters(new N2oObject.Parameter[]{refFromIdParam, refFieldCodeParam, rowSystemIdParam});
 
         N2oObject.Parameter conflictTypeParam = new N2oObject.Parameter(N2oObject.Parameter.Type.out, "conflictType",
-                "\"UPDATED\".equals(conflictType.name()) ? \"изменена\" : \"удалена\"");
+                "\"UPDATED\".equals(conflictType.name()) ? \"изменена строка\" : \"\\\"DELETED\\\".equals(conflictType.name()) ? \"удалена строка\" :  \"изменена структура\"");
         conflictTypeParam.setDomain(N2oDomain.STRING);
         N2oObject.Parameter[] outParams = new N2oObject.Parameter[]{conflictTypeParam};
         constraint.setOutParameters(outParams);
