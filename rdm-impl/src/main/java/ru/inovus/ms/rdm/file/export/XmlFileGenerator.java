@@ -4,8 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.exception.RdmException;
-import ru.inovus.ms.rdm.model.RefBookVersion;
-import ru.inovus.ms.rdm.model.Row;
+import ru.inovus.ms.rdm.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.validation.AttributeValidation;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.util.ConverterUtil;
@@ -169,7 +169,7 @@ public class XmlFileGenerator extends PerRowFileGenerator {
 
         writeElement("referenceCode", reference.getReferenceCode());
         if (reference.getDisplayExpression() != null)
-            writeElement("displayExpresssion", reference.getDisplayExpression());
+            writeElement("displayExpression", reference.getDisplayExpression());
     }
 
     private void addAttributeValidation(String attributeCode) {

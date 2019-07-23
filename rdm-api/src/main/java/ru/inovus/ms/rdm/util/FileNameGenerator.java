@@ -1,7 +1,7 @@
 package ru.inovus.ms.rdm.util;
 
 import ru.inovus.ms.rdm.enumeration.FileType;
-import ru.inovus.ms.rdm.model.RefBookVersion;
+import ru.inovus.ms.rdm.model.version.RefBookVersion;
 
 public interface FileNameGenerator {
 

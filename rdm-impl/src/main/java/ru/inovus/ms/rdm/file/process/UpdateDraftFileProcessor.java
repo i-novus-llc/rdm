@@ -2,8 +2,8 @@ package ru.inovus.ms.rdm.file.process;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inovus.ms.rdm.model.CreateDraftRequest;
-import ru.inovus.ms.rdm.model.Draft;
+import ru.inovus.ms.rdm.model.draft.CreateDraftRequest;
+import ru.inovus.ms.rdm.model.draft.Draft;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.service.api.DraftService;
 

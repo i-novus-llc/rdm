@@ -11,8 +11,8 @@ import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookOperationEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookOperation;
-import ru.inovus.ms.rdm.repositiory.RefBookOperationRepository;
-import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
+import ru.inovus.ms.rdm.repository.RefBookOperationRepository;
+import ru.inovus.ms.rdm.repository.RefBookVersionRepository;
 
 import javax.annotation.PostConstruct;
 import java.net.InetAddress;

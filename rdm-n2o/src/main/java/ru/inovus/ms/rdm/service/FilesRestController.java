@@ -22,9 +22,9 @@ import ru.inovus.ms.rdm.service.api.VersionService;
 import java.io.IOException;
 import java.time.LocalDateTime;
 
-
 @RestController
 @RequestMapping("/files")
+@SuppressWarnings("unused")
 public class FilesRestController {
 
     private final FileStorageService fileStorageService;

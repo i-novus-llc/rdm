@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inovus.ms.rdm.file.RowMapper;
 import ru.inovus.ms.rdm.model.Result;
-import ru.inovus.ms.rdm.model.Row;
+import ru.inovus.ms.rdm.model.refdata.Row;
 
 import java.io.Closeable;
 import java.io.IOException;

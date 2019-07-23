@@ -4,7 +4,6 @@ import net.n2oapp.criteria.api.Direction;
 import net.n2oapp.criteria.api.Sorting;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.data.domain.Sort;
-import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
@@ -16,9 +15,9 @@ import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.*;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.service.FieldFactoryImpl;
 import ru.inovus.ms.rdm.exception.RdmException;
-import ru.inovus.ms.rdm.model.AttributeFilter;
-import ru.inovus.ms.rdm.model.RefBookRowValue;
-import ru.inovus.ms.rdm.model.Row;
+import ru.inovus.ms.rdm.model.version.AttributeFilter;
+import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.Structure;
 
 import java.math.BigInteger;
@@ -27,9 +26,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.*;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class ConverterUtil {
 
@@ -57,7 +58,7 @@ public class ConverterUtil {
         return new LongRowValue(row.getSystemId(),
                 fields.stream()
                         .map(field -> field.valueOf(row.getData().get(field.getName())))
-                        .collect(Collectors.toList()));
+                        .collect(toList()));
     }
 
     public static Date date(LocalDateTime date) {
@@ -80,12 +81,12 @@ public class ConverterUtil {
                         new FieldSearchCriteria(
                                 fieldFactory.createField(attrFilter.getAttributeName(), attrFilter.getFieldType()),
                                 attrFilter.getSearchType(),
-                                singletonList(attrFilter.getValue()))).collect(Collectors.toList())
-        ).collect(Collectors.toSet());
+                                singletonList(attrFilter.getValue()))).collect(toList())
+        ).collect(toSet());
     }
 
     public static Set<List<FieldSearchCriteria>> getFieldSearchCriteriaList(Map<String, String> filters, Structure structure) {
-        if (CollectionUtils.isEmpty(filters))
+        if (isEmpty(filters))
             return emptySet();
         return singleton(filters.entrySet().stream()
                 .map(e -> {
@@ -93,7 +94,7 @@ public class ConverterUtil {
                     if (attribute == null) return null;
                     Field field = field(attribute);
                     return new FieldSearchCriteria(field, SearchTypeEnum.LIKE, singletonList(toSearchType(field, e.getValue())));
-                }).collect(Collectors.toList()));
+                }).collect(toList()));
     }
 
     public static Row toRow(RowValue rowValue) {

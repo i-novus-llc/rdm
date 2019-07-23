@@ -41,11 +41,42 @@
             <select/>
         </field>
 
+        <field id="draftVersionId" domain="integer">
+            <select/>
+        </field>
+
+        <field id="lastPublishedVersionId" domain="integer">
+            <select/>
+        </field>
+
+        <field id="version.isLast" domain="boolean">
+            <select mapping="id == draftVersionId or (id == lastPublishedVersionId and draftVersionId == null)"/>
+        </field>
+
+        <field id="version.hasDataConflict" domain="boolean">
+            <select mapping="hasDataConflict"/>
+        </field>
+
+        <field id="version.hasUpdatedConflict" domain="boolean">
+            <select mapping="hasUpdatedConflict"/>
+        </field>
+
+        <field id="version.hasAlteredConflict" domain="boolean">
+            <select mapping="hasAlteredConflict"/>
+        </field>
+
+        <field id="version.hasConflict" domain="boolean">
+            <select mapping="hasDataConflict || hasStructureConflict"/>
+        </field>
+
+        <field id="version.hasRefreshedConflict" domain="boolean">
+            <select mapping="hasUpdatedConflict || hasAlteredConflict"/>
+        </field>
+
         <!--Хак, для обновления detail виджетов, если в master нет изменений после рефреша-->
         <field id="now" domain="string">
             <select mapping="new java.util.Date()"/>
         </field>
-
 
     </fields>
 </query>

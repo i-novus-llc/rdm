@@ -16,8 +16,8 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
-import ru.inovus.ms.rdm.model.RefBookRowValue;
-import ru.inovus.ms.rdm.model.SearchDataCriteria;
+import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.model.compare.ComparableField;
 import ru.inovus.ms.rdm.model.compare.ComparableFieldValue;
@@ -293,7 +293,6 @@ public class CompareDataControllerTest {
 
     private CompareDataCriteria createRdmDefaultCompareDataCriteria(Integer oldId, Integer newId) {
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria(oldId, newId);
-        compareDataCriteria.setPageNumber(0);
         compareDataCriteria.setPageSize(10);
         return compareDataCriteria;
     }

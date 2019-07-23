@@ -4,6 +4,7 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.util.TimeUtils;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -153,9 +154,18 @@ public class RefBookVersionEntity {
         this.passportValues = passportValues;
     }
 
+    /**
+     * Проверка статуса версии на DRAFT.
+     *
+     * @return Результат проверки
+     */
+    public boolean isDraft() {
+        return RefBookVersionStatus.DRAFT.equals(status);
+    }
+
     @PrePersist
     public void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = TimeUtils.now();
 
         if (creationDate == null)
             creationDate = now;
@@ -164,11 +174,12 @@ public class RefBookVersionEntity {
             lastActionDate = now;
     }
 
-    @SuppressWarnings("all")
     @Override
+    @SuppressWarnings("squid:S1067")
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         RefBookVersionEntity that = (RefBookVersionEntity) o;
         return Objects.equals(id, that.id) &&
                 Objects.equals(refBook, that.refBook) &&

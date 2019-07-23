@@ -2,7 +2,7 @@ package ru.inovus.ms.rdm.validation;
 
 import net.n2oapp.platform.i18n.Message;
 import ru.inovus.ms.rdm.exception.RdmException;
-import ru.inovus.ms.rdm.model.Row;
+import ru.inovus.ms.rdm.model.refdata.Row;
 
 import java.util.*;
 
@@ -24,7 +24,7 @@ public abstract class AppendRowValidation extends ErrorAttributeHolderValidation
     @Override
     public List<Message> validate() {
         if (buffer.isEmpty())
-            throw new RdmException("Missing row to validate, append row before validation");
+            throw new RdmException("Missing refData to validate, append refData before validation");
         List<Message> messages = new ArrayList<>();
         buffer.keySet().stream()
                 .peek(map -> map.entrySet().removeIf(entry -> getErrorAttributes().contains(entry.getKey())))
