@@ -136,8 +136,8 @@ public class StructureController {
 
     public void deleteAttribute(Integer versionId, String attributeCode) {
 
-        draftService.deleteAttribute(versionId, attributeCode);
         draftService.deleteAttributeValidation(versionId, attributeCode, null);
+        draftService.deleteAttribute(versionId, attributeCode);
     }
 
     private List<AttributeValidation> createValidations(FormAttribute formAttribute) {
