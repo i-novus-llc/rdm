@@ -1,8 +1,9 @@
 package ru.inovus.ms.rdm.model;
 
+import net.n2oapp.platform.i18n.Message;
+import net.n2oapp.platform.i18n.UserException;
 import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.inovus.ms.rdm.exception.RdmException;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -14,6 +15,9 @@ import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class Structure implements Serializable {
+
+    private static final String PRIMARY_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "primary.attribute.not.found";
+    private static final String PRIMARY_ATTRIBUTE_IS_MULTIPLE_EXCEPTION_CODE = "primary.attribute.is.multiple";
 
     private List<Attribute> attributes;
 
@@ -290,9 +294,9 @@ public class Structure implements Serializable {
 
             List<Structure.Attribute> primaryAttributes = referenceStructure.getPrimary();
             if (isEmpty(primaryAttributes))
-                throw new RdmException("primary.attribute.not.found");
+                throw new UserException(new Message(PRIMARY_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE));
             if (primaryAttributes.size() > 1)
-                throw new RdmException("primary.attribute.multiple");
+                throw new UserException(new Message(PRIMARY_ATTRIBUTE_IS_MULTIPLE_EXCEPTION_CODE));
 
             return primaryAttributes.get(0);
         }
