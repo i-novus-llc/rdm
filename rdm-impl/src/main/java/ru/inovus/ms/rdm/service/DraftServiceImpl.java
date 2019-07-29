@@ -151,7 +151,7 @@ public class DraftServiceImpl implements DraftService {
             }
 
         } finally {
-            refBookLockService.deleteRefBookAction(refBookId);
+            refBookLockService.deleteRefBookOperation(refBookId);
         }
 
     }
@@ -436,7 +436,7 @@ public class DraftServiceImpl implements DraftService {
             updateDraftData(draftVersion, fileModel);
 
         } finally {
-            refBookLockService.deleteRefBookAction(refBookId);
+            refBookLockService.deleteRefBookOperation(refBookId);
         }
     }
 

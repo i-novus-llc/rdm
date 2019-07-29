@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.service;
 
+import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,12 +24,17 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
+@SuppressWarnings("unused")
 public class RefBookLockServiceImpl implements RefBookLockService {
+
+    private static final String REFBOOK_LOCK_DRAFT_IS_PUBLISHING = "refbook.lock.draft.is.publishing";
+    private static final String REFBOOK_LOCK_DRAFT_IS_UPLOADING = "refbook.lock.draft.is.uploading";
 
     private static final Logger logger = LoggerFactory.getLogger(RefBookLockServiceImpl.class);
 
     private static final Duration OPERATION_MAX_LIVE_PERIOD = Duration.ofHours(4);
     private static final String DEFAULT_USER = "admin";
+
     private String instanceId = "localhost";
 
     private RefBookOperationRepository operationRepository;
@@ -55,16 +61,16 @@ public class RefBookLockServiceImpl implements RefBookLockService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void setRefBookPublishing(Integer refBookId) {
-        saveRefBookOperation(refBookId, RefBookOperation.PUBLISHING);
+        addRefBookOperation(refBookId, RefBookOperation.PUBLISHING);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void setRefBookUploading(Integer refBookId) {
-        saveRefBookOperation(refBookId, RefBookOperation.UPLOADING);
+        addRefBookOperation(refBookId, RefBookOperation.UPLOADING);
     }
 
-    private void saveRefBookOperation(Integer refBookId, RefBookOperation operation) {
+    private void addRefBookOperation(Integer refBookId, RefBookOperation operation) {
         validateRefBookNotBusyByRefBookId(refBookId);
 
         RefBookEntity refBook = new RefBookEntity();
@@ -74,7 +80,7 @@ public class RefBookLockServiceImpl implements RefBookLockService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
-    public void deleteRefBookAction(Integer refBookId) {
+    public void deleteRefBookOperation(Integer refBookId) {
         operationRepository.deleteByRefBookId(refBookId);
     }
 
@@ -89,20 +95,21 @@ public class RefBookLockServiceImpl implements RefBookLockService {
 
     @Override
     public void validateRefBookNotBusyByRefBookId(Integer refBookId) {
+
         RefBookOperationEntity refBookOperationEntity = operationRepository.findByRefBookId(refBookId);
+        if (refBookOperationEntity == null)
+            return;
 
-        if (refBookOperationEntity != null) {
-            if (Duration.between(refBookOperationEntity.getCreationDate(), LocalDateTime.now(Clock.systemUTC()))
-                    .compareTo(OPERATION_MAX_LIVE_PERIOD) > 0) {
-                operationRepository.deleteById(refBookOperationEntity.getId());
-                return;
-            }
+        if (Duration.between(refBookOperationEntity.getCreationDate(), LocalDateTime.now(Clock.systemUTC()))
+                .compareTo(OPERATION_MAX_LIVE_PERIOD) > 0) {
+            operationRepository.deleteById(refBookOperationEntity.getId());
+            return;
+        }
 
-            if (RefBookOperation.PUBLISHING.equals(refBookOperationEntity.getOperation())) {
-                throw new UserException("draft.is.publishing");
-            } else if (RefBookOperation.UPLOADING.equals(refBookOperationEntity.getOperation())) {
-                throw new UserException("draft.is.uploading");
-            }
+        if (RefBookOperation.PUBLISHING.equals(refBookOperationEntity.getOperation())) {
+            throw new UserException(new Message(REFBOOK_LOCK_DRAFT_IS_PUBLISHING, refBookId));
+        } else if (RefBookOperation.UPLOADING.equals(refBookOperationEntity.getOperation())) {
+            throw new UserException(new Message(REFBOOK_LOCK_DRAFT_IS_UPLOADING, refBookId));
         }
     }
 }
