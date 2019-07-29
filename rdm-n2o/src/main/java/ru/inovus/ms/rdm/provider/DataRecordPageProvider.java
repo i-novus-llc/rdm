@@ -43,9 +43,11 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
             "edit", "Редактирование записи"
     );
 
-    private static final String CONFLICT_TYPE_MAPPING = "\"UPDATED\".equals(conflictType.name()) ? \"изменена строка\" : " +
-        "\"DELETED\".equals(conflictType.name()) ? \"удалена строка\" : " +
-        "\"изменена структура\""; // ALTERED.equals(conflictType.name())
+    private static final String CONFLICT_TEXT_MAPPING = "#this == null ? \"\" : " +
+            "\"UPDATED\".equals(conflictType?.name()) ? \"изменена строка\" : " +
+            "\"DELETED\".equals(conflictType?.name()) ? \"удалена строка\" : " +
+            "\"ALTERED\".equals(conflictType?.name()) ? \"изменена структура\" : " +
+            "\"\"";
 
     @Autowired
     private VersionService versionService;
@@ -165,6 +167,7 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
     }
 
     private N2oValidation createRefValueValidation(String attributeCode) {
+
         String attributeCodeWithPrefix = addPrefix(attributeCode);
 
         N2oJavaDataProvider dataProvider = new N2oJavaDataProvider();
@@ -192,7 +195,7 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         N2oConstraint constraint = new N2oConstraint();
         constraint.setId("_constraint_validation");
         constraint.setFieldId(attributeCodeWithPrefix);
-        constraint.setMessage("В связанном справочнике была {conflictType}");
+        constraint.setMessage("В связанном справочнике была {conflictText}");
         constraint.setSeverity(SeverityType.danger);
         constraint.setResult("#this == null");
 
@@ -206,9 +209,9 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
 
         constraint.setInParameters(new N2oObject.Parameter[]{refFromIdParam, refFieldCodeParam, rowSystemIdParam});
 
-        N2oObject.Parameter conflictTypeParam = new N2oObject.Parameter(N2oObject.Parameter.Type.out, "conflictType", CONFLICT_TYPE_MAPPING);
-        conflictTypeParam.setDomain(N2oDomain.STRING);
-        N2oObject.Parameter[] outParams = new N2oObject.Parameter[]{conflictTypeParam};
+        N2oObject.Parameter conflictTextParam = new N2oObject.Parameter(N2oObject.Parameter.Type.out, "conflictText", CONFLICT_TEXT_MAPPING);
+        conflictTextParam.setDomain(N2oDomain.STRING);
+        N2oObject.Parameter[] outParams = new N2oObject.Parameter[]{conflictTextParam};
         constraint.setOutParameters(outParams);
         constraint.setServerMoment(N2oValidation.ServerMoment.afterSuccessQuery);
         constraint.setSide("server");
