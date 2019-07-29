@@ -8,7 +8,7 @@ import javax.ws.rs.core.MediaType;
 @Path("/reference")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Api("Методы работы с ссылками")
+@Api(value = "Методы работы с ссылками", hidden = true)
 public interface ReferenceService {
 
     @POST

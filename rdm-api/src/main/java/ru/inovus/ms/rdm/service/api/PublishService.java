@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Path("/publish")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Api("Методы публикации")
+@Api(value = "Методы публикации", hidden = true)
 public interface PublishService {
 
     @POST

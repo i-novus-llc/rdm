@@ -12,7 +12,7 @@ import java.io.InputStream;
 @Path("/fileStorage")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.MULTIPART_FORM_DATA)
-@Api("Файловое хранилище")
+@Api(value = "Файловое хранилище", hidden = true)
 public interface FileStorageService {
 
     @POST
