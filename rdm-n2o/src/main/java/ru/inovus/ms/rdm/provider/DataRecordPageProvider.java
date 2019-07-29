@@ -43,6 +43,10 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
             "edit", "Редактирование записи"
     );
 
+    private static final String CONFLICT_TYPE_MAPPING = "\"UPDATED\".equals(conflictType.name()) ? \"изменена строка\" : " +
+        "\"DELETED\".equals(conflictType.name()) ? \"удалена строка\" : " +
+        "\"изменена структура\""; // ALTERED.equals(conflictType.name())
+
     @Autowired
     private VersionService versionService;
 
@@ -202,8 +206,7 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
 
         constraint.setInParameters(new N2oObject.Parameter[]{refFromIdParam, refFieldCodeParam, rowSystemIdParam});
 
-        N2oObject.Parameter conflictTypeParam = new N2oObject.Parameter(N2oObject.Parameter.Type.out, "conflictType",
-                "\"UPDATED\".equals(conflictType.name()) ? \"изменена строка\" : \"\\\"DELETED\\\".equals(conflictType.name()) ? \"удалена строка\" :  \"изменена структура\"");
+        N2oObject.Parameter conflictTypeParam = new N2oObject.Parameter(N2oObject.Parameter.Type.out, "conflictType", CONFLICT_TYPE_MAPPING);
         conflictTypeParam.setDomain(N2oDomain.STRING);
         N2oObject.Parameter[] outParams = new N2oObject.Parameter[]{conflictTypeParam};
         constraint.setOutParameters(outParams);
