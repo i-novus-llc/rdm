@@ -11,7 +11,7 @@ public interface RefBookLockService {
 
     void setRefBookUploading(Integer refBookId);
 
-    void deleteRefBookAction(Integer refBookId);
+    void deleteRefBookOperation(Integer refBookId);
 
     void validateRefBookNotBusyByVersionId(Integer versionId);
 

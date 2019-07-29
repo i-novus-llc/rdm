@@ -153,7 +153,7 @@ public class PublishServiceImpl implements PublishService {
             }
 
         } finally {
-            refBookLockService.deleteRefBookAction(refBookId);
+            refBookLockService.deleteRefBookOperation(refBookId);
         }
     }
 
