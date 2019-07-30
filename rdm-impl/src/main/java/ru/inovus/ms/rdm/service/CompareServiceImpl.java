@@ -52,14 +52,16 @@ import static ru.inovus.ms.rdm.util.ConverterUtil.getFieldSearchCriteriaList;
 @Primary
 public class CompareServiceImpl implements CompareService {
 
+    private static final String COMPARE_OLD_PRIMARIES_NOT_FOUND_EXCEPTION_CODE = "compare.old.primaries.not.found";
+    private static final String COMPARE_NEW_PRIMARIES_NOT_FOUND_EXCEPTION_CODE = "compare.new.primaries.not.found";
+    private static final String COMPARE_PRIMARIES_NOT_EQUALS_EXCEPTION_CODE = "compare.primaries.not.equals";
+
     private CompareDataService compareDataService;
     private VersionService versionService;
     private RefBookVersionRepository versionRepository;
     private PassportAttributeRepository passportAttributeRepository;
     private FieldFactory fieldFactory;
     private VersionValidation versionValidation;
-
-    private static final String DATA_COMPARING_UNAVAILABLE_EXCEPTION_CODE = "data.comparing.unavailable";
 
     @Autowired
     public CompareServiceImpl(CompareDataService compareDataService,
@@ -151,7 +153,7 @@ public class CompareServiceImpl implements CompareService {
 
         Structure oldStructure = oldVersion.getStructure();
         Structure newStructure = newVersion.getStructure();
-        validatePrimaryAttributesEquality(oldStructure.getPrimary(), newStructure.getPrimary());
+        validatePrimariesEquality(oldStructure.getPrimary(), newStructure.getPrimary());
 
         CompareDataCriteria compareDataCriteria = createVdsCompareDataCriteria(oldVersion, newVersion, criteria);
 
@@ -210,20 +212,6 @@ public class CompareServiceImpl implements CompareService {
                 })
                 .map(attribute -> fieldFactory.createField(attribute.getCode(), attribute.getType()))
                 .collect(toList());
-    }
-
-    private void validateVersionsExistence(Integer oldVersionId, Integer newVersionId) {
-
-        versionValidation.validateVersionExists(oldVersionId);
-        versionValidation.validateVersionExists(newVersionId);
-    }
-
-    private void validatePrimaryAttributesEquality(List<Structure.Attribute> oldPrimaries, List<Structure.Attribute> newPrimaries) {
-        if (isEmpty(oldPrimaries)
-                || isEmpty(newPrimaries)
-                || oldPrimaries.size() != newPrimaries.size()
-                || oldPrimaries.stream().anyMatch(oldPrimary -> newPrimaries.stream().noneMatch(newPrimary -> newPrimary.equals(oldPrimary))))
-            throw new UserException(new Message(DATA_COMPARING_UNAVAILABLE_EXCEPTION_CODE));
     }
 
     private boolean equalValues(PassportValueEntity oldPassportValue, PassportValueEntity newPassportValue) {
@@ -345,5 +333,23 @@ public class CompareServiceImpl implements CompareService {
                         comparableRows.add(comparableRow);
                     });
         }
+    }
+
+    private void validateVersionsExistence(Integer oldVersionId, Integer newVersionId) {
+
+        versionValidation.validateVersionExists(oldVersionId);
+        versionValidation.validateVersionExists(newVersionId);
+    }
+
+    private void validatePrimariesEquality(List<Structure.Attribute> oldPrimaries, List<Structure.Attribute> newPrimaries) {
+        if (isEmpty(oldPrimaries))
+            throw new UserException(new Message(COMPARE_OLD_PRIMARIES_NOT_FOUND_EXCEPTION_CODE));
+
+        if (isEmpty(newPrimaries))
+            throw new UserException(new Message(COMPARE_NEW_PRIMARIES_NOT_FOUND_EXCEPTION_CODE));
+
+        if (oldPrimaries.size() != newPrimaries.size()
+                || oldPrimaries.stream().anyMatch(oldPrimary -> newPrimaries.stream().noneMatch(newPrimary -> newPrimary.equals(oldPrimary))))
+            throw new UserException(new Message(COMPARE_PRIMARIES_NOT_EQUALS_EXCEPTION_CODE));
     }
 }
