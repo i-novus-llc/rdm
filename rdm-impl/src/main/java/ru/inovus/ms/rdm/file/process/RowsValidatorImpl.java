@@ -38,6 +38,7 @@ public class RowsValidatorImpl implements RowsValidator {
 
     private AttributeCustomValidation attributeCustomValidation;
 
+    // NB: Add `RowsValidatorCriteria` to allow exclusion of some standard validations.
     public RowsValidatorImpl(VersionService versionService,
                              SearchDataService searchDataService,
                              Structure structure,

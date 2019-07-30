@@ -48,6 +48,7 @@ import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.*;
 @Service
 public class RefBookServiceImpl implements RefBookService {
 
+    // NB: Move to `RefBookVersionQueryProvider`.
     private static final String PASSPORT_SORT_PREFIX = "passport";
     private static final String VERSION_ID_SORT_PROPERTY = "id";
     private static final String REF_BOOK_ID_SORT_PROPERTY = "refbookId";
@@ -212,6 +213,7 @@ public class RefBookServiceImpl implements RefBookService {
         versionValidation.validateRefBookExists(refBookId);
         refBookLockService.validateRefBookNotBusyByRefBookId(refBookId);
 
+        // NB: may-be: Move to `RefBookVersionQueryProvider`.
         RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
         refBookEntity.getVersionList().forEach(v ->
                 dropDataService.drop(refBookRepository.getOne(refBookId).getVersionList().stream()
@@ -267,6 +269,7 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional(readOnly = true)
     public Page<RefBookVersion> searchReferrerVersions(ReferrerVersionCriteria criteria) {
 
+        // NB: Move to `RefBookVersionQueryProvider`.
         PageRequest pageRequest = PageRequest.of(criteria.getPageNumber(), criteria.getPageSize());
         Page<RefBookVersionEntity> entities = versionRepository.findReferrerVersions(criteria.getRefBookCode(), criteria.getStatusType().name(), criteria.getSourceType().name(), pageRequest);
         List<RefBookVersion> versions = entities.getContent().stream()
@@ -282,6 +285,7 @@ public class RefBookServiceImpl implements RefBookService {
      * @param criteria критерий поиска
      * @return Список сущностей
      */
+    // NB: Move to `RefBookVersionQueryProvider`.
     private Page<RefBookVersionEntity> findVersionEntities(RefBookCriteria criteria) {
 
         JPAQuery<RefBookVersionEntity> jpaQuery =
@@ -307,6 +311,7 @@ public class RefBookServiceImpl implements RefBookService {
      * @param jpaQuery запрос
      * @param criteria критерий поиска
      */
+    // NB: Move to `RefBookVersionQueryProvider`.
     private void sortQuery(JPAQuery<RefBookVersionEntity> jpaQuery, RefBookCriteria criteria) {
 
         List<Sort.Order> orders = criteria.getOrders();
@@ -327,6 +332,7 @@ public class RefBookServiceImpl implements RefBookService {
      * @param jpaQuery запрос поиска
      * @param order    порядок сортировки
      */
+    // NB: Move to `RefBookVersionQueryProvider`.
     private void addSortOrder(JPAQuery<RefBookVersionEntity> jpaQuery, Sort.Order order) {
 
         ComparableExpressionBase sortExpression;
@@ -374,6 +380,7 @@ public class RefBookServiceImpl implements RefBookService {
         jpaQuery.orderBy(order.isAscending() ? sortExpression.asc() : sortExpression.desc());
     }
 
+    // NB: Move to `RefBookVersionQueryProvider`.
     private ComparableExpressionBase getOrderByLastPublishDateExpression(JPAQuery<RefBookVersionEntity> jpaQuery) {
         QRefBookVersionEntity qSortFromDateVersion = new QRefBookVersionEntity("sort_from_date");
         QRefBookVersionEntity whereVersion = new QRefBookVersionEntity("sort_max_version");
@@ -422,6 +429,7 @@ public class RefBookServiceImpl implements RefBookService {
         List<RefBookVersion> referrerVersions = searchReferrerVersions(criteria).getContent();
         model.setHasReferrer(!referrerVersions.isEmpty());
 
+        // NB: List<boolean> isConflict by ConflictType filled by one query.
         boolean hasUpdatedConflict = conflictRepository.existsByReferrerVersionIdAndConflictType(model.getId(), ConflictType.UPDATED);
         model.setHasUpdatedConflict(hasUpdatedConflict);
 
@@ -502,6 +510,7 @@ public class RefBookServiceImpl implements RefBookService {
      * @param refBookSourceType источник данных справочника
      * @return Список требуемых версий справочников
      */
+    // NB: Move to `RefBookVersionQueryProvider`.
     private List<RefBookVersionEntity> getSourceTypeVersions(List<Integer> refBookIds, RefBookSourceType refBookSourceType) {
         RefBookCriteria versionCriteria = new RefBookCriteria();
         versionCriteria.setSourceType(refBookSourceType);

@@ -726,6 +726,7 @@ public class DraftServiceImpl implements DraftService {
      * @param draftEntity сущность-черновик
      * @param reference   атрибут-ссылка
      */
+    // NB: may-be: Move to `ReferenceServiceImpl`.
     private void refreshReferenceDisplayValues(RefBookVersionEntity draftEntity, Structure.Reference reference) {
 
         RefBookVersionEntity publishedEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
