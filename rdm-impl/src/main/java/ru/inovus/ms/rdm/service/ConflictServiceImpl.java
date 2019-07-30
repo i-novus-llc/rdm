@@ -175,8 +175,7 @@ public class ConflictServiceImpl implements ConflictService {
     public Boolean checkConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId, ConflictType conflictType) {
 
         versionValidation.validateVersionExists(refFromId);
-        versionValidation.validateVersionExists(oldRefToId);
-        versionValidation.validateVersionExists(newRefToId);
+        versionValidation.validateVersionPairExists(oldRefToId, newRefToId);
 
         RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
         RefBookVersionEntity oldRefToEntity = versionRepository.getOne(oldRefToId);
@@ -477,8 +476,7 @@ public class ConflictServiceImpl implements ConflictService {
     @Transactional
     public void discoverConflicts(Integer oldVersionId, Integer newVersionId) {
 
-        versionValidation.validateVersionExists(oldVersionId);
-        versionValidation.validateVersionExists(newVersionId);
+        versionValidation.validateVersionPairExists(oldVersionId, newVersionId);
 
         RefBookVersionEntity oldRefToEntity = versionRepository.getOne(oldVersionId);
         RefBookVersionEntity newRefToEntity = versionRepository.getOne(newVersionId);
@@ -503,8 +501,7 @@ public class ConflictServiceImpl implements ConflictService {
     // NB: for ApplicationTest only.
     public void copyConflicts(Integer oldVersionId, Integer newVersionId) {
 
-        versionValidation.validateVersionExists(oldVersionId);
-        versionValidation.validateVersionExists(newVersionId);
+        versionValidation.validateVersionPairExists(oldVersionId, newVersionId);
 
         if (!newVersionId.equals(oldVersionId))
             conflictRepository.copyByReferrerVersion(oldVersionId, newVersionId);
