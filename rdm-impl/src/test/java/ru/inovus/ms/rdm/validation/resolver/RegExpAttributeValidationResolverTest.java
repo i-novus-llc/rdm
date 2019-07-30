@@ -45,7 +45,7 @@ public class RegExpAttributeValidationResolverTest {
             new RegExpAttributeValidation().valueFromString(wrongEntityValue);
             fail();
         } catch (UserException e) {
-            assertEquals("attribute.validation.value.invalid", e.getCode());
+            assertEquals("attribute.validation.reg.exp.invalid", e.getCode());
         }
         //из правильной строки
         RegExpAttributeValidation validation = new RegExpAttributeValidation().valueFromString(regExp);

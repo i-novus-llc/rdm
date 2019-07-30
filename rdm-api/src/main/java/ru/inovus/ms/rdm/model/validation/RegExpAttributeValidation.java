@@ -36,7 +36,7 @@ public class RegExpAttributeValidation extends AttributeValidation {
         try {
             Pattern.compile(value);
         } catch (PatternSyntaxException e) {
-            throw new UserException("attribute.validation.value.invalid",e);
+            throw new UserException("attribute.validation.reg.exp.invalid", e);
         }
         regExp = value;
         return this;
