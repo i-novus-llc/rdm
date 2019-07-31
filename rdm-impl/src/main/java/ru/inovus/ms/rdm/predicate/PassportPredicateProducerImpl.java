@@ -9,6 +9,7 @@ import java.util.Map;
 import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.hasAttributeValue;
 
 @Component
+@SuppressWarnings("unused")
 public class PassportPredicateProducerImpl implements PassportPredicateProducer {
 
     @Override
@@ -17,7 +18,4 @@ public class PassportPredicateProducerImpl implements PassportPredicateProducer 
         passport.forEach((k, v) -> where.and(hasAttributeValue(k, v)));
         return where.getValue();
     }
-
-
-
 }
