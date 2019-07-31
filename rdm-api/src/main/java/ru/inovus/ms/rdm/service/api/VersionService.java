@@ -16,7 +16,7 @@ import java.util.List;
 @Path("/version")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Api("Методы работы с версиями справочника")
+@Api(value = "Методы работы с версиями справочника", hidden = true)
 public interface VersionService {
 
     @GET

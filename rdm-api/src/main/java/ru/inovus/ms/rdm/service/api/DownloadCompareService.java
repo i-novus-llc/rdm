@@ -9,7 +9,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 
 @Path("/compare")
-@Api("Методы сравнения версий")
+@Api(value = "Методы сравнения версий", hidden = true)
 public interface DownloadCompareService {
 
     @GET

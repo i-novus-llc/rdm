@@ -19,6 +19,7 @@ import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.enumeration.RefBookStatusType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.refbook.*;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
@@ -147,8 +148,10 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     @Transactional
     public Integer getId(String refBookCode) {
-
         final RefBookEntity refBookEntity = refBookRepository.findByCode(refBookCode);
+        if (refBookEntity == null) {
+            throw new NotFoundException();
+        }
         return refBookEntity.getId();
     }
 
@@ -254,6 +257,9 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     @Transactional
     public Page<RefBookVersion> getVersions(VersionCriteria criteria) {
+        if(criteria.getRefBookId() == null && criteria.getRefBookCode() != null) {
+            criteria.setRefBookId(getId(criteria.getRefBookCode()));
+        }
         criteria.setOrders(singletonList(new Sort.Order(Sort.Direction.DESC, REF_BOOK_FROM_DATE_SORT_PROPERTY, Sort.NullHandling.NULLS_FIRST)));
         Page<RefBookVersionEntity> list = versionRepository.findAll(VersionPredicateProducer.toPredicate(criteria), criteria);
         return list.map(ModelGenerator::versionModel);

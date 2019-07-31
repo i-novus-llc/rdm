@@ -15,7 +15,7 @@ import javax.ws.rs.core.MediaType;
 @Path("/compare")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Api("Методы сравнения версий")
+@Api(value = "Методы сравнения версий", hidden = true)
 public interface CompareService {
 
     @GET
