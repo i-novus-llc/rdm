@@ -36,6 +36,8 @@ public class RefBookConflictQueryProvider {
     public static final int REF_BOOK_CONFLICT_PAGE_SIZE = 100;
     public static final int REF_BOOK_DIFF_CONFLICT_PAGE_SIZE = 100;
 
+    private static final String CANNOT_ORDER_BY_EXCEPTION_CODE = "cannot.order.by \"{0}\"";
+
     private static final String CONFLICT_REFERRER_VERSION_ID_SORT_PROPERTY = "referrerVersionId";
     private static final String CONFLICT_PUBLISHED_VERSION_ID_SORT_PROPERTY = "publishedVersionId";
     private static final String CONFLICT_REF_RECORD_ID_SORT_PROPERTY = "refRecordId";
@@ -45,8 +47,6 @@ public class RefBookConflictQueryProvider {
             new Sort.Order(Sort.Direction.ASC, CONFLICT_REF_RECORD_ID_SORT_PROPERTY),
             new Sort.Order(Sort.Direction.ASC, CONFLICT_REF_FIELD_CODE_SORT_PROPERTY)
     );
-
-    private static final String CANNOT_ORDER_BY_EXCEPTION_CODE = "cannot.order.by \"{0}\"";
 
     private EntityManager entityManager;
 
@@ -184,30 +184,34 @@ public class RefBookConflictQueryProvider {
      */
     private static void addSortOrder(JPAQuery<RefBookConflictEntity> jpaQuery, Sort.Order order) {
 
-        ComparableExpressionBase sortExpression;
-
-        switch (order.getProperty()) {
-            case CONFLICT_REFERRER_VERSION_ID_SORT_PROPERTY:
-                sortExpression = QRefBookConflictEntity.refBookConflictEntity.referrerVersion.id;
-                break;
-
-            case CONFLICT_PUBLISHED_VERSION_ID_SORT_PROPERTY:
-                sortExpression = QRefBookConflictEntity.refBookConflictEntity.publishedVersion.id;
-                break;
-
-            case CONFLICT_REF_RECORD_ID_SORT_PROPERTY:
-                sortExpression = QRefBookConflictEntity.refBookConflictEntity.refRecordId;
-                break;
-
-            case CONFLICT_REF_FIELD_CODE_SORT_PROPERTY:
-                sortExpression = QRefBookConflictEntity.refBookConflictEntity.refFieldCode;
-                break;
-
-            default:
-                throw new UserException(new Message(CANNOT_ORDER_BY_EXCEPTION_CODE, order.getProperty()));
-        }
+        ComparableExpressionBase sortExpression = getSortOrder(order.getProperty());
 
         jpaQuery.orderBy(order.isAscending() ? sortExpression.asc() : sortExpression.desc());
+    }
+
+    /**
+     * Получение сортировки по заданному коду сортировки.
+     *
+     * @param orderProperty строковый код сортировки
+     */
+    private static ComparableExpressionBase getSortOrder(String orderProperty) {
+
+        switch (orderProperty) {
+            case CONFLICT_REFERRER_VERSION_ID_SORT_PROPERTY:
+                return QRefBookConflictEntity.refBookConflictEntity.referrerVersion.id;
+
+            case CONFLICT_PUBLISHED_VERSION_ID_SORT_PROPERTY:
+                return QRefBookConflictEntity.refBookConflictEntity.publishedVersion.id;
+
+            case CONFLICT_REF_RECORD_ID_SORT_PROPERTY:
+                return QRefBookConflictEntity.refBookConflictEntity.refRecordId;
+
+            case CONFLICT_REF_FIELD_CODE_SORT_PROPERTY:
+                return QRefBookConflictEntity.refBookConflictEntity.refFieldCode;
+
+            default:
+                throw new UserException(new Message(CANNOT_ORDER_BY_EXCEPTION_CODE, orderProperty));
+        }
     }
 
     /**
