@@ -98,7 +98,7 @@ public class RefBookServiceImpl implements RefBookService {
 
         return entities.map(entity ->
                 refBookModel(entity,
-                        getSourceTypeVersions(refBookIds, RefBookSourceType.DRAFT),
+                        criteria.getExcludeDraft() ? emptyList() : getSourceTypeVersions(refBookIds, RefBookSourceType.DRAFT),
                         getSourceTypeVersions(refBookIds, RefBookSourceType.LAST_PUBLISHED))
         );
     }
