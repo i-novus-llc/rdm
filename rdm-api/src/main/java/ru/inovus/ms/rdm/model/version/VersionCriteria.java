@@ -1,23 +1,25 @@
 package ru.inovus.ms.rdm.model.version;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.annotations.ApiParam;
 import ru.inovus.ms.rdm.model.AbstractCriteria;
 
 import javax.ws.rs.QueryParam;
 
-@ApiModel("Критерии поиска версий справочника")
 public class VersionCriteria extends AbstractCriteria {
 
-    @ApiModelProperty("Идентификатор справочника")
+    @ApiParam("Идентификатор справочника")
     @QueryParam("refBookId")
     private Integer refBookId;
 
-    @ApiModelProperty("Исключение черновика")
+    @ApiParam("Код справочника")
+    @QueryParam("refBookCode")
+    private String refBookCode;
+
+    @ApiParam(value = "Исключение черновика", hidden = true)
     @QueryParam("excludeDraft")
     private Boolean excludeDraft;
 
-    @ApiModelProperty("Номер версии")
+    @ApiParam("Номер версии")
     @QueryParam("version")
     private String version;
 
@@ -31,6 +33,14 @@ public class VersionCriteria extends AbstractCriteria {
 
     public void setRefBookId(Integer refBookId) {
         this.refBookId = refBookId;
+    }
+
+    public String getRefBookCode() {
+        return refBookCode;
+    }
+
+    public void setRefBookCode(String refBookCode) {
+        this.refBookCode = refBookCode;
     }
 
     public Boolean getExcludeDraft() {

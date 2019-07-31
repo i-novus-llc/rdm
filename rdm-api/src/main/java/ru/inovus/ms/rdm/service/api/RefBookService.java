@@ -116,7 +116,7 @@ public interface RefBookService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Page<RefBookVersion> getVersions(@ApiParam("Критерий получения") @BeanParam VersionCriteria criteria);
+    Page<RefBookVersion> getVersions(@BeanParam VersionCriteria criteria);
 
     @GET
     @Path("/find/referrers")
