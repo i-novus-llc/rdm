@@ -21,6 +21,14 @@ public class RefBookCriteria extends AbstractCriteria {
     @QueryParam("code")
     private String code;
 
+    @ApiModelProperty("Получение версий справочников")
+    @QueryParam("includeVersions")
+    private boolean includeVersions;
+
+    @ApiModelProperty("Исключение черновика")
+    @QueryParam("excludeDraft")
+    private boolean excludeDraft;
+
     @ApiModelProperty("Версия для исключения справочника")
     @QueryParam("excludeByVersionId")
     private Integer excludeByVersionId;
@@ -46,8 +54,8 @@ public class RefBookCriteria extends AbstractCriteria {
     private boolean isArchived;
 
     @ApiModelProperty("Не в архиве")
-    @QueryParam("isNotArchived")
-    private boolean isNotArchived;
+    @QueryParam("nonArchived")
+    private boolean nonArchived;
 
     @ApiModelProperty("Справочник опубликован")
     @QueryParam("hasPublished")
@@ -75,6 +83,22 @@ public class RefBookCriteria extends AbstractCriteria {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public boolean getIncludeVersions() {
+        return includeVersions;
+    }
+
+    public void setIncludeVersions(boolean includeVersions) {
+        this.includeVersions = includeVersions;
+    }
+
+    public boolean getExcludeDraft() {
+        return excludeDraft;
+    }
+
+    public void setExcludeDraft(boolean excludeDraft) {
+        this.excludeDraft = excludeDraft;
     }
 
     public Integer getExcludeByVersionId() {
@@ -125,12 +149,12 @@ public class RefBookCriteria extends AbstractCriteria {
         this.isArchived = isArchived;
     }
 
-    public boolean getIsNotArchived() {
-        return isNotArchived;
+    public boolean getNonArchived() {
+        return nonArchived;
     }
 
-    public void setIsNotArchived(boolean isNotArchived) {
-        this.isNotArchived = isNotArchived;
+    public void setNonArchived(boolean nonArchived) {
+        this.nonArchived = nonArchived;
     }
 
     public boolean getHasPublished() {

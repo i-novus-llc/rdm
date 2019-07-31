@@ -59,6 +59,12 @@
             <sorting/>
         </field>
 
+        <field id="excludeDraft" domain="boolean">
+            <filters>
+                <eq filter-id="excludeDraft" mapping="excludeDraft"/>
+            </filters>
+        </field>
+
         <field id="excludeByVersionId" domain="integer">
             <filters>
                 <eq filter-id="excludeByVersionId" mapping="excludeByVersionId"/>
@@ -73,6 +79,16 @@
 
         <field id="archived" domain="boolean">
             <select mapping="archived"/>
+            <filters>
+                <eq filter-id="isArchived" mapping="isArchived"/>
+            </filters>
+        </field>
+
+        <field id="nonArchived" domain="boolean">
+            <select mapping="!archived"/>
+            <filters>
+                <eq filter-id="nonArchived" mapping="nonArchived"/>
+            </filters>
         </field>
 
         <!-- Passport values -->

@@ -40,8 +40,20 @@ public final class RefBookVersionPredicates {
         return QRefBookVersionEntity.refBookVersionEntity.refBook.category.eq(category);
     }
 
+    public static BooleanExpression isArchived() {
+        return QRefBookVersionEntity.refBookVersionEntity.refBook.archived.isTrue();
+    }
+
+    public static BooleanExpression isRemovable() {
+        return QRefBookVersionEntity.refBookVersionEntity.refBook.removable.isTrue();
+    }
+
     public static BooleanExpression hasVersionId(Integer versionId) {
         return QRefBookVersionEntity.refBookVersionEntity.id.eq(versionId);
+    }
+
+    public static BooleanExpression isDraft() {
+        return QRefBookVersionEntity.refBookVersionEntity.status.eq(RefBookVersionStatus.DRAFT);
     }
 
     public static BooleanExpression isPublished() {
@@ -87,18 +99,6 @@ public final class RefBookVersionPredicates {
                                 QRefBookVersionEntity.refBookVersionEntity.toDate.isNull())));
     }
 
-    public static BooleanExpression isDraft() {
-        return QRefBookVersionEntity.refBookVersionEntity.status.eq(RefBookVersionStatus.DRAFT);
-    }
-
-    public static BooleanExpression isArchived() {
-        return QRefBookVersionEntity.refBookVersionEntity.refBook.archived.isTrue();
-    }
-
-    public static BooleanExpression isRemovable() {
-        return QRefBookVersionEntity.refBookVersionEntity.refBook.removable.isTrue();
-    }
-
     private static BooleanExpression isLastPublished() {
         QRefBookVersionEntity whereVersion = new QRefBookVersionEntity(WHERE_IS_LAST_DATE_VERSION);
         return isPublished().and(
@@ -132,6 +132,7 @@ public final class RefBookVersionPredicates {
         return QRefBookVersionEntity.refBookVersionEntity.structure.isNotNull();
     }
 
+    // NB: hasPrimaryAttribute требует серьёзной доработки для проверки isPrimary в атрибутах из jsonb-поля.
     public static BooleanExpression hasPrimaryAttribute() {
         QRefBookVersionEntity fieldVersion = new QRefBookVersionEntity(WHERE_EXISTS_VERSION);
         QRefBookVersionEntity whereVersion = new QRefBookVersionEntity(WHERE_IS_LAST_DATE_VERSION);
