@@ -17,7 +17,7 @@ import javax.ws.rs.core.MediaType;
 public interface RefBookService {
 
     @GET
-    @ApiOperation("Поиск справочников по параметрам критерия")
+    @ApiOperation(value = "Поиск справочников по параметрам критерия", hidden = true)
     @ApiImplicitParams(@ApiImplicitParam(name = "sort", value = "Параметры сортировки",
             required = false, allowMultiple = true, paramType = "query", dataType = "string"))
     @ApiResponses({
@@ -28,7 +28,7 @@ public interface RefBookService {
 
     @GET
     @Path("/version/{id}")
-    @ApiOperation("Поиск по идентификатору версии")
+    @ApiOperation(value = "Поиск по идентификатору версии", hidden = true)
     @ApiResponses({
             @ApiResponse(code = 200, message = "Справочник"),
             @ApiResponse(code = 404, message = "Нет ресурса")
@@ -37,7 +37,7 @@ public interface RefBookService {
 
     @GET
     @Path("/{id}")
-    @ApiOperation("Код справочника по идентификатору")
+    @ApiOperation(value = "Код справочника по идентификатору", hidden = true)
     @ApiResponses({
             @ApiResponse(code = 200, message = "Справочник"),
             @ApiResponse(code = 404, message = "Нет ресурса")
@@ -46,7 +46,7 @@ public interface RefBookService {
 
     @GET
     @Path("/code/{refBookCode}")
-    @ApiOperation("Идентификатор справочника по коду")
+    @ApiOperation(value = "Идентификатор справочника по коду", hidden = true)
     @ApiResponses({
             @ApiResponse(code = 200, message = "Справочник"),
             @ApiResponse(code = 404, message = "Нет ресурса")
@@ -54,7 +54,7 @@ public interface RefBookService {
     Integer getId(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode);
 
     @POST
-    @ApiOperation("Создание нового справочника")
+    @ApiOperation(value = "Создание нового справочника", hidden = true)
     @ApiResponses({
             @ApiResponse(code = 200, message = "Справочник"),
             @ApiResponse(code = 400, message = "Некорректный запрос")
@@ -62,7 +62,7 @@ public interface RefBookService {
     RefBook create(RefBookCreateRequest refBookCreateRequest);
 
     @PUT
-    @ApiOperation("Изменение метаданных справочника")
+    @ApiOperation(value = "Изменение метаданных справочника", hidden = true)
     @ApiResponses({
             @ApiResponse(code = 200, message = "Справочник"),
             @ApiResponse(code = 400, message = "Некорректный запрос"),
@@ -71,7 +71,7 @@ public interface RefBookService {
     RefBook update(RefBookUpdateRequest refBookUpdateRequest);
 
     @DELETE
-    @ApiOperation("Удаление справочника")
+    @ApiOperation(value = "Удаление справочника", hidden = true)
     @ApiResponses({
             @ApiResponse(code = 200, message = "Справочник удален"),
             @ApiResponse(code = 400, message = "Некорректный запрос"),
@@ -81,7 +81,7 @@ public interface RefBookService {
 
     @POST
     @Path("/{refBookId}/toArchive")
-    @ApiOperation("В архив")
+    @ApiOperation(value = "В архив", hidden = true)
     @ApiResponses({
             @ApiResponse(code = 200, message = "Справочник в архиве"),
             @ApiResponse(code = 404, message = "Нет ресурса")
@@ -90,7 +90,7 @@ public interface RefBookService {
 
     @POST
     @Path("/{refBookId}/fromArchive")
-    @ApiOperation("Вернуть из архива")
+    @ApiOperation(value = "Вернуть из архива", hidden = true)
     @ApiResponses({
             @ApiResponse(code = 200, message = "Справочник возвращен из архива"),
             @ApiResponse(code = 404, message = "Нет ресурса")
@@ -105,11 +105,11 @@ public interface RefBookService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Page<RefBookVersion> getVersions(@ApiParam("Критерий получения") @BeanParam VersionCriteria criteria);
+    Page<RefBookVersion> getVersions(@BeanParam VersionCriteria criteria);
 
     @GET
     @Path("/referrers")
-    @ApiOperation("Поиск версий ссылающихся справочников по параметрам критерия")
+    @ApiOperation(value = "Поиск версий ссылающихся справочников по параметрам критерия", hidden = true)
     @ApiImplicitParams(@ApiImplicitParam(name = "sort", value = "Параметры сортировки",
             required = false, allowMultiple = true, paramType = "query", dataType = "string"))
     @ApiResponses({

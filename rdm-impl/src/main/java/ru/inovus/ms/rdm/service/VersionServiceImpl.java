@@ -53,6 +53,7 @@ public class VersionServiceImpl implements VersionService {
     private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
     private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
     private static final String LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE = "last.published.not.found";
+    private static final String PUBLISHED_DATA_NOT_FOUND = "published.data.not.found";
 
     private RefBookVersionRepository versionRepository;
 
@@ -119,7 +120,10 @@ public class VersionServiceImpl implements VersionService {
     @Override
     public Page<RefBookRowValue> search(String refBookCode, LocalDateTime date, SearchDataCriteria criteria) {
         RefBookVersionEntity version = versionRepository.findActualOnDate(refBookCode, date);
-        return version != null ? getRowValuesOfVersion(criteria, version) : new PageImpl<>(emptyList());
+        if (version == null) {
+            throw new NotFoundException(new Message(PUBLISHED_DATA_NOT_FOUND));
+        }
+        return getRowValuesOfVersion(criteria, version);
     }
 
     @Override

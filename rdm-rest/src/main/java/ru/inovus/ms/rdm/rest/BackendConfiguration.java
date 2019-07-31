@@ -63,6 +63,12 @@ public class BackendConfiguration {
     }
 
     @Bean
+    @ConditionalOnClass(Messages.class)
+    IllegalArgumentExceptionMapper illegalArgumentExceptionMapper(Messages messages) {
+        return new IllegalArgumentExceptionMapper(messages);
+    }
+
+    @Bean
     @Primary
     @ConditionalOnClass(Messages.class)
     UserExceptionMapper userExceptionMapper(Messages messages) {
