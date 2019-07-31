@@ -254,8 +254,7 @@ public class RefBookServiceImpl implements RefBookService {
                 RefBookVersionQueryProvider.REF_BOOK_FROM_DATE_SORT_PROPERTY,
                 Sort.NullHandling.NULLS_FIRST);
         criteria.setOrders(singletonList(orderByFromDate));
-        PageRequest pageRequest = PageRequest.of(criteria.getPageNumber(), criteria.getPageSize());
-        Page<RefBookVersionEntity> list = versionRepository.findAll(RefBookVersionQueryProvider.toVersionPredicate(criteria), pageRequest);
+        Page<RefBookVersionEntity> list = versionRepository.findAll(RefBookVersionQueryProvider.toVersionPredicate(criteria), criteria);
         return list.map(ModelGenerator::versionModel);
     }
 
