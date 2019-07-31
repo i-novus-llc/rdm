@@ -5,7 +5,6 @@ import net.n2oapp.platform.i18n.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -53,7 +52,7 @@ public class VersionServiceImpl implements VersionService {
     private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
     private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
     private static final String LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE = "last.published.not.found";
-    private static final String PUBLISHED_DATA_NOT_FOUND = "published.data.not.found";
+    private static final String ACTUAL_DATA_NOT_FOUND = "actual.data.not.found";
 
     private RefBookVersionRepository versionRepository;
 
@@ -121,7 +120,7 @@ public class VersionServiceImpl implements VersionService {
     public Page<RefBookRowValue> search(String refBookCode, LocalDateTime date, SearchDataCriteria criteria) {
         RefBookVersionEntity version = versionRepository.findActualOnDate(refBookCode, date);
         if (version == null) {
-            throw new NotFoundException(new Message(PUBLISHED_DATA_NOT_FOUND));
+            throw new NotFoundException(new Message(ACTUAL_DATA_NOT_FOUND));
         }
         return getRowValuesOfVersion(criteria, version);
     }
