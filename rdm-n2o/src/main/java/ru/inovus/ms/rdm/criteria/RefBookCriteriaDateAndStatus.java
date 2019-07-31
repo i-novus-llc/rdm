@@ -12,6 +12,10 @@ import java.util.Date;
 @ApiModel("Критерии поиска справочника с конвертацией даты")
 public class RefBookCriteriaDateAndStatus extends RefBookCriteria {
 
+    public void setRefBookId(Integer refBookId) {
+        super.setRefBookIds(Collections.singletonList(refBookId));
+    }
+
     public void setFromDateBegin(Date fromDateBegin) {
         super.setFromDateBegin(convertDateToLocalDateTime(fromDateBegin));
     }
@@ -24,6 +28,7 @@ public class RefBookCriteriaDateAndStatus extends RefBookCriteria {
         setIsArchived(false);
         setHasDraft(false);
         setHasPublished(false);
+
         if (RefBookStatus.ARCHIVED.equals(status))
             setIsArchived(true);
         else if (RefBookStatus.HAS_DRAFT.equals(status))
@@ -36,9 +41,5 @@ public class RefBookCriteriaDateAndStatus extends RefBookCriteria {
         return (date == null) ? null : date.toInstant()
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime();
-    }
-
-    public void setRefbookId(Integer refBookId) {
-        super.setRefBookIds(Collections.singletonList(refBookId));
     }
 }
