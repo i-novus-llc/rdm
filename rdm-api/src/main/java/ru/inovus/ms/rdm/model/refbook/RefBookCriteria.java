@@ -22,18 +22,6 @@ public class RefBookCriteria extends AbstractCriteria {
     @QueryParam("code")
     private String code;
 
-    @ApiParam("Получение версий справочников")
-    @QueryParam("includeVersions")
-    private boolean includeVersions;
-
-    @ApiParam("Исключение черновика")
-    @QueryParam("excludeDraft")
-    private boolean excludeDraft;
-
-    @ApiParam("Версия для исключения справочника")
-    @QueryParam("excludeByVersionId")
-    private Integer excludeByVersionId;
-
     @ApiParam("Дата последней публикации")
     @QueryParam("fromDateBegin")
     private LocalDateTime fromDateBegin;
@@ -58,6 +46,22 @@ public class RefBookCriteria extends AbstractCriteria {
     @QueryParam("nonArchived")
     private boolean nonArchived;
 
+    @ApiParam("Паспорт справочника")
+    @QueryParam("passport")
+    private Map<String, String> passport;
+
+    @ApiParam("Получение версий справочников")
+    @QueryParam("includeVersions")
+    private boolean includeVersions;
+
+    @ApiParam("Исключение черновика")
+    @QueryParam("excludeDraft")
+    private boolean excludeDraft;
+
+    @ApiParam("Версия для исключения справочника")
+    @QueryParam("excludeByVersionId")
+    private Integer excludeByVersionId;
+
     @ApiParam("Опубликованность справочника")
     @QueryParam("hasPublished")
     private boolean hasPublished;
@@ -76,40 +80,12 @@ public class RefBookCriteria extends AbstractCriteria {
     @QueryParam("hasPrimaryAttribute")
     private boolean hasPrimaryAttribute;
 
-    @ApiParam("Паспорт справочника")
-    @QueryParam("passport")
-    private Map<String, String> passport;
-
     public String getCode() {
         return code;
     }
 
     public void setCode(String code) {
         this.code = code;
-    }
-
-    public boolean getIncludeVersions() {
-        return includeVersions;
-    }
-
-    public void setIncludeVersions(boolean includeVersions) {
-        this.includeVersions = includeVersions;
-    }
-
-    public boolean getExcludeDraft() {
-        return excludeDraft;
-    }
-
-    public void setExcludeDraft(boolean excludeDraft) {
-        this.excludeDraft = excludeDraft;
-    }
-
-    public Integer getExcludeByVersionId() {
-        return excludeByVersionId;
-    }
-
-    public void setExcludeByVersionId(Integer excludeByVersionId) {
-        this.excludeByVersionId = excludeByVersionId;
     }
 
     public LocalDateTime getFromDateBegin() {
@@ -136,14 +112,6 @@ public class RefBookCriteria extends AbstractCriteria {
         this.sourceType = sourceType;
     }
 
-    public Map<String, String> getPassport() {
-        return passport;
-    }
-
-    public void setPassport(Map<String, String> passport) {
-        this.passport = passport;
-    }
-
     public boolean getIsArchived() {
         return isArchived;
     }
@@ -158,6 +126,38 @@ public class RefBookCriteria extends AbstractCriteria {
 
     public void setNonArchived(boolean nonArchived) {
         this.nonArchived = nonArchived;
+    }
+
+    public Map<String, String> getPassport() {
+        return passport;
+    }
+
+    public void setPassport(Map<String, String> passport) {
+        this.passport = passport;
+    }
+
+    public boolean getIncludeVersions() {
+        return includeVersions;
+    }
+
+    public void setIncludeVersions(boolean includeVersions) {
+        this.includeVersions = includeVersions;
+    }
+
+    public boolean getExcludeDraft() {
+        return excludeDraft;
+    }
+
+    public void setExcludeDraft(boolean excludeDraft) {
+        this.excludeDraft = excludeDraft;
+    }
+
+    public Integer getExcludeByVersionId() {
+        return excludeByVersionId;
+    }
+
+    public void setExcludeByVersionId(Integer excludeByVersionId) {
+        this.excludeByVersionId = excludeByVersionId;
     }
 
     public boolean getHasPublished() {

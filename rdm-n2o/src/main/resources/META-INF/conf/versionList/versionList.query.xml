@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" name="Список версий справочника">
+
     <list result-mapping="content" count-mapping="totalElements" filters="refBookId">
         <java method="getVersions" class="ru.inovus.ms.rdm.service.api.RefBookService">
             <spring bean="refBookServiceJaxRsProxyClient"/>
@@ -8,6 +9,7 @@
             </arguments>
         </java>
     </list>
+
     <unique filters="id" result-mapping="#this">
         <java method="getById">
             <spring bean="versionServiceJaxRsProxyClient"/>
@@ -65,7 +67,9 @@
         </field>
 
         <field id="excludeDraft" domain="boolean">
-            <filters/>
+            <filters>
+                <eq filter-id="excludeDraft" mapping="excludeDraft"/>
+            </filters>
         </field>
     </fields>
 </query>

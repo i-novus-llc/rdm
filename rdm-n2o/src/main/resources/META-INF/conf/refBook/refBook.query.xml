@@ -59,18 +59,6 @@
             <sorting/>
         </field>
 
-        <field id="excludeDraft" domain="boolean">
-            <filters>
-                <eq filter-id="excludeDraft" mapping="excludeDraft"/>
-            </filters>
-        </field>
-
-        <field id="excludeByVersionId" domain="integer">
-            <filters>
-                <eq filter-id="excludeByVersionId" mapping="excludeByVersionId"/>
-            </filters>
-        </field>
-
         <field id="status" domain="string">
             <filters>
                 <eq filter-id="status.id" mapping="status" domain="string"/>
@@ -115,6 +103,18 @@
                 <eq filter-id="category.id" mapping="category" domain="string"/>
             </filters>
             <sorting/>
+        </field>
+
+        <field id="excludeDraft" domain="boolean">
+            <filters>
+                <eq filter-id="excludeDraft" mapping="excludeDraft"/>
+            </filters>
+        </field>
+
+        <field id="excludeByVersionId" domain="integer">
+            <filters>
+                <eq filter-id="excludeByVersionId" mapping="excludeByVersionId"/>
+            </filters>
         </field>
 
         <field id="draftVersionId" domain="integer">
