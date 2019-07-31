@@ -24,7 +24,7 @@ public interface RefBookService {
             @ApiResponse(code = 200, message = "Список справочников"),
             @ApiResponse(code = 400, message = "Некорректный запрос")
     })
-    Page<RefBook> search(@ApiParam("Критерий поиска") @BeanParam RefBookCriteria criteria);
+    Page<RefBook> search(@BeanParam RefBookCriteria criteria);
 
     @GET
     @Path("/versions")
@@ -35,7 +35,7 @@ public interface RefBookService {
             @ApiResponse(code = 200, message = "Список версий справочников"),
             @ApiResponse(code = 400, message = "Некорректный запрос")
     })
-    Page<RefBook> searchVersions(@ApiParam("Критерий поиска") @BeanParam RefBookCriteria criteria);
+    Page<RefBook> searchVersions(@BeanParam RefBookCriteria criteria);
 
     @GET
     @Path("/version/{id}")

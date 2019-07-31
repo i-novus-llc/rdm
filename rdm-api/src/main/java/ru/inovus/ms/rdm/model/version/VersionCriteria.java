@@ -5,6 +5,9 @@ import ru.inovus.ms.rdm.model.AbstractCriteria;
 
 import javax.ws.rs.QueryParam;
 
+/**
+ * Критерий поиска версий справочников.
+ */
 public class VersionCriteria extends AbstractCriteria {
 
     @ApiParam("Идентификатор справочника")

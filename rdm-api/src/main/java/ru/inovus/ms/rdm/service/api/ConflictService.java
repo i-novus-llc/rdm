@@ -24,7 +24,7 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    List<RefBookConflict> calculateDataConflicts(@ApiParam("Критерий вычисления") @BeanParam CalculateConflictCriteria criteria);
+    List<RefBookConflict> calculateDataConflicts(@BeanParam CalculateConflictCriteria criteria);
 
 
     @GET
@@ -57,7 +57,7 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Список конфликтов"),
             @ApiResponse(code = 400, message = "Некорректный запрос")
     })
-    Page<RefBookConflict> search(@ApiParam("Критерий поиска") @BeanParam RefBookConflictCriteria criteria);
+    Page<RefBookConflict> search(@BeanParam RefBookConflictCriteria criteria);
 
     @GET
     @Path("/dataConflict/{refFromId}-{refFieldCode}")
@@ -79,7 +79,7 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Количество конфликтов"),
             @ApiResponse(code = 400, message = "Некорректный запрос")
     })
-    Long countConflictedRowIds(@ApiParam("Критерий поиска") @BeanParam RefBookConflictCriteria criteria);
+    Long countConflictedRowIds(@BeanParam RefBookConflictCriteria criteria);
 
     @GET
     @Path("/rows")
@@ -88,7 +88,7 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Список идентификаторов конфликтующих строк"),
             @ApiResponse(code = 400, message = "Некорректный запрос")
     })
-    Page<Long> searchConflictedRowIds(@ApiParam("Критерий поиска") @BeanParam RefBookConflictCriteria criteria);
+    Page<Long> searchConflictedRowIds(@BeanParam RefBookConflictCriteria criteria);
 
     @DELETE
     @Path("/{id}")
@@ -105,7 +105,7 @@ public interface ConflictService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void delete(@ApiParam("Критерий удаления") @BeanParam DeleteRefBookConflictCriteria criteria);
+    void delete(@BeanParam DeleteRefBookConflictCriteria criteria);
 
     @GET
     @Path("/find/all/{versionId}")
