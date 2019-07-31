@@ -13,7 +13,7 @@ public class VersionCriteria extends AbstractCriteria {
     @QueryParam("refBookId")
     private Integer refBookId;
 
-    @ApiModelProperty("Исключить черновик")
+    @ApiModelProperty("Исключение черновика")
     @QueryParam("excludeDraft")
     private Boolean excludeDraft;
 

@@ -16,6 +16,7 @@ import ru.inovus.ms.rdm.audit.AuditLogoutHandler;
 
 @Configuration
 @EnableWebSecurity
+@SuppressWarnings("unused")
 public class SecurityConfig extends OpenIdSecurityConfigurerAdapter {
 
     @Autowired
@@ -27,15 +28,14 @@ public class SecurityConfig extends OpenIdSecurityConfigurerAdapter {
     @Override
     protected void authorize(ExpressionUrlAuthorizationConfigurer<HttpSecurity>
                                      .ExpressionInterceptUrlRegistry url) throws Exception {
-        //все запросы авторизованы
+        // Все запросы авторизованы
         url.anyRequest().authenticated()
-                .and()
-                .logout().addLogoutHandler(auditLogoutHandler)
-                .and()
-                .addFilterBefore(ssoFilter(), BasicAuthenticationFilter.class);
+                .and().logout().addLogoutHandler(auditLogoutHandler)
+                .and().addFilterBefore(ssoFilter(), BasicAuthenticationFilter.class);
     }
 
     private OAuth2ClientAuthenticationProcessingFilter ssoFilter() {
+
         OAuth2SsoProperties ssoProps = this.getApplicationContext().getBean(OAuth2SsoProperties.class);
 
         OAuth2ClientAuthenticationProcessingFilter ssoFilter =
@@ -46,7 +46,7 @@ public class SecurityConfig extends OpenIdSecurityConfigurerAdapter {
         ssoFilter.setTokenServices(this.getApplicationContext()
                 .getBean(ResourceServerTokenServices.class));
         ssoFilter.setApplicationEventPublisher(this.getApplicationContext());
+
         return ssoFilter;
     }
-
 }
