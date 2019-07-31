@@ -18,6 +18,7 @@ import ru.inovus.ms.rdm.entity.QRefBookVersionEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.model.refbook.RefBookCriteria;
+import ru.inovus.ms.rdm.model.version.VersionCriteria;
 import ru.inovus.ms.rdm.predicate.PassportPredicateProducer;
 
 import javax.persistence.EntityManager;
@@ -91,7 +92,7 @@ public class RefBookVersionQueryProvider {
         BooleanBuilder where = new BooleanBuilder();
 
         fillRefBookPredicate(criteria, where);
-        fillVersionPredicate(criteria, where);
+        fillRefBookVersionPredicate(criteria, where);
 
         return where.getValue();
     }
@@ -127,12 +128,12 @@ public class RefBookVersionQueryProvider {
     }
 
     /**
-     * Заполнение предиката по параметрам для версии на основе критерия поиска.
+     * Заполнение предиката по параметрам для версии справочника на основе критерия поиска.
      *
      * @param criteria критерий поиска
      * @param where    предикат для запроса поиска
      */
-    private void fillVersionPredicate(RefBookCriteria criteria, BooleanBuilder where) {
+    private void fillRefBookVersionPredicate(RefBookCriteria criteria, BooleanBuilder where) {
 
         where.and(isSourceType(getSourceType(criteria)));
 
@@ -260,5 +261,25 @@ public class RefBookVersionQueryProvider {
                                 .select(whereVersion.fromDate.max()).from(whereVersion)
                                 .where(whereVersion.refBook.eq(QRefBookVersionEntity.refBookVersionEntity.refBook)))));
         return qSortFromDateVersion.fromDate;
+    }
+
+    /**
+     * Формирование предиката на основе критерия поиска.
+     *
+     * @param criteria критерий поиска
+     * @return Предикат для запроса поиска
+     */
+    public static Predicate toVersionPredicate(VersionCriteria criteria) {
+        BooleanBuilder where = new BooleanBuilder();
+
+        where.and(isVersionOfRefBook(criteria.getRefBookId()));
+
+        if (criteria.getExcludeDraft())
+            where.andNot(isDraft());
+
+        if (nonNull(criteria.getVersion()))
+            where.and(isVersionNumberContains(criteria.getVersion()));
+
+        return where.getValue();
     }
 }

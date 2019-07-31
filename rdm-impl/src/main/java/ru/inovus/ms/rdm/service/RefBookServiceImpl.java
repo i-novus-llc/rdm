@@ -22,7 +22,6 @@ import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.model.version.ReferrerVersionCriteria;
 import ru.inovus.ms.rdm.model.version.VersionCriteria;
 import ru.inovus.ms.rdm.queryprovider.RefBookVersionQueryProvider;
-import ru.inovus.ms.rdm.predicate.VersionPredicateProducer;
 import ru.inovus.ms.rdm.repository.PassportValueRepository;
 import ru.inovus.ms.rdm.repository.RefBookConflictRepository;
 import ru.inovus.ms.rdm.repository.RefBookRepository;
@@ -255,7 +254,8 @@ public class RefBookServiceImpl implements RefBookService {
                 RefBookVersionQueryProvider.REF_BOOK_FROM_DATE_SORT_PROPERTY,
                 Sort.NullHandling.NULLS_FIRST);
         criteria.setOrders(singletonList(orderByFromDate));
-        Page<RefBookVersionEntity> list = versionRepository.findAll(VersionPredicateProducer.toPredicate(criteria), criteria);
+        PageRequest pageRequest = PageRequest.of(criteria.getPageNumber(), criteria.getPageSize());
+        Page<RefBookVersionEntity> list = versionRepository.findAll(RefBookVersionQueryProvider.toVersionPredicate(criteria), pageRequest);
         return list.map(ModelGenerator::versionModel);
     }
 
