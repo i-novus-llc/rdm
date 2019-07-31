@@ -253,8 +253,8 @@ public class RefBookServiceImpl implements RefBookService {
         Sort.Order orderByFromDate = new Sort.Order(Sort.Direction.DESC,
                 RefBookVersionQueryProvider.REF_BOOK_FROM_DATE_SORT_PROPERTY,
                 Sort.NullHandling.NULLS_FIRST);
-        criteria.setOrders(singletonList(orderByFromDate));
-        Page<RefBookVersionEntity> list = versionRepository.findAll(RefBookVersionQueryProvider.toVersionPredicate(criteria), criteria);
+        PageRequest pageRequest = PageRequest.of(criteria.getPageNumber(), criteria.getPageSize(), Sort.by(orderByFromDate));
+        Page<RefBookVersionEntity> list = versionRepository.findAll(RefBookVersionQueryProvider.toVersionPredicate(criteria), pageRequest);
         return list.map(ModelGenerator::versionModel);
     }
 
