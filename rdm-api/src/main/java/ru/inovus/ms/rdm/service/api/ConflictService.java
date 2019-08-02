@@ -13,7 +13,7 @@ import java.util.List;
 @Path("/conflicts")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Api("Методы работы с конфликтами")
+@Api(value = "Методы работы с конфликтами", hidden = true)
 public interface ConflictService {
 
     // NB: Published for ApplicationTest only.

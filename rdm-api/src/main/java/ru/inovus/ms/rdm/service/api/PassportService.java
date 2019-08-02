@@ -10,7 +10,7 @@ import javax.ws.rs.core.MediaType;
 @Path("/passport")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Api("Методы паспорта справочника")
+@Api(value = "Методы паспорта справочника", hidden = true)
 public interface PassportService {
 
     @PUT
