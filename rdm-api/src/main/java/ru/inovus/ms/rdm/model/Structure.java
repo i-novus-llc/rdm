@@ -1,7 +1,6 @@
 package ru.inovus.ms.rdm.model;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.annotations.ApiParam;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.util.StringUtils;
@@ -16,16 +15,18 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
-@ApiModel("Структура")
+/**
+ * Структура версии справочника.
+ */
 public class Structure implements Serializable {
 
     private static final String PRIMARY_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "primary.attribute.not.found";
     private static final String PRIMARY_ATTRIBUTE_IS_MULTIPLE_EXCEPTION_CODE = "primary.attribute.is.multiple";
 
-    @ApiModelProperty("Атрибуты")
+    @ApiParam("Атрибуты")
     private List<Attribute> attributes;
 
-    @ApiModelProperty("Ссылки")
+    @ApiParam("Ссылки")
     private List<Reference> references;
 
     public Structure() {
@@ -120,37 +121,21 @@ public class Structure implements Serializable {
                 .collect(toList());
     }
 
-    @ApiModel("Атрибут справочника")
     public static class Attribute implements Serializable {
 
-        /**
-         * Код атрибута.
-         */
-        @ApiModelProperty("Код атрибута")
+        @ApiParam("Код атрибута")
         private String code;
 
-        /**
-         * Наименование атрибута.
-         */
-        @ApiModelProperty("Наименование атрибута")
+        @ApiParam("Наименование атрибута")
         private String name;
 
-        /**
-         * Тип атрибута.
-         */
-        @ApiModelProperty("Тип атрибута")
+        @ApiParam("Тип атрибута")
         private FieldType type;
 
-        /**
-         * Признак первичного атрибута.
-         */
-        @ApiModelProperty("Признак первичного атрибута")
+        @ApiParam("Признак первичного атрибута")
         private Boolean isPrimary;
 
-        /**
-         * Описание атрибута.
-         */
-        @ApiModelProperty("Описание атрибута")
+        @ApiParam("Описание атрибута")
         private String description;
 
         public static Attribute buildPrimary(String code, String name, FieldType type, String description) {
@@ -243,26 +228,16 @@ public class Structure implements Serializable {
         }
     }
 
-    @ApiModel("Ссылка")
     public static class Reference implements Serializable {
 
-        /**
-         * Поле, которое ссылается.
-         */
-        @ApiModelProperty("Поле, которое ссылается")
+        @ApiParam("Поле, которое ссылается")
         private String attribute;
 
-        /**
-         * Код справочника, на который ссылаются.
-         */
-        @ApiModelProperty("Код справочника, на который ссылаются")
+        @ApiParam("Код справочника, на который ссылаются")
         private String referenceCode;
 
-        /**
-         * Выражение для вычисления отображаемого ссылочного значения.
-         * Поля справочника указываются через placeholder ${~}, например ${field}
-         */
-        @ApiModelProperty("Выражение для вычисления отображаемого ссылочного значения")
+        // Поля справочника указываются через placeholder ${~}, например: ${field}.
+        @ApiParam("Выражение для вычисления отображаемого ссылочного значения")
         private String displayExpression;
 
         public Reference() {

@@ -119,7 +119,7 @@ public interface DraftService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     Page<RefBookRowValue> search(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
-                                 @ApiParam("Критерий поиска") @BeanParam SearchDataCriteria criteria);
+                                 @BeanParam SearchDataCriteria criteria);
 
     @POST
     @Path("{draftId}/remove")

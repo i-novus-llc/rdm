@@ -33,7 +33,7 @@ public interface VersionPlainDataService {
     })
     @Path("/{versionId}/data")
     Page<Map<String, Object>> search(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
-                                     @ApiParam(value = "Критерий поиска", hidden = true) @BeanParam SearchDataCriteria criteria);
+                                     @ApiParam(hidden = true) @BeanParam SearchDataCriteria criteria);
 
     @GET
     @Path("/refBook/{refBookCode}/{date}")
@@ -54,7 +54,7 @@ public interface VersionPlainDataService {
     })
     Page<Map<String, Object>> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
                                      @ApiParam("Дата(в UTC) получения данных в формате yyyy-MM-ddTHH:mm:ss") @PathParam("date") LocalDateTime date,
-                                     @BeanParam @ApiParam(hidden = true)SearchDataCriteria criteria);
+                                     @ApiParam(hidden = true) @BeanParam SearchDataCriteria criteria);
 
     @GET
     @Path("/refBook/{refBookCode}")
@@ -72,7 +72,7 @@ public interface VersionPlainDataService {
             @ApiImplicitParam(name = "sort", value = "Сортировка, sort=<код атрибута>, <ask|desc>", dataType = "string", paramType = "query")
     })
     Page<Map<String, Object>> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
-                                     @ApiParam(value = "Критерий поиска", hidden = true) @BeanParam SearchDataCriteria criteria);
+                                     @ApiParam(hidden = true) @BeanParam SearchDataCriteria criteria);
 
     @GET
     @ApiOperation("Получение записи по идентификатору")
