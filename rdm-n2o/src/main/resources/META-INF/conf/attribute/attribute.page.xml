@@ -29,7 +29,7 @@
                     </visibility>
                 </dependencies>
                 <pre-filters>
-                    <eq field-id="hasPublishedVersion" value="true" />
+                    <eq field-id="hasPublished" value="true" />
                     <eq field-id="excludeByVersionId" value="{versionId}"/>
                 </pre-filters>
                 <validations>

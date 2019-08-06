@@ -62,19 +62,13 @@ public class RefBookCriteria extends AbstractCriteria {
     @QueryParam("excludeByVersionId")
     private Integer excludeByVersionId;
 
-    @ApiParam("Опубликованность справочника")
-    @QueryParam("hasPublished")
-    private boolean hasPublished;
-
     @ApiParam("Наличие черновика")
     @QueryParam("hasDraft")
     private boolean hasDraft;
 
-    // NB: По смыслу совпадает с hasPublished, хотя и отличается предикатом.
-    // NB: may-be: Оставить только этот вариант, использовав предикат для hasPublished.
     @ApiParam("Наличие опубликованной версии")
-    @QueryParam("hasPublishedVersion")
-    private boolean hasPublishedVersion;
+    @QueryParam("hasPublished")
+    private boolean hasPublished;
 
     @ApiParam(value = "Наличие первичного ключа", hidden = true)
     @QueryParam("hasPrimaryAttribute")
@@ -160,14 +154,6 @@ public class RefBookCriteria extends AbstractCriteria {
         this.excludeByVersionId = excludeByVersionId;
     }
 
-    public boolean getHasPublished() {
-        return hasPublished;
-    }
-
-    public void setHasPublished(boolean hasPublished) {
-        this.hasPublished = hasPublished;
-    }
-
     public boolean getHasDraft() {
         return hasDraft;
     }
@@ -176,12 +162,12 @@ public class RefBookCriteria extends AbstractCriteria {
         this.hasDraft = hasDraft;
     }
 
-    public boolean getHasPublishedVersion() {
-        return hasPublishedVersion;
+    public boolean getHasPublished() {
+        return hasPublished;
     }
 
-    public void setHasPublishedVersion(boolean hasPublishedVersion) {
-        this.hasPublishedVersion = hasPublishedVersion;
+    public void setHasPublished(boolean hasPublished) {
+        this.hasPublished = hasPublished;
     }
 
     public boolean getHasPrimaryAttribute() {

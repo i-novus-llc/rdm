@@ -29,12 +29,19 @@ public class RefBookCriteriaDateAndStatus extends RefBookCriteria {
         setHasDraft(false);
         setHasPublished(false);
 
-        if (RefBookStatus.ARCHIVED.equals(status))
-            setIsArchived(true);
-        else if (RefBookStatus.HAS_DRAFT.equals(status))
-            setHasDraft(true);
-        else if (RefBookStatus.PUBLISHED.equals(status))
-            setHasPublished(true);
+        switch (status) {
+            case ARCHIVED:
+                setIsArchived(true);
+                break;
+
+            case HAS_DRAFT:
+                setHasDraft(true);
+                break;
+
+            case PUBLISHED:
+                setHasPublished(true);
+                break;
+        }
     }
 
     private static LocalDateTime convertDateToLocalDateTime(Date date) {

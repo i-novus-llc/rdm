@@ -60,14 +60,14 @@ public final class RefBookVersionPredicates {
         return QRefBookVersionEntity.refBookVersionEntity.status.eq(RefBookVersionStatus.PUBLISHED);
     }
 
-    public static BooleanExpression isAnyPublished() {
-        QRefBookVersionEntity anyVersion = QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
-        return anyVersion.status.eq(RefBookVersionStatus.PUBLISHED);
-    }
-
     public static BooleanExpression refBookHasDraft() {
         QRefBookVersionEntity anyVersion = QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
         return anyVersion.status.eq(RefBookVersionStatus.DRAFT);
+    }
+
+    public static BooleanExpression refBookHasPublished() {
+        QRefBookVersionEntity anyVersion = QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
+        return anyVersion.status.eq(RefBookVersionStatus.PUBLISHED);
     }
 
     public static BooleanExpression refBookHasVersion(Integer versionId) {

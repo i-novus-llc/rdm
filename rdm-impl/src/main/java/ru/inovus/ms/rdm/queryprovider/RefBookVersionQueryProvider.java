@@ -143,14 +143,11 @@ public class RefBookVersionQueryProvider {
         if (nonNull(criteria.getFromDateEnd()))
             where.and(isMaxFromDateEqOrBefore(criteria.getFromDateEnd()));
 
-        if (criteria.getHasPublished())
-            where.andNot(isArchived()).and(isAnyPublished());
-
         if (criteria.getHasDraft())
             where.andNot(isArchived()).and(refBookHasDraft());
 
-        if (criteria.getHasPublishedVersion())
-            where.andNot(isArchived()).and(hasLastPublishedVersion());
+        if (criteria.getHasPublished())
+            where.andNot(isArchived()).and(refBookHasPublished());
 
         if (criteria.getHasPrimaryAttribute())
             where.and(hasStructure()).and(hasPrimaryAttribute());
