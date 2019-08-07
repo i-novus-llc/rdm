@@ -272,7 +272,11 @@ public class RefBookVersionQueryProvider {
     public static Predicate toVersionPredicate(VersionCriteria criteria) {
         BooleanBuilder where = new BooleanBuilder();
 
-        where.and(isVersionOfRefBook(criteria.getRefBookId()));
+        if (nonNull(criteria.getId()))
+            where.andNot(hasVersionId(criteria.getId()));
+
+        if (nonNull(criteria.getRefBookId()))
+            where.and(isVersionOfRefBook(criteria.getRefBookId()));
 
         if (criteria.getExcludeDraft())
             where.andNot(isDraft());

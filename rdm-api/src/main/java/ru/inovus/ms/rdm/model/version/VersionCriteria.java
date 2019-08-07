@@ -10,6 +10,10 @@ import javax.ws.rs.QueryParam;
  */
 public class VersionCriteria extends AbstractCriteria {
 
+    @ApiParam("Идентификатор версии")
+    @QueryParam("id")
+    private Integer id;
+
     @ApiParam("Идентификатор справочника")
     @QueryParam("refBookId")
     private Integer refBookId;
@@ -18,9 +22,9 @@ public class VersionCriteria extends AbstractCriteria {
     @QueryParam("refBookCode")
     private String refBookCode;
 
-    @ApiParam(value = "Исключение черновика", hidden = true)
+    @ApiParam("Исключение черновика")
     @QueryParam("excludeDraft")
-    private Boolean excludeDraft;
+    private boolean excludeDraft;
 
     @ApiParam("Номер версии")
     @QueryParam("version")
@@ -28,6 +32,14 @@ public class VersionCriteria extends AbstractCriteria {
 
     public VersionCriteria() {
         super();
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public Integer getRefBookId() {
@@ -46,11 +58,11 @@ public class VersionCriteria extends AbstractCriteria {
         this.refBookCode = refBookCode;
     }
 
-    public Boolean getExcludeDraft() {
-        return excludeDraft != null && excludeDraft;
+    public boolean getExcludeDraft() {
+        return excludeDraft;
     }
 
-    public void setExcludeDraft(Boolean excludeDraft) {
+    public void setExcludeDraft(boolean excludeDraft) {
         this.excludeDraft = excludeDraft;
     }
 
