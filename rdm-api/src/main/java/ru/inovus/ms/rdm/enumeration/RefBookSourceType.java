@@ -5,8 +5,8 @@ package ru.inovus.ms.rdm.enumeration;
  */
 public enum RefBookSourceType {
     ALL,                // все версии
-    ACTUAL,             // актуальная версия
+    ACTUAL,             // актуальная (на текущую дату) версия
     DRAFT,              // версия-черновик
     LAST_PUBLISHED,     // последняя опубликованная версия
-    LAST_VERSION        // последняя созданная версия или черновик
+    LAST_VERSION        // последняя версия (опубликованная или черновик)
 }
