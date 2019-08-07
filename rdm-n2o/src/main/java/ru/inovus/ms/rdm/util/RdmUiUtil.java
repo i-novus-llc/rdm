@@ -1,8 +1,8 @@
-package ru.inovus.ms.rdm;
+package ru.inovus.ms.rdm.util;
 
 public class RdmUiUtil {
 
-    public static final String FIELD_PREFIX = "_refBook_";
+    private static final String FIELD_PREFIX = "_refBook_";
 
     private RdmUiUtil() {
     }

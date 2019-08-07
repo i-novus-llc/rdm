@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.singletonList;
-import static ru.inovus.ms.rdm.RdmUiUtil.addPrefix;
+import static ru.inovus.ms.rdm.util.RdmUiUtil.addPrefix;
 
 @Service
 @SuppressWarnings("unused")

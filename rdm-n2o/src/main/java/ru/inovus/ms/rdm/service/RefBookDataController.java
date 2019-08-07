@@ -50,8 +50,8 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
-import static ru.inovus.ms.rdm.RdmUiUtil.addPrefix;
-import static ru.inovus.ms.rdm.RdmUiUtil.deletePrefix;
+import static ru.inovus.ms.rdm.util.RdmUiUtil.addPrefix;
+import static ru.inovus.ms.rdm.util.RdmUiUtil.deletePrefix;
 import static ru.inovus.ms.rdm.util.TimeUtils.DATE_PATTERN_EUROPEAN;
 import static ru.inovus.ms.rdm.util.TimeUtils.DATE_TIME_PATTERN_EUROPEAN_FORMATTER;
 

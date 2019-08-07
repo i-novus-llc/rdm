@@ -19,7 +19,7 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static ru.inovus.ms.rdm.RdmUiUtil.addPrefix;
+import static ru.inovus.ms.rdm.util.RdmUiUtil.addPrefix;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDate;
 
 @Controller

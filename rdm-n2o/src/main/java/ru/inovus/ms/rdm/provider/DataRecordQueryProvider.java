@@ -19,7 +19,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static java.util.stream.Stream.of;
-import static ru.inovus.ms.rdm.RdmUiUtil.addPrefix;
+import static ru.inovus.ms.rdm.util.RdmUiUtil.addPrefix;
 
 @Service
 public class DataRecordQueryProvider implements DynamicMetadataProvider {
