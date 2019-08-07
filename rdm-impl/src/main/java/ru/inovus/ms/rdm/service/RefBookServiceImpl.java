@@ -288,7 +288,8 @@ public class RefBookServiceImpl implements RefBookService {
         return new PageImpl<>(versions, criteria, versions.size());
     }
 
-    private RefBook refBookModel(RefBookVersionEntity entity, List<RefBookVersionEntity> draftVersions, List<RefBookVersionEntity> lastPublishVersions) {
+    private RefBook refBookModel(RefBookVersionEntity entity,
+                                 List<RefBookVersionEntity> draftVersions, List<RefBookVersionEntity> lastPublishVersions) {
         if (entity == null) return null;
 
         RefBookVersionEntity draftVersion = getRefBookSourceTypeVersion(entity.getRefBook().getId(), draftVersions);
@@ -297,7 +298,8 @@ public class RefBookServiceImpl implements RefBookService {
         return refBookModel(entity, draftVersion, lastPublishedVersion);
     }
 
-    private RefBook refBookModel(RefBookVersionEntity entity, RefBookVersionEntity draftVersion, RefBookVersionEntity lastPublishedVersion) {
+    private RefBook refBookModel(RefBookVersionEntity entity,
+                                 RefBookVersionEntity draftVersion, RefBookVersionEntity lastPublishedVersion) {
         if (entity == null) return null;
 
         RefBook model = new RefBook(ModelGenerator.versionModel(entity));
@@ -384,7 +386,8 @@ public class RefBookServiceImpl implements RefBookService {
         correctUpdatePassport.entrySet().removeIf(e -> attributeCodesToRemove.contains(e.getKey()));
 
         Set<Map.Entry> toUpdate = correctUpdatePassport.entrySet().stream()
-                .filter(e -> newPassportValues.stream().anyMatch(v -> e.getKey().equals(v.getAttribute().getCode())))
+                .filter(e -> newPassportValues.stream()
+                        .anyMatch(v -> e.getKey().equals(v.getAttribute().getCode())))
                 .peek(e -> newPassportValues.stream()
                         .filter(v -> e.getKey().equals(v.getAttribute().getCode()))
                         .findAny().get().setValue(e.getValue()))

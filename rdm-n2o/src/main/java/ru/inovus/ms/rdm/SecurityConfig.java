@@ -29,7 +29,8 @@ public class SecurityConfig extends OpenIdSecurityConfigurerAdapter {
     protected void authorize(ExpressionUrlAuthorizationConfigurer<HttpSecurity>
                                      .ExpressionInterceptUrlRegistry url) throws Exception {
         // Все запросы авторизованы
-        url.anyRequest().authenticated()
+        url.anyRequest()
+                .authenticated()
                 .and().logout().addLogoutHandler(auditLogoutHandler)
                 .and().addFilterBefore(ssoFilter(), BasicAuthenticationFilter.class);
     }
