@@ -11,23 +11,13 @@
     </list>
 
     <unique filters="id,excludeDraft" result-mapping="#this">
-        <java class="ru.inovus.ms.rdm.service.VersionController"
-              method="getVersion">
+        <java method="getVersion" class="ru.inovus.ms.rdm.service.VersionController">
             <spring/>
             <arguments>
                 <argument type="criteria" class="ru.inovus.ms.rdm.model.version.VersionCriteria"/>
             </arguments>
         </java>
     </unique>
-
-<!--    <unique filters="id" result-mapping="#this">-->
-<!--        <java method="getById">-->
-<!--            <spring bean="versionServiceJaxRsProxyClient"/>-->
-<!--            <arguments>-->
-<!--                <argument type="primitive" name="versionId"/>-->
-<!--            </arguments>-->
-<!--        </java>-->
-<!--    </unique>-->
 
     <fields>
         <field id="id" domain="integer">
