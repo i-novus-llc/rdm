@@ -10,8 +10,11 @@ import java.util.Map;
 import static ru.inovus.ms.rdm.util.RdmUiUtil.deletePrefix;
 
 /**
+ * Критерий поиска записей версии справочника.
+ *
  * Created by znurgaliev on 14.11.2018.
  */
+@SuppressWarnings("unused")
 public class DataCriteria extends Criteria {
 
     private Integer versionId;

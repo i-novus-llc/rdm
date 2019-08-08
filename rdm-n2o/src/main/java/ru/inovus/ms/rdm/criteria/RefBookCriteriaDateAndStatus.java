@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.criteria;
 
-import io.swagger.annotations.ApiModel;
 import ru.inovus.ms.rdm.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.model.RefBookStatus;
 
@@ -9,7 +8,9 @@ import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
 
-@ApiModel("Критерии поиска справочника с конвертацией даты")
+/**
+ * Критерий поиска справочников с конвертацией даты.
+ */
 public class RefBookCriteriaDateAndStatus extends RefBookCriteria {
 
     public void setRefBookId(Integer refBookId) {

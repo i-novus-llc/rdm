@@ -70,6 +70,7 @@ public class RefBookDataController {
     @Autowired
     private ConflictService conflictService;
 
+    @SuppressWarnings("unused") // used in: data.query.xml
     public Page<DataGridRow> getList(DataCriteria criteria) {
 
         Structure structure = versionService.getStructure(criteria.getVersionId());
@@ -316,9 +317,10 @@ public class RefBookDataController {
 
     @SuppressWarnings("unchecked")
     private static Map<String, String>[] getBooleanValues() {
-        return new Map[]{
+        return new Map[] {
                 of(BOOL_FIELD_ID, "true", BOOL_FIELD_NAME, "ИСТИНА"),
-                of(BOOL_FIELD_ID, "false", BOOL_FIELD_NAME, "ЛОЖЬ")};
+                of(BOOL_FIELD_ID, "false", BOOL_FIELD_NAME, "ЛОЖЬ")
+        };
     }
 
     @SuppressWarnings("WeakerAccess")

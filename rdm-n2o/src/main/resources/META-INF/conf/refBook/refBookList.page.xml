@@ -13,13 +13,7 @@
                 <input-text id="code" label="Код справочника"/>
                 <date-interval id="lastPublishedVersionFromDateInterval" label="Дата последней публикации"/>
                 <input-select id="category" label="Категория" query-id="category" label-field-id="id"/>
-                <input-select id="status" label="Статус" label-field-id="name">
-                    <options>
-                        <option id="PUBLISHED" name="Опубликован"/>
-                        <option id="HAS_DRAFT" name="В работе"/>
-                        <option id="ARCHIVED" name="Архив"/>
-                    </options>
-                </input-select>
+                <input-select id="status" label="Статус" query-id="refBookStatusList" label-field-id="name"/>
             </row>
         </filters>
         <toolbar>
