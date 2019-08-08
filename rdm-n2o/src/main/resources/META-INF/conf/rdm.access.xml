@@ -4,6 +4,8 @@
         <page-access page-id="refBookList"/>
 
         <object-access object-id="refBook"/>
+        <object-access object-id="refBookStatusList"/>
+
         <object-access object-id="refBookVersion"/>
         <object-access object-id="versionList"/>
         <object-access object-id="attribute"/>
@@ -15,13 +17,18 @@
             <eq id="oncePublished" field-id="hasPublished" value="true"/>
         </object-filters>
 
+        <object-filters object-id="refBookStatusList">
+            <eq id="nonArchived" field-id="nonArchived" value="true"/>
+            <eq id="onlyPublished" field-id="excludeDraft" value="true"/>
+        </object-filters>
+
         <object-filters object-id="refBookVersion">
             <!-- RdmPermission.excludeDraft() -->
-            <eq id="lastOnlyPublished" field-id="excludeDraft" value="true"/>
+            <eq id="onlyPublished" field-id="excludeDraft" value="true"/>
         </object-filters>
 
         <object-filters object-id="versionList">
-            <eq id="listOnlyPublished" field-id="excludeDraft" value="true"/>
+            <eq id="onlyPublished" field-id="excludeDraft" value="true"/>
         </object-filters>
 
     </permit-all>
@@ -50,8 +57,10 @@
                        operations="create,edit,delete,refreshReferrer,
                             createFromFile,uploadFromFile,uploadData"
         />
-        <object-access object-id="refBookVersion" remove-filters="lastOnlyPublished"/>
-        <object-access object-id="versionList" remove-filters="listOnlyPublished"/>
+        <object-access object-id="refBookStatusList" remove-filters="nonArchived,onlyPublished"/>
+
+        <object-access object-id="refBookVersion" remove-filters="onlyPublished"/>
+        <object-access object-id="versionList" remove-filters="onlyPublished"/>
         <object-access object-id="attribute" operations="*"/>
         <object-access object-id="data" operations="*"/>
 
@@ -62,6 +71,8 @@
                        remove-filters="nonArchived,onlyPublished,oncePublished"
                        operations="toArchive,fromArchive"
         />
+        <object-access object-id="refBookStatusList" remove-filters="nonArchived,onlyPublished"/>
+
     </permission>
 
     <permission id="nsi.download" name="Выгрузка справочников">
