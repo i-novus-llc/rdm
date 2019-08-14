@@ -495,6 +495,9 @@ public class ApplicationTest {
         publishService.publish(TEST_PUBLISHING_VERSION_ID, "1.0", LocalDateTime.now(), null, false);
         Page<RefBookRowValue> rowValuesInVersion = versionService.search(TEST_PUBLISHING_BOOK_CODE, LocalDateTime.now(), new SearchDataCriteria());
 
+        RefBook refBook = refBookService.getByVersionId(TEST_PUBLISHING_VERSION_ID);
+        assertEquals(TEST_PUBLISHING_BOOK_CODE, refBook.getCode());
+
         List fieldValues = rowValuesInVersion.getContent().get(0).getFieldValues();
         FieldValue name = new StringFieldValue("name", "name");
         FieldValue count = new IntegerFieldValue("count", 2);
@@ -502,8 +505,12 @@ public class ApplicationTest {
         assertEquals(fieldValues.get(0), name);
         assertEquals(fieldValues.get(1), count);
 
-        Page<RefBookRowValue> rowValuesOutVersion = versionService.search(TEST_PUBLISHING_BOOK_CODE, LocalDateTime.now().minusDays(1), new SearchDataCriteria());
-        assertEquals(new PageImpl<RowValue>(emptyList()), rowValuesOutVersion);
+        try {
+            versionService.search(TEST_PUBLISHING_BOOK_CODE, LocalDateTime.now().minusDays(1), new SearchDataCriteria());
+            fail();
+        } catch (RestException e) {
+            assertEquals("actual.data.not.found", e.getMessage());
+        }
     }
 
     /*
