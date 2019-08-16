@@ -15,13 +15,13 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 
 @Component
-public class AuditAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+public class RdmAuditedAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     @Autowired
     AuditLogService auditLogService;
 
-    public AuditAuthenticationSuccessHandler() {
-        setUseReferer(true);
+    public RdmAuditedAuthenticationSuccessHandler() {
+        setAlwaysUseDefaultTargetUrl(true);
     }
 
     @Override

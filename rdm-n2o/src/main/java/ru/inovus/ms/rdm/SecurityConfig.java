@@ -11,7 +11,7 @@ import org.springframework.security.config.annotation.web.configurers.Expression
 import org.springframework.security.oauth2.client.filter.OAuth2ClientAuthenticationProcessingFilter;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import ru.inovus.ms.rdm.audit.AuditAuthenticationSuccessHandler;
+import ru.inovus.ms.rdm.audit.RdmAuditedAuthenticationSuccessHandler;
 import ru.inovus.ms.rdm.audit.AuditLogoutHandler;
 
 @Configuration
@@ -20,7 +20,7 @@ import ru.inovus.ms.rdm.audit.AuditLogoutHandler;
 public class SecurityConfig extends OpenIdSecurityConfigurerAdapter {
 
     @Autowired
-    AuditAuthenticationSuccessHandler auditAuthenticationSuccessHandler;
+    RdmAuditedAuthenticationSuccessHandler rdmAuditedAuthenticationSuccessHandler;
 
     @Autowired
     AuditLogoutHandler auditLogoutHandler;
@@ -41,7 +41,7 @@ public class SecurityConfig extends OpenIdSecurityConfigurerAdapter {
 
         OAuth2ClientAuthenticationProcessingFilter ssoFilter =
                 new OAuth2ClientAuthenticationProcessingFilter(ssoProps.getLoginPath());
-        ssoFilter.setAuthenticationSuccessHandler(auditAuthenticationSuccessHandler);
+        ssoFilter.setAuthenticationSuccessHandler(rdmAuditedAuthenticationSuccessHandler);
         ssoFilter.setRestTemplate(this.getApplicationContext()
                 .getBean(UserInfoRestTemplateFactory.class).getUserInfoRestTemplate());
         ssoFilter.setTokenServices(this.getApplicationContext()
