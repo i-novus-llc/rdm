@@ -13,7 +13,7 @@
     <dependencies>
 
         <dependency>
-            <groupId>ru.i-novus.platform</groupId>
+            <groupId>ru.i-novus.components</groupId>
             <artifactId>versioned-data-storage-api</artifactId>
         </dependency>
 

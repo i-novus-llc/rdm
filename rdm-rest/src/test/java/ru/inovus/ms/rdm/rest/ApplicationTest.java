@@ -69,7 +69,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.junit.Assert.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.platform.datastorage.temporal.model.DataConstants.SYS_PRIMARY_COLUMN;
@@ -502,8 +502,12 @@ public class ApplicationTest {
         assertEquals(fieldValues.get(0), name);
         assertEquals(fieldValues.get(1), count);
 
-        Page<RefBookRowValue> rowValuesOutVersion = versionService.search(TEST_PUBLISHING_BOOK_CODE, LocalDateTime.now().minusDays(1), new SearchDataCriteria());
-        assertEquals(new PageImpl<RowValue>(emptyList()), rowValuesOutVersion);
+        try {
+            versionService.search(TEST_PUBLISHING_BOOK_CODE, LocalDateTime.now().minusDays(1), new SearchDataCriteria());
+            throw new IllegalStateException("This code mustn't be executed");
+        } catch (RestException e) {
+            assertEquals("published.data.not.found", e.getMessage());
+        }
     }
 
     /*
