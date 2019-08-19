@@ -502,8 +502,12 @@ public class ApplicationTest {
         assertEquals(fieldValues.get(0), name);
         assertEquals(fieldValues.get(1), count);
 
-        Page<RefBookRowValue> rowValuesOutVersion = versionService.search(TEST_PUBLISHING_BOOK_CODE, LocalDateTime.now().minusDays(1), new SearchDataCriteria());
-        assertEquals(new PageImpl<RowValue>(emptyList()), rowValuesOutVersion);
+        try {
+            versionService.search(TEST_PUBLISHING_BOOK_CODE, LocalDateTime.now().minusDays(1), new SearchDataCriteria());
+            throw new IllegalStateException("This code mustn't be executed");
+        } catch (RestException e) {
+            assertEquals("published.data.not.found", e.getMessage());
+        }
     }
 
     /*
