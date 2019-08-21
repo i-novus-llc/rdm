@@ -13,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
+import ru.i_novus.components.common.exception.CodifiedException;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.exception.NotUniqueException;
 import ru.i_novus.platform.datastorage.temporal.model.*;
@@ -45,7 +46,6 @@ import ru.inovus.ms.rdm.validation.PrimaryKeyUniqueValidation;
 import ru.inovus.ms.rdm.validation.ReferenceValidation;
 import ru.inovus.ms.rdm.validation.VersionValidation;
 import ru.inovus.ms.rdm.validation.VersionValidationImpl;
-import ru.kirkazan.common.exception.CodifiedException;
 
 import java.io.IOException;
 import java.io.InputStream;
