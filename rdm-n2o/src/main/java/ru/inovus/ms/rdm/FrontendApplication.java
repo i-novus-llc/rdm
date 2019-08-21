@@ -1,11 +1,12 @@
 package ru.inovus.ms.rdm;
 
 import net.n2oapp.framework.config.register.scanner.XmlInfoScanner;
+import net.n2oapp.security.admin.rest.client.AdminRestClientConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
-@SpringBootApplication
+@SpringBootApplication (scanBasePackageClasses = { FrontendApplication.class, AdminRestClientConfiguration.class})
 public class FrontendApplication {
 
     @Bean
