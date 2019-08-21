@@ -70,7 +70,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.junit.Assert.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.platform.datastorage.temporal.model.DataConstants.SYS_PRIMARY_COLUMN;
