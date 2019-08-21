@@ -44,17 +44,17 @@ public class ClientConfiguration {
     }
 
     @Bean
-    RdmN2oLocalDateTimeMapperPreparer localDateTimeMapperPreparer() {
+    public RdmN2oLocalDateTimeMapperPreparer localDateTimeMapperPreparer() {
         return new RdmN2oLocalDateTimeMapperPreparer();
     }
 
     @Bean
-    ExportFileProvider exportFileProvider(){
+    public ExportFileProvider exportFileProvider(){
         return new ExportFileProvider();
     }
 
     @Bean
-    RdmMapperConfigurer rdmMapperConfigurer(){
+    public RdmMapperConfigurer rdmMapperConfigurer(){
         return new RdmMapperConfigurer();
     }
 
@@ -69,12 +69,12 @@ public class ClientConfiguration {
     }
 
     @Bean
-    CompileCacheOperation compileCacheOperation(CacheManager cacheManager) {
+    public CompileCacheOperation compileCacheOperation(CacheManager cacheManager) {
         return new RdmCompileCacheOperation(new SyncCacheTemplate(cacheManager));
     }
 
     @Bean
-    SourceCacheOperation sourceCacheOperation(CacheManager cacheManager, MetadataRegister metadataRegister) {
+    public SourceCacheOperation sourceCacheOperation(CacheManager cacheManager, MetadataRegister metadataRegister) {
         return new RdmSourceCacheOperation(new SyncCacheTemplate(cacheManager), metadataRegister);
     }
 
