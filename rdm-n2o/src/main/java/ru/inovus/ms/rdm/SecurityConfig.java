@@ -19,10 +19,10 @@ import ru.inovus.ms.rdm.audit.AuditLogoutHandler;
 public class SecurityConfig extends OpenIdSecurityConfigurerAdapter {
 
     @Autowired
-    RdmAuditedAuthenticationSuccessHandler rdmAuditedAuthenticationSuccessHandler;
+    private RdmAuditedAuthenticationSuccessHandler rdmAuditedAuthenticationSuccessHandler;
 
     @Autowired
-    AuditLogoutHandler auditLogoutHandler;
+    private AuditLogoutHandler auditLogoutHandler;
 
     @Override
     protected void authorize(ExpressionUrlAuthorizationConfigurer<HttpSecurity>
