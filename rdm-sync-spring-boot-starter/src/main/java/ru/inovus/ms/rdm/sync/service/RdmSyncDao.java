@@ -77,6 +77,14 @@ public interface RdmSyncDao {
      */
     void markDeleted(String table, String primaryField, String isDeletedField, Object primaryValue, boolean deleted);
 
+    /**
+     * Пометить все записи справочника клиента (не)удаленными
+     * @param table таблица справочника на стороне клиента
+     * @param isDeletedField поле, отвечающее за признак удаления, в таблице клиента
+     * @param deleted новое значение для поля isDeletedField
+     */
+    void markDeleted(String table, String isDeletedField, boolean deleted);
+
     void log(String status, String refbookCode, String oldVersion, String newVersion, String message, String stack);
 
     List<Log> getList(LocalDate date, String refbookCode);

@@ -132,6 +132,13 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     }
 
     @Override
+    public void markDeleted(String table, String isDeletedField, boolean deleted) {
+        jdbcTemplate.update(String.format("update %s set %s=?", table, addDoubleQuotes(isDeletedField)),
+                deleted
+        );
+    }
+
+    @Override
     public void log(String status, String refbookCode, String oldVersion, String newVersion, String message, String stack) {
         jdbcTemplate.update("insert into rdm_sync.log (code, current_version, new_version, status, date, message, stack) values(?,?,?,?,?,?,?)",
                 refbookCode, oldVersion, newVersion, status, new Date(), message, stack);
