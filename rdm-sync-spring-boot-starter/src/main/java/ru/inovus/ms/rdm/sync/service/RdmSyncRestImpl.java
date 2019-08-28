@@ -136,8 +136,10 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     private void mergeData(VersionMapping versionMapping, RefBook newVersion) {
         Integer oldVersionId = versionService.getVersion(versionMapping.getVersion(), versionMapping.getCode()).getId();
         StructureDiff structureDiff = compareService.compareStructures(oldVersionId, newVersion.getId());
-        if(!CollectionUtils.isEmpty(structureDiff.getUpdated()) || !CollectionUtils.isEmpty(structureDiff.getDeleted())) {
+        if (!CollectionUtils.isEmpty(structureDiff.getUpdated()) || !CollectionUtils.isEmpty(structureDiff.getDeleted())) {
+            dao.markDeleted(versionMapping.getTable(), versionMapping.getDeletedField(), true);
             uploadNew(versionMapping, newVersion);
+            return;
         }
         List<FieldMapping> fieldMappings = dao.getFieldMapping(versionMapping.getCode());
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria();
@@ -240,6 +242,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         Object primaryValue = mappedRow.get(primaryField);
         if (existingDataIds.contains(primaryValue)) {
             //если запись существует, обновляем
+            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, false);
             dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow);
         } else {
             //создаем новую запись
