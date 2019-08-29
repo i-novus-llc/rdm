@@ -9,7 +9,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 
 @Path("/compare")
-@Api("Методы сравнения версий")
+@Api(value = "Методы сравнения версий", hidden = true)
 public interface DownloadCompareService {
 
     @GET
@@ -20,10 +20,6 @@ public interface DownloadCompareService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    ExportFile getCompareFile(@ApiParam("Идентификатор старой версии")
-                              @QueryParam("oldVersionId")
-                              Integer oldVersionId,
-                              @ApiParam("Идентификатор новой версии")
-                              @QueryParam("newVersionId")
-                              Integer newVersionId);
+    ExportFile getCompareFile(@ApiParam("Идентификатор старой версии") @QueryParam("oldVersionId") Integer oldVersionId,
+                              @ApiParam("Идентификатор новой версии") @QueryParam("newVersionId") Integer newVersionId);
 }

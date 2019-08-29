@@ -1,0 +1,118 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="publish">
+
+    <unique filters="version.id" result-mapping="#this">
+        <java class="ru.inovus.ms.rdm.service.RefBookPublishController"
+              method="getByVersionId">
+            <spring/>
+            <arguments>
+                <argument type="primitive"/>
+            </arguments>
+        </java>
+    </unique>
+
+    <fields>
+        <field id="id" domain="integer">
+            <select mapping="refBookId"/>
+            <filters>
+                <eq filter-id="id" mapping="refbookId"/>
+            </filters>
+        </field>
+
+        <field id="refBookId" domain="integer">
+            <select mapping="refBookId"/>
+        </field>
+
+        <field id="version.id" domain="integer">
+            <select mapping="id"/>
+            <filters>
+                <eq filter-id="version.id" mapping="[0]" domain="integer"/>
+            </filters>
+        </field>
+
+        <field id="version.version" domain="string">
+            <select mapping="
+                (archived ? 'В архиве: ' : '') +
+                (status?.toString()!='DRAFT' ?
+                 version :
+                 'Новая (изм. ' +
+                    editDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy')) +
+                    ')')
+                "/>
+        </field>
+
+        <field id="code" domain="string">
+            <select/>
+            <filters>
+                <eq filter-id="code" mapping="code"/>
+            </filters>
+            <sorting/>
+        </field>
+
+        <field id="status" domain="string">
+            <filters>
+                <eq filter-id="status.id" mapping="status" domain="string"/>
+            </filters>
+        </field>
+
+        <field id="archived" domain="boolean">
+            <select mapping="archived"/>
+        </field>
+
+        <!-- Checking conflicts -->
+        <field id="hasCheckDeletedConflicts" domain="boolean">
+            <select mapping="conflictingReferrerNames['DELETED']?.length() > 0"/>
+        </field>
+        <field id="hasCheckUpdatedConflicts" domain="boolean">
+            <select mapping="conflictingReferrerNames['UPDATED']?.length() > 0"/>
+        </field>
+        <field id="hasCheckAlteredConflicts" domain="boolean">
+            <select mapping="conflictingReferrerNames['ALTERED']?.length() > 0"/>
+        </field>
+        <field id="hasCheckDisplayDamagedConflicts" domain="boolean">
+            <select mapping="conflictingReferrerNames['DISPLAY_DAMAGED']?.length() > 0"/>
+        </field>
+
+        <field id="listCheckDeletedConflictReferrers" domain="string">
+            <select mapping="conflictingReferrerNames['DELETED']"/>
+        </field>
+        <field id="listCheckUpdatedConflictReferrers" domain="string">
+            <select mapping="conflictingReferrerNames['UPDATED']"/>
+        </field>
+        <field id="listCheckAlteredConflictReferrers" domain="string">
+            <select mapping="conflictingReferrerNames['ALTERED']"/>
+        </field>
+        <field id="listCheckDisplayDamagedConflictReferrers" domain="string">
+            <select mapping="conflictingReferrerNames['DISPLAY_DAMAGED']"/>
+        </field>
+        <!-- / Checking conflicts -->
+
+        <!-- Existing conflicts -->
+        <field id="hasDataConflict" domain="boolean">
+            <select/>
+        </field>
+
+        <field id="hasUpdatedConflict" domain="boolean">
+            <select/>
+        </field>
+
+        <field id="hasAlteredConflict" domain="boolean">
+            <select/>
+        </field>
+        <!-- / Existing conflicts -->
+
+        <field id="editDate" domain="date">
+            <select/>
+        </field>
+
+        <field id="isPublishable" domain="boolean">
+            <select mapping="
+                (!archived) and
+                (status?.toString()=='DRAFT') and
+                (!hasDataConflict) and
+                (!hasStructureConflict)
+                "/>
+        </field>
+
+    </fields>
+</query>

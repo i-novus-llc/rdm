@@ -5,6 +5,7 @@ public class ReadAttribute extends FormAttribute {
 
     // refBook
     private Integer versionId;
+    private Boolean hasReferrer;
 
     // attribute
     private String codeExpression;
@@ -15,12 +16,23 @@ public class ReadAttribute extends FormAttribute {
     private String displayAttribute;
     private String displayAttributeName;
 
+    // conflict
+    private Boolean hasStructureConflict;
+
     public Integer getVersionId() {
         return versionId;
     }
 
     public void setVersionId(Integer versionId) {
         this.versionId = versionId;
+    }
+
+    public Boolean getHasReferrer() {
+        return hasReferrer;
+    }
+
+    public void setHasReferrer(Boolean hasReferrer) {
+        this.hasReferrer = hasReferrer;
     }
 
     public String getCodeExpression() {
@@ -61,5 +73,13 @@ public class ReadAttribute extends FormAttribute {
 
     public void setDisplayAttributeName(String displayAttributeName) {
         this.displayAttributeName = displayAttributeName;
+    }
+
+    public Boolean getHasStructureConflict() {
+        return hasStructureConflict;
+    }
+
+    public void setHasStructureConflict(Boolean hasStructureConflict) {
+        this.hasStructureConflict = hasStructureConflict;
     }
 }

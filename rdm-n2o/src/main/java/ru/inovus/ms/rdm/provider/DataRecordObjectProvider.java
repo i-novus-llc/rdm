@@ -9,7 +9,7 @@ import net.n2oapp.framework.api.metadata.global.dao.object.N2oObject;
 import net.n2oapp.framework.api.register.DynamicMetadataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.inovus.ms.rdm.model.Row;
+import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.service.CreateDraftController;
 import ru.inovus.ms.rdm.service.api.VersionService;
@@ -41,6 +41,7 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
      * @param s Параметры провайдера (ID версии)
      */
     @Override
+    @SuppressWarnings("unchecked")
     public List<? extends SourceMetadata> read(String s) {
 
         Integer versionId = Integer.parseInt(s);

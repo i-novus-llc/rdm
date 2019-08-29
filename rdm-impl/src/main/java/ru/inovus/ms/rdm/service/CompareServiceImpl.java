@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.service;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.jaxrs.RestPage;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
@@ -20,25 +19,32 @@ import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.inovus.ms.rdm.entity.PassportAttributeEntity;
 import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
-import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.compare.ComparableField;
 import ru.inovus.ms.rdm.model.compare.ComparableFieldValue;
 import ru.inovus.ms.rdm.model.compare.ComparableRow;
 import ru.inovus.ms.rdm.model.compare.CompareCriteria;
-import ru.inovus.ms.rdm.repositiory.PassportAttributeRepository;
-import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
+import ru.inovus.ms.rdm.model.diff.DiffRowValuePage;
+import ru.inovus.ms.rdm.model.diff.RefBookDataDiff;
+import ru.inovus.ms.rdm.model.diff.StructureDiff;
+import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.model.version.PassportAttribute;
+import ru.inovus.ms.rdm.model.diff.PassportAttributeDiff;
+import ru.inovus.ms.rdm.model.diff.PassportDiff;
+import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.repository.PassportAttributeRepository;
+import ru.inovus.ms.rdm.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.CompareService;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.validation.VersionValidation;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static cz.atria.common.lang.Util.isEmpty;
 import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toList;
+import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.util.ComparableUtils.*;
 import static ru.inovus.ms.rdm.util.ConverterUtil.getFieldSearchCriteriaList;
 
@@ -51,19 +57,21 @@ public class CompareServiceImpl implements CompareService {
     private RefBookVersionRepository versionRepository;
     private PassportAttributeRepository passportAttributeRepository;
     private FieldFactory fieldFactory;
+    private VersionValidation versionValidation;
 
-    private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
     private static final String DATA_COMPARING_UNAVAILABLE_EXCEPTION_CODE = "data.comparing.unavailable";
 
     @Autowired
     public CompareServiceImpl(CompareDataService compareDataService,
                               VersionService versionService, RefBookVersionRepository versionRepository,
-                              PassportAttributeRepository passportAttributeRepository, FieldFactory fieldFactory) {
+                              PassportAttributeRepository passportAttributeRepository, FieldFactory fieldFactory,
+                              VersionValidation versionValidation) {
         this.compareDataService = compareDataService;
         this.versionService = versionService;
         this.versionRepository = versionRepository;
         this.passportAttributeRepository = passportAttributeRepository;
         this.fieldFactory = fieldFactory;
+        this.versionValidation = versionValidation;
     }
 
     @Override
@@ -94,37 +102,48 @@ public class CompareServiceImpl implements CompareService {
 
     @Override
     @Transactional(readOnly = true)
-    public StructureDiff compareStructures(Integer oldVersionId, Integer newVersionId) {
-        validateVersionsExistence(oldVersionId, newVersionId);
-
-        RefBookVersionEntity oldVersion = versionRepository.getOne(oldVersionId);
-        RefBookVersionEntity newVersion = versionRepository.getOne(newVersionId);
+    public StructureDiff compareStructures(Structure oldStructure, Structure newStructure) {
 
         List<StructureDiff.AttributeDiff> inserted = new ArrayList<>();
         List<StructureDiff.AttributeDiff> updated = new ArrayList<>();
         List<StructureDiff.AttributeDiff> deleted = new ArrayList<>();
 
-        newVersion.getStructure().getAttributes().forEach(newAttribute -> {
-            Optional<Structure.Attribute> oldAttribute = oldVersion.getStructure().getAttributes().stream()
-                    .filter(o -> Objects.equals(newAttribute.getCode(), o.getCode())).findAny();
-            if (!oldAttribute.isPresent()) {
+        newStructure.getAttributes().forEach(newAttribute -> {
+            Structure.Attribute oldAttribute = oldStructure.getAttribute(newAttribute.getCode());
+            if (oldAttribute == null)
                 inserted.add(new StructureDiff.AttributeDiff(null, newAttribute));
-            } else if (!oldAttribute.get().equals(newAttribute)) {
-                updated.add(new StructureDiff.AttributeDiff(oldAttribute.get(), newAttribute));
-            }
+            else if (!oldAttribute.equals(newAttribute))
+                updated.add(new StructureDiff.AttributeDiff(oldAttribute, newAttribute));
         });
-        oldVersion.getStructure().getAttributes().stream()
-                .filter(oldAttribute -> newVersion.getStructure().getAttributes().stream()
-                        .noneMatch(n -> Objects.equals(oldAttribute.getCode(), n.getCode())))
-                .map(oldAttribute -> new StructureDiff.AttributeDiff(oldAttribute, null))
-                .forEach(deleted::add);
+
+        oldStructure.getAttributes().forEach(oldAttribute -> {
+            Structure.Attribute newAttribute = newStructure.getAttribute(oldAttribute.getCode());
+            if (newAttribute == null)
+                deleted.add(new StructureDiff.AttributeDiff(oldAttribute, null));
+        });
 
         return new StructureDiff(inserted, updated, deleted);
     }
 
     @Override
     @Transactional(readOnly = true)
+    public StructureDiff compareStructures(Integer oldVersionId, Integer newVersionId) {
+
+        validateVersionsExistence(oldVersionId, newVersionId);
+
+        RefBookVersionEntity oldVersion = versionRepository.getOne(oldVersionId);
+        RefBookVersionEntity newVersion = versionRepository.getOne(newVersionId);
+
+        Structure oldStructure = oldVersion.getStructure();
+        Structure newStructure = newVersion.getStructure();
+
+        return compareStructures(oldStructure, newStructure);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public RefBookDataDiff compareData(ru.inovus.ms.rdm.model.compare.CompareDataCriteria criteria) {
+
         validateVersionsExistence(criteria.getOldVersionId(), criteria.getNewVersionId());
 
         RefBookVersionEntity oldVersion = versionRepository.getOne(criteria.getOldVersionId());
@@ -134,22 +153,26 @@ public class CompareServiceImpl implements CompareService {
         Structure newStructure = newVersion.getStructure();
         validatePrimaryAttributesEquality(oldStructure.getPrimary(), newStructure.getPrimary());
 
-        CompareDataCriteria compareDataCriteria = createRdmCompareDataCriteria(oldVersion, newVersion, criteria);
+        CompareDataCriteria compareDataCriteria = createVdsCompareDataCriteria(oldVersion, newVersion, criteria);
 
         List<String> newAttributes = new ArrayList<>();
         List<String> oldAttributes = new ArrayList<>();
         List<String> updatedAttributes = new ArrayList<>();
+
         newStructure.getAttributes().forEach(newAttribute -> {
-            Structure.Attribute old = oldStructure.getAttribute(newAttribute.getCode());
-            if (old == null)
+            Structure.Attribute oldAttribute = oldStructure.getAttribute(newAttribute.getCode());
+            if (oldAttribute == null)
                 newAttributes.add(newAttribute.getCode());
-            else if (!old.storageEquals(newAttribute))
+            else if (!oldAttribute.storageEquals(newAttribute))
                 updatedAttributes.add(newAttribute.getCode());
         });
+
         oldStructure.getAttributes().forEach(oldAttribute -> {
-            if (newStructure.getAttribute(oldAttribute.getCode()) == null)
+            Structure.Attribute newAttribute = newStructure.getAttribute(oldAttribute.getCode());
+            if (newAttribute == null)
                 oldAttributes.add(oldAttribute.getCode());
         });
+
         DataDifference dataDifference = compareDataService.getDataDifference(compareDataCriteria);
 
         return new RefBookDataDiff(new DiffRowValuePage(dataDifference.getRows()), oldAttributes, newAttributes, updatedAttributes);
@@ -166,7 +189,7 @@ public class CompareServiceImpl implements CompareService {
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize(), criteria.getPrimaryAttributesFilters());
         Page<RefBookRowValue> newData = versionService.search(criteria.getNewVersionId(), searchDataCriteria);
 
-        RefBookDataDiff refBookDataDiff = compareData(createRdmCompareDataCriteria(criteria, newData, newStructure));
+        RefBookDataDiff refBookDataDiff = compareData(createVdsCompareDataCriteria(criteria, newData, newStructure));
         RefBookDataDiff refBookDataDiffDeleted = compareData(createRdmCompareDataCriteriaDeleted(criteria));
 
         List<ComparableField> comparableFields = createCommonComparableFieldsList(refBookDataDiff, newStructure, oldStructure);
@@ -186,14 +209,13 @@ public class CompareServiceImpl implements CompareService {
                     return (oldAttribute != null && oldAttribute.storageEquals(newAttribute));
                 })
                 .map(attribute -> fieldFactory.createField(attribute.getCode(), attribute.getType()))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private void validateVersionsExistence(Integer oldVersionId, Integer newVersionId) {
-        if (oldVersionId == null || !versionRepository.existsById(oldVersionId))
-            throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, oldVersionId));
-        if (newVersionId == null || !versionRepository.existsById(newVersionId))
-            throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, newVersionId));
+
+        versionValidation.validateVersionExists(oldVersionId);
+        versionValidation.validateVersionExists(newVersionId);
     }
 
     private void validatePrimaryAttributesEquality(List<Structure.Attribute> oldPrimaries, List<Structure.Attribute> newPrimaries) {
@@ -211,7 +233,7 @@ public class CompareServiceImpl implements CompareService {
             return (newPassportValue == null || newPassportValue.getValue() == null);
     }
 
-    private CompareDataCriteria createRdmCompareDataCriteria(RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion,
+    private CompareDataCriteria createVdsCompareDataCriteria(RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion,
                                                              ru.inovus.ms.rdm.model.compare.CompareDataCriteria rdmCriteria) {
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria();
         compareDataCriteria.setStorageCode(oldVersion.getStorageCode());
@@ -234,7 +256,7 @@ public class CompareServiceImpl implements CompareService {
         return compareDataCriteria;
     }
 
-    private ru.inovus.ms.rdm.model.compare.CompareDataCriteria createRdmCompareDataCriteria(CompareCriteria criteria, Page<? extends RowValue> data, Structure structure) {
+    private ru.inovus.ms.rdm.model.compare.CompareDataCriteria createVdsCompareDataCriteria(CompareCriteria criteria, Page<? extends RowValue> data, Structure structure) {
         ru.inovus.ms.rdm.model.compare.CompareDataCriteria rdmCriteria = new ru.inovus.ms.rdm.model.compare.CompareDataCriteria(criteria);
         rdmCriteria.setPrimaryAttributesFilters(createPrimaryAttributesFilters(data, structure));
         return rdmCriteria;
@@ -248,13 +270,13 @@ public class CompareServiceImpl implements CompareService {
         return deletedRdmCriteria;
     }
 
-   private void addNewVersionRows(List<ComparableRow> comparableRows, List<ComparableField> comparableFields,
+    private void addNewVersionRows(List<ComparableRow> comparableRows, List<ComparableField> comparableFields,
                                    Page<? extends RowValue> newData, RefBookDataDiff refBookDataDiff,
                                    Structure newStructure, CompareCriteria criteria) {
-        if (CollectionUtils.isEmpty(newData.getContent()))
+        if (isEmpty(newData.getContent()))
             return;
 
-        Boolean hasUpdOrDelAttr = !CollectionUtils.isEmpty(refBookDataDiff.getUpdatedAttributes()) || !CollectionUtils.isEmpty(refBookDataDiff.getOldAttributes());
+        boolean hasUpdOrDelAttr = !isEmpty(refBookDataDiff.getUpdatedAttributes()) || !isEmpty(refBookDataDiff.getOldAttributes());
 
         SearchDataCriteria oldSearchDataCriteria = hasUpdOrDelAttr
                 ? new SearchDataCriteria(0, criteria.getPageSize(), createPrimaryAttributesFilters(newData, newStructure))
@@ -285,7 +307,7 @@ public class CompareServiceImpl implements CompareService {
                                                     oldRowValue,
                                                     newRowValue,
                                                     diffRowValue != null ? diffRowValue.getStatus() : null))
-                                    .collect(Collectors.toList())
+                                    .collect(toList())
                     );
                     comparableRows.add(comparableRow);
                 });
@@ -318,11 +340,10 @@ public class CompareServiceImpl implements CompareService {
                                                         deletedRowValue,
                                                         null,
                                                         DiffStatusEnum.DELETED))
-                                        .collect(Collectors.toList())
+                                        .collect(toList())
                         );
                         comparableRows.add(comparableRow);
                     });
         }
     }
-
 }

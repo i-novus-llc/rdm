@@ -1,18 +1,27 @@
 package ru.inovus.ms.rdm.model;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.exception.RdmException;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
+@ApiModel("Структура")
 public class Structure implements Serializable {
 
+    @ApiModelProperty("Атрибуты")
     private List<Attribute> attributes;
 
+    @ApiModelProperty("Ссылки")
     private List<Reference> references;
 
     public Structure() {
@@ -25,36 +34,6 @@ public class Structure implements Serializable {
 
     public Structure(Structure other) {
         this(other.getAttributes(), other.getReferences());
-    }
-
-    public Reference getReference(String attributeCode) {
-        if (isEmpty(references)) {
-            return null;
-        }
-        return references.stream().filter(reference -> reference.getAttribute().equals(attributeCode)).findAny()
-                .orElse(null);
-    }
-
-    public Attribute getAttribute(String code) {
-        if (isEmpty(attributes)) {
-            return null;
-        }
-        return attributes.stream().filter(attribute -> attribute.getCode().equals(code)).findAny()
-                .orElse(null);
-    }
-
-    public void clearPrimary() {
-        if (isEmpty(attributes)) {
-            return;
-        }
-        attributes.forEach(a -> {
-            if (a.getIsPrimary())
-                a.setPrimary(false);
-        });
-    }
-
-    public List<Attribute> getPrimary() {
-        return attributes.stream().filter(attribute -> attribute.isPrimary).collect(Collectors.toList());
     }
 
     public List<Attribute> getAttributes() {
@@ -73,16 +52,101 @@ public class Structure implements Serializable {
         this.references = references;
     }
 
+    public Attribute getAttribute(String code) {
+        if (isEmpty(attributes)) {
+            return null;
+        }
+        return attributes.stream()
+                .filter(attribute -> attribute.getCode().equals(code))
+                .findAny().orElse(null);
+    }
+
+    public Reference getReference(String attributeCode) {
+        if (isEmpty(references)) {
+            return null;
+        }
+        return references.stream()
+                .filter(reference -> reference.getAttribute().equals(attributeCode))
+                .findAny().orElse(null);
+    }
+
+    public void clearPrimary() {
+        if (isEmpty(attributes)) {
+            return;
+        }
+        attributes.forEach(a -> {
+            if (a.getIsPrimary())
+                a.setPrimary(false);
+        });
+    }
+
+    public List<Attribute> getPrimary() {
+        return attributes.stream()
+                .filter(attribute -> attribute.isPrimary)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Получение всех ссылок на справочник с указанным кодом.
+     *
+     * @param referenceCode код справочника, на который ссылаются
+     * @return Список ссылок
+     */
+    public List<Reference> getRefCodeReferences(String referenceCode) {
+        if (isEmpty(references)) {
+            return Collections.emptyList();
+        }
+        return references.stream()
+                .filter(reference -> reference.getReferenceCode().equals(referenceCode))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Получение всех атрибутов-ссылок на справочник с указанным кодом.
+     *
+     * @param referenceCode код справочника, на который ссылаются
+     * @return Список атрибутов
+     */
+    public List<Attribute> getRefCodeAttributes(String referenceCode) {
+        if (isEmpty(attributes)) {
+            return Collections.emptyList();
+        }
+        return getRefCodeReferences(referenceCode).stream()
+                .map(ref -> getAttribute(ref.getAttribute()))
+                .collect(toList());
+    }
+
+    @ApiModel("Атрибут справочника")
     public static class Attribute implements Serializable {
 
+        /**
+         * Код атрибута.
+         */
+        @ApiModelProperty("Код атрибута")
         private String code;
 
+        /**
+         * Наименование атрибута.
+         */
+        @ApiModelProperty("Наименование атрибута")
         private String name;
 
+        /**
+         * Тип атрибута.
+         */
+        @ApiModelProperty("Тип атрибута")
         private FieldType type;
 
+        /**
+         * Признак первичного атрибута.
+         */
+        @ApiModelProperty("Признак первичного атрибута")
         private Boolean isPrimary;
 
+        /**
+         * Описание атрибута.
+         */
+        @ApiModelProperty("Описание атрибута")
         private String description;
 
         public static Attribute buildPrimary(String code, String name, FieldType type, String description) {
@@ -145,57 +209,56 @@ public class Structure implements Serializable {
             this.description = description;
         }
 
-        public boolean storageEquals(Attribute a) {
-            if (code != null ? !code.equals(a.code) : a.code != null)
-                return false;
-            if (name != null ? !name.equals(a.name) : a.name != null)
-                return false;
-            return type == a.type;
+        public boolean storageEquals(Attribute that) {
+            return Objects.equals(code, that.code) &&
+                    Objects.equals(name, that.name) &&
+                    Objects.equals(type, that.type);
+        }
+
+        public Boolean isReferenceType() {
+            return FieldType.REFERENCE.equals(getType());
         }
 
         @Override
+        @SuppressWarnings("squid:S1067")
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            Attribute attribute = (Attribute) o;
-
-            if (isPrimary != attribute.isPrimary) return false;
-            if (code != null ? !code.equals(attribute.code) : attribute.code != null)
-                return false;
-            if (name != null ? !name.equals(attribute.name) : attribute.name != null)
-                return false;
-            if (description != null ? !description.equals(attribute.description) : attribute.description != null)
-                return false;
-            return type == attribute.type;
+            Attribute that = (Attribute) o;
+            return Objects.equals(isPrimary, that.isPrimary) &&
+                    Objects.equals(code, that.code) &&
+                    Objects.equals(name, that.name) &&
+                    Objects.equals(type, that.type) &&
+                    Objects.equals(description, that.description);
         }
 
         @Override
         public int hashCode() {
-            int result = code != null ? code.hashCode() : 0;
-            result = 31 * result + (name != null ? name.hashCode() : 0);
-            result = 31 * result + (type != null ? type.hashCode() : 0);
-            result = 31 * result + (isPrimary ? 1 : 0);
-            return result;
+            return Objects.hash(code, name, type, isPrimary);
         }
     }
 
+    @ApiModel("Ссылка")
     public static class Reference implements Serializable {
 
         /**
-         * Поле, которое ссылается
+         * Поле, которое ссылается.
          */
+        @ApiModelProperty("Поле, которое ссылается")
         private String attribute;
 
         /**
-         * Код справочника, на который ссылаемся
+         * Код справочника, на который ссылаются.
          */
+        @ApiModelProperty("Код справочника, на который ссылаются")
         private String referenceCode;
 
         /**
-         * Вид отображаемого ссылочного значения.
+         * Выражение для вычисления отображаемого ссылочного значения.
          * Поля справочника указываются через placeholder ${~}, например ${field}
          */
+        @ApiModelProperty("Выражение для вычисления отображаемого ссылочного значения")
         private String displayExpression;
 
         public Reference() {
@@ -231,6 +294,13 @@ public class Structure implements Serializable {
             this.displayExpression = displayExpression;
         }
 
+        /**
+         * Поиск атрибута в справочнике, на который ссылаются.
+         * В текущей реализации это может быть только первичный ключ версии справочника.
+         *
+         * @param referenceStructure структура версии справочника, на который ссылаются
+         * @return Атрибут версии справочника
+         */
         public Structure.Attribute findReferenceAttribute(Structure referenceStructure) {
 
             List<Structure.Attribute> primaryAttributes = referenceStructure.getPrimary();
@@ -242,33 +312,33 @@ public class Structure implements Serializable {
             return primaryAttributes.get(0);
         }
 
+        public boolean isNull() {
+            return StringUtils.isEmpty(attribute) || StringUtils.isEmpty(referenceCode);
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            Reference reference = (Reference) o;
-
-            if (attribute != null ? !attribute.equals(reference.attribute) : reference.attribute != null)
-                return false;
-            if (referenceCode != null ? !referenceCode.equals(reference.referenceCode) : reference.referenceCode != null)
-                return false;
-            return !(displayExpression != null ? !displayExpression.equals(reference.displayExpression) : reference.displayExpression != null);
+            Reference that = (Reference) o;
+            return Objects.equals(attribute, that.attribute) &&
+                    Objects.equals(referenceCode, that.referenceCode) &&
+                    Objects.equals(displayExpression, that.displayExpression);
         }
 
         @Override
         public int hashCode() {
-            int result = attribute != null ? attribute.hashCode() : 0;
-            result = 31 * result + (referenceCode != null ? referenceCode.hashCode() : 0);
-            result = 31 * result + (displayExpression != null ? displayExpression.hashCode() : 0);
-            return result;
+            return Objects.hash(attribute, referenceCode, displayExpression);
         }
     }
 
-    public boolean storageEquals(Structure s) {
+    public boolean storageEquals(Structure that) {
+        List<Attribute> others = that.getAttributes();
         return isEmpty(attributes)
-                ? isEmpty(s.getAttributes())
-                : attributes.stream().noneMatch(attribute -> s.attributes.stream().noneMatch(attribute::storageEquals));
+                ? isEmpty(others)
+                : attributes.size() == others.size()
+                && attributes.stream().noneMatch(attribute -> others.stream().noneMatch(attribute::storageEquals));
     }
 
     @Override
@@ -276,16 +346,13 @@ public class Structure implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Structure structure = (Structure) o;
-
-        if (attributes != null ? !attributes.equals(structure.attributes) : structure.attributes != null) return false;
-        return !(references != null ? !references.equals(structure.references) : structure.references != null);
+        Structure that = (Structure) o;
+        return  Objects.equals(attributes, that.attributes) &&
+                Objects.equals(references, that.references);
     }
 
     @Override
     public int hashCode() {
-        int result = attributes != null ? attributes.hashCode() : 0;
-        result = 31 * result + (references != null ? references.hashCode() : 0);
-        return result;
+        return Objects.hash(attributes, references);
     }
 }

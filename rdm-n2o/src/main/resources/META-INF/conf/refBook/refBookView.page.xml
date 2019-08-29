@@ -28,6 +28,12 @@
                    master-field-id="version.id" detail-field-id="versionId" upload="query"/>
             <table src="DataGrid" name="Данные" id="dataTable" query-id="data" depends-on="version_select"
                    master-field-id="version.id" detail-field-id="versionId" object-id="data"/>
+            <table src="DataGrid" name="Данные с конфликтами" id="dataTableWithConflicts" query-id="data" depends-on="version_select"
+                   master-field-id="version.id" detail-field-id="versionId" object-id="data">
+                <pre-filters>
+                    <eq field-id="hasDataConflict" value="true"/>
+                </pre-filters>
+            </table>
         </tabs>
     </regions>
 

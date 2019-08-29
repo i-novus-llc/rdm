@@ -8,7 +8,7 @@ import ru.i_novus.platform.datastorage.temporal.exception.NotUniqueException;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.inovus.ms.rdm.model.Result;
-import ru.inovus.ms.rdm.model.Row;
+import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.Structure;
 
 import java.util.ArrayList;

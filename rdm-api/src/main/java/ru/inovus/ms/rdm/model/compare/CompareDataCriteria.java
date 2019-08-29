@@ -2,7 +2,7 @@ package ru.inovus.ms.rdm.model.compare;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import ru.inovus.ms.rdm.model.AttributeFilter;
+import ru.inovus.ms.rdm.model.version.AttributeFilter;
 
 import javax.ws.rs.QueryParam;
 import java.util.List;
@@ -52,6 +52,7 @@ public class CompareDataCriteria extends CompareCriteria {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
+
         CompareDataCriteria that = (CompareDataCriteria) o;
         return Objects.equals(primaryAttributesFilters, that.primaryAttributesFilters) &&
                 Objects.equals(countOnly, that.countOnly);
@@ -59,6 +60,6 @@ public class CompareDataCriteria extends CompareCriteria {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), countOnly);
+        return Objects.hash(super.hashCode(), primaryAttributesFilters, countOnly);
     }
 }

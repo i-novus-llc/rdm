@@ -41,6 +41,10 @@
             </filters>
         </field>
 
+        <field id="hasReferrer" domain="boolean">
+            <select/>
+        </field>
+
         <field id="name" domain="string" name="Наименование">
             <select/>
         </field>
@@ -96,11 +100,21 @@
         </field>
 
         <field id="displayAttribute.name" domain="string">
-            <select mapping="displayAttributeName"/>
+            <select mapping="displayAttributeName?:''"/>
         </field>
 
         <field id="displayExpression" domain="string">
             <select/>
+        </field>
+
+        <field id="hasStructureConflict" domain="boolean">
+            <select/>
+        </field>
+
+        <field id="hasStructureConflictMsg" domain="string">
+            <select mapping="
+                (hasStructureConflict?:false ? 'Выражение для вычисления отображаемого значения содержит ошибочные поля для подстановки' : '')
+                "/>
         </field>
 
         <field id="isPrimary" domain="boolean">

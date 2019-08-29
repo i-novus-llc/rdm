@@ -18,6 +18,11 @@ import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.file.process.RowsValidator;
 import ru.inovus.ms.rdm.file.process.RowsValidatorImpl;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.version.AttributeFilter;
+import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.model.refdata.Row;
+import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.ModelGenerator;
 import ru.inovus.ms.rdm.validation.ReferenceValueValidation;
@@ -53,8 +58,9 @@ public class RowsValidatorTest {
 
     @Before
     public void setUp() {
-        rowsValidator = new RowsValidatorImpl(2, versionService, searchDataService, createTestStructureWithReference(),
-                "", 100, emptyList());
+        rowsValidator = new RowsValidatorImpl(2, versionService, searchDataService,
+                createTestStructureWithReference(), "",
+                100, false, emptyList());
 
         RefBookVersionEntity versionEntity = new RefBookVersionEntity();
         versionEntity.setId(REFERENCE_VERSION);
@@ -102,7 +108,7 @@ public class RowsValidatorTest {
             Assert.fail();
         } catch (UserException e) {
             Assert.assertEquals(1, e.getMessages().size());
-            Assert.assertEquals(new Message(ReferenceValueValidation.REFERENCE_ERROR_CODE, ATTRIBUTE_NAME, ATTRIBUTE_VALUE + "_1"), e.getMessages().get(0));
+            Assert.assertEquals(new Message(ReferenceValueValidation.REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE, ATTRIBUTE_NAME, ATTRIBUTE_VALUE + "_1"), e.getMessages().get(0));
         }
     }
 

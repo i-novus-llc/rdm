@@ -4,11 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.DataConstants;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.inovus.ms.rdm.model.AttributeFilter;
-import ru.inovus.ms.rdm.model.RefBookRowValue;
-import ru.inovus.ms.rdm.model.Row;
-import ru.inovus.ms.rdm.model.SearchDataCriteria;
+import ru.inovus.ms.rdm.model.version.AttributeFilter;
+import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.model.refdata.Row;
+import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 
@@ -22,6 +23,7 @@ import static ru.inovus.ms.rdm.RdmUiUtil.addPrefix;
 import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDate;
 
 @Controller
+@SuppressWarnings("unused")
 public class DataRecordController {
 
     @Autowired
@@ -32,10 +34,10 @@ public class DataRecordController {
     public Map<String, Object> getRow(Integer versionId, Integer sysRecordId) {
 
         SearchDataCriteria criteria = new SearchDataCriteria();
-        AttributeFilter recordIdFilter = new AttributeFilter("SYS_RECORDID", sysRecordId, FieldType.INTEGER);
+        AttributeFilter recordIdFilter = new AttributeFilter(DataConstants.SYS_PRIMARY_COLUMN, sysRecordId, FieldType.INTEGER);
         criteria.setAttributeFilter(singleton(singletonList(recordIdFilter)));
-        Page<RefBookRowValue> search = versionService.search(versionId, criteria);
 
+        Page<RefBookRowValue> search = versionService.search(versionId, criteria);
         if (isEmpty(search.getContent()))
             return emptyMap();
 
@@ -43,15 +45,19 @@ public class DataRecordController {
         Map<String, Object> map = new HashMap<>();
         map.put("id", sysRecordId);
         map.put("versionId", versionId);
-        rowValue.getFieldValues().forEach(fieldValue ->
-                map.put(addPrefix(fieldValue.getField()), fieldValue.getValue()));
+
+        rowValue.getFieldValues()
+                .forEach(fieldValue ->
+                        map.put(addPrefix(fieldValue.getField()), fieldValue.getValue()));
         return map;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void updateData(Integer draftId, Row row) {
         row.getData().entrySet().stream()
                 .filter(e -> e.getValue() instanceof Date)
                 .forEach(e -> e.setValue(parseLocalDate(e.getValue())));
+
         draftService.updateData(draftId, row);
     }
 }

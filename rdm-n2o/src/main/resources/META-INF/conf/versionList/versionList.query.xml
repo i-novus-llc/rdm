@@ -4,7 +4,7 @@
         <java method="getVersions" class="ru.inovus.ms.rdm.service.api.RefBookService">
             <spring bean="refBookServiceJaxRsProxyClient"/>
             <arguments>
-                <argument type="criteria" class="ru.inovus.ms.rdm.model.VersionCriteria"/>
+                <argument type="criteria" class="ru.inovus.ms.rdm.model.version.VersionCriteria"/>
             </arguments>
         </java>
     </list>

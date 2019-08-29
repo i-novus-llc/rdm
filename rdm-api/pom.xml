@@ -7,14 +7,13 @@
     <parent>
         <groupId>ru.inovus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
-        <version>1.40-SNAPSHOT</version>
+        <version>1.47-SNAPSHOT</version>
     </parent>
 
     <dependencies>
 
-
         <dependency>
-            <groupId>ru.i-novus.platform</groupId>
+            <groupId>ru.i-novus.components</groupId>
             <artifactId>versioned-data-storage-api</artifactId>
         </dependency>
 
@@ -35,6 +34,11 @@
 
         <dependency>
             <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-jaxrs-server</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>net.n2oapp.platform</groupId>
             <artifactId>n2o-platform-jaxrs-commons</artifactId>
         </dependency>
 
@@ -49,8 +53,8 @@
         </dependency>
 
         <dependency>
-            <groupId>net.n2oapp.platform</groupId>
-            <artifactId>n2o-platform-starter-jaxrs-server</artifactId>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
         </dependency>
 
     </dependencies>

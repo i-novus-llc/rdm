@@ -9,10 +9,10 @@ import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.inovus.ms.rdm.model.DiffRowValueMixin;
-import ru.inovus.ms.rdm.model.FieldMixin;
-import ru.inovus.ms.rdm.model.FieldValueMixin;
-import ru.inovus.ms.rdm.model.RowValueMixin;
+import ru.inovus.ms.rdm.model.diff.DiffRowValueMixin;
+import ru.inovus.ms.rdm.model.field.FieldMixin;
+import ru.inovus.ms.rdm.model.field.FieldValueMixin;
+import ru.inovus.ms.rdm.model.refdata.RowValueMixin;
 
 public class RdmMapperConfigurer implements MapperConfigurer {
 

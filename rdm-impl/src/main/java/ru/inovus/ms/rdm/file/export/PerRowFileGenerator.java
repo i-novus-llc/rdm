@@ -1,6 +1,6 @@
 package ru.inovus.ms.rdm.file.export;
 
-import ru.inovus.ms.rdm.model.Row;
+import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.Structure;
 
 import java.io.Closeable;

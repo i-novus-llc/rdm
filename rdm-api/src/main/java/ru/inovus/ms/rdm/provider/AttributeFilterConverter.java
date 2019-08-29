@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import net.n2oapp.platform.jaxrs.TypedParamConverter;
-import ru.inovus.ms.rdm.model.AttributeFilter;
+import ru.inovus.ms.rdm.model.version.AttributeFilter;
 
 import java.io.IOException;
 

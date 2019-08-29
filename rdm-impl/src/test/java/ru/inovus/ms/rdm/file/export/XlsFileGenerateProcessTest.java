@@ -10,7 +10,7 @@ import ru.inovus.ms.rdm.file.process.RowsProcessor;
 import ru.inovus.ms.rdm.file.StructureRowMapper;
 import ru.inovus.ms.rdm.file.process.XlsPerRowProcessor;
 import ru.inovus.ms.rdm.model.Result;
-import ru.inovus.ms.rdm.model.Row;
+import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.Structure;
 
 import java.io.IOException;

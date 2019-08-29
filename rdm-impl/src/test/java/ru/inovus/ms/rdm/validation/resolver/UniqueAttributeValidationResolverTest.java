@@ -13,7 +13,7 @@ import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.model.UniqueAttributeValue;
+import ru.inovus.ms.rdm.model.version.UniqueAttributeValue;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
