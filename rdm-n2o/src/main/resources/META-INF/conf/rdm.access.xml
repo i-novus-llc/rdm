@@ -1,7 +1,23 @@
 <access xmlns="http://n2oapp.net/framework/config/schema/access-2.0">
 
+<!--    <authenticated>-->
+<!--        <page-access page-id="refBookList"/>-->
+<!--        <page-access page-id="refBookView"/>-->
+<!--        <page-access page-id="downloadFile"/>-->
+
+<!--    </authenticated>-->
+
+<!--    <anonymous>-->
+<!--        <page-access page-id="refBookList"/>-->
+<!--        <page-access page-id="refBookView"/>-->
+<!--        <page-access page-id="downloadFile"/>-->
+
+<!--    </anonymous>-->
+
     <permit-all>
         <page-access page-id="refBookList"/>
+        <page-access page-id="refBookView"/>
+<!--        <page-access page-id="downloadFile"/>-->
 
         <object-access object-id="refBook"/>
         <object-access object-id="refBookStatusList"/>
@@ -32,16 +48,6 @@
         </object-filters>
 
     </permit-all>
-
-    <permission id="nsi.list" name="Просмотр списка справочников">
-        <page-access page-id="refBookList"/>
-
-    </permission>
-
-    <permission id="nsi.read" name="Просмотр справочников">
-        <page-access page-id="refBookView"/>
-
-    </permission>
 
     <permission id="nsi.edit" name="Добавление/редактирование справочников">
         <page-access page-id="refBook"/>

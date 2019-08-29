@@ -191,6 +191,7 @@
                 "/>
         </field>
 
+
         <field id="editDate" domain="date">
             <select/>
         </field>
