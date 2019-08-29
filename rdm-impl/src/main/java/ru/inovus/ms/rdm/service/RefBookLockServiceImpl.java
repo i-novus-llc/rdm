@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.service;
 
+import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,31 +12,37 @@ import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookOperationEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookOperation;
-import ru.inovus.ms.rdm.repositiory.RefBookOperationRepository;
-import ru.inovus.ms.rdm.repositiory.RefBookRepository;
-import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
+import ru.inovus.ms.rdm.repository.RefBookOperationRepository;
+import ru.inovus.ms.rdm.repository.RefBookVersionRepository;
 
 import javax.annotation.PostConstruct;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
+@SuppressWarnings("unused")
 public class RefBookLockServiceImpl implements RefBookLockService {
+
+    private static final String REFBOOK_LOCK_DRAFT_IS_PUBLISHING = "refbook.lock.draft.is.publishing";
+    private static final String REFBOOK_LOCK_DRAFT_IS_UPLOADING = "refbook.lock.draft.is.uploading";
 
     private static final Logger logger = LoggerFactory.getLogger(RefBookLockServiceImpl.class);
 
+    private static final Duration OPERATION_MAX_LIVE_PERIOD = Duration.ofHours(4);
     private static final String DEFAULT_USER = "admin";
+
     private String instanceId = "localhost";
 
-    private RefBookRepository refBookRepository;
     private RefBookOperationRepository operationRepository;
     private RefBookVersionRepository versionRepository;
 
     @Autowired
-    public RefBookLockServiceImpl(RefBookRepository refBookRepository, RefBookOperationRepository operationRepository,
+    public RefBookLockServiceImpl(RefBookOperationRepository operationRepository,
                                   RefBookVersionRepository versionRepository) {
-        this.refBookRepository = refBookRepository;
         this.operationRepository = operationRepository;
         this.versionRepository = versionRepository;
         try {
@@ -43,7 +50,6 @@ public class RefBookLockServiceImpl implements RefBookLockService {
         } catch (UnknownHostException e) {
             logger.error("cannot.read.host.address", e);
         }
-
     }
 
     @PostConstruct
@@ -55,27 +61,27 @@ public class RefBookLockServiceImpl implements RefBookLockService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void setRefBookPublishing(Integer refBookId) {
-        RefBookEntity refBook = refBookRepository.getOne(refBookId);
-        validateRefBookNotBusy(refBook);
-        operationRepository.save(new RefBookOperationEntity(refBook, RefBookOperation.PUBLISHING, instanceId, DEFAULT_USER));
+        addRefBookOperation(refBookId, RefBookOperation.PUBLISHING);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void setRefBookUploading(Integer refBookId) {
-        RefBookEntity refBook = refBookRepository.getOne(refBookId);
-        validateRefBookNotBusy(refBook);
-        operationRepository.save(new RefBookOperationEntity(refBook, RefBookOperation.UPLOADING, instanceId, DEFAULT_USER));
+        addRefBookOperation(refBookId, RefBookOperation.UPLOADING);
+    }
+
+    private void addRefBookOperation(Integer refBookId, RefBookOperation operation) {
+        validateRefBookNotBusyByRefBookId(refBookId);
+
+        RefBookEntity refBook = new RefBookEntity();
+        refBook.setId(refBookId);
+        operationRepository.save(new RefBookOperationEntity(refBook, operation, instanceId, DEFAULT_USER));
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
-    public void deleteRefBookAction(Integer refBookId) {
-        Optional<RefBookEntity> refBook = refBookRepository.findById(refBookId);
-        if (refBook.isPresent() && refBook.get().getCurrentOperation() != null) {
-            operationRepository.deleteById(refBook.get().getCurrentOperation().getId());
-            refBook.get().setCurrentOperation(null);
-        }
+    public void deleteRefBookOperation(Integer refBookId) {
+        operationRepository.deleteByRefBookId(refBookId);
     }
 
     @Override
@@ -83,18 +89,27 @@ public class RefBookLockServiceImpl implements RefBookLockService {
         Optional<RefBookVersionEntity> versionEntity = versionRepository.findById(versionId);
         versionEntity.ifPresent(
                 refBookVersionEntity ->
-                        validateRefBookNotBusy(refBookVersionEntity.getRefBook())
+                        validateRefBookNotBusyByRefBookId(refBookVersionEntity.getRefBook().getId())
         );
     }
 
     @Override
-    public void validateRefBookNotBusy(RefBookEntity refBookEntity) {
-        if (refBookEntity.getCurrentOperation() != null) {
-            if (RefBookOperation.PUBLISHING.equals(refBookEntity.getCurrentOperation().getOperation())) {
-                throw new UserException("draft.is.publishing");
-            } else if (RefBookOperation.UPLOADING.equals(refBookEntity.getCurrentOperation().getOperation())) {
-                throw new UserException("draft.is.uploading");
-            }
+    public void validateRefBookNotBusyByRefBookId(Integer refBookId) {
+
+        RefBookOperationEntity refBookOperationEntity = operationRepository.findByRefBookId(refBookId);
+        if (refBookOperationEntity == null)
+            return;
+
+        if (Duration.between(refBookOperationEntity.getCreationDate(), LocalDateTime.now(Clock.systemUTC()))
+                .compareTo(OPERATION_MAX_LIVE_PERIOD) > 0) {
+            operationRepository.deleteById(refBookOperationEntity.getId());
+            return;
+        }
+
+        if (RefBookOperation.PUBLISHING.equals(refBookOperationEntity.getOperation())) {
+            throw new UserException(new Message(REFBOOK_LOCK_DRAFT_IS_PUBLISHING, refBookId));
+        } else if (RefBookOperation.UPLOADING.equals(refBookOperationEntity.getOperation())) {
+            throw new UserException(new Message(REFBOOK_LOCK_DRAFT_IS_UPLOADING, refBookId));
         }
     }
 }

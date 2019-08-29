@@ -3,11 +3,11 @@ package ru.inovus.ms.rdm.util;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
-import ru.inovus.ms.rdm.repositiory.RefBookVersionRepository;
+import ru.inovus.ms.rdm.repository.RefBookVersionRepository;
 
-import javax.transaction.Transactional;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,8 +17,7 @@ public class SequenceVersionNumberStrategy implements VersionNumberStrategy {
 
     private final Pattern pattern = Pattern.compile("^(\\d*\\.\\d*)");
 
-
-    RefBookVersionRepository versionRepository;
+    private RefBookVersionRepository versionRepository;
 
     @Autowired
     public SequenceVersionNumberStrategy(RefBookVersionRepository versionRepository) {

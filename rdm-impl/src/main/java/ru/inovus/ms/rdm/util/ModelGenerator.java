@@ -2,7 +2,7 @@ package ru.inovus.ms.rdm.util;
 
 import ru.inovus.ms.rdm.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
-import ru.inovus.ms.rdm.model.RefBookVersion;
+import ru.inovus.ms.rdm.model.version.RefBookVersion;
 
 import java.util.LinkedHashMap;
 import java.util.Objects;

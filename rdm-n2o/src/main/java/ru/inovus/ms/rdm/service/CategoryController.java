@@ -9,13 +9,11 @@ import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.inovus.ms.rdm.criteria.CategoryCriteria;
-import ru.inovus.ms.rdm.model.AttributeFilter;
+import ru.inovus.ms.rdm.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.model.Category;
-import ru.inovus.ms.rdm.model.RefBookRowValue;
-import ru.inovus.ms.rdm.model.SearchDataCriteria;
+import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.service.api.VersionService;
-
-import java.time.OffsetDateTime;
 
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
@@ -25,8 +23,8 @@ import static org.apache.commons.lang.StringUtils.isNotBlank;
 @Controller
 public class CategoryController {
 
-    public static final String CATEGORY_REFBOOK_CODE = "CAT";
-    public static final String CATEGORY_NAME_FIELD_CODE = "name";
+    private static final String CATEGORY_REFBOOK_CODE = "CAT";
+    private static final String CATEGORY_NAME_FIELD_CODE = "name";
 
     @Autowired
     VersionService versionService;
@@ -34,11 +32,12 @@ public class CategoryController {
     /**
      * Поиск списка категорий из справочника категорий (находится по коду)
      */
+    @SuppressWarnings("unused")
     public Page<Category> getCategories(CategoryCriteria categoryCriteria) {
 
         SearchDataCriteria criteria = toSearchDataCriteria(categoryCriteria);
 
-        Page<RefBookRowValue> rowValues = versionService.search(CATEGORY_REFBOOK_CODE, OffsetDateTime.now(), criteria);
+        Page<RefBookRowValue> rowValues = versionService.search(CATEGORY_REFBOOK_CODE, criteria);
 
         return new RestPage<>(rowValues.getContent(), criteria, rowValues.getTotalElements())
                 .map(CategoryController::toCategory);
@@ -56,7 +55,7 @@ public class CategoryController {
         return criteria;
     }
 
-    public static Category toCategory(RowValue rowValue) {
+    private static Category toCategory(RowValue rowValue) {
         return new Category(
                 ofNullable(rowValue.getFieldValue("code"))
                         .map(FieldValue::getValue)

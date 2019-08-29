@@ -1,6 +1,11 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <table xmlns="http://n2oapp.net/framework/config/schema/n2o-widget-4.0"
        name="Структура" query-id="attribute" object-id="attribute">
+    <rows>
+        <switch value-field-id="hasStructureConflict">
+            <case value="true">danger</case>
+        </switch>
+    </rows>
     <columns>
         <column text-field-id="keyAttribute" label="Ключевой атрибут"/>
         <column text-field-id="code" label="Код"/>
@@ -11,5 +16,12 @@
             <checkbox/>
         </column>
         <column text-field-id="referenceData" label="Ссылочное поле"/>
+        <column text-field-id="hasStructureConflict" label="" type="icon" tooltip-field-id="hasStructureConflictMsg">
+            <icon>
+                <switch value-field-id="hasStructureConflict">
+                    <case value="true">fa fa-question-circle-o</case>
+                </switch>
+            </icon>
+        </column>
     </columns>
 </table>
