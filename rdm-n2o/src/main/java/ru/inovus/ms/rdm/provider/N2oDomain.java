@@ -6,6 +6,7 @@ public class N2oDomain {
 
     public static final String STRING = "string";
     public static final String INTEGER = "integer";
+    public static final String LONG = "long";
     public static final String FLOAT = "numeric";
     public static final String DATE = "date";
     public static final String BOOLEAN = "boolean";

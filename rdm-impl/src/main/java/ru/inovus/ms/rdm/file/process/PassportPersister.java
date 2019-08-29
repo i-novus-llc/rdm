@@ -1,17 +1,17 @@
 package ru.inovus.ms.rdm.file.process;
 
-import ru.inovus.ms.rdm.model.RefBookUpdateRequest;
-import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.model.refbook.RefBookUpdateRequest;
+import ru.inovus.ms.rdm.service.api.PassportService;
 
 import java.util.Map;
 
 public class PassportPersister implements PassportProcessor {
 
-    private VersionService versionService;
+    private PassportService passportService;
     private Integer versionId;
 
-    public PassportPersister(VersionService versionService, Integer versionId) {
-        this.versionService = versionService;
+    public PassportPersister(PassportService passportService, Integer versionId) {
+        this.passportService = passportService;
         this.versionId = versionId;
     }
 
@@ -20,7 +20,7 @@ public class PassportPersister implements PassportProcessor {
         RefBookUpdateRequest request = new RefBookUpdateRequest();
         request.setVersionId(versionId);
         request.setPassport(passport);
-        versionService.updatePassport(request);
+        passportService.updatePassport(request);
     }
 
 }

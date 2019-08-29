@@ -11,7 +11,7 @@ import javax.ws.rs.core.MediaType;
 @Path("/audit")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Api("Аудит действий пользователя")
+@Api(value = "Аудит действий пользователя", hidden = true)
 public interface AuditLogService {
 
     @POST

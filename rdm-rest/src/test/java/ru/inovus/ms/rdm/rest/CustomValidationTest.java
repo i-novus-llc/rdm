@@ -11,7 +11,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.draft.CreateDraftRequest;
+import ru.inovus.ms.rdm.model.draft.Draft;
+import ru.inovus.ms.rdm.model.refbook.RefBook;
+import ru.inovus.ms.rdm.model.refbook.RefBookCreateRequest;
+import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.validation.*;
+import ru.inovus.ms.rdm.model.version.RefBookVersionAttribute;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 
@@ -100,9 +106,13 @@ public class CustomValidationTest {
         String REF_BOOK_NAME = "CustomValidationUpdateTest";
         RefBook refBook = refBookService.create(new RefBookCreateRequest(REF_BOOK_NAME, null));
         Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), createStructure()));
+
+        RefBookVersionAttribute versionAttribute = new RefBookVersionAttribute(draft.getId(), new Structure.Attribute(), new Structure.Reference());
+        versionAttribute.getAttribute().setCode(INTEGER_ATTR);
+
         //добавление проверки на обязательность
         RequiredAttributeValidation expectedRequired = new RequiredAttributeValidation();
-        draftService.updateAttributeValidations(draft.getId(), INTEGER_ATTR, singletonList(expectedRequired));
+        draftService.updateAttributeValidations(draft.getId(), new AttributeValidationRequest(null, versionAttribute, singletonList(expectedRequired)));
         expectedRequired.setVersionId(draft.getId());
         expectedRequired.setAttribute(INTEGER_ATTR);
 
@@ -110,11 +120,10 @@ public class CustomValidationTest {
         assertEquals(1, actual.size());
         assertValidationEquals(expectedRequired, actual.get(0));
 
-
         //обновление проверки
         List<AttributeValidation> expectedValidations =
                 asList(new PlainSizeAttributeValidation(5), new IntRangeAttributeValidation(valueOf(-5), valueOf(4)));
-        draftService.updateAttributeValidations(draft.getId(), INTEGER_ATTR, expectedValidations);
+        draftService.updateAttributeValidations(draft.getId(), new AttributeValidationRequest(null, versionAttribute, expectedValidations));
 
         for (AttributeValidation expectedValidation : expectedValidations) {
             expectedValidation.setVersionId(draft.getId());

@@ -4,27 +4,31 @@ import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.model.*;
+import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.model.version.RefBookVersion;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Path("/version")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Api("Методы работы с версиями справочника")
+@Api(value = "Методы работы с версиями справочника", hidden = true)
 public interface VersionService {
 
     @GET
-    @ApiOperation("Получения записей версии, с фильтрацией")
+    @ApiOperation("Получение записей версии по параметрам критерия")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет версии")
     })
     @Path("/{versionId}/data")
-    Page<RefBookRowValue> search(@PathParam("versionId")Integer versionId, @BeanParam SearchDataCriteria criteria);
+    Page<RefBookRowValue> search(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
+                                 @ApiParam("Критерий поиска") @BeanParam SearchDataCriteria criteria);
 
     @GET
     @ApiOperation("Получение версии по идентификатору")
@@ -33,9 +37,7 @@ public interface VersionService {
             @ApiResponse(code = 404, message = "Нет версии")
     })
     @Path("/{versionId}")
-    RefBookVersion getById(@ApiParam("Идентификатор версии")
-                           @PathParam("versionId")
-                           Integer versionId);
+    RefBookVersion getById(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId);
 
     @GET
     @ApiOperation("Получение версии по коду справочника и номеру")
@@ -65,8 +67,8 @@ public interface VersionService {
             @ApiResponse(code = 404, message = "Нет версии")
     })
     Page<RefBookRowValue> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
-                          @ApiParam("Дата получения данных") @PathParam("date") OffsetDateTime date,
-                          @BeanParam SearchDataCriteria criteria);
+                                 @ApiParam("Дата получения данных") @PathParam("date") LocalDateTime date,
+                                 @ApiParam("Критерий поиска") @BeanParam SearchDataCriteria criteria);
 
     @GET
     @Path("/refBook/{refBookCode}")
@@ -77,7 +79,7 @@ public interface VersionService {
             @ApiResponse(code = 404, message = "Нет версии")
     })
     Page<RefBookRowValue> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
-                          @BeanParam SearchDataCriteria criteria);
+                                 @ApiParam("Критерий поиска") @BeanParam SearchDataCriteria criteria);
 
     @GET
     @Path("/structure")
@@ -86,7 +88,7 @@ public interface VersionService {
             @ApiResponse(code = 200, message = "Структура версии справочника"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Structure getStructure(@QueryParam("versionId") @ApiParam("Идентификатор версии") Integer versionId);
+    Structure getStructure(@ApiParam("Идентификатор версии") @QueryParam("versionId") Integer versionId);
 
     @GET
     @Path("/{versionId}/getFile")
@@ -96,20 +98,8 @@ public interface VersionService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    ExportFile getVersionFile(@ApiParam("Идентификатор версии")
-                            @PathParam("versionId")
-                            Integer versionId,
-                            @ApiParam(value = "Тип файла", required = true, allowableValues = "XLSX, XML")
-                            @QueryParam("type")
-                            FileType fileType);
-
-    @PUT
-    @ApiOperation("Изменение метаданных версии")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Успех"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    RefBookVersion updatePassport(RefBookUpdateRequest refBookUpdateRequest);
+    ExportFile getVersionFile(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
+                              @ApiParam(value = "Тип файла", required = true, allowableValues = "XLSX, XML") @QueryParam("type") FileType fileType);
 
     @GET
     @ApiOperation("Информация о существовании записей в системе")
@@ -118,14 +108,14 @@ public interface VersionService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/row/exists")
-    ExistsData existsData(@ApiParam("Идентификатор строки")@QueryParam("rowId") List<String> rowIds);
+    ExistsData existsData(@ApiParam("Идентификаторы записи") @QueryParam("rowId") List<String> rowIds);
 
     @GET
-    @ApiOperation("Получение строки по идентификатору")
+    @ApiOperation("Получение записи по идентификатору")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/row/{rowId}")
-    RefBookRowValue getRow(@ApiParam("Идентификатор строки")@PathParam("rowId") String rowId);
+    RefBookRowValue getRow(@ApiParam("Идентификатор записи") @PathParam("rowId") String rowId);
 }

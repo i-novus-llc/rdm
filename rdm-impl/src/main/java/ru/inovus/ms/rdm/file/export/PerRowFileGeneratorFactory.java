@@ -7,11 +7,11 @@ import org.springframework.util.CollectionUtils;
 import ru.inovus.ms.rdm.entity.AttributeValidationEntity;
 import ru.inovus.ms.rdm.enumeration.FileType;
 import ru.inovus.ms.rdm.exception.RdmException;
-import ru.inovus.ms.rdm.model.RefBookVersion;
-import ru.inovus.ms.rdm.model.Row;
+import ru.inovus.ms.rdm.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.model.refdata.Row;
 import ru.inovus.ms.rdm.model.Structure;
 import ru.inovus.ms.rdm.model.validation.AttributeValidation;
-import ru.inovus.ms.rdm.repositiory.AttributeValidationRepository;
+import ru.inovus.ms.rdm.repository.AttributeValidationRepository;
 
 import java.util.Iterator;
 import java.util.List;

@@ -3,7 +3,7 @@
 
     <list result-mapping="content" count-mapping="['totalElements']">
         <java class="ru.inovus.ms.rdm.service.RefBookDataController"
-              method="getList" >
+              method="getList">
             <spring/>
             <arguments>
                 <argument type="criteria" name="criteria" class="ru.inovus.ms.rdm.criteria.DataCriteria"/>
@@ -33,6 +33,12 @@
         <field id="filter">
             <filters>
                 <eq filter-id="filter" mapping="filter" domain="object"/>
+            </filters>
+        </field>
+
+        <field id="hasDataConflict" domain="boolean">
+            <filters>
+                <eq filter-id="hasDataConflict" mapping="hasDataConflict" domain="boolean"/>
             </filters>
         </field>
 
