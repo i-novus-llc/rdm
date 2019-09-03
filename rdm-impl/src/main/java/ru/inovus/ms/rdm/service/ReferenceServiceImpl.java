@@ -111,7 +111,7 @@ public class ReferenceServiceImpl implements ReferenceService {
      * Получение или создание entity версии-черновика справочника.
      *
      * @param versionId версия справочника
-     * @return Entity версии-черновика справочника
+     * @return Сущность версии-черновика справочника
      */
     private RefBookVersionEntity getOrCreateDraftEntity(Integer versionId) {
 
