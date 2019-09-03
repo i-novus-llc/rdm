@@ -1,15 +1,15 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { compose, withHandlers, withState, lifecycle } from 'recompose';
-import widgetContainer from 'n2o/lib/components/widgets/WidgetContainer';
+import widgetContainer from 'n2o-framework/lib/components/widgets/WidgetContainer';
 import DataGrid from "./DataGrid";
 
-import { setModel } from 'n2o/lib/actions/models';
-import { makeGetFilterModelSelector } from 'n2o/lib/selectors/models';
-import { PREFIXES } from 'n2o/lib/constants/models';
-import columnHOC from 'n2o/lib/components/widgets/Table/withColumn';
-import TableCell from 'n2o/lib/components/widgets/Table/TableCell';
-import factoryResolver from 'n2o/lib/utils/factoryResolver';
+import { setModel } from 'n2o-framework/lib/actions/models';
+import { makeGetFilterModelSelector } from 'n2o-framework/lib/selectors/models';
+import { PREFIXES } from 'n2o-framework/lib/constants/models';
+import columnHOC from 'n2o-framework/lib/components/widgets/Table/withColumn';
+import TableCell from 'n2o-framework/lib/components/widgets/Table/TableCell';
+import factoryResolver from 'n2o-framework/lib/utils/factoryResolver';
 
 import { map, get, isEqual, omit, isObject, isEmpty } from 'lodash';
 

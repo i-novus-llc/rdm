@@ -1,8 +1,8 @@
 import React from 'react';
 import { compose, withHandlers } from 'recompose';
-import dependency from 'n2o/lib/core/dependency';
-import StandardWidget from 'n2o/lib/components/widgets/StandardWidget';
-import factoryResolver from 'n2o/lib/utils/factoryResolver';
+import dependency from 'n2o-framework/lib/core/dependency';
+import StandardWidget from 'n2o-framework/lib/components/widgets/StandardWidget';
+import factoryResolver from 'n2o-framework/lib/utils/factoryResolver';
 import DataGridContainer from "./DataGridContainer";
 
 function DataGridWidget({
