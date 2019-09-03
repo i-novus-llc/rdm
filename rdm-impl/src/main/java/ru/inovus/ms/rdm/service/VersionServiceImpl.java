@@ -34,6 +34,7 @@ import ru.inovus.ms.rdm.service.api.VersionFileService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.FileNameGenerator;
 import ru.inovus.ms.rdm.util.TimeUtils;
+import ru.inovus.ms.rdm.validation.ReferenceValidation;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -112,7 +113,7 @@ public class VersionServiceImpl implements VersionService {
     public RefBookVersion getLastPublishedVersion(String refBookCode) {
         RefBookVersionEntity versionEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.PUBLISHED);
         if (versionEntity == null)
-            throw new NotFoundException(new Message(LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE, refBookCode));
+            throw new NotFoundException(new Message(ReferenceValidation.LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE, refBookCode));
         return versionModel(versionEntity);
     }
 
