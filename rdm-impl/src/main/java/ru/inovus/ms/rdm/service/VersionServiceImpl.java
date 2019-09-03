@@ -52,7 +52,6 @@ public class VersionServiceImpl implements VersionService {
 
     private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
     private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
-    private static final String LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE = "last.published.not.found";
     private static final String ACTUAL_DATA_NOT_FOUND = "actual.data.not.found";
 
     private RefBookVersionRepository versionRepository;
