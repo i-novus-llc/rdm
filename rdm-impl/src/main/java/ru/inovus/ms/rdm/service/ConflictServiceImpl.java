@@ -253,8 +253,11 @@ public class ConflictServiceImpl implements ConflictService {
 
         RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
         String refBookCode = versionEntity.getRefBook().getCode();
-        Integer lastPublishedId = versionService.getLastPublishedVersion(refBookCode).getId();
+        RefBookVersionEntity lastPublishedEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.PUBLISHED);
+        if (lastPublishedEntity == null)
+            return emptyList();
 
+        Integer lastPublishedId = lastPublishedEntity.getId();
         List<RefBookVersionEntity> conflictedReferrers = new ArrayList<>(REF_BOOK_VERSION_PAGE_SIZE);
         new ReferrerEntityIteratorProvider(versionRepository, refBookCode, RefBookSourceType.LAST_VERSION)
                 .iterate().forEachRemaining(referrers -> {

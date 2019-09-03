@@ -7,7 +7,7 @@
     "build": "npm run build:config && npm run build:frontend",
     "build:config": "lerna run --scope n2o-config-rdm build",
     "build:frontend": "lerna run --scope rdm-frontend build",
-    "publish": "lerna publish --registry https://npm.i-novus.ru",
+    "publish": "lerna publish",
     "prepare": "lerna bootstrap --no-ci"
   },
   "devDependencies": {
