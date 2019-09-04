@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import AdvancedTable from 'n2o-framework/lib/components/widgets/AdvancedTable/AdvancedTable';
 import DataGridCell from "./DataGridCell";
 
@@ -8,24 +9,21 @@ const components = {
     }
 };
 
-function DataGrid({
-    columns,
-    rows,
-    onFilter,
-    filters,
-    onResolve,
-}) {
+function DataGrid(props) {
     return (
         <AdvancedTable
-            columns={columns}
-            data={rows}
-            filters={filters}
-            onFilter={onFilter}
-            components={components}
-            hasSelect={true}
-            onResolve={onResolve}
+          components={components}
+          {...props}
         />
     );
 }
+
+DataGrid.propTypes = {
+  hasSelect: PropTypes.bool
+};
+
+DataGrid.defaultProps = {
+  hasSelect: true
+};
 
 export default DataGrid;
