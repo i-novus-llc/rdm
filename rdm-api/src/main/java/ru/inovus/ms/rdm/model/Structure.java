@@ -119,33 +119,23 @@ public class Structure implements Serializable {
     @ApiModel("Атрибут справочника")
     public static class Attribute implements Serializable {
 
-        /**
-         * Код атрибута.
-         */
+        /** Код атрибута. */
         @ApiModelProperty("Код атрибута")
         private String code;
 
-        /**
-         * Наименование атрибута.
-         */
+        /** Наименование атрибута. */
         @ApiModelProperty("Наименование атрибута")
         private String name;
 
-        /**
-         * Тип атрибута.
-         */
+        /** Тип атрибута. */
         @ApiModelProperty("Тип атрибута")
         private FieldType type;
 
-        /**
-         * Признак первичного атрибута.
-         */
+        /** Признак первичного атрибута. */
         @ApiModelProperty("Признак первичного атрибута")
         private Boolean isPrimary;
 
-        /**
-         * Описание атрибута.
-         */
+        /** Описание атрибута. */
         @ApiModelProperty("Описание атрибута")
         private String description;
 
@@ -239,18 +229,14 @@ public class Structure implements Serializable {
         }
     }
 
-    @ApiModel("Ссылка")
+    @ApiModel("Ссылка на запись справочника")
     public static class Reference implements Serializable {
 
-        /**
-         * Поле, которое ссылается.
-         */
+        /** Поле, которое ссылается. */
         @ApiModelProperty("Поле, которое ссылается")
         private String attribute;
 
-        /**
-         * Код справочника, на который ссылаются.
-         */
+        /** Код справочника, на который ссылаются. */
         @ApiModelProperty("Код справочника, на который ссылаются")
         private String referenceCode;
 

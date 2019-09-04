@@ -6,6 +6,8 @@ import ru.inovus.ms.rdm.model.refdata.Row;
 
 import java.util.*;
 
+import static java.util.stream.Collectors.toList;
+
 /**
  * Created by znurgaliev on 20.11.2018.
  */
@@ -25,12 +27,16 @@ public abstract class AppendRowValidation extends ErrorAttributeHolderValidation
     public List<Message> validate() {
         if (buffer.isEmpty())
             throw new RdmException("Missing refData to validate, append refData before validation");
-        List<Message> messages = new ArrayList<>();
-        buffer.keySet().stream()
-                .peek(map -> map.entrySet().removeIf(entry -> getErrorAttributes().contains(entry.getKey())))
-                .map(attributeValues -> validate(buffer.get(attributeValues), attributeValues))
-                .forEach(messages::addAll);
+
+        buffer.keySet().forEach(map ->
+                map.entrySet().removeIf(entry -> getErrorAttributes().contains(entry.getKey()))
+        );
+
+        List<Message> messages = buffer.entrySet().stream()
+                .flatMap(entry -> validate(entry.getValue(), entry.getKey()).stream())
+                .collect(toList());
         buffer.clear();
+
         return messages;
     }
 

@@ -30,13 +30,8 @@ public class RefBookPredicateProducer {
     public Predicate toPredicate(RefBookCriteria criteria) {
         BooleanBuilder where = new BooleanBuilder();
 
-        where.and(isSourceType(criteria.getSourceType()));
-
-        if (nonNull(criteria.getFromDateBegin()))
-            where.and(isMaxFromDateEqOrAfter(criteria.getFromDateBegin()));
-
-        if (nonNull(criteria.getFromDateEnd()))
-            where.and(isMaxFromDateEqOrBefore(criteria.getFromDateEnd()));
+        if (!CollectionUtils.isEmpty(criteria.getRefBookIds()))
+            where.and(isVersionOfRefBooks(criteria.getRefBookIds()));
 
         if (!isEmpty(criteria.getCode()))
             where.and(isCodeContains(criteria.getCode()));
@@ -44,14 +39,16 @@ public class RefBookPredicateProducer {
         if (nonNull(criteria.getExcludeByVersionId()))
             where.andNot(refBookHasVersion(criteria.getExcludeByVersionId()));
 
-        if (!CollectionUtils.isEmpty(criteria.getPassport()))
-            where.and(passportPredicateProducer.toPredicate(criteria.getPassport()));
+        if (nonNull(criteria.getFromDateBegin()))
+            where.and(isMaxFromDateEqOrAfter(criteria.getFromDateBegin()));
+
+        if (nonNull(criteria.getFromDateEnd()))
+            where.and(isMaxFromDateEqOrBefore(criteria.getFromDateEnd()));
+
+        where.and(isSourceType(criteria.getSourceType()));
 
         if (!isEmpty(criteria.getCategory()))
             where.and(refBookHasCategory(criteria.getCategory()));
-
-        if (!CollectionUtils.isEmpty(criteria.getRefBookIds()))
-            where.and(isVersionOfRefBooks(criteria.getRefBookIds()));
 
         if (criteria.getIsArchived())
             where.and(isArchived());
@@ -70,6 +67,12 @@ public class RefBookPredicateProducer {
 
         if (criteria.getHasPrimaryAttribute())
             where.and(hasStructure()).and(hasPrimaryAttribute());
+
+        if (!isEmpty(criteria.getDisplayCode()))
+            where.and(isDisplayCodeContains(criteria.getDisplayCode()));
+
+        if (!CollectionUtils.isEmpty(criteria.getPassport()))
+            where.and(passportPredicateProducer.toPredicate(criteria.getPassport()));
 
         return where.getValue();
     }

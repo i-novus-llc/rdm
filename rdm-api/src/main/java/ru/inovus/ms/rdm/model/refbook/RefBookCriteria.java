@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 @ApiModel("Критерии поиска справочника")
+@SuppressWarnings("unused")
 public class RefBookCriteria extends AbstractCriteria {
 
     @ApiModelProperty("Идентификатор справочника")
@@ -65,9 +66,21 @@ public class RefBookCriteria extends AbstractCriteria {
     @QueryParam("hasPrimaryAttribute")
     private boolean hasPrimaryAttribute;
 
+    @ApiModelProperty("Код справочника")
+    @QueryParam("displayCode")
+    private String displayCode;
+
     @ApiModelProperty("Паспорт справочника")
     @QueryParam("passport")
     private Map<String, String> passport;
+
+    public List<Integer> getRefBookIds() {
+        return refBookIds;
+    }
+
+    public void setRefBookIds(List<Integer> refBookIds) {
+        this.refBookIds = refBookIds;
+    }
 
     public String getCode() {
         return code;
@@ -109,12 +122,12 @@ public class RefBookCriteria extends AbstractCriteria {
         this.sourceType = sourceType;
     }
 
-    public Map<String, String> getPassport() {
-        return passport;
+    public String getCategory() {
+        return category;
     }
 
-    public void setPassport(Map<String, String> passport) {
-        this.passport = passport;
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public boolean getIsArchived() {
@@ -165,19 +178,19 @@ public class RefBookCriteria extends AbstractCriteria {
         this.hasPrimaryAttribute = hasPrimaryAttribute;
     }
 
-    public List<Integer> getRefBookIds() {
-        return refBookIds;
+    public String getDisplayCode() {
+        return displayCode;
     }
 
-    public void setRefBookIds(List<Integer> refBookIds) {
-        this.refBookIds = refBookIds;
+    public void setDisplayCode(String displayCode) {
+        this.displayCode = displayCode;
     }
 
-    public String getCategory() {
-        return category;
+    public Map<String, String> getPassport() {
+        return passport;
     }
 
-    public void setCategory(String category) {
-        this.category = category;
+    public void setPassport(Map<String, String> passport) {
+        this.passport = passport;
     }
 }
