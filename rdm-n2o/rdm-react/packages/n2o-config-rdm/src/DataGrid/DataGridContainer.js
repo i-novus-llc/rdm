@@ -16,20 +16,21 @@ import { map, get, isEqual, omit, isObject, isEmpty } from 'lodash';
 const ReduxCell = columnHOC(TableCell);
 
 function DataGridContainer({
-    prepareColumns,
     columns,
     rows,
     onSetFilter,
-   filtersFromRedux,
     filters,
-    ...rest
+    onResolve,
+    table,
 }) {
     return (
         <DataGrid
             columns={columns}
-            rows={rows}
+            data={rows}
             onFilter={onSetFilter}
             filters={filters}
+            onResolve={onResolve}
+            {...table}
         />
     );
 }
