@@ -4,7 +4,7 @@
 
     <groupId>ru.inovus.ms.rdm</groupId>
     <artifactId>rdm</artifactId>
-    <version>1.47-SNAPSHOT</version>
+    <version>1.48-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -20,7 +20,7 @@
         <apache.poi.version>3.17</apache.poi.version>
         <filestorage.version>2.2</filestorage.version>
         <vds.version>2.8</vds.version>
-        <n2o.version>7.3.17</n2o.version>
+        <n2o.version>7.3.23</n2o.version>
         <itext.version>5.5.9</itext.version>
         <commons.text.version>1.6</commons.text.version>
         <xmlunit.version>1.6</xmlunit.version>
@@ -30,7 +30,7 @@
         <cxf.version>3.2.7</cxf.version>
         <swagger-annotations.version>1.5.21</swagger-annotations.version>
         <javax.activation.version>1.1.1</javax.activation.version>
-        <security.admin.version>3.4</security.admin.version>
+        <security.admin.version>3.5</security.admin.version>
         <security.oauth2.autoconfigure.version>2.1.1.RELEASE</security.oauth2.autoconfigure.version>
         <internal.repository.releases>https://maven.i-novus.ru/libs-release-local</internal.repository.releases>
         <internal.repository.shapshots>https://maven.i-novus.ru/libs-snapshot-local</internal.repository.shapshots>

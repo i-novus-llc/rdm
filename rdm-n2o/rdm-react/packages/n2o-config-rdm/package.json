@@ -26,17 +26,22 @@
     "react-dom": "^16.0.0"
   },
   "dependencies": {
+    "classnames": "^2.2.6",
+    "lodash": "^4.17.15",
     "n2o-framework": "^7.3.23",
     "n2o-auth": "^7.3.0",
-    "n2o-data-grid": "^1.1.0",
     "react": "^16.8.6",
     "react-autosize-textarea": "^6.0.0",
     "react-avatar": "^3.5.0",
     "react-dom": "^16.8.6",
+    "react-redux": "5.0.6",
     "react-router": "4.3.1",
     "react-router-dom": "4.3.1",
     "react-sticky": "^6.0.3",
-    "recharts": "^1.4.2"
+    "reactstrap": "^8.0.1",
+    "recharts": "^1.4.2",
+    "recompose": "^0.30.0",
+    "reselect": "^4.0.0"
   },
   "files": [
     "dist"
