@@ -22,6 +22,7 @@ function DataGridContainer({
     onSetFilter,
    filtersFromRedux,
     filters,
+    onResolve,
     ...rest
 }) {
     return (
@@ -30,6 +31,8 @@ function DataGridContainer({
             rows={rows}
             onFilter={onSetFilter}
             filters={filters}
+            onResolve={onResolve}
+            {...rest}
         />
     );
 }

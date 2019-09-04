@@ -12,7 +12,8 @@ function DataGrid({
     columns,
     rows,
     onFilter,
-    filters
+    filters,
+    onResolve,
 }) {
     return (
         <AdvancedTable
@@ -21,6 +22,8 @@ function DataGrid({
             filters={filters}
             onFilter={onFilter}
             components={components}
+            hasSelect={true}
+            onResolve={onResolve}
         />
     );
 }

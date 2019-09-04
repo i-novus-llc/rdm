@@ -5,14 +5,7 @@ import DataGrid from './DataGrid/index';
 
 const config = {
   widgets: {
-    DataGrid: (props) => <DataGrid
-      id='DataGrid'
-      fetchOnInit={true}
-      minHeight={500}
-      rowHeight={50}
-      filterable={true}
-      {...props}
-    />
+    DataGrid
   },
   security: {
     authProvider,
