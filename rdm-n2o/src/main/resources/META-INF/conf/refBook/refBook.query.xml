@@ -195,6 +195,9 @@
                     (lastPublishedVersion != null ? ' (' + lastPublishedVersion + ')' : '') +
                     (passport['name'] != null ? ' [' + passport['name'] + ']' : '')
                 "/>
+            <filters>
+                <eq filter-id="displayCode" mapping="displayCode"/>
+            </filters>
         </field>
 
     </fields>

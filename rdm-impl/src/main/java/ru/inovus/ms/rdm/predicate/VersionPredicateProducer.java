@@ -20,6 +20,7 @@ public class VersionPredicateProducer {
      */
     public static Predicate toPredicate(VersionCriteria criteria) {
         BooleanBuilder where = new BooleanBuilder();
+
         where.and(isVersionOfRefBook(criteria.getRefBookId()));
 
         if (criteria.getExcludeDraft())
