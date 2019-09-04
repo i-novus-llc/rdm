@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.model.version.UpdateValue.of;
 
@@ -55,7 +56,7 @@ public class StructureController {
 
         if (structure != null)
             structure.getAttributes().stream()
-                    .filter(attribute -> Objects.isNull(criteria.getCode()) || criteria.getCode().equals(attribute.getCode()))
+                    .filter(attribute -> isCriteriaAttribute(attribute, criteria))
                     .forEach(attribute -> {
                         Structure.Reference reference = attribute.isReferenceType() ? structure.getReference(attribute.getCode()) : null;
                         ReadAttribute readAttribute = getReadAttribute(attribute, reference);
@@ -84,7 +85,13 @@ public class StructureController {
         return new RestPage<>(currentPageAttributes, PageRequest.of(criteria.getPage(), criteria.getSize()), list.size());
     }
 
+    private boolean isCriteriaAttribute(Structure.Attribute attribute, AttributeCriteria criteria) {
+        return (Objects.isNull(criteria.getCode()) || criteria.getCode().equals(attribute.getCode()))
+                && (Objects.isNull(criteria.getName()) || containsIgnoreCase(attribute.getName(), criteria.getName()));
+    }
+
     private Boolean getHasStructureConflict(Integer versionId, String fieldCode) {
+
         RefBookConflictCriteria conflictCriteria = new RefBookConflictCriteria();
         conflictCriteria.setReferrerVersionId(versionId);
         conflictCriteria.setRefFieldCode(fieldCode);
@@ -142,12 +149,14 @@ public class StructureController {
 
     private List<AttributeValidation> createValidations(FormAttribute formAttribute) {
         List<AttributeValidation> validations = new ArrayList<>();
+
         if (Boolean.TRUE.equals(formAttribute.getRequired())) {
             validations.add(new RequiredAttributeValidation());
         }
         if (Boolean.TRUE.equals(formAttribute.getUnique())) {
             validations.add(new UniqueAttributeValidation());
         }
+
         if (formAttribute.getPlainSize() != null) {
             validations.add(new PlainSizeAttributeValidation(formAttribute.getPlainSize()));
         }
@@ -160,12 +169,15 @@ public class StructureController {
         if (formAttribute.getMinFloat() != null || formAttribute.getMaxFloat() != null) {
             validations.add(new FloatRangeAttributeValidation(formAttribute.getMinFloat(), formAttribute.getMaxFloat()));
         }
+
         if (formAttribute.getMinDate() != null || formAttribute.getMaxDate() != null) {
             validations.add(new DateRangeAttributeValidation(formAttribute.getMinDate(), formAttribute.getMaxDate()));
         }
+
         if (formAttribute.getRegExp() != null) {
             validations.add(new RegExpAttributeValidation(formAttribute.getRegExp()));
         }
+
         return validations;
     }
 
