@@ -81,7 +81,7 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
         invocation.setArguments(new Argument[]{versionId, sysRecordId});
 
         N2oQuery.Selection selection = new N2oQuery.Selection(N2oQuery.Selection.Type.list);
-        selection.setFilters(VERSION_ID_NAME + ",id");
+        selection.setFilters(VERSION_ID_NAME + ",sysRecordId");
         selection.setResultMapping("#this");
         selection.setInvocation(invocation);
         return selection;

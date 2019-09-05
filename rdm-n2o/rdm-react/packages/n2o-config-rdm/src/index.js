@@ -1,18 +1,11 @@
 import React from 'react';
 import '@babel/polyfill';
 import { authProvider } from 'n2o-auth';
-import DataGrid from 'n2o-data-grid';
+import DataGrid from './DataGrid/index';
 
 const config = {
   widgets: {
-    DataGrid: (props) => <DataGrid
-      id='DataGrid'
-      fetchOnInit={true}
-      minHeight={500}
-      rowHeight={50}
-      filterable={true}
-      {...props}
-    />
+    DataGrid
   },
   security: {
     authProvider,
@@ -20,6 +13,6 @@ const config = {
   }
 };
 
-export const styles = ['n2o-data-grid/css/DataGrid.css'];
+export const styles = ['../css/DataGrid.css'];
 
 export default config;

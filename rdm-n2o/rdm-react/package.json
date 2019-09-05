@@ -2,6 +2,7 @@
   "name": "root",
   "private": true,
   "scripts": {
+    "start:rdm": "lerna run --scope rdm-frontend start",
     "bootstrap": "lerna bootstrap",
     "clean": "lerna clean",
     "build": "npm run build:config && npm run build:frontend",

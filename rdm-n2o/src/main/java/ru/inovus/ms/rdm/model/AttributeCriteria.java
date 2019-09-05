@@ -1,18 +1,23 @@
 package ru.inovus.ms.rdm.model;
 
+import io.swagger.annotations.ApiModel;
 import net.n2oapp.criteria.api.Criteria;
 
+@ApiModel("Критерии поиска атрибута справочника")
 public class AttributeCriteria extends Criteria {
 
     // Атрибут версии справочника
     private String code;
+
+    private String name;
+
     private Integer versionId;
 
+    @SuppressWarnings("unused")
     public AttributeCriteria() {
     }
 
-    public AttributeCriteria(String code, Integer versionId) {
-        this.code = code;
+    public AttributeCriteria(Integer versionId) {
         this.versionId = versionId;
     }
 
@@ -22,6 +27,14 @@ public class AttributeCriteria extends Criteria {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Integer getVersionId() {
