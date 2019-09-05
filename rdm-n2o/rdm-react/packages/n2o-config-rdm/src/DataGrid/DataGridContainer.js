@@ -11,7 +11,7 @@ import columnHOC from 'n2o-framework/lib/components/widgets/Table/withColumn';
 import TableCell from 'n2o-framework/lib/components/widgets/Table/TableCell';
 import factoryResolver from 'n2o-framework/lib/utils/factoryResolver';
 
-import { map, get, isEqual, omit, isObject, isEmpty } from 'lodash';
+import { map, get, isEqual, omit, isObject, isEmpty, isNil } from 'lodash';
 
 const ReduxCell = columnHOC(TableCell);
 
@@ -135,7 +135,8 @@ export default compose(
                 prepareColumns,
                 datasource,
                 setRows,
-                getData
+                getData,
+                onResolve,
             } = this.props;
             if (!isEqual(prevProps.datasource, datasource)) {
                 setColumns(prepareColumns());
@@ -143,6 +144,10 @@ export default compose(
 
             if (!isEqual(prevProps.datasource, datasource)) {
                 setRows(getData());
+            }
+
+            if ((isEmpty(prevProps.datasource) || isNil(prevProps.datasource)) && !isEmpty(getData())) {
+              onResolve(getData()[0]);
             }
         }
     })
