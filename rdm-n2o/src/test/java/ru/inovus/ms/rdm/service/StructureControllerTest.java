@@ -111,7 +111,7 @@ public class StructureControllerTest extends TestCase {
         when(draftService.getAttributeValidations(eq(versionId), isNull())).thenReturn(emptyList());
         when(refBookService.getByVersionId(eq(versionId))).thenReturn(new RefBook());
 
-        RestPage<ReadAttribute> page = structureController.getPage(new AttributeCriteria(null, versionId));
+        RestPage<ReadAttribute> page = structureController.getPage(new AttributeCriteria(versionId));
         ReadAttribute actual = page.getContent().get(0);
 
         assertEquals(testCode, actual.getCode());
@@ -131,7 +131,7 @@ public class StructureControllerTest extends TestCase {
         when(draftService.getAttributeValidations(eq(versionId), isNull())).thenReturn(expectedValidations);
         when(refBookService.getByVersionId(eq(versionId))).thenReturn(new RefBook());
 
-        RestPage<ReadAttribute> page = structureController.getPage(new AttributeCriteria(null, versionId));
+        RestPage<ReadAttribute> page = structureController.getPage(new AttributeCriteria(versionId));
         ReadAttribute actual = page.getContent().get(0);
 
         assertEquals(1, page.getTotalElements());
@@ -209,7 +209,7 @@ public class StructureControllerTest extends TestCase {
         when(versionService.getLastPublishedVersion(eq(referenceCode))).thenReturn(referenceVersion);
         when(refBookService.getByVersionId(eq(versionId))).thenReturn(new RefBook(referenceVersion));
 
-        RestPage<ReadAttribute> page = structureController.getPage(new AttributeCriteria(null, versionId));
+        RestPage<ReadAttribute> page = structureController.getPage(new AttributeCriteria(versionId));
         ReadAttribute actual = page.getContent().get(0);
 
         assertEquals(testCode, actual.getCode());

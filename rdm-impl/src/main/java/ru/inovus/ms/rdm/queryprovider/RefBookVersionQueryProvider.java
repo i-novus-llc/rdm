@@ -105,26 +105,29 @@ public class RefBookVersionQueryProvider {
      */
     private void fillRefBookPredicate(RefBookCriteria criteria, BooleanBuilder where) {
 
+        if (!CollectionUtils.isEmpty(criteria.getRefBookIds()))
+            where.and(isVersionOfRefBooks(criteria.getRefBookIds()));
+
         if (!isEmpty(criteria.getCode()))
             where.and(isCodeContains(criteria.getCode()));
 
         if (nonNull(criteria.getExcludeByVersionId()))
             where.andNot(refBookHasVersion(criteria.getExcludeByVersionId()));
 
-        if (!CollectionUtils.isEmpty(criteria.getPassport()))
-            where.and(passportPredicateProducer.toPredicate(criteria.getPassport()));
-
         if (!isEmpty(criteria.getCategory()))
             where.and(refBookHasCategory(criteria.getCategory()));
-
-        if (!CollectionUtils.isEmpty(criteria.getRefBookIds()))
-            where.and(isVersionOfRefBooks(criteria.getRefBookIds()));
 
         if (criteria.getIsArchived())
             where.and(isArchived());
 
         else if (criteria.getNonArchived())
             where.andNot(isArchived());
+
+        if (!isEmpty(criteria.getDisplayCode()))
+            where.and(isDisplayCodeContains(criteria.getDisplayCode()));
+
+        if (!CollectionUtils.isEmpty(criteria.getPassport()))
+            where.and(passportPredicateProducer.toPredicate(criteria.getPassport()));
     }
 
     /**
@@ -135,13 +138,13 @@ public class RefBookVersionQueryProvider {
      */
     private void fillRefBookVersionPredicate(RefBookCriteria criteria, BooleanBuilder where) {
 
-        where.and(isSourceType(getSourceType(criteria)));
-
         if (nonNull(criteria.getFromDateBegin()))
             where.and(isMaxFromDateEqOrAfter(criteria.getFromDateBegin()));
 
         if (nonNull(criteria.getFromDateEnd()))
             where.and(isMaxFromDateEqOrBefore(criteria.getFromDateEnd()));
+
+        where.and(isSourceType(getSourceType(criteria)));
 
         if (criteria.getHasDraft())
             where.andNot(isArchived()).and(refBookHasDraft());
