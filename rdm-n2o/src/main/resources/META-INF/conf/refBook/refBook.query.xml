@@ -11,12 +11,12 @@
         </java>
     </list>
 
-    <unique filters="version.id" result-mapping="#this">
-        <java class="ru.inovus.ms.rdm.service.api.RefBookService"
-              method="getByVersionId">
-            <spring bean="refBookServiceJaxRsProxyClient"/>
+    <unique filters="versionId,excludeDraft" result-mapping="#this">
+        <java class="ru.inovus.ms.rdm.service.RefBookController"
+              method="searchRefBook">
+            <spring/>
             <arguments>
-                <argument type="primitive"/>
+                <argument type="criteria" class="ru.inovus.ms.rdm.criteria.RefBookCriteriaDateAndStatus"/>
             </arguments>
         </java>
     </unique>
@@ -36,7 +36,7 @@
         <field id="version.id" domain="integer">
             <select mapping="id"/>
             <filters>
-                <eq filter-id="version.id" mapping="[0]" domain="integer"/>
+                <eq filter-id="versionId" mapping="versionId"/>
             </filters>
         </field>
 
@@ -108,7 +108,7 @@
         <field id="excludeDraft" domain="boolean">
             <select mapping="draftVersionId == null"/>
             <filters>
-                <eq filter-id="excludeDraft" mapping="excludeDraft"/>
+                <eq filter-id="excludeDraft" mapping="excludeDraft" default-value="false"/>
             </filters>
         </field>
 
