@@ -109,9 +109,9 @@ public final class RefBookVersionPredicates {
         return QRefBookVersionEntity.refBookVersionEntity.status.eq(RefBookVersionStatus.PUBLISHED);
     }
 
-    public static BooleanExpression isAnyPublished() {
+    public static BooleanExpression refBookHasVersion(Integer versionId) {
         QRefBookVersionEntity anyVersion = QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
-        return anyVersion.status.eq(RefBookVersionStatus.PUBLISHED);
+        return anyVersion.id.eq(versionId);
     }
 
     public static BooleanExpression refBookHasDraft() {
@@ -119,25 +119,9 @@ public final class RefBookVersionPredicates {
         return anyVersion.status.eq(RefBookVersionStatus.DRAFT);
     }
 
-    public static BooleanExpression refBookHasVersion(Integer versionId) {
+    public static BooleanExpression refBookHasPublished() {
         QRefBookVersionEntity anyVersion = QRefBookVersionEntity.refBookVersionEntity.refBook.versionList.any();
-        return anyVersion.id.eq(versionId);
-    }
-
-    public static BooleanExpression hasLastPublishedVersion() {
-        QRefBookVersionEntity fieldVersion = new QRefBookVersionEntity(WHERE_EXISTS_VERSION);
-        QRefBookVersionEntity whereVersion = new QRefBookVersionEntity(WHERE_IS_LAST_DATE_VERSION);
-        return JPAExpressions
-                .select(fieldVersion.version).from(fieldVersion)
-                .where(fieldVersion.refBook.eq(QRefBookVersionEntity.refBookVersionEntity.refBook)
-                    .and(fieldVersion.status.eq(RefBookVersionStatus.PUBLISHED))
-                    .and(fieldVersion.fromDate
-                            .eq(JPAExpressions
-                                .select(whereVersion.fromDate.max()).from(whereVersion)
-                                .where(whereVersion.refBook.eq(fieldVersion.refBook)
-                                .and(whereVersion.status.eq(RefBookVersionStatus.PUBLISHED)))
-                            ))
-                ).exists();
+        return anyVersion.status.eq(RefBookVersionStatus.PUBLISHED);
     }
 
     public static BooleanExpression hasStructure() {

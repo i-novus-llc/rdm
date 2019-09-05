@@ -13,11 +13,11 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public class RefBookCriteria extends AbstractCriteria {
 
-    @ApiModelProperty("Идентификатор справочника")
+    @ApiParam("Идентификатор справочника")
     @QueryParam("refBookId")
     private List<Integer> refBookIds;
 
-    @ApiModelProperty("Код справочника")
+    @ApiParam("Код справочника")
     @QueryParam("code")
     private String code;
 
@@ -46,20 +46,16 @@ public class RefBookCriteria extends AbstractCriteria {
     private boolean isArchived;
 
     @ApiParam("Не в архиве")
-    @QueryParam("isNotArchived")
-    private boolean isNotArchived;
-
-    @ApiParam("Опубликованность справочника")
-    @QueryParam("hasPublished")
-    private boolean hasPublished;
+    @QueryParam("nonArchived")
+    private boolean nonArchived;
 
     @ApiParam("Наличие черновика")
     @QueryParam("hasDraft")
     private boolean hasDraft;
 
-    @ApiParam("Наличие опубликованной версии")
-    @QueryParam("hasPublishedVersion")
-    private boolean hasPublishedVersion;
+    @ApiParam("Опубликованность справочника")
+    @QueryParam("hasPublished")
+    private boolean hasPublished;
 
     @ApiParam("Получение версий справочников")
     @QueryParam("includeVersions")
@@ -145,12 +141,12 @@ public class RefBookCriteria extends AbstractCriteria {
         this.isArchived = isArchived;
     }
 
-    public boolean getIsNotArchived() {
-        return isNotArchived;
+    public boolean getNonArchived() {
+        return nonArchived;
     }
 
-    public void setIsNotArchived(boolean isNotArchived) {
-        this.isNotArchived = isNotArchived;
+    public void setNonArchived(boolean nonArchived) {
+        this.nonArchived = nonArchived;
     }
 
     public boolean getHasPublished() {
@@ -167,14 +163,6 @@ public class RefBookCriteria extends AbstractCriteria {
 
     public void setHasDraft(boolean hasDraft) {
         this.hasDraft = hasDraft;
-    }
-
-    public boolean getHasPublishedVersion() {
-        return hasPublishedVersion;
-    }
-
-    public void setHasPublishedVersion(boolean hasPublishedVersion) {
-        this.hasPublishedVersion = hasPublishedVersion;
     }
 
     public boolean getIncludeVersions() {
