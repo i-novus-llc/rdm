@@ -38,13 +38,13 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
     }
 
     /**
-     * @param s Параметры провайдера (ID версии)
+     * @param context Контекст: ID версии
      */
     @Override
     @SuppressWarnings("unchecked")
-    public List<? extends SourceMetadata> read(String s) {
+    public List<? extends SourceMetadata> read(String context) {
 
-        Integer versionId = Integer.parseInt(s);
+        Integer versionId = Integer.parseInt(context);
         Structure structure = versionService.getStructure(versionId);
 
         N2oObject n2oObject = new N2oObject();
