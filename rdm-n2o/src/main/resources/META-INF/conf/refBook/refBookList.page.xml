@@ -5,7 +5,7 @@
         <pagination/>
         <rows>
             <switch value-field-id="lastHasDataConflict">
-                <case value="true">danger</case>
+                <case value="true">bg-danger</case>
             </switch>
         </rows>
         <filters>
