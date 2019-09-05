@@ -47,6 +47,9 @@
 
         <field id="name" domain="string" name="Наименование">
             <select/>
+            <filters>
+                <eq filter-id="name" mapping="name"/>
+            </filters>
         </field>
 
         <field id="attrType.id" domain="string" name="Тип данных">
