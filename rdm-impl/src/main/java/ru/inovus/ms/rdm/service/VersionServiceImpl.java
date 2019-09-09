@@ -239,12 +239,12 @@ public class VersionServiceImpl implements VersionService {
     public RefBookRowValue getRow(String rowId) {
 
         if (!rowId.matches("^.+\\$\\d+$"))
-            throw new NotFoundException(ROW_NOT_FOUND_EXCEPTION_CODE);
+            throw new NotFoundException(new Message(ROW_NOT_FOUND_EXCEPTION_CODE, rowId));
 
         String[] split = rowId.split("\\$");
         RefBookVersionEntity version = versionRepository
                 .findById(Integer.parseInt(split[1]))
-                .orElseThrow(() -> new NotFoundException(ROW_NOT_FOUND_EXCEPTION_CODE));
+                .orElseThrow(() -> new NotFoundException(new Message(ROW_NOT_FOUND_EXCEPTION_CODE, rowId)));
 
         DataCriteria criteria = new DataCriteria(
                 version.getStorageCode(),
@@ -255,7 +255,7 @@ public class VersionServiceImpl implements VersionService {
 
         List<RowValue> data = searchDataService.getData(criteria);
         if (CollectionUtils.isEmpty(data))
-            throw new NotFoundException(ROW_NOT_FOUND_EXCEPTION_CODE);
+            throw new NotFoundException(new Message(ROW_NOT_FOUND_EXCEPTION_CODE, rowId));
 
         if (data.size() > 1)
             throw new IllegalStateException("more than one row with id " + rowId);
