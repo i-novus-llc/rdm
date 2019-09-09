@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<simple-page xmlns="http://n2oapp.net/framework/config/schema/page-2.0" name="Реестр НСИ">
+<simple-page xmlns="http://n2oapp.net/framework/config/schema/page-2.0" name="Реестр НСИ"
+             xmlns:sec="http://n2oapp.net/framework/config/schema/security-1.0">
     <table query-id="refBook" route="/main">
         <pagination/>
         <rows>
@@ -13,13 +14,9 @@
                 <input-text id="code" label="Код справочника"/>
                 <date-interval id="lastPublishedVersionFromDateInterval" label="Дата последней публикации"/>
                 <input-select id="category" label="Категория" query-id="category" label-field-id="id"/>
-                <input-select id="status" label="Статус" label-field-id="name">
-                    <options>
-                        <option id="PUBLISHED" name="Опубликован"/>
-                        <option id="HAS_DRAFT" name="В работе"/>
-                        <option id="ARCHIVED" name="Архив"/>
-                    </options>
-                </input-select>
+                <input-select id="status" label="Статус"
+                              query-id="refBookStatusList" label-field-id="name" search="false"
+                              sec:permissions="nsi.edit, nsi.archive"/>
             </row>
         </filters>
         <toolbar>
@@ -45,6 +42,7 @@
                            route="/:refBookId/edit"/>
             </button>
             <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger">
+<!--            <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger" enabling-condition="!archived &amp;&amp; !hasPublished">-->
                 <invoke operation-id="delete"/>
             </button>
             <button id="toArchive" label="Отправить в архив" icon="fa fa-lock"

@@ -1,7 +1,6 @@
 package ru.inovus.ms.rdm.model.refbook;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.annotations.ApiParam;
 import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.model.AbstractCriteria;
 
@@ -10,67 +9,71 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-@ApiModel("Критерии поиска справочника")
+/** Критерий поиска справочников. */
 @SuppressWarnings("unused")
 public class RefBookCriteria extends AbstractCriteria {
 
-    @ApiModelProperty("Идентификатор справочника")
+    @ApiParam("Идентификатор справочника")
     @QueryParam("refBookId")
     private List<Integer> refBookIds;
 
-    @ApiModelProperty("Код")
+    @ApiParam("Код справочника")
     @QueryParam("code")
     private String code;
 
-    @ApiModelProperty("Версия для исключения справочника")
+    @ApiParam("Версия для исключения справочника")
     @QueryParam("excludeByVersionId")
     private Integer excludeByVersionId;
 
-    @ApiModelProperty("Дата последней публикации")
+    @ApiParam("Дата начала для последней публикации")
     @QueryParam("fromDateBegin")
     private LocalDateTime fromDateBegin;
 
-    @ApiModelProperty("Дата последней публикации")
+    @ApiParam("Дата конца для последней публикации")
     @QueryParam("fromDateEnd")
     private LocalDateTime fromDateEnd;
 
-    @ApiModelProperty("Тип источника данных")
+    @ApiParam("Тип источника данных")
     @QueryParam("sourceType")
     private RefBookSourceType sourceType;
 
-    @ApiModelProperty("Категория")
+    @ApiParam("Категория")
     @QueryParam("category")
     private String category;
 
-    @ApiModelProperty("В архиве")
+    @ApiParam("В архиве")
     @QueryParam("isArchived")
     private boolean isArchived;
 
-    @ApiModelProperty("Не в архиве")
-    @QueryParam("isNotArchived")
-    private boolean isNotArchived;
+    @ApiParam("Не в архиве")
+    @QueryParam("nonArchived")
+    private boolean nonArchived;
 
-    @ApiModelProperty("Справочник опубликован")
-    @QueryParam("hasPublished")
-    private boolean hasPublished;
-
-    @ApiModelProperty("Наличие черновика")
+    @ApiParam("Наличие черновика")
     @QueryParam("hasDraft")
     private boolean hasDraft;
 
-    @ApiModelProperty("Наличие опубликованной версии")
-    @QueryParam("hasPublishedVersion")
-    private boolean hasPublishedVersion;
+    @ApiParam("Опубликованность справочника")
+    @QueryParam("hasPublished")
+    private boolean hasPublished;
 
-    @ApiModelProperty("Наличие первичного ключа")
+    @ApiParam("Получение версий справочников")
+    @QueryParam("includeVersions")
+    private boolean includeVersions;
+
+    @ApiParam("Исключение черновика")
+    @QueryParam("excludeDraft")
+    private boolean excludeDraft;
+
+    @ApiParam(value = "Наличие первичного ключа", hidden = true)
     @QueryParam("hasPrimaryAttribute")
     private boolean hasPrimaryAttribute;
 
-    @ApiModelProperty("Код справочника")
+    @ApiParam("Отображаемый код справочника")
     @QueryParam("displayCode")
     private String displayCode;
 
-    @ApiModelProperty("Паспорт справочника")
+    @ApiParam("Паспорт справочника")
     @QueryParam("passport")
     private Map<String, String> passport;
 
@@ -138,12 +141,12 @@ public class RefBookCriteria extends AbstractCriteria {
         this.isArchived = isArchived;
     }
 
-    public boolean getIsNotArchived() {
-        return isNotArchived;
+    public boolean getNonArchived() {
+        return nonArchived;
     }
 
-    public void setIsNotArchived(boolean isNotArchived) {
-        this.isNotArchived = isNotArchived;
+    public void setNonArchived(boolean nonArchived) {
+        this.nonArchived = nonArchived;
     }
 
     public boolean getHasPublished() {
@@ -162,12 +165,20 @@ public class RefBookCriteria extends AbstractCriteria {
         this.hasDraft = hasDraft;
     }
 
-    public boolean getHasPublishedVersion() {
-        return hasPublishedVersion;
+    public boolean getIncludeVersions() {
+        return includeVersions;
     }
 
-    public void setHasPublishedVersion(boolean hasPublishedVersion) {
-        this.hasPublishedVersion = hasPublishedVersion;
+    public void setIncludeVersions(boolean includeVersions) {
+        this.includeVersions = includeVersions;
+    }
+
+    public boolean getExcludeDraft() {
+        return excludeDraft;
+    }
+
+    public void setExcludeDraft(boolean excludeDraft) {
+        this.excludeDraft = excludeDraft;
     }
 
     public boolean getHasPrimaryAttribute() {

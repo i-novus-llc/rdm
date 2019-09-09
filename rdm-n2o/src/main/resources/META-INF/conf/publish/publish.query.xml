@@ -15,7 +15,7 @@
         <field id="id" domain="integer">
             <select mapping="refBookId"/>
             <filters>
-                <eq filter-id="id" mapping="refbookId"/>
+                <eq filter-id="id" mapping="refBookId"/>
             </filters>
         </field>
 

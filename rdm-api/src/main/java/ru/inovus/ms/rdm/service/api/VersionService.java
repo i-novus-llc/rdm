@@ -28,7 +28,7 @@ public interface VersionService {
     })
     @Path("/{versionId}/data")
     Page<RefBookRowValue> search(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
-                                 @ApiParam("Критерий поиска") @BeanParam SearchDataCriteria criteria);
+                                 @BeanParam SearchDataCriteria criteria);
 
     @GET
     @ApiOperation("Получение версии по идентификатору")
@@ -68,7 +68,7 @@ public interface VersionService {
     })
     Page<RefBookRowValue> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
                                  @ApiParam("Дата получения данных") @PathParam("date") LocalDateTime date,
-                                 @ApiParam("Критерий поиска") @BeanParam SearchDataCriteria criteria);
+                                 @BeanParam SearchDataCriteria criteria);
 
     @GET
     @Path("/refBook/{refBookCode}")
@@ -79,7 +79,7 @@ public interface VersionService {
             @ApiResponse(code = 404, message = "Нет версии")
     })
     Page<RefBookRowValue> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
-                                 @ApiParam("Критерий поиска") @BeanParam SearchDataCriteria criteria);
+                                 @BeanParam SearchDataCriteria criteria);
 
     @GET
     @Path("/structure")

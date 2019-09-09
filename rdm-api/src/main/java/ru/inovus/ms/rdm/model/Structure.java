@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.model;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import io.swagger.annotations.ApiParam;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.util.StringUtils;
@@ -22,10 +23,10 @@ public class Structure implements Serializable {
     private static final String PRIMARY_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "primary.attribute.not.found";
     private static final String PRIMARY_ATTRIBUTE_IS_MULTIPLE_EXCEPTION_CODE = "primary.attribute.is.multiple";
 
-    @ApiModelProperty("Атрибуты")
+    @ApiParam("Атрибуты")
     private List<Attribute> attributes;
 
-    @ApiModelProperty("Ссылки")
+    @ApiParam("Ссылки")
     private List<Reference> references;
 
     public Structure() {

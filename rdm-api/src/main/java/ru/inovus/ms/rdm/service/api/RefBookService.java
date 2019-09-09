@@ -24,7 +24,18 @@ public interface RefBookService {
             @ApiResponse(code = 200, message = "Список справочников"),
             @ApiResponse(code = 400, message = "Некорректный запрос")
     })
-    Page<RefBook> search(@ApiParam("Критерий поиска") @BeanParam RefBookCriteria criteria);
+    Page<RefBook> search(@BeanParam RefBookCriteria criteria);
+
+    @GET
+    @Path("/versions")
+    @ApiOperation(value = "Поиск версий справочников по параметрам критерия", hidden = true)
+    @ApiImplicitParams(@ApiImplicitParam(name = "sort", value = "Параметры сортировки",
+            required = false, allowMultiple = true, paramType = "query", dataType = "string"))
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Список версий справочников"),
+            @ApiResponse(code = 400, message = "Некорректный запрос")
+    })
+    Page<RefBook> searchVersions(@BeanParam RefBookCriteria criteria);
 
     @GET
     @Path("/version/{id}")
@@ -98,7 +109,7 @@ public interface RefBookService {
     void fromArchive(@ApiParam("Идентификатор справочника") @PathParam("refBookId") int refBookId);
 
     @GET
-    @Path("/versions")
+    @Path("/find/versions")
     @ApiOperation("Получение списка версий справочника")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Версия справочника"),
@@ -108,7 +119,7 @@ public interface RefBookService {
     Page<RefBookVersion> getVersions(@BeanParam VersionCriteria criteria);
 
     @GET
-    @Path("/referrers")
+    @Path("/find/referrers")
     @ApiOperation(value = "Поиск версий ссылающихся справочников по параметрам критерия", hidden = true)
     @ApiImplicitParams(@ApiImplicitParam(name = "sort", value = "Параметры сортировки",
             required = false, allowMultiple = true, paramType = "query", dataType = "string"))

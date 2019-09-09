@@ -1,6 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" name="Список версий справочника">
-    <list result-mapping="content" count-mapping="totalElements" filters="refBookId">
+<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="versionList">
+
+    <list result-mapping="content" count-mapping="totalElements" filters="refBookId,excludeDraft">
         <java method="getVersions" class="ru.inovus.ms.rdm.service.api.RefBookService">
             <spring bean="refBookServiceJaxRsProxyClient"/>
             <arguments>
@@ -8,11 +9,12 @@
             </arguments>
         </java>
     </list>
-    <unique filters="id" result-mapping="#this">
-        <java method="getById">
-            <spring bean="versionServiceJaxRsProxyClient"/>
+
+    <unique filters="id,excludeDraft" result-mapping="#this">
+        <java method="getVersion" class="ru.inovus.ms.rdm.service.VersionController">
+            <spring/>
             <arguments>
-                <argument type="primitive" name="versionId"/>
+                <argument type="criteria" class="ru.inovus.ms.rdm.model.version.VersionCriteria"/>
             </arguments>
         </java>
     </unique>
@@ -21,7 +23,7 @@
         <field id="id" domain="integer">
             <select/>
             <filters>
-                <eq filter-id="id" mapping="[0]" domain="integer"/>
+                <eq filter-id="id" mapping="id" domain="integer"/>
             </filters>
         </field>
 
@@ -65,7 +67,9 @@
         </field>
 
         <field id="excludeDraft" domain="boolean">
-            <filters/>
+            <filters>
+                <eq filter-id="excludeDraft" mapping="excludeDraft" default-value="false"/>
+            </filters>
         </field>
     </fields>
 </query>

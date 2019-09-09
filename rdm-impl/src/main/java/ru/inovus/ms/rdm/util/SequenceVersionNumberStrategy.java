@@ -26,9 +26,9 @@ public class SequenceVersionNumberStrategy implements VersionNumberStrategy {
 
     @Override
     @Transactional
-    public String next(Integer refbookId) {
+    public String next(Integer refBookId) {
         List<RefBookVersionEntity> versionEntityList =
-                versionRepository.findAllByStatusAndRefBookId(RefBookVersionStatus.PUBLISHED, refbookId);
+                versionRepository.findAllByStatusAndRefBookId(RefBookVersionStatus.PUBLISHED, refBookId);
 
         RefBookVersionEntity maxVersion = getMaxVersion(versionEntityList);
 
@@ -38,9 +38,9 @@ public class SequenceVersionNumberStrategy implements VersionNumberStrategy {
         if (matcher.find())
             s = matcher.group();
         String[] versionParts = s.split("\\.");
-        Integer major = Integer.parseInt(versionParts[0]);
-        Integer minor = Integer.parseInt(versionParts[1]);
-        RefBookVersionEntity draft = versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refbookId);
+        int major = Integer.parseInt(versionParts[0]);
+        int minor = Integer.parseInt(versionParts[1]);
+        RefBookVersionEntity draft = versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
         if (draft != null && draft.getStructure().equals(maxVersion.getStructure())){
             minor++;
             return major + "." + minor;
@@ -50,6 +50,7 @@ public class SequenceVersionNumberStrategy implements VersionNumberStrategy {
     }
 
     private RefBookVersionEntity getMaxVersion(List<RefBookVersionEntity> versionEntityList) {
+
         return versionEntityList.stream().reduce((v1, v2) -> {
 
             String[] version1Parts = v1.getVersion().split("\\.");
@@ -67,9 +68,9 @@ public class SequenceVersionNumberStrategy implements VersionNumberStrategy {
     }
 
     @Override
-    public boolean check(String version, Integer refbookId) {
+    public boolean check(String version, Integer refBookId) {
         if (version == null || !version.matches("\\d*\\.\\d*")) return false;
-        return versionRepository.findAllByStatusAndRefBookId(RefBookVersionStatus.PUBLISHED, refbookId)
+        return versionRepository.findAllByStatusAndRefBookId(RefBookVersionStatus.PUBLISHED, refBookId)
                 .stream().noneMatch(versionEntity -> versionEntity.getVersion().equals(version));
     }
 }

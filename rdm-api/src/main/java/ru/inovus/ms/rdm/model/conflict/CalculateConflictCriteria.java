@@ -1,7 +1,6 @@
 package ru.inovus.ms.rdm.model.conflict;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.annotations.ApiParam;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.model.compare.CompareCriteria;
 
@@ -11,14 +10,16 @@ import java.util.Objects;
 
 import static ru.inovus.ms.rdm.util.ConflictUtils.*;
 
-@ApiModel("Критерии вычисления конфликтов")
+/**
+ * Критерий вычисления конфликтов.
+ */
 public class CalculateConflictCriteria extends CompareCriteria {
 
-    @ApiModelProperty("Идентификатор версии справочника со ссылками")
+    @ApiParam("Идентификатор версии справочника со ссылками")
     @QueryParam("referrerVersionId")
     private Integer referrerVersionId;
 
-    @ApiModelProperty("Наличие изменения структуры")
+    @ApiParam("Наличие изменения структуры")
     @QueryParam("structureAltered")
     private boolean structureAltered;
 
@@ -51,7 +52,7 @@ public class CalculateConflictCriteria extends CompareCriteria {
         this.structureAltered = structureAltered;
     }
 
-    @ApiModelProperty("Тип конфликта")
+    @ApiParam("Тип конфликта")
     public ConflictType getConflictType() {
         return diffStatusToConflictType(getDiffStatus());
     }

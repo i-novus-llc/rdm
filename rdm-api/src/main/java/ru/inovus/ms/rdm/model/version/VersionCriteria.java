@@ -5,7 +5,14 @@ import ru.inovus.ms.rdm.model.AbstractCriteria;
 
 import javax.ws.rs.QueryParam;
 
+/**
+ * Критерий поиска версий справочников.
+ */
 public class VersionCriteria extends AbstractCriteria {
+
+    @ApiParam("Идентификатор версии")
+    @QueryParam("id")
+    private Integer id;
 
     @ApiParam("Идентификатор справочника")
     @QueryParam("refBookId")
@@ -15,9 +22,9 @@ public class VersionCriteria extends AbstractCriteria {
     @QueryParam("refBookCode")
     private String refBookCode;
 
-    @ApiParam(value = "Исключить черновик", hidden = true)
+    @ApiParam("Исключение черновика")
     @QueryParam("excludeDraft")
-    private Boolean excludeDraft;
+    private boolean excludeDraft;
 
     @ApiParam("Номер версии")
     @QueryParam("version")
@@ -25,6 +32,14 @@ public class VersionCriteria extends AbstractCriteria {
 
     public VersionCriteria() {
         super();
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public Integer getRefBookId() {
@@ -35,11 +50,19 @@ public class VersionCriteria extends AbstractCriteria {
         this.refBookId = refBookId;
     }
 
-    public Boolean getExcludeDraft() {
-        return excludeDraft != null && excludeDraft;
+    public String getRefBookCode() {
+        return refBookCode;
     }
 
-    public void setExcludeDraft(Boolean excludeDraft) {
+    public void setRefBookCode(String refBookCode) {
+        this.refBookCode = refBookCode;
+    }
+
+    public boolean getExcludeDraft() {
+        return excludeDraft;
+    }
+
+    public void setExcludeDraft(boolean excludeDraft) {
         this.excludeDraft = excludeDraft;
     }
 
@@ -49,13 +72,5 @@ public class VersionCriteria extends AbstractCriteria {
 
     public void setVersion(String version) {
         this.version = version;
-    }
-
-    public String getRefBookCode() {
-        return refBookCode;
-    }
-
-    public void setRefBookCode(String refBookCode) {
-        this.refBookCode = refBookCode;
     }
 }

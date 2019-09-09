@@ -1,40 +1,41 @@
 package ru.inovus.ms.rdm.model.conflict;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.annotations.ApiParam;
 import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.model.AbstractCriteria;
 
 import javax.ws.rs.QueryParam;
 
-@ApiModel("Критерии удаления конфликта")
+/**
+ * Критерий удаления конфликтов.
+ */
 public class DeleteRefBookConflictCriteria extends AbstractCriteria {
 
-    @ApiModelProperty("Идентификатор версии справочника со ссылками")
+    @ApiParam("Идентификатор версии справочника со ссылками")
     @QueryParam("referrerVersionId")
     private Integer referrerVersionId;
 
-    @ApiModelProperty("Идентификатор справочника со ссылками")
+    @ApiParam("Идентификатор справочника со ссылками")
     @QueryParam("referrerVersionRefBookId")
     private Integer referrerVersionRefBookId;
 
-    @ApiModelProperty("Идентификатор версии опубликованного справочника")
+    @ApiParam("Идентификатор версии опубликованного справочника")
     @QueryParam("publishedVersionId")
     private Integer publishedVersionId;
 
-    @ApiModelProperty("Идентификатор опубликованного справочника")
+    @ApiParam("Идентификатор опубликованного справочника")
     @QueryParam("publishedVersionId")
     private Integer publishedVersionRefBookId;
 
-    @ApiModelProperty("Название поля-ссылки с конфликтом по отображаемому значению")
+    @ApiParam("Название поля-ссылки с конфликтом по отображаемому значению")
     @QueryParam("refFieldCode")
     private String refFieldCode;
 
-    @ApiModelProperty("Тип конфликта")
+    @ApiParam("Тип конфликта")
     @QueryParam("conflictType")
     private ConflictType conflictType;
 
-    @ApiModelProperty("Идентификатор исключаемой версии опубликованного справочника")
+    @ApiParam("Идентификатор исключаемой версии опубликованного справочника")
     @QueryParam("excludedPublishedVersionId")
     private Integer excludedPublishedVersionId;
 
