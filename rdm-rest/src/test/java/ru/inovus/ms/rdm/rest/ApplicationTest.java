@@ -1462,14 +1462,6 @@ public class ApplicationTest {
             expectedMadeofValues.put(primaryValue, displayValue);
         });
 
-        // Проверка связанности.
-        ReferrerVersionCriteria criteria = new ReferrerVersionCriteria(CARDINAL_REF_BOOK_CODE, RefBookStatusType.USED, RefBookSourceType.LAST_VERSION);
-        criteria.setPageSize(10);
-        List<RefBookVersion> actualReferrerVersions = refBookService.searchReferrerVersions(criteria).getContent();
-        assertNotNull(actualReferrerVersions);
-        assertEquals(1, actualReferrerVersions.size());
-        assertVersion(referrerVersion, actualReferrerVersions.get(0));
-
 //      3. Изменение исходного справочника.
         Draft changingDraft = draftService.createFromVersion(publishedVersion.getId());
         assertNotNull(changingDraft);
