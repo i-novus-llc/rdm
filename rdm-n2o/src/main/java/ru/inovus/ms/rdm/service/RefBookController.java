@@ -45,7 +45,30 @@ public class RefBookController {
     }
 
     /**
+     * Поиск справочника по версии.
+     * Обёртка над сервисным методом для учёта прав доступа.
+     *
+     * @param criteria критерий поиска справочника
+     * @return Справочник
+     */
+    @SuppressWarnings("unused") // used in: refBook.query.xml
+    public RefBook searchRefBook(RefBookCriteria criteria) {
+
+        RefBook refBook = refBookService.getByVersionId(permitCriteria(criteria).getVersionId());
+        if (refBook == null)
+            return null;
+
+        if (criteria.getExcludeDraft())
+            refBook.setDraftVersionId(null);
+
+        return refBook;
+    }
+
+    /**
      * Поиск последней версии справочника для открытия на просмотр/редактирование.
+     *
+     * @param criteria критерий поиска версии справочника
+     * @return Справочник по последней версии
      */
     @SuppressWarnings("unused") // used in: refBookVersion.query.xml
     public RefBook searchLastVersion(RefBookCriteria criteria) {
@@ -75,6 +98,7 @@ public class RefBookController {
 
         if (!criteria.getExcludeDraft())
             list.add(getRefBookStatus(RefBookStatus.HAS_DRAFT, REF_BOOK_STATUS_HAS_DRAFT));
+
         if (!criteria.getNonArchived())
             list.add(getRefBookStatus(RefBookStatus.ARCHIVED, REF_BOOK_STATUS_ARCHIVED));
 

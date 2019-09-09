@@ -21,6 +21,10 @@ public class RefBookCriteria extends AbstractCriteria {
     @QueryParam("code")
     private String code;
 
+    @ApiParam("Версия справочника")
+    @QueryParam("versionId")
+    private Integer versionId;
+
     @ApiParam("Версия для исключения справочника")
     @QueryParam("excludeByVersionId")
     private Integer excludeByVersionId;
@@ -91,6 +95,14 @@ public class RefBookCriteria extends AbstractCriteria {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public Integer getVersionId() {
+        return versionId;
+    }
+
+    public void setVersionId(Integer versionId) {
+        this.versionId = versionId;
     }
 
     public Integer getExcludeByVersionId() {

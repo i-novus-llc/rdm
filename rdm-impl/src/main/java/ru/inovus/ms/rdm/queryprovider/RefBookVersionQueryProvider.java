@@ -111,6 +111,9 @@ public class RefBookVersionQueryProvider {
         if (!isEmpty(criteria.getCode()))
             where.and(isCodeContains(criteria.getCode()));
 
+        if (nonNull(criteria.getVersionId()))
+            where.and(refBookHasVersion(criteria.getVersionId()));
+
         if (nonNull(criteria.getExcludeByVersionId()))
             where.andNot(refBookHasVersion(criteria.getExcludeByVersionId()));
 
@@ -280,6 +283,9 @@ public class RefBookVersionQueryProvider {
 
         if (nonNull(criteria.getRefBookId()))
             where.and(isVersionOfRefBook(criteria.getRefBookId()));
+
+        if (nonNull(criteria.getRefBookCode()))
+            where.and(isVersionOfRefBookCode(criteria.getRefBookCode()));
 
         if (criteria.getExcludeDraft())
             where.andNot(isDraft());

@@ -2,8 +2,8 @@
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="versionList">
 
     <list result-mapping="content" count-mapping="totalElements" filters="refBookId,excludeDraft">
-        <java method="getVersions" class="ru.inovus.ms.rdm.service.api.RefBookService">
-            <spring bean="refBookServiceJaxRsProxyClient"/>
+        <java method="getVersions" class="ru.inovus.ms.rdm.service.api.VersionService">
+            <spring bean="versionServiceJaxRsProxyClient"/>
             <arguments>
                 <argument type="criteria" class="ru.inovus.ms.rdm.model.version.VersionCriteria"/>
             </arguments>

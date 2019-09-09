@@ -19,9 +19,6 @@ import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.refbook.*;
-import ru.inovus.ms.rdm.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.model.version.ReferrerVersionCriteria;
-import ru.inovus.ms.rdm.model.version.VersionCriteria;
 import ru.inovus.ms.rdm.queryprovider.RefBookVersionQueryProvider;
 import ru.inovus.ms.rdm.repository.PassportValueRepository;
 import ru.inovus.ms.rdm.repository.RefBookConflictRepository;
@@ -245,49 +242,6 @@ public class RefBookServiceImpl implements RefBookService {
         refBookRepository.save(refBookEntity);
     }
 
-    /**
-     * Получение списка версий справочника по параметрам критерия.
-     *
-     * @param criteria критерий поиска
-     * @return Список версий справочника
-     */
-    @Override
-    @Transactional
-    public Page<RefBookVersion> getVersions(VersionCriteria criteria) {
-
-        if(criteria.getRefBookId() == null && criteria.getRefBookCode() != null) {
-            criteria.setRefBookId(getId(criteria.getRefBookCode()));
-        }
-        Sort.Order orderByFromDate = new Sort.Order(Sort.Direction.DESC,
-                RefBookVersionQueryProvider.REF_BOOK_FROM_DATE_SORT_PROPERTY,
-                Sort.NullHandling.NULLS_FIRST);
-
-        PageRequest pageRequest = PageRequest.of(criteria.getPageNumber(), criteria.getPageSize(), Sort.by(orderByFromDate));
-        Page<RefBookVersionEntity> list = versionRepository.findAll(RefBookVersionQueryProvider.toVersionPredicate(criteria), pageRequest);
-        return list.map(ModelGenerator::versionModel);
-    }
-
-    /**
-     * Поиск версий ссылающихся справочников по параметрам критерия.
-     *
-     * @param criteria критерий поиска
-     * @return Страница версий ссылающихся справочников
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public Page<RefBookVersion> searchReferrerVersions(ReferrerVersionCriteria criteria) {
-
-        // NB: may-be: Move to `ReferrerQueryProvider`.
-        // NB: may-be: Move to `RefBookVersionQueryProvider`.
-        PageRequest pageRequest = PageRequest.of(criteria.getPageNumber(), criteria.getPageSize());
-        Page<RefBookVersionEntity> entities = versionRepository.findReferrerVersions(criteria.getRefBookCode(), criteria.getStatusType().name(), criteria.getSourceType().name(), pageRequest);
-        List<RefBookVersion> versions = entities.getContent().stream()
-                .map(ModelGenerator::versionModel)
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(versions, criteria, versions.size());
-    }
-
     private RefBook refBookModel(RefBookVersionEntity entity,
                                  List<RefBookVersionEntity> draftVersions, List<RefBookVersionEntity> lastPublishVersions) {
         if (entity == null) return null;
@@ -321,10 +275,7 @@ public class RefBookServiceImpl implements RefBookService {
         List<Structure.Attribute> primaryAttributes = (structure != null) ? structure.getPrimary() : null;
         model.setHasPrimaryAttribute(!CollectionUtils.isEmpty(primaryAttributes));
 
-        ReferrerVersionCriteria criteria = new ReferrerVersionCriteria(model.getCode(), RefBookStatusType.ALL, RefBookSourceType.ALL);
-        criteria.setPageSize(1);
-        List<RefBookVersion> referrerVersions = searchReferrerVersions(criteria).getContent();
-        model.setHasReferrer(!referrerVersions.isEmpty());
+        model.setHasReferrer(!hasReferrerVersions(model.getCode()));
 
         // NB: List<boolean> isConflict by ConflictType filled by one query.
         boolean hasUpdatedConflict = conflictRepository.existsByReferrerVersionIdAndConflictType(model.getId(), ConflictType.UPDATED);
@@ -346,6 +297,16 @@ public class RefBookServiceImpl implements RefBookService {
         );
 
         return model;
+    }
+
+    /** Проверка на наличие справочников, ссылающихся на указанный справочник. */
+    private boolean hasReferrerVersions(String refBookCode) {
+
+        PageRequest pageRequest = PageRequest.of(0, 1);
+        Page<RefBookVersionEntity> entities = versionRepository.findReferrerVersions(refBookCode,
+                RefBookStatusType.ALL.name(), RefBookSourceType.ALL.name(), pageRequest);
+
+        return entities != null && !entities.getContent().isEmpty();
     }
 
     private boolean isRefBookRemovable(Integer refBookId) {

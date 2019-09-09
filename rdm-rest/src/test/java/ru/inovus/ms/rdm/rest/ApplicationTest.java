@@ -436,7 +436,7 @@ public class ApplicationTest {
     public void testGetVersions() {
         VersionCriteria criteria = new VersionCriteria();
         criteria.setRefBookId(versionList.get(0).getRefBookId());
-        Page<RefBookVersion> search = refBookService.getVersions(criteria);
+        Page<RefBookVersion> search = versionService.getVersions(criteria);
 
         assertEquals(versionList.size(), search.getTotalElements());
         for (int i = 0; i < versionList.size(); i++) {
@@ -446,12 +446,12 @@ public class ApplicationTest {
 
         // поиск с исключанием справочников
         criteria.setExcludeDraft(Boolean.TRUE);
-        search = refBookService.getVersions(criteria);
+        search = versionService.getVersions(criteria);
         assertEquals(versionList.size() - 1, search.getTotalElements());
 
         // поиск по номеру версии
         criteria.setVersion(versionList.get(1).getVersion());
-        search = refBookService.getVersions(criteria);
+        search = versionService.getVersions(criteria);
         assertEquals(1, search.getTotalElements());
     }
 
@@ -1461,14 +1461,6 @@ public class ApplicationTest {
             String displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_MADEOF_ATTRIBUTE_CODE);
             expectedMadeofValues.put(primaryValue, displayValue);
         });
-
-        // Проверка связанности.
-        ReferrerVersionCriteria criteria = new ReferrerVersionCriteria(CARDINAL_REF_BOOK_CODE, RefBookStatusType.USED, RefBookSourceType.LAST_VERSION);
-        criteria.setPageSize(10);
-        List<RefBookVersion> actualReferrerVersions = refBookService.searchReferrerVersions(criteria).getContent();
-        assertNotNull(actualReferrerVersions);
-        assertEquals(1, actualReferrerVersions.size());
-        assertVersion(referrerVersion, actualReferrerVersions.get(0));
 
 //      3. Изменение исходного справочника.
         Draft changingDraft = draftService.createFromVersion(publishedVersion.getId());

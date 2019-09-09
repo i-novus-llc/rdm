@@ -5,6 +5,8 @@ import net.n2oapp.platform.i18n.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -27,12 +29,15 @@ import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.RowValuePage;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.model.version.VersionCriteria;
+import ru.inovus.ms.rdm.queryprovider.RefBookVersionQueryProvider;
 import ru.inovus.ms.rdm.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.repository.VersionFileRepository;
 import ru.inovus.ms.rdm.service.api.ExistsData;
 import ru.inovus.ms.rdm.service.api.VersionFileService;
 import ru.inovus.ms.rdm.service.api.VersionService;
 import ru.inovus.ms.rdm.util.FileNameGenerator;
+import ru.inovus.ms.rdm.util.ModelGenerator;
 import ru.inovus.ms.rdm.util.TimeUtils;
 import ru.inovus.ms.rdm.validation.ReferenceValidation;
 
@@ -87,6 +92,25 @@ public class VersionServiceImpl implements VersionService {
                 .findById(versionId)
                 .orElseThrow(() -> new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId)));
         return getRowValuesOfVersion(criteria, version);
+    }
+
+    /**
+     * Получение списка версий справочника по параметрам критерия.
+     *
+     * @param criteria критерий поиска
+     * @return Список версий справочника
+     */
+    @Override
+    @Transactional
+    public Page<RefBookVersion> getVersions(VersionCriteria criteria) {
+
+        Sort.Order orderByFromDate = new Sort.Order(Sort.Direction.DESC,
+                RefBookVersionQueryProvider.REF_BOOK_FROM_DATE_SORT_PROPERTY,
+                Sort.NullHandling.NULLS_FIRST);
+
+        PageRequest pageRequest = PageRequest.of(criteria.getPageNumber(), criteria.getPageSize(), Sort.by(orderByFromDate));
+        Page<RefBookVersionEntity> list = versionRepository.findAll(RefBookVersionQueryProvider.toVersionPredicate(criteria), pageRequest);
+        return list.map(ModelGenerator::versionModel);
     }
 
     @Override

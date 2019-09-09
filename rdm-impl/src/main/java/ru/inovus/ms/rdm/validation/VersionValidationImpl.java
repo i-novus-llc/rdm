@@ -85,19 +85,6 @@ public class VersionValidationImpl implements VersionValidation {
     }
 
     /**
-     * Проверка существования пары версий справочника.
-     *
-     * @param oldVersionId идентификатор старой версии
-     * @param newVersionId идентификатор новой версии
-     */
-    @Override
-    public void validateVersionPairExists(Integer oldVersionId, Integer newVersionId) {
-
-        validateVersionExists(oldVersionId);
-        validateVersionExists(newVersionId);
-    }
-
-    /**
      * Проверка существования черновика справочника.
      *
      * @param draftId идентификатор черновика
