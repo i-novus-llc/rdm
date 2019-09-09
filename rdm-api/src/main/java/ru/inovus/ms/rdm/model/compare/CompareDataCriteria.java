@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @ApiModel("Критерии сравнения данных версий справочника")
+// NB: Rename to `CompareVersionDataCriteria` to don`t equals to vds `CompareDataCriteria`.
 public class CompareDataCriteria extends CompareCriteria {
 
     @ApiModelProperty("Множество фильтров по первичным полям")
