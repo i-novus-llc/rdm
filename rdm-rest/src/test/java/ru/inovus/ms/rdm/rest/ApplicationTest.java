@@ -436,7 +436,7 @@ public class ApplicationTest {
     public void testGetVersions() {
         VersionCriteria criteria = new VersionCriteria();
         criteria.setRefBookId(versionList.get(0).getRefBookId());
-        Page<RefBookVersion> search = refBookService.getVersions(criteria);
+        Page<RefBookVersion> search = versionService.getVersions(criteria);
 
         assertEquals(versionList.size(), search.getTotalElements());
         for (int i = 0; i < versionList.size(); i++) {
@@ -446,12 +446,12 @@ public class ApplicationTest {
 
         // поиск с исключанием справочников
         criteria.setExcludeDraft(Boolean.TRUE);
-        search = refBookService.getVersions(criteria);
+        search = versionService.getVersions(criteria);
         assertEquals(versionList.size() - 1, search.getTotalElements());
 
         // поиск по номеру версии
         criteria.setVersion(versionList.get(1).getVersion());
-        search = refBookService.getVersions(criteria);
+        search = versionService.getVersions(criteria);
         assertEquals(1, search.getTotalElements());
     }
 

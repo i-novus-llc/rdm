@@ -32,6 +32,10 @@ public final class RefBookVersionPredicates {
         return QRefBookVersionEntity.refBookVersionEntity.refBook.id.eq(refBookId);
     }
 
+    public static BooleanExpression isVersionOfRefBookCode(String refBookCode) {
+        return QRefBookVersionEntity.refBookVersionEntity.refBook.code.eq(refBookCode);
+    }
+
     public static BooleanExpression isVersionOfRefBooks(List<Integer> refBookIds) {
         return QRefBookVersionEntity.refBookVersionEntity.refBook.id.in(refBookIds);
     }

@@ -5,7 +5,6 @@ import org.springframework.data.domain.Page;
 import ru.inovus.ms.rdm.model.refbook.*;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.model.version.ReferrerVersionCriteria;
-import ru.inovus.ms.rdm.model.version.VersionCriteria;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -107,16 +106,6 @@ public interface RefBookService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     void fromArchive(@ApiParam("Идентификатор справочника") @PathParam("refBookId") int refBookId);
-
-    @GET
-    @Path("/find/versions")
-    @ApiOperation("Получение списка версий справочника")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Версия справочника"),
-            @ApiResponse(code = 400, message = "Некорректный запрос"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    Page<RefBookVersion> getVersions(@BeanParam VersionCriteria criteria);
 
     @GET
     @Path("/find/referrers")

@@ -284,6 +284,9 @@ public class RefBookVersionQueryProvider {
         if (nonNull(criteria.getRefBookId()))
             where.and(isVersionOfRefBook(criteria.getRefBookId()));
 
+        if (nonNull(criteria.getRefBookCode()))
+            where.and(isVersionOfRefBookCode(criteria.getRefBookCode()));
+
         if (criteria.getExcludeDraft())
             where.andNot(isDraft());
 

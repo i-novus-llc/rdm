@@ -7,6 +7,7 @@ import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.model.version.VersionCriteria;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -29,6 +30,16 @@ public interface VersionService {
     @Path("/{versionId}/data")
     Page<RefBookRowValue> search(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
                                  @BeanParam SearchDataCriteria criteria);
+
+    @GET
+    @Path("/versions")
+    @ApiOperation("Получение списка версий справочника")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Версия справочника"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    Page<RefBookVersion> getVersions(@BeanParam VersionCriteria criteria);
 
     @GET
     @ApiOperation("Получение версии по идентификатору")
