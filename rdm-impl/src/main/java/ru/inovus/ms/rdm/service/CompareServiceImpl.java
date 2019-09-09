@@ -80,7 +80,7 @@ public class CompareServiceImpl implements CompareService {
     @Transactional(readOnly = true)
     public PassportDiff comparePassports(Integer oldVersionId, Integer newVersionId) {
 
-        versionValidation.validateVersionPairExists(oldVersionId, newVersionId);
+        validateVersionPairExists(oldVersionId, newVersionId);
 
         RefBookVersionEntity oldVersion = versionRepository.getOne(oldVersionId);
         RefBookVersionEntity newVersion = versionRepository.getOne(newVersionId);
@@ -132,7 +132,7 @@ public class CompareServiceImpl implements CompareService {
     @Transactional(readOnly = true)
     public StructureDiff compareStructures(Integer oldVersionId, Integer newVersionId) {
 
-        versionValidation.validateVersionPairExists(oldVersionId, newVersionId);
+        validateVersionPairExists(oldVersionId, newVersionId);
 
         RefBookVersionEntity oldVersion = versionRepository.getOne(oldVersionId);
         RefBookVersionEntity newVersion = versionRepository.getOne(newVersionId);
@@ -147,7 +147,7 @@ public class CompareServiceImpl implements CompareService {
     @Transactional(readOnly = true)
     public RefBookDataDiff compareData(ru.inovus.ms.rdm.model.compare.CompareDataCriteria criteria) {
 
-        versionValidation.validateVersionPairExists(criteria.getOldVersionId(), criteria.getNewVersionId());
+        validateVersionPairExists(criteria.getOldVersionId(), criteria.getNewVersionId());
 
         RefBookVersionEntity oldVersion = versionRepository.getOne(criteria.getOldVersionId());
         RefBookVersionEntity newVersion = versionRepository.getOne(criteria.getNewVersionId());
@@ -185,7 +185,7 @@ public class CompareServiceImpl implements CompareService {
     @Transactional(readOnly = true)
     public Page<ComparableRow> getCommonComparableRows(ru.inovus.ms.rdm.model.compare.CompareDataCriteria criteria) {
 
-        versionValidation.validateVersionPairExists(criteria.getNewVersionId(), criteria.getOldVersionId());
+        validateVersionPairExists(criteria.getNewVersionId(), criteria.getOldVersionId());
 
         Structure newStructure = versionService.getStructure(criteria.getNewVersionId());
         Structure oldStructure = versionService.getStructure(criteria.getOldVersionId());
@@ -348,5 +348,17 @@ public class CompareServiceImpl implements CompareService {
         if (oldPrimaries.size() != newPrimaries.size()
                 || oldPrimaries.stream().anyMatch(oldPrimary -> newPrimaries.stream().noneMatch(newPrimary -> newPrimary.equals(oldPrimary))))
             throw new UserException(new Message(COMPARE_PRIMARIES_NOT_EQUALS_EXCEPTION_CODE));
+    }
+
+    /**
+     * Проверка существования пары версий справочника.
+     *
+     * @param oldVersionId идентификатор старой версии
+     * @param newVersionId идентификатор новой версии
+     */
+    private void validateVersionPairExists(Integer oldVersionId, Integer newVersionId) {
+
+        versionValidation.validateVersionExists(oldVersionId);
+        versionValidation.validateVersionExists(newVersionId);
     }
 }

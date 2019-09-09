@@ -14,8 +14,6 @@ public interface VersionValidation {
 
     void validateVersionExists(Integer versionId);
 
-    void validateVersionPairExists(Integer oldVersionId, Integer newVersionId);
-
     void validateDraftExists(Integer draftId);
 
     void validateAttributeExists(Integer versionId, Structure structure, String attribute);

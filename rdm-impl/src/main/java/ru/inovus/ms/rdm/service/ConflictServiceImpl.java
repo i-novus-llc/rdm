@@ -175,7 +175,7 @@ public class ConflictServiceImpl implements ConflictService {
     public Boolean checkConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId, ConflictType conflictType) {
 
         versionValidation.validateVersionExists(refFromId);
-        versionValidation.validateVersionPairExists(oldRefToId, newRefToId);
+        validateVersionPairExists(oldRefToId, newRefToId);
 
         RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
         RefBookVersionEntity oldRefToEntity = versionRepository.getOne(oldRefToId);
@@ -479,7 +479,7 @@ public class ConflictServiceImpl implements ConflictService {
     @Transactional
     public void discoverConflicts(Integer oldVersionId, Integer newVersionId) {
 
-        versionValidation.validateVersionPairExists(oldVersionId, newVersionId);
+        validateVersionPairExists(oldVersionId, newVersionId);
 
         RefBookVersionEntity oldRefToEntity = versionRepository.getOne(oldVersionId);
         RefBookVersionEntity newRefToEntity = versionRepository.getOne(newVersionId);
@@ -504,7 +504,7 @@ public class ConflictServiceImpl implements ConflictService {
     // NB: for ApplicationTest only.
     public void copyConflicts(Integer oldVersionId, Integer newVersionId) {
 
-        versionValidation.validateVersionPairExists(oldVersionId, newVersionId);
+        validateVersionPairExists(oldVersionId, newVersionId);
 
         if (!newVersionId.equals(oldVersionId))
             conflictRepository.copyByReferrerVersion(oldVersionId, newVersionId);
@@ -965,5 +965,17 @@ public class ConflictServiceImpl implements ConflictService {
                     DisplayExpression expression = new DisplayExpression(reference.getDisplayExpression());
                     return CollectionUtils.containsAny(attributeCodes, expression.getPlaceholders());
                 });
+    }
+
+    /**
+     * Проверка существования пары версий справочника.
+     *
+     * @param oldVersionId идентификатор старой версии
+     * @param newVersionId идентификатор новой версии
+     */
+    private void validateVersionPairExists(Integer oldVersionId, Integer newVersionId) {
+
+        versionValidation.validateVersionExists(oldVersionId);
+        versionValidation.validateVersionExists(newVersionId);
     }
 }
