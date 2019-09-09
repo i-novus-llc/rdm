@@ -34,6 +34,7 @@ import ru.inovus.ms.rdm.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.provider.N2oDomain;
 import ru.inovus.ms.rdm.service.api.ConflictService;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.util.ConflictUtils;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -60,7 +61,7 @@ public class RefBookDataController {
     private static final String BOOL_FIELD_ID = "id";
     private static final String BOOL_FIELD_NAME = "name";
 
-    private static Map<String, Object> cellOptions = getConflictedCellOptions();
+    private static Map<String, Object> dataConflictedCellOptions = getDataConflictedCellOptions();
 
     @Autowired
     private MetadataEnvironment env;
@@ -76,7 +77,7 @@ public class RefBookDataController {
         Page<Long> conflictedRowIdsPage = null;
         if (BooleanUtils.isTrue(criteria.getHasDataConflict())) {
 
-            long conflictsCount = conflictService.countConflictedRowIds(toRefBookConflictCriteria(criteria));
+            long conflictsCount = conflictService.countConflictedRowIds(toRefBookDataConflictCriteria(criteria));
             if (conflictsCount == 0)
                 return new RestPage<>(emptyList(), new SearchDataCriteria(), 0);
 
@@ -106,15 +107,16 @@ public class RefBookDataController {
     }
 
     private Page<Long> getConflictedRowIds(DataCriteria criteria, int pageSize) {
-        RefBookConflictCriteria refBookConflictCriteria = toRefBookConflictCriteria(criteria);
+        RefBookConflictCriteria refBookConflictCriteria = toRefBookDataConflictCriteria(criteria);
         refBookConflictCriteria.setPageSize(pageSize);
         return conflictService.searchConflictedRowIds(refBookConflictCriteria);
     }
 
-    private RefBookConflictCriteria toRefBookConflictCriteria(DataCriteria criteria) {
+    private RefBookConflictCriteria toRefBookDataConflictCriteria(DataCriteria criteria) {
         RefBookConflictCriteria conflictCriteria = new RefBookConflictCriteria();
         conflictCriteria.setPageSize(criteria.getSize());
         conflictCriteria.setReferrerVersionId(criteria.getVersionId());
+        conflictCriteria.setConflictTypes(ConflictUtils.getDataConflictTypes());
         conflictCriteria.setIsLastPublishedVersion(true);
         return conflictCriteria;
     }
@@ -182,18 +184,19 @@ public class RefBookDataController {
     }
 
     private List<DataGridRow> getDataGridRows(DataCriteria criteria, List<RefBookRowValue> search, boolean allWithConflicts) {
+
         List<Long> conflictedRowsIds = allWithConflicts
                 ? emptyList()
                 : conflictService.getReferrerConflictedIds(criteria.getVersionId(), getRowSystemIds(search));
 
         return search.stream()
                 .map(rowValue -> {
-                            boolean rowHasConflict = allWithConflicts || conflictedRowsIds.contains(rowValue.getSystemId());
+                            boolean isDataConflict = allWithConflicts || conflictedRowsIds.contains(rowValue.getSystemId());
 
                             return toDataGridRow(
                                     rowValue,
                                     criteria.getVersionId(),
-                                    rowHasConflict
+                                    isDataConflict
                             );
                         }
                 )
@@ -206,23 +209,21 @@ public class RefBookDataController {
                 .collect(toList());
     }
 
-    private DataGridRow toDataGridRow(RowValue rowValue, Integer versionId, boolean hasConflict) {
+    // NB: to-do: DataGridRowCriteria ?!
+    private DataGridRow toDataGridRow(RowValue rowValue, Integer versionId, boolean isDataConflict) {
         Map<String, Object> row = new HashMap<>();
         LongRowValue longRowValue = (LongRowValue) rowValue;
         longRowValue.getFieldValues()
-                .forEach(fieldValue -> {
-                            Object cell = hasConflict
-                                    ? new DataGridCell(toStringValue(fieldValue), cellOptions)
-                                    : toStringValue(fieldValue);
-                            row.put(addPrefix(fieldValue.getField()), cell);
-                        }
+                .forEach(fieldValue ->
+                            row.put(addPrefix(fieldValue.getField()),
+                                    fieldValueToCell(fieldValue, isDataConflict))
                 );
         row.put("id", String.valueOf(longRowValue.getSystemId()));
         row.put("versionId", String.valueOf(versionId));
         return new DataGridRow(longRowValue.getSystemId(), row);
     }
 
-    private static Map<String, Object> getConflictedCellOptions () {
+    private static Map<String, Object> getDataConflictedCellOptions() {
         Map<String, Object> cellOptions = new HashMap<>();
         cellOptions.put("src", "TextCell");
 
@@ -233,13 +234,23 @@ public class RefBookDataController {
         return cellOptions;
     }
 
-    private String toStringValue(FieldValue value) {
-        Optional<Object> valueOptional = ofNullable(value).map(FieldValue::getValue);
-        if (value instanceof ReferenceFieldValue)
+    private Object fieldValueToCell(FieldValue fieldValue, boolean isDataConflict) {
+
+        String stringValue = fieldValueToString(fieldValue);
+
+        if (isDataConflict)
+            return new DataGridCell(stringValue, dataConflictedCellOptions);
+
+        return stringValue;
+    }
+
+    private String fieldValueToString(FieldValue fieldValue) {
+        Optional<Object> valueOptional = ofNullable(fieldValue).map(FieldValue::getValue);
+        if (fieldValue instanceof ReferenceFieldValue)
             return valueOptional.filter(o -> o instanceof Reference).map(o -> (Reference) o)
                     .map(this::referenceToString).orElse(null);
 
-        else if (value instanceof DateFieldValue)
+        else if (fieldValue instanceof DateFieldValue)
             return valueOptional.filter(o -> o instanceof LocalDate).map(o -> (LocalDate) o)
                     .map(localDate -> localDate.format(ofPattern(DATE_PATTERN_EUROPEAN)))
                     .orElse(null);

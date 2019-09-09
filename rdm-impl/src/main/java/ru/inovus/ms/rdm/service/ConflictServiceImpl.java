@@ -64,8 +64,8 @@ public class ConflictServiceImpl implements ConflictService {
     private static final int REF_BOOK_VERSION_PAGE_SIZE = 100;
     static final int REF_BOOK_VERSION_DATA_PAGE_SIZE = 100;
 
-    private static final List<DiffStatusEnum> CALCULATING_DIFF_STATUS_LIST = asList(DiffStatusEnum.DELETED, DiffStatusEnum.UPDATED);
-    private static final List<ConflictType> RECALCULATING_CONFLICT_TYPE_LIST = asList(ConflictType.UPDATED, ConflictType.ALTERED);
+    private static final List<DiffStatusEnum> CALCULATING_DIFF_STATUSES = asList(DiffStatusEnum.DELETED, DiffStatusEnum.UPDATED);
+    private static final List<ConflictType> RECALCULATING_CONFLICT_TYPES = asList(ConflictType.UPDATED, ConflictType.ALTERED);
 
     static final List<Sort.Order> SORT_VERSION_DATA = singletonList(
             new Sort.Order(Sort.Direction.ASC, DataConstants.SYS_PRIMARY_COLUMN)
@@ -367,7 +367,7 @@ public class ConflictServiceImpl implements ConflictService {
                 // NB: Если структура изменена, то все строки помечаются как ALTERED-конфликтные,
                 // поэтому для перевычисления достаточно отработать только удалённые конфликты
                 // (see details in javadoc of ConflictServiceTest#testRecalculateConflicts).
-                .filter(conflict -> !(isAltered && RECALCULATING_CONFLICT_TYPE_LIST.contains(conflict.getConflictType())))
+                .filter(conflict -> !(isAltered && RECALCULATING_CONFLICT_TYPES.contains(conflict.getConflictType())))
                 .collect(toList());
 
         return recalculateDataConflicts(refFromEntity, oldRefToEntity, newRefToEntity, filteredConflicts, refFromRowValues, diffRowValues);
@@ -594,7 +594,7 @@ public class ConflictServiceImpl implements ConflictService {
         return diffRowValues.getContent().stream()
                 .filter(diffRowValue -> isAltered
                         ? DiffStatusEnum.DELETED.equals(diffRowValue.getStatus())
-                        : CALCULATING_DIFF_STATUS_LIST.contains(diffRowValue.getStatus()))
+                        : CALCULATING_DIFF_STATUSES.contains(diffRowValue.getStatus()))
                 .collect(toList());
     }
 

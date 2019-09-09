@@ -8,7 +8,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
-import ru.inovus.ms.rdm.enumeration.ConflictType;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.conflict.RefBookConflict;
 import ru.inovus.ms.rdm.model.conflict.RefBookConflictCriteria;
@@ -22,6 +21,7 @@ import ru.inovus.ms.rdm.service.api.ConflictService;
 import ru.inovus.ms.rdm.service.api.DraftService;
 import ru.inovus.ms.rdm.service.api.RefBookService;
 import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.util.ConflictUtils;
 import ru.inovus.ms.rdm.util.StructureUtils;
 import ru.inovus.ms.rdm.util.TimeUtils;
 
@@ -95,7 +95,7 @@ public class StructureController {
         RefBookConflictCriteria conflictCriteria = new RefBookConflictCriteria();
         conflictCriteria.setReferrerVersionId(versionId);
         conflictCriteria.setRefFieldCode(fieldCode);
-        conflictCriteria.setConflictType(ConflictType.DISPLAY_DAMAGED);
+        conflictCriteria.setConflictTypes(ConflictUtils.getStructureConflictTypes());
         conflictCriteria.setPageSize(1);
 
         Page<RefBookConflict> conflicts = conflictService.search(conflictCriteria);
