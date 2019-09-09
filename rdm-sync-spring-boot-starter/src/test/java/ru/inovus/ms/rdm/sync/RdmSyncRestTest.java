@@ -17,6 +17,7 @@ import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
 import ru.inovus.ms.rdm.model.*;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.model.diff.RefBookDataDiff;
+import ru.inovus.ms.rdm.model.diff.StructureDiff;
 import ru.inovus.ms.rdm.model.field.CommonField;
 import ru.inovus.ms.rdm.model.refbook.RefBook;
 import ru.inovus.ms.rdm.model.refbook.RefBookCriteria;
@@ -39,8 +40,7 @@ import java.time.Month;
 import java.util.*;
 
 import static java.util.Arrays.asList;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -118,6 +118,8 @@ public class RdmSyncRestTest {
         when(mappingService.map(FieldType.STRING, DataTypeEnum.VARCHAR, data.getContent().get(0).getFieldValues().get(1).getValue())).thenReturn("London");
         when(mappingService.map(FieldType.INTEGER, DataTypeEnum.INTEGER, data.getContent().get(2).getFieldValues().get(0).getValue())).thenReturn(BigInteger.valueOf(3L));
         when(mappingService.map(FieldType.STRING, DataTypeEnum.VARCHAR, data.getContent().get(2).getFieldValues().get(1).getValue())).thenReturn("Guadalupe");
+        when(compareService.compareStructures(anyInt(), anyInt())).thenReturn(new StructureDiff(Collections.emptyList(), Collections.emptyList(), Collections.emptyList()));
+
         rdmSyncRest.update(versionMapping.getCode());
         verify(dao).markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), BigInteger.valueOf(1L), true);
         verify(dao).insertRow(versionMapping.getTable(), dataMap.get(1));
@@ -145,6 +147,7 @@ public class RdmSyncRestTest {
         when(mappingService.map(FieldType.INTEGER, DataTypeEnum.INTEGER, data.getContent().get(0).getFieldValues().get(0).getValue())).thenReturn(BigInteger.valueOf(1L));
         when(mappingService.map(FieldType.STRING, DataTypeEnum.VARCHAR, data.getContent().get(0).getFieldValues().get(1).getValue())).thenReturn("London");
         when(dao.isIdExists(versionMapping.getTable(), versionMapping.getPrimaryField(), BigInteger.ONE)).thenReturn(true);
+        when(compareService.compareStructures(any(Integer.class), any(Integer.class))).thenReturn(new StructureDiff(Collections.emptyList(), Collections.emptyList(), Collections.emptyList()));
         rdmSyncRest.update(versionMapping.getCode());
         verify(dao).markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), BigInteger.valueOf(1L), false);
         verify(dao).updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), dataMap.get(2));
@@ -153,6 +156,7 @@ public class RdmSyncRestTest {
 
     private RefBook createFirstRdmVersion() {
         RefBook refBook = new RefBook();
+        refBook.setId(1);
         refBook.setLastPublishedVersion("1.0");
         refBook.setLastPublishedVersionFromDate(LocalDateTime.of(2019, Month.FEBRUARY, 26, 10, 0));
         Structure.Attribute idAttribute = Structure.Attribute.build("id", null, FieldType.INTEGER, null);
@@ -164,6 +168,7 @@ public class RdmSyncRestTest {
 
     private RefBook createSecondRdmVersion() {
         RefBook refBook = new RefBook();
+        refBook.setId(2);
         refBook.setLastPublishedVersion("1.1");
         refBook.setLastPublishedVersionFromDate(LocalDateTime.of(2019, Month.FEBRUARY, 27, 10, 0));
         Structure.Attribute idAttribute = Structure.Attribute.build("id", null, FieldType.INTEGER, null);
@@ -175,6 +180,7 @@ public class RdmSyncRestTest {
 
     private RefBook createThirdRdmVersion() {
         RefBook refBook = new RefBook();
+        refBook.setId(3);
         refBook.setLastPublishedVersion("1.2");
         refBook.setLastPublishedVersionFromDate(LocalDateTime.of(2019, Month.MARCH, 7, 10, 0));
         Structure.Attribute idAttribute = Structure.Attribute.build("id", null, FieldType.INTEGER, null);

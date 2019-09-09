@@ -49,6 +49,8 @@ public class StructureDiff {
         private Structure.Attribute oldAttribute;
         private Structure.Attribute newAttribute;
 
+        public AttributeDiff() {}
+
         public AttributeDiff(Structure.Attribute oldAttribute, Structure.Attribute newAttribute) {
             this.oldAttribute = oldAttribute;
             this.newAttribute = newAttribute;

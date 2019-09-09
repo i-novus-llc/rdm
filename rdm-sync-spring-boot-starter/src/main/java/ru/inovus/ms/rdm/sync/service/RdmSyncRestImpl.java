@@ -15,6 +15,7 @@ import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.model.diff.RefBookDataDiff;
+import ru.inovus.ms.rdm.model.diff.StructureDiff;
 import ru.inovus.ms.rdm.model.refbook.RefBook;
 import ru.inovus.ms.rdm.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
@@ -133,9 +134,16 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     }
 
     private void mergeData(VersionMapping versionMapping, RefBook newVersion) {
+        Integer oldVersionId = versionService.getVersion(versionMapping.getVersion(), versionMapping.getCode()).getId();
+        StructureDiff structureDiff = compareService.compareStructures(oldVersionId, newVersion.getId());
+        if (!CollectionUtils.isEmpty(structureDiff.getUpdated()) || !CollectionUtils.isEmpty(structureDiff.getDeleted())) {
+            dao.markDeleted(versionMapping.getTable(), versionMapping.getDeletedField(), true);
+            uploadNew(versionMapping, newVersion);
+            return;
+        }
         List<FieldMapping> fieldMappings = dao.getFieldMapping(versionMapping.getCode());
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria();
-        compareDataCriteria.setOldVersionId(versionService.getVersion(versionMapping.getVersion(), versionMapping.getCode()).getId());
+        compareDataCriteria.setOldVersionId(oldVersionId);
         compareDataCriteria.setNewVersionId(newVersion.getId());
         compareDataCriteria.setCountOnly(true);
         compareDataCriteria.setPageSize(1);
@@ -217,13 +225,13 @@ public class RdmSyncRestImpl implements RdmSyncRest {
             searchDataCriteria.setPageNumber(page);
             list = versionService.search(versionMapping.getCode(), searchDataCriteria);
             for (RefBookRowValue row : list.getContent()) {
-                insertRow(row, existingDataIds, versionMapping, fieldMappings, newVersion);
+                insertOrUpdateRow(row, existingDataIds, versionMapping, fieldMappings, newVersion);
             }
             page++;
         }
     }
 
-    private void insertRow(RefBookRowValue row, List<Object> existingDataIds, VersionMapping versionMapping, List<FieldMapping> fieldMappings, RefBook newVersion) {
+    private void insertOrUpdateRow(RefBookRowValue row, List<Object> existingDataIds, VersionMapping versionMapping, List<FieldMapping> fieldMappings, RefBook newVersion) {
         String primaryField = versionMapping.getPrimaryField();
         Map<String, Object> mappedRow = new HashMap<>();
         for (FieldValue fieldValue : row.getFieldValues()) {
@@ -234,6 +242,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         Object primaryValue = mappedRow.get(primaryField);
         if (existingDataIds.contains(primaryValue)) {
             //если запись существует, обновляем
+            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, false);
             dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow);
         } else {
             //создаем новую запись
