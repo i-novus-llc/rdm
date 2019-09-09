@@ -93,14 +93,18 @@
             <text-area id="description" label="Описание" rows="2"/>
 
             <!-- Пользовательские проверки -->
-
             <checkbox id="required" label="Обязательный атрибут">
                 <dependencies>
                     <visibility on="attrType,isPrimary">
                         (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; !isPrimary)
                     </visibility>
-                    <set-value on="isPrimary">
-                        if (isPrimary) return false; else return;
+                    <set-value on="attrType,isPrimary">
+                        if (isPrimary)
+                            return false;
+                        else if (attrType.id == 'BOOLEAN')
+                            return null;
+                        else
+                            return;
                     </set-value>
                 </dependencies>
             </checkbox>
@@ -110,8 +114,13 @@
                     <visibility on="attrType,isPrimary">
                         (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; !isPrimary)
                     </visibility>
-                    <set-value on="isPrimary">
-                        if (isPrimary) return false; else return;
+                    <set-value on="attrType,isPrimary">
+                        if (isPrimary)
+                            return false;
+                        else if (attrType.id == 'BOOLEAN')
+                            return null;
+                        else
+                            return;
                     </set-value>
                 </dependencies>
             </checkbox>
@@ -121,6 +130,11 @@
                     <visibility on="attrType">
                         attrType.id == 'STRING' || attrType.id == 'INTEGER'
                     </visibility>
+                    <set-value on="attrType">
+                        if (attrType.id != 'STRING' &amp;&amp; attrType.id != 'INTEGER')
+                            return null;
+                        else return;
+                    </set-value>
                 </dependencies>
             </input-text>
             <row>
@@ -129,6 +143,9 @@
                         <visibility on="attrType">
                             attrType.id == 'FLOAT'
                         </visibility>
+                        <set-value on="attrType">
+                            if (attrType.id != 'FLOAT') return null; else return;
+                        </set-value>
                     </dependencies>
                 </input-text>
                 <input-text id="fracPartSize" domain="integer" label="Максимальная длина дробной части" min="1">
@@ -136,6 +153,9 @@
                         <visibility on="attrType">
                             attrType.id == 'FLOAT'
                         </visibility>
+                        <set-value on="attrType">
+                            if (attrType.id != 'FLOAT') return null; else return;
+                        </set-value>
                     </dependencies>
                 </input-text>
             </row>
@@ -146,6 +166,9 @@
                         <visibility on="attrType">
                             attrType.id == 'INTEGER'
                         </visibility>
+                        <set-value on="attrType">
+                            if (attrType.id != 'INTEGER') return null; else return;
+                        </set-value>
                     </dependencies>
                 </input-text>
                 <input-text id="maxInteger" domain="integer" label="Максимальное значение">
@@ -153,6 +176,9 @@
                         <visibility on="attrType">
                             attrType.id == 'INTEGER'
                         </visibility>
+                        <set-value on="attrType">
+                            if (attrType.id != 'INTEGER') return null; else return;
+                        </set-value>
                     </dependencies>
                 </input-text>
             </row>
@@ -162,6 +188,9 @@
                         <visibility on="attrType">
                             attrType.id == 'FLOAT'
                         </visibility>
+                        <set-value on="attrType">
+                            if (attrType.id != 'FLOAT') return null; else return;
+                        </set-value>
                     </dependencies>
                 </input-text>
                 <input-text id="maxFloat" domain="numeric" label="Максимальное значение">
@@ -169,6 +198,9 @@
                         <visibility on="attrType">
                             attrType.id == 'FLOAT'
                         </visibility>
+                        <set-value on="attrType">
+                            if (attrType.id != 'FLOAT') return null; else return;
+                        </set-value>
                     </dependencies>
                 </input-text>
             </row>
@@ -178,6 +210,9 @@
                         <visibility on="attrType">
                             attrType.id == 'DATE'
                         </visibility>
+                        <set-value on="attrType">
+                            if (attrType.id != 'DATE') return null; else return;
+                        </set-value>
                     </dependencies>
                 </date-interval>
             </row>
@@ -186,9 +221,11 @@
                     <visibility on="attrType">
                         attrType.id == 'STRING'
                     </visibility>
+                    <set-value on="attrType">
+                        if (attrType.id != 'STRING') return null; else return;
+                    </set-value>
                 </dependencies>
             </input-text>
-
             <!-- / Пользовательские проверки -->
 
         </fields>
