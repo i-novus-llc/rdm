@@ -82,10 +82,12 @@
                 </validations>
             </input-text>
 
+<!--            <checkbox id="hasReferrer" label="Наличие ссылки на справочник"/>-->
+
             <checkbox id="isPrimary" label="Первичный ключ">
                 <dependencies>
-                    <enabling on="attrType">
-                        (!hasReferrer &amp;&amp; attrType != null &amp;&amp; attrType.id != 'BOOLEAN')
+                    <enabling on="attrType,hasReferrer">
+                        (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; (typeof hasReferrer == 'undefined' || !hasReferrer))
                     </enabling>
                 </dependencies>
             </checkbox>
