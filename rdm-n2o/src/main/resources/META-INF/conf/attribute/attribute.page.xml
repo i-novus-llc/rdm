@@ -82,6 +82,8 @@
                 </validations>
             </input-text>
 
+<!--            <checkbox id="hasReferrer" label="Наличие ссылки на справочник"/>-->
+
             <checkbox id="isPrimary" label="Первичный ключ">
                 <dependencies>
                     <enabling on="attrType,hasReferrer">
