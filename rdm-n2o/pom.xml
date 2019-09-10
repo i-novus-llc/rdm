@@ -267,7 +267,7 @@
                                     <goal>npm</goal>
                                 </goals>
                                 <configuration>
-                                    <arguments>run publish -- --yes --registry https://npm.i-novus.ru --no-git-tag-version</arguments>
+                                    <arguments>run publish --no-git-tag-version</arguments>
                                 </configuration>
                             </execution>
                         </executions>
