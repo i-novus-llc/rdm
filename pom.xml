@@ -49,9 +49,10 @@
         <module>rdm-api</module>
         <module>rdm-rest</module>
         <module>rdm-impl</module>
-        <module>rdm-n2o</module>
+        <module>rdm-frontend</module>
         <module>rdm-fnsi-impl</module>
         <module>rdm-sync-spring-boot-starter</module>
+        <module>rdm-n2o</module>
     </modules>
 
     <distributionManagement>
