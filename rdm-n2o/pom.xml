@@ -4,7 +4,7 @@
     <parent>
         <groupId>ru.inovus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
-        <version>1.52-SNAPSHOT</version>
+        <version>1.57-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -207,7 +207,7 @@
             </build>
         </profile>
         <profile>
-            <id>frontend-build-publish</id>
+            <id>frontend-config-publish</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
@@ -252,22 +252,12 @@
                             </execution>
 
                             <execution>
-                                <id>npm run build</id>
+                                <id>npm run build config</id>
                                 <goals>
                                     <goal>npm</goal>
                                 </goals>
                                 <configuration>
-                                    <arguments>run build</arguments>
-                                </configuration>
-                            </execution>
-
-                            <execution>
-                                <id>npm run test</id>
-                                <goals>
-                                    <goal>npm</goal>
-                                </goals>
-                                <configuration>
-                                    <arguments>run test</arguments>
+                                    <arguments>run build:config</arguments>
                                 </configuration>
                             </execution>
 
@@ -277,7 +267,7 @@
                                     <goal>npm</goal>
                                 </goals>
                                 <configuration>
-                                    <arguments>run publish --yes --registry https://npm.i-novus.ru</arguments>
+                                    <arguments>run publish -- --registry https://npm.i-novus.ru --no-git-tag-version</arguments>
                                 </configuration>
                             </execution>
                         </executions>
