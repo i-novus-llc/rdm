@@ -7,7 +7,7 @@
     <parent>
         <groupId>ru.inovus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
-        <version>1.63</version>
+        <version>1.64-SNAPSHOT</version>
     </parent>
 
     <properties>
