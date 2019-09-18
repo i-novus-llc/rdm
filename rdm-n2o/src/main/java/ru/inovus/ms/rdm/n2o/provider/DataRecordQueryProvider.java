@@ -8,7 +8,6 @@ import net.n2oapp.framework.api.metadata.global.dao.invocation.model.Argument;
 import net.n2oapp.framework.api.register.DynamicMetadataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.n2o.model.Structure;
 import ru.inovus.ms.rdm.n2o.service.DataRecordController;
 import ru.inovus.ms.rdm.n2o.service.api.VersionService;
@@ -21,7 +20,6 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static java.util.stream.Stream.of;
-import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
 
 @Service
 public class DataRecordQueryProvider implements DynamicMetadataProvider {
