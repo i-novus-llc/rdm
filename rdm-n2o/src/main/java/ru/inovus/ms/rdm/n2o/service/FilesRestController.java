@@ -7,6 +7,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.inovus.ms.rdm.enumeration.FileType;
@@ -68,8 +69,7 @@ public class FilesRestController {
 
     private void saveVersionDownloadAuditLog(Integer versionId) {
         auditLogService.addAction(new AuditLog(null,
-//                SecurityContextHolder.getContext().getAuthentication().getName(),
-                null, //todo
+                SecurityContextHolder.getContext().getAuthentication().getName(),
                 LocalDateTime.now(),
                 AuditAction.DOWNLOAD,
                 versionService.getById(versionId).getCode()));
