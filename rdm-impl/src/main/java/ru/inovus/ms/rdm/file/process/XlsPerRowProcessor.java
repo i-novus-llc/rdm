@@ -68,14 +68,14 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
     }
 
     @Override
-    public ru.inovus.ms.rdm.model.refdata.Row next() {
+    public ru.inovus.ms.rdm.n2o.model.refdata.Row next() {
         if (hasNext()) {
             return parseFromXlsx(rowIterator.next());
         }
         return null;
     }
 
-    private ru.inovus.ms.rdm.model.refdata.Row parseFromXlsx(org.apache.poi.ss.usermodel.Row row) {
+    private ru.inovus.ms.rdm.n2o.model.refdata.Row parseFromXlsx(org.apache.poi.ss.usermodel.Row row) {
         LinkedHashMap<String, Object> params = new LinkedHashMap<>();
         DataFormatter formatter = new DataFormatter();
 
@@ -91,7 +91,7 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
                         .orElse(null));
             }
         }
-        return new ru.inovus.ms.rdm.model.refdata.Row(params);
+        return new ru.inovus.ms.rdm.n2o.model.refdata.Row(params);
     }
 
     @Override

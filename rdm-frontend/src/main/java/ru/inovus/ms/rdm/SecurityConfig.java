@@ -11,8 +11,6 @@ import org.springframework.security.config.annotation.web.configurers.Expression
 import org.springframework.security.oauth2.client.filter.OAuth2ClientAuthenticationProcessingFilter;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import ru.inovus.ms.rdm.audit.RdmAuditedAuthenticationSuccessHandler;
-import ru.inovus.ms.rdm.audit.AuditLogoutHandler;
 
 @Configuration
 @EnableWebSecurity

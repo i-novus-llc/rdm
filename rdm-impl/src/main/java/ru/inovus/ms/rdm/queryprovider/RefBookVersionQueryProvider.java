@@ -17,8 +17,8 @@ import ru.inovus.ms.rdm.entity.QPassportValueEntity;
 import ru.inovus.ms.rdm.entity.QRefBookVersionEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
-import ru.inovus.ms.rdm.model.refbook.RefBookCriteria;
-import ru.inovus.ms.rdm.model.version.VersionCriteria;
+import ru.inovus.ms.rdm.n2o.model.refbook.RefBookCriteria;
+import ru.inovus.ms.rdm.n2o.model.version.VersionCriteria;
 import ru.inovus.ms.rdm.predicate.PassportPredicateProducer;
 
 import javax.persistence.EntityManager;

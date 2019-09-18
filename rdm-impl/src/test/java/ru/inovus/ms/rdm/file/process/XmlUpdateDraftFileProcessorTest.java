@@ -8,8 +8,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.inovus.ms.rdm.file.UploadFileTestData;
-import ru.inovus.ms.rdm.model.draft.CreateDraftRequest;
-import ru.inovus.ms.rdm.service.api.DraftService;
+import ru.inovus.ms.rdm.n2o.model.draft.CreateDraftRequest;
+import ru.inovus.ms.rdm.n2o.service.api.DraftService;
 
 import static org.mockito.Mockito.*;
 

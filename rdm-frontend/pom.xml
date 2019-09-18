@@ -26,6 +26,11 @@
         </dependency>
 
         <dependency>
+            <groupId>ru.inovus.ms.rdm</groupId>
+            <artifactId>rdm-n2o</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>net.n2oapp.framework</groupId>
             <artifactId>n2o-spring-boot-starter</artifactId>
         </dependency>

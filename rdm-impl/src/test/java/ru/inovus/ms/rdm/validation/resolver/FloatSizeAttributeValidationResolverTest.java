@@ -4,8 +4,8 @@ import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.junit.Test;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.model.validation.FloatSizeAttributeValidation;
+import ru.inovus.ms.rdm.n2o.model.Structure;
+import ru.inovus.ms.rdm.n2o.model.validation.FloatSizeAttributeValidation;
 
 import java.math.BigDecimal;
 

@@ -8,7 +8,7 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.UserType;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.n2o.model.Structure;
 
 import javax.persistence.PersistenceException;
 import java.io.IOException;

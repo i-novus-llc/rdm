@@ -1,0 +1,75 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="versionList">
+
+    <list result-mapping="content" count-mapping="totalElements" filters="refBookId,excludeDraft">
+        <java method="getVersions" class="ru.inovus.ms.rdm.n2o.service.api.VersionService">
+            <spring bean="versionServiceJaxRsProxyClient"/>
+            <arguments>
+                <argument type="criteria" class="ru.inovus.ms.rdm.n2o.model.version.VersionCriteria"/>
+            </arguments>
+        </java>
+    </list>
+
+    <unique filters="id,excludeDraft" result-mapping="#this">
+        <java method="getVersion" class="ru.inovus.ms.rdm.n2o.service.VersionController">
+            <spring/>
+            <arguments>
+                <argument type="criteria" class="ru.inovus.ms.rdm.n2o.model.version.VersionCriteria"/>
+            </arguments>
+        </java>
+    </unique>
+
+    <fields>
+        <field id="id" domain="integer">
+            <select/>
+            <filters>
+                <eq filter-id="id" mapping="id" domain="integer"/>
+            </filters>
+        </field>
+
+        <field id="refBookId" domain="integer">
+            <select/>
+            <filters>
+                <eq filter-id="refBookId" mapping="refBookId" domain="integer"/>
+            </filters>
+        </field>
+
+        <field id="code" domain="string" name="Код справочника">
+            <select/>
+        </field>
+
+        <field id="name" domain="string">
+            <select mapping="passport['name']"/>
+            <filters>
+                <eq filter-id="name" mapping="passport['name']"/>
+            </filters>
+        </field>
+
+        <field id="fromDate" domain="date">
+            <select/>
+        </field>
+
+        <field id="version" domain="string">
+            <select mapping="version?:'Новая (изм. ' + editDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy')) + ')'"/>
+            <filters/>
+        </field>
+
+        <field id="status" domain="string">
+            <select/>
+        </field>
+
+        <field id="editDate" domain="string">
+            <select/>
+        </field>
+
+        <field id="archived" domain="boolean">
+            <select/>
+        </field>
+
+        <field id="excludeDraft" domain="boolean">
+            <filters>
+                <eq filter-id="excludeDraft" mapping="excludeDraft" default-value="false"/>
+            </filters>
+        </field>
+    </fields>
+</query>

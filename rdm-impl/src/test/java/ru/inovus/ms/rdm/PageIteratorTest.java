@@ -5,15 +5,14 @@ import org.junit.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Sort;
-import ru.inovus.ms.rdm.model.AbstractCriteria;
-import ru.inovus.ms.rdm.util.PageIterator;
+import ru.inovus.ms.rdm.n2o.model.AbstractCriteria;
+import ru.inovus.ms.rdm.n2o.util.PageIterator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class PageIteratorTest {
 

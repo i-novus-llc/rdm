@@ -13,9 +13,9 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.inovus.ms.rdm.model.refdata.Row;
-import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.util.ConverterUtil;
+import ru.inovus.ms.rdm.n2o.model.refdata.Row;
+import ru.inovus.ms.rdm.n2o.model.Structure;
+import ru.inovus.ms.rdm.n2o.util.ConverterUtil;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -24,7 +24,7 @@ import java.util.*;
 import static java.util.Collections.emptyList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDate;
+import static ru.inovus.ms.rdm.n2o.util.TimeUtils.parseLocalDate;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DBPrimaryKeyValidationTest {

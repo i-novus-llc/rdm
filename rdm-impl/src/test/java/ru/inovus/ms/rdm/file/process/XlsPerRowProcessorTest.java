@@ -4,9 +4,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.file.StructureRowMapper;
-import ru.inovus.ms.rdm.model.Result;
-import ru.inovus.ms.rdm.model.refdata.Row;
-import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.n2o.model.Result;
+import ru.inovus.ms.rdm.n2o.model.refdata.Row;
+import ru.inovus.ms.rdm.n2o.model.Structure;
 
 import java.math.BigInteger;
 import java.time.LocalDate;

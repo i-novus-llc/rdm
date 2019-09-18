@@ -1,7 +1,7 @@
 package ru.inovus.ms.rdm.file;
 
-import ru.inovus.ms.rdm.model.FileModel;
-import ru.inovus.ms.rdm.service.DraftServiceTest;
+import ru.inovus.ms.rdm.n2o.model.FileModel;
+import ru.inovus.ms.rdm.n2o.service.DraftServiceTest;
 
 import java.io.InputStream;
 

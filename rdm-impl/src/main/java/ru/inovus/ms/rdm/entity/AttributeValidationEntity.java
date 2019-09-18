@@ -1,7 +1,7 @@
 package ru.inovus.ms.rdm.entity;
 
-import ru.inovus.ms.rdm.model.validation.AttributeValidation;
-import ru.inovus.ms.rdm.model.validation.AttributeValidationType;
+import ru.inovus.ms.rdm.n2o.model.validation.AttributeValidation;
+import ru.inovus.ms.rdm.n2o.model.validation.AttributeValidationType;
 
 import javax.persistence.*;
 

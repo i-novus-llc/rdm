@@ -1,7 +1,7 @@
 package ru.inovus.ms.rdm.file.process;
 
-import ru.inovus.ms.rdm.model.refbook.RefBookUpdateRequest;
-import ru.inovus.ms.rdm.service.api.PassportService;
+import ru.inovus.ms.rdm.n2o.model.refbook.RefBookUpdateRequest;
+import ru.inovus.ms.rdm.n2o.service.api.PassportService;
 
 import java.util.Map;
 

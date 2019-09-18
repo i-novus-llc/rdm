@@ -86,6 +86,12 @@
 
             <dependency>
                 <groupId>ru.inovus.ms.rdm</groupId>
+                <artifactId>rdm-n2o</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.inovus.ms.rdm</groupId>
                 <artifactId>rdm-fnsi-impl</artifactId>
                 <version>${project.version}</version>
                 <scope>runtime</scope>

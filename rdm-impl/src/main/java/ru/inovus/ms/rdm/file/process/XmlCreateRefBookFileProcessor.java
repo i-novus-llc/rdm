@@ -1,7 +1,7 @@
 package ru.inovus.ms.rdm.file.process;
 
-import ru.inovus.ms.rdm.model.refbook.RefBookCreateRequest;
-import ru.inovus.ms.rdm.service.api.RefBookService;
+import ru.inovus.ms.rdm.n2o.model.refbook.RefBookCreateRequest;
+import ru.inovus.ms.rdm.n2o.service.api.RefBookService;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;

@@ -14,10 +14,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
-import ru.inovus.ms.rdm.model.audit.AuditAction;
-import ru.inovus.ms.rdm.model.audit.AuditLog;
-import ru.inovus.ms.rdm.model.audit.AuditLogCriteria;
-import ru.inovus.ms.rdm.service.api.AuditLogService;
+import ru.inovus.ms.rdm.n2o.model.audit.AuditAction;
+import ru.inovus.ms.rdm.n2o.model.audit.AuditLog;
+import ru.inovus.ms.rdm.n2o.model.audit.AuditLogCriteria;
+import ru.inovus.ms.rdm.n2o.service.api.AuditLogService;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -32,7 +32,7 @@ import static java.util.Comparator.comparing;
         webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
         properties = {
                 "cxf.jaxrs.client.classes-scan=true",
-                "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.service.api",
+                "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.n2o.service.api",
                 "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
                 "fileStorage.root=src/test/resources/rdm/temp",
                 "i18n.global.enabled=false"

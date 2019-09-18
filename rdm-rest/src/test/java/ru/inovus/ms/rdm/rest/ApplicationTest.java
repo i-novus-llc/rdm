@@ -29,26 +29,28 @@ import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 import ru.inovus.ms.rdm.enumeration.*;
-import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.model.conflict.CalculateConflictCriteria;
-import ru.inovus.ms.rdm.model.conflict.RefBookConflictCriteria;
-import ru.inovus.ms.rdm.model.version.*;
-import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
-import ru.inovus.ms.rdm.model.conflict.Conflict;
-import ru.inovus.ms.rdm.model.conflict.RefBookConflict;
-import ru.inovus.ms.rdm.model.diff.RefBookDataDiff;
-import ru.inovus.ms.rdm.model.draft.CreateDraftRequest;
-import ru.inovus.ms.rdm.model.draft.Draft;
-import ru.inovus.ms.rdm.model.field.CommonField;
-import ru.inovus.ms.rdm.model.refbook.RefBook;
-import ru.inovus.ms.rdm.model.refbook.RefBookCreateRequest;
-import ru.inovus.ms.rdm.model.refbook.RefBookCriteria;
-import ru.inovus.ms.rdm.model.refbook.RefBookUpdateRequest;
-import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
-import ru.inovus.ms.rdm.model.refdata.Row;
-import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
-import ru.inovus.ms.rdm.service.api.*;
-import ru.inovus.ms.rdm.util.FieldValueUtils;
+import ru.inovus.ms.rdm.n2o.model.ExportFile;
+import ru.inovus.ms.rdm.n2o.model.FileModel;
+import ru.inovus.ms.rdm.n2o.model.Structure;
+import ru.inovus.ms.rdm.n2o.model.conflict.CalculateConflictCriteria;
+import ru.inovus.ms.rdm.n2o.model.conflict.RefBookConflictCriteria;
+import ru.inovus.ms.rdm.n2o.model.version.*;
+import ru.inovus.ms.rdm.n2o.model.compare.CompareDataCriteria;
+import ru.inovus.ms.rdm.n2o.model.conflict.Conflict;
+import ru.inovus.ms.rdm.n2o.model.conflict.RefBookConflict;
+import ru.inovus.ms.rdm.n2o.model.diff.RefBookDataDiff;
+import ru.inovus.ms.rdm.n2o.model.draft.CreateDraftRequest;
+import ru.inovus.ms.rdm.n2o.model.draft.Draft;
+import ru.inovus.ms.rdm.n2o.model.field.CommonField;
+import ru.inovus.ms.rdm.n2o.model.refbook.RefBook;
+import ru.inovus.ms.rdm.n2o.model.refbook.RefBookCreateRequest;
+import ru.inovus.ms.rdm.n2o.model.refbook.RefBookCriteria;
+import ru.inovus.ms.rdm.n2o.model.refbook.RefBookUpdateRequest;
+import ru.inovus.ms.rdm.n2o.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.n2o.model.refdata.Row;
+import ru.inovus.ms.rdm.n2o.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.n2o.service.api.*;
+import ru.inovus.ms.rdm.n2o.util.FieldValueUtils;
 import ru.inovus.ms.rdm.validation.ReferenceValueValidation;
 
 import javax.sql.DataSource;
@@ -74,10 +76,10 @@ import static org.junit.Assert.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.platform.datastorage.temporal.model.DataConstants.SYS_PRIMARY_COLUMN;
 import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
-import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
-import static ru.inovus.ms.rdm.util.ConverterUtil.rowValue;
-import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDate;
-import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
+import static ru.inovus.ms.rdm.n2o.util.ConverterUtil.fields;
+import static ru.inovus.ms.rdm.n2o.util.ConverterUtil.rowValue;
+import static ru.inovus.ms.rdm.n2o.util.TimeUtils.parseLocalDate;
+import static ru.inovus.ms.rdm.n2o.util.TimeUtils.parseLocalDateTime;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
@@ -85,7 +87,7 @@ import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
         webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
         properties = {
                 "cxf.jaxrs.client.classes-scan=true",
-                "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.service.api",
+                "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.n2o.service.api",
                 "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
                 "fileStorage.root=src/test/resources/rdm/temp",
                 "i18n.global.enabled=false"

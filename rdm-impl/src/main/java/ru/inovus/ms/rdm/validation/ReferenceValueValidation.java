@@ -8,20 +8,20 @@ import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.inovus.ms.rdm.exception.NotFoundException;
 import ru.inovus.ms.rdm.exception.RdmException;
-import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.model.version.AttributeFilter;
-import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
-import ru.inovus.ms.rdm.model.refdata.Row;
-import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
-import ru.inovus.ms.rdm.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.n2o.model.Structure;
+import ru.inovus.ms.rdm.n2o.model.version.AttributeFilter;
+import ru.inovus.ms.rdm.n2o.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.n2o.model.refdata.Row;
+import ru.inovus.ms.rdm.n2o.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.n2o.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.n2o.service.api.VersionService;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
-import static ru.inovus.ms.rdm.util.ConverterUtil.castReferenceValue;
-import static ru.inovus.ms.rdm.util.ConverterUtil.field;
+import static ru.inovus.ms.rdm.n2o.util.ConverterUtil.castReferenceValue;
+import static ru.inovus.ms.rdm.n2o.util.ConverterUtil.field;
 
 /**
  * Проверка конкретного строкового значения на ссылочную целостность

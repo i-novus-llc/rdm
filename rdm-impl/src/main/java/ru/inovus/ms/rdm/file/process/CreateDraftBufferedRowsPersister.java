@@ -2,9 +2,9 @@ package ru.inovus.ms.rdm.file.process;
 
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-import ru.inovus.ms.rdm.model.Result;
-import ru.inovus.ms.rdm.model.refdata.Row;
-import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.n2o.model.Result;
+import ru.inovus.ms.rdm.n2o.model.refdata.Row;
+import ru.inovus.ms.rdm.n2o.model.Structure;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -13,8 +13,8 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
-import static ru.inovus.ms.rdm.util.ConverterUtil.field;
-import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
+import static ru.inovus.ms.rdm.n2o.util.ConverterUtil.field;
+import static ru.inovus.ms.rdm.n2o.util.ConverterUtil.fields;
 
 public class CreateDraftBufferedRowsPersister implements RowsProcessor {
 

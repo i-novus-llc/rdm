@@ -9,9 +9,9 @@ import ru.i_novus.platform.versioned_data_storage.pg_impl.service.FieldFactoryIm
 import ru.inovus.ms.rdm.file.process.RowsProcessor;
 import ru.inovus.ms.rdm.file.StructureRowMapper;
 import ru.inovus.ms.rdm.file.process.XlsPerRowProcessor;
-import ru.inovus.ms.rdm.model.Result;
-import ru.inovus.ms.rdm.model.refdata.Row;
-import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.n2o.model.Result;
+import ru.inovus.ms.rdm.n2o.model.refdata.Row;
+import ru.inovus.ms.rdm.n2o.model.Structure;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -23,7 +23,7 @@ import java.util.zip.ZipInputStream;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
-import static ru.inovus.ms.rdm.util.ConverterUtil.toRow;
+import static ru.inovus.ms.rdm.n2o.util.ConverterUtil.toRow;
 
 /**
  * Created by znurgaliev on 06.08.2018.

@@ -11,4 +11,4 @@ services:
     build:
       context: .
       args:
-        JAR_FILE: rdm-n2o/target/rdm.jar
+        JAR_FILE: rdm-frontend/target/rdm.jar
