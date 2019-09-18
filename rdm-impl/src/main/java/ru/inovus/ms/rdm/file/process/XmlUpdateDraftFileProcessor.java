@@ -1,8 +1,8 @@
 package ru.inovus.ms.rdm.file.process;
 
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.service.api.DraftService;
+import ru.inovus.ms.rdm.n2o.model.Structure;
+import ru.inovus.ms.rdm.n2o.service.api.DraftService;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;

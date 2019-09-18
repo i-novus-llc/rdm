@@ -1,6 +1,6 @@
 package ru.inovus.ms.rdm.validation;
 
-import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.n2o.model.Structure;
 
 public interface VersionValidation {
 

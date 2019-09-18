@@ -15,8 +15,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import ru.inovus.ms.rdm.entity.QRefBookConflictEntity;
 import ru.inovus.ms.rdm.entity.RefBookConflictEntity;
-import ru.inovus.ms.rdm.model.conflict.DeleteRefBookConflictCriteria;
-import ru.inovus.ms.rdm.model.conflict.RefBookConflictCriteria;
+import ru.inovus.ms.rdm.n2o.model.conflict.DeleteRefBookConflictCriteria;
+import ru.inovus.ms.rdm.n2o.model.conflict.RefBookConflictCriteria;
 
 import javax.persistence.EntityManager;
 import java.util.List;

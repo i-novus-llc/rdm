@@ -1,7 +1,7 @@
 package ru.inovus.ms.rdm.entity;
 
 import ru.inovus.ms.rdm.enumeration.ConflictType;
-import ru.inovus.ms.rdm.util.TimeUtils;
+import ru.inovus.ms.rdm.n2o.util.TimeUtils;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;

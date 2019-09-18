@@ -4,10 +4,10 @@ import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.AttributeValidationEntity;
-import ru.inovus.ms.rdm.model.Result;
-import ru.inovus.ms.rdm.model.refdata.Row;
-import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.n2o.model.Result;
+import ru.inovus.ms.rdm.n2o.model.refdata.Row;
+import ru.inovus.ms.rdm.n2o.model.Structure;
+import ru.inovus.ms.rdm.n2o.service.api.VersionService;
 import ru.inovus.ms.rdm.validation.*;
 
 import java.util.*;

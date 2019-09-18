@@ -3,11 +3,11 @@ package ru.inovus.ms.rdm.file.export;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.inovus.ms.rdm.exception.RdmException;
-import ru.inovus.ms.rdm.model.ExportFile;
-import ru.inovus.ms.rdm.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.n2o.model.ExportFile;
+import ru.inovus.ms.rdm.n2o.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.repository.PassportAttributeRepository;
-import ru.inovus.ms.rdm.service.api.CompareService;
-import ru.inovus.ms.rdm.service.api.VersionService;
+import ru.inovus.ms.rdm.n2o.service.api.CompareService;
+import ru.inovus.ms.rdm.n2o.service.api.VersionService;
 
 import java.io.IOException;
 

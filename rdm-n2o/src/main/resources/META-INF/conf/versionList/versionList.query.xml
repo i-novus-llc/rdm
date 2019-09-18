@@ -2,19 +2,19 @@
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="versionList">
 
     <list result-mapping="content" count-mapping="totalElements" filters="refBookId,excludeDraft">
-        <java method="getVersions" class="ru.inovus.ms.rdm.service.api.VersionService">
+        <java method="getVersions" class="ru.inovus.ms.rdm.n2o.service.api.VersionService">
             <spring bean="versionServiceJaxRsProxyClient"/>
             <arguments>
-                <argument type="criteria" class="ru.inovus.ms.rdm.model.version.VersionCriteria"/>
+                <argument type="criteria" class="ru.inovus.ms.rdm.n2o.model.version.VersionCriteria"/>
             </arguments>
         </java>
     </list>
 
     <unique filters="id,excludeDraft" result-mapping="#this">
-        <java method="getVersion" class="ru.inovus.ms.rdm.service.VersionController">
+        <java method="getVersion" class="ru.inovus.ms.rdm.n2o.service.VersionController">
             <spring/>
             <arguments>
-                <argument type="criteria" class="ru.inovus.ms.rdm.model.version.VersionCriteria"/>
+                <argument type="criteria" class="ru.inovus.ms.rdm.n2o.model.version.VersionCriteria"/>
             </arguments>
         </java>
     </unique>

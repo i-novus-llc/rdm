@@ -3,8 +3,8 @@ package ru.inovus.ms.rdm.entity;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
-import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.util.TimeUtils;
+import ru.inovus.ms.rdm.n2o.model.Structure;
+import ru.inovus.ms.rdm.n2o.util.TimeUtils;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;

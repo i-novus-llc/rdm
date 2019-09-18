@@ -7,12 +7,12 @@ import org.junit.Test;
 import org.xml.sax.SAXException;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.file.UploadFileTestData;
-import ru.inovus.ms.rdm.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.model.refdata.Row;
-import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.model.validation.AttributeValidation;
-import ru.inovus.ms.rdm.model.validation.IntRangeAttributeValidation;
-import ru.inovus.ms.rdm.model.validation.RequiredAttributeValidation;
+import ru.inovus.ms.rdm.n2o.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.n2o.model.refdata.Row;
+import ru.inovus.ms.rdm.n2o.model.Structure;
+import ru.inovus.ms.rdm.n2o.model.validation.AttributeValidation;
+import ru.inovus.ms.rdm.n2o.model.validation.IntRangeAttributeValidation;
+import ru.inovus.ms.rdm.n2o.model.validation.RequiredAttributeValidation;
 
 import java.io.*;
 import java.math.BigDecimal;
@@ -25,7 +25,7 @@ import static java.util.stream.Collectors.toList;
 import static org.custommonkey.xmlunit.XMLUnit.compareXML;
 import static org.junit.Assert.assertTrue;
 import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
-import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDate;
+import static ru.inovus.ms.rdm.n2o.util.TimeUtils.parseLocalDate;
 
 public class XmlFileGenerateProcessTest {
 

@@ -7,9 +7,9 @@ import org.slf4j.LoggerFactory;
 import ru.i_novus.platform.datastorage.temporal.exception.NotUniqueException;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-import ru.inovus.ms.rdm.model.Result;
-import ru.inovus.ms.rdm.model.refdata.Row;
-import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.n2o.model.Result;
+import ru.inovus.ms.rdm.n2o.model.refdata.Row;
+import ru.inovus.ms.rdm.n2o.model.Structure;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +18,7 @@ import java.util.Objects;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
-import static ru.inovus.ms.rdm.util.ConverterUtil.rowValue;
+import static ru.inovus.ms.rdm.n2o.util.ConverterUtil.rowValue;
 
 public class BufferedRowsPersister implements RowsProcessor {
 

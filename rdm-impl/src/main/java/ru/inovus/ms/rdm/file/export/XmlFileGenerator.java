@@ -4,11 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.exception.RdmException;
-import ru.inovus.ms.rdm.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.model.refdata.Row;
-import ru.inovus.ms.rdm.model.validation.AttributeValidation;
-import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.util.ConverterUtil;
+import ru.inovus.ms.rdm.n2o.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.n2o.model.refdata.Row;
+import ru.inovus.ms.rdm.n2o.model.validation.AttributeValidation;
+import ru.inovus.ms.rdm.n2o.model.Structure;
+import ru.inovus.ms.rdm.n2o.util.ConverterUtil;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;

@@ -6,8 +6,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.inovus.ms.rdm.model.refdata.Row;
-import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.n2o.model.refdata.Row;
+import ru.inovus.ms.rdm.n2o.model.Structure;
 
 import java.util.*;
 

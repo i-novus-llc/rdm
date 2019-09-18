@@ -1,7 +1,7 @@
 package ru.inovus.ms.rdm.file.export;
 
-import ru.inovus.ms.rdm.model.refdata.Row;
-import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.n2o.model.refdata.Row;
+import ru.inovus.ms.rdm.n2o.model.Structure;
 
 import java.io.Closeable;
 import java.io.OutputStream;

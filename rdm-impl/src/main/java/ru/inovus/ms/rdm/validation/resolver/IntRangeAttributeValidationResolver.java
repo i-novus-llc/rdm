@@ -3,8 +3,8 @@ package ru.inovus.ms.rdm.validation.resolver;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.model.validation.IntRangeAttributeValidation;
+import ru.inovus.ms.rdm.n2o.model.Structure;
+import ru.inovus.ms.rdm.n2o.model.validation.IntRangeAttributeValidation;
 
 import java.math.BigInteger;
 

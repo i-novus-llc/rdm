@@ -10,9 +10,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.entity.RefBookEntity;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
-import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.service.api.VersionService;
-import ru.inovus.ms.rdm.util.ModelGenerator;
+import ru.inovus.ms.rdm.n2o.model.Structure;
+import ru.inovus.ms.rdm.n2o.service.api.VersionService;
+import ru.inovus.ms.rdm.n2o.util.ModelGenerator;
 
 import java.util.HashMap;
 import java.util.List;

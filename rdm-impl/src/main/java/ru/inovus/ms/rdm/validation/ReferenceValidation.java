@@ -14,10 +14,10 @@ import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.RdmException;
-import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.n2o.model.Structure;
 import ru.inovus.ms.rdm.repository.RefBookVersionRepository;
-import ru.inovus.ms.rdm.util.ConverterUtil;
-import ru.inovus.ms.rdm.util.StructureUtils;
+import ru.inovus.ms.rdm.n2o.util.ConverterUtil;
+import ru.inovus.ms.rdm.n2o.util.StructureUtils;
 
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -28,7 +28,7 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
-import static ru.inovus.ms.rdm.util.ConverterUtil.field;
+import static ru.inovus.ms.rdm.n2o.util.ConverterUtil.field;
 
 public class ReferenceValidation implements RdmValidation {
 

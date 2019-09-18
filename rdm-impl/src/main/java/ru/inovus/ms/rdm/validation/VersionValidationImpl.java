@@ -5,7 +5,7 @@ import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.inovus.ms.rdm.exception.NotFoundException;
-import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.n2o.model.Structure;
 import ru.inovus.ms.rdm.repository.RefBookVersionRepository;
 
 import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.*;

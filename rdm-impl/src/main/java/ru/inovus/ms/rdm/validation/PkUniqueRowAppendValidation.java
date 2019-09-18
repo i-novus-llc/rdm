@@ -1,7 +1,7 @@
 package ru.inovus.ms.rdm.validation;
 
 import net.n2oapp.platform.i18n.Message;
-import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.n2o.model.Structure;
 
 import java.util.*;
 import java.util.stream.Collectors;

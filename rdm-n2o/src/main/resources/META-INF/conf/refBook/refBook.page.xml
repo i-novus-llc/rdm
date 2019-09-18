@@ -89,7 +89,7 @@
                   master-field-id="id" detail-field-id="version.id" object-id="refBook">
                 <toolbar place="bottomRight">
                     <!-- '.*_r$' паттерн названия кнопки, при котором обновляется виджет version_select -->
-                    <!--см. ru.inovus.ms.rdm.transformer.RefreshTransformer-->
+                    <!--см. RefreshTransformer-->
                     <!--todo: сделать отдельную кнопку без рефшреша для редактирования черновика-->
                     <button label="Изменить" id="edit_r">
                         <invoke operation-id="edit" close-after-success="false" />

@@ -10,10 +10,10 @@ import org.springframework.data.domain.PageRequest;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.inovus.ms.rdm.model.refdata.Row;
-import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
-import ru.inovus.ms.rdm.service.VersionServiceImpl;
-import ru.inovus.ms.rdm.util.ConverterUtil;
+import ru.inovus.ms.rdm.n2o.model.refdata.Row;
+import ru.inovus.ms.rdm.n2o.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.n2o.service.VersionServiceImpl;
+import ru.inovus.ms.rdm.n2o.util.ConverterUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -4,9 +4,9 @@ import net.n2oapp.platform.i18n.Message;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.entity.AttributeValidationEntity;
 import ru.inovus.ms.rdm.exception.RdmException;
-import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.model.version.UniqueAttributeValue;
-import ru.inovus.ms.rdm.model.validation.*;
+import ru.inovus.ms.rdm.n2o.model.Structure;
+import ru.inovus.ms.rdm.n2o.model.version.UniqueAttributeValue;
+import ru.inovus.ms.rdm.n2o.model.validation.*;
 import ru.inovus.ms.rdm.validation.resolver.*;
 
 import java.util.*;

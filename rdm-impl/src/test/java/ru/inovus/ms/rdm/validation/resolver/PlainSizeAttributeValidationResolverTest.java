@@ -4,8 +4,8 @@ import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.junit.Test;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.inovus.ms.rdm.model.Structure;
-import ru.inovus.ms.rdm.model.validation.PlainSizeAttributeValidation;
+import ru.inovus.ms.rdm.n2o.model.Structure;
+import ru.inovus.ms.rdm.n2o.model.validation.PlainSizeAttributeValidation;
 
 import static org.junit.Assert.*;
 import static ru.inovus.ms.rdm.validation.resolver.PlainSizeAttributeValidationResolver.PLAIN_SIZE_EXCEPTION_CODE;
