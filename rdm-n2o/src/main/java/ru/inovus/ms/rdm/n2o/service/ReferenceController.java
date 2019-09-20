@@ -8,18 +8,18 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.n2o.criteria.ReferenceCriteria;
-import ru.inovus.ms.rdm.n2o.model.Structure;
-import ru.inovus.ms.rdm.n2o.model.version.AttributeFilter;
-import ru.inovus.ms.rdm.n2o.model.refdata.RefBookRowValue;
-import ru.inovus.ms.rdm.n2o.model.refdata.SearchDataCriteria;
-import ru.inovus.ms.rdm.n2o.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.n2o.service.api.VersionService;
+import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
+import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
-import static ru.inovus.ms.rdm.n2o.util.FieldValueUtils.rowValueToDisplayValue;
+import static ru.inovus.ms.rdm.api.util.FieldValueUtils.rowValueToDisplayValue;
 
 @Controller
 public class ReferenceController {

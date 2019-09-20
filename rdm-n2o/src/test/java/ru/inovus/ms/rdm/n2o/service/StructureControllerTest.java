@@ -11,19 +11,19 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.inovus.ms.rdm.api.model.validation.*;
+import ru.inovus.ms.rdm.api.service.ConflictService;
+import ru.inovus.ms.rdm.api.service.DraftService;
+import ru.inovus.ms.rdm.api.service.RefBookService;
+import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.n2o.model.AttributeCriteria;
 import ru.inovus.ms.rdm.n2o.model.FormAttribute;
 import ru.inovus.ms.rdm.n2o.model.ReadAttribute;
-import ru.inovus.ms.rdm.n2o.model.Structure;
-import ru.inovus.ms.rdm.n2o.model.version.CreateAttribute;
-import ru.inovus.ms.rdm.n2o.model.version.UpdateAttribute;
-import ru.inovus.ms.rdm.n2o.model.refbook.RefBook;
-import ru.inovus.ms.rdm.n2o.model.validation.*;
-import ru.inovus.ms.rdm.n2o.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.n2o.service.api.ConflictService;
-import ru.inovus.ms.rdm.n2o.service.api.DraftService;
-import ru.inovus.ms.rdm.n2o.service.api.RefBookService;
-import ru.inovus.ms.rdm.n2o.service.api.VersionService;
+import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.version.CreateAttribute;
+import ru.inovus.ms.rdm.api.model.version.UpdateAttribute;
+import ru.inovus.ms.rdm.api.model.refbook.RefBook;
+import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -39,8 +39,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.*;
 import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
-import static ru.inovus.ms.rdm.n2o.model.Structure.Attribute.build;
-import static ru.inovus.ms.rdm.n2o.model.validation.AttributeValidationType.*;
+import static ru.inovus.ms.rdm.api.model.Structure.Attribute.build;
+import static ru.inovus.ms.rdm.api.model.validation.AttributeValidationType.*;
 
 /**
  * Тестирование работы с атрибутами

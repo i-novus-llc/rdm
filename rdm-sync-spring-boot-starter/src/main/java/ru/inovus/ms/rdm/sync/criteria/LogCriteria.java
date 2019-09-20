@@ -4,7 +4,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
-import ru.inovus.ms.rdm.n2o.model.AbstractCriteria;
+import ru.inovus.ms.rdm.api.model.AbstractCriteria;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.QueryParam;

@@ -16,15 +16,15 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
-import ru.inovus.ms.rdm.n2o.model.refdata.RefBookRowValue;
-import ru.inovus.ms.rdm.n2o.model.refdata.SearchDataCriteria;
-import ru.inovus.ms.rdm.n2o.model.Structure;
-import ru.inovus.ms.rdm.n2o.model.compare.ComparableField;
-import ru.inovus.ms.rdm.n2o.model.compare.ComparableFieldValue;
-import ru.inovus.ms.rdm.n2o.model.compare.ComparableRow;
-import ru.inovus.ms.rdm.n2o.model.compare.CompareDataCriteria;
-import ru.inovus.ms.rdm.n2o.service.api.CompareService;
-import ru.inovus.ms.rdm.n2o.service.api.VersionService;
+import ru.inovus.ms.rdm.api.service.CompareService;
+import ru.inovus.ms.rdm.api.service.VersionService;
+import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.compare.ComparableField;
+import ru.inovus.ms.rdm.api.model.compare.ComparableFieldValue;
+import ru.inovus.ms.rdm.api.model.compare.ComparableRow;
+import ru.inovus.ms.rdm.api.model.compare.CompareDataCriteria;
 
 import java.math.BigInteger;
 

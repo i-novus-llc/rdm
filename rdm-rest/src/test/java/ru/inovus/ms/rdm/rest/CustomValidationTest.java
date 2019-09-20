@@ -10,16 +10,16 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
-import ru.inovus.ms.rdm.n2o.model.Structure;
-import ru.inovus.ms.rdm.n2o.model.draft.CreateDraftRequest;
-import ru.inovus.ms.rdm.n2o.model.draft.Draft;
-import ru.inovus.ms.rdm.n2o.model.refbook.RefBook;
-import ru.inovus.ms.rdm.n2o.model.refbook.RefBookCreateRequest;
-import ru.inovus.ms.rdm.n2o.model.refdata.Row;
-import ru.inovus.ms.rdm.n2o.model.validation.*;
-import ru.inovus.ms.rdm.n2o.model.version.RefBookVersionAttribute;
-import ru.inovus.ms.rdm.n2o.service.api.DraftService;
-import ru.inovus.ms.rdm.n2o.service.api.RefBookService;
+import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
+import ru.inovus.ms.rdm.api.model.draft.Draft;
+import ru.inovus.ms.rdm.api.model.refbook.RefBook;
+import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
+import ru.inovus.ms.rdm.api.model.refdata.Row;
+import ru.inovus.ms.rdm.api.model.validation.*;
+import ru.inovus.ms.rdm.api.model.version.RefBookVersionAttribute;
+import ru.inovus.ms.rdm.api.service.DraftService;
+import ru.inovus.ms.rdm.api.service.RefBookService;
 
 import java.util.Iterator;
 import java.util.List;
@@ -30,10 +30,9 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.*;
-import static ru.inovus.ms.rdm.n2o.model.Structure.Attribute.build;
-import static ru.inovus.ms.rdm.n2o.model.validation.AttributeValidationType.*;
-import static ru.inovus.ms.rdm.n2o.model.validation.AttributeValidationType.REG_EXP;
-import static ru.inovus.ms.rdm.validation.resolver.IntRangeAttributeValidationResolver.INT_RANGE_EXCEPTION_CODE;
+import static ru.inovus.ms.rdm.api.model.Structure.Attribute.build;
+import static ru.inovus.ms.rdm.api.model.validation.AttributeValidationType.*;
+import static ru.inovus.ms.rdm.impl.validation.resolver.IntRangeAttributeValidationResolver.INT_RANGE_EXCEPTION_CODE;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
@@ -41,7 +40,7 @@ import static ru.inovus.ms.rdm.validation.resolver.IntRangeAttributeValidationRe
         webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
         properties = {
                 "cxf.jaxrs.client.classes-scan=true",
-                "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.n2o.service.api",
+                "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.api.service",
                 "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
                 "fileStorage.root=src/test/resources/rdm/temp",
                 "i18n.global.enabled=false"

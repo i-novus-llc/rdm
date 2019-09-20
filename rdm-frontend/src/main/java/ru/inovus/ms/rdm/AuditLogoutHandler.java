@@ -6,9 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Component;
-import ru.inovus.ms.rdm.n2o.model.audit.AuditAction;
-import ru.inovus.ms.rdm.n2o.model.audit.AuditLog;
-import ru.inovus.ms.rdm.n2o.service.api.AuditLogService;
+import ru.inovus.ms.rdm.api.model.audit.AuditAction;
+import ru.inovus.ms.rdm.api.model.audit.AuditLog;
+import ru.inovus.ms.rdm.api.service.AuditLogService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

@@ -9,9 +9,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
-import ru.inovus.ms.rdm.n2o.provider.*;
-import ru.inovus.ms.rdm.n2o.util.FileNameGenerator;
-import ru.inovus.ms.rdm.n2o.util.json.LocalDateTimeMapperPreparer;
+import ru.inovus.ms.rdm.api.provider.*;
+import ru.inovus.ms.rdm.api.util.FileNameGenerator;
+import ru.inovus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
 
 @Configuration
 public class BackendConfiguration {

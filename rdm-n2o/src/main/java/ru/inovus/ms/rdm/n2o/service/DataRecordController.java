@@ -6,12 +6,12 @@ import org.springframework.stereotype.Controller;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DataConstants;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.inovus.ms.rdm.n2o.model.version.AttributeFilter;
-import ru.inovus.ms.rdm.n2o.model.refdata.RefBookRowValue;
-import ru.inovus.ms.rdm.n2o.model.refdata.Row;
-import ru.inovus.ms.rdm.n2o.model.refdata.SearchDataCriteria;
-import ru.inovus.ms.rdm.n2o.service.api.DraftService;
-import ru.inovus.ms.rdm.n2o.service.api.VersionService;
+import ru.inovus.ms.rdm.api.service.DraftService;
+import ru.inovus.ms.rdm.api.service.VersionService;
+import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
+import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.api.model.refdata.Row;
+import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
 
 import java.util.*;
 
@@ -20,7 +20,7 @@ import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
-import static ru.inovus.ms.rdm.n2o.util.TimeUtils.parseLocalDate;
+import static ru.inovus.ms.rdm.api.util.TimeUtils.parseLocalDate;
 
 @Controller
 @SuppressWarnings("unused")

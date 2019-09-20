@@ -26,19 +26,19 @@ import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.value.DateFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.inovus.ms.rdm.api.service.ConflictService;
+import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.n2o.criteria.DataCriteria;
 import ru.inovus.ms.rdm.n2o.model.DataGridColumn;
-import ru.inovus.ms.rdm.n2o.model.Structure;
-import ru.inovus.ms.rdm.n2o.model.conflict.RefBookConflictCriteria;
-import ru.inovus.ms.rdm.n2o.model.refdata.RefBookRowValue;
-import ru.inovus.ms.rdm.n2o.model.refdata.SearchDataCriteria;
-import ru.inovus.ms.rdm.n2o.model.version.AttributeFilter;
+import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
+import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.n2o.provider.N2oDomain;
-import ru.inovus.ms.rdm.n2o.service.api.ConflictService;
-import ru.inovus.ms.rdm.n2o.service.api.VersionService;
-import ru.inovus.ms.rdm.n2o.util.ConflictUtils;
+import ru.inovus.ms.rdm.api.util.ConflictUtils;
 import ru.inovus.ms.rdm.n2o.util.RdmUiUtil;
-import ru.inovus.ms.rdm.n2o.util.TimeUtils;
+import ru.inovus.ms.rdm.api.util.TimeUtils;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -54,10 +54,6 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
-import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
-import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.deletePrefix;
-import static ru.inovus.ms.rdm.n2o.util.TimeUtils.DATE_PATTERN_EUROPEAN;
-import static ru.inovus.ms.rdm.n2o.util.TimeUtils.DATE_TIME_PATTERN_EUROPEAN_FORMATTER;
 
 @Component
 public class RefBookDataController {

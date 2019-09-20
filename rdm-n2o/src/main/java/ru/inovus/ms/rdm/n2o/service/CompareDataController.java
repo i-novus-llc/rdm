@@ -5,22 +5,21 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Controller;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
-import ru.inovus.ms.rdm.n2o.model.refdata.RefBookRowValue;
-import ru.inovus.ms.rdm.n2o.model.refdata.SearchDataCriteria;
-import ru.inovus.ms.rdm.n2o.model.Structure;
-import ru.inovus.ms.rdm.n2o.model.compare.ComparableFieldValue;
-import ru.inovus.ms.rdm.n2o.model.compare.ComparableRow;
-import ru.inovus.ms.rdm.n2o.model.compare.CompareDataCriteria;
-import ru.inovus.ms.rdm.n2o.service.api.CompareService;
-import ru.inovus.ms.rdm.n2o.service.api.VersionService;
-import ru.inovus.ms.rdm.n2o.util.ComparableUtils;
+import ru.inovus.ms.rdm.api.service.CompareService;
+import ru.inovus.ms.rdm.api.service.VersionService;
+import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.compare.ComparableFieldValue;
+import ru.inovus.ms.rdm.api.model.compare.ComparableRow;
+import ru.inovus.ms.rdm.api.model.compare.CompareDataCriteria;
+import ru.inovus.ms.rdm.api.util.ComparableUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static ru.inovus.ms.rdm.n2o.util.ComparableUtils.createPrimaryAttributesFilters;
-import static ru.inovus.ms.rdm.n2o.util.ComparableUtils.findComparableRow;
+import static ru.inovus.ms.rdm.api.util.ComparableUtils.createPrimaryAttributesFilters;
 
 @Controller
 @SuppressWarnings("WeakerAccess")

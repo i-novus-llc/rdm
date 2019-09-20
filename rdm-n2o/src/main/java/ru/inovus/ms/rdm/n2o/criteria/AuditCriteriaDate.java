@@ -1,7 +1,7 @@
 package ru.inovus.ms.rdm.n2o.criteria;
 
 import io.swagger.annotations.ApiModel;
-import ru.inovus.ms.rdm.n2o.model.audit.AuditLogCriteria;
+import ru.inovus.ms.rdm.api.model.audit.AuditLogCriteria;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;

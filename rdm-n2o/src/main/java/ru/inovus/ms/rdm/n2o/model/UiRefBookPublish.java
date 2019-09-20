@@ -1,6 +1,6 @@
 package ru.inovus.ms.rdm.n2o.model;
 
-import ru.inovus.ms.rdm.n2o.model.refbook.RefBook;
+import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 
 import java.util.Map;
 

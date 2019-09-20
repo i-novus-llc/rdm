@@ -1,6 +1,6 @@
 package ru.inovus.ms.rdm.n2o.criteria;
 
-import ru.inovus.ms.rdm.n2o.model.refbook.RefBookCriteria;
+import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.n2o.model.RefBookStatus;
 
 import java.time.LocalDateTime;

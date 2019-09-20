@@ -7,7 +7,7 @@ import ru.inovus.ms.rdm.sync.model.DataTypeEnum;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.Log;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
-import ru.inovus.ms.rdm.n2o.util.StringUtils;
+import ru.inovus.ms.rdm.api.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static ru.inovus.ms.rdm.n2o.util.StringUtils.addDoubleQuotes;
+import static ru.inovus.ms.rdm.api.util.StringUtils.addDoubleQuotes;
 
 /**
  * @author lgalimova

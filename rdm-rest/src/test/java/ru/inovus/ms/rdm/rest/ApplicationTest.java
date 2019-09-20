@@ -5,7 +5,10 @@ import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.jaxrs.RestMessage;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
 import net.n2oapp.platform.test.autoconfigure.EnableEmbeddedPg;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,30 +31,32 @@ import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
-import ru.inovus.ms.rdm.enumeration.*;
-import ru.inovus.ms.rdm.n2o.model.ExportFile;
-import ru.inovus.ms.rdm.n2o.model.FileModel;
-import ru.inovus.ms.rdm.n2o.model.Structure;
-import ru.inovus.ms.rdm.n2o.model.conflict.CalculateConflictCriteria;
-import ru.inovus.ms.rdm.n2o.model.conflict.RefBookConflictCriteria;
-import ru.inovus.ms.rdm.n2o.model.version.*;
-import ru.inovus.ms.rdm.n2o.model.compare.CompareDataCriteria;
-import ru.inovus.ms.rdm.n2o.model.conflict.Conflict;
-import ru.inovus.ms.rdm.n2o.model.conflict.RefBookConflict;
-import ru.inovus.ms.rdm.n2o.model.diff.RefBookDataDiff;
-import ru.inovus.ms.rdm.n2o.model.draft.CreateDraftRequest;
-import ru.inovus.ms.rdm.n2o.model.draft.Draft;
-import ru.inovus.ms.rdm.n2o.model.field.CommonField;
-import ru.inovus.ms.rdm.n2o.model.refbook.RefBook;
-import ru.inovus.ms.rdm.n2o.model.refbook.RefBookCreateRequest;
-import ru.inovus.ms.rdm.n2o.model.refbook.RefBookCriteria;
-import ru.inovus.ms.rdm.n2o.model.refbook.RefBookUpdateRequest;
-import ru.inovus.ms.rdm.n2o.model.refdata.RefBookRowValue;
-import ru.inovus.ms.rdm.n2o.model.refdata.Row;
-import ru.inovus.ms.rdm.n2o.model.refdata.SearchDataCriteria;
-import ru.inovus.ms.rdm.n2o.service.api.*;
-import ru.inovus.ms.rdm.n2o.util.FieldValueUtils;
-import ru.inovus.ms.rdm.validation.ReferenceValueValidation;
+import ru.inovus.ms.rdm.api.enumeration.ConflictType;
+import ru.inovus.ms.rdm.api.enumeration.FileType;
+import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.api.model.ExportFile;
+import ru.inovus.ms.rdm.api.model.FileModel;
+import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.compare.CompareDataCriteria;
+import ru.inovus.ms.rdm.api.model.conflict.CalculateConflictCriteria;
+import ru.inovus.ms.rdm.api.model.conflict.Conflict;
+import ru.inovus.ms.rdm.api.model.conflict.RefBookConflict;
+import ru.inovus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
+import ru.inovus.ms.rdm.api.model.diff.RefBookDataDiff;
+import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
+import ru.inovus.ms.rdm.api.model.draft.Draft;
+import ru.inovus.ms.rdm.api.model.field.CommonField;
+import ru.inovus.ms.rdm.api.model.refbook.RefBook;
+import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
+import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
+import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
+import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.api.model.refdata.Row;
+import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.api.model.version.*;
+import ru.inovus.ms.rdm.api.service.*;
+import ru.inovus.ms.rdm.api.util.FieldValueUtils;
+import ru.inovus.ms.rdm.impl.validation.ReferenceValueValidation;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -76,10 +81,10 @@ import static org.junit.Assert.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.platform.datastorage.temporal.model.DataConstants.SYS_PRIMARY_COLUMN;
 import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
-import static ru.inovus.ms.rdm.n2o.util.ConverterUtil.fields;
-import static ru.inovus.ms.rdm.n2o.util.ConverterUtil.rowValue;
-import static ru.inovus.ms.rdm.n2o.util.TimeUtils.parseLocalDate;
-import static ru.inovus.ms.rdm.n2o.util.TimeUtils.parseLocalDateTime;
+import static ru.inovus.ms.rdm.api.util.TimeUtils.parseLocalDate;
+import static ru.inovus.ms.rdm.api.util.TimeUtils.parseLocalDateTime;
+import static ru.inovus.ms.rdm.impl.util.ConverterUtil.fields;
+import static ru.inovus.ms.rdm.impl.util.ConverterUtil.rowValue;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
@@ -87,7 +92,7 @@ import static ru.inovus.ms.rdm.n2o.util.TimeUtils.parseLocalDateTime;
         webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
         properties = {
                 "cxf.jaxrs.client.classes-scan=true",
-                "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.n2o.service.api",
+                "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.api.service",
                 "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
                 "fileStorage.root=src/test/resources/rdm/temp",
                 "i18n.global.enabled=false"

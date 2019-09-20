@@ -7,7 +7,7 @@ import net.n2oapp.framework.api.ui.ActionResponseInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.inovus.ms.rdm.n2o.audit.creator.AuditLogCreator;
-import ru.inovus.ms.rdm.n2o.service.api.AuditLogService;
+import ru.inovus.ms.rdm.api.service.AuditLogService;
 
 import javax.annotation.Resource;
 import java.util.Map;

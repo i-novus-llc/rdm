@@ -9,10 +9,10 @@ import net.n2oapp.framework.api.metadata.global.dao.object.N2oObject;
 import net.n2oapp.framework.api.register.DynamicMetadataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.inovus.ms.rdm.n2o.model.refdata.Row;
-import ru.inovus.ms.rdm.n2o.model.Structure;
+import ru.inovus.ms.rdm.api.model.refdata.Row;
+import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.n2o.service.CreateDraftController;
-import ru.inovus.ms.rdm.n2o.service.api.VersionService;
+import ru.inovus.ms.rdm.api.service.VersionService;
 
 import java.util.Collection;
 import java.util.List;

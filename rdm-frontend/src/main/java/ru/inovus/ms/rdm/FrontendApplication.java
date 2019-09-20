@@ -5,13 +5,24 @@ import net.n2oapp.security.admin.rest.client.AdminRestClientConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
+import ru.inovus.ms.rdm.n2o.RdmWebConfiguration;
+import ru.inovus.ms.rdm.handler.RdmExceptionHandler;
 
 @SpringBootApplication (scanBasePackageClasses = { FrontendApplication.class, AdminRestClientConfiguration.class})
+@Import({ RdmWebConfiguration.class })
 public class FrontendApplication {
 
     @Bean
     public XmlInfoScanner myInfoScanner() {
         return new XmlInfoScanner("classpath*:/access/**/*.xml");
+    }
+
+    @Bean
+    @Primary
+    public RdmExceptionHandler exceptionHandler() {
+        return new RdmExceptionHandler();
     }
 
     public static void main(String[] args) {

@@ -2,20 +2,20 @@ package ru.inovus.ms.rdm.n2o.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import ru.inovus.ms.rdm.enumeration.ConflictType;
-import ru.inovus.ms.rdm.n2o.model.refbook.RefBook;
-import ru.inovus.ms.rdm.n2o.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.api.service.ConflictService;
+import ru.inovus.ms.rdm.api.service.PublishService;
+import ru.inovus.ms.rdm.api.service.RefBookService;
+import ru.inovus.ms.rdm.api.enumeration.ConflictType;
+import ru.inovus.ms.rdm.api.model.refbook.RefBook;
+import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.n2o.model.UiRefBookPublish;
-import ru.inovus.ms.rdm.n2o.service.api.ConflictService;
-import ru.inovus.ms.rdm.n2o.service.api.PublishService;
-import ru.inovus.ms.rdm.n2o.service.api.RefBookService;
 
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toMap;
-import static ru.inovus.ms.rdm.n2o.util.StringUtils.addDoubleQuotes;
+import static ru.inovus.ms.rdm.api.util.StringUtils.addDoubleQuotes;
 
 @Controller
 @SuppressWarnings("unused")

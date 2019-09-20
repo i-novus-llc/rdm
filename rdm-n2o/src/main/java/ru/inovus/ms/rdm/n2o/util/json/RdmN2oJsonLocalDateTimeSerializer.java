@@ -3,7 +3,7 @@ package ru.inovus.ms.rdm.n2o.util.json;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import ru.inovus.ms.rdm.n2o.util.TimeUtils;
+import ru.inovus.ms.rdm.api.util.TimeUtils;
 
 import java.io.IOException;
 import java.time.LocalDateTime;

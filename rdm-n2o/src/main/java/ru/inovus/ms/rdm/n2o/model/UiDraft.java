@@ -1,6 +1,6 @@
 package ru.inovus.ms.rdm.n2o.model;
 
-import ru.inovus.ms.rdm.n2o.model.draft.Draft;
+import ru.inovus.ms.rdm.api.model.draft.Draft;
 
 import java.util.Objects;
 

@@ -9,32 +9,27 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
+import ru.inovus.ms.rdm.api.model.validation.*;
+import ru.inovus.ms.rdm.api.model.version.*;
+import ru.inovus.ms.rdm.api.service.ConflictService;
+import ru.inovus.ms.rdm.api.service.DraftService;
+import ru.inovus.ms.rdm.api.service.RefBookService;
+import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.n2o.model.AttributeCriteria;
 import ru.inovus.ms.rdm.n2o.model.FormAttribute;
 import ru.inovus.ms.rdm.n2o.model.ReadAttribute;
-import ru.inovus.ms.rdm.n2o.model.Structure;
-import ru.inovus.ms.rdm.n2o.model.conflict.RefBookConflict;
-import ru.inovus.ms.rdm.n2o.model.conflict.RefBookConflictCriteria;
-import ru.inovus.ms.rdm.n2o.model.refbook.RefBook;
-import ru.inovus.ms.rdm.n2o.model.version.*;
-import ru.inovus.ms.rdm.n2o.model.validation.*;
-import ru.inovus.ms.rdm.n2o.service.api.ConflictService;
-import ru.inovus.ms.rdm.n2o.service.api.DraftService;
-import ru.inovus.ms.rdm.n2o.service.api.RefBookService;
-import ru.inovus.ms.rdm.n2o.service.api.VersionService;
-import ru.inovus.ms.rdm.n2o.util.ConflictUtils;
-import ru.inovus.ms.rdm.n2o.util.StructureUtils;
-import ru.inovus.ms.rdm.n2o.util.TimeUtils;
+import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.conflict.RefBookConflict;
+import ru.inovus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
+import ru.inovus.ms.rdm.api.model.refbook.RefBook;
+import ru.inovus.ms.rdm.api.util.ConflictUtils;
+import ru.inovus.ms.rdm.api.util.StructureUtils;
+import ru.inovus.ms.rdm.api.util.TimeUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
-import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
-import static ru.inovus.ms.rdm.n2o.model.validation.AttributeValidationType.*;
-import static ru.inovus.ms.rdm.n2o.model.version.UpdateValue.of;
 
 @Controller
 @SuppressWarnings("WeakerAccess")

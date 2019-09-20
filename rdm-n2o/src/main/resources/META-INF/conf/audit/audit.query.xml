@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="refBook">
     <list result-mapping="['content']" count-mapping="['totalElements']">
-        <java class="ru.inovus.ms.rdm.n2o.service.api.AuditLogService"
+        <java class="ru.inovus.ms.rdm.api.service.AuditLogService"
               method="getActions">
             <spring/>
             <arguments>

@@ -10,28 +10,25 @@ import net.n2oapp.framework.config.compile.pipeline.operation.CompileCacheOperat
 import net.n2oapp.framework.config.compile.pipeline.operation.SourceCacheOperation;
 import net.n2oapp.framework.engine.data.N2oInvocationFactory;
 import net.n2oapp.framework.engine.data.N2oQueryProcessor;
+import net.n2oapp.platform.jaxrs.autoconfigure.EnableJaxRsProxyClient;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import ru.inovus.ms.rdm.n2o.criteria.RestCriteriaConstructor;
-import ru.inovus.ms.rdm.n2o.handler.RdmExceptionHandler;
 import ru.inovus.ms.rdm.n2o.operation.RdmCompileCacheOperation;
 import ru.inovus.ms.rdm.n2o.operation.RdmSourceCacheOperation;
-import ru.inovus.ms.rdm.n2o.provider.AttributeFilterConverter;
-import ru.inovus.ms.rdm.n2o.provider.ExportFileProvider;
-import ru.inovus.ms.rdm.n2o.provider.OffsetDateTimeParamConverter;
-import ru.inovus.ms.rdm.n2o.provider.RdmMapperConfigurer;
+import ru.inovus.ms.rdm.api.provider.AttributeFilterConverter;
+import ru.inovus.ms.rdm.api.provider.ExportFileProvider;
+import ru.inovus.ms.rdm.api.provider.OffsetDateTimeParamConverter;
+import ru.inovus.ms.rdm.api.provider.RdmMapperConfigurer;
 import ru.inovus.ms.rdm.n2o.util.json.RdmN2oLocalDateTimeMapperPreparer;
 
 @Configuration
+@EnableJaxRsProxyClient(
+        scanPackages = "ru.inovus.ms.rdm.api.service",
+        address = "${rdm.backend.path}"
+)
 public class ClientConfiguration {
-
-    @Bean
-    @Primary
-    public RdmExceptionHandler exceptionHandler() {
-        return new RdmExceptionHandler();
-    }
 
     @Bean
     public AttributeFilterConverter attributeFilterConverter() {

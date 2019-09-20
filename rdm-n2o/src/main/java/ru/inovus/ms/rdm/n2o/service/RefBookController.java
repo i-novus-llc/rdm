@@ -9,12 +9,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.CollectionUtils;
+import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.n2o.criteria.RefBookStatusCriteria;
 import ru.inovus.ms.rdm.n2o.model.RefBookStatus;
 import ru.inovus.ms.rdm.n2o.model.UiRefBookStatus;
-import ru.inovus.ms.rdm.n2o.model.refbook.RefBook;
-import ru.inovus.ms.rdm.n2o.model.refbook.RefBookCriteria;
-import ru.inovus.ms.rdm.n2o.service.api.RefBookService;
+import ru.inovus.ms.rdm.api.model.refbook.RefBook;
+import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.n2o.util.RdmPermission;
 
 import java.util.ArrayList;

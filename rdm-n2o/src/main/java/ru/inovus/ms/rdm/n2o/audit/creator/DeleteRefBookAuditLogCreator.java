@@ -3,8 +3,8 @@ package ru.inovus.ms.rdm.n2o.audit.creator;
 import net.n2oapp.criteria.dataset.DataSet;
 import net.n2oapp.framework.api.ui.ActionRequestInfo;
 import org.springframework.stereotype.Component;
-import ru.inovus.ms.rdm.n2o.model.audit.AuditAction;
-import ru.inovus.ms.rdm.n2o.model.audit.AuditLog;
+import ru.inovus.ms.rdm.api.model.audit.AuditAction;
+import ru.inovus.ms.rdm.api.model.audit.AuditLog;
 
 import java.time.LocalDateTime;
 

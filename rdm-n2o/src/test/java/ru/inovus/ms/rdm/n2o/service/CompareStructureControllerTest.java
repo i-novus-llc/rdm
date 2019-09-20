@@ -10,12 +10,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.inovus.ms.rdm.api.service.CompareService;
+import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.n2o.model.AttributeDiff;
-import ru.inovus.ms.rdm.n2o.model.Structure;
-import ru.inovus.ms.rdm.n2o.model.diff.StructureDiff;
-import ru.inovus.ms.rdm.n2o.model.compare.CompareCriteria;
-import ru.inovus.ms.rdm.n2o.service.api.CompareService;
-import ru.inovus.ms.rdm.n2o.service.api.VersionService;
+import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.diff.StructureDiff;
+import ru.inovus.ms.rdm.api.model.compare.CompareCriteria;
 
 import java.util.Arrays;
 import java.util.List;

@@ -4,10 +4,10 @@ import net.n2oapp.criteria.dataset.DataSet;
 import net.n2oapp.framework.api.ui.ActionRequestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.inovus.ms.rdm.n2o.model.audit.AuditAction;
-import ru.inovus.ms.rdm.n2o.model.audit.AuditLog;
-import ru.inovus.ms.rdm.n2o.service.api.RefBookService;
-import ru.inovus.ms.rdm.n2o.service.api.VersionService;
+import ru.inovus.ms.rdm.api.model.audit.AuditAction;
+import ru.inovus.ms.rdm.api.model.audit.AuditLog;
+import ru.inovus.ms.rdm.api.service.RefBookService;
+import ru.inovus.ms.rdm.api.service.VersionService;
 
 import java.time.LocalDateTime;
 
