@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.impl.service;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,9 @@ public class AuditLogServiceImpl implements AuditLogService {
 
     private AuditLogRepository auditLogRepository;
 
+    @Value("${rdm.audit.enable}")
+    private boolean enabled;
+
     @Autowired
     @SuppressWarnings("unused")
     public AuditLogServiceImpl(AuditLogRepository auditLogRepository) {
@@ -30,13 +34,16 @@ public class AuditLogServiceImpl implements AuditLogService {
 
     @Override
     public AuditLog addAction(AuditLog action) {
-        AuditLogEntity actionEntity = new AuditLogEntity(
-                action.getUser(),
-                action.getDate(),
-                action.getAction(),
-                action.getContext());
-        actionEntity = auditLogRepository.save(actionEntity);
-        return auditActionModel(actionEntity);
+        if (enabled) {
+            AuditLogEntity actionEntity = new AuditLogEntity(
+                    action.getUser(),
+                    action.getDate(),
+                    action.getAction(),
+                    action.getContext());
+            actionEntity = auditLogRepository.save(actionEntity);
+            return auditActionModel(actionEntity);
+        }
+        return null;
     }
 
     @Override
