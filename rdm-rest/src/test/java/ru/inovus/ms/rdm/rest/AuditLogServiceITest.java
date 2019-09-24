@@ -18,6 +18,7 @@ import ru.inovus.ms.rdm.api.model.audit.AuditAction;
 import ru.inovus.ms.rdm.api.model.audit.AuditLog;
 import ru.inovus.ms.rdm.api.model.audit.AuditLogCriteria;
 import ru.inovus.ms.rdm.api.service.AuditLogService;
+import ru.inovus.ms.rdm.impl.service.AuditLogServiceImpl;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -61,6 +62,7 @@ public class AuditLogServiceITest {
     @Test
     @Rollback
     public void testCreateReadAudit() {
+        ((AuditLogServiceImpl) auditLogService).setEnabled(true);
         auditLogService.addAction(expected1);
         auditLogService.addAction(expected2);
         auditLogService.addAction(expected3);

@@ -23,8 +23,12 @@ public class AuditLogServiceImpl implements AuditLogService {
 
     private AuditLogRepository auditLogRepository;
 
-    @Value("${rdm.audit.enable}")
     private boolean enabled;
+
+    @Value("${rdm.audit.enable}")
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 
     @Autowired
     @SuppressWarnings("unused")
