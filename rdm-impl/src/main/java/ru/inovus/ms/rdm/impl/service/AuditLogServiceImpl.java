@@ -12,14 +12,13 @@ import ru.inovus.ms.rdm.api.model.audit.AuditAction;
 import ru.inovus.ms.rdm.api.model.audit.AuditLog;
 import ru.inovus.ms.rdm.api.model.audit.AuditLogCriteria;
 import ru.inovus.ms.rdm.api.service.AuditLogService;
-import ru.inovus.ms.rdm.api.util.StringUtils;
 import ru.inovus.ms.rdm.impl.entity.AuditLogEntity;
 import ru.inovus.ms.rdm.impl.repository.AuditLogRepository;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static ru.inovus.ms.rdm.impl.entity.QAuditLogEntity.auditLogEntity;
@@ -33,10 +32,12 @@ public class AuditLogServiceImpl implements AuditLogService {
 
     @Value("${rdm.audit.disabledActions}")
     public void setDisabled(String disabled) {
-        List<String> l = StringUtils.splitStripSpaces(disabled).stream().filter(s -> !s.isEmpty()).collect(toList());
-        AuditAction[] actionsArr = new AuditAction[l.size()];
-        for (int i = 0; i < l.size(); i++)
-            actionsArr[i] = AuditAction.valueOf(l.get(i).toUpperCase());
+        List<String> values = Arrays.stream(AuditAction.values()).map(Enum::name).collect(toList());
+        String[] split = (String[]) Arrays.stream(disabled.split(",")).filter(s -> !s.isEmpty()).filter(s -> values.stream().anyMatch(s::equalsIgnoreCase)).toArray();
+        AuditAction[] actionsArr = new AuditAction[split.length];
+        for (int i = 0; i < split.length; i++) {
+            actionsArr[i] = AuditAction.valueOf(values.stream().filter(split[i]::equalsIgnoreCase).findFirst().get());
+        }
         disabledActions = EnumSet.copyOf(List.of(actionsArr));
     }
 
