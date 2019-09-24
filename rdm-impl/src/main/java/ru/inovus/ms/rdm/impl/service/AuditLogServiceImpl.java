@@ -33,7 +33,7 @@ public class AuditLogServiceImpl implements AuditLogService {
     @Value("${rdm.audit.disabledActions}")
     public void setDisabled(String disabled) {
         List<String> values = Arrays.stream(AuditAction.values()).map(Enum::name).collect(toList());
-        String[] split = (String[]) Arrays.stream(disabled.substring(1, disabled.length() - 1).split(",")).filter(s -> !s.isEmpty()).filter(s -> values.stream().anyMatch(s::equalsIgnoreCase)).toArray();
+        String[] split = Arrays.stream(disabled.substring(1, disabled.length() - 1).split(",")).filter(s -> !s.isEmpty()).filter(s -> values.stream().anyMatch(s::equalsIgnoreCase)).toArray(String[]::new);
         AuditAction[] actionsArr = new AuditAction[split.length];
         for (int i = 0; i < split.length; i++) {
             actionsArr[i] = AuditAction.valueOf(values.stream().filter(split[i]::equalsIgnoreCase).findFirst().get());
