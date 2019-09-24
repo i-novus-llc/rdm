@@ -38,7 +38,7 @@ public class AuditLogServiceImpl implements AuditLogService {
         for (int i = 0; i < split.length; i++) {
             actionsArr[i] = AuditAction.valueOf(values.stream().filter(split[i]::equalsIgnoreCase).findFirst().get());
         }
-        disabledActions = EnumSet.copyOf(List.of(actionsArr));
+        disabledActions = actionsArr.length == 0 ? EnumSet.noneOf(AuditAction.class) : EnumSet.copyOf(List.of(actionsArr));
     }
 
     @Autowired
