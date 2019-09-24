@@ -62,7 +62,7 @@ public class AuditLogServiceITest {
     @Test
     @Rollback
     public void testCreateReadAudit() {
-        ((AuditLogServiceImpl) auditLogService).setEnabled(true);
+        ((AuditLogServiceImpl) auditLogService).setDisabled("[]");
         auditLogService.addAction(expected1);
         auditLogService.addAction(expected2);
         auditLogService.addAction(expected3);
