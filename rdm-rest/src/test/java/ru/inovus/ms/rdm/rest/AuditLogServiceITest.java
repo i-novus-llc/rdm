@@ -18,7 +18,6 @@ import ru.inovus.ms.rdm.api.model.audit.AuditAction;
 import ru.inovus.ms.rdm.api.model.audit.AuditLog;
 import ru.inovus.ms.rdm.api.model.audit.AuditLogCriteria;
 import ru.inovus.ms.rdm.api.service.AuditLogService;
-import ru.inovus.ms.rdm.impl.service.AuditLogServiceImpl;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -37,7 +36,7 @@ import static java.util.Comparator.comparing;
                 "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
                 "fileStorage.root=src/test/resources/rdm/temp",
                 "i18n.global.enabled=false",
-                "rdm.audit.disabledActions=[]"
+                "rdm.audit.disabledActions=login"
         })
 @DefinePort
 @EnableEmbeddedPg

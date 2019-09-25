@@ -31,12 +31,11 @@ public class AuditLogServiceImpl implements AuditLogService {
     private EnumSet<AuditAction> disabledActions;
 
     @Value("${rdm.audit.disabledActions}")
-    public void setDisabled(String disabled) {
+    public void setDisabled(List<String> disabled) {
         List<String> values = stream(AuditAction.values()).map(Enum::name).collect(toList());
-        String[] split = stream(disabled.substring(1, disabled.length() - 1).split(",")).map(String::trim).filter(s -> !s.isEmpty()).toArray(String[]::new);
-        if (stream(split).anyMatch(s -> values.stream().noneMatch(s::equalsIgnoreCase)))
+        if (disabled.stream().anyMatch(s -> values.stream().noneMatch(s::equalsIgnoreCase)))
             throw new IllegalArgumentException("Some of the disabled actions are not mentioned in ru.inovus.ms.rdm.api.model.audit.AuditAction enum.");
-        List<AuditAction> list = stream(split).map(s -> AuditAction.valueOf(values.stream().filter(s::equalsIgnoreCase).findFirst().get())).collect(toList());
+        List<AuditAction> list = disabled.stream().map(s -> AuditAction.valueOf(values.stream().filter(s::equalsIgnoreCase).findFirst().get())).collect(toList());
         disabledActions = list.size() == 0 ? EnumSet.noneOf(AuditAction.class) : EnumSet.copyOf(list);
     }
 
