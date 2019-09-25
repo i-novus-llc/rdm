@@ -33,7 +33,9 @@ public class AuditLogServiceImpl implements AuditLogService {
     @Value("${rdm.audit.disabledActions}")
     public void setDisabled(String disabled) {
         List<String> values = Arrays.stream(AuditAction.values()).map(Enum::name).collect(toList());
-        String[] split = Arrays.stream(disabled.substring(1, disabled.length() - 1).split(",")).filter(s -> !s.isEmpty()).filter(s -> values.stream().anyMatch(s::equalsIgnoreCase)).toArray(String[]::new);
+        String[] split = Arrays.stream(disabled.substring(1, disabled.length() - 1).split(",")).map(String::trim).filter(s -> !s.isEmpty()).toArray(String[]::new);
+        if (Arrays.stream(split).anyMatch(s -> values.stream().noneMatch(s::equalsIgnoreCase)))
+            throw new IllegalArgumentException("Some of the disabled actions are not mentioned in ru.inovus.ms.rdm.api.model.audit.AuditAction enum.");
         AuditAction[] actionsArr = new AuditAction[split.length];
         for (int i = 0; i < split.length; i++) {
             actionsArr[i] = AuditAction.valueOf(values.stream().filter(split[i]::equalsIgnoreCase).findFirst().get());
