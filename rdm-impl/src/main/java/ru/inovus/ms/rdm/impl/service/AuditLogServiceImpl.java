@@ -15,11 +15,11 @@ import ru.inovus.ms.rdm.api.service.AuditLogService;
 import ru.inovus.ms.rdm.impl.entity.AuditLogEntity;
 import ru.inovus.ms.rdm.impl.repository.AuditLogRepository;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
+import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static ru.inovus.ms.rdm.impl.entity.QAuditLogEntity.auditLogEntity;
 
@@ -32,15 +32,12 @@ public class AuditLogServiceImpl implements AuditLogService {
 
     @Value("${rdm.audit.disabledActions}")
     public void setDisabled(String disabled) {
-        List<String> values = Arrays.stream(AuditAction.values()).map(Enum::name).collect(toList());
-        String[] split = Arrays.stream(disabled.substring(1, disabled.length() - 1).split(",")).map(String::trim).filter(s -> !s.isEmpty()).toArray(String[]::new);
-        if (Arrays.stream(split).anyMatch(s -> values.stream().noneMatch(s::equalsIgnoreCase)))
+        List<String> values = stream(AuditAction.values()).map(Enum::name).collect(toList());
+        String[] split = stream(disabled.substring(1, disabled.length() - 1).split(",")).map(String::trim).filter(s -> !s.isEmpty()).toArray(String[]::new);
+        if (stream(split).anyMatch(s -> values.stream().noneMatch(s::equalsIgnoreCase)))
             throw new IllegalArgumentException("Some of the disabled actions are not mentioned in ru.inovus.ms.rdm.api.model.audit.AuditAction enum.");
-        AuditAction[] actionsArr = new AuditAction[split.length];
-        for (int i = 0; i < split.length; i++) {
-            actionsArr[i] = AuditAction.valueOf(values.stream().filter(split[i]::equalsIgnoreCase).findFirst().get());
-        }
-        disabledActions = actionsArr.length == 0 ? EnumSet.noneOf(AuditAction.class) : EnumSet.copyOf(List.of(actionsArr));
+        List<AuditAction> list = stream(split).map(s -> AuditAction.valueOf(values.stream().filter(s::equalsIgnoreCase).findFirst().get())).collect(toList());
+        disabledActions = list.size() == 0 ? EnumSet.noneOf(AuditAction.class) : EnumSet.copyOf(list);
     }
 
     @Autowired
