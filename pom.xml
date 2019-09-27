@@ -36,6 +36,7 @@
         <internal.repository.shapshots>https://maven.i-novus.ru/libs-snapshot-local</internal.repository.shapshots>
         <internal.repository.id>i-novus-central</internal.repository.id>
         <swagger.version>3.23.0</swagger.version>
+        <audit.version>1.2-SNAPSHOT</audit.version>
     </properties>
 
     <scm>
@@ -217,6 +218,12 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-text</artifactId>
                 <version>${commons.text.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.i-novus.ms.audit</groupId>
+                <artifactId>audit-client</artifactId>
+                <version>${audit.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

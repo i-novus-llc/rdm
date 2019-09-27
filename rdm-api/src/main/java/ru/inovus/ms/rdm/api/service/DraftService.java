@@ -5,16 +5,16 @@ import org.springframework.data.domain.Page;
 import ru.inovus.ms.rdm.api.enumeration.FileType;
 import ru.inovus.ms.rdm.api.model.ExportFile;
 import ru.inovus.ms.rdm.api.model.FileModel;
-import ru.inovus.ms.rdm.api.model.validation.AttributeValidationRequest;
-import ru.inovus.ms.rdm.api.model.version.CreateAttribute;
-import ru.inovus.ms.rdm.api.model.version.UpdateAttribute;
 import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidation;
+import ru.inovus.ms.rdm.api.model.validation.AttributeValidationRequest;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidationType;
+import ru.inovus.ms.rdm.api.model.version.CreateAttribute;
+import ru.inovus.ms.rdm.api.model.version.UpdateAttribute;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -45,6 +45,7 @@ public interface DraftService {
     @Path("/createFromVersion/{versionId}")
     Draft createFromVersion(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId);
 
+//  Загрузка версии справочника;
     @POST
     @ApiOperation("Создание нового черновика из файла")
     @ApiResponses({
@@ -56,6 +57,7 @@ public interface DraftService {
     Draft create(@ApiParam("Идентификатор справочника") @PathParam("refBookId") Integer refBookId,
                  @ApiParam("Файл") FileModel fileModel);
 
+//  Создание справочника;
     @POST
     @ApiOperation("Создание нового черновика из файла без справочника")
     @ApiResponses({
@@ -66,7 +68,7 @@ public interface DraftService {
     @Path("/createByFile")
     Draft create(@ApiParam("Файл") FileModel fileModel);
 
-
+//  Редактирование черновика справочника;
     @POST
     @ApiOperation("Добавление или изменение записи черновика")
     @ApiResponses({
@@ -78,6 +80,7 @@ public interface DraftService {
     void updateData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
                     @ApiParam("Запись черновика") Row row);
 
+//  Редактирование черновика справочника;
     @DELETE
     @ApiOperation("Удаление записи черновика")
     @ApiResponses({
@@ -89,6 +92,7 @@ public interface DraftService {
     void deleteRow(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
                    @ApiParam("Идентификатор записи") @PathParam("systemId") Long systemId);
 
+//  Редактирование черновика справочника;
     @DELETE
     @ApiOperation("Удаление всех записей черновика")
     @ApiResponses({
@@ -99,6 +103,7 @@ public interface DraftService {
     @Path("/deleteAll/{draftId}")
     void deleteAllRows(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId);
 
+//  Загрузка данных справочника;
     @POST
     @ApiOperation("Обновление черновика из файла")
     @ApiResponses({
@@ -141,6 +146,7 @@ public interface DraftService {
     })
     Draft getDraft(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId);
 
+//  Редактирование черновика справочника;
     @POST
     @Path("/attribute")
     @ApiOperation("Добавление атрибута справочника")
@@ -151,6 +157,7 @@ public interface DraftService {
     })
     void createAttribute(@ApiParam("Модель создаваемого атрибута") CreateAttribute createAttribute);
 
+//  Редактирование черновика справочника;
     @PUT
     @Path("/attribute")
     @ApiOperation("Изменение атрибута справочника")
@@ -161,6 +168,7 @@ public interface DraftService {
     })
     void updateAttribute(@ApiParam("Модель изменяемого атрибута") UpdateAttribute updateAttribute);
 
+//  Редактирование черновика справочника;
     @DELETE
     @Path("/{versionId}/attribute/{code}")
     @ApiOperation("Удаление атрибута справочника")
@@ -172,6 +180,7 @@ public interface DraftService {
     void deleteAttribute(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
                          @ApiParam("Код атрибута") @PathParam("code") String attributeCode);
 
+//  Редактирование черновика справочника;
     @POST
     @Path("/{versionId}/attribute/{attribute}/validation")
     @ApiOperation("Добавление настраиваемой проверки")
@@ -184,7 +193,7 @@ public interface DraftService {
                                 @ApiParam("Атрибут") @PathParam("attribute") String attribute,
                                 @ApiParam("Пользовательская проверка") AttributeValidation attributeValidation);
 
-
+//  Редактирование черновика справочника;
     @DELETE
     @Path("/{versionId}/attributeValidation")
     @ApiOperation("Удаление настраиваемой проверки")
@@ -207,6 +216,7 @@ public interface DraftService {
     List<AttributeValidation> getAttributeValidations(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
                                                       @ApiParam("Атрибут") @QueryParam("attribute") String attribute);
 
+//  Редактирование черновика справочника;
     @PUT
     @Path("/{versionId}/attribute")
     @ApiOperation("Обновление настраиваемых проверок")

@@ -64,6 +64,7 @@ public interface RefBookService {
     })
     Integer getId(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode);
 
+//  Создание справочника;
     @POST
     @ApiOperation(value = "Создание нового справочника", hidden = true)
     @ApiResponses({
@@ -81,6 +82,7 @@ public interface RefBookService {
     })
     RefBook update(RefBookUpdateRequest refBookUpdateRequest);
 
+//  Удаление справочника;
     @DELETE
     @ApiOperation(value = "Удаление справочника", hidden = true)
     @ApiResponses({
@@ -90,6 +92,7 @@ public interface RefBookService {
     })
     void delete(@ApiParam("Идентификатор справочника") @QueryParam("refBookId") int refBookId);
 
+//  Перевод справочник в архив
     @POST
     @Path("/{refBookId}/toArchive")
     @ApiOperation(value = "В архив", hidden = true)

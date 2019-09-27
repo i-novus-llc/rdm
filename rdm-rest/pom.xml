@@ -98,6 +98,12 @@
             <groupId>com.sun.xml.ws</groupId>
             <artifactId>rt</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>ru.i-novus.ms.audit</groupId>
+            <artifactId>audit-client</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

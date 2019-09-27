@@ -12,6 +12,7 @@ import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.inovus.ms.rdm.api.enumeration.FileType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.api.model.audit.AuditAction;
 import ru.inovus.ms.rdm.api.model.conflict.RefBookConflict;
 import ru.inovus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
@@ -26,8 +27,10 @@ import ru.inovus.ms.rdm.impl.file.export.VersionDataIterator;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static java.util.Collections.singletonList;
@@ -56,6 +59,8 @@ public class PublishServiceImpl implements PublishService {
     private VersionValidation versionValidation;
     private VersionPeriodPublishValidation versionPeriodPublishValidation;
 
+    private AuditLogService auditLogService;
+
     @Autowired
     @SuppressWarnings("squid:S00107")
     public PublishServiceImpl(RefBookVersionRepository versionRepository,
@@ -63,7 +68,8 @@ public class PublishServiceImpl implements PublishService {
                               RefBookLockService refBookLockService, VersionService versionService,
                               ConflictService conflictService, ReferenceService referenceService,
                               VersionFileService versionFileService, VersionNumberStrategy versionNumberStrategy,
-                              VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation) {
+                              VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation,
+                              AuditLogService auditLogService) {
         this.versionRepository = versionRepository;
 
         this.draftDataService = draftDataService;
@@ -79,6 +85,7 @@ public class PublishServiceImpl implements PublishService {
 
         this.versionValidation = versionValidation;
         this.versionPeriodPublishValidation = versionPeriodPublishValidation;
+        this.auditLogService = auditLogService;
     }
 
     /**
@@ -156,6 +163,11 @@ public class PublishServiceImpl implements PublishService {
 
         } finally {
             refBookLockService.deleteRefBookOperation(refBookId);
+            auditLogService.addAction(
+                AuditAction.PUBLICATION,
+                LocalDateTime.now(Clock.systemUTC()),
+                Map.of("refBookId", refBookId.toString())
+            );
         }
     }
 

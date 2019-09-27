@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Api(value = "Методы публикации", hidden = true)
 public interface PublishService {
 
+//  Публикация версии справочника;
     @POST
     @Path("/{draftId}")
     @ApiOperation("Публикация черновика")

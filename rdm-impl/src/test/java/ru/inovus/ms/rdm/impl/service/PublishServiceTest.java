@@ -110,6 +110,9 @@ public class PublishServiceTest {
     @Mock
     private FieldFactory fieldFactory;
 
+    @Mock
+    private AuditLogService auditLogService;
+
     @Before
     public void setUp() {
         reset(draftDataService, fileNameGenerator, fileGeneratorFactory);

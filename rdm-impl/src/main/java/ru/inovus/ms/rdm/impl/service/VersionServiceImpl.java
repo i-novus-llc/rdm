@@ -22,6 +22,7 @@ import ru.inovus.ms.rdm.api.exception.NotFoundException;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.ExportFile;
 import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.audit.AuditAction;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.api.model.refdata.RowValuePage;
 import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
@@ -45,6 +46,7 @@ import ru.inovus.ms.rdm.impl.validation.ReferenceValidation;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -70,12 +72,15 @@ public class VersionServiceImpl implements VersionService {
     private VersionFileRepository versionFileRepository;
     private VersionFileService versionFileService;
 
+    private AuditLogService auditLogService;
+
     @Autowired
     public VersionServiceImpl(RefBookVersionRepository versionRepository,
                               SearchDataService searchDataService,
                               FileStorage fileStorage, FileNameGenerator fileNameGenerator,
                               VersionFileRepository versionFileRepository,
-                              VersionFileService versionFileService) {
+                              VersionFileService versionFileService,
+                              AuditLogService auditLogService) {
         this.versionRepository = versionRepository;
 
         this.searchDataService = searchDataService;
@@ -85,6 +90,7 @@ public class VersionServiceImpl implements VersionService {
 
         this.versionFileRepository = versionFileRepository;
         this.versionFileService = versionFileService;
+        this.auditLogService = auditLogService;
     }
 
     @Override
@@ -197,7 +203,11 @@ public class VersionServiceImpl implements VersionService {
         if (fileEntity == null || !fileStorage.isExistContent(fileEntity.getPath())) {
             path = generateVersionFile(versionEntity, fileType);
         }
-
+        auditLogService.addAction(
+            AuditAction.DOWNLOAD,
+            LocalDateTime.now(Clock.systemUTC()),
+            Map.of("refBookId", versionEntity.getRefBook().getId().toString())
+        );
         return new ExportFile(
                 fileStorage.getContent(path),
                 fileNameGenerator.generateZipName(ModelGenerator.versionModel(versionEntity), fileType));

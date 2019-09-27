@@ -5,35 +5,39 @@ import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
-import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.api.enumeration.ConflictType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookStatusType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.api.exception.NotFoundException;
 import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.audit.AuditAction;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
+import ru.inovus.ms.rdm.api.service.RefBookService;
+import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.entity.PassportAttributeEntity;
 import ru.inovus.ms.rdm.impl.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.impl.entity.RefBookEntity;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 import ru.inovus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
 import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.inovus.ms.rdm.api.validation.VersionValidation;
+import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -62,13 +66,15 @@ public class RefBookServiceImpl implements RefBookService {
 
     private VersionValidation versionValidation;
 
+    private AuditLogService auditLogService;
+
     @Autowired
     @SuppressWarnings("squid:S00107")
     public RefBookServiceImpl(RefBookRepository refBookRepository, RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
                               DraftDataService draftDataService, DropDataService dropDataService,
                               RefBookLockService refBookLockService,
                               PassportValueRepository passportValueRepository, RefBookVersionQueryProvider refBookVersionQueryProvider,
-                              VersionValidation versionValidation) {
+                              VersionValidation versionValidation, AuditLogService auditLogService) {
         this.refBookRepository = refBookRepository;
         this.versionRepository = versionRepository;
         this.conflictRepository = conflictRepository;
@@ -82,6 +88,7 @@ public class RefBookServiceImpl implements RefBookService {
         this.refBookVersionQueryProvider = refBookVersionQueryProvider;
 
         this.versionValidation = versionValidation;
+        this.auditLogService = auditLogService;
     }
 
     /**
@@ -181,6 +188,11 @@ public class RefBookServiceImpl implements RefBookService {
         refBookVersionEntity.setStructure(structure);
 
         RefBookVersionEntity savedVersion = versionRepository.save(refBookVersionEntity);
+        auditLogService.addAction(
+            AuditAction.CREATE_REF_BOOK,
+            LocalDateTime.now(Clock.systemUTC()),
+            Map.of("refBookId", savedVersion.getRefBook().getId().toString())
+        );
         return refBookModel(savedVersion,
                 getSourceTypeVersion(savedVersion.getRefBook().getId(), RefBookSourceType.DRAFT),
                 getSourceTypeVersion(savedVersion.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED));
@@ -223,6 +235,13 @@ public class RefBookServiceImpl implements RefBookService {
                         .map(RefBookVersionEntity::getStorageCode)
                         .collect(Collectors.toSet())));
         refBookRepository.deleteById(refBookId);
+        auditLogService.addAction(
+            AuditAction.DELETE_REF_BOOK,
+            LocalDateTime.now(Clock.systemUTC()),
+            Map.of(
+                "refBookId", Integer.toString(refBookId)
+            )
+        );
     }
 
     @Override
@@ -235,6 +254,13 @@ public class RefBookServiceImpl implements RefBookService {
         // NB: Add checking references to this refBook.
         refBookEntity.setArchived(Boolean.TRUE);
         refBookRepository.save(refBookEntity);
+        auditLogService.addAction(
+            AuditAction.ARCHIVE,
+            LocalDateTime.now(Clock.systemUTC()),
+            Map.of(
+                "refBookId", Integer.toString(refBookId)
+            )
+        );
     }
 
     @Override

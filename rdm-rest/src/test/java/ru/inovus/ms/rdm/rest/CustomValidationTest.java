@@ -28,7 +28,8 @@ import static com.google.common.collect.ImmutableMap.of;
 import static java.math.BigInteger.valueOf;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.*;
 import static ru.inovus.ms.rdm.api.model.Structure.Attribute.build;
 import static ru.inovus.ms.rdm.api.model.validation.AttributeValidationType.*;
@@ -43,7 +44,8 @@ import static ru.inovus.ms.rdm.impl.validation.resolver.IntRangeAttributeValidat
                 "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.api.service",
                 "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
                 "fileStorage.root=src/test/resources/rdm/temp",
-                "i18n.global.enabled=false"
+                "i18n.global.enabled=false",
+                "rdm.audit.disabledActions=all"
         })
 @DefinePort
 @EnableEmbeddedPg
