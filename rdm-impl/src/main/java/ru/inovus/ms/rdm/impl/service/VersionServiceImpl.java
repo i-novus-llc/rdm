@@ -22,17 +22,18 @@ import ru.inovus.ms.rdm.api.exception.NotFoundException;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.ExportFile;
 import ru.inovus.ms.rdm.api.model.Structure;
-import ru.inovus.ms.rdm.api.model.audit.AuditAction;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.api.model.refdata.RowValuePage;
 import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.model.version.VersionCriteria;
 import ru.inovus.ms.rdm.api.service.ExistsData;
+import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.api.service.VersionFileService;
 import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
 import ru.inovus.ms.rdm.api.util.TimeUtils;
+import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.impl.entity.VersionFileEntity;
 import ru.inovus.ms.rdm.impl.file.FileStorage;
@@ -46,7 +47,6 @@ import ru.inovus.ms.rdm.impl.validation.ReferenceValidation;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -74,13 +74,15 @@ public class VersionServiceImpl implements VersionService {
 
     private AuditLogService auditLogService;
 
+    private RefBookService refBookService;
+
     @Autowired
     public VersionServiceImpl(RefBookVersionRepository versionRepository,
                               SearchDataService searchDataService,
                               FileStorage fileStorage, FileNameGenerator fileNameGenerator,
                               VersionFileRepository versionFileRepository,
                               VersionFileService versionFileService,
-                              AuditLogService auditLogService) {
+                              AuditLogService auditLogService, RefBookService refBookService) {
         this.versionRepository = versionRepository;
 
         this.searchDataService = searchDataService;
@@ -91,6 +93,7 @@ public class VersionServiceImpl implements VersionService {
         this.versionFileRepository = versionFileRepository;
         this.versionFileService = versionFileService;
         this.auditLogService = auditLogService;
+        this.refBookService = refBookService;
     }
 
     @Override
@@ -203,14 +206,14 @@ public class VersionServiceImpl implements VersionService {
         if (fileEntity == null || !fileStorage.isExistContent(fileEntity.getPath())) {
             path = generateVersionFile(versionEntity, fileType);
         }
-        auditLogService.addAction(
-            AuditAction.DOWNLOAD,
-            LocalDateTime.now(Clock.systemUTC()),
-            Map.of("refBookId", versionEntity.getRefBook().getId().toString())
-        );
-        return new ExportFile(
+        ExportFile ef = new ExportFile(
                 fileStorage.getContent(path),
                 fileNameGenerator.generateZipName(ModelGenerator.versionModel(versionEntity), fileType));
+        auditLogService.addAction(
+            AuditAction.DOWNLOAD,
+            versionEntity
+        );
+        return ef;
     }
 
     @Override

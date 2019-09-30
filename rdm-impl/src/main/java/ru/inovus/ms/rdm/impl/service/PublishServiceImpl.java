@@ -12,7 +12,6 @@ import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.inovus.ms.rdm.api.enumeration.FileType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
-import ru.inovus.ms.rdm.api.model.audit.AuditAction;
 import ru.inovus.ms.rdm.api.model.conflict.RefBookConflict;
 import ru.inovus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
@@ -21,16 +20,15 @@ import ru.inovus.ms.rdm.api.util.TimeUtils;
 import ru.inovus.ms.rdm.api.util.VersionNumberStrategy;
 import ru.inovus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
+import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
 import ru.inovus.ms.rdm.impl.file.export.VersionDataIterator;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 
-import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import static java.util.Collections.singletonList;
@@ -61,6 +59,8 @@ public class PublishServiceImpl implements PublishService {
 
     private AuditLogService auditLogService;
 
+    private RefBookService refBookService;
+
     @Autowired
     @SuppressWarnings("squid:S00107")
     public PublishServiceImpl(RefBookVersionRepository versionRepository,
@@ -69,7 +69,7 @@ public class PublishServiceImpl implements PublishService {
                               ConflictService conflictService, ReferenceService referenceService,
                               VersionFileService versionFileService, VersionNumberStrategy versionNumberStrategy,
                               VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation,
-                              AuditLogService auditLogService) {
+                              AuditLogService auditLogService, RefBookService refBookService) {
         this.versionRepository = versionRepository;
 
         this.draftDataService = draftDataService;
@@ -86,6 +86,7 @@ public class PublishServiceImpl implements PublishService {
         this.versionValidation = versionValidation;
         this.versionPeriodPublishValidation = versionPeriodPublishValidation;
         this.auditLogService = auditLogService;
+        this.refBookService = refBookService;
     }
 
     /**
@@ -163,12 +164,11 @@ public class PublishServiceImpl implements PublishService {
 
         } finally {
             refBookLockService.deleteRefBookOperation(refBookId);
-            auditLogService.addAction(
-                AuditAction.PUBLICATION,
-                LocalDateTime.now(Clock.systemUTC()),
-                Map.of("refBookId", refBookId.toString())
-            );
         }
+        auditLogService.addAction(
+            AuditAction.PUBLICATION,
+            draftEntity
+        );
     }
 
     private RefBookVersionEntity getLastPublishedVersionEntity(RefBookVersionEntity draftVersion) {

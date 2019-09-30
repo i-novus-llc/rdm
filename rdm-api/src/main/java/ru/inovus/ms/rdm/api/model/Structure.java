@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -232,6 +233,18 @@ public class Structure implements Serializable {
         public int hashCode() {
             return Objects.hash(code, name, type, isPrimary);
         }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder("{");
+            sb.append("\"code\":\"").append(code).append("\"").append(",");
+            sb.append("\"name\":\"").append(name).append("\"").append(",");
+            sb.append("\"type\":\"").append(type.name()).append("\"").append(",");
+            sb.append("\"isPrimary\":\"").append(isPrimary).append("\"").append(",");
+            sb.append("\"description\":\"").append(description).append("\"");
+            return sb.append("}").toString();
+        }
+
     }
 
     @ApiModel("Ссылка на запись справочника")
@@ -322,6 +335,16 @@ public class Structure implements Serializable {
         public int hashCode() {
             return Objects.hash(attribute, referenceCode, displayExpression);
         }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder("{");
+            sb.append("\"attribute\":\"").append(attribute).append("\"").append(",");
+            sb.append("\"referenceCode\":\"").append(referenceCode).append("\"").append(",");
+            sb.append("\"displayExpression\":\"").append(displayExpression).append("\"");
+            return sb.append("}").toString();
+        }
+
     }
 
     public boolean storageEquals(Structure that) {
@@ -346,4 +369,15 @@ public class Structure implements Serializable {
     public int hashCode() {
         return Objects.hash(attributes, references);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("{");
+        sb.append("\"attributes\":[");
+        sb.append(attributes.stream().map(Object::toString).collect(joining(",")));
+        sb.append("],\"references\":[");
+        sb.append(references.stream().map(Objects::toString).collect(joining(",")));
+        return sb.append("]}").toString();
+    }
+
 }

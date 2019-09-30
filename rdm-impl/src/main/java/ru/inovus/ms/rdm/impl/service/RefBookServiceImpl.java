@@ -18,13 +18,13 @@ import ru.inovus.ms.rdm.api.enumeration.RefBookStatusType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.api.exception.NotFoundException;
 import ru.inovus.ms.rdm.api.model.Structure;
-import ru.inovus.ms.rdm.api.model.audit.AuditAction;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
 import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
+import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.PassportAttributeEntity;
 import ru.inovus.ms.rdm.impl.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.impl.entity.RefBookEntity;
@@ -36,8 +36,6 @@ import ru.inovus.ms.rdm.impl.repository.RefBookRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 
-import java.time.Clock;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -188,14 +186,14 @@ public class RefBookServiceImpl implements RefBookService {
         refBookVersionEntity.setStructure(structure);
 
         RefBookVersionEntity savedVersion = versionRepository.save(refBookVersionEntity);
-        auditLogService.addAction(
-            AuditAction.CREATE_REF_BOOK,
-            LocalDateTime.now(Clock.systemUTC()),
-            Map.of("refBookId", savedVersion.getRefBook().getId().toString())
-        );
-        return refBookModel(savedVersion,
+        RefBook refBook = refBookModel(savedVersion,
                 getSourceTypeVersion(savedVersion.getRefBook().getId(), RefBookSourceType.DRAFT),
                 getSourceTypeVersion(savedVersion.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED));
+        auditLogService.addAction(
+            AuditAction.CREATE_REF_BOOK,
+            refBook
+        );
+        return refBook;
     }
 
     @Override
@@ -230,17 +228,24 @@ public class RefBookServiceImpl implements RefBookService {
 
         // NB: may-be: Move to `RefBookVersionQueryProvider`.
         RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
-        refBookEntity.getVersionList().forEach(v ->
+        List<RefBookVersionEntity> l = refBookEntity.getVersionList();
+        RefBookVersionEntity last = null;
+        for (RefBookVersionEntity e : l) {
+            if (last == null || last.getId() < e.getId())
+                last = e;
+        }
+//      Подтягиваем из базы данные о пасспорте,
+//      потому что их уже не будет там после удаления (fetchType по дефолту -- LAZY)
+        last.getPassportValues().stream().forEach(p -> p.getAttribute());
+        last.setRefBook(refBookEntity);
+        l.forEach(v ->
                 dropDataService.drop(refBookRepository.getOne(refBookId).getVersionList().stream()
                         .map(RefBookVersionEntity::getStorageCode)
                         .collect(Collectors.toSet())));
         refBookRepository.deleteById(refBookId);
         auditLogService.addAction(
             AuditAction.DELETE_REF_BOOK,
-            LocalDateTime.now(Clock.systemUTC()),
-            Map.of(
-                "refBookId", Integer.toString(refBookId)
-            )
+            last
         );
     }
 
@@ -253,13 +258,15 @@ public class RefBookServiceImpl implements RefBookService {
         RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
         // NB: Add checking references to this refBook.
         refBookEntity.setArchived(Boolean.TRUE);
+        RefBookVersionEntity last = null;
+        for (RefBookVersionEntity e : refBookEntity.getVersionList()) {
+            if (last == null || e.getId() > last.getId())
+                last = e;
+        }
         refBookRepository.save(refBookEntity);
         auditLogService.addAction(
             AuditAction.ARCHIVE,
-            LocalDateTime.now(Clock.systemUTC()),
-            Map.of(
-                "refBookId", Integer.toString(refBookId)
-            )
+            last
         );
     }
 

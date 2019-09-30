@@ -34,7 +34,6 @@ import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.ExportFile;
 import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.Structure;
-import ru.inovus.ms.rdm.api.model.audit.AuditAction;
 import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
@@ -53,6 +52,7 @@ import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
 import ru.inovus.ms.rdm.api.util.StructureUtils;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
+import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.*;
 import ru.inovus.ms.rdm.impl.file.FileStorage;
 import ru.inovus.ms.rdm.impl.file.NonStrictOnTypeRowMapper;
@@ -72,8 +72,6 @@ import ru.inovus.ms.rdm.impl.validation.VersionValidationImpl;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.Clock;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -172,25 +170,29 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateRefBook(refBookId);
 
         refBookLockService.setRefBookUploading(refBookId);
+        Draft d;
         try {
             Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
 
             String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
             switch (extension) {
-                case "XLSX": return updateDraftDataByXlsx(refBookId, fileModel, inputStreamSupplier);
-                case "XML": return updateDraftDataByXml(refBookId, fileModel, inputStreamSupplier);
+                case "XLSX":
+                    d = updateDraftDataByXlsx(refBookId, fileModel, inputStreamSupplier);
+                    break;
+                case "XML":
+                    d = updateDraftDataByXml(refBookId, fileModel, inputStreamSupplier);
+                    break;
                 default: throw new RdmException("invalid file extension");
             }
 
         } finally {
             refBookLockService.deleteRefBookOperation(refBookId);
-            auditLogService.addAction(
-                AuditAction.UPLOAD_VERSION_FROM_FILE,
-                LocalDateTime.now(Clock.systemUTC()),
-                Map.of("refBookId", refBookId.toString())
-            );
         }
-
+        auditLogService.addAction(
+            AuditAction.UPLOAD_VERSION_FROM_FILE,
+            versionRepository.getOne(d.getId())
+        );
+        return d;
     }
 
     @Override
@@ -436,7 +438,6 @@ public class DraftServiceImpl implements DraftService {
             conflictRepository.deleteByReferrerVersionIdAndRefRecordId(draft.getId(), (Long) rowValue.getSystemId());
             draftDataService.updateRow(draft.getStorageCode(), rowValue);
         }
-        auditEdit(draft.getRefBook().getId(), "update");
     }
 
     @Override
@@ -448,7 +449,6 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draft = versionRepository.getOne(draftId);
         conflictRepository.deleteByReferrerVersionIdAndRefRecordId(draft.getId(), systemId);
         draftDataService.deleteRows(draft.getStorageCode(), singletonList(systemId));
-        auditEdit(draft.getRefBook().getId(), "delete");
     }
 
     @Override
@@ -460,7 +460,6 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draft = versionRepository.getOne(draftId);
         conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draft.getId());
         draftDataService.deleteAllRows(draft.getStorageCode());
-        auditEdit(draft.getRefBook().getId(), "delete_all");
     }
 
     @Override
@@ -477,12 +476,11 @@ public class DraftServiceImpl implements DraftService {
 
         } finally {
             refBookLockService.deleteRefBookOperation(refBookId);
-            auditLogService.addAction(
-                AuditAction.UPLOAD_DATA,
-                LocalDateTime.now(Clock.systemUTC()),
-                Map.of("refBookId", refBookId.toString())
-            );
         }
+        auditLogService.addAction(
+                AuditAction.UPLOAD_DATA,
+                draftVersion
+        );
     }
 
     @Override
@@ -570,7 +568,10 @@ public class DraftServiceImpl implements DraftService {
             structure.getReferences().add(reference);
         }
         draftEntity.setStructure(structure);
-        auditEdit(draftEntity.getRefBook().getId(), "add_attr");
+        if (isReference)
+            auditStructureEdit(draftEntity, "create_attribute", createAttribute.getReference());
+        else
+            auditStructureEdit(draftEntity, "create_attribute", createAttribute.getAttribute());
     }
 
     private void validateRequired(Structure.Attribute attribute, String storageCode, Structure structure) {
@@ -630,7 +631,10 @@ public class DraftServiceImpl implements DraftService {
             attributeValidationRepository.deleteAll(
                     attributeValidationRepository.findAllByVersionIdAndAttribute(updateAttribute.getVersionId(), updateAttribute.getCode()));
         }
-        auditEdit(draftEntity.getRefBook().getId(), "edit_attr");
+        if (updateAttribute.isReferenceType())
+            auditStructureEdit(draftEntity, "update_attribute", structure.getReference(updateAttribute.getCode()));
+        else
+            auditStructureEdit(draftEntity, "update_attribute", structure.getAttribute(updateAttribute.getCode()));
     }
 
     private void validateDisplayExpression(String displayExpression, String refBookCode) {
@@ -822,7 +826,7 @@ public class DraftServiceImpl implements DraftService {
 
         attributeValidationRepository.deleteAll(
                 attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attributeCode));
-        auditEdit(draftEntity.getRefBook().getId(), "delete_attr");
+        auditStructureEdit(draftEntity, "delete_attribute", attribute);
     }
 
     @Override
@@ -838,7 +842,6 @@ public class DraftServiceImpl implements DraftService {
 
         deleteAttributeValidation(versionId, attribute, attributeValidation.getType());
         attributeValidationRepository.save(validationEntity);
-        auditEdit(versionEntity.getRefBook().getId(), "add_validation");
     }
 
     @Override
@@ -860,7 +863,6 @@ public class DraftServiceImpl implements DraftService {
 
         if (!validations.isEmpty())
             attributeValidationRepository.deleteAll(validations);
-        auditEdit(versionRepository.getOne(draftId).getRefBook().getId(), "delete_validation");
     }
 
     @Override
@@ -882,7 +884,6 @@ public class DraftServiceImpl implements DraftService {
 
         RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
         updateAttributeValidations(versionEntity, request.getOldAttribute(), request.getNewAttribute(), request.getValidations());
-        auditEdit(versionEntity.getRefBook().getId(), "edit_validation");
     }
 
     private void updateAttributeValidations(RefBookVersionEntity versionEntity,
@@ -950,14 +951,11 @@ public class DraftServiceImpl implements DraftService {
                 fileNameGenerator.generateZipName(versionModel, fileType));
     }
 
-    private void auditEdit(Integer refBookId, String action) {
+    private void auditStructureEdit(RefBookVersionEntity refBook, String action, Object obj) {
         auditLogService.addAction(
-            AuditAction.DRAFT_EDITING,
-            LocalDateTime.now(Clock.systemUTC()),
-            Map.of(
-                "refBookId", refBookId.toString(),
-                "payload", action
-            )
+            AuditAction.EDIT_STRUCTURE,
+            refBook,
+            Map.of(action, obj)
         );
     }
 

@@ -102,7 +102,6 @@ public interface VersionService {
     })
     Structure getStructure(@ApiParam("Идентификатор версии") @QueryParam("versionId") Integer versionId);
 
-//  Выгрузка справочника;
     @GET
     @Path("/{versionId}/getFile")
     @Produces("application/zip")
