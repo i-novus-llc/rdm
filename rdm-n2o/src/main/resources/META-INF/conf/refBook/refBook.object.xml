@@ -8,11 +8,11 @@
             </invocation>
 
             <in-parameters>
-                <param id="code" mapping="code" domain="string" mapper="spel"/>
-                <param id="category.id" mapping="category" domain="string" mapper="spel"/>
-                <param id="name" mapping="passport.name" domain="string" mapper="spel"/>
-                <param id="shortName" mapping="passport.shortName" domain="string" mapper="spel"/>
-                <param id="description" mapping="passport.description" domain="string" mapper="spel"/>
+                <param id="code" mapping="['code']" domain="string" mapper="spel"/>
+                <param id="category.id" mapping="['category']" domain="string" mapper="spel"/>
+                <param id="name" mapping="['passport.name']" domain="string" mapper="spel"/>
+                <param id="shortName" mapping="['passport.shortName']" domain="string" mapper="spel"/>
+                <param id="description" mapping="['passport.description']" domain="string" mapper="spel"/>
             </in-parameters>
 
             <out-parameters>
@@ -51,7 +51,7 @@
                 <rest method="DELETE">${rdm.backend.path}/refBook?refBookId={refBookId}</rest>
             </invocation>
             <in-parameters>
-                <param id="refBookId" mapping="refBookId" domain="integer" mapper="spel"/>
+                <param id="refBookId" mapping="['refBookId']" domain="integer" mapper="spel"/>
             </in-parameters>
         </operation>
 
@@ -139,7 +139,7 @@
                 <rest method="POST">${rdm.backend.path}/refBook/{refBookId}/toArchive</rest>
             </invocation>
             <in-parameters>
-                <param id="refBookId" mapping="refBookId" domain="integer" mapper="spel"/>
+                <param id="refBookId" mapping="['refBookId']" domain="integer" mapper="spel"/>
             </in-parameters>
         </operation>
 
@@ -149,7 +149,7 @@
                 <rest method="POST">${rdm.backend.path}/refBook/{refBookId}/fromArchive</rest>
             </invocation>
             <in-parameters>
-                <param id="refBookId" mapping="refBookId" domain="integer" mapper="spel"/>
+                <param id="refBookId" mapping="['refBookId']" domain="integer" mapper="spel"/>
             </in-parameters>
         </operation>
 
