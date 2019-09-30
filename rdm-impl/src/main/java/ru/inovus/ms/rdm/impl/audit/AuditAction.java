@@ -11,7 +11,7 @@ public enum AuditAction {
         "Публикация версии справочника",
         OBJ_NAME_REFBOOK,
         OBJ_TYPE_REFBOOK,
-            GET_REFBOOK_ID_FROM_REFBOOK_VERSION_ENTITY,
+        GET_REFBOOK_ID_FROM_REFBOOK_VERSION_ENTITY,
         refBookCtxExtract(
             REFBOOK_CODE_KEY,
             REFBOOK_NAME_KEY,
@@ -21,24 +21,23 @@ public enum AuditAction {
     ),
 
     UPLOAD_VERSION_FROM_FILE( // Создаем черновик и тут же в него заливаем данные
-        "Загрузка версии справочника",
+        "Загрузка черновика справочника",
         OBJ_NAME_REFBOOK,
         OBJ_TYPE_REFBOOK,
-            GET_REFBOOK_ID_FROM_REFBOOK_VERSION_ENTITY,
+        GET_REFBOOK_ID_FROM_REFBOOK_VERSION_ENTITY,
         refBookCtxExtract(
             REFBOOK_CODE_KEY,
             REFBOOK_NAME_KEY,
             REFBOOK_SHORT_NAME_KEY,
-            REFBOOK_VERSION_KEY,
             REFBOOK_STRUCTURE_KEY
         )
     ),
 
     UPLOAD_DATA( // Заливаем в уже существующий черновик
-        "Загрузка данных справочника",
+        "Загрузка данных черновика справочника",
         OBJ_NAME_REFBOOK,
         OBJ_TYPE_REFBOOK,
-            GET_REFBOOK_ID_FROM_REFBOOK_VERSION_ENTITY,
+        GET_REFBOOK_ID_FROM_REFBOOK_VERSION_ENTITY,
         refBookCtxExtract(
             REFBOOK_CODE_KEY,
             REFBOOK_NAME_KEY,
@@ -50,15 +49,19 @@ public enum AuditAction {
         "Редактирование черновика справочника",
         OBJ_NAME_REFBOOK,
         OBJ_TYPE_REFBOOK,
-            GET_REFBOOK_ID_FROM_REFBOOK_VERSION_ENTITY,
-        refBookCtxExtract()
+        GET_REFBOOK_ID_FROM_REFBOOK_VERSION_ENTITY,
+        refBookCtxExtract(
+            REFBOOK_CODE_KEY,
+            REFBOOK_NAME_KEY,
+            REFBOOK_SHORT_NAME_KEY
+        )
     ),
 
     DOWNLOAD(
         "Выгрузка справочника",
         OBJ_NAME_REFBOOK,
         OBJ_TYPE_REFBOOK,
-            GET_REFBOOK_ID_FROM_REFBOOK_VERSION_ENTITY,
+        GET_REFBOOK_ID_FROM_REFBOOK_VERSION_ENTITY,
         refBookCtxExtract(
             REFBOOK_CODE_KEY,
             REFBOOK_NAME_KEY,
@@ -71,12 +74,11 @@ public enum AuditAction {
         "Создание справочника",
         OBJ_NAME_REFBOOK,
         OBJ_TYPE_REFBOOK,
-            GET_REFBOOK_ID_FROM_REFBOOK_VERSION_ENTITY,
+        GET_REFBOOK_ID_FROM_REFBOOK_VERSION_ENTITY,
         refBookCtxExtract(
             REFBOOK_CODE_KEY,
             REFBOOK_NAME_KEY,
             REFBOOK_SHORT_NAME_KEY,
-            REFBOOK_VERSION_KEY,
             REFBOOK_STRUCTURE_KEY
         )
     ),

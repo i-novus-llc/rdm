@@ -16,10 +16,7 @@ import org.springframework.util.ObjectUtils;
 import ru.i_novus.components.common.exception.CodifiedException;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.exception.NotUniqueException;
-import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
-import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
@@ -77,8 +74,10 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static java.util.Collections.*;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.isEmpty;
@@ -432,12 +431,31 @@ public class DraftServiceImpl implements DraftService {
             throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
 
         RowValue rowValue = ConverterUtil.rowValue(new StructureRowMapper(draft.getStructure(), versionRepository).map(row), draft.getStructure());
-        if (rowValue.getSystemId() == null)
+        if (rowValue.getSystemId() == null) {
             draftDataService.addRows(draft.getStorageCode(), singletonList(rowValue));
-        else {
+            Stream<FieldValue> s = rowValue.getFieldValues().stream();
+            auditEditData(draft, "create_row", s.map(fv -> fv.getField() + ":" + fv.getValue()).collect(joining(", ")));
+        } else {
+            RefBookRowValue old = versionService.getRow(rowValue.getSystemId().toString());
+            String diff = simpleDiff(old, row);
             conflictRepository.deleteByReferrerVersionIdAndRefRecordId(draft.getId(), (Long) rowValue.getSystemId());
             draftDataService.updateRow(draft.getStorageCode(), rowValue);
+            auditEditData(draft, "update_row", diff);
         }
+    }
+
+    private String simpleDiff(RefBookRowValue old, Row _new) {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, Object> e : _new.getData().entrySet()) {
+            Object oldVal = old.getFieldValue(e.getKey());
+            Object newVal = e.getValue();
+            String oldStr = Objects.toString(oldVal, "null");
+            String newStr = Objects.toString(newVal, "null");
+            if (!oldStr.equals(newStr))
+                sb.append(e.getKey()).append(": [\"").append(oldStr).append("\" -> \"").append(newStr).append("\"], ");
+        }
+        sb.setLength(Math.max(0, sb.length() - 2));
+        return sb.toString();
     }
 
     @Override
@@ -449,6 +467,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draft = versionRepository.getOne(draftId);
         conflictRepository.deleteByReferrerVersionIdAndRefRecordId(draft.getId(), systemId);
         draftDataService.deleteRows(draft.getStorageCode(), singletonList(systemId));
+        auditEditData(draft, "delete_row", systemId.toString());
     }
 
     @Override
@@ -460,6 +479,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draft = versionRepository.getOne(draftId);
         conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draft.getId());
         draftDataService.deleteAllRows(draft.getStorageCode());
+        auditEditData(draft, "delete_all_rows", "{}");
     }
 
     @Override
@@ -478,8 +498,8 @@ public class DraftServiceImpl implements DraftService {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
         auditLogService.addAction(
-                AuditAction.UPLOAD_DATA,
-                draftVersion
+            AuditAction.UPLOAD_DATA,
+            draftVersion
         );
     }
 
@@ -568,10 +588,7 @@ public class DraftServiceImpl implements DraftService {
             structure.getReferences().add(reference);
         }
         draftEntity.setStructure(structure);
-        if (isReference)
-            auditStructureEdit(draftEntity, "create_attribute", createAttribute.getReference());
-        else
-            auditStructureEdit(draftEntity, "create_attribute", createAttribute.getAttribute());
+        auditStructureEdit(draftEntity, "create_attribute", createAttribute.getAttribute());
     }
 
     private void validateRequired(Structure.Attribute attribute, String storageCode, Structure structure) {
@@ -631,10 +648,7 @@ public class DraftServiceImpl implements DraftService {
             attributeValidationRepository.deleteAll(
                     attributeValidationRepository.findAllByVersionIdAndAttribute(updateAttribute.getVersionId(), updateAttribute.getCode()));
         }
-        if (updateAttribute.isReferenceType())
-            auditStructureEdit(draftEntity, "update_attribute", structure.getReference(updateAttribute.getCode()));
-        else
-            auditStructureEdit(draftEntity, "update_attribute", structure.getAttribute(updateAttribute.getCode()));
+        auditStructureEdit(draftEntity, "update_attribute", structure.getAttribute(updateAttribute.getCode()));
     }
 
     private void validateDisplayExpression(String displayExpression, String refBookCode) {
@@ -951,11 +965,19 @@ public class DraftServiceImpl implements DraftService {
                 fileNameGenerator.generateZipName(versionModel, fileType));
     }
 
-    private void auditStructureEdit(RefBookVersionEntity refBook, String action, Object obj) {
+    private void auditStructureEdit(RefBookVersionEntity refBook, String action, Structure.Attribute attribute) {
         auditLogService.addAction(
             AuditAction.EDIT_STRUCTURE,
             refBook,
-            Map.of(action, obj)
+            Map.of(action, attribute)
+        );
+    }
+
+    private void auditEditData(RefBookVersionEntity refBook, String action, String payload) {
+        auditLogService.addAction(
+            AuditAction.DRAFT_EDITING,
+            refBook,
+            Map.of(action, payload)
         );
     }
 
