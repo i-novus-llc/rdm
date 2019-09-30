@@ -34,14 +34,14 @@ class AuditConstants {
                             REFBOOK_NAME_KEY,
                             refBookVersion.getPassportValues().stream().filter(
                                 p -> p.getAttribute().getCode().equals(REFBOOK_NAME_KEY)
-                        ).findFirst().map(PassportValueEntity::getValue).orElse(""));
+                        ).findFirst().map(PassportValueEntity::getValue).orElse("NA"));
                         break;
                     case REFBOOK_SHORT_NAME_KEY:
                         m.put(
                             REFBOOK_SHORT_NAME_KEY,
                             refBookVersion.getPassportValues().stream().filter(
                                 p -> p.getAttribute().getCode().equals(REFBOOK_SHORT_NAME_KEY)
-                        ).findFirst().map(PassportValueEntity::getValue).orElse(""));
+                        ).findFirst().map(PassportValueEntity::getValue).orElse("NA"));
                         break;
                     case REFBOOK_VERSION_KEY:
                         m.put(REFBOOK_VERSION_KEY, refBookVersion.getVersion());

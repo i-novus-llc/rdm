@@ -14,13 +14,16 @@ import ru.inovus.ms.rdm.impl.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.inovus.ms.rdm.impl.util.JsonPayload;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.joining;
 import static org.springframework.util.StringUtils.isEmpty;
 
 @Primary
@@ -68,14 +71,8 @@ public class PassportServiceImpl implements PassportService {
                         Objects.isNull(newPassport.get(passportValue.getAttribute().getCode()))
                 ).collect(Collectors.toList());
 
-        passportValueRepository.deleteAll(valuesToRemove);
-
-        versionEntity.getPassportValues()
-                .removeAll(valuesToRemove);
-
-        StringBuilder sb = new StringBuilder();
-        for (PassportValueEntity e : valuesToRemove)
-            sb.append("delete_").append(e.getAttribute().getCode()).append(", ");
+        List<Map.Entry<String, Map.Entry<String, String>>> editedValues = new ArrayList<>();
+        List<Map.Entry<String, String>> addedValues = new ArrayList<>();
         newPassport.entrySet().stream()
                 .filter(newValue -> !isEmpty(newValue.getValue()))
                 .forEach(newValue -> {
@@ -84,18 +81,36 @@ public class PassportServiceImpl implements PassportService {
                             .findFirst().orElse(null);
 
                     if (oldValue != null) {
-                        sb.append("edit_").append(oldValue.getAttribute().getCode());
-                        sb.append(": [\"").append(oldValue.getValue()).append("\" -> \"").append(newValue.getValue()).append("\"], ");
+                        editedValues.add(
+                            Map.entry(
+                                newValue.getKey(),
+                                Map.entry(oldValue.getValue(), newValue.getValue())
+                            )
+                        );
                         oldValue.setValue(newValue.getValue());
                     } else {
-                        sb.append("add_").append(newValue.getKey());
-                        sb.append(": [\"").append(newValue.getValue()).append("\"], ");
+                        addedValues.add(Map.entry(newValue.getKey(), newValue.getValue()));
                         PassportAttributeEntity entity = new PassportAttributeEntity(newValue.getKey());
                         versionEntity.getPassportValues()
                                 .add(new PassportValueEntity(entity, newValue.getValue(), versionEntity));
                     }
                 });
-        sb.setLength(Math.max(0, sb.length() - 2)); // Последняя запятая
-        auditLogService.addAction(AuditAction.EDIT_PASSPORT, versionEntity, Map.of("operations", "[" + sb.toString() + "]"));
+        StringBuilder sb = new StringBuilder("{");
+        sb.append("\"deleted\": [");
+        sb.append(valuesToRemove.stream().map(p -> "\"" + p.getAttribute().getCode() + "\"").collect(joining(", ")));
+        sb.append("], \"added\": [");
+        sb.append(addedValues.stream().map(e -> "{\"" + e.getKey() + "\": \"" + e.getValue() + "\"}").collect(joining(", ")));
+        sb.append("], \"edited\": [");
+        sb.append(editedValues.stream().map(e -> "{\"" + e.getKey() + "\": {\"old\": \"" + e.getValue().getKey() + "\", \"new\": \"" + e.getValue().getValue() + "\"}}").collect(joining(", ")));
+        sb.append("]}");
+        passportValueRepository.deleteAll(valuesToRemove);
+
+        versionEntity.getPassportValues()
+                .removeAll(valuesToRemove);
+        auditLogService.addAction(
+            AuditAction.EDIT_PASSPORT,
+            versionEntity,
+            Map.of("operations", new JsonPayload(sb.toString()))
+        );
     }
 }

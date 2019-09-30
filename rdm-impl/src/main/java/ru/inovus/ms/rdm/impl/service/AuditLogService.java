@@ -72,8 +72,8 @@ public class AuditLogService {
     private static String toJson(Map<String, Object> ctx) {
         StringBuilder sb = new StringBuilder("{");
         sb.append(ctx.entrySet().stream().map(
-            e -> "\"" + e.getKey() + "\":" + (isStringLiteral(e.getValue()) ? "\"" + e.getValue() + "\"" : e.getValue())
-        ).collect(joining(",")));
+            e -> "\"" + e.getKey() + "\": " + (isStringLiteral(e.getValue()) ? "\"" + e.getValue() + "\"" : e.getValue())
+        ).collect(joining(", ")));
         return sb.append('}').toString();
     }
 

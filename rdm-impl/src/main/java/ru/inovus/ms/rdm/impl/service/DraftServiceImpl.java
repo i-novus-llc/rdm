@@ -62,6 +62,7 @@ import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.ConverterUtil;
+import ru.inovus.ms.rdm.impl.util.JsonPayload;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 import ru.inovus.ms.rdm.impl.validation.PrimaryKeyUniqueValidation;
 import ru.inovus.ms.rdm.impl.validation.ReferenceValidation;
@@ -74,7 +75,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
@@ -433,29 +433,38 @@ public class DraftServiceImpl implements DraftService {
         RowValue rowValue = ConverterUtil.rowValue(new StructureRowMapper(draft.getStructure(), versionRepository).map(row), draft.getStructure());
         if (rowValue.getSystemId() == null) {
             draftDataService.addRows(draft.getStorageCode(), singletonList(rowValue));
-            Stream<FieldValue> s = rowValue.getFieldValues().stream();
-            auditEditData(draft, "create_row", s.map(fv -> fv.getField() + ":" + fv.getValue()).collect(joining(", ")));
+            auditEditData(draft, "create_row", createRowPayload(rowValue.getFieldValues()));
         } else {
             RefBookRowValue old = versionService.getRow(rowValue.getSystemId().toString());
-            String diff = simpleDiff(old, row);
+            JsonPayload diff = simpleDiff(old, row);
             conflictRepository.deleteByReferrerVersionIdAndRefRecordId(draft.getId(), (Long) rowValue.getSystemId());
             draftDataService.updateRow(draft.getStorageCode(), rowValue);
             auditEditData(draft, "update_row", diff);
         }
     }
 
-    private String simpleDiff(RefBookRowValue old, Row _new) {
+    private JsonPayload createRowPayload(List<FieldValue> fieldValues) {
+        return new JsonPayload(
+            "{" + fieldValues.stream().map(f -> "\"" + f.getField() + "\": \"" + f.getValue() + "\"").collect(joining(", ")) + "}"
+        );
+    }
+
+    private JsonPayload simpleDiff(RefBookRowValue old, Row _new) {
         StringBuilder sb = new StringBuilder();
+        sb.append("{");
         for (Map.Entry<String, Object> e : _new.getData().entrySet()) {
             Object oldVal = old.getFieldValue(e.getKey());
             Object newVal = e.getValue();
             String oldStr = Objects.toString(oldVal, "null");
             String newStr = Objects.toString(newVal, "null");
-            if (!oldStr.equals(newStr))
-                sb.append(e.getKey()).append(": [\"").append(oldStr).append("\" -> \"").append(newStr).append("\"], ");
+            if (!oldStr.equals(newStr)) {
+                sb.append("\"").append(e.getKey()).append("\": {\"old\": \"");
+                sb.append(oldStr).append("\", \"new\": \"").append(newStr).append("\"}, ");
+            }
         }
         sb.setLength(Math.max(0, sb.length() - 2));
-        return sb.toString();
+        sb.append("}");
+        return new JsonPayload(sb.toString());
     }
 
     @Override
@@ -467,7 +476,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draft = versionRepository.getOne(draftId);
         conflictRepository.deleteByReferrerVersionIdAndRefRecordId(draft.getId(), systemId);
         draftDataService.deleteRows(draft.getStorageCode(), singletonList(systemId));
-        auditEditData(draft, "delete_row", systemId.toString());
+        auditEditData(draft, "delete_row", systemId);
     }
 
     @Override
@@ -973,7 +982,7 @@ public class DraftServiceImpl implements DraftService {
         );
     }
 
-    private void auditEditData(RefBookVersionEntity refBook, String action, String payload) {
+    private void auditEditData(RefBookVersionEntity refBook, String action, Object payload) {
         auditLogService.addAction(
             AuditAction.DRAFT_EDITING,
             refBook,
