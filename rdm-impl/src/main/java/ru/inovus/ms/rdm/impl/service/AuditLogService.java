@@ -18,6 +18,7 @@ import static java.util.Arrays.stream;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.text.StringEscapeUtils.escapeJson;
 
 @Service
 public class AuditLogService {
@@ -55,6 +56,7 @@ public class AuditLogService {
 
     private void audit(AuditAction action, Object obj, Map<String, Object> additionalContext) {
         AuditClientRequest request = new AuditClientRequest();
+
         request.setEventDate(LocalDateTime.now(Clock.systemUTC()));
         request.setObjectType(action.getObjType());
         request.setObjectName(action.getObjName());
@@ -70,11 +72,11 @@ public class AuditLogService {
     }
 
     private static String toJson(Map<String, Object> ctx) {
-        StringBuilder sb = new StringBuilder("{");
-        sb.append(ctx.entrySet().stream().map(
-            e -> "\"" + e.getKey() + "\": " + (isStringLiteral(e.getValue()) ? "\"" + e.getValue() + "\"" : e.getValue())
-        ).collect(joining(", ")));
-        return sb.append('}').toString();
+        String s = "{" + ctx.entrySet().stream().map(
+                e -> "\"" + escapeJson(e.getKey()) + "\": " + (isStringLiteral(e.getValue()) ? "\"" + escapeJson(e.getValue().toString()) + "\"" : e.getValue())
+        ).collect(joining(", ")) +
+                '}';
+        return s;
     }
 
     private static boolean isStringLiteral(Object obj) {

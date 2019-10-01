@@ -17,13 +17,13 @@ import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.JsonPayload;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.text.StringEscapeUtils.escapeJson;
 import static org.springframework.util.StringUtils.isEmpty;
 
 @Primary
@@ -71,8 +71,6 @@ public class PassportServiceImpl implements PassportService {
                         Objects.isNull(newPassport.get(passportValue.getAttribute().getCode()))
                 ).collect(Collectors.toList());
 
-        List<Map.Entry<String, Map.Entry<String, String>>> editedValues = new ArrayList<>();
-        List<Map.Entry<String, String>> addedValues = new ArrayList<>();
         newPassport.entrySet().stream()
                 .filter(newValue -> !isEmpty(newValue.getValue()))
                 .forEach(newValue -> {
@@ -81,36 +79,23 @@ public class PassportServiceImpl implements PassportService {
                             .findFirst().orElse(null);
 
                     if (oldValue != null) {
-                        editedValues.add(
-                            Map.entry(
-                                newValue.getKey(),
-                                Map.entry(oldValue.getValue(), newValue.getValue())
-                            )
-                        );
                         oldValue.setValue(newValue.getValue());
                     } else {
-                        addedValues.add(Map.entry(newValue.getKey(), newValue.getValue()));
                         PassportAttributeEntity entity = new PassportAttributeEntity(newValue.getKey());
                         versionEntity.getPassportValues()
                                 .add(new PassportValueEntity(entity, newValue.getValue(), versionEntity));
                     }
                 });
-        StringBuilder sb = new StringBuilder("{");
-        sb.append("\"deleted\": [");
-        sb.append(valuesToRemove.stream().map(p -> "\"" + p.getAttribute().getCode() + "\"").collect(joining(", ")));
-        sb.append("], \"added\": [");
-        sb.append(addedValues.stream().map(e -> "{\"" + e.getKey() + "\": \"" + e.getValue() + "\"}").collect(joining(", ")));
-        sb.append("], \"edited\": [");
-        sb.append(editedValues.stream().map(e -> "{\"" + e.getKey() + "\": {\"old\": \"" + e.getValue().getKey() + "\", \"new\": \"" + e.getValue().getValue() + "\"}}").collect(joining(", ")));
-        sb.append("]}");
+
         passportValueRepository.deleteAll(valuesToRemove);
 
         versionEntity.getPassportValues()
                 .removeAll(valuesToRemove);
+        String s = "{" + newPassport.entrySet().stream().map(e -> "\"" + escapeJson(e.getKey()) + "\": \"" + escapeJson(e.getValue()) + "\"").collect(joining(", ")) + "}";
         auditLogService.addAction(
             AuditAction.EDIT_PASSPORT,
             versionEntity,
-            Map.of("operations", new JsonPayload(sb.toString()))
+            Map.of("operations", new JsonPayload(s))
         );
     }
 }

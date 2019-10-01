@@ -79,6 +79,7 @@ import java.util.function.Supplier;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.text.StringEscapeUtils.escapeJson;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.isEmpty;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
@@ -445,24 +446,22 @@ public class DraftServiceImpl implements DraftService {
 
     private JsonPayload createRowPayload(List<FieldValue> fieldValues) {
         return new JsonPayload(
-            "{" + fieldValues.stream().map(f -> "\"" + f.getField() + "\": \"" + f.getValue() + "\"").collect(joining(", ")) + "}"
+            "{" + fieldValues.stream().map(f -> "\"" + escapeJson(f.getField()) + "\": \"" + escapeJson(f.getValue().toString()) + "\"").collect(joining(", ")) + "}"
         );
     }
 
     private JsonPayload simpleDiff(RefBookRowValue old, Row _new) {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
-        for (Map.Entry<String, Object> e : _new.getData().entrySet()) {
-            Object oldVal = old.getFieldValue(e.getKey());
-            Object newVal = e.getValue();
+        sb.append(old.getFieldValues().stream().filter(f ->
+            !Objects.equals(f.getValue(), _new.getData().get(f.getField()))
+        ).map(f -> {
+            Object oldVal = f.getValue();
+            Object newVal = _new.getData().get(f.getField());
             String oldStr = Objects.toString(oldVal, "null");
             String newStr = Objects.toString(newVal, "null");
-            if (!oldStr.equals(newStr)) {
-                sb.append("\"").append(e.getKey()).append("\": {\"old\": \"");
-                sb.append(oldStr).append("\", \"new\": \"").append(newStr).append("\"}, ");
-            }
-        }
-        sb.setLength(Math.max(0, sb.length() - 2));
+            return "\"" + escapeJson(f.getField()) + "\": {\"old\": \"" + escapeJson(oldStr) + "\", \"new\": \"" + escapeJson(newStr) + "\"}";
+        }).collect(joining(",")));
         sb.append("}");
         return new JsonPayload(sb.toString());
     }

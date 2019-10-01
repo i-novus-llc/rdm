@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.text.StringEscapeUtils.escapeJson;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 @ApiModel("Структура")
@@ -237,11 +238,11 @@ public class Structure implements Serializable {
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder("{");
-            sb.append("\"code\": \"").append(code).append("\"").append(", ");
-            sb.append("\"name\": \"").append(name).append("\"").append(", ");
+            sb.append("\"code\": \"").append(escapeJson(code)).append("\"").append(", ");
+            sb.append("\"name\": \"").append(escapeJson(name)).append("\"").append(", ");
             sb.append("\"type\": \"").append(type.name()).append("\"").append(", ");
             sb.append("\"isPrimary\": ").append(isPrimary).append(", ");
-            sb.append("\"description\": \"").append(description).append("\"");
+            sb.append("\"description\": \"").append(escapeJson(description)).append("\"");
             return sb.append("}").toString();
         }
 
@@ -339,9 +340,9 @@ public class Structure implements Serializable {
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder("{");
-            sb.append("\"attribute\": \"").append(attribute).append("\"").append(", ");
-            sb.append("\"referenceCode\": \"").append(referenceCode).append("\"").append(", ");
-            sb.append("\"displayExpression\": \"").append(displayExpression).append("\"");
+            sb.append("\"attribute\": \"").append(escapeJson(attribute)).append("\"").append(", ");
+            sb.append("\"referenceCode\": \"").append(escapeJson(referenceCode)).append("\"").append(", ");
+            sb.append("\"displayExpression\": \"").append(escapeJson(displayExpression)).append("\"");
             return sb.append("}").toString();
         }
 
@@ -374,9 +375,9 @@ public class Structure implements Serializable {
     public String toString() {
         StringBuilder sb = new StringBuilder("{");
         sb.append("\"attributes\": [");
-        sb.append(attributes.stream().map(Object::toString).collect(joining(", ")));
+        sb.append(attributes.stream().map(Attribute::toString).collect(joining(", ")));
         sb.append("], \"references\": [");
-        sb.append(references.stream().map(Objects::toString).collect(joining(", ")));
+        sb.append(references.stream().map(Reference::toString).collect(joining(", ")));
         return sb.append("]}").toString();
     }
 
