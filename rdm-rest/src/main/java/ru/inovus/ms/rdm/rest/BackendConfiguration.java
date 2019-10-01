@@ -2,20 +2,12 @@ package ru.inovus.ms.rdm.rest;
 
 import net.n2oapp.platform.i18n.Messages;
 import net.n2oapp.platform.jaxrs.LocalDateTimeISOParameterConverter;
-import net.n2oapp.platform.jaxrs.autoconfigure.EnableJaxRsProxyClient;
-import net.n2oapp.security.admin.rest.api.UserRestService;
-import net.n2oapp.security.admin.rest.client.UserServiceRestClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import ru.i_novus.ms.audit.client.AuditClient;
-import ru.i_novus.ms.audit.client.impl.SimpleAuditClientImpl;
-import ru.i_novus.ms.audit.client.impl.converter.RequestConverter;
-import ru.i_novus.ms.audit.service.api.AuditRest;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.inovus.ms.rdm.api.provider.*;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
@@ -82,32 +74,32 @@ public class BackendConfiguration {
     UserExceptionMapper userExceptionMapper(Messages messages) {
         return new UserExceptionMapper(messages);
     }
-
-    @Bean
-    public RequestConverter requestConverter() {
-        return new RequestConverter();
-    }
-
-    @Configuration
-    @EnableJaxRsProxyClient(
-            classes = {AuditRest.class},
-            address = "${audit.service.url}")
-    static class AuditClientConfiguration {
-        @Bean
-        public AuditClient simpleAuditClient(@Qualifier("auditRestJaxRsProxyClient") AuditRest auditRest) {
-            SimpleAuditClientImpl simpleAuditClient = new SimpleAuditClientImpl();
-            simpleAuditClient.setAuditRest(auditRest);
-            return simpleAuditClient;
-        }
-    }
-
-    @Configuration
-    @EnableJaxRsProxyClient(classes = {UserRestService.class}, address = "${sec.admin.rest.url}")
-    static class UserServiceConfiguration {
-        @Bean
-        public UserServiceRestClient userServiceRestClient(@Qualifier("userRestServiceJaxRsProxyClient") UserRestService userRestService) {
-            return new UserServiceRestClient(userRestService);
-        }
-    }
+//
+//    @Bean
+//    public RequestConverter requestConverter() {
+//        return new RequestConverter();
+//    }
+//
+//    @Configuration
+//    @EnableJaxRsProxyClient(
+//            classes = {AuditRest.class},
+//            address = "${audit.service.url}")
+//    static class AuditClientConfiguration {
+//        @Bean
+//        public AuditClient simpleAuditClient(@Qualifier("auditRestJaxRsProxyClient") AuditRest auditRest) {
+//            SimpleAuditClientImpl simpleAuditClient = new SimpleAuditClientImpl();
+//            simpleAuditClient.setAuditRest(auditRest);
+//            return simpleAuditClient;
+//        }
+//    }
+//
+//    @Configuration
+//    @EnableJaxRsProxyClient(classes = {UserRestService.class}, address = "${sec.admin.rest.url}")
+//    static class UserServiceConfiguration {
+//        @Bean
+//        public UserServiceRestClient userServiceRestClient(@Qualifier("userRestServiceJaxRsProxyClient") UserRestService userRestService) {
+//            return new UserServiceRestClient(userRestService);
+//        }
+//    }
 
 }
