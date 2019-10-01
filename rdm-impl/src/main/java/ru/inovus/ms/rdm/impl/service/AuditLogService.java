@@ -1,7 +1,14 @@
 package ru.inovus.ms.rdm.impl.service;
 
+import net.n2oapp.security.admin.api.criteria.UserCriteria;
+import net.n2oapp.security.admin.api.model.User;
+import net.n2oapp.security.admin.api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.audit.client.AuditClient;
 import ru.i_novus.ms.audit.client.model.AuditClientRequest;
@@ -23,8 +30,16 @@ import static org.apache.commons.text.StringEscapeUtils.escapeJson;
 @Service
 public class AuditLogService {
 
-    @Autowired
     private AuditClient auditClient;
+
+    @Autowired
+    @Qualifier("simpleAuditClient")
+    public void setAuditClient(AuditClient auditClient) {
+        this.auditClient = auditClient;
+    }
+
+    @Autowired
+    private UserService userService;
 
     private EnumSet<AuditAction> disabledActions;
 
@@ -56,13 +71,20 @@ public class AuditLogService {
 
     private void audit(AuditAction action, Object obj, Map<String, Object> additionalContext) {
         AuditClientRequest request = new AuditClientRequest();
-
+        OAuth2Authentication auth = ((OAuth2Authentication) SecurityContextHolder.getContext().getAuthentication());
+        String username = (String) auth.getPrincipal();
+        UserCriteria uc = new UserCriteria();
+        uc.setUsername(username);
+        Page<User> p = userService.findAll(uc);
+        if (p.getTotalElements() != 1)
+            throw new RuntimeException("Exactly one user with the name \"" + username + "\" was expected.");
+        String userId = p.get().findAny().get().getId().toString();
         request.setEventDate(LocalDateTime.now(Clock.systemUTC()));
         request.setObjectType(action.getObjType());
         request.setObjectName(action.getObjName());
         request.setObjectId(action.getObjId(obj));
-        request.setUserId("1");
-        request.setUsername("rdm");
+        request.setUserId(username);
+        request.setUsername(userId);
         request.setEventType(action.getName());
         Map<String, Object> m = new HashMap<>(action.getContext(obj));
         m.putAll(additionalContext);
