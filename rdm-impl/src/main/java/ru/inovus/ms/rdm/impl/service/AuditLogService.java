@@ -1,10 +1,9 @@
 package ru.inovus.ms.rdm.impl.service;
 
-import net.n2oapp.security.admin.api.criteria.UserCriteria;
+//import net.n2oapp.security.admin.api.criteria.UserCriteria;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.audit.client.model.AuditClientRequest;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
@@ -21,6 +20,9 @@ import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.text.StringEscapeUtils.escapeJson;
+
+//import org.springframework.security.core.context.SecurityContextHolder;
+//import org.springframework.security.oauth2.provider.OAuth2Authentication;
 
 @Service
 public class AuditLogService {
@@ -57,10 +59,10 @@ public class AuditLogService {
     void addAction(AuditAction action, Object obj, Map<String, Object> additionalContext) {
         if (!disabledActions.contains(action)) {
             AuditClientRequest request = new AuditClientRequest();
-            OAuth2Authentication auth = ((OAuth2Authentication) SecurityContextHolder.getContext().getAuthentication());
-            String username = (String) auth.getPrincipal();
-            UserCriteria uc = new UserCriteria();
-            uc.setUsername(username);
+//            OAuth2Authentication auth = ((OAuth2Authentication) SecurityContextHolder.getContext().getAuthentication());
+//            String username = (String) auth.getPrincipal();
+//            UserCriteria uc = new UserCriteria();
+//            uc.setUsername(username);
 //            Page<User> p = userService.findAll(uc);
 //            if (p.getTotalElements() != 1)
 //                throw new RuntimeException("Exactly one user with the name \"" + username + "\" was expected.");
@@ -69,8 +71,8 @@ public class AuditLogService {
             request.setObjectType(action.getObjType());
             request.setObjectName(action.getObjName());
             request.setObjectId(action.getObjId(obj));
-            request.setUserId(username);
-            request.setUsername(username);
+//            request.setUserId(username);
+//            request.setUsername(username);
             request.setEventType(action.getName());
             Map<String, Object> m = new HashMap<>(action.getContext(obj));
             m.putAll(additionalContext);
