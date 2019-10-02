@@ -436,7 +436,8 @@ public class DraftServiceImpl implements DraftService {
             draftDataService.addRows(draft.getStorageCode(), singletonList(rowValue));
             auditEditData(draft, "create_row", createRowPayload(rowValue.getFieldValues()));
         } else {
-            RefBookRowValue old = versionService.getRow(rowValue.getSystemId().toString());
+            List<String> fields = draft.getStructure().getAttributes().stream().map(Structure.Attribute::getCode).collect(toList());
+            RowValue old = searchDataService.findRow(draft.getStorageCode(), fields, rowValue.getSystemId());
             JsonPayload diff = simpleDiff(old, row);
             conflictRepository.deleteByReferrerVersionIdAndRefRecordId(draft.getId(), (Long) rowValue.getSystemId());
             draftDataService.updateRow(draft.getStorageCode(), rowValue);
@@ -446,14 +447,15 @@ public class DraftServiceImpl implements DraftService {
 
     private JsonPayload createRowPayload(List<FieldValue> fieldValues) {
         return new JsonPayload(
-            "{" + fieldValues.stream().map(f -> "\"" + escapeJson(f.getField()) + "\": \"" + escapeJson(f.getValue().toString()) + "\"").collect(joining(", ")) + "}"
+            "{" + fieldValues.stream().map(f -> "\"" + escapeJson(f.getField()) + "\": \"" + escapeJson(Objects.toString(f.getValue())) + "\"").collect(joining(", ")) + "}"
         );
     }
 
-    private JsonPayload simpleDiff(RefBookRowValue old, Row _new) {
+    private JsonPayload simpleDiff(RowValue old, Row _new) {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
-        sb.append(old.getFieldValues().stream().filter(f ->
+        List<FieldValue> fv = old.getFieldValues();
+        sb.append(fv.stream().filter(f ->
             !Objects.equals(f.getValue(), _new.getData().get(f.getField()))
         ).map(f -> {
             Object oldVal = f.getValue();
