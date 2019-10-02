@@ -28,7 +28,6 @@ import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.model.version.VersionCriteria;
 import ru.inovus.ms.rdm.api.service.ExistsData;
-import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.api.service.VersionFileService;
 import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
@@ -74,15 +73,13 @@ public class VersionServiceImpl implements VersionService {
 
     private AuditLogService auditLogService;
 
-    private RefBookService refBookService;
-
     @Autowired
     public VersionServiceImpl(RefBookVersionRepository versionRepository,
                               SearchDataService searchDataService,
                               FileStorage fileStorage, FileNameGenerator fileNameGenerator,
                               VersionFileRepository versionFileRepository,
                               VersionFileService versionFileService,
-                              AuditLogService auditLogService, RefBookService refBookService) {
+                              AuditLogService auditLogService) {
         this.versionRepository = versionRepository;
 
         this.searchDataService = searchDataService;
@@ -93,7 +90,6 @@ public class VersionServiceImpl implements VersionService {
         this.versionFileRepository = versionFileRepository;
         this.versionFileService = versionFileService;
         this.auditLogService = auditLogService;
-        this.refBookService = refBookService;
     }
 
     @Override

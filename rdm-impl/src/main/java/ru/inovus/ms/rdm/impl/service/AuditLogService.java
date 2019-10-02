@@ -1,7 +1,5 @@
 package ru.inovus.ms.rdm.impl.service;
 
-//import net.n2oapp.security.admin.api.criteria.UserCriteria;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -21,17 +19,8 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.text.StringEscapeUtils.escapeJson;
 
-//import org.springframework.security.core.context.SecurityContextHolder;
-//import org.springframework.security.oauth2.provider.OAuth2Authentication;
-
 @Service
 public class AuditLogService {
-
-//    @Autowired
-//    private AuditClient auditClient;
-
-//    @Autowired
-//    private UserService userService;
 
     private EnumSet<AuditAction> disabledActions;
 
@@ -59,35 +48,23 @@ public class AuditLogService {
     void addAction(AuditAction action, Object obj, Map<String, Object> additionalContext) {
         if (!disabledActions.contains(action)) {
             AuditClientRequest request = new AuditClientRequest();
-//            OAuth2Authentication auth = ((OAuth2Authentication) SecurityContextHolder.getContext().getAuthentication());
-//            String username = (String) auth.getPrincipal();
-//            UserCriteria uc = new UserCriteria();
-//            uc.setUsername(username);
-//            Page<User> p = userService.findAll(uc);
-//            if (p.getTotalElements() != 1)
-//                throw new RuntimeException("Exactly one user with the name \"" + username + "\" was expected.");
-//            String userId = p.get().findAny().get().getId().toString();
             request.setEventDate(LocalDateTime.now(Clock.systemUTC()));
             request.setObjectType(action.getObjType());
             request.setObjectName(action.getObjName());
             request.setObjectId(action.getObjId(obj));
-//            request.setUserId(username);
-//            request.setUsername(username);
             request.setEventType(action.getName());
             Map<String, Object> m = new HashMap<>(action.getContext(obj));
             m.putAll(additionalContext);
             request.setContext(toJson(m));
             request.setAuditType((short) 1);
-//            auditClient.add(request);
         }
     }
 
     private static String toJson(Map<String, Object> ctx) {
-        String s = "{" + ctx.entrySet().stream().map(
+        return "{" + ctx.entrySet().stream().map(
                 e -> "\"" + escapeJson(e.getKey()) + "\": " + (isStringLiteral(e.getValue()) ? "\"" + escapeJson(e.getValue().toString()) + "\"" : e.getValue())
         ).collect(joining(", ")) +
                 '}';
-        return s;
     }
 
     private static boolean isStringLiteral(Object obj) {

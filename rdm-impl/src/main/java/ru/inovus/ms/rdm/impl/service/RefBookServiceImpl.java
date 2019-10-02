@@ -236,17 +236,21 @@ public class RefBookServiceImpl implements RefBookService {
         }
 //      Подтягиваем из базы данные о пасспорте,
 //      потому что их уже не будет там после удаления (fetchType по дефолту -- LAZY)
-        last.getPassportValues().stream().forEach(p -> p.getAttribute());
-        last.setRefBook(refBookEntity);
+        if (last != null) {
+            last.getPassportValues().forEach(PassportValueEntity::getAttribute);
+            last.setRefBook(refBookEntity);
+        }
         l.forEach(v ->
                 dropDataService.drop(refBookRepository.getOne(refBookId).getVersionList().stream()
                         .map(RefBookVersionEntity::getStorageCode)
                         .collect(Collectors.toSet())));
         refBookRepository.deleteById(refBookId);
-        auditLogService.addAction(
-            AuditAction.DELETE_REF_BOOK,
-            last
-        );
+        if (last != null) {
+            auditLogService.addAction(
+                AuditAction.DELETE_REF_BOOK,
+                last
+            );
+        }
     }
 
     @Override

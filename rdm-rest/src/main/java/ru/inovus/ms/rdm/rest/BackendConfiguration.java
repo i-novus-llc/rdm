@@ -74,32 +74,5 @@ public class BackendConfiguration {
     UserExceptionMapper userExceptionMapper(Messages messages) {
         return new UserExceptionMapper(messages);
     }
-//
-//    @Bean
-//    public RequestConverter requestConverter() {
-//        return new RequestConverter();
-//    }
-//
-//    @Configuration
-//    @EnableJaxRsProxyClient(
-//            classes = {AuditRest.class},
-//            address = "${audit.service.url}")
-//    static class AuditClientConfiguration {
-//        @Bean
-//        public AuditClient simpleAuditClient(@Qualifier("auditRestJaxRsProxyClient") AuditRest auditRest) {
-//            SimpleAuditClientImpl simpleAuditClient = new SimpleAuditClientImpl();
-//            simpleAuditClient.setAuditRest(auditRest);
-//            return simpleAuditClient;
-//        }
-//    }
-//
-//    @Configuration
-//    @EnableJaxRsProxyClient(classes = {UserRestService.class}, address = "${sec.admin.rest.url}")
-//    static class UserServiceConfiguration {
-//        @Bean
-//        public UserServiceRestClient userServiceRestClient(@Qualifier("userRestServiceJaxRsProxyClient") UserRestService userRestService) {
-//            return new UserServiceRestClient(userRestService);
-//        }
-//    }
 
 }

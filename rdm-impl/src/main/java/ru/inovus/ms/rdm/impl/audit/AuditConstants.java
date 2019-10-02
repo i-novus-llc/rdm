@@ -9,6 +9,8 @@ import java.util.function.Function;
 
 class AuditConstants {
 
+    private AuditConstants() {}
+
     static final String OBJ_NAME_REFBOOK = "Справочник";
     static final String OBJ_TYPE_REFBOOK = "Reference book";
 
@@ -49,6 +51,8 @@ class AuditConstants {
                     case REFBOOK_STRUCTURE_KEY:
                         m.put(REFBOOK_STRUCTURE_KEY, refBookVersion.getStructure());
                         break;
+                    default:
+                        throw new IllegalArgumentException("Unexpected key: " + s);
                 }
             }
             return m;

@@ -451,15 +451,15 @@ public class DraftServiceImpl implements DraftService {
         );
     }
 
-    private JsonPayload simpleDiff(RowValue old, Row _new) {
+    private JsonPayload simpleDiff(RowValue oldRow, Row newRow) {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
-        List<FieldValue> fv = old.getFieldValues();
+        List<FieldValue> fv = oldRow.getFieldValues();
         sb.append(fv.stream().filter(f ->
-            !Objects.equals(f.getValue(), _new.getData().get(f.getField()))
+            !Objects.equals(f.getValue(), newRow.getData().get(f.getField()))
         ).map(f -> {
             Object oldVal = f.getValue();
-            Object newVal = _new.getData().get(f.getField());
+            Object newVal = newRow.getData().get(f.getField());
             String oldStr = Objects.toString(oldVal, "null");
             String newStr = Objects.toString(newVal, "null");
             return "\"" + escapeJson(f.getField()) + "\": {\"old\": \"" + escapeJson(oldStr) + "\", \"new\": \"" + escapeJson(newStr) + "\"}";

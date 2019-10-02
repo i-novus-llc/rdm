@@ -59,8 +59,6 @@ public class PublishServiceImpl implements PublishService {
 
     private AuditLogService auditLogService;
 
-    private RefBookService refBookService;
-
     @Autowired
     @SuppressWarnings("squid:S00107")
     public PublishServiceImpl(RefBookVersionRepository versionRepository,
@@ -69,7 +67,7 @@ public class PublishServiceImpl implements PublishService {
                               ConflictService conflictService, ReferenceService referenceService,
                               VersionFileService versionFileService, VersionNumberStrategy versionNumberStrategy,
                               VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation,
-                              AuditLogService auditLogService, RefBookService refBookService) {
+                              AuditLogService auditLogService) {
         this.versionRepository = versionRepository;
 
         this.draftDataService = draftDataService;
@@ -86,7 +84,6 @@ public class PublishServiceImpl implements PublishService {
         this.versionValidation = versionValidation;
         this.versionPeriodPublishValidation = versionPeriodPublishValidation;
         this.auditLogService = auditLogService;
-        this.refBookService = refBookService;
     }
 
     /**
