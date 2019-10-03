@@ -66,8 +66,14 @@ public class RdmClientSyncAutoConfiguration {
 
     @Bean
     @DependsOn("liquibaseRdm")
+    public MappingLoaderService mappingLoaderService(){
+        return new XmlMappingLoaderService(rdmSyncDao());
+    }
+
+    @Bean
+    @DependsOn("liquibaseRdm")
     public MappingLoader mappingLoader(){
-        return new MappingLoader(rdmSyncDao());
+        return new MappingLoader(mappingLoaderService());
     }
 
     @Bean

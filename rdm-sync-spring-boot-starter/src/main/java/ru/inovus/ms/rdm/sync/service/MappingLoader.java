@@ -16,48 +16,16 @@ import java.io.InputStream;
 
 public class MappingLoader {
 
-    private static Logger logger = LoggerFactory.getLogger(MappingLoader.class);
+    private MappingLoaderService mappingLoaderService;
 
-    private RdmSyncDao rdmSyncDao;
-
-    public MappingLoader(RdmSyncDao dao) {
-        this.rdmSyncDao = dao;
+    public MappingLoader(MappingLoaderService mappingLoaderService) {
+        this.mappingLoaderService = mappingLoaderService;
     }
 
     @PostConstruct
     public void start() {
-        load();
+        mappingLoaderService.load();
     }
 
-    @Transactional
-    public void load() {
-        try(InputStream io = MappingLoader.class.getResourceAsStream("/rdm-mapping.xml")) {
-            if (io == null) {
-                logger.info("rdm-mapping.xml not found, xml mapping loader skipped");
-                return;
-            }
-            JAXBContext jaxbContext = JAXBContext.newInstance(XmlMapping.class);
 
-            Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-            XmlMapping mapping = (XmlMapping) jaxbUnmarshaller.unmarshal(io);
-            logger.info("loading ...");
-            mapping.getRefbooks().forEach(this::load );
-            logger.info("xml mapping was loaded");
-
-        } catch (IOException | JAXBException e) {
-            logger.error("xml mapping load error ", e);
-            throw new RdmException(e);
-        }
-    }
-
-    private void load(XmlMappingRefBook xmlMappingRefBook) {
-        if (xmlMappingRefBook.getMappingVersion()> rdmSyncDao.getLastVersion(xmlMappingRefBook.getCode())) {
-            logger.info("load {}", xmlMappingRefBook.getCode());
-            rdmSyncDao.insertFieldMapping(xmlMappingRefBook.getCode(), xmlMappingRefBook.getFields());
-            rdmSyncDao.upsertVersionMapping(xmlMappingRefBook);
-            logger.info("mapping for code {} was loaded", xmlMappingRefBook.getCode());
-        } else {
-            logger.info("mapping for {} not changed" , xmlMappingRefBook.getCode());
-        }
-    }
 }

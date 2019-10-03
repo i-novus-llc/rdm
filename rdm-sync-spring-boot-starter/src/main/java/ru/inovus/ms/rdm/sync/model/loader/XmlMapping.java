@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.sync.model.loader;
 import lombok.EqualsAndHashCode;
 
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlList;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.List;

@@ -4,7 +4,6 @@ import lombok.EqualsAndHashCode;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlList;
 import java.util.ArrayList;
 import java.util.List;
 
