@@ -52,7 +52,7 @@ insert into rdm_sync.field_mapping(code, sys_field, sys_data_type, rdm_field) se
 insert into rdm_sync.field_mapping(code, sys_field, sys_data_type, rdm_field) select 'S019', 'is_required', 'boolean', 'is_required';
 ```
 ### Через xml
-В classpath (например в папку resources) подкладываем файл с наименование *rdm-mapping.xml*
+В classpath (например в папку resources) подкладываем файл с наименование *rdm-mapping.xml*. В случае изменения маппинга меняем в файле соответвующий элемент refbook и увеличиваем mapping-version на 1.
 Пример:
 ```xml
 <?xml version="1.0" encoding="UTF-8" ?>
