@@ -65,6 +65,12 @@ public class RdmClientSyncAutoConfiguration {
     }
 
     @Bean
+    @DependsOn("liquibaseRdm")
+    public MappingLoader mappingLoader(){
+        return new MappingLoader(rdmSyncDao());
+    }
+
+    @Bean
     @ConditionalOnMissingBean
     public RdmSyncRest rdmSyncRest() {
         return new RdmSyncRestImpl();

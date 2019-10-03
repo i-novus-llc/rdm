@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.sync.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.sync.model.DataTypeEnum;
@@ -8,7 +9,11 @@ import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.Log;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
 import ru.inovus.ms.rdm.api.util.StringUtils;
+import ru.inovus.ms.rdm.sync.model.loader.XmlMappingField;
+import ru.inovus.ms.rdm.sync.model.loader.XmlMappingRefBook;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -56,6 +61,14 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
                         rs.getString(7)
                 ), refbookCode);
         return !list.isEmpty() ? list.get(0) : null;
+    }
+
+    @Override
+    public int getLastVersion(String refbookCode) {
+
+        List<Integer> list = jdbcTemplate.query("select mapping_version from rdm_sync.version where code=?",
+                (rs, rowNum) -> rs.getInt(1), refbookCode);
+        return !list.isEmpty() ? list.get(0) : 0;
     }
 
     @Override
@@ -163,5 +176,38 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
                         rs.getString(7),
                         rs.getString(8)),
                 args.toArray());
+    }
+
+    @Override
+    public void upsertVersionMapping(XmlMappingRefBook versionMapping) {
+        jdbcTemplate.update("insert into rdm_sync.version(code, sys_table, unique_sys_field, deleted_field, mapping_version) values (?, ?, ?, ?, ? )" +
+                        "            on conflict (code)\n" +
+                        "            do update set (sys_table, unique_sys_field, deleted_field, mapping_version) = (?, ?, ?, ?)",
+                versionMapping.getCode(), versionMapping.getSysTable(), versionMapping.getUniqueSysField(), versionMapping.getDeletedField(), versionMapping.getMappingVersion(),
+                versionMapping.getSysTable(), versionMapping.getUniqueSysField(), versionMapping.getDeletedField(), versionMapping.getMappingVersion()
+        );
+    }
+
+    @Override
+    public void insertFieldMapping(String code, List<XmlMappingField> fieldMappings) {
+
+        jdbcTemplate.update("delete from rdm_sync.field_mapping where code = ?", code);
+        jdbcTemplate.batchUpdate(
+                "insert into rdm_sync.field_mapping(code, sys_field, sys_data_type, rdm_field) " +
+                        "values (?, ?, ?, ?)",
+                new BatchPreparedStatementSetter() {
+
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setString(1, code);
+                        ps.setString(2, fieldMappings.get(i).getSysField());
+                        ps.setString(3, fieldMappings.get(i).getSysDataType());
+                        ps.setString(4, fieldMappings.get(i).getRdmField());
+                    }
+
+                    public int getBatchSize() {
+                        return fieldMappings.size();
+                    }
+
+                });
     }
 }
