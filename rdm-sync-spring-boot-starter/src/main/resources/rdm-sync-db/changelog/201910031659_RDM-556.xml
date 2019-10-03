@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="201910031659_RDM-556" author="Ikarimullin" dbms="postgresql" runAlways="true">
+        <validCheckSum>ANY</validCheckSum>
+        <sql splitStatements="false">
+            <![CDATA[
+                ALTER TABLE
+                    rdm_sync.version
+                ADD COLUMN IF NOT EXISTS
+                    mapping_last_updated TIMESTAMP WITHOUT TIME ZONE;
+
+                UPDATE
+                    rdm_sync.version
+                SET
+                    mapping_last_updated = now()::timestamp;
+
+                COMMENT ON COLUMN
+                    rdm_sync.version.mapping_last_updated
+                IS
+                    'Время последнего изменения маппинга полей справочника';
+
+                CREATE FUNCTION
+                    mapping_changed()
+                RETURNS TRIGGER AS
+                $$
+                    BEGIN
+                        UPDATE
+                            rdm_sync.version
+                        SET
+                            mapping_last_updated = now()::timestamp
+                        WHERE
+                            (TG_OP = 'INSERT' AND NEW.version = version) -- Вставка
+                        OR
+                            (TG_OP = 'DELETE' AND OLD.version = version) -- Удаление
+                        OR
+                            (TG_OP = 'UPDATE' AND NEW.version = version); -- Изменение
+                        RETURN NEW;
+                    END;
+                $$
+                LANGUAGE
+                    'plpgsql';
+
+                CREATE TRIGGER
+                    on_mapping_updated
+                AFTER
+                    INSERT OR UPDATE OR DELETE
+                ON
+                    rdm_sync.field_mapping
+                FOR EACH ROW
+                EXECUTE PROCEDURE
+                    mapping_changed();
+            ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

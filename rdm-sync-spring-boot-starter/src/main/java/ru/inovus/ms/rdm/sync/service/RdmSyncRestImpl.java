@@ -74,33 +74,38 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void update(String refbookCode) {
-        VersionMapping versionMapping;
-        RefBook newVersion;
+        VersionMapping versionMapping = getVersionMapping(refbookCode);
+        RefBook lastPublished;
         try {
-            versionMapping = getVersionMapping(refbookCode);
-            newVersion = getNewVersionFromRdm(refbookCode);
+            lastPublished = getNewVersionFromRdm(refbookCode);
         } catch (RuntimeException e) {
             logger.error(String.format("Ошибка при получении новой версии справочника с кодом %s", refbookCode), e);
             loggingService.logError(refbookCode, null, null, e.getMessage(), ExceptionUtils.getStackTrace(e));
             return;
         }
+        RefBook refBook = lastPublished;
         try {
             if (versionMapping.getVersion() == null) {
                 //заливаем с нуля
-                uploadNew(versionMapping, newVersion);
-            } else if (!versionMapping.getVersion().equals(newVersion.getLastPublishedVersion()) &&
-                    !versionMapping.getPublicationDate().equals(newVersion.getLastPublishedVersionFromDate())) {
+                uploadNew(versionMapping, lastPublished);
+            } else if (!versionMapping.getVersion().equals(lastPublished.getLastPublishedVersion()) &&
+                    !versionMapping.getPublicationDate().equals(lastPublished.getLastPublishedVersionFromDate())) {
                 //если версия и дата публикация не совпадают - нужно обновить справочник
-                mergeData(versionMapping, newVersion);
+                mergeData(versionMapping, lastPublished);
+            } else if (versionMapping.getMappingLastUpdated().isAfter(versionMapping.getLastSync())) {
+//              Значит в прошлый раз мы синхронизировались по старому маппингу.
+//              Разница по структуре с текущей версией справочника ничего не вернет (разница с самим с собой равна 0).
+//              Необходимо полностью залить свежую версию
+                uploadNew(versionMapping, lastPublished);
             }
             //обновляем версию в таблице версий клиента
-            dao.updateVersionMapping(versionMapping.getId(), newVersion.getLastPublishedVersion(), newVersion.getLastPublishedVersionFromDate());
+            dao.updateVersionMapping(versionMapping.getId(), refBook.getLastPublishedVersion(), refBook.getLastPublishedVersionFromDate());
         } catch (RuntimeException e) {
             logger.error(String.format("Ошибка при обновлении справочника с кодом %s", refbookCode), e);
-            loggingService.logError(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion(), e.getMessage(), ExceptionUtils.getStackTrace(e));
+            loggingService.logError(refbookCode, versionMapping.getVersion(), refBook.getLastPublishedVersion(), e.getMessage(), ExceptionUtils.getStackTrace(e));
             return;
         }
-        loggingService.logOk(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion());
+        loggingService.logOk(refbookCode, versionMapping.getVersion(), refBook.getLastPublishedVersion());
     }
 
     @Override

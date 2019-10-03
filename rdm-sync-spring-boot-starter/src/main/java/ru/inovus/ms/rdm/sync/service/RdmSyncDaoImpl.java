@@ -4,11 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.inovus.ms.rdm.api.util.StringUtils;
 import ru.inovus.ms.rdm.sync.model.DataTypeEnum;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.Log;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
-import ru.inovus.ms.rdm.api.util.StringUtils;
 import ru.inovus.ms.rdm.sync.model.loader.XmlMappingField;
 import ru.inovus.ms.rdm.sync.model.loader.XmlMappingRefBook;
 
@@ -36,7 +36,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
 
     @Override
     public List<VersionMapping> getVersionMappings() {
-        return jdbcTemplate.query("select id,code,version,publication_dt,sys_table,unique_sys_field,deleted_field from rdm_sync.version",
+        return jdbcTemplate.query("select id,code,version,publication_dt,sys_table,unique_sys_field,deleted_field,mapping_version,mapping_last_update,update_dt from rdm_sync.version",
                 (rs, rowNum) -> new VersionMapping(
                         rs.getInt(1),
                         rs.getString(2),
@@ -44,13 +44,16 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
                         rs.getTimestamp(4) != null ? rs.getTimestamp(4).toLocalDateTime() : null,
                         rs.getString(5),
                         rs.getString(6),
-                        rs.getString(7)
+                        rs.getString(7),
+                        rs.getObject(8) == null ? null : rs.getInt(8),
+                        rs.getTimestamp(9).toLocalDateTime(),
+                        rs.getTimestamp(10) == null ? LocalDateTime.MIN : rs.getTimestamp(10).toLocalDateTime()
                 ));
     }
 
     @Override
     public VersionMapping getVersionMapping(String refbookCode) {
-        List<VersionMapping> list = jdbcTemplate.query("select id,code,version,publication_dt,sys_table,unique_sys_field,deleted_field from rdm_sync.version where code=?",
+        List<VersionMapping> list = jdbcTemplate.query("select id,code,version,publication_dt,sys_table,unique_sys_field,deleted_field,mapping_version,mapping_last_update,update_dt from rdm_sync.version where code=?",
                 (rs, rowNum) -> new VersionMapping(
                         rs.getInt(1),
                         rs.getString(2),
@@ -58,7 +61,10 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
                         rs.getTimestamp(4) != null ? rs.getTimestamp(4).toLocalDateTime() : null,
                         rs.getString(5),
                         rs.getString(6),
-                        rs.getString(7)
+                        rs.getString(7),
+                        rs.getObject(8) == null ? null : rs.getInt(8),
+                        rs.getTimestamp(9).toLocalDateTime(),
+                        rs.getTimestamp(10) == null ? LocalDateTime.MIN : rs.getTimestamp(10).toLocalDateTime()
                 ), refbookCode);
         return !list.isEmpty() ? list.get(0) : null;
     }
