@@ -136,7 +136,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     private void mergeData(VersionMapping versionMapping, RefBook newVersion) {
         Integer oldVersionId = versionService.getVersion(versionMapping.getVersion(), versionMapping.getCode()).getId();
         StructureDiff structureDiff = compareService.compareStructures(oldVersionId, newVersion.getId());
-        if (!CollectionUtils.isEmpty(structureDiff.getUpdated()) || !CollectionUtils.isEmpty(structureDiff.getDeleted())) {
+        if (!CollectionUtils.isEmpty(structureDiff.getUpdated()) || !CollectionUtils.isEmpty(structureDiff.getDeleted()) || !CollectionUtils.isEmpty(structureDiff.getInserted())) {
             dao.markDeleted(versionMapping.getTable(), versionMapping.getDeletedField(), true);
             uploadNew(versionMapping, newVersion);
             return;
