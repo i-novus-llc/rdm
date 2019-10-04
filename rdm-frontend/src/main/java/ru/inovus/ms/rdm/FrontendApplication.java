@@ -12,7 +12,7 @@ import ru.inovus.ms.rdm.n2o.ClientConfiguration;
 import ru.inovus.ms.rdm.n2o.RdmWebConfiguration;
 
 @SpringBootApplication (scanBasePackageClasses = { FrontendApplication.class, AdminRestClientConfiguration.class })
-@Import({RdmWebConfiguration.class })
+@Import({ RdmWebConfiguration.class })
 public class FrontendApplication {
 
     @Bean
