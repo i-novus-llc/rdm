@@ -1,7 +1,5 @@
 package ru.inovus.ms.rdm.n2o.service;
 
-import net.n2oapp.framework.access.simple.PermissionApi;
-import net.n2oapp.framework.api.user.StaticUserContext;
 import net.n2oapp.platform.i18n.Messages;
 import net.n2oapp.platform.jaxrs.RestPage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,11 +13,10 @@ import ru.inovus.ms.rdm.n2o.model.RefBookStatus;
 import ru.inovus.ms.rdm.n2o.model.UiRefBookStatus;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
-import ru.inovus.ms.rdm.n2o.util.RdmPermission;
+import ru.inovus.ms.rdm.api.util.RdmPermission;
 
 import java.util.ArrayList;
 import java.util.List;
-
 
 @Controller
 public class RefBookController {
@@ -37,11 +34,11 @@ public class RefBookController {
     @Autowired
     public RefBookController(Messages messages,
                              RefBookService refBookService,
-                             PermissionApi permissionApi) {
+                             RdmPermission rdmPermission) {
         this.messages = messages;
         this.refBookService = refBookService;
 
-        this.rdmPermission = new RdmPermission(StaticUserContext.getUserContext(), permissionApi);
+        this.rdmPermission = rdmPermission;
     }
 
     /**
