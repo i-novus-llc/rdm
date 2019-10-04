@@ -81,6 +81,7 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.isEmpty;
+import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.BOOLEAN;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
 import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.isPublished;
 import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.isVersionOfRefBook;
@@ -406,7 +407,7 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateDraft(draftId);
 
         RefBookVersionEntity draft = versionRepository.getOne(draftId);
-
+        setDefaultsIfNeccesary(draft.getStructure(), row);
         RowsValidator validator = new RowsValidatorImpl(versionService, searchDataService,
                 draft.getStructure(), draft.getStorageCode(), errorCountLimit, false,
                 attributeValidationRepository.findAllByVersionId(draftId)
@@ -923,4 +924,12 @@ public class DraftServiceImpl implements DraftService {
                 versionFileService.generate(versionModel, fileType, dataIterator),
                 fileNameGenerator.generateZipName(versionModel, fileType));
     }
+
+    private void setDefaultsIfNeccesary(Structure s, Row row) {
+        for (Structure.Attribute a : s.getAttributes()) {
+            if (a.getType() == BOOLEAN && !row.getData().containsKey(a.getCode()))
+                row.getData().put(a.getCode(), false);
+        }
+    }
+
 }
