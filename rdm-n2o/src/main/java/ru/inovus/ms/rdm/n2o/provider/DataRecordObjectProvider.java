@@ -9,10 +9,11 @@ import net.n2oapp.framework.api.metadata.global.dao.object.N2oObject;
 import net.n2oapp.framework.api.register.DynamicMetadataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.inovus.ms.rdm.api.model.refdata.Row;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.api.model.Structure;
-import ru.inovus.ms.rdm.n2o.service.CreateDraftController;
+import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.api.service.VersionService;
+import ru.inovus.ms.rdm.n2o.service.CreateDraftController;
 
 import java.util.Collection;
 import java.util.List;
@@ -140,6 +141,8 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
             case DATE:
             case BOOLEAN:
                 parameter.setDomain(N2oDomain.fieldTypeToDomain(attribute.getType()));
+                if (attribute.getType() == FieldType.BOOLEAN)
+                    parameter.setDefaultValue("false");
                 break;
 
             case REFERENCE:
