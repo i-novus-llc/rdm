@@ -22,7 +22,7 @@ public class RdmMappingServiceImpl implements RdmMappingService {
 
     @Override
     public Object map(FieldType rdmType, DataTypeEnum clientType, Object value) {
-        if (value == null) {
+        if (value == null && clientType != DataTypeEnum.BOOLEAN) {
             return null;
         }
         Object result = null;
@@ -102,6 +102,8 @@ public class RdmMappingServiceImpl implements RdmMappingService {
     }
 
     private Object mapBoolean(DataTypeEnum clientType, Object value) {
+        if (value == null)
+            value = "false";
         if (clientType.equals(DataTypeEnum.VARCHAR)) {
             return value.toString();
         } else if (clientType.equals(DataTypeEnum.BOOLEAN)) {
