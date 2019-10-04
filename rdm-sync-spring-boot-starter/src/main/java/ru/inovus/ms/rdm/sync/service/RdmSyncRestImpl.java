@@ -217,7 +217,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         }
     }
 
-    private void uploadNew(VersionMapping versionMapping, RefBook newVersion) {
+    public void uploadNew(VersionMapping versionMapping, RefBook newVersion) {
         List<FieldMapping> fieldMappings = dao.getFieldMapping(versionMapping.getCode());
         List<Object> existingDataIds = dao.getDataIds(versionMapping.getTable(),
                 fieldMappings.stream().filter(f -> f.getSysField().equals(versionMapping.getPrimaryField())).findFirst().orElse(null));
