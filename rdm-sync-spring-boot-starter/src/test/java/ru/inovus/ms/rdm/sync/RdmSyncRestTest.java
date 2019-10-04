@@ -282,6 +282,8 @@ public class RdmSyncRestTest {
         rdmSyncRest.update(code);
 
         verify(dao, never()).insertRow(eq(table), anyMap());
+        verify(dao, never()).updateRow(eq(table), eq(primaryField), eq(deletedField), eq(row1version1));
+        verify(dao, never()).updateRow(eq(table), eq(primaryField), eq(deletedField), eq(row2version1));
         clearInvocations(dao);
 //      sync2 прошел успешно, однако мы пропустили добавленное поле, хотя разница по структуре и по данным была ненулевой
         prev = new RefBook(lastPublished);
