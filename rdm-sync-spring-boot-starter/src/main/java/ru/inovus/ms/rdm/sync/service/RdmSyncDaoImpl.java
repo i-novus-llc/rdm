@@ -36,7 +36,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
 
     @Override
     public List<VersionMapping> getVersionMappings() {
-        return jdbcTemplate.query("select id,code,version,publication_dt,sys_table,unique_sys_field,deleted_field,mapping_version,mapping_last_update,update_dt from rdm_sync.version",
+        return jdbcTemplate.query("select id,code,version,publication_dt,sys_table,unique_sys_field,deleted_field,mapping_last_update,update_dt from rdm_sync.version",
                 (rs, rowNum) -> new VersionMapping(
                         rs.getInt(1),
                         rs.getString(2),
@@ -45,15 +45,14 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
                         rs.getString(5),
                         rs.getString(6),
                         rs.getString(7),
-                        rs.getObject(8) == null ? null : rs.getInt(8),
-                        rs.getTimestamp(9).toLocalDateTime(),
-                        rs.getTimestamp(10) == null ? LocalDateTime.MIN : rs.getTimestamp(10).toLocalDateTime()
+                        rs.getTimestamp(8).toLocalDateTime(),
+                        rs.getTimestamp(9) == null ? LocalDateTime.MIN : rs.getTimestamp(9).toLocalDateTime()
                 ));
     }
 
     @Override
     public VersionMapping getVersionMapping(String refbookCode) {
-        List<VersionMapping> list = jdbcTemplate.query("select id,code,version,publication_dt,sys_table,unique_sys_field,deleted_field,mapping_version,mapping_last_update,update_dt from rdm_sync.version where code=?",
+        List<VersionMapping> list = jdbcTemplate.query("select id,code,version,publication_dt,sys_table,unique_sys_field,deleted_field,mapping_last_update,update_dt from rdm_sync.version where code=?",
                 (rs, rowNum) -> new VersionMapping(
                         rs.getInt(1),
                         rs.getString(2),
@@ -62,9 +61,8 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
                         rs.getString(5),
                         rs.getString(6),
                         rs.getString(7),
-                        rs.getObject(8) == null ? null : rs.getInt(8),
-                        rs.getTimestamp(9).toLocalDateTime(),
-                        rs.getTimestamp(10) == null ? LocalDateTime.MIN : rs.getTimestamp(10).toLocalDateTime()
+                        rs.getTimestamp(8) == null ? LocalDateTime.MIN : rs.getTimestamp(8).toLocalDateTime(),
+                        rs.getTimestamp(9) == null ? LocalDateTime.MIN : rs.getTimestamp(9).toLocalDateTime()
                 ), refbookCode);
         return !list.isEmpty() ? list.get(0) : null;
     }

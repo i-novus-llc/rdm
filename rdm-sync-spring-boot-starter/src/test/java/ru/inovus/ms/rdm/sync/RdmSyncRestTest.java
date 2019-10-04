@@ -1,5 +1,7 @@
 package ru.inovus.ms.rdm.sync;
 
+import net.n2oapp.criteria.api.CollectionPage;
+import net.n2oapp.criteria.api.Criteria;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -14,8 +16,10 @@ import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
+import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.compare.CompareDataCriteria;
+import ru.inovus.ms.rdm.api.model.diff.DiffRowValuePage;
 import ru.inovus.ms.rdm.api.model.diff.RefBookDataDiff;
 import ru.inovus.ms.rdm.api.model.diff.StructureDiff;
 import ru.inovus.ms.rdm.api.model.field.CommonField;
@@ -79,7 +83,7 @@ public class RdmSyncRestTest {
     @Test
     public void testFirstTimeUpdate() {
         RefBook firstVersion = createFirstRdmVersion();
-        VersionMapping versionMapping = new VersionMapping(1, "TEST", null, null, "test_table", "id", "is_deleted", null, null, null);
+        VersionMapping versionMapping = new VersionMapping(1, "TEST", null, null, "test_table", "id", "is_deleted", null, null);
         List<FieldMapping> fieldMappings = createFieldMappings();
         FieldMapping primaryFieldMapping = fieldMappings.stream().filter(f -> f.getSysField().equals(versionMapping.getPrimaryField())).findFirst().orElse(null);
         Page<RefBookRowValue> data = createFirstRdmData();
@@ -108,7 +112,7 @@ public class RdmSyncRestTest {
     public void testUpdate() {
         RefBook firstVersion = createFirstRdmVersion();
         RefBook secondVersion = createSecondRdmVersion();
-        VersionMapping versionMapping = new VersionMapping(1, "TEST", firstVersion.getLastPublishedVersion(), firstVersion.getLastPublishedVersionFromDate(), "test_table", "id", "is_deleted", null, null, null);
+        VersionMapping versionMapping = new VersionMapping(1, "TEST", firstVersion.getLastPublishedVersion(), firstVersion.getLastPublishedVersionFromDate(), "test_table", "id", "is_deleted", null, null);
         List<FieldMapping> fieldMappings = createFieldMappings();
         Page<RefBookRowValue> data = createSecondRdmData();
         List<Map<String, Object>> dataMap = createSecondVerifyDataMap();
@@ -139,7 +143,7 @@ public class RdmSyncRestTest {
     public void testInsert() {
         RefBook oldVersion = createSecondRdmVersion();
         RefBook newVersion = createThirdRdmVersion();
-        VersionMapping versionMapping = new VersionMapping(1, "TEST", oldVersion.getLastPublishedVersion(), oldVersion.getLastPublishedVersionFromDate(), "test_table", "id", "is_deleted", null, null, null);
+        VersionMapping versionMapping = new VersionMapping(1, "TEST", oldVersion.getLastPublishedVersion(), oldVersion.getLastPublishedVersionFromDate(), "test_table", "id", "is_deleted", null, null);
         List<FieldMapping> fieldMappings = createFieldMappings();
         Page<RefBookRowValue> data = createThirdRdmData();
         List<Map<String, Object>> dataMap = createThirdVerifyDataMap();
@@ -177,13 +181,15 @@ public class RdmSyncRestTest {
         String table = "table";
         String primaryField = "id";
         String deletedField = "deletedField";
+        RefBook prev;
         RefBook lastPublished = new RefBook();
         lastPublished.setId(1);
         lastPublished.setVersion("1.0");
         lastPublished.setLastPublishedVersionFromDate(version1Publication.atDate(date));
         lastPublished.setCode(code);
         lastPublished.setStructure(new Structure(singletonList(Structure.Attribute.buildPrimary(primaryField, primaryField, FieldType.INTEGER, "")), Collections.emptyList()));
-        VersionMapping vm = new VersionMapping(1, code, null, null, table, primaryField, deletedField, null, LocalDateTime.MIN, LocalDateTime.MIN);
+        VersionMapping vm = new VersionMapping(1, code, null, null, table, primaryField, deletedField, LocalDateTime.MIN, LocalDateTime.MIN);
+
         List<FieldMapping> fm = new ArrayList<>(singletonList(new FieldMapping(primaryField, "varchar", primaryField)));
         Map<String, Object> row1version1 = new HashMap<>(Map.of(primaryField, "1"));
         Map<String, Object> row2version1 = new HashMap<>(Map.of(primaryField, "2"));
@@ -200,11 +206,12 @@ public class RdmSyncRestTest {
         verify(dao, times(1)).insertRow(eq(table), eq(row2version1));
         clearInvocations(dao);
 //      sync1 прошел успешно, выходит новая версия с новой структурой, однако у нас старые маппинги
-        vm.setVersion(lastPublished.getVersion());
-        when(versionService.getVersion(vm.getVersion(), code)).thenReturn(new RefBook(lastPublished));
+        prev = new RefBook(lastPublished);
         lastPublished.setId(2);
-        vm.setPublicationDate(version1Publication.atDate(date));
         vm.setLastSync(sync1.atDate(date));
+        vm.setVersion(lastPublished.getVersion());
+        vm.setPublicationDate(version1Publication.atDate(date));
+        when(versionService.getVersion(vm.getVersion(), code)).thenReturn(prev);
         when(dao.getDataIds(table, fm.get(0))).thenReturn(List.of( // Добавленные данные
             "1", "2"
         ));
@@ -214,26 +221,75 @@ public class RdmSyncRestTest {
         newStructure.add(addedAttr);
         lastPublished.setStructure(new Structure(newStructure, emptyList()));
         lastPublished.setLastPublishedVersionFromDate(version2Publication.atDate(date));
-
-        row1version1.put(addedField, "ABRA");
-        row2version1.put(addedField, "CADABRA");
+        String addedVal1 = "ABRA";
+        String addedVal2 = "CADABRA";
+        row1version1.put(addedField, addedVal1);
+        row2version1.put(addedField, addedVal2);
         lastPublishedVersionPage = new PageImpl<>(List.of(
                 new RefBookRowValue(1L, List.of(new StringFieldValue(primaryField, (String) row1version1.get(primaryField)), new StringFieldValue(addedField, (String) row1version1.get(addedField))), null),
                 new RefBookRowValue(2L, List.of(new StringFieldValue(primaryField, (String) row2version1.get(primaryField)), new StringFieldValue(addedField, (String) row2version1.get(addedField))), null)
         ), createSearchDataCriteria(), 2);
         when(versionService.search(eq(lastPublished.getCode()), any(SearchDataCriteria.class))).thenReturn(lastPublishedVersionPage);
-        when(compareService.compareData(any())).thenReturn(new RefBookDataDiff(Page.empty(), emptyList(), singletonList(addedField), emptyList()));
-        when(compareService.compareStructures(anyInt(), anyInt())).thenReturn(new StructureDiff(singletonList(new StructureDiff.AttributeDiff(null, addedAttr)), emptyList(), emptyList()));
+        when(compareService.compareData(any())).thenReturn(
+            new RefBookDataDiff(
+                new DiffRowValuePage(
+                    new CollectionPage<>(
+                        2,
+                        List.of( // Добавились два значения в новое поле
+                            new DiffRowValue(
+                                List.of(
+                                    new DiffFieldValue(
+                                        new StringField(addedField),
+                                        null,
+                                        addedVal1,
+                                        DiffStatusEnum.INSERTED
+                                    )
+                                ),
+                                DiffStatusEnum.UPDATED
+                            ),
+                            new DiffRowValue(
+                                List.of(
+                                    new DiffFieldValue(
+                                        new StringField(addedField),
+                                        null,
+                                        addedVal2,
+                                        DiffStatusEnum.INSERTED
+                                    )
+                                ),
+                                DiffStatusEnum.UPDATED
+                            )
+                        ),
+                        new Criteria()
+                    )
+                ),
+                emptyList(),
+                singletonList(addedField), // Структура изменилась
+                emptyList()
+            )
+        );
+        when(compareService.compareStructures(anyInt(), anyInt())).thenReturn( // Структура изменилась. Добавилось поле.
+            new StructureDiff(
+                singletonList(
+                    new StructureDiff.AttributeDiff(
+                        null,
+                        addedAttr
+                    )
+                ),
+                emptyList(),
+                emptyList()
+            )
+        );
         rdmSyncRest.update(code);
 
         verify(dao, never()).insertRow(eq(table), anyMap());
         clearInvocations(dao);
-//      sync2 прошел успешно, однако мы пропустили добавленное поле, хотя разница по структуре была ненулевой
-        vm.setVersion(lastPublished.getVersion());
-        when(versionService.getVersion(vm.getVersion(), code)).thenReturn(new RefBook(lastPublished));
-        vm.setPublicationDate(version2Publication.atDate(date));
-        fm.add(new FieldMapping(addedField, "varchar", addedField)); // обновили маппинги
+//      sync2 прошел успешно, однако мы пропустили добавленное поле, хотя разница по структуре и по данным была ненулевой
+        prev = new RefBook(lastPublished);
         vm.setLastSync(sync2.atDate(date));
+        vm.setVersion(lastPublished.getVersion());
+        vm.setPublicationDate(version2Publication.atDate(date));
+        when(versionService.getVersion(vm.getVersion(), code)).thenReturn(prev);
+        fm.add(new FieldMapping(addedField, "varchar", addedField)); // обновили маппинги
         vm.setMappingLastUpdated(mappingChanged.atDate(date));
         rdmSyncRest.update(code);
         verify(dao, times(1)).updateRow(eq(table), eq(primaryField), eq(deletedField), eq(row1version1));

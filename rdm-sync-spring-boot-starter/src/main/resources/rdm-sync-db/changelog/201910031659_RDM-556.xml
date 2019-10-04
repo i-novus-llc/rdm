@@ -13,9 +13,9 @@
                     mapping_last_updated TIMESTAMP WITHOUT TIME ZONE;
 
                 UPDATE
-                    rdm_sync.version
+                    rdm_sync.version v1
                 SET
-                    mapping_last_updated = now()::timestamp;
+                    mapping_last_updated = (SELECT update_dt FROM rdm_sync.version v2 WHERE v1.code = v2.code);
 
                 COMMENT ON COLUMN
                     rdm_sync.version.mapping_last_updated
@@ -32,11 +32,11 @@
                         SET
                             mapping_last_updated = now()::timestamp
                         WHERE
-                            (TG_OP = 'INSERT' AND NEW.version = version) -- Вставка
+                            (TG_OP = 'INSERT' AND NEW.code = code) -- Вставка
                         OR
-                            (TG_OP = 'DELETE' AND OLD.version = version) -- Удаление
+                            (TG_OP = 'DELETE' AND OLD.code = code) -- Удаление
                         OR
-                            (TG_OP = 'UPDATE' AND NEW.version = version); -- Изменение
+                            (TG_OP = 'UPDATE' AND NEW.code = code); -- Изменение
                         RETURN NEW;
                     END;
                 $$
