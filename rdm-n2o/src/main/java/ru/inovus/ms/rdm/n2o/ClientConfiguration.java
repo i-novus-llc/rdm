@@ -21,6 +21,8 @@ import ru.inovus.ms.rdm.api.provider.AttributeFilterConverter;
 import ru.inovus.ms.rdm.api.provider.ExportFileProvider;
 import ru.inovus.ms.rdm.api.provider.OffsetDateTimeParamConverter;
 import ru.inovus.ms.rdm.api.provider.RdmMapperConfigurer;
+import ru.inovus.ms.rdm.api.util.RdmPermission;
+import ru.inovus.ms.rdm.n2o.util.RdmPermissionImpl;
 import ru.inovus.ms.rdm.n2o.util.json.RdmN2oLocalDateTimeMapperPreparer;
 
 @Configuration
@@ -29,6 +31,11 @@ import ru.inovus.ms.rdm.n2o.util.json.RdmN2oLocalDateTimeMapperPreparer;
         address = "${rdm.backend.path}"
 )
 public class ClientConfiguration {
+
+    @Bean
+    public RdmPermission rdmPermission() {
+        return new RdmPermissionImpl();
+    }
 
     @Bean
     public AttributeFilterConverter attributeFilterConverter() {
