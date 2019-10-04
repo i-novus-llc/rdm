@@ -45,7 +45,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
                         rs.getString(5),
                         rs.getString(6),
                         rs.getString(7),
-                        rs.getTimestamp(8).toLocalDateTime(),
+                        rs.getTimestamp(8) == null ? LocalDateTime.MIN : rs.getTimestamp(8).toLocalDateTime(),
                         rs.getTimestamp(9) == null ? LocalDateTime.MIN : rs.getTimestamp(9).toLocalDateTime()
                 ));
     }
