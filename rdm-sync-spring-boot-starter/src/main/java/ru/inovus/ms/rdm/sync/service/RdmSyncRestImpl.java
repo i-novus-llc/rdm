@@ -95,6 +95,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
 //              Значит в прошлый раз мы синхронизировались по старому маппингу.
 //              Разница по структуре с текущей версией справочника ничего не вернет (разница с самим с собой равна 0).
 //              Необходимо полностью залить свежую версию
+                dao.markDeleted(versionMapping.getTable(), versionMapping.getDeletedField(), true);
                 uploadNew(versionMapping, newVersion);
             }
             //обновляем версию в таблице версий клиента
