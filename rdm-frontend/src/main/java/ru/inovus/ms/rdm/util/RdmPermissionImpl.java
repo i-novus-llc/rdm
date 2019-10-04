@@ -4,10 +4,8 @@ import net.n2oapp.framework.access.simple.PermissionApi;
 import net.n2oapp.framework.api.user.StaticUserContext;
 import net.n2oapp.framework.api.user.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
 import ru.inovus.ms.rdm.api.util.RdmPermission;
 
-@Primary
 public class RdmPermissionImpl implements RdmPermission {
 
     private static final String PERMISSION_NSI_EDIT = "nsi.edit";
