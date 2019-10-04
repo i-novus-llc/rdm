@@ -22,7 +22,7 @@ public class RdmMappingServiceImpl implements RdmMappingService {
 
     @Override
     public Object map(FieldType rdmType, DataTypeEnum clientType, Object value) {
-        if (value == null && clientType != DataTypeEnum.BOOLEAN) {
+        if (value == null && rdmType != FieldType.BOOLEAN) {
             return null;
         }
         Object result = null;

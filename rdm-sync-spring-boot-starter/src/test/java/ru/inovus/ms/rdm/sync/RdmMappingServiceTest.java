@@ -97,6 +97,10 @@ public class RdmMappingServiceTest {
         } catch (ClassCastException e) {
             assertEquals("Ошибка при попытке преобразовать тип BOOLEAN в DATE значение: true", e.getMessage());
         }
+        result = rdmMappingService.map(FieldType.BOOLEAN, VARCHAR, null);
+        assertEquals("false", result);
+        result = rdmMappingService.map(FieldType.BOOLEAN, BOOLEAN, null);
+        assertEquals(false, result);
     }
 
     @Test
