@@ -5,10 +5,8 @@ import net.n2oapp.framework.api.user.StaticUserContext;
 import net.n2oapp.framework.api.user.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
 import ru.inovus.ms.rdm.api.util.RdmPermission;
 
-//@Component
 @Primary
 public class RdmPermissionImpl implements RdmPermission {
 
