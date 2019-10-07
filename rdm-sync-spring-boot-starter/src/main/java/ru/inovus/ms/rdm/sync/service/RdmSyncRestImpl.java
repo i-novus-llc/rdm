@@ -79,13 +79,14 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         }
         for (String code : TopologicalSort.getInverseOrder(refBooks)) {
             update(
-                refBooks.stream().filter(refBook -> refBook.getCode().equals(code)).findFirst().get(),
-                versionMappings.stream().filter(versionMapping -> versionMapping.getCode().equals(code)).findFirst().get()
+                refBooks.stream().filter(refBook -> refBook.getCode().equals(code)).findFirst().orElseThrow(),
+                versionMappings.stream().filter(versionMapping -> versionMapping.getCode().equals(code)).findFirst().orElseThrow()
             );
         }
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void update(String refbookCode) {
         try {
             RefBook newVersion = getNewVersionFromRdm(refbookCode);

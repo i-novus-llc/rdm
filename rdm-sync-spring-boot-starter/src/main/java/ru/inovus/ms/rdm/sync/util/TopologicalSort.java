@@ -7,6 +7,8 @@ import java.util.*;
 
 public class TopologicalSort {
 
+    private TopologicalSort() {}
+
     public static List<String> getOrder(List<RefBook> refbooks) {
         Map<String, DictionaryNode> m = new HashMap<>();
         for (RefBook refbook : refbooks)
