@@ -61,9 +61,11 @@ public class TopologicalSortTest {
         v6.setStructure(new Structure(emptyList(), List.of(new Structure.Reference("", v3.getCode(), ""), new Structure.Reference("", v4.getCode(), ""))));
         v7.setStructure(new Structure(emptyList(), List.of(new Structure.Reference("", v5.getCode(), ""), new Structure.Reference("", v6.getCode(), ""))));
         List<RefBook> refBooks = new java.util.ArrayList<>(List.of(v0, v1, v2, v3, v4, v5, v6, v7));
-        Collections.shuffle(refBooks); // Перемешиваем, чтобы рандомизировать все
-        List<String> inverseOrder = TopologicalSort.getInverseOrder(refBooks);
-        Assert.assertThat(inverseOrder, CoreMatchers.is(Arrays.asList(v0.getCode(), v1.getCode(), v2.getCode(), v3.getCode(), v4.getCode(), v5.getCode(), v6.getCode(), v7.getCode())));
+        for (int i = 0; i < 1000; i++) {
+            Collections.shuffle(refBooks); // Перемешиваем, чтобы рандомизировать все
+            List<String> inverseOrder = TopologicalSort.getInverseOrder(refBooks);
+            Assert.assertThat(inverseOrder, CoreMatchers.is(Arrays.asList(v0.getCode(), v1.getCode(), v2.getCode(), v3.getCode(), v4.getCode(), v5.getCode(), v6.getCode(), v7.getCode())));
+        }
     }
 
 }
