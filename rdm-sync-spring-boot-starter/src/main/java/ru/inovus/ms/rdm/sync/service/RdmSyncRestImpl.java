@@ -29,7 +29,9 @@ import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.Log;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
+import ru.inovus.ms.rdm.sync.util.TopologicalSort;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,25 +67,38 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     @Override
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void update() {
-        List<VersionMapping> refbooks = dao.getVersionMappings();
-        for (VersionMapping refbook : refbooks) {
-            self.update(refbook.getCode());
+        List<VersionMapping> versionMappings = dao.getVersionMappings();
+        List<RefBook> refBooks = new ArrayList<>();
+        for (VersionMapping versionMapping : versionMappings) {
+            try {
+                refBooks.add(getNewVersionFromRdm(versionMapping.getCode()));
+            } catch (RuntimeException e) {
+                logCantGetRefbookError(versionMapping.getCode(), e);
+                return;
+            }
+        }
+        for (String code : TopologicalSort.getInverseOrder(refBooks)) {
+            update(
+                refBooks.stream().filter(refBook -> refBook.getCode().equals(code)).findFirst().get(),
+                versionMappings.stream().filter(versionMapping -> versionMapping.getCode().equals(code)).findFirst().get()
+            );
         }
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void update(String refbookCode) {
-        VersionMapping versionMapping;
-        RefBook newVersion;
         try {
-            versionMapping = getVersionMapping(refbookCode);
-            newVersion = getNewVersionFromRdm(refbookCode);
-        } catch (RuntimeException e) {
-            logger.error(String.format("Ошибка при получении новой версии справочника с кодом %s", refbookCode), e);
-            loggingService.logError(refbookCode, null, null, e.getMessage(), ExceptionUtils.getStackTrace(e));
-            return;
+            RefBook newVersion = getNewVersionFromRdm(refbookCode);
+            VersionMapping versionMapping = getVersionMapping(refbookCode);
+            update(newVersion, versionMapping);
+        } catch (RuntimeException ex) {
+            logCantGetRefbookError(refbookCode, ex);
         }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void update(RefBook newVersion, VersionMapping versionMapping) {
+        String refbookCode = newVersion.getCode();
         try {
             if (versionMapping.getVersion() == null) {
                 //заливаем с нуля
@@ -101,6 +116,11 @@ public class RdmSyncRestImpl implements RdmSyncRest {
             return;
         }
         loggingService.logOk(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion());
+    }
+
+    private void logCantGetRefbookError(String refBookCode, Exception cause) {
+        logger.error(String.format("Ошибка при получении новой версии справочника с кодом %s", refBookCode), cause);
+        loggingService.logError(refBookCode, null, null, cause.getMessage(), ExceptionUtils.getStackTrace(cause));
     }
 
     @Override
