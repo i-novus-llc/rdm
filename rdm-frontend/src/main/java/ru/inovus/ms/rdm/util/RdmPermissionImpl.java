@@ -7,16 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import ru.inovus.ms.rdm.api.util.RdmPermission;
 
-import java.util.regex.Pattern;
+import java.util.List;
 
-import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class RdmPermissionImpl implements RdmPermission {
 
-    private static final Pattern PERMISSION_SPLITTER = Pattern.compile(",");
-
     @Value("${rdm.permissions.nsi.draft.version}")
-    private String rdmPermissionsNsiDraftVersion;
+    private List<String> rdmPermissionsNsiDraftVersion;
 
     private UserContext userContext;
 
@@ -30,10 +28,8 @@ public class RdmPermissionImpl implements RdmPermission {
     // Исключение черновика из списка версий справочника.
     @Override
     public boolean excludeDraft() {
-        return isEmpty(rdmPermissionsNsiDraftVersion) ||
-                PERMISSION_SPLITTER.splitAsStream(rdmPermissionsNsiDraftVersion)
-                        .map(String::trim)
-                        .filter(value -> !isEmpty(value))
+        return  isEmpty(rdmPermissionsNsiDraftVersion) ||
+                rdmPermissionsNsiDraftVersion.stream()
                         .noneMatch(permission -> permissionApi.hasPermission(userContext, permission));
     }
 }
