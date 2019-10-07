@@ -1,7 +1,5 @@
 package ru.inovus.ms.rdm.sync;
 
-import net.n2oapp.criteria.api.CollectionPage;
-import net.n2oapp.criteria.api.Criteria;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -16,10 +14,8 @@ import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
-import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.compare.CompareDataCriteria;
-import ru.inovus.ms.rdm.api.model.diff.DiffRowValuePage;
 import ru.inovus.ms.rdm.api.model.diff.RefBookDataDiff;
 import ru.inovus.ms.rdm.api.model.diff.StructureDiff;
 import ru.inovus.ms.rdm.api.model.field.CommonField;
@@ -230,43 +226,6 @@ public class RdmSyncRestTest {
                 new RefBookRowValue(2L, List.of(new StringFieldValue(primaryField, (String) row2version1.get(primaryField)), new StringFieldValue(addedField, (String) row2version1.get(addedField))), null)
         ), createSearchDataCriteria(), 2);
         when(versionService.search(eq(lastPublished.getCode()), any(SearchDataCriteria.class))).thenReturn(lastPublishedVersionPage);
-        when(compareService.compareData(any())).thenReturn(
-            new RefBookDataDiff(
-                new DiffRowValuePage(
-                    new CollectionPage<>(
-                        2,
-                        List.of( // Добавились два значения в новое поле
-                            new DiffRowValue(
-                                List.of(
-                                    new DiffFieldValue(
-                                        new StringField(addedField),
-                                        null,
-                                        addedVal1,
-                                        DiffStatusEnum.INSERTED
-                                    )
-                                ),
-                                DiffStatusEnum.UPDATED
-                            ),
-                            new DiffRowValue(
-                                List.of(
-                                    new DiffFieldValue(
-                                        new StringField(addedField),
-                                        null,
-                                        addedVal2,
-                                        DiffStatusEnum.INSERTED
-                                    )
-                                ),
-                                DiffStatusEnum.UPDATED
-                            )
-                        ),
-                        new Criteria()
-                    )
-                ),
-                emptyList(),
-                singletonList(addedField), // Структура изменилась
-                emptyList()
-            )
-        );
         when(compareService.compareStructures(anyInt(), anyInt())).thenReturn( // Структура изменилась. Добавилось поле.
             new StructureDiff(
                 singletonList(
@@ -286,11 +245,9 @@ public class RdmSyncRestTest {
         verify(dao, never()).updateRow(eq(table), eq(primaryField), eq(deletedField), eq(row2version1));
         clearInvocations(dao);
 //      sync2 прошел успешно, однако мы пропустили добавленное поле, хотя разница по структуре и по данным была ненулевой
-        prev = new RefBook(lastPublished);
         vm.setLastSync(sync2.atDate(date));
         vm.setVersion(lastPublished.getVersion());
         vm.setPublicationDate(version2Publication.atDate(date));
-        when(versionService.getVersion(vm.getVersion(), code)).thenReturn(prev);
         fm.add(new FieldMapping(addedField, "varchar", addedField)); // обновили маппинги
         vm.setMappingLastUpdated(mappingChanged.atDate(date));
         rdmSyncRest.update(code);
