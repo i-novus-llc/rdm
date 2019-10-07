@@ -1,19 +1,20 @@
 package ru.inovus.ms.rdm.sync.util;
 
-import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
+import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JUnit4.class)
 public class TopologicalSortTest {
@@ -64,7 +65,24 @@ public class TopologicalSortTest {
         for (int i = 0; i < 1000; i++) {
             Collections.shuffle(refBooks); // Перемешиваем, чтобы рандомизировать все
             List<String> inverseOrder = TopologicalSort.getInverseOrder(refBooks);
-            Assert.assertThat(inverseOrder, CoreMatchers.is(Arrays.asList(v0.getCode(), v1.getCode(), v2.getCode(), v3.getCode(), v4.getCode(), v5.getCode(), v6.getCode(), v7.getCode())));
+            testOrder(inverseOrder, refBooks);
+        }
+    }
+
+    private void testOrder(List<String> inverseOrder, List<RefBook> refBooks) {
+        Set<String> visited = new HashSet<>();
+        Map<String, RefBook> m = refBooks.stream().map(RefBook::new).collect(toMap(RefBookVersion::getCode, identity()));
+        for (String s : inverseOrder) {
+            RefBook refBook = m.get(s);
+//          Если здесь true -- значит у нас либо неправильная топологическая сортировка,
+//          либо справочники содержат циклические ссылки
+            assertThat(visited.contains(refBook.getCode()), is(false));
+            visited.add(refBook.getCode());
+            for (Structure.Reference ref : refBook.getStructure().getReferences()) {
+//              Если здесь false -- значит сортировка неправильная, потому что
+//              мы не посетили вершину, на которую ссылаемся
+                assertThat(visited.contains(ref.getReferenceCode()), is(true));
+            }
         }
     }
 
