@@ -4,12 +4,17 @@ import net.n2oapp.framework.access.simple.PermissionApi;
 import net.n2oapp.framework.api.user.StaticUserContext;
 import net.n2oapp.framework.api.user.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import ru.inovus.ms.rdm.api.util.RdmPermission;
+
+import java.util.List;
+
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class RdmPermissionImpl implements RdmPermission {
 
-    private static final String PERMISSION_NSI_EDIT = "nsi.edit";
-    private static final String PERMISSION_NSI_ARCHIVE = "nsi.archive";
+    @Value("${rdm.permissions.nsi.draft.version}")
+    private List<String> rdmPermissionsNsiDraftVersion;
 
     private UserContext userContext;
 
@@ -20,26 +25,11 @@ public class RdmPermissionImpl implements RdmPermission {
         this.userContext = StaticUserContext.getUserContext();
     }
 
-    public UserContext getUserContext() {
-        return userContext;
-    }
-
-    public void setUserContext(UserContext userContext) {
-        this.userContext = userContext;
-    }
-
-    public PermissionApi getPermissionApi() {
-        return permissionApi;
-    }
-
-    public void setPermissionApi(PermissionApi permissionApi) {
-        this.permissionApi = permissionApi;
-    }
-
     // Исключение черновика из списка версий справочника.
     @Override
     public boolean excludeDraft() {
-        return !permissionApi.hasPermission(userContext, PERMISSION_NSI_EDIT)
-                && !permissionApi.hasPermission(userContext, PERMISSION_NSI_ARCHIVE);
+        return  isEmpty(rdmPermissionsNsiDraftVersion) ||
+                rdmPermissionsNsiDraftVersion.stream()
+                        .noneMatch(permission -> permissionApi.hasPermission(userContext, permission));
     }
 }
