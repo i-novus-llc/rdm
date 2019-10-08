@@ -30,9 +30,11 @@ import ru.inovus.ms.rdm.sync.model.Log;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
 import ru.inovus.ms.rdm.sync.util.RefBookReferenceSort;
-import ru.inovus.ms.rdm.sync.util.UnresolvableReferencesRemover;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum.DELETED;
@@ -67,24 +69,11 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     public void update() {
         List<VersionMapping> versionMappings = dao.getVersionMappings();
         List<RefBook> refBooks = getRefBooks(versionMappings);
-        UnresolvableReferencesRemover.removeUnresolvable(refBooks, versionMappings);
-        Iterator<String> sortedCodesIterator = RefBookReferenceSort.getSortedCodes(refBooks).iterator();
-        Set<String> succeedRefBooks = new HashSet<>();
-        while (sortedCodesIterator.hasNext()) {
-            String code = sortedCodesIterator.next();
-            if (!succeedRefBooks.contains(code)) {
-                boolean success = self.update(
-                    refBooks.stream().filter(refBook -> refBook.getCode().equals(code)).findFirst().orElseThrow(),
-                    versionMappings.stream().filter(versionMapping -> versionMapping.getCode().equals(code)).findFirst().orElseThrow()
-                );
-                if (!success) {
-                    refBooks.removeIf(refBook -> refBook.getCode().equals(code));
-                    UnresolvableReferencesRemover.removeUnresolvable(refBooks, versionMappings);
-                    sortedCodesIterator = RefBookReferenceSort.getSortedCodes(refBooks).iterator();
-                } else {
-                    succeedRefBooks.add(code);
-                }
-            }
+        for (String code : RefBookReferenceSort.getSortedCodes(refBooks)) {
+            self.update(
+                refBooks.stream().filter(refBook -> refBook.getCode().equals(code)).findFirst().orElseThrow(),
+                versionMappings.stream().filter(versionMapping -> versionMapping.getCode().equals(code)).findFirst().orElseThrow()
+            );
         }
     }
 
@@ -102,7 +91,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public boolean update(RefBook newVersion, VersionMapping versionMapping) {
+    public void update(RefBook newVersion, VersionMapping versionMapping) {
         String refbookCode = newVersion.getCode();
         try {
             if (versionMapping.getVersion() == null) {
@@ -118,10 +107,9 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         } catch (RuntimeException e) {
             logger.error(String.format("Ошибка при обновлении справочника с кодом %s", refbookCode), e);
             loggingService.logError(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion(), e.getMessage(), ExceptionUtils.getStackTrace(e));
-            return false;
+            return;
         }
         loggingService.logOk(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion());
-        return true;
     }
 
     private void logCantGetRefbookError(String refBookCode, Exception cause) {

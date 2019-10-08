@@ -31,7 +31,7 @@ public interface RdmSyncRest {
     @ApiOperation(value = "Синхронизация отдельного справочника")
     void update(@PathParam("refbookCode") String refbookCode);
 
-    boolean update(RefBook refBook, VersionMapping versionMapping);
+    void update(RefBook refBook, VersionMapping versionMapping);
 
     @GET
     @Path("/log")
