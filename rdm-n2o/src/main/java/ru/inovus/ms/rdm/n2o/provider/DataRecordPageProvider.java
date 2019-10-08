@@ -38,9 +38,12 @@ import static java.util.Collections.singletonList;
 public class DataRecordPageProvider implements DynamicMetadataProvider {
 
     private static final String FORM_PROVIDER_ID = "dataRecordPage";
+    private static final String DATA_ACTION_CREATE = "create";
+    private static final String DATA_ACTION_EDIT = "edit";
+
     private static final Map<String, String> pageNames = Map.of(
-            "create", "Добавление новой записи",
-            "edit", "Редактирование записи"
+            DATA_ACTION_CREATE, "Добавление новой записи",
+            DATA_ACTION_EDIT, "Редактирование записи"
     );
 
     private static final String CONFLICT_TEXT_MAPPING = "#this == null ? \"\" : " +
@@ -74,9 +77,10 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         Structure structure = versionService.getStructure(versionId);
 
         N2oSimplePage page = new N2oSimplePage();
-        N2oForm form = createForm(versionId, structure);
+        String dataAction = params[1];
+        N2oForm form = createForm(versionId, structure, dataAction);
         page.setWidget(form);
-        page.setName(pageNames.get(params[1]));
+        page.setName(pageNames.get(dataAction));
         page.setId(FORM_PROVIDER_ID + "?" + context);
         return singletonList(page);
     }
@@ -86,21 +90,21 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         return singletonList(N2oPage.class);
     }
 
-    private N2oForm createForm(Integer versionId, Structure structure) {
+    private N2oForm createForm(Integer versionId, Structure structure, String dataAction) {
         N2oForm n2oForm = new N2oForm();
-        n2oForm.setItems(createFields(versionId, structure));
+        n2oForm.setItems(createFields(versionId, structure, dataAction));
         n2oForm.setQueryId(DataRecordQueryProvider.QUERY_PROVIDER_ID + "?" + versionId);
         n2oForm.setObjectId(DataRecordObjectProvider.OBJECT_PROVIDER_ID + "?" + versionId);
         return n2oForm;
     }
 
-    private N2oField[] createFields(Integer versionId, Structure structure) {
+    private N2oField[] createFields(Integer versionId, Structure structure, String dataAction) {
         return structure.getAttributes().stream()
-                .map(attribute -> toN2oField(versionId, attribute))
+                .map(attribute -> toN2oField(versionId, attribute, dataAction))
                 .toArray(N2oField[]::new);
     }
 
-    private N2oStandardField toN2oField(Integer versionId, Structure.Attribute attribute) {
+    private N2oStandardField toN2oField(Integer versionId, Structure.Attribute attribute, String dataAction) {
         N2oStandardField n2oField;
 
         switch (attribute.getType()) {
@@ -148,10 +152,12 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
 
                 referenceField.setPreFilters(new N2oPreFilter[]{versionFilter, referenceFilter});
 
-                N2oValidation validation = createRefValueValidation(attribute.getCode());
-                N2oField.Validations validations = new N2oField.Validations();
-                validations.setInlineValidations(new N2oValidation[]{validation});
-                referenceField.setValidations(validations);
+                if (!DATA_ACTION_CREATE.equals(dataAction)) {
+                    N2oValidation validation = createRefValueValidation(versionId, attribute.getCode());
+                    N2oField.Validations validations = new N2oField.Validations();
+                    validations.setInlineValidations(new N2oValidation[]{validation});
+                    referenceField.setValidations(validations);
+                }
 
                 n2oField = referenceField;
                 break;
@@ -166,7 +172,7 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         return n2oField;
     }
 
-    private N2oValidation createRefValueValidation(String attributeCode) {
+    private N2oValidation createRefValueValidation(Integer versionId, String attributeCode) {
 
         String attributeCodeWithPrefix = RdmUiUtil.addPrefix(attributeCode);
 
@@ -200,6 +206,7 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         constraint.setResult("#this == null");
 
         N2oObject.Parameter refFromIdParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, "versionId", "[0]");
+        refFromIdParam.setDefaultValue(versionId.toString());
         refFromIdParam.setDomain(N2oDomain.INTEGER);
         N2oObject.Parameter refFieldCodeParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, attributeCode, "[1]");
         refFieldCodeParam.setDefaultValue(attributeCode);
