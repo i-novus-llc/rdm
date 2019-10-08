@@ -7,10 +7,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
-import ru.inovus.ms.rdm.n2o.RdmWebConfiguration;
+import ru.inovus.ms.rdm.api.util.RdmPermission;
 import ru.inovus.ms.rdm.handler.RdmExceptionHandler;
+import ru.inovus.ms.rdm.n2o.RdmWebConfiguration;
+import ru.inovus.ms.rdm.util.RdmPermissionImpl;
 
-@SpringBootApplication (scanBasePackageClasses = { FrontendApplication.class, AdminRestClientConfiguration.class})
+@SpringBootApplication (scanBasePackageClasses = { FrontendApplication.class, AdminRestClientConfiguration.class })
 @Import({ RdmWebConfiguration.class })
 public class FrontendApplication {
 
@@ -23,6 +25,12 @@ public class FrontendApplication {
     @Primary
     public RdmExceptionHandler exceptionHandler() {
         return new RdmExceptionHandler();
+    }
+
+    @Bean
+    @Primary
+    public RdmPermission rdmPermission() {
+        return new RdmPermissionImpl();
     }
 
     public static void main(String[] args) {

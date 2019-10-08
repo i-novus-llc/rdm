@@ -97,6 +97,12 @@ public class RdmMappingServiceTest {
         } catch (ClassCastException e) {
             assertEquals("Ошибка при попытке преобразовать тип BOOLEAN в DATE значение: true", e.getMessage());
         }
+//      В рдм поле типа boolean. Значение не присутстствует. Необходимо, чтобы они смаппились на
+//      дефолтный false.
+        result = rdmMappingService.map(FieldType.BOOLEAN, VARCHAR, null);
+        assertEquals("false", result);
+        result = rdmMappingService.map(FieldType.BOOLEAN, BOOLEAN, null);
+        assertEquals(false, result);
     }
 
     @Test

@@ -18,13 +18,16 @@ import java.util.Date;
  * @since 21.02.2019
  */
 public class RdmMappingServiceImpl implements RdmMappingService {
+
     private static final String DATE_FORMAT = "yyyy-MM-dd";
 
     @Override
     public Object map(FieldType rdmType, DataTypeEnum clientType, Object value) {
+
         if (value == null) {
-            return null;
+            return FieldType.BOOLEAN.equals(rdmType) ? mapBoolean(clientType, value) : null;
         }
+
         Object result = null;
         switch (rdmType) {
             case STRING:
@@ -42,6 +45,7 @@ public class RdmMappingServiceImpl implements RdmMappingService {
             case REFERENCE:
                 return mapReference(clientType, value);
         }
+
         return result;
     }
 
@@ -102,6 +106,8 @@ public class RdmMappingServiceImpl implements RdmMappingService {
     }
 
     private Object mapBoolean(DataTypeEnum clientType, Object value) {
+        if (value == null)
+            value = "false";
         if (clientType.equals(DataTypeEnum.VARCHAR)) {
             return value.toString();
         } else if (clientType.equals(DataTypeEnum.BOOLEAN)) {

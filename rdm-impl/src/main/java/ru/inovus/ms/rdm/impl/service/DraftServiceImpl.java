@@ -406,7 +406,6 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateDraft(draftId);
 
         RefBookVersionEntity draft = versionRepository.getOne(draftId);
-
         RowsValidator validator = new RowsValidatorImpl(versionService, searchDataService,
                 draft.getStructure(), draft.getStorageCode(), errorCountLimit, false,
                 attributeValidationRepository.findAllByVersionId(draftId)
@@ -923,4 +922,5 @@ public class DraftServiceImpl implements DraftService {
                 versionFileService.generate(versionModel, fileType, dataIterator),
                 fileNameGenerator.generateZipName(versionModel, fileType));
     }
+
 }
