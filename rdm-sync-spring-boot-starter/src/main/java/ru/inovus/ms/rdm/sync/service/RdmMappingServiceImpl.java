@@ -133,6 +133,8 @@ public class RdmMappingServiceImpl implements RdmMappingService {
         }
         Reference reference = (Reference)value;
         String refValue = reference.getValue();
+        if (refValue == null)
+            return null;
         switch (clientType) {
             case VARCHAR:
                 return refValue;

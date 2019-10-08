@@ -29,7 +29,9 @@ import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.Log;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
+import ru.inovus.ms.rdm.sync.util.RefBookReferenceSort;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +48,13 @@ import static ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum.INSE
 public class RdmSyncRestImpl implements RdmSyncRest {
     private static final Logger logger = LoggerFactory.getLogger(RdmSyncRestImpl.class);
     private static final int MAX_SIZE = 100;
+
+    private static final String ERROR_WHILE_FETCHING_NEW_VERSION    = "Error while fetching new version with code %s.";
+    private static final String ERROR_WHILE_UPDATING_NEW_VERSION    = "Error while updating new version with code %s.";
+    private static final String NO_MAPPING_FOR_PRIMARY_KEY          = "No mapping found for primary key %s.";
+    private static final String NO_REFBOOK_FOUND                    = "No reference book with code %s found.";
+    private static final String NO_PRIMARY_KEY_FOUND                = "No primary key found in reference book with code %s.";
+    private static final String MAPPING_OUT_OF_DATE                 = "Field %s was deleted in version %s. Update your mappings.";
 
     @Autowired
     private RefBookService refBookService;
@@ -65,24 +74,33 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     @Override
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void update() {
-        List<VersionMapping> refbooks = dao.getVersionMappings();
-        for (VersionMapping refbook : refbooks) {
-            self.update(refbook.getCode());
+        List<VersionMapping> versionMappings = dao.getVersionMappings();
+        List<RefBook> refBooks = getRefBooks(versionMappings);
+        for (String code : RefBookReferenceSort.getSortedCodes(refBooks)) {
+            self.update(
+                refBooks.stream().filter(refBook -> refBook.getCode().equals(code)).findFirst().orElseThrow(),
+                versionMappings.stream().filter(versionMapping -> versionMapping.getCode().equals(code)).findFirst().orElseThrow()
+            );
         }
     }
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void update(String refbookCode) {
-        VersionMapping versionMapping = getVersionMapping(refbookCode);
-        RefBook newVersion;
+    public void update(String refBookCode) {
         try {
-            newVersion = getNewVersionFromRdm(refbookCode);
-        } catch (RuntimeException e) {
-            logger.error(String.format("Ошибка при получении новой версии справочника с кодом %s", refbookCode), e);
-            loggingService.logError(refbookCode, null, null, e.getMessage(), ExceptionUtils.getStackTrace(e));
-            return;
+            RefBook newVersion = getNewVersionFromRdm(refBookCode);
+            VersionMapping versionMapping = getVersionMapping(refBookCode);
+            update(newVersion, versionMapping);
+        } catch (RuntimeException ex) {
+            logger.error(String.format(ERROR_WHILE_FETCHING_NEW_VERSION, refBookCode), ex);
+            loggingService.logError(refBookCode, null, null, ex.getMessage(), ExceptionUtils.getStackTrace(ex));
         }
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void update(RefBook newVersion, VersionMapping versionMapping) {
+        String refbookCode = newVersion.getCode();
         try {
             if (versionMapping.getVersion() == null) {
                 //заливаем с нуля
@@ -100,7 +118,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
             //обновляем версию в таблице версий клиента
             dao.updateVersionMapping(versionMapping.getId(), newVersion.getLastPublishedVersion(), newVersion.getLastPublishedVersionFromDate());
         } catch (RuntimeException e) {
-            logger.error(String.format("Ошибка при обновлении справочника с кодом %s", refbookCode), e);
+            logger.error(String.format(ERROR_WHILE_UPDATING_NEW_VERSION, refbookCode), e);
             loggingService.logError(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion(), e.getMessage(), ExceptionUtils.getStackTrace(e));
             return;
         }
@@ -116,7 +134,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         VersionMapping versionMapping = dao.getVersionMapping(refbookCode);
         List<FieldMapping> fieldMappings = dao.getFieldMapping(versionMapping.getCode());
         if (fieldMappings.stream().noneMatch(f -> f.getSysField().equals(versionMapping.getPrimaryField()))) {
-            throw new IllegalArgumentException(String.format("Поле %s, указанное в качестве первичного ключа, не задано в маппинге полей", versionMapping.getPrimaryField()));
+            throw new IllegalArgumentException(String.format(NO_MAPPING_FOR_PRIMARY_KEY, versionMapping.getPrimaryField()));
         }
         return versionMapping;
     }
@@ -127,14 +145,27 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         refBookCriteria.setSourceType(RefBookSourceType.LAST_PUBLISHED);
         Page<RefBook> rdmRefbooks = refBookService.search(refBookCriteria);
         if (CollectionUtils.isEmpty(rdmRefbooks.getContent())) {
-            throw new IllegalStateException(String.format("Справочник с кодом %s не найден в системе", refbookCode));
+            throw new IllegalStateException(String.format(NO_REFBOOK_FOUND, refbookCode));
         }
         RefBook rdmRefbook = rdmRefbooks.getContent().get(0);
         //проверяем наличие первичного ключа
         if (rdmRefbook.getStructure().getPrimary().isEmpty()) {
-            throw new IllegalStateException(String.format("Невозможно обновить справочник с кодом %s: отсутствует первичный ключ", refbookCode));
+            throw new IllegalStateException(String.format(NO_PRIMARY_KEY_FOUND, refbookCode));
         }
         return rdmRefbook;
+    }
+
+    private List<RefBook> getRefBooks(List<VersionMapping> versionMappings) {
+        List<RefBook> refBooks = new ArrayList<>();
+        for (VersionMapping versionMapping : versionMappings) {
+            try {
+                refBooks.add(getNewVersionFromRdm(versionMapping.getCode()));
+            } catch (RuntimeException ex) {
+                logger.error(String.format(ERROR_WHILE_FETCHING_NEW_VERSION, versionMapping.getCode()), ex);
+                loggingService.logError(versionMapping.getCode(), null, null, ex.getMessage(), ExceptionUtils.getStackTrace(ex));
+            }
+        }
+        return refBooks;
     }
 
     private void mergeData(VersionMapping versionMapping, RefBook newVersion) {
@@ -210,8 +241,8 @@ public class RdmSyncRestImpl implements RdmSyncRest {
             diff.getOldAttributes().retainAll(clientRdmFields);
             if (!diff.getOldAttributes().isEmpty()) {
                 //в новой версии удалены поля, которые ведутся в системе
-                throw new IllegalStateException(String.format("В новой версии справочника с кодом %s удалены поля %s. Обновите маппинг",
-                        versionMapping.getCode(), String.join(",", diff.getOldAttributes())));
+                throw new IllegalStateException(String.format(MAPPING_OUT_OF_DATE,
+                        String.join(",", diff.getOldAttributes()), versionMapping.getCode()));
             }
         }
     }
