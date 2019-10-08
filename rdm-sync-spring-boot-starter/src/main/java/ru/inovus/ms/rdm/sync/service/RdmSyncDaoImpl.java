@@ -14,6 +14,8 @@ import ru.inovus.ms.rdm.sync.model.loader.XmlMappingRefBook;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -102,7 +104,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     @Override
     public void updateVersionMapping(Integer id, String version, LocalDateTime publishDate) {
         jdbcTemplate.update("update rdm_sync.version set version=?, publication_dt=?, update_dt=? where id=?",
-                version, publishDate, new Date(), id);
+                version, publishDate, Timestamp.valueOf(LocalDateTime.now(Clock.systemUTC())), id);
     }
 
     @Override

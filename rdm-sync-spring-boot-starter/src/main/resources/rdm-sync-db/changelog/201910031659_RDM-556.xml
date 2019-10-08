@@ -30,7 +30,7 @@
                         UPDATE
                             rdm_sync.version
                         SET
-                            mapping_last_updated = now()::timestamp
+                            mapping_last_updated = (SELECT CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
                         WHERE
                             (TG_OP = 'INSERT' AND NEW.code = code) -- Вставка
                         OR
