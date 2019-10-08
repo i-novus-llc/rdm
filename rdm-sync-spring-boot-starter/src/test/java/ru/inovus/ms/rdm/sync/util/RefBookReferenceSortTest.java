@@ -17,7 +17,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 @RunWith(JUnit4.class)
-public class TopologicalSortTest {
+public class RefBookReferenceSortTest {
 
     @Test
     public void testGetOrder() {
@@ -64,7 +64,7 @@ public class TopologicalSortTest {
         List<RefBook> refBooks = new java.util.ArrayList<>(List.of(v0, v1, v2, v3, v4, v5, v6, v7));
         for (int i = 0; i < 1000; i++) {
             Collections.shuffle(refBooks); // Перемешиваем, чтобы рандомизировать все
-            List<String> inverseOrder = TopologicalSort.getInverseOrder(refBooks);
+            List<String> inverseOrder = RefBookReferenceSort.getSortedCodes(refBooks);
             testOrder(inverseOrder, refBooks);
         }
     }

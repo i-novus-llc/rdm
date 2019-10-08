@@ -5,11 +5,11 @@ import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 
 import java.util.*;
 
-public class TopologicalSort {
+public class RefBookReferenceSort {
 
-    private TopologicalSort() {}
+    private RefBookReferenceSort() {}
 
-    public static List<String> getOrder(List<RefBook> refbooks) {
+    public static List<String> getSortedCodes(List<RefBook> refbooks) {
         Map<String, DictionaryNode> m = new HashMap<>();
         for (RefBook refbook : refbooks)
             m.put(refbook.getCode(), new DictionaryNode());
@@ -21,12 +21,9 @@ public class TopologicalSort {
                 node.child.add(refTo);
             }
         }
-        return topologicalSort(m);
-    }
-
-    public static List<String> getInverseOrder(List<RefBook> refBooks) {
+        List<String> topologicalOrder = topologicalSort(m);
         LinkedList<String> inverseOrder = new LinkedList<>();
-        for (String s : getOrder(refBooks)) {
+        for (String s : topologicalOrder) {
             inverseOrder.push(s);
         }
         return inverseOrder;
