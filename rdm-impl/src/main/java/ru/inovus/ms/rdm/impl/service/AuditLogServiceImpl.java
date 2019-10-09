@@ -7,20 +7,36 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import ru.inovus.ms.rdm.api.service.AuditLogService;
-import ru.inovus.ms.rdm.impl.entity.AuditLogEntity;
+import ru.inovus.ms.rdm.api.model.audit.AuditAction;
 import ru.inovus.ms.rdm.api.model.audit.AuditLog;
 import ru.inovus.ms.rdm.api.model.audit.AuditLogCriteria;
+import ru.inovus.ms.rdm.api.service.AuditLogService;
+import ru.inovus.ms.rdm.impl.entity.AuditLogEntity;
 import ru.inovus.ms.rdm.impl.repository.AuditLogRepository;
 
 import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
 
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
 import static ru.inovus.ms.rdm.impl.entity.QAuditLogEntity.auditLogEntity;
 
 @Service
 public class AuditLogServiceImpl implements AuditLogService {
 
     private AuditLogRepository auditLogRepository;
+
+    private EnumSet<AuditAction> disabledActions;
+
+    @Value("${rdm.audit.disabledActions}")
+    public void setDisabled(List<String> disabled) {
+        List<String> values = stream(AuditAction.values()).map(Enum::name).collect(toList());
+        if (disabled.stream().anyMatch(s -> values.stream().noneMatch(s::equalsIgnoreCase)))
+            throw new IllegalArgumentException("Some of the disabled actions are not mentioned in ru.inovus.ms.rdm.api.model.audit.AuditAction enum.");
+        List<AuditAction> list = disabled.stream().map(s -> AuditAction.valueOf(values.stream().filter(s::equalsIgnoreCase).findFirst().get())).collect(toList());
+        disabledActions = list.size() == 0 ? EnumSet.noneOf(AuditAction.class) : EnumSet.copyOf(list);
+    }
 
     @Autowired
     @SuppressWarnings("unused")
@@ -30,13 +46,16 @@ public class AuditLogServiceImpl implements AuditLogService {
 
     @Override
     public AuditLog addAction(AuditLog action) {
-        AuditLogEntity actionEntity = new AuditLogEntity(
-                action.getUser(),
-                action.getDate(),
-                action.getAction(),
-                action.getContext());
-        actionEntity = auditLogRepository.save(actionEntity);
-        return auditActionModel(actionEntity);
+        if (!disabledActions.contains(action.getAction())) {
+            AuditLogEntity actionEntity = new AuditLogEntity(
+                    action.getUser(),
+                    action.getDate(),
+                    action.getAction(),
+                    action.getContext());
+            actionEntity = auditLogRepository.save(actionEntity);
+            return auditActionModel(actionEntity);
+        }
+        return null;
     }
 
     @Override
