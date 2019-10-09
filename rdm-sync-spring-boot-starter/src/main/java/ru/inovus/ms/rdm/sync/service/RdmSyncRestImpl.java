@@ -109,6 +109,11 @@ public class RdmSyncRestImpl implements RdmSyncRest {
                     !versionMapping.getPublicationDate().equals(newVersion.getLastPublishedVersionFromDate())) {
                 //если версия и дата публикация не совпадают - нужно обновить справочник
                 mergeData(versionMapping, newVersion);
+            } else if (versionMapping.changed()) {
+//              Значит в прошлый раз мы синхронизировались по старому маппингу.
+//              Необходимо полностью залить свежую версию.
+                dao.markDeleted(versionMapping.getTable(), versionMapping.getDeletedField(), true);
+                uploadNew(versionMapping, newVersion);
             }
             //обновляем версию в таблице версий клиента
             dao.updateVersionMapping(versionMapping.getId(), newVersion.getLastPublishedVersion(), newVersion.getLastPublishedVersionFromDate());
