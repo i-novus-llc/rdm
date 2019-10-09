@@ -35,7 +35,8 @@ import static java.util.Comparator.comparing;
                 "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.api.service",
                 "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
                 "fileStorage.root=src/test/resources/rdm/temp",
-                "i18n.global.enabled=false"
+                "i18n.global.enabled=false",
+                "rdm.audit.enable=true"
         })
 @DefinePort
 @EnableEmbeddedPg
