@@ -98,6 +98,7 @@
             <groupId>com.sun.xml.ws</groupId>
             <artifactId>rt</artifactId>
         </dependency>
+
     </dependencies>
 
     <build>

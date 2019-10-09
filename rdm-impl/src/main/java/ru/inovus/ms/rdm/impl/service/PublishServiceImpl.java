@@ -20,6 +20,7 @@ import ru.inovus.ms.rdm.api.util.TimeUtils;
 import ru.inovus.ms.rdm.api.util.VersionNumberStrategy;
 import ru.inovus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
+import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
 import ru.inovus.ms.rdm.impl.file.export.VersionDataIterator;
@@ -56,6 +57,8 @@ public class PublishServiceImpl implements PublishService {
     private VersionValidation versionValidation;
     private VersionPeriodPublishValidation versionPeriodPublishValidation;
 
+    private AuditLogService auditLogService;
+
     @Autowired
     @SuppressWarnings("squid:S00107")
     public PublishServiceImpl(RefBookVersionRepository versionRepository,
@@ -63,7 +66,8 @@ public class PublishServiceImpl implements PublishService {
                               RefBookLockService refBookLockService, VersionService versionService,
                               ConflictService conflictService, ReferenceService referenceService,
                               VersionFileService versionFileService, VersionNumberStrategy versionNumberStrategy,
-                              VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation) {
+                              VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation,
+                              AuditLogService auditLogService) {
         this.versionRepository = versionRepository;
 
         this.draftDataService = draftDataService;
@@ -79,6 +83,7 @@ public class PublishServiceImpl implements PublishService {
 
         this.versionValidation = versionValidation;
         this.versionPeriodPublishValidation = versionPeriodPublishValidation;
+        this.auditLogService = auditLogService;
     }
 
     /**
@@ -157,6 +162,10 @@ public class PublishServiceImpl implements PublishService {
         } finally {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
+        auditLogService.addAction(
+            AuditAction.PUBLICATION,
+            draftEntity
+        );
     }
 
     private RefBookVersionEntity getLastPublishedVersionEntity(RefBookVersionEntity draftVersion) {

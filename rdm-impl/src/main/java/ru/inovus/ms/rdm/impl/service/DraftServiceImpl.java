@@ -16,10 +16,7 @@ import org.springframework.util.ObjectUtils;
 import ru.i_novus.components.common.exception.CodifiedException;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.exception.NotUniqueException;
-import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
-import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
@@ -52,6 +49,7 @@ import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
 import ru.inovus.ms.rdm.api.util.StructureUtils;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
+import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.*;
 import ru.inovus.ms.rdm.impl.file.FileStorage;
 import ru.inovus.ms.rdm.impl.file.NonStrictOnTypeRowMapper;
@@ -64,6 +62,7 @@ import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.ConverterUtil;
+import ru.inovus.ms.rdm.impl.util.JsonPayload;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 import ru.inovus.ms.rdm.impl.validation.PrimaryKeyUniqueValidation;
 import ru.inovus.ms.rdm.impl.validation.ReferenceValidation;
@@ -78,7 +77,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.util.Collections.*;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.text.StringEscapeUtils.escapeJson;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.isEmpty;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
@@ -120,6 +121,8 @@ public class DraftServiceImpl implements DraftService {
 
     private AttributeValidationRepository attributeValidationRepository;
 
+    private AuditLogService auditLogService;
+
     private int errorCountLimit = 100;
 
     @Autowired
@@ -130,7 +133,8 @@ public class DraftServiceImpl implements DraftService {
                             FileStorage fileStorage, FileNameGenerator fileNameGenerator,
                             VersionFileService versionFileService,
                             VersionValidation versionValidation,
-                            PassportValueRepository passportValueRepository, AttributeValidationRepository attributeValidationRepository) {
+                            PassportValueRepository passportValueRepository, AttributeValidationRepository attributeValidationRepository,
+                            AuditLogService auditLogService) {
         this.versionRepository = versionRepository;
         this.conflictRepository = conflictRepository;
 
@@ -150,6 +154,7 @@ public class DraftServiceImpl implements DraftService {
 
         this.passportValueRepository = passportValueRepository;
         this.attributeValidationRepository = attributeValidationRepository;
+        this.auditLogService = auditLogService;
     }
 
     @Value("${rdm.validation-errors-count}")
@@ -165,20 +170,29 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateRefBook(refBookId);
 
         refBookLockService.setRefBookUploading(refBookId);
+        Draft d;
         try {
             Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
 
             String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
             switch (extension) {
-                case "XLSX": return updateDraftDataByXlsx(refBookId, fileModel, inputStreamSupplier);
-                case "XML": return updateDraftDataByXml(refBookId, fileModel, inputStreamSupplier);
+                case "XLSX":
+                    d = updateDraftDataByXlsx(refBookId, fileModel, inputStreamSupplier);
+                    break;
+                case "XML":
+                    d = updateDraftDataByXml(refBookId, fileModel, inputStreamSupplier);
+                    break;
                 default: throw new RdmException("invalid file extension");
             }
 
         } finally {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
-
+        auditLogService.addAction(
+            AuditAction.UPLOAD_VERSION_FROM_FILE,
+            versionRepository.getOne(d.getId())
+        );
+        return d;
     }
 
     @Override
@@ -417,12 +431,40 @@ public class DraftServiceImpl implements DraftService {
             throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
 
         RowValue rowValue = ConverterUtil.rowValue(new StructureRowMapper(draft.getStructure(), versionRepository).map(row), draft.getStructure());
-        if (rowValue.getSystemId() == null)
+        if (rowValue.getSystemId() == null) {
             draftDataService.addRows(draft.getStorageCode(), singletonList(rowValue));
-        else {
+            auditEditData(draft, "create_row", createRowPayload(rowValue.getFieldValues()));
+        } else {
+            List<String> fields = draft.getStructure().getAttributes().stream().map(Structure.Attribute::getCode).collect(toList());
+            RowValue old = searchDataService.findRow(draft.getStorageCode(), fields, rowValue.getSystemId());
+            JsonPayload diff = simpleDiff(old, row);
             conflictRepository.deleteByReferrerVersionIdAndRefRecordId(draft.getId(), (Long) rowValue.getSystemId());
             draftDataService.updateRow(draft.getStorageCode(), rowValue);
+            auditEditData(draft, "update_row", diff);
         }
+    }
+
+    private JsonPayload createRowPayload(List<FieldValue> fieldValues) {
+        return new JsonPayload(
+            "{" + fieldValues.stream().map(f -> "\"" + escapeJson(f.getField()) + "\": \"" + escapeJson(Objects.toString(f.getValue())) + "\"").collect(joining(", ")) + "}"
+        );
+    }
+
+    private JsonPayload simpleDiff(RowValue oldRow, Row newRow) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        List<FieldValue> fv = oldRow.getFieldValues();
+        sb.append(fv.stream().filter(f ->
+            !Objects.equals(f.getValue(), newRow.getData().get(f.getField()))
+        ).map(f -> {
+            Object oldVal = f.getValue();
+            Object newVal = newRow.getData().get(f.getField());
+            String oldStr = Objects.toString(oldVal, "null");
+            String newStr = Objects.toString(newVal, "null");
+            return "\"" + escapeJson(f.getField()) + "\": {\"old\": \"" + escapeJson(oldStr) + "\", \"new\": \"" + escapeJson(newStr) + "\"}";
+        }).collect(joining(",")));
+        sb.append("}");
+        return new JsonPayload(sb.toString());
     }
 
     @Override
@@ -434,6 +476,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draft = versionRepository.getOne(draftId);
         conflictRepository.deleteByReferrerVersionIdAndRefRecordId(draft.getId(), systemId);
         draftDataService.deleteRows(draft.getStorageCode(), singletonList(systemId));
+        auditEditData(draft, "delete_row", systemId);
     }
 
     @Override
@@ -445,6 +488,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draft = versionRepository.getOne(draftId);
         conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draft.getId());
         draftDataService.deleteAllRows(draft.getStorageCode());
+        auditEditData(draft, "delete_all_rows", "{}");
     }
 
     @Override
@@ -462,6 +506,10 @@ public class DraftServiceImpl implements DraftService {
         } finally {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
+        auditLogService.addAction(
+            AuditAction.UPLOAD_DATA,
+            draftVersion
+        );
     }
 
     @Override
@@ -549,6 +597,7 @@ public class DraftServiceImpl implements DraftService {
             structure.getReferences().add(reference);
         }
         draftEntity.setStructure(structure);
+        auditStructureEdit(draftEntity, "create_attribute", createAttribute.getAttribute());
     }
 
     private void validateRequired(Structure.Attribute attribute, String storageCode, Structure structure) {
@@ -608,6 +657,7 @@ public class DraftServiceImpl implements DraftService {
             attributeValidationRepository.deleteAll(
                     attributeValidationRepository.findAllByVersionIdAndAttribute(updateAttribute.getVersionId(), updateAttribute.getCode()));
         }
+        auditStructureEdit(draftEntity, "update_attribute", structure.getAttribute(updateAttribute.getCode()));
     }
 
     private void validateDisplayExpression(String displayExpression, String refBookCode) {
@@ -799,6 +849,7 @@ public class DraftServiceImpl implements DraftService {
 
         attributeValidationRepository.deleteAll(
                 attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attributeCode));
+        auditStructureEdit(draftEntity, "delete_attribute", attribute);
     }
 
     @Override
@@ -921,6 +972,22 @@ public class DraftServiceImpl implements DraftService {
         return new ExportFile(
                 versionFileService.generate(versionModel, fileType, dataIterator),
                 fileNameGenerator.generateZipName(versionModel, fileType));
+    }
+
+    private void auditStructureEdit(RefBookVersionEntity refBook, String action, Structure.Attribute attribute) {
+        auditLogService.addAction(
+            AuditAction.EDIT_STRUCTURE,
+            refBook,
+            Map.of(action, attribute)
+        );
+    }
+
+    private void auditEditData(RefBookVersionEntity refBook, String action, Object payload) {
+        auditLogService.addAction(
+            AuditAction.DRAFT_EDITING,
+            refBook,
+            Map.of(action, payload)
+        );
     }
 
 }

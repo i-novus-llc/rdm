@@ -121,7 +121,10 @@
             <groupId>xmlunit</groupId>
             <artifactId>xmlunit</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>ru.i-novus.ms.audit</groupId>
+            <artifactId>audit-client</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
