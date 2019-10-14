@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="201910141728_RDM-568" author="Ikarimullin" dbms="postgresql" runAlways="true">
+        <sql splitStatements="false">
+            CREATE TABLE rdm_sync.sync_lock_table(dummy INTEGER NOT NULL PRIMARY KEY);
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
