@@ -11,8 +11,12 @@ class SyncLockServiceImpl {
 
     @Transactional
     boolean tryLock() {
-        jdbcTemplate.execute("LOCK TABLE rdm_sync.sync_lock_table IN SHARE MODE NOWAIT");
-        return true;
+        try {
+            jdbcTemplate.execute("LOCK TABLE rdm_sync.sync_lock_table IN SHARE MODE NOWAIT");
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
 }
