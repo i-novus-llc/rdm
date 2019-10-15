@@ -155,7 +155,7 @@ public class RdmMappingServiceImpl implements RdmMappingService {
     }
 
     private String getClassCastError(FieldType rdmType, DataTypeEnum clientType, Object value) {
-        return String.format("Ошибка при попытке преобразовать тип %s в %s значение: %s", rdmType, clientType, value);
+        return String.format("Error while casting %s into %s.\nValue is %s", rdmType, clientType, value);
     }
 
 }

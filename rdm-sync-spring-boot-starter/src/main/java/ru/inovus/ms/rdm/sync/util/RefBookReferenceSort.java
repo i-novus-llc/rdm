@@ -18,7 +18,8 @@ public class RefBookReferenceSort {
             Structure s = version.getStructure();
             for (Structure.Reference r : s.getReferences()) {
                 String refTo = r.getReferenceCode();
-                node.child.add(refTo);
+                if (m.containsKey(refTo))
+                    node.child.add(refTo);
             }
         }
         List<String> topologicalOrder = topologicalSort(m);
