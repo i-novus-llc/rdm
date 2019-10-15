@@ -19,7 +19,7 @@ public class SyncLockServiceImpl {
     private static final Object lock = new Object();
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    boolean tryLock() {
+    public boolean tryLock() {
         synchronized (lock) {
             if (locked)
                 return false;
@@ -45,7 +45,7 @@ public class SyncLockServiceImpl {
      * Но тут мы обновляем переменную locked.
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    void releaseLock() {
+    public void releaseLock() {
         synchronized (lock) {
             if (!locked)
                 return;
