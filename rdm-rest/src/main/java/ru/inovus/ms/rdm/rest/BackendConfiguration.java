@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.rest;
 import net.n2oapp.platform.i18n.Messages;
 import net.n2oapp.platform.jaxrs.LocalDateTimeISOParameterConverter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -85,8 +86,9 @@ public class BackendConfiguration {
     }
 
     @Bean
-    public SourceApplicationAccessor applicationAccessor() {
-        return () -> "RDM";
+    @Value("${rdm.audit.application.name}")
+    public SourceApplicationAccessor applicationAccessor(String appName) {
+        return () -> appName;
     }
 
 }
