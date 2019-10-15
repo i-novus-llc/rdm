@@ -136,4 +136,10 @@ public class RdmClientSyncAutoConfiguration {
     public RdmMapperConfigurer rdmMapperConfigurer() {
         return new RdmMapperConfigurer();
     }
+
+    @Bean
+    public SyncLockServiceImpl syncLockServiceImpl() {
+        return new SyncLockServiceImpl();
+    }
+
 }

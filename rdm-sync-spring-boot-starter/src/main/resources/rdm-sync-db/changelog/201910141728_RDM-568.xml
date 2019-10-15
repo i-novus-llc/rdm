@@ -4,9 +4,10 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
 
-    <changeSet id="201910141728_RDM-568" author="Ikarimullin" dbms="postgresql" runAlways="true">
+    <changeSet id="201910141728_RDM-568" author="Ikarimullin" dbms="postgresql">
         <sql splitStatements="false">
-            CREATE TABLE rdm_sync.sync_lock_table(last_acquired TIMESTAMP WITHOUT TIME ZONE);
+            CREATE TABLE IF NOT EXISTS rdm_sync.sync_lock_table(last_acquired TIMESTAMP WITHOUT TIME ZONE);
+            INSERT INTO rdm_sync.sync_lock_table VALUES (NULL);
         </sql>
     </changeSet>
 

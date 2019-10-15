@@ -70,25 +70,17 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     private RdmSyncRest self;
     @Autowired
     private RdmSyncDao dao;
-    @Autowired
-    private SyncLockServiceImpl syncLockService;
 
     @Override
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void update() {
-        try {
-            if (syncLockService.tryLock()) {
-                List<VersionMapping> versionMappings = dao.getVersionMappings();
-                List<RefBook> refBooks = getRefBooks(versionMappings);
-                for (String code : RefBookReferenceSort.getSortedCodes(refBooks)) {
-                    self.update(
-                            refBooks.stream().filter(refBook -> refBook.getCode().equals(code)).findFirst().orElseThrow(),
-                            versionMappings.stream().filter(versionMapping -> versionMapping.getCode().equals(code)).findFirst().orElseThrow()
-                    );
-                }
-            }
-        } finally {
-            syncLockService.releaseLock();
+        List<VersionMapping> versionMappings = dao.getVersionMappings();
+        List<RefBook> refBooks = getRefBooks(versionMappings);
+        for (String code : RefBookReferenceSort.getSortedCodes(refBooks)) {
+            self.update(
+                    refBooks.stream().filter(refBook -> refBook.getCode().equals(code)).findFirst().orElseThrow(),
+                    versionMappings.stream().filter(versionMapping -> versionMapping.getCode().equals(code)).findFirst().orElseThrow()
+            );
         }
     }
 

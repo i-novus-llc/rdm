@@ -2,13 +2,12 @@ package ru.inovus.ms.rdm.sync.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 
-class SyncLockServiceImpl {
+public class SyncLockServiceImpl {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -19,33 +18,39 @@ class SyncLockServiceImpl {
     private static boolean locked;
     private static final Object lock = new Object();
 
-    @Transactional(isolation = Isolation.SERIALIZABLE, propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.SUPPORTS)
     boolean tryLock() {
         synchronized (lock) {
             if (locked)
                 return false;
-            if (getLockTime() != null)
-                return false;
-            jdbcTemplate.update("UPDATE sync_lock_table SET last_acquired = (SELECT CURRENT_TIMESTAMP AT TIME ZONE 'UTC')");
-            locked = true;
-            return true;
+            boolean acquired;
+            try {
+                jdbcTemplate.queryForObject("SELECT last_acquired FROM rdm_sync.sync_lock_table FOR UPDATE NOWAIT", Timestamp.class);
+                acquired = true;
+            } catch (Exception ex) {
+                acquired = false;
+            }
+            if (acquired) {
+                jdbcTemplate.update("UPDATE rdm_sync.sync_lock_table SET last_acquired = (SELECT CURRENT_TIMESTAMP AT TIME ZONE 'UTC')");
+                locked = true;
+                return true;
+            }
+            return false;
         }
     }
 
-    @Transactional(isolation = Isolation.SERIALIZABLE, propagation = Propagation.REQUIRES_NEW)
+    /**
+     * "LOCK" в Postgresql не имеет "UNLOCK".
+     * Лочка релизится автоматом после завершения транзакции.
+     * Но тут мы обновляем переменную locked.
+     */
+    @Transactional(propagation = Propagation.SUPPORTS)
     void releaseLock() {
         synchronized (lock) {
             if (!locked)
                 return;
-            if (getLockTime() == null)
-                return;
-            jdbcTemplate.update("UPDATE sync_lock_table SET last_acquired = NULL");
             locked = false;
         }
-    }
-
-    private Timestamp getLockTime() {
-        return jdbcTemplate.queryForObject("SELECT last_acquired FROM sync_lock_table", Timestamp.class);
     }
 
 }
