@@ -6,7 +6,7 @@
 
     <changeSet id="201910141728_RDM-568" author="Ikarimullin" dbms="postgresql" runAlways="true">
         <sql splitStatements="false">
-            CREATE TABLE rdm_sync.sync_lock_table(dummy INTEGER NOT NULL PRIMARY KEY);
+            CREATE TABLE rdm_sync.sync_lock_table(last_acquired TIMESTAMP WITHOUT TIME ZONE);
         </sql>
     </changeSet>
 
