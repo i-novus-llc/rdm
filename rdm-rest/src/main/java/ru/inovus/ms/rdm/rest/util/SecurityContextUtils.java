@@ -12,6 +12,8 @@ import java.io.IOException;
 
 public class SecurityContextUtils {
 
+    private SecurityContextUtils() {}
+
     private static String getAuthorizationHeader() {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes == null) {

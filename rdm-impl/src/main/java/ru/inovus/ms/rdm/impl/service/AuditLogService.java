@@ -27,6 +27,8 @@ public class AuditLogService {
 
     private static final Logger logger = LoggerFactory.getLogger(AuditLogService.class);
 
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     private EnumSet<AuditAction> disabledActions;
 
     private AuditClient auditClient;
@@ -75,13 +77,15 @@ public class AuditLogService {
         }
     }
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
     private static String toJson(Map<String, Object> ctx) {
-        String json = null;
+        String json;
         try {
             json = OBJECT_MAPPER.writeValueAsString(ctx);
-        } catch (JsonProcessingException e) {/*Не выбросится*/}
+        } catch (JsonProcessingException e) {
+            /*Не выбросится*/
+            logger.error("Error while serializing to json {0}", e);
+            throw new RuntimeException(e);
+        }
         return json;
     }
 
