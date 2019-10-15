@@ -1,8 +1,11 @@
 package ru.inovus.ms.rdm.impl.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import ru.i_novus.ms.audit.client.AuditClient;
 import ru.i_novus.ms.audit.client.model.AuditClientRequest;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
 
@@ -22,9 +25,18 @@ import static org.apache.commons.text.StringEscapeUtils.escapeJson;
 @Service
 public class AuditLogService {
 
+    private static final Logger logger = LoggerFactory.getLogger(AuditLogService.class);
+
     private EnumSet<AuditAction> disabledActions;
 
-    @Value("${rdm.audit.disabledActions}")
+    private AuditClient auditClient;
+
+    @Autowired
+    public void setAuditClient(AuditClient auditClient) {
+        this.auditClient = auditClient;
+    }
+
+    @Value("${rdm.audit.disabledActions:}#{T(java.util.Collections).emptyList()}")
     public void setDisabled(List<String> disabled) {
         if (disabled.stream().anyMatch("all"::equalsIgnoreCase))
             disabledActions = EnumSet.allOf(AuditAction.class);
@@ -57,6 +69,9 @@ public class AuditLogService {
             m.putAll(additionalContext);
             request.setContext(toJson(m));
             request.setAuditType((short) 1);
+            auditClient.add(request);
+        } else {
+            logger.warn("audit action {} disabled", action);
         }
     }
 

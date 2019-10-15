@@ -7,6 +7,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
+import org.springframework.security.oauth2.client.OAuth2ClientContext;
+import org.springframework.security.oauth2.client.OAuth2RestTemplate;
+import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
 import ru.inovus.ms.rdm.api.util.RdmPermission;
 import ru.inovus.ms.rdm.handler.RdmExceptionHandler;
 import ru.inovus.ms.rdm.n2o.RdmWebConfiguration;
@@ -32,6 +35,12 @@ public class FrontendApplication {
     public RdmPermission rdmPermission() {
         return new RdmPermissionImpl();
     }
+
+    @Bean("oauth2RestTemplate")
+    public OAuth2RestTemplate oauth2RestTemplate(OAuth2ProtectedResourceDetails details, OAuth2ClientContext oauth2ClientContext) {
+        return new OAuth2RestTemplate(details, oauth2ClientContext);
+    }
+
 
     public static void main(String[] args) {
         SpringApplication.run(FrontendApplication.class, args);

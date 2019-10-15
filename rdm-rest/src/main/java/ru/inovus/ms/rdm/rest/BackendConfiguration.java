@@ -8,10 +8,14 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import ru.i_novus.ms.audit.client.SourceApplicationAccessor;
+import ru.i_novus.ms.audit.client.UserAccessor;
+import ru.i_novus.ms.audit.client.model.User;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.inovus.ms.rdm.api.provider.*;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
 import ru.inovus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
+import ru.inovus.ms.rdm.rest.util.SecurityContextUtils;
 
 @Configuration
 public class BackendConfiguration {
@@ -73,6 +77,16 @@ public class BackendConfiguration {
     @ConditionalOnClass(Messages.class)
     UserExceptionMapper userExceptionMapper(Messages messages) {
         return new UserExceptionMapper(messages);
+    }
+
+    @Bean
+    public UserAccessor userAccessor() {
+        return () -> new User(null, SecurityContextUtils.getUserName());
+    }
+
+    @Bean
+    public SourceApplicationAccessor applicationAccessor() {
+        return () -> "RDM";
     }
 
 }

@@ -123,7 +123,7 @@
         </dependency>
         <dependency>
             <groupId>ru.i-novus.ms.audit</groupId>
-            <artifactId>audit-client</artifactId>
+            <artifactId>audit-client-async-spring-boot-starter</artifactId>
         </dependency>
     </dependencies>
 

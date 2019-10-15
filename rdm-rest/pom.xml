@@ -99,6 +99,17 @@
             <artifactId>rt</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-jwt</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.i-novus.ms.audit</groupId>
+            <artifactId>audit-client-async-spring-boot-starter</artifactId>
+        </dependency>
+
+
     </dependencies>
 
     <build>
