@@ -1,5 +1,7 @@
 package ru.inovus.ms.rdm.impl.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,9 +20,7 @@ import java.util.Map;
 
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyMap;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.text.StringEscapeUtils.escapeJson;
 
 @Service
 public class AuditLogService {
@@ -75,15 +75,14 @@ public class AuditLogService {
         }
     }
 
-    private static String toJson(Map<String, Object> ctx) {
-        return "{" + ctx.entrySet().stream().map(
-                e -> "\"" + escapeJson(e.getKey()) + "\": " + (isStringLiteral(e.getValue()) ? "\"" + escapeJson(e.getValue().toString()) + "\"" : e.getValue())
-        ).collect(joining(", ")) +
-                '}';
-    }
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    private static boolean isStringLiteral(Object obj) {
-        return obj.getClass() == String.class;
+    private static String toJson(Map<String, Object> ctx) {
+        String json = null;
+        try {
+            json = OBJECT_MAPPER.writeValueAsString(ctx);
+        } catch (JsonProcessingException e) {/*Не выбросится*/}
+        return json;
     }
 
 }

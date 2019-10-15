@@ -62,8 +62,8 @@ import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.ConverterUtil;
-import ru.inovus.ms.rdm.impl.util.JsonPayload;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
+import ru.inovus.ms.rdm.impl.util.RowDiff;
 import ru.inovus.ms.rdm.impl.validation.PrimaryKeyUniqueValidation;
 import ru.inovus.ms.rdm.impl.validation.ReferenceValidation;
 import ru.inovus.ms.rdm.impl.validation.VersionValidationImpl;
@@ -77,9 +77,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.util.Collections.*;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.text.StringEscapeUtils.escapeJson;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.isEmpty;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
@@ -433,38 +431,28 @@ public class DraftServiceImpl implements DraftService {
         RowValue rowValue = ConverterUtil.rowValue(new StructureRowMapper(draft.getStructure(), versionRepository).map(row), draft.getStructure());
         if (rowValue.getSystemId() == null) {
             draftDataService.addRows(draft.getStorageCode(), singletonList(rowValue));
-            auditEditData(draft, "create_row", createRowPayload(rowValue.getFieldValues()));
+            auditEditData(draft, "create_row", rowValue.getFieldValues());
         } else {
             List<String> fields = draft.getStructure().getAttributes().stream().map(Structure.Attribute::getCode).collect(toList());
             RowValue old = searchDataService.findRow(draft.getStorageCode(), fields, rowValue.getSystemId());
-            JsonPayload diff = simpleDiff(old, row);
+            RowDiff diff = simpleDiff(old, row);
             conflictRepository.deleteByReferrerVersionIdAndRefRecordId(draft.getId(), (Long) rowValue.getSystemId());
             draftDataService.updateRow(draft.getStorageCode(), rowValue);
             auditEditData(draft, "update_row", diff);
         }
     }
 
-    private JsonPayload createRowPayload(List<FieldValue> fieldValues) {
-        return new JsonPayload(
-            "{" + fieldValues.stream().map(f -> "\"" + escapeJson(f.getField()) + "\": \"" + escapeJson(Objects.toString(f.getValue())) + "\"").collect(joining(", ")) + "}"
-        );
-    }
-
-    private JsonPayload simpleDiff(RowValue oldRow, Row newRow) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
+    private RowDiff simpleDiff(RowValue oldRow, Row newRow) {
+        RowDiff rowDiff = new RowDiff();
         List<FieldValue> fv = oldRow.getFieldValues();
-        sb.append(fv.stream().filter(f ->
-            !Objects.equals(f.getValue(), newRow.getData().get(f.getField()))
-        ).map(f -> {
-            Object oldVal = f.getValue();
-            Object newVal = newRow.getData().get(f.getField());
-            String oldStr = Objects.toString(oldVal, "null");
-            String newStr = Objects.toString(newVal, "null");
-            return "\"" + escapeJson(f.getField()) + "\": {\"old\": \"" + escapeJson(oldStr) + "\", \"new\": \"" + escapeJson(newStr) + "\"}";
-        }).collect(joining(",")));
-        sb.append("}");
-        return new JsonPayload(sb.toString());
+        for (FieldValue fieldValue : fv) {
+            if (!Objects.equals(fieldValue.getValue(), newRow.getData().get(fieldValue.getField()))) {
+                Object oldVal = fieldValue.getValue();
+                Object newVal = newRow.getData().get(fieldValue.getField());
+                rowDiff.addDiff(fieldValue.getField(), RowDiff.CellDiff.of(oldVal, newVal));
+            }
+        }
+        return rowDiff;
     }
 
     @Override
@@ -488,7 +476,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draft = versionRepository.getOne(draftId);
         conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draft.getId());
         draftDataService.deleteAllRows(draft.getStorageCode());
-        auditEditData(draft, "delete_all_rows", "{}");
+        auditEditData(draft, "delete_all_rows", "-");
     }
 
     @Override

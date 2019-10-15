@@ -14,7 +14,6 @@ import ru.inovus.ms.rdm.impl.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.inovus.ms.rdm.impl.util.JsonPayload;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 
 import java.util.List;
@@ -22,8 +21,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.joining;
-import static org.apache.commons.text.StringEscapeUtils.escapeJson;
 import static org.springframework.util.StringUtils.isEmpty;
 
 @Primary
@@ -91,11 +88,10 @@ public class PassportServiceImpl implements PassportService {
 
         versionEntity.getPassportValues()
                 .removeAll(valuesToRemove);
-        String s = "{" + newPassport.entrySet().stream().map(e -> "\"" + escapeJson(e.getKey()) + "\": \"" + escapeJson(e.getValue()) + "\"").collect(joining(", ")) + "}";
         auditLogService.addAction(
             AuditAction.EDIT_PASSPORT,
             versionEntity,
-            Map.of("operations", new JsonPayload(s))
+            Map.of("newPassport", newPassport)
         );
     }
 }
