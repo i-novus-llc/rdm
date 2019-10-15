@@ -26,7 +26,7 @@ class SyncLockServiceImpl {
                 return false;
             if (getLockTime() != null)
                 return false;
-            jdbcTemplate.update("UPDATE sync_lock_table SET lock_time = (SELECT CURRENT_TIMESTAMP AT TIME ZONE 'UTC')");
+            jdbcTemplate.update("UPDATE sync_lock_table SET last_acquired = (SELECT CURRENT_TIMESTAMP AT TIME ZONE 'UTC')");
             locked = true;
             return true;
         }
@@ -39,13 +39,13 @@ class SyncLockServiceImpl {
                 return;
             if (getLockTime() == null)
                 return;
-            jdbcTemplate.update("UPDATE sync_lock_table SET lock_time = NULL");
+            jdbcTemplate.update("UPDATE sync_lock_table SET last_acquired = NULL");
             locked = false;
         }
     }
 
     private Timestamp getLockTime() {
-        return jdbcTemplate.queryForObject("SELECT lock_time FROM sync_lock_table", Timestamp.class);
+        return jdbcTemplate.queryForObject("SELECT last_acquired FROM sync_lock_table", Timestamp.class);
     }
 
 }
