@@ -76,15 +76,19 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     @Override
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void update() {
-        List<VersionMapping> versionMappings = dao.getVersionMappings();
-        List<RefBook> refBooks = getRefBooks(versionMappings);
-        for (String code : RefBookReferenceSort.getSortedCodes(refBooks)) {
-            boolean locked = self.update(
-                    refBooks.stream().filter(refBook -> refBook.getCode().equals(code)).findFirst().orElseThrow(),
-                    versionMappings.stream().filter(versionMapping -> versionMapping.getCode().equals(code)).findFirst().orElseThrow()
-            );
-            if (!locked)
-                return;
+        try {
+            if (syncLockService.tryLock()) {
+                List<VersionMapping> versionMappings = dao.getVersionMappings();
+                List<RefBook> refBooks = getRefBooks(versionMappings);
+                for (String code : RefBookReferenceSort.getSortedCodes(refBooks)) {
+                    self.update(
+                            refBooks.stream().filter(refBook -> refBook.getCode().equals(code)).findFirst().orElseThrow(),
+                            versionMappings.stream().filter(versionMapping -> versionMapping.getCode().equals(code)).findFirst().orElseThrow()
+                    );
+                }
+            }
+        } finally {
+            syncLockService.releaseLock();
         }
     }
 
@@ -103,34 +107,30 @@ public class RdmSyncRestImpl implements RdmSyncRest {
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public boolean update(RefBook newVersion, VersionMapping versionMapping) {
-        if (syncLockService.tryLock()) {
-            String refbookCode = newVersion.getCode();
-            try {
-                if (versionMapping.getVersion() == null) {
-                    //заливаем с нуля
-                    uploadNew(versionMapping, newVersion);
-                } else if (!versionMapping.getVersion().equals(newVersion.getLastPublishedVersion()) &&
-                        !versionMapping.getPublicationDate().equals(newVersion.getLastPublishedVersionFromDate())) {
-                    //если версия и дата публикация не совпадают - нужно обновить справочник
-                    mergeData(versionMapping, newVersion);
-                } else if (versionMapping.changed()) {
+    public void update(RefBook newVersion, VersionMapping versionMapping) {
+        String refbookCode = newVersion.getCode();
+        try {
+            if (versionMapping.getVersion() == null) {
+                //заливаем с нуля
+                uploadNew(versionMapping, newVersion);
+            } else if (!versionMapping.getVersion().equals(newVersion.getLastPublishedVersion()) &&
+                    !versionMapping.getPublicationDate().equals(newVersion.getLastPublishedVersionFromDate())) {
+                //если версия и дата публикация не совпадают - нужно обновить справочник
+                mergeData(versionMapping, newVersion);
+            } else if (versionMapping.changed()) {
 //              Значит в прошлый раз мы синхронизировались по старому маппингу.
 //              Необходимо полностью залить свежую версию.
-                    dao.markDeleted(versionMapping.getTable(), versionMapping.getDeletedField(), true);
-                    uploadNew(versionMapping, newVersion);
-                }
-                //обновляем версию в таблице версий клиента
-                dao.updateVersionMapping(versionMapping.getId(), newVersion.getLastPublishedVersion(), newVersion.getLastPublishedVersionFromDate());
-            } catch (RuntimeException e) {
-                logger.error(String.format(ERROR_WHILE_UPDATING_NEW_VERSION, refbookCode), e);
-                loggingService.logError(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion(), e.getMessage(), ExceptionUtils.getStackTrace(e));
-                return true;
+                dao.markDeleted(versionMapping.getTable(), versionMapping.getDeletedField(), true);
+                uploadNew(versionMapping, newVersion);
             }
-            loggingService.logOk(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion());
-            return true;
+            //обновляем версию в таблице версий клиента
+            dao.updateVersionMapping(versionMapping.getId(), newVersion.getLastPublishedVersion(), newVersion.getLastPublishedVersionFromDate());
+        } catch (RuntimeException e) {
+            logger.error(String.format(ERROR_WHILE_UPDATING_NEW_VERSION, refbookCode), e);
+            loggingService.logError(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion(), e.getMessage(), ExceptionUtils.getStackTrace(e));
+            return;
         }
-        return false;
+        loggingService.logOk(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion());
     }
 
     @Override

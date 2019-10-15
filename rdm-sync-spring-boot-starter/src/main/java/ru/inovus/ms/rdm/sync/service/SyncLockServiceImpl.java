@@ -2,21 +2,50 @@ package ru.inovus.ms.rdm.sync.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.sql.Timestamp;
 
 class SyncLockServiceImpl {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    @Transactional
+    /**
+     * Это чтобы контролировать лочки в пределах одной ноды.
+     */
+    private static boolean locked;
+    private static final Object lock = new Object();
+
+    @Transactional(isolation = Isolation.SERIALIZABLE, propagation = Propagation.REQUIRES_NEW)
     boolean tryLock() {
-        try {
-            jdbcTemplate.execute("LOCK TABLE rdm_sync.sync_lock_table IN SHARE MODE NOWAIT");
+        synchronized (lock) {
+            if (locked)
+                return false;
+            if (getLockTime() != null)
+                return false;
+            jdbcTemplate.update("UPDATE sync_lock_table SET lock_time = (SELECT CURRENT_TIMESTAMP AT TIME ZONE 'UTC')");
+            locked = true;
             return true;
-        } catch (Exception ex) {
-            return false;
         }
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE, propagation = Propagation.REQUIRES_NEW)
+    void releaseLock() {
+        synchronized (lock) {
+            if (!locked)
+                return;
+            if (getLockTime() == null)
+                return;
+            jdbcTemplate.update("UPDATE sync_lock_table SET lock_time = NULL");
+            locked = false;
+        }
+    }
+
+    private Timestamp getLockTime() {
+        return jdbcTemplate.queryForObject("SELECT lock_time FROM sync_lock_table", Timestamp.class);
     }
 
 }
