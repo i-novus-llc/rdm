@@ -56,7 +56,7 @@
                         <menu-item label="Загрузить данные" visibility-condition="version.status=='DRAFT'">
                             <show-modal page-id="uploadData" submit-operation-id="uploadData" upload="defaults"
                                         redirect-target-after-submit="self"
-                                        redirect-url-after-submit="${server.servlet.context-path}/#/main/:refBookId/edit">
+                                        redirect-url-after-submit="${server.servlet.rdm-context-path}/main/:refBookId/edit">
                                 <pre-filters>
                                     <eq field-id="versionId" value="{version.id}"/>
                                 </pre-filters>
@@ -66,7 +66,7 @@
 <!--                        NB: Реализовать для черновика предупреждение перед открытием диалога // NNO-1644 -->
                             <show-modal page-id="uploadFile" submit-operation-id="uploadFromFile" upload="defaults"
                                         redirect-target-after-submit="self"
-                                        redirect-url-after-submit="${server.servlet.context-path}/#/main/:refBookId/edit">
+                                        redirect-url-after-submit="${server.servlet.rdm-context-path}/main/:refBookId/edit">
                                 <pre-filters>
                                     <eq field-id="versionId" value="{version.id}"/>
                                 </pre-filters>
