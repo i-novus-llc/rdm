@@ -128,13 +128,16 @@ public class RdmMappingServiceImpl implements RdmMappingService {
     }
 
     private Object mapReference(DataTypeEnum clientType, Object value) {
-        if (!(value instanceof Reference)){
-            throw new ClassCastException(getClassCastError(FieldType.REFERENCE, clientType, value));
+        String refValue;
+        Reference reference = null;
+        if (value instanceof Reference) {
+            reference = (Reference) value;
+            refValue = reference.getValue();
+        } else {
+            if (value == null)
+                return null;
+            refValue = value.toString();
         }
-        Reference reference = (Reference)value;
-        String refValue = reference.getValue();
-        if (refValue == null)
-            return null;
         switch (clientType) {
             case VARCHAR:
                 return refValue;
@@ -148,14 +151,14 @@ public class RdmMappingServiceImpl implements RdmMappingService {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
                 return LocalDate.parse(refValue, formatter);
             case JSONB:
-                return reference;
+                return reference == null ? refValue : reference;
             default:
                 throw new ClassCastException(getClassCastError(FieldType.REFERENCE, clientType, value));
         }
     }
 
     private String getClassCastError(FieldType rdmType, DataTypeEnum clientType, Object value) {
-        return String.format("Error while casting %s into %s.\nValue is %s", rdmType, clientType, value);
+        return String.format("Error while casting %s to %s. Value: %s", rdmType, clientType, value);
     }
 
 }
