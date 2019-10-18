@@ -215,6 +215,11 @@ public class RefBookServiceImpl implements RefBookService {
         refBookEntity.setCategory(request.getCategory());
         updateVersionFromPassport(versionEntity, request.getPassport());
         versionEntity.setComment(request.getComment());
+        auditLogService.addAction(
+                AuditAction.EDIT_PASSPORT,
+                versionEntity,
+                Map.of("newPassport", request.getPassport())
+        );
         return refBookModel(versionEntity,
                 getSourceTypeVersion(versionEntity.getRefBook().getId(), RefBookSourceType.DRAFT),
                 getSourceTypeVersion(versionEntity.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED));
