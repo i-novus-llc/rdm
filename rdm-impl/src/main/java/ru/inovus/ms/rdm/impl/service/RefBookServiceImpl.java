@@ -187,11 +187,12 @@ public class RefBookServiceImpl implements RefBookService {
 
         RefBookVersionEntity savedVersion = versionRepository.save(refBookVersionEntity);
         RefBook refBook = refBookModel(savedVersion,
-                getSourceTypeVersion(savedVersion.getRefBook().getId(), RefBookSourceType.DRAFT),
-                getSourceTypeVersion(savedVersion.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED));
+            getSourceTypeVersion(savedVersion.getRefBook().getId(), RefBookSourceType.DRAFT),
+            getSourceTypeVersion(savedVersion.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED)
+        );
         auditLogService.addAction(
             AuditAction.CREATE_REF_BOOK,
-            refBook
+            savedVersion
         );
         return refBook;
     }
