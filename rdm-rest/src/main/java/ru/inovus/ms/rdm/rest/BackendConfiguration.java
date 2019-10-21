@@ -25,7 +25,7 @@ public class BackendConfiguration {
     @Autowired
     private FieldFactory fieldFactory;
 
-    @Value("${activemq.broker-url}")
+    @Value("${spring.activemq.broker-url}")
     private String brokerUrl;
 
     @Bean

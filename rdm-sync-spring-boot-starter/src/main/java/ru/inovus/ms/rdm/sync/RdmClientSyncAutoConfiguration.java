@@ -46,7 +46,7 @@ import java.time.OffsetDateTime;
 @AutoConfigureAfter(LiquibaseAutoConfiguration.class)
 public class RdmClientSyncAutoConfiguration {
 
-    @Value("${activemq.broker-url}")
+    @Value("${spring.activemq.broker-url:null}")
     private String brokerUrl;
 
     @Bean
@@ -145,23 +145,24 @@ public class RdmClientSyncAutoConfiguration {
     }
 
     @Bean
-    public ConnectionFactory activeMQConnectionFactory() {
+    @ConditionalOnMissingBean
+    public ConnectionFactory syncActiveMQConnectionFactory() {
         ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory();
         activeMQConnectionFactory.setBrokerURL(brokerUrl);
         return activeMQConnectionFactory;
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public DefaultJmsListenerContainerFactory jmsListenerContainerFactory() {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
-        factory.setConnectionFactory(activeMQConnectionFactory());
+        factory.setConnectionFactory(syncActiveMQConnectionFactory());
         factory.setPubSubDomain(true);
         return factory;
     }
 
     @Bean
-    @Value("${rdm_sync.publish.listener.enable}")
-    public PublishListener publishListener(boolean enable) {
+    public PublishListener publishListener(@Value("${rdm_sync.publish.listener.enable:false}") boolean enable) {
         if (enable)
             return new PublishListener(rdmSyncRest());
         return null;

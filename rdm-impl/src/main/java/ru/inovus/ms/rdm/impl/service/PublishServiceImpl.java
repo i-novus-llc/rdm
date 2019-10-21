@@ -60,7 +60,7 @@ public class PublishServiceImpl implements PublishService {
 
     private JmsTemplate jmsTemplate;
 
-    @Value("${jms.publish.topic}")
+    @Value("${rdm_sync.publish.topic}")
     private String publishTopic;
 
     @Autowired
