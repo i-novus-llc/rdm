@@ -88,18 +88,12 @@ public class BackendConfiguration {
     public ConnectionFactory activeMQConnectionFactory() {
         ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory();
         activeMQConnectionFactory.setBrokerURL(brokerUrl);
-        return activeMQConnectionFactory;
-    }
-
-    @Bean
-    @Primary
-    public ConnectionFactory cachingConnectionFactory() {
-        return new CachingConnectionFactory(activeMQConnectionFactory());
+        return new CachingConnectionFactory(activeMQConnectionFactory);
     }
 
     @Bean
     public JmsTemplate jmsTemplate() {
-        JmsTemplate jmsTemplate = new JmsTemplate(cachingConnectionFactory());
+        JmsTemplate jmsTemplate = new JmsTemplate(activeMQConnectionFactory());
         jmsTemplate.setPubSubDomain(true);
         return jmsTemplate;
     }

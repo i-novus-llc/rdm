@@ -16,7 +16,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
+import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.util.StringUtils;
 import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.api.provider.*;
@@ -44,9 +46,10 @@ import java.time.OffsetDateTime;
         address = "${rdm.client.sync.url}"
 )
 @AutoConfigureAfter(LiquibaseAutoConfiguration.class)
+@EnableJms
 public class RdmClientSyncAutoConfiguration {
 
-    @Value("${spring.activemq.broker-url:null}")
+    @Value("${spring.activemq.broker-url}")
     private String brokerUrl;
 
     @Bean
@@ -145,18 +148,17 @@ public class RdmClientSyncAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean
-    public ConnectionFactory syncActiveMQConnectionFactory() {
+    @ConditionalOnMissingBean(value = ConnectionFactory.class)
+    public ConnectionFactory activeMQConnectionFactory() {
         ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory();
         activeMQConnectionFactory.setBrokerURL(brokerUrl);
-        return activeMQConnectionFactory;
+        return new CachingConnectionFactory(activeMQConnectionFactory);
     }
 
-    @Bean
-    @ConditionalOnMissingBean
-    public DefaultJmsListenerContainerFactory jmsListenerContainerFactory() {
+    @Bean(name = "topicListenerContainerFactory")
+    public DefaultJmsListenerContainerFactory topicListenerContainerFactory(ConnectionFactory connectionFactory) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
-        factory.setConnectionFactory(syncActiveMQConnectionFactory());
+        factory.setConnectionFactory(connectionFactory);
         factory.setPubSubDomain(true);
         return factory;
     }
