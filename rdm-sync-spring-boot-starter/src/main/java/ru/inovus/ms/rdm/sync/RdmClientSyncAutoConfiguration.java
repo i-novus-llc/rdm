@@ -5,6 +5,7 @@ import net.n2oapp.platform.jaxrs.LocalDateTimeISOParameterConverter;
 import net.n2oapp.platform.jaxrs.TypedParamConverter;
 import net.n2oapp.platform.jaxrs.autoconfigure.EnableJaxRsProxyClient;
 import net.n2oapp.platform.jaxrs.autoconfigure.MissingGenericBean;
+import org.apache.activemq.ActiveMQConnectionFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -15,6 +16,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.util.StringUtils;
 import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.api.provider.*;
@@ -42,6 +44,9 @@ import java.time.OffsetDateTime;
 )
 @AutoConfigureAfter(LiquibaseAutoConfiguration.class)
 public class RdmClientSyncAutoConfiguration {
+
+    @Value("${activemq.broker-url}")
+    private String brokerUrl;
 
     @Bean
     @ConditionalOnMissingBean
@@ -136,6 +141,26 @@ public class RdmClientSyncAutoConfiguration {
     @ConditionalOnMissingBean
     public RdmMapperConfigurer rdmMapperConfigurer() {
         return new RdmMapperConfigurer();
+    }
+
+    @Bean
+    public ActiveMQConnectionFactory receiverActiveMQConnectionFactory() {
+        ActiveMQConnectionFactory activeMQConnectionFactory =
+                new ActiveMQConnectionFactory();
+        activeMQConnectionFactory.setBrokerURL(brokerUrl);
+
+        return activeMQConnectionFactory;
+    }
+
+    @Bean
+    public DefaultJmsListenerContainerFactory jmsListenerContainerFactory() {
+        DefaultJmsListenerContainerFactory factory =
+                new DefaultJmsListenerContainerFactory();
+        factory
+                .setConnectionFactory(receiverActiveMQConnectionFactory());
+        factory.setPubSubDomain(true);
+
+        return factory;
     }
 
     @Bean
