@@ -51,10 +51,6 @@ public class AuditLogService {
         }
     }
 
-    @Autowired
-    @SuppressWarnings("unused")
-    public AuditLogService() {}
-
     void addAction(AuditAction action, Object obj) {
         addAction(action, obj, emptyMap());
     }

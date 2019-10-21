@@ -9,8 +9,6 @@ import java.util.function.Function;
 
 class AuditConstants {
 
-    private AuditConstants() {}
-
     static final String OBJ_NAME_REFBOOK = "Справочник";
     static final String OBJ_TYPE_REFBOOK = "Reference book";
 
@@ -21,6 +19,8 @@ class AuditConstants {
     static final String REFBOOK_STRUCTURE_KEY = "structure";
 
     static final Function<Object, String> GET_REFBOOK_ID_FROM_REFBOOK_VERSION_ENTITY = obj -> ((RefBookVersionEntity) obj).getRefBook().getId().toString();
+
+    private AuditConstants() {}
 
     static Function<Object, Map<String, Object>> refBookCtxExtract(String...keys) {
         return obj -> {

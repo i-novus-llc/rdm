@@ -11,14 +11,14 @@ import java.util.Objects;
  */
 public class RowDiff {
 
-    private final Map<String, CellDiff<?>> cellDiff = new HashMap<>();
+    private final Map<String, CellDiff> cellDiff = new HashMap<>();
 
     public <T> void addDiff(String field, CellDiff<T> diff) {
         cellDiff.put(field, diff);
     }
 
     @JsonGetter
-    public Map<String, CellDiff<?>> getDiff() {
+    public Map<String, CellDiff> getDiff() {
         return cellDiff;
     }
 
