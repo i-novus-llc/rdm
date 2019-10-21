@@ -12,9 +12,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
-import ru.i_novus.ms.audit.client.SourceApplicationAccessor;
-import ru.i_novus.ms.audit.client.UserAccessor;
-import ru.i_novus.ms.audit.client.model.User;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.inovus.ms.rdm.api.provider.*;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
@@ -83,17 +80,6 @@ public class BackendConfiguration {
     @ConditionalOnClass(Messages.class)
     UserExceptionMapper userExceptionMapper(Messages messages) {
         return new UserExceptionMapper(messages);
-    }
-
-    @Bean
-    public UserAccessor userAccessor() {
-        return () -> new User(null, SecurityContextUtils.getUserName());
-    }
-
-    @Bean
-    @Value("${rdm.audit.application.name}")
-    public SourceApplicationAccessor applicationAccessor(String appName) {
-        return () -> appName;
     }
 
     @Bean

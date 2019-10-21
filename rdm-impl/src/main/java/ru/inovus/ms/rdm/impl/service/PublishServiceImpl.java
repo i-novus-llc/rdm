@@ -58,8 +58,6 @@ public class PublishServiceImpl implements PublishService {
     private VersionValidation versionValidation;
     private VersionPeriodPublishValidation versionPeriodPublishValidation;
 
-    private AuditLogService auditLogService;
-
     private JmsTemplate jmsTemplate;
 
     @Value("${jms.publish.topic}")
@@ -73,7 +71,7 @@ public class PublishServiceImpl implements PublishService {
                               ConflictService conflictService, ReferenceService referenceService,
                               VersionFileService versionFileService, VersionNumberStrategy versionNumberStrategy,
                               VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation,
-                              AuditLogService auditLogService, JmsTemplate jmsTemplate) {
+                              JmsTemplate jmsTemplate) {
         this.versionRepository = versionRepository;
 
         this.draftDataService = draftDataService;
@@ -89,8 +87,6 @@ public class PublishServiceImpl implements PublishService {
 
         this.versionValidation = versionValidation;
         this.versionPeriodPublishValidation = versionPeriodPublishValidation;
-        this.auditLogService = auditLogService;
-
         this.jmsTemplate = jmsTemplate;
     }
 

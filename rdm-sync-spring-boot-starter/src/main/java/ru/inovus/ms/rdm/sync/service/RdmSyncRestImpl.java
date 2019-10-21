@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.jms.annotation.JmsListener;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -83,12 +82,6 @@ public class RdmSyncRestImpl implements RdmSyncRest {
                 versionMappings.stream().filter(versionMapping -> versionMapping.getCode().equals(code)).findFirst().orElseThrow()
             );
         }
-    }
-
-    @JmsListener(destination = "")
-    private void onMessage(String refBookCode) {
-        logger.info("RefBook with code {} published. Force sync.", refBookCode);
-        update(refBookCode);
     }
 
     @Override

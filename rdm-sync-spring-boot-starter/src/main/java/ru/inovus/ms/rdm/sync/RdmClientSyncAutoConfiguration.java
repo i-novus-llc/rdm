@@ -140,9 +140,9 @@ public class RdmClientSyncAutoConfiguration {
 
     @Bean
     @Value("${publish.listener.enable}")
-    public PublishListener publishListener(boolean enable, RdmSyncRest rdmSyncRest) {
+    public PublishListener publishListener(boolean enable) {
         if (enable) {
-            return new PublishListener(rdmSyncRest);
+            return new PublishListener(rdmSyncRest());
         }
         return null;
     }
