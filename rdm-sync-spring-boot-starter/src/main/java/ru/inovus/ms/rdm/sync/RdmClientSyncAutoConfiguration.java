@@ -148,7 +148,6 @@ public class RdmClientSyncAutoConfiguration {
         ActiveMQConnectionFactory activeMQConnectionFactory =
                 new ActiveMQConnectionFactory();
         activeMQConnectionFactory.setBrokerURL(brokerUrl);
-
         return activeMQConnectionFactory;
     }
 
@@ -159,7 +158,6 @@ public class RdmClientSyncAutoConfiguration {
         factory
                 .setConnectionFactory(receiverActiveMQConnectionFactory());
         factory.setPubSubDomain(true);
-
         return factory;
     }
 
