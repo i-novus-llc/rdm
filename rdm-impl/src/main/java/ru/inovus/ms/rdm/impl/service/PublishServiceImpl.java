@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.impl.service;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
@@ -71,7 +72,7 @@ public class PublishServiceImpl implements PublishService {
                               ConflictService conflictService, ReferenceService referenceService,
                               VersionFileService versionFileService, VersionNumberStrategy versionNumberStrategy,
                               VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation,
-                              JmsTemplate jmsTemplate) {
+                              @Qualifier("topicJmsTemplate") JmsTemplate jmsTemplate) {
         this.versionRepository = versionRepository;
 
         this.draftDataService = draftDataService;
