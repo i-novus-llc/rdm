@@ -17,6 +17,8 @@ import ru.inovus.ms.rdm.api.provider.*;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
 import ru.inovus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
 
+import javax.jms.ConnectionFactory;
+
 @Configuration
 public class BackendConfiguration {
 
@@ -83,23 +85,21 @@ public class BackendConfiguration {
     }
 
     @Bean
-    public ActiveMQConnectionFactory senderActiveMQConnectionFactory() {
-        ActiveMQConnectionFactory activeMQConnectionFactory =
-                new ActiveMQConnectionFactory();
+    public ConnectionFactory activeMQConnectionFactory() {
+        ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory();
         activeMQConnectionFactory.setBrokerURL(brokerUrl);
         return activeMQConnectionFactory;
     }
 
     @Bean
-    public CachingConnectionFactory cachingConnectionFactory() {
-        return new CachingConnectionFactory(
-                senderActiveMQConnectionFactory());
+    @Primary
+    public ConnectionFactory cachingConnectionFactory() {
+        return new CachingConnectionFactory(activeMQConnectionFactory());
     }
 
     @Bean
     public JmsTemplate jmsTemplate() {
-        JmsTemplate jmsTemplate =
-                new JmsTemplate(cachingConnectionFactory());
+        JmsTemplate jmsTemplate = new JmsTemplate(cachingConnectionFactory());
         jmsTemplate.setPubSubDomain(true);
         return jmsTemplate;
     }

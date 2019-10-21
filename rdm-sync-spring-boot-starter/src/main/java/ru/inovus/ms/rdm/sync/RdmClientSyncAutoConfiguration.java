@@ -27,6 +27,7 @@ import ru.inovus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
 import ru.inovus.ms.rdm.sync.service.*;
 
+import javax.jms.ConnectionFactory;
 import javax.sql.DataSource;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -144,19 +145,16 @@ public class RdmClientSyncAutoConfiguration {
     }
 
     @Bean
-    public ActiveMQConnectionFactory receiverActiveMQConnectionFactory() {
-        ActiveMQConnectionFactory activeMQConnectionFactory =
-                new ActiveMQConnectionFactory();
+    public ConnectionFactory activeMQConnectionFactory() {
+        ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory();
         activeMQConnectionFactory.setBrokerURL(brokerUrl);
         return activeMQConnectionFactory;
     }
 
     @Bean
     public DefaultJmsListenerContainerFactory jmsListenerContainerFactory() {
-        DefaultJmsListenerContainerFactory factory =
-                new DefaultJmsListenerContainerFactory();
-        factory
-                .setConnectionFactory(receiverActiveMQConnectionFactory());
+        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setConnectionFactory(activeMQConnectionFactory());
         factory.setPubSubDomain(true);
         return factory;
     }
@@ -164,9 +162,8 @@ public class RdmClientSyncAutoConfiguration {
     @Bean
     @Value("${publish.listener.enable}")
     public PublishListener publishListener(boolean enable) {
-        if (enable) {
+        if (enable)
             return new PublishListener(rdmSyncRest());
-        }
         return null;
     }
 
