@@ -32,7 +32,7 @@
                 <menu-item label="Создать справочник из файла" model="filter">
                     <show-modal page-id="createFromFile" page-name="Создание справочника из файла" upload="defaults"
                                 submit-operation-id="createFromFile"
-                                redirect-url-after-submit="${server.servlet.context-path}/#/main/:refBookId/edit"
+                                redirect-url-after-submit="${rdm.context-path}/main/:refBookId/edit"
                                 redirect-target-after-submit="self">
                     </show-modal>
                 </menu-item>
