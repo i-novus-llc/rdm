@@ -137,6 +137,7 @@ public enum AuditAction {
     private Function<Object, String> getObjId;
     private Function<Object, Map<String, Object>> getContext;
 
+    @SuppressWarnings("unused")
     AuditAction(String name, String objName, String objType, Function<Object, String> getObjId, Function<Object, Map<String, Object>> getContext) {
         this.name = name;
         this.objName = objName;

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.audit.client.AuditClient;
 import ru.i_novus.ms.audit.client.model.AuditClientRequest;
+import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
 
 import java.time.Clock;
@@ -80,7 +81,7 @@ public class AuditLogService {
         } catch (JsonProcessingException e) {
             /*Не выбросится*/
             logger.error("Error while serializing to json {0}", e);
-            throw new RuntimeException(e);
+            throw new RdmException(e);
         }
         return json;
     }
