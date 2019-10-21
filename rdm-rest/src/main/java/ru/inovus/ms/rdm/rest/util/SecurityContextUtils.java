@@ -4,6 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -14,44 +18,18 @@ public class SecurityContextUtils {
 
     private SecurityContextUtils() {}
 
-    private static String getAuthorizationHeader() {
-        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if (attributes == null) {
-            throw new IllegalStateException("Request attributes is empty");
-        }
-
-        HttpServletRequest request = attributes.getRequest();
-        String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (authorization == null) {
-            throw new IllegalStateException(HttpHeaders.AUTHORIZATION + " header doesn't exist");
-        }
-
-        return authorization;
-    }
-
-    /**
-     * Получение значения из ноды jwt-токена
-     */
-    private static String getJwtNodeValue(String jwt, String jwtNodeName) {
-        String[] jwtParts = jwt.split("\\.");
-        String jwtBodyEncoded = jwtParts[1];
-
-        String jwtBodyDecoded = new String(new Base64(true).decode(jwtBodyEncoded));
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jwtBodyNode;
-        try {
-            jwtBodyNode = objectMapper.readTree(jwtBodyDecoded);
-            return jwtBodyNode.get(jwtNodeName).asText();
-        } catch (IOException | RuntimeException e) {
-            throw new IllegalStateException("Failed extracting node \'" + jwtNodeName + "\' in JWT token", e);
-        }
-    }
-
-    private static String getJwtTokenValue(String jwtNodeName) {
-        return getJwtNodeValue(getAuthorizationHeader(), jwtNodeName);
-    }
-
     public static String getUserName() {
-        return getJwtTokenValue("preferred_username");
+        String defaultName = "UNKNOWN";
+        SecurityContext context = SecurityContextHolder.getContext();
+        if (context == null)
+            return defaultName;
+        Authentication authentication = context.getAuthentication();
+        if (authentication == null || authentication instanceof AnonymousAuthenticationToken)
+            return defaultName;
+
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof String)
+            return (String) principal;
+        return defaultName;
     }
 }
