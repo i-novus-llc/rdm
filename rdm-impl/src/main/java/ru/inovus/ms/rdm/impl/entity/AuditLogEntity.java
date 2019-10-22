@@ -1,7 +1,7 @@
 package ru.inovus.ms.rdm.impl.entity;
 
-import ru.inovus.ms.rdm.api.model.audit.AuditAction;
 import ru.inovus.ms.rdm.api.util.TimeUtils;
+import ru.inovus.ms.rdm.impl.audit.AuditAction;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;

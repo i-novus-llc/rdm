@@ -9,3 +9,5 @@ services:
 
   security-admin-frontend:
     image: ${DOCKER_REGISTRY}/security-admin/frontend:latest
+
+

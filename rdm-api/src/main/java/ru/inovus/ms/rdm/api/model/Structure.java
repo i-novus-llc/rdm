@@ -1,5 +1,8 @@
 package ru.inovus.ms.rdm.api.model;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiParam;
@@ -14,10 +17,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.text.StringEscapeUtils.escapeJson;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 @ApiModel("Структура")
+@JsonPropertyOrder({"references", "attributes"})
 public class Structure implements Serializable {
 
     private static final String PRIMARY_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "primary.attribute.not.found";
@@ -41,6 +47,7 @@ public class Structure implements Serializable {
         this(other.getAttributes(), other.getReferences());
     }
 
+    @JsonGetter
     public List<Attribute> getAttributes() {
         return attributes;
     }
@@ -49,6 +56,7 @@ public class Structure implements Serializable {
         this.attributes = attributes;
     }
 
+    @JsonGetter
     public List<Reference> getReferences() {
         return references;
     }
@@ -85,6 +93,7 @@ public class Structure implements Serializable {
         });
     }
 
+    @JsonIgnore
     public List<Attribute> getPrimary() {
         return attributes.stream()
                 .filter(attribute -> attribute.isPrimary)
@@ -164,6 +173,7 @@ public class Structure implements Serializable {
             return attribute;
         }
 
+        @JsonGetter
         public String getCode() {
             return code;
         }
@@ -172,6 +182,7 @@ public class Structure implements Serializable {
             this.code = code;
         }
 
+        @JsonGetter
         public String getName() {
             return name;
         }
@@ -180,6 +191,7 @@ public class Structure implements Serializable {
             this.name = name;
         }
 
+        @JsonGetter
         public FieldType getType() {
             return type;
         }
@@ -188,6 +200,7 @@ public class Structure implements Serializable {
             this.type = type;
         }
 
+        @JsonGetter
         public Boolean getIsPrimary() {
             return isPrimary;
         }
@@ -196,6 +209,7 @@ public class Structure implements Serializable {
             this.isPrimary = isPrimary != null && isPrimary;
         }
 
+        @JsonGetter
         public String getDescription() {
             return description;
         }
@@ -232,6 +246,18 @@ public class Structure implements Serializable {
         public int hashCode() {
             return Objects.hash(code, name, type, isPrimary);
         }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder("{");
+            sb.append("\"code\": \"").append(escapeJson(code)).append("\"").append(", ");
+            sb.append("\"name\": \"").append(escapeJson(name)).append("\"").append(", ");
+            sb.append("\"type\": \"").append(type.name()).append("\"").append(", ");
+            sb.append("\"isPrimary\": ").append(isPrimary).append(", ");
+            sb.append("\"description\": \"").append(escapeJson(description)).append("\"");
+            return sb.append("}").toString();
+        }
+
     }
 
     @ApiModel("Ссылка на запись справочника")
@@ -261,6 +287,7 @@ public class Structure implements Serializable {
             this.displayExpression = displayExpression;
         }
 
+        @JsonGetter
         public String getAttribute() {
             return attribute;
         }
@@ -269,6 +296,7 @@ public class Structure implements Serializable {
             this.attribute = attribute;
         }
 
+        @JsonGetter
         public String getReferenceCode() {
             return referenceCode;
         }
@@ -277,6 +305,7 @@ public class Structure implements Serializable {
             this.referenceCode = referenceCode;
         }
 
+        @JsonGetter
         public String getDisplayExpression() {
             return displayExpression;
         }
@@ -303,6 +332,7 @@ public class Structure implements Serializable {
             return primaryAttributes.get(0);
         }
 
+        @JsonIgnore
         public boolean isNull() {
             return StringUtils.isEmpty(attribute) || StringUtils.isEmpty(referenceCode);
         }
@@ -322,6 +352,16 @@ public class Structure implements Serializable {
         public int hashCode() {
             return Objects.hash(attribute, referenceCode, displayExpression);
         }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder("{");
+            sb.append("\"attribute\": \"").append(escapeJson(attribute)).append("\"").append(", ");
+            sb.append("\"referenceCode\": \"").append(escapeJson(referenceCode)).append("\"").append(", ");
+            sb.append("\"displayExpression\": \"").append(escapeJson(displayExpression)).append("\"");
+            return sb.append("}").toString();
+        }
+
     }
 
     public boolean storageEquals(Structure that) {
@@ -346,4 +386,15 @@ public class Structure implements Serializable {
     public int hashCode() {
         return Objects.hash(attributes, references);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("{");
+        sb.append("\"attributes\": [");
+        sb.append(attributes.stream().map(Attribute::toString).collect(joining(", ")));
+        sb.append("], \"references\": [");
+        sb.append(references.stream().map(Reference::toString).collect(joining(", ")));
+        return sb.append("]}").toString();
+    }
+
 }
