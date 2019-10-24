@@ -9,7 +9,8 @@
     "build:config": "lerna run --scope n2o-config-rdm build",
     "build:frontend": "lerna run --scope rdm-frontend build",
     "publish": "lerna publish",
-    "prepare": "lerna bootstrap --no-ci"
+    "prepare": "lerna bootstrap --no-ci",
+    "release": "lerna publish from-package --yes --scope n2o-config-rdm"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",
