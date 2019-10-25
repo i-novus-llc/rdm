@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import(value = {AuditConfiguration.class, ClientConfiguration.class})
+@Import(value = {ClientConfiguration.class})
 @ComponentScan(basePackages = "ru.inovus.ms.rdm.n2o")
 public class RdmWebConfiguration {
 }

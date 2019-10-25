@@ -5,13 +5,13 @@ import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
-import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.api.enumeration.ConflictType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookStatusType;
@@ -22,17 +22,19 @@ import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
+import ru.inovus.ms.rdm.api.service.RefBookService;
+import ru.inovus.ms.rdm.api.validation.VersionValidation;
+import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.PassportAttributeEntity;
 import ru.inovus.ms.rdm.impl.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.impl.entity.RefBookEntity;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 import ru.inovus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
 import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.inovus.ms.rdm.api.validation.VersionValidation;
+import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -62,13 +64,15 @@ public class RefBookServiceImpl implements RefBookService {
 
     private VersionValidation versionValidation;
 
+    private AuditLogService auditLogService;
+
     @Autowired
     @SuppressWarnings("squid:S00107")
     public RefBookServiceImpl(RefBookRepository refBookRepository, RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
                               DraftDataService draftDataService, DropDataService dropDataService,
                               RefBookLockService refBookLockService,
                               PassportValueRepository passportValueRepository, RefBookVersionQueryProvider refBookVersionQueryProvider,
-                              VersionValidation versionValidation) {
+                              VersionValidation versionValidation, AuditLogService auditLogService) {
         this.refBookRepository = refBookRepository;
         this.versionRepository = versionRepository;
         this.conflictRepository = conflictRepository;
@@ -82,6 +86,7 @@ public class RefBookServiceImpl implements RefBookService {
         this.refBookVersionQueryProvider = refBookVersionQueryProvider;
 
         this.versionValidation = versionValidation;
+        this.auditLogService = auditLogService;
     }
 
     /**
@@ -181,9 +186,15 @@ public class RefBookServiceImpl implements RefBookService {
         refBookVersionEntity.setStructure(structure);
 
         RefBookVersionEntity savedVersion = versionRepository.save(refBookVersionEntity);
-        return refBookModel(savedVersion,
-                getSourceTypeVersion(savedVersion.getRefBook().getId(), RefBookSourceType.DRAFT),
-                getSourceTypeVersion(savedVersion.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED));
+        RefBook refBook = refBookModel(savedVersion,
+            getSourceTypeVersion(savedVersion.getRefBook().getId(), RefBookSourceType.DRAFT),
+            getSourceTypeVersion(savedVersion.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED)
+        );
+        auditLogService.addAction(
+            AuditAction.CREATE_REF_BOOK,
+            savedVersion
+        );
+        return refBook;
     }
 
     @Override
@@ -204,6 +215,11 @@ public class RefBookServiceImpl implements RefBookService {
         refBookEntity.setCategory(request.getCategory());
         updateVersionFromPassport(versionEntity, request.getPassport());
         versionEntity.setComment(request.getComment());
+        auditLogService.addAction(
+                AuditAction.EDIT_PASSPORT,
+                versionEntity,
+                Map.of("newPassport", request.getPassport())
+        );
         return refBookModel(versionEntity,
                 getSourceTypeVersion(versionEntity.getRefBook().getId(), RefBookSourceType.DRAFT),
                 getSourceTypeVersion(versionEntity.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED));
@@ -218,11 +234,29 @@ public class RefBookServiceImpl implements RefBookService {
 
         // NB: may-be: Move to `RefBookVersionQueryProvider`.
         RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
-        refBookEntity.getVersionList().forEach(v ->
+        List<RefBookVersionEntity> l = refBookEntity.getVersionList();
+        RefBookVersionEntity last = null;
+        for (RefBookVersionEntity e : l) {
+            if (last == null || last.getId() < e.getId())
+                last = e;
+        }
+//      Подтягиваем из базы данные о пасспорте,
+//      потому что их уже не будет там после удаления (fetchType по дефолту -- LAZY)
+        if (last != null) {
+            last.getPassportValues().forEach(PassportValueEntity::getAttribute);
+            last.setRefBook(refBookEntity);
+        }
+        l.forEach(v ->
                 dropDataService.drop(refBookRepository.getOne(refBookId).getVersionList().stream()
                         .map(RefBookVersionEntity::getStorageCode)
                         .collect(Collectors.toSet())));
         refBookRepository.deleteById(refBookId);
+        if (last != null) {
+            auditLogService.addAction(
+                AuditAction.DELETE_REF_BOOK,
+                last
+            );
+        }
     }
 
     @Override
@@ -234,7 +268,16 @@ public class RefBookServiceImpl implements RefBookService {
         RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
         // NB: Add checking references to this refBook.
         refBookEntity.setArchived(Boolean.TRUE);
+        RefBookVersionEntity last = null;
+        for (RefBookVersionEntity e : refBookEntity.getVersionList()) {
+            if (last == null || e.getId() > last.getId())
+                last = e;
+        }
         refBookRepository.save(refBookEntity);
+        auditLogService.addAction(
+            AuditAction.ARCHIVE,
+            last
+        );
     }
 
     @Override

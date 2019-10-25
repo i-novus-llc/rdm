@@ -4,16 +4,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
+import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.service.PassportService;
+import ru.inovus.ms.rdm.api.validation.VersionValidation;
+import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.PassportAttributeEntity;
 import ru.inovus.ms.rdm.impl.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
-import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.inovus.ms.rdm.api.validation.VersionValidation;
+import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 
 import java.util.List;
 import java.util.Map;
@@ -32,14 +33,17 @@ public class PassportServiceImpl implements PassportService {
 
     private VersionValidation versionValidation;
 
+    private AuditLogService auditLogService;
+
     @Autowired
     public PassportServiceImpl(RefBookVersionRepository versionRepository,
                                PassportValueRepository passportValueRepository,
-                               VersionValidation versionValidation) {
+                               VersionValidation versionValidation, AuditLogService auditLogService) {
         this.versionRepository = versionRepository;
         this.passportValueRepository = passportValueRepository;
 
         this.versionValidation = versionValidation;
+        this.auditLogService = auditLogService;
     }
 
     @Override
@@ -64,11 +68,6 @@ public class PassportServiceImpl implements PassportService {
                         Objects.isNull(newPassport.get(passportValue.getAttribute().getCode()))
                 ).collect(Collectors.toList());
 
-        passportValueRepository.deleteAll(valuesToRemove);
-
-        versionEntity.getPassportValues()
-                .removeAll(valuesToRemove);
-
         newPassport.entrySet().stream()
                 .filter(newValue -> !isEmpty(newValue.getValue()))
                 .forEach(newValue -> {
@@ -76,13 +75,23 @@ public class PassportServiceImpl implements PassportService {
                             .filter(pv -> newValue.getKey().equals(pv.getAttribute().getCode()))
                             .findFirst().orElse(null);
 
-                    if (oldValue != null)
+                    if (oldValue != null) {
                         oldValue.setValue(newValue.getValue());
-                    else {
+                    } else {
                         PassportAttributeEntity entity = new PassportAttributeEntity(newValue.getKey());
                         versionEntity.getPassportValues()
                                 .add(new PassportValueEntity(entity, newValue.getValue(), versionEntity));
                     }
                 });
+
+        passportValueRepository.deleteAll(valuesToRemove);
+
+        versionEntity.getPassportValues()
+                .removeAll(valuesToRemove);
+        auditLogService.addAction(
+            AuditAction.EDIT_PASSPORT,
+            versionEntity,
+            Map.of("newPassport", newPassport)
+        );
     }
 }

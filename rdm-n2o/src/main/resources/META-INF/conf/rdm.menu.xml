@@ -5,6 +5,5 @@
     </sub-menu>
     <sub-menu label="Администрирование">
         <a href="${rdm.user.admin.url}" label="Настройка доступа"/>
-        <page page-id="audit" label="Аудит"/>
     </sub-menu>
 </nav>
