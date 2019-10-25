@@ -22,7 +22,7 @@ public class XmlMappingLoaderService implements MappingLoaderService {
     private RdmSyncDao rdmSyncDao;
 
     @Autowired
-    private SyncLockServiceImpl syncLockService;
+    private XmlMappingLoaderLockService lockService;
 
     public XmlMappingLoaderService(RdmSyncDao dao) {
         this.rdmSyncDao = dao;
@@ -32,7 +32,7 @@ public class XmlMappingLoaderService implements MappingLoaderService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void load() {
         try {
-            if (syncLockService.tryLock()) {
+            if (lockService.tryLock()) {
                 try (InputStream io = MappingLoader.class.getResourceAsStream("/rdm-mapping.xml")) {
                     if (io == null) {
                         logger.info("rdm-mapping.xml not found, xml mapping loader skipped");
@@ -52,7 +52,7 @@ public class XmlMappingLoaderService implements MappingLoaderService {
                 }
             }
         } finally {
-            syncLockService.releaseLock();
+            lockService.releaseLock();
         }
     }
 

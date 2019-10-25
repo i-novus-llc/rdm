@@ -138,8 +138,8 @@ public class RdmClientSyncAutoConfiguration {
     }
 
     @Bean
-    public SyncLockServiceImpl syncLockServiceImpl() {
-        return new SyncLockServiceImpl();
+    public XmlMappingLoaderLockService xmlMappingLoaderLockService() {
+        return new XmlMappingLoaderLockService();
     }
 
 }
