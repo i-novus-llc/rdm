@@ -6,8 +6,8 @@
 
     <changeSet id="201910141728_RDM-568" author="Ikarimullin" dbms="postgresql">
         <sql splitStatements="false">
-            CREATE TABLE IF NOT EXISTS rdm_sync.sync_lock_table(last_acquired TIMESTAMP WITHOUT TIME ZONE);
-            INSERT INTO rdm_sync.sync_lock_table VALUES (NULL);
+            CREATE TABLE rdm_sync.xml_mapping_loader_lock(last_acquired TIMESTAMP WITHOUT TIME ZONE);
+            INSERT INTO rdm_sync.xml_mapping_loader_lock VALUES (NULL);
         </sql>
     </changeSet>
 
