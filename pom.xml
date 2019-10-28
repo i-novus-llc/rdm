@@ -54,6 +54,7 @@
         <module>rdm-fnsi-impl</module>
         <module>rdm-sync-spring-boot-starter</module>
         <module>rdm-n2o</module>
+        <module>rdm-esnsi-int</module>
     </modules>
 
     <distributionManagement>

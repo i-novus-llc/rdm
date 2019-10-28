@@ -109,5 +109,30 @@ services:
         constraints:
         - node.labels.dc == hetzner
 
+  esnsi-int:
+    environment:
+      SERVER_TOMCAT_ACCESSLOG_ENABLED: "true"
+      JAVA_OPTS: -Xmx200m
+      depends_on:
+        - db
+        - security-admin-backend
+      restart: on-failure
+      ports:
+        - "8080"
+      deploy:
+        resources:
+          limits:
+            memory: 500M
+        placement:
+          constraints:
+            - node.labels.dc == hetzner
+      healthcheck:
+        test: curl -f http://localhost:8080/monitoring/health | grep -io '^{"status":"UP"' || exit 1
+        interval: 1m
+        timeout: 10s
+        retries: 3
+        start_period: 40s
+
+
 volumes:
   rdm-db-data:
