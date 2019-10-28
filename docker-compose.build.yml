@@ -13,8 +13,8 @@ services:
       args:
         JAR_FILE: rdm-frontend/target/rdm.jar
 
-  esnsi-int:
+  esnsi:
     build:
       context: .
       args:
-        JAR_FILE: rdm-esnsi-int/target/rdm-esnsi-int.jar
+        JAR_FILE: rdm-esnsi/target/rdm-esnsi.jar

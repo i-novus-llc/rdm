@@ -17,6 +17,6 @@ services:
     ports:
       - "8182:8080"
 
-  esnsi-int:
+  esnsi:
     ports:
       - "8184:8080"
