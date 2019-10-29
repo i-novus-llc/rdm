@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.sync.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.sync.model.loader.XmlMapping;
@@ -29,7 +28,7 @@ public class XmlMappingLoaderService implements MappingLoaderService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void load() {
         try {
             if (lockService.tryLock()) {
