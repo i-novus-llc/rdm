@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions
+        xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+        xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy"
+        xmlns:wsi="http://ws-i.org/schemas/conformanceClaim/"
+        xmlns:tns="urn://x-artefacts-gov-ru/services/message-exchange/1.2"
+        xmlns:types="urn://x-artefacts-gov-ru/services/message-exchange/types/1.2"
+        xmlns:fault="urn://x-artefacts-gov-ru/services/message-exchange/types/faults/1.2"
+        targetNamespace="urn://x-artefacts-gov-ru/services/message-exchange/1.2">
+
+    <wsdl:documentation>
+        Веб-сервис Адаптера СМЭВ, через который происходит обмен сообщениями с клиентскими подсистемами.
+    </wsdl:documentation>
+
+    <wsdl:types>
+        <xs:schema>
+            <xs:import namespace="urn://x-artefacts-gov-ru/services/message-exchange/types/1.2"
+                       schemaLocation="smev-service-adapter-types-1.2.xsd"/>
+            <xs:import namespace="urn://x-artefacts-gov-ru/services/message-exchange/types/faults/1.2"
+                       schemaLocation="smev-service-adapter-faults-1.2.xsd"/>
+            <xs:import namespace="urn://x-artefacts-smev-gov-ru/esnsi/smev-integration/read/2.0.1"
+                       schemaLocation="cnsi.read.smev.xsd"/>
+        </xs:schema>
+    </wsdl:types>
+
+    <wsdl:message name="SendRequestDocumentMsg">
+        <wsdl:part name="parameters" element="types:SendRequestDocument"/>
+    </wsdl:message>
+
+    <wsdl:message name="AcceptRequestDocumentMsg">
+        <wsdl:part name="parameters" element="types:AcceptRequestDocument"/>
+    </wsdl:message>
+    <wsdl:message name="SendResponseDocumentMsg">
+        <wsdl:part name="parameters" element="types:SendResponseDocument"/>
+    </wsdl:message>
+    <wsdl:message name="AcceptResponseDocumentMsg">
+        <wsdl:part name="parameters" element="types:AcceptResponseDocument"/>
+    </wsdl:message>
+
+    <wsdl:message name="GetRequestDocumentMsg">
+        <wsdl:part name="parameters" element="types:GetRequestDocument"/>
+    </wsdl:message>
+    <wsdl:message name="RequestDocumentMsg">
+        <wsdl:part name="parameters" element="types:RequestDocument"/>
+    </wsdl:message>
+    <wsdl:message name="GetResponseDocumentMsg">
+        <wsdl:part name="parameters" element="types:GetResponseDocument"/>
+    </wsdl:message>
+    <wsdl:message name="ResponseDocumentMsg">
+        <wsdl:part name="parameters" element="types:ResponseDocument"/>
+    </wsdl:message>
+    <wsdl:message name="AckRequestMsg">
+        <wsdl:part name="parameters" element="types:AckRequest"/>
+    </wsdl:message>
+    <wsdl:message name="AckResponseMsg">
+        <wsdl:part name="parameters" element="types:AckResponse"/>
+    </wsdl:message>
+
+    <wsdl:message name="SmevAdapterFailureException">
+        <wsdl:part name="parameters" element="fault:SmevAdapterFailure"/>
+    </wsdl:message>
+
+    <wsdl:message name="TargetMessageIsNotFoundException">
+        <wsdl:part name="parameters" element="fault:TargetMessageIsNotFound"/>
+    </wsdl:message>
+
+    <wsdl:message name="UnknownMessageTypeException">
+        <wsdl:part name="parameters" element="fault:UnknownMessageType"/>
+    </wsdl:message>
+
+    <wsdl:portType name="SmevAdapterMessageExchangePortType">
+        <wsdl:documentation>
+            Точка доступа, позволяющая принимать запросы на предоставление госуслуг.
+        </wsdl:documentation>
+        <wsdl:operation name="SendRequest">
+            <wsdl:documentation>
+                Послать запрос.
+                Факт прихода запроса говорит о том, что Адаптер СМЭВ 3 удостоверился в том, что отправитель
+                имеет право на получение данных по этому типу запросов.
+            </wsdl:documentation>
+            <wsdl:input message="tns:SendRequestDocumentMsg"/>
+            <wsdl:output message="tns:AcceptRequestDocumentMsg"/>
+            <wsdl:fault name="SmevAdapterFailure" message="tns:SmevAdapterFailureException">
+                <wsdl:documentation>
+                    Сообщение невозможно принять по причине сбоя в Адаптере СМЭВ.
+                    Действия клиента: оповестить техподдержку Адаптера СМЭВ, предпринимать повторные попытки доставить сообщение, без ограничения количества попыток.
+                </wsdl:documentation>
+            </wsdl:fault>
+        </wsdl:operation>
+
+        <wsdl:operation name="SendResponse">
+            <wsdl:documentation>
+                Дай сообщение из моей входящей очереди, если она не пуста.
+            </wsdl:documentation>
+            <wsdl:input message="tns:SendResponseDocumentMsg"/>
+            <wsdl:output message="tns:AcceptResponseDocumentMsg"/>
+            <wsdl:fault name="SmevAdapterFailure" message="tns:SmevAdapterFailureException">
+                <wsdl:documentation>
+                    Сообщение невозможно принять по причине сбоя в Адаптере СМЭВ.
+                    Действия клиента: оповестить техподдержку Адаптера СМЭВ, предпринимать повторные попытки доставить сообщение, без ограничения количества попыток.
+                </wsdl:documentation>
+            </wsdl:fault>
+        </wsdl:operation>
+
+        <wsdl:operation name="GetRequest">
+            <wsdl:documentation>Дай сообщение из моей входящей очереди запросов, если она не пуста.</wsdl:documentation>
+            <wsdl:input message="tns:GetRequestDocumentMsg"/>
+            <wsdl:output message="tns:RequestDocumentMsg"/>
+            <wsdl:fault name="UnknownMessageTypeFault" message="tns:UnknownMessageTypeException">
+                <wsdl:documentation>
+                    При попытке выбрать запрос, указан тип сообщения, либо не настроенный в Адаптере СМЭВ, либо не принадлежащий текущему клиенту.
+                    Действия клиента: Уточнить тип сообщения, повторить запрос.
+                </wsdl:documentation>
+            </wsdl:fault>
+            <wsdl:fault name="SmevAdapterFailure" message="tns:SmevAdapterFailureException">
+                <wsdl:documentation>
+                    Сообщение невозможно принять по причине сбоя в Адаптере СМЭВ.
+                    Действия клиента: оповестить техподдержку Адаптера СМЭВ, предпринимать повторные попытки доставить сообщение, без ограничения количества попыток.
+                </wsdl:documentation>
+            </wsdl:fault>
+        </wsdl:operation>
+
+        <wsdl:operation name="GetResponse">
+            <wsdl:documentation>Дай сообщение из моей входящей очереди ответов, если она не пуста.</wsdl:documentation>
+            <wsdl:input message="tns:GetResponseDocumentMsg"/>
+            <wsdl:output message="tns:ResponseDocumentMsg"/>
+            <wsdl:fault name="UnknownMessageTypeFault" message="tns:UnknownMessageTypeException">
+                <wsdl:documentation>
+                    При попытке выбрать ответ, указан тип сообщения, либо не настроенный в Адаптере СМЭВ, либо не принадлежащий текущему клиенту.
+                    Действия клиента: Уточнить тип сообщения, повторить запрос.
+                </wsdl:documentation>
+            </wsdl:fault>
+            <wsdl:fault name="SmevAdapterFailure" message="tns:SmevAdapterFailureException">
+                <wsdl:documentation>
+                    Сообщение невозможно принять по причине сбоя в Адаптере СМЭВ.
+                    Действия клиента: оповестить техподдержку Адаптера СМЭВ, предпринимать повторные попытки доставить сообщение, без ограничения количества попыток.
+                </wsdl:documentation>
+            </wsdl:fault>
+        </wsdl:operation>
+
+        <wsdl:operation name="Ack">
+            <wsdl:documentation>
+                Подтверждение получения сообщения из очереди.
+                Должен вызваться после получения сообщения методами GetRequest или GetResponse.
+            </wsdl:documentation>
+            <wsdl:input message="tns:AckRequestMsg"/>
+            <wsdl:output message="tns:AckResponseMsg"/>
+            <wsdl:fault name="SmevAdapterFailure" message="tns:SmevAdapterFailureException">
+                <wsdl:documentation>
+                    Сообщение невозможно принять по причине сбоя в Адаптере СМЭВ.
+                    Действия клиента: оповестить техподдержку Адаптера СМЭВ, предпринимать повторные попытки доставить сообщение, без ограничения количества попыток.
+                </wsdl:documentation>
+            </wsdl:fault>
+            <wsdl:fault name="TargetMessageIsNotFoundFault" message="tns:TargetMessageIsNotFoundException">
+                <wsdl:documentation>
+                    При попытке подтвердить получение сообщения, Адаптер СМЭВ не находит неподтверждённого сообщения с таким ID.
+                </wsdl:documentation>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:portType>
+
+    <wsdl:binding name="SmevAdapterMessageExchangeSoap11Binding" type="tns:SmevAdapterMessageExchangePortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="SendRequest">
+            <soap:operation soapAction="urn:SendRequest"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+
+        <wsdl:operation name="SendResponse">
+            <soap:operation soapAction="urn:SendResponse"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+
+        <wsdl:operation name="GetRequest">
+            <soap:operation soapAction="urn:GetRequest"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+
+        <wsdl:operation name="GetResponse">
+            <soap:operation soapAction="urn:GetResponse"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="Ack">
+            <soap:operation soapAction="urn:Ack"/>
+            <wsdl:input><soap:body use="literal"/></wsdl:input>
+            <wsdl:output><soap:body use="literal"/></wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+
+    <wsdl:service name="SmevAdapterMessageExchangeService">
+        <wsdl:port name="SmevAdapterMessageExchangeEndpoint" binding="tns:SmevAdapterMessageExchangeSoap11Binding">
+            <wsdl:documentation>
+                <wsi:Claim conformsTo="http://ws-i.org/profiles/basic/1.2"/>
+            </wsdl:documentation>
+            <soap:address location="http://localhost:8080/SmevAdapterMessageExchangeService"/>
+        </wsdl:port>
+    </wsdl:service>
+
+
+</wsdl:definitions>
