@@ -14,7 +14,11 @@ import org.springframework.stereotype.Service;
 import org.w3c.dom.Element;
 import ru.inovus.ms.rdm.esnsi.api.*;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.namespace.QName;
+import javax.xml.transform.dom.DOMResult;
 import javax.xml.ws.Binding;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.soap.SOAPBinding;
@@ -22,9 +26,12 @@ import java.net.URL;
 import java.util.UUID;
 
 @Service
-public class Smev3AdapterExchangeService {
+/**
+ * Потребитель из очереди СМЭВ-3.
+ */
+public class Smev3Consumer {
 
-    private static Logger logger = LoggerFactory.getLogger(Smev3AdapterExchangeService.class);
+    private static Logger logger = LoggerFactory.getLogger(Smev3Consumer.class);
 
     private static final String WSDL_URL = "wsdl/adapter/v1_2/smev-service-adapter-1.2.wsdl";
     private static final QName SERVICE_QNAME = new QName("urn://x-artefacts-gov-ru/services/message-exchange/1.2", "SmevAdapterMessageExchangeService");
@@ -39,6 +46,45 @@ public class Smev3AdapterExchangeService {
 
     @Value("${esnsi.http.client.policy.timeout.connection}")
     private int connectionTimeout;
+
+    public AcceptRequestDocument sendRequest(Object requestData, UUID messageId) throws SmevAdapterFailureException, JAXBException {
+        SendRequestDocument sendRequestDocument = new SendRequestDocument();
+        sendRequestDocument.setMessageID(messageId.toString());
+        MessagePrimaryContent messagePrimaryContent = new MessagePrimaryContent();
+        JAXBContext jaxbContext;
+        try {
+            jaxbContext = JAXBContext.newInstance(requestData.getClass());
+        } catch (JAXBException ex) {
+            logger.error("Error while instantiating JAXBContext for request {}. Check that this is a valid WSDL class.", requestData, ex);
+            throw ex;
+        }
+        DOMResult domResult = new DOMResult();
+        jaxbContext.createMarshaller().marshal(requestData, domResult);
+        messagePrimaryContent.setAny((Element) domResult.getNode());
+        try {
+            return getSmevAdapterPort().sendRequest(sendRequestDocument);
+        } catch (SmevAdapterFailureException ex) {
+            logger.error("Error occurred while sending request message through SMEV3 adapter.", ex);
+            throw ex;
+        }
+    }
+
+    public ResponseDocument getResponse(Class<?> requestType) throws SmevAdapterFailureException, UnknownMessageTypeException {
+        GetResponseDocument getResponseDocument = new GetResponseDocument();
+        MessageTypeSelector messageTypeSelector = new MessageTypeSelector();
+        XmlRootElement xmlRootElement = requestType.getAnnotation(XmlRootElement.class);
+        if (xmlRootElement == null)
+            throw new IllegalArgumentException("Class " + requestType + " is non valid WSDL type.");
+        messageTypeSelector.setNamespaceURI(xmlRootElement.namespace());
+        messageTypeSelector.setChildRootElementLocalName(xmlRootElement.name());
+        getResponseDocument.setMessageTypeSelector(messageTypeSelector);
+        try {
+            return getSmevAdapterPort().getResponse(getResponseDocument);
+        } catch (SmevAdapterFailureException | UnknownMessageTypeException ex) {
+            logger.error("Error occurred while receiving response message from SMEV3 adapter.", ex);
+            throw ex;
+        }
+    }
 
     private SmevAdapterMessageExchangePortType getSmevAdapterPort() {
         SmevAdapterMessageExchangePortType port = getServicePortType();
