@@ -3,7 +3,6 @@
         xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
         xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
         xmlns:xs="http://www.w3.org/2001/XMLSchema"
-        xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy"
         xmlns:wsi="http://ws-i.org/schemas/conformanceClaim/"
         xmlns:tns="urn://x-artefacts-gov-ru/services/message-exchange/1.2"
         xmlns:types="urn://x-artefacts-gov-ru/services/message-exchange/types/1.2"
@@ -198,9 +197,8 @@
             <wsdl:documentation>
                 <wsi:Claim conformsTo="http://ws-i.org/profiles/basic/1.2"/>
             </wsdl:documentation>
-            <soap:address location="http://localhost:8080/SmevAdapterMessageExchangeService"/>
+            <soap:address location="https://smev3.develop.i-novus.ru/api/ws"/>
         </wsdl:port>
     </wsdl:service>
-
 
 </wsdl:definitions>

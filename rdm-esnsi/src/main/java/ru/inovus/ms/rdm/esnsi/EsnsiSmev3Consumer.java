@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.w3c.dom.Element;
+import org.w3c.dom.Document;
 import ru.inovus.ms.rdm.esnsi.api.*;
 
 import javax.xml.bind.JAXBContext;
@@ -23,20 +23,19 @@ import javax.xml.ws.Binding;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.soap.SOAPBinding;
 import java.net.URL;
-import java.util.UUID;
 
-@Service
 /**
  * Потребитель из очереди СМЭВ-3.
  */
-public class Smev3Consumer {
+@Service
+public class EsnsiSmev3Consumer {
 
-    private static Logger logger = LoggerFactory.getLogger(Smev3Consumer.class);
+    private static final Logger logger = LoggerFactory.getLogger(EsnsiSmev3Consumer.class);
 
-    private static final String WSDL_URL = "wsdl/adapter/v1_2/smev-service-adapter-1.2.wsdl";
+    private static final String NAMESPACE_URI = "urn://x-artefacts-smev-gov-ru/esnsi/smev-integration/read/2.0.1";
+
+    private static final String WSDL_URL = "./wsdl/adapter/v1_2/smev-service-adapter-1.2.wsdl";
     private static final QName SERVICE_QNAME = new QName("urn://x-artefacts-gov-ru/services/message-exchange/1.2", "SmevAdapterMessageExchangeService");
-
-    private static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
 
     @Value("${esnsi.smev-adapter.ws.url}")
     private String endpointURL;
@@ -47,10 +46,12 @@ public class Smev3Consumer {
     @Value("${esnsi.http.client.policy.timeout.connection}")
     private int connectionTimeout;
 
-    public AcceptRequestDocument sendRequest(Object requestData, UUID messageId) throws SmevAdapterFailureException, JAXBException {
-        SendRequestDocument sendRequestDocument = new SendRequestDocument();
-        sendRequestDocument.setMessageID(messageId.toString());
-        MessagePrimaryContent messagePrimaryContent = new MessagePrimaryContent();
+    private final ObjectFactory objectFactory = new ObjectFactory();
+
+    public AcceptRequestDocument sendRequest(Object requestData, String messageId) throws JAXBException {
+        SendRequestDocument sendRequestDocument = objectFactory.createSendRequestDocument();
+        sendRequestDocument.setMessageID(messageId);
+        MessagePrimaryContent messagePrimaryContent = objectFactory.createMessagePrimaryContent();
         JAXBContext jaxbContext;
         try {
             jaxbContext = JAXBContext.newInstance(requestData.getClass());
@@ -60,35 +61,37 @@ public class Smev3Consumer {
         }
         DOMResult domResult = new DOMResult();
         jaxbContext.createMarshaller().marshal(requestData, domResult);
-        messagePrimaryContent.setAny((Element) domResult.getNode());
+        Document doc = (Document) domResult.getNode();
+        messagePrimaryContent.setAny(doc.getDocumentElement());
+        sendRequestDocument.setMessagePrimaryContent(messagePrimaryContent);
         try {
             return getSmevAdapterPort().sendRequest(sendRequestDocument);
         } catch (SmevAdapterFailureException ex) {
             logger.error("Error occurred while sending request message through SMEV3.", ex);
-            throw ex;
+            return null;
         }
     }
 
-    public ResponseDocument getResponse(Class<?> requestType) throws SmevAdapterFailureException, UnknownMessageTypeException {
-        GetResponseDocument getResponseDocument = new GetResponseDocument();
-        MessageTypeSelector messageTypeSelector = new MessageTypeSelector();
+    public ResponseDocument getResponse(Class<?> requestType) {
+        GetResponseDocument getResponseDocument = objectFactory.createGetResponseDocument();
+        MessageTypeSelector messageTypeSelector = objectFactory.createMessageTypeSelector();
         XmlRootElement xmlRootElement = requestType.getAnnotation(XmlRootElement.class);
         if (xmlRootElement == null)
             throw new IllegalArgumentException("Class " + requestType + " is non valid WSDL type.");
-        messageTypeSelector.setNamespaceURI(xmlRootElement.namespace());
+        messageTypeSelector.setNamespaceURI(NAMESPACE_URI);
         messageTypeSelector.setChildRootElementLocalName(xmlRootElement.name());
         getResponseDocument.setMessageTypeSelector(messageTypeSelector);
         try {
             return getSmevAdapterPort().getResponse(getResponseDocument);
         } catch (SmevAdapterFailureException | UnknownMessageTypeException ex) {
             logger.error("Error occurred while receiving response message from SMEV3.", ex);
-            throw ex;
+            return null;
         }
     }
 
-    public boolean acknowledge(UUID messageId) {
-        AckRequest ackRequest = new AckRequest();
-        ackRequest.setValue(messageId.toString());
+    public boolean acknowledge(String messageId) {
+        AckRequest ackRequest = objectFactory.createAckRequest();
+        ackRequest.setValue(messageId);
         try {
             getSmevAdapterPort().ack(ackRequest);
             return true;
