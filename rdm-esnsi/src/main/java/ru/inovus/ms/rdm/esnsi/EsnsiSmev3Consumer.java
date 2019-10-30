@@ -16,7 +16,6 @@ import ru.inovus.ms.rdm.esnsi.api.*;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.namespace.QName;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.ws.Binding;
@@ -72,17 +71,19 @@ public class EsnsiSmev3Consumer {
         }
     }
 
-    public ResponseDocument getResponse(Class<?> requestType) {
+    public ResponseDocument getResponse() {
         GetResponseDocument getResponseDocument = objectFactory.createGetResponseDocument();
         MessageTypeSelector messageTypeSelector = objectFactory.createMessageTypeSelector();
-        XmlRootElement xmlRootElement = requestType.getAnnotation(XmlRootElement.class);
-        if (xmlRootElement == null)
-            throw new IllegalArgumentException("Class " + requestType + " is non valid WSDL type.");
         messageTypeSelector.setNamespaceURI(NAMESPACE_URI);
-        messageTypeSelector.setChildRootElementLocalName(xmlRootElement.name());
         getResponseDocument.setMessageTypeSelector(messageTypeSelector);
         try {
-            return getSmevAdapterPort().getResponse(getResponseDocument);
+            ResponseDocument response = getSmevAdapterPort().getResponse(getResponseDocument);
+            if (response.getAttachmentContentList() == null && response.getMessageMetadata() == null &&
+                response.getOriginalMessageId() == null && response.getOriginalTransactionCode() == null &&
+                response.getReferenceMessageID() == null && response.getSenderProvidedResponseData() == null &&
+                response.getSmevAdapterFault() == null && response.getSmevTypicalError() == null)
+                return null;
+            return response;
         } catch (SmevAdapterFailureException | UnknownMessageTypeException ex) {
             logger.error("Error occurred while receiving response message from SMEV3.", ex);
             return null;

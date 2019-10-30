@@ -197,7 +197,7 @@
             <wsdl:documentation>
                 <wsi:Claim conformsTo="http://ws-i.org/profiles/basic/1.2"/>
             </wsdl:documentation>
-            <soap:address location="https://smev3.develop.i-novus.ru/api/ws"/>
+            <soap:address location="http://localhost:8080/SmevAdapterMessageExchangeService"/>
         </wsdl:port>
     </wsdl:service>
 
