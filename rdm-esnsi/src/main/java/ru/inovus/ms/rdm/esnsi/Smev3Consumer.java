@@ -64,7 +64,7 @@ public class Smev3Consumer {
         try {
             return getSmevAdapterPort().sendRequest(sendRequestDocument);
         } catch (SmevAdapterFailureException ex) {
-            logger.error("Error occurred while sending request message through SMEV3 adapter.", ex);
+            logger.error("Error occurred while sending request message through SMEV3.", ex);
             throw ex;
         }
     }
@@ -81,8 +81,20 @@ public class Smev3Consumer {
         try {
             return getSmevAdapterPort().getResponse(getResponseDocument);
         } catch (SmevAdapterFailureException | UnknownMessageTypeException ex) {
-            logger.error("Error occurred while receiving response message from SMEV3 adapter.", ex);
+            logger.error("Error occurred while receiving response message from SMEV3.", ex);
             throw ex;
+        }
+    }
+
+    public boolean acknowledge(UUID messageId) {
+        AckRequest ackRequest = new AckRequest();
+        ackRequest.setValue(messageId.toString());
+        try {
+            getSmevAdapterPort().ack(ackRequest);
+            return true;
+        } catch (SmevAdapterFailureException | TargetMessageIsNotFoundException e) {
+            logger.error("Error occurred while sending acknowledge message to SMEV3.");
+            return false;
         }
     }
 
