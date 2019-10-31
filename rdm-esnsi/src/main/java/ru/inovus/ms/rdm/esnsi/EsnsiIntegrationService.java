@@ -73,14 +73,13 @@ public class EsnsiIntegrationService {
         GetClassifierRevisionListRequestType req;
         GetClassifierRevisionListResponseType.RevisionDescriptor latest = null;
         do {
-            Class<GetClassifierRevisionListResponseType> responseType = GetClassifierRevisionListResponseType.class;
             req = objectFactory.createGetClassifierRevisionListRequestType();
             req.setStartFrom(page++);
             req.setPageSize(PAGE_SIZE);
             req.setCode(code);
             AcceptRequestDocument acceptRequestDocument = esnsiClient.sendRequest(req, UUID.randomUUID().toString());
             GetClassifierRevisionListResponseType resp;
-            resp = esnsiClient.getResponse(responseType, acceptRequestDocument.getMessageId());
+            resp = esnsiClient.getResponse(GetClassifierRevisionListResponseType.class, acceptRequestDocument.getMessageId());
             esnsiClient.acknowledge(acceptRequestDocument.getMessageId());
             List<GetClassifierRevisionListResponseType.RevisionDescriptor> revisionDescriptors = resp.getRevisionDescriptor();
             for (GetClassifierRevisionListResponseType.RevisionDescriptor revisionDescriptor : revisionDescriptors) {
@@ -98,8 +97,7 @@ public class EsnsiIntegrationService {
         req.setCode(code);
         req.setRevision(revision);
         AcceptRequestDocument acceptRequestDocument = esnsiClient.sendRequest(req, UUID.randomUUID().toString());
-        Class<GetClassifierStructureResponseType> responseType = GetClassifierStructureResponseType.class;
-        return esnsiClient.getResponse(responseType, acceptRequestDocument.getMessageId());
+        return esnsiClient.getResponse(GetClassifierStructureResponseType.class, acceptRequestDocument.getMessageId());
     }
 
     private GetClassifierDataResponseType getData(String code, int revision) {
