@@ -72,7 +72,7 @@ class EsnsiXMLDataFileToObjectModelUtil {
                     case CHARACTERS:
                         if (currAttr == null)
                             throw new IllegalArgumentException("Invalid XML document.");
-                        Object obj = EsnsiToRdmConverterUtil.map(currAttr, reader.getText());
+                        Object obj = EsnsiToObjectConverterUtil.map(currAttr, reader.getText());
                         row.put(rdmFieldCodes[currAttr.getOrder() - 1], obj);
                         break;
                 }
@@ -97,7 +97,7 @@ class EsnsiXMLDataFileToObjectModelUtil {
         return struct.getAttributeList().stream().collect(toMap(ClassifierAttribute::getUid, identity()));
     }
 
-    private static class EsnsiToRdmConverterUtil {
+    private static class EsnsiToObjectConverterUtil {
 
         private static final DateTimeFormatter ESNSI_DATE_FORMAT = DateTimeFormatter.ofPattern("u-MM-dd");
 
