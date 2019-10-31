@@ -16,3 +16,7 @@ services:
   security-admin-frontend:
     ports:
       - "8182:8080"
+
+  esnsi:
+    ports:
+      - "8184:8080"
