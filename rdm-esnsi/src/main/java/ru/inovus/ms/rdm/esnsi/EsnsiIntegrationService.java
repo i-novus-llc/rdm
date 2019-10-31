@@ -1,9 +1,8 @@
 package ru.inovus.ms.rdm.esnsi;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import ru.inovus.ms.rdm.esnsi.api.*;
 
 import javax.xml.datatype.DatatypeConstants;
@@ -13,7 +12,6 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -22,7 +20,8 @@ public class EsnsiIntegrationService {
     /**
      * Идентификаторы справочников, которые забираем из ЕСНСИ.
      */
-    private static final List<String> CODES = List.of("01-519", "01-245");
+    @Value("${esnsi.dictionary.codes}")
+    private List<String> codes;
 
     private static final int PAGE_SIZE = 100;
     private static final int BATCH_SIZE = 100;
@@ -35,9 +34,8 @@ public class EsnsiIntegrationService {
     @Autowired
     private EsnsiIntegrationDao dao;
 
-    @Transactional(propagation = Propagation.NEVER)
     public void runIntegration() {
-        for (String code : CODES) {
+        for (String code : codes) {
             GetClassifierRevisionListResponseType.RevisionDescriptor latest = getLastVersionFromEsnsi(code);
             if (latest == null)
                 continue;
@@ -45,15 +43,15 @@ public class EsnsiIntegrationService {
             if (lastDownloadedVersionRevision == null || lastDownloadedVersionRevision == latest.getRevision())
                 continue;
             GetClassifierStructureResponseType struct = getVersionStructure(code, latest.getRevision());
-            String tableName = dao.createEsnsiVersionDataTable(code, latest.getRevision(), struct);
+            dao.createEsnsiVersionDataTable(struct);
             GetClassifierDataResponseType data = getData(code, latest.getRevision());
             InputStream inputStream = getInputStream(data);
-            List<Map<String, Object>> batch = new ArrayList<>(BATCH_SIZE);
-            EsnsiXMLDataFileToObjectModelUtil.read(
+            List<Object[]> batch = new ArrayList<>(BATCH_SIZE);
+            EsnsiXMLDataFileReadUtil.read(
                 row -> {
                     batch.add(row);
                     if (batch.size() == BATCH_SIZE) {
-                        dao.insert(tableName, batch);
+                        dao.insert(batch, struct);
                         batch.clear();
                     }
                 },
@@ -61,10 +59,10 @@ public class EsnsiIntegrationService {
                 inputStream
             );
             if (!batch.isEmpty()) {
-                dao.insert(tableName, batch);
+                dao.insert(batch, struct);
                 batch.clear();
             }
-            dao.updateLastDownloaded(code, latest.getRevision(), Timestamp.valueOf(LocalDateTime.now(Clock.systemUTC())));
+            dao.updateLastDownloaded(struct, Timestamp.valueOf(LocalDateTime.now(Clock.systemUTC())));
         }
     }
 

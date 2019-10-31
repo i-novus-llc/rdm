@@ -1,0 +1,136 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<nsi:document xmlns:nsi="urn://x-artefacts-nsi-gov-ru/services/cnsi/2.0.0.0">
+    <nsi:simple-classifier code="ОКАТО [ОК 019-95]" name="Общероссийский классификатор объектов административно-территориального деления" uid="1aabd9fb-93ed-4380-b6ca-d47daed67d93" version="2" public-id="01-519">
+        <nsi:description>
+            <![CDATA[ОКАТО предназначен для обеспечения достоверности, сопоставимости и автоматизированной обработки информации в разрезах административно-территориального деления в таких сферах, как статистика, экономика и другие.]]>
+        </nsi:description>
+        <nsi:string-attribute uid="9a113690-1e16-43a2-b4c6-1d958be348de" name="Код территории" length="255" required="false"/>
+        <nsi:string-attribute uid="59822964-a3cb-42ca-a7a3-efecc8ed46f7" name="Код района/города" length="255" required="false"/>
+        <nsi:string-attribute uid="82a8a284-cfd3-4089-9a05-03f2ec835942" name="Код РП/сельсовета" length="255" required="false"/>
+        <nsi:string-attribute uid="8ac6ff86-3759-4be0-b278-153f8701884c" name="Код сельского населенного пункта" length="255" required="false"/>
+        <nsi:string-attribute uid="6b8c4d32-31ae-40a7-b773-a90620a6ee38" name="Код раздела" length="255" required="false"/>
+        <nsi:string-attribute uid="e59728ba-f49d-493d-afcf-0aa1e3e43708" name="Наименование" length="255" required="false"/>
+        <nsi:string-attribute uid="e87afb9c-de94-40b7-8edb-1200e4acd279" name="Дополнительные данные" length="255" required="false"/>
+        <nsi:text-attribute uid="3244cc1c-1383-4bb0-87e8-33ca872bb091" name="Описание (пояснение)" required="false"/>
+        <nsi:string-attribute uid="bd80b024-97e1-4035-99e8-38d9e158e28d" name="Номер последнего изменения" length="255" required="false"/>
+        <nsi:string-attribute uid="aba4115d-288e-4e1c-9e7f-51ea9066d5d0" name="Тип последнего изменения" length="255" required="false"/>
+        <nsi:string-attribute uid="276c3348-a647-4850-9a8d-354fb5a727d4" name="Дата принятия изменения" length="255" required="false"/>
+        <nsi:string-attribute uid="0b69adcd-0bc7-4bae-bb72-5668180db3d5" name="Дата введения изменения" length="255" required="false"/>
+    </nsi:simple-classifier>
+    <nsi:data classifier-ref="1aabd9fb-93ed-4380-b6ca-d47daed67d93">
+        <nsi:record uid="5ecad5b1-412e-44f3-bb62-69599c256f8d">
+            <nsi:attribute-value attribute-ref="9a113690-1e16-43a2-b4c6-1d958be348de">
+                <nsi:string>01</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="59822964-a3cb-42ca-a7a3-efecc8ed46f7">
+                <nsi:string>000</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="82a8a284-cfd3-4089-9a05-03f2ec835942">
+                <nsi:string>000</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="8ac6ff86-3759-4be0-b278-153f8701884c">
+                <nsi:string>000</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="6b8c4d32-31ae-40a7-b773-a90620a6ee38">
+                <nsi:string>1</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="e59728ba-f49d-493d-afcf-0aa1e3e43708">
+                <nsi:string>Алтайский край</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="e87afb9c-de94-40b7-8edb-1200e4acd279">
+                <nsi:string>г Барнаул</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="3244cc1c-1383-4bb0-87e8-33ca872bb091">
+                <nsi:text></nsi:text>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="bd80b024-97e1-4035-99e8-38d9e158e28d">
+                <nsi:string>000</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="aba4115d-288e-4e1c-9e7f-51ea9066d5d0">
+                <nsi:string>0</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="276c3348-a647-4850-9a8d-354fb5a727d4">
+                <nsi:string>31.12.1996</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="0b69adcd-0bc7-4bae-bb72-5668180db3d5">
+                <nsi:string>31.12.1996</nsi:string>
+            </nsi:attribute-value>
+        </nsi:record>
+        <nsi:record uid="04d2b6ed-4856-43ce-b7a3-b653f6c04a50">
+            <nsi:attribute-value attribute-ref="9a113690-1e16-43a2-b4c6-1d958be348de">
+                <nsi:string>01</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="59822964-a3cb-42ca-a7a3-efecc8ed46f7">
+                <nsi:string>200</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="82a8a284-cfd3-4089-9a05-03f2ec835942">
+                <nsi:string>000</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="8ac6ff86-3759-4be0-b278-153f8701884c">
+                <nsi:string>000</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="6b8c4d32-31ae-40a7-b773-a90620a6ee38">
+                <nsi:string>1</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="e59728ba-f49d-493d-afcf-0aa1e3e43708">
+                <nsi:string>Районы Алтайского края/</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="e87afb9c-de94-40b7-8edb-1200e4acd279">
+                <nsi:string></nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="3244cc1c-1383-4bb0-87e8-33ca872bb091">
+                <nsi:text></nsi:text>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="bd80b024-97e1-4035-99e8-38d9e158e28d">
+                <nsi:string>000</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="aba4115d-288e-4e1c-9e7f-51ea9066d5d0">
+                <nsi:string>0</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="276c3348-a647-4850-9a8d-354fb5a727d4">
+                <nsi:string>31.12.1996</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="0b69adcd-0bc7-4bae-bb72-5668180db3d5">
+                <nsi:string>31.12.1996</nsi:string>
+            </nsi:attribute-value>
+        </nsi:record>
+        <nsi:record uid="c520be53-e94b-497a-b319-6ea3c9272eef">
+            <nsi:attribute-value attribute-ref="9a113690-1e16-43a2-b4c6-1d958be348de">
+                <nsi:string>01</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="59822964-a3cb-42ca-a7a3-efecc8ed46f7">
+                <nsi:string>201</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="82a8a284-cfd3-4089-9a05-03f2ec835942">
+                <nsi:string>000</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="8ac6ff86-3759-4be0-b278-153f8701884c">
+                <nsi:string>000</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="6b8c4d32-31ae-40a7-b773-a90620a6ee38">
+                <nsi:string>1</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="e59728ba-f49d-493d-afcf-0aa1e3e43708">
+                <nsi:string>Алейский район</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="e87afb9c-de94-40b7-8edb-1200e4acd279">
+                <nsi:string>г Алейск</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="3244cc1c-1383-4bb0-87e8-33ca872bb091">
+                <nsi:text></nsi:text>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="bd80b024-97e1-4035-99e8-38d9e158e28d">
+                <nsi:string>000</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="aba4115d-288e-4e1c-9e7f-51ea9066d5d0">
+                <nsi:string>0</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="276c3348-a647-4850-9a8d-354fb5a727d4">
+                <nsi:string>31.12.1996</nsi:string>
+            </nsi:attribute-value>
+            <nsi:attribute-value attribute-ref="0b69adcd-0bc7-4bae-bb72-5668180db3d5">
+                <nsi:string>31.12.1996</nsi:string>
+            </nsi:attribute-value>
+        </nsi:record>
+    </nsi:data>
+</nsi:document>
