@@ -51,7 +51,7 @@ public class XmlMappingLoaderService implements MappingLoaderService {
                 }
             }
         } finally {
-            lockService.releaseLock();
+            logger.info("Lock successfully released.");
         }
     }
 

@@ -35,9 +35,4 @@ public class XmlMappingLoaderLockService {
         return false;
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public void releaseLock() {
-        logger.info("Lock successfully released.");
-    }
-
 }
