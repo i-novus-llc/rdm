@@ -44,18 +44,22 @@ class EsnsiXMLDataFileReadUtil {
     private EsnsiXMLDataFileReadUtil() {throw new UnsupportedOperationException();}
 
     static void read(Consumer<Object[]> consumer, GetClassifierStructureResponseType struct, InputStream inputStream) {
-        ZipInputStream zis = new ZipInputStream(inputStream);
         Map<String, ClassifierAttribute> attributes = indexAttrs(struct);
-        try {
-            Object[] row = new Object[struct.getAttributeList().size()];
-            for (int i = 0; i < row.length; i++)
-                row[i] = new StringBuilder();
-            try {
-                zis.getNextEntry();
-            } catch (IOException e) {
-                throw new RdmException(e);
+        Object[] row = new Object[attributes.size()];
+        for (int i = 0; i < row.length; i++)
+            row[i] = new StringBuilder();
+        try (ZipInputStream zis = new ZipInputStream(inputStream)) {
+            while (zis.getNextEntry() != null) {
+                readNextEntry(row, new NonClosingInputStream(zis), attributes, consumer);
             }
-            XMLStreamReader reader = INPUT_FACTORY.createXMLStreamReader(zis);
+        } catch (IOException e) {
+            throw new RdmException(e);
+        }
+    }
+
+    private static void readNextEntry(Object[] row, InputStream inputStream, Map<String, ClassifierAttribute> attributes, Consumer<Object[]> consumer) {
+        try {
+            XMLStreamReader reader = INPUT_FACTORY.createXMLStreamReader(inputStream);
             while (reader.hasNext()) {
                 if (reader.next() == START_ELEMENT && reader.getLocalName().equals(DATA_ELEM))
                     break;
@@ -101,7 +105,6 @@ class EsnsiXMLDataFileReadUtil {
                 }
             }
             while (reader.hasNext()) reader.next();
-            reader.close();
         } catch (XMLStreamException e) {
             throw new RdmException(e);
         }
@@ -118,6 +121,21 @@ class EsnsiXMLDataFileReadUtil {
 
     private static Map<String, ClassifierAttribute> indexAttrs(GetClassifierStructureResponseType struct) {
         return struct.getAttributeList().stream().collect(toMap(ClassifierAttribute::getUid, identity()));
+    }
+
+    private static class NonClosingInputStream extends InputStream {
+
+        private final InputStream inputStream;
+
+        NonClosingInputStream(InputStream inputStream) {
+            this.inputStream = inputStream;
+        }
+
+        @Override
+        public int read() throws IOException {
+            return inputStream.read();
+        }
+
     }
 
 }
