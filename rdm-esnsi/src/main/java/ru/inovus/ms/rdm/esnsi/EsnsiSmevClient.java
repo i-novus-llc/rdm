@@ -103,7 +103,7 @@ class EsnsiSmevClient {
     }
 
     <T> Map.Entry<T, InputStream> getResponse(Class<T> tClass, String messageId) {
-        return getResponse(tClass, messageId, 5, 1000);
+        return getResponse(tClass, messageId, 60, 1000);
     }
 
     <T> Map.Entry<T, InputStream> getResponse(Class<T> tClass, String messageId, int numRetries, int sleepMillis) {
@@ -134,7 +134,7 @@ class EsnsiSmevClient {
         return null;
     }
 
-     ResponseDocument getResponse(String messageId) {
+     private ResponseDocument getResponse(String messageId) {
         if (msgBuffer.containsKey(messageId))
             return msgBuffer.get(messageId);
         GetResponseDocument getResponseDocument = objectFactory.createGetResponseDocument();
@@ -149,8 +149,9 @@ class EsnsiSmevClient {
                 response.getSmevAdapterFault() == null && response.getSmevTypicalError() == null)
                 return null;
             msgBuffer.put(response.getSenderProvidedResponseData().getMessageID(), response);
-            if (response.getSenderProvidedResponseData().getMessageID().equals(messageId))
+            if (response.getSenderProvidedResponseData().getMessageID().equals(messageId)) {
                 return response;
+            }
         } catch (SmevAdapterFailureException | UnknownMessageTypeException ex) {
             logger.error("Error occurred while receiving response message from SMEV3.", ex);
         }
@@ -193,14 +194,14 @@ class EsnsiSmevClient {
     }
 
     boolean acknowledge(String messageId) {
+        msgBuffer.remove(messageId);
         AckRequest ackRequest = objectFactory.createAckRequest();
         ackRequest.setValue(messageId);
         try {
             getSmevAdapterPort().ack(ackRequest);
-            msgBuffer.remove(messageId);
             return true;
         } catch (SmevAdapterFailureException | TargetMessageIsNotFoundException e) {
-            logger.error("Error occurred while sending acknowledge message to SMEV3.");
+            logger.error("Error occurred while sending acknowledge message to SMEV3.", e);
             return false;
         }
     }
