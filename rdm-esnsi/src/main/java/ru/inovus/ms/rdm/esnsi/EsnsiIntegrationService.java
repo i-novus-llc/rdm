@@ -32,7 +32,7 @@ public class EsnsiIntegrationService {
     @Autowired
     private EsnsiSmevClient esnsiClient;
 
-//    @Autowired
+    @Autowired
     private EsnsiIntegrationDao dao;
 
     public void runIntegration() {

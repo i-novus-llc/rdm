@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.esnsi;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierStructureResponseType;
@@ -15,6 +16,7 @@ import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.joining;
 
+@Component
 class EsnsiIntegrationDao {
 
     @Autowired
