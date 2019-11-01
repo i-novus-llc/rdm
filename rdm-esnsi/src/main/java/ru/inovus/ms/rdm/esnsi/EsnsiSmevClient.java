@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.esnsi.api.*;
 
@@ -22,8 +23,11 @@ import javax.xml.transform.dom.DOMResult;
 import javax.xml.ws.Binding;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.soap.SOAPBinding;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,6 +35,13 @@ import java.util.Map;
  */
 @Component
 class EsnsiSmevClient {
+
+    private static final InputStream EMPTY_INPUT_STREAM = new InputStream() {
+        @Override
+        public int read() throws IOException {
+            return -1;
+        }
+    };
 
     private static final Logger logger = LoggerFactory.getLogger(EsnsiSmevClient.class);
 
@@ -52,6 +63,18 @@ class EsnsiSmevClient {
 
     private final Map<String, ResponseDocument> msgBuffer = new HashMap<>();
 
+    private static final JAXBContext REQUEST_CTX;
+    private static final JAXBContext RESPONSE_CTX;
+
+    static {
+        try {
+            REQUEST_CTX = JAXBContext.newInstance(CnsiRequest.class);
+            RESPONSE_CTX = JAXBContext.newInstance(CnsiRequest.class);
+        } catch (JAXBException e) {
+            throw new RdmException(e);
+        }
+    }
+
     AcceptRequestDocument sendRequest(Object requestData, String messageId) {
         if (requestData.getClass() != CnsiRequest.class) {
             CnsiRequest cnsiRequest = objectFactory.createCnsiRequest();
@@ -61,16 +84,9 @@ class EsnsiSmevClient {
         SendRequestDocument sendRequestDocument = objectFactory.createSendRequestDocument();
         sendRequestDocument.setMessageID(messageId);
         MessagePrimaryContent messagePrimaryContent = objectFactory.createMessagePrimaryContent();
-        JAXBContext jaxbContext;
-        try {
-            jaxbContext = JAXBContext.newInstance(CnsiRequest.class);
-        } catch (JAXBException ex) {
-//          Никогда выбросится
-            throw new RdmException(ex);
-        }
         DOMResult domResult = new DOMResult();
         try {
-            jaxbContext.createMarshaller().marshal(requestData, domResult);
+            REQUEST_CTX.createMarshaller().marshal(requestData, domResult);
         } catch (JAXBException ex) {
             logger.error("Unable to create request from given request data: {}", requestData, ex);
             throw new RdmException(ex);
@@ -86,17 +102,39 @@ class EsnsiSmevClient {
         }
     }
 
-    <T> T getResponse(Class<T> tClass, String messageId) {
+    <T> Map.Entry<T, InputStream> getResponse(Class<T> tClass, String messageId) {
+        return getResponse(tClass, messageId, 5, 1000);
+    }
+
+    <T> Map.Entry<T, InputStream> getResponse(Class<T> tClass, String messageId, int numRetries, int sleepMillis) {
         ResponseDocument responseDocument;
+        int n = 0;
         do {
             responseDocument = getResponse(messageId);
-            if (getResponseType(responseDocument) == tClass)
-                return extractResponse(responseDocument, tClass);
-        } while (responseDocument != null);
+            if (responseDocument != null) {
+                InputStream inputStream = null;
+                List<AttachmentContentType> attachmentContent = responseDocument.getAttachmentContentList().getAttachmentContent();
+                if (!attachmentContent.isEmpty()) {
+                    try {
+                        inputStream = attachmentContent.iterator().next().getContent().getInputStream();
+                    } catch (IOException e) {
+                        logger.error("Cannot extract input stream from message attachment.", e);
+                        throw new RdmException(e);
+                    }
+                }
+                return Map.entry(extractResponse(responseDocument, tClass), inputStream == null ? EMPTY_INPUT_STREAM : inputStream);
+            }
+            try {
+                Thread.sleep(sleepMillis);
+            } catch (InterruptedException e) {
+                logger.error("Thread was unexpectedly interrupted.", e);
+                throw new RdmException(e);
+            }
+        } while (++n < numRetries);
         return null;
     }
 
-    private ResponseDocument getResponse(String messageId) {
+     ResponseDocument getResponse(String messageId) {
         if (msgBuffer.containsKey(messageId))
             return msgBuffer.get(messageId);
         GetResponseDocument getResponseDocument = objectFactory.createGetResponseDocument();
@@ -110,12 +148,13 @@ class EsnsiSmevClient {
                 response.getReferenceMessageID() == null && response.getSenderProvidedResponseData() == null &&
                 response.getSmevAdapterFault() == null && response.getSmevTypicalError() == null)
                 return null;
-            msgBuffer.put(messageId, response);
-            return response;
+            msgBuffer.put(response.getSenderProvidedResponseData().getMessageID(), response);
+            if (response.getSenderProvidedResponseData().getMessageID().equals(messageId))
+                return response;
         } catch (SmevAdapterFailureException | UnknownMessageTypeException ex) {
             logger.error("Error occurred while receiving response message from SMEV3.", ex);
-            return null;
         }
+        return null;
     }
 
     private void setRequest(CnsiRequest cnsiRequest, Object requestData) {
@@ -142,12 +181,15 @@ class EsnsiSmevClient {
             throw new IllegalArgumentException("Invalid request type: " + requestData);
     }
 
-    private Class getResponseType(ResponseDocument responseDocument) {
-        throw new UnsupportedOperationException();
-    }
-
-    private <T> T extractResponse(ResponseDocument responseDocument, Class<T> tClass) {
-        throw new UnsupportedOperationException();
+    private <T> T extractResponse(ResponseDocument responseDocument, Class<T> c) {
+        Element any = responseDocument.getSenderProvidedResponseData().getMessagePrimaryContent().getAny();
+        try {
+            Object unmarshal = RESPONSE_CTX.createUnmarshaller().unmarshal(any);
+            return c.cast(unmarshal);
+        } catch (JAXBException e) {
+            logger.error("Error while parsing response from SMEV3 adapter. Unknown format.", e);
+            throw new RdmException(e);
+        }
     }
 
     boolean acknowledge(String messageId) {

@@ -12,6 +12,7 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -31,7 +32,7 @@ public class EsnsiIntegrationService {
     @Autowired
     private EsnsiSmevClient esnsiClient;
 
-    @Autowired
+//    @Autowired
     private EsnsiIntegrationDao dao;
 
     public void runIntegration() {
@@ -44,8 +45,7 @@ public class EsnsiIntegrationService {
                 continue;
             GetClassifierStructureResponseType struct = getVersionStructure(code, latest.getRevision());
             dao.createEsnsiVersionDataTable(struct);
-            GetClassifierDataResponseType data = getData(code, latest.getRevision());
-            InputStream inputStream = getInputStream(data);
+            Map.Entry<GetClassifierDataRequestType, InputStream> data = getData(code, latest.getRevision());
             List<Object[]> batch = new ArrayList<>(BATCH_SIZE);
             EsnsiXMLDataFileReadUtil.read(
                 row -> {
@@ -56,7 +56,7 @@ public class EsnsiIntegrationService {
                     }
                 },
                 struct,
-                inputStream
+                data.getValue()
             );
             if (!batch.isEmpty()) {
                 dao.insert(batch, struct);
@@ -76,12 +76,12 @@ public class EsnsiIntegrationService {
             req.setPageSize(PAGE_SIZE);
             req.setCode(code);
             AcceptRequestDocument acceptRequestDocument = esnsiClient.sendRequest(req, UUID.randomUUID().toString());
-            GetClassifierRevisionListResponseType resp;
+            Map.Entry<GetClassifierRevisionListResponseType, InputStream> resp;
             resp = esnsiClient.getResponse(GetClassifierRevisionListResponseType.class, acceptRequestDocument.getMessageId());
             esnsiClient.acknowledge(acceptRequestDocument.getMessageId());
-            List<GetClassifierRevisionListResponseType.RevisionDescriptor> revisionDescriptors = resp.getRevisionDescriptor();
+            List<GetClassifierRevisionListResponseType.RevisionDescriptor> revisionDescriptors = resp.getKey().getRevisionDescriptor();
             for (GetClassifierRevisionListResponseType.RevisionDescriptor revisionDescriptor : revisionDescriptors) {
-                if (latest == null || latest.getTimestamp().compare(revisionDescriptor.getTimestamp()) == DatatypeConstants.GREATER)
+                if (latest == null || latest.getTimestamp().compare(revisionDescriptor.getTimestamp()) == DatatypeConstants.LESSER)
                     latest = revisionDescriptor;
             }
             if (revisionDescriptors.size() < PAGE_SIZE)
@@ -95,15 +95,15 @@ public class EsnsiIntegrationService {
         req.setCode(code);
         req.setRevision(revision);
         AcceptRequestDocument acceptRequestDocument = esnsiClient.sendRequest(req, UUID.randomUUID().toString());
-        return esnsiClient.getResponse(GetClassifierStructureResponseType.class, acceptRequestDocument.getMessageId());
+        return esnsiClient.getResponse(GetClassifierStructureResponseType.class, acceptRequestDocument.getMessageId()).getKey();
     }
 
-    private GetClassifierDataResponseType getData(String code, int revision) {
-        throw new UnsupportedOperationException();
-    }
-
-    private InputStream getInputStream(GetClassifierDataResponseType data) {
-        throw new UnsupportedOperationException();
+    private Map.Entry<GetClassifierDataRequestType, InputStream> getData(String code, int revision) {
+        GetClassifierDataRequestType req = objectFactory.createGetClassifierDataRequestType();
+        req.setCode(code);
+        req.setRevision(revision);
+        AcceptRequestDocument acceptRequestDocument = esnsiClient.sendRequest(req, UUID.randomUUID().toString());
+        return esnsiClient.getResponse(GetClassifierDataRequestType.class, acceptRequestDocument.getMessageId());
     }
 
 }

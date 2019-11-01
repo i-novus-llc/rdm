@@ -4,12 +4,11 @@ import liquibase.integration.spring.SpringLiquibase;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 
 import javax.sql.DataSource;
 
-@Configuration
+//@Configuration
 @AutoConfigureAfter(LiquibaseAutoConfiguration.class)
 public class EsnsiIntegrationConfiguration {
 
