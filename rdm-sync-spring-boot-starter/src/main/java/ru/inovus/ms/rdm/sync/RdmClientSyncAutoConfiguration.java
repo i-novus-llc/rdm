@@ -157,9 +157,9 @@ public class RdmClientSyncAutoConfiguration {
         return new CachingConnectionFactory(activeMQConnectionFactory);
     }
 
-    @Bean(name = "publishTopicMessageListenerContainerFactory")
+    @Bean
     @ConditionalOnProperty(name = "rdm_sync.publish.listener.enable", havingValue = "true")
-    public DefaultJmsListenerContainerFactory topicListenerContainerFactory(ConnectionFactory connectionFactory) {
+    public DefaultJmsListenerContainerFactory publishDictionaryTopicMessageListenerContainerFactory(ConnectionFactory connectionFactory) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setPubSubDomain(true);

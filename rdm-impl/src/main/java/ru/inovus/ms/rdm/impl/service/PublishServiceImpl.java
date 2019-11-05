@@ -64,10 +64,10 @@ public class PublishServiceImpl implements PublishService {
 
     private JmsTemplate jmsTemplate;
 
-    @Value("${rdm.publish.topic}")
+    @Value("${rdm.publish.topic:publish_topic}")
     private String publishTopic;
 
-    @Value("${rdm.enable.publish.topic}")
+    @Value("${rdm.enable.publish.topic:false}")
     private boolean enablePublishTopic;
 
     @Autowired

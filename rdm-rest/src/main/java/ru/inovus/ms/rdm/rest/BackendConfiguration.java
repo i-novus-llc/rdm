@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -91,7 +90,7 @@ public class BackendConfiguration {
     }
 
     @Bean
-    @ConditionalOnExpression(value = "#{${rdm.enable.publish.topic}}")
+    @ConditionalOnProperty(name = "rdm.enable.publish.topic", havingValue = "true")
     public ConnectionFactory activeMQConnectionFactory() {
         ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory();
         activeMQConnectionFactory.setBrokerURL(brokerUrl);
@@ -100,7 +99,7 @@ public class BackendConfiguration {
 
     @Bean
     @Qualifier("topicJmsTemplate")
-    @ConditionalOnExpression(value = "#{${rdm.enable.publish.topic}}")
+    @ConditionalOnProperty(name = "rdm.enable.publish.topic", havingValue = "true")
     public JmsTemplate topicJmsTemplate() {
         JmsTemplate jmsTemplate = new JmsTemplate(activeMQConnectionFactory());
         jmsTemplate.setPubSubDomain(true);
