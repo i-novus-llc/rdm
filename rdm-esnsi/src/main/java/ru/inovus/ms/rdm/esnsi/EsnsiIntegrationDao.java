@@ -1,17 +1,22 @@
 package ru.inovus.ms.rdm.esnsi;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.inovus.ms.rdm.api.exception.RdmException;
+import ru.inovus.ms.rdm.esnsi.api.GetClassifierRevisionListResponseType;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierStructureResponseType;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.joining;
@@ -19,16 +24,29 @@ import static java.util.stream.Collectors.joining;
 @Component
 class EsnsiIntegrationDao {
 
+    private static final Logger logger = LoggerFactory.getLogger(EsnsiIntegrationDao.class);
+
+    private static final JAXBContext STRUCT_CTX;
+
+    static {
+        try {
+            STRUCT_CTX = JAXBContext.newInstance(GetClassifierStructureResponseType.class);
+        } catch (JAXBException e) {
+//          Не выбросится
+            throw new RdmException(e);
+        }
+    }
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
     @Transactional
-    Integer getLastVersionRevision(String code) {
+    public Integer getLastVersionRevision(String code) {
         final boolean[] contains = new boolean[1];
         Integer revision = jdbcTemplate.queryForObject(
             "SELECT code, revision FROM esnsi_sync.version WHERE code = ?1",
-            new Object[]{code},
-            (rs, rowNum) -> {contains[0] = true; return rs.getInt(2);}
+            (rs, rowNum) -> {contains[0] = true; return rs.getInt(2);},
+            code
         );
         if (!contains[0]) {
             jdbcTemplate.update("INSERT INTO esnsi_sync.version VALUES (?1, NULL, NULL)", code);
@@ -37,7 +55,7 @@ class EsnsiIntegrationDao {
     }
 
     @Transactional
-    void createEsnsiVersionDataTable(GetClassifierStructureResponseType struct) {
+    public void createEsnsiVersionDataTable(GetClassifierStructureResponseType struct) {
         String code = struct.getClassifierDescriptor().getCode();
         int revision = struct.getClassifierDescriptor().getRevision();
         String tableName = "esnsi_data.\"" + code + "-" + revision + "\"";
@@ -50,7 +68,7 @@ class EsnsiIntegrationDao {
     }
 
     @Transactional
-    void insert(List<Object[]> batch, GetClassifierStructureResponseType struct) {
+    public void insert(List<Object[]> batch, GetClassifierStructureResponseType struct) {
         String code = struct.getClassifierDescriptor().getCode();
         int revision = struct.getClassifierDescriptor().getRevision();
         String tableName = "data.\"" + code + "-" + revision + "\"";
@@ -64,7 +82,7 @@ class EsnsiIntegrationDao {
     }
 
     @Transactional
-    void updateLastDownloaded(GetClassifierStructureResponseType struct, Timestamp time) {
+    public void updateLastDownloaded(GetClassifierStructureResponseType struct, Timestamp time) {
         String code = struct.getClassifierDescriptor().getCode();
         int revision = struct.getClassifierDescriptor().getRevision();
         String structRaw;
@@ -80,6 +98,40 @@ class EsnsiIntegrationDao {
         String q = "INSERT INTO esnsi_sync.version (code, revision, struct, last_updated) VALUES (?1, ?2, ?3, ?4) " +
                 "ON CONFLICT (code) DO UPDATE SET revision = ?2, struct = ?3, last_updated = ?4;";
         jdbcTemplate.update(q, code, revision, structRaw, time);
+    }
+
+    @Transactional(readOnly = true)
+    public GetClassifierRevisionListResponseType getStruct(String code) {
+        String s = jdbcTemplate.queryForObject("SELECT struct FROM esnsi_sync.version WHERE code = ?1", String.class, code);
+        if (s == null)
+            return null;
+        try {
+            return (GetClassifierRevisionListResponseType) STRUCT_CTX.createUnmarshaller().unmarshal(new StringReader(s));
+        } catch (JAXBException e) {
+            logger.error("Unable to parse dictionary structure XML.", e);
+        }
+        return null;
+    }
+
+    @Transactional(readOnly = true)
+    public void readRows(Consumer<String[]> consumer, String code, int revision) {
+        var ref = new Object() {
+            String[] row = null;
+        };
+        jdbcTemplate.query(
+            "SELECT * FROM " + getTableName(code, revision),
+            rs -> {
+                if (ref.row == null)
+                    ref.row = new String[rs.getMetaData().getColumnCount()];
+                for (int i = 0; i < ref.row.length; i++)
+                    ref.row[i] = rs.getString(i + 1);
+                consumer.accept(ref.row);
+            }
+        );
+    }
+
+    private String getTableName(String code, int revision) {
+        return "data.\"" + code + "-" + revision + "\"";
     }
 
 }

@@ -71,6 +71,7 @@ class EsnsiSmevClient {
             REQUEST_CTX = JAXBContext.newInstance(CnsiRequest.class);
             RESPONSE_CTX = JAXBContext.newInstance(CnsiRequest.class);
         } catch (JAXBException e) {
+//          Не выбросится
             throw new RdmException(e);
         }
     }
