@@ -4,17 +4,26 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.xmlunit.builder.DiffBuilder;
+import org.xmlunit.builder.Input;
+import org.xmlunit.diff.Diff;
 import ru.inovus.ms.rdm.esnsi.api.*;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.Void;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Consumer;
 
 import static junit.framework.TestCase.fail;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -59,10 +68,10 @@ public class EsnsiSyncTest {
         String getStructureMsgId = "2";
         String getDataMsgId = "3";
 
-        setField(integrationService, getField(EsnsiIntegrationService.class, "codes"), List.of(dictCode));
-        setField(integrationService, getField(EsnsiIntegrationService.class, "objectFactory"), objectFactory);
-        setField(integrationService, getField(EsnsiIntegrationService.class, "esnsiClient"), esnsiSmevClient);
-        setField(integrationService, getField(EsnsiIntegrationService.class, "dao"), dao);
+        setField(integrationService, Objects.requireNonNull(getField(EsnsiIntegrationService.class, "codes")), List.of(dictCode));
+        setField(integrationService, Objects.requireNonNull(getField(EsnsiIntegrationService.class, "objectFactory")), objectFactory);
+        setField(integrationService, Objects.requireNonNull(getField(EsnsiIntegrationService.class, "esnsiClient")), esnsiSmevClient);
+        setField(integrationService, Objects.requireNonNull(getField(EsnsiIntegrationService.class, "dao")), dao);
 
         when(esnsiSmevClient.sendRequest(any(GetClassifierRevisionListRequestType.class), any())).then(invocation -> {
             AcceptRequestDocument getRevisionListAcceptRequest = objectFactory.createAcceptRequestDocument();
@@ -103,11 +112,12 @@ public class EsnsiSyncTest {
         descriptor.setCode(dictCode);
         descriptor.setPublicId(dictCode);
         descriptor.setRevision(lastRevision);
+        descriptor.setName("Общероссийский классификатор объектов административно-территориального деления ОКАТО");
 
         GetClassifierStructureResponseType struct = objectFactory.createGetClassifierStructureResponseType();
         when(esnsiSmevClient.getResponse(any(), eq(getStructureMsgId))).then(invocation -> {
             struct.setClassifierDescriptor(descriptor);
-            setField(struct, getField(struct.getClass(), "attributeList"), struct_01_519());
+            setField(struct, Objects.requireNonNull(getField(struct.getClass(), "attributeList")), struct_01_519());
             return Map.entry(struct, EMPTY_INPUT_STREAM);
         });
 
@@ -120,14 +130,26 @@ public class EsnsiSyncTest {
         when(esnsiSmevClient.getResponse(any(), eq(getDataMsgId))).then(invocation -> {
             GetClassifierDataResponseType data = objectFactory.createGetClassifierDataResponseType();
             data.setClassifierDescriptor(descriptor);
-            return Map.entry(data, Thread.currentThread().getContextClassLoader().getResourceAsStream(
+            return Map.entry(data, Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResourceAsStream(
                     "01-519-test.zip"
-            ));
+            )));
         });
 
+        doAnswer(invocation -> {
+            Consumer<String[]> consumer = invocation.getArgument(0);
+            consumer.accept(new String[] {"01", "000", "000", "000", "1", "Алтайский край", "г Барнаул", "", "000", "0", "31.12.1996", "31.12.1996"});
+            consumer.accept(new String[] {"01", "200", "000", "000", "1", "Районы Алтайского края/", "", "", "000", "0", "31.12.1996", "31.12.1996"});
+            consumer.accept(new String[] {"01", "201", "000", "000", "1", "Алейский район", "г Алейск", "", "000", "0", "31.12.1996", "31.12.1996"});
+            return Void.TYPE;
+        }).when(dao).readRows(any(), anyString(), anyInt());
         doCallRealMethod().when(integrationService).runIntegration();
         integrationService.runIntegration();
         verify(dao, times(1)).insert(anyList(), refEq(struct));
+        Diff build = DiffBuilder.compare(Input.fromStream(Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResourceAsStream(
+                "to-rdm.xml"
+        )))).withTest(Input.fromFile(dictCode + "-" + lastRevision + ".xml")).ignoreWhitespace().build();
+        Files.delete(Path.of(dictCode + "-" + lastRevision + ".xml"));
+        assertFalse(build.hasDifferences());
     }
 
     private List<ClassifierAttribute> struct_01_519() {
@@ -136,7 +158,7 @@ public class EsnsiSyncTest {
         field_1.setType(AttributeType.STRING);
         field_1.setName("Код территории");
         field_1.setLength(255);
-        field_1.setRequired(false);
+        field_1.setRequired(true);
 
         ClassifierAttribute field_2 = objectFactory.createClassifierAttribute();
         field_2.setUid("59822964-a3cb-42ca-a7a3-efecc8ed46f7");
@@ -202,22 +224,29 @@ public class EsnsiSyncTest {
 
         ClassifierAttribute field_11 = objectFactory.createClassifierAttribute();
         field_11.setUid("276c3348-a647-4850-9a8d-354fb5a727d4");
-        field_11.setType(AttributeType.STRING);
+        field_11.setType(AttributeType.DATE);
         field_11.setName("Дата принятия изменения");
+        field_11.setDateStartRange(dtf.newXMLGregorianCalendarDate(1996, 12, 31, 1));
+        field_11.setDateEndRange(dtf.newXMLGregorianCalendarDate(1996, 12, 31, 1));
         field_11.setLength(255);
         field_11.setRequired(false);
 
         ClassifierAttribute field_12 = objectFactory.createClassifierAttribute();
         field_12.setUid("0b69adcd-0bc7-4bae-bb72-5668180db3d5");
-        field_12.setType(AttributeType.STRING);
+        field_12.setType(AttributeType.DATE);
         field_12.setName("Дата введения изменения");
+        field_12.setDateStartRange(dtf.newXMLGregorianCalendarDate(1996, 12, 31, 1));
+        field_12.setDateEndRange(dtf.newXMLGregorianCalendarDate(1996, 12, 31, 1));
         field_12.setLength(255);
         field_12.setRequired(false);
 
-        return List.of(
-            field_1, field_2, field_3, field_4, field_5, field_6,
-            field_7, field_8, field_9, field_10, field_11, field_12
+        List<ClassifierAttribute> list = List.of(
+                field_1, field_2, field_3, field_4, field_5, field_6,
+                field_7, field_8, field_9, field_10, field_11, field_12
         );
+        for (int i = 0; i < list.size(); i++)
+            list.get(i).setOrder(i + 1);
+        return list;
     }
 
     private Field getField(Class c, String name) {

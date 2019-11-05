@@ -1,12 +1,14 @@
 package ru.inovus.ms.rdm.esnsi;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.inovus.ms.rdm.esnsi.api.*;
 
 import javax.xml.datatype.DatatypeConstants;
-import java.io.InputStream;
+import java.io.*;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -17,6 +19,8 @@ import java.util.UUID;
 
 @Service
 public class EsnsiIntegrationService {
+
+    private static final Logger logger = LoggerFactory.getLogger(EsnsiIntegrationService.class);
 
     /**
      * Идентификаторы справочников, которые забираем из ЕСНСИ.
@@ -63,6 +67,16 @@ public class EsnsiIntegrationService {
                 batch.clear();
             }
             dao.updateLastDownloaded(struct, Timestamp.valueOf(LocalDateTime.now(Clock.systemUTC())));
+            String fileName = code + "-" + latest.getRevision() + ".xml";
+            try (OutputStream out = new BufferedOutputStream(new FileOutputStream(fileName))) {
+                XmlDataCreator dataCreator = new XmlDataCreator(out, struct);
+                dataCreator.init();
+                dao.readRows(dataCreator, code, latest.getRevision());
+                dataCreator.end();
+            } catch (IOException e) {
+                logger.error("Can't create file \"" + fileName + "\"", e);
+                return;
+            }
         }
     }
 

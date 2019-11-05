@@ -4,6 +4,7 @@ import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidationType;
 import ru.inovus.ms.rdm.api.util.TimeUtils;
 import ru.inovus.ms.rdm.esnsi.api.ClassifierAttribute;
+import ru.inovus.ms.rdm.esnsi.api.ClassifierDescriptorListType;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierStructureResponseType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -14,49 +15,45 @@ import java.io.OutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
 import static java.util.Comparator.comparingInt;
 import static ru.inovus.ms.rdm.esnsi.api.AttributeType.*;
 
-interface XmlDataCreator {
+class XmlDataCreator implements Consumer<String[]> {
 
-    void init() throws XMLStreamException;
-    void accept(String[] row) throws XMLStreamException;
-    void end() throws XMLStreamException;
+    private static final DateTimeFormatter ESNSI_DATE_FORMAT = TimeUtils.DATE_PATTERN_EUROPEAN_FORMATTER;
+    private static final DateTimeFormatter RDM_DATE_FORMAT = TimeUtils.DATE_PATTERN_EUROPEAN_FORMATTER;
 
-    class RdmXmlDataFileCreator implements XmlDataCreator {
+    private static final XMLOutputFactory XML_OUT = XMLOutputFactory.newFactory();
 
-        private static final DateTimeFormatter ESNSI_DATE_FORMAT = TimeUtils.DATE_PATTERN_ISO_FORMATTER;
-        private static final DateTimeFormatter RDM_DATE_FORMAT = TimeUtils.DATE_PATTERN_EUROPEAN_FORMATTER;
+    private final XMLStreamWriter writer;
+    private final GetClassifierStructureResponseType struct;
+    private final ClassifierAttribute[] attrs;
+    private final String[] codes;
 
-        private static final XMLOutputFactory XML_OUT = XMLOutputFactory.newFactory();
-
-        private final XMLStreamWriter writer;
-        private final GetClassifierStructureResponseType struct;
-        private final ClassifierAttribute[] attrs;
-        private final String[] codes;
-
-        public RdmXmlDataFileCreator(OutputStream out, GetClassifierStructureResponseType struct) {
-            try {
-                this.struct = struct;
-                this.attrs = struct.getAttributeList().stream().sorted(comparingInt(ClassifierAttribute::getOrder)).toArray(ClassifierAttribute[]::new);
-                this.writer = XML_OUT.createXMLStreamWriter(out);
-                this.codes = IntStream.rangeClosed(1, attrs.length).mapToObj(i -> "field_" + i).toArray(String[]::new);
-            } catch (XMLStreamException e) {
-                throw new RdmException(e);
-            }
+    public XmlDataCreator(OutputStream out, GetClassifierStructureResponseType struct) {
+        try {
+            this.struct = struct;
+            this.attrs = struct.getAttributeList().stream().sorted(comparingInt(ClassifierAttribute::getOrder)).toArray(ClassifierAttribute[]::new);
+            this.writer = XML_OUT.createXMLStreamWriter(out);
+            this.codes = IntStream.rangeClosed(1, attrs.length).mapToObj(i -> "field_" + i).toArray(String[]::new);
+        } catch (XMLStreamException e) {
+            throw new RdmException(e);
         }
+    }
 
-        @Override
-        public void init() throws XMLStreamException {
+    public void init() {
+        ClassifierDescriptorListType desc = struct.getClassifierDescriptor();
+        try {
             writer.writeStartDocument("1.0");
             writer.writeStartElement("refBook");
-            writeLeaf("code", "ESNSI-" + struct.getClassifierDescriptor().getPublicId());
+            writeLeaf("code", "ESNSI-" + desc.getPublicId());
             writer.writeStartElement("passport");
-            writeLeaf("name", struct.getClassifierDescriptor().getName());
-            writeLeaf("shortName", struct.getClassifierDescriptor().getCode());
-            writeLeaf("description", struct.getClassifierDescriptor().getDescription());
+            writeLeaf("name", str(desc.getName(), desc.getCode()));
+            writeLeaf("shortName", desc.getCode());
+            writeLeaf("description", str(desc.getDescription(), ""));
             writer.writeEndElement();
             writer.writeStartElement("structure");
             for (ClassifierAttribute attr : attrs) {
@@ -93,25 +90,33 @@ interface XmlDataCreator {
             }
             writer.writeEndElement();
             writer.writeStartElement("data");
+        } catch (XMLStreamException e) {
+            throw new RdmException(e);
         }
+    }
 
-        private LocalDate xmlDateToLocalDate(XMLGregorianCalendar date) {
-            return LocalDate.of(
-                date.getYear(),
-                date.getMonth(),
-                date.getDay()
-            );
-        }
+    private String str(Object obj, String nullDefault) {
+        return Objects.toString(obj, nullDefault);
+    }
 
-        private void writeValidation(String type, String value) throws XMLStreamException {
-            writer.writeStartElement("validation");
-            writeLeaf("type", type);
-            writeLeaf("value", value);
-            writer.writeEndElement();
-        }
+    private LocalDate xmlDateToLocalDate(XMLGregorianCalendar date) {
+        return LocalDate.of(
+            date.getYear(),
+            date.getMonth(),
+            date.getDay()
+        );
+    }
 
-        @Override
-        public void accept(String[] row) throws XMLStreamException {
+    private void writeValidation(String type, String value) throws XMLStreamException {
+        writer.writeStartElement("validation");
+        writeLeaf("type", type);
+        writeLeaf("value", value);
+        writer.writeEndElement();
+    }
+
+    @Override
+    public void accept(String[] row) {
+        try {
             writer.writeStartElement("row");
             for (int i = 0; i < row.length; i++) {
                 String val = row[i];
@@ -125,20 +130,25 @@ interface XmlDataCreator {
                 writer.writeEndElement();
             }
             writer.writeEndElement();
+        } catch (XMLStreamException e) {
+            throw new RdmException(e);
         }
+    }
 
-        @Override
-        public void end() throws XMLStreamException {
+    public void end() {
+        try {
             writer.writeEndElement();
             writer.writeEndElement();
+            writer.flush();
+        } catch (XMLStreamException e) {
+            throw new RdmException(e);
         }
+    }
 
-        private void writeLeaf(String key, String val) throws XMLStreamException {
-            writer.writeStartElement(key);
-            writer.writeCharacters(val);
-            writer.writeEndElement();
-        }
-
+    private void writeLeaf(String key, String val) throws XMLStreamException {
+        writer.writeStartElement(key);
+        writer.writeCharacters(val);
+        writer.writeEndElement();
     }
 
 }

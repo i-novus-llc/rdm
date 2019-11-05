@@ -1,0 +1,195 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<refBook>
+    <code>ESNSI-01-519</code>
+    <passport>
+        <name>Общероссийский классификатор объектов административно-территориального деления ОКАТО</name>
+        <shortName>01-519</shortName>
+        <description/>
+    </passport>
+    <structure>
+        <row>
+            <code>field_1</code>
+            <name>Код территории</name>
+            <type>STRING</type>
+            <description/>
+            <primary>false</primary>
+            <validation>
+                <type>REQUIRED</type>
+                <value>true</value>
+            </validation>
+            <validation>
+                <type>PLAIN_SIZE</type>
+                <value>255</value>
+            </validation>
+        </row>
+        <row>
+            <code>field_2</code>
+            <name>Код района/города</name>
+            <type>STRING</type>
+            <description/>
+            <primary>false</primary>
+            <validation>
+                <type>PLAIN_SIZE</type>
+                <value>255</value>
+            </validation>
+        </row>
+        <row>
+            <code>field_3</code>
+            <name>Код РП/сельсовета</name>
+            <type>STRING</type>
+            <description/>
+            <primary>false</primary>
+            <validation>
+                <type>PLAIN_SIZE</type>
+                <value>255</value>
+            </validation>
+        </row>
+        <row>
+            <code>field_4</code>
+            <name>Код сельского населенного пункта</name>
+            <type>STRING</type>
+            <description/>
+            <primary>false</primary>
+            <validation>
+                <type>PLAIN_SIZE</type>
+                <value>255</value>
+            </validation>
+        </row>
+        <row>
+            <code>field_5</code>
+            <name>Код раздела</name>
+            <type>STRING</type>
+            <description/>
+            <primary>false</primary>
+            <validation>
+                <type>PLAIN_SIZE</type>
+                <value>255</value>
+            </validation>
+        </row>
+        <row>
+            <code>field_6</code>
+            <name>Наименование</name>
+            <type>STRING</type>
+            <description/>
+            <primary>false</primary>
+            <validation>
+                <type>PLAIN_SIZE</type>
+                <value>255</value>
+            </validation>
+        </row>
+        <row>
+            <code>field_7</code>
+            <name>Дополнительные данные</name>
+            <type>STRING</type>
+            <description/>
+            <primary>false</primary>
+            <validation>
+                <type>PLAIN_SIZE</type>
+                <value>255</value>
+            </validation>
+        </row>
+        <row>
+            <code>field_8</code>
+            <name>Описание (пояснение)</name>
+            <type>STRING</type>
+            <description/>
+            <primary>false</primary>
+        </row>
+        <row>
+            <code>field_9</code>
+            <name>Номер последнего изменения</name>
+            <type>STRING</type>
+            <description/>
+            <primary>false</primary>
+            <validation>
+                <type>PLAIN_SIZE</type>
+                <value>255</value>
+            </validation>
+        </row>
+        <row>
+            <code>field_10</code>
+            <name>Тип последнего изменения</name>
+            <type>STRING</type>
+            <description/>
+            <primary>false</primary>
+            <validation>
+                <type>PLAIN_SIZE</type>
+                <value>255</value>
+            </validation>
+        </row>
+        <row>
+            <code>field_11</code>
+            <name>Дата принятия изменения</name>
+            <type>DATE</type>
+            <description/>
+            <primary>false</primary>
+            <validation>
+                <type>PLAIN_SIZE</type>
+                <value>255</value>
+            </validation>
+            <validation>
+                <type>DATE_RANGE</type>
+                <value>31.12.1996;31.12.1996</value>
+            </validation>
+        </row>
+        <row>
+            <code>field_12</code>
+            <name>Дата введения изменения</name>
+            <type>DATE</type>
+            <description/>
+            <primary>false</primary>
+            <validation>
+                <type>PLAIN_SIZE</type>
+                <value>255</value>
+            </validation>
+            <validation>
+                <type>DATE_RANGE</type>
+                <value>31.12.1996;31.12.1996</value>
+            </validation>
+        </row>
+    </structure>
+    <data>
+        <row>
+            <field_1>01</field_1>
+            <field_2>000</field_2>
+            <field_3>000</field_3>
+            <field_4>000</field_4>
+            <field_5>1</field_5>
+            <field_6>Алтайский край</field_6>
+            <field_7>г Барнаул</field_7>
+            <field_8/>
+            <field_9>000</field_9>
+            <field_10>0</field_10>
+            <field_11>31.12.1996</field_11>
+            <field_12>31.12.1996</field_12>
+        </row>
+        <row>
+            <field_1>01</field_1>
+            <field_2>200</field_2>
+            <field_3>000</field_3>
+            <field_4>000</field_4>
+            <field_5>1</field_5>
+            <field_6>Районы Алтайского края/</field_6>
+            <field_7/>
+            <field_8/>
+            <field_9>000</field_9>
+            <field_10>0</field_10>
+            <field_11>31.12.1996</field_11>
+            <field_12>31.12.1996</field_12>
+        </row>
+        <row>
+            <field_1>01</field_1>
+            <field_2>201</field_2>
+            <field_3>000</field_3>
+            <field_4>000</field_4>
+            <field_5>1</field_5>
+            <field_6>Алейский район</field_6>
+            <field_7>г Алейск</field_7>
+            <field_8/>
+            <field_9>000</field_9>
+            <field_10>0</field_10>
+            <field_11>31.12.1996</field_11>
+            <field_12>31.12.1996</field_12>
+        </row>
+    </data>
+</refBook>
