@@ -151,6 +151,7 @@ public class RdmClientSyncAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(value = ConnectionFactory.class)
+    @ConditionalOnProperty(name = "rdm_sync.publish.listener.enable", havingValue = "true")
     public ConnectionFactory activeMQConnectionFactory() {
         ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory();
         activeMQConnectionFactory.setBrokerURL(brokerUrl);
@@ -159,6 +160,7 @@ public class RdmClientSyncAutoConfiguration {
 
     @Bean
     @Qualifier("publishTopicMessageListenerContainerFactory")
+    @ConditionalOnProperty(name = "rdm_sync.publish.listener.enable", havingValue = "true")
     public DefaultJmsListenerContainerFactory topicListenerContainerFactory(ConnectionFactory connectionFactory) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
