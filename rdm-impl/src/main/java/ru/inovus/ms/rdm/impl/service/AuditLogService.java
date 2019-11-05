@@ -53,12 +53,12 @@ public class AuditLogService {
         }
     }
 
-    void addAction(AuditAction action, Object obj) {
+    public void addAction(AuditAction action, Object obj) {
         addAction(action, obj, emptyMap());
     }
 
     @Transactional
-    void addAction(AuditAction action, Object obj, Map<String, Object> additionalContext) {
+    public void addAction(AuditAction action, Object obj, Map<String, Object> additionalContext) {
         if (!disabledActions.contains(action)) {
             AuditClientRequest request = new AuditClientRequest();
             request.setEventDate(LocalDateTime.now(Clock.systemUTC()));
