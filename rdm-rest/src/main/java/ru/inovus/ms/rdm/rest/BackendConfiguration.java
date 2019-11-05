@@ -6,17 +6,22 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import ru.i_novus.ms.audit.client.SourceApplicationAccessor;
+import ru.i_novus.ms.audit.client.UserAccessor;
+import ru.i_novus.ms.audit.client.model.User;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.inovus.ms.rdm.api.provider.*;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
 import ru.inovus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
+import ru.inovus.ms.rdm.rest.util.SecurityContextUtils;
 
 import javax.jms.ConnectionFactory;
 
@@ -98,6 +103,17 @@ public class BackendConfiguration {
         JmsTemplate jmsTemplate = new JmsTemplate(activeMQConnectionFactory());
         jmsTemplate.setPubSubDomain(true);
         return jmsTemplate;
+    }
+
+    @Bean
+    public UserAccessor userAccessor() {
+        return () -> new User(null, SecurityContextUtils.getUserName());
+    }
+
+    @Bean
+    @Value("${rdm.audit.application.name}")
+    public SourceApplicationAccessor applicationAccessor(String appName) {
+        return () -> appName;
     }
 
 }

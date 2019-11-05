@@ -32,6 +32,7 @@ import ru.inovus.ms.rdm.api.service.VersionFileService;
 import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
 import ru.inovus.ms.rdm.api.util.TimeUtils;
+import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.impl.entity.VersionFileEntity;
 import ru.inovus.ms.rdm.impl.file.FileStorage;
@@ -70,12 +71,15 @@ public class VersionServiceImpl implements VersionService {
     private VersionFileRepository versionFileRepository;
     private VersionFileService versionFileService;
 
+    private AuditLogService auditLogService;
+
     @Autowired
     public VersionServiceImpl(RefBookVersionRepository versionRepository,
                               SearchDataService searchDataService,
                               FileStorage fileStorage, FileNameGenerator fileNameGenerator,
                               VersionFileRepository versionFileRepository,
-                              VersionFileService versionFileService) {
+                              VersionFileService versionFileService,
+                              AuditLogService auditLogService) {
         this.versionRepository = versionRepository;
 
         this.searchDataService = searchDataService;
@@ -85,6 +89,7 @@ public class VersionServiceImpl implements VersionService {
 
         this.versionFileRepository = versionFileRepository;
         this.versionFileService = versionFileService;
+        this.auditLogService = auditLogService;
     }
 
     @Override
@@ -197,10 +202,14 @@ public class VersionServiceImpl implements VersionService {
         if (fileEntity == null || !fileStorage.isExistContent(fileEntity.getPath())) {
             path = generateVersionFile(versionEntity, fileType);
         }
-
-        return new ExportFile(
+        ExportFile ef = new ExportFile(
                 fileStorage.getContent(path),
                 fileNameGenerator.generateZipName(ModelGenerator.versionModel(versionEntity), fileType));
+        auditLogService.addAction(
+            AuditAction.DOWNLOAD,
+            versionEntity
+        );
+        return ef;
     }
 
     @Override

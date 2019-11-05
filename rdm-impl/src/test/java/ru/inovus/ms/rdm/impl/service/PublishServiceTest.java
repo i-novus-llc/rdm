@@ -112,6 +112,9 @@ public class PublishServiceTest {
     private FieldFactory fieldFactory;
 
     @Mock
+    private AuditLogService auditLogService;
+
+    @Mock
     private JmsTemplate jmsTemplate;
 
     @Before

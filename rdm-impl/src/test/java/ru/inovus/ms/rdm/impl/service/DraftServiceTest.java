@@ -116,6 +116,9 @@ public class DraftServiceTest {
     @Mock
     private FieldFactory fieldFactory;
 
+    @Mock
+    private AuditLogService auditLogService;
+
     private static final String UPD_SUFFIX = "_upd";
     private static final String PK_SUFFIX = "_pk";
 

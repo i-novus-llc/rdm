@@ -5,16 +5,16 @@ import org.springframework.data.domain.Page;
 import ru.inovus.ms.rdm.api.enumeration.FileType;
 import ru.inovus.ms.rdm.api.model.ExportFile;
 import ru.inovus.ms.rdm.api.model.FileModel;
-import ru.inovus.ms.rdm.api.model.validation.AttributeValidationRequest;
-import ru.inovus.ms.rdm.api.model.version.CreateAttribute;
-import ru.inovus.ms.rdm.api.model.version.UpdateAttribute;
 import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidation;
+import ru.inovus.ms.rdm.api.model.validation.AttributeValidationRequest;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidationType;
+import ru.inovus.ms.rdm.api.model.version.CreateAttribute;
+import ru.inovus.ms.rdm.api.model.version.UpdateAttribute;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -65,7 +65,6 @@ public interface DraftService {
     })
     @Path("/createByFile")
     Draft create(@ApiParam("Файл") FileModel fileModel);
-
 
     @POST
     @ApiOperation("Добавление или изменение записи черновика")
@@ -183,7 +182,6 @@ public interface DraftService {
     void addAttributeValidation(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
                                 @ApiParam("Атрибут") @PathParam("attribute") String attribute,
                                 @ApiParam("Пользовательская проверка") AttributeValidation attributeValidation);
-
 
     @DELETE
     @Path("/{versionId}/attributeValidation")
