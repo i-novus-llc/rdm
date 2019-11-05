@@ -64,8 +64,11 @@ public class PublishServiceImpl implements PublishService {
 
     private JmsTemplate jmsTemplate;
 
-    @Value("${rdm_sync.publish.topic}")
+    @Value("${rdm.publish.topic}")
     private String publishTopic;
+
+    @Value("${rdm.enable.publish.topic}")
+    private boolean enablePublishTopic;
 
     @Autowired
     @SuppressWarnings("squid:S00107")
@@ -75,7 +78,7 @@ public class PublishServiceImpl implements PublishService {
                               ConflictService conflictService, ReferenceService referenceService,
                               VersionFileService versionFileService, VersionNumberStrategy versionNumberStrategy,
                               VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation,
-                              AuditLogService auditLogService, @Qualifier("topicJmsTemplate") JmsTemplate jmsTemplate) {
+                              AuditLogService auditLogService, @Qualifier("topicJmsTemplate") @Autowired(required = false) JmsTemplate jmsTemplate) {
         this.versionRepository = versionRepository;
 
         this.draftDataService = draftDataService;
@@ -175,7 +178,8 @@ public class PublishServiceImpl implements PublishService {
             AuditAction.PUBLICATION,
             draftEntity
         );
-        jmsTemplate.convertAndSend(publishTopic, draftEntity.getRefBook().getCode());
+        if (enablePublishTopic)
+            jmsTemplate.convertAndSend(publishTopic, draftEntity.getRefBook().getCode());
     }
 
     private RefBookVersionEntity getLastPublishedVersionEntity(RefBookVersionEntity draftVersion) {
