@@ -14,7 +14,7 @@ public class PublishListener {
         this.rdmSyncRest = rdmSyncRest;
     }
 
-    @JmsListener(destination = "${rdm_sync.publish.topic}", containerFactory = "topicListenerContainerFactory")
+    @JmsListener(destination = "${rdm_sync.publish.topic}", containerFactory = "publishTopicMessageListenerContainerFactory")
     public void onPublish(String refBookCode) {
         logger.info("RefBook with code {} published. Force sync.", refBookCode);
         rdmSyncRest.update(refBookCode);

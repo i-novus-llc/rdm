@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -157,7 +158,7 @@ public class RdmClientSyncAutoConfiguration {
     }
 
     @Bean
-    @Qualifier("topicListenerContainerFactory")
+    @Qualifier("publishTopicMessageListenerContainerFactory")
     public DefaultJmsListenerContainerFactory topicListenerContainerFactory(ConnectionFactory connectionFactory) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
@@ -166,10 +167,9 @@ public class RdmClientSyncAutoConfiguration {
     }
 
     @Bean
-    public PublishListener publishListener(@Value("${rdm_sync.publish.listener.enable:false}") boolean enable) {
-        if (enable)
-            return new PublishListener(rdmSyncRest());
-        return null;
+    @ConditionalOnProperty(name = "rdm_sync.publish.listener.enable", havingValue = "true")
+    public PublishListener publishListener() {
+        return new PublishListener(rdmSyncRest());
     }
 
 }

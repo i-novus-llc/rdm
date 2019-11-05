@@ -75,9 +75,7 @@ public class PublishServiceImpl implements PublishService {
                               ConflictService conflictService, ReferenceService referenceService,
                               VersionFileService versionFileService, VersionNumberStrategy versionNumberStrategy,
                               VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation,
-                              AuditLogService auditLogService) {
-                              VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation,
-                              @Qualifier("topicJmsTemplate") JmsTemplate jmsTemplate) {
+                              AuditLogService auditLogService, @Qualifier("topicJmsTemplate") JmsTemplate jmsTemplate) {
         this.versionRepository = versionRepository;
 
         this.draftDataService = draftDataService;
