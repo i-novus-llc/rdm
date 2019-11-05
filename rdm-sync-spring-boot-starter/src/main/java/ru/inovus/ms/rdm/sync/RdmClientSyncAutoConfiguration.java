@@ -6,7 +6,6 @@ import net.n2oapp.platform.jaxrs.TypedParamConverter;
 import net.n2oapp.platform.jaxrs.autoconfigure.EnableJaxRsProxyClient;
 import net.n2oapp.platform.jaxrs.autoconfigure.MissingGenericBean;
 import org.apache.activemq.ActiveMQConnectionFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -158,8 +157,7 @@ public class RdmClientSyncAutoConfiguration {
         return new CachingConnectionFactory(activeMQConnectionFactory);
     }
 
-    @Bean
-    @Qualifier("publishTopicMessageListenerContainerFactory")
+    @Bean(name = "publishTopicMessageListenerContainerFactory")
     @ConditionalOnProperty(name = "rdm_sync.publish.listener.enable", havingValue = "true")
     public DefaultJmsListenerContainerFactory topicListenerContainerFactory(ConnectionFactory connectionFactory) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
