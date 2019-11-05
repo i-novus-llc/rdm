@@ -53,6 +53,7 @@ public class AuditLogService {
         }
     }
 
+    @Transactional
     public void addAction(AuditAction action, Object obj) {
         addAction(action, obj, emptyMap());
     }
