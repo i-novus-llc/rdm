@@ -14,7 +14,7 @@ public class EsnsiIntegrationService {
     private static final List<String> CODES = List.of("01-519", "01-245");
 
     @Autowired
-    private EsnsiSmev3Consumer smev3AdapterExchangeService;
+    private EsnsiSmevClient esnsiClient;
 
     public void runIntegration() {
         throw new UnsupportedOperationException();
