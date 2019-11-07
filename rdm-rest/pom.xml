@@ -11,7 +11,7 @@
     <parent>
         <groupId>ru.inovus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
-        <version>1.88-SNAPSHOT</version>
+        <version>1.88</version>
     </parent>
 
     <dependencies>
