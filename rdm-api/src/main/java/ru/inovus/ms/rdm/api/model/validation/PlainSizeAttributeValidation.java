@@ -42,7 +42,7 @@ public class PlainSizeAttributeValidation extends AttributeValidation {
      */
     @Override
     public PlainSizeAttributeValidation valueFromString(String value) {
-        if (value == null || !value.matches("^\\d*$"))
+        if (value == null || !value.matches("\\d+"))
             throw new UserException("attribute.validation.value.invalid");
         size = Integer.parseInt(value);
         return this;
