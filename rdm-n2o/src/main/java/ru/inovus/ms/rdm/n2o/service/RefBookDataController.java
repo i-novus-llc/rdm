@@ -26,19 +26,19 @@ import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.value.DateFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.inovus.ms.rdm.api.service.ConflictService;
-import ru.inovus.ms.rdm.api.service.VersionService;
-import ru.inovus.ms.rdm.n2o.criteria.DataCriteria;
-import ru.inovus.ms.rdm.n2o.model.DataGridColumn;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
-import ru.inovus.ms.rdm.n2o.provider.N2oDomain;
+import ru.inovus.ms.rdm.api.service.ConflictService;
+import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.ConflictUtils;
-import ru.inovus.ms.rdm.n2o.util.RdmUiUtil;
 import ru.inovus.ms.rdm.api.util.TimeUtils;
+import ru.inovus.ms.rdm.n2o.criteria.DataCriteria;
+import ru.inovus.ms.rdm.n2o.model.DataGridColumn;
+import ru.inovus.ms.rdm.n2o.provider.N2oDomain;
+import ru.inovus.ms.rdm.n2o.util.RdmUiUtil;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -46,7 +46,6 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.*;
 
-import static com.google.common.collect.ImmutableMap.of;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
@@ -54,6 +53,9 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
+import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
+import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.EXACT;
+import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.LIKE;
 
 @Component
 public class RefBookDataController {
@@ -132,8 +134,9 @@ public class RefBookDataController {
                     Structure.Attribute attribute = structure.getAttribute(attributeCode);
                     if (attribute == null)
                         throw new IllegalArgumentException("Filter field not found");
-
-                    filters.add(new AttributeFilter(attributeCode, castValue(attribute, v), attribute.getType()));
+                    AttributeFilter attributeFilter = new AttributeFilter(attributeCode, castValue(attribute, v), attribute.getType());
+                    attributeFilter.setSearchType(attribute.getType() == STRING ? LIKE : EXACT);
+                    filters.add(attributeFilter);
                 });
             } catch (Exception e) {
                 throw new UserException("invalid.filter.exception", e);
@@ -167,8 +170,14 @@ public class RefBookDataController {
                 return LocalDate.parse((String) value, TimeUtils.DATE_TIME_PATTERN_EUROPEAN_FORMATTER);
 
             case BOOLEAN:
-                return Boolean.valueOf((String) ((Map) value).get(BOOL_FIELD_ID));
-
+//              Добавим универсальности
+                String bool = ((String) value).toLowerCase();
+                if (bool.matches("true|t|y|yes|yeah|д|да|истина|правда"))
+                    return true;
+                else if (bool.matches("false|f|n|no|nah|н|нет|ложь|неправда"))
+                    return false;
+                else
+                    throw new UserException("invalid.filter.exception");
             default:
                 return value;
         }

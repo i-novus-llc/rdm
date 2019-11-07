@@ -3,8 +3,11 @@ package ru.inovus.ms.rdm.impl.service;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
@@ -59,6 +62,14 @@ public class PublishServiceImpl implements PublishService {
 
     private AuditLogService auditLogService;
 
+    private JmsTemplate jmsTemplate;
+
+    @Value("${rdm.publish.topic:publish_topic}")
+    private String publishTopic;
+
+    @Value("${rdm.enable.publish.topic:false}")
+    private boolean enablePublishTopic;
+
     @Autowired
     @SuppressWarnings("squid:S00107")
     public PublishServiceImpl(RefBookVersionRepository versionRepository,
@@ -67,7 +78,7 @@ public class PublishServiceImpl implements PublishService {
                               ConflictService conflictService, ReferenceService referenceService,
                               VersionFileService versionFileService, VersionNumberStrategy versionNumberStrategy,
                               VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation,
-                              AuditLogService auditLogService) {
+                              AuditLogService auditLogService, @Qualifier("topicJmsTemplate") @Autowired(required = false) JmsTemplate jmsTemplate) {
         this.versionRepository = versionRepository;
 
         this.draftDataService = draftDataService;
@@ -84,6 +95,7 @@ public class PublishServiceImpl implements PublishService {
         this.versionValidation = versionValidation;
         this.versionPeriodPublishValidation = versionPeriodPublishValidation;
         this.auditLogService = auditLogService;
+        this.jmsTemplate = jmsTemplate;
     }
 
     /**
@@ -166,6 +178,8 @@ public class PublishServiceImpl implements PublishService {
             AuditAction.PUBLICATION,
             draftEntity
         );
+        if (enablePublishTopic)
+            jmsTemplate.convertAndSend(publishTopic, draftEntity.getRefBook().getCode());
     }
 
     private RefBookVersionEntity getLastPublishedVersionEntity(RefBookVersionEntity draftVersion) {

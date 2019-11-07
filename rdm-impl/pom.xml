@@ -7,7 +7,7 @@
     <parent>
         <groupId>ru.inovus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
-        <version>1.85-SNAPSHOT</version>
+        <version>1.89-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -125,6 +125,13 @@
             <groupId>ru.i-novus.ms.audit</groupId>
             <artifactId>audit-client-async-spring-boot-starter</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-activemq</artifactId>
+        </dependency>
+
+
     </dependencies>
 
     <build>
