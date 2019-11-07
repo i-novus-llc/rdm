@@ -3,9 +3,13 @@ package ru.inovus.ms.rdm.impl.audit;
 import ru.inovus.ms.rdm.impl.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+
+import static java.util.Collections.emptyList;
 
 class AuditConstants {
 
@@ -26,6 +30,7 @@ class AuditConstants {
         return obj -> {
             RefBookVersionEntity refBookVersion = (RefBookVersionEntity) obj;
             Map<String, Object> m = new HashMap<>();
+            List<PassportValueEntity> passport = refBookVersion.getPassportValues() == null ? emptyList() : refBookVersion.getPassportValues();
             for (String s : keys) {
                 switch (s) {
                     case REFBOOK_CODE_KEY:
@@ -34,14 +39,14 @@ class AuditConstants {
                     case REFBOOK_NAME_KEY:
                         m.put(
                             REFBOOK_NAME_KEY,
-                            refBookVersion.getPassportValues().stream().filter(
+                            passport.stream().filter(
                                 p -> p.getAttribute().getCode().equals(REFBOOK_NAME_KEY)
                         ).findFirst().map(PassportValueEntity::getValue).orElse("NA"));
                         break;
                     case REFBOOK_SHORT_NAME_KEY:
                         m.put(
                             REFBOOK_SHORT_NAME_KEY,
-                            refBookVersion.getPassportValues().stream().filter(
+                                passport.stream().filter(
                                 p -> p.getAttribute().getCode().equals(REFBOOK_SHORT_NAME_KEY)
                         ).findFirst().map(PassportValueEntity::getValue).orElse("NA"));
                         break;

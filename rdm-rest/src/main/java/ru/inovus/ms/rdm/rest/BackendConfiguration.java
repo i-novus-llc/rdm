@@ -2,13 +2,17 @@ package ru.inovus.ms.rdm.rest;
 
 import net.n2oapp.platform.i18n.Messages;
 import net.n2oapp.platform.jaxrs.LocalDateTimeISOParameterConverter;
+import org.apache.activemq.ActiveMQConnectionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.jms.connection.CachingConnectionFactory;
+import org.springframework.jms.core.JmsTemplate;
 import ru.i_novus.ms.audit.client.SourceApplicationAccessor;
 import ru.i_novus.ms.audit.client.UserAccessor;
 import ru.i_novus.ms.audit.client.model.User;
@@ -18,11 +22,16 @@ import ru.inovus.ms.rdm.api.util.FileNameGenerator;
 import ru.inovus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
 import ru.inovus.ms.rdm.rest.util.SecurityContextUtils;
 
+import javax.jms.ConnectionFactory;
+
 @Configuration
 public class BackendConfiguration {
 
     @Autowired
     private FieldFactory fieldFactory;
+
+    @Value("${spring.activemq.broker-url}")
+    private String brokerUrl;
 
     @Bean
     MskUtcLocalDateTimeParamConverter mskUtcLocalDateTimeParamConverter() {
@@ -78,6 +87,23 @@ public class BackendConfiguration {
     @ConditionalOnClass(Messages.class)
     UserExceptionMapper userExceptionMapper(Messages messages) {
         return new UserExceptionMapper(messages);
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "rdm.enable.publish.topic", havingValue = "true")
+    public ConnectionFactory activeMQConnectionFactory() {
+        ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory();
+        activeMQConnectionFactory.setBrokerURL(brokerUrl);
+        return new CachingConnectionFactory(activeMQConnectionFactory);
+    }
+
+    @Bean
+    @Qualifier("topicJmsTemplate")
+    @ConditionalOnProperty(name = "rdm.enable.publish.topic", havingValue = "true")
+    public JmsTemplate topicJmsTemplate() {
+        JmsTemplate jmsTemplate = new JmsTemplate(activeMQConnectionFactory());
+        jmsTemplate.setPubSubDomain(true);
+        return jmsTemplate;
     }
 
     @Bean
