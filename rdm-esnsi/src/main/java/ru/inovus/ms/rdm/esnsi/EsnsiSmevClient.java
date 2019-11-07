@@ -135,7 +135,7 @@ class EsnsiSmevClient {
         return null;
     }
 
-    ResponseDocument getResponse(String messageId) {
+    private ResponseDocument getResponse(String messageId) {
         if (msgBuffer.containsKey(messageId))
             return msgBuffer.get(messageId);
         GetResponseDocument getResponseDocument = objectFactory.createGetResponseDocument();
