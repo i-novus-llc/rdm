@@ -71,6 +71,7 @@ class EsnsiSmevClient {
             REQUEST_CTX = JAXBContext.newInstance(CnsiRequest.class);
             RESPONSE_CTX = JAXBContext.newInstance(CnsiRequest.class);
         } catch (JAXBException e) {
+//          Не выбросится
             throw new RdmException(e);
         }
     }
@@ -134,7 +135,7 @@ class EsnsiSmevClient {
         return null;
     }
 
-     private ResponseDocument getResponse(String messageId) {
+    private ResponseDocument getResponse(String messageId) {
         if (msgBuffer.containsKey(messageId))
             return msgBuffer.get(messageId);
         GetResponseDocument getResponseDocument = objectFactory.createGetResponseDocument();
@@ -144,9 +145,9 @@ class EsnsiSmevClient {
         try {
             ResponseDocument response = getSmevAdapterPort().getResponse(getResponseDocument);
             if (response.getAttachmentContentList() == null && response.getMessageMetadata() == null &&
-                response.getOriginalMessageId() == null && response.getOriginalTransactionCode() == null &&
-                response.getReferenceMessageID() == null && response.getSenderProvidedResponseData() == null &&
-                response.getSmevAdapterFault() == null && response.getSmevTypicalError() == null)
+                    response.getOriginalMessageId() == null && response.getOriginalTransactionCode() == null &&
+                    response.getReferenceMessageID() == null && response.getSenderProvidedResponseData() == null &&
+                    response.getSmevAdapterFault() == null && response.getSmevTypicalError() == null)
                 return null;
             msgBuffer.put(response.getSenderProvidedResponseData().getMessageID(), response);
             if (response.getSenderProvidedResponseData().getMessageID().equals(messageId)) {
