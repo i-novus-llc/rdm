@@ -86,6 +86,7 @@ import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.isVersion
 
 @Primary
 @Service
+@SuppressWarnings("squid:S00104")
 public class DraftServiceImpl implements DraftService {
 
     private static final String ILLEGAL_CREATE_ATTRIBUTE_EXCEPTION_CODE = "Can not update structure, illegal create attribute";

@@ -14,6 +14,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.jms.core.JmsTemplate;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
@@ -112,6 +113,9 @@ public class PublishServiceTest {
 
     @Mock
     private AuditLogService auditLogService;
+
+    @Mock
+    private JmsTemplate jmsTemplate;
 
     @Before
     public void setUp() {
