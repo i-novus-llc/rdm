@@ -44,7 +44,7 @@ public class IntRangeAttributeValidation extends AttributeValidation {
 
     @Override
     public IntRangeAttributeValidation valueFromString(String value) {
-        if (value == null || !value.matches("^(-?\\d+)*;(-?\\d+)*$"))
+        if (value == null || !value.matches("(-?\\d+)?;(-?\\d+)?"))
             throw new UserException("attribute.validation.value.invalid");
         String[] split = value.split(";");
         if (!StringUtils.isEmpty(split[0]))
