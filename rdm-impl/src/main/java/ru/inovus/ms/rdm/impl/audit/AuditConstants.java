@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.impl.audit;
 import ru.inovus.ms.rdm.impl.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
