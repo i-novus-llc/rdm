@@ -88,9 +88,11 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void update(String refBookCode) {
         try {
-            RefBook newVersion = getNewVersionFromRdm(refBookCode);
-            VersionMapping versionMapping = getVersionMapping(refBookCode);
-            update(newVersion, versionMapping);
+            if (dao.getVersionMapping(refBookCode) != null) {
+                RefBook newVersion = getNewVersionFromRdm(refBookCode);
+                VersionMapping versionMapping = getVersionMapping(refBookCode);
+                update(newVersion, versionMapping);
+            }
         } catch (RuntimeException ex) {
             logger.error(String.format(ERROR_WHILE_FETCHING_NEW_VERSION, refBookCode), ex);
             loggingService.logError(refBookCode, null, null, ex.getMessage(), ExceptionUtils.getStackTrace(ex));

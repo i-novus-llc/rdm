@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.ms.audit.client.AuditClient;
 import ru.i_novus.ms.audit.client.model.AuditClientRequest;
 import ru.inovus.ms.rdm.api.exception.RdmException;
@@ -52,11 +53,13 @@ public class AuditLogService {
         }
     }
 
-    void addAction(AuditAction action, Object obj) {
+    @Transactional
+    public void addAction(AuditAction action, Object obj) {
         addAction(action, obj, emptyMap());
     }
 
-    void addAction(AuditAction action, Object obj, Map<String, Object> additionalContext) {
+    @Transactional
+    public void addAction(AuditAction action, Object obj, Map<String, Object> additionalContext) {
         if (!disabledActions.contains(action)) {
             AuditClientRequest request = new AuditClientRequest();
             request.setEventDate(LocalDateTime.now(Clock.systemUTC()));

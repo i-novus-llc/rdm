@@ -324,7 +324,7 @@ public class RefBookServiceImpl implements RefBookService {
         List<Structure.Attribute> primaryAttributes = (structure != null) ? structure.getPrimary() : null;
         model.setHasPrimaryAttribute(!CollectionUtils.isEmpty(primaryAttributes));
 
-        model.setHasReferrer(!hasReferrerVersions(model.getCode()));
+        model.setHasReferrer(hasReferrerVersions(model.getCode()));
 
         // NB: List<boolean> isConflict by ConflictType filled by one query.
         boolean hasUpdatedConflict = conflictRepository.existsByReferrerVersionIdAndConflictType(model.getId(), ConflictType.UPDATED);

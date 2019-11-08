@@ -1,13 +1,11 @@
-# n2o-config-domrf
+# n2o-config-rdm
 
-> N2O конфигурация для проекта ДОМ.РФ
-
-[![NPM](https://img.shields.io/npm/v/n2o-config-domrf.svg)](https://www.npmjs.com/package/n2o-config-domrf) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+> N2O конфигурация для проекта RDM
 
 ## Install
 
 ```bash
-npm install --save n2o-config-domrf
+npm install --save n2o-config-rdm
 ```
 
 ## Usage
@@ -15,7 +13,7 @@ npm install --save n2o-config-domrf
 ```jsx
 import React, { Component } from 'react'
 
-import MyComponent from 'n2o-config-domrf'
+import MyComponent from 'n2o-config-rdm'
 
 class Example extends Component {
   render () {
@@ -25,7 +23,3 @@ class Example extends Component {
   }
 }
 ```
-
-## License
-
-MIT © [emamoshin](https://github.com/emamoshin)

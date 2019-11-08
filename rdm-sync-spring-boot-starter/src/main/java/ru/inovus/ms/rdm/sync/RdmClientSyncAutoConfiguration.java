@@ -5,15 +5,21 @@ import net.n2oapp.platform.jaxrs.LocalDateTimeISOParameterConverter;
 import net.n2oapp.platform.jaxrs.TypedParamConverter;
 import net.n2oapp.platform.jaxrs.autoconfigure.EnableJaxRsProxyClient;
 import net.n2oapp.platform.jaxrs.autoconfigure.MissingGenericBean;
+import org.apache.activemq.ActiveMQConnectionFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.jms.annotation.EnableJms;
+import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
+import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.util.StringUtils;
 import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.api.provider.*;
@@ -24,6 +30,7 @@ import ru.inovus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
 import ru.inovus.ms.rdm.sync.service.*;
 
+import javax.jms.ConnectionFactory;
 import javax.sql.DataSource;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -40,7 +47,11 @@ import java.time.OffsetDateTime;
         address = "${rdm.client.sync.url}"
 )
 @AutoConfigureAfter(LiquibaseAutoConfiguration.class)
+@EnableJms
 public class RdmClientSyncAutoConfiguration {
+
+    @Value("${spring.activemq.broker-url}")
+    private String brokerUrl;
 
     @Bean
     @ConditionalOnMissingBean
@@ -135,6 +146,30 @@ public class RdmClientSyncAutoConfiguration {
     @ConditionalOnMissingBean
     public RdmMapperConfigurer rdmMapperConfigurer() {
         return new RdmMapperConfigurer();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(value = ConnectionFactory.class)
+    @ConditionalOnProperty(name = "rdm_sync.publish.listener.enable", havingValue = "true")
+    public ConnectionFactory activeMQConnectionFactory() {
+        ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory();
+        activeMQConnectionFactory.setBrokerURL(brokerUrl);
+        return new CachingConnectionFactory(activeMQConnectionFactory);
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "rdm_sync.publish.listener.enable", havingValue = "true")
+    public DefaultJmsListenerContainerFactory publishDictionaryTopicMessageListenerContainerFactory(ConnectionFactory connectionFactory) {
+        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory);
+        factory.setPubSubDomain(true);
+        return factory;
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "rdm_sync.publish.listener.enable", havingValue = "true")
+    public PublishListener publishListener() {
+        return new PublishListener(rdmSyncRest());
     }
 
     @Bean
