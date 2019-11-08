@@ -44,7 +44,7 @@ public class FloatRangeAttributeValidation extends AttributeValidation {
 
     @Override
     public FloatRangeAttributeValidation valueFromString(String value) {
-        if (value == null || !value.matches("^(-?\\d+\\.\\d+)*;(-?\\d+\\.\\d+)*$"))
+        if (value == null || !value.matches("(-?((\\d*\\.)?\\d+))?;(-?((\\d*\\.)?\\d+))?"))
             throw new UserException("attribute.validation.value.invalid");
         String[] split = value.split(";");
         if (!StringUtils.isEmpty(split[0]))
