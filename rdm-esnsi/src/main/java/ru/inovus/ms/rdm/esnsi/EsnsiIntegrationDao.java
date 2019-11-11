@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierRevisionListResponseType;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierStructureResponseType;
@@ -21,6 +22,7 @@ import java.util.stream.IntStream;
 import static java.util.stream.Collectors.joining;
 
 @Component
+@Repository
 class EsnsiIntegrationDao {
 
     private static final Logger logger = LoggerFactory.getLogger(EsnsiIntegrationDao.class);
@@ -40,7 +42,7 @@ class EsnsiIntegrationDao {
     private JdbcTemplate jdbcTemplate;
 
     @Transactional
-    public Integer getLastVersionRevision(String code) {
+    public Integer getLastVersionRevisionAndCreateNewIfNecessary(String code) {
         final boolean[] contains = new boolean[1];
         Integer revision = jdbcTemplate.queryForObject(
             "SELECT code, revision FROM esnsi_sync.version WHERE code = ?1",

@@ -99,7 +99,7 @@ public class EsnsiSyncTest {
             return Map.entry(revisionList, EMPTY_INPUT_STREAM);
         });
 
-        when(dao.getLastVersionRevision(any())).thenReturn(1);
+        when(dao.getLastVersionRevisionAndCreateNewIfNecessary(any())).thenReturn(1);
 
         when(esnsiSmevClient.sendRequest(any(GetClassifierStructureRequestType.class), any())).then(invocation -> {
             AcceptRequestDocument getStructureAcceptRequest = objectFactory.createAcceptRequestDocument();
