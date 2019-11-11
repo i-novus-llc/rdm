@@ -17,7 +17,7 @@ public interface EsnsiIntegrationService {
 
     @POST
     @Path("/update")
-    @ApiOperation(value = "Асинхронная синхронизация всех справочников")
+    @ApiOperation(value = "Синхронизация всех справочников")
     void update();
 
 }
