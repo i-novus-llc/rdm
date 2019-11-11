@@ -14,6 +14,9 @@
                 struct VARCHAR,
                 last_updated TIMESTAMP WITHOUT TIME ZONE
             );
+            CREATE TABLE esnsi_sync.processed_page (
+                page INTEGER
+            );
             CREATE SCHEMA esnsi_data;
         </sql>
     </changeSet>
