@@ -13,7 +13,7 @@
     <parent>
         <groupId>ru.inovus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
-        <version>1.85-SNAPSHOT</version>
+        <version>1.89-SNAPSHOT</version>
     </parent>
 
     <dependencies>
@@ -45,10 +45,6 @@
             <groupId>jakarta.jws</groupId>
             <artifactId>jakarta.jws-api</artifactId>
             <version>1.1.1</version>
-        </dependency>
-        <dependency>
-            <groupId>ru.inovus.ms.rdm</groupId>
-            <artifactId>rdm-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
