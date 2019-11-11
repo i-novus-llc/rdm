@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.esnsi;
 
-import org.quartz.*;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,10 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 
 @Service
@@ -35,26 +39,6 @@ public class EsnsiIntegrationServiceImpl implements EsnsiIntegrationService {
         } catch (SchedulerException e) {
             logger.error("Can't start esnsi integration job.", e);
         }
-    }
-
-    static class IntegrationJob implements Job {
-
-        private static final Logger logger = LoggerFactory.getLogger(IntegrationJob.class);
-
-        @Override
-        public void execute(JobExecutionContext context) throws JobExecutionException {
-            EsnsiSmevClient esnsiSmevClient;
-            try {
-                esnsiSmevClient = (EsnsiSmevClient) context.getScheduler().getContext().get(EsnsiSmevClient.class.getSimpleName());
-            } catch (SchedulerException e) {
-                logger.error("Can't get EsnsiSmevClient bean. Shutting down.", e);
-                return;
-            }
-            SmevAdapterQueueReader reader = new SmevAdapterQueueReader(esnsiSmevClient);
-            Executors.newSingleThreadScheduledExecutor().execute(reader);
-            reader.shutdown();
-        }
-
     }
 
     private static class SmevAdapterQueueReader implements Runnable {

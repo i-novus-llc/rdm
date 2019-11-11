@@ -57,7 +57,7 @@ public class EsnsiSyncConfig {
 
     private JobDetail getEsnsiSyncJob(List<String> codes) {
         JobKey jobKey = getEsnsiSyncJobKey();
-        JobBuilder jb = JobBuilder.newJob(EsnsiIntegrationServiceImpl.IntegrationJob.class);
+        JobBuilder jb = JobBuilder.newJob(EsnsiIntegrationJob.class);
         jb.withIdentity(jobKey);
         for (String code : codes)
             jb.usingJobData(code, true);
