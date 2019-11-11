@@ -30,10 +30,8 @@ public class EsnsiIntegrationServiceImpl implements EsnsiIntegrationService {
 
     @Override
     public void update() {
-        JobDetail esnsiSyncJob = EsnsiSyncConfig.getEsnsiSyncJob(codes);
         try {
-            scheduler.addJob(esnsiSyncJob, false);
-            scheduler.triggerJob(esnsiSyncJob.getKey());
+            scheduler.triggerJob(EsnsiSyncConfig.getEsnsiSyncJobKey());
         } catch (SchedulerException e) {
             logger.error("Can't start esnsi integration job.", e);
         }
@@ -54,6 +52,7 @@ public class EsnsiIntegrationServiceImpl implements EsnsiIntegrationService {
             }
             SmevAdapterQueueReader reader = new SmevAdapterQueueReader(esnsiSmevClient);
             Executors.newSingleThreadScheduledExecutor().execute(reader);
+            reader.shutdown();
         }
 
     }

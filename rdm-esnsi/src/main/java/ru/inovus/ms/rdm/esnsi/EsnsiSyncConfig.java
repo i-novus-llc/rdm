@@ -55,8 +55,8 @@ public class EsnsiSyncConfig {
         return factory;
     }
 
-    public static JobDetail getEsnsiSyncJob(List<String> codes) {
-        JobKey jobKey = JobKey.jobKey("esnsi-sync");
+    private JobDetail getEsnsiSyncJob(List<String> codes) {
+        JobKey jobKey = getEsnsiSyncJobKey();
         JobBuilder jb = JobBuilder.newJob(EsnsiIntegrationServiceImpl.IntegrationJob.class);
         jb.withIdentity(jobKey);
         for (String code : codes)
@@ -64,5 +64,12 @@ public class EsnsiSyncConfig {
         jb.storeDurably();
         return jb.build();
     }
+
+    static JobKey getEsnsiSyncJobKey() {
+        return JobKey.jobKey("esnsi-sync");
+    }
+
+
+
 
 }
