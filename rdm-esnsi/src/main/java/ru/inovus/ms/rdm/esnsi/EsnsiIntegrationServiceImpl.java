@@ -32,7 +32,7 @@ public class EsnsiIntegrationServiceImpl implements EsnsiIntegrationService {
     public void update() {
         JobDetail esnsiSyncJob = EsnsiSyncConfig.getEsnsiSyncJob(codes);
         try {
-            scheduler.addJob(esnsiSyncJob, true);
+            scheduler.addJob(esnsiSyncJob, false);
             scheduler.triggerJob(esnsiSyncJob.getKey());
         } catch (SchedulerException e) {
             logger.error("Can't start esnsi integration job.", e);

@@ -32,17 +32,13 @@ public class EsnsiSyncConfig {
         SchedulerFactoryBean factory = new SchedulerFactoryBean();
         factory.setDataSource(dataSource);
         factory.setAutoStartup(true);
-        factory.setOverwriteExistingJobs(true);
-        JobDetail[] jobDetails = {
-            getEsnsiSyncJob(codes)
-        };
+        factory.setOverwriteExistingJobs(false);
         Trigger[] triggers = {
-            TriggerBuilder.newTrigger().forJob(jobDetails[0])
+            TriggerBuilder.newTrigger().forJob(getEsnsiSyncJob(codes))
             .withIdentity("esnsi-sync")
             .withSchedule(cronSchedule(esnsiSyncCronExpression))
             .build()
         };
-        factory.setJobDetails(jobDetails);
         factory.setTriggers(triggers);
         Map<String, Object> jobBeans = new HashMap<>();
         jobBeans.put(EsnsiSmevClient.class.getSimpleName(), esnsiSmevClient);
@@ -56,7 +52,7 @@ public class EsnsiSyncConfig {
         jb.withIdentity(jobKey);
         for (String code : codes)
             jb.usingJobData(code, true);
-        jb.storeDurably(false);
+        jb.storeDurably();
         return jb.build();
     }
 
