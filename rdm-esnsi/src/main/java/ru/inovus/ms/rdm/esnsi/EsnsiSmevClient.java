@@ -50,19 +50,6 @@ class EsnsiSmevClient {
     private static final String WSDL_URL = "./wsdl/adapter/v1_2/smev-service-adapter-1.2.wsdl";
     private static final QName SERVICE_QNAME = new QName("urn://x-artefacts-gov-ru/services/message-exchange/1.2", "SmevAdapterMessageExchangeService");
 
-    @Value("${esnsi.smev-adapter.ws.url}")
-    private String endpointURL;
-
-    @Value("${esnsi.http.client.policy.timeout.receive}")
-    private int receiveTimeout;
-
-    @Value("${esnsi.http.client.policy.timeout.connection}")
-    private int connectionTimeout;
-
-    private final ObjectFactory objectFactory = new ObjectFactory();
-
-    private final Map<String, ResponseDocument> msgBuffer = new HashMap<>();
-
     private static final JAXBContext REQUEST_CTX;
     private static final JAXBContext RESPONSE_CTX;
 
@@ -74,6 +61,28 @@ class EsnsiSmevClient {
 //          Не выбросится
             throw new RdmException(e);
         }
+    }
+
+    private SmevAdapterMessageExchangePortType port;
+
+    private final ObjectFactory objectFactory = new ObjectFactory();
+
+    private final Map<String, ResponseDocument> msgBuffer = new HashMap<>();
+
+    public EsnsiSmevClient(@Value("${esnsi.smev-adapter.ws.url}") String endpointURL,
+                           @Value("${esnsi.http.client.policy.timeout.receive}") int receiveTimeout,
+                           @Value("${esnsi.http.client.policy.timeout.connection}") int connectionTimeout) {
+        port = getServicePortType();
+        initApacheCxfConfig(port);
+        BindingProvider bp = (BindingProvider) port;
+        setMTOMEnabled(port);
+        setEndpointURL(bp, endpointURL);
+        Client cxfClient = ClientProxy.getClient(port);
+        setInterceptors(cxfClient);
+        HTTPConduit httpConduit = (HTTPConduit) cxfClient.getConduit();
+        HTTPClientPolicy policy = httpConduit.getClient();
+        policy.setReceiveTimeout(receiveTimeout);
+        policy.setConnectionTimeout(connectionTimeout);
     }
 
     AcceptRequestDocument sendRequest(Object requestData, String messageId) {
@@ -96,7 +105,7 @@ class EsnsiSmevClient {
         messagePrimaryContent.setAny(doc.getDocumentElement());
         sendRequestDocument.setMessagePrimaryContent(messagePrimaryContent);
         try {
-            return getSmevAdapterPort().sendRequest(sendRequestDocument);
+            return port.sendRequest(sendRequestDocument);
         } catch (SmevAdapterFailureException ex) {
             logger.error("Error occurred while sending request message through SMEV3.", ex);
             return null;
@@ -143,7 +152,7 @@ class EsnsiSmevClient {
         messageTypeSelector.setNamespaceURI(NAMESPACE_URI);
         getResponseDocument.setMessageTypeSelector(messageTypeSelector);
         try {
-            ResponseDocument response = getSmevAdapterPort().getResponse(getResponseDocument);
+            ResponseDocument response = port.getResponse(getResponseDocument);
             if (response.getAttachmentContentList() == null && response.getMessageMetadata() == null &&
                 response.getOriginalMessageId() == null && response.getOriginalTransactionCode() == null &&
                 response.getReferenceMessageID() == null && response.getSenderProvidedResponseData() == null &&
@@ -199,27 +208,13 @@ class EsnsiSmevClient {
         AckRequest ackRequest = objectFactory.createAckRequest();
         ackRequest.setValue(messageId);
         try {
-            getSmevAdapterPort().ack(ackRequest);
+            port.ack(ackRequest);
+            logger.info("Successfully acknowledged adapter about processing message with id {}", messageId);
             return true;
         } catch (SmevAdapterFailureException | TargetMessageIsNotFoundException e) {
             logger.error("Error occurred while sending acknowledge message to SMEV3.", e);
             return false;
         }
-    }
-
-    private SmevAdapterMessageExchangePortType getSmevAdapterPort() {
-        SmevAdapterMessageExchangePortType port = getServicePortType();
-        initApacheCxfConfig(port);
-        BindingProvider bp = (BindingProvider) port;
-        setMTOMEnabled(port);
-        setEndpointURL(bp, endpointURL);
-        Client cxfClient = ClientProxy.getClient(port);
-        setInterceptors(cxfClient);
-        HTTPConduit httpConduit = (HTTPConduit) cxfClient.getConduit();
-        HTTPClientPolicy policy = httpConduit.getClient();
-        policy.setReceiveTimeout(receiveTimeout);
-        policy.setConnectionTimeout(connectionTimeout);
-        return port;
     }
 
     private SmevAdapterMessageExchangePortType getServicePortType() {

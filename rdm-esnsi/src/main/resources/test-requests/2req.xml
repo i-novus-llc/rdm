@@ -1,5 +1,0 @@
-<tns:CnsiRequest xmlns:tns="urn://x-artefacts-smev-gov-ru/esnsi/smev-integration/read/2.0.1">
-    <tns:ListClassifierGroups>
-        <tns:GroupDescriptorList>true</tns:GroupDescriptorList>
-    </tns:ListClassifierGroups>
-</tns:CnsiRequest>

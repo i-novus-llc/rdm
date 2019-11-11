@@ -1,7 +1,0 @@
-<tns:CnsiRequest xmlns:tns="urn://x-artefacts-smev-gov-ru/esnsi/smev-integration/read/2.0.1">
-    <tns:GetClassifierRevisionList>
-        <tns:code>test_03</tns:code>
-        <tns:pageSize>100</tns:pageSize>
-        <tns:startFrom>0</tns:startFrom>
-    </tns:GetClassifierRevisionList>
-</tns:CnsiRequest>
