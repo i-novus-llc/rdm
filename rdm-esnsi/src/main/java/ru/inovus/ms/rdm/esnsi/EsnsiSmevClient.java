@@ -111,38 +111,21 @@ class EsnsiSmevClient {
             return null;
         }
     }
-
     <T> Map.Entry<T, InputStream> getResponse(Class<T> tClass, String messageId) {
-        return getResponse(tClass, messageId, 300, 1000);
-    }
-
-    <T> Map.Entry<T, InputStream> getResponse(Class<T> tClass, String messageId, int numRetries, int sleepMillis) {
-        ResponseDocument responseDocument;
-        int n = 0;
-        do {
-            responseDocument = getResponse(messageId);
-            if (responseDocument != null) {
-                InputStream inputStream = null;
-                if (responseDocument.getAttachmentContentList() != null) {
-                    List<AttachmentContentType> attachmentContent = responseDocument.getAttachmentContentList().getAttachmentContent();
-                    if (!attachmentContent.isEmpty()) {
-                        try {
-                            inputStream = attachmentContent.iterator().next().getContent().getInputStream();
-                        } catch (IOException e) {
-                            logger.error("Cannot extract input stream from message attachment.", e);
-                            throw new RdmException(e);
-                        }
-                    }
+        ResponseDocument responseDocument = getResponse(messageId);
+        if (responseDocument != null) {
+            InputStream inputStream = null;
+            List<AttachmentContentType> attachmentContent = responseDocument.getAttachmentContentList().getAttachmentContent();
+            if (!attachmentContent.isEmpty()) {
+                try {
+                    inputStream = attachmentContent.iterator().next().getContent().getInputStream();
+                } catch (IOException e) {
+                    logger.error("Cannot extract input stream from message attachment.", e);
+                    throw new RdmException(e);
                 }
-                return Map.entry(extractResponse(responseDocument, tClass), inputStream == null ? EMPTY_INPUT_STREAM : inputStream);
             }
-            try {
-                Thread.sleep(sleepMillis);
-            } catch (InterruptedException e) {
-                logger.error("Thread was unexpectedly interrupted.", e);
-                throw new RdmException(e);
-            }
-        } while (++n < numRetries);
+            return Map.entry(extractResponse(responseDocument, tClass), inputStream == null ? EMPTY_INPUT_STREAM : inputStream);
+        }
         return null;
     }
 
