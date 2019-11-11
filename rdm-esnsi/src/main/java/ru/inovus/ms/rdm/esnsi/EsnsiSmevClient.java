@@ -58,7 +58,7 @@ class EsnsiSmevClient {
             RESPONSE_CTX = JAXBContext.newInstance(CnsiResponse.class);
         } catch (JAXBException e) {
 //          Не выбросится
-            throw new RuntimeException(e);
+            throw new EsnsiSyncException(e);
         }
     }
 
@@ -98,7 +98,7 @@ class EsnsiSmevClient {
             REQUEST_CTX.createMarshaller().marshal(requestData, domResult);
         } catch (JAXBException ex) {
             logger.error("Unable to create request from given request data: {}", requestData, ex);
-            throw new RuntimeException(ex);
+            throw new EsnsiSyncException(ex);
         }
         Document doc = (Document) domResult.getNode();
         messagePrimaryContent.setAny(doc.getDocumentElement());
@@ -120,7 +120,7 @@ class EsnsiSmevClient {
                     inputStream = attachmentContent.iterator().next().getContent().getInputStream();
                 } catch (IOException e) {
                     logger.error("Cannot extract input stream from message attachment.", e);
-                    throw new RuntimeException(e);
+                    throw new EsnsiSyncException(e);
                 }
             }
             return Map.entry(extractResponse(responseDocument), inputStream == null ? EMPTY_INPUT_STREAM : inputStream);
@@ -183,7 +183,7 @@ class EsnsiSmevClient {
             return (CnsiResponse) unmarshal;
         } catch (JAXBException e) {
             logger.error("Error while parsing response from SMEV3 adapter. Unknown format.", e);
-            throw new RuntimeException(e);
+            throw new EsnsiSyncException(e);
         }
     }
 
