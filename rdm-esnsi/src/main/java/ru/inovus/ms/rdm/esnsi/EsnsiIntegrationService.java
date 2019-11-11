@@ -1,23 +1,23 @@
 package ru.inovus.ms.rdm.esnsi;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
-import java.util.List;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 
-@Service
-public class EsnsiIntegrationService {
+@Path("esnsi")
+@Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
+@Api("Синхронизация с ЕСНСИ")
+public interface EsnsiIntegrationService {
 
-    /**
-     * Идентификаторы справочников, которые забираем из ЕСНСИ.
-     */
-    private static final List<String> CODES = List.of("01-519", "01-245");
-
-    @Autowired
-    private EsnsiSmevClient esnsiClient;
-
-    public void runIntegration() {
-        throw new UnsupportedOperationException();
-    }
+    @POST
+    @Path("/update")
+    @ApiOperation(value = "Асинхронная синхронизация всех справочников")
+    void update();
 
 }

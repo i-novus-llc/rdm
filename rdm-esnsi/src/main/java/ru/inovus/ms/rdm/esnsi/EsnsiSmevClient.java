@@ -111,36 +111,21 @@ class EsnsiSmevClient {
             return null;
         }
     }
-
     <T> Map.Entry<T, InputStream> getResponse(Class<T> tClass, String messageId) {
-        return getResponse(tClass, messageId, 60, 1000);
-    }
-
-    <T> Map.Entry<T, InputStream> getResponse(Class<T> tClass, String messageId, int numRetries, int sleepMillis) {
-        ResponseDocument responseDocument;
-        int n = 0;
-        do {
-            responseDocument = getResponse(messageId);
-            if (responseDocument != null) {
-                InputStream inputStream = null;
-                List<AttachmentContentType> attachmentContent = responseDocument.getAttachmentContentList().getAttachmentContent();
-                if (!attachmentContent.isEmpty()) {
-                    try {
-                        inputStream = attachmentContent.iterator().next().getContent().getInputStream();
-                    } catch (IOException e) {
-                        logger.error("Cannot extract input stream from message attachment.", e);
-                        throw new RdmException(e);
-                    }
+        ResponseDocument responseDocument = getResponse(messageId);
+        if (responseDocument != null) {
+            InputStream inputStream = null;
+            List<AttachmentContentType> attachmentContent = responseDocument.getAttachmentContentList().getAttachmentContent();
+            if (!attachmentContent.isEmpty()) {
+                try {
+                    inputStream = attachmentContent.iterator().next().getContent().getInputStream();
+                } catch (IOException e) {
+                    logger.error("Cannot extract input stream from message attachment.", e);
+                    throw new RdmException(e);
                 }
-                return Map.entry(extractResponse(responseDocument, tClass), inputStream == null ? EMPTY_INPUT_STREAM : inputStream);
             }
-            try {
-                Thread.sleep(sleepMillis);
-            } catch (InterruptedException e) {
-                logger.error("Thread was unexpectedly interrupted.", e);
-                throw new RdmException(e);
-            }
-        } while (++n < numRetries);
+            return Map.entry(extractResponse(responseDocument, tClass), inputStream == null ? EMPTY_INPUT_STREAM : inputStream);
+        }
         return null;
     }
 
@@ -190,6 +175,29 @@ class EsnsiSmevClient {
             cnsiRequest.setListClassifiers((ListClassifiersRequestType) requestData);
         else
             throw new IllegalArgumentException("Invalid request type: " + requestData);
+    }
+
+    private <T> T getRequest(CnsiResponse response, Class<T> c) {
+        if (c == GetAvailableIncrementResponseType.class)
+            return c.cast(response.getGetAvailableIncrement());
+        else if (c == GetChecksumInfoResponseType.class)
+            return c.cast(response.getGetChecksumInfo());
+        else if (c == GetClassifierDataResponseType.class)
+            return c.cast(response.getGetClassifierData());
+        else if (c == GetClassifierRecordsCountResponseType.class)
+            return c.cast(response.getGetClassifierRecordsCount());
+        else if (c == GetClassifierRevisionListResponseType.class)
+            return c.cast(response.getGetClassifierRevisionList());
+        else if (c == GetClassifierRevisionsCountResponseType.class)
+            return c.cast(response.getGetClassifierRevisionsCount());
+        else if (c == GetClassifierStructureResponseType.class)
+            return c.cast(response.getGetClassifierStructure());
+        else if (c == ListClassifierGroupsResponseType.class)
+            return c.cast(response.getListClassifierGroups());
+        else if (c == ListClassifiersResponseType.class)
+            return c.cast(response.getListClassifiers());
+        else
+            throw new IllegalArgumentException("Invalid response type: " + c);
     }
 
     private <T> T extractResponse(ResponseDocument responseDocument, Class<T> c) {
