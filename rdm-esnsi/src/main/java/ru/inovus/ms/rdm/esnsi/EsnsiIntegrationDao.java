@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierRevisionListResponseType;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierStructureResponseType;
 
@@ -33,7 +32,7 @@ class EsnsiIntegrationDao {
             STRUCT_CTX = JAXBContext.newInstance(GetClassifierStructureResponseType.class);
         } catch (JAXBException e) {
 //          Не выбросится
-            throw new RdmException(e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -93,7 +92,7 @@ class EsnsiIntegrationDao {
             structRaw = sw.toString();
         } catch (JAXBException e) {
 //          Никогда не выбросится
-            throw new RdmException(e);
+            throw new RuntimeException(e);
         }
         String q = "INSERT INTO esnsi_sync.version (code, revision, struct, last_updated) VALUES (?1, ?2, ?3, ?4) " +
                 "ON CONFLICT (code) DO UPDATE SET revision = ?2, struct = ?3, last_updated = ?4;";
