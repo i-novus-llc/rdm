@@ -56,7 +56,7 @@ class EsnsiSmevClient {
     static {
         try {
             REQUEST_CTX = JAXBContext.newInstance(CnsiRequest.class);
-            RESPONSE_CTX = JAXBContext.newInstance(CnsiRequest.class);
+            RESPONSE_CTX = JAXBContext.newInstance(CnsiResponse.class);
         } catch (JAXBException e) {
 //          Не выбросится
             throw new RdmException(e);
@@ -113,7 +113,7 @@ class EsnsiSmevClient {
     }
 
     <T> Map.Entry<T, InputStream> getResponse(Class<T> tClass, String messageId) {
-        return getResponse(tClass, messageId, 60, 1000);
+        return getResponse(tClass, messageId, 300, 1000);
     }
 
     <T> Map.Entry<T, InputStream> getResponse(Class<T> tClass, String messageId, int numRetries, int sleepMillis) {
@@ -123,13 +123,15 @@ class EsnsiSmevClient {
             responseDocument = getResponse(messageId);
             if (responseDocument != null) {
                 InputStream inputStream = null;
-                List<AttachmentContentType> attachmentContent = responseDocument.getAttachmentContentList().getAttachmentContent();
-                if (!attachmentContent.isEmpty()) {
-                    try {
-                        inputStream = attachmentContent.iterator().next().getContent().getInputStream();
-                    } catch (IOException e) {
-                        logger.error("Cannot extract input stream from message attachment.", e);
-                        throw new RdmException(e);
+                if (responseDocument.getAttachmentContentList() != null) {
+                    List<AttachmentContentType> attachmentContent = responseDocument.getAttachmentContentList().getAttachmentContent();
+                    if (!attachmentContent.isEmpty()) {
+                        try {
+                            inputStream = attachmentContent.iterator().next().getContent().getInputStream();
+                        } catch (IOException e) {
+                            logger.error("Cannot extract input stream from message attachment.", e);
+                            throw new RdmException(e);
+                        }
                     }
                 }
                 return Map.entry(extractResponse(responseDocument, tClass), inputStream == null ? EMPTY_INPUT_STREAM : inputStream);
@@ -154,9 +156,9 @@ class EsnsiSmevClient {
         try {
             ResponseDocument response = port.getResponse(getResponseDocument);
             if (response.getAttachmentContentList() == null && response.getMessageMetadata() == null &&
-                response.getOriginalMessageId() == null && response.getOriginalTransactionCode() == null &&
-                response.getReferenceMessageID() == null && response.getSenderProvidedResponseData() == null &&
-                response.getSmevAdapterFault() == null && response.getSmevTypicalError() == null)
+                    response.getOriginalMessageId() == null && response.getOriginalTransactionCode() == null &&
+                    response.getReferenceMessageID() == null && response.getSenderProvidedResponseData() == null &&
+                    response.getSmevAdapterFault() == null && response.getSmevTypicalError() == null)
                 return null;
             msgBuffer.put(response.getSenderProvidedResponseData().getMessageID(), response);
             if (response.getSenderProvidedResponseData().getMessageID().equals(messageId)) {
@@ -192,11 +194,34 @@ class EsnsiSmevClient {
             throw new IllegalArgumentException("Invalid request type: " + requestData);
     }
 
+    private <T> T getRequest(CnsiResponse response, Class<T> c) {
+        if (c == GetAvailableIncrementResponseType.class)
+            return c.cast(response.getGetAvailableIncrement());
+        else if (c == GetChecksumInfoResponseType.class)
+            return c.cast(response.getGetChecksumInfo());
+        else if (c == GetClassifierDataResponseType.class)
+            return c.cast(response.getGetClassifierData());
+        else if (c == GetClassifierRecordsCountResponseType.class)
+            return c.cast(response.getGetClassifierRecordsCount());
+        else if (c == GetClassifierRevisionListResponseType.class)
+            return c.cast(response.getGetClassifierRevisionList());
+        else if (c == GetClassifierRevisionsCountResponseType.class)
+            return c.cast(response.getGetClassifierRevisionsCount());
+        else if (c == GetClassifierStructureResponseType.class)
+            return c.cast(response.getGetClassifierStructure());
+        else if (c == ListClassifierGroupsResponseType.class)
+            return c.cast(response.getListClassifierGroups());
+        else if (c == ListClassifiersResponseType.class)
+            return c.cast(response.getListClassifiers());
+        else
+            throw new IllegalArgumentException("Invalid response type: " + c);
+    }
+
     private <T> T extractResponse(ResponseDocument responseDocument, Class<T> c) {
         Element any = responseDocument.getSenderProvidedResponseData().getMessagePrimaryContent().getAny();
         try {
             Object unmarshal = RESPONSE_CTX.createUnmarshaller().unmarshal(any);
-            return c.cast(unmarshal);
+            return getRequest((CnsiResponse) unmarshal, c);
         } catch (JAXBException e) {
             logger.error("Error while parsing response from SMEV3 adapter. Unknown format.", e);
             throw new RdmException(e);
