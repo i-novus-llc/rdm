@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import static org.quartz.CronScheduleBuilder.cronSchedule;
 
@@ -30,15 +31,23 @@ public class EsnsiSyncConfig {
     @Bean
     public SchedulerFactoryBean schedulerFactoryBean(DataSource dataSource) throws IOException {
         SchedulerFactoryBean factory = new SchedulerFactoryBean();
+        Properties properties = new Properties();
+        properties.put("org.quartz.jobStore.driverDelegateClass", "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate");
+        properties.put("org.quartz.jobStore.isClustered", true);
+        factory.setQuartzProperties(properties);
         factory.setDataSource(dataSource);
         factory.setAutoStartup(true);
         factory.setOverwriteExistingJobs(false);
+        JobDetail[] jobDetails = {
+            getEsnsiSyncJob(codes)
+        };
         Trigger[] triggers = {
-            TriggerBuilder.newTrigger().forJob(getEsnsiSyncJob(codes))
-            .withIdentity("esnsi-sync")
+            TriggerBuilder.newTrigger().forJob(jobDetails[0])
+            .withIdentity(jobDetails[0].getKey().getName())
             .withSchedule(cronSchedule(esnsiSyncCronExpression))
             .build()
         };
+        factory.setJobDetails(jobDetails);
         factory.setTriggers(triggers);
         Map<String, Object> jobBeans = new HashMap<>();
         jobBeans.put(EsnsiSmevClient.class.getSimpleName(), esnsiSmevClient);
