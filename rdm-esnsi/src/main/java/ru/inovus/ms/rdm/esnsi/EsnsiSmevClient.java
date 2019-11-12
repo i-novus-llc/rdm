@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.esnsi.api.*;
 
 import javax.xml.bind.JAXBContext;
@@ -27,8 +26,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Потребитель из очереди СМЭВ-3.
@@ -56,10 +57,10 @@ class EsnsiSmevClient {
     static {
         try {
             REQUEST_CTX = JAXBContext.newInstance(CnsiRequest.class);
-            RESPONSE_CTX = JAXBContext.newInstance(CnsiRequest.class);
+            RESPONSE_CTX = JAXBContext.newInstance(CnsiResponse.class);
         } catch (JAXBException e) {
 //          Не выбросится
-            throw new RdmException(e);
+            throw new EsnsiSyncException(e);
         }
     }
 
@@ -67,7 +68,7 @@ class EsnsiSmevClient {
 
     private final ObjectFactory objectFactory = new ObjectFactory();
 
-    private final Map<String, ResponseDocument> msgBuffer = new HashMap<>();
+    private final ConcurrentMap<String, ResponseDocument> msgBuffer = new ConcurrentHashMap<>();
 
     public EsnsiSmevClient(@Value("${esnsi.smev-adapter.ws.url}") String endpointURL,
                            @Value("${esnsi.http.client.policy.timeout.receive}") int receiveTimeout,
@@ -99,7 +100,7 @@ class EsnsiSmevClient {
             REQUEST_CTX.createMarshaller().marshal(requestData, domResult);
         } catch (JAXBException ex) {
             logger.error("Unable to create request from given request data: {}", requestData, ex);
-            throw new RdmException(ex);
+            throw new EsnsiSyncException(ex);
         }
         Document doc = (Document) domResult.getNode();
         messagePrimaryContent.setAny(doc.getDocumentElement());
@@ -111,27 +112,46 @@ class EsnsiSmevClient {
             return null;
         }
     }
-    <T> Map.Entry<T, InputStream> getResponse(Class<T> tClass, String messageId) {
-        ResponseDocument responseDocument = getResponse(messageId);
-        if (responseDocument != null) {
-            InputStream inputStream = null;
-            List<AttachmentContentType> attachmentContent = responseDocument.getAttachmentContentList().getAttachmentContent();
-            if (!attachmentContent.isEmpty()) {
-                try {
-                    inputStream = attachmentContent.iterator().next().getContent().getInputStream();
-                } catch (IOException e) {
-                    logger.error("Cannot extract input stream from message attachment.", e);
-                    throw new RdmException(e);
+
+    <REQUEST, RESPONSE> Map<String, Map.Entry<RESPONSE, InputStream>> batchRequest(Map<String, REQUEST> requestMap, Class<RESPONSE> responseClass) {
+        for (Map.Entry<String, REQUEST> requestEntry : requestMap.entrySet())
+            sendRequest(requestEntry.getValue(), requestEntry.getKey());
+        Map<String, Map.Entry<RESPONSE, InputStream>> map = new HashMap<>();
+        while (!requestMap.isEmpty()) {
+            Iterator<String> iterator = requestMap.keySet().iterator();
+            while (iterator.hasNext()) {
+                String messageId = iterator.next();
+                Map.Entry<RESPONSE, InputStream> response = getResponse(messageId, responseClass);
+                if (response != null) {
+                    map.put(messageId, response);
+                    iterator.remove();
                 }
             }
-            return Map.entry(extractResponse(responseDocument, tClass), inputStream == null ? EMPTY_INPUT_STREAM : inputStream);
+        }
+        return map;
+    }
+
+    <T> Map.Entry<T, InputStream> getResponse(String messageId, Class<T> responseType) {
+        ResponseDocument responseDocument = getResponseDocument(messageId);
+        if (responseDocument != null) {
+            InputStream inputStream = null;
+            AttachmentContentList attachmentContent = responseDocument.getAttachmentContentList();
+            if (attachmentContent != null) {
+                try {
+                    inputStream = attachmentContent.getAttachmentContent().iterator().next().getContent().getInputStream();
+                } catch (IOException e) {
+                    logger.error("Cannot extract input stream from message attachment.", e);
+                    throw new EsnsiSyncException(e);
+                }
+            }
+            return Map.entry(extractResponse(responseDocument, responseType), inputStream == null ? EMPTY_INPUT_STREAM : inputStream);
         }
         return null;
     }
 
-    private ResponseDocument getResponse(String messageId) {
+    private ResponseDocument getResponseDocument(String messageId) {
         if (msgBuffer.containsKey(messageId))
-            return msgBuffer.get(messageId);
+            return msgBuffer.getOrDefault(messageId, null);
         GetResponseDocument getResponseDocument = objectFactory.createGetResponseDocument();
         MessageTypeSelector messageTypeSelector = objectFactory.createMessageTypeSelector();
         messageTypeSelector.setNamespaceURI(NAMESPACE_URI);
@@ -139,9 +159,9 @@ class EsnsiSmevClient {
         try {
             ResponseDocument response = port.getResponse(getResponseDocument);
             if (response.getAttachmentContentList() == null && response.getMessageMetadata() == null &&
-                response.getOriginalMessageId() == null && response.getOriginalTransactionCode() == null &&
-                response.getReferenceMessageID() == null && response.getSenderProvidedResponseData() == null &&
-                response.getSmevAdapterFault() == null && response.getSmevTypicalError() == null)
+                    response.getOriginalMessageId() == null && response.getOriginalTransactionCode() == null &&
+                    response.getReferenceMessageID() == null && response.getSenderProvidedResponseData() == null &&
+                    response.getSmevAdapterFault() == null && response.getSmevTypicalError() == null)
                 return null;
             msgBuffer.put(response.getSenderProvidedResponseData().getMessageID(), response);
             if (response.getSenderProvidedResponseData().getMessageID().equals(messageId)) {
@@ -177,7 +197,7 @@ class EsnsiSmevClient {
             throw new IllegalArgumentException("Invalid request type: " + requestData);
     }
 
-    private <T> T getRequest(CnsiResponse response, Class<T> c) {
+    private <T> T getResponse(CnsiResponse response, Class<T> c) {
         if (c == GetAvailableIncrementResponseType.class)
             return c.cast(response.getGetAvailableIncrement());
         else if (c == GetChecksumInfoResponseType.class)
@@ -204,10 +224,10 @@ class EsnsiSmevClient {
         Element any = responseDocument.getSenderProvidedResponseData().getMessagePrimaryContent().getAny();
         try {
             Object unmarshal = RESPONSE_CTX.createUnmarshaller().unmarshal(any);
-            return c.cast(unmarshal);
+            return getResponse((CnsiResponse) unmarshal, c);
         } catch (JAXBException e) {
             logger.error("Error while parsing response from SMEV3 adapter. Unknown format.", e);
-            throw new RdmException(e);
+            throw new EsnsiSyncException(e);
         }
     }
 
