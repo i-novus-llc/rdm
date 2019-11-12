@@ -3,7 +3,7 @@ package ru.inovus.ms.rdm.esnsi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +16,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
@@ -39,20 +40,21 @@ class EsnsiIntegrationDao {
     }
 
     @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private NamedParameterJdbcTemplate jdbcTemplate;
 
     @Transactional
     public Integer getLastVersionRevisionAndCreateNewIfNecessary(String code) {
-        final boolean[] contains = new boolean[1];
-        Integer revision = jdbcTemplate.queryForObject(
-            "SELECT code, revision FROM esnsi_sync.version WHERE code = ?1",
-            (rs, rowNum) -> {contains[0] = true; return rs.getInt(2);},
-            code
+        Map<String, ?> params = Map.of("code", code);
+        List<Integer> list = jdbcTemplate.query(
+            "SELECT revision FROM esnsi_sync.version WHERE code = :code",
+            params,
+            (rs, rowNum) -> rs.getInt(1)
         );
-        if (!contains[0]) {
-            jdbcTemplate.update("INSERT INTO esnsi_sync.version VALUES (?1, NULL, NULL)", code);
+        if (list.size() == 0) {
+            jdbcTemplate.update("INSERT INTO esnsi_sync.version VALUES (:code, NULL, NULL)", params);
+            return null;
         }
-        return revision;
+        return list.get(0);
     }
 
     @Transactional
@@ -65,21 +67,21 @@ class EsnsiIntegrationDao {
                 tableName + " (" +
                     IntStream.rangeClosed(1, struct.getAttributeList().size()).mapToObj(i -> "field_" + i + " VARCHAR ").collect(joining(", ")) +
                 ");";
-        jdbcTemplate.execute(q);
+        jdbcTemplate.getJdbcTemplate().execute(q);
     }
 
     @Transactional
     public void insert(List<Object[]> batch, GetClassifierStructureResponseType struct) {
         String code = struct.getClassifierDescriptor().getCode();
         int revision = struct.getClassifierDescriptor().getRevision();
-        String tableName = "data.\"" + code + "-" + revision + "\"";
+        String tableName = getTableName(code, revision);
         StringBuilder q = new StringBuilder();
         q.append("INSERT INTO ").append(tableName).append(" (");
         q.append(IntStream.rangeClosed(1, struct.getAttributeList().size()).mapToObj(i -> "field_" + i).collect(joining(", ")));
         q.append(") VALUES (");
-        q.append(IntStream.rangeClosed(1, struct.getAttributeList().size()).mapToObj(i -> "?" + i).collect(joining(", ")));
+        q.append(IntStream.rangeClosed(1, struct.getAttributeList().size()).mapToObj(i -> "?").collect(joining(", ")));
         q.append(")");
-        jdbcTemplate.batchUpdate(q.toString(), batch);
+        jdbcTemplate.getJdbcTemplate().batchUpdate(q.toString(), batch);
     }
 
     @Transactional
@@ -96,14 +98,14 @@ class EsnsiIntegrationDao {
 //          Никогда не выбросится
             throw new EsnsiSyncException(e);
         }
-        String q = "INSERT INTO esnsi_sync.version (code, revision, struct, last_updated) VALUES (?1, ?2, ?3, ?4) " +
-                "ON CONFLICT (code) DO UPDATE SET revision = ?2, struct = ?3, last_updated = ?4;";
-        jdbcTemplate.update(q, code, revision, structRaw, time);
+        String q = "INSERT INTO esnsi_sync.version (code, revision, struct, last_updated) VALUES (:code, :revision, :struct, :time) " +
+                "ON CONFLICT (code) DO UPDATE SET revision = :revision, struct = :struct, last_updated = :time;";
+        jdbcTemplate.update(q, Map.of("code", code, "revision", revision, "struct", structRaw, "time", time));
     }
 
     @Transactional(readOnly = true)
     public GetClassifierRevisionListResponseType getStruct(String code) {
-        String s = jdbcTemplate.queryForObject("SELECT struct FROM esnsi_sync.version WHERE code = ?1", String.class, code);
+        String s = jdbcTemplate.queryForObject("SELECT struct FROM esnsi_sync.version WHERE code = :code", Map.of("code", code), String.class);
         if (s == null)
             return null;
         try {

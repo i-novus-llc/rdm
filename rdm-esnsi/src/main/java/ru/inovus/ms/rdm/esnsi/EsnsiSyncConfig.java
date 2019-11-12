@@ -1,10 +1,13 @@
 package ru.inovus.ms.rdm.esnsi;
 
 import org.quartz.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 
 import javax.sql.DataSource;
@@ -19,9 +22,6 @@ import static org.quartz.CronScheduleBuilder.cronSchedule;
 @Configuration
 public class EsnsiSyncConfig {
 
-    @Autowired
-    private EsnsiSmevClient esnsiSmevClient;
-
     @Value("${esnsi.sync.execution.expression}")
     private String esnsiSyncCronExpression;
 
@@ -29,12 +29,22 @@ public class EsnsiSyncConfig {
     private List<String> codes;
 
     @Bean
-    public SchedulerFactoryBean schedulerFactoryBean(DataSource dataSource) throws IOException {
+    public Properties quartzProperties() throws IOException {
+        PropertiesFactoryBean propertiesFactoryBean = new PropertiesFactoryBean();
+        propertiesFactoryBean.setLocation(new ClassPathResource("/quartz.properties"));
+        propertiesFactoryBean.afterPropertiesSet();
+        return propertiesFactoryBean.getObject();
+    }
+
+    @Bean
+    public NamedParameterJdbcTemplate namedParameterJdbcTemplate(JdbcTemplate jdbcTemplate) {
+        return new NamedParameterJdbcTemplate(jdbcTemplate);
+    }
+
+    @Bean
+    public SchedulerFactoryBean schedulerFactoryBean(DataSource dataSource, EsnsiSmevClient esnsiSmevClient, EsnsiIntegrationDao dao) throws IOException {
         SchedulerFactoryBean factory = new SchedulerFactoryBean();
-        Properties properties = new Properties();
-        properties.put("org.quartz.jobStore.driverDelegateClass", "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate");
-        properties.put("org.quartz.jobStore.isClustered", true);
-        factory.setQuartzProperties(properties);
+        factory.setQuartzProperties(quartzProperties());
         factory.setDataSource(dataSource);
         factory.setAutoStartup(true);
         factory.setOverwriteExistingJobs(false);
@@ -51,6 +61,7 @@ public class EsnsiSyncConfig {
         factory.setTriggers(triggers);
         Map<String, Object> jobBeans = new HashMap<>();
         jobBeans.put(EsnsiSmevClient.class.getSimpleName(), esnsiSmevClient);
+        jobBeans.put(EsnsiIntegrationDao.class.getSimpleName(), dao);
         factory.setSchedulerContextAsMap(jobBeans);
         return factory;
     }

@@ -78,7 +78,7 @@ public class EsnsiSyncTest {
             return getRevisionListAcceptRequest;
         });
 
-        when(esnsiSmevClient.getResponse(any())).then(invocation -> {
+        when(esnsiSmevClient.getResponse(any(), GetClassifierRevisionListResponseType.class)).then(invocation -> {
             GetClassifierRevisionListResponseType revisionList = objectFactory.createGetClassifierRevisionListResponseType();
             GetClassifierRevisionListResponseType.RevisionDescriptor revision1 = objectFactory.createGetClassifierRevisionListResponseTypeRevisionDescriptor();
             GetClassifierRevisionListResponseType.RevisionDescriptor revision2 = objectFactory.createGetClassifierRevisionListResponseTypeRevisionDescriptor();
@@ -114,7 +114,7 @@ public class EsnsiSyncTest {
         descriptor.setName("Общероссийский классификатор объектов административно-территориального деления ОКАТО");
 
         GetClassifierStructureResponseType struct = objectFactory.createGetClassifierStructureResponseType();
-        when(esnsiSmevClient.getResponse(any())).then(invocation -> {
+        when(esnsiSmevClient.getResponse(any(), GetClassifierStructureResponseType.class)).then(invocation -> {
             struct.setClassifierDescriptor(descriptor);
             setField(struct, Objects.requireNonNull(getField(struct.getClass(), "attributeList")), struct_01_519());
             return Map.entry(struct, EMPTY_INPUT_STREAM);
@@ -126,7 +126,7 @@ public class EsnsiSyncTest {
             return acceptRequestDocument;
         });
 
-        when(esnsiSmevClient.getResponse(any())).then(invocation -> {
+        when(esnsiSmevClient.getResponse(any(), GetClassifierDataResponseType.class)).then(invocation -> {
             GetClassifierDataResponseType data = objectFactory.createGetClassifierDataResponseType();
             data.setClassifierDescriptor(descriptor);
             return Map.entry(data, Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResourceAsStream(

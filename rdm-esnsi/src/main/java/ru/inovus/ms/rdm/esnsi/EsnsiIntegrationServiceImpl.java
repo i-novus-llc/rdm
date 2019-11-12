@@ -23,13 +23,12 @@ public class EsnsiIntegrationServiceImpl implements EsnsiIntegrationService {
 
     @Override
     public void update() {
-        logger.info("Esnsi sync started.");
+        logger.info("Forcing esnsi sync.");
         try {
             scheduler.triggerJob(EsnsiSyncConfig.getEsnsiSyncJobKey());
         } catch (SchedulerException e) {
             logger.error("Can't start esnsi integration job.", e);
         }
-        logger.info("Esnsi sync complete.");
     }
 
 }

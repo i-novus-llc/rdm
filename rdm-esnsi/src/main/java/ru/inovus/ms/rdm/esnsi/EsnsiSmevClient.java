@@ -26,8 +26,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Потребитель из очереди СМЭВ-3.
@@ -66,7 +68,7 @@ class EsnsiSmevClient {
 
     private final ObjectFactory objectFactory = new ObjectFactory();
 
-    private final Map<String, ResponseDocument> msgBuffer = new HashMap<>();
+    private final ConcurrentMap<String, ResponseDocument> msgBuffer = new ConcurrentHashMap<>();
 
     public EsnsiSmevClient(@Value("${esnsi.smev-adapter.ws.url}") String endpointURL,
                            @Value("${esnsi.http.client.policy.timeout.receive}") int receiveTimeout,
@@ -110,27 +112,46 @@ class EsnsiSmevClient {
             return null;
         }
     }
-    Map.Entry<CnsiResponse, InputStream> getResponse(String messageId) {
+
+    <REQUEST, RESPONSE> Map<String, Map.Entry<RESPONSE, InputStream>> batchRequest(Map<String, REQUEST> requestMap, Class<RESPONSE> responseClass) {
+        for (Map.Entry<String, REQUEST> requestEntry : requestMap.entrySet())
+            sendRequest(requestEntry.getValue(), requestEntry.getKey());
+        Map<String, Map.Entry<RESPONSE, InputStream>> map = new HashMap<>();
+        while (!requestMap.isEmpty()) {
+            Iterator<String> iterator = requestMap.keySet().iterator();
+            while (iterator.hasNext()) {
+                String messageId = iterator.next();
+                Map.Entry<RESPONSE, InputStream> response = getResponse(messageId, responseClass);
+                if (response != null) {
+                    map.put(messageId, response);
+                    iterator.remove();
+                }
+            }
+        }
+        return map;
+    }
+
+    <T> Map.Entry<T, InputStream> getResponse(String messageId, Class<T> responseType) {
         ResponseDocument responseDocument = getResponseDocument(messageId);
         if (responseDocument != null) {
             InputStream inputStream = null;
-            List<AttachmentContentType> attachmentContent = responseDocument.getAttachmentContentList().getAttachmentContent();
-            if (!attachmentContent.isEmpty()) {
+            AttachmentContentList attachmentContent = responseDocument.getAttachmentContentList();
+            if (attachmentContent != null) {
                 try {
-                    inputStream = attachmentContent.iterator().next().getContent().getInputStream();
+                    inputStream = attachmentContent.getAttachmentContent().iterator().next().getContent().getInputStream();
                 } catch (IOException e) {
                     logger.error("Cannot extract input stream from message attachment.", e);
                     throw new EsnsiSyncException(e);
                 }
             }
-            return Map.entry(extractResponse(responseDocument), inputStream == null ? EMPTY_INPUT_STREAM : inputStream);
+            return Map.entry(extractResponse(responseDocument, responseType), inputStream == null ? EMPTY_INPUT_STREAM : inputStream);
         }
         return null;
     }
 
     private ResponseDocument getResponseDocument(String messageId) {
         if (msgBuffer.containsKey(messageId))
-            return msgBuffer.get(messageId);
+            return msgBuffer.getOrDefault(messageId, null);
         GetResponseDocument getResponseDocument = objectFactory.createGetResponseDocument();
         MessageTypeSelector messageTypeSelector = objectFactory.createMessageTypeSelector();
         messageTypeSelector.setNamespaceURI(NAMESPACE_URI);
@@ -176,11 +197,34 @@ class EsnsiSmevClient {
             throw new IllegalArgumentException("Invalid request type: " + requestData);
     }
 
-    private CnsiResponse extractResponse(ResponseDocument responseDocument) {
+    private <T> T getResponse(CnsiResponse response, Class<T> c) {
+        if (c == GetAvailableIncrementResponseType.class)
+            return c.cast(response.getGetAvailableIncrement());
+        else if (c == GetChecksumInfoResponseType.class)
+            return c.cast(response.getGetChecksumInfo());
+        else if (c == GetClassifierDataResponseType.class)
+            return c.cast(response.getGetClassifierData());
+        else if (c == GetClassifierRecordsCountResponseType.class)
+            return c.cast(response.getGetClassifierRecordsCount());
+        else if (c == GetClassifierRevisionListResponseType.class)
+            return c.cast(response.getGetClassifierRevisionList());
+        else if (c == GetClassifierRevisionsCountResponseType.class)
+            return c.cast(response.getGetClassifierRevisionsCount());
+        else if (c == GetClassifierStructureResponseType.class)
+            return c.cast(response.getGetClassifierStructure());
+        else if (c == ListClassifierGroupsResponseType.class)
+            return c.cast(response.getListClassifierGroups());
+        else if (c == ListClassifiersResponseType.class)
+            return c.cast(response.getListClassifiers());
+        else
+            throw new IllegalArgumentException("Invalid response type: " + c);
+    }
+
+    private <T> T extractResponse(ResponseDocument responseDocument, Class<T> c) {
         Element any = responseDocument.getSenderProvidedResponseData().getMessagePrimaryContent().getAny();
         try {
             Object unmarshal = RESPONSE_CTX.createUnmarshaller().unmarshal(any);
-            return (CnsiResponse) unmarshal;
+            return getResponse((CnsiResponse) unmarshal, c);
         } catch (JAXBException e) {
             logger.error("Error while parsing response from SMEV3 adapter. Unknown format.", e);
             throw new EsnsiSyncException(e);
