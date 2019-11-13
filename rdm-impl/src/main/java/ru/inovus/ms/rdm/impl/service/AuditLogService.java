@@ -19,6 +19,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyMap;
@@ -54,13 +55,14 @@ public class AuditLogService {
     }
 
     @Transactional
-    public void addAction(AuditAction action, Object obj) {
-        addAction(action, obj, emptyMap());
+    public void addAction(AuditAction action, Supplier getObjectFunction) {
+        addAction(action, getObjectFunction, emptyMap());
     }
 
     @Transactional
-    public void addAction(AuditAction action, Object obj, Map<String, Object> additionalContext) {
+    public void addAction(AuditAction action, Supplier getObjectFunction, Map<String, Object> additionalContext) {
         if (!disabledActions.contains(action)) {
+            Object obj = getObjectFunction.get();
             AuditClientRequest request = new AuditClientRequest();
             request.setEventDate(LocalDateTime.now(Clock.systemUTC()));
             request.setObjectType(action.getObjType());

@@ -176,7 +176,7 @@ public class PublishServiceImpl implements PublishService {
         }
         auditLogService.addAction(
             AuditAction.PUBLICATION,
-            draftEntity
+            () -> draftEntity
         );
         if (enablePublishTopic)
             jmsTemplate.convertAndSend(publishTopic, draftEntity.getRefBook().getCode());
