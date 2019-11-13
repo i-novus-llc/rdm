@@ -192,7 +192,7 @@ public class RefBookServiceImpl implements RefBookService {
         );
         auditLogService.addAction(
             AuditAction.CREATE_REF_BOOK,
-            savedVersion
+            () -> savedVersion
         );
         return refBook;
     }
@@ -217,7 +217,7 @@ public class RefBookServiceImpl implements RefBookService {
         versionEntity.setComment(request.getComment());
         auditLogService.addAction(
                 AuditAction.EDIT_PASSPORT,
-                versionEntity,
+                () -> versionEntity,
                 Map.of("newPassport", request.getPassport())
         );
         return refBookModel(versionEntity,
@@ -252,9 +252,10 @@ public class RefBookServiceImpl implements RefBookService {
                         .collect(Collectors.toSet())));
         refBookRepository.deleteById(refBookId);
         if (last != null) {
+            RefBookVersionEntity finalLast = last;
             auditLogService.addAction(
                 AuditAction.DELETE_REF_BOOK,
-                last
+                () -> finalLast
             );
         }
     }
@@ -274,9 +275,10 @@ public class RefBookServiceImpl implements RefBookService {
                 last = e;
         }
         refBookRepository.save(refBookEntity);
+        RefBookVersionEntity finalLast = last;
         auditLogService.addAction(
             AuditAction.ARCHIVE,
-            last
+            () -> finalLast
         );
     }
 

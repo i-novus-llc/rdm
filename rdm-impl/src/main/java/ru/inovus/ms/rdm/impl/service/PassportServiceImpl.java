@@ -90,7 +90,7 @@ public class PassportServiceImpl implements PassportService {
                 .removeAll(valuesToRemove);
         auditLogService.addAction(
             AuditAction.EDIT_PASSPORT,
-            versionEntity,
+            () -> versionEntity,
             Map.of("newPassport", newPassport)
         );
     }
