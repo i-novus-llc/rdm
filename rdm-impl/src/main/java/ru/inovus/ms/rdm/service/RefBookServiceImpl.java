@@ -8,7 +8,10 @@ import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -20,8 +23,11 @@ import ru.inovus.ms.rdm.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.enumeration.RefBookStatusType;
 import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.exception.NotFoundException;
-import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.model.refbook.*;
+import ru.inovus.ms.rdm.model.Structure;
+import ru.inovus.ms.rdm.model.refbook.RefBook;
+import ru.inovus.ms.rdm.model.refbook.RefBookCreateRequest;
+import ru.inovus.ms.rdm.model.refbook.RefBookCriteria;
+import ru.inovus.ms.rdm.model.refbook.RefBookUpdateRequest;
 import ru.inovus.ms.rdm.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.model.version.ReferrerVersionCriteria;
 import ru.inovus.ms.rdm.model.version.VersionCriteria;
@@ -42,7 +48,6 @@ import java.util.stream.Collectors;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-import static org.springframework.util.StringUtils.isEmpty;
 import static ru.inovus.ms.rdm.predicate.RefBookVersionPredicates.*;
 
 @Primary
@@ -129,9 +134,16 @@ public class RefBookServiceImpl implements RefBookService {
         versionValidation.validateVersionExists(versionId);
 
         RefBookVersionEntity version = versionRepository.getOne(versionId);
+
+        String refBookCode = version.getRefBook().getCode();
+        ReferrerVersionCriteria criteria = new ReferrerVersionCriteria(refBookCode, RefBookStatusType.ALL, RefBookSourceType.ALL);
+        criteria.setPageSize(1);
+        List<RefBookVersion> referrerVersions = searchReferrerVersions(criteria).getContent();
+
         return refBookModel(version,
                 getSourceTypeVersion(version.getRefBook().getId(), RefBookSourceType.DRAFT),
-                getSourceTypeVersion(version.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED));
+                getSourceTypeVersion(version.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED),
+                !referrerVersions.isEmpty());
     }
 
     @Override
@@ -398,10 +410,12 @@ public class RefBookServiceImpl implements RefBookService {
         RefBookVersionEntity draftVersion = getRefBookSourceTypeVersion(entity.getRefBook().getId(), draftVersions);
         RefBookVersionEntity lastPublishedVersion = getRefBookSourceTypeVersion(entity.getRefBook().getId(), lastPublishVersions);
 
-        return refBookModel(entity, draftVersion, lastPublishedVersion);
+        return refBookModel(entity, draftVersion, lastPublishedVersion, false);
     }
 
-    private RefBook refBookModel(RefBookVersionEntity entity, RefBookVersionEntity draftVersion, RefBookVersionEntity lastPublishedVersion) {
+    private RefBook refBookModel(RefBookVersionEntity entity,
+                                 RefBookVersionEntity draftVersion, RefBookVersionEntity lastPublishedVersion,
+                                 boolean hasReferrerVersion) {
         if (entity == null) return null;
 
         RefBook model = new RefBook(ModelGenerator.versionModel(entity));
@@ -423,10 +437,7 @@ public class RefBookServiceImpl implements RefBookService {
         List<Structure.Attribute> primaryAttributes = (structure != null) ? structure.getPrimary() : null;
         model.setHasPrimaryAttribute(!CollectionUtils.isEmpty(primaryAttributes));
 
-        ReferrerVersionCriteria criteria = new ReferrerVersionCriteria(model.getCode(), RefBookStatusType.ALL, RefBookSourceType.ALL);
-        criteria.setPageSize(1);
-        List<RefBookVersion> referrerVersions = searchReferrerVersions(criteria).getContent();
-        model.setHasReferrer(!referrerVersions.isEmpty());
+        model.setHasReferrer(hasReferrerVersion);
 
         boolean hasUpdatedConflict = conflictRepository.existsByReferrerVersionIdAndConflictType(model.getId(), ConflictType.UPDATED);
         model.setHasUpdatedConflict(hasUpdatedConflict);
