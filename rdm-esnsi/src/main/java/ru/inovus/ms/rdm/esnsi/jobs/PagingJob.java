@@ -24,7 +24,7 @@ class PagingJob extends AbstractEsnsiDictionaryProcessingJob {
         List<PageProcessor> idlePageProcessors = esnsiIntegrationDao.getIdlePageProcessors(classifierCode, revision);
         if (idlePageProcessors.isEmpty())
             return;
-        int numWorkers = Integer.parseInt(getProperty("esnsi.classifier.downloading.num.workers"));
+        int numWorkers = Integer.parseInt(getProperty("esnsi.classifier.downloading.num-workers"));
         idlePageProcessors.removeIf(pageProcessor -> pageProcessor.id() > numWorkers);
         boolean flag = false;
         String tableName = getClassifierSpecificDataTableName(classifierCode, revision);

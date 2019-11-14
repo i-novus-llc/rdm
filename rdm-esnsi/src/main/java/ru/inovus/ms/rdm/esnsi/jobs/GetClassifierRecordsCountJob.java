@@ -29,7 +29,7 @@ class GetClassifierRecordsCountJob extends AbstractEsnsiDictionaryProcessingJob 
             esnsiIntegrationDao.createPageProcessorStateRecords(
                 classifierCode,
                 revision,
-                Integer.parseInt(getProperty("esnsi.classifier.downloading.num.workers"))
+                Integer.parseInt(getProperty("esnsi.classifier.downloading.num-workers"))
             );
             execJobWithSimpleSecondlySchedule(job);
             shutdown();
