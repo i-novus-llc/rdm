@@ -189,7 +189,7 @@ public class DraftServiceImpl implements DraftService {
         }
         auditLogService.addAction(
             AuditAction.UPLOAD_VERSION_FROM_FILE,
-            versionRepository.getOne(d.getId())
+            () -> versionRepository.getOne(d.getId())
         );
         return d;
     }
@@ -497,7 +497,7 @@ public class DraftServiceImpl implements DraftService {
         }
         auditLogService.addAction(
             AuditAction.UPLOAD_DATA,
-            draftVersion
+            () -> versionRepository.findById(draftId).get()
         );
     }
 
@@ -966,7 +966,7 @@ public class DraftServiceImpl implements DraftService {
     private void auditStructureEdit(RefBookVersionEntity refBook, String action, Structure.Attribute attribute) {
         auditLogService.addAction(
             AuditAction.EDIT_STRUCTURE,
-            refBook,
+            () -> refBook,
             Map.of(action, attribute)
         );
     }
@@ -974,7 +974,7 @@ public class DraftServiceImpl implements DraftService {
     private void auditEditData(RefBookVersionEntity refBook, String action, Object payload) {
         auditLogService.addAction(
             AuditAction.DRAFT_EDITING,
-            refBook,
+            () -> refBook,
             Map.of(action, payload)
         );
     }
