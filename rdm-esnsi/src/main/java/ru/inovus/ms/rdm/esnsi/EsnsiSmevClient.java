@@ -17,7 +17,6 @@ import ru.inovus.ms.rdm.esnsi.api.*;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.ws.Binding;
@@ -26,12 +25,10 @@ import javax.xml.ws.soap.SOAPBinding;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.GregorianCalendar;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -156,11 +153,10 @@ public class EsnsiSmevClient {
                     response.getSmevAdapterFault() == null && response.getSmevTypicalError() == null)
                 return null;
             msgBuffer.put(response.getSenderProvidedResponseData().getMessageID(), response);
-            XMLGregorianCalendar xmlGregorianCalendar = response.getMessageMetadata().getDeliveryTimestamp();
-            GregorianCalendar utc = xmlGregorianCalendar.toGregorianCalendar(TimeZone.getTimeZone("UTC"), null, null);
-            LocalDateTime deliveryTimeUTC = LocalDateTime.of(utc.get(YEAR), utc.get(MONTH) + 1, utc.get(DAY_OF_MONTH), utc.get(HOUR_OF_DAY), utc.get(MINUTE), utc.get(SECOND));
-            LocalDateTime nowUTC = LocalDateTime.now(Clock.systemUTC());
-            Duration duration = Duration.between(deliveryTimeUTC, nowUTC);
+            GregorianCalendar clndr = response.getMessageMetadata().getDeliveryTimestamp().toGregorianCalendar();
+            LocalDateTime deliveryTime = LocalDateTime.of(clndr.get(YEAR), clndr.get(MONTH) + 1, clndr.get(DAY_OF_MONTH), clndr.get(HOUR_OF_DAY), clndr.get(MINUTE), clndr.get(SECOND));
+            LocalDateTime now = LocalDateTime.now(clndr.getTimeZone().toZoneId());
+            Duration duration = Duration.between(deliveryTime, now);
             if (duration.toMinutes() > timeFilter)
                 acknowledge(response.getSenderProvidedResponseData().getMessageID());
             if (response.getSenderProvidedResponseData().getMessageID().equals(messageId)) {
