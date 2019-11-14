@@ -14,7 +14,7 @@ import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
 
 @DisallowConcurrentExecution
-abstract class AbstractEsnsiDictionaryProcessingJob implements InterruptableJob {
+abstract class AbstractEsnsiDictionaryProcessingJob implements InterruptableJob, StatefulJob {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractEsnsiDictionaryProcessingJob.class);
 
