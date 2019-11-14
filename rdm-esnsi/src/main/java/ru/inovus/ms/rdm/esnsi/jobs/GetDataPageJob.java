@@ -31,10 +31,9 @@ class GetDataPageJob extends AbstractEsnsiDictionaryProcessingJob {
             GetClassifierStructureResponseType struct = esnsiIntegrationDao.getStruct(classifierCode, revision);
             List<Object[]> batch = new ArrayList<>(PAGE_SIZE);
             EsnsiSyncJobUtils.EsnsiXmlDataFileReadUtil.read(batch::add, struct, data.getValue());
-            esnsiIntegrationDao.insert(batch, tableName, classifierCode, revision, pageProcessorId);
+            esnsiIntegrationDao.insert(batch, tableName, classifierCode, revision, pageProcessorId, this::shutdown);
             esnsiSmevClient.acknowledge(messageId);
             batch.clear();
-            shutdown();
         }
     }
 

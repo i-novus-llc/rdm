@@ -13,7 +13,7 @@ import java.util.UUID;
 import static ru.inovus.ms.rdm.esnsi.jobs.EsnsiSyncJobUtils.PAGE_SIZE;
 
 @DisallowConcurrentExecution
-class GetRevisionCountJob extends AbstractEsnsiDictionaryProcessingJob {
+class GetRevisionsCountJob extends AbstractEsnsiDictionaryProcessingJob {
 
     @Override
     void execute0(JobExecutionContext context) throws Exception {
@@ -30,7 +30,6 @@ class GetRevisionCountJob extends AbstractEsnsiDictionaryProcessingJob {
             JobDetail job = JobBuilder.newJob(GetLastRevisionJob.class).requestRecovery().
                             withIdentity(JobKey.jobKey(GetLastRevisionJob.class.getSimpleName(), classifierCode)).
                             usingJobData("messageId", acceptRequestDocument.getMessageId()).
-                            usingJobData("prevMessageId", messageId).
                             build();
             execSmevResponseResponseReadingJob(job);
             shutdown();

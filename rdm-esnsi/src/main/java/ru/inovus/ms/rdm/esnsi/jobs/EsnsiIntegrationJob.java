@@ -24,8 +24,8 @@ public class EsnsiIntegrationJob extends AbstractEsnsiDictionaryProcessingJob {
             GetClassifierRevisionsCountRequestType getClassifierRevisionsCountRequestType = objectFactory.createGetClassifierRevisionsCountRequestType();
             getClassifierRevisionsCountRequestType.setCode(dictionaryCode);
             AcceptRequestDocument acceptRequestDocument = esnsiSmevClient.sendRequest(getClassifierRevisionsCountRequestType, UUID.randomUUID().toString());
-            JobKey jobKey = JobKey.jobKey(GetRevisionCountJob.class.getSimpleName(), dictionaryCode);
-            JobDetail job = JobBuilder.newJob(GetRevisionCountJob.class).
+            JobKey jobKey = JobKey.jobKey(GetRevisionsCountJob.class.getSimpleName(), dictionaryCode);
+            JobDetail job = JobBuilder.newJob(GetRevisionsCountJob.class).
                     withIdentity(jobKey).requestRecovery().
                     usingJobData("messageId", acceptRequestDocument.getMessageId()).build();
             execSmevResponseResponseReadingJob(job);

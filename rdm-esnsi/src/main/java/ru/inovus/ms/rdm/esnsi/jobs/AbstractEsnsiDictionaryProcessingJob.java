@@ -18,28 +18,28 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements InterruptableJob,
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractEsnsiDictionaryProcessingJob.class);
 
-    protected final ObjectFactory objectFactory = new ObjectFactory();
+    static final ObjectFactory objectFactory = new ObjectFactory();
 
     @Autowired
-    protected EsnsiSmevClient esnsiSmevClient;
+    EsnsiSmevClient esnsiSmevClient;
 
     @Autowired
-    protected EsnsiIntegrationDao esnsiIntegrationDao;
+    EsnsiIntegrationDao esnsiIntegrationDao;
 
     @Autowired
     private Environment environment;
 
-    protected Scheduler scheduler;
+    @Autowired
+    private Scheduler scheduler;
 
-    protected JobDataMap jobDataMap;
+    JobDataMap jobDataMap;
 
-    protected String classifierCode;
+    String classifierCode;
 
-    protected JobKey selfIdentity;
+    private JobKey selfIdentity;
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
-        this.scheduler = context.getScheduler();
         this.jobDataMap = context.getJobDetail().getJobDataMap();
         this.selfIdentity = context.getJobDetail().getKey();
         this.classifierCode = context.getJobDetail().getKey().getGroup();
