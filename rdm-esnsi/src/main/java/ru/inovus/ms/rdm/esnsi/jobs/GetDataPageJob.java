@@ -18,22 +18,26 @@ class GetDataPageJob extends AbstractEsnsiDictionaryProcessingJob {
 
     @Override
     void execute0(JobExecutionContext context) throws Exception {
-        int pageProcessorId = jobDataMap.getInt("id");
-        int revision = jobDataMap.getInt("revision");
+        String pageProcessorId = jobDataMap.getString("id");
         if (!jobDataMap.getBoolean("busy_set")) {
-            esnsiIntegrationDao.setPageProcessorBusy(classifierCode, revision, pageProcessorId);
+            esnsiIntegrationDao.setPageProcessorBusy(pageProcessorId);
             jobDataMap.put("busy_set", true);
+        } else {
+            if (esnsiIntegrationDao.isPageProcessorIdle(pageProcessorId))
+                shutdown();
         }
         String messageId = jobDataMap.getString("messageId");
         Map.Entry<GetClassifierDataResponseType, InputStream> data = esnsiSmevClient.getResponse(messageId, GetClassifierDataResponseType.class);
         if (data != null) {
+            int revision = jobDataMap.getInt("revision");
             String tableName = jobDataMap.getString("tableName");
             GetClassifierStructureResponseType struct = esnsiIntegrationDao.getStruct(classifierCode, revision);
             List<Object[]> batch = new ArrayList<>(PAGE_SIZE);
             EsnsiSyncJobUtils.EsnsiXmlDataFileReadUtil.read(batch::add, struct, data.getValue());
-            esnsiIntegrationDao.insert(batch, tableName, classifierCode, revision, pageProcessorId, this::shutdown);
+            esnsiIntegrationDao.insert(batch, tableName, pageProcessorId);
             esnsiSmevClient.acknowledge(messageId);
             batch.clear();
+            shutdown();
         }
     }
 

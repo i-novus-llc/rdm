@@ -67,7 +67,7 @@ public class EsnsiIntegrationDao {
         return list.get(0);
     }
 
-    @Transactional()
+    @Transactional
     public ClassifierProcessingStage getClassifierProcessingStageAndCreateNewIfNecessary(String code) {
         Map<String, ?> arg = Map.of("code", code);
         List<String> list = namedParameterJdbcTemplate.query(
@@ -86,6 +86,18 @@ public class EsnsiIntegrationDao {
     public void setClassifierProcessingStage(String code, ClassifierProcessingStage stage) {
         Map<String, ?> args = Map.of("code", code, "stage", stage.name());
         namedParameterJdbcTemplate.update("UPDATE esnsi_sync.version SET stage = :stage WHERE code = :code", args);
+    }
+
+    @Transactional(readOnly = true)
+    public ClassifierProcessingStage getClassifierProcessingStage(String code) {
+        Map<String, ?> arg = Map.of("code", code);
+        return ClassifierProcessingStage.valueOf(
+            namedParameterJdbcTemplate.query(
+                "SELECT stage FROM esnsi_sync.version WHERE code = :code",
+                arg,
+                (rs, rowNum) -> rs.getString(1)
+            ).iterator().next()
+        );
     }
 
     @Transactional
@@ -130,10 +142,8 @@ public class EsnsiIntegrationDao {
     }
 
     @Transactional
-    public void insert(List<Object[]> batch, String tableName, String code, int revision, int pageProcessorId, ExecutableCode shutdown) {
-        String pageProcessorIdStr = code + "-" + revision + "-" + pageProcessorId;
-        Map<String, String> arg = Map.of("id", pageProcessorIdStr);
-        boolean finished = namedParameterJdbcTemplate.query("SELECT finished FROM esnsi_sync.page_processor_state WHERE id = :id", arg, (rs, rowNum) -> rs.getBoolean(1)).iterator().next();
+    public boolean insert(List<Object[]> batch, String tableName, String pageProcessorId) {
+        boolean finished = isPageProcessorIdle(pageProcessorId);
         if (!batch.isEmpty()) {
             if (!finished) {
                 String q = "INSERT INTO " + tableName + "(" +
@@ -145,21 +155,16 @@ public class EsnsiIntegrationDao {
             }
         } else if (!finished) {
             String q = "UPDATE esnsi_sync.page_processor_state SET finished = TRUE, seed = (seed + 1) WHERE id = :id";
-            namedParameterJdbcTemplate.update(q, arg);
+            namedParameterJdbcTemplate.update(q, Map.of("id", pageProcessorId));
         }
-        try {
-            shutdown.exec();
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            throw new RuntimeException(e);
-        }
+        return finished;
     }
 
     @Transactional
     public void updateLastDownloaded(String code, int revision, Timestamp time) {
         String q = "INSERT INTO esnsi_sync.version (code, revision, last_updated) VALUES (:code, :revision, :time) " +
-                "ON CONFLICT (code) DO UPDATE SET revision = :revision, last_updated = :time;";
-        namedParameterJdbcTemplate.update(q, Map.of("code", code, "revision", revision, "time", time));
+                "ON CONFLICT (code) DO UPDATE SET revision = :revision, last_updated = :time, state = :state;";
+        namedParameterJdbcTemplate.update(q, Map.of("code", code, "revision", revision, "time", time, "state", NONE.name()));
     }
 
     @Transactional(readOnly = true)
@@ -215,11 +220,16 @@ public class EsnsiIntegrationDao {
     }
 
     @Transactional
-    public void setPageProcessorBusy(String code, int revision, int id) {
-        String pageProcessorId = code + "-" + revision + "-" + id;
-        Map<String, String> arg = Map.of("id", pageProcessorId);
+    public void setPageProcessorBusy(String pageProcessorId) {
         String q = "UPDATE esnsi_sync.page_processor_state SET finished = FALSE WHERE id = :id";
-        namedParameterJdbcTemplate.update(q, arg);
+        namedParameterJdbcTemplate.update(q, Map.of("id", pageProcessorId));
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isPageProcessorIdle(String pageProcessorId) {
+        String q = "SELECT finished from esnsi_sync.page_processor_state WHERE id = :id";
+        return namedParameterJdbcTemplate.query(q, Map.of("id", pageProcessorId), (rs, rowNum) -> rs.getBoolean(1)).iterator().next();
+
     }
 
     public static String getClassifierSpecificDataTableName(String code, int revision) {

@@ -44,9 +44,19 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements InterruptableJob,
         this.selfIdentity = context.getJobDetail().getKey();
         this.classifierCode = context.getJobDetail().getKey().getGroup();
         if (jobDataMap.containsKey("stage_set") && !jobDataMap.getBoolean("stage_set")) {
-            ClassifierProcessingStage stage = stage();
-            esnsiIntegrationDao.setClassifierProcessingStage(classifierCode, stage);
+            esnsiIntegrationDao.setClassifierProcessingStage(classifierCode, stage());
             jobDataMap.put("stage_set", true);
+        } else {
+            if (jobDataMap.containsKey("stage_set")) {
+                ClassifierProcessingStage current = esnsiIntegrationDao.getClassifierProcessingStage(classifierCode);
+                if (current.ordinal() > stage().ordinal()) {
+                    try {
+                        shutdown();
+                    } catch (SchedulerException e) {
+                        logger.error("Unable to shutdown job with key {}. The pipeline went further, while the given job cannot stop. Please try manually.", selfIdentity, e);
+                    }
+                }
+            }
         }
         String prevMessageId = jobDataMap.getString("prevMessageId");
         if (prevMessageId != null) {
@@ -56,13 +66,13 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements InterruptableJob,
         try {
             execute0(context);
         } catch (Exception e) {
-            logger.error("Job exceptionally finished.", e);
+            logger.error("Job {} exceptionally finished.", selfIdentity, e);
             if (getClass() != EsnsiIntegrationJob.class) {
+                esnsiIntegrationDao.setClassifierProcessingStage(classifierCode, ClassifierProcessingStage.NONE);
                 try {
-                    esnsiIntegrationDao.setClassifierProcessingStage(classifierCode, ClassifierProcessingStage.NONE);
                     shutdown();
                 } catch (SchedulerException ex) {
-                    logger.error("Unable to shutdown job. Please try manually.", ex);
+                    logger.error("Unable to shutdown job with key {}", selfIdentity, ex);
                 }
             }
         }
@@ -70,7 +80,7 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements InterruptableJob,
 
     @Override
     public void interrupt() throws UnableToInterruptJobException {
-        logger.info("Job {} successfully unscheduled..", getClass().getSimpleName());
+        logger.info("Job {} successfully unscheduled.", selfIdentity);
     }
 
     abstract void execute0(JobExecutionContext context) throws Exception;

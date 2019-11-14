@@ -47,7 +47,7 @@ class PagingJob extends AbstractEsnsiDictionaryProcessingJob {
                                 usingJobData("stage_set", true).
                                 usingJobData("busy_set", false).
                                 usingJobData("tableName", tableName).
-                                usingJobData("id", id).
+                                usingJobData("id", pageProcessor.fullId()).
                                 build();
                 execSmevResponseResponseReadingJob(job);
             }
@@ -55,6 +55,7 @@ class PagingJob extends AbstractEsnsiDictionaryProcessingJob {
         if (!flag && idlePageProcessors.size() == numWorkers) {
             JobDetail job = JobBuilder.newJob(SendToRdmJob.class).
                             requestRecovery().
+                            usingJobData("revision", revision).
                             withIdentity(SendToRdmJob.class.getSimpleName(), classifierCode).
                             build();
             execJobWithoutSchedule(job);
