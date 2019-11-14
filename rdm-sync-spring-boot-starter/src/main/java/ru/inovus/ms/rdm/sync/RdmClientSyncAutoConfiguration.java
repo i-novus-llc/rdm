@@ -172,4 +172,9 @@ public class RdmClientSyncAutoConfiguration {
         return new PublishListener(rdmSyncRest());
     }
 
+    @Bean
+    public XmlMappingLoaderLockService xmlMappingLoaderLockService() {
+        return new XmlMappingLoaderLockService();
+    }
+
 }

@@ -207,7 +207,7 @@ public class VersionServiceImpl implements VersionService {
                 fileNameGenerator.generateZipName(ModelGenerator.versionModel(versionEntity), fileType));
         auditLogService.addAction(
             AuditAction.DOWNLOAD,
-            versionEntity
+            () -> versionEntity
         );
         return ef;
     }

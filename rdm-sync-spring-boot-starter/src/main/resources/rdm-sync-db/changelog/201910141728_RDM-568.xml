@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="201910141728_RDM-568" author="Ikarimullin" dbms="postgresql">
+        <sql splitStatements="false">
+            CREATE TABLE rdm_sync.xml_mapping_loader_lock(last_acquired TIMESTAMP WITHOUT TIME ZONE);
+            INSERT INTO rdm_sync.xml_mapping_loader_lock VALUES (NULL);
+            COMMENT ON TABLE rdm_sync.xml_mapping_loader_lock IS 'Таблица-лочка для накатывания XML маппинга одной нодой при поднятии.';
+            COMMENT ON COLUMN rdm_sync.xml_mapping_loader_lock.last_acquired IS 'Метка времени, когда лочка была захвачена в последний раз. Ее значение никак не используется, только непосредственно для лока средствами postgres-а (SELECT FOR UPDATE).';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
