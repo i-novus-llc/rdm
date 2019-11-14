@@ -25,8 +25,6 @@ import javax.xml.ws.soap.SOAPBinding;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -35,7 +33,7 @@ import java.util.concurrent.ConcurrentMap;
  * Потребитель из очереди СМЭВ-3.
  */
 @Component
-class EsnsiSmevClient {
+public class EsnsiSmevClient {
 
     private static final InputStream EMPTY_INPUT_STREAM = new InputStream() {
         @Override
@@ -86,7 +84,7 @@ class EsnsiSmevClient {
         policy.setConnectionTimeout(connectionTimeout);
     }
 
-    AcceptRequestDocument sendRequest(Object requestData, String messageId) {
+    public AcceptRequestDocument sendRequest(Object requestData, String messageId) {
         if (requestData.getClass() != CnsiRequest.class) {
             CnsiRequest cnsiRequest = objectFactory.createCnsiRequest();
             setRequest(cnsiRequest, requestData);
@@ -113,25 +111,7 @@ class EsnsiSmevClient {
         }
     }
 
-    <REQUEST, RESPONSE> Map<String, Map.Entry<RESPONSE, InputStream>> batchRequest(Map<String, REQUEST> requestMap, Class<RESPONSE> responseClass) {
-        for (Map.Entry<String, REQUEST> requestEntry : requestMap.entrySet())
-            sendRequest(requestEntry.getValue(), requestEntry.getKey());
-        Map<String, Map.Entry<RESPONSE, InputStream>> map = new HashMap<>();
-        while (!requestMap.isEmpty()) {
-            Iterator<String> iterator = requestMap.keySet().iterator();
-            while (iterator.hasNext()) {
-                String messageId = iterator.next();
-                Map.Entry<RESPONSE, InputStream> response = getResponse(messageId, responseClass);
-                if (response != null) {
-                    map.put(messageId, response);
-                    iterator.remove();
-                }
-            }
-        }
-        return map;
-    }
-
-    <T> Map.Entry<T, InputStream> getResponse(String messageId, Class<T> responseType) {
+    public <T> Map.Entry<T, InputStream> getResponse(String messageId, Class<T> responseType) {
         ResponseDocument responseDocument = getResponseDocument(messageId);
         if (responseDocument != null) {
             InputStream inputStream = null;
@@ -231,7 +211,7 @@ class EsnsiSmevClient {
         }
     }
 
-    boolean acknowledge(String messageId) {
+    public boolean acknowledge(String messageId) {
         msgBuffer.remove(messageId);
         AckRequest ackRequest = objectFactory.createAckRequest();
         ackRequest.setValue(messageId);

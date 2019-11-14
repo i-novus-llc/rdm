@@ -6,7 +6,6 @@
 
     <changeSet id="201911111352_RDM-593" author="Ikarimullin" dbms="postgresql">
         <sql splitStatements="false">
-            CREATE SCHEMA quartz;
             CREATE TABLE IF NOT EXISTS qrtz_job_details
             (
             SCHED_NAME        VARCHAR(120) NOT NULL,
