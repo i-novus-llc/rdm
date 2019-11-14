@@ -194,7 +194,7 @@ public class RefBookServiceImpl implements RefBookService {
         RefBookVersionEntity savedVersion = versionRepository.save(refBookVersionEntity);
         return refBookModel(savedVersion,
                 getSourceTypeVersion(savedVersion.getRefBook().getId(), RefBookSourceType.DRAFT),
-                getSourceTypeVersion(savedVersion.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED));
+                getSourceTypeVersion(savedVersion.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED), false);
     }
 
     @Override
@@ -217,7 +217,7 @@ public class RefBookServiceImpl implements RefBookService {
         versionEntity.setComment(request.getComment());
         return refBookModel(versionEntity,
                 getSourceTypeVersion(versionEntity.getRefBook().getId(), RefBookSourceType.DRAFT),
-                getSourceTypeVersion(versionEntity.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED));
+                getSourceTypeVersion(versionEntity.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED), false);
     }
 
     @Override
