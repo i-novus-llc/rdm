@@ -6,14 +6,18 @@
     <artifactId>rdm-esnsi</artifactId>
     <version>1.89-SNAPSHOT</version>
     <packaging>jar</packaging>
+
     <properties>
+        <config.server.enable>false</config.server.enable>
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
+
     <parent>
         <groupId>ru.inovus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
         <version>1.89-SNAPSHOT</version>
     </parent>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -38,6 +42,10 @@
         <dependency>
             <groupId>net.n2oapp.platform</groupId>
             <artifactId>n2o-platform-starter-jaxrs-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-ms</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -125,6 +133,9 @@
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
+            <properties>
+                <config.server.enable>true</config.server.enable>
+            </properties>
             <build>
                 <plugins>
                     <plugin>

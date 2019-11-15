@@ -64,7 +64,7 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements StatefulJob {
         if (jobDataMap.containsKey("numRetries"))
             numRetries = jobDataMap.getInt("numRetries");
         int numRetriesTotal = Integer.parseInt(getProperty("esnsi.sync.num-retries"));
-        if (!outOfDate && numRetries <= numRetriesTotal) {
+        if (!outOfDate && numRetries < numRetriesTotal) {
             try {
                 boolean needToInterrupt = execute0(context);
                 if (needToInterrupt) {
