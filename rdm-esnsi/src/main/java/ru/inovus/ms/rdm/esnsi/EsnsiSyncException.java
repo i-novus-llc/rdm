@@ -6,4 +6,8 @@ public class EsnsiSyncException extends RuntimeException {
         super(cause);
     }
 
+    public EsnsiSyncException(String msg) {
+        super(msg);
+    }
+
 }

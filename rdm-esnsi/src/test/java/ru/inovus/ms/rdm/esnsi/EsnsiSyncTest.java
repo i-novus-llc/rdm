@@ -63,13 +63,13 @@ public class EsnsiSyncTest {
 
     @Test
     public void main() throws Exception {
-        String dictCode = "01-519";
+        String classifierCode = "01-519";
         int lastRevision = 3;
         String getRevisionListMsgId = "1";
         String getStructureMsgId = "2";
         String getDataMsgId = "3";
 
-        setField(integrationService, Objects.requireNonNull(getField(EsnsiIntegrationService.class, "codes")), List.of(dictCode));
+        setField(integrationService, Objects.requireNonNull(getField(EsnsiIntegrationService.class, "codes")), List.of(classifierCode));
         setField(integrationService, Objects.requireNonNull(getField(EsnsiIntegrationService.class, "objectFactory")), objectFactory);
         setField(integrationService, Objects.requireNonNull(getField(EsnsiIntegrationService.class, "esnsiClient")), esnsiSmevClient);
         setField(integrationService, Objects.requireNonNull(getField(EsnsiIntegrationService.class, "dao")), dao);
@@ -110,8 +110,8 @@ public class EsnsiSyncTest {
         });
 
         ClassifierDescriptorListType descriptor = objectFactory.createClassifierDescriptorListType();
-        descriptor.setCode(dictCode);
-        descriptor.setPublicId(dictCode);
+        descriptor.setCode(classifierCode);
+        descriptor.setPublicId(classifierCode);
         descriptor.setRevision(lastRevision);
         descriptor.setName("Общероссийский классификатор объектов административно-территориального деления ОКАТО");
 
@@ -148,8 +148,8 @@ public class EsnsiSyncTest {
 //        verify(dao, times(1)).insert(anyList(), refEq(struct));
         Diff build = DiffBuilder.compare(Input.fromStream(Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResourceAsStream(
                 "to-rdm.xml"
-        )))).withTest(Input.fromFile(dictCode + "-" + lastRevision + ".xml")).ignoreWhitespace().build();
-        Files.delete(Path.of(dictCode + "-" + lastRevision + ".xml"));
+        )))).withTest(Input.fromFile(classifierCode + "-" + lastRevision + ".xml")).ignoreWhitespace().build();
+        Files.delete(Path.of(classifierCode + "-" + lastRevision + ".xml"));
         assertFalse(build.hasDifferences());
     }
 

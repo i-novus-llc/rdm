@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.esnsi.jobs;
 
-import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -14,7 +13,6 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.UUID;
 
-@DisallowConcurrentExecution
 class GetClassifierStructureJob extends AbstractEsnsiDictionaryProcessingJob {
 
     private static final Logger logger = LoggerFactory.getLogger(GetClassifierStructureJob.class);

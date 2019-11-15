@@ -2,7 +2,6 @@ package ru.inovus.ms.rdm.esnsi.jobs;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +26,6 @@ import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
 
-@DisallowConcurrentExecution
 class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
 
     private static final Logger logger = LoggerFactory.getLogger(SendToRdmJob.class);

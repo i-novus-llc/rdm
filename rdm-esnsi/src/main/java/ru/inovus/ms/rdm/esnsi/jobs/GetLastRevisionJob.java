@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.esnsi.jobs;
 
-import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -13,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@DisallowConcurrentExecution
 class GetLastRevisionJob extends AbstractEsnsiDictionaryProcessingJob {
 
     @Override

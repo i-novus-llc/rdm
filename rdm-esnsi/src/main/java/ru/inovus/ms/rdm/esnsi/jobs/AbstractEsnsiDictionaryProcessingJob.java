@@ -13,7 +13,6 @@ import ru.inovus.ms.rdm.esnsi.api.ObjectFactory;
 import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
 
-@DisallowConcurrentExecution
 abstract class AbstractEsnsiDictionaryProcessingJob implements StatefulJob {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractEsnsiDictionaryProcessingJob.class);
@@ -36,7 +35,7 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements StatefulJob {
 
     String classifierCode;
 
-    private JobKey selfIdentity;
+    JobKey selfIdentity;
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {

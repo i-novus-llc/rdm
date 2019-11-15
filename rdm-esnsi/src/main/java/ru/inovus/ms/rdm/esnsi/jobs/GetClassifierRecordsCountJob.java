@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.esnsi.jobs;
 
-import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -9,7 +8,6 @@ import ru.inovus.ms.rdm.esnsi.api.GetClassifierRecordsCountResponseType;
 import java.io.InputStream;
 import java.util.Map;
 
-@DisallowConcurrentExecution
 class GetClassifierRecordsCountJob extends AbstractEsnsiDictionaryProcessingJob {
 
     @Override

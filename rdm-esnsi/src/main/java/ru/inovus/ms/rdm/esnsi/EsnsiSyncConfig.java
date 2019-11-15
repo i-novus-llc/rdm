@@ -1,6 +1,9 @@
 package ru.inovus.ms.rdm.esnsi;
 
-import org.quartz.*;
+import org.quartz.JobBuilder;
+import org.quartz.JobDetail;
+import org.quartz.JobKey;
+import org.quartz.Trigger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.ApplicationContext;
@@ -19,6 +22,7 @@ import java.util.List;
 import java.util.Properties;
 
 import static org.quartz.CronScheduleBuilder.cronSchedule;
+import static org.quartz.TriggerBuilder.newTrigger;
 
 @Configuration
 public class EsnsiSyncConfig {
@@ -26,7 +30,7 @@ public class EsnsiSyncConfig {
     @Value("${esnsi.sync.execution.expression}")
     private String esnsiSyncCronExpression;
 
-    @Value("${esnsi.dictionary.codes}")
+    @Value("${esnsi.classifier.codes}")
     private List<String> codes;
 
     @Bean
@@ -52,18 +56,19 @@ public class EsnsiSyncConfig {
         factory.setDataSource(dataSource);
         factory.setAutoStartup(true);
         factory.setOverwriteExistingJobs(true);
-        JobDetail[] jobDetails = {
-            getEsnsiSyncJob(codes)
-        };
-        Trigger[] triggers = {
-            TriggerBuilder.newTrigger().forJob(jobDetails[0])
-            .withIdentity(jobDetails[0].getKey().getName())
-            .withSchedule(cronSchedule(esnsiSyncCronExpression)).build()
-        };
+        JobDetail[] esnsiSyncJobs = getEsnsiSyncAllJob(codes);
+        Trigger[] triggers = new Trigger[esnsiSyncJobs.length];
+        if (triggers.length > 0) {
+            JobDetail syncAllJob = esnsiSyncJobs[0];
+            triggers[0] = newTrigger().forJob(syncAllJob).
+                          withIdentity(syncAllJob.getKey().getName(), syncAllJob.getKey().getGroup()).
+                          withSchedule(cronSchedule(esnsiSyncCronExpression)).
+                          build();
+        }
         AutowiringSpringBeanJobFactory jobFactory = new AutowiringSpringBeanJobFactory();
         jobFactory.setApplicationContext(applicationContext);
         factory.setJobFactory(jobFactory);
-        factory.setJobDetails(jobDetails);
+        factory.setJobDetails(esnsiSyncJobs);
         factory.setTriggers(triggers);
         return factory;
     }
@@ -73,19 +78,37 @@ public class EsnsiSyncConfig {
         return new RestTemplate();
     }
 
-    private JobDetail getEsnsiSyncJob(List<String> codes) {
-        JobKey jobKey = getEsnsiSyncJobKey();
+    private JobDetail[] getEsnsiSyncAllJob(List<String> codes) {
+        JobBuilder jb;
+        if (!codes.isEmpty()) {
+            JobDetail[] jobs = new JobDetail[1];
+            JobKey jobKey = getEsnsiSyncJobKey();
+            jb = JobBuilder.newJob(EsnsiIntegrationJob.class);
+            jb.withIdentity(jobKey);
+            jb.storeDurably();
+            jb.requestRecovery();
+            for (String code : codes)
+                jb.usingJobData(code, true);
+            jobs[0] = jb.build();
+            return jobs;
+        }
+        return new JobDetail[]{};
+    }
+
+    static JobDetail getEsnsiSyncSpecificClassiferJob(String classifierCode) {
         JobBuilder jb = JobBuilder.newJob(EsnsiIntegrationJob.class);
-        jb.withIdentity(jobKey);
-        for (String code : codes)
-            jb.usingJobData(code, true);
         jb.storeDurably();
-        jb.requestRecovery();
+        jb.withIdentity(getEsnsiSyncJobKey(classifierCode));
+        jb.usingJobData(classifierCode, true);
         return jb.build();
     }
 
+    private static JobKey getEsnsiSyncJobKey(String classifierCode) {
+        return JobKey.jobKey("esnsi-sync", classifierCode);
+    }
+
     static JobKey getEsnsiSyncJobKey() {
-        return JobKey.jobKey("esnsi-sync", "NONE");
+        return getEsnsiSyncJobKey("NONE");
     }
 
 }

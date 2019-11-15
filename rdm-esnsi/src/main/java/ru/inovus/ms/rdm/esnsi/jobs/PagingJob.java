@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.esnsi.jobs;
 
-import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -14,7 +13,6 @@ import java.util.UUID;
 import static ru.inovus.ms.rdm.esnsi.EsnsiIntegrationDao.getClassifierSpecificDataTableName;
 import static ru.inovus.ms.rdm.esnsi.jobs.EsnsiSyncJobUtils.PAGE_SIZE;
 
-@DisallowConcurrentExecution
 class PagingJob extends AbstractEsnsiDictionaryProcessingJob {
 
     @Override

@@ -31,6 +31,7 @@ import java.util.GregorianCalendar;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 import static java.util.Calendar.*;
 
@@ -123,6 +124,11 @@ public class EsnsiSmevClient {
     public <T> Map.Entry<T, InputStream> getResponse(String messageId, Class<T> responseType) {
         ResponseDocument responseDocument = getResponseDocument(messageId);
         if (responseDocument != null) {
+            if (!responseDocument.getSenderProvidedResponseData().getRequestRejected().isEmpty()) {
+                throw new EsnsiSyncException(responseDocument.getSenderProvidedResponseData().getRequestRejected().stream().map(requestRejected ->
+                    "[" + requestRejected.getRejectionReasonCode() + ":" + requestRejected.getRejectionReasonDescription() + "]"
+                ).collect(Collectors.joining(",\n")));
+            }
             InputStream inputStream = null;
             AttachmentContentList attachmentContent = responseDocument.getAttachmentContentList();
             if (attachmentContent != null) {

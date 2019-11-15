@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.esnsi.jobs;
 
-import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierDataResponseType;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierStructureResponseType;
@@ -12,7 +11,6 @@ import java.util.Map;
 
 import static ru.inovus.ms.rdm.esnsi.jobs.EsnsiSyncJobUtils.PAGE_SIZE;
 
-@DisallowConcurrentExecution
 class GetDataPageJob extends AbstractEsnsiDictionaryProcessingJob {
 
     @Override

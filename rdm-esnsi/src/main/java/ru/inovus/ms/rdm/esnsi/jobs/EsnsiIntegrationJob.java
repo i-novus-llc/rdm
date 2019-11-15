@@ -1,6 +1,9 @@
 package ru.inovus.ms.rdm.esnsi.jobs;
 
-import org.quartz.*;
+import org.quartz.JobBuilder;
+import org.quartz.JobDetail;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inovus.ms.rdm.esnsi.ClassifierProcessingStage;
@@ -9,7 +12,6 @@ import ru.inovus.ms.rdm.esnsi.api.GetClassifierRevisionsCountRequestType;
 
 import java.util.UUID;
 
-@DisallowConcurrentExecution
 public class EsnsiIntegrationJob extends AbstractEsnsiDictionaryProcessingJob {
 
     private static final Logger logger = LoggerFactory.getLogger(EsnsiIntegrationJob.class);

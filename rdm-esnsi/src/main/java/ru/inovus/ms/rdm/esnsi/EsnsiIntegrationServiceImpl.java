@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.esnsi;
 
+import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.slf4j.Logger;
@@ -18,7 +19,7 @@ public class EsnsiIntegrationServiceImpl implements EsnsiIntegrationService {
     @Autowired
     private Scheduler scheduler;
 
-    @Value("${esnsi.dictionary.codes}")
+    @Value("${esnsi.classifier.codes}")
     private List<String> codes;
 
     @Override
@@ -28,6 +29,18 @@ public class EsnsiIntegrationServiceImpl implements EsnsiIntegrationService {
             scheduler.triggerJob(EsnsiSyncConfig.getEsnsiSyncJobKey());
         } catch (SchedulerException e) {
             logger.error("Can't start esnsi integration job.", e);
+        }
+    }
+
+    @Override
+    public void update(String classifierCode) {
+        logger.info("Forcing sync of {} classifier.", classifierCode);
+        try {
+            JobDetail job = EsnsiSyncConfig.getEsnsiSyncSpecificClassiferJob(classifierCode);
+            scheduler.addJob(job, true);
+            scheduler.triggerJob(job.getKey());
+        } catch (SchedulerException e) {
+            logger.error("Unable to start sync of {} classifier", classifierCode, e);
         }
     }
 

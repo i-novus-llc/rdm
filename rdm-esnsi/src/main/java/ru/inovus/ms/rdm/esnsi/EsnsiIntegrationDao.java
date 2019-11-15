@@ -122,7 +122,7 @@ public class EsnsiIntegrationDao {
             for (String q : queries)
                 namedParameterJdbcTemplate.getJdbcTemplate().execute(q);
         } catch (SQLException e) {
-            logger.error("Can't drop tables previously associated with this dictionary. If there was a table associated with this dictionary - it will not be deleted.", e);
+            logger.error("Can't drop tables previously associated with this classifier. If there was a table associated with this classifier - it will not be deleted.", e);
         }
         int revision = struct.getClassifierDescriptor().getRevision();
         String tableName = getClassifierSpecificDataTableName(code, revision);
@@ -174,8 +174,8 @@ public class EsnsiIntegrationDao {
     @Transactional
     public void updateLastDownloaded(String code, int revision, Timestamp time) {
         String q = "INSERT INTO esnsi_sync.version (code, revision, last_updated) VALUES (:code, :revision, :time) " +
-                "ON CONFLICT (code) DO UPDATE SET revision = :revision, last_updated = :time, state = :state;";
-        namedParameterJdbcTemplate.update(q, Map.of("code", code, "revision", revision, "time", time, "state", NONE.name()));
+                "ON CONFLICT (code) DO UPDATE SET revision = :revision, last_updated = :time, stage = :stage;";
+        namedParameterJdbcTemplate.update(q, Map.of("code", code, "revision", revision, "time", time, "stage", NONE.name()));
     }
 
     @Transactional(readOnly = true)
@@ -190,7 +190,7 @@ public class EsnsiIntegrationDao {
         try {
             return ((CnsiResponse) STRUCT_CTX.createUnmarshaller().unmarshal(new StringReader(s.iterator().next()))).getGetClassifierStructure();
         } catch (JAXBException e) {
-            logger.error("Unable to parse dictionary structure XML.", e);
+            logger.error("Unable to parse classifier structure XML.", e);
         }
         return null;
     }
