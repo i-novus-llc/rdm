@@ -22,7 +22,6 @@ import java.io.OutputStream;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
-import java.util.Map;
 
 @DisallowConcurrentExecution
 class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
@@ -53,11 +52,10 @@ class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
         body.add("file", resource);
         HttpEntity<MultiValueMap<String, Object>> requestEntity
                 = new HttpEntity<>(body, headers);
-        ResponseEntity<FileModel> response = restTemplate
-                .postForEntity(uri, requestEntity, FileModel.class);
-        FileModel fileModel = response.getBody();
-        String draftService = rdmRestUrl + "/draft/createByFile";
-        restTemplate.postForObject(draftService, null, String.class, Map.of("path", fileModel.path, "name", fileModel.name));
+        ResponseEntity<String> response = restTemplate.postForEntity(uri, requestEntity, String.class);
+//        String fileModel = response.getBody();
+//        String draftService = rdmRestUrl + "/draft/createByFile";
+//        restTemplate.postForObject(draftService, null, String.class, Map.of("path", fileModel.path, "name", fileModel.name));
         esnsiIntegrationDao.updateLastDownloaded(classifierCode, revision, Timestamp.from(Instant.now(Clock.systemUTC())));
         f.deleteOnExit();
         return true;

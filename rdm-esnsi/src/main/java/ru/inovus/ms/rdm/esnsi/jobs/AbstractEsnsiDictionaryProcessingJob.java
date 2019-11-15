@@ -65,7 +65,7 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements StatefulJob {
         if (jobDataMap.containsKey("numRetries"))
             numRetries = jobDataMap.getInt("numRetries");
         int numRetriesTotal = Integer.parseInt(getProperty("esnsi.sync.num-retries"));
-        if (!outOfDate && numRetries < numRetriesTotal) {
+        if (!outOfDate && numRetries <= numRetriesTotal) {
             try {
                 boolean needToInterrupt = execute0(context);
                 if (needToInterrupt) {
@@ -83,7 +83,22 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements StatefulJob {
                     throw new JobExecutionException(true);
                 }
             }
+        } else {
+            if (!outOfDate)
+                shutdownPipeline();
+            else {
+                try {
+                    interrupt();
+                } catch (SchedulerException e) {
+                    logger.error("Unable interrupt job with key {}. Please try manually.", selfIdentity, e);
+                }
+            }
         }
+    }
+
+    private void shutdownPipeline() {
+        logger.info("Job {} run out of attempts. Pipeline for classifier with code {} will be shutdown.", selfIdentity, classifierCode);
+        esnsiIntegrationDao.setClassifierProcessingStage(classifierCode, ClassifierProcessingStage.NONE, () -> interrupt());
     }
 
     private static ClassifierProcessingStage getStage(Class<? extends Job> c) {
