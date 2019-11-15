@@ -3,14 +3,22 @@ package ru.inovus.ms.rdm.esnsi.jobs;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierStructureResponseType;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
@@ -25,7 +33,7 @@ class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
     @Override
     boolean execute0(JobExecutionContext context) throws Exception {
         int revision = jobDataMap.getInt("revision");
-        String fileName = classifierCode + "-" + revision + ".xml";
+        String fileName = System.currentTimeMillis() + ".xml";
         File f = new File(fileName);
         try (OutputStream out = new BufferedOutputStream(new FileOutputStream(f))) {
             GetClassifierStructureResponseType struct = esnsiIntegrationDao.getStruct(classifierCode, revision);
@@ -37,20 +45,21 @@ class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
         String rdmRestUrl = getProperty("rdm.rest.url");
         String fileStorageService = rdmRestUrl + "/fileStorage/save";
         String uri = UriComponentsBuilder.fromHttpUrl(fileStorageService).queryParam("fileName", fileName).build().toUriString();
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
-        Resource resource = new InputStreamResource(new BufferedInputStream(new FileInputStream(f)));
-        ResponseEntity<FileModel> fileModel = restTemplate.exchange(
-            uri,
-            HttpMethod.POST,
-            new HttpEntity<>(resource, httpHeaders),
-            FileModel.class,
-            fileName
-        );
-        FileModel body = fileModel.getBody();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        Resource resource = new FileSystemResource(f);
+        MultiValueMap<String, Object> body
+                = new LinkedMultiValueMap<>();
+        body.add("file", resource);
+        HttpEntity<MultiValueMap<String, Object>> requestEntity
+                = new HttpEntity<>(body, headers);
+        ResponseEntity<FileModel> response = restTemplate
+                .postForEntity(uri, requestEntity, FileModel.class);
+        FileModel fileModel = response.getBody();
         String draftService = rdmRestUrl + "/draft/createByFile";
-        restTemplate.postForObject(draftService, null, String.class, Map.of("path", body.path, "name", body.name));
+        restTemplate.postForObject(draftService, null, String.class, Map.of("path", fileModel.path, "name", fileModel.name));
         esnsiIntegrationDao.updateLastDownloaded(classifierCode, revision, Timestamp.from(Instant.now(Clock.systemUTC())));
+        f.deleteOnExit();
         return true;
     }
 

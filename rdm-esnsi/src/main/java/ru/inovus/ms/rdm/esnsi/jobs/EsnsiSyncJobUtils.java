@@ -170,7 +170,7 @@ final class EsnsiSyncJobUtils {
             try {
                 writer.writeStartDocument("1.0");
                 writer.writeStartElement("refBook");
-                writeLeaf("code", "ESNSI-" + desc.getPublicId());
+                writeLeaf("code", "ESNSI-" + desc.getCode() + "-" + desc.getRevision());
                 writer.writeStartElement("passport");
                 writeLeaf("name", str(desc.getName(), desc.getCode()));
                 writeLeaf("shortName", desc.getCode());
