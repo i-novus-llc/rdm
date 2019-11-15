@@ -61,7 +61,9 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements StatefulJob {
             esnsiSmevClient.acknowledge(prevMessageId);
             jobDataMap.remove("prevMessageId");
         }
-        if (!outOfDate) {
+        int numRetries = jobDataMap.getInt("numRetries");
+        int numRetriesTotal = Integer.parseInt(getProperty("esnsi.sync.num-retries"));
+        if (!outOfDate && numRetries < numRetriesTotal) {
             try {
                 boolean needToInterrupt = execute0(context);
                 if (needToInterrupt) {
@@ -74,7 +76,9 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements StatefulJob {
             } catch (Exception e) {
                 logger.error("Job {} exceptionally finished.", selfIdentity, e);
                 if (getClass() != EsnsiIntegrationJob.class) {
-                    esnsiIntegrationDao.setClassifierProcessingStage(classifierCode, ClassifierProcessingStage.NONE, () -> interrupt());
+                    logger.info("Job {} will be reexecuted. Current number of retries is {}", selfIdentity, numRetries);
+                    jobDataMap.put("numRetries", numRetries + 1);
+                    throw new JobExecutionException(true);
                 }
             }
         }
@@ -109,6 +113,7 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements StatefulJob {
     private void execJob(JobDetail job, Trigger trigger) throws SchedulerException {
         if (jobDataMap.containsKey("messageId"))
             job.getJobDataMap().put("prevMessageId", jobDataMap.get("messageId"));
+        job.getJobDataMap().put("numRetries", 0);
         esnsiIntegrationDao.setClassifierProcessingStage(job.getKey().getGroup(), getStage(job.getJobClass()), () -> {
             scheduler.deleteJob(job.getKey());
             scheduler.scheduleJob(job, trigger);
