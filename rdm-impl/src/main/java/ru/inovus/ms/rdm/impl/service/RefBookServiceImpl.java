@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
-import ru.inovus.ms.rdm.api.enumeration.ConflictType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookStatusType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -46,7 +45,7 @@ public class RefBookServiceImpl implements RefBookService {
 
     private RefBookRepository refBookRepository;
     private RefBookVersionRepository versionRepository;
-    private ExistsConflictDataRepository existsConflictDataRepository;
+    private RefBookModelDataRepository refBookModelDataRepository;
 
     private DraftDataService draftDataService;
     private DropDataService dropDataService;
@@ -63,7 +62,7 @@ public class RefBookServiceImpl implements RefBookService {
     @Autowired
     @SuppressWarnings("squid:S00107")
     public RefBookServiceImpl(RefBookRepository refBookRepository, RefBookVersionRepository versionRepository,
-                              ExistsConflictDataRepository existsConflictDataRepository,
+                              RefBookModelDataRepository refBookModelDataRepository,
                               DraftDataService draftDataService, DropDataService dropDataService,
                               RefBookLockService refBookLockService,
                               PassportValueRepository passportValueRepository, RefBookVersionQueryProvider refBookVersionQueryProvider,
@@ -71,7 +70,7 @@ public class RefBookServiceImpl implements RefBookService {
         this.refBookRepository = refBookRepository;
         this.versionRepository = versionRepository;
 
-        this.existsConflictDataRepository = existsConflictDataRepository;
+        this.refBookModelDataRepository = refBookModelDataRepository;
 
         this.draftDataService = draftDataService;
         this.dropDataService = dropDataService;
@@ -328,17 +327,16 @@ public class RefBookServiceImpl implements RefBookService {
 
         model.setHasReferrer(hasReferrerVersions);
 
-        // NB: List<boolean> isConflict by ConflictType filled by one query.
-        ExistsConflictData existsConflictData = existsConflictDataRepository.findExistsConflictData(
+        RefBookModelData refBookModelData = refBookModelDataRepository.findData(
                 model.getId(),
                 lastPublishedVersion != null,
                 lastPublishedVersion != null ? lastPublishedVersion.getId() : 0);
 
-        model.setHasDataConflict(existsConflictData.getHasDataConflict());
-        model.setHasUpdatedConflict(existsConflictData.getHasUpdatedConflict());
-        model.setHasAlteredConflict(existsConflictData.getHasAlteredConflict());
-        model.setHasStructureConflict(existsConflictData.getHasStructureConflict());
-        model.setLastHasDataConflict(existsConflictData.getLastHasDataConflict());
+        model.setHasDataConflict(refBookModelData.getHasDataConflict());
+        model.setHasUpdatedConflict(refBookModelData.getHasUpdatedConflict());
+        model.setHasAlteredConflict(refBookModelData.getHasAlteredConflict());
+        model.setHasStructureConflict(refBookModelData.getHasStructureConflict());
+        model.setLastHasDataConflict(refBookModelData.getLastHasDataConflict());
 
         return model;
     }
@@ -413,8 +411,8 @@ public class RefBookServiceImpl implements RefBookService {
      * @param refBookSourceType источник данных справочника
      * @return Список требуемых версий справочников
      */
-    // NB: may-be: Move to `RefBookVersionQueryProvider`.
     private List<RefBookVersionEntity> getSourceTypeVersions(List<Integer> refBookIds, RefBookSourceType refBookSourceType) {
+
         RefBookCriteria versionCriteria = new RefBookCriteria();
         versionCriteria.setSourceType(refBookSourceType);
         versionCriteria.setRefBookIds(refBookIds);

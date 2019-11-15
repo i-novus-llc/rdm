@@ -4,16 +4,18 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.query.Param;
-import ru.inovus.ms.rdm.impl.entity.ExistsConflictData;
+import ru.inovus.ms.rdm.impl.entity.RefBookModelData;
 
 @SuppressWarnings("squid:S1214")
-public interface ExistsConflictDataRepository extends
-        JpaRepository<ExistsConflictData, Integer>,
-        QuerydslPredicateExecutor<ExistsConflictData> {
+public interface RefBookModelDataRepository extends
+        JpaRepository<RefBookModelData, Integer>,
+        QuerydslPredicateExecutor<RefBookModelData> {
 
     @SuppressWarnings("squid:S1192")
     String FIND_CONFLICT_DATA = "select\n" +
             "  :referrerVersionId as referrer_version_id,\n" +
+            "  null as draft_version_id,\n" +
+            "  39 as last_published_version_id,\n" +
             "\n" +
             "  exists(\n" +
             "    select 1 from n2o_rdm_management.ref_book_conflict c\n" +
@@ -49,7 +51,7 @@ public interface ExistsConflictDataRepository extends
      *
      */
     @Query(nativeQuery = true, value = FIND_CONFLICT_DATA)
-    ExistsConflictData findExistsConflictData(@Param("referrerVersionId") Integer referrerVersionId,
-                                              @Param("hasLastPublishedVersion") boolean hasLastPublishedVersion,
-                                              @Param("lastPublishedVersionId") Integer lastPublishedVersionId);
+    RefBookModelData findData(@Param("referrerVersionId") Integer referrerVersionId,
+                              @Param("hasLastPublishedVersion") boolean hasLastPublishedVersion,
+                              @Param("lastPublishedVersionId") Integer lastPublishedVersionId);
 }

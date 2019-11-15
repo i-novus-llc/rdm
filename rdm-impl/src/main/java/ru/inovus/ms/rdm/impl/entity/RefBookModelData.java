@@ -1,21 +1,25 @@
 package ru.inovus.ms.rdm.impl.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 /**
- * Данные проверки существования конфликтов.
- *
- * Используется для заполнения RefBook.
+ * Данные для заполнения модели RefBook.
  */
 @Entity
 @SuppressWarnings("unused")
-public class ExistsConflictData {
+public class RefBookModelData {
 
     @Id
     @Column(name = "referrer_version_id")
     private Integer referrerVersionId;
+
+    @ManyToOne
+    @JoinColumn(name = "draft_version_id")
+    private RefBookVersionEntity draftVersion;
+
+    @ManyToOne
+    @JoinColumn(name = "last_published_version_id")
+    private RefBookVersionEntity lastPublishedVersion;
 
     /** Наличие конфликта данных */
     @Column(name = "has_data_conflict")
@@ -37,7 +41,7 @@ public class ExistsConflictData {
     @Column(name = "last_has_data_conflict")
     private Boolean lastHasDataConflict;
 
-    public ExistsConflictData() {
+    public RefBookModelData() {
     }
 
     public Integer getReferrerVersionId() {
