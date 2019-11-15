@@ -142,7 +142,7 @@ public class EsnsiIntegrationDao {
     }
 
     @Transactional
-    public boolean insert(List<Object[]> batch, String tableName, String pageProcessorId) {
+    public void insert(List<Object[]> batch, String tableName, String pageProcessorId, Executable exec) {
         boolean finished = isPageProcessorIdle(pageProcessorId);
         if (!batch.isEmpty()) {
             if (!finished) {
@@ -153,11 +153,16 @@ public class EsnsiIntegrationDao {
                         ")";
                 namedParameterJdbcTemplate.getJdbcTemplate().batchUpdate(q, batch);
             }
-        } else if (!finished) {
+        }
+        if (!finished) {
             String q = "UPDATE esnsi_sync.page_processor_state SET finished = TRUE, seed = (seed + 1) WHERE id = :id";
             namedParameterJdbcTemplate.update(q, Map.of("id", pageProcessorId));
         }
-        return finished;
+        try {
+            exec.exec();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Transactional
@@ -220,9 +225,14 @@ public class EsnsiIntegrationDao {
     }
 
     @Transactional
-    public void setPageProcessorBusy(String pageProcessorId) {
+    public void setPageProcessorBusy(String pageProcessorId, Executable exec) {
         String q = "UPDATE esnsi_sync.page_processor_state SET finished = FALSE WHERE id = :id";
         namedParameterJdbcTemplate.update(q, Map.of("id", pageProcessorId));
+        try {
+            exec.exec();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Transactional(readOnly = true)

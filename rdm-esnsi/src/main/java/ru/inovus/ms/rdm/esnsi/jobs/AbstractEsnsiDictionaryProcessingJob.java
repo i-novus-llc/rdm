@@ -12,6 +12,7 @@ import ru.inovus.ms.rdm.esnsi.api.ObjectFactory;
 
 import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
+import static org.quartz.TriggerKey.triggerKey;
 
 @DisallowConcurrentExecution
 abstract class AbstractEsnsiDictionaryProcessingJob implements InterruptableJob, StatefulJob {
@@ -49,11 +50,11 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements InterruptableJob,
         } else {
             if (jobDataMap.containsKey("stage_set")) {
                 ClassifierProcessingStage current = esnsiIntegrationDao.getClassifierProcessingStage(classifierCode);
-                if (current.ordinal() > stage().ordinal()) {
+                if (current != stage()) {
                     try {
-                        shutdown();
+                        unschedule();
                     } catch (SchedulerException e) {
-                        logger.error("Unable to shutdown job with key {}. The pipeline went further, while the given job cannot stop. Please try manually.", selfIdentity, e);
+                        logger.error("Unable to shutdown job with key {}. The pipeline is in another stage, while the given job cannot stop. Please try manually.", selfIdentity, e);
                     }
                 }
             }
@@ -70,7 +71,7 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements InterruptableJob,
             if (getClass() != EsnsiIntegrationJob.class) {
                 esnsiIntegrationDao.setClassifierProcessingStage(classifierCode, ClassifierProcessingStage.NONE);
                 try {
-                    shutdown();
+                    unschedule();
                 } catch (SchedulerException ex) {
                     logger.error("Unable to shutdown job with key {}", selfIdentity, ex);
                 }
@@ -80,7 +81,7 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements InterruptableJob,
 
     @Override
     public void interrupt() throws UnableToInterruptJobException {
-        logger.info("Job {} successfully unscheduled.", selfIdentity);
+
     }
 
     abstract void execute0(JobExecutionContext context) throws Exception;
@@ -110,9 +111,9 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements InterruptableJob,
         scheduler.triggerJob(job.getKey());
     }
 
-    void shutdown() throws SchedulerException {
-        scheduler.interrupt(selfIdentity);
-        scheduler.deleteJob(selfIdentity);
+    void unschedule() throws SchedulerException {
+        scheduler.unscheduleJob(triggerKey(selfIdentity.getName(), selfIdentity.getGroup()));
+        logger.info("Job {} successfully unscheduled.", selfIdentity);
     }
 
     String getProperty(String name) {

@@ -45,11 +45,10 @@ class PagingJob extends AbstractEsnsiDictionaryProcessingJob {
                                 requestRecovery().usingJobData("messageId", acceptRequestDocument.getMessageId()).
                                 usingJobData("revision", revision).
                                 usingJobData("stage_set", true).
-                                usingJobData("busy_set", false).
                                 usingJobData("tableName", tableName).
                                 usingJobData("id", pageProcessor.fullId()).
                                 build();
-                execSmevResponseResponseReadingJob(job);
+                esnsiIntegrationDao.setPageProcessorBusy(pageProcessor.fullId(), () -> execSmevResponseResponseReadingJob(job));
             }
         }
         if (!flag && idlePageProcessors.size() == numWorkers) {
@@ -59,7 +58,7 @@ class PagingJob extends AbstractEsnsiDictionaryProcessingJob {
                             withIdentity(SendToRdmJob.class.getSimpleName(), classifierCode).
                             build();
             execJobWithoutSchedule(job);
-            shutdown();
+            unschedule();
         }
     }
 

@@ -51,7 +51,7 @@ class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
         String draftService = rdmRestUrl + "/draft/createByFile";
         restTemplate.postForObject(draftService, null, String.class, body);
         esnsiIntegrationDao.updateLastDownloaded(classifierCode, revision, Timestamp.from(Instant.now(Clock.systemUTC())));
-        shutdown();
+        unschedule();
     }
 
     @Override

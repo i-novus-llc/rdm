@@ -1,5 +1,8 @@
 package ru.inovus.ms.rdm.esnsi.jobs;
 
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
 import ru.inovus.ms.rdm.esnsi.EsnsiSyncException;
 import ru.inovus.ms.rdm.esnsi.api.ClassifierAttribute;
 import ru.inovus.ms.rdm.esnsi.api.ClassifierDescriptorListType;
@@ -12,12 +15,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
-import java.util.zip.ZipInputStream;
 
 import static java.util.Arrays.stream;
 import static java.util.Comparator.comparingInt;
@@ -57,13 +60,20 @@ final class EsnsiSyncJobUtils {
         private EsnsiXmlDataFileReadUtil() {throw new UnsupportedOperationException();}
 
         static void read(Consumer<Object[]> consumer, GetClassifierStructureResponseType struct, InputStream inputStream) {
-            Map<String, ClassifierAttribute> attributes = indexAttrs(struct);
-            Object[] row = new Object[attributes.size()];
+            Map<String, ClassifierAttribute> attributesIdx = struct.getAttributeList().stream().collect(toMap(ClassifierAttribute::getUid, identity()));
+            Object[] row = new Object[attributesIdx.size()];
             for (int i = 0; i < row.length; i++)
                 row[i] = new StringBuilder();
-            try (ZipInputStream zis = new ZipInputStream(inputStream)) {
-                while (zis.getNextEntry() != null) {
-                    readNextEntry(row, new NonClosingInputStream(zis), attributes, consumer);
+            try (inputStream) {
+                byte[] bytes = inputStream.readAllBytes();
+                try (ZipFile zip = new ZipFile(new SeekableInMemoryByteChannel(bytes))) {
+                    Iterator<ZipArchiveEntry> iterator = zip.getEntries().asIterator();
+                    while (iterator.hasNext()) {
+                        ZipArchiveEntry next = iterator.next();
+                        try (InputStream in = zip.getInputStream(next)) {
+                            readNextEntry(row, in, attributesIdx, consumer);
+                        }
+                    }
                 }
             } catch (IOException e) {
                 throw new EsnsiSyncException(e);
@@ -112,7 +122,7 @@ final class EsnsiSyncJobUtils {
                             if (!reader.isWhiteSpace() && recordOpen && ATTR_TYPES.contains(openedLocalName)) {
                                 if (currAttr == null)
                                     throw new IllegalArgumentException("Invalid XML document.");
-                                ((StringBuilder) row[i++]).append(reader.getText());
+                                ((StringBuilder) row[currAttr.getOrder() - 1]).append(reader.getText());
                             }
                             break;
                     }

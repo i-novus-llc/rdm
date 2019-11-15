@@ -32,7 +32,7 @@ class GetRevisionsCountJob extends AbstractEsnsiDictionaryProcessingJob {
                             usingJobData("messageId", acceptRequestDocument.getMessageId()).
                             build();
             execSmevResponseResponseReadingJob(job);
-            shutdown();
+            unschedule();
         }
     }
 
