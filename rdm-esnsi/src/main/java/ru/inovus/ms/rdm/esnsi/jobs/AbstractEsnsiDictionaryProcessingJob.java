@@ -12,10 +12,9 @@ import ru.inovus.ms.rdm.esnsi.api.ObjectFactory;
 
 import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
-import static org.quartz.TriggerKey.triggerKey;
 
 @DisallowConcurrentExecution
-abstract class AbstractEsnsiDictionaryProcessingJob implements InterruptableJob, StatefulJob {
+abstract class AbstractEsnsiDictionaryProcessingJob implements StatefulJob {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractEsnsiDictionaryProcessingJob.class);
 
@@ -45,14 +44,14 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements InterruptableJob,
         this.selfIdentity = context.getJobDetail().getKey();
         this.classifierCode = context.getJobDetail().getKey().getGroup();
         if (jobDataMap.containsKey("stage_set") && !jobDataMap.getBoolean("stage_set")) {
-            esnsiIntegrationDao.setClassifierProcessingStage(classifierCode, stage());
+            esnsiIntegrationDao.setClassifierProcessingStage(classifierCode, stage(), () -> {});
             jobDataMap.put("stage_set", true);
         } else {
             if (jobDataMap.containsKey("stage_set")) {
                 ClassifierProcessingStage current = esnsiIntegrationDao.getClassifierProcessingStage(classifierCode);
                 if (current != stage()) {
                     try {
-                        unschedule();
+                        interrupt();
                     } catch (SchedulerException e) {
                         logger.error("Unable to shutdown job with key {}. The pipeline is in another stage, while the given job cannot stop. Please try manually.", selfIdentity, e);
                     }
@@ -69,19 +68,9 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements InterruptableJob,
         } catch (Exception e) {
             logger.error("Job {} exceptionally finished.", selfIdentity, e);
             if (getClass() != EsnsiIntegrationJob.class) {
-                esnsiIntegrationDao.setClassifierProcessingStage(classifierCode, ClassifierProcessingStage.NONE);
-                try {
-                    unschedule();
-                } catch (SchedulerException ex) {
-                    logger.error("Unable to shutdown job with key {}", selfIdentity, ex);
-                }
+                esnsiIntegrationDao.setClassifierProcessingStage(classifierCode, ClassifierProcessingStage.NONE, () -> interrupt());
             }
         }
-    }
-
-    @Override
-    public void interrupt() throws UnableToInterruptJobException {
-
     }
 
     abstract void execute0(JobExecutionContext context) throws Exception;
@@ -111,8 +100,8 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements InterruptableJob,
         scheduler.triggerJob(job.getKey());
     }
 
-    void unschedule() throws SchedulerException {
-        scheduler.unscheduleJob(triggerKey(selfIdentity.getName(), selfIdentity.getGroup()));
+    void interrupt() throws SchedulerException {
+        scheduler.deleteJob(selfIdentity);
         logger.info("Job {} successfully unscheduled.", selfIdentity);
     }
 

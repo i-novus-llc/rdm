@@ -58,7 +58,7 @@ class PagingJob extends AbstractEsnsiDictionaryProcessingJob {
                             withIdentity(SendToRdmJob.class.getSimpleName(), classifierCode).
                             build();
             execJobWithoutSchedule(job);
-            unschedule();
+            interrupt();
         }
     }
 

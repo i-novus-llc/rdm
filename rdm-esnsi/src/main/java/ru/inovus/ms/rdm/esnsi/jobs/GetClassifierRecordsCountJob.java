@@ -32,7 +32,7 @@ class GetClassifierRecordsCountJob extends AbstractEsnsiDictionaryProcessingJob 
                 Integer.parseInt(getProperty("esnsi.classifier.downloading.num-workers"))
             );
             execJobWithSimpleSecondlySchedule(job);
-            unschedule();
+            interrupt();
         }
     }
 

@@ -87,7 +87,6 @@ final class EsnsiSyncJobUtils {
                     if (reader.next() == START_ELEMENT && reader.getLocalName().equals(DATA_ELEM))
                         break;
                 }
-                int i = 0;
                 ClassifierAttribute currAttr = null;
                 boolean recordOpen = false;
                 String openedLocalName = null;
@@ -98,7 +97,6 @@ final class EsnsiSyncJobUtils {
                             openedLocalName = reader.getLocalName();
                             switch (openedLocalName) {
                                 case RECORD_ELEM:
-                                    i = 0;
                                     recordOpen = true;
                                     break;
                                 case ATTR_VALUE:
@@ -122,7 +120,7 @@ final class EsnsiSyncJobUtils {
                             if (!reader.isWhiteSpace() && recordOpen && ATTR_TYPES.contains(openedLocalName)) {
                                 if (currAttr == null)
                                     throw new IllegalArgumentException("Invalid XML document.");
-                                ((StringBuilder) row[currAttr.getOrder() - 1]).append(reader.getText());
+                                ((StringBuilder) row[currAttr.getOrder()]).append(reader.getText());
                             }
                             break;
                     }
@@ -140,25 +138,6 @@ final class EsnsiSyncJobUtils {
                     return r.getAttributeValue(i);
             }
             return null;
-        }
-
-        private static Map<String, ClassifierAttribute> indexAttrs(GetClassifierStructureResponseType struct) {
-            return struct.getAttributeList().stream().collect(toMap(ClassifierAttribute::getUid, identity()));
-        }
-
-        private static class NonClosingInputStream extends InputStream {
-
-            private final InputStream inputStream;
-
-            NonClosingInputStream(InputStream inputStream) {
-                this.inputStream = inputStream;
-            }
-
-            @Override
-            public int read() throws IOException {
-                return inputStream.read();
-            }
-
         }
 
     }

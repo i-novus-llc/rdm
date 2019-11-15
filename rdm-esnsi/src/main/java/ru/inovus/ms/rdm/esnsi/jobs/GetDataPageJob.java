@@ -20,7 +20,7 @@ class GetDataPageJob extends AbstractEsnsiDictionaryProcessingJob {
     void execute0(JobExecutionContext context) throws Exception {
         String pageProcessorId = jobDataMap.getString("id");
         if (esnsiIntegrationDao.isPageProcessorIdle(pageProcessorId))
-            unschedule();
+            interrupt();
         String messageId = jobDataMap.getString("messageId");
         Map.Entry<GetClassifierDataResponseType, InputStream> data = esnsiSmevClient.getResponse(messageId, GetClassifierDataResponseType.class);
         if (data != null) {
@@ -29,7 +29,7 @@ class GetDataPageJob extends AbstractEsnsiDictionaryProcessingJob {
             GetClassifierStructureResponseType struct = esnsiIntegrationDao.getStruct(classifierCode, revision);
             List<Object[]> batch = new ArrayList<>(PAGE_SIZE);
             EsnsiSyncJobUtils.EsnsiXmlDataFileReadUtil.read(batch::add, struct, data.getValue());
-            esnsiIntegrationDao.insert(batch, tableName, pageProcessorId, () -> unschedule());
+            esnsiIntegrationDao.insert(batch, tableName, pageProcessorId, () -> interrupt());
             esnsiSmevClient.acknowledge(messageId);
             batch.clear();
         }

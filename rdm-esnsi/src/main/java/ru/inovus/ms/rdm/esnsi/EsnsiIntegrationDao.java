@@ -83,9 +83,14 @@ public class EsnsiIntegrationDao {
     }
 
     @Transactional
-    public void setClassifierProcessingStage(String code, ClassifierProcessingStage stage) {
+    public void setClassifierProcessingStage(String code, ClassifierProcessingStage stage, Executable exec) {
         Map<String, ?> args = Map.of("code", code, "stage", stage.name());
         namedParameterJdbcTemplate.update("UPDATE esnsi_sync.version SET stage = :stage WHERE code = :code", args);
+        try {
+            exec.exec();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Transactional(readOnly = true)

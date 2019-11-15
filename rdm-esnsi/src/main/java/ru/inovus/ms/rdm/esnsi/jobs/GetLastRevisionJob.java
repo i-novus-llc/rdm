@@ -40,7 +40,7 @@ class GetLastRevisionJob extends AbstractEsnsiDictionaryProcessingJob {
                     execSmevResponseResponseReadingJob(job);
                 }
             }
-            unschedule();
+            interrupt();
         }
     }
 

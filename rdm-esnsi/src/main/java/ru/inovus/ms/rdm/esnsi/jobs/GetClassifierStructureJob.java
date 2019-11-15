@@ -30,7 +30,7 @@ class GetClassifierStructureJob extends AbstractEsnsiDictionaryProcessingJob {
             GetClassifierStructureResponseType struct = getClassifierStructureResponseType.getKey();
             if (struct.getAttributeList().stream().noneMatch(ClassifierAttribute::isKey)) {
                 logger.warn("Classifier with code {} doesn't have primary key. Shutting down.", classifierCode);
-                unschedule();
+                interrupt();
                 return;
             }
             esnsiIntegrationDao.createEsnsiVersionDataTableAndRemovePreviousIfNecessaryAndSaveStruct(struct);
@@ -43,7 +43,7 @@ class GetClassifierStructureJob extends AbstractEsnsiDictionaryProcessingJob {
                             usingJobData("messageId", acceptRequestDocument.getMessageId()).requestRecovery().
                             withIdentity(GetClassifierRecordsCountJob.class.getSimpleName(), classifierCode).build();
             execSmevResponseResponseReadingJob(job);
-            unschedule();
+            interrupt();
         }
     }
 
