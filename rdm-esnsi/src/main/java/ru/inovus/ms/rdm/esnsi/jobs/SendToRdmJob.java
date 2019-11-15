@@ -1,5 +1,7 @@
 package ru.inovus.ms.rdm.esnsi.jobs;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,25 +52,19 @@ class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
         MultiValueMap<String, Object> body
                 = new LinkedMultiValueMap<>();
         body.add("file", resource);
-        HttpEntity<MultiValueMap<String, Object>> requestEntity
+        HttpEntity<?> requestEntity
                 = new HttpEntity<>(body, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(uri, requestEntity, String.class);
-//        String fileModel = response.getBody();
-//        String draftService = rdmRestUrl + "/draft/createByFile";
-//        restTemplate.postForObject(draftService, null, String.class, Map.of("path", fileModel.path, "name", fileModel.name));
+        String fileModel = response.getBody();
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonNode = mapper.readTree(fileModel);
+        String draftService = rdmRestUrl + "/draft/createByFile";
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        requestEntity = new HttpEntity<>(jsonNode.toString(), headers);
+        restTemplate.postForEntity(draftService, requestEntity, String.class);
         esnsiIntegrationDao.updateLastDownloaded(classifierCode, revision, Timestamp.from(Instant.now(Clock.systemUTC())));
         f.deleteOnExit();
         return true;
-    }
-
-    private static class FileModel {
-        private String path;
-        private String name;
-        public FileModel() {}
-        public FileModel(String path, String name) {
-            this.path = path;
-            this.name = name;
-        }
     }
 
 }

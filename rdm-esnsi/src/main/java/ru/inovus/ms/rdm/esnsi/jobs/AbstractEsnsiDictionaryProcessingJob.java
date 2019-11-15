@@ -78,7 +78,7 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements StatefulJob {
             } catch (Exception e) {
                 logger.error("Job {} exceptionally finished.", selfIdentity, e);
                 if (getClass() != EsnsiIntegrationJob.class) {
-                    logger.info("Job {} will be reexecuted. Current number of retries is {}", selfIdentity, numRetries);
+                    logger.info("Job {} will be reexecuted. Retry #{}", selfIdentity, numRetries + 1);
                     jobDataMap.put("numRetries", numRetries + 1);
                     throw new JobExecutionException(true);
                 }
