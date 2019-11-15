@@ -46,7 +46,7 @@ public class RefBookServiceImpl implements RefBookService {
 
     private RefBookRepository refBookRepository;
     private RefBookVersionRepository versionRepository;
-    private RefBookConflictRepository conflictRepository;
+    private ExistsConflictDataRepository existsConflictDataRepository;
 
     private DraftDataService draftDataService;
     private DropDataService dropDataService;
@@ -62,14 +62,16 @@ public class RefBookServiceImpl implements RefBookService {
 
     @Autowired
     @SuppressWarnings("squid:S00107")
-    public RefBookServiceImpl(RefBookRepository refBookRepository, RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
+    public RefBookServiceImpl(RefBookRepository refBookRepository, RefBookVersionRepository versionRepository,
+                              ExistsConflictDataRepository existsConflictDataRepository,
                               DraftDataService draftDataService, DropDataService dropDataService,
                               RefBookLockService refBookLockService,
                               PassportValueRepository passportValueRepository, RefBookVersionQueryProvider refBookVersionQueryProvider,
                               VersionValidation versionValidation, AuditLogService auditLogService) {
         this.refBookRepository = refBookRepository;
         this.versionRepository = versionRepository;
-        this.conflictRepository = conflictRepository;
+
+        this.existsConflictDataRepository = existsConflictDataRepository;
 
         this.draftDataService = draftDataService;
         this.dropDataService = dropDataService;
@@ -327,23 +329,16 @@ public class RefBookServiceImpl implements RefBookService {
         model.setHasReferrer(hasReferrerVersions);
 
         // NB: List<boolean> isConflict by ConflictType filled by one query.
-        boolean hasUpdatedConflict = conflictRepository.existsByReferrerVersionIdAndConflictType(model.getId(), ConflictType.UPDATED);
-        model.setHasUpdatedConflict(hasUpdatedConflict);
+        ExistsConflictData existsConflictData = existsConflictDataRepository.findExistsConflictData(
+                model.getId(),
+                lastPublishedVersion != null,
+                lastPublishedVersion != null ? lastPublishedVersion.getId() : 0);
 
-        boolean hasAlteredConflict = conflictRepository.existsByReferrerVersionIdAndConflictType(model.getId(), ConflictType.ALTERED);
-        model.setHasAlteredConflict(hasAlteredConflict);
-
-        model.setHasDataConflict(hasUpdatedConflict || hasAlteredConflict
-                || conflictRepository.existsByReferrerVersionIdAndRefRecordIdIsNotNull(model.getId())
-        );
-
-        model.setHasStructureConflict(
-                conflictRepository.existsByReferrerVersionIdAndRefRecordIdIsNull(model.getId())
-        );
-
-        model.setLastHasDataConflict(lastPublishedVersion != null
-                && conflictRepository.existsByReferrerVersionIdAndRefRecordIdIsNotNull(lastPublishedVersion.getId())
-        );
+        model.setHasDataConflict(existsConflictData.getHasDataConflict());
+        model.setHasUpdatedConflict(existsConflictData.getHasUpdatedConflict());
+        model.setHasAlteredConflict(existsConflictData.getHasAlteredConflict());
+        model.setHasStructureConflict(existsConflictData.getHasStructureConflict());
+        model.setLastHasDataConflict(existsConflictData.getLastHasDataConflict());
 
         return model;
     }
