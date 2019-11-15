@@ -15,7 +15,7 @@ public class EsnsiIntegrationJob extends AbstractEsnsiDictionaryProcessingJob {
     private static final Logger logger = LoggerFactory.getLogger(EsnsiIntegrationJob.class);
 
     @Override
-    void execute0(JobExecutionContext context) throws Exception {
+    boolean execute0(JobExecutionContext context) throws Exception {
         logger.info("Starting EsnsiIntegrationJob.");
         for (String classifierCode : jobDataMap.getKeys()) {
             ClassifierProcessingStage stage = esnsiIntegrationDao.getClassifierProcessingStageAndCreateNewIfNecessary(classifierCode);
@@ -33,11 +33,7 @@ public class EsnsiIntegrationJob extends AbstractEsnsiDictionaryProcessingJob {
             execSmevResponseResponseReadingJob(job);
             logger.info("Job for classifier with code {} was executed.", classifierCode);
         }
-    }
-
-    @Override
-    ClassifierProcessingStage stage() {
-        return ClassifierProcessingStage.NONE;
+        return false;
     }
 
 }

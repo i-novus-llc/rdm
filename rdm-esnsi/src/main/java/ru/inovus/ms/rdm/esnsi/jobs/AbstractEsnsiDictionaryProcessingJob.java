@@ -43,18 +43,16 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements StatefulJob {
         this.jobDataMap = context.getJobDetail().getJobDataMap();
         this.selfIdentity = context.getJobDetail().getKey();
         this.classifierCode = context.getJobDetail().getKey().getGroup();
-        if (jobDataMap.containsKey("stage_set") && !jobDataMap.getBoolean("stage_set")) {
-            esnsiIntegrationDao.setClassifierProcessingStage(classifierCode, stage(), () -> {});
-            jobDataMap.put("stage_set", true);
-        } else {
-            if (jobDataMap.containsKey("stage_set")) {
-                ClassifierProcessingStage current = esnsiIntegrationDao.getClassifierProcessingStage(classifierCode);
-                if (current != stage()) {
-                    try {
-                        interrupt();
-                    } catch (SchedulerException e) {
-                        logger.error("Unable to shutdown job with key {}. The pipeline is in another stage, while the given job cannot stop. Please try manually.", selfIdentity, e);
-                    }
+        boolean outOfDate = false;
+        if (getClass() != EsnsiIntegrationJob.class) {
+            ClassifierProcessingStage current = esnsiIntegrationDao.getClassifierProcessingStage(classifierCode);
+            if (current != getStage(getClass())) {
+                outOfDate = true;
+                logger.warn("Job with key {} is out of date.", selfIdentity);
+                try {
+                    interrupt();
+                } catch (SchedulerException e) {
+                    logger.error("Unable to interrupt job with key {}. The pipeline is in another stage, while the given job cannot stop. Please try manually.", selfIdentity, e);
                 }
             }
         }
@@ -63,19 +61,37 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements StatefulJob {
             esnsiSmevClient.acknowledge(prevMessageId);
             jobDataMap.remove("prevMessageId");
         }
-        try {
-            execute0(context);
-        } catch (Exception e) {
-            logger.error("Job {} exceptionally finished.", selfIdentity, e);
-            if (getClass() != EsnsiIntegrationJob.class) {
-                esnsiIntegrationDao.setClassifierProcessingStage(classifierCode, ClassifierProcessingStage.NONE, () -> interrupt());
+        if (!outOfDate) {
+            try {
+                boolean needToInterrupt = execute0(context);
+                if (needToInterrupt) {
+                    try {
+                        interrupt();
+                    } catch (SchedulerException e) {
+                        logger.error("Unable interrupt job with key {}. Please try manually.", selfIdentity, e);
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("Job {} exceptionally finished.", selfIdentity, e);
+                if (getClass() != EsnsiIntegrationJob.class) {
+                    esnsiIntegrationDao.setClassifierProcessingStage(classifierCode, ClassifierProcessingStage.NONE, () -> interrupt());
+                }
             }
         }
     }
 
-    abstract void execute0(JobExecutionContext context) throws Exception;
+    private static ClassifierProcessingStage getStage(Class<? extends Job> c) {
+        if (c == EsnsiIntegrationJob.class) return ClassifierProcessingStage.NONE;
+        if (c == GetClassifierRecordsCountJob.class) return ClassifierProcessingStage.GET_RECORDS_COUNT;
+        if (c == GetClassifierStructureJob.class) return ClassifierProcessingStage.GET_STRUCTURE;
+        if (c == GetDataPageJob.class || c == PagingJob.class) return ClassifierProcessingStage.GET_DATA;
+        if (c == GetLastRevisionJob.class) return ClassifierProcessingStage.GET_LAST_REVISION;
+        if (c == GetRevisionsCountJob.class) return ClassifierProcessingStage.GET_REVISIONS_COUNT;
+        if (c == SendToRdmJob.class) return ClassifierProcessingStage.SENDING_TO_RDM;
+        throw new IllegalStateException("Unexpected Job class.");
+    }
 
-    abstract ClassifierProcessingStage stage();
+    abstract boolean execute0(JobExecutionContext context) throws Exception;
 
     void execSmevResponseResponseReadingJob(JobDetail job) throws SchedulerException {
         Trigger trigger = newTrigger().startNow().forJob(job).withSchedule(cronSchedule(getProperty("esnsi.smev.adapter.fetch.interval"))).build();
@@ -91,18 +107,18 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements StatefulJob {
     }
 
     private void execJob(JobDetail job, Trigger trigger) throws SchedulerException {
-        if (!job.getJobDataMap().containsKey("stage_set"))
-            job.getJobDataMap().put("stage_set", false);
         if (jobDataMap.containsKey("messageId"))
             job.getJobDataMap().put("prevMessageId", jobDataMap.get("messageId"));
-        scheduler.deleteJob(job.getKey());
-        scheduler.scheduleJob(job, trigger);
-        scheduler.triggerJob(job.getKey());
+        esnsiIntegrationDao.setClassifierProcessingStage(job.getKey().getGroup(), getStage(job.getJobClass()), () -> {
+            scheduler.deleteJob(job.getKey());
+            scheduler.scheduleJob(job, trigger);
+            scheduler.triggerJob(job.getKey());
+        });
     }
 
     void interrupt() throws SchedulerException {
         scheduler.deleteJob(selfIdentity);
-        logger.info("Job {} successfully unscheduled.", selfIdentity);
+        logger.info("Job {} successfully interrupted.", selfIdentity);
     }
 
     String getProperty(String name) {

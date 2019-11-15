@@ -4,7 +4,6 @@ import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
-import ru.inovus.ms.rdm.esnsi.ClassifierProcessingStage;
 import ru.inovus.ms.rdm.esnsi.PageProcessor;
 import ru.inovus.ms.rdm.esnsi.api.AcceptRequestDocument;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierDataRequestType;
@@ -19,11 +18,11 @@ import static ru.inovus.ms.rdm.esnsi.jobs.EsnsiSyncJobUtils.PAGE_SIZE;
 class PagingJob extends AbstractEsnsiDictionaryProcessingJob {
 
     @Override
-    void execute0(JobExecutionContext context) throws Exception {
+    boolean execute0(JobExecutionContext context) throws Exception {
         int revision = jobDataMap.getInt("revision");
         List<PageProcessor> idlePageProcessors = esnsiIntegrationDao.getIdlePageProcessors(classifierCode, revision);
         if (idlePageProcessors.isEmpty())
-            return;
+            return false;
         int numWorkers = Integer.parseInt(getProperty("esnsi.classifier.downloading.num-workers"));
         idlePageProcessors.removeIf(pageProcessor -> pageProcessor.id() > numWorkers);
         boolean flag = false;
@@ -58,13 +57,9 @@ class PagingJob extends AbstractEsnsiDictionaryProcessingJob {
                             withIdentity(SendToRdmJob.class.getSimpleName(), classifierCode).
                             build();
             execJobWithoutSchedule(job);
-            interrupt();
+            return true;
         }
-    }
-
-    @Override
-    ClassifierProcessingStage stage() {
-        return ClassifierProcessingStage.GET_DATA;
+        return false;
     }
 
 }

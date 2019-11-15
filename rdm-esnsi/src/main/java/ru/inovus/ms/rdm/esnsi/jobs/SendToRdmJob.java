@@ -9,7 +9,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
-import ru.inovus.ms.rdm.esnsi.ClassifierProcessingStage;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierStructureResponseType;
 
 import java.io.*;
@@ -28,16 +27,17 @@ class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
     private RestTemplate restTemplate;
 
     @Override
-    void execute0(JobExecutionContext context) throws Exception {
+    boolean execute0(JobExecutionContext context) throws Exception {
         int revision = jobDataMap.getInt("revision");
         String fileName = classifierCode + "-" + revision + ".xml";
-        File f = new File("/" + fileName);
-        OutputStream out = new BufferedOutputStream(new FileOutputStream(f));
-        GetClassifierStructureResponseType struct = esnsiIntegrationDao.getStruct(classifierCode, revision);
-        EsnsiSyncJobUtils.XmlDataCreator dataCreator = new EsnsiSyncJobUtils.XmlDataCreator(out, struct);
-        dataCreator.init();
-        esnsiIntegrationDao.readRows(dataCreator, classifierCode, revision);
-        dataCreator.end();
+        File f = new File(fileName);
+        try (OutputStream out = new BufferedOutputStream(new FileOutputStream(f))) {
+            GetClassifierStructureResponseType struct = esnsiIntegrationDao.getStruct(classifierCode, revision);
+            EsnsiSyncJobUtils.XmlDataCreator dataCreator = new EsnsiSyncJobUtils.XmlDataCreator(out, struct);
+            dataCreator.init();
+            esnsiIntegrationDao.readRows(dataCreator, classifierCode, revision);
+            dataCreator.end();
+        }
         String rdmRestUrl = getProperty("rdm.rest.url");
         String fileStorageService = rdmRestUrl + "/fileStorage/save";
         Resource resource = new InputStreamResource(new BufferedInputStream(new FileInputStream(f)));
@@ -51,12 +51,7 @@ class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
         String draftService = rdmRestUrl + "/draft/createByFile";
         restTemplate.postForObject(draftService, null, String.class, body);
         esnsiIntegrationDao.updateLastDownloaded(classifierCode, revision, Timestamp.from(Instant.now(Clock.systemUTC())));
-        interrupt();
-    }
-
-    @Override
-    ClassifierProcessingStage stage() {
-        return ClassifierProcessingStage.SENDING_TO_RDM;
+        return true;
     }
 
     private static class FileModel {

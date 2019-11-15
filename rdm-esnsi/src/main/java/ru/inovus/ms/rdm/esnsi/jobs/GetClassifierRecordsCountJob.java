@@ -4,7 +4,6 @@ import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
-import ru.inovus.ms.rdm.esnsi.ClassifierProcessingStage;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierRecordsCountResponseType;
 
 import java.io.InputStream;
@@ -14,7 +13,7 @@ import java.util.Map;
 class GetClassifierRecordsCountJob extends AbstractEsnsiDictionaryProcessingJob {
 
     @Override
-    void execute0(JobExecutionContext context) throws Exception {
+    boolean execute0(JobExecutionContext context) throws Exception {
         String messageId = jobDataMap.getString("messageId");
         Map.Entry<GetClassifierRecordsCountResponseType, InputStream> getClassifierRecordsCountResponseType = esnsiSmevClient.getResponse(messageId, GetClassifierRecordsCountResponseType.class);
         if (getClassifierRecordsCountResponseType != null) {
@@ -32,13 +31,9 @@ class GetClassifierRecordsCountJob extends AbstractEsnsiDictionaryProcessingJob 
                 Integer.parseInt(getProperty("esnsi.classifier.downloading.num-workers"))
             );
             execJobWithSimpleSecondlySchedule(job);
-            interrupt();
+            return true;
         }
-    }
-
-    @Override
-    ClassifierProcessingStage stage() {
-        return ClassifierProcessingStage.GET_RECORDS_COUNT;
+        return false;
     }
 
 }

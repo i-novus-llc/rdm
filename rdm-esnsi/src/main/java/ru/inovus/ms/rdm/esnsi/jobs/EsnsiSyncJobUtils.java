@@ -179,7 +179,7 @@ final class EsnsiSyncJobUtils {
                 writer.writeStartElement("structure");
                 for (ClassifierAttribute attr : attrs) {
                     writer.writeStartElement("row");
-                    writeLeaf("code", codes[attr.getOrder() - 1]);
+                    writeLeaf("code", codes[attr.getOrder()]);
                     writeLeaf("name", Objects.toString(attr.getName(), ""));
                     String type = attr.getType() == TEXT ? STRING.value() : attr.getType() == DECIMAL ? "FLOAT" : attr.getType().value();
                     writeLeaf("type", type);

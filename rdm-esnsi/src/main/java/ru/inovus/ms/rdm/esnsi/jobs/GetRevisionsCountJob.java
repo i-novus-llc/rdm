@@ -1,7 +1,6 @@
 package ru.inovus.ms.rdm.esnsi.jobs;
 
 import org.quartz.*;
-import ru.inovus.ms.rdm.esnsi.ClassifierProcessingStage;
 import ru.inovus.ms.rdm.esnsi.api.AcceptRequestDocument;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierRevisionListRequestType;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierRevisionsCountResponseType;
@@ -16,7 +15,7 @@ import static ru.inovus.ms.rdm.esnsi.jobs.EsnsiSyncJobUtils.PAGE_SIZE;
 class GetRevisionsCountJob extends AbstractEsnsiDictionaryProcessingJob {
 
     @Override
-    void execute0(JobExecutionContext context) throws Exception {
+    boolean execute0(JobExecutionContext context) throws Exception {
         String messageId = jobDataMap.getString("messageId");
         Map.Entry<GetClassifierRevisionsCountResponseType, InputStream> getClassifierRevisionsCountResponseType = esnsiSmevClient.getResponse(messageId, GetClassifierRevisionsCountResponseType.class);
         if (getClassifierRevisionsCountResponseType != null) {
@@ -32,13 +31,9 @@ class GetRevisionsCountJob extends AbstractEsnsiDictionaryProcessingJob {
                             usingJobData("messageId", acceptRequestDocument.getMessageId()).
                             build();
             execSmevResponseResponseReadingJob(job);
-            interrupt();
+            return true;
         }
-    }
-
-    @Override
-    ClassifierProcessingStage stage() {
-        return ClassifierProcessingStage.GET_REVISIONS_COUNT;
+        return false;
     }
 
 }

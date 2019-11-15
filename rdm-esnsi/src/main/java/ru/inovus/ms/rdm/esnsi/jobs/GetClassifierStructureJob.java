@@ -6,9 +6,7 @@ import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inovus.ms.rdm.esnsi.ClassifierProcessingStage;
 import ru.inovus.ms.rdm.esnsi.api.AcceptRequestDocument;
-import ru.inovus.ms.rdm.esnsi.api.ClassifierAttribute;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierRecordsCountRequestType;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierStructureResponseType;
 
@@ -22,17 +20,12 @@ class GetClassifierStructureJob extends AbstractEsnsiDictionaryProcessingJob {
     private static final Logger logger = LoggerFactory.getLogger(GetClassifierStructureJob.class);
 
     @Override
-    void execute0(JobExecutionContext context) throws Exception {
+    boolean execute0(JobExecutionContext context) throws Exception {
         int revision = jobDataMap.getInt("revision");
         String messageId = jobDataMap.getString("messageId");
         Map.Entry<GetClassifierStructureResponseType, InputStream> getClassifierStructureResponseType = esnsiSmevClient.getResponse(messageId, GetClassifierStructureResponseType.class);
         if (getClassifierStructureResponseType != null) {
             GetClassifierStructureResponseType struct = getClassifierStructureResponseType.getKey();
-            if (struct.getAttributeList().stream().noneMatch(ClassifierAttribute::isKey)) {
-                logger.warn("Classifier with code {} doesn't have primary key. Shutting down.", classifierCode);
-                interrupt();
-                return;
-            }
             esnsiIntegrationDao.createEsnsiVersionDataTableAndRemovePreviousIfNecessaryAndSaveStruct(struct);
             GetClassifierRecordsCountRequestType getClassifierRecordsCountRequestType = objectFactory.createGetClassifierRecordsCountRequestType();
             getClassifierRecordsCountRequestType.setCode(classifierCode);
@@ -43,13 +36,9 @@ class GetClassifierStructureJob extends AbstractEsnsiDictionaryProcessingJob {
                             usingJobData("messageId", acceptRequestDocument.getMessageId()).requestRecovery().
                             withIdentity(GetClassifierRecordsCountJob.class.getSimpleName(), classifierCode).build();
             execSmevResponseResponseReadingJob(job);
-            interrupt();
+            return true;
         }
-    }
-
-    @Override
-    ClassifierProcessingStage stage() {
-        return ClassifierProcessingStage.GET_STRUCTURE;
+        return false;
     }
 
 }

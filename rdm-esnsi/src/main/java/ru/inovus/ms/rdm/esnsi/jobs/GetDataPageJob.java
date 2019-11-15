@@ -2,7 +2,6 @@ package ru.inovus.ms.rdm.esnsi.jobs;
 
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
-import ru.inovus.ms.rdm.esnsi.ClassifierProcessingStage;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierDataResponseType;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierStructureResponseType;
 
@@ -17,10 +16,8 @@ import static ru.inovus.ms.rdm.esnsi.jobs.EsnsiSyncJobUtils.PAGE_SIZE;
 class GetDataPageJob extends AbstractEsnsiDictionaryProcessingJob {
 
     @Override
-    void execute0(JobExecutionContext context) throws Exception {
+    boolean execute0(JobExecutionContext context) throws Exception {
         String pageProcessorId = jobDataMap.getString("id");
-        if (esnsiIntegrationDao.isPageProcessorIdle(pageProcessorId))
-            interrupt();
         String messageId = jobDataMap.getString("messageId");
         Map.Entry<GetClassifierDataResponseType, InputStream> data = esnsiSmevClient.getResponse(messageId, GetClassifierDataResponseType.class);
         if (data != null) {
@@ -33,11 +30,7 @@ class GetDataPageJob extends AbstractEsnsiDictionaryProcessingJob {
             esnsiSmevClient.acknowledge(messageId);
             batch.clear();
         }
-    }
-
-    @Override
-    ClassifierProcessingStage stage() {
-        return ClassifierProcessingStage.GET_DATA;
+        return false;
     }
 
 }

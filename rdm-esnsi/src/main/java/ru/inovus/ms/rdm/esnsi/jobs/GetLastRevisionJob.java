@@ -4,7 +4,6 @@ import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
-import ru.inovus.ms.rdm.esnsi.ClassifierProcessingStage;
 import ru.inovus.ms.rdm.esnsi.api.AcceptRequestDocument;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierRevisionListResponseType;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierStructureRequestType;
@@ -18,7 +17,7 @@ import java.util.UUID;
 class GetLastRevisionJob extends AbstractEsnsiDictionaryProcessingJob {
 
     @Override
-    void execute0(JobExecutionContext context) throws Exception {
+    boolean execute0(JobExecutionContext context) throws Exception {
         String messageId = jobDataMap.getString("messageId");
         Map.Entry<GetClassifierRevisionListResponseType, InputStream> getClassifierRevisionList = esnsiSmevClient.getResponse(messageId, GetClassifierRevisionListResponseType.class);
         if (getClassifierRevisionList != null) {
@@ -40,13 +39,9 @@ class GetLastRevisionJob extends AbstractEsnsiDictionaryProcessingJob {
                     execSmevResponseResponseReadingJob(job);
                 }
             }
-            interrupt();
+            return true;
         }
-    }
-
-    @Override
-    ClassifierProcessingStage stage() {
-        return ClassifierProcessingStage.GET_LAST_REVISION;
+        return false;
     }
 
 }
