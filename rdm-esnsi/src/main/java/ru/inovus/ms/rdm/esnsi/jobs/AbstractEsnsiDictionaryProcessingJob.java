@@ -101,6 +101,8 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements StatefulJob {
         esnsiIntegrationDao.setClassifierProcessingStage(classifierCode, ClassifierProcessingStage.NONE, () -> interrupt());
     }
 
+    void afterInterrupt() {}
+
     private static ClassifierProcessingStage getStage(Class<? extends Job> c) {
         if (c == EsnsiIntegrationJob.class) return ClassifierProcessingStage.NONE;
         if (c == GetClassifierRecordsCountJob.class) return ClassifierProcessingStage.GET_RECORDS_COUNT;
@@ -141,6 +143,7 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements StatefulJob {
     void interrupt() throws SchedulerException {
         scheduler.deleteJob(selfIdentity);
         logger.info("Job {} successfully interrupted.", selfIdentity);
+        afterInterrupt();
     }
 
     String getProperty(String name) {

@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -28,6 +30,10 @@ import java.time.Instant;
 @DisallowConcurrentExecution
 class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
 
+    private static final Logger logger = LoggerFactory.getLogger(SendToRdmJob.class);
+
+    private static final String PREFIX = "amatmpfiledeletemeplease_";
+
     @Autowired
     private RestTemplate restTemplate;
 
@@ -35,7 +41,9 @@ class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
     boolean execute0(JobExecutionContext context) throws Exception {
         int revision = jobDataMap.getInt("revision");
         String fileName = System.currentTimeMillis() + ".xml";
+        jobDataMap.put(PREFIX + fileName, true);
         File f = new File(fileName);
+        f.deleteOnExit();
         try (OutputStream out = new BufferedOutputStream(new FileOutputStream(f))) {
             GetClassifierStructureResponseType struct = esnsiIntegrationDao.getStruct(classifierCode, revision);
             EsnsiSyncJobUtils.XmlDataCreator dataCreator = new EsnsiSyncJobUtils.XmlDataCreator(out, struct);
@@ -63,8 +71,21 @@ class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
         requestEntity = new HttpEntity<>(jsonNode.toString(), headers);
         restTemplate.postForEntity(draftService, requestEntity, String.class);
         esnsiIntegrationDao.updateLastDownloaded(classifierCode, revision, Timestamp.from(Instant.now(Clock.systemUTC())));
-        f.deleteOnExit();
         return true;
     }
 
+    @Override
+    void afterInterrupt() {
+        String[] keys = jobDataMap.getKeys();
+        for (String key : keys) {
+            if (key.startsWith(PREFIX)) {
+                File tmpFile = new File(key.substring(PREFIX.length()));
+                if (tmpFile.exists()) {
+                    if (!tmpFile.delete()) {
+                        logger.warn("Temporary file {} was not deleted. Please, do these manually to prevent memory leak.", tmpFile.getAbsolutePath());
+                    }
+                }
+            }
+        }
+    }
 }
