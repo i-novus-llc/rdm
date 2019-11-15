@@ -5,10 +5,9 @@ import org.quartz.JobExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierStructureResponseType;
 
 import java.io.*;
@@ -16,9 +15,6 @@ import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Map;
-
-import static java.util.Collections.singletonList;
-import static org.springframework.util.CollectionUtils.toMultiValueMap;
 
 @DisallowConcurrentExecution
 class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
@@ -40,16 +36,20 @@ class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
         }
         String rdmRestUrl = getProperty("rdm.rest.url");
         String fileStorageService = rdmRestUrl + "/fileStorage/save";
+        String uri = UriComponentsBuilder.fromHttpUrl(fileStorageService).queryParam("fileName", fileName).build().toUriString();
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
         Resource resource = new InputStreamResource(new BufferedInputStream(new FileInputStream(f)));
         ResponseEntity<FileModel> fileModel = restTemplate.exchange(
-            fileStorageService,
+            uri,
             HttpMethod.POST,
-            new HttpEntity<>(resource, toMultiValueMap(Map.of("fileName", singletonList(fileName)))),
-            FileModel.class
+            new HttpEntity<>(resource, httpHeaders),
+            FileModel.class,
+            fileName
         );
         FileModel body = fileModel.getBody();
         String draftService = rdmRestUrl + "/draft/createByFile";
-        restTemplate.postForObject(draftService, null, String.class, body);
+        restTemplate.postForObject(draftService, null, String.class, Map.of("path", body.path, "name", body.name));
         esnsiIntegrationDao.updateLastDownloaded(classifierCode, revision, Timestamp.from(Instant.now(Clock.systemUTC())));
         return true;
     }
