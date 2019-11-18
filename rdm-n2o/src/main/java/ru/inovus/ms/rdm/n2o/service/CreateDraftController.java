@@ -9,20 +9,20 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DataConstants;
-import ru.inovus.ms.rdm.api.service.DraftService;
-import ru.inovus.ms.rdm.api.service.RefBookService;
-import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.exception.NotFoundException;
 import ru.inovus.ms.rdm.api.model.FileModel;
-import ru.inovus.ms.rdm.n2o.model.FormAttribute;
-import ru.inovus.ms.rdm.n2o.model.UiDraft;
-import ru.inovus.ms.rdm.n2o.model.UiPassport;
-import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.api.service.DraftService;
+import ru.inovus.ms.rdm.api.service.RefBookService;
+import ru.inovus.ms.rdm.api.service.VersionService;
+import ru.inovus.ms.rdm.n2o.model.FormAttribute;
+import ru.inovus.ms.rdm.n2o.model.UiDraft;
+import ru.inovus.ms.rdm.n2o.model.UiPassport;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -155,7 +155,7 @@ public class CreateDraftController {
 
     public UiDraft createFromFile(FileModel fileModel) {
 
-        Integer versionId = draftService.create(fileModel).getId();
+        Integer versionId = refBookService.create(fileModel).getId();
         RefBookVersion version = versionService.getById(versionId);
 
         return new UiDraft(versionId, version.getRefBookId());

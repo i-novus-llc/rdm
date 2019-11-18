@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.impl.service;
 import com.querydsl.core.BooleanBuilder;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
@@ -10,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import ru.i_novus.common.file.storage.api.FileStorage;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.inovus.ms.rdm.api.enumeration.ConflictType;
@@ -17,11 +19,15 @@ import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookStatusType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.api.exception.NotFoundException;
+import ru.inovus.ms.rdm.api.exception.RdmException;
+import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
+import ru.inovus.ms.rdm.api.service.DraftService;
 import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
@@ -29,6 +35,7 @@ import ru.inovus.ms.rdm.impl.entity.PassportAttributeEntity;
 import ru.inovus.ms.rdm.impl.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.impl.entity.RefBookEntity;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.inovus.ms.rdm.impl.file.process.XmlCreateRefBookFileProcessor;
 import ru.inovus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
 import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookConflictRepository;
@@ -36,7 +43,9 @@ import ru.inovus.ms.rdm.impl.repository.RefBookRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 
+import java.io.InputStream;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
@@ -66,13 +75,16 @@ public class RefBookServiceImpl implements RefBookService {
 
     private AuditLogService auditLogService;
 
+    private DraftService draftService;
+    private FileStorage fileStorage;
+
     @Autowired
     @SuppressWarnings("squid:S00107")
     public RefBookServiceImpl(RefBookRepository refBookRepository, RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
                               DraftDataService draftDataService, DropDataService dropDataService,
                               RefBookLockService refBookLockService,
                               PassportValueRepository passportValueRepository, RefBookVersionQueryProvider refBookVersionQueryProvider,
-                              VersionValidation versionValidation, AuditLogService auditLogService) {
+                              VersionValidation versionValidation, AuditLogService auditLogService, DraftService draftService, FileStorage fileStorage) {
         this.refBookRepository = refBookRepository;
         this.versionRepository = versionRepository;
         this.conflictRepository = conflictRepository;
@@ -87,6 +99,8 @@ public class RefBookServiceImpl implements RefBookService {
 
         this.versionValidation = versionValidation;
         this.auditLogService = auditLogService;
+        this.draftService = draftService;
+        this.fileStorage = fileStorage;
     }
 
     /**
@@ -195,6 +209,30 @@ public class RefBookServiceImpl implements RefBookService {
             () -> savedVersion
         );
         return refBook;
+    }
+
+    @Override
+    @Transactional(timeout = 1200000)
+    public Draft create(FileModel fileModel) {
+        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
+        switch (extension) {
+            case "XLSX": return createByXlsx(fileModel);
+            case "XML": return createByXml(fileModel);
+            default: throw new RdmException("invalid file extension");
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private Draft createByXlsx(FileModel fileModel) {
+        throw new RdmException("creating draft from xlsx is not implemented yet");
+    }
+
+    private Draft createByXml(FileModel fileModel) {
+        Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
+        try(XmlCreateRefBookFileProcessor createRefBookFileProcessor = new XmlCreateRefBookFileProcessor(this)) {
+            RefBook refBook = createRefBookFileProcessor.process(inputStreamSupplier);
+            return draftService.updateData(refBook.getRefBookId(), fileModel);
+        }
     }
 
     @Override
