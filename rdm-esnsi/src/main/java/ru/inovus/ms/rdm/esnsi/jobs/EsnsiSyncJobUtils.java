@@ -80,6 +80,7 @@ final class EsnsiSyncJobUtils {
             }
         }
 
+        @SuppressWarnings("squid:S3776")
         private static void readNextEntry(Object[] row, InputStream inputStream, Map<String, ClassifierAttribute> attributes, Consumer<Object[]> consumer) {
             try {
                 XMLStreamReader reader = INPUT_FACTORY.createXMLStreamReader(inputStream);
@@ -183,7 +184,7 @@ final class EsnsiSyncJobUtils {
                 writer.writeEndElement();
                 writer.writeStartElement("structure");
                 for (ClassifierAttribute attr : attrs) {
-
+                    writeNextAttr(attr);
                 }
                 writer.writeEndElement();
                 writer.writeStartElement("data");
@@ -192,7 +193,7 @@ final class EsnsiSyncJobUtils {
             }
         }
 
-        private void writeNextAttr(XMLStreamWriter writer, ClassifierAttribute attr) throws XMLStreamException {
+        private void writeNextAttr(ClassifierAttribute attr) throws XMLStreamException {
             writer.writeStartElement("row");
             writeLeaf("code", codes[attr.getOrder()]);
             writeLeaf("name", Objects.toString(attr.getName(), ""));
@@ -217,7 +218,7 @@ final class EsnsiSyncJobUtils {
             else if (attr.getDecimalStartRange() != null || attr.getDecimalEndRange() != null)
                 writeValidation("FLOAT_RANGE", getNumberValidation(attr.getDecimalStartRange(), attr.getDecimalEndRange()));
             else if (attr.getDateStartRange() != null || attr.getDateEndRange() != null)
-                writeDateValidation(writer, attr);
+                writeDateValidation(attr);
             writer.writeEndElement();
         }
 
@@ -227,7 +228,7 @@ final class EsnsiSyncJobUtils {
             return fromStr + ";" + toStr;
         }
 
-        private void writeDateValidation(XMLStreamWriter writer, ClassifierAttribute attr) throws XMLStreamException {
+        private void writeDateValidation(ClassifierAttribute attr) throws XMLStreamException {
             LocalDate start;
             LocalDate end;
             if (attr.getDateStartRange() != null)

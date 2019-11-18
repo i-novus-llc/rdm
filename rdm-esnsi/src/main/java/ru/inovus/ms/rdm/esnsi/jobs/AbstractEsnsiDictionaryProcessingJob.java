@@ -45,6 +45,7 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
     JobKey selfIdentity;
 
     @Override
+    @SuppressWarnings("squid:S3776")
     public void execute(JobExecutionContext context) throws JobExecutionException {
         this.jobDataMap = context.getJobDetail().getJobDataMap();
         this.selfIdentity = context.getJobDetail().getKey();
