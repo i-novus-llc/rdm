@@ -55,11 +55,7 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
             if (current != getStage(getClass())) {
                 outOfDate = true;
                 logger.warn("Job with key {} is out of date.", selfIdentity);
-                try {
-                    interrupt();
-                } catch (SchedulerException e) {
-                    logger.error("Unable to interrupt job with key {}. The pipeline is in another stage, while the given job cannot stop. Please try manually.", selfIdentity, e);
-                }
+                interruptSilently("The pipeline is in another stage, while the given job cannot stop.");
             }
         }
         String prevMessageId = jobDataMap.getString(PREV_MESSAGE_ID_KEY);
@@ -74,13 +70,8 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
         if (!outOfDate && numRetriesTotal > 0 && numRetries < numRetriesTotal) {
             try {
                 boolean needToInterrupt = execute0(context);
-                if (needToInterrupt) {
-                    try {
-                        interrupt();
-                    } catch (SchedulerException e) {
-                        logger.error("Unable interrupt job with key {}. Please try manually.", selfIdentity, e);
-                    }
-                }
+                if (needToInterrupt)
+                    interruptSilently("");
             } catch (Exception e) {
                 logger.error("Job {} exceptionally finished.", selfIdentity, e);
                 if (getClass() != EsnsiIntegrationJob.class) {
@@ -151,6 +142,14 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
         scheduler.deleteJob(selfIdentity);
         logger.info("Job {} successfully interrupted.", selfIdentity);
         afterInterrupt();
+    }
+
+    private void interruptSilently(String payload) {
+        try {
+            interrupt();
+        } catch (SchedulerException e) {
+            logger.error("Unable interrupt job with key {}. " + payload + " Please try manually.", selfIdentity, e);
+        }
     }
 
     String getProperty(String name) {

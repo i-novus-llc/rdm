@@ -240,7 +240,8 @@ public class EsnsiIntegrationDao {
         try {
             exec.exec();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            logger.error(e.getMessage());
+            throw new EsnsiSyncException(e);
         }
     }
 

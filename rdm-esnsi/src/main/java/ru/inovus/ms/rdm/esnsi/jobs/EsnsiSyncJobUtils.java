@@ -83,38 +83,29 @@ final class EsnsiSyncJobUtils {
         private static void readNextEntry(Object[] row, InputStream inputStream, Map<String, ClassifierAttribute> attributes, Consumer<Object[]> consumer) {
             try {
                 XMLStreamReader reader = INPUT_FACTORY.createXMLStreamReader(inputStream);
-                while (reader.hasNext()) {
-                    if (reader.next() == START_ELEMENT && reader.getLocalName().equals(DATA_ELEM))
-                        break;
-                }
+                flushUntilDataElem(reader);
                 ClassifierAttribute currAttr = null;
                 boolean recordOpen = false;
                 String openedLocalName = null;
-                mark: while (reader.hasNext()) {
+                while (reader.hasNext()) {
                     int next = reader.next();
                     switch (next) {
                         case START_ELEMENT:
                             openedLocalName = reader.getLocalName();
-                            switch (openedLocalName) {
-                                case RECORD_ELEM:
-                                    recordOpen = true;
-                                    break;
-                                case ATTR_VALUE:
-                                    currAttr = attributes.get(getAttrValue(reader));
-                                    break;
-                            }
+                            if (openedLocalName.equals(RECORD_ELEM))
+                                recordOpen = true;
+                            else if (openedLocalName.equals(ATTR_VALUE))
+                                currAttr = attributes.get(getAttrValue(reader));
                             break;
                         case END_ELEMENT:
                             openedLocalName = reader.getLocalName();
-                            switch (openedLocalName) {
-                                case RECORD_ELEM:
-                                    recordOpen = false;
-                                    consumer.accept(stream(row).map(obj -> (StringBuilder) obj).map(StringBuilder::toString).toArray());
-                                    stream(row).map(obj -> (StringBuilder) obj).forEach(stringBuilder -> stringBuilder.setLength(0));
-                                    break;
-                                case DATA_ELEM:
-                                    break mark;
-                            }
+                            if (openedLocalName.equals(RECORD_ELEM)) {
+                                recordOpen = false;
+                                consumer.accept(stream(row).map(obj -> (StringBuilder) obj).map(StringBuilder::toString).toArray());
+                                stream(row).map(obj -> (StringBuilder) obj).forEach(stringBuilder -> stringBuilder.setLength(0));
+                            } else if (openedLocalName.equals(DATA_ELEM))
+                                while (reader.hasNext())
+                                    reader.next();
                             break;
                         case CHARACTERS:
                             if (!reader.isWhiteSpace() && recordOpen && ATTR_TYPES.contains(openedLocalName)) {
@@ -125,9 +116,15 @@ final class EsnsiSyncJobUtils {
                             break;
                     }
                 }
-                while (reader.hasNext()) reader.next();
             } catch (XMLStreamException e) {
                 throw new EsnsiSyncException(e);
+            }
+        }
+
+        private static void flushUntilDataElem(XMLStreamReader reader) throws XMLStreamException {
+            while (reader.hasNext()) {
+                if (reader.next() == START_ELEMENT && reader.getLocalName().equals(DATA_ELEM))
+                    break;
             }
         }
 
@@ -181,7 +178,13 @@ final class EsnsiSyncJobUtils {
                     writer.writeStartElement("row");
                     writeLeaf("code", codes[attr.getOrder()]);
                     writeLeaf("name", Objects.toString(attr.getName(), ""));
-                    String type = attr.getType() == TEXT ? STRING.value() : attr.getType() == DECIMAL ? "FLOAT" : attr.getType().value();
+                    String type;
+                    if (attr.getType() == TEXT)
+                        type = STRING.value();
+                    else if (attr.getType() == DECIMAL)
+                        type = "FLOAT";
+                    else
+                        type = attr.getType().value();
                     writeLeaf("type", type);
                     writeLeaf("description", "");
                     writeLeaf("primary", String.valueOf(attr.isKey()));
