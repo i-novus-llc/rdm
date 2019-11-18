@@ -225,11 +225,6 @@
                 <artifactId>audit-client-spring-boot-starter</artifactId>
                 <version>${audit.version}</version>
             </dependency>
-            <dependency>
-                <groupId>ru.i-novus.ms.audit</groupId>
-                <artifactId>audit-client-spring-boot-autoconfigure</artifactId>
-                <version>${audit.version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
