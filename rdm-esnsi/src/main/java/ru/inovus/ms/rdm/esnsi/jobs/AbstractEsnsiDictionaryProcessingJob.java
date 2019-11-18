@@ -76,7 +76,7 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
                     interruptSilently("");
             } catch (Exception e) {
                 logger.error("Job {} exceptionally finished.", selfIdentity, e);
-                if (getClass() != EsnsiIntegrationJob.class && numRetries > 0) {
+                if (getClass() != EsnsiIntegrationJob.class && numRetriesTotal > 0) {
                     logger.info("Job {} will be reexecuted. Retry #{}", selfIdentity, numRetries + 1);
                     jobDataMap.put(NUM_RETRIES_KEY, numRetries + 1);
                     throw new JobExecutionException(true);
