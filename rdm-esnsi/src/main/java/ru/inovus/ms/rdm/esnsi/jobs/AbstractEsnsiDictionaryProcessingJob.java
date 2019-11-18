@@ -67,7 +67,7 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
             numRetries = jobDataMap.getInt(NUM_RETRIES_KEY);
         int numRetriesTotal = Integer.parseInt(getProperty("esnsi.sync.num-retries"));
         boolean runOutOfAttempts = true;
-        if ((numRetriesTotal <= 0 && numRetries != 1) || (numRetriesTotal > 0 && numRetries < numRetriesTotal))
+        if (numRetriesTotal > 0 && numRetries < numRetriesTotal)
             runOutOfAttempts = false;
         if (!outOfDate && !runOutOfAttempts) {
             try {
@@ -76,7 +76,7 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
                     interruptSilently("");
             } catch (Exception e) {
                 logger.error("Job {} exceptionally finished.", selfIdentity, e);
-                if (getClass() != EsnsiIntegrationJob.class) {
+                if (getClass() != EsnsiIntegrationJob.class && numRetries > 0) {
                     logger.info("Job {} will be reexecuted. Retry #{}", selfIdentity, numRetries + 1);
                     jobDataMap.put(NUM_RETRIES_KEY, numRetries + 1);
                     throw new JobExecutionException(true);
