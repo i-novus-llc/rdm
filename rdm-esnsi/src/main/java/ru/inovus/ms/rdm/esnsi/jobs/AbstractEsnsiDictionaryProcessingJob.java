@@ -67,7 +67,7 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
             numRetries = jobDataMap.getInt(NUM_RETRIES_KEY);
         int numRetriesTotal = Integer.parseInt(getProperty("esnsi.sync.num-retries"));
         boolean runOutOfAttempts = true;
-        if (numRetriesTotal > 0 && numRetries < numRetriesTotal)
+        if (numRetries == 0 || (numRetriesTotal > 0 && numRetries < numRetriesTotal))
             runOutOfAttempts = false;
         if (!outOfDate && !runOutOfAttempts) {
             try {
