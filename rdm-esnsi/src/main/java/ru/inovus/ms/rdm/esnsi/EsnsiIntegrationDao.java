@@ -151,6 +151,7 @@ public class EsnsiIntegrationDao {
     }
 
     @Transactional
+    @SuppressWarnings("squid:S2077")
     public void insert(List<Object[]> batch, String tableName, String pageProcessorId, Executable exec) {
         boolean finished = isPageProcessorIdle(pageProcessorId);
         if (!batch.isEmpty() && !finished) {

@@ -104,15 +104,13 @@ final class EsnsiSyncJobUtils {
                                 consumer.accept(stream(row).map(obj -> (StringBuilder) obj).map(StringBuilder::toString).toArray());
                                 stream(row).map(obj -> (StringBuilder) obj).forEach(stringBuilder -> stringBuilder.setLength(0));
                             } else if (openedLocalName.equals(DATA_ELEM))
-                                while (reader.hasNext())
-                                    reader.next();
+                                flushCompletely(reader);
                             break;
                         case CHARACTERS:
-                            if (!reader.isWhiteSpace() && recordOpen && ATTR_TYPES.contains(openedLocalName)) {
-                                if (currAttr == null)
-                                    throw new IllegalArgumentException("Invalid XML document.");
-                                ((StringBuilder) row[currAttr.getOrder()]).append(reader.getText());
-                            }
+                            if (!reader.isWhiteSpace() && recordOpen && ATTR_TYPES.contains(openedLocalName))
+                                setNextVal(currAttr, row, reader);
+                            break;
+                        default:
                             break;
                     }
                 }
@@ -126,6 +124,16 @@ final class EsnsiSyncJobUtils {
                 if (reader.next() == START_ELEMENT && reader.getLocalName().equals(DATA_ELEM))
                     break;
             }
+        }
+
+        private static void flushCompletely(XMLStreamReader reader) throws XMLStreamException {
+            while (reader.hasNext()) reader.next();
+        }
+
+        private static void setNextVal(ClassifierAttribute currAttr, Object[] row, XMLStreamReader reader) {
+            if (currAttr == null)
+                throw new IllegalArgumentException("Invalid XML document.");
+            ((StringBuilder) row[currAttr.getOrder()]).append(reader.getText());
         }
 
         private static String getAttrValue(XMLStreamReader r) {
@@ -175,49 +183,62 @@ final class EsnsiSyncJobUtils {
                 writer.writeEndElement();
                 writer.writeStartElement("structure");
                 for (ClassifierAttribute attr : attrs) {
-                    writer.writeStartElement("row");
-                    writeLeaf("code", codes[attr.getOrder()]);
-                    writeLeaf("name", Objects.toString(attr.getName(), ""));
-                    String type;
-                    if (attr.getType() == TEXT)
-                        type = STRING.value();
-                    else if (attr.getType() == DECIMAL)
-                        type = "FLOAT";
-                    else
-                        type = attr.getType().value();
-                    writeLeaf("type", type);
-                    writeLeaf("description", "");
-                    writeLeaf("primary", String.valueOf(attr.isKey()));
-                    if (attr.isRequired())
-                        writeValidation("REQUIRED", "true");
-                    if (attr.getRegex() != null && !attr.getRegex().isBlank())
-                        writeValidation("REG_EXP", attr.getRegex());
-                    if (attr.getLength() != null && attr.getLength() > 0)
-                        writeValidation("PLAIN_SIZE", attr.getLength().toString());
-                    if (attr.getIntStartRange() != null || attr.getIntEndRange() != null)
-                        writeValidation("INT_RANGE", (attr.getIntStartRange() == null ? "" : attr.getIntStartRange().toString()) + ";" + (attr.getIntEndRange() == null ? "" : attr.getIntEndRange().toString()));
-                    else if (attr.getDecimalStartRange() != null || attr.getDecimalEndRange() != null)
-                        writeValidation("FLOAT_RANGE", (attr.getDecimalStartRange() == null ? "" : attr.getDecimalStartRange().toString()) + ";" + (attr.getDecimalEndRange() == null ? "" : attr.getDecimalEndRange().toString()));
-                    else if (attr.getDateStartRange() != null || attr.getDateEndRange() != null) {
-                        LocalDate start;
-                        LocalDate end;
-                        if (attr.getDateStartRange() != null)
-                            start = xmlDateToLocalDate(attr.getDateStartRange());
-                        else
-                            start = LocalDate.MIN;
-                        if (attr.getDateEndRange() != null)
-                            end = xmlDateToLocalDate(attr.getDateEndRange());
-                        else
-                            end = LocalDate.MAX;
-                        writeValidation("DATE_RANGE", start.format(RDM_DATE_FORMAT) + ";" + end.format(RDM_DATE_FORMAT));
-                    }
-                    writer.writeEndElement();
+
                 }
                 writer.writeEndElement();
                 writer.writeStartElement("data");
             } catch (XMLStreamException e) {
                 throw new EsnsiSyncException(e);
             }
+        }
+
+        private void writeNextAttr(XMLStreamWriter writer, ClassifierAttribute attr) throws XMLStreamException {
+            writer.writeStartElement("row");
+            writeLeaf("code", codes[attr.getOrder()]);
+            writeLeaf("name", Objects.toString(attr.getName(), ""));
+            String type;
+            if (attr.getType() == TEXT)
+                type = STRING.value();
+            else if (attr.getType() == DECIMAL)
+                type = "FLOAT";
+            else
+                type = attr.getType().value();
+            writeLeaf("type", type);
+            writeLeaf("description", "");
+            writeLeaf("primary", String.valueOf(attr.isKey()));
+            if (attr.isRequired())
+                writeValidation("REQUIRED", "true");
+            if (attr.getRegex() != null && !attr.getRegex().isBlank())
+                writeValidation("REG_EXP", attr.getRegex());
+            if (attr.getLength() != null && attr.getLength() > 0)
+                writeValidation("PLAIN_SIZE", attr.getLength().toString());
+            if (attr.getIntStartRange() != null || attr.getIntEndRange() != null)
+                writeValidation("INT_RANGE", getNumberValidation(attr.getIntStartRange(), attr.getIntEndRange()));
+            else if (attr.getDecimalStartRange() != null || attr.getDecimalEndRange() != null)
+                writeValidation("FLOAT_RANGE", getNumberValidation(attr.getDecimalStartRange(), attr.getDecimalEndRange()));
+            else if (attr.getDateStartRange() != null || attr.getDateEndRange() != null)
+                writeDateValidation(writer, attr);
+            writer.writeEndElement();
+        }
+
+        private String getNumberValidation(Number from, Number to) {
+            String fromStr = str(from, "");
+            String toStr = str(to, "");
+            return fromStr + ";" + toStr;
+        }
+
+        private void writeDateValidation(XMLStreamWriter writer, ClassifierAttribute attr) throws XMLStreamException {
+            LocalDate start;
+            LocalDate end;
+            if (attr.getDateStartRange() != null)
+                start = xmlDateToLocalDate(attr.getDateStartRange());
+            else
+                start = LocalDate.MIN;
+            if (attr.getDateEndRange() != null)
+                end = xmlDateToLocalDate(attr.getDateEndRange());
+            else
+                end = LocalDate.MAX;
+            writeValidation("DATE_RANGE", start.format(RDM_DATE_FORMAT) + ";" + end.format(RDM_DATE_FORMAT));
         }
 
         private String str(Object obj, String nullDefault) {
