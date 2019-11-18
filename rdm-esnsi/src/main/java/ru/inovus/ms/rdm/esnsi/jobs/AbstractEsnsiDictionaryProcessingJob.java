@@ -45,7 +45,6 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
     JobKey selfIdentity;
 
     @Override
-    @SuppressWarnings("squid:S3776")
     public void execute(JobExecutionContext context) throws JobExecutionException {
         this.jobDataMap = context.getJobDetail().getJobDataMap();
         this.selfIdentity = context.getJobDetail().getKey();
@@ -56,7 +55,6 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
             if (current != getStage(getClass())) {
                 outOfDate = true;
                 logger.warn("Job with key {} is out of date.", selfIdentity);
-                interruptSilently("The pipeline is in another stage, while the given job cannot stop.");
             }
         }
         String prevMessageId = jobDataMap.getString(PREV_MESSAGE_ID_KEY);
@@ -84,13 +82,8 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
         } else {
             if (!outOfDate)
                 shutdownPipeline();
-            else {
-                try {
-                    interrupt();
-                } catch (SchedulerException e) {
-                    logger.error("Unable interrupt job with key {}. Please try manually.", selfIdentity, e);
-                }
-            }
+            else
+                interruptSilently("The pipeline is in another stage, while the given job cannot stop.");
         }
     }
 
