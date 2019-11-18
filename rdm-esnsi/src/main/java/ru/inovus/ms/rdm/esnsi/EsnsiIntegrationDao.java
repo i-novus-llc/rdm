@@ -147,7 +147,7 @@ public class EsnsiIntegrationDao {
             throw new EsnsiSyncException(e);
         }
         q = "INSERT INTO esnsi_sync.struct (code, revision, struct) VALUES (:code, :revision, :struct) ON CONFLICT (code, revision) DO UPDATE SET struct = :struct;";
-        namedParameterJdbcTemplate.update(q, Map.of("code", code, "revision", revision, "struct", structRaw));
+        namedParameterJdbcTemplate.update(q, Map.of("code", code, DB_REVISION_FIELD_NAME, revision, "struct", structRaw));
     }
 
     @Transactional
@@ -178,14 +178,14 @@ public class EsnsiIntegrationDao {
     public void updateLastDownloaded(String code, int revision, Timestamp time) {
         String q = "INSERT INTO esnsi_sync.version (code, revision, last_updated) VALUES (:code, :revision, :time) " +
                 "ON CONFLICT (code) DO UPDATE SET revision = :revision, last_updated = :time, stage = :stage;";
-        namedParameterJdbcTemplate.update(q, Map.of("code", code, "revision", revision, "time", time, "stage", NONE.name()));
+        namedParameterJdbcTemplate.update(q, Map.of("code", code, DB_REVISION_FIELD_NAME, revision, "time", time, "stage", NONE.name()));
     }
 
     @Transactional(readOnly = true)
     public GetClassifierStructureResponseType getStruct(String code, int revision) {
         List<String> s = namedParameterJdbcTemplate.query(
             "SELECT struct FROM esnsi_sync.struct WHERE code = :code AND revision = :revision",
-            Map.of("code", code, "revision", revision),
+            Map.of("code", code, DB_REVISION_FIELD_NAME, revision),
             (rs, rowNum) -> rs.getString(1)
         );
         if (s.isEmpty())
