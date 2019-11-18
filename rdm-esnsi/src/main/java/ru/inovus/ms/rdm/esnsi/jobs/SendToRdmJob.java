@@ -2,7 +2,9 @@ package ru.inovus.ms.rdm.esnsi.jobs;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
+import org.quartz.PersistJobDataAfterExecution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,14 +20,14 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierStructureResponseType;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.nio.file.Files;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
 
+@PersistJobDataAfterExecution
+@DisallowConcurrentExecution
 class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
 
     private static final Logger logger = LoggerFactory.getLogger(SendToRdmJob.class);
@@ -37,7 +39,7 @@ class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
 
     @Override
     boolean execute0(JobExecutionContext context) throws Exception {
-        int revision = jobDataMap.getInt("revision");
+        int revision = jobDataMap.getInt(REVISION_KEY);
         String fileName = System.currentTimeMillis() + ".xml";
         jobDataMap.put(PREFIX + fileName, true);
         File f = new File(fileName);
@@ -79,8 +81,10 @@ class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
             if (key.startsWith(PREFIX)) {
                 File tmpFile = new File(key.substring(PREFIX.length()));
                 if (tmpFile.exists()) {
-                    if (!tmpFile.delete()) {
-                        logger.warn("Temporary file {} was not deleted. Please, do these manually to prevent memory leak.", tmpFile.getAbsolutePath());
+                    try {
+                        Files.delete(tmpFile.toPath());
+                    } catch (IOException e) {
+                        logger.warn("Temporary file {} was not deleted. Please, do these manually to prevent memory leak.", tmpFile.getAbsolutePath(), e);
                     }
                 }
             }

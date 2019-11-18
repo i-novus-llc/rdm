@@ -13,9 +13,16 @@ import ru.inovus.ms.rdm.esnsi.api.ObjectFactory;
 import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
 
-abstract class AbstractEsnsiDictionaryProcessingJob implements StatefulJob {
+@PersistJobDataAfterExecution
+@DisallowConcurrentExecution
+abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractEsnsiDictionaryProcessingJob.class);
+
+    private static final String PREV_MESSAGE_ID_KEY = "prevMessageId";
+    private static final String NUM_RETRIES_KEY = "numRetries";
+    static final String REVISION_KEY = EsnsiIntegrationDao.DB_REVISION_FIELD_NAME;
+    static final String MESSAGE_ID_KEY = "messageId";
 
     static final ObjectFactory objectFactory = new ObjectFactory();
 
@@ -55,16 +62,16 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements StatefulJob {
                 }
             }
         }
-        String prevMessageId = jobDataMap.getString("prevMessageId");
+        String prevMessageId = jobDataMap.getString(PREV_MESSAGE_ID_KEY);
         if (prevMessageId != null) {
             esnsiSmevClient.acknowledge(prevMessageId);
-            jobDataMap.remove("prevMessageId");
+            jobDataMap.remove(PREV_MESSAGE_ID_KEY);
         }
         int numRetries = 0;
-        if (jobDataMap.containsKey("numRetries"))
-            numRetries = jobDataMap.getInt("numRetries");
+        if (jobDataMap.containsKey(NUM_RETRIES_KEY))
+            numRetries = jobDataMap.getInt(NUM_RETRIES_KEY);
         int numRetriesTotal = Integer.parseInt(getProperty("esnsi.sync.num-retries"));
-        if (!outOfDate && numRetries < numRetriesTotal) {
+        if (!outOfDate && numRetriesTotal > 0 && numRetries < numRetriesTotal) {
             try {
                 boolean needToInterrupt = execute0(context);
                 if (needToInterrupt) {
@@ -78,7 +85,7 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements StatefulJob {
                 logger.error("Job {} exceptionally finished.", selfIdentity, e);
                 if (getClass() != EsnsiIntegrationJob.class) {
                     logger.info("Job {} will be reexecuted. Retry #{}", selfIdentity, numRetries + 1);
-                    jobDataMap.put("numRetries", numRetries + 1);
+                    jobDataMap.put(NUM_RETRIES_KEY, numRetries + 1);
                     throw new JobExecutionException(true);
                 }
             }
@@ -97,7 +104,7 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements StatefulJob {
 
     private void shutdownPipeline() {
         logger.info("Job {} run out of attempts. Pipeline for classifier with code {} will be shutdown.", selfIdentity, classifierCode);
-        esnsiIntegrationDao.setClassifierProcessingStage(classifierCode, ClassifierProcessingStage.NONE, () -> interrupt());
+        esnsiIntegrationDao.setClassifierProcessingStage(classifierCode, ClassifierProcessingStage.NONE, this::interrupt);
     }
 
     void afterInterrupt() {}
@@ -113,25 +120,26 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements StatefulJob {
         throw new IllegalStateException("Unexpected Job class.");
     }
 
+    @SuppressWarnings("squid:S00112")
     abstract boolean execute0(JobExecutionContext context) throws Exception;
 
-    void execSmevResponseResponseReadingJob(JobDetail job) throws SchedulerException {
+    void execSmevResponseResponseReadingJob(JobDetail job) {
         Trigger trigger = newTrigger().startNow().forJob(job).withSchedule(cronSchedule(getProperty("esnsi.smev.adapter.fetch.interval"))).build();
         execJob(job, trigger);
     }
 
-    void execJobWithSimpleSecondlySchedule(JobDetail job) throws SchedulerException {
+    void execJobWithSimpleSecondlySchedule(JobDetail job) {
         execJob(job, newTrigger().startNow().forJob(job).withSchedule(SimpleScheduleBuilder.repeatSecondlyForever()).build());
     }
 
-    void execJobWithoutSchedule(JobDetail job) throws SchedulerException {
+    void execJobWithoutSchedule(JobDetail job) {
         execJob(job, newTrigger().startNow().forJob(job).build());
     }
 
-    private void execJob(JobDetail job, Trigger trigger) throws SchedulerException {
-        if (jobDataMap.containsKey("messageId"))
-            job.getJobDataMap().put("prevMessageId", jobDataMap.get("messageId"));
-        job.getJobDataMap().put("numRetries", 0);
+    private void execJob(JobDetail job, Trigger trigger) {
+        if (jobDataMap.containsKey(MESSAGE_ID_KEY))
+            job.getJobDataMap().put(PREV_MESSAGE_ID_KEY, jobDataMap.get(MESSAGE_ID_KEY));
+        job.getJobDataMap().put(NUM_RETRIES_KEY, 0);
         esnsiIntegrationDao.setClassifierProcessingStage(job.getKey().getGroup(), getStage(job.getJobClass()), () -> {
             scheduler.deleteJob(job.getKey());
             scheduler.scheduleJob(job, trigger);

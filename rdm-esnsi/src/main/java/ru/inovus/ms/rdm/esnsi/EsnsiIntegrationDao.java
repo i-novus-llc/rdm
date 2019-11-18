@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.esnsi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Component;
@@ -30,6 +31,8 @@ import static ru.inovus.ms.rdm.esnsi.ClassifierProcessingStage.NONE;
 @Component
 @Repository
 public class EsnsiIntegrationDao {
+
+    public static final String DB_REVISION_FIELD_NAME = "revision";
 
     private static final Logger logger = LoggerFactory.getLogger(EsnsiIntegrationDao.class);
 
@@ -60,7 +63,7 @@ public class EsnsiIntegrationDao {
             arg,
             (rs, rowNum) -> rs.getInt(1)
         );
-        if (list.size() == 0) {
+        if (list.isEmpty()) {
             namedParameterJdbcTemplate.update("INSERT INTO esnsi_sync.version (code, stage) VALUES (:code, '" + NONE + "')", arg);
             return null;
         }
@@ -75,7 +78,7 @@ public class EsnsiIntegrationDao {
             arg,
             (rs, rowNum) -> rs.getString(1)
         );
-        if (list.size() == 0) {
+        if (list.isEmpty()) {
             namedParameterJdbcTemplate.update("INSERT INTO esnsi_sync.version (code, stage) VALUES (:code, '" + NONE + "')", arg);
             return ClassifierProcessingStage.NONE;
         }
@@ -90,7 +93,7 @@ public class EsnsiIntegrationDao {
             exec.exec();
         } catch (Exception e) {
             logger.error(e.getMessage());
-            throw new RuntimeException();
+            throw new EsnsiSyncException(e);
         }
     }
 
@@ -150,15 +153,14 @@ public class EsnsiIntegrationDao {
     @Transactional
     public void insert(List<Object[]> batch, String tableName, String pageProcessorId, Executable exec) {
         boolean finished = isPageProcessorIdle(pageProcessorId);
-        if (!batch.isEmpty()) {
-            if (!finished) {
-                String q = "INSERT INTO " + tableName + "(" +
-                        IntStream.rangeClosed(1, batch.get(0).length).mapToObj(i -> "field_" + i).collect(joining(", ")) +
-                        ") VALUES (" +
-                        IntStream.rangeClosed(1, batch.get(0).length).mapToObj(i -> "?").collect(joining(", ")) +
-                        ")";
-                namedParameterJdbcTemplate.getJdbcTemplate().batchUpdate(q, batch);
-            }
+        if (!batch.isEmpty() && !finished) {
+            String q = "INSERT INTO " + tableName + "(" +
+                    IntStream.rangeClosed(1, batch.get(0).length).mapToObj(i -> "field_" + i).collect(joining(", ")) +
+                    ") VALUES (" +
+                    IntStream.rangeClosed(1, batch.get(0).length).mapToObj(i -> "?").collect(joining(", ")) +
+                    ")";
+            JdbcOperations jdbcOperations = namedParameterJdbcTemplate.getJdbcTemplate();
+            jdbcOperations.batchUpdate(q, batch);
         }
         if (!finished) {
             String q = "UPDATE esnsi_sync.page_processor_state SET finished = TRUE, seed = (seed + 1) WHERE id = :id";
@@ -167,7 +169,8 @@ public class EsnsiIntegrationDao {
         try {
             exec.exec();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            logger.error(e.getMessage());
+            throw new EsnsiSyncException(e);
         }
     }
 

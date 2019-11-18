@@ -196,7 +196,8 @@ final class EsnsiSyncJobUtils {
                     else if (attr.getDecimalStartRange() != null || attr.getDecimalEndRange() != null)
                         writeValidation("FLOAT_RANGE", (attr.getDecimalStartRange() == null ? "" : attr.getDecimalStartRange().toString()) + ";" + (attr.getDecimalEndRange() == null ? "" : attr.getDecimalEndRange().toString()));
                     else if (attr.getDateStartRange() != null || attr.getDateEndRange() != null) {
-                        LocalDate start, end;
+                        LocalDate start;
+                        LocalDate end;
                         if (attr.getDateStartRange() != null)
                             start = xmlDateToLocalDate(attr.getDateStartRange());
                         else

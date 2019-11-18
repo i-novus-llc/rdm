@@ -153,10 +153,7 @@ public class EsnsiSmevClient {
         getResponseDocument.setMessageTypeSelector(messageTypeSelector);
         try {
             ResponseDocument response = port.getResponse(getResponseDocument);
-            if (response.getAttachmentContentList() == null && response.getMessageMetadata() == null &&
-                    response.getOriginalMessageId() == null && response.getOriginalTransactionCode() == null &&
-                    response.getReferenceMessageID() == null && response.getSenderProvidedResponseData() == null &&
-                    response.getSmevAdapterFault() == null && response.getSmevTypicalError() == null)
+            if (nullResponse(response))
                 return null;
             msgBuffer.put(response.getSenderProvidedResponseData().getMessageID(), response);
             GregorianCalendar clndr = response.getMessageMetadata().getDeliveryTimestamp().toGregorianCalendar();
@@ -172,6 +169,13 @@ public class EsnsiSmevClient {
             logger.error("Error occurred while receiving response message from SMEV3.", ex);
         }
         return null;
+    }
+
+    private boolean nullResponse(ResponseDocument resp) {
+        boolean b1 = resp.getAttachmentContentList() == null && resp.getMessageMetadata() == null && resp.getOriginalMessageId() == null;
+        boolean b2 = resp.getOriginalTransactionCode() == null && resp.getReferenceMessageID() == null && resp.getSenderProvidedResponseData() == null;
+        boolean b3 = resp.getSmevAdapterFault() == null && resp.getSmevTypicalError() == null;
+        return b1 && b2 && b3;
     }
 
     private void setRequest(CnsiRequest cnsiRequest, Object requestData) {
