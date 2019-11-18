@@ -51,7 +51,7 @@ class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
             esnsiIntegrationDao.readRows(dataCreator, classifierCode, revision);
             dataCreator.end();
         }
-        String rdmRestUrl = getProperty("rdm.rest.url");
+        String rdmRestUrl = getProperty("rdm.backend.path");
         String fileStorageService = rdmRestUrl + "/fileStorage/save";
         String uri = UriComponentsBuilder.fromHttpUrl(fileStorageService).queryParam("fileName", fileName).build().toUriString();
         HttpHeaders headers = new HttpHeaders();
