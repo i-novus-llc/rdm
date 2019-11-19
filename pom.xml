@@ -4,7 +4,7 @@
 
     <groupId>ru.inovus.ms.rdm</groupId>
     <artifactId>rdm</artifactId>
-    <version>1.91-SNAPSHOT</version>
+    <version>1.92-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -36,7 +36,7 @@
         <internal.repository.shapshots>https://maven.i-novus.ru/libs-snapshot-local</internal.repository.shapshots>
         <internal.repository.id>i-novus-central</internal.repository.id>
         <swagger.version>3.23.0</swagger.version>
-        <audit.version>2.2</audit.version>
+        <audit.version>2.3.2</audit.version>
     </properties>
 
     <scm>
