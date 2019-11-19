@@ -1,17 +1,17 @@
 import React from 'react';
 import { compose, withHandlers } from 'recompose';
 import dependency from 'n2o-framework/lib/core/dependency';
+import TablePagination from "n2o-framework/lib/components/widgets/Table/TablePagination";
 import StandardWidget from 'n2o-framework/lib/components/widgets/StandardWidget';
-import factoryResolver from 'n2o-framework/lib/utils/factoryResolver';
 import DataGridContainer from "./DataGridContainer";
 
 function DataGridWidget({
-    widgetId,
+    id: widgetId,
     disabled,
     actions,
-    prepareFilter,
     getWidgetProps,
-    toolbar
+    toolbar,
+    paging,
 }) {
     return (
         <div className="rdm-data-grid">
@@ -20,7 +20,7 @@ function DataGridWidget({
                 disabled={disabled}
                 widgetId={widgetId}
                 actions={actions}
-                // filter={prepareFilter()}
+                bottomLeft={paging && <TablePagination widgetId={widgetId} />}
             >
                 <DataGridContainer {...getWidgetProps()} />
             </StandardWidget>
@@ -31,9 +31,10 @@ function DataGridWidget({
 export default compose(
     dependency,
     withHandlers({
-        prepareFilters: ({ filter }) => () => factoryResolver(filter, 'Input'),
-        getWidgetProps: ({ id: widgetId, ...rest }) => () => ({
+        getWidgetProps: ({ id: widgetId, table, ...rest }) => () => ({
             widgetId,
+            table,
+            ...table,
             ...rest
         })
     })
