@@ -101,12 +101,12 @@ public class DraftServiceImpl implements DraftService {
 
     private RefBookVersionRepository versionRepository;
     private RefBookConflictRepository conflictRepository;
-    private RefBookService refBookService;
 
     private DraftDataService draftDataService;
     private DropDataService dropDataService;
     private SearchDataService searchDataService;
 
+    private RefBookService refBookService;
     private RefBookLockService refBookLockService;
     private VersionService versionService;
 
@@ -128,8 +128,8 @@ public class DraftServiceImpl implements DraftService {
     @SuppressWarnings("squid:S00107")
     public DraftServiceImpl(RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
                             DraftDataService draftDataService, DropDataService dropDataService, SearchDataService searchDataService,
-                            RefBookLockService refBookLockService, VersionService versionService,
-                            RefBookService refBookService, FileStorage fileStorage, FileNameGenerator fileNameGenerator,
+                            RefBookService refBookService, RefBookLockService refBookLockService, VersionService versionService,
+                            FileStorage fileStorage, FileNameGenerator fileNameGenerator,
                             VersionFileService versionFileService,
                             VersionValidation versionValidation,
                             PassportValueRepository passportValueRepository, AttributeValidationRepository attributeValidationRepository,
@@ -141,8 +141,8 @@ public class DraftServiceImpl implements DraftService {
         this.dropDataService = dropDataService;
         this.searchDataService = searchDataService;
 
-        this.refBookLockService = refBookLockService;
         this.refBookService = refBookService;
+        this.refBookLockService = refBookLockService;
         this.versionService = versionService;
 
         this.fileStorage = fileStorage;

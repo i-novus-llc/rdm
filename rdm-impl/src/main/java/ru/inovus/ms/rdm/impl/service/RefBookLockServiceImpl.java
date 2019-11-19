@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.inovus.ms.rdm.api.enumeration.RefBookOperation;
 import ru.inovus.ms.rdm.impl.entity.RefBookEntity;
@@ -57,13 +58,13 @@ public class RefBookLockServiceImpl implements RefBookLockService {
         operationRepository.deleteAllByInstanceId(instanceId);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void setRefBookPublishing(Integer refBookId) {
         addRefBookOperation(refBookId, RefBookOperation.PUBLISHING);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void setRefBookUploading(Integer refBookId) {
         addRefBookOperation(refBookId, RefBookOperation.UPLOADING);
@@ -77,7 +78,7 @@ public class RefBookLockServiceImpl implements RefBookLockService {
         operationRepository.save(new RefBookOperationEntity(refBook, operation, instanceId, DEFAULT_USER));
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void deleteRefBookOperation(Integer refBookId) {
         operationRepository.deleteByRefBookId(refBookId);
