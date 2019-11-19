@@ -6,3 +6,6 @@ services:
 
   frontend:
     image: ${DOCKER_REGISTRY}/rdm/frontend:${TAG}
+
+  esnsi:
+    image: ${DOCKER_REGISTRY}/rdm/esnsi:${TAG}
