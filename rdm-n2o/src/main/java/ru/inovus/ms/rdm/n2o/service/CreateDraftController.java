@@ -155,7 +155,7 @@ public class CreateDraftController {
 
     public UiDraft createFromFile(FileModel fileModel) {
 
-        Integer versionId = refBookService.create(fileModel).getId();
+        Integer versionId = draftService.create(fileModel).getId();
         RefBookVersion version = versionService.getById(versionId);
 
         return new UiDraft(versionId, version.getRefBookId());

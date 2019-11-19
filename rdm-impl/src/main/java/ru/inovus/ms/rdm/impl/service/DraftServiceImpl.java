@@ -33,6 +33,7 @@ import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
+import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.api.model.refdata.RowValuePage;
@@ -42,6 +43,7 @@ import ru.inovus.ms.rdm.api.model.validation.AttributeValidationRequest;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidationType;
 import ru.inovus.ms.rdm.api.model.version.*;
 import ru.inovus.ms.rdm.api.service.DraftService;
+import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.api.service.VersionFileService;
 import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
@@ -99,6 +101,7 @@ public class DraftServiceImpl implements DraftService {
 
     private RefBookVersionRepository versionRepository;
     private RefBookConflictRepository conflictRepository;
+    private RefBookService refBookService;
 
     private DraftDataService draftDataService;
     private DropDataService dropDataService;
@@ -126,7 +129,7 @@ public class DraftServiceImpl implements DraftService {
     public DraftServiceImpl(RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
                             DraftDataService draftDataService, DropDataService dropDataService, SearchDataService searchDataService,
                             RefBookLockService refBookLockService, VersionService versionService,
-                            FileStorage fileStorage, FileNameGenerator fileNameGenerator,
+                            RefBookService refBookService, FileStorage fileStorage, FileNameGenerator fileNameGenerator,
                             VersionFileService versionFileService,
                             VersionValidation versionValidation,
                             PassportValueRepository passportValueRepository, AttributeValidationRepository attributeValidationRepository,
@@ -139,6 +142,7 @@ public class DraftServiceImpl implements DraftService {
         this.searchDataService = searchDataService;
 
         this.refBookLockService = refBookLockService;
+        this.refBookService = refBookService;
         this.versionService = versionService;
 
         this.fileStorage = fileStorage;
@@ -188,6 +192,30 @@ public class DraftServiceImpl implements DraftService {
             () -> versionRepository.getOne(d.getId())
         );
         return d;
+    }
+
+    @Override
+    @Transactional(timeout = 1200000)
+    public Draft create(FileModel fileModel) {
+        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
+        switch (extension) {
+            case "XLSX": return createByXlsx(fileModel);
+            case "XML": return createByXml(fileModel);
+            default: throw new RdmException("invalid file extension");
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private Draft createByXlsx(FileModel fileModel) {
+        throw new RdmException("creating draft from xlsx is not implemented yet");
+    }
+
+    private Draft createByXml(FileModel fileModel) {
+        Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
+        try(XmlCreateRefBookFileProcessor createRefBookFileProcessor = new XmlCreateRefBookFileProcessor(refBookService)) {
+            RefBook refBook = createRefBookFileProcessor.process(inputStreamSupplier);
+            return updateDraftDataByXml(refBook.getRefBookId(), fileModel, inputStreamSupplier);
+        }
     }
 
     private Draft updateDraftDataByXlsx(Integer refBookId, FileModel fileModel, Supplier<InputStream> inputStreamSupplier) {
@@ -453,7 +481,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
-    public Draft updateData(Integer draftId, FileModel fileModel) {
+    public void updateData(Integer draftId, FileModel fileModel) {
 
         versionValidation.validateDraft(draftId);
 
@@ -471,7 +499,6 @@ public class DraftServiceImpl implements DraftService {
             AuditAction.UPLOAD_DATA,
             () -> versionRepository.findById(draftId).get()
         );
-        return new Draft(draftId, draftVersion.getStorageCode());
     }
 
     @Override

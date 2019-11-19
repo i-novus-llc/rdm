@@ -57,6 +57,16 @@ public interface DraftService {
                  @ApiParam("Файл") FileModel fileModel);
 
     @POST
+    @ApiOperation("Создание нового черновика из файла без справочника")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Черновик создан"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    @Path("/createByFile")
+    Draft create(@ApiParam("Файл") FileModel fileModel);
+
+    @POST
     @ApiOperation("Добавление или изменение записи черновика")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Черновик обновлен"),
@@ -97,7 +107,7 @@ public interface DraftService {
     })
 
     @Path("/updateFromFile/{draftId}")
-    Draft updateData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
+    void updateData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
                     @ApiParam("Файл") FileModel fileModel);
 
     @GET
