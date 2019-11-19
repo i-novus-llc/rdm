@@ -3,9 +3,9 @@ package ru.inovus.ms.rdm.esnsi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,14 +18,14 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.sql.*;
-import java.util.ArrayList;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 import static ru.inovus.ms.rdm.esnsi.ClassifierProcessingStage.NONE;
 
 @Component
@@ -112,20 +112,19 @@ public class EsnsiIntegrationDao {
     @Transactional
     public void createEsnsiVersionDataTableAndRemovePreviousIfNecessaryAndSaveStruct(GetClassifierStructureResponseType struct) {
         String code = struct.getClassifierDescriptor().getCode();
-        Connection connection = DataSourceUtils.getConnection(dataSource);
-        DatabaseMetaData metaData;
-        try {
-            metaData = connection.getMetaData();
-            ResultSet data = metaData.getTables(null, "esnsi_data", code + "-%", null);
-            List<String> queries = new ArrayList<>();
-            while (data.next()) {
-                String q = "DROP TABLE esnsi_data.\"" + data.getString("TABLE_NAME") + "\"";
-                queries.add(q);
-            }
-            for (String q : queries)
+        String wildcard = code + "-%";
+        Map<String, ?> arg = Map.of("wildcard", wildcard);
+        List<String> queries = namedParameterJdbcTemplate.query(
+                "SELECT table_name FROM information_schema.tables WHERE table_schema='esnsi_data' AND table_type='BASE TABLE' AND table_name LIKE :arg",
+                arg,
+                (rs, rowNum) -> rs.getString(1)
+        ).stream().map(tableName -> "DROP TABLE esnsi_data.\"" + tableName + "\"").collect(toList());
+        for (String q : queries) {
+            try {
                 namedParameterJdbcTemplate.getJdbcTemplate().execute(q);
-        } catch (SQLException e) {
-            logger.error("Can't drop tables previously associated with this classifier. If there was a table associated with this classifier - it will not be deleted.", e);
+            } catch (DataAccessException ex) {
+                logger.error("Can't drop tables previously associated with this classifier. Please do this manually.", ex);
+            }
         }
         int revision = struct.getClassifierDescriptor().getRevision();
         String tableName = getClassifierSpecificDataTableName(code, revision);

@@ -145,8 +145,9 @@ public class EsnsiSmevClient {
     }
 
     private ResponseDocument getResponseDocument(String messageId) {
-        if (msgBuffer.containsKey(messageId))
-            return msgBuffer.getOrDefault(messageId, null);
+        ResponseDocument resp = msgBuffer.get(messageId);
+        if (resp != null)
+            return resp;
         GetResponseDocument getResponseDocument = objectFactory.createGetResponseDocument();
         MessageTypeSelector messageTypeSelector = objectFactory.createMessageTypeSelector();
         messageTypeSelector.setNamespaceURI(NAMESPACE_URI);
