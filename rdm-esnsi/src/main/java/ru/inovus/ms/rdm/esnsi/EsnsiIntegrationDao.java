@@ -115,7 +115,7 @@ public class EsnsiIntegrationDao {
         String wildcard = code + "-%";
         Map<String, ?> arg = Map.of("wildcard", wildcard);
         List<String> queries = namedParameterJdbcTemplate.query(
-                "SELECT table_name FROM information_schema.tables WHERE table_schema='esnsi_data' AND table_type='BASE TABLE' AND table_name LIKE :arg",
+                "SELECT table_name FROM information_schema.tables WHERE table_schema='esnsi_data' AND table_type='BASE TABLE' AND table_name LIKE :wildcard",
                 arg,
                 (rs, rowNum) -> rs.getString(1)
         ).stream().map(tableName -> "DROP TABLE esnsi_data.\"" + tableName + "\"").collect(toList());
