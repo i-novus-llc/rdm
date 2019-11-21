@@ -547,7 +547,6 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void createAttribute(CreateAttribute createAttribute) {
 
-        NamingUtils.checkCode(createAttribute.getAttribute().getCode());
         versionValidation.validateDraft(createAttribute.getVersionId());
         refBookLockService.validateRefBookNotBusyByVersionId(createAttribute.getVersionId());
         RefBookVersionEntity draftEntity = versionRepository.getOne(createAttribute.getVersionId());
@@ -555,6 +554,7 @@ public class DraftServiceImpl implements DraftService {
 
         Structure.Attribute attribute = createAttribute.getAttribute();
         validateRequired(attribute, draftEntity.getStorageCode(), structure);
+        NamingUtils.checkCode(createAttribute.getAttribute().getCode());
 
         //clear previous primary keys
         if (createAttribute.getAttribute().getIsPrimary())
@@ -602,7 +602,6 @@ public class DraftServiceImpl implements DraftService {
     @Override
     @Transactional
     public void updateAttribute(UpdateAttribute updateAttribute) {
-        NamingUtils.checkCode(updateAttribute.getCode());
 
         versionValidation.validateDraft(updateAttribute.getVersionId());
         refBookLockService.validateRefBookNotBusyByVersionId(updateAttribute.getVersionId());
@@ -612,6 +611,7 @@ public class DraftServiceImpl implements DraftService {
 
         Structure.Attribute attribute = structure.getAttribute(updateAttribute.getCode());
         attributeUpdateValidator.validateUpdateAttribute(updateAttribute, attribute, draftEntity.getStorageCode());
+        NamingUtils.checkCode(updateAttribute.getCode());
 
         if (updateAttribute.isReferenceType()) {
             String newDisplayExpression = updateAttribute.getDisplayExpression().get();
