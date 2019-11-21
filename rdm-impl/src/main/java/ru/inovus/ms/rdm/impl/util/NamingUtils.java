@@ -12,7 +12,7 @@ public final class NamingUtils {
 
     public static void checkCode(String name) {
         if (!CODE.matcher(name).matches())
-            throw new UserException("refbook.name-not-valid");
+            throw new UserException("code.not-valid");
     }
 
 }

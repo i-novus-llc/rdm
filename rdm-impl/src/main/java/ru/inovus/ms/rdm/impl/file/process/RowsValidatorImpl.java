@@ -12,6 +12,8 @@ import ru.inovus.ms.rdm.impl.validation.*;
 
 import java.util.*;
 
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 
 public class RowsValidatorImpl implements RowsValidator {
@@ -29,6 +31,7 @@ public class RowsValidatorImpl implements RowsValidator {
     private SearchDataService searchDataService;
 
     private Structure structure;
+    private final Map<String, Structure.Attribute> indexAttrs;
 
     private String storageCode;
 
@@ -37,6 +40,8 @@ public class RowsValidatorImpl implements RowsValidator {
     private PkUniqueRowAppendValidation pkUniqueRowAppendValidation;
 
     private AttributeCustomValidation attributeCustomValidation;
+
+    private boolean firstRowProcessed;
 
     // NB: Add `RowsValidatorCriteria` to allow exclusion of some standard validations.
     public RowsValidatorImpl(VersionService versionService,
@@ -50,6 +55,7 @@ public class RowsValidatorImpl implements RowsValidator {
         this.searchDataService = searchDataService;
 
         this.structure = structure;
+        this.indexAttrs = structure.getAttributes().stream().collect(toMap(Structure.Attribute::getCode, identity()));
         this.storageCode = storageCode;
 
         if (errorCountLimit > 0)
@@ -76,7 +82,12 @@ public class RowsValidatorImpl implements RowsValidator {
 
     @Override
     public Result append(Row row) {
-
+        if (!firstRowProcessed) {
+            for (String key : row.getData().keySet())
+                if (!indexAttrs.containsKey(key))
+                    throw new UserException("structure.does-not-match");
+            firstRowProcessed = true;
+        }
         if (row.getData().values().stream().filter(Objects::nonNull).anyMatch(v -> !"".equals(v))) {
             buffer.add(row);
 
