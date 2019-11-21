@@ -21,14 +21,14 @@ public class XmlMappingLoaderLockService {
     public boolean tryLock() {
         boolean acquired;
         try {
-            jdbcTemplate.queryForObject("SELECT last_acquired FROM rdm_sync.sync_lock_table FOR UPDATE NOWAIT", Timestamp.class);
+            jdbcTemplate.queryForObject("SELECT last_acquired FROM rdm_sync.xml_mapping_loader_lock FOR UPDATE NOWAIT", Timestamp.class);
             acquired = true;
         } catch (CannotAcquireLockException ex) {
             logger.warn("Cannot acquire lock.", ex);
             acquired = false;
         }
         if (acquired) {
-            jdbcTemplate.update("UPDATE rdm_sync.sync_lock_table SET last_acquired = (SELECT CURRENT_TIMESTAMP AT TIME ZONE 'UTC')");
+            jdbcTemplate.update("UPDATE rdm_sync.xml_mapping_loader_lock SET last_acquired = (SELECT CURRENT_TIMESTAMP AT TIME ZONE 'UTC')");
             logger.info("Lock successfully acquired.");
             return true;
         }
