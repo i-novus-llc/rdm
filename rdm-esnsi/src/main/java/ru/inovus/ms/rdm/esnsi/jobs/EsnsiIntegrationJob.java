@@ -19,7 +19,7 @@ public class EsnsiIntegrationJob extends AbstractEsnsiDictionaryProcessingJob {
     boolean execute0(JobExecutionContext context) throws Exception {
         logger.info("Starting EsnsiIntegrationJob.");
         for (String classifierCode : jobDataMap.getKeys()) {
-            ClassifierProcessingStage stage = esnsiIntegrationDao.getClassifierProcessingStageAndCreateNewIfNecessary(classifierCode);
+            ClassifierProcessingStage stage = esnsiLoadService.getClassifierProcessingStageAndCreateIfNotExists(classifierCode);
             if (stage != ClassifierProcessingStage.NONE) {// Справочник еще обрабатывается
                 logger.info("Classifier with code {} is already processing.", classifierCode);
                 continue;

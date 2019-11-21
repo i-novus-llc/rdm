@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.esnsi.api.*;
 
 import javax.xml.bind.JAXBContext;
@@ -64,7 +65,7 @@ public class EsnsiSmevClient {
             RESPONSE_CTX = JAXBContext.newInstance(CnsiResponse.class);
         } catch (JAXBException e) {
 //          Не выбросится
-            throw new EsnsiSyncException(e);
+            throw new RdmException(e);
         }
     }
 
@@ -108,7 +109,7 @@ public class EsnsiSmevClient {
             REQUEST_CTX.createMarshaller().marshal(requestData, domResult);
         } catch (JAXBException ex) {
             logger.error("Unable to create request from given request data: {}", requestData, ex);
-            throw new EsnsiSyncException(ex);
+            throw new RdmException(ex);
         }
         Document doc = (Document) domResult.getNode();
         messagePrimaryContent.setAny(doc.getDocumentElement());
@@ -125,7 +126,7 @@ public class EsnsiSmevClient {
         ResponseDocument responseDocument = getResponseDocument(messageId);
         if (responseDocument != null) {
             if (!responseDocument.getSenderProvidedResponseData().getRequestRejected().isEmpty()) {
-                throw new EsnsiSyncException(responseDocument.getSenderProvidedResponseData().getRequestRejected().stream().map(requestRejected ->
+                throw new RdmException(responseDocument.getSenderProvidedResponseData().getRequestRejected().stream().map(requestRejected ->
                     "[" + requestRejected.getRejectionReasonCode() + ":" + requestRejected.getRejectionReasonDescription() + "]"
                 ).collect(Collectors.joining(",\n")));
             }
@@ -136,7 +137,7 @@ public class EsnsiSmevClient {
                     inputStream = attachmentContent.getAttachmentContent().iterator().next().getContent().getInputStream();
                 } catch (IOException e) {
                     logger.error("Cannot extract input stream from message attachment.", e);
-                    throw new EsnsiSyncException(e);
+                    throw new RdmException(e);
                 }
             }
             return Map.entry(extractResponse(responseDocument, responseType), inputStream == null ? EMPTY_INPUT_STREAM : inputStream);
@@ -233,7 +234,7 @@ public class EsnsiSmevClient {
             return getResponse((CnsiResponse) unmarshal, c);
         } catch (JAXBException e) {
             logger.error("Error while parsing response from SMEV3 adapter. Unknown format.", e);
-            throw new EsnsiSyncException(e);
+            throw new RdmException(e);
         }
     }
 

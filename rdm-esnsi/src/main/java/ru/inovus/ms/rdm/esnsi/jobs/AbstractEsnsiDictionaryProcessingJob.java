@@ -6,7 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import ru.inovus.ms.rdm.esnsi.ClassifierProcessingStage;
-import ru.inovus.ms.rdm.esnsi.EsnsiIntegrationDao;
+import ru.inovus.ms.rdm.esnsi.EsnsiLoadService;
+import ru.inovus.ms.rdm.esnsi.EsnsiLoaderDao;
 import ru.inovus.ms.rdm.esnsi.EsnsiSmevClient;
 import ru.inovus.ms.rdm.esnsi.api.ObjectFactory;
 
@@ -21,7 +22,7 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
 
     private static final String PREV_MESSAGE_ID_KEY = "prevMessageId";
     private static final String NUM_RETRIES_KEY = "numRetries";
-    static final String REVISION_KEY = EsnsiIntegrationDao.DB_REVISION_FIELD_NAME;
+    static final String REVISION_KEY = EsnsiLoaderDao.DB_REVISION_FIELD_NAME;
     static final String MESSAGE_ID_KEY = "messageId";
 
     static final ObjectFactory objectFactory = new ObjectFactory();
@@ -30,7 +31,7 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
     EsnsiSmevClient esnsiSmevClient;
 
     @Autowired
-    EsnsiIntegrationDao esnsiIntegrationDao;
+    EsnsiLoadService esnsiLoadService;
 
     @Autowired
     private Environment environment;
@@ -52,7 +53,7 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
         this.classifierCode = context.getJobDetail().getKey().getGroup();
         boolean outOfDate = false;
         if (getClass() != EsnsiIntegrationJob.class) {
-            ClassifierProcessingStage current = esnsiIntegrationDao.getClassifierProcessingStage(classifierCode);
+            ClassifierProcessingStage current = esnsiLoadService.getClassifierProcessingStage(classifierCode);
             if (current != getStage(getClass())) {
                 outOfDate = true;
                 logger.warn("Job with key {} is out of date.", selfIdentity);
@@ -93,7 +94,11 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
 
     private void shutdownPipeline() {
         logger.info("Job {} run out of attempts. Pipeline for classifier with code {} will be shutdown.", selfIdentity, classifierCode);
-        esnsiIntegrationDao.setClassifierProcessingStage(classifierCode, ClassifierProcessingStage.NONE, this::interrupt);
+        esnsiLoadService.setClassifierProcessingStageAtomically(
+            classifierCode,
+            ClassifierProcessingStage.NONE,
+            this::interrupt
+        );
     }
 
     void afterInterrupt() {}
@@ -129,11 +134,15 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
         if (jobDataMap.containsKey(MESSAGE_ID_KEY))
             job.getJobDataMap().put(PREV_MESSAGE_ID_KEY, jobDataMap.get(MESSAGE_ID_KEY));
         job.getJobDataMap().put(NUM_RETRIES_KEY, 0);
-        esnsiIntegrationDao.setClassifierProcessingStage(job.getKey().getGroup(), getStage(job.getJobClass()), () -> {
-            scheduler.deleteJob(job.getKey());
-            scheduler.scheduleJob(job, trigger);
-            scheduler.triggerJob(job.getKey());
-        });
+        esnsiLoadService.setClassifierProcessingStageAtomically(
+            job.getKey().getGroup(),
+            getStage(job.getJobClass()),
+            () -> {
+                scheduler.deleteJob(job.getKey());
+                scheduler.scheduleJob(job, trigger);
+                scheduler.triggerJob(job.getKey());
+            }
+        );
     }
 
     void interrupt() throws SchedulerException {

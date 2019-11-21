@@ -12,9 +12,9 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class EsnsiIntegrationServiceImpl implements EsnsiIntegrationService {
+public class EsnsiLoaderImpl implements EsnsiLoader {
 
-    private static final Logger logger = LoggerFactory.getLogger(EsnsiIntegrationServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(EsnsiLoaderImpl.class);
 
     @Autowired
     private Scheduler scheduler;

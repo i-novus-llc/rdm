@@ -3,31 +3,37 @@ package ru.inovus.ms.rdm.esnsi.jobs;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
-import ru.inovus.ms.rdm.esnsi.EsnsiSyncException;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.inovus.ms.rdm.api.exception.RdmException;
+import ru.inovus.ms.rdm.api.model.validation.AttributeValidationType;
+import ru.inovus.ms.rdm.api.util.TimeUtils;
 import ru.inovus.ms.rdm.esnsi.api.ClassifierAttribute;
-import ru.inovus.ms.rdm.esnsi.api.ClassifierDescriptorListType;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierStructureResponseType;
+import ru.inovus.ms.rdm.esnsi.file_gen.AttributeValidation;
+import ru.inovus.ms.rdm.esnsi.file_gen.RdmXmlFileGenerator;
+import ru.inovus.ms.rdm.esnsi.file_gen.RefBookMetadata;
+import ru.inovus.ms.rdm.esnsi.file_gen.RefBookStructure;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.stream.*;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
 import static java.util.Arrays.stream;
-import static java.util.Comparator.comparingInt;
+import static java.util.Collections.emptyList;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 import static javax.xml.stream.XMLStreamConstants.*;
-import static ru.inovus.ms.rdm.esnsi.api.AttributeType.*;
+import static ru.inovus.ms.rdm.esnsi.api.AttributeType.DECIMAL;
+import static ru.inovus.ms.rdm.esnsi.api.AttributeType.TEXT;
 
 final class EsnsiSyncJobUtils {
 
@@ -53,13 +59,12 @@ final class EsnsiSyncJobUtils {
                 "bool",
                 "date",
                 "integer",
-                "decimal",
-                "reference"
+                "decimal"
         );
 
         private EsnsiXmlDataFileReadUtil() {throw new UnsupportedOperationException();}
 
-        static void read(Consumer<Object[]> consumer, GetClassifierStructureResponseType struct, InputStream inputStream) {
+        static void read(Consumer<Map<String, String>> consumer, GetClassifierStructureResponseType struct, InputStream inputStream) {
             Map<String, ClassifierAttribute> attributesIdx = struct.getAttributeList().stream().collect(toMap(ClassifierAttribute::getUid, identity()));
             Object[] row = new Object[attributesIdx.size()];
             for (int i = 0; i < row.length; i++)
@@ -76,12 +81,12 @@ final class EsnsiSyncJobUtils {
                     }
                 }
             } catch (IOException e) {
-                throw new EsnsiSyncException(e);
+                throw new RdmException(e);
             }
         }
 
         @SuppressWarnings("squid:S3776")
-        private static void readNextEntry(Object[] row, InputStream inputStream, Map<String, ClassifierAttribute> attributes, Consumer<Object[]> consumer) {
+        private static void readNextEntry(Object[] row, InputStream inputStream, Map<String, ClassifierAttribute> attributes, Consumer<Map<String, String>> consumer) {
             try {
                 XMLStreamReader reader = INPUT_FACTORY.createXMLStreamReader(inputStream);
                 flushUntilDataElem(reader);
@@ -102,7 +107,8 @@ final class EsnsiSyncJobUtils {
                             openedLocalName = reader.getLocalName();
                             if (openedLocalName.equals(RECORD_ELEM)) {
                                 recordOpen = false;
-                                consumer.accept(stream(row).map(obj -> (StringBuilder) obj).map(StringBuilder::toString).toArray());
+                                Map<String, String> map = IntStream.rangeClosed(1, row.length).boxed().collect(toMap(i -> "field_" + i, i -> row[i].toString()));
+                                consumer.accept(map);
                                 stream(row).map(obj -> (StringBuilder) obj).forEach(stringBuilder -> stringBuilder.setLength(0));
                             } else if (openedLocalName.equals(DATA_ELEM))
                                 flushCompletely(reader);
@@ -116,7 +122,7 @@ final class EsnsiSyncJobUtils {
                     }
                 }
             } catch (XMLStreamException e) {
-                throw new EsnsiSyncException(e);
+                throw new RdmException(e);
             }
         }
 
@@ -148,156 +154,107 @@ final class EsnsiSyncJobUtils {
 
     }
 
-    static class XmlDataCreator implements Consumer<String[]> {
+    static final class RdmXmlFileGeneratorProvider {
 
-        private static final DateTimeFormatter ESNSI_DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-        private static final DateTimeFormatter RDM_DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        private static final DateTimeFormatter RDM_DATE_FORMAT = TimeUtils.DATE_PATTERN_EUROPEAN_FORMATTER;
+        private static final DateTimeFormatter ESNSI_DATE_FORMAT = TimeUtils.DATE_PATTERN_EUROPEAN_FORMATTER;
 
-        private static final XMLOutputFactory XML_OUT = XMLOutputFactory.newFactory();
+        private RdmXmlFileGeneratorProvider() {throw new UnsupportedOperationException();}
 
-        private final XMLStreamWriter writer;
-        private final GetClassifierStructureResponseType struct;
-        private final ClassifierAttribute[] attrs;
-        private final String[] codes;
+        static RdmXmlFileGenerator get(OutputStream out, GetClassifierStructureResponseType struct, Iterator<Map<String, Object>> iterator) throws XMLStreamException {
+            RefBookMetadata refBookMetadataAdapter = new RefBookMetadata() {
+                @Override public String code() {return struct.getClassifierDescriptor().getCode();}
+                @Override public String name() {return struct.getClassifierDescriptor().getName();}
+                @Override public String shortName() {return struct.getClassifierDescriptor().getName();}
+                @Override public String description() {return struct.getClassifierDescriptor().getDescription();}
+            };
+            RefBookStructure refBookStructureAdapter = new RefBookStructure() {
+                @Override
+                public Collection<Attribute> attributes() {
+                    Collection<Attribute> attributes = new ArrayList<>();
+                    for (ClassifierAttribute attribute : struct.getAttributeList()) {
+                        attributes.add(new Attribute() {
+                            @Override
+                            public String code() {
+                                return "field_" + (attribute.getOrder() + 1);
+                            }
 
-        public XmlDataCreator(OutputStream out, GetClassifierStructureResponseType struct) {
-            try {
-                this.struct = struct;
-                this.attrs = struct.getAttributeList().stream().sorted(comparingInt(ClassifierAttribute::getOrder)).toArray(ClassifierAttribute[]::new);
-                this.writer = XML_OUT.createXMLStreamWriter(out);
-                this.codes = IntStream.rangeClosed(1, attrs.length).mapToObj(i -> "field_" + i).toArray(String[]::new);
-            } catch (XMLStreamException e) {
-                throw new EsnsiSyncException(e);
-            }
-        }
+                            @Override
+                            public String name() {
+                                return attribute.getName();
+                            }
 
-        public void init() {
-            ClassifierDescriptorListType desc = struct.getClassifierDescriptor();
-            try {
-                writer.writeStartDocument("1.0");
-                writer.writeStartElement("refBook");
-                writeLeaf("code", "ESNSI-" + desc.getCode() + "-" + desc.getRevision());
-                writer.writeStartElement("passport");
-                writeLeaf("name", str(desc.getName(), desc.getCode()));
-                writeLeaf("shortName", desc.getCode());
-                writeLeaf("description", str(desc.getDescription(), ""));
-                writer.writeEndElement();
-                writer.writeStartElement("structure");
-                for (ClassifierAttribute attr : attrs) {
-                    writeNextAttr(attr);
+                            @Override
+                            public String description() {
+                                return attribute.getName();
+                            }
+
+                            @Override
+                            public FieldType type() {
+                                if (attribute.getType() == TEXT)
+                                    return FieldType.STRING;
+                                else if (attribute.getType() == DECIMAL)
+                                    return FieldType.FLOAT;
+                                else
+                                    return FieldType.valueOf(attribute.getType().value());
+                            }
+
+                            @Override
+                            public boolean isPrimary() {
+                                return attribute.isKey();
+                            }
+                        });
+                    }
+
+                    return attributes;
                 }
-                writer.writeEndElement();
-                writer.writeStartElement("data");
-            } catch (XMLStreamException e) {
-                throw new EsnsiSyncException(e);
+
+                @Override
+                public Collection<Reference> references() {
+                    return emptyList(); // Пока не реализовано
+                }
+            };
+            Map<String, Collection<AttributeValidation>> validations = new HashMap<>();
+            for (ClassifierAttribute attribute : struct.getAttributeList()) {
+                if (attribute.isRequired())
+                    validations.computeIfAbsent("field_" + attribute.getOrder() + 1, k -> new ArrayList<>()).add(new AttributeValidation(AttributeValidationType.REQUIRED, "true"));
+                if (attribute.getRegex() != null && !attribute.getRegex().isBlank())
+                    validations.computeIfAbsent("field_" + attribute.getOrder() + 1, k -> new ArrayList<>()).add(new AttributeValidation(AttributeValidationType.REG_EXP, attribute.getRegex()));
+                if (attribute.getLength() != null && attribute.getLength() > 0)
+                    validations.computeIfAbsent("field_" + attribute.getOrder() + 1, k -> new ArrayList<>()).add(new AttributeValidation(AttributeValidationType.PLAIN_SIZE, attribute.getLength().toString()));
+                if (attribute.getIntStartRange() != null || attribute.getIntEndRange() != null)
+                    validations.computeIfAbsent("field_" + attribute.getOrder() + 1, k -> new ArrayList<>()).add(new AttributeValidation(AttributeValidationType.INT_RANGE, getNumberRangeValidation(attribute.getIntStartRange(), attribute.getIntEndRange())));
+                if (attribute.getDecimalStartRange() != null || attribute.getDecimalEndRange() != null)
+                    validations.computeIfAbsent("field_" + attribute.getOrder() + 1, k -> new ArrayList<>()).add(new AttributeValidation(AttributeValidationType.FLOAT_RANGE, getNumberRangeValidation(attribute.getDecimalStartRange(), attribute.getDecimalEndRange())));
+                if (attribute.getDateStartRange() != null || attribute.getDateEndRange() != null)
+                    validations.computeIfAbsent("field_" + attribute.getOrder() + 1, k -> new ArrayList<>()).add(new AttributeValidation(AttributeValidationType.DATE_RANGE, getDateRangeValidation(attribute.getDateStartRange(), attribute.getDateEndRange())));
             }
+            return new RdmXmlFileGenerator(out, refBookMetadataAdapter, refBookStructureAdapter, validations, (fieldCode, val) -> {
+                String s = val.toString();
+                return LocalDate.parse(s, ESNSI_DATE_FORMAT).format(RDM_DATE_FORMAT);
+            }, null, iterator);
         }
 
-        private void writeNextAttr(ClassifierAttribute attr) throws XMLStreamException {
-            writer.writeStartElement("row");
-            writeLeaf("code", codes[attr.getOrder()]);
-            writeLeaf("name", Objects.toString(attr.getName(), ""));
-            String type;
-            if (attr.getType() == TEXT)
-                type = STRING.value();
-            else if (attr.getType() == DECIMAL)
-                type = "FLOAT";
-            else
-                type = attr.getType().value();
-            writeLeaf("type", type);
-            writeLeaf("description", "");
-            writeLeaf("primary", String.valueOf(attr.isKey()));
-            if (attr.isRequired())
-                writeValidation("REQUIRED", "true");
-            if (attr.getRegex() != null && !attr.getRegex().isBlank())
-                writeValidation("REG_EXP", attr.getRegex());
-            if (attr.getLength() != null && attr.getLength() > 0)
-                writeValidation("PLAIN_SIZE", attr.getLength().toString());
-            if (attr.getIntStartRange() != null || attr.getIntEndRange() != null)
-                writeValidation("INT_RANGE", getNumberValidation(attr.getIntStartRange(), attr.getIntEndRange()));
-            else if (attr.getDecimalStartRange() != null || attr.getDecimalEndRange() != null)
-                writeValidation("FLOAT_RANGE", getNumberValidation(attr.getDecimalStartRange(), attr.getDecimalEndRange()));
-            else if (attr.getDateStartRange() != null || attr.getDateEndRange() != null)
-                writeDateValidation(attr);
-            writer.writeEndElement();
-        }
-
-        private String getNumberValidation(Number from, Number to) {
+        private static String getNumberRangeValidation(Number from, Number to) {
             String fromStr = str(from, "");
             String toStr = str(to, "");
             return fromStr + ";" + toStr;
         }
 
-        private void writeDateValidation(ClassifierAttribute attr) throws XMLStreamException {
-            LocalDate start;
-            LocalDate end;
-            if (attr.getDateStartRange() != null)
-                start = xmlDateToLocalDate(attr.getDateStartRange());
-            else
-                start = LocalDate.MIN;
-            if (attr.getDateEndRange() != null)
-                end = xmlDateToLocalDate(attr.getDateEndRange());
-            else
-                end = LocalDate.MAX;
-            writeValidation("DATE_RANGE", start.format(RDM_DATE_FORMAT) + ";" + end.format(RDM_DATE_FORMAT));
+        private static String getDateRangeValidation(XMLGregorianCalendar from, XMLGregorianCalendar to) {
+            String f = "";
+            String t = "";
+            if (from != null)
+                f = LocalDate.of(from.getYear(), from.getMonth(), from.getDay()).format(RDM_DATE_FORMAT);
+            if (to != null)
+                t = LocalDate.of(to.getYear(), to.getMonth(), to.getDay()).format(RDM_DATE_FORMAT);
+            return f + ";" + t;
         }
 
-        private String str(Object obj, String nullDefault) {
+        private static String str(Object obj, String nullDefault) {
             return Objects.toString(obj, nullDefault);
         }
 
-        private LocalDate xmlDateToLocalDate(XMLGregorianCalendar date) {
-            return LocalDate.of(
-                    date.getYear(),
-                    date.getMonth(),
-                    date.getDay()
-            );
-        }
-
-        private void writeValidation(String type, String value) throws XMLStreamException {
-            writer.writeStartElement("validation");
-            writeLeaf("type", type);
-            writeLeaf("value", value);
-            writer.writeEndElement();
-        }
-
-        @Override
-        public void accept(String[] row) {
-            try {
-                writer.writeStartElement("row");
-                for (int i = 0; i < row.length; i++) {
-                    String val = row[i];
-                    ClassifierAttribute attr = attrs[i];
-                    writer.writeStartElement(codes[i]);
-                    if (attr.getType() == DATE) {
-                        LocalDate date = LocalDate.parse(val, ESNSI_DATE_FORMAT);
-                        writer.writeCharacters(date.format(RDM_DATE_FORMAT));
-                    } else
-                        writer.writeCharacters(val);
-                    writer.writeEndElement();
-                }
-                writer.writeEndElement();
-            } catch (XMLStreamException e) {
-                throw new EsnsiSyncException(e);
-            }
-        }
-
-        public void end() {
-            try {
-                writer.writeEndElement();
-                writer.writeEndElement();
-                writer.flush();
-                writer.close();
-            } catch (XMLStreamException e) {
-                throw new EsnsiSyncException(e);
-            }
-        }
-
-        private void writeLeaf(String key, String val) throws XMLStreamException {
-            writer.writeStartElement(key);
-            writer.writeCharacters(val);
-            writer.writeEndElement();
-        }
-
     }
+
 }

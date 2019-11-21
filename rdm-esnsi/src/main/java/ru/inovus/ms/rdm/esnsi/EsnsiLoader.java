@@ -13,7 +13,7 @@ import javax.ws.rs.core.MediaType;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Api("Синхронизация с ЕСНСИ")
-public interface EsnsiIntegrationService {
+public interface EsnsiLoader {
 
     @POST
     @Path("/update")

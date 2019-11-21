@@ -51,7 +51,7 @@ public class EsnsiSyncConfig {
     @Bean
     public SchedulerFactoryBean schedulerFactoryBean(DataSource dataSource,
                                                      EsnsiSmevClient esnsiSmevClient,
-                                                     EsnsiIntegrationDao dao,
+                                                     EsnsiLoaderDao dao,
                                                      ApplicationContext applicationContext) throws IOException {
         SchedulerFactoryBean factory = new SchedulerFactoryBean();
         factory.setQuartzProperties(quartzProperties());

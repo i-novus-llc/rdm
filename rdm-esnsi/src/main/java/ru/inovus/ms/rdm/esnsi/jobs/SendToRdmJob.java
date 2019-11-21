@@ -18,13 +18,18 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import ru.inovus.ms.rdm.esnsi.api.ClassifierAttribute;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierStructureResponseType;
+import ru.inovus.ms.rdm.esnsi.file_gen.RdmXmlFileGenerator;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 @PersistJobDataAfterExecution
 @DisallowConcurrentExecution
@@ -45,11 +50,34 @@ class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
         File f = new File(fileName);
         f.deleteOnExit();
         try (OutputStream out = new BufferedOutputStream(new FileOutputStream(f))) {
-            GetClassifierStructureResponseType struct = esnsiIntegrationDao.getStruct(classifierCode, revision);
-            EsnsiSyncJobUtils.XmlDataCreator dataCreator = new EsnsiSyncJobUtils.XmlDataCreator(out, struct);
-            dataCreator.init();
-            esnsiIntegrationDao.readRows(dataCreator, classifierCode, revision);
-            dataCreator.end();
+            GetClassifierStructureResponseType struct = esnsiLoadService.getClassifierStruct(classifierCode, revision);
+            int primaryKeyFieldSerialNumber = struct.getAttributeList().stream().filter(ClassifierAttribute::isKey).findFirst().map(ClassifierAttribute::getOrder).get() + 1;
+            String primaryKeyFieldName = "field_" + primaryKeyFieldSerialNumber;
+            RdmXmlFileGenerator generator = EsnsiSyncJobUtils.RdmXmlFileGeneratorProvider.get(out, struct, new Iterator<>() {
+
+                String lastSeenId = "";
+                Iterator<Map<String, Object>> it;
+
+                @Override
+                public boolean hasNext() {
+                    if (!it.hasNext()) {
+                        List<Map<String, Object>> classifierData = esnsiLoadService.getClassifierData(classifierCode, revision, lastSeenId, primaryKeyFieldSerialNumber);
+                        it = classifierData.iterator();
+                    }
+                    return it.hasNext();
+                }
+
+                @Override
+                public Map<String, Object> next() {
+                    Map<String, Object> next = it.next();
+                    lastSeenId = (String) next.get(primaryKeyFieldName);
+                    return next;
+                }
+
+            });
+            generator.init();
+            generator.fetchData();
+            generator.end();
         }
         String rdmRestUrl = getProperty("rdm.backend.path");
         String fileStorageService = rdmRestUrl + "/fileStorage/save";
@@ -70,7 +98,7 @@ class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
         headers.setContentType(MediaType.APPLICATION_JSON);
         requestEntity = new HttpEntity<>(jsonNode.toString(), headers);
         restTemplate.postForEntity(draftService, requestEntity, String.class);
-        esnsiIntegrationDao.updateLastDownloaded(classifierCode, revision, Timestamp.from(Instant.now(Clock.systemUTC())));
+        esnsiLoadService.setClassifierRevisionAndLastUpdated(classifierCode, revision, Timestamp.from(Instant.now(Clock.systemUTC())));
         return true;
     }
 

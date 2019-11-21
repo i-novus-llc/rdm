@@ -5,10 +5,10 @@ import ru.inovus.ms.rdm.esnsi.PageProcessor;
 import ru.inovus.ms.rdm.esnsi.api.AcceptRequestDocument;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierDataRequestType;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.UUID;
 
-import static ru.inovus.ms.rdm.esnsi.EsnsiIntegrationDao.getClassifierSpecificDataTableName;
+import static ru.inovus.ms.rdm.esnsi.EsnsiLoadService.getClassifierIdentifier;
 import static ru.inovus.ms.rdm.esnsi.jobs.EsnsiSyncJobUtils.PAGE_SIZE;
 
 @PersistJobDataAfterExecution
@@ -19,13 +19,13 @@ class PagingJob extends AbstractEsnsiDictionaryProcessingJob {
     @Override
     boolean execute0(JobExecutionContext context) throws Exception {
         int revision = jobDataMap.getInt(REVISION_KEY);
-        List<PageProcessor> idlePageProcessors = esnsiIntegrationDao.getIdlePageProcessors(classifierCode, revision);
+        Collection<PageProcessor> idlePageProcessors = esnsiLoadService.getIdleClassifierPageProcessor(classifierCode, revision);
         if (idlePageProcessors.isEmpty())
             return false;
         int numWorkers = Integer.parseInt(getProperty("esnsi.classifier.downloading.num-workers"));
         idlePageProcessors.removeIf(pageProcessor -> pageProcessor.id() > numWorkers);
         boolean flag = false;
-        String tableName = getClassifierSpecificDataTableName(classifierCode, revision);
+        String tableName = getClassifierIdentifier(classifierCode, revision);
         int numRecords = jobDataMap.getInt("numRecords");
         for (PageProcessor pageProcessor : idlePageProcessors) {
             int id = pageProcessor.id();
@@ -45,7 +45,10 @@ class PagingJob extends AbstractEsnsiDictionaryProcessingJob {
                                 usingJobData("tableName", tableName).
                                 usingJobData("id", pageProcessor.fullId()).
                                 build();
-                esnsiIntegrationDao.setPageProcessorBusy(pageProcessor.fullId(), () -> execSmevResponseResponseReadingJob(job));
+                esnsiLoadService.setPageProcessorBusyAtomically(
+                    pageProcessor.fullId(),
+                    () -> execSmevResponseResponseReadingJob(job)
+                );
             }
         }
         if (!flag && idlePageProcessors.size() == numWorkers) {
