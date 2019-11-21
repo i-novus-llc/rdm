@@ -11,6 +11,8 @@ import ru.inovus.ms.rdm.esnsi.EsnsiLoaderDao;
 import ru.inovus.ms.rdm.esnsi.EsnsiSmevClient;
 import ru.inovus.ms.rdm.esnsi.api.ObjectFactory;
 
+import java.time.Duration;
+
 import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
 
@@ -24,6 +26,7 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
     private static final String NUM_RETRIES_KEY = "numRetries";
     static final String REVISION_KEY = EsnsiLoaderDao.DB_REVISION_FIELD_NAME;
     static final String MESSAGE_ID_KEY = "messageId";
+    private static final String STARTED_AT_KEY = "startedAt";
 
     static final ObjectFactory objectFactory = new ObjectFactory();
 
@@ -51,6 +54,14 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
         this.jobDataMap = context.getJobDetail().getJobDataMap();
         this.selfIdentity = context.getJobDetail().getKey();
         this.classifierCode = context.getJobDetail().getKey().getGroup();
+        if (jobDataMap.containsKey(STARTED_AT_KEY)) {
+            long startedAt = jobDataMap.getLong(STARTED_AT_KEY);
+            int timeoutMinutes = Integer.parseInt(getProperty("esnsi.sync.job-timeout-minutes"));
+            if (Duration.ofMillis(System.currentTimeMillis() - startedAt).toMinutes() > timeoutMinutes) {
+                logger.warn("Job {} exceeded timeout. Pipeline for classifier with identity {} will be shutdown.", selfIdentity, classifierCode);
+                shutdownPipeline();
+            }
+        }
         boolean outOfDate = false;
         if (getClass() != EsnsiIntegrationJob.class) {
             ClassifierProcessingStage current = esnsiLoadService.getClassifierProcessingStage(classifierCode);
@@ -85,15 +96,15 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
                 }
             }
         } else {
-            if (!outOfDate)
+            if (!outOfDate) {
+                logger.warn("Job {} run out of attempts. Pipeline for classifier with code {} will be shutdown.", selfIdentity, classifierCode);
                 shutdownPipeline();
-            else
+            } else
                 interruptSilently("The pipeline is in another stage, while the given job cannot stop.");
         }
     }
 
     private void shutdownPipeline() {
-        logger.info("Job {} run out of attempts. Pipeline for classifier with code {} will be shutdown.", selfIdentity, classifierCode);
         esnsiLoadService.setClassifierProcessingStageAtomically(
             classifierCode,
             ClassifierProcessingStage.NONE,
@@ -133,6 +144,7 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
     private void execJob(JobDetail job, Trigger trigger) {
         if (jobDataMap.containsKey(MESSAGE_ID_KEY))
             job.getJobDataMap().put(PREV_MESSAGE_ID_KEY, jobDataMap.get(MESSAGE_ID_KEY));
+        job.getJobDataMap().put(STARTED_AT_KEY, System.currentTimeMillis());
         job.getJobDataMap().put(NUM_RETRIES_KEY, 0);
         esnsiLoadService.setClassifierProcessingStageAtomically(
             job.getKey().getGroup(),

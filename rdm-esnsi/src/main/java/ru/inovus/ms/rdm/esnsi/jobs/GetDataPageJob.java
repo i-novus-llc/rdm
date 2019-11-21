@@ -29,8 +29,12 @@ class GetDataPageJob extends AbstractEsnsiDictionaryProcessingJob {
                 int i = 0;
             };
             EsnsiSyncJobUtils.EsnsiXmlDataFileReadUtil.read(row -> batch[ref.i++] = row, struct, data.getValue());
-            esnsiLoadService.insertAtomically(batch, tableName, revision, pageProcessorId, this::interrupt);
-            esnsiSmevClient.acknowledge(messageId);
+            esnsiLoadService.insertAtomically(batch, tableName, revision, pageProcessorId, () -> {
+                this.interrupt();
+                boolean acknowledged = esnsiSmevClient.acknowledge(messageId);
+                if (!acknowledged)
+                    throw new Exception();
+            });
         }
         return false;
     }
