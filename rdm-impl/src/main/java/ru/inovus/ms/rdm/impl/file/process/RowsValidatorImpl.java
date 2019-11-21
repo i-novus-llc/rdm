@@ -41,7 +41,7 @@ public class RowsValidatorImpl implements RowsValidator {
 
     private AttributeCustomValidation attributeCustomValidation;
 
-    private boolean firstRowProcessed;
+    private boolean structureVerified;
 
     // NB: Add `RowsValidatorCriteria` to allow exclusion of some standard validations.
     public RowsValidatorImpl(VersionService versionService,
@@ -82,11 +82,11 @@ public class RowsValidatorImpl implements RowsValidator {
 
     @Override
     public Result append(Row row) {
-        if (!firstRowProcessed) {
+        if (!structureVerified) {
             for (String key : row.getData().keySet())
                 if (!indexAttrs.containsKey(key))
                     throw new UserException("structure.does-not-match");
-            firstRowProcessed = true;
+            structureVerified = true;
         }
         if (row.getData().values().stream().filter(Objects::nonNull).anyMatch(v -> !"".equals(v))) {
             buffer.add(row);
