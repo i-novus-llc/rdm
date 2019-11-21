@@ -166,7 +166,7 @@ public class RefBookServiceImpl implements RefBookService {
     public RefBook create(RefBookCreateRequest request) {
         if (refBookRepository.existsByCode(request.getCode()))
             throw new UserException(new Message(REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE, request.getCode()));
-        NamingUtils.checkRefBookCode(request.getCode());
+        NamingUtils.checkCode(request.getCode());
         RefBookEntity refBookEntity = new RefBookEntity();
         refBookEntity.setArchived(Boolean.FALSE);
         refBookEntity.setRemovable(Boolean.TRUE);
@@ -208,7 +208,7 @@ public class RefBookServiceImpl implements RefBookService {
         RefBookVersionEntity versionEntity = versionRepository.getOne(request.getVersionId());
         RefBookEntity refBookEntity = versionEntity.getRefBook();
         if (!refBookEntity.getCode().equals(request.getCode())) {
-            NamingUtils.checkRefBookCode(refBookEntity.getCode());
+            NamingUtils.checkCode(refBookEntity.getCode());
             if (refBookRepository.existsByCode((request.getCode())))
                 throw new UserException(new Message(REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE, request.getCode()));
 
