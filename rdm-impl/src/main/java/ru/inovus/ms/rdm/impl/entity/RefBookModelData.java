@@ -52,6 +52,22 @@ public class RefBookModelData {
         this.referrerVersionId = referrerVersionId;
     }
 
+    public RefBookVersionEntity getDraftVersion() {
+        return draftVersion;
+    }
+
+    public void setDraftVersion(RefBookVersionEntity draftVersion) {
+        this.draftVersion = draftVersion;
+    }
+
+    public RefBookVersionEntity getLastPublishedVersion() {
+        return lastPublishedVersion;
+    }
+
+    public void setLastPublishedVersion(RefBookVersionEntity lastPublishedVersion) {
+        this.lastPublishedVersion = lastPublishedVersion;
+    }
+
     public Boolean getHasDataConflict() {
         return hasDataConflict;
     }

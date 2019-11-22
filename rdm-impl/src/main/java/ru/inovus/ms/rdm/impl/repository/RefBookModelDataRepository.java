@@ -15,7 +15,7 @@ public interface RefBookModelDataRepository extends
     String FIND_CONFLICT_DATA = "select\n" +
             "  :referrerVersionId as referrer_version_id,\n" +
             "  null as draft_version_id,\n" +
-            "  39 as last_published_version_id,\n" +
+            "  null as last_published_version_id,\n" +
             "\n" +
             "  exists(\n" +
             "    select 1 from n2o_rdm_management.ref_book_conflict c\n" +
