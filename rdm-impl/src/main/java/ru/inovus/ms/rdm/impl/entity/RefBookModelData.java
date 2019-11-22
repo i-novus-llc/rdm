@@ -42,6 +42,7 @@ public class RefBookModelData {
     private Boolean lastHasDataConflict;
 
     public RefBookModelData() {
+        // nothing to do.
     }
 
     public Integer getReferrerVersionId() {
