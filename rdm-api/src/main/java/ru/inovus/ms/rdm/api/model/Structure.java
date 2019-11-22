@@ -41,8 +41,8 @@ public class Structure implements Serializable {
     }
 
     public Structure(List<Attribute> attributes, List<Reference> references) {
-        this.attributes = attributes;
-        this.references = references;
+        this.attributes = attributes == null ? new ArrayList<>(0) : attributes;
+        this.references = references == null ? new ArrayList<>(0) : references;
     }
 
     public Structure(Structure other) {

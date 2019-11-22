@@ -83,7 +83,7 @@ public class RowsValidatorImpl implements RowsValidator {
     @Override
     public Result append(Row row) {
         if (!structureVerified) {
-            if (!structure.getAttributes().stream().allMatch(attribute -> !indexAttrs.containsKey(attribute.getCode())))
+            if (!structure.getAttributes().stream().allMatch(attribute -> indexAttrs.containsKey(attribute.getCode())))
                 throw new UserException("structure.does-not-match");
             structureVerified = true;
         }
