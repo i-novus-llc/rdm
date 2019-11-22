@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.impl.file.process;
 
+import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inovus.ms.rdm.api.exception.RdmException;
@@ -35,8 +36,10 @@ public abstract class CreateRefBookFileProcessor implements FileProcessor<RefBoo
             return refBookService.create(refBookCreateRequest);
         } catch (Exception e) {
             logger.error("cannot process file", e);
-            throw new RdmException(e);
+            if (e instanceof UserException) {
+                throw (UserException) e;
+            } else
+                throw new RdmException(e);
         }
-
     }
 }

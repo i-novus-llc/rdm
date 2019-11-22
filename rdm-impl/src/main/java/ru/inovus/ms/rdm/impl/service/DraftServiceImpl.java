@@ -177,7 +177,7 @@ public class DraftServiceImpl implements DraftService {
                 case "XML":
                     d = updateDraftDataByXml(refBookId, fileModel, inputStreamSupplier);
                     break;
-                default: throw new RdmException("invalid file extension");
+                default: throw new UserException("file.extension.invalid");
             }
 
         } finally {
@@ -195,15 +195,18 @@ public class DraftServiceImpl implements DraftService {
     public Draft create(FileModel fileModel) {
         String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
         switch (extension) {
-            case "XLSX": return createByXlsx(fileModel);
-            case "XML": return createByXml(fileModel);
-            default: throw new RdmException("invalid file extension");
+            case "XLSX":
+                return createByXlsx(fileModel);
+            case "XML":
+                return createByXml(fileModel);
+            default:
+                throw new UserException("file.extension.invalid");
         }
     }
 
     @SuppressWarnings("unused")
     private Draft createByXlsx(FileModel fileModel) {
-        throw new RdmException("creating draft from xlsx is not implemented yet");
+        throw new UserException("xlsx.draft.creation.not-supported");
     }
 
     private Draft createByXml(FileModel fileModel) {
