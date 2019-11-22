@@ -96,7 +96,7 @@
             <checkbox id="required" label="Обязательный атрибут">
                 <dependencies>
                     <visibility on="attrType,isPrimary">
-                        (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; !isPrimary)
+                        (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; (typeof isPrimary === 'undefined' || !isPrimary))
                     </visibility>
                     <set-value on="attrType,isPrimary">
                         if (isPrimary)
@@ -112,7 +112,7 @@
             <checkbox id="unique" label="Уникальный атрибут">
                 <dependencies>
                     <visibility on="attrType,isPrimary">
-                        (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; !isPrimary)
+                        (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; (typeof isPrimary === 'undefined' || !isPrimary))
                     </visibility>
                     <set-value on="attrType,isPrimary">
                         if (isPrimary)

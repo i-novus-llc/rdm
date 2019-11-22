@@ -1386,6 +1386,7 @@ public class ApplicationTest {
         FileModel cardinalFileModel = createFileModel(CARDINAL_FILE_NAME, REF_BOOK_FILE_FOLDER + CARDINAL_FILE_NAME);
         assertNotNull(cardinalFileModel);
         Draft cardinalDraft = draftService.create(cardinalFileModel);
+
         assertNotNull(cardinalDraft);
         RefBookVersion cardinalVersion = versionService.getById(cardinalDraft.getId());
         assertNotNull(cardinalVersion);

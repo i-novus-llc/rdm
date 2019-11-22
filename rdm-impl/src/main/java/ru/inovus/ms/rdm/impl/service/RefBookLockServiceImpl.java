@@ -8,10 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import ru.inovus.ms.rdm.api.enumeration.RefBookOperation;
 import ru.inovus.ms.rdm.impl.entity.RefBookEntity;
 import ru.inovus.ms.rdm.impl.entity.RefBookOperationEntity;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.inovus.ms.rdm.api.enumeration.RefBookOperation;
 import ru.inovus.ms.rdm.impl.repository.RefBookOperationRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 

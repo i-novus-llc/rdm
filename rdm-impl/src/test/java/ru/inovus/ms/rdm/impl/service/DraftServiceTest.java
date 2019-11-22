@@ -12,6 +12,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.*;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -47,6 +48,7 @@ import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
+import ru.inovus.ms.rdm.impl.validation.AttributeUpdateValidator;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -119,6 +121,9 @@ public class DraftServiceTest {
     @Mock
     private AuditLogService auditLogService;
 
+    @Mock
+    private AttributeUpdateValidator attributeUpdateValidator;
+
     private static final String UPD_SUFFIX = "_upd";
     private static final String PK_SUFFIX = "_pk";
 
@@ -145,9 +150,12 @@ public class DraftServiceTest {
     }
 
     @Before
-    public void setUp() {
+    public void setUp() throws NoSuchFieldException {
         reset(draftDataService, fileNameGenerator, fileGeneratorFactory);
         when(draftDataService.createDraft(anyList())).thenReturn(TEST_DRAFT_CODE_NEW);
+        FieldSetter.setField(attributeUpdateValidator, AttributeUpdateValidator.class.getDeclaredField("draftDataService"), draftDataService);
+        FieldSetter.setField(attributeUpdateValidator, AttributeUpdateValidator.class.getDeclaredField("searchDataService"), searchDataService);
+        FieldSetter.setField(attributeUpdateValidator, AttributeUpdateValidator.class.getDeclaredField("versionRepository"), versionRepository);
     }
 
     @Test
@@ -324,6 +332,7 @@ public class DraftServiceTest {
         RefBookVersionEntity draftVersion = createTestDraftVersionEntity();
         when(versionRepository.getOne(eq(draftVersion.getId()))).thenReturn(draftVersion);
         when(versionService.getStructure(eq(draftVersion.getId()))).thenReturn(draftVersion.getStructure());
+        doCallRealMethod().when(attributeUpdateValidator).validateUpdateAttribute(any(), any(), any());
 
         // добавление атрибута, получение структуры, проверка добавленного атрибута
 //        RefBookVersion referredVersion1 = new RefBookVersion();

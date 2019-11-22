@@ -64,8 +64,7 @@ import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.ConverterUtil;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 import ru.inovus.ms.rdm.impl.util.RowDiff;
-import ru.inovus.ms.rdm.impl.validation.PrimaryKeyUniqueValidation;
-import ru.inovus.ms.rdm.impl.validation.ReferenceValidation;
+import ru.inovus.ms.rdm.impl.validation.AttributeUpdateValidator;
 import ru.inovus.ms.rdm.impl.validation.VersionValidationImpl;
 
 import java.io.IOException;
@@ -73,14 +72,12 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.isEmpty;
-import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
 import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.isPublished;
 import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.isVersionOfRefBook;
 
@@ -90,9 +87,6 @@ import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.isVersion
 public class DraftServiceImpl implements DraftService {
 
     private static final String ILLEGAL_CREATE_ATTRIBUTE_EXCEPTION_CODE = "Can not update structure, illegal create attribute";
-    private static final String ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE = "Can not update structure, illegal update attribute";
-    private static final String INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE = "incompatible.new.structure";
-    private static final String INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE = "incompatible.new.type";
     private static final String ROW_NOT_UNIQUE_EXCEPTION_CODE = "row.not.unique";
     private static final String ROW_IS_EMPTY_EXCEPTION_CODE = "row.is.empty";
     private static final String REQUIRED_FIELD_EXCEPTION_CODE = "validation.required.err";
@@ -121,6 +115,7 @@ public class DraftServiceImpl implements DraftService {
     private AttributeValidationRepository attributeValidationRepository;
 
     private AuditLogService auditLogService;
+    private AttributeUpdateValidator attributeUpdateValidator;
 
     private int errorCountLimit = 100;
 
@@ -133,7 +128,7 @@ public class DraftServiceImpl implements DraftService {
                             VersionFileService versionFileService,
                             VersionValidation versionValidation,
                             PassportValueRepository passportValueRepository, AttributeValidationRepository attributeValidationRepository,
-                            AuditLogService auditLogService) {
+                            AuditLogService auditLogService, AttributeUpdateValidator attributeUpdateValidator) {
         this.versionRepository = versionRepository;
         this.conflictRepository = conflictRepository;
 
@@ -154,6 +149,7 @@ public class DraftServiceImpl implements DraftService {
         this.passportValueRepository = passportValueRepository;
         this.attributeValidationRepository = attributeValidationRepository;
         this.auditLogService = auditLogService;
+        this.attributeUpdateValidator = attributeUpdateValidator;
     }
 
     @Value("${rdm.validation-errors-count}")
@@ -611,7 +607,7 @@ public class DraftServiceImpl implements DraftService {
         Structure structure = draftEntity.getStructure();
 
         Structure.Attribute attribute = structure.getAttribute(updateAttribute.getCode());
-        validateUpdateAttribute(updateAttribute, attribute, draftEntity.getStorageCode());
+        attributeUpdateValidator.validateUpdateAttribute(updateAttribute, attribute, draftEntity.getStorageCode());
 
         if (updateAttribute.isReferenceType()) {
             String newDisplayExpression = updateAttribute.getDisplayExpression().get();
@@ -712,75 +708,6 @@ public class DraftServiceImpl implements DraftService {
         if (value != null) {
             attrValueSetter.accept(value.isPresent() ? value.get() : null);
         }
-    }
-
-    @SuppressWarnings({"squid:S1067", "squid:S3776"})
-    private void validateUpdateAttribute(UpdateAttribute updateAttribute, Structure.Attribute attribute, String storageCode) {
-        if (attribute == null
-                || updateAttribute.getVersionId() == null
-                || updateAttribute.getType() == null)
-            throw new IllegalArgumentException(ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE);
-
-        if (updateAttribute.isReferenceType() &&
-                ((attribute.isReferenceType() && isValidUpdateReferenceValues(updateAttribute, this::isUpdateValueNotNullAndEmpty))
-                        || (!attribute.isReferenceType() && isValidUpdateReferenceValues(updateAttribute, this::isUpdateValueNullOrEmpty))
-                ))
-            throw new IllegalArgumentException(ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE);
-
-        // проверка отсутствия пустых значений в поле при установке первичного ключа
-        if (!isUpdateValueNullOrEmpty(updateAttribute.getIsPrimary()) && updateAttribute.getIsPrimary().get()
-                && draftDataService.isFieldContainEmptyValues(storageCode, updateAttribute.getCode()))
-            throw new UserException(new Message(INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE, attribute.getName()));
-
-        if (!isUpdateValueNullOrEmpty(updateAttribute.getIsPrimary()) && updateAttribute.getIsPrimary().get()) {
-            validatePrimaryKeyUnique(storageCode, updateAttribute);
-        }
-
-        // проверка совместимости типов, если столбец не пустой и изменяется тип. Если пустой - можно изменить тип
-        if (draftDataService.isFieldNotEmpty(storageCode, updateAttribute.getCode())) {
-            if (!isCompatibleTypes(attribute.getType(), updateAttribute.getType())) {
-                throw new UserException(new Message(INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE, attribute.getName()));
-            }
-        } else
-            return;
-
-        if (updateAttribute.isReferenceType() && !attribute.isReferenceType()) {
-            validateReferenceValues(updateAttribute);
-        }
-    }
-
-    private void validatePrimaryKeyUnique(String storageCode, UpdateAttribute updateAttribute) {
-        List<Message> pkValidationMessages = new PrimaryKeyUniqueValidation(draftDataService, storageCode,
-                singletonList(updateAttribute.getCode())).validate();
-        if (pkValidationMessages != null && !pkValidationMessages.isEmpty())
-            throw new UserException(pkValidationMessages);
-    }
-
-    private void validateReferenceValues(UpdateAttribute updateAttribute) {
-        List<Message> referenceValidationMessages = new ReferenceValidation(
-                searchDataService,
-                versionRepository,
-                new Structure.Reference(updateAttribute.getAttribute().get(), updateAttribute.getReferenceCode().get(), updateAttribute.getDisplayExpression().get()),
-                updateAttribute.getVersionId()).validate();
-        if (!isEmpty(referenceValidationMessages))
-            throw new UserException(referenceValidationMessages);
-    }
-
-    private boolean isCompatibleTypes(FieldType realDataType, FieldType newDataType) {
-        return realDataType.equals(newDataType) || STRING.equals(realDataType) || STRING.equals(newDataType);
-    }
-
-    private boolean isValidUpdateReferenceValues(UpdateAttribute updateAttribute, Function<UpdateValue, Boolean> valueValidateFunc) {
-        return valueValidateFunc.apply(updateAttribute.getReferenceCode())
-                || valueValidateFunc.apply(updateAttribute.getAttribute());
-    }
-
-    private boolean isUpdateValueNotNullAndEmpty(UpdateValue updateValue) {
-        return updateValue != null && !updateValue.isPresent();
-    }
-
-    private boolean isUpdateValueNullOrEmpty(UpdateValue updateValue) {
-        return updateValue == null || !updateValue.isPresent();
     }
 
     /**
@@ -964,19 +891,11 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private void auditStructureEdit(RefBookVersionEntity refBook, String action, Structure.Attribute attribute) {
-        auditLogService.addAction(
-            AuditAction.EDIT_STRUCTURE,
-            () -> refBook,
-            Map.of(action, attribute)
-        );
+        auditLogService.addAction(AuditAction.EDIT_STRUCTURE, () -> refBook, Map.of(action, attribute));
     }
 
     private void auditEditData(RefBookVersionEntity refBook, String action, Object payload) {
-        auditLogService.addAction(
-            AuditAction.DRAFT_EDITING,
-            () -> refBook,
-            Map.of(action, payload)
-        );
+        auditLogService.addAction(AuditAction.DRAFT_EDITING, () -> refBook, Map.of(action, payload));
     }
 
 }
