@@ -34,12 +34,10 @@ public abstract class CreateRefBookFileProcessor implements FileProcessor<RefBoo
                 return null;
             }
             return refBookService.create(refBookCreateRequest);
+        } catch (UserException e) {
+            throw e;
         } catch (Exception e) {
-            logger.error("cannot process file", e);
-            if (e instanceof UserException) {
-                throw (UserException) e;
-            } else
-                throw new RdmException(e);
+            throw new RdmException(e);
         }
     }
 }
