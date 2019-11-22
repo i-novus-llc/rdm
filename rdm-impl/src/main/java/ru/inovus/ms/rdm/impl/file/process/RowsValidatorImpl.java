@@ -79,8 +79,18 @@ public class RowsValidatorImpl implements RowsValidator {
     @Override
     public Result append(Row row) {
         if (!structureVerified) {
-            if (!structure.getAttributes().stream().allMatch(attribute -> row.getData().containsKey(attribute.getCode())))
-                throw new UserException("structure.does-not-match");
+            for (String key : row.getData().keySet()) {
+                boolean match = false;
+                for (Structure.Attribute attr : structure.getAttributes()) {
+                    if (attr.getCode().equals(key)) {
+                        match = true;
+                        break;
+                    }
+                }
+                if (!match)
+                    throw new UserException("structure.does-not-match");
+            }
+            if (row.getData().keySet().stream().anyMatch(key -> structure.getAttributes().stream().noneMatch(attr -> attr.getCode().equals(key))))
             structureVerified = true;
         }
         if (row.getData().values().stream().filter(Objects::nonNull).anyMatch(v -> !"".equals(v))) {
