@@ -12,8 +12,6 @@ import ru.inovus.ms.rdm.impl.validation.*;
 
 import java.util.*;
 
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toMap;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 
 public class RowsValidatorImpl implements RowsValidator {
@@ -31,7 +29,6 @@ public class RowsValidatorImpl implements RowsValidator {
     private SearchDataService searchDataService;
 
     private Structure structure;
-    private final Map<String, Structure.Attribute> indexAttrs;
 
     private String storageCode;
 
@@ -55,7 +52,6 @@ public class RowsValidatorImpl implements RowsValidator {
         this.searchDataService = searchDataService;
 
         this.structure = structure;
-        this.indexAttrs = structure.getAttributes().stream().collect(toMap(Structure.Attribute::getCode, identity()));
         this.storageCode = storageCode;
 
         if (errorCountLimit > 0)
@@ -83,7 +79,7 @@ public class RowsValidatorImpl implements RowsValidator {
     @Override
     public Result append(Row row) {
         if (!structureVerified) {
-            if (!structure.getAttributes().stream().allMatch(attribute -> indexAttrs.containsKey(attribute.getCode())))
+            if (!structure.getAttributes().stream().allMatch(attribute -> row.getData().containsKey(attribute.getCode())))
                 throw new UserException("structure.does-not-match");
             structureVerified = true;
         }
