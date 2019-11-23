@@ -176,8 +176,7 @@ public class EsnsiIntegrationDao {
 
     @Transactional
     public void updateLastDownloaded(String code, int revision, Timestamp time) {
-        String q = "INSERT INTO esnsi_sync.version (code, revision, last_updated) VALUES (:code, :revision, :time) " +
-                "ON CONFLICT (code) DO UPDATE SET revision = :revision, last_updated = :time, stage = :stage;";
+        String q = "UPDATE esnsi_sync.version SET revision = :revision, last_updated = :time, stage = :stage WHERE code = :code";
         namedParameterJdbcTemplate.update(q, Map.of("code", code, DB_REVISION_FIELD_NAME, revision, "time", time, "stage", NONE.name()));
     }
 
