@@ -64,6 +64,7 @@ import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.ConverterUtil;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 import ru.inovus.ms.rdm.impl.util.RowDiff;
+import ru.inovus.ms.rdm.impl.util.RowDiffUtils;
 import ru.inovus.ms.rdm.impl.validation.AttributeUpdateValidator;
 import ru.inovus.ms.rdm.impl.validation.VersionValidationImpl;
 
@@ -429,27 +430,15 @@ public class DraftServiceImpl implements DraftService {
         if (rowValue.getSystemId() == null) {
             draftDataService.addRows(draft.getStorageCode(), singletonList(rowValue));
             auditEditData(draft, "create_row", rowValue.getFieldValues());
+
         } else {
             List<String> fields = draft.getStructure().getAttributes().stream().map(Structure.Attribute::getCode).collect(toList());
             RowValue old = searchDataService.findRow(draft.getStorageCode(), fields, rowValue.getSystemId());
-            RowDiff diff = simpleDiff(old, row);
+            RowDiff diff = RowDiffUtils.getRowDiff(old, row.getData());
             conflictRepository.deleteByReferrerVersionIdAndRefRecordId(draft.getId(), (Long) rowValue.getSystemId());
             draftDataService.updateRow(draft.getStorageCode(), rowValue);
             auditEditData(draft, "update_row", diff);
         }
-    }
-
-    private RowDiff simpleDiff(RowValue oldRow, Row newRow) {
-        RowDiff rowDiff = new RowDiff();
-        List<FieldValue> fv = oldRow.getFieldValues();
-        for (FieldValue fieldValue : fv) {
-            if (!Objects.equals(fieldValue.getValue(), newRow.getData().get(fieldValue.getField()))) {
-                Object oldVal = fieldValue.getValue();
-                Object newVal = newRow.getData().get(fieldValue.getField());
-                rowDiff.addDiff(fieldValue.getField(), RowDiff.CellDiff.of(oldVal, newVal));
-            }
-        }
-        return rowDiff;
     }
 
     @Override
