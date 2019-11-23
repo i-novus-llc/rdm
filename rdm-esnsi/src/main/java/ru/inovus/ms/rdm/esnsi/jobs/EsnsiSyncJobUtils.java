@@ -15,10 +15,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.time.format.DateTimeParseException;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
@@ -150,7 +148,8 @@ final class EsnsiSyncJobUtils {
 
     static class XmlDataCreator implements Consumer<String[]> {
 
-        private static final DateTimeFormatter ESNSI_DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        private static final DateTimeFormatter ESNSI_DATE_FORMAT_1 = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        private static final DateTimeFormatter ESNSI_DATE_FORMAT_2 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         private static final DateTimeFormatter RDM_DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
         private static final XMLOutputFactory XML_OUT = XMLOutputFactory.newFactory();
@@ -159,6 +158,8 @@ final class EsnsiSyncJobUtils {
         private final GetClassifierStructureResponseType struct;
         private final ClassifierAttribute[] attrs;
         private final String[] codes;
+
+        private final Map<String, DateTimeFormatter> fieldToDateFormat = new HashMap<>();
 
         public XmlDataCreator(OutputStream out, GetClassifierStructureResponseType struct) {
             try {
@@ -270,7 +271,7 @@ final class EsnsiSyncJobUtils {
                     ClassifierAttribute attr = attrs[i];
                     writer.writeStartElement(codes[i]);
                     if (attr.getType() == DATE) {
-                        LocalDate date = LocalDate.parse(val, ESNSI_DATE_FORMAT);
+                        LocalDate date = parseDate(attr.getUid(), val);
                         writer.writeCharacters(date.format(RDM_DATE_FORMAT));
                     } else
                         writer.writeCharacters(val);
@@ -297,6 +298,26 @@ final class EsnsiSyncJobUtils {
             writer.writeStartElement(key);
             writer.writeCharacters(val);
             writer.writeEndElement();
+        }
+
+        private LocalDate parseDate(String fieldUid, String date) {
+            if (fieldToDateFormat.containsKey(fieldUid))
+                return parseDate(date, fieldToDateFormat.get(fieldUid));
+            LocalDate localDate = parseDate(date, ESNSI_DATE_FORMAT_1);
+            if (localDate != null)
+                fieldToDateFormat.put(fieldUid, ESNSI_DATE_FORMAT_1);
+            localDate = parseDate(date, ESNSI_DATE_FORMAT_2);
+            if (localDate != null)
+                fieldToDateFormat.put(fieldUid, ESNSI_DATE_FORMAT_2);
+            throw new EsnsiSyncException("Unable to parse date from ESNSI.");
+        }
+
+        private LocalDate parseDate(String date, DateTimeFormatter format) {
+            try {
+                return LocalDate.parse(date, format);
+            } catch (DateTimeParseException ignored) {
+                return null;
+            }
         }
 
     }

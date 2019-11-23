@@ -43,6 +43,7 @@ class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
     private String dictionaryCode;
 
     @Override
+    @SuppressWarnings("squid:S1166")
     boolean execute0(JobExecutionContext context) throws Exception {
         revision = jobDataMap.getInt(REVISION_KEY);
         struct = esnsiIntegrationDao.getStruct(classifierCode, revision);
@@ -120,12 +121,13 @@ class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
         return response.getBody();
     }
 
+    @SuppressWarnings("squid:S1166")
     private Integer checkForExistance() {
         String refBookService = rdmRestUrl + "/refBook";
         String uri = UriComponentsBuilder.fromHttpUrl(refBookService + "/code/" + dictionaryCode).build().toUriString();
         try {
             return restTemplate.getForEntity(uri, Integer.class).getBody();
-        } catch (HttpClientErrorException.NotFound e404) {
+        } catch (HttpClientErrorException.NotFound e404Ignored) {
             return null;
         }
     }

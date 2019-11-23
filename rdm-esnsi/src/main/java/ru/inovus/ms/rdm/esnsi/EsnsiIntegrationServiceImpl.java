@@ -73,7 +73,7 @@ public class EsnsiIntegrationServiceImpl implements EsnsiIntegrationService {
     }
 
     private String getCodeIgnoreCase(String classifierCode) {
-        return codes.stream().filter(code -> code.toLowerCase().equals(classifierCode.toLowerCase())).findFirst().orElseThrow(() -> {
+        return codes.stream().filter(code -> code.equalsIgnoreCase(classifierCode)).findFirst().orElseThrow(() -> {
             throw new EsnsiSyncException("Can't find classifier with code + " + classifierCode);
         });
     }
