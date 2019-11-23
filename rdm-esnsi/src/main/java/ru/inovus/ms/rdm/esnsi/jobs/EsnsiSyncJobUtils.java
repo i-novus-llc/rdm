@@ -272,7 +272,8 @@ final class EsnsiSyncJobUtils {
                     writer.writeStartElement(codes[i]);
                     if (attr.getType() == DATE) {
                         LocalDate date = parseDate(attr.getUid(), val);
-                        writer.writeCharacters(date.format(RDM_DATE_FORMAT));
+                        writer.writeCharacters(date != null ? date.format(RDM_DATE_FORMAT) : val);
+
                     } else
                         writer.writeCharacters(val);
                     writer.writeEndElement();
@@ -301,6 +302,9 @@ final class EsnsiSyncJobUtils {
         }
 
         private LocalDate parseDate(String fieldUid, String date) {
+            if(date == null || date.trim().isEmpty()) {
+                return null;
+            }
             if (fieldToDateFormat.containsKey(fieldUid))
                 return parseDate(date, fieldToDateFormat.get(fieldUid));
             LocalDate localDate = parseDate(date, ESNSI_DATE_FORMAT_1);
