@@ -27,18 +27,14 @@ public class RdmMetadataTest extends N2oTestBase {
     @Override
     @Before
     public void setUp() throws Exception {
-        Properties properties = new Properties();
-        properties.put("server.servlet.context-path", "");
-        properties.put("rdm.context-path", "/#");
-        properties.put("rdm.backend.path", "http://localhost:8080/rdm/api");
-        properties.put("rdm.user.admin.url", "http://docker.one:8182/");
-        new TestStaticProperties().setProperties(properties);
+        new TestStaticProperties().setProperties(getCustomProperties());
         super.setUp();
     }
 
     @Override
     protected void configure(N2oApplicationBuilder b) {
         super.configure(b);
+        b.properties("server.servlet.context-path=/");
         b.loaders(new XmlMetadataLoader(b.getEnvironment().getNamespaceReaderFactory()));
         b.packs(new N2oAllDataPack(), new N2oAllPagesPack(), new N2oAllValidatorsPack(), new N2oHeaderPack());
         b.scanners(new XmlInfoScanner());
@@ -56,5 +52,16 @@ public class RdmMetadataTest extends N2oTestBase {
                 assert false : "Fail on id=" + i.getId() + ", class=" + i.getBaseSourceClass().getSimpleName();
             }
         });
+    }
+
+    private Properties getCustomProperties() {
+
+        Properties properties = new Properties();
+        properties.put("server.servlet.context-path", "");
+        properties.put("rdm.context-path", "/#");
+        properties.put("rdm.backend.path", "http://localhost:8080/rdm/api");
+        properties.put("rdm.user.admin.url", "http://docker.one:8182/");
+
+        return properties;
     }
 }
