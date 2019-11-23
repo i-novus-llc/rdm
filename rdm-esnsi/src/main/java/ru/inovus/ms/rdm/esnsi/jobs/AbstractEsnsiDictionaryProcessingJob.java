@@ -36,7 +36,7 @@ abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
     private Environment environment;
 
     @Autowired
-    private Scheduler scheduler;
+    Scheduler scheduler;
 
     JobDataMap jobDataMap;
 
