@@ -27,7 +27,6 @@ import java.time.Instant;
 
 @PersistJobDataAfterExecution
 @DisallowConcurrentExecution
-public
 class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
 
     private static final Logger logger = LoggerFactory.getLogger(SendToRdmJob.class);
