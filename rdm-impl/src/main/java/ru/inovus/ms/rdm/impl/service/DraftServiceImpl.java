@@ -91,8 +91,6 @@ public class DraftServiceImpl implements DraftService {
     private static final String ROW_IS_EMPTY_EXCEPTION_CODE = "row.is.empty";
     private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
     private static final String REQUIRED_FIELD_EXCEPTION_CODE = "validation.required.err";
-    private static final String REFERENCE_REFERRED_ATTRIBUTE_NOT_FOUND = "reference.referred.attribute.not.found";
-    private static final String REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND = "reference.referred.attributes.not.found";
 
     private RefBookVersionRepository versionRepository;
     private RefBookConflictRepository conflictRepository;
@@ -312,7 +310,6 @@ public class DraftServiceImpl implements DraftService {
     public Draft create(CreateDraftRequest createDraftRequest) {
 
         final Integer refBookId = createDraftRequest.getRefBookId();
-        final Structure structure = createDraftRequest.getStructure();
         versionValidation.validateRefBook(refBookId);
 
         RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
@@ -327,6 +324,7 @@ public class DraftServiceImpl implements DraftService {
                     .collect(toList());
         }
 
+        final Structure structure = createDraftRequest.getStructure();
         List<Field> fields = ConverterUtil.fields(structure);
         if (draftVersion == null) {
             draftVersion = newDraftVersion(structure, passportValues != null ? passportValues : lastRefBookVersion.getPassportValues());
@@ -413,8 +411,7 @@ public class DraftServiceImpl implements DraftService {
     public void updateData(Integer draftId, Row row) {
 
         versionValidation.validateDraft(draftId);
-
-        RefBookVersionEntity draft = versionRepository.getOne(draftId);
+        RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
 
         if (isEmptyRow(row))
             throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
@@ -544,12 +541,12 @@ public class DraftServiceImpl implements DraftService {
     public void deleteRow(Integer draftId, Long systemId) {
 
         versionValidation.validateDraft(draftId);
+        RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
 
-        RefBookVersionEntity draft = versionRepository.getOne(draftId);
-        conflictRepository.deleteByReferrerVersionIdAndRefRecordId(draft.getId(), systemId);
-        draftDataService.deleteRows(draft.getStorageCode(), singletonList(systemId));
+        conflictRepository.deleteByReferrerVersionIdAndRefRecordId(draftVersion.getId(), systemId);
+        draftDataService.deleteRows(draftVersion.getStorageCode(), singletonList(systemId));
 
-        auditEditData(draft, "delete_row", systemId);
+        auditEditData(draftVersion, "delete_row", systemId);
     }
 
     @Override
@@ -557,22 +554,21 @@ public class DraftServiceImpl implements DraftService {
     public void deleteAllRows(Integer draftId) {
 
         versionValidation.validateDraft(draftId);
+        RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
 
-        RefBookVersionEntity draft = versionRepository.getOne(draftId);
-        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draft.getId());
-        draftDataService.deleteAllRows(draft.getStorageCode());
+        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draftVersion.getId());
+        draftDataService.deleteAllRows(draftVersion.getStorageCode());
 
-        auditEditData(draft, "delete_all_rows", "-");
+        auditEditData(draftVersion, "delete_all_rows", "-");
     }
 
     @Override
     public void updateData(Integer draftId, FileModel fileModel) {
 
         versionValidation.validateDraft(draftId);
-
         RefBookVersionEntity draftVersion = versionRepository.findById(draftId).orElseThrow();
-        Integer refBookId = draftVersion.getRefBook().getId();
 
+        Integer refBookId = draftVersion.getRefBook().getId();
         refBookLockService.setRefBookUploading(refBookId);
         try {
             updateDraftData(draftVersion, fileModel);
@@ -611,7 +607,6 @@ public class DraftServiceImpl implements DraftService {
     public void remove(Integer draftId) {
 
         versionValidation.validateDraft(draftId);
-
         refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
         versionRepository.deleteById(draftId);
@@ -622,9 +617,8 @@ public class DraftServiceImpl implements DraftService {
     public Draft getDraft(Integer draftId) {
 
         versionValidation.validateDraftExists(draftId);
-
-        RefBookVersionEntity versionEntity = versionRepository.getOne(draftId);
-        return new Draft(versionEntity.getId(), versionEntity.getStorageCode());
+        RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
+        return new Draft(draftVersion.getId(), draftVersion.getStorageCode());
     }
 
     @Override
@@ -738,14 +732,7 @@ public class DraftServiceImpl implements DraftService {
             return; // NB: to-do: throw exception and fix absent referredBook in testLifecycle.
 
         RefBookVersion referredVersion = versionService.getLastPublishedVersion(refBookCode);
-        List<String> incorrectFields = StructureUtils.getAbsentPlaceholders(displayExpression, referredVersion.getStructure());
-        if (!isEmpty(incorrectFields)) {
-            if (incorrectFields.size() == 1)
-                throw new UserException(new Message(REFERENCE_REFERRED_ATTRIBUTE_NOT_FOUND, incorrectFields.get(0)));
-
-            String incorrectCodes = String.join("\",\"", incorrectFields);
-            throw new UserException(new Message(REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND, incorrectCodes));
-        }
+        versionValidation.validateReferenceDisplayExpression(displayExpression, referredVersion);
     }
 
     private void fillUpdatableAttribute(UpdateAttribute updateAttribute, Structure.Attribute attribute) {
@@ -984,5 +971,4 @@ public class DraftServiceImpl implements DraftService {
     private void auditEditData(RefBookVersionEntity refBook, String action, Object payload) {
         auditLogService.addAction(AuditAction.DRAFT_EDITING, () -> refBook, Map.of(action, payload));
     }
-
 }
