@@ -42,10 +42,7 @@ import ru.inovus.ms.rdm.api.model.validation.AttributeValidation;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidationRequest;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidationType;
 import ru.inovus.ms.rdm.api.model.version.*;
-import ru.inovus.ms.rdm.api.service.DraftService;
-import ru.inovus.ms.rdm.api.service.RefBookService;
-import ru.inovus.ms.rdm.api.service.VersionFileService;
-import ru.inovus.ms.rdm.api.service.VersionService;
+import ru.inovus.ms.rdm.api.service.*;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
@@ -163,22 +160,10 @@ public class DraftServiceImpl implements DraftService {
 
         versionValidation.validateRefBook(refBookId);
 
-        refBookLockService.setRefBookUploading(refBookId);
         Draft draft;
+        refBookLockService.setRefBookUploading(refBookId);
         try {
-            Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
-
-            String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
-            switch (extension) {
-                case "XLSX":
-                    draft = updateDraftDataByXlsx(refBookId, fileModel, inputStreamSupplier);
-                    break;
-                case "XML":
-                    draft = updateDraftDataByXml(refBookId, fileModel, inputStreamSupplier);
-                    break;
-
-                default: throw new RdmException("invalid file extension");
-            }
+            draft = updateDraftDataByFile(refBookId, fileModel);
 
         } finally {
             refBookLockService.deleteRefBookOperation(refBookId);
@@ -210,6 +195,24 @@ public class DraftServiceImpl implements DraftService {
         try(XmlCreateRefBookFileProcessor createRefBookFileProcessor = new XmlCreateRefBookFileProcessor(refBookService)) {
             RefBook refBook = createRefBookFileProcessor.process(inputStreamSupplier);
             return updateDraftDataByXml(refBook.getRefBookId(), fileModel, inputStreamSupplier);
+        }
+    }
+
+    /** Обновление данных черновика справочника из файла.
+     *
+     * @param refBookId идентификатор справочника
+     * @param fileModel файл
+     * @return Черновик справочника
+     */
+    private Draft updateDraftDataByFile(Integer refBookId, FileModel fileModel) {
+
+        Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
+
+        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
+        switch (extension) {
+            case "XLSX": return updateDraftDataByXlsx(refBookId, fileModel, inputStreamSupplier);
+            case "XML": return updateDraftDataByXml(refBookId, fileModel, inputStreamSupplier);
+            default: throw new RdmException("invalid file extension");
         }
     }
 
@@ -470,14 +473,14 @@ public class DraftServiceImpl implements DraftService {
         if (!isEmpty(addedRowValues)) {
             draftDataService.addRows(draftVersion.getStorageCode(), addedRowValues);
 
-            List<List<FieldValue>> addedData = addedRowValues.stream().map(RowValue::getFieldValues).collect(toList());
+            List<Object> addedData = addedRowValues.stream().map(RowValue::getFieldValues).collect(toList());
             auditEditData(draftVersion, "create_rows", addedData);
         }
 
         List<RowValue> updatedRowValues = newRowValues.stream().filter(rowValue -> rowValue.getSystemId() != null).collect(toList());
         if (!isEmpty(updatedRowValues)) {
             List<String> fields = draftVersion.getStructure().getAttributes().stream().map(Structure.Attribute::getCode).collect(toList());
-            List<Object> systemIds = newRowValues.stream().map(RowValue::getSystemId).collect(toList());
+            List<Object> systemIds = updatedRowValues.stream().map(RowValue::getSystemId).collect(toList());
             List<RowValue> oldRowValues = searchDataService.findRows(draftVersion.getStorageCode(), fields, systemIds);
 
             List<Message> messages = systemIds.stream()
@@ -745,12 +748,9 @@ public class DraftServiceImpl implements DraftService {
     private void fillUpdatableReference(UpdateAttribute updateAttribute, RefBookVersionEntity draftEntity,
                                         Structure structure, FieldType oldType) {
         if (updateAttribute.isReferenceType()) {
-            Structure.Reference reference;
-            if (FieldType.REFERENCE.equals(oldType)) {
-                reference = structure.getReference(updateAttribute.getCode());
-            } else {
-                reference = new Structure.Reference();
-            }
+            Structure.Reference reference = (FieldType.REFERENCE.equals(oldType))
+                    ? structure.getReference(updateAttribute.getCode())
+                    : new Structure.Reference();
 
             String oldDisplayExpression = reference.getDisplayExpression();
 
@@ -790,7 +790,6 @@ public class DraftServiceImpl implements DraftService {
      * @param draftEntity сущность-черновик
      * @param reference   атрибут-ссылка
      */
-    // NB: may-be: Move to `ReferenceServiceImpl`.
     private void refreshReferenceDisplayValues(RefBookVersionEntity draftEntity, Structure.Reference reference) {
 
         RefBookVersionEntity publishedEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
@@ -867,11 +866,9 @@ public class DraftServiceImpl implements DraftService {
 
         } else {
             versionValidation.validateDraftAttributeExists(draftId, attribute);
-            if (type == null) {
-                validations = attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attribute);
-            } else {
-                validations = attributeValidationRepository.findAllByVersionIdAndAttributeAndType(draftId, attribute, type);
-            }
+            validations = (type == null)
+                    ? attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attribute)
+                    : attributeValidationRepository.findAllByVersionIdAndAttributeAndType(draftId, attribute, type);
         }
 
         if (!validations.isEmpty())
@@ -880,12 +877,9 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     public List<AttributeValidation> getAttributeValidations(Integer draftId, String attribute) {
-        List<AttributeValidationEntity> validationEntities;
-        if (attribute == null) {
-            validationEntities = attributeValidationRepository.findAllByVersionId(draftId);
-        } else {
-            validationEntities = attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attribute);
-        }
+        List<AttributeValidationEntity> validationEntities = (attribute == null)
+                ? attributeValidationRepository.findAllByVersionId(draftId)
+                : attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attribute);
         return validationEntities.stream().map(AttributeValidationEntity::attributeValidationModel).collect(toList());
     }
 
