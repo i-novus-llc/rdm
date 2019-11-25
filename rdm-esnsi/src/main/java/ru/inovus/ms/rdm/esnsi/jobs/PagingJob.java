@@ -8,7 +8,6 @@ import ru.inovus.ms.rdm.esnsi.api.GetClassifierDataRequestType;
 import java.util.List;
 import java.util.UUID;
 
-import static ru.inovus.ms.rdm.esnsi.EsnsiIntegrationDao.getClassifierSpecificDataTableName;
 import static ru.inovus.ms.rdm.esnsi.jobs.EsnsiSyncJobUtils.PAGE_SIZE;
 
 @PersistJobDataAfterExecution
@@ -25,7 +24,7 @@ class PagingJob extends AbstractEsnsiDictionaryProcessingJob {
         int numWorkers = Integer.parseInt(getProperty("esnsi.classifier.downloading.num-workers"));
         idlePageProcessors.removeIf(pageProcessor -> pageProcessor.id() > numWorkers);
         boolean flag = false;
-        String tableName = getClassifierSpecificDataTableName(classifierCode, revision);
+        String tableName = jobDataMap.getString("tableName");
         int numRecords = jobDataMap.getInt("numRecords");
         for (PageProcessor pageProcessor : idlePageProcessors) {
             int id = pageProcessor.id();
