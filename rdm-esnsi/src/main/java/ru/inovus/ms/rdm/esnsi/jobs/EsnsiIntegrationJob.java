@@ -27,7 +27,7 @@ public class EsnsiIntegrationJob extends AbstractEsnsiDictionaryProcessingJob {
             if (!exec) {
                 Set<JobKey> jobKeys = scheduler.getJobKeys(GroupMatcher.groupEquals(classifierCode));
                 if ((selfIdentity.getGroup().equals(classifierCode) && jobKeys.size() == 1) ||
-                    (!selfIdentity.getGroup().equals(classifierCode) && jobKeys.size() == 0)) { // Джобов, работающих с этим справочником нету, но stage почему - то не NONE, значит где - то что - то пошло не так
+                    (!selfIdentity.getGroup().equals(classifierCode) && jobKeys.isEmpty())) { // Джобов, работающих с этим справочником нету, но stage почему - то не NONE, значит где - то что - то пошло не так
                     exec = true;
                 } else {
                     logger.info("Classifier with code {} is already processing.", classifierCode);
