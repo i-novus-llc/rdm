@@ -47,7 +47,6 @@ import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.api.service.VersionFileService;
 import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
-import ru.inovus.ms.rdm.api.util.StructureUtils;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.*;
@@ -63,6 +62,7 @@ import ru.inovus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.ConverterUtil;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
+import ru.inovus.ms.rdm.impl.util.RowDiff;
 import ru.inovus.ms.rdm.impl.util.RowDiffUtils;
 import ru.inovus.ms.rdm.impl.validation.AttributeUpdateValidator;
 import ru.inovus.ms.rdm.impl.validation.VersionValidationImpl;
@@ -89,6 +89,7 @@ public class DraftServiceImpl implements DraftService {
     private static final String ILLEGAL_CREATE_ATTRIBUTE_EXCEPTION_CODE = "Can not update structure, illegal create attribute";
     private static final String ROW_NOT_UNIQUE_EXCEPTION_CODE = "row.not.unique";
     private static final String ROW_IS_EMPTY_EXCEPTION_CODE = "row.is.empty";
+    private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
     private static final String REQUIRED_FIELD_EXCEPTION_CODE = "validation.required.err";
     private static final String REFERENCE_REFERRED_ATTRIBUTE_NOT_FOUND = "reference.referred.attribute.not.found";
     private static final String REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND = "reference.referred.attributes.not.found";
@@ -276,7 +277,6 @@ public class DraftServiceImpl implements DraftService {
         } catch (IOException e) {
             throw new RdmException(e);
         }
-
     }
 
     private BiConsumer<String, Structure> getSaveDraftConsumer(Integer refBookId) {
@@ -419,26 +419,106 @@ public class DraftServiceImpl implements DraftService {
         if (isEmptyRow(row))
             throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
 
-        validateData(draft, singletonList(row));
+        validateDataByStructure(draftVersion, singletonList(row));
 
-        RowValue rowValue = ConverterUtil.rowValue(new StructureRowMapper(draft.getStructure(), versionRepository).map(row), draft.getStructure());
-        Object rowAuditData = getRowAuditData(draft, row, rowValue);
+        StructureRowMapper rowMapper = new StructureRowMapper(draftVersion.getStructure(), versionRepository);
+        RowValue newRowValue = ConverterUtil.rowValue(rowMapper.map(row), draftVersion.getStructure());
 
-        if (rowValue.getSystemId() == null) {
-            draftDataService.addRows(draft.getStorageCode(), singletonList(rowValue));
+        if (newRowValue.getSystemId() == null) {
+            draftDataService.addRows(draftVersion.getStorageCode(), singletonList(newRowValue));
 
-            auditEditData(draft, "create_row", rowAuditData);
+            auditEditData(draftVersion, "create_row", newRowValue.getFieldValues());
 
         } else {
-            conflictRepository.deleteByReferrerVersionIdAndRefRecordId(draft.getId(), (Long) rowValue.getSystemId());
-            draftDataService.updateRow(draft.getStorageCode(), rowValue);
+            List<String> fields = draftVersion.getStructure().getAttributes().stream().map(Structure.Attribute::getCode).collect(toList());
+            RowValue oldRowValue = searchDataService.findRow(draftVersion.getStorageCode(), fields, newRowValue.getSystemId());
+            if (isNotSystemIdRowValue(newRowValue.getSystemId(), oldRowValue))
+                throw new UserException(new Message(ROW_NOT_FOUND_EXCEPTION_CODE, newRowValue.getSystemId()));
 
-            auditEditData(draft, "update_row", rowAuditData);
+            RowDiff rowDiff = RowDiffUtils.getRowDiff(oldRowValue, newRowValue);
+
+            conflictRepository.deleteByReferrerVersionIdAndRefRecordId(draftVersion.getId(), (Long) newRowValue.getSystemId());
+            draftDataService.updateRow(draftVersion.getStorageCode(), newRowValue);
+
+            auditEditData(draftVersion, "update_row", rowDiff);
         }
     }
 
-    /** Валидация добавляемых/обновляемых строк данных. */
-    private void validateData(RefBookVersionEntity draftVersion, List<Row> rows) {
+    private boolean isNotSystemIdRowValue(Object systemId, RowValue rowValue) {
+        return rowValue == null || !systemId.equals(rowValue.getSystemId());
+    }
+
+    @Override
+    @Transactional
+    public void updateData(Integer draftId, List<Row> rows) {
+
+        versionValidation.validateDraft(draftId);
+        RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
+
+        if (isEmpty(rows))
+            throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
+
+        rows = rows.stream().filter(row -> !isEmptyRow(row)).collect(toList());
+        if (isEmpty(rows))
+            throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
+
+        validateDataByStructure(draftVersion, rows);
+
+        StructureRowMapper rowMapper = new StructureRowMapper(draftVersion.getStructure(), versionRepository);
+        List<RowValue> newRowValues = rows.stream()
+                .map(row -> ConverterUtil.rowValue(rowMapper.map(row), draftVersion.getStructure()))
+                .collect(toList());
+
+        List<RowValue> addedRowValues = newRowValues.stream().filter(rowValue -> rowValue.getSystemId() == null).collect(toList());
+        if (!isEmpty(addedRowValues)) {
+            draftDataService.addRows(draftVersion.getStorageCode(), addedRowValues);
+
+            List<List<FieldValue>> addedData = addedRowValues.stream().map(RowValue::getFieldValues).collect(toList());
+            auditEditData(draftVersion, "create_rows", addedData);
+        }
+
+        List<RowValue> updatedRowValues = newRowValues.stream().filter(rowValue -> rowValue.getSystemId() != null).collect(toList());
+        if (!isEmpty(updatedRowValues)) {
+            List<String> fields = draftVersion.getStructure().getAttributes().stream().map(Structure.Attribute::getCode).collect(toList());
+            List<Object> systemIds = newRowValues.stream().map(RowValue::getSystemId).collect(toList());
+            List<RowValue> oldRowValues = searchDataService.findRows(draftVersion.getStorageCode(), fields, systemIds);
+
+            List<Message> messages = systemIds.stream()
+                    .filter(systemId -> isNotSystemIdRowValue(systemId, oldRowValues))
+                    .map(systemId -> new Message(ROW_NOT_FOUND_EXCEPTION_CODE, systemId))
+                    .collect(toList());
+            if (!isEmpty(messages))
+                throw new UserException(messages);
+
+            List<RowDiff> rowDiffs = oldRowValues.stream()
+                    .map(oldRowValue -> {
+                        RowValue newRowValue = getSystemIdRowValue(oldRowValue.getSystemId(), updatedRowValues);
+                        return RowDiffUtils.getRowDiff(oldRowValue, newRowValue);
+                    })
+                    .collect(toList());
+
+            conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftVersion.getId(),
+                    systemIds.stream().map(systemId -> (Long) systemId).collect(toList())
+            );
+            draftDataService.updateRows(draftVersion.getStorageCode(), updatedRowValues);
+
+            auditEditData(draftVersion, "update_rows", rowDiffs);
+        }
+    }
+
+    private boolean isNotSystemIdRowValue(Object systemId, List<RowValue> rowValues) {
+        return isEmpty(rowValues) ||
+                rowValues.stream().noneMatch(rowValue -> systemId.equals(rowValue.getSystemId()));
+    }
+
+    private RowValue getSystemIdRowValue(Object systemId, List<RowValue> rowValues) {
+        return rowValues.stream()
+                .filter(rowValue -> systemId.equals(rowValue.getSystemId()))
+                .findFirst().orElse(null);
+    }
+
+    /** Валидация добавляемых/обновляемых строк данных по структуре. */
+    private void validateDataByStructure(RefBookVersionEntity draftVersion, List<Row> rows) {
 
         if (isEmpty(rows))
             return;
@@ -448,26 +528,15 @@ public class DraftServiceImpl implements DraftService {
                 attributeValidationRepository.findAllByVersionId(draftVersion.getId())
         );
 
-        Structure structure = draftVersion.getStructure();
-        rows.forEach(row -> validator.append(new NonStrictOnTypeRowMapper(structure, versionRepository).map(row)));
+        NonStrictOnTypeRowMapper nonStrictOnTypeRowMapper = new NonStrictOnTypeRowMapper(draftVersion.getStructure(), versionRepository);
+        rows.forEach(row -> validator.append(nonStrictOnTypeRowMapper.map(row)));
         validator.process();
     }
 
     /** Проверка строки данных на наличие значений. */
     private boolean isEmptyRow(Row row) {
-        return row.getData().values().stream().allMatch(ObjectUtils::isEmpty);
-    }
-
-    /** Получение данных для аудита из добавляемой/обновляемой строки */
-    private Object getRowAuditData(RefBookVersionEntity draft, Row row, RowValue rowValue) {
-
-        RowValue oldValue = null;
-        if (rowValue.getSystemId() != null) {
-            List<String> fields = draft.getStructure().getAttributes().stream().map(Structure.Attribute::getCode).collect(toList());
-            oldValue = searchDataService.findRow(draft.getStorageCode(), fields, rowValue.getSystemId());
-        }
-
-        return oldValue != null ? RowDiffUtils.getRowDiff(oldValue, row.getData()) : rowValue.getFieldValues();
+        return row == null ||
+                row.getData().values().stream().allMatch(ObjectUtils::isEmpty);
     }
 
     @Override

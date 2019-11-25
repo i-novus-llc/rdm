@@ -12,11 +12,11 @@ public class RowDiffUtils {
     private RowDiffUtils() {
     }
 
-    public static RowDiff getRowDiff(RowValue oldRow, Map<String, Object> newRow) {
+    public static RowDiff getRowDiff(RowValue oldRowValue, Map<String, Object> newRow) {
 
         RowDiff rowDiff = new RowDiff();
         @SuppressWarnings("unchecked")
-        List<FieldValue> fieldValues = oldRow.getFieldValues();
+        List<FieldValue> fieldValues = oldRowValue.getFieldValues();
 
         fieldValues.stream()
                 .filter(fieldValue ->
@@ -29,5 +29,31 @@ public class RowDiffUtils {
                 });
 
         return rowDiff;
+    }
+
+    public static RowDiff getRowDiff(RowValue oldRowValue, RowValue newRowValue) {
+
+        RowDiff rowDiff = new RowDiff();
+        @SuppressWarnings("unchecked")
+        List<FieldValue> fieldValues = oldRowValue.getFieldValues();
+
+        fieldValues.stream()
+                .filter(fieldValue -> !equalsFieldValue(fieldValue, newRowValue))
+                .forEach(fieldValue ->
+                        rowDiff.addDiff(fieldValue.getField(), getCellDiff(fieldValue, newRowValue))
+                );
+        return rowDiff;
+    }
+
+    private static boolean equalsFieldValue(FieldValue oldFieldValue, RowValue newRowValue) {
+
+        FieldValue newFieldValue = newRowValue.getFieldValue(oldFieldValue.getField());
+        return Objects.equals(oldFieldValue.getValue(), newFieldValue);
+    }
+
+    private static RowDiff.CellDiff<Object> getCellDiff(FieldValue oldFieldValue, RowValue newRowValue) {
+        Object oldValue = oldFieldValue.getValue();
+        Object newValue = newRowValue.getFieldValue(oldFieldValue.getField());
+        return RowDiff.CellDiff.of(oldValue, newValue);
     }
 }
