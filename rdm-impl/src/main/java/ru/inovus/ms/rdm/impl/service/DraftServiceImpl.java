@@ -165,29 +165,29 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateRefBook(refBookId);
 
         refBookLockService.setRefBookUploading(refBookId);
-        Draft d;
+        Draft draft;
         try {
             Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
 
             String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
             switch (extension) {
                 case "XLSX":
-                    d = updateDraftDataByXlsx(refBookId, fileModel, inputStreamSupplier);
+                    draft = updateDraftDataByXlsx(refBookId, fileModel, inputStreamSupplier);
                     break;
                 case "XML":
-                    d = updateDraftDataByXml(refBookId, fileModel, inputStreamSupplier);
+                    draft = updateDraftDataByXml(refBookId, fileModel, inputStreamSupplier);
                     break;
+
                 default: throw new RdmException("invalid file extension");
             }
 
         } finally {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
-        auditLogService.addAction(
-            AuditAction.UPLOAD_VERSION_FROM_FILE,
-            () -> versionRepository.getOne(d.getId())
-        );
-        return d;
+
+        auditLogService.addAction(AuditAction.UPLOAD_VERSION_FROM_FILE, () -> versionRepository.getOne(draft.getId()));
+
+        return draft;
     }
 
     @Override
@@ -426,6 +426,7 @@ public class DraftServiceImpl implements DraftService {
 
         if (rowValue.getSystemId() == null) {
             draftDataService.addRows(draft.getStorageCode(), singletonList(rowValue));
+
             auditEditData(draft, "create_row", rowAuditData);
 
         } else {
@@ -478,6 +479,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draft = versionRepository.getOne(draftId);
         conflictRepository.deleteByReferrerVersionIdAndRefRecordId(draft.getId(), systemId);
         draftDataService.deleteRows(draft.getStorageCode(), singletonList(systemId));
+
         auditEditData(draft, "delete_row", systemId);
     }
 
@@ -490,6 +492,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draft = versionRepository.getOne(draftId);
         conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draft.getId());
         draftDataService.deleteAllRows(draft.getStorageCode());
+
         auditEditData(draft, "delete_all_rows", "-");
     }
 
@@ -508,10 +511,8 @@ public class DraftServiceImpl implements DraftService {
         } finally {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
-        auditLogService.addAction(
-            AuditAction.UPLOAD_DATA,
-            () -> versionRepository.findById(draftId).get()
-        );
+
+        auditLogService.addAction(AuditAction.UPLOAD_DATA, () -> draftVersion);
     }
 
     @Override
