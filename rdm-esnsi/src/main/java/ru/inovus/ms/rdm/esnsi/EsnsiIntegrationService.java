@@ -25,4 +25,14 @@ public interface EsnsiIntegrationService {
     @ApiOperation(value = "Синхронизация отдельного справочника")
     void update(String classifierCode);
 
+    @POST
+    @Path("/shutdown")
+    @ApiOperation(value = "Остановить синхронизацию всех справочников")
+    void shutdown();
+
+    @POST
+    @Path("/shutdown/{classifierCode}")
+    @ApiOperation(value = "Остановить синхронизацию отдельного справочника")
+    void shutdown(String classifierCode);
+
 }

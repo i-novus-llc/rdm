@@ -1,12 +1,14 @@
 package ru.inovus.ms.rdm.esnsi.jobs;
 
 import org.quartz.*;
+import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inovus.ms.rdm.esnsi.ClassifierProcessingStage;
 import ru.inovus.ms.rdm.esnsi.api.AcceptRequestDocument;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierRevisionsCountRequestType;
 
+import java.util.Set;
 import java.util.UUID;
 
 @PersistJobDataAfterExecution
@@ -19,11 +21,20 @@ public class EsnsiIntegrationJob extends AbstractEsnsiDictionaryProcessingJob {
     boolean execute0(JobExecutionContext context) throws Exception {
         logger.info("Starting EsnsiIntegrationJob.");
         for (String classifierCode : jobDataMap.getKeys()) {
+            boolean exec;
             ClassifierProcessingStage stage = esnsiIntegrationDao.getClassifierProcessingStageAndCreateNewIfNecessary(classifierCode);
-            if (stage != ClassifierProcessingStage.NONE) {// Справочник еще обрабатывается
-                logger.info("Classifier with code {} is already processing.", classifierCode);
-                continue;
+            exec = stage == ClassifierProcessingStage.NONE;
+            if (!exec) {
+                Set<JobKey> jobKeys = scheduler.getJobKeys(GroupMatcher.groupEquals(classifierCode));
+                if ((selfIdentity.getGroup().equals(classifierCode) && jobKeys.size() == 1) ||
+                    (!selfIdentity.getGroup().equals(classifierCode) && jobKeys.isEmpty())) { // Джобов, работающих с этим справочником нету, но stage почему - то не NONE, значит где - то что - то пошло не так
+                    exec = true;
+                } else {
+                    logger.info("Classifier with code {} is already processing.", classifierCode);
+                }
             }
+            if (!exec)
+                continue;
             GetClassifierRevisionsCountRequestType getClassifierRevisionsCountRequestType = objectFactory.createGetClassifierRevisionsCountRequestType();
             getClassifierRevisionsCountRequestType.setCode(classifierCode);
             AcceptRequestDocument acceptRequestDocument = esnsiSmevClient.sendRequest(getClassifierRevisionsCountRequestType, UUID.randomUUID().toString());
