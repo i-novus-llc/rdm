@@ -308,11 +308,15 @@ final class EsnsiSyncJobUtils {
             if (fieldToDateFormat.containsKey(fieldUid))
                 return parseDate(date, fieldToDateFormat.get(fieldUid));
             LocalDate localDate = parseDate(date, ESNSI_DATE_FORMAT_1);
-            if (localDate != null)
+            if (localDate != null) {
                 fieldToDateFormat.put(fieldUid, ESNSI_DATE_FORMAT_1);
+                return localDate;
+            }
             localDate = parseDate(date, ESNSI_DATE_FORMAT_2);
-            if (localDate != null)
+            if (localDate != null) {
                 fieldToDateFormat.put(fieldUid, ESNSI_DATE_FORMAT_2);
+                return localDate;
+            }
             throw new EsnsiSyncException("Unable to parse date from ESNSI.");
         }
 

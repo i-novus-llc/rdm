@@ -112,7 +112,8 @@ public class EsnsiIntegrationDao {
     @Transactional
     public void createEsnsiVersionDataTableAndRemovePreviousIfNecessaryAndSaveStruct(GetClassifierStructureResponseType struct) {
         String code = struct.getClassifierDescriptor().getCode();
-        String wildcard = code + "-%";
+        String publicId = struct.getClassifierDescriptor().getPublicId();
+        String wildcard = publicId + "-%";
         Map<String, ?> arg = Map.of("wildcard", wildcard);
         List<String> queries = namedParameterJdbcTemplate.query(
                 "SELECT table_name FROM information_schema.tables WHERE table_schema='esnsi_data' AND table_type='BASE TABLE' AND table_name LIKE :wildcard",
@@ -127,7 +128,7 @@ public class EsnsiIntegrationDao {
             }
         }
         int revision = struct.getClassifierDescriptor().getRevision();
-        String tableName = getClassifierSpecificDataTableName(code, revision);
+        String tableName = getClassifierSpecificDataTableName(publicId, revision);
         String q =
             "CREATE TABLE " +
                 tableName + " (" +
@@ -251,8 +252,8 @@ public class EsnsiIntegrationDao {
 
     }
 
-    public static String getClassifierSpecificDataTableName(String code, int revision) {
-        return "esnsi_data.\"" + code + "-" + revision + "\"";
+    public static String getClassifierSpecificDataTableName(String publicId, int revision) {
+        return "esnsi_data.\"" + publicId + "-" + revision + "\"";
     }
 
 }
