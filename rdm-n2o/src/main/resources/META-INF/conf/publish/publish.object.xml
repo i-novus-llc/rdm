@@ -5,7 +5,7 @@
         <operation id="publishDraft" submit-label="Опубликовать"
                    success-text="Справочник опубликован" confirm="false">
             <invocation>
-                <java class="ru.inovus.ms.rdm.service.RefBookPublishController"
+                <java class="ru.inovus.ms.rdm.n2o.service.RefBookPublishController"
                       method="publishDraft">
                     <spring/>
                     <arguments>
@@ -21,7 +21,7 @@
         <operation id="publishAndRefresh" submit-label="Опубликовать и обновить ссылки"
                    success-text="Справочник опубликован, ссылки обновлены" confirm="false">
             <invocation>
-                <java class="ru.inovus.ms.rdm.service.RefBookPublishController"
+                <java class="ru.inovus.ms.rdm.n2o.service.RefBookPublishController"
                       method="publishAndRefresh">
                     <spring/>
                     <arguments>

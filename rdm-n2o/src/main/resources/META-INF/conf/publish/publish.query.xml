@@ -2,7 +2,7 @@
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="publish">
 
     <unique filters="version.id" result-mapping="#this">
-        <java class="ru.inovus.ms.rdm.service.RefBookPublishController"
+        <java class="ru.inovus.ms.rdm.n2o.service.RefBookPublishController"
               method="getByVersionId">
             <spring/>
             <arguments>
@@ -15,7 +15,7 @@
         <field id="id" domain="integer">
             <select mapping="refBookId"/>
             <filters>
-                <eq filter-id="id" mapping="refbookId"/>
+                <eq filter-id="id" mapping="refBookId"/>
             </filters>
         </field>
 

@@ -1,8 +1,8 @@
 package ru.inovus.ms.rdm.rest;
 
-import ru.inovus.ms.rdm.enumeration.FileType;
-import ru.inovus.ms.rdm.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.util.FileNameGenerator;
+import ru.inovus.ms.rdm.api.enumeration.FileType;
+import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.api.util.FileNameGenerator;
 
 import java.util.Optional;
 

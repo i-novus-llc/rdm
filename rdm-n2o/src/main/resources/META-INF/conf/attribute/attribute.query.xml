@@ -2,19 +2,19 @@
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" name="Атрибут">
 
     <list result-mapping="['content']" count-mapping="['totalElements']">
-        <java method="getPage" class="ru.inovus.ms.rdm.service.StructureController">
+        <java method="getPage" class="ru.inovus.ms.rdm.n2o.service.StructureController">
             <spring/>
             <arguments>
-                <argument type="criteria" class="ru.inovus.ms.rdm.model.AttributeCriteria" name="criteria"/>
+                <argument type="criteria" class="ru.inovus.ms.rdm.n2o.model.AttributeCriteria" name="criteria"/>
             </arguments>
         </java>
     </list>
 
     <unique result-mapping="['content'][0]" filters="versionId,code">
-        <java method="getPage" class="ru.inovus.ms.rdm.service.StructureController">
+        <java method="getPage" class="ru.inovus.ms.rdm.n2o.service.StructureController">
             <spring/>
             <arguments>
-                <argument type="criteria" class="ru.inovus.ms.rdm.model.AttributeCriteria" name="criteria"/>
+                <argument type="criteria" class="ru.inovus.ms.rdm.n2o.model.AttributeCriteria" name="criteria"/>
             </arguments>
         </java>
     </unique>
@@ -47,6 +47,9 @@
 
         <field id="name" domain="string" name="Наименование">
             <select/>
+            <filters>
+                <eq filter-id="name" mapping="name"/>
+            </filters>
         </field>
 
         <field id="attrType.id" domain="string" name="Тип данных">
@@ -105,6 +108,16 @@
 
         <field id="displayExpression" domain="string">
             <select/>
+        </field>
+
+        <field id="hasStructureConflict" domain="boolean">
+            <select/>
+        </field>
+
+        <field id="hasStructureConflictMsg" domain="string">
+            <select mapping="
+                (hasStructureConflict?:false ? 'Выражение для вычисления отображаемого значения содержит ошибочные поля для подстановки' : '')
+                "/>
         </field>
 
         <field id="isPrimary" domain="boolean">

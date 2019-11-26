@@ -1,0 +1,566 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="urn://x-artefacts-smev-gov-ru/esnsi/smev-integration/read/2.0.1" targetNamespace="urn://x-artefacts-smev-gov-ru/esnsi/smev-integration/read/2.0.1" elementFormDefault="qualified" attributeFormDefault="unqualified">
+    <xs:annotation>
+        <xs:documentation>Запрос данных классификаторов. v.2.0.1</xs:documentation>
+    </xs:annotation>
+    <xs:element name="CnsiRequest">
+        <xs:annotation>
+            <xs:documentation>Корневой элемент запроса</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:choice>
+                <xs:element name="ListClassifiers" type="tns:ListClassifiersRequestType"/>
+                <xs:element name="GetClassifierRevisionList" type="tns:GetClassifierRevisionListRequestType"/>
+                <xs:element name="GetClassifierRevisionsCount" type="tns:ClassifierDetailsRequestType"/>
+                <xs:element name="GetClassifierStructure" type="tns:GetClassifierStructureRequestType"/>
+                <xs:element name="GetClassifierRecordsCount" type="tns:GetClassifierRecordsCountRequestType"/>
+                <xs:element name="GetClassifierData" type="tns:GetClassifierDataRequestType"/>
+                <xs:element name="ListClassifierGroups" type="tns:ListClassifierGroupsRequestType"/>
+                <xs:element name="GetAvailableIncrement" type="tns:GetAvailableIncrementRequestType"/>
+                <xs:element name="GetChecksumInfo" type="tns:ClassifierDetailsRequestByVersionType"/>
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="CnsiResponse">
+        <xs:annotation>
+            <xs:documentation>Корневой элемент ответа</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:choice>
+                <xs:element name="ListClassifiers" type="tns:ListClassifiersResponseType"/>
+                <xs:element name="GetClassifierRevisionList" type="tns:GetClassifierRevisionListResponseType"/>
+                <xs:element name="GetClassifierRevisionsCount" type="tns:GetClassifierRevisionsCountResponseType"/>
+                <xs:element name="GetClassifierStructure" type="tns:GetClassifierStructureResponseType"/>
+                <xs:element name="GetClassifierRecordsCount" type="tns:GetClassifierRecordsCountResponseType"/>
+                <xs:element name="GetClassifierData" type="tns:GetClassifierDataResponseType"/>
+                <xs:element name="ListClassifierGroups" type="tns:ListClassifierGroupsResponseType"/>
+                <xs:element name="GetAvailableIncrement" type="tns:GetAvailableIncrementResponseType"/>
+                <xs:element name="GetChecksumInfo" type="tns:GetChecksumInfoResponseType"/>
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+    <xs:annotation>
+        <xs:documentation>----------========== ListClassifiers - список актуальных классификаторов системы ==========----------</xs:documentation>
+    </xs:annotation>
+    <xs:complexType name="ListClassifiersRequestType">
+        <xs:annotation>
+            <xs:documentation>Запрос списка актуальных классификаторов системы</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="ClassifierDescriptorList" type="xs:boolean"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ListClassifiersResponseType">
+        <xs:annotation>
+            <xs:documentation>Список актуальных классификаторов системы</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="ClassifierDescriptor" type="tns:ClassifierDescriptorListType" minOccurs="1" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Дескриптор классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:annotation>
+        <xs:documentation>----------========== GetClassifierRevisionList - список ревизий по конкретному классификатору ==========----------</xs:documentation>
+    </xs:annotation>
+    <xs:complexType name="GetClassifierRevisionListRequestType">
+        <xs:annotation>
+            <xs:documentation>Запрос списка ревизий по коду или уникальному идентификатору классификатора</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="tns:ClassifierDetailsRequestType">
+                <xs:sequence>
+                    <xs:element name="pageSize" type="xs:int">
+                        <xs:annotation>
+                            <xs:documentation>Размер выгружаемой страницы списка ревизий</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="startFrom" type="xs:int" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Начальный номер ревизии</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="GetClassifierRevisionListResponseType">
+        <xs:annotation>
+            <xs:documentation>Список ревизий классификатора</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="RevisionDescriptor" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Дескриптор ревизии</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="fullName" type="xs:string">
+                            <xs:annotation>
+                                <xs:documentation>Имя пользователя, создавшего ревизию</xs:documentation>
+                            </xs:annotation>
+                        </xs:element>
+                        <xs:element name="revision" type="xs:int">
+                            <xs:annotation>
+                                <xs:documentation>Порядковый номер ревизии</xs:documentation>
+                            </xs:annotation>
+                        </xs:element>
+                        <xs:element name="timestamp" type="xs:date">
+                            <xs:annotation>
+                                <xs:documentation>Дата создания ревизии</xs:documentation>
+                            </xs:annotation>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:annotation>
+        <xs:documentation>----------========== GetClassifierRevisionsCount - количество ревизий для указанного справочника ==========----------</xs:documentation>
+    </xs:annotation>
+    <xs:complexType name="GetClassifierRevisionsCountRequestType">
+        <xs:annotation>
+            <xs:documentation>Запрос структуры классификатора</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="tns:ClassifierDetailsRequestByVersionType"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="GetClassifierRevisionsCountResponseType">
+        <xs:annotation>
+            <xs:documentation>Количество ревизий классификатора</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="ClassifierDescriptor" type="tns:ClassifierDescriptorListType" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Дескриптор классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="revisionsCount" type="xs:int">
+                <xs:annotation>
+                    <xs:documentation>Количество ревизий классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:annotation>
+        <xs:documentation>----------========== GetClassifierStructure - описание структуры конкретного классификатора ==========----------</xs:documentation>
+    </xs:annotation>
+    <xs:complexType name="GetClassifierStructureRequestType">
+        <xs:annotation>
+            <xs:documentation>Запрос структуры классификатора</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="tns:ClassifierDetailsRequestByVersionType"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="GetClassifierStructureResponseType">
+        <xs:annotation>
+            <xs:documentation>Структура классификатора</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="ClassifierDescriptor" type="tns:ClassifierDescriptorListType" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Дескриптор классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="ClassifierType" type="tns:ClassifierType">
+                <xs:annotation>
+                    <xs:documentation>Тип классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:choice>
+                <xs:element name="AttributeList" type="tns:ClassifierAttribute" maxOccurs="unbounded">
+                    <xs:annotation>
+                        <xs:documentation>Список атрибутов классификатора, используется, если тип классификатора - простой</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="ClassifierStructure" type="tns:GetClassifierStructureResponseType" maxOccurs="unbounded">
+                    <xs:annotation>
+                        <xs:documentation>Список вложенных классификаторов, используется, если тип классификатора - композитный</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+            </xs:choice>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:annotation>
+        <xs:documentation>----------========== GetClassifierRecordsCount - количество записей данных запрашиваемого классификатора ==========----------</xs:documentation>
+    </xs:annotation>
+    <xs:complexType name="GetClassifierRecordsCountRequestType">
+        <xs:annotation>
+            <xs:documentation>Запрос количества записей данных запрашиваемого классификатора</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="tns:ClassifierDetailsRequestByVersionType"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="GetClassifierRecordsCountResponseType">
+        <xs:annotation>
+            <xs:documentation>Структура классификатора</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="ClassifierDescriptor" type="tns:ClassifierDescriptorListType" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Дескриптор классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="recordsCount" type="xs:int">
+                <xs:annotation>
+                    <xs:documentation>Количество записей в справочнике</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:annotation>
+        <xs:documentation>----------========== GetClassifierData - данные конкретного классификатора ==========----------</xs:documentation>
+    </xs:annotation>
+    <xs:complexType name="GetClassifierDataRequestType">
+        <xs:annotation>
+            <xs:documentation>Запрос данных классификаторов</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="tns:ClassifierDetailsRequestByVersionType">
+                <xs:sequence>
+                    <xs:element name="pageSize" minOccurs="1" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Количество записей на странице</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                            <xs:restriction base="xs:int"/>
+                        </xs:simpleType>
+                    </xs:element>
+                    <xs:element name="startFrom" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Номер записи, с которой нужно начать вывод данных</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                            <xs:restriction base="xs:int"/>
+                        </xs:simpleType>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="GetClassifierDataResponseType">
+        <xs:annotation>
+            <xs:documentation>Запрос данных классификаторов</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="ClassifierDescriptor" type="tns:ClassifierDescriptorListType" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:annotation>
+        <xs:documentation>----------========== ListClassifierGroups - список групп классификаторов, зарегистрированных в системе ==========----------</xs:documentation>
+    </xs:annotation>
+    <xs:complexType name="ListClassifierGroupsRequestType">
+        <xs:annotation>
+            <xs:documentation>Запрос на получение списка групп классификаторов, зарегистрированных в системе</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="GroupDescriptorList" type="xs:boolean"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ListClassifierGroupsResponseType">
+        <xs:annotation>
+            <xs:documentation>Список групп классификаторов, зарегистрированных в системе</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="GroupDescriptor" type="tns:GroupDescriptorType" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:annotation>
+        <xs:documentation>----------========== GetAvailableIncrement - доступный инкремент классификатора ==========----------</xs:documentation>
+    </xs:annotation>
+    <xs:complexType name="GetAvailableIncrementRequestType">
+        <xs:annotation>
+            <xs:documentation>Запрос на получение доступного инкремента классификатора</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="tns:ClassifierDetailsRequestByVersionType"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="GetAvailableIncrementResponseType">
+        <xs:annotation>
+            <xs:documentation>Запрос на получение списка групп классификаторов, зарегистрированных в системе</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="ClassifierDescriptor" type="tns:ClassifierDescriptorListType">
+                <xs:annotation>
+                    <xs:documentation>Дескриптор классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:annotation>
+        <xs:documentation>----------========== GetChecksumInfo - контрольная сумма ревизии классификатора ==========----------</xs:documentation>
+    </xs:annotation>
+    <xs:complexType name="GetChecksumInfoRequestType">
+        <xs:annotation>
+            <xs:documentation>Запрос на получение контрольной суммы классификатора</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="tns:ClassifierDetailsRequestByVersionType"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="GetChecksumInfoResponseType">
+        <xs:annotation>
+            <xs:documentation>Контрольная сумма ревизии классификатора</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="ClassifierDescriptor" type="tns:ClassifierDescriptorListType">
+                <xs:annotation>
+                    <xs:documentation>Дескриптор классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="checksum" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Контрольная сумма ревизии классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:annotation>
+        <xs:documentation>----------========== Общие ==========----------</xs:documentation>
+    </xs:annotation>
+    <xs:complexType name="ClassifierAttribute">
+        <xs:sequence>
+            <xs:element name="uid" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Уникальный идентификатор атрибута классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="key" type="xs:boolean">
+                <xs:annotation>
+                    <xs:documentation>Является ли атрибут классификатора ключом</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="type" type="tns:AttributeType">
+                <xs:annotation>
+                    <xs:documentation>Тип атрибута классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="name" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Имя атрибута классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="order" type="xs:int">
+                <xs:annotation>
+                    <xs:documentation>Порядковый номер атрибута классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="required" type="xs:boolean">
+                <xs:annotation>
+                    <xs:documentation>Является ли атрибут классификатора обязательным</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="regex" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Регулярное выражение для атрибута классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="length" type="xs:int" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Длина атрибута классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="intStartRange" type="xs:long" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Целочисленное начальное значение атрибута классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="intEndRange" type="xs:long" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Целочисленное максимальное значение атрибута классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="decimalStartRange" type="xs:decimal" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Десятичное начельное значение атрибута классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="decimalEndRange" type="xs:decimal" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Десятичное максимальное значение атрибута классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="dateStartRange" type="xs:date" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Начальная дата атрибута классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="dateEndRange" type="xs:date" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Конечная дата атрибута классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="greaterThan" type="tns:ClassifierAttribute" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Метаинформация для атрибута</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="lessThan" type="tns:ClassifierAttribute" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Метаинформация для атрибута</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="referenceUid" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Уникальный идентификатор родительского классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="referenceClassifierName" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Имя классификатора, на который ссылается атрибут</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="referenceParentClassifierName" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Имя родительского классификатора классификатора, на который ссылается атрибут</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="referenceClassifierGroupName" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Имя группы родительского классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="referenceAttributeUid" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Уникальный идентификатор родительского атрибута классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="referenceAttributeName" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Имя родительского атрибута классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="referenceAttributeType" type="tns:AttributeType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Тип родительского атрибута классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ClassifierDetailsRequestType">
+        <xs:choice>
+            <xs:element name="code" type="xs:string" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Запрос по коду классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="uid" type="xs:string" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Запрос по уникальному идентификатору классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:choice>
+    </xs:complexType>
+    <xs:complexType name="ClassifierDetailsRequestByVersionType">
+        <xs:complexContent>
+            <xs:extension base="tns:ClassifierDetailsRequestType">
+                <xs:sequence>
+                    <xs:element name="revision" type="xs:int">
+                        <xs:annotation>
+                            <xs:documentation>Номер версии классификатора</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="ClassifierDescriptorListType">
+        <xs:annotation>
+            <xs:documentation>Дескриптор классификатора для построения списка доступных классификаторов</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="code" type="xs:string" nillable="true" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Код классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="groupName" type="xs:string" nillable="true" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Имя группы классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="groupUid" type="xs:string" nillable="true" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Уникальный идентификатор группы классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="name" type="xs:string" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Имя классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="description" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Описание классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="uid" type="xs:string" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Уникальный идентификатор классификатора</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="revision" type="xs:int" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Номер актуальной версии</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="publicId" type="xs:string" minOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Укороченный идентификатор</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="GroupDescriptorType">
+        <xs:annotation>
+            <xs:documentation>Дескриптор группы классификаторов</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="name" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Имя группы классификаторов</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="description" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Описание группы классификаторов</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="uid" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Уникальный идентификатор группы классификаторов</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:simpleType name="ClassifierType">
+        <xs:annotation>
+            <xs:documentation>Возможные типы классификаторов</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="SIMPLE"/>
+            <xs:enumeration value="COMPOSITE"/>
+            <xs:enumeration value="NESTED"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="AttributeType">
+        <xs:annotation>
+            <xs:documentation>Возможные типы атрибутов</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="INTEGER"/>
+            <xs:enumeration value="BOOLEAN"/>
+            <xs:enumeration value="DATE"/>
+            <xs:enumeration value="DECIMAL"/>
+            <xs:enumeration value="REFERENCE"/>
+            <xs:enumeration value="STRING"/>
+            <xs:enumeration value="TEXT"/>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

@@ -1,11 +1,12 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="refBook">
-    <unique filters="refBookId" result-mapping="['content'][0]">
-        <java class="ru.inovus.ms.rdm.service.api.RefBookService"
-              method="search">
-            <spring bean="refBookServiceJaxRsProxyClient"/>
+
+    <unique filters="refBookId" result-mapping="#this">
+        <java class="ru.inovus.ms.rdm.n2o.service.RefBookController"
+              method="searchLastVersion">
+            <spring/>
             <arguments>
-                <argument type="criteria" class="ru.inovus.ms.rdm.criteria.RefBookCriteriaDateAndStatus"/>
+                <argument type="criteria" class="ru.inovus.ms.rdm.n2o.criteria.RefBookCriteriaDateAndStatus"/>
             </arguments>
         </java>
     </unique>
@@ -18,7 +19,7 @@
         <field id="refBookId" domain="integer">
             <select mapping="refBookId"/>
             <filters>
-                <eq filter-id="refBookId" mapping="refbookId"/>
+                <eq filter-id="refBookId" mapping="refBookId"/>
             </filters>
         </field>
 
@@ -39,6 +40,12 @@
 
         <field id="status" domain="string">
             <select/>
+        </field>
+
+        <field id="excludeDraft" domain="boolean">
+            <filters>
+                <eq filter-id="excludeDraft" mapping="excludeDraft"/>
+            </filters>
         </field>
 
         <field id="draftVersionId" domain="integer">

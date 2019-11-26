@@ -3,6 +3,8 @@ package ru.inovus.ms.rdm.sync.service;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.Log;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
+import ru.inovus.ms.rdm.sync.model.loader.XmlMappingField;
+import ru.inovus.ms.rdm.sync.model.loader.XmlMappingRefBook;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,6 +25,8 @@ public interface RdmSyncDao {
     List<VersionMapping> getVersionMappings();
 
     VersionMapping getVersionMapping(String refbookCode);
+
+    int getLastVersion(String refbookCode);
 
     /**
      * Получить список маппинга полей справочников НСИ на поля клиента
@@ -77,7 +81,20 @@ public interface RdmSyncDao {
      */
     void markDeleted(String table, String primaryField, String isDeletedField, Object primaryValue, boolean deleted);
 
+    /**
+     * Пометить все записи справочника клиента (не)удаленными
+     * @param table таблица справочника на стороне клиента
+     * @param isDeletedField поле, отвечающее за признак удаления, в таблице клиента
+     * @param deleted новое значение для поля isDeletedField
+     */
+    void markDeleted(String table, String isDeletedField, boolean deleted);
+
     void log(String status, String refbookCode, String oldVersion, String newVersion, String message, String stack);
 
     List<Log> getList(LocalDate date, String refbookCode);
+
+    void upsertVersionMapping(XmlMappingRefBook versionMapping);
+
+    void insertFieldMapping(String code, List<XmlMappingField> fieldMappings);
+
 }

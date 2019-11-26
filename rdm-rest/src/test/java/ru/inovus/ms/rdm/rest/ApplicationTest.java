@@ -5,7 +5,10 @@ import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.jaxrs.RestMessage;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
 import net.n2oapp.platform.test.autoconfigure.EnableEmbeddedPg;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,28 +31,32 @@ import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
-import ru.inovus.ms.rdm.enumeration.*;
-import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.model.conflict.CalculateConflictCriteria;
-import ru.inovus.ms.rdm.model.conflict.RefBookConflictCriteria;
-import ru.inovus.ms.rdm.model.version.*;
-import ru.inovus.ms.rdm.model.compare.CompareDataCriteria;
-import ru.inovus.ms.rdm.model.conflict.Conflict;
-import ru.inovus.ms.rdm.model.conflict.RefBookConflict;
-import ru.inovus.ms.rdm.model.diff.RefBookDataDiff;
-import ru.inovus.ms.rdm.model.draft.CreateDraftRequest;
-import ru.inovus.ms.rdm.model.draft.Draft;
-import ru.inovus.ms.rdm.model.field.CommonField;
-import ru.inovus.ms.rdm.model.refbook.RefBook;
-import ru.inovus.ms.rdm.model.refbook.RefBookCreateRequest;
-import ru.inovus.ms.rdm.model.refbook.RefBookCriteria;
-import ru.inovus.ms.rdm.model.refbook.RefBookUpdateRequest;
-import ru.inovus.ms.rdm.model.refdata.RefBookRowValue;
-import ru.inovus.ms.rdm.model.refdata.Row;
-import ru.inovus.ms.rdm.model.refdata.SearchDataCriteria;
-import ru.inovus.ms.rdm.service.api.*;
-import ru.inovus.ms.rdm.util.FieldValueUtils;
-import ru.inovus.ms.rdm.validation.ReferenceValueValidation;
+import ru.inovus.ms.rdm.api.enumeration.ConflictType;
+import ru.inovus.ms.rdm.api.enumeration.FileType;
+import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.api.model.ExportFile;
+import ru.inovus.ms.rdm.api.model.FileModel;
+import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.compare.CompareDataCriteria;
+import ru.inovus.ms.rdm.api.model.conflict.CalculateConflictCriteria;
+import ru.inovus.ms.rdm.api.model.conflict.Conflict;
+import ru.inovus.ms.rdm.api.model.conflict.RefBookConflict;
+import ru.inovus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
+import ru.inovus.ms.rdm.api.model.diff.RefBookDataDiff;
+import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
+import ru.inovus.ms.rdm.api.model.draft.Draft;
+import ru.inovus.ms.rdm.api.model.field.CommonField;
+import ru.inovus.ms.rdm.api.model.refbook.RefBook;
+import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
+import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
+import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
+import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.api.model.refdata.Row;
+import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.api.model.version.*;
+import ru.inovus.ms.rdm.api.service.*;
+import ru.inovus.ms.rdm.api.util.FieldValueUtils;
+import ru.inovus.ms.rdm.impl.validation.ReferenceValueValidation;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -69,15 +76,15 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.junit.Assert.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.platform.datastorage.temporal.model.DataConstants.SYS_PRIMARY_COLUMN;
 import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
-import static ru.inovus.ms.rdm.util.ConverterUtil.fields;
-import static ru.inovus.ms.rdm.util.ConverterUtil.rowValue;
-import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDate;
-import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
+import static ru.inovus.ms.rdm.api.util.TimeUtils.parseLocalDate;
+import static ru.inovus.ms.rdm.api.util.TimeUtils.parseLocalDateTime;
+import static ru.inovus.ms.rdm.impl.util.ConverterUtil.fields;
+import static ru.inovus.ms.rdm.impl.util.ConverterUtil.rowValue;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
@@ -85,10 +92,11 @@ import static ru.inovus.ms.rdm.util.TimeUtils.parseLocalDateTime;
         webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
         properties = {
                 "cxf.jaxrs.client.classes-scan=true",
-                "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.service.api",
+                "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.api.service",
                 "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
                 "fileStorage.root=src/test/resources/rdm/temp",
-                "i18n.global.enabled=false"
+                "i18n.global.enabled=false",
+                "rdm.audit.disabledActions=all"
         })
 @DefinePort
 @EnableEmbeddedPg
@@ -436,7 +444,7 @@ public class ApplicationTest {
     public void testGetVersions() {
         VersionCriteria criteria = new VersionCriteria();
         criteria.setRefBookId(versionList.get(0).getRefBookId());
-        Page<RefBookVersion> search = refBookService.getVersions(criteria);
+        Page<RefBookVersion> search = versionService.getVersions(criteria);
 
         assertEquals(versionList.size(), search.getTotalElements());
         for (int i = 0; i < versionList.size(); i++) {
@@ -446,12 +454,12 @@ public class ApplicationTest {
 
         // поиск с исключанием справочников
         criteria.setExcludeDraft(Boolean.TRUE);
-        search = refBookService.getVersions(criteria);
+        search = versionService.getVersions(criteria);
         assertEquals(versionList.size() - 1, search.getTotalElements());
 
         // поиск по номеру версии
         criteria.setVersion(versionList.get(1).getVersion());
-        search = refBookService.getVersions(criteria);
+        search = versionService.getVersions(criteria);
         assertEquals(1, search.getTotalElements());
     }
 
@@ -495,6 +503,9 @@ public class ApplicationTest {
         publishService.publish(TEST_PUBLISHING_VERSION_ID, "1.0", LocalDateTime.now(), null, false);
         Page<RefBookRowValue> rowValuesInVersion = versionService.search(TEST_PUBLISHING_BOOK_CODE, LocalDateTime.now(), new SearchDataCriteria());
 
+        RefBook refBook = refBookService.getByVersionId(TEST_PUBLISHING_VERSION_ID);
+        assertEquals(TEST_PUBLISHING_BOOK_CODE, refBook.getCode());
+
         List fieldValues = rowValuesInVersion.getContent().get(0).getFieldValues();
         FieldValue name = new StringFieldValue("name", "name");
         FieldValue count = new IntegerFieldValue("count", 2);
@@ -502,8 +513,12 @@ public class ApplicationTest {
         assertEquals(fieldValues.get(0), name);
         assertEquals(fieldValues.get(1), count);
 
-        Page<RefBookRowValue> rowValuesOutVersion = versionService.search(TEST_PUBLISHING_BOOK_CODE, LocalDateTime.now().minusDays(1), new SearchDataCriteria());
-        assertEquals(new PageImpl<RowValue>(emptyList()), rowValuesOutVersion);
+        try {
+            versionService.search(TEST_PUBLISHING_BOOK_CODE, LocalDateTime.now().minusDays(1), new SearchDataCriteria());
+            fail();
+        } catch (RestException e) {
+            assertEquals("actual.data.not.found", e.getMessage());
+        }
     }
 
     /*
@@ -1371,6 +1386,7 @@ public class ApplicationTest {
         FileModel cardinalFileModel = createFileModel(CARDINAL_FILE_NAME, REF_BOOK_FILE_FOLDER + CARDINAL_FILE_NAME);
         assertNotNull(cardinalFileModel);
         Draft cardinalDraft = draftService.create(cardinalFileModel);
+
         assertNotNull(cardinalDraft);
         RefBookVersion cardinalVersion = versionService.getById(cardinalDraft.getId());
         assertNotNull(cardinalVersion);
@@ -1454,14 +1470,6 @@ public class ApplicationTest {
             String displayValue = getPublishWithConflictedReferrerDisplayValue(referrerRowValue, REFERRER_MADEOF_ATTRIBUTE_CODE);
             expectedMadeofValues.put(primaryValue, displayValue);
         });
-
-        // Проверка связанности.
-        ReferrerVersionCriteria criteria = new ReferrerVersionCriteria(CARDINAL_REF_BOOK_CODE, RefBookStatusType.USED, RefBookSourceType.LAST_VERSION);
-        criteria.setPageSize(10);
-        List<RefBookVersion> actualReferrerVersions = refBookService.searchReferrerVersions(criteria).getContent();
-        assertNotNull(actualReferrerVersions);
-        assertEquals(1, actualReferrerVersions.size());
-        assertVersion(referrerVersion, actualReferrerVersions.get(0));
 
 //      3. Изменение исходного справочника.
         Draft changingDraft = draftService.createFromVersion(publishedVersion.getId());
@@ -1892,7 +1900,7 @@ public class ApplicationTest {
             compareService.compareData(new CompareDataCriteria(oldVersionId, newVersionId));
             fail();
         } catch (RestException re) {
-            assertEquals("data.comparing.unavailable", re.getMessage());
+            assertEquals("compare.primaries.not.equals", re.getMessage());
         }
     }
 
@@ -2080,7 +2088,7 @@ public class ApplicationTest {
             calculateDataConflicts(refFromVersionId, refToVersionId, draft.getId());
             fail();
         } catch (RestException re) {
-            assertEquals("data.comparing.unavailable", re.getMessage());
+            assertEquals("compare.primaries.not.equals", re.getMessage());
         }
     }
 

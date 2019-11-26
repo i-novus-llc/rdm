@@ -4,12 +4,12 @@
     <operations>
         <operation id="create" submit-label="Сохранить" name="Добавление атрибута" success-text="Атрибут сохранен">
             <invocation>
-                <java class="ru.inovus.ms.rdm.service.CreateDraftController"
+                <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
                       method="createAttribute">
                     <spring/>
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
-                        <argument type="class" name="attribute" class="ru.inovus.ms.rdm.model.FormAttribute"/>
+                        <argument type="class" name="attribute" class="ru.inovus.ms.rdm.n2o.model.FormAttribute"/>
                     </arguments>
                 </java>
             </invocation>
@@ -41,12 +41,12 @@
         <operation id="updateAttribute" submit-label="Сохранить" name="Изменение атрибута"
                    success-text="Атрибут изменен">
             <invocation>
-                <java class="ru.inovus.ms.rdm.service.CreateDraftController"
+                <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
                       method="updateAttribute">
                     <spring/>
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
-                        <argument type="class" name="attribute" class="ru.inovus.ms.rdm.model.FormAttribute"/>
+                        <argument type="class" name="attribute" class="ru.inovus.ms.rdm.n2o.model.FormAttribute"/>
                     </arguments>
                 </java>
             </invocation>
@@ -69,9 +69,9 @@
                 <param id="minFloat" mapping="[1].minFloat" domain="numeric"/>
                 <param id="maxFloat" mapping="[1].maxFloat" domain="numeric"/>
                 <param id="dateInterval.begin" mapping="[1].minDate" domain="date"
-                       normalize="T(ru.inovus.ms.rdm.util.TimeUtils).parseLocalDate(#this)"/>
+                       normalize="T(ru.inovus.ms.rdm.n2o.util.TimeUtils).parseLocalDate(#this)"/>
                 <param id="dateInterval.end" mapping="[1].maxDate" domain="date"
-                       normalize="T(ru.inovus.ms.rdm.util.TimeUtils).parseLocalDate(#this)"/>
+                       normalize="T(ru.inovus.ms.rdm.n2o.util.TimeUtils).parseLocalDate(#this)"/>
                 <param id="regExp" mapping="[1].regExp" domain="string"/>
             </in-parameters>
             <validations white-list="checkCode,checkMinMaxInt"/>
@@ -80,7 +80,7 @@
         <operation id="delete" name="Удаление атрибута" success-text="Атрибут удален"
                    confirm="true" confirm-text="Вы действительно хотите удалить атрибут справочника?">
             <invocation>
-                <java class="ru.inovus.ms.rdm.service.CreateDraftController"
+                <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
                       method="deleteAttribute">
                     <spring/>
                     <arguments>

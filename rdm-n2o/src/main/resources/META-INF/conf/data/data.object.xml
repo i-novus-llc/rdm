@@ -5,7 +5,7 @@
         <operation id="delete" submit-label="Удалить" success-text="Запись успешно удалена"
                    confirm="true" confirm-text="Вы точно хотите удалить запись?">
             <invocation>
-                <java class="ru.inovus.ms.rdm.service.CreateDraftController"
+                <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
                       method="deleteDataRecord">
                     <spring/>
                     <arguments>
@@ -24,7 +24,7 @@
         <operation id="deleteAll" submit-label="Удалить все" success-text="Все записи успешно удалены"
                    confirm="true" confirm-text="Вы точно хотите удалить все записи?">
             <invocation>
-                <java class="ru.inovus.ms.rdm.service.CreateDraftController"
+                <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
                       method="deleteAllDataRecords">
                     <spring/>
                     <arguments>
