@@ -139,8 +139,8 @@ public class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
         Integer id = null;
         try {
             id = refBookService.getId(refBookCode);
-        } catch (Exception ignored) {
-            logger.info("RefBook with code {} is not exists.", refBookCode);
+        } catch (Exception e) {
+            logger.info("RefBook with code {} is not exists.", refBookCode, e);
         }
         return id;
     }
