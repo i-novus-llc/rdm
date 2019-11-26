@@ -32,6 +32,7 @@ public class RdmMetadataTest extends N2oTestBase {
         properties.put("rdm.context-path", "/#");
         properties.put("rdm.backend.path", "http://localhost:8080/rdm/api");
         properties.put("rdm.user.admin.url", "http://docker.one:8182/");
+        properties.put("rdm.permissions.refbook.status.list", "");
         new TestStaticProperties().setProperties(properties);
         super.setUp();
     }
