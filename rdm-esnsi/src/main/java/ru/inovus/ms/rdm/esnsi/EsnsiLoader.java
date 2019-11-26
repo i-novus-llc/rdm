@@ -23,7 +23,7 @@ public interface EsnsiLoader {
     @POST
     @Path("/update/{classifierCode}")
     @ApiOperation(value = "Синхронизация отдельного справочника")
-    void update(String classifierCode);
+    String update(String classifierCode);
 
     @POST
     @Path("/shutdown")

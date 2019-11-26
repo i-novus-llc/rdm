@@ -3,11 +3,13 @@ package ru.inovus.ms.rdm.esnsi.file_gen;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidationType;
+import ru.inovus.ms.rdm.api.util.TimeUtils;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.OutputStream;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
@@ -18,6 +20,8 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
 public class RdmXmlFileGenerator implements Consumer<Map<String, Object>> {
+
+    public static final DateTimeFormatter RDM_DATE_FORMAT = TimeUtils.DATE_PATTERN_EUROPEAN_FORMATTER;
 
     private static final XMLOutputFactory XML_OUT = XMLOutputFactory.newFactory();
 

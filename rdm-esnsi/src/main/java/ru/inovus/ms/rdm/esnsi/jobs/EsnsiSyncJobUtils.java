@@ -6,7 +6,6 @@ import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidationType;
-import ru.inovus.ms.rdm.api.util.TimeUtils;
 import ru.inovus.ms.rdm.esnsi.api.ClassifierAttribute;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierStructureResponseType;
 import ru.inovus.ms.rdm.esnsi.file_gen.AttributeValidation;
@@ -23,7 +22,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
@@ -34,6 +35,7 @@ import static java.util.stream.Collectors.toMap;
 import static javax.xml.stream.XMLStreamConstants.*;
 import static ru.inovus.ms.rdm.esnsi.api.AttributeType.DECIMAL;
 import static ru.inovus.ms.rdm.esnsi.api.AttributeType.TEXT;
+import static ru.inovus.ms.rdm.esnsi.file_gen.RdmXmlFileGenerator.RDM_DATE_FORMAT;
 
 final class EsnsiSyncJobUtils {
 
@@ -107,7 +109,7 @@ final class EsnsiSyncJobUtils {
                             openedLocalName = reader.getLocalName();
                             if (openedLocalName.equals(RECORD_ELEM)) {
                                 recordOpen = false;
-                                Map<String, String> map = IntStream.rangeClosed(1, row.length).boxed().collect(toMap(i -> "field_" + i, i -> row[i].toString()));
+                                Map<String, String> map = IntStream.rangeClosed(1, row.length).boxed().collect(toMap(i -> "field_" + i, i -> row[i - 1].toString()));
                                 consumer.accept(map);
                                 stream(row).map(obj -> (StringBuilder) obj).forEach(stringBuilder -> stringBuilder.setLength(0));
                             } else if (openedLocalName.equals(DATA_ELEM))
@@ -156,12 +158,13 @@ final class EsnsiSyncJobUtils {
 
     static final class RdmXmlFileGeneratorProvider {
 
-        private static final DateTimeFormatter RDM_DATE_FORMAT = TimeUtils.DATE_PATTERN_EUROPEAN_FORMATTER;
-        private static final DateTimeFormatter ESNSI_DATE_FORMAT = TimeUtils.DATE_PATTERN_EUROPEAN_FORMATTER;
-
         private RdmXmlFileGeneratorProvider() {throw new UnsupportedOperationException();}
 
-        static RdmXmlFileGenerator get(OutputStream out, GetClassifierStructureResponseType struct, Iterator<Map<String, Object>> iterator) throws XMLStreamException {
+        static RdmXmlFileGenerator get(OutputStream out, GetClassifierStructureResponseType struct, Iterator<Map<String, Object>> iterator, String dateFormatsStr) throws XMLStreamException {
+            String[] split = dateFormatsStr.split(",");
+            DateTimeFormatter[] formatters = new DateTimeFormatter[split.length];
+            for (int i = 0; i < formatters.length; i++)
+                formatters[i] = DateTimeFormatter.ofPattern(split[i].trim());
             RefBookMetadata refBookMetadataAdapter = new RefBookMetadata() {
                 @Override public String code() {return struct.getClassifierDescriptor().getCode();}
                 @Override public String name() {return struct.getClassifierDescriptor().getName();}
@@ -229,9 +232,39 @@ final class EsnsiSyncJobUtils {
                 if (attribute.getDateStartRange() != null || attribute.getDateEndRange() != null)
                     validations.computeIfAbsent("field_" + attribute.getOrder() + 1, k -> new ArrayList<>()).add(new AttributeValidation(AttributeValidationType.DATE_RANGE, getDateRangeValidation(attribute.getDateStartRange(), attribute.getDateEndRange())));
             }
-            return new RdmXmlFileGenerator(out, refBookMetadataAdapter, refBookStructureAdapter, validations, (fieldCode, val) -> {
-                String s = val.toString();
-                return LocalDate.parse(s, ESNSI_DATE_FORMAT).format(RDM_DATE_FORMAT);
+            return new RdmXmlFileGenerator(out, refBookMetadataAdapter, refBookStructureAdapter, validations, new BiFunction<>() {
+                Map<String, DateTimeFormatter> fieldToDateFormat = new HashMap<>();
+
+                @Override
+                public String apply(String s, Object o) {
+                    LocalDate date = parseDate(s, (String) o);
+                    return date.format(RDM_DATE_FORMAT);
+                }
+
+                private LocalDate parseDate(String fieldCode, String date) {
+                    if(date == null || date.trim().isEmpty()) {
+                        return null;
+                    }
+                    if (fieldToDateFormat.containsKey(fieldCode))
+                        return parseDate(date, fieldToDateFormat.get(fieldCode));
+                    for (DateTimeFormatter formatter : formatters) {
+                        LocalDate localDate = parseDate(date, formatter);
+                        if (localDate != null) {
+                            fieldToDateFormat.put(fieldCode, formatter);
+                            return localDate;
+                        }
+                    }
+                    throw new RdmException("Unable to parse date from ESNSI.");
+                }
+
+                private LocalDate parseDate(String date, DateTimeFormatter format) {
+                    try {
+                        return LocalDate.parse(date, format);
+                    } catch (DateTimeParseException ignored) {
+                        return null;
+                    }
+                }
+
             }, null, iterator);
         }
 

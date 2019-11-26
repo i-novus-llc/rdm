@@ -49,9 +49,9 @@ public class EsnsiLoaderDao {
     }
 
     @Transactional
-    public void createClassifierProcessingStageIfNotExists(String code) {
+    public void createClassifierProcessingStage(String code) {
         namedParameterJdbcTemplate.update(
-            "INSERT INTO esnsi_sync.version (code, stage) VALUES (:code, '" + NONE + "') ON CONFLICT (code) DO NOTHING",
+            "INSERT INTO esnsi_sync.version (code, stage) VALUES (:code, '" + NONE + "')",
             Map.of("code", code)
         );
     }
@@ -94,7 +94,7 @@ public class EsnsiLoaderDao {
 
     @Transactional
     public void insertClassifierData(Map<String, String>[] batch, String tableName) {
-        String q = "INSERT INTO esnsi_data\"" + tableName + "\" (" +
+        String q = "INSERT INTO esnsi_data.\"" + tableName + "\" (" +
             IntStream.rangeClosed(1, batch[0].size()).mapToObj(i -> "field_" + i).collect(joining(", ")) +
         ") VALUES (" +
             IntStream.rangeClosed(1, batch[0].size()).mapToObj(i -> ":field_" + i).collect(joining(", ")) +
@@ -148,7 +148,7 @@ public class EsnsiLoaderDao {
     public List<Map<String, Object>> getClassifierData(String tableName, int primaryKeySerialNumber, String lastSeenId, int pageSize) {
         String fieldName = "field_" + primaryKeySerialNumber;
         return namedParameterJdbcTemplate.query(
-            "SELECT * FROM esnsi_data\"" + tableName + "\" WHERE " + fieldName + " > :lastSeenId ORDER BY id FETCH FIRST " + pageSize + " ROWS ONLY",
+            "SELECT * FROM esnsi_data.\"" + tableName + "\" WHERE " + fieldName + " > :lastSeenId ORDER BY " + fieldName + " FETCH FIRST " + pageSize + " ROWS ONLY",
             Map.of("lastSeenId", lastSeenId),
             (rs, rowNum) -> {
                 Map<String, Object> ans = new HashMap<>();

@@ -24,15 +24,15 @@ class PagingJob extends AbstractEsnsiDictionaryProcessingJob {
             return false;
         int numWorkers = Integer.parseInt(getProperty("esnsi.classifier.downloading.num-workers"));
         idlePageProcessors.removeIf(pageProcessor -> pageProcessor.id() > numWorkers);
-        boolean flag = false;
-        String tableName = getClassifierIdentifier(classifierCode, revision);
+        boolean moreDataToFetch = false;
+        String tableName = getClassifierIdentifier(jobDataMap.getString("publicId"), revision);
         int numRecords = jobDataMap.getInt("numRecords");
         for (PageProcessor pageProcessor : idlePageProcessors) {
             int id = pageProcessor.id();
             int seed = pageProcessor.seed();
             int from = (id - 1) * PAGE_SIZE + seed * numWorkers * PAGE_SIZE;
             if (from < numRecords) {
-                flag = true;
+                moreDataToFetch = true;
                 GetClassifierDataRequestType getDataRequest = objectFactory.createGetClassifierDataRequestType();
                 getDataRequest.setCode(classifierCode);
                 getDataRequest.setPageSize(PAGE_SIZE);
@@ -51,7 +51,7 @@ class PagingJob extends AbstractEsnsiDictionaryProcessingJob {
                 );
             }
         }
-        if (!flag && idlePageProcessors.size() == numWorkers) {
+        if (!moreDataToFetch && idlePageProcessors.size() == numWorkers) {
             JobDetail job = JobBuilder.newJob(SendToRdmJob.class).
                             requestRecovery().
                             usingJobData(REVISION_KEY, revision).

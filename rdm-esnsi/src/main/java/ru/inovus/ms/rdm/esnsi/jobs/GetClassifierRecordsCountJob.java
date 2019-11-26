@@ -22,6 +22,7 @@ class GetClassifierRecordsCountJob extends AbstractEsnsiDictionaryProcessingJob 
                             requestRecovery().
                             usingJobData(REVISION_KEY, revision).
                             usingJobData("numRecords", numRecords).
+                            usingJobData("publicId", getClassifierRecordsCountResponseType.getKey().getClassifierDescriptor().getPublicId()).
                             build();
             esnsiLoadService.createPageProcessorStateRecords(
                 classifierCode,

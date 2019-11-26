@@ -1,135 +1,145 @@
 package ru.inovus.ms.rdm.esnsi.jobs;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.PersistJobDataAfterExecution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-import org.springframework.http.*;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
-import ru.inovus.ms.rdm.esnsi.ClassifierProcessingStage;
+import ru.inovus.ms.rdm.api.model.FileModel;
+import ru.inovus.ms.rdm.api.model.draft.Draft;
+import ru.inovus.ms.rdm.api.service.DraftService;
+import ru.inovus.ms.rdm.api.service.FileStorageService;
+import ru.inovus.ms.rdm.api.service.PublishService;
+import ru.inovus.ms.rdm.api.service.RefBookService;
+import ru.inovus.ms.rdm.esnsi.api.ClassifierAttribute;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierStructureResponseType;
+import ru.inovus.ms.rdm.esnsi.file_gen.RdmXmlFileGenerator;
 
+import javax.xml.stream.XMLStreamException;
 import java.io.*;
 import java.nio.file.Files;
 import java.sql.Timestamp;
 import java.time.Clock;
-import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 @PersistJobDataAfterExecution
 @DisallowConcurrentExecution
-class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
+public class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
 
     private static final Logger logger = LoggerFactory.getLogger(SendToRdmJob.class);
 
     private static final String TEMP_FILE_PREFIX = "amatmpfiledeletemeplease_";
 
-    @Autowired
-    private RestTemplate restTemplate;
+    private static final String DRAFT_ID_KEY = "draftId";
 
-    private String rdmRestUrl;
+    @Autowired
+    private RefBookService refBookService;
+
+    @Autowired
+    private DraftService draftService;
+
+    @Autowired
+    private FileStorageService fileStorageService;
+
+    @Autowired
+    private PublishService publishService;
+
     private String fileName;
-    private GetClassifierStructureResponseType struct;
     private int revision;
-    private String dictionaryCode;
+    private String refBookCode;
 
     @Override
     @SuppressWarnings("squid:S1166")
     boolean execute0(JobExecutionContext context) throws Exception {
         revision = jobDataMap.getInt(REVISION_KEY);
-        struct = esnsiIntegrationDao.getStruct(classifierCode, revision);
-        dictionaryCode = "ESNSI-" + struct.getClassifierDescriptor().getPublicId();
-        rdmRestUrl = getProperty("rdm.backend.path");
+        GetClassifierStructureResponseType struct = esnsiLoadService.getClassifierStruct(classifierCode, revision);
+        refBookCode = "ESNSI-" + struct.getClassifierDescriptor().getPublicId();
         fileName = checkFileExists();
         if (fileName == null) {
             fileName = createFile();
             jobDataMap.put(TEMP_FILE_PREFIX + fileName, true);
         }
-        String fileModel = uploadToFileStorage();
-        String draftService = rdmRestUrl + "/draft";
-        Integer id = checkForExistance();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<?> requestEntity = new HttpEntity<>(fileModel, headers);
-        String uri = draftService + "/createByFile";
-        if (id != null)
-            uri += "/" + id;
-        ResponseEntity<String> draft = null;
-        try {
-            draft = restTemplate.postForEntity(uri, requestEntity, String.class);
-        } catch (Exception ignored) {
-//          Возможно мы уже постили файл
-        }
+        FileModel fileModel = uploadToFileStorage();
         int draftId = -1;
-        if (draft != null && draft.getStatusCode() == HttpStatus.OK) {
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode jsonNode = objectMapper.readTree(draft.getBody());
-            draftId = jsonNode.get("id").asInt();
-        } else {
-            ResponseEntity<Integer> draftIdEntity = restTemplate.getForEntity(draftService + "/getIdByRefBookCode/" + dictionaryCode, Integer.class);
-            if (draftIdEntity.getBody() != null)
-                draftId = draftIdEntity.getBody();
+        Draft draft = null;
+        if (jobDataMap.containsKey(DRAFT_ID_KEY))
+            draftId = jobDataMap.getInt(DRAFT_ID_KEY);
+        else {
+            Integer id = checkForExistance();
+            if (id == null)
+                draft = draftService.create(fileModel);
+            else
+                draft = draftService.create(id, fileModel);
         }
         if (draftId == -1) {
-            logger.warn("Unable to fetch draft id from RDM. Publication of draft failed. If the draft is still contained in the RDM, publish it manually.");
-            esnsiIntegrationDao.setClassifierProcessingStage(classifierCode, ClassifierProcessingStage.NONE, () -> {});
-        } else {
-            requestEntity = new HttpEntity<>(headers);
-            String publishService = rdmRestUrl + "/publish";
-            ResponseEntity<Void> v0id = restTemplate.exchange(publishService + "/" + draftId, HttpMethod.POST, requestEntity, Void.class);
-            if (v0id.getStatusCode() == HttpStatus.NO_CONTENT)
-                esnsiIntegrationDao.updateLastDownloaded(classifierCode, revision, Timestamp.from(Instant.now(Clock.systemUTC())));
-            else {
-                logger.warn("Publication failed. Do this manually please.");
-                esnsiIntegrationDao.setClassifierProcessingStage(classifierCode, ClassifierProcessingStage.NONE, () -> {});
+            draftId = draft == null ? -1 : draft.getId();
+            if (draftId == -1) {
+                Integer draftIdByRefBookCode = draftService.getIdByRefBookCode(refBookCode);
+                if (draftIdByRefBookCode == null) {
+                    logger.warn("Unable to fetch draft from RDM. Publication of draft failed. If the draft is still contained in the RDM, publish it manually.");
+                    return true;
+                } else
+                    draftId = draftIdByRefBookCode;
             }
         }
+        jobDataMap.put("draftId", draftId);
+        publishService.publish(draftId, null, null, null, false);
+        esnsiLoadService.setClassifierRevisionAndLastUpdated(classifierCode, revision, Timestamp.valueOf(LocalDateTime.now(Clock.systemUTC())));
         return true;
     }
 
-    private String createFile() throws IOException {
-        String s = System.currentTimeMillis() + ".xml";
-        File f = new File(s);
+    private String createFile() throws IOException, XMLStreamException {
+        String fileName = System.currentTimeMillis() + ".xml";
+        File f = new File(fileName);
+        jobDataMap.put(TEMP_FILE_PREFIX + fileName, true);
         try (OutputStream out = new BufferedOutputStream(new FileOutputStream(f))) {
-            EsnsiSyncJobUtils.XmlDataCreator dataCreator = new EsnsiSyncJobUtils.XmlDataCreator(out, struct);
-            dataCreator.init();
-            esnsiIntegrationDao.readRows(dataCreator, classifierCode, revision);
-            dataCreator.end();
+            GetClassifierStructureResponseType struct = esnsiLoadService.getClassifierStruct(classifierCode, revision);
+            int primaryKeyFieldSerialNumber = struct.getAttributeList().stream().filter(ClassifierAttribute::isKey).findFirst().map(ClassifierAttribute::getOrder).get() + 1;
+            String primaryKeyFieldName = "field_" + primaryKeyFieldSerialNumber;
+            RdmXmlFileGenerator generator = EsnsiSyncJobUtils.RdmXmlFileGeneratorProvider.get(out, struct, new Iterator<>() {
+
+                String lastSeenId = "";
+                Iterator<Map<String, Object>> it = null;
+
+                @Override
+                public boolean hasNext() {
+                    if (it == null || !it.hasNext()) {
+                        List<Map<String, Object>> classifierData = esnsiLoadService.getClassifierData(struct.getClassifierDescriptor().getPublicId(), revision, lastSeenId, primaryKeyFieldSerialNumber);
+                        it = classifierData.iterator();
+                    }
+                    return it.hasNext();
+                }
+
+                @Override
+                public Map<String, Object> next() {
+                    Map<String, Object> next = it.next();
+                    lastSeenId = (String) next.get(primaryKeyFieldName);
+                    return next;
+                }
+
+            }, getProperty("esnsi.sync.date-formats"));
+            generator.init();
+            generator.fetchData();
+            generator.end();
         }
-        return s;
+        return fileName;
     }
 
-    private String uploadToFileStorage() {
-        String fileStorageService = rdmRestUrl + "/fileStorage/save";
-        String uri = UriComponentsBuilder.fromHttpUrl(fileStorageService).queryParam("fileName", fileName).build().toUriString();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        Resource resource = new FileSystemResource(new File(fileName));
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("file", resource);
-        HttpEntity<?> requestEntity = new HttpEntity<>(body, headers);
-        ResponseEntity<String> response = restTemplate.postForEntity(uri, requestEntity, String.class);
-        return response.getBody();
+    private FileModel uploadToFileStorage() throws FileNotFoundException {
+        return fileStorageService.save(new BufferedInputStream(new FileInputStream(fileName)), fileName);
     }
 
     @SuppressWarnings("squid:S1166")
     private Integer checkForExistance() {
-        String refBookService = rdmRestUrl + "/refBook";
-        String uri = UriComponentsBuilder.fromHttpUrl(refBookService + "/code/" + dictionaryCode).build().toUriString();
+        Integer id = null;
         try {
-            return restTemplate.getForEntity(uri, Integer.class).getBody();
-        } catch (HttpClientErrorException.NotFound e404Ignored) {
-            return null;
-        }
+            id = refBookService.getId(refBookCode);
+        } catch (Exception ignored) {}
+        return id;
     }
 
     private String checkFileExists() {

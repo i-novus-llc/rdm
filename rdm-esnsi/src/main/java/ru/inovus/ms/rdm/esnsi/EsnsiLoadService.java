@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.esnsi.api.ClassifierAttribute;
@@ -48,13 +49,21 @@ public class EsnsiLoadService {
         return dao.getLastVersionRevision(code);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public ClassifierProcessingStage getClassifierProcessingStage(String code) {
-        return dao.getClassifierProcessingStage(code);
+        ClassifierProcessingStage stage = dao.getClassifierProcessingStage(code);
+        if (stage == null) {
+            dao.createClassifierProcessingStage(code);
+            return ClassifierProcessingStage.NONE;
+        }
+        return stage;
     }
 
-    @Transactional
-    public void setClassifierProcessingStageAtomically(String code, ClassifierProcessingStage stage, Executable exec) {
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public boolean setClassifierProcessingStageAtomically(String code, ClassifierProcessingStage expectedStage, ClassifierProcessingStage stage, Executable exec) {
+        ClassifierProcessingStage actual = getClassifierProcessingStage(code);
+        if (expectedStage != null && expectedStage != actual)
+            return false;
         dao.setClassifierProcessingStage(code, stage);
         try {
             exec.exec();
@@ -62,16 +71,7 @@ public class EsnsiLoadService {
             logger.error(e.getMessage());
             throw new RdmException(e);
         }
-    }
-
-    @Transactional
-    public ClassifierProcessingStage getClassifierProcessingStageAndCreateIfNotExists(String code) {
-        ClassifierProcessingStage stage = dao.getClassifierProcessingStage(code);
-        if (stage == null) {
-            dao.createClassifierProcessingStageIfNotExists(code);
-            return ClassifierProcessingStage.NONE;
-        }
-        return stage;
+        return true;
     }
 
     @Transactional
@@ -86,7 +86,7 @@ public class EsnsiLoadService {
     }
 
     @Transactional
-    public void insertAtomically(Map<String, String>[] batch, String code, int revision, String pageProcessorId, Executable exec) {
+    public void insert(Map<String, String>[] batch, String tableName, String pageProcessorId) {
         int n = 0;
         for (int i = 0; i < batch.length && batch[i] != null; i++, n++);
         if (n != batch.length) {
@@ -96,14 +96,9 @@ public class EsnsiLoadService {
         }
         boolean finished = dao.isPageProcessorFinished(pageProcessorId);
         if (!finished) {
-            dao.insertClassifierData(batch, getClassifierIdentifier(code, revision));
+            dao.insertClassifierData(batch, tableName);
             dao.setPageProcessorFinished(pageProcessorId, true);
-            try {
-                exec.exec();
-            } catch (Exception e) {
-                logger.error(e.getMessage());
-                throw new RdmException(e);
-            }
+            dao.incrementPageProcessorSeed(pageProcessorId);
         }
     }
 
@@ -128,8 +123,9 @@ public class EsnsiLoadService {
     public void createEsnsiVersionDataTableAndRemovePreviousIfNecessaryAndSaveStruct(GetClassifierStructureResponseType struct) {
         String code = struct.getClassifierDescriptor().getCode();
         int revision = struct.getClassifierDescriptor().getRevision();
-        dao.dropClassifierDataTablesByWildcard(code + "-%");
-        String tableName = getClassifierIdentifier(code, revision);
+        String publicId = struct.getClassifierDescriptor().getPublicId();
+        dao.dropClassifierDataTablesByWildcard(publicId + "-%");
+        String tableName = getClassifierIdentifier(publicId, revision);
         dao.createClassifierRevisionDataTable(tableName, struct.getAttributeList().size());
         int primaryKeySerialNumber = -1;
         for (ClassifierAttribute attribute : struct.getAttributeList()) {
@@ -161,12 +157,12 @@ public class EsnsiLoadService {
     }
 
     @Transactional
-    public List<Map<String, Object>> getClassifierData(String classifierCode, int revision, String lastSeenId, int primaryKeySerialNumber) {
-        return dao.getClassifierData(getClassifierIdentifier(classifierCode, revision), primaryKeySerialNumber, lastSeenId, PAGE_SIZE);
+    public List<Map<String, Object>> getClassifierData(String publicId, int revision, String lastSeenId, int primaryKeySerialNumber) {
+        return dao.getClassifierData(getClassifierIdentifier(publicId, revision), primaryKeySerialNumber, lastSeenId, PAGE_SIZE);
     }
 
-    public static String getClassifierIdentifier(String code, int revision) {
-        return code + "-" + revision;
+    public static String getClassifierIdentifier(String id, int revision) {
+        return id + "-" + revision;
     }
 
     @Transactional
