@@ -291,6 +291,7 @@ public class DraftServiceImpl implements DraftService {
             if (draftVersion != null && draftVersion.getStructure() != null) {
                 dropDataService.drop(singleton(draftVersion.getStorageCode()));
                 versionRepository.deleteById(draftVersion.getId());
+                versionRepository.flush(); // Delete old draft before insert new draft!
 
                 draftVersion = newDraftVersion(structure, draftVersion.getPassportValues());
 
