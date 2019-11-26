@@ -50,6 +50,7 @@ public abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
         try {
             exec.exec();
         } catch (Exception e) {
+            logger.error("Execution failed. Retrying until succeed.", e);
             throw new JobExecutionException(true);
         }
     }
@@ -134,14 +135,7 @@ public abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
             }
         }
         if (needToInterrupt) {
-            runAndRetryOnException(() -> {
-                ClassifierProcessingStage[] arr = ClassifierProcessingStage.values();
-                ClassifierProcessingStage stage = getStage(getClass());
-                if (stage.ordinal() == arr.length - 1) {
-                    esnsiLoadService.setClassifierProcessingStageAtomically(classifierCode, arr[arr.length - 1], ClassifierProcessingStage.NONE, () -> {});
-                }
-                interrupt();
-            });
+            runAndRetryOnException(this::interrupt);
         }
     }
 

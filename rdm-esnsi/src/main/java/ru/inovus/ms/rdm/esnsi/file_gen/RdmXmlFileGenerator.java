@@ -28,7 +28,7 @@ public class RdmXmlFileGenerator implements Consumer<Map<String, Object>> {
     private final XMLStreamWriter writer;
     private final RefBookMetadata metadata;
     private final RefBookStructure structure;
-    private final Map<String, ? extends Collection<AttributeValidation>> validations;
+    private final Map<String, ? extends Collection<AttributeValidation>> validationsMap;
     private final Map<String, RefBookStructure.Attribute> indexAttrs;
     private final Map<String, RefBookStructure.Reference> indexRefs;
     private final BiFunction<String, Object, String> dateToRdmStr;
@@ -37,15 +37,15 @@ public class RdmXmlFileGenerator implements Consumer<Map<String, Object>> {
     private final String[] attrsOrder;
     private final int numAttrs;
 
-    public RdmXmlFileGenerator(OutputStream out, RefBookMetadata metadata, RefBookStructure structure, Map<String, ? extends Collection<AttributeValidation>> validations, BiFunction<String, Object, String> dateToRdmStr, BiFunction<String, Object, String> refToRdmStr) throws XMLStreamException {
-        this(out, metadata, structure, validations, dateToRdmStr, refToRdmStr, null);
+    public RdmXmlFileGenerator(OutputStream out, RefBookMetadata metadata, RefBookStructure structure, Map<String, ? extends Collection<AttributeValidation>> validationsMap, BiFunction<String, Object, String> dateToRdmStr, BiFunction<String, Object, String> refToRdmStr) throws XMLStreamException {
+        this(out, metadata, structure, validationsMap, dateToRdmStr, refToRdmStr, null);
     }
 
-    public RdmXmlFileGenerator(OutputStream out, RefBookMetadata metadata, RefBookStructure structure, Map<String, ? extends Collection<AttributeValidation>> validations, BiFunction<String, Object, String> dateToRdmStr, BiFunction<String, Object, String> refToRdmStr, Iterator<Map<String, Object>> cursor) throws XMLStreamException {
+    public RdmXmlFileGenerator(OutputStream out, RefBookMetadata metadata, RefBookStructure structure, Map<String, ? extends Collection<AttributeValidation>> validationsMap, BiFunction<String, Object, String> dateToRdmStr, BiFunction<String, Object, String> refToRdmStr, Iterator<Map<String, Object>> cursor) throws XMLStreamException {
         this.writer = XML_OUT.createXMLStreamWriter(out);
         this.metadata = metadata;
         this.structure = structure;
-        this.validations = validations;
+        this.validationsMap = validationsMap;
         this.indexAttrs = structure.attributes().stream().collect(toMap(RefBookStructure.Attribute::code, identity()));
         this.indexRefs = structure.references().stream().collect(toMap(RefBookStructure.Reference::attribute, identity()));
         this.dateToRdmStr = dateToRdmStr;
@@ -90,7 +90,7 @@ public class RdmXmlFileGenerator implements Consumer<Map<String, Object>> {
             if (reference.displayExpression() != null)
                 writeLeaf("displayExpression", reference.displayExpression());
         }
-        Collection<AttributeValidation> validations = this.validations.get(attr.code());
+        Collection<AttributeValidation> validations = this.validationsMap.get(attr.code());
         if (validations != null && !validations.isEmpty()) {
             for (AttributeValidation validation : validations) {
                 writeValidation(validation.type(), validation.value());

@@ -33,6 +33,7 @@ import static java.util.Collections.emptyList;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 import static javax.xml.stream.XMLStreamConstants.*;
+import static ru.inovus.ms.rdm.esnsi.EsnsiLoaderDao.FIELD_PREFIX;
 import static ru.inovus.ms.rdm.esnsi.api.AttributeType.DECIMAL;
 import static ru.inovus.ms.rdm.esnsi.api.AttributeType.TEXT;
 import static ru.inovus.ms.rdm.esnsi.file_gen.RdmXmlFileGenerator.RDM_DATE_FORMAT;
@@ -109,7 +110,7 @@ final class EsnsiSyncJobUtils {
                             openedLocalName = reader.getLocalName();
                             if (openedLocalName.equals(RECORD_ELEM)) {
                                 recordOpen = false;
-                                Map<String, String> map = IntStream.rangeClosed(1, row.length).boxed().collect(toMap(i -> "field_" + i, i -> row[i - 1].toString()));
+                                Map<String, String> map = IntStream.rangeClosed(1, row.length).boxed().collect(toMap(i -> FIELD_PREFIX + i, i -> row[i - 1].toString()));
                                 consumer.accept(map);
                                 stream(row).map(obj -> (StringBuilder) obj).forEach(stringBuilder -> stringBuilder.setLength(0));
                             } else if (openedLocalName.equals(DATA_ELEM))
@@ -160,6 +161,7 @@ final class EsnsiSyncJobUtils {
 
         private RdmXmlFileGeneratorProvider() {throw new UnsupportedOperationException();}
 
+        @SuppressWarnings("squid:S3776")
         static RdmXmlFileGenerator get(OutputStream out, GetClassifierStructureResponseType struct, Iterator<Map<String, Object>> iterator, String dateFormatsStr) throws XMLStreamException {
             String[] split = dateFormatsStr.split(",");
             DateTimeFormatter[] formatters = new DateTimeFormatter[split.length];
@@ -179,7 +181,7 @@ final class EsnsiSyncJobUtils {
                         attributes.add(new Attribute() {
                             @Override
                             public String code() {
-                                return "field_" + (attribute.getOrder() + 1);
+                                return FIELD_PREFIX + (attribute.getOrder() + 1);
                             }
 
                             @Override
@@ -220,17 +222,17 @@ final class EsnsiSyncJobUtils {
             Map<String, Collection<AttributeValidation>> validations = new HashMap<>();
             for (ClassifierAttribute attribute : struct.getAttributeList()) {
                 if (attribute.isRequired())
-                    validations.computeIfAbsent("field_" + attribute.getOrder() + 1, k -> new ArrayList<>()).add(new AttributeValidation(AttributeValidationType.REQUIRED, "true"));
+                    validations.computeIfAbsent(FIELD_PREFIX + attribute.getOrder() + 1, k -> new ArrayList<>()).add(new AttributeValidation(AttributeValidationType.REQUIRED, "true"));
                 if (attribute.getRegex() != null && !attribute.getRegex().isBlank())
-                    validations.computeIfAbsent("field_" + attribute.getOrder() + 1, k -> new ArrayList<>()).add(new AttributeValidation(AttributeValidationType.REG_EXP, attribute.getRegex()));
+                    validations.computeIfAbsent(FIELD_PREFIX + attribute.getOrder() + 1, k -> new ArrayList<>()).add(new AttributeValidation(AttributeValidationType.REG_EXP, attribute.getRegex()));
                 if (attribute.getLength() != null && attribute.getLength() > 0)
-                    validations.computeIfAbsent("field_" + attribute.getOrder() + 1, k -> new ArrayList<>()).add(new AttributeValidation(AttributeValidationType.PLAIN_SIZE, attribute.getLength().toString()));
+                    validations.computeIfAbsent(FIELD_PREFIX + attribute.getOrder() + 1, k -> new ArrayList<>()).add(new AttributeValidation(AttributeValidationType.PLAIN_SIZE, attribute.getLength().toString()));
                 if (attribute.getIntStartRange() != null || attribute.getIntEndRange() != null)
-                    validations.computeIfAbsent("field_" + attribute.getOrder() + 1, k -> new ArrayList<>()).add(new AttributeValidation(AttributeValidationType.INT_RANGE, getNumberRangeValidation(attribute.getIntStartRange(), attribute.getIntEndRange())));
+                    validations.computeIfAbsent(FIELD_PREFIX + attribute.getOrder() + 1, k -> new ArrayList<>()).add(new AttributeValidation(AttributeValidationType.INT_RANGE, getNumberRangeValidation(attribute.getIntStartRange(), attribute.getIntEndRange())));
                 if (attribute.getDecimalStartRange() != null || attribute.getDecimalEndRange() != null)
-                    validations.computeIfAbsent("field_" + attribute.getOrder() + 1, k -> new ArrayList<>()).add(new AttributeValidation(AttributeValidationType.FLOAT_RANGE, getNumberRangeValidation(attribute.getDecimalStartRange(), attribute.getDecimalEndRange())));
+                    validations.computeIfAbsent(FIELD_PREFIX + attribute.getOrder() + 1, k -> new ArrayList<>()).add(new AttributeValidation(AttributeValidationType.FLOAT_RANGE, getNumberRangeValidation(attribute.getDecimalStartRange(), attribute.getDecimalEndRange())));
                 if (attribute.getDateStartRange() != null || attribute.getDateEndRange() != null)
-                    validations.computeIfAbsent("field_" + attribute.getOrder() + 1, k -> new ArrayList<>()).add(new AttributeValidation(AttributeValidationType.DATE_RANGE, getDateRangeValidation(attribute.getDateStartRange(), attribute.getDateEndRange())));
+                    validations.computeIfAbsent(FIELD_PREFIX + attribute.getOrder() + 1, k -> new ArrayList<>()).add(new AttributeValidation(AttributeValidationType.DATE_RANGE, getDateRangeValidation(attribute.getDateStartRange(), attribute.getDateEndRange())));
             }
             return new RdmXmlFileGenerator(out, refBookMetadataAdapter, refBookStructureAdapter, validations, new BiFunction<>() {
                 Map<String, DateTimeFormatter> fieldToDateFormat = new HashMap<>();
@@ -238,6 +240,8 @@ final class EsnsiSyncJobUtils {
                 @Override
                 public String apply(String s, Object o) {
                     LocalDate date = parseDate(s, (String) o);
+                    if (date == null)
+                        return "";
                     return date.format(RDM_DATE_FORMAT);
                 }
 

@@ -36,7 +36,9 @@ public class InvalidStageDetector implements Job {
                         logger.warn("Detected invalid classifier processing stage. No jobs currently running for classifier {}, although it's stage is not NONE. Stage will be explicitly set to NONE.", classifierCode);
                         esnsiLoadService.setClassifierProcessingStageAtomically(classifierCode, stage, ClassifierProcessingStage.NONE, () -> {});
                     }
-                } catch (SchedulerException ignored) {}
+                } catch (SchedulerException e) {
+                    logger.warn("Can't get job keys with group matching {}", classifierCode, e);
+                }
             }
         }
     }

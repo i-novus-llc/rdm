@@ -21,6 +21,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import static ru.inovus.ms.rdm.esnsi.EsnsiLoaderDao.FIELD_PREFIX;
+
 @Component
 public class EsnsiLoadService {
 
@@ -138,7 +140,7 @@ public class EsnsiLoadService {
             throw new RdmException("Can't process classifier without primary key.");
         dao.createIndexOnClassifierRevisionDataTable(tableName, primaryKeySerialNumber);
         for (int i = 0; i < struct.getAttributeList().size(); i++)
-            ("field_" + (i + 1)).intern(); // Добавляем в пул строк JVM, чтобы не загружать сборщик мусора
+            (FIELD_PREFIX + (i + 1)).intern(); // Добавляем в пул строк JVM, чтобы не загружать сборщик мусора
         StringWriter stringWriter = new StringWriter();
         try {
             CnsiResponse cnsiResponse = OBJECT_FACTORY.createCnsiResponse();
@@ -154,6 +156,7 @@ public class EsnsiLoadService {
     @Transactional
     public void setClassifierRevisionAndLastUpdated(String classifierCode, int revision, Timestamp timestamp) {
         dao.setClassifierRevisionAndLastUpdatedTimestamp(classifierCode, revision, timestamp);
+        dao.setClassifierProcessingStage(classifierCode, ClassifierProcessingStage.NONE);
     }
 
     @Transactional

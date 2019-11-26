@@ -24,6 +24,7 @@ import static ru.inovus.ms.rdm.esnsi.ClassifierProcessingStage.NONE;
 public class EsnsiLoaderDao {
 
     public static final String DB_REVISION_FIELD_NAME = "revision";
+    public static final String FIELD_PREFIX = "field_";
 
     private static final Logger logger = LoggerFactory.getLogger(EsnsiLoaderDao.class);
 
@@ -79,9 +80,10 @@ public class EsnsiLoaderDao {
     }
 
     @Transactional
+    @SuppressWarnings("squid:S2077")
     public void createClassifierRevisionDataTable(String tableName, int numFields) {
         String q = "CREATE TABLE esnsi_data.\"" + tableName + "\"(" +
-            IntStream.rangeClosed(1, numFields).mapToObj(i -> "field_" + i + " VARCHAR ").collect(joining(", ")) +
+            IntStream.rangeClosed(1, numFields).mapToObj(i -> FIELD_PREFIX + i + " VARCHAR ").collect(joining(", ")) +
         ")";
         namedParameterJdbcTemplate.getJdbcTemplate().execute(q);
     }
@@ -95,7 +97,7 @@ public class EsnsiLoaderDao {
     @Transactional
     public void insertClassifierData(Map<String, String>[] batch, String tableName) {
         String q = "INSERT INTO esnsi_data.\"" + tableName + "\" (" +
-            IntStream.rangeClosed(1, batch[0].size()).mapToObj(i -> "field_" + i).collect(joining(", ")) +
+            IntStream.rangeClosed(1, batch[0].size()).mapToObj(i -> FIELD_PREFIX + i).collect(joining(", ")) +
         ") VALUES (" +
             IntStream.rangeClosed(1, batch[0].size()).mapToObj(i -> ":field_" + i).collect(joining(", ")) +
         ")";
@@ -146,14 +148,14 @@ public class EsnsiLoaderDao {
 
     @Transactional
     public List<Map<String, Object>> getClassifierData(String tableName, int primaryKeySerialNumber, String lastSeenId, int pageSize) {
-        String fieldName = "field_" + primaryKeySerialNumber;
+        String fieldName = FIELD_PREFIX + primaryKeySerialNumber;
         return namedParameterJdbcTemplate.query(
             "SELECT * FROM esnsi_data.\"" + tableName + "\" WHERE " + fieldName + " > :lastSeenId ORDER BY " + fieldName + " FETCH FIRST " + pageSize + " ROWS ONLY",
             Map.of("lastSeenId", lastSeenId),
             (rs, rowNum) -> {
                 Map<String, Object> ans = new HashMap<>();
                 for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++)
-                    ans.put("field_" + (i), rs.getString(i));
+                    ans.put(FIELD_PREFIX + (i), rs.getString(i));
                 return ans;
             }
         );
@@ -180,8 +182,9 @@ public class EsnsiLoaderDao {
     }
 
     @Transactional
+    @SuppressWarnings("squid:S2077")
     public void createIndexOnClassifierRevisionDataTable(String tableName, int primaryKeySerialNumber) {
-        String fieldName = "field_" + primaryKeySerialNumber;
+        String fieldName = FIELD_PREFIX + primaryKeySerialNumber;
         String idxName = tableName + "_idx";
         namedParameterJdbcTemplate.getJdbcTemplate().execute("CREATE INDEX \"" + idxName + "\" ON esnsi_data.\"" + tableName + "\" USING BTREE (" + fieldName + ")");
     }

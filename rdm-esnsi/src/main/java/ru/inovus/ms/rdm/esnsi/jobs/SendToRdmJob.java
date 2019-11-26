@@ -6,6 +6,7 @@ import org.quartz.PersistJobDataAfterExecution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.service.DraftService;
@@ -25,6 +26,8 @@ import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import static ru.inovus.ms.rdm.esnsi.EsnsiLoaderDao.FIELD_PREFIX;
 
 @PersistJobDataAfterExecution
 @DisallowConcurrentExecution
@@ -53,7 +56,6 @@ public class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
     private String refBookCode;
 
     @Override
-    @SuppressWarnings("squid:S1166")
     boolean execute0(JobExecutionContext context) throws Exception {
         revision = jobDataMap.getInt(REVISION_KEY);
         GetClassifierStructureResponseType struct = esnsiLoadService.getClassifierStruct(classifierCode, revision);
@@ -86,20 +88,20 @@ public class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
                     draftId = draftIdByRefBookCode;
             }
         }
-        jobDataMap.put("draftId", draftId);
+        jobDataMap.put(DRAFT_ID_KEY, draftId);
         publishService.publish(draftId, null, null, null, false);
         esnsiLoadService.setClassifierRevisionAndLastUpdated(classifierCode, revision, Timestamp.valueOf(LocalDateTime.now(Clock.systemUTC())));
         return true;
     }
 
     private String createFile() throws IOException, XMLStreamException {
-        String fileName = System.currentTimeMillis() + ".xml";
-        File f = new File(fileName);
-        jobDataMap.put(TEMP_FILE_PREFIX + fileName, true);
+        String newFileName = System.currentTimeMillis() + ".xml";
+        File f = new File(newFileName);
+        jobDataMap.put(TEMP_FILE_PREFIX + newFileName, true);
         try (OutputStream out = new BufferedOutputStream(new FileOutputStream(f))) {
             GetClassifierStructureResponseType struct = esnsiLoadService.getClassifierStruct(classifierCode, revision);
-            int primaryKeyFieldSerialNumber = struct.getAttributeList().stream().filter(ClassifierAttribute::isKey).findFirst().map(ClassifierAttribute::getOrder).get() + 1;
-            String primaryKeyFieldName = "field_" + primaryKeyFieldSerialNumber;
+            int primaryKeyFieldSerialNumber = struct.getAttributeList().stream().filter(ClassifierAttribute::isKey).findFirst().map(ClassifierAttribute::getOrder).orElseThrow(() -> new RdmException("Can't find primary key in this classifier structure.")) + 1;
+            String primaryKeyFieldName = FIELD_PREFIX + primaryKeyFieldSerialNumber;
             RdmXmlFileGenerator generator = EsnsiSyncJobUtils.RdmXmlFileGeneratorProvider.get(out, struct, new Iterator<>() {
 
                 String lastSeenId = "";
@@ -126,19 +128,20 @@ public class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
             generator.fetchData();
             generator.end();
         }
-        return fileName;
+        return newFileName;
     }
 
     private FileModel uploadToFileStorage() throws FileNotFoundException {
         return fileStorageService.save(new BufferedInputStream(new FileInputStream(fileName)), fileName);
     }
 
-    @SuppressWarnings("squid:S1166")
     private Integer checkForExistance() {
         Integer id = null;
         try {
             id = refBookService.getId(refBookCode);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+            logger.info("RefBook with code {} is not exists.", refBookCode);
+        }
         return id;
     }
 
