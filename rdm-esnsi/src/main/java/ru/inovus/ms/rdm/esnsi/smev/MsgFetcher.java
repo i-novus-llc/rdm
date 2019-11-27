@@ -46,6 +46,7 @@ public class MsgFetcher implements Job {
     private int timeFilterMinutes;
 
     @Override
+    @SuppressWarnings({"squid:S3776", "squid:S135"})
     public void execute(JobExecutionContext context) throws JobExecutionException {
         int n = 0;
         Map.Entry<ResponseDocument, InputStream> resp;
