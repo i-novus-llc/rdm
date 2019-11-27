@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 
 @DisallowConcurrentExecution
 public class BufferCleaner implements Job {
@@ -31,16 +30,8 @@ public class BufferCleaner implements Job {
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         LocalDateTime bound = LocalDateTime.now(Clock.systemUTC()).minus(timeFilterMinutes, ChronoUnit.MINUTES);
-        var ref = new Object() {
-            int n = 0;
-        };
-        msgBuffer.execTransactionally(() -> {
-            List<String> expiredMessages = msgBuffer.removeExpiredMessages(bound);
-            for (String msgId : expiredMessages)
-                adapterConsumer.acknowledge(msgId);
-            ref.n = expiredMessages.size();
-        });
-        logger.info("{} expired messages detected and removed from message buffer.", ref.n);
+        int n = msgBuffer.removeExpiredMessages(bound);
+        logger.info("{} removed from message buffer.", n);
     }
 
 }

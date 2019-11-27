@@ -7,6 +7,7 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.esnsi.api.ResponseDocument;
 
@@ -15,8 +16,7 @@ import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.time.Clock;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.util.Map;
 
 import static ru.inovus.ms.rdm.esnsi.smev.Utils.EMPTY_INPUT_STREAM;
@@ -41,6 +41,9 @@ public class MsgFetcher implements Job {
 
     @Autowired
     private AdapterConsumer adapterConsumer;
+
+    @Value("${esnsi.smev-adapter.message.time-filter-minutes}")
+    private int timeFilterMinutes;
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -68,11 +71,21 @@ public class MsgFetcher implements Job {
                 }
             }
             String msgId = resp.getKey().getSenderProvidedResponseData().getMessageID();
-            boolean b = msgBuffer.put(msgId, writer.toString(), LocalDateTime.now(Clock.systemUTC()), attachment);
-            if (b)
+            boolean newMessage = msgBuffer.put(msgId, writer.toString(), LocalDateTime.now(Clock.systemUTC()), attachment);
+            if (newMessage)
                 n++;
             else
                 logger.info("Message with id {} is already in buffer.", msgId);
+            ZonedDateTime zonedDateTime = resp.getKey().getMessageMetadata().getDeliveryTimestamp().toGregorianCalendar().toZonedDateTime();
+            ZonedDateTime utcDelivery = zonedDateTime.toInstant().atZone(ZoneOffset.UTC);
+            ZonedDateTime utcNow = ZonedDateTime.now(Clock.systemUTC());
+            boolean forceAck = newMessage || Duration.between(utcDelivery, utcNow).toMinutes() > timeFilterMinutes;
+            if (forceAck) {
+                boolean acknowledged = adapterConsumer.acknowledge(msgId);
+                if (!acknowledged)
+                    logger.info("Message with id {} can't be acknowledged.", msgId);
+            }
+
         } while (true);
         logger.info("{} messages fetched from SMEV adapter", n);
     }

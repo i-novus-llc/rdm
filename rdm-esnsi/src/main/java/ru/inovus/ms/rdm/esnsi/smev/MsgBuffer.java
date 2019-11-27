@@ -4,14 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import ru.inovus.ms.rdm.api.exception.RdmException;
-import ru.inovus.ms.rdm.esnsi.Executable;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 
 import static ru.inovus.ms.rdm.esnsi.smev.Utils.EMPTY_INPUT_STREAM;
@@ -42,19 +39,8 @@ class MsgBuffer {
     }
 
     @Transactional
-    public List<String> removeExpiredMessages(LocalDateTime utcBound) {
-        List<String> expired = jdbcTemplate.query("SELECT msg_id FROM esnsi_sync.msg_buffer WHERE delivery_timestamp < ?", (rs, rowNum) -> rs.getString(1), Timestamp.valueOf(utcBound));
-        jdbcTemplate.update("DELETE FROM esnsi_sync.msg_buffer WHERE delivery_timestamp < ?", Timestamp.valueOf(utcBound));
-        return expired;
-    }
-
-    @Transactional
-    public void execTransactionally(Executable executable) {
-        try {
-            executable.exec();
-        } catch (Exception e) {
-            throw new RdmException(e);
-        }
+    public int removeExpiredMessages(LocalDateTime utcBound) {
+        return jdbcTemplate.update("DELETE FROM esnsi_sync.msg_buffer WHERE delivery_timestamp < ?", Timestamp.valueOf(utcBound));
     }
 
 }
