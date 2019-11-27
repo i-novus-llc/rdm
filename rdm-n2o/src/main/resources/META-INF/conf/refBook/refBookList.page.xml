@@ -16,7 +16,7 @@
                 <input-select id="category" label="Категория" query-id="category" label-field-id="id"/>
                 <input-select id="status" label="Статус"
                               query-id="refBookStatusList" label-field-id="name" search="false"
-                              sec:permissions="nsi.edit, nsi.archive"/>
+                              sec:permissions="${rdm.permissions.refbook.status.list}"/>
             </row>
         </filters>
         <toolbar>

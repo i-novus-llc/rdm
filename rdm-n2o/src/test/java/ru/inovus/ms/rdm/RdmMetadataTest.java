@@ -34,7 +34,7 @@ public class RdmMetadataTest extends N2oTestBase {
     @Override
     protected void configure(N2oApplicationBuilder b) {
         super.configure(b);
-        b.properties("server.servlet.context-path=/");
+        //b.properties("server.servlet.context-path=/");
         b.loaders(new XmlMetadataLoader(b.getEnvironment().getNamespaceReaderFactory()));
         b.packs(new N2oAllDataPack(), new N2oAllPagesPack(), new N2oAllValidatorsPack(), new N2oHeaderPack());
         b.scanners(new XmlInfoScanner());
@@ -61,6 +61,7 @@ public class RdmMetadataTest extends N2oTestBase {
         properties.put("rdm.context-path", "/#");
         properties.put("rdm.backend.path", "http://localhost:8080/rdm/api");
         properties.put("rdm.user.admin.url", "http://docker.one:8182/");
+        properties.put("rdm.permissions.refbook.status.list", "");
 
         return properties;
     }
