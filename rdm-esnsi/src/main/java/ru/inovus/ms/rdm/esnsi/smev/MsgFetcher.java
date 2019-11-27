@@ -84,7 +84,6 @@ public class MsgFetcher implements Job {
                 if (!acknowledged)
                     logger.info("Message with id {} can't be acknowledged.", msgId);
             }
-
         } while (true);
         logger.info("{} messages fetched from SMEV adapter", n);
     }
