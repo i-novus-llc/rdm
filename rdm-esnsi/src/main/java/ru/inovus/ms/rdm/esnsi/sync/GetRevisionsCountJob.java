@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.esnsi.sync_jobs;
+package ru.inovus.ms.rdm.esnsi.sync;
 
 import org.quartz.*;
 import ru.inovus.ms.rdm.esnsi.api.AcceptRequestDocument;
@@ -9,7 +9,7 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.UUID;
 
-import static ru.inovus.ms.rdm.esnsi.sync_jobs.EsnsiSyncJobUtils.PAGE_SIZE;
+import static ru.inovus.ms.rdm.esnsi.sync.EsnsiSyncJobUtils.PAGE_SIZE;
 
 @PersistJobDataAfterExecution
 @DisallowConcurrentExecution

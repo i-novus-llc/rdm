@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.esnsi.sync_jobs;
+package ru.inovus.ms.rdm.esnsi.sync;
 
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
@@ -9,7 +9,7 @@ import ru.inovus.ms.rdm.esnsi.api.GetClassifierStructureResponseType;
 import java.io.InputStream;
 import java.util.Map;
 
-import static ru.inovus.ms.rdm.esnsi.sync_jobs.EsnsiSyncJobUtils.PAGE_SIZE;
+import static ru.inovus.ms.rdm.esnsi.sync.EsnsiSyncJobUtils.PAGE_SIZE;
 
 @PersistJobDataAfterExecution
 @DisallowConcurrentExecution

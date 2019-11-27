@@ -11,14 +11,14 @@ import ru.inovus.ms.rdm.esnsi.api.AcceptRequestDocument;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierRevisionsCountRequestType;
 import ru.inovus.ms.rdm.esnsi.api.ObjectFactory;
 import ru.inovus.ms.rdm.esnsi.smev.AdapterClient;
-import ru.inovus.ms.rdm.esnsi.sync_jobs.GetRevisionsCountJob;
+import ru.inovus.ms.rdm.esnsi.sync.GetRevisionsCountJob;
 
 import java.util.List;
 import java.util.UUID;
 
 import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
-import static ru.inovus.ms.rdm.esnsi.sync_jobs.AbstractEsnsiDictionaryProcessingJob.*;
+import static ru.inovus.ms.rdm.esnsi.sync.AbstractEsnsiDictionaryProcessingJob.*;
 
 @Service
 public class EsnsiLoaderImpl implements EsnsiLoader {

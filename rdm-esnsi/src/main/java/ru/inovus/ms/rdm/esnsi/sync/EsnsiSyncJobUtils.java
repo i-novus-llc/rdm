@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.esnsi.sync_jobs;
+package ru.inovus.ms.rdm.esnsi.sync;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;

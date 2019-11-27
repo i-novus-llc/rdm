@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.esnsi.sync_jobs;
+package ru.inovus.ms.rdm.esnsi.sync;
 
 import org.quartz.*;
 import ru.inovus.ms.rdm.esnsi.api.AcceptRequestDocument;

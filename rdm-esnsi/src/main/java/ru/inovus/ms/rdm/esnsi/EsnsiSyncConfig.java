@@ -18,7 +18,7 @@ import ru.inovus.ms.rdm.api.service.PublishService;
 import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.esnsi.smev.BufferCleaner;
 import ru.inovus.ms.rdm.esnsi.smev.MsgFetcher;
-import ru.inovus.ms.rdm.esnsi.sync_jobs.EsnsiIntegrationJob;
+import ru.inovus.ms.rdm.esnsi.sync.EsnsiIntegrationJob;
 
 import javax.sql.DataSource;
 import java.io.IOException;
