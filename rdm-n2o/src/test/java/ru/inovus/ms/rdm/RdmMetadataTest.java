@@ -1,6 +1,9 @@
 package ru.inovus.ms.rdm;
 
+import net.n2oapp.framework.api.metadata.io.IOProcessorAware;
+import net.n2oapp.framework.api.metadata.reader.NamespaceReaderFactory;
 import net.n2oapp.framework.config.N2oApplicationBuilder;
+import net.n2oapp.framework.config.io.IOProcessorImpl;
 import net.n2oapp.framework.config.metadata.compile.N2oCompileProcessor;
 import net.n2oapp.framework.config.metadata.pack.N2oAllDataPack;
 import net.n2oapp.framework.config.metadata.pack.N2oAllPagesPack;
@@ -27,19 +30,18 @@ public class RdmMetadataTest extends N2oTestBase {
     @Override
     @Before
     public void setUp() throws Exception {
-        new TestStaticProperties().setProperties(getCustomProperties());
         super.setUp();
     }
 
     @Override
     protected void configure(N2oApplicationBuilder b) {
         super.configure(b);
-        //b.properties("server.servlet.context-path=/");
+        customProperties(b);
         b.loaders(new XmlMetadataLoader(b.getEnvironment().getNamespaceReaderFactory()));
         b.packs(new N2oAllDataPack(), new N2oAllPagesPack(), new N2oAllValidatorsPack(), new N2oHeaderPack());
         b.scanners(new XmlInfoScanner());
-        builder.scan();
-        new N2oCompileProcessor(builder.getEnvironment());
+        b.scan();
+        new N2oCompileProcessor(b.getEnvironment());
     }
 
     @Test
@@ -54,15 +56,15 @@ public class RdmMetadataTest extends N2oTestBase {
         });
     }
 
-    private Properties getCustomProperties() {
-
-        Properties properties = new Properties();
-        properties.put("server.servlet.context-path", "");
-        properties.put("rdm.context-path", "/#");
-        properties.put("rdm.backend.path", "http://localhost:8080/rdm/api");
-        properties.put("rdm.user.admin.url", "http://docker.one:8182/");
-        properties.put("rdm.permissions.refbook.status.list", "");
-
-        return properties;
+    private void customProperties(N2oApplicationBuilder b) {
+        b.properties("server.servlet.context-path= ");
+        b.properties("rdm.context-path=/#");
+        b.properties("rdm.backend.path=http://localhost:8080/rdm/api");
+        b.properties("rdm.user.admin.url=http://docker.one:8182/");
+        b.properties("rdm.permissions.refbook.status.list= ");
+        NamespaceReaderFactory readerFactory = b.getEnvironment().getNamespaceReaderFactory();
+        IOProcessorImpl processor = new IOProcessorImpl(readerFactory);
+        ((IOProcessorAware)readerFactory).setIOProcessor(processor);
+        processor.setSystemProperties(b.getEnvironment().getSystemProperties());
     }
 }
