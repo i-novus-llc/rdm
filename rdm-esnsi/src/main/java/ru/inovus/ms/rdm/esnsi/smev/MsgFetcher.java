@@ -79,8 +79,7 @@ public class MsgFetcher implements Job {
             ZonedDateTime zonedDateTime = resp.getKey().getMessageMetadata().getDeliveryTimestamp().toGregorianCalendar().toZonedDateTime();
             ZonedDateTime utcDelivery = zonedDateTime.toInstant().atZone(ZoneOffset.UTC);
             ZonedDateTime utcNow = ZonedDateTime.now(Clock.systemUTC());
-            boolean forceAck = newMessage || Duration.between(utcDelivery, utcNow).toMinutes() > timeFilterMinutes;
-            if (forceAck) {
+            if (Duration.between(utcDelivery, utcNow).toMinutes() > timeFilterMinutes) {
                 boolean acknowledged = adapterConsumer.acknowledge(msgId);
                 if (!acknowledged)
                     logger.info("Message with id {} can't be acknowledged.", msgId);
