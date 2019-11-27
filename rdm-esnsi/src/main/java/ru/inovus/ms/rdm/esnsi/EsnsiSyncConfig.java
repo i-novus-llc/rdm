@@ -1,10 +1,7 @@
 package ru.inovus.ms.rdm.esnsi;
 
 import net.n2oapp.platform.jaxrs.autoconfigure.EnableJaxRsProxyClient;
-import org.quartz.JobBuilder;
-import org.quartz.JobDetail;
-import org.quartz.JobKey;
-import org.quartz.Trigger;
+import org.quartz.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.ApplicationContext;
@@ -19,8 +16,9 @@ import ru.inovus.ms.rdm.api.service.DraftService;
 import ru.inovus.ms.rdm.api.service.FileStorageService;
 import ru.inovus.ms.rdm.api.service.PublishService;
 import ru.inovus.ms.rdm.api.service.RefBookService;
-import ru.inovus.ms.rdm.esnsi.jobs.EsnsiIntegrationJob;
-import ru.inovus.ms.rdm.esnsi.jobs.InvalidStageDetector;
+import ru.inovus.ms.rdm.esnsi.smev.BufferCleaner;
+import ru.inovus.ms.rdm.esnsi.smev.MsgFetcher;
+import ru.inovus.ms.rdm.esnsi.sync_jobs.EsnsiIntegrationJob;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -38,14 +36,7 @@ import static org.quartz.TriggerBuilder.newTrigger;
 )
 public class EsnsiSyncConfig {
 
-    @Value("${esnsi.sync.execution.expression}")
-    private String esnsiSyncCronExpression;
-
-    @Value("${esnsi.invalid-stage-detector.cron}")
-    private String invalidStageDetectorCron;
-
-    @Value("${esnsi.classifier.codes}")
-    private List<String> codes;
+    private static final String ESNSI_INTERNAL = "ESNSI-INTERNAL";
 
     @Bean
     public Properties quartzProperties() throws IOException {
@@ -62,24 +53,30 @@ public class EsnsiSyncConfig {
 
     @Bean
     public SchedulerFactoryBean schedulerFactoryBean(DataSource dataSource,
-                                                     ApplicationContext applicationContext) throws IOException {
+                                                     ApplicationContext applicationContext,
+                                                     @Value("${esnsi.classifier.codes}") List<String> codes,
+                                                     @Value("${esnsi.sync.execution.expression}") String esnsiSyncCronExpression,
+                                                     @Value("${esnsi.invalid-stage-detector.cron}") String invalidStageDetectorCron,
+                                                     @Value("${esnsi.smev.adapter.fetch.interval}") String messageFetcherCron,
+                                                     @Value("${esnsi.buffer-cleaner.cron}") String bufferCleanerCron) throws IOException {
         SchedulerFactoryBean factory = new SchedulerFactoryBean();
         factory.setQuartzProperties(quartzProperties());
         factory.setDataSource(dataSource);
         factory.setAutoStartup(true);
         factory.setOverwriteExistingJobs(true);
         JobDetail syncAll = getEsnsiSyncAllJob(codes);
-        JobDetail invalidStageDetector = getInvalidStageDetectorJob();
-        JobDetail[] jobs = {syncAll, invalidStageDetector};
-        Trigger[] triggers = new Trigger[jobs.length];
-        triggers[0] = newTrigger().forJob(syncAll).
-                      withIdentity(syncAll.getKey().getName(), syncAll.getKey().getGroup()).
-                      withSchedule(cronSchedule(esnsiSyncCronExpression)).
-                      build();
-        triggers[1] = newTrigger().forJob(invalidStageDetector).
-                      withIdentity(invalidStageDetector.getKey().getName(), invalidStageDetector.getKey().getGroup()).
-                      withSchedule(cronSchedule(invalidStageDetectorCron)).
-                      build();
+        JobDetail[] jobs = {
+            syncAll,
+            buildJob(InvalidStageDetector.class, "InvalidStageDetector"),
+            buildJob(MsgFetcher.class, "MessageFetcher"),
+            buildJob(BufferCleaner.class, "BufferCleaner")
+        };
+        Trigger[] triggers = {
+            cronTrigger(jobs[0], esnsiSyncCronExpression),
+            cronTrigger(jobs[1], invalidStageDetectorCron),
+            cronTrigger(jobs[2], messageFetcherCron),
+            cronTrigger(jobs[3], bufferCleanerCron)
+        };
         AutowiringSpringBeanJobFactory jobFactory = new AutowiringSpringBeanJobFactory();
         jobFactory.setApplicationContext(applicationContext);
         factory.setJobFactory(jobFactory);
@@ -99,13 +96,17 @@ public class EsnsiSyncConfig {
         return jb.build();
     }
 
-    private JobDetail getInvalidStageDetectorJob() {
-        JobBuilder jb = JobBuilder.newJob(InvalidStageDetector.class);
-        JobKey jobKey = JobKey.jobKey("InvalidStageDetectorJob", "ESNSI-INTERNAL");
-        jb.withIdentity(jobKey);
-        jb.storeDurably();
-        jb.requestRecovery();
-        return jb.build();
+    private JobDetail buildJob(Class<? extends Job> c, String name) {
+        JobBuilder jb = JobBuilder.newJob(c);
+        JobKey jobKey = JobKey.jobKey(name, EsnsiSyncConfig.ESNSI_INTERNAL);
+        return jb.withIdentity(jobKey).storeDurably().requestRecovery().build();
+    }
+
+    private Trigger cronTrigger(JobDetail forJob, String cron) {
+        return newTrigger().forJob(forJob).
+                withIdentity(forJob.getKey().getName(), forJob.getKey().getGroup()).
+                withSchedule(cronSchedule(cron)).
+                build();
     }
 
 }

@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.esnsi.jobs;
+package ru.inovus.ms.rdm.esnsi.sync_jobs;
 
 import org.quartz.*;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierRecordsCountResponseType;
@@ -13,7 +13,7 @@ class GetClassifierRecordsCountJob extends AbstractEsnsiDictionaryProcessingJob 
     @Override
     boolean execute0(JobExecutionContext context) throws Exception {
         String messageId = jobDataMap.getString(MESSAGE_ID_KEY);
-        Map.Entry<GetClassifierRecordsCountResponseType, InputStream> getClassifierRecordsCountResponseType = esnsiSmevClient.getResponse(messageId, GetClassifierRecordsCountResponseType.class);
+        Map.Entry<GetClassifierRecordsCountResponseType, InputStream> getClassifierRecordsCountResponseType = adapterClient.getResponse(messageId, GetClassifierRecordsCountResponseType.class);
         if (getClassifierRecordsCountResponseType != null) {
             int revision = jobDataMap.getInt(REVISION_KEY);
             int numRecords = getClassifierRecordsCountResponseType.getKey().getRecordsCount();

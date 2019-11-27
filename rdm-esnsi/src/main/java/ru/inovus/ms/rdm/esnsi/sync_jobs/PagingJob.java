@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.esnsi.jobs;
+package ru.inovus.ms.rdm.esnsi.sync_jobs;
 
 import org.quartz.*;
 import ru.inovus.ms.rdm.esnsi.PageProcessor;
@@ -9,7 +9,7 @@ import java.util.Collection;
 import java.util.UUID;
 
 import static ru.inovus.ms.rdm.esnsi.EsnsiLoadService.getClassifierIdentifier;
-import static ru.inovus.ms.rdm.esnsi.jobs.EsnsiSyncJobUtils.PAGE_SIZE;
+import static ru.inovus.ms.rdm.esnsi.sync_jobs.EsnsiSyncJobUtils.PAGE_SIZE;
 
 @PersistJobDataAfterExecution
 @DisallowConcurrentExecution
@@ -38,7 +38,7 @@ class PagingJob extends AbstractEsnsiDictionaryProcessingJob {
                 getDataRequest.setPageSize(PAGE_SIZE);
                 getDataRequest.setRevision(revision);
                 getDataRequest.setStartFrom(from);
-                AcceptRequestDocument acceptRequestDocument = esnsiSmevClient.sendRequest(getDataRequest, UUID.randomUUID().toString());
+                AcceptRequestDocument acceptRequestDocument = adapterClient.sendRequest(getDataRequest, UUID.randomUUID().toString());
                 JobDetail job = JobBuilder.newJob(GetDataPageJob.class).withIdentity(GetDataPageJob.class.getSimpleName() + "-" + id, classifierCode).
                                 requestRecovery().usingJobData(MESSAGE_ID_KEY, acceptRequestDocument.getMessageId()).
                                 usingJobData(REVISION_KEY, revision).

@@ -6,5 +6,6 @@
 
     <include file="changelog/201910311409_RDM-587.xml" relativeToChangelogFile="true"/>
     <include file="changelog/201911111352_RDM-593.xml" relativeToChangelogFile="true"/>
+    <include file="changelog/201911271253_RDM-606.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>
