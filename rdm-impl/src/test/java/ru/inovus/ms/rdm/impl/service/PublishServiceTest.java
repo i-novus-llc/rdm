@@ -121,6 +121,7 @@ public class PublishServiceTest {
     public void setUp() {
         reset(draftDataService, fileNameGenerator, fileGeneratorFactory);
         when(draftDataService.applyDraft(any(), any(), any(), any())).thenReturn(TEST_STORAGE_CODE);
+        when(draftDataService.isFieldNotEmpty(any(), any())).thenReturn(true);
     }
 
     @Test
@@ -292,6 +293,7 @@ public class PublishServiceTest {
         entity.setRefBook(createTestRefBook());
         entity.setStatus(RefBookVersionStatus.DRAFT);
         entity.setStructure(new Structure());
+        setTestStructure(entity.getStructure());
         entity.setPassportValues(createTestPassportValues(entity));
 
         return entity;
@@ -304,6 +306,7 @@ public class PublishServiceTest {
         testDraftVersion.setRefBook(createTestRefBook());
         testDraftVersion.setStatus(RefBookVersionStatus.PUBLISHED);
         testDraftVersion.setStructure(new Structure());
+        setTestStructure(testDraftVersion.getStructure());
         testDraftVersion.setPassportValues(createTestPassportValues(testDraftVersion));
         return testDraftVersion;
     }
