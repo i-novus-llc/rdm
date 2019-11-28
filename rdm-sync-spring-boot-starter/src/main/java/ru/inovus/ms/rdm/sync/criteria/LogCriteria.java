@@ -8,7 +8,6 @@ import ru.inovus.ms.rdm.api.model.AbstractCriteria;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.QueryParam;
-import java.time.LocalDate;
 
 /**
  * @author lgalimova
@@ -25,5 +24,5 @@ public class LogCriteria extends AbstractCriteria {
     @ApiModelProperty("Дата записи журнала")
     @QueryParam("date")
     @NotNull
-    private LocalDate date;
+    private String date;
 }

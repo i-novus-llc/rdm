@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 
 import static java.util.Objects.isNull;
@@ -20,6 +21,9 @@ public final class TimeUtils {
 
     public static final String DATE_PATTERN_ISO = "yyyy-MM-dd";
     public static final String DATE_PATTERN_EUROPEAN = "dd.MM.yyyy";
+
+    public static final String[] AVAILABLE_DATE_FORMATS_ARR = {DATE_PATTERN_EUROPEAN, DATE_PATTERN_ISO};
+    public static final String AVAILABLE_DATE_FORMATS_STR = DATE_PATTERN_ISO + ", " + DATE_PATTERN_EUROPEAN;
 
     public static final String DATE_TIME_PATTERN_ISO_REGEX = "^(\\d{4})-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01]) (0?[0-9]|[1][0-9]|2[0-3]):(0?[0-9]|[1-5][0-9]):(0?[0-9]|[1-5][0-9])$";
     public static final String DATE_TIME_PATTERN_ISO_WITH_TIME_DELIMITER_REGEX = "^(\\d{4})-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])T(0?[0-9]|[1][0-9]|2[0-3]):(0?[0-9]|[1-5][0-9]):(0?[0-9]|[1-5][0-9])$";
@@ -130,12 +134,16 @@ public final class TimeUtils {
             return (LocalDate) value;
         if (value instanceof LocalDateTime)
             return ((LocalDateTime) value).toLocalDate();
-        return LocalDate.parse(
-                String.valueOf(value),
-                String.valueOf(value).contains(".")
-                        ? DATE_PATTERN_EUROPEAN_FORMATTER
-                        : DATE_PATTERN_ISO_FORMATTER
-        );
+        try {
+            return LocalDate.parse(
+                    String.valueOf(value),
+                    String.valueOf(value).contains(".")
+                            ? DATE_PATTERN_EUROPEAN_FORMATTER
+                            : DATE_PATTERN_ISO_FORMATTER
+            );
+        } catch (DateTimeParseException e) {
+            return null;
+        }
     }
 
     public static String format(LocalDate localDate) {

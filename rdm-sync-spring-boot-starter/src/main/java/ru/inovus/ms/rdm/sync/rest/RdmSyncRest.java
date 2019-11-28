@@ -2,6 +2,8 @@ package ru.inovus.ms.rdm.sync.rest;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.sync.criteria.LogCriteria;
 import ru.inovus.ms.rdm.sync.model.Log;
@@ -10,6 +12,8 @@ import ru.inovus.ms.rdm.sync.model.VersionMapping;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
+
+import static ru.inovus.ms.rdm.api.util.TimeUtils.AVAILABLE_DATE_FORMATS_STR;
 
 /**
  * @author lgalimova
@@ -36,5 +40,9 @@ public interface RdmSyncRest {
     @GET
     @Path("/log")
     @ApiOperation(value = "Получение журнала за дату")
+    @ApiResponses({
+        @ApiResponse(code = 200, message = "Успех"),
+        @ApiResponse(code = 400, message = "Укажите пожалуйста дату в правильном формате из доступных: [" + AVAILABLE_DATE_FORMATS_STR + "]")
+    })
     List<Log> getLog(@BeanParam LogCriteria criteria);
 }
