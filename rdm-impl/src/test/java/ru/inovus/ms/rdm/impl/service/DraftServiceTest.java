@@ -437,8 +437,6 @@ public class DraftServiceTest {
         int notPrimaryInitValue = 667;
         int notPrimaryNewValue = 668;
         long systemId = 123L;
-
-//        RefBookRowValue row = new RefBookRowValue();
         RowValue<Long> row = new RefBookRowValue();
         row.setSystemId(systemId);
         row.setFieldValues(List.of(new IntegerFieldValue(primaryCode, pkValue), new IntegerFieldValue(notPrimaryCode, notPrimaryInitValue)));
