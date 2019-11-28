@@ -19,7 +19,7 @@
         <encoding>UTF-8</encoding>
         <apache.poi.version>3.17</apache.poi.version>
         <filestorage.version>2.2</filestorage.version>
-        <vds.version>2.12</vds.version>
+        <vds.version>2.13</vds.version>
         <n2o.version>7.3.31</n2o.version>
         <itext.version>5.5.9</itext.version>
         <commons.text.version>1.6</commons.text.version>
