@@ -31,8 +31,10 @@
                 <param id="maxInteger" mapping="[1].maxInteger" domain="integer"/>
                 <param id="minFloat" mapping="[1].minFloat" domain="numeric"/>
                 <param id="maxFloat" mapping="[1].maxFloat" domain="numeric"/>
-                <param id="dateInterval.begin" mapping="[1].minDate" domain="date"/>
-                <param id="dateInterval.end" mapping="[1].maxDate" domain="date"/>
+                <param id="dateInterval.begin" mapping="[1].minDate" domain="date"
+                       normalize="T(ru.inovus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)"/>
+                <param id="dateInterval.end" mapping="[1].maxDate" domain="date"
+                       normalize="T(ru.inovus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)"/>
                 <param id="regExp" mapping="[1].regExp" domain="string"/>
             </in-parameters>
             <validations white-list="checkCode,checkMinMaxInt"/>
@@ -69,9 +71,9 @@
                 <param id="minFloat" mapping="[1].minFloat" domain="numeric"/>
                 <param id="maxFloat" mapping="[1].maxFloat" domain="numeric"/>
                 <param id="dateInterval.begin" mapping="[1].minDate" domain="date"
-                       normalize="T(ru.inovus.ms.rdm.n2o.util.TimeUtils).parseLocalDate(#this)"/>
+                       normalize="T(ru.inovus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)"/>
                 <param id="dateInterval.end" mapping="[1].maxDate" domain="date"
-                       normalize="T(ru.inovus.ms.rdm.n2o.util.TimeUtils).parseLocalDate(#this)"/>
+                       normalize="T(ru.inovus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)"/>
                 <param id="regExp" mapping="[1].regExp" domain="string"/>
             </in-parameters>
             <validations white-list="checkCode,checkMinMaxInt"/>
