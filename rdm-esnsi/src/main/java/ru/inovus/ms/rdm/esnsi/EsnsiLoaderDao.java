@@ -135,7 +135,7 @@ public class EsnsiLoaderDao {
         if (revision == null || timestamp == null) {
             args = new HashMap<>();
             args.put("code", code);
-            args.put("revision", revision);
+            args.put(DB_REVISION_FIELD_NAME, revision);
             args.put("timestamp", timestamp);
         } else
             args = Map.of("code", code, DB_REVISION_FIELD_NAME, revision, "timestamp", timestamp);
