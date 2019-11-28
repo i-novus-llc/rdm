@@ -6,8 +6,6 @@ import ru.inovus.ms.rdm.esnsi.api.GetClassifierRecordsCountResponseType;
 import java.io.InputStream;
 import java.util.Map;
 
-import static ru.inovus.ms.rdm.esnsi.EsnsiIntegrationDao.getClassifierSpecificDataTableName;
-
 @PersistJobDataAfterExecution
 @DisallowConcurrentExecution
 class GetClassifierRecordsCountJob extends AbstractEsnsiDictionaryProcessingJob {
@@ -24,9 +22,9 @@ class GetClassifierRecordsCountJob extends AbstractEsnsiDictionaryProcessingJob 
                             requestRecovery().
                             usingJobData(REVISION_KEY, revision).
                             usingJobData("numRecords", numRecords).
-                            usingJobData("tableName", getClassifierSpecificDataTableName(getClassifierRecordsCountResponseType.getKey().getClassifierDescriptor().getPublicId(), revision)).
+                            usingJobData("publicId", getClassifierRecordsCountResponseType.getKey().getClassifierDescriptor().getPublicId()).
                             build();
-            esnsiIntegrationDao.createPageProcessorStateRecords(
+            esnsiLoadService.createPageProcessorStateRecords(
                 classifierCode,
                 revision,
                 Integer.parseInt(getProperty("esnsi.classifier.downloading.num-workers"))

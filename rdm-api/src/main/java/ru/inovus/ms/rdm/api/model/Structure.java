@@ -12,11 +12,10 @@ import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.text.StringEscapeUtils.escapeJson;
@@ -97,7 +96,7 @@ public class Structure implements Serializable {
     public List<Attribute> getPrimary() {
         return attributes.stream()
                 .filter(attribute -> attribute.isPrimary)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     /**
@@ -108,11 +107,11 @@ public class Structure implements Serializable {
      */
     public List<Reference> getRefCodeReferences(String referenceCode) {
         if (isEmpty(references)) {
-            return Collections.emptyList();
+            return emptyList();
         }
         return references.stream()
                 .filter(reference -> reference.getReferenceCode().equals(referenceCode))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     /**
@@ -123,7 +122,7 @@ public class Structure implements Serializable {
      */
     public List<Attribute> getRefCodeAttributes(String referenceCode) {
         if (isEmpty(attributes)) {
-            return Collections.emptyList();
+            return emptyList();
         }
         return getRefCodeReferences(referenceCode).stream()
                 .map(ref -> getAttribute(ref.getAttribute()))
