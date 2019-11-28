@@ -13,8 +13,6 @@ import ru.i_novus.ms.audit.client.model.AuditClientRequest;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
 
-import java.time.Clock;
-import java.time.LocalDateTime;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -64,7 +62,6 @@ public class AuditLogService {
         if (!disabledActions.contains(action)) {
             Object obj = getObjectFunction.get();
             AuditClientRequest request = new AuditClientRequest();
-            request.setEventDate(LocalDateTime.now(Clock.systemUTC()));
             request.setObjectType(action.getObjType());
             request.setObjectName(action.getObjName());
             request.setObjectId(action.getObjId(obj));
