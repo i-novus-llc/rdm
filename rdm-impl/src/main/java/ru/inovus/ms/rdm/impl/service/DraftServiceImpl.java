@@ -420,7 +420,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draft = versionRepository.getOne(draftId);
         Structure structure = draft.getStructure();
         if (row.getSystemId() == null) {
-            structure.getAttributes().stream().filter(Structure.Attribute::getIsPrimary).findFirst().ifPresent((pk) -> {
+            structure.getAttributes().stream().filter(Structure.Attribute::getIsPrimary).findFirst().ifPresent(pk -> {
                 SearchDataCriteria criteria = new SearchDataCriteria();
                 AttributeFilter filter = new AttributeFilter(
                         pk.getCode(), row.getData().get(pk.getCode()), pk.getType(), SearchTypeEnum.EXACT
