@@ -12,13 +12,14 @@ import net.n2oapp.framework.config.metadata.pack.N2oHeaderPack;
 import net.n2oapp.framework.config.reader.XmlMetadataLoader;
 import net.n2oapp.framework.config.register.scanner.XmlInfoScanner;
 import net.n2oapp.framework.config.test.N2oTestBase;
-import net.n2oapp.properties.test.TestStaticProperties;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Properties;
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 /**
  * Тестирование валидности файлов N2O
@@ -27,6 +28,14 @@ public class RdmMetadataTest extends N2oTestBase {
 
     private static final Logger logger = LoggerFactory.getLogger(RdmMetadataTest.class);
 
+    private static final List<String> RDM_CUSTOM_PROPERTIES = asList(
+        "server.servlet.context-path= ",
+        "rdm.context-path=/#",
+        "rdm.backend.path=http://localhost:8080/rdm/api",
+        "rdm.user.admin.url=http://docker.one:8182/",
+        "rdm.permissions.refbook.status.list= "
+    ); 
+
     @Override
     @Before
     public void setUp() throws Exception {
@@ -34,14 +43,16 @@ public class RdmMetadataTest extends N2oTestBase {
     }
 
     @Override
-    protected void configure(N2oApplicationBuilder b) {
-        super.configure(b);
-        customProperties(b);
-        b.loaders(new XmlMetadataLoader(b.getEnvironment().getNamespaceReaderFactory()));
-        b.packs(new N2oAllDataPack(), new N2oAllPagesPack(), new N2oAllValidatorsPack(), new N2oHeaderPack());
-        b.scanners(new XmlInfoScanner());
-        b.scan();
-        new N2oCompileProcessor(b.getEnvironment());
+    protected void configure(N2oApplicationBuilder builder) {
+        super.configure(builder);
+
+        customProperties(builder);
+        builder.loaders(new XmlMetadataLoader(builder.getEnvironment().getNamespaceReaderFactory()));
+        builder.packs(new N2oAllDataPack(), new N2oAllPagesPack(), new N2oAllValidatorsPack(), new N2oHeaderPack());
+        builder.scanners(new XmlInfoScanner());
+        builder.scan();
+
+        new N2oCompileProcessor(builder.getEnvironment());
     }
 
     @Test
@@ -56,15 +67,13 @@ public class RdmMetadataTest extends N2oTestBase {
         });
     }
 
-    private void customProperties(N2oApplicationBuilder b) {
-        b.properties("server.servlet.context-path= ");
-        b.properties("rdm.context-path=/#");
-        b.properties("rdm.backend.path=http://localhost:8080/rdm/api");
-        b.properties("rdm.user.admin.url=http://docker.one:8182/");
-        b.properties("rdm.permissions.refbook.status.list= ");
-        NamespaceReaderFactory readerFactory = b.getEnvironment().getNamespaceReaderFactory();
+    private void customProperties(N2oApplicationBuilder builder) {
+
+        RDM_CUSTOM_PROPERTIES.forEach(builder::properties);
+
+        NamespaceReaderFactory readerFactory = builder.getEnvironment().getNamespaceReaderFactory();
         IOProcessorImpl processor = new IOProcessorImpl(readerFactory);
-        ((IOProcessorAware)readerFactory).setIOProcessor(processor);
-        processor.setSystemProperties(b.getEnvironment().getSystemProperties());
+        ((IOProcessorAware) readerFactory).setIOProcessor(processor);
+        processor.setSystemProperties(builder.getEnvironment().getSystemProperties());
     }
 }
