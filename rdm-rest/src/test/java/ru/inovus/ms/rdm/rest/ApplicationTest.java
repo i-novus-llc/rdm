@@ -33,6 +33,7 @@ import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 import ru.inovus.ms.rdm.api.enumeration.ConflictType;
 import ru.inovus.ms.rdm.api.enumeration.FileType;
+import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.api.model.ExportFile;
 import ru.inovus.ms.rdm.api.model.FileModel;
@@ -1234,6 +1235,14 @@ public class ApplicationTest {
         List<RowValue> expectedNoData = createOneStringFieldRow(FIELD_NAME, "h");
 
         RefBook refBook = refBookService.create(new RefBookCreateRequest(REF_BOOK_CODE, null));
+
+        //Наличие черновика после создания справочника
+        RefBookCriteria criteria = new RefBookCriteria();
+        criteria.setCode(REF_BOOK_CODE);
+        criteria.setSourceType(RefBookSourceType.DRAFT);
+        criteria.setPageSize(1);
+        Page<RefBook> refBookPage = refBookService.searchVersions(criteria);
+        assertEquals(1L, refBookPage.getContent().size());
 
         //Публикация левой версии
         Integer leftId = draftService.create(refBook.getRefBookId(), createFileModel(LEFT_FILE, "testPublishing/" + LEFT_FILE)).getId();
