@@ -12,6 +12,8 @@ import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -35,11 +37,12 @@ public class Structure implements Serializable {
     private List<Reference> references;
 
     public Structure() {
+        this(new ArrayList<>(0), new ArrayList<>(0));
     }
 
     public Structure(List<Attribute> attributes, List<Reference> references) {
-        this.attributes = attributes;
-        this.references = references;
+        this.attributes = attributes == null ? new ArrayList<>(0) : attributes;
+        this.references = references == null ? new ArrayList<>(0) : references;
     }
 
     public Structure(Structure other) {
