@@ -13,7 +13,7 @@ import javax.ws.rs.core.MediaType;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Api("Синхронизация с ЕСНСИ")
-public interface EsnsiIntegrationService {
+public interface EsnsiLoader {
 
     @POST
     @Path("/update")
@@ -23,7 +23,7 @@ public interface EsnsiIntegrationService {
     @POST
     @Path("/update/{classifierCode}")
     @ApiOperation(value = "Синхронизация отдельного справочника")
-    void update(String classifierCode);
+    String update(String classifierCode);
 
     @POST
     @Path("/shutdown")
@@ -34,5 +34,16 @@ public interface EsnsiIntegrationService {
     @Path("/shutdown/{classifierCode}")
     @ApiOperation(value = "Остановить синхронизацию отдельного справочника")
     void shutdown(String classifierCode);
+
+    @POST
+    @Path("/cleanHistory")
+    @ApiOperation(value = "Отчистить историю синхронизации со всеми справочниками")
+    void cleanHistory();
+
+    @POST
+    @Path("/cleanHistory/{classifierCode}")
+    @ApiOperation(value = "Отчистить историю синхронизации с конкретным справочником")
+    void cleanHistory(String classifierCode);
+
 
 }
