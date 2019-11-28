@@ -18,6 +18,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.exception.NotUniqueException;
 import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
@@ -417,17 +418,29 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateDraft(draftId);
 
         RefBookVersionEntity draft = versionRepository.getOne(draftId);
+        Structure structure = draft.getStructure();
+        if (row.getSystemId() == null) {
+            structure.getAttributes().stream().filter(Structure.Attribute::getIsPrimary).findFirst().ifPresent((pk) -> {
+                SearchDataCriteria criteria = new SearchDataCriteria();
+                AttributeFilter filter = new AttributeFilter(
+                        pk.getCode(), row.getData().get(pk.getCode()), pk.getType(), SearchTypeEnum.EXACT
+                );
+                criteria.setAttributeFilter(Set.of(List.of(filter)));
+                Page<RefBookRowValue> search = versionService.search(draftId, criteria);
+                search.stream().findAny().ifPresent(val -> row.setSystemId(val.getSystemId()));
+            });
+        }
         RowsValidator validator = new RowsValidatorImpl(versionService, searchDataService,
-                draft.getStructure(), draft.getStorageCode(), errorCountLimit, false,
+                structure, draft.getStorageCode(), errorCountLimit, false,
                 attributeValidationRepository.findAllByVersionId(draftId)
         );
-        validator.append(new NonStrictOnTypeRowMapper(draft.getStructure(), versionRepository).map(row));
+        validator.append(new NonStrictOnTypeRowMapper(structure, versionRepository).map(row));
         validator.process();
 
         if (row.getData().values().stream().allMatch(ObjectUtils::isEmpty))
             throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
 
-        RowValue rowValue = ConverterUtil.rowValue(new StructureRowMapper(draft.getStructure(), versionRepository).map(row), draft.getStructure());
+        RowValue rowValue = ConverterUtil.rowValue(new StructureRowMapper(structure, versionRepository).map(row), structure);
         if (rowValue.getSystemId() == null) {
             draftDataService.addRows(draft.getStorageCode(), singletonList(rowValue));
             auditEditData(draft, "create_row", rowValue.getFieldValues());

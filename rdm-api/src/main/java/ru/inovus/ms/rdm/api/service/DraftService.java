@@ -23,7 +23,7 @@ import java.util.List;
 @Path("/draft")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Api(value = "Методы работы с черновиками", hidden = true)
+@Api(value = "Методы работы с черновиками")
 public interface DraftService {
 
     @POST
