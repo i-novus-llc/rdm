@@ -34,6 +34,7 @@ import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
+import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.api.model.refdata.RowValuePage;
@@ -292,6 +293,7 @@ public class DraftServiceImpl implements DraftService {
             if (draftVersion != null && draftVersion.getStructure() != null) {
                 dropDataService.drop(singleton(draftVersion.getStorageCode()));
                 versionRepository.deleteById(draftVersion.getId());
+                versionRepository.flush(); // Delete old draft before insert new draft!
 
                 draftVersion = newDraftVersion(structure, draftVersion.getPassportValues());
 
@@ -892,6 +894,15 @@ public class DraftServiceImpl implements DraftService {
         return new ExportFile(
                 versionFileService.generate(versionModel, fileType, dataIterator),
                 fileNameGenerator.generateZipName(versionModel, fileType));
+    }
+
+    @Override
+    public Integer getIdByRefBookCode(String refBookCode) {
+        RefBookCriteria criteria = new RefBookCriteria();
+        criteria.setCode(refBookCode);
+        criteria.setExcludeDraft(false);
+        Page<RefBook> search = refBookService.search(criteria);
+        return search.stream().findFirst().map(RefBook::getDraftVersionId).orElse(null);
     }
 
     private void auditStructureEdit(RefBookVersionEntity refBook, String action, Structure.Attribute attribute) {

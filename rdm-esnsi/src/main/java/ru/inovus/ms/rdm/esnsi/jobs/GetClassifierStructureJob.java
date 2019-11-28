@@ -20,7 +20,7 @@ class GetClassifierStructureJob extends AbstractEsnsiDictionaryProcessingJob {
         Map.Entry<GetClassifierStructureResponseType, InputStream> getClassifierStructureResponseType = esnsiSmevClient.getResponse(messageId, GetClassifierStructureResponseType.class);
         if (getClassifierStructureResponseType != null) {
             GetClassifierStructureResponseType struct = getClassifierStructureResponseType.getKey();
-            esnsiIntegrationDao.createEsnsiVersionDataTableAndRemovePreviousIfNecessaryAndSaveStruct(struct);
+            esnsiLoadService.createEsnsiVersionDataTableAndRemovePreviousIfNecessaryAndSaveStruct(struct);
             GetClassifierRecordsCountRequestType getClassifierRecordsCountRequestType = objectFactory.createGetClassifierRecordsCountRequestType();
             getClassifierRecordsCountRequestType.setCode(classifierCode);
             getClassifierRecordsCountRequestType.setRevision(revision);

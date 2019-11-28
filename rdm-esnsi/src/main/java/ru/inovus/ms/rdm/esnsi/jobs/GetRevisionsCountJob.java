@@ -13,7 +13,7 @@ import static ru.inovus.ms.rdm.esnsi.jobs.EsnsiSyncJobUtils.PAGE_SIZE;
 
 @PersistJobDataAfterExecution
 @DisallowConcurrentExecution
-class GetRevisionsCountJob extends AbstractEsnsiDictionaryProcessingJob {
+public class GetRevisionsCountJob extends AbstractEsnsiDictionaryProcessingJob {
 
     @Override
     boolean execute0(JobExecutionContext context) throws Exception {

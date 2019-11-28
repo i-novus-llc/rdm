@@ -23,7 +23,7 @@ class GetLastRevisionJob extends AbstractEsnsiDictionaryProcessingJob {
             if (!revisionDescriptor.isEmpty()) {
                 GetClassifierRevisionListResponseType.RevisionDescriptor last = revisionDescriptor.listIterator(revisionDescriptor.size()).previous();
                 int revision = last.getRevision();
-                Integer lastDownloadedRevision = esnsiIntegrationDao.getLastVersionRevisionAndCreateNewIfNecessary(classifierCode);
+                Integer lastDownloadedRevision = esnsiLoadService.getLastVersionRevision(classifierCode);
                 if (lastDownloadedRevision == null || lastDownloadedRevision < revision) {
                     GetClassifierStructureRequestType getClassifierStructureRequestType = objectFactory.createGetClassifierStructureRequestType();
                     getClassifierStructureRequestType.setRevision(revision);
