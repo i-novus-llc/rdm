@@ -130,10 +130,18 @@ public class EsnsiLoaderDao {
     }
 
     @Transactional
-    public void setClassifierRevisionAndLastUpdatedTimestamp(String code, int revision, Timestamp timestamp) {
+    public void setClassifierRevisionAndLastUpdatedTimestamp(String code, Integer revision, Timestamp timestamp) {
+        Map<String, Object> args;
+        if (revision == null || timestamp == null) {
+            args = new HashMap<>();
+            args.put("code", code);
+            args.put(DB_REVISION_FIELD_NAME, revision);
+            args.put("timestamp", timestamp);
+        } else
+            args = Map.of("code", code, DB_REVISION_FIELD_NAME, revision, "timestamp", timestamp);
         namedParameterJdbcTemplate.update(
             "UPDATE esnsi_sync.version SET last_updated = :timestamp, revision = :revision WHERE code = :code",
-            Map.of("code", code, DB_REVISION_FIELD_NAME, revision, "timestamp", timestamp)
+            args
         );
     }
 

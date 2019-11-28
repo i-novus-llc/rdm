@@ -76,6 +76,14 @@ public class EsnsiLoadService {
         return true;
     }
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void cleanClassifierSyncHistory(String code) {
+        ClassifierProcessingStage stage = getClassifierProcessingStage(code);
+        if (stage != ClassifierProcessingStage.NONE)
+            throw new RdmException("Can't clean sync history of " + code + " classifier, because it's processing stage is not NONE. Wait until current sync ends or call 'shutdown' method explicitly.");
+        setClassifierRevisionAndLastUpdated(code, null, null);
+    }
+
     @Transactional
     public GetClassifierStructureResponseType getClassifierStruct(String code, int revision) {
         String struct = dao.getClassifierStruct(code, revision);
@@ -154,7 +162,7 @@ public class EsnsiLoadService {
     }
 
     @Transactional
-    public void setClassifierRevisionAndLastUpdated(String classifierCode, int revision, Timestamp timestamp) {
+    public void setClassifierRevisionAndLastUpdated(String classifierCode, Integer revision, Timestamp timestamp) {
         dao.setClassifierRevisionAndLastUpdatedTimestamp(classifierCode, revision, timestamp);
         dao.setClassifierProcessingStage(classifierCode, ClassifierProcessingStage.NONE);
     }
