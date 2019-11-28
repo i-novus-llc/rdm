@@ -13,7 +13,6 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
