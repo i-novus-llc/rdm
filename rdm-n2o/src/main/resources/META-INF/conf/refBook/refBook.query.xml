@@ -141,8 +141,8 @@
             </filters>
         </field>
 
-        <field id="lastPublishedVersionFromDate" domain="localdate">
-            <select mapping="lastPublishedVersionFromDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy'))"/>
+        <field id="lastPublishedVersionFromDate" domain="date">
+            <select/>
             <filters>
                 <more filter-id="lastPublishedVersionFromDateInterval.begin" mapping="fromDateBegin"/>
                 <less filter-id="lastPublishedVersionFromDateInterval.end" mapping="fromDateEnd"/>
