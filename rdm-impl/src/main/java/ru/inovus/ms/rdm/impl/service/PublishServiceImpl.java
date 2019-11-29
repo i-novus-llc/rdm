@@ -15,6 +15,7 @@ import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.inovus.ms.rdm.api.enumeration.FileType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.conflict.RefBookConflict;
 import ru.inovus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
@@ -118,6 +119,17 @@ public class PublishServiceImpl implements PublishService {
         versionValidation.validateDraft(draftId);
 
         RefBookVersionEntity draftEntity = versionRepository.findById(draftId).orElseThrow();
+        if (draftEntity.getStructure().getAttributes().isEmpty())
+            throw new UserException("draft.structure.is-empty");
+        boolean empty = true;
+        for (Structure.Attribute attr : draftEntity.getStructure().getAttributes()) {
+            if (draftDataService.isFieldNotEmpty(draftEntity.getStorageCode(), attr.getCode())) {
+                empty = false;
+                break;
+            }
+        }
+        if (empty)
+            throw new UserException("draft.has-no-data");
         Integer refBookId = draftEntity.getRefBook().getId();
 
         refBookLockService.setRefBookPublishing(refBookId);

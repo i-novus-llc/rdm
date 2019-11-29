@@ -105,6 +105,19 @@ public class EsnsiLoaderImpl implements EsnsiLoader {
         }
     }
 
+    @Override
+    public void cleanHistory() {
+        for (String classifierCode : codes) {
+            cleanHistory(classifierCode);
+        }
+    }
+
+    @Override
+    public void cleanHistory(String classifierCode) {
+        classifierCode = getCodeIgnoreCase(classifierCode);
+        esnsiLoadService.cleanClassifierSyncHistory(classifierCode);
+    }
+
     private String getCodeIgnoreCase(String classifierCode) {
         return codes.stream().filter(code -> code.equalsIgnoreCase(classifierCode)).findFirst().orElseThrow(() -> {
             throw new RdmException("Can't find classifier with code + " + classifierCode);

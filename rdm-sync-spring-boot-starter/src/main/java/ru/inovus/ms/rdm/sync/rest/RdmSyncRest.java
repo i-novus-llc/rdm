@@ -15,10 +15,11 @@ import java.util.List;
  * @author lgalimova
  * @since 20.02.2019
  */
+
 @Path("rdm")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-@Api("Синхронизация данных справочников НСИ")
+@Api(value = "Синхронизация данных справочников НСИ", hidden = true)
 public interface RdmSyncRest {
 
     @POST

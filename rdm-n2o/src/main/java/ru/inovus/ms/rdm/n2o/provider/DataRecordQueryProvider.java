@@ -2,8 +2,9 @@ package ru.inovus.ms.rdm.n2o.provider;
 
 import net.n2oapp.criteria.filters.FilterType;
 import net.n2oapp.framework.api.metadata.SourceMetadata;
+import net.n2oapp.framework.api.metadata.dataprovider.N2oJavaDataProvider;
+import net.n2oapp.framework.api.metadata.dataprovider.SpringProvider;
 import net.n2oapp.framework.api.metadata.global.dao.N2oQuery;
-import net.n2oapp.framework.api.metadata.global.dao.invocation.java.SpringInvocation;
 import net.n2oapp.framework.api.metadata.global.dao.invocation.model.Argument;
 import net.n2oapp.framework.api.register.DynamicMetadataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,9 +67,10 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
 
     private N2oQuery.Selection createSelection() {
 
-        SpringInvocation invocation = new SpringInvocation();
-        invocation.setClassName(CONTROLLER_CLASS_NAME);
-        invocation.setMethodName(CONTROLLER_METHOD);
+        N2oJavaDataProvider provider = new N2oJavaDataProvider();
+        provider.setClassName(CONTROLLER_CLASS_NAME);
+        provider.setMethod(CONTROLLER_METHOD);
+        provider.setSpringProvider(new SpringProvider());
 
         Argument versionId = new Argument();
         versionId.setType(Argument.Type.PRIMITIVE);
@@ -78,12 +80,12 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
         sysRecordId.setType(Argument.Type.PRIMITIVE);
         sysRecordId.setName("sysRecordId");
 
-        invocation.setArguments(new Argument[]{versionId, sysRecordId});
+        provider.setArguments(new Argument[]{versionId, sysRecordId});
 
         N2oQuery.Selection selection = new N2oQuery.Selection(N2oQuery.Selection.Type.list);
         selection.setFilters(VERSION_ID_NAME + ",sysRecordId");
         selection.setResultMapping("#this");
-        selection.setInvocation(invocation);
+        selection.setInvocation(provider);
         return selection;
     }
 
