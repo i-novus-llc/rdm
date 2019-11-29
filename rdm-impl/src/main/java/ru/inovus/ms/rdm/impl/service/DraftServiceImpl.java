@@ -16,7 +16,10 @@ import org.springframework.util.ObjectUtils;
 import ru.i_novus.components.common.exception.CodifiedException;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.exception.NotUniqueException;
-import ru.i_novus.platform.datastorage.temporal.model.*;
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
+import ru.i_novus.platform.datastorage.temporal.model.Field;
+import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
@@ -43,7 +46,10 @@ import ru.inovus.ms.rdm.api.model.validation.AttributeValidation;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidationRequest;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidationType;
 import ru.inovus.ms.rdm.api.model.version.*;
-import ru.inovus.ms.rdm.api.service.*;
+import ru.inovus.ms.rdm.api.service.DraftService;
+import ru.inovus.ms.rdm.api.service.RefBookService;
+import ru.inovus.ms.rdm.api.service.VersionFileService;
+import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
@@ -397,6 +403,18 @@ public class DraftServiceImpl implements DraftService {
         return versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
     }
 
+    private void setSystemIdIfPossible(Structure structure, Row row, int draftId) {
+        structure.getAttributes().stream().filter(Structure.Attribute::getIsPrimary).findFirst().ifPresent(pk -> {
+            SearchDataCriteria criteria = new SearchDataCriteria();
+            AttributeFilter filter = new AttributeFilter(
+                    pk.getCode(), row.getData().get(pk.getCode()), pk.getType(), SearchTypeEnum.EXACT
+            );
+            criteria.setAttributeFilter(Set.of(List.of(filter)));
+            Page<RefBookRowValue> search = versionService.search(draftId, criteria);
+            search.stream().findAny().ifPresent(val -> row.setSystemId(val.getSystemId()));
+        });
+    }
+
     @Override
     @Transactional
     public void updateData(Integer draftId, Row row) {
@@ -406,6 +424,8 @@ public class DraftServiceImpl implements DraftService {
 
         if (isEmptyRow(row))
             throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
+        if (row.getSystemId() == null)
+            setSystemIdIfPossible(draftVersion.getStructure(), row, draftId);
 
         validateDataByStructure(draftVersion, singletonList(row));
 
@@ -449,6 +469,7 @@ public class DraftServiceImpl implements DraftService {
         rows = rows.stream().filter(row -> !isEmptyRow(row)).collect(toList());
         if (isEmpty(rows))
             throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
+        rows.forEach(row -> setSystemIdIfPossible(draftVersion.getStructure(), row, draftId));
 
         validateDataByStructure(draftVersion, rows);
 
