@@ -79,7 +79,7 @@ public class RowsValidatorImpl implements RowsValidator {
     @Override
     public Result append(Row row) {
         if (!structureVerified) {
-            validateStruct(row);
+            validateRowStructure(row);
             structureVerified = true;
         }
         if (row.getData().values().stream().filter(Objects::nonNull).anyMatch(v -> !"".equals(v))) {
@@ -93,18 +93,17 @@ public class RowsValidatorImpl implements RowsValidator {
         return this.result;
     }
 
-    private void validateStruct(Row row) {
-        for (String key : row.getData().keySet()) {
-            boolean match = false;
-            for (Structure.Attribute attr : structure.getAttributes()) {
-                if (attr.getCode().equals(key)) {
-                    match = true;
-                    break;
-                }
-            }
-            if (!match)
-                throw new UserException("structure.does-not-match");
-        }
+    private void validateRowStructure(Row row) {
+
+        List<Structure.Attribute> attributes = structure.getAttributes();
+        if (attributes == null)
+            return;
+
+        boolean isNotKeyMatched = row.getData().keySet().stream()
+                .anyMatch(key -> attributes.stream()
+                        .noneMatch(attribute -> attribute.getCode().equals(key)));
+        if (isNotKeyMatched)
+            throw new UserException("structure.does-not-match");
     }
 
     @Override

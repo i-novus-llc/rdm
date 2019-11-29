@@ -2,13 +2,21 @@ package ru.inovus.ms.rdm.impl.validation;
 
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
+import org.apache.cxf.common.util.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.inovus.ms.rdm.api.exception.NotFoundException;
 import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.api.util.StructureUtils;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.inovus.ms.rdm.impl.util.NamingUtils;
+
+import java.util.List;
+
+import static org.springframework.util.StringUtils.isEmpty;
 
 @Component
 public class VersionValidationImpl implements VersionValidation {
@@ -19,6 +27,9 @@ public class VersionValidationImpl implements VersionValidation {
     public static final String REFBOOK_IS_ARCHIVED_EXCEPTION_CODE = "refbook.is.archived";
     private static final String VERSION_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "version.attribute.not.found";
     private static final String DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "draft.attribute.not.found";
+
+    private static final String REFERENCE_REFERRED_ATTRIBUTE_NOT_FOUND = "reference.referred.attribute.not.found";
+    private static final String REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND = "reference.referred.attributes.not.found";
 
     private RefBookVersionRepository versionRepository;
 
@@ -157,6 +168,40 @@ public class VersionValidationImpl implements VersionValidation {
         Structure structure = versionRepository.getOne(versionId).getStructure();
         if (structure.getAttribute(attribute) == null) {
             throw new NotFoundException(new Message(DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, versionId, attribute));
+        }
+    }
+
+    /** Проверка структуры.
+     *
+     * @param structure структура версии справочника
+     */
+    public void validateStructure(Structure structure) {
+        if (structure == null
+                || structure.getAttributes() == null)
+            return;
+
+        structure.getAttributes().forEach(attr -> NamingUtils.checkCode(attr.getCode()));
+    }
+
+    /**
+     * Проверка выражения для вычисления отображаемого ссылочного значения.
+     *
+     * @param displayExpression выражение для вычисления отображаемого ссылочного значения
+     * @param referredVersion   версия справочника, на который ссылаются
+     */
+    @Override
+    public void validateReferenceDisplayExpression(String displayExpression,
+                                                   RefBookVersion referredVersion) {
+        if (isEmpty(displayExpression))
+            return; // NB: to-do: throw exception and fix absent referredBook in testLifecycle.
+
+        List<String> incorrectFields = StructureUtils.getAbsentPlaceholders(displayExpression, referredVersion.getStructure());
+        if (!CollectionUtils.isEmpty(incorrectFields)) {
+            if (incorrectFields.size() == 1)
+                throw new UserException(new Message(REFERENCE_REFERRED_ATTRIBUTE_NOT_FOUND, incorrectFields.get(0)));
+
+            String incorrectCodes = String.join("\",\"", incorrectFields);
+            throw new UserException(new Message(REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND, incorrectCodes));
         }
     }
 }

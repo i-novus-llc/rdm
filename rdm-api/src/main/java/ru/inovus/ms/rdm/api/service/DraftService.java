@@ -77,6 +77,17 @@ public interface DraftService {
     void updateData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
                     @ApiParam("Запись черновика") Row row);
 
+    @POST
+    @ApiOperation("Добавление или изменение записей черновика")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Черновик обновлен"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    @Path("/updateList/{draftId}")
+    void updateData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
+                    @ApiParam("Записи черновика") List<Row> rows);
+
     @DELETE
     @ApiOperation("Удаление записи черновика")
     @ApiResponses({
