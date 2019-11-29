@@ -2074,6 +2074,7 @@ public class ApplicationTest {
         RefBook refToRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_to_diff_pk", null));
         Integer refToVersionId = refToRefBook.getId();
         draftService.createAttribute(new CreateAttribute(refToVersionId, id, null));
+        draftService.updateData(refToVersionId, new Row(null, Map.of("ID", 1)));
         publishService.publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
 
         Structure.Attribute id_id = Structure.Attribute.buildPrimary("ID_ID", "id_id", FieldType.INTEGER, "id_id");
@@ -2084,6 +2085,7 @@ public class ApplicationTest {
         Integer refFromVersionId = refFromRefBook.getId();
         draftService.createAttribute(new CreateAttribute(refFromVersionId, id_id, null));
         draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id, ref_id_ref));
+        draftService.updateData(refFromVersionId, new Row(null, Map.of("ID_ID", 1)));
         publishService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
 
         Draft draft = draftService.create(

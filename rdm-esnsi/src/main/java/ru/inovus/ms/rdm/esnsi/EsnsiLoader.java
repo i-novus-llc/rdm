@@ -35,4 +35,15 @@ public interface EsnsiLoader {
     @ApiOperation(value = "Остановить синхронизацию отдельного справочника")
     void shutdown(String classifierCode);
 
+    @POST
+    @Path("/cleanHistory")
+    @ApiOperation(value = "Отчистить историю синхронизации со всеми справочниками")
+    void cleanHistory();
+
+    @POST
+    @Path("/cleanHistory/{classifierCode}")
+    @ApiOperation(value = "Отчистить историю синхронизации с конкретным справочником")
+    void cleanHistory(String classifierCode);
+
+
 }
