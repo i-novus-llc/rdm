@@ -1,5 +1,7 @@
 package ru.inovus.ms.rdm.sync.criteria;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
 import ru.inovus.ms.rdm.api.model.AbstractCriteria;
@@ -14,19 +16,13 @@ import java.time.LocalDate;
  */
 @Getter
 @Setter
-/**
- * Критерии поиска записи журнала
- */
+@ApiModel("Критерии поиска записи журнала")
 public class LogCriteria extends AbstractCriteria {
-    /**
-     * Код справочника
-     */
+    @ApiModelProperty("Код справочника")
     @QueryParam("refbookCode")
     private String refbookCode;
 
-    /**
-     * Дата записи журнала
-     */
+    @ApiModelProperty("Дата записи журнала")
     @QueryParam("date")
     @NotNull
     private LocalDate date;
