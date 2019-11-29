@@ -181,13 +181,13 @@ public class DraftServiceImpl implements DraftService {
         switch (extension) {
             case "XLSX": return createByXlsx(fileModel);
             case "XML": return createByXml(fileModel);
-            default: throw new RdmException("invalid file extension");
+            default: throw new UserException("file.extension.invalid");
         }
     }
 
     @SuppressWarnings("unused")
     private Draft createByXlsx(FileModel fileModel) {
-        throw new RdmException("creating draft from xlsx is not implemented yet");
+        throw new UserException("xlsx.draft.creation.not-supported");
     }
 
     private Draft createByXml(FileModel fileModel) {
@@ -207,7 +207,7 @@ public class DraftServiceImpl implements DraftService {
         switch (extension) {
             case "XLSX": return updateDraftDataByXlsx(refBookId, fileModel, inputStreamSupplier);
             case "XML": return updateDraftDataByXml(refBookId, fileModel, inputStreamSupplier);
-            default: throw new RdmException("invalid file extension");
+            default: throw new RdmException("file.extension.invalid");
         }
     }
 
