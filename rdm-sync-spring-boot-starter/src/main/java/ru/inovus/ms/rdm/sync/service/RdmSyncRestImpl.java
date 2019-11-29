@@ -23,7 +23,6 @@ import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.api.service.CompareService;
 import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.api.service.VersionService;
-import ru.inovus.ms.rdm.api.util.TimeUtils;
 import ru.inovus.ms.rdm.sync.criteria.LogCriteria;
 import ru.inovus.ms.rdm.sync.model.DataTypeEnum;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
@@ -32,9 +31,6 @@ import ru.inovus.ms.rdm.sync.model.VersionMapping;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
 import ru.inovus.ms.rdm.sync.util.RefBookReferenceSort;
 
-import javax.ws.rs.BadRequestException;
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -133,14 +129,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
 
     @Override
     public List<Log> getLog(LogCriteria criteria) {
-        String date = criteria.getDate();
-        LocalDate parsed;
-        try {
-            parsed = TimeUtils.parseLocalDate(date);
-        } catch (DateTimeParseException ex) {
-            throw new BadRequestException("Can't parse date from the given string. Available formats are: " + TimeUtils.AVAILABLE_DATE_FORMATS_STR, ex);
-        }
-        return loggingService.getList(parsed, criteria.getRefbookCode());
+        return loggingService.getList(criteria.getDate(), criteria.getRefbookCode());
     }
 
     private VersionMapping getVersionMapping(String refbookCode) {

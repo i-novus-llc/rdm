@@ -13,8 +13,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 
-import static ru.inovus.ms.rdm.api.util.TimeUtils.AVAILABLE_DATE_FORMATS_STR;
-
 /**
  * @author lgalimova
  * @since 20.02.2019
@@ -42,7 +40,7 @@ public interface RdmSyncRest {
     @ApiOperation(value = "Получение журнала за дату")
     @ApiResponses({
         @ApiResponse(code = 200, message = "Успех"),
-        @ApiResponse(code = 400, message = "Укажите пожалуйста дату в правильном формате из доступных: [" + AVAILABLE_DATE_FORMATS_STR + "]")
+        @ApiResponse(code = 400, message = "Укажите пожалуйста дату в формате ISO_LOCAL_DATE [yyyy-MM-dd].")
     })
     List<Log> getLog(@BeanParam LogCriteria criteria);
 }
