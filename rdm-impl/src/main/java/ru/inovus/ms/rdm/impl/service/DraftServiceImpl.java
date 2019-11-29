@@ -105,11 +105,10 @@ public class DraftServiceImpl implements DraftService {
     private VersionValidation versionValidation;
 
     private PassportValueRepository passportValueRepository;
-
     private AttributeValidationRepository attributeValidationRepository;
+    private AttributeUpdateValidator attributeUpdateValidator;
 
     private AuditLogService auditLogService;
-    private AttributeUpdateValidator attributeUpdateValidator;
 
     private int errorCountLimit = 100;
 
@@ -121,8 +120,9 @@ public class DraftServiceImpl implements DraftService {
                             FileStorage fileStorage, FileNameGenerator fileNameGenerator,
                             VersionFileService versionFileService,
                             VersionValidation versionValidation,
-                            PassportValueRepository passportValueRepository, AttributeValidationRepository attributeValidationRepository,
-                            AuditLogService auditLogService, AttributeUpdateValidator attributeUpdateValidator) {
+                            PassportValueRepository passportValueRepository,
+                            AttributeValidationRepository attributeValidationRepository, AttributeUpdateValidator attributeUpdateValidator,
+                            AuditLogService auditLogService) {
         this.versionRepository = versionRepository;
         this.conflictRepository = conflictRepository;
 
@@ -142,8 +142,9 @@ public class DraftServiceImpl implements DraftService {
 
         this.passportValueRepository = passportValueRepository;
         this.attributeValidationRepository = attributeValidationRepository;
-        this.auditLogService = auditLogService;
         this.attributeUpdateValidator = attributeUpdateValidator;
+
+        this.auditLogService = auditLogService;
     }
 
     @Value("${rdm.validation-errors-count}")

@@ -4,7 +4,7 @@
 
     <groupId>ru.inovus.ms.rdm</groupId>
     <artifactId>rdm</artifactId>
-    <version>1.100-SNAPSHOT</version>
+    <version>1.101-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -20,7 +20,7 @@
         <apache.poi.version>3.17</apache.poi.version>
         <filestorage.version>2.2</filestorage.version>
         <vds.version>2.15</vds.version>
-        <n2o.version>7.3.31</n2o.version>
+        <n2o.version>7.4.8</n2o.version>
         <itext.version>5.5.9</itext.version>
         <commons.text.version>1.6</commons.text.version>
         <xmlunit.version>1.6</xmlunit.version>
