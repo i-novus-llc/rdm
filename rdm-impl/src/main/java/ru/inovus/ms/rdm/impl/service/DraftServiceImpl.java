@@ -60,7 +60,6 @@ import ru.inovus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.ConverterUtil;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
-import ru.inovus.ms.rdm.impl.util.NamingUtils;
 import ru.inovus.ms.rdm.impl.util.RowDiff;
 import ru.inovus.ms.rdm.impl.util.RowDiffUtils;
 import ru.inovus.ms.rdm.impl.validation.AttributeUpdateValidator;
@@ -284,7 +283,8 @@ public class DraftServiceImpl implements DraftService {
 
     private BiConsumer<String, Structure> getSaveDraftConsumer(Integer refBookId) {
         return (storageCode, structure) -> {
-            structure.getAttributes().forEach(attr -> NamingUtils.checkCode(attr.getCode()));
+            versionValidation.validateStructure(structure);
+
             RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
             RefBookVersionEntity draftVersion = getDraftByRefBook(refBookId);
             if (draftVersion == null && lastRefBookVersion == null)
@@ -367,8 +367,9 @@ public class DraftServiceImpl implements DraftService {
 
     private RefBookVersionEntity updateDraft(Structure structure, RefBookVersionEntity draftVersion, List<Field> fields, List<PassportValueEntity> passportValues) {
 
+        versionValidation.validateStructure(structure);
+
         String draftCode = draftVersion.getStorageCode();
-        structure.getAttributes().forEach(attr -> NamingUtils.checkCode(attr.getCode()));
 
         if (!structure.equals(draftVersion.getStructure())) {
             Integer refBookId = draftVersion.getRefBook().getId();
@@ -400,7 +401,9 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private RefBookVersionEntity newDraftVersion(Structure structure, List<PassportValueEntity> passportValues) {
-        structure.getAttributes().forEach(attr -> NamingUtils.checkCode(attr.getCode()));
+
+        versionValidation.validateStructure(structure);
+
         RefBookVersionEntity draftVersion = new RefBookVersionEntity();
         draftVersion.setStatus(RefBookVersionStatus.DRAFT);
         draftVersion.setPassportValues(passportValues.stream()
@@ -640,7 +643,7 @@ public class DraftServiceImpl implements DraftService {
 
         Structure.Attribute attribute = createAttribute.getAttribute();
         validateRequired(attribute, draftEntity.getStorageCode(), structure);
-        NamingUtils.checkCode(createAttribute.getAttribute().getCode());
+        versionValidation.validateStructure(structure);
 
         //clear previous primary keys
         if (createAttribute.getAttribute().getIsPrimary())
@@ -697,7 +700,7 @@ public class DraftServiceImpl implements DraftService {
 
         Structure.Attribute attribute = structure.getAttribute(updateAttribute.getCode());
         attributeUpdateValidator.validateUpdateAttribute(updateAttribute, attribute, draftEntity.getStorageCode());
-        NamingUtils.checkCode(updateAttribute.getCode());
+        versionValidation.validateStructure(structure);
 
         if (updateAttribute.isReferenceType()) {
             String newDisplayExpression = updateAttribute.getDisplayExpression().get();

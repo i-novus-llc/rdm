@@ -21,6 +21,8 @@ public interface VersionValidation {
 
     void validateDraftAttributeExists(Integer versionId, String attribute);
 
+    void validateStructure(Structure structure);
+
     void validateReferenceDisplayExpression(String displayExpression,
                                             RefBookVersion referredVersion);
 }

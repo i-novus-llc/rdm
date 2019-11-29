@@ -12,6 +12,7 @@ import ru.inovus.ms.rdm.api.util.StructureUtils;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.inovus.ms.rdm.impl.util.NamingUtils;
 
 import java.util.List;
 
@@ -168,6 +169,18 @@ public class VersionValidationImpl implements VersionValidation {
         if (structure.getAttribute(attribute) == null) {
             throw new NotFoundException(new Message(DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, versionId, attribute));
         }
+    }
+
+    /** Проверка структуры.
+     *
+     * @param structure структура версии справочника
+     */
+    public void validateStructure(Structure structure) {
+        if (structure == null
+                || structure.getAttributes() == null)
+            return;
+
+        structure.getAttributes().forEach(attr -> NamingUtils.checkCode(attr.getCode()));
     }
 
     /**
