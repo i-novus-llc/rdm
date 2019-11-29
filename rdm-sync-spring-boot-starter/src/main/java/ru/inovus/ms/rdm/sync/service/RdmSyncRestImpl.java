@@ -138,7 +138,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         try {
             parsed = TimeUtils.parseLocalDate(date);
         } catch (DateTimeParseException ex) {
-            throw new BadRequestException("Can't parse date from the given string. Available formats are: " + TimeUtils.AVAILABLE_DATE_FORMATS_STR);
+            throw new BadRequestException("Can't parse date from the given string. Available formats are: " + TimeUtils.AVAILABLE_DATE_FORMATS_STR, ex);
         }
         return loggingService.getList(parsed, criteria.getRefbookCode());
     }
