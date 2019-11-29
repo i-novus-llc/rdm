@@ -463,12 +463,10 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
 
-        if (isEmpty(rows))
-            throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
+        if (isEmpty(rows)) throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
 
         rows = rows.stream().filter(row -> !isEmptyRow(row)).collect(toList());
-        if (isEmpty(rows))
-            throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
+        if (isEmpty(rows)) throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
         rows.stream().filter(row -> row.getSystemId() == null).forEach(row -> setSystemIdIfPossible(draftVersion.getStructure(), row, draftId));
 
         validateDataByStructure(draftVersion, rows);
@@ -496,8 +494,7 @@ public class DraftServiceImpl implements DraftService {
                     .filter(systemId -> isNotSystemIdRowValue(systemId, oldRowValues))
                     .map(systemId -> new Message(ROW_NOT_FOUND_EXCEPTION_CODE, systemId))
                     .collect(toList());
-            if (!isEmpty(messages))
-                throw new UserException(messages);
+            if (!isEmpty(messages)) throw new UserException(messages);
 
             List<RowDiff> rowDiffs = oldRowValues.stream()
                     .map(oldRowValue -> {
@@ -514,8 +511,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private boolean isNotSystemIdRowValue(Object systemId, List<RowValue> rowValues) {
-        return isEmpty(rowValues) ||
-                rowValues.stream().noneMatch(rowValue -> systemId.equals(rowValue.getSystemId()));
+        return isEmpty(rowValues) || rowValues.stream().noneMatch(rowValue -> systemId.equals(rowValue.getSystemId()));
     }
 
     private RowValue getSystemIdRowValue(Object systemId, List<RowValue> rowValues) {
@@ -527,8 +523,7 @@ public class DraftServiceImpl implements DraftService {
     /** Валидация добавляемых/обновляемых строк данных по структуре. */
     private void validateDataByStructure(RefBookVersionEntity draftVersion, List<Row> rows) {
 
-        if (isEmpty(rows))
-            return;
+        if (isEmpty(rows)) return;
 
         RowsValidator validator = new RowsValidatorImpl(versionService, searchDataService,
                 draftVersion.getStructure(), draftVersion.getStorageCode(), errorCountLimit, false,
@@ -647,8 +642,7 @@ public class DraftServiceImpl implements DraftService {
 
         Structure.Reference reference = createAttribute.getReference();
         boolean isReference = Objects.nonNull(reference) && !reference.isNull();
-        if (isReference != attribute.isReferenceType())
-            throw new IllegalArgumentException(ILLEGAL_CREATE_ATTRIBUTE_EXCEPTION_CODE);
+        if (isReference != attribute.isReferenceType()) throw new IllegalArgumentException(ILLEGAL_CREATE_ATTRIBUTE_EXCEPTION_CODE);
 
         if (isReference) {
             validateDisplayExpression(reference.getDisplayExpression(), reference.getReferenceCode());
@@ -968,8 +962,7 @@ public class DraftServiceImpl implements DraftService {
     public Integer getIdByRefBookCode(String refBookCode) {
 
         RefBookVersionEntity draftEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.DRAFT);
-        if (draftEntity == null)
-            throw new NotFoundException(new Message(REFBOOK_DRAFT_NOT_FOUND_EXCEPTION_CODE, refBookCode));
+        if (draftEntity == null) throw new NotFoundException(new Message(REFBOOK_DRAFT_NOT_FOUND_EXCEPTION_CODE, refBookCode));
 
         return draftEntity.getId();
     }
