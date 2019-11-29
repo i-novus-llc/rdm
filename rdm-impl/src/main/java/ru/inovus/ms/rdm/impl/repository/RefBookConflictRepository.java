@@ -10,6 +10,7 @@ import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.api.enumeration.ConflictType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface RefBookConflictRepository extends
@@ -89,6 +90,11 @@ public interface RefBookConflictRepository extends
      * Удаление конфликтов по заданной записи данных.
      */
     void deleteByReferrerVersionIdAndRefRecordId(Integer referrerVersionId, Long refRecordId);
+
+    /**
+     * Удаление конфликтов по заданным записям данных.
+     */
+    void deleteByReferrerVersionIdAndRefRecordIdIn(Integer referrerVersionId, Collection<Long> refRecordIds);
 
     /**
      * Удаление конфликтов данных.
