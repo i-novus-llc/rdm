@@ -48,10 +48,7 @@ import ru.inovus.ms.rdm.api.util.FileNameGenerator;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.*;
-import ru.inovus.ms.rdm.impl.file.FileStorage;
-import ru.inovus.ms.rdm.impl.file.NonStrictOnTypeRowMapper;
-import ru.inovus.ms.rdm.impl.file.PlainRowMapper;
-import ru.inovus.ms.rdm.impl.file.StructureRowMapper;
+import ru.inovus.ms.rdm.impl.file.*;
 import ru.inovus.ms.rdm.impl.file.export.VersionDataIterator;
 import ru.inovus.ms.rdm.impl.file.process.*;
 import ru.inovus.ms.rdm.impl.repository.AttributeValidationRepository;
@@ -193,18 +190,13 @@ public class DraftServiceImpl implements DraftService {
 
     private Draft createByXml(FileModel fileModel) {
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
-        try(XmlCreateRefBookFileProcessor createRefBookFileProcessor = new XmlCreateRefBookFileProcessor(refBookService)) {
+        try (XmlCreateRefBookFileProcessor createRefBookFileProcessor = new XmlCreateRefBookFileProcessor(refBookService)) {
             RefBook refBook = createRefBookFileProcessor.process(inputStreamSupplier);
             return updateDraftDataByXml(refBook.getRefBookId(), fileModel, inputStreamSupplier);
         }
     }
 
-    /** Обновление данных черновика справочника из файла.
-     *
-     * @param refBookId идентификатор справочника
-     * @param fileModel файл
-     * @return Черновик справочника
-     */
+    /** Обновление данных черновика справочника из файла. */
     private Draft updateDraftDataByFile(Integer refBookId, FileModel fileModel) {
 
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
@@ -218,63 +210,51 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private Draft updateDraftDataByXlsx(Integer refBookId, FileModel fileModel, Supplier<InputStream> inputStreamSupplier) {
-        BiConsumer<String, Structure> saveDraftConsumer = getSaveDraftConsumer(refBookId);
-        RowsProcessor rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, saveDraftConsumer);
 
         String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
-        try (FilePerRowProcessor persister = FileProcessorFactory.createProcessor(extension,
-                rowsProcessor, new PlainRowMapper())) {
-            persister.process(inputStreamSupplier);
-
-        } catch (IOException e) {
-            throw new RdmException(e);
-        }
+        BiConsumer<String, Structure> saveDraftConsumer = getSaveDraftConsumer(refBookId);
+        RowsProcessor rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, saveDraftConsumer);
+        processFileRows(extension, rowsProcessor, new PlainRowMapper(), inputStreamSupplier);
 
         RefBookVersionEntity createdDraft = getDraftByRefBook(refBookId);
         return new Draft(createdDraft.getId(), createdDraft.getStorageCode());
     }
 
     private Draft updateDraftDataByXml(Integer refBookId, FileModel fileModel, Supplier<InputStream> inputStreamSupplier) {
-        try(XmlUpdateDraftFileProcessor xmlUpdateDraftFileProcessor = new XmlUpdateDraftFileProcessor(refBookId, this)) {
+
+        try (XmlUpdateDraftFileProcessor xmlUpdateDraftFileProcessor = new XmlUpdateDraftFileProcessor(refBookId, this)) {
             Draft draft = xmlUpdateDraftFileProcessor.process(inputStreamSupplier);
             updateDraftData(versionRepository.getOne(draft.getId()), fileModel);
             return draft;
         }
     }
 
-    /** Обновление данных черновика из файла.
-     *
-     * @param draft     черновик
-     * @param fileModel файл
-     */
+    /** Обновление данных черновика из файла. */
     private void updateDraftData(RefBookVersionEntity draft, FileModel fileModel) {
 
-        String storageCode = draft.getStorageCode();
         Structure structure = draft.getStructure();
 
         String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
 
+        RowsProcessor rowsValidator = new RowsValidatorImpl(
+                versionService, searchDataService,
+                structure, draft.getStorageCode(), errorCountLimit, false,
+                attributeValidationRepository.findAllByVersionId(draft.getId())
+        );
         StructureRowMapper nonStrictOnTypeRowMapper = new NonStrictOnTypeRowMapper(structure, versionRepository);
-        try (FilePerRowProcessor validator = FileProcessorFactory
-                .createProcessor(extension,
-                        new RowsValidatorImpl(versionService, searchDataService,
-                                structure, storageCode, errorCountLimit, false,
-                                attributeValidationRepository.findAllByVersionId(draft.getId())
-                        ),
-                        nonStrictOnTypeRowMapper)) {
-            validator.process(inputStreamSupplier);
+        processFileRows(extension, rowsValidator, nonStrictOnTypeRowMapper, inputStreamSupplier);
 
-        } catch (IOException e) {
-            throw new RdmException(e);
-        }
-
+        RowsProcessor rowsPersister = new BufferedRowsPersister(draftDataService, draft.getStorageCode(), structure);
         StructureRowMapper structureRowMapper = new StructureRowMapper(structure, versionRepository);
-        try (FilePerRowProcessor persister = FileProcessorFactory
-                .createProcessor(extension,
-                        new BufferedRowsPersister(draftDataService, storageCode, structure),
-                        structureRowMapper)) {
-            persister.process(inputStreamSupplier);
+        processFileRows(extension, rowsPersister, structureRowMapper, inputStreamSupplier);
+    }
+
+    /** Обработка строк файла в соответствии с заданными параметрами. */
+    private void processFileRows(String extension, RowsProcessor rowsProcessor, RowMapper rowMapper,
+                                 Supplier<InputStream> fileSupplier) {
+        try (FilePerRowProcessor persister = FileProcessorFactory.createProcessor(extension, rowsProcessor, rowMapper)) {
+            persister.process(fileSupplier);
 
         } catch (IOException e) {
             throw new RdmException(e);
