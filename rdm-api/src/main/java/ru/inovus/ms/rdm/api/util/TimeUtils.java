@@ -127,23 +127,19 @@ public final class TimeUtils {
         return convert(localDateTime, UNIVERSAL_TIMEZONE, LOCALIZED_TIMEZONE);
     }
 
-    public static LocalDate parseLocalDate(Object value) {
+    public static LocalDate parseLocalDate(Object value) throws DateTimeParseException {
         if (value instanceof Date)
             return ((Date) value).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         if (value instanceof LocalDate)
             return (LocalDate) value;
         if (value instanceof LocalDateTime)
             return ((LocalDateTime) value).toLocalDate();
-        try {
             return LocalDate.parse(
                     String.valueOf(value),
                     String.valueOf(value).contains(".")
                             ? DATE_PATTERN_EUROPEAN_FORMATTER
                             : DATE_PATTERN_ISO_FORMATTER
             );
-        } catch (DateTimeParseException e) {
-            return null;
-        }
     }
 
     public static String format(LocalDate localDate) {

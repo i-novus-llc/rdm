@@ -34,6 +34,7 @@ import ru.inovus.ms.rdm.sync.util.RefBookReferenceSort;
 
 import javax.ws.rs.BadRequestException;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -133,9 +134,12 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     @Override
     public List<Log> getLog(LogCriteria criteria) {
         String date = criteria.getDate();
-        LocalDate parsed = TimeUtils.parseLocalDate(date);
-        if (parsed == null)
+        LocalDate parsed;
+        try {
+            parsed = TimeUtils.parseLocalDate(date);
+        } catch (DateTimeParseException ex) {
             throw new BadRequestException("Can't parse date from the given string. Available formats are: " + TimeUtils.AVAILABLE_DATE_FORMATS_STR);
+        }
         return loggingService.getList(parsed, criteria.getRefbookCode());
     }
 
