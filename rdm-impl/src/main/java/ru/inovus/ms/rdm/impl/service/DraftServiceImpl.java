@@ -469,7 +469,7 @@ public class DraftServiceImpl implements DraftService {
         rows = rows.stream().filter(row -> !isEmptyRow(row)).collect(toList());
         if (isEmpty(rows))
             throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
-        rows.forEach(row -> setSystemIdIfPossible(draftVersion.getStructure(), row, draftId));
+        rows.stream().filter(row -> row.getSystemId() == null).forEach(row -> setSystemIdIfPossible(draftVersion.getStructure(), row, draftId));
 
         validateDataByStructure(draftVersion, rows);
 
