@@ -34,7 +34,6 @@ import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
-import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.api.model.refdata.RowValuePage;
@@ -82,6 +81,7 @@ import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.isVersion
 public class DraftServiceImpl implements DraftService {
 
     private static final String ILLEGAL_CREATE_ATTRIBUTE_EXCEPTION_CODE = "Can not update structure, illegal create attribute";
+    private static final String REFBOOK_DRAFT_NOT_FOUND_EXCEPTION_CODE = "refbook.draft.not.found";
     private static final String ROW_NOT_UNIQUE_EXCEPTION_CODE = "row.not.unique";
     private static final String ROW_IS_EMPTY_EXCEPTION_CODE = "row.is.empty";
     private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
@@ -175,6 +175,7 @@ public class DraftServiceImpl implements DraftService {
     @Override
     @Transactional(timeout = 1200000)
     public Draft create(FileModel fileModel) {
+
         String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
         switch (extension) {
             case "XLSX": return createByXlsx(fileModel);
@@ -189,6 +190,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private Draft createByXml(FileModel fileModel) {
+
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
         try (XmlCreateRefBookFileProcessor createRefBookFileProcessor = new XmlCreateRefBookFileProcessor(refBookService)) {
             RefBook refBook = createRefBookFileProcessor.process(inputStreamSupplier);
@@ -200,7 +202,6 @@ public class DraftServiceImpl implements DraftService {
     private Draft updateDraftDataByFile(Integer refBookId, FileModel fileModel) {
 
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
-
         String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
         switch (extension) {
             case "XLSX": return updateDraftDataByXlsx(refBookId, fileModel, inputStreamSupplier);
@@ -237,11 +238,9 @@ public class DraftServiceImpl implements DraftService {
         String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
 
-        RowsProcessor rowsValidator = new RowsValidatorImpl(
-                versionService, searchDataService,
+        RowsProcessor rowsValidator = new RowsValidatorImpl(versionService, searchDataService,
                 structure, draft.getStorageCode(), errorCountLimit, false,
-                attributeValidationRepository.findAllByVersionId(draft.getId())
-        );
+                attributeValidationRepository.findAllByVersionId(draft.getId()));
         StructureRowMapper nonStrictOnTypeRowMapper = new NonStrictOnTypeRowMapper(structure, versionRepository);
         processFileRows(extension, rowsValidator, nonStrictOnTypeRowMapper, inputStreamSupplier);
 
@@ -481,13 +480,11 @@ public class DraftServiceImpl implements DraftService {
             List<RowDiff> rowDiffs = oldRowValues.stream()
                     .map(oldRowValue -> {
                         RowValue newRowValue = getSystemIdRowValue(oldRowValue.getSystemId(), updatedRowValues);
-                        return RowDiffUtils.getRowDiff(oldRowValue, newRowValue);
-                    })
+                        return RowDiffUtils.getRowDiff(oldRowValue, newRowValue); })
                     .collect(toList());
 
             conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftVersion.getId(),
-                    systemIds.stream().map(systemId -> (Long) systemId).collect(toList())
-            );
+                    systemIds.stream().map(systemId -> (Long) systemId).collect(toList()));
             draftDataService.updateRows(draftVersion.getStorageCode(), updatedRowValues);
 
             auditEditData(draftVersion, "update_rows", rowDiffs);
@@ -513,9 +510,7 @@ public class DraftServiceImpl implements DraftService {
 
         RowsValidator validator = new RowsValidatorImpl(versionService, searchDataService,
                 draftVersion.getStructure(), draftVersion.getStorageCode(), errorCountLimit, false,
-                attributeValidationRepository.findAllByVersionId(draftVersion.getId())
-        );
-
+                attributeValidationRepository.findAllByVersionId(draftVersion.getId()));
         NonStrictOnTypeRowMapper nonStrictOnTypeRowMapper = new NonStrictOnTypeRowMapper(draftVersion.getStructure(), versionRepository);
         rows.forEach(row -> validator.append(nonStrictOnTypeRowMapper.map(row)));
         validator.process();
@@ -523,8 +518,7 @@ public class DraftServiceImpl implements DraftService {
 
     /** Проверка строки данных на наличие значений. */
     private boolean isEmptyRow(Row row) {
-        return row == null ||
-                row.getData().values().stream().allMatch(ObjectUtils::isEmpty);
+        return row == null || row.getData().values().stream().allMatch(ObjectUtils::isEmpty);
     }
 
     @Override
@@ -654,6 +648,7 @@ public class DraftServiceImpl implements DraftService {
             structure.getReferences().add(reference);
         }
         draftEntity.setStructure(structure);
+
         auditStructureEdit(draftEntity, "create_attribute", createAttribute.getAttribute());
     }
 
@@ -825,8 +820,8 @@ public class DraftServiceImpl implements DraftService {
             throw new UserException(ROW_NOT_UNIQUE_EXCEPTION_CODE, e);
         }
 
-        attributeValidationRepository.deleteAll(
-                attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attributeCode));
+        attributeValidationRepository.deleteAll(attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attributeCode));
+
         auditStructureEdit(draftEntity, "delete_attribute", attribute);
     }
 
@@ -949,11 +944,12 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     public Integer getIdByRefBookCode(String refBookCode) {
-        RefBookCriteria criteria = new RefBookCriteria();
-        criteria.setCode(refBookCode);
-        criteria.setExcludeDraft(false);
-        Page<RefBook> search = refBookService.search(criteria);
-        return search.stream().findFirst().map(RefBook::getDraftVersionId).orElse(null);
+
+        RefBookVersionEntity draftEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.DRAFT);
+        if (draftEntity == null)
+            throw new NotFoundException(new Message(REFBOOK_DRAFT_NOT_FOUND_EXCEPTION_CODE, refBookCode));
+
+        return draftEntity.getId();
     }
 
     private void auditStructureEdit(RefBookVersionEntity refBook, String action, Structure.Attribute attribute) {
