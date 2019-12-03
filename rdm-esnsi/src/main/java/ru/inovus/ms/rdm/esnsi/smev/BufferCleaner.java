@@ -31,7 +31,7 @@ public class BufferCleaner implements Job {
     public void execute(JobExecutionContext context) throws JobExecutionException {
         LocalDateTime bound = LocalDateTime.now(Clock.systemUTC()).minus(timeFilterMinutes, ChronoUnit.MINUTES);
         int n = msgBuffer.removeExpiredMessages(bound);
-        logger.info("{} removed from message buffer.", n);
+        logger.info("{} expired messages removed from message buffer.", n);
     }
 
 }
