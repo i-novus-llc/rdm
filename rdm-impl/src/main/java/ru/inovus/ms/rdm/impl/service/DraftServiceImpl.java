@@ -112,11 +112,10 @@ public class DraftServiceImpl implements DraftService {
     private VersionValidation versionValidation;
 
     private PassportValueRepository passportValueRepository;
-
     private AttributeValidationRepository attributeValidationRepository;
+    private AttributeUpdateValidator attributeUpdateValidator;
 
     private AuditLogService auditLogService;
-    private AttributeUpdateValidator attributeUpdateValidator;
 
     private int errorCountLimit = 100;
 
@@ -128,8 +127,9 @@ public class DraftServiceImpl implements DraftService {
                             FileStorage fileStorage, FileNameGenerator fileNameGenerator,
                             VersionFileService versionFileService,
                             VersionValidation versionValidation,
-                            PassportValueRepository passportValueRepository, AttributeValidationRepository attributeValidationRepository,
-                            AuditLogService auditLogService, AttributeUpdateValidator attributeUpdateValidator) {
+                            PassportValueRepository passportValueRepository,
+                            AttributeValidationRepository attributeValidationRepository, AttributeUpdateValidator attributeUpdateValidator,
+                            AuditLogService auditLogService) {
         this.versionRepository = versionRepository;
         this.conflictRepository = conflictRepository;
 
@@ -149,8 +149,9 @@ public class DraftServiceImpl implements DraftService {
 
         this.passportValueRepository = passportValueRepository;
         this.attributeValidationRepository = attributeValidationRepository;
-        this.auditLogService = auditLogService;
         this.attributeUpdateValidator = attributeUpdateValidator;
+
+        this.auditLogService = auditLogService;
     }
 
     @Value("${rdm.validation-errors-count}")
@@ -187,13 +188,13 @@ public class DraftServiceImpl implements DraftService {
         switch (extension) {
             case "XLSX": return createByXlsx(fileModel);
             case "XML": return createByXml(fileModel);
-            default: throw new RdmException("invalid file extension");
+            default: throw new UserException("file.extension.invalid");
         }
     }
 
     @SuppressWarnings("unused")
     private Draft createByXlsx(FileModel fileModel) {
-        throw new RdmException("creating draft from xlsx is not implemented yet");
+        throw new UserException("xlsx.draft.creation.not-supported");
     }
 
     private Draft createByXml(FileModel fileModel) {
@@ -213,7 +214,7 @@ public class DraftServiceImpl implements DraftService {
         switch (extension) {
             case "XLSX": return updateDraftDataByXlsx(refBookId, fileModel, inputStreamSupplier);
             case "XML": return updateDraftDataByXml(refBookId, fileModel, inputStreamSupplier);
-            default: throw new RdmException("invalid file extension");
+            default: throw new RdmException("file.extension.invalid");
         }
     }
 
@@ -578,8 +579,8 @@ public class DraftServiceImpl implements DraftService {
         } finally {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
-
-        auditLogService.addAction(AuditAction.UPLOAD_DATA, () -> draftVersion);
+//      Нельзя просто передать draftVersion, так как в аудите подтягиваются значения пасспорта справочника (а у них lazy инициализация), поэтому нужна транзакция (которой в этом методе нет)
+        auditLogService.addAction(AuditAction.UPLOAD_DATA, () -> versionRepository.findById(draftId).get());
     }
 
     @Override

@@ -28,4 +28,5 @@ buildNumber.properties
 
 *.dbs.bak
 ~$*.*
+**/package-lock.json
 
