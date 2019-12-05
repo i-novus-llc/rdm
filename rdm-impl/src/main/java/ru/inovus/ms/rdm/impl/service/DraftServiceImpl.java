@@ -74,6 +74,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
@@ -404,15 +405,23 @@ public class DraftServiceImpl implements DraftService {
         return versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
     }
 
-    private void setSystemIdIfPossible(Structure structure, Row row, int draftId) {
+    private void setSystemIdIfPossible(Structure structure, List<Row> rows, int draftId) {
         structure.getAttributes().stream().filter(Structure.Attribute::getIsPrimary).findFirst().ifPresent(pk -> {
             SearchDataCriteria criteria = new SearchDataCriteria();
-            AttributeFilter filter = new AttributeFilter(
+            List<AttributeFilter> filters = new ArrayList<>(rows.size());
+            for (Row row : rows) {
+                filters.add(new AttributeFilter(
                     pk.getCode(), row.getData().get(pk.getCode()), pk.getType(), SearchTypeEnum.EXACT
-            );
-            criteria.setAttributeFilter(Set.of(List.of(filter)));
+                ));
+            }
+            criteria.setAttributeFilter(Set.of(filters));
             Page<RefBookRowValue> search = versionService.search(draftId, criteria);
-            search.stream().findAny().ifPresent(val -> row.setSystemId(val.getSystemId()));
+            search.forEach(val -> {
+                for (Row row : rows) {
+                    if (row.getData().get(pk.getCode()).equals(val.getFieldValue(pk.getCode())))
+                        row.setSystemId(val.getSystemId());
+                }
+            });
         });
     }
 
@@ -425,10 +434,10 @@ public class DraftServiceImpl implements DraftService {
 
         if (isEmptyRow(row))
             throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
-        if (row.getSystemId() == null)
-            setSystemIdIfPossible(draftVersion.getStructure(), row, draftId);
 
         validateDataByStructure(draftVersion, singletonList(row));
+        if (row.getSystemId() == null)
+            setSystemIdIfPossible(draftVersion.getStructure(), singletonList(row), draftId);
 
         StructureRowMapper rowMapper = new StructureRowMapper(draftVersion.getStructure(), versionRepository);
         RowValue newRowValue = ConverterUtil.rowValue(rowMapper.map(row), draftVersion.getStructure());
@@ -468,9 +477,8 @@ public class DraftServiceImpl implements DraftService {
 
         rows = rows.stream().filter(row -> !isEmptyRow(row)).collect(toList());
         if (isEmpty(rows)) throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
-        rows.stream().filter(row -> row.getSystemId() == null).forEach(row -> setSystemIdIfPossible(draftVersion.getStructure(), row, draftId));
-
         validateDataByStructure(draftVersion, rows);
+        setSystemIdIfPossible(draftVersion.getStructure(), rows.stream().filter(row -> row.getSystemId() == null).collect(Collectors.toList()), draftId);
 
         StructureRowMapper rowMapper = new StructureRowMapper(draftVersion.getStructure(), versionRepository);
         List<RowValue> newRowValues = rows.stream()
