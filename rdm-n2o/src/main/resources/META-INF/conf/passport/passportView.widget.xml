@@ -6,6 +6,6 @@
         <input-text id="name" label="Наименование:" enabled="false"/>
         <input-text id="shortName" label="Краткое наименование:" enabled="false"/>
         <input-text id="category.id" label="Категория:" enabled="false"/>
-        <input-text id="description" label="Описание:" enabled="false"/>
+        <text-area id="description" label="Описание:" enabled="false"/>
     </fields>
 </form>
