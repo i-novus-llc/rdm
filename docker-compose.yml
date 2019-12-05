@@ -28,8 +28,6 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/rdm
       SERVER_TOMCAT_ACCESSLOG_ENABLED: "true"
-      N2O_PLATFORM_SECURITY_KEY_SET_URI : "https://keycloak.i-novus.ru/auth/realms/rdm/protocol/openid-connect/certs"
-      N2O_PLATFORM_SECURITY_RESOURCE_ID: "localhost"
       JAVA_OPTS: -Xmx200m
     depends_on:
       - db

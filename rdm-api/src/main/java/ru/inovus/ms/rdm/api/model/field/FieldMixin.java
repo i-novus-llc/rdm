@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
         include = JsonTypeInfo.As.PROPERTY,
-        property = "type")
+        property = "id")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = CommonField.class, name = "BooleanField"),
         @JsonSubTypes.Type(value = CommonField.class, name = "DateField"),

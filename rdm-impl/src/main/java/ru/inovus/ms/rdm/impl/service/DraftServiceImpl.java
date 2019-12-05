@@ -562,8 +562,8 @@ public class DraftServiceImpl implements DraftService {
         } finally {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
-
-        auditLogService.addAction(AuditAction.UPLOAD_DATA, () -> draftVersion);
+//      Нельзя просто передать draftVersion, так как в аудите подтягиваются значения пасспорта справочника (а у них lazy инициализация), поэтому нужна транзакция (которой в этом методе нет)
+        auditLogService.addAction(AuditAction.UPLOAD_DATA, () -> versionRepository.findById(draftId).get());
     }
 
     @Override
