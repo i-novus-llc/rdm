@@ -37,12 +37,12 @@ public interface EsnsiLoader {
 
     @POST
     @Path("/cleanHistory")
-    @ApiOperation(value = "Отчистить историю синхронизации со всеми справочниками")
+    @ApiOperation(value = "Очистить историю синхронизации со всеми справочниками")
     void cleanHistory();
 
     @POST
     @Path("/cleanHistory/{classifierCode}")
-    @ApiOperation(value = "Отчистить историю синхронизации с конкретным справочником")
+    @ApiOperation(value = "Очистить историю синхронизации с конкретным справочником")
     void cleanHistory(String classifierCode);
 
 
