@@ -168,7 +168,7 @@ final class EsnsiSyncJobUtils {
             for (int i = 0; i < formatters.length; i++)
                 formatters[i] = DateTimeFormatter.ofPattern(split[i].trim());
             RefBookMetadata refBookMetadataAdapter = new RefBookMetadata() {
-                @Override public String code() {return struct.getClassifierDescriptor().getCode();}
+                @Override public String code() {return "ESNSI-" + struct.getClassifierDescriptor().getPublicId();}
                 @Override public String name() {return struct.getClassifierDescriptor().getName();}
                 @Override public String shortName() {return struct.getClassifierDescriptor().getName();}
                 @Override public String description() {return struct.getClassifierDescriptor().getDescription();}
