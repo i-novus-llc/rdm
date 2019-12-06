@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import java.util.List;
 import java.util.Set;
 
+@DisallowConcurrentExecution
 public class InvalidStageDetector implements Job {
 
     private static final Logger logger = LoggerFactory.getLogger(InvalidStageDetector.class);
