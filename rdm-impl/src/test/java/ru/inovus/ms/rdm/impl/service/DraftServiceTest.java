@@ -51,6 +51,7 @@ import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 import ru.inovus.ms.rdm.impl.validation.AttributeUpdateValidator;
 
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.util.*;
 
 import static java.util.Arrays.asList;
@@ -448,8 +449,8 @@ public class DraftServiceTest {
         when(versionRepository.getOne(draft.getId())).thenReturn(draft);
         when(searchDataService.findRow(anyString(), anyList(), eq(systemId))).thenReturn(row);
         Map<String, Object> map = new HashMap<>();
-        map.put(primaryCode, pkValue);
-        map.put(notPrimaryCode, notPrimaryNewValue);
+        map.put(primaryCode, BigInteger.valueOf(pkValue));
+        map.put(notPrimaryCode, BigInteger.valueOf(notPrimaryNewValue));
         draftService.updateData(draft.getId(), new Row(null, map));
         verify(draftDataService, times(1)).updateRow(anyString(), any());
     }

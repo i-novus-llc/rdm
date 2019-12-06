@@ -466,8 +466,8 @@ public class DraftServiceImpl implements DraftService {
         if (isEmptyRow(row))
             throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
 
-        StructureRowMapper rowMapper = new StructureRowMapper(draftVersion.getStructure(), versionRepository);
         setSystemIdIfPossible(draftVersion.getStructure(), singletonList(row), draftId);
+        StructureRowMapper rowMapper = new StructureRowMapper(draftVersion.getStructure(), versionRepository);
         RowValue newRowValue = ConverterUtil.rowValue(rowMapper.map(row), draftVersion.getStructure());
         validateDataByStructure(draftVersion, singletonList(row));
 
