@@ -16,10 +16,7 @@ import org.springframework.util.ObjectUtils;
 import ru.i_novus.components.common.exception.CodifiedException;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.exception.NotUniqueException;
-import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
-import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
@@ -51,6 +48,7 @@ import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.api.service.VersionFileService;
 import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
+import ru.inovus.ms.rdm.api.util.TimeUtils;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.*;
@@ -70,11 +68,11 @@ import ru.inovus.ms.rdm.impl.validation.VersionValidationImpl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
@@ -408,23 +406,56 @@ public class DraftServiceImpl implements DraftService {
     private void setSystemIdIfPossible(Structure structure, List<Row> rows, int draftId) {
         structure.getAttributes().stream().filter(Structure.Attribute::getIsPrimary).findFirst().ifPresent(pk -> {
             SearchDataCriteria criteria = new SearchDataCriteria();
-            List<AttributeFilter> filters = new ArrayList<>(rows.size());
+            List<AttributeFilter> filters = new ArrayList<>();
             for (Row row : rows) {
+                if (row.getSystemId() != null)
+                    continue;
+                Object val = row.getData().get(pk.getCode());
+                if (val == null || val.toString().isBlank()) // Исключение будет брошено дальше по коду, можем возвращаться
+                    return;
+                if (pk.getType() == FieldType.DATE)
+                    val = TimeUtils.parseLocalDate(val);
                 filters.add(new AttributeFilter(
-                    pk.getCode(), row.getData().get(pk.getCode()), pk.getType(), SearchTypeEnum.EXACT
+                    pk.getCode(), val, pk.getType(), SearchTypeEnum.EXACT
                 ));
             }
             criteria.setAttributeFilter(Set.of(filters));
             Page<RefBookRowValue> search = versionService.search(draftId, criteria);
-            search.forEach(val -> {
+            search.get().forEach(val -> {
                 for (Row row : rows) {
-                    if (row.getData().get(pk.getCode()).equals(val.getFieldValue(pk.getCode())))
+                    if (row.getSystemId() != null)
+                        continue;
+                    boolean eq;
+                    FieldValue fieldValue = val.getFieldValue(pk.getCode());
+                    if (pk.getType() == FieldType.REFERENCE) {
+                        Reference ref = (Reference) fieldValue.getValue();
+                        eq = ref.getValue().equals(row.getData().get(pk.getCode()));
+                    } else if (pk.getType() == FieldType.FLOAT) {
+                        Number n = (Number) row.getData().get(pk.getCode());
+                        eq = BigDecimal.valueOf(n.doubleValue()).equals(fieldValue.getValue());
+                    } else if (pk.getType() == FieldType.DATE) {
+                        eq = fieldValue.getValue().equals(TimeUtils.parseLocalDate(row.getData().get(pk.getCode())));
+                    } else {
+                        eq = fieldValue.getValue().equals(row.getData().get(pk.getCode()));
+                    }
+                    if (eq) {
                         row.setSystemId(val.getSystemId());
+                    }
                 }
             });
         });
     }
 
+    /**
+     * Типы данных, передаваемых в аргументе Row, в зависимости от типа, указанного в структуре поля:
+     * {@link FieldType#STRING} -> String
+     * {@link FieldType#INTEGER} -> BigInteger
+     * {@link FieldType#FLOAT} -> Double
+     * {@link FieldType#REFERENCE} -> String
+     * {@link FieldType#DATE} -> String (в формате, который может понять метод {@link TimeUtils#parseLocalDate(Object)}
+     * {@link FieldType#BOOLEAN} -> Boolean
+     * {@link FieldType#TREE} -> ????
+     */
     @Override
     @Transactional
     public void updateData(Integer draftId, Row row) {
@@ -435,12 +466,10 @@ public class DraftServiceImpl implements DraftService {
         if (isEmptyRow(row))
             throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
 
-        validateDataByStructure(draftVersion, singletonList(row));
-        if (row.getSystemId() == null)
-            setSystemIdIfPossible(draftVersion.getStructure(), singletonList(row), draftId);
-
         StructureRowMapper rowMapper = new StructureRowMapper(draftVersion.getStructure(), versionRepository);
+        setSystemIdIfPossible(draftVersion.getStructure(), singletonList(row), draftId);
         RowValue newRowValue = ConverterUtil.rowValue(rowMapper.map(row), draftVersion.getStructure());
+        validateDataByStructure(draftVersion, singletonList(row));
 
         if (newRowValue.getSystemId() == null) {
             draftDataService.addRows(draftVersion.getStorageCode(), singletonList(newRowValue));
@@ -466,6 +495,16 @@ public class DraftServiceImpl implements DraftService {
         return rowValue == null || !systemId.equals(rowValue.getSystemId());
     }
 
+    /**
+     * Типы данных, передаваемых в аргументе Row, в зависимости от типа, указанного в структуре поля:
+     * {@link FieldType#STRING} -> String
+     * {@link FieldType#INTEGER} -> BigInteger
+     * {@link FieldType#FLOAT} -> Double
+     * {@link FieldType#REFERENCE} -> String
+     * {@link FieldType#DATE} -> String (в формате, который может понять метод {@link TimeUtils#parseLocalDate(Object)}
+     * {@link FieldType#BOOLEAN} -> Boolean
+     * {@link FieldType#TREE} -> ????
+     */
     @Override
     @Transactional
     public void updateData(Integer draftId, List<Row> rows) {
@@ -477,13 +516,12 @@ public class DraftServiceImpl implements DraftService {
 
         rows = rows.stream().filter(row -> !isEmptyRow(row)).collect(toList());
         if (isEmpty(rows)) throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
-        validateDataByStructure(draftVersion, rows);
-        setSystemIdIfPossible(draftVersion.getStructure(), rows.stream().filter(row -> row.getSystemId() == null).collect(Collectors.toList()), draftId);
-
+        setSystemIdIfPossible(draftVersion.getStructure(), rows, draftId);
         StructureRowMapper rowMapper = new StructureRowMapper(draftVersion.getStructure(), versionRepository);
         List<RowValue> newRowValues = rows.stream()
                 .map(row -> ConverterUtil.rowValue(rowMapper.map(row), draftVersion.getStructure()))
                 .collect(toList());
+        validateDataByStructure(draftVersion, rows);
 
         List<RowValue> addedRowValues = newRowValues.stream().filter(rowValue -> rowValue.getSystemId() == null).collect(toList());
         if (!isEmpty(addedRowValues)) {
