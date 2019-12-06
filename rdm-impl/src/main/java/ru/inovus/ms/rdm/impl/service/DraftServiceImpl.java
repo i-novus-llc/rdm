@@ -467,9 +467,9 @@ public class DraftServiceImpl implements DraftService {
             throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
 
         setSystemIdIfPossible(draftVersion.getStructure(), singletonList(row), draftId);
+        validateDataByStructure(draftVersion, singletonList(row));
         StructureRowMapper rowMapper = new StructureRowMapper(draftVersion.getStructure(), versionRepository);
         RowValue newRowValue = ConverterUtil.rowValue(rowMapper.map(row), draftVersion.getStructure());
-        validateDataByStructure(draftVersion, singletonList(row));
 
         if (newRowValue.getSystemId() == null) {
             draftDataService.addRows(draftVersion.getStorageCode(), singletonList(newRowValue));
@@ -517,11 +517,11 @@ public class DraftServiceImpl implements DraftService {
         rows = rows.stream().filter(row -> !isEmptyRow(row)).collect(toList());
         if (isEmpty(rows)) throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
         setSystemIdIfPossible(draftVersion.getStructure(), rows, draftId);
+        validateDataByStructure(draftVersion, rows);
         StructureRowMapper rowMapper = new StructureRowMapper(draftVersion.getStructure(), versionRepository);
         List<RowValue> newRowValues = rows.stream()
                 .map(row -> ConverterUtil.rowValue(rowMapper.map(row), draftVersion.getStructure()))
                 .collect(toList());
-        validateDataByStructure(draftVersion, rows);
 
         List<RowValue> addedRowValues = newRowValues.stream().filter(rowValue -> rowValue.getSystemId() == null).collect(toList());
         if (!isEmpty(addedRowValues)) {
