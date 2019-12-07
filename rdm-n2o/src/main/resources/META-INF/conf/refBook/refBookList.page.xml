@@ -33,7 +33,7 @@
                     <show-modal page-id="createFromFile" page-name="Создание справочника из файла" upload="defaults"
                                 submit-operation-id="createFromFile"
                                 redirect-url-after-submit="${rdm.context-path}/main/:refBookId/edit"
-                                redirect-target-after-submit="self">
+                                redirect-target="application">
                     </show-modal>
                 </menu-item>
             </sub-menu>
