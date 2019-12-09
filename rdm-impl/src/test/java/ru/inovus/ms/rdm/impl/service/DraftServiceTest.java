@@ -447,12 +447,12 @@ public class DraftServiceTest {
         when(versionService.search(anyInt(), any(SearchDataCriteria.class))).thenReturn(page);
         when(searchDataService.getPagedData(any())).thenReturn(cp);
         when(versionRepository.getOne(draft.getId())).thenReturn(draft);
-        when(searchDataService.findRow(anyString(), anyList(), eq(systemId))).thenReturn(row);
+        when(searchDataService.findRows(anyString(), anyList(), anyList())).thenReturn(List.of(row));
         Map<String, Object> map = new HashMap<>();
         map.put(primaryCode, BigInteger.valueOf(pkValue));
         map.put(notPrimaryCode, BigInteger.valueOf(notPrimaryNewValue));
         draftService.updateData(draft.getId(), new Row(null, map));
-        verify(draftDataService, times(1)).updateRow(anyString(), any());
+        verify(draftDataService, times(1)).updateRows(anyString(), any());
     }
 
     private void testUpdateWithExceptionExpected(UpdateAttribute updateAttribute, Structure.Attribute oldAttribute, Structure.Reference oldReference) {

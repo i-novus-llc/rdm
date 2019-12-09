@@ -441,16 +441,6 @@ public class DraftServiceImpl implements DraftService {
         } while (page < search.getTotalPages());
     }
 
-    /**
-     * Типы данных, передаваемых в аргументе Row, в зависимости от типа, указанного в структуре поля:
-     * {@link FieldType#STRING} -> String
-     * {@link FieldType#INTEGER} -> BigInteger
-     * {@link FieldType#FLOAT} -> Double
-     * {@link FieldType#REFERENCE} -> String
-     * {@link FieldType#DATE} -> String (в формате, который может понять метод {@link TimeUtils#parseLocalDate(Object)}
-     * {@link FieldType#BOOLEAN} -> Boolean
-     * {@link FieldType#TREE} -> ????
-     */
     @Override
     @Transactional
     public void updateData(Integer draftId, Row row) {
