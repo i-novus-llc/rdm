@@ -160,7 +160,8 @@ public abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
     abstract boolean execute0(JobExecutionContext context) throws Exception;
 
     void execSmevResponseResponseReadingJob(JobDetail job) {
-        Trigger trigger = newTrigger().startNow().forJob(job).withSchedule(cronSchedule(getProperty("esnsi.smev.adapter.fetch.interval"))).build();
+        int seconds = Integer.parseInt(getProperty("esnsi.sync.job-schedule.seconds"));
+        Trigger trigger = newTrigger().startNow().forJob(job).withSchedule(SimpleScheduleBuilder.repeatSecondlyForever(seconds)).build();
         execJob(job, trigger);
     }
 
@@ -184,7 +185,6 @@ public abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
             () -> {
                 scheduler.deleteJob(job.getKey());
                 scheduler.scheduleJob(job, trigger);
-                scheduler.triggerJob(job.getKey());
             }
         );
     }

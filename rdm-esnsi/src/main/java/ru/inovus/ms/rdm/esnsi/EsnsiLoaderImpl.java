@@ -62,27 +62,30 @@ public class EsnsiLoaderImpl implements EsnsiLoader {
                 withIdentity(jobKey).requestRecovery().
                 usingJobData(MESSAGE_ID_KEY, acceptRequestDocument.getMessageId()).build();
         Trigger trigger = newTrigger().startNow().forJob(job).withSchedule(cronSchedule(fetchInterval)).build();
+        boolean exec;
         try {
-            execJob(job, trigger);
+            exec = execJob(job, trigger);
         } catch (Exception e) {
             logger.error("Unable to start sync of {} classifier", classifierCode, e);
             throw new RdmException("Unable to start sync of " + classifierCode + " classifier.");
         }
-        logger.info("Job for classifier with code {} was executed.", classifierCode);
+        if (exec)
+            logger.info("Job for classifier with code {} was executed.", classifierCode);
+        else
+            logger.info("Job for classifier with code {} was not executed.", classifierCode);
         return acceptRequestDocument.getMessageId();
     }
 
-    private void execJob(JobDetail job, Trigger trigger) {
+    private boolean execJob(JobDetail job, Trigger trigger) {
         job.getJobDataMap().put(STARTED_AT_KEY, System.currentTimeMillis());
         job.getJobDataMap().put(NUM_RETRIES_KEY, 0);
-        esnsiLoadService.setClassifierProcessingStageAtomically(
+        return esnsiLoadService.setClassifierProcessingStageAtomically(
             job.getKey().getGroup(),
             ClassifierProcessingStage.NONE,
             ClassifierProcessingStage.GET_REVISIONS_COUNT,
             () -> {
                 scheduler.deleteJob(job.getKey());
                 scheduler.scheduleJob(job, trigger);
-                scheduler.triggerJob(job.getKey());
             }
         );
     }
