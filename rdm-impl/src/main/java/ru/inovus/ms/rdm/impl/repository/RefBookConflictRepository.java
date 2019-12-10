@@ -18,20 +18,8 @@ public interface RefBookConflictRepository extends
         QuerydslPredicateExecutor<RefBookConflictEntity> {
 
     /**
-     * Проверка на конфликт структуры.
-     */
-    Boolean existsByReferrerVersionIdAndRefRecordIdIsNull(Integer referrerVersionId);
-
-    /**
-     * Проверка на конфликт данных.
-     */
-    Boolean existsByReferrerVersionIdAndRefRecordIdIsNotNull(Integer referrerVersionId);
-
-    /**
      * Проверка на конфликт заданного типа.
      */
-    Boolean existsByReferrerVersionIdAndConflictType(Integer referrerVersionId, ConflictType conflictType);
-
     Boolean existsByReferrerVersionIdAndRefFieldCodeAndConflictType(Integer referrerVersionId, String refFieldCode, ConflictType conflictType);
 
     /**
