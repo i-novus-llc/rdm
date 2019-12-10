@@ -73,6 +73,8 @@ public class RdmSyncRestImpl implements RdmSyncRest {
 
     private final boolean needLocking;
 
+    private RdmSyncRestImpl() {this(false);}
+
     public RdmSyncRestImpl(boolean needLocking) {
         this.needLocking = needLocking;
     }
