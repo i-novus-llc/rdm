@@ -226,7 +226,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     @Override
     public boolean lockRefbookForUpdate(String code) {
         try {
-            jdbcTemplate.queryForObject("SELECT 1 FROM rdm_sync.version FOR UPDATE NOWAIT WHERE code = ?1", new Object[] {code}, Integer.class);
+            jdbcTemplate.queryForObject("SELECT 1 FROM rdm_sync.version WHERE code = ? FOR UPDATE NOWAIT", new Object[] {code}, Integer.class);
             return true;
         } catch (CannotAcquireLockException ex) {
             logger.info("Lock for refbook {} is already acquired.", code, ex);
