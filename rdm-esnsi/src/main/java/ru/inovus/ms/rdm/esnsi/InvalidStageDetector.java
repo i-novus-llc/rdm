@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.esnsi.jobs;
+package ru.inovus.ms.rdm.esnsi;
 
 import org.quartz.*;
 import org.quartz.impl.matchers.GroupMatcher;
@@ -6,12 +6,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import ru.inovus.ms.rdm.esnsi.ClassifierProcessingStage;
-import ru.inovus.ms.rdm.esnsi.EsnsiLoadService;
 
 import java.util.List;
 import java.util.Set;
 
+@DisallowConcurrentExecution
 public class InvalidStageDetector implements Job {
 
     private static final Logger logger = LoggerFactory.getLogger(InvalidStageDetector.class);

@@ -1,12 +1,16 @@
-package ru.inovus.ms.rdm.esnsi.jobs;
+package ru.inovus.ms.rdm.esnsi.sync;
 
 import org.quartz.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import ru.inovus.ms.rdm.esnsi.*;
+import ru.inovus.ms.rdm.esnsi.ClassifierProcessingStage;
+import ru.inovus.ms.rdm.esnsi.EsnsiLoadService;
+import ru.inovus.ms.rdm.esnsi.EsnsiLoaderDao;
+import ru.inovus.ms.rdm.esnsi.Executable;
 import ru.inovus.ms.rdm.esnsi.api.ObjectFactory;
+import ru.inovus.ms.rdm.esnsi.smev.AdapterClient;
 
 import java.time.Duration;
 
@@ -29,7 +33,7 @@ public abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
     static final ObjectFactory objectFactory = new ObjectFactory();
 
     @Autowired
-    EsnsiSmevClient esnsiSmevClient;
+    AdapterClient adapterClient;
 
     @Autowired
     EsnsiLoadService esnsiLoadService;
@@ -99,7 +103,7 @@ public abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
     private void ackPrevJobMessageId() {
         String prevMessageId = jobDataMap.getString(PREV_MESSAGE_ID_KEY);
         if (prevMessageId != null) {
-            esnsiSmevClient.acknowledge(prevMessageId);
+            adapterClient.acknowledge(prevMessageId);
             jobDataMap.remove(PREV_MESSAGE_ID_KEY);
         }
     }
@@ -156,7 +160,8 @@ public abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
     abstract boolean execute0(JobExecutionContext context) throws Exception;
 
     void execSmevResponseResponseReadingJob(JobDetail job) {
-        Trigger trigger = newTrigger().startNow().forJob(job).withSchedule(cronSchedule(getProperty("esnsi.smev.adapter.fetch.interval"))).build();
+        int seconds = Integer.parseInt(getProperty("esnsi.sync.job-schedule.seconds"));
+        Trigger trigger = newTrigger().startNow().forJob(job).withSchedule(SimpleScheduleBuilder.repeatSecondlyForever(seconds)).build();
         execJob(job, trigger);
     }
 
@@ -180,7 +185,6 @@ public abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
             () -> {
                 scheduler.deleteJob(job.getKey());
                 scheduler.scheduleJob(job, trigger);
-                scheduler.triggerJob(job.getKey());
             }
         );
     }

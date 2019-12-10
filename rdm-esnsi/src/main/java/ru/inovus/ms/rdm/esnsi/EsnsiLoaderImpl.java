@@ -10,14 +10,15 @@ import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.esnsi.api.AcceptRequestDocument;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierRevisionsCountRequestType;
 import ru.inovus.ms.rdm.esnsi.api.ObjectFactory;
-import ru.inovus.ms.rdm.esnsi.jobs.GetRevisionsCountJob;
+import ru.inovus.ms.rdm.esnsi.smev.AdapterClient;
+import ru.inovus.ms.rdm.esnsi.sync.GetRevisionsCountJob;
 
 import java.util.List;
 import java.util.UUID;
 
 import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
-import static ru.inovus.ms.rdm.esnsi.jobs.AbstractEsnsiDictionaryProcessingJob.*;
+import static ru.inovus.ms.rdm.esnsi.sync.AbstractEsnsiDictionaryProcessingJob.*;
 
 @Service
 public class EsnsiLoaderImpl implements EsnsiLoader {
@@ -39,7 +40,7 @@ public class EsnsiLoaderImpl implements EsnsiLoader {
     private EsnsiLoadService esnsiLoadService;
 
     @Autowired
-    private EsnsiSmevClient esnsiSmevClient;
+    private AdapterClient adapterClient;
 
     @Override
     public void update() {
@@ -55,33 +56,36 @@ public class EsnsiLoaderImpl implements EsnsiLoader {
         logger.info("Forcing sync of {} classifier.", classifierCode);
         GetClassifierRevisionsCountRequestType getClassifierRevisionsCountRequestType = OBJECT_FACTORY.createGetClassifierRevisionsCountRequestType();
         getClassifierRevisionsCountRequestType.setCode(classifierCode);
-        AcceptRequestDocument acceptRequestDocument = esnsiSmevClient.sendRequest(getClassifierRevisionsCountRequestType, UUID.randomUUID().toString());
+        AcceptRequestDocument acceptRequestDocument = adapterClient.sendRequest(getClassifierRevisionsCountRequestType, UUID.randomUUID().toString());
         JobKey jobKey = JobKey.jobKey(GetRevisionsCountJob.class.getSimpleName(), classifierCode);
         JobDetail job = JobBuilder.newJob(GetRevisionsCountJob.class).
                 withIdentity(jobKey).requestRecovery().
                 usingJobData(MESSAGE_ID_KEY, acceptRequestDocument.getMessageId()).build();
         Trigger trigger = newTrigger().startNow().forJob(job).withSchedule(cronSchedule(fetchInterval)).build();
+        boolean exec;
         try {
-            execJob(job, trigger);
+            exec = execJob(job, trigger);
         } catch (Exception e) {
             logger.error("Unable to start sync of {} classifier", classifierCode, e);
             throw new RdmException("Unable to start sync of " + classifierCode + " classifier.");
         }
-        logger.info("Job for classifier with code {} was executed.", classifierCode);
+        if (exec)
+            logger.info("Job for classifier with code {} was executed.", classifierCode);
+        else
+            logger.info("Job for classifier with code {} was not executed.", classifierCode);
         return acceptRequestDocument.getMessageId();
     }
 
-    private void execJob(JobDetail job, Trigger trigger) {
+    private boolean execJob(JobDetail job, Trigger trigger) {
         job.getJobDataMap().put(STARTED_AT_KEY, System.currentTimeMillis());
         job.getJobDataMap().put(NUM_RETRIES_KEY, 0);
-        esnsiLoadService.setClassifierProcessingStageAtomically(
+        return esnsiLoadService.setClassifierProcessingStageAtomically(
             job.getKey().getGroup(),
             ClassifierProcessingStage.NONE,
             ClassifierProcessingStage.GET_REVISIONS_COUNT,
             () -> {
                 scheduler.deleteJob(job.getKey());
                 scheduler.scheduleJob(job, trigger);
-                scheduler.triggerJob(job.getKey());
             }
         );
     }
