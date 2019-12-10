@@ -97,7 +97,6 @@ public class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
     private String createFile() throws IOException, XMLStreamException {
         String newFileName = System.currentTimeMillis() + ".xml";
         File f = new File(newFileName);
-        jobDataMap.put(TEMP_FILE_PREFIX + newFileName, true);
         try (OutputStream out = new BufferedOutputStream(new FileOutputStream(f))) {
             GetClassifierStructureResponseType struct = esnsiLoadService.getClassifierStruct(classifierCode, revision);
             int primaryKeyFieldSerialNumber = struct.getAttributeList().stream().filter(ClassifierAttribute::isKey).findFirst().map(ClassifierAttribute::getOrder).orElseThrow(() -> new RdmException("Can't find primary key in this classifier structure.")) + 1;
@@ -128,6 +127,7 @@ public class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
             generator.fetchData();
             generator.end();
         }
+        jobDataMap.put(TEMP_FILE_PREFIX + newFileName, true);
         return newFileName;
     }
 
