@@ -606,7 +606,7 @@ public class ApplicationTest {
             draftService.updateData(versionId, row2);
             fail();
         } catch (RestException re) {
-            assertEquals("row.not.found", re.getMessage());
+            assertEquals("row.not.found", re.getErrors().iterator().next().getMessage());
         }
 
         // удаление всех строк
