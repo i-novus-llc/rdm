@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
-import ru.inovus.ms.rdm.api.enumeration.ConflictType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookStatusType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -25,15 +24,9 @@ import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
 import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
-import ru.inovus.ms.rdm.impl.entity.PassportAttributeEntity;
-import ru.inovus.ms.rdm.impl.entity.PassportValueEntity;
-import ru.inovus.ms.rdm.impl.entity.RefBookEntity;
-import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.inovus.ms.rdm.impl.entity.*;
 import ru.inovus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
-import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
-import ru.inovus.ms.rdm.impl.repository.RefBookConflictRepository;
-import ru.inovus.ms.rdm.impl.repository.RefBookRepository;
-import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.inovus.ms.rdm.impl.repository.*;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 import ru.inovus.ms.rdm.impl.util.NamingUtils;
 
@@ -53,7 +46,7 @@ public class RefBookServiceImpl implements RefBookService {
 
     private RefBookRepository refBookRepository;
     private RefBookVersionRepository versionRepository;
-    private RefBookConflictRepository conflictRepository;
+    private RefBookModelDataRepository refBookModelDataRepository;
 
     private DraftDataService draftDataService;
     private DropDataService dropDataService;
@@ -69,14 +62,16 @@ public class RefBookServiceImpl implements RefBookService {
 
     @Autowired
     @SuppressWarnings("squid:S00107")
-    public RefBookServiceImpl(RefBookRepository refBookRepository, RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
+    public RefBookServiceImpl(RefBookRepository refBookRepository, RefBookVersionRepository versionRepository,
+                              RefBookModelDataRepository refBookModelDataRepository,
                               DraftDataService draftDataService, DropDataService dropDataService,
                               RefBookLockService refBookLockService,
                               PassportValueRepository passportValueRepository, RefBookVersionQueryProvider refBookVersionQueryProvider,
                               VersionValidation versionValidation, AuditLogService auditLogService) {
         this.refBookRepository = refBookRepository;
         this.versionRepository = versionRepository;
-        this.conflictRepository = conflictRepository;
+
+        this.refBookModelDataRepository = refBookModelDataRepository;
 
         this.draftDataService = draftDataService;
         this.dropDataService = dropDataService;
@@ -135,7 +130,10 @@ public class RefBookServiceImpl implements RefBookService {
         versionValidation.validateVersionExists(versionId);
 
         RefBookVersionEntity version = versionRepository.getOne(versionId);
-        return refBookModel(version,
+
+        boolean hasReferrerVersions = hasReferrerVersions(version.getRefBook().getCode());
+
+        return refBookModel(version, hasReferrerVersions,
                 getSourceTypeVersion(version.getRefBook().getId(), RefBookSourceType.DRAFT),
                 getSourceTypeVersion(version.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED));
     }
@@ -164,6 +162,7 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     @Transactional
     public RefBook create(RefBookCreateRequest request) {
+
         if (refBookRepository.existsByCode(request.getCode()))
             throw new UserException(new Message(REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE, request.getCode()));
         NamingUtils.checkCode(request.getCode());
@@ -187,7 +186,7 @@ public class RefBookServiceImpl implements RefBookService {
         refBookVersionEntity.setStructure(structure);
 
         RefBookVersionEntity savedVersion = versionRepository.save(refBookVersionEntity);
-        RefBook refBook = refBookModel(savedVersion,
+        RefBook refBook = refBookModel(savedVersion, false,
             getSourceTypeVersion(savedVersion.getRefBook().getId(), RefBookSourceType.DRAFT),
             getSourceTypeVersion(savedVersion.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED)
         );
@@ -222,7 +221,7 @@ public class RefBookServiceImpl implements RefBookService {
                 () -> versionEntity,
                 Map.of("newPassport", request.getPassport())
         );
-        return refBookModel(versionEntity,
+        return refBookModel(versionEntity, false,
                 getSourceTypeVersion(versionEntity.getRefBook().getId(), RefBookSourceType.DRAFT),
                 getSourceTypeVersion(versionEntity.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED));
     }
@@ -302,10 +301,10 @@ public class RefBookServiceImpl implements RefBookService {
         RefBookVersionEntity draftVersion = getRefBookSourceTypeVersion(entity.getRefBook().getId(), draftVersions);
         RefBookVersionEntity lastPublishedVersion = getRefBookSourceTypeVersion(entity.getRefBook().getId(), lastPublishVersions);
 
-        return refBookModel(entity, draftVersion, lastPublishedVersion);
+        return refBookModel(entity, false, draftVersion, lastPublishedVersion);
     }
 
-    private RefBook refBookModel(RefBookVersionEntity entity,
+    private RefBook refBookModel(RefBookVersionEntity entity, boolean hasReferrerVersions,
                                  RefBookVersionEntity draftVersion, RefBookVersionEntity lastPublishedVersion) {
         if (entity == null) return null;
 
@@ -328,26 +327,18 @@ public class RefBookServiceImpl implements RefBookService {
         List<Structure.Attribute> primaryAttributes = (structure != null) ? structure.getPrimary() : null;
         model.setHasPrimaryAttribute(!CollectionUtils.isEmpty(primaryAttributes));
 
-        model.setHasReferrer(hasReferrerVersions(model.getCode()));
+        model.setHasReferrer(hasReferrerVersions);
 
-        // NB: List<boolean> isConflict by ConflictType filled by one query.
-        boolean hasUpdatedConflict = conflictRepository.existsByReferrerVersionIdAndConflictType(model.getId(), ConflictType.UPDATED);
-        model.setHasUpdatedConflict(hasUpdatedConflict);
+        RefBookModelData refBookModelData = refBookModelDataRepository.findData(
+                model.getId(),
+                lastPublishedVersion != null,
+                lastPublishedVersion != null ? lastPublishedVersion.getId() : 0);
 
-        boolean hasAlteredConflict = conflictRepository.existsByReferrerVersionIdAndConflictType(model.getId(), ConflictType.ALTERED);
-        model.setHasAlteredConflict(hasAlteredConflict);
-
-        model.setHasDataConflict(hasUpdatedConflict || hasAlteredConflict
-                || conflictRepository.existsByReferrerVersionIdAndRefRecordIdIsNotNull(model.getId())
-        );
-
-        model.setHasStructureConflict(
-                conflictRepository.existsByReferrerVersionIdAndRefRecordIdIsNull(model.getId())
-        );
-
-        model.setLastHasDataConflict(lastPublishedVersion != null
-                && conflictRepository.existsByReferrerVersionIdAndRefRecordIdIsNotNull(lastPublishedVersion.getId())
-        );
+        model.setHasDataConflict(refBookModelData.getHasDataConflict());
+        model.setHasUpdatedConflict(refBookModelData.getHasUpdatedConflict());
+        model.setHasAlteredConflict(refBookModelData.getHasAlteredConflict());
+        model.setHasStructureConflict(refBookModelData.getHasStructureConflict());
+        model.setLastHasDataConflict(refBookModelData.getLastHasDataConflict());
 
         return model;
     }
@@ -422,8 +413,8 @@ public class RefBookServiceImpl implements RefBookService {
      * @param refBookSourceType источник данных справочника
      * @return Список требуемых версий справочников
      */
-    // NB: may-be: Move to `RefBookVersionQueryProvider`.
     private List<RefBookVersionEntity> getSourceTypeVersions(List<Integer> refBookIds, RefBookSourceType refBookSourceType) {
+
         RefBookCriteria versionCriteria = new RefBookCriteria();
         versionCriteria.setSourceType(refBookSourceType);
         versionCriteria.setRefBookIds(refBookIds);

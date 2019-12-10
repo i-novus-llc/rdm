@@ -392,9 +392,9 @@ public class Structure implements Serializable {
     public String toString() {
         StringBuilder sb = new StringBuilder("{");
         sb.append("\"attributes\": [");
-        sb.append(attributes.stream().map(Attribute::toString).collect(joining(", ")));
+        sb.append(attributes == null || attributes.isEmpty() ? "" : attributes.stream().map(Attribute::toString).collect(joining(", ")));
         sb.append("], \"references\": [");
-        sb.append(references.stream().map(Reference::toString).collect(joining(", ")));
+        sb.append(references == null || references.isEmpty() ? "" : references.stream().map(Reference::toString).collect(joining(", ")));
         return sb.append("]}").toString();
     }
 

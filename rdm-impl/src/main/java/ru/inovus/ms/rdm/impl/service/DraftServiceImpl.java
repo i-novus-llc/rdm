@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.impl.service;
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
+import net.n2oapp.platform.jaxrs.RestCriteria;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,8 +17,12 @@ import org.springframework.util.ObjectUtils;
 import ru.i_novus.components.common.exception.CodifiedException;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.exception.NotUniqueException;
-import ru.i_novus.platform.datastorage.temporal.model.*;
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
+import ru.i_novus.platform.datastorage.temporal.model.Field;
+import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
@@ -42,8 +47,13 @@ import ru.inovus.ms.rdm.api.model.validation.AttributeValidation;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidationRequest;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidationType;
 import ru.inovus.ms.rdm.api.model.version.*;
-import ru.inovus.ms.rdm.api.service.*;
+import ru.inovus.ms.rdm.api.service.DraftService;
+import ru.inovus.ms.rdm.api.service.RefBookService;
+import ru.inovus.ms.rdm.api.service.VersionFileService;
+import ru.inovus.ms.rdm.api.service.VersionService;
+import ru.inovus.ms.rdm.api.util.FieldValueUtils;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
+import ru.inovus.ms.rdm.api.util.TimeUtils;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.*;
@@ -77,15 +87,10 @@ import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.isVersion
 
 @Primary
 @Service
-@SuppressWarnings("squid:S00104")
 public class DraftServiceImpl implements DraftService {
 
-    private static final String ILLEGAL_CREATE_ATTRIBUTE_EXCEPTION_CODE = "Can not update structure, illegal create attribute";
-    private static final String REFBOOK_DRAFT_NOT_FOUND_EXCEPTION_CODE = "refbook.draft.not.found";
-    private static final String ROW_NOT_UNIQUE_EXCEPTION_CODE = "row.not.unique";
     private static final String ROW_IS_EMPTY_EXCEPTION_CODE = "row.is.empty";
     private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
-    private static final String REQUIRED_FIELD_EXCEPTION_CODE = "validation.required.err";
 
     private RefBookVersionRepository versionRepository;
     private RefBookConflictRepository conflictRepository;
@@ -397,45 +402,61 @@ public class DraftServiceImpl implements DraftService {
         return versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
     }
 
+    private Page<RefBookRowValue> findRowsByPrimaryKeysSystemIdMissing(Structure.Attribute pk, List<Row> rows, int draftId, int startingFromPage) {
+        SearchDataCriteria criteria = new SearchDataCriteria();
+        List<AttributeFilter> filters = new ArrayList<>();
+        for (Row row : rows) {
+            if (row.getSystemId() != null)
+                continue;
+            Object val = row.getData().get(pk.getCode());
+            if (val == null || val.toString().isBlank()) // Исключение будет брошено дальше по коду, можем возвращаться
+                return Page.empty();
+            if (pk.getType() == FieldType.DATE)
+                val = TimeUtils.parseLocalDate(val);
+            filters.add(new AttributeFilter(
+                    pk.getCode(), val, pk.getType(), SearchTypeEnum.EXACT
+            ));
+        }
+        criteria.setAttributeFilter(Set.of(filters));
+        criteria.setPageNumber(startingFromPage);
+        return versionService.search(draftId, criteria);
+    }
+
+    private void setSystemIdIfPossible(Structure structure, List<Row> rows, int draftId) {
+        Structure.Attribute pk = structure.getAttributes().stream().filter(Structure.Attribute::getIsPrimary).findFirst().orElse(null);
+        if (pk == null)
+            return;
+        int page = RestCriteria.FIRST_PAGE_NUMBER;
+        Page<RefBookRowValue> search;
+        do {
+            search = findRowsByPrimaryKeysSystemIdMissing(pk, rows, draftId, page++);
+            search.get().forEach(val -> {
+                for (Row row : rows) {
+                    if (row.getSystemId() != null)
+                        continue;
+                    if (FieldValueUtils.eq(pk, row.getData().get(pk.getCode()), val.getFieldValue(pk.getCode())))
+                        row.setSystemId(val.getSystemId());
+                }
+            });
+        } while (page < search.getTotalPages());
+    }
+
     @Override
     @Transactional
     public void updateData(Integer draftId, Row row) {
-
-        versionValidation.validateDraft(draftId);
-        RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
-
-        if (isEmptyRow(row))
-            throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
-
-        validateDataByStructure(draftVersion, singletonList(row));
-
-        StructureRowMapper rowMapper = new StructureRowMapper(draftVersion.getStructure(), versionRepository);
-        RowValue newRowValue = ConverterUtil.rowValue(rowMapper.map(row), draftVersion.getStructure());
-
-        if (newRowValue.getSystemId() == null) {
-            draftDataService.addRows(draftVersion.getStorageCode(), singletonList(newRowValue));
-
-            auditEditData(draftVersion, "create_row", newRowValue.getFieldValues());
-
-        } else {
-            List<String> fields = draftVersion.getStructure().getAttributes().stream().map(Structure.Attribute::getCode).collect(toList());
-            RowValue oldRowValue = searchDataService.findRow(draftVersion.getStorageCode(), fields, newRowValue.getSystemId());
-            if (isNotSystemIdRowValue(newRowValue.getSystemId(), oldRowValue))
-                throw new UserException(new Message(ROW_NOT_FOUND_EXCEPTION_CODE, newRowValue.getSystemId()));
-
-            RowDiff rowDiff = RowDiffUtils.getRowDiff(oldRowValue, newRowValue);
-
-            conflictRepository.deleteByReferrerVersionIdAndRefRecordId(draftVersion.getId(), (Long) newRowValue.getSystemId());
-            draftDataService.updateRow(draftVersion.getStorageCode(), newRowValue);
-
-            auditEditData(draftVersion, "update_row", rowDiff);
-        }
+        updateData(draftId, singletonList(row));
     }
 
-    private boolean isNotSystemIdRowValue(Object systemId, RowValue rowValue) {
-        return rowValue == null || !systemId.equals(rowValue.getSystemId());
-    }
-
+    /**
+     * Типы данных, передаваемых в аргументе Row, в зависимости от типа, указанного в структуре поля:
+     * {@link FieldType#STRING} -> String
+     * {@link FieldType#INTEGER} -> BigInteger
+     * {@link FieldType#FLOAT} -> Double
+     * {@link FieldType#REFERENCE} -> String
+     * {@link FieldType#DATE} -> String (в формате, который может понять метод {@link TimeUtils#parseLocalDate(Object)}
+     * {@link FieldType#BOOLEAN} -> Boolean
+     * {@link FieldType#TREE} -> ????
+     */
     @Override
     @Transactional
     public void updateData(Integer draftId, List<Row> rows) {
@@ -443,15 +464,12 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
 
-        if (isEmpty(rows))
-            throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
+        if (isEmpty(rows)) throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
 
         rows = rows.stream().filter(row -> !isEmptyRow(row)).collect(toList());
-        if (isEmpty(rows))
-            throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
-
+        if (isEmpty(rows)) throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
+        setSystemIdIfPossible(draftVersion.getStructure(), rows, draftId);
         validateDataByStructure(draftVersion, rows);
-
         StructureRowMapper rowMapper = new StructureRowMapper(draftVersion.getStructure(), versionRepository);
         List<RowValue> newRowValues = rows.stream()
                 .map(row -> ConverterUtil.rowValue(rowMapper.map(row), draftVersion.getStructure()))
@@ -475,8 +493,7 @@ public class DraftServiceImpl implements DraftService {
                     .filter(systemId -> isNotSystemIdRowValue(systemId, oldRowValues))
                     .map(systemId -> new Message(ROW_NOT_FOUND_EXCEPTION_CODE, systemId))
                     .collect(toList());
-            if (!isEmpty(messages))
-                throw new UserException(messages);
+            if (!isEmpty(messages)) throw new UserException(messages);
 
             List<RowDiff> rowDiffs = oldRowValues.stream()
                     .map(oldRowValue -> {
@@ -493,8 +510,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private boolean isNotSystemIdRowValue(Object systemId, List<RowValue> rowValues) {
-        return isEmpty(rowValues) ||
-                rowValues.stream().noneMatch(rowValue -> systemId.equals(rowValue.getSystemId()));
+        return isEmpty(rowValues) || rowValues.stream().noneMatch(rowValue -> systemId.equals(rowValue.getSystemId()));
     }
 
     private RowValue getSystemIdRowValue(Object systemId, List<RowValue> rowValues) {
@@ -506,8 +522,7 @@ public class DraftServiceImpl implements DraftService {
     /** Валидация добавляемых/обновляемых строк данных по структуре. */
     private void validateDataByStructure(RefBookVersionEntity draftVersion, List<Row> rows) {
 
-        if (isEmpty(rows))
-            return;
+        if (isEmpty(rows)) return;
 
         RowsValidator validator = new RowsValidatorImpl(versionService, searchDataService,
                 draftVersion.getStructure(), draftVersion.getStorageCode(), errorCountLimit, false,
@@ -626,8 +641,7 @@ public class DraftServiceImpl implements DraftService {
 
         Structure.Reference reference = createAttribute.getReference();
         boolean isReference = Objects.nonNull(reference) && !reference.isNull();
-        if (isReference != attribute.isReferenceType())
-            throw new IllegalArgumentException(ILLEGAL_CREATE_ATTRIBUTE_EXCEPTION_CODE);
+        if (isReference != attribute.isReferenceType()) throw new IllegalArgumentException("Can not update structure, illegal create attribute");
 
         if (isReference) {
             validateDisplayExpression(reference.getDisplayExpression(), reference.getReferenceCode());
@@ -659,7 +673,7 @@ public class DraftServiceImpl implements DraftService {
                     new DataCriteria(storageCode, null, null, ConverterUtil.fields(structure), emptySet(), null)
             );
             if (!isEmpty(data)) {
-                throw new UserException(new Message(REQUIRED_FIELD_EXCEPTION_CODE, attribute.getName()));
+                throw new UserException(new Message("validation.required.err", attribute.getName()));
             }
         }
     }
@@ -818,7 +832,7 @@ public class DraftServiceImpl implements DraftService {
             draftDataService.deleteField(draftEntity.getStorageCode(), attributeCode);
 
         } catch (NotUniqueException e) {
-            throw new UserException(ROW_NOT_UNIQUE_EXCEPTION_CODE, e);
+            throw new UserException("row.not.unique", e);
         }
 
         attributeValidationRepository.deleteAll(attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attributeCode));
@@ -947,8 +961,7 @@ public class DraftServiceImpl implements DraftService {
     public Integer getIdByRefBookCode(String refBookCode) {
 
         RefBookVersionEntity draftEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.DRAFT);
-        if (draftEntity == null)
-            throw new NotFoundException(new Message(REFBOOK_DRAFT_NOT_FOUND_EXCEPTION_CODE, refBookCode));
+        if (draftEntity == null) throw new NotFoundException(new Message("refbook.draft.not.found", refBookCode));
 
         return draftEntity.getId();
     }

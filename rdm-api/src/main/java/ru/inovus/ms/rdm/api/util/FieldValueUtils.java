@@ -14,6 +14,7 @@ import ru.inovus.ms.rdm.api.model.field.ReferenceFilterValue;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 
@@ -166,4 +167,23 @@ public class FieldValueUtils {
         );
         return new StringSubstitutor(map, DisplayExpression.PLACEHOLDER_START, DisplayExpression.PLACEHOLDER_END).replace(displayExpression);
     }
+
+    public static boolean eq(Structure.Attribute attr, Object val1, FieldValue val2) {
+        boolean eq;
+        if (attr.getType() == FieldType.REFERENCE) {
+            Reference ref = (Reference) val2.getValue();
+            eq = ref.getValue().equals(val1);
+        } else if (attr.getType() == FieldType.FLOAT) {
+            Number n = (Number) val1;
+            if (!(n instanceof BigDecimal))
+                n = BigDecimal.valueOf(n.doubleValue());
+            eq = n.equals(val2.getValue());
+        } else if (attr.getType() == FieldType.DATE) {
+            eq = val2.getValue().equals(TimeUtils.parseLocalDate(val1));
+        } else {
+            eq = val2.getValue().equals(val1);
+        }
+        return eq;
+    }
+
 }

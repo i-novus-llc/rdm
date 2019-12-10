@@ -17,6 +17,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.*;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
+import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
@@ -27,6 +29,7 @@ import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.api.model.version.CreateAttribute;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
@@ -43,17 +46,13 @@ import ru.inovus.ms.rdm.impl.file.FileStorage;
 import ru.inovus.ms.rdm.impl.file.MockFileStorage;
 import ru.inovus.ms.rdm.impl.file.UploadFileTestData;
 import ru.inovus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
-import ru.inovus.ms.rdm.impl.repository.AttributeValidationRepository;
-import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
-import ru.inovus.ms.rdm.impl.repository.RefBookRepository;
-import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.inovus.ms.rdm.impl.repository.*;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 import ru.inovus.ms.rdm.impl.validation.AttributeUpdateValidator;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.math.BigInteger;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -123,6 +122,9 @@ public class DraftServiceTest {
 
     @Mock
     private AttributeUpdateValidator attributeUpdateValidator;
+
+    @Mock
+    private RefBookConflictRepository conflictRepository;
 
     private static final String UPD_SUFFIX = "_upd";
     private static final String PK_SUFFIX = "_pk";
@@ -417,6 +419,40 @@ public class DraftServiceTest {
         structure = versionService.getStructure(draftVersion.getId());
         pks = structure.getPrimary();
         assertEquals(0, pks.size());
+    }
+
+    @Test
+    public void testUpdateVersionRowsByPrimaryKey() {
+        String primaryCode = "Primary";
+        String notPrimaryCode = "NotPrimary";
+        Structure s = new Structure(
+                List.of(
+                        Structure.Attribute.buildPrimary(primaryCode, "Нонейм", FieldType.INTEGER, "Описание"),
+                        Structure.Attribute.build(notPrimaryCode, "Нонейм", FieldType.INTEGER, "Описание")
+                ),
+                emptyList()
+        );
+        RefBookVersionEntity draft = createTestDraftVersionEntity();
+        draft.setStructure(s);
+        int pkValue = 666;
+        int notPrimaryInitValue = 667;
+        int notPrimaryNewValue = 668;
+        long systemId = 123L;
+        RowValue<Long> row = new RefBookRowValue();
+        row.setSystemId(systemId);
+        row.setFieldValues(List.of(new IntegerFieldValue(primaryCode, pkValue), new IntegerFieldValue(notPrimaryCode, notPrimaryInitValue)));
+        PageImpl page = new PageImpl<>(List.of(row));
+        CollectionPage cp = new CollectionPage();
+        cp.init(1, List.of(row));
+        when(versionService.search(anyInt(), any(SearchDataCriteria.class))).thenReturn(page);
+        when(searchDataService.getPagedData(any())).thenReturn(cp);
+        when(versionRepository.getOne(draft.getId())).thenReturn(draft);
+        when(searchDataService.findRows(anyString(), anyList(), anyList())).thenReturn(List.of(row));
+        Map<String, Object> map = new HashMap<>();
+        map.put(primaryCode, BigInteger.valueOf(pkValue));
+        map.put(notPrimaryCode, BigInteger.valueOf(notPrimaryNewValue));
+        draftService.updateData(draft.getId(), new Row(null, map));
+        verify(draftDataService, times(1)).updateRows(anyString(), any());
     }
 
     private void testUpdateWithExceptionExpected(UpdateAttribute updateAttribute, Structure.Attribute oldAttribute, Structure.Reference oldReference) {
