@@ -159,10 +159,13 @@ public class RdmClientSyncAutoConfiguration {
 
     @Bean
     @ConditionalOnProperty(name = "rdm_sync.publish.listener.enable", havingValue = "true")
-    public DefaultJmsListenerContainerFactory publishDictionaryTopicMessageListenerContainerFactory(ConnectionFactory connectionFactory) {
+    public DefaultJmsListenerContainerFactory publishDictionaryTopicMessageListenerContainerFactory(ConnectionFactory connectionFactory,
+                                                                                                    @Value("${jms2.broker.enabled:false}") boolean jms2Broker) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setPubSubDomain(true);
+        if (jms2Broker)
+            factory.setSubscriptionShared(true);
         return factory;
     }
 

@@ -4,6 +4,7 @@ import org.apache.cxf.jaxrs.utils.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,6 +72,9 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     @Autowired
     private RdmSyncDao dao;
 
+    @Value("${jms2.broker.enabled:false}")
+    private boolean jms2Broker;
+
     @Override
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void update() {
@@ -85,7 +89,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRED)
     public void update(String refBookCode) {
         try {
             if (dao.getVersionMapping(refBookCode) != null) {
@@ -100,9 +104,11 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRED)
     public void update(RefBook newVersion, VersionMapping versionMapping) {
         String refbookCode = newVersion.getCode();
+        if (!jms2Broker && !dao.lockRefbookForUpdate(refbookCode))
+            return;
         try {
             if (versionMapping.getVersion() == null) {
                 //заливаем с нуля
