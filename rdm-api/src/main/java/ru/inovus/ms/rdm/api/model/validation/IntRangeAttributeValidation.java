@@ -49,7 +49,7 @@ public class IntRangeAttributeValidation extends AttributeValidation {
         String[] split = value.split(";");
         if (!StringUtils.isEmpty(split[0]))
             min = new BigInteger(split[0]);
-        if (split.length > 1 && !StringUtils.isEmpty(split[1]))
+        if (!StringUtils.isEmpty(split[1]))
             max = new BigInteger(split[1]);
         return this;
     }

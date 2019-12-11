@@ -3,41 +3,61 @@ package ru.inovus.ms.rdm.impl.file.process;
 import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.CollectionUtils;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 
 public class XmlParseUtils {
-
-    private static final String XML_READ_ERROR_MESSAGE = "cannot read XML";
 
     private static final Logger logger = LoggerFactory.getLogger(XmlParseUtils.class);
 
     private XmlParseUtils() {
     }
 
-    public static void parseValues(XMLEventReader reader, Map<String, String> map, String outerTagName) throws XMLStreamException {
+    public static void parseValues(XMLEventReader reader, Map<String, Object> map, String outerTagName) throws XMLStreamException {
+        Deque<String> stack = new LinkedList<>();
+        stack.push(outerTagName);
+        parseValues(reader, map, outerTagName, stack);
+    }
+
+    public static void parseValues(XMLEventReader reader, Map<String, Object> map, String outerTagName, Deque<String> stack) throws XMLStreamException {
         String keyValue = null;
         XMLEvent curEvent = reader.nextEvent();
-        List<String> keyParts = new ArrayList<>();
         while (curEvent != null && !isEndElementWithName(curEvent, outerTagName)) {
             if (curEvent.isStartElement()) {
-                keyParts.add(curEvent.asStartElement().getName().getLocalPart());
+                String curr = curEvent.asStartElement().getName().getLocalPart();
+                if (!stack.peek().equals(outerTagName)) {
+                    Map<String, Object> m = new HashMap<>();
+                    List<String> list = new ArrayList<>();
+                    list.add(curr);
+                    String outer = stack.peek();
+                    stack.push(curr);
+                    parseValues(reader, m, outer, stack);
+                    if (map.containsKey(outer)) {
+                        Object obj = map.get(outer);
+                        if (obj instanceof List)
+                            ((List) obj).add(m);
+                        else { // map
+                            List<Object> l = new ArrayList<>();
+                            l.add(map.get(outer));
+                            l.add(m);
+                            map.put(outer, l);
+                        }
+                    } else
+                        map.put(outer, m);
+                } else {
+                    stack.push(curr);
+                }
             } else if (curEvent.isCharacters()) {
                 keyValue = curEvent.asCharacters().getData();
             } else if (curEvent.isEndElement()) {
-                if (keyValue != null) {
-                    map.put(getKey(keyParts), keyValue);
-                }
-                keyParts.remove(curEvent.asEndElement().getName().getLocalPart());
+                map.put(curEvent.asEndElement().getName().getLocalPart(), keyValue);
                 keyValue = null;
+                stack.pop();
             }
             curEvent = reader.nextEvent();
         }
@@ -53,28 +73,9 @@ public class XmlParseUtils {
                 && asList(tagNames).contains(event.asEndElement().getName().getLocalPart());
     }
 
-    private static String getKey(List<String> keyParts) {
-        if (CollectionUtils.isEmpty(keyParts)) {
-            return null;
-        }
-
-        String key = null;
-        if(keyParts.size() == 1) {
-            key = keyParts.get(0);
-        } else {
-            StringBuilder keyBuilder = new StringBuilder(keyParts.get(0));
-            for (int i = 1; i < keyParts.size(); i++) {
-                keyBuilder.append(".").append(keyParts.get(i));
-            }
-            key = keyBuilder.toString();
-        }
-
-        return key;
-
-    }
-
     public static void throwXmlReadError(Exception e) {
-        logger.error(XML_READ_ERROR_MESSAGE, e);
-        throw new UserException(XML_READ_ERROR_MESSAGE);
+        logger.error("Error while processing xml file.", e);
+        throw new UserException("xml.processing.failed", e);
     }
+
 }

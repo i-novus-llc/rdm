@@ -64,19 +64,14 @@ import ru.inovus.ms.rdm.impl.repository.AttributeValidationRepository;
 import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.inovus.ms.rdm.impl.util.ConverterUtil;
-import ru.inovus.ms.rdm.impl.util.ModelGenerator;
-import ru.inovus.ms.rdm.impl.util.RowDiff;
-import ru.inovus.ms.rdm.impl.util.RowDiffUtils;
+import ru.inovus.ms.rdm.impl.util.*;
 import ru.inovus.ms.rdm.impl.validation.AttributeUpdateValidator;
 import ru.inovus.ms.rdm.impl.validation.VersionValidationImpl;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
@@ -312,7 +307,7 @@ public class DraftServiceImpl implements DraftService {
         List<PassportValueEntity> passportValues = null;
         if (createDraftRequest.getPassport() != null) {
             passportValues = createDraftRequest.getPassport().entrySet().stream()
-                    .map(entry -> new PassportValueEntity(new PassportAttributeEntity(entry.getKey()), entry.getValue(), null))
+                    .map(entry -> new PassportValueEntity(new PassportAttributeEntity(entry.getKey()), (String) entry.getValue(), null))
                     .collect(toList());
         }
 
@@ -329,7 +324,12 @@ public class DraftServiceImpl implements DraftService {
         }
 
         RefBookVersionEntity savedDraftVersion = versionRepository.save(draftVersion);
+        addValidations(createDraftRequest.getFieldValidations(), savedDraftVersion);
         return new Draft(savedDraftVersion.getId(), savedDraftVersion.getStorageCode());
+    }
+
+    private void addValidations(Map<String, AttributeValidation> validations, RefBookVersionEntity entity) {
+        if (validations != null) validations.forEach((attrCode, validation) -> addAttributeValidation(entity.getId(), attrCode, validation));
     }
 
     @Override
@@ -339,13 +339,14 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateVersion(versionId);
         RefBookVersionEntity sourceVersion = versionRepository.getOne(versionId);
 
-        Map<String, String> passport = new HashMap<>();
+        Map<String, Object> passport = new HashMap<>();
         sourceVersion.getPassportValues().forEach(passportValueEntity -> passport.put(passportValueEntity.getAttribute().getCode(), passportValueEntity.getValue()));
-        CreateDraftRequest draftRequest  = new CreateDraftRequest(sourceVersion.getRefBook().getId(), sourceVersion.getStructure(), passport);
+        CreateDraftRequest draftRequest  = new CreateDraftRequest(sourceVersion.getRefBook().getId(), sourceVersion.getStructure(), passport, emptyMap());
         Draft draft = create(draftRequest);
 
         draftDataService.loadData(draft.getStorageCode(), sourceVersion.getStorageCode(), sourceVersion.getFromDate(), sourceVersion.getToDate());
         conflictRepository.copyByReferrerVersion(versionId, draft.getId());
+        attributeValidationRepository.copy(versionId, draft.getId());
 
         return draft;
     }

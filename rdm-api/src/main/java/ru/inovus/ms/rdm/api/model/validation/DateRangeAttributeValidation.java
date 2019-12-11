@@ -1,7 +1,6 @@
 package ru.inovus.ms.rdm.api.model.validation;
 
 import net.n2oapp.platform.i18n.UserException;
-import org.springframework.util.StringUtils;
 import ru.inovus.ms.rdm.api.util.TimeUtils;
 
 import java.time.LocalDate;
@@ -49,10 +48,10 @@ public class DateRangeAttributeValidation extends AttributeValidation {
         if (value == null || !value.matches("(\\d{2}\\.\\d{2}\\.\\d{4})?;(\\d{2}\\.\\d{2}\\.\\d{4})?"))
             throw new UserException("attribute.validation.value.invalid");
         String[] split = value.split(";");
-        if (!StringUtils.isEmpty(split[0]))
-            min = TimeUtils.parseLocalDate(split[0]);
-        if (!StringUtils.isEmpty(split[1]))
-            max = TimeUtils.parseLocalDate(split[1]);
+        if (!split[0].isEmpty())
+            min = LocalDate.parse(split[0], TimeUtils.STRICT_EUROPEAN_FORMATTER);
+        if (!split[1].isEmpty())
+            max = LocalDate.parse(split[1], TimeUtils.STRICT_EUROPEAN_FORMATTER);
         return this;
     }
 }

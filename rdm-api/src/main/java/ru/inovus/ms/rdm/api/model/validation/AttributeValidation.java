@@ -63,4 +63,10 @@ public abstract class AttributeValidation {
      * @throws IllegalArgumentException если некорректный формат
      */
     public abstract AttributeValidation valueFromString(String value);
+
+    public static AttributeValidation of(String stype, String val) {
+        AttributeValidationType type = AttributeValidationType.valueOf(stype.toUpperCase());
+        return type.getValidationInstance().valueFromString(val);
+    }
+
 }

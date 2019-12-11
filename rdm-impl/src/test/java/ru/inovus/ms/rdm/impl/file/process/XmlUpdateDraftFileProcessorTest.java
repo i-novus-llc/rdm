@@ -11,6 +11,8 @@ import ru.inovus.ms.rdm.impl.file.UploadFileTestData;
 import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.api.service.DraftService;
 
+import java.util.Collections;
+
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -30,7 +32,7 @@ public class XmlUpdateDraftFileProcessorTest {
 
     @Test
     public void testProcess() {
-        CreateDraftRequest expected = new CreateDraftRequest(TEST_REF_BOOK_ID, UploadFileTestData.createStructure(), UploadFileTestData.createPassport());
+        CreateDraftRequest expected = new CreateDraftRequest(TEST_REF_BOOK_ID, UploadFileTestData.createStructure(), UploadFileTestData.createPassport(), Collections.emptyMap());
 
         try(XmlUpdateDraftFileProcessor fileProcessor = new XmlUpdateDraftFileProcessor(TEST_REF_BOOK_ID, draftService)) {
             fileProcessor.process(() -> getClass().getResourceAsStream(XML_FILE));

@@ -3,32 +3,35 @@ package ru.inovus.ms.rdm.api.model.draft;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.validation.AttributeValidation;
 
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
+import static java.util.Collections.emptyMap;
+
 @ApiModel(value = "Модель создания черновика", description = "Набор данных для создания черновика")
 public class CreateDraftRequest implements Serializable {
 
     private Integer refBookId;
-
     private Structure structure;
+    private Map<String, Object> passport;
+    private Map<String, AttributeValidation> fieldValidations;
 
-    private Map<String, String> passport;
-
-    public CreateDraftRequest(Integer refBookId, Structure structure, Map<String, String> passport) {
+    public CreateDraftRequest(Integer refBookId, Structure structure, Map<String, Object> passport, Map<String, AttributeValidation> fieldValidations) {
         this.refBookId = refBookId;
         this.structure = structure;
         this.passport = passport;
+        this.fieldValidations = fieldValidations;
     }
 
     public CreateDraftRequest(Integer refBookId, Structure structure) {
-        this.refBookId = refBookId;
-        this.structure = structure;
+        this(refBookId, structure, emptyMap(), emptyMap());
     }
 
     public CreateDraftRequest() {
+        this(null, null, null, null);
     }
 
     @ApiModelProperty(value = "Идентификатор справочника")
@@ -50,12 +53,16 @@ public class CreateDraftRequest implements Serializable {
     }
 
     @ApiModelProperty(value = "Паспорт")
-    public Map<String, String> getPassport() {
+    public Map<String, Object> getPassport() {
         return passport;
     }
 
-    public void setPassport(Map<String, String> passport) {
+    public void setPassport(Map<String, Object> passport) {
         this.passport = passport;
+    }
+
+    public Map<String, AttributeValidation> getFieldValidations() {
+        return fieldValidations;
     }
 
     @Override
