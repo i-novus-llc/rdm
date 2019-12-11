@@ -76,7 +76,7 @@ final class AdapterConsumer {
         sendRequestDocument.setMessagePrimaryContent(messagePrimaryContent);
         try {
             return port.sendRequest(sendRequestDocument);
-        } catch (SmevAdapterFailureException ex) {
+        } catch (Exception ex) {
             logger.error("Error occurred while sending request message through SMEV3.", ex);
             return null;
         }
@@ -115,7 +115,7 @@ final class AdapterConsumer {
             if (nullResponse(response))
                 return null;
             return response;
-        } catch (SmevAdapterFailureException | UnknownMessageTypeException ex) {
+        } catch (Exception ex) {
             logger.error("Error occurred while receiving response message from SMEV3.", ex);
         }
         return null;
@@ -135,7 +135,7 @@ final class AdapterConsumer {
             port.ack(ackRequest);
             logger.info("Successfully acknowledged adapter about processing message with id {}", messageId);
             return true;
-        } catch (SmevAdapterFailureException | TargetMessageIsNotFoundException e) {
+        } catch (Exception e) {
             logger.error("Error occurred while sending acknowledge message to SMEV3.", e);
             return false;
         }

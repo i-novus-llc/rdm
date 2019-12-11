@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.esnsi.api.ClassifierAttribute;
@@ -51,7 +50,7 @@ public class EsnsiLoadService {
         return dao.getLastVersionRevision(code);
     }
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional
     public ClassifierProcessingStage getClassifierProcessingStage(String code) {
         ClassifierProcessingStage stage = dao.getClassifierProcessingStage(code);
         if (stage == null) {
@@ -61,8 +60,11 @@ public class EsnsiLoadService {
         return stage;
     }
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional
     public boolean setClassifierProcessingStageAtomically(String code, ClassifierProcessingStage expectedStage, ClassifierProcessingStage stage, Executable exec) {
+        boolean lock = dao.lockStage(code);
+        if (!lock)
+            return false;
         ClassifierProcessingStage actual = getClassifierProcessingStage(code);
         if (expectedStage != null && expectedStage != actual)
             return false;
@@ -76,11 +78,8 @@ public class EsnsiLoadService {
         return true;
     }
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional
     public void cleanClassifierSyncHistory(String code) {
-        ClassifierProcessingStage stage = getClassifierProcessingStage(code);
-        if (stage != ClassifierProcessingStage.NONE)
-            throw new RdmException("Can't clean sync history of " + code + " classifier, because it's processing stage is not NONE. Wait until current sync ends or call 'shutdown' method explicitly.");
         setClassifierRevisionAndLastUpdated(code, null, null);
     }
 
