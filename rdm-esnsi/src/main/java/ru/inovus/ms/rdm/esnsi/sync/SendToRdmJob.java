@@ -73,7 +73,7 @@ public class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
         else {
             Integer id = checkForExistance();
             if (id == null)
-                draft = draftService.create(fileModel);
+                draft = refBookService.create(fileModel);
             else
                 draft = draftService.create(id, fileModel);
         }
