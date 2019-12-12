@@ -47,13 +47,15 @@ public class DateRangeAttributeValidation extends AttributeValidation {
     @Override
     public DateRangeAttributeValidation valueFromString(String value) {
         if (value == null || !value.matches("(\\d{2}\\.\\d{2}\\.\\d{4})?;(\\d{2}\\.\\d{2}\\.\\d{4})?"))
-            throw new UserException("attribute.validation.value.invalid");
+            throw new UserException("check.your.date.format");
         String[] split = value.split(";");
         try {
             if (!split[0].isEmpty())
                 min = LocalDate.parse(split[0], TimeUtils.STRICT_EUROPEAN_FORMATTER);
             if (!split[1].isEmpty())
                 max = LocalDate.parse(split[1], TimeUtils.STRICT_EUROPEAN_FORMATTER);
+            if (min != null && max != null && min.isAfter(max))
+                throw new UserException("invalid.range");
         } catch (DateTimeParseException ex) {
             throw new UserException("check.your.date.format");
         }

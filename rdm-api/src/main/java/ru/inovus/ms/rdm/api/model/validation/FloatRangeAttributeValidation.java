@@ -51,6 +51,8 @@ public class FloatRangeAttributeValidation extends AttributeValidation {
             min = new BigDecimal(split[0]);
         if (!StringUtils.isEmpty(split[1]))
             max = new BigDecimal(split[1]);
+        if (min != null && max != null && min.compareTo(max) > 0)
+            throw new UserException("invalid.range");
         return this;
     }
 }

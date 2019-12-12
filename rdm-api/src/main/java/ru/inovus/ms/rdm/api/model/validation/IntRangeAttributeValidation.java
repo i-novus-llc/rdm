@@ -51,6 +51,8 @@ public class IntRangeAttributeValidation extends AttributeValidation {
             min = new BigInteger(split[0]);
         if (!StringUtils.isEmpty(split[1]))
             max = new BigInteger(split[1]);
+        if (min != null && max != null && min.compareTo(max) > 0)
+            throw new UserException("invalid.range");
         return this;
     }
 }
