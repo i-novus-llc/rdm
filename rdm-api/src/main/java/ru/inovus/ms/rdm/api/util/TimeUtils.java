@@ -130,12 +130,14 @@ public final class TimeUtils {
             return (LocalDate) value;
         if (value instanceof LocalDateTime)
             return ((LocalDateTime) value).toLocalDate();
-        return LocalDate.parse(
+        else {
+            return LocalDate.parse(
                 String.valueOf(value),
                 String.valueOf(value).contains(".")
-                        ? DATE_PATTERN_EUROPEAN_FORMATTER
-                        : DATE_PATTERN_ISO_FORMATTER
-        );
+                    ? DATE_PATTERN_EUROPEAN_FORMATTER
+                    : DATE_PATTERN_ISO_FORMATTER
+            );
+        }
     }
 
     public static String format(LocalDate localDate) {
