@@ -10,6 +10,7 @@ import ru.inovus.ms.rdm.api.service.DraftService;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -28,7 +29,7 @@ public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
 
     public abstract Map<String, Object> getPassport();
 
-    protected abstract Pair<Structure, Map<String, AttributeValidation>> getStructureAndValidations();
+    protected abstract Pair<Structure, Map<String, List<AttributeValidation>>> getStructureAndValidations();
 
     @Override
     public Draft process(Supplier<InputStream> fileSource) {
@@ -36,7 +37,7 @@ public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
             setFile(inputStream);
 
             Map<String, Object> passport = getPassport();
-            Pair<Structure, Map<String, AttributeValidation>> structure = getStructureAndValidations();
+            Pair<Structure, Map<String, List<AttributeValidation>>> structure = getStructureAndValidations();
             return draftService.create(new CreateDraftRequest(refBookId, structure.getFirst(), passport, structure.getSecond()));
 
         }  catch (IOException e) {

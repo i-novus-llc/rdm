@@ -14,6 +14,8 @@ import java.io.Closeable;
 import java.io.InputStream;
 import java.util.*;
 
+import static java.util.Collections.singletonList;
+
 public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implements Closeable {
 
     private static final String PASSPORT_TAG_NAME = "passport";
@@ -75,7 +77,7 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
 
     }
 
-    private void parseStructureAndValidations(Structure structure, Map<String, AttributeValidation> validations) throws XMLStreamException {
+    private void parseStructureAndValidations(Structure structure, Map<String, List<AttributeValidation>> validations) throws XMLStreamException {
         reader.nextEvent();
         while (!XmlParseUtils.isEndElementWithName(reader.peek(), STRUCTURE_TAG_NAME) &&
                 !XmlParseUtils.isStartElementWithName(reader.peek(), PASSPORT_TAG_NAME, DATA_TAG_NAME)) {
@@ -109,19 +111,24 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
             if (obj instanceof Map) {
                 Map<String, Object> map = (Map<String, Object>) obj;
                 AttributeValidation validation = AttributeValidation.of((String) map.get("type"), (String) map.get("value"));
-                validations.put(code, validation);
+                validations.put(code, singletonList(validation));
             } else { // List
-                List<Map<String, Object>> list = (List<Map<String, Object>>) obj;
-                for (Map<String, Object> map : list) {
-                    AttributeValidation validation = AttributeValidation.of((String) map.get("type"), (String) map.get("value"));
-                    validations.put(code, validation);
-                }
+                groupValidationsByCode(code, (List<Map<String, Object>>) obj, validations);
             }
         }
     }
 
+    private void groupValidationsByCode(String code, List<Map<String, Object>> list, Map<String, List<AttributeValidation>> validations) {
+        for (Map<String, Object> map : list) {
+            AttributeValidation validation = AttributeValidation.of((String) map.get("type"), (String) map.get("value"));
+            if (!validations.containsKey(code))
+                validations.put(code, new ArrayList<>());
+            validations.get(code).add(validation);
+        }
+    }
+
     @Override
-    protected Pair<Structure, Map<String, AttributeValidation>> getStructureAndValidations() {
+    protected Pair<Structure, Map<String, List<AttributeValidation>>> getStructureAndValidations() {
         if (reader.hasNext()) {
             try {
                 XMLEvent curEvent = reader.peek();
@@ -135,7 +142,7 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
                     return null;
 
                 Structure structure = new Structure(new ArrayList<>(), new ArrayList<>());
-                Map<String, AttributeValidation> validations = new HashMap<>();
+                Map<String, List<AttributeValidation>> validations = new HashMap<>();
                 parseStructureAndValidations(structure, validations);
 
                 reader.nextTag();

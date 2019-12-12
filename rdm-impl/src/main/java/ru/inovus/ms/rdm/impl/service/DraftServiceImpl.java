@@ -74,8 +74,7 @@ import java.util.*;
 import java.util.function.*;
 
 import static java.util.Collections.*;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.*;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.isEmpty;
 import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.isPublished;
@@ -329,8 +328,8 @@ public class DraftServiceImpl implements DraftService {
         return new Draft(savedDraftVersion.getId(), savedDraftVersion.getStorageCode());
     }
 
-    private void addValidations(Map<String, AttributeValidation> validations, RefBookVersionEntity entity) {
-        if (validations != null) validations.forEach((attrCode, validation) -> addAttributeValidation(entity.getId(), attrCode, validation));
+    private void addValidations(Map<String, List<AttributeValidation>> validations, RefBookVersionEntity entity) {
+        if (validations != null) validations.forEach((attrCode, list) -> list.forEach(validation -> addAttributeValidation(entity.getId(), attrCode, validation)));
     }
 
     @Override
@@ -342,7 +341,7 @@ public class DraftServiceImpl implements DraftService {
 
         Map<String, Object> passport = new HashMap<>();
         sourceVersion.getPassportValues().forEach(passportValueEntity -> passport.put(passportValueEntity.getAttribute().getCode(), passportValueEntity.getValue()));
-        Map<String, AttributeValidation> validations = attributeValidationRepository.findAllByVersionId(versionId).stream().collect(toMap(AttributeValidationEntity::getAttribute, e -> e.getType().getValidationInstance().valueFromString(e.getValue())));
+        Map<String, List<AttributeValidation>> validations = attributeValidationRepository.findAllByVersionId(versionId).stream().collect(groupingBy(AttributeValidationEntity::getAttribute, mapping(entity -> entity.getType().getValidationInstance().valueFromString(entity.getValue()), toList())));
         CreateDraftRequest draftRequest  = new CreateDraftRequest(sourceVersion.getRefBook().getId(), sourceVersion.getStructure(), passport, validations);
         Draft draft = create(draftRequest);
 

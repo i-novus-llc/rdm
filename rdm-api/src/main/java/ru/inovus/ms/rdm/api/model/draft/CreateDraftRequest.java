@@ -6,6 +6,7 @@ import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidation;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -17,9 +18,9 @@ public class CreateDraftRequest implements Serializable {
     private Integer refBookId;
     private Structure structure;
     @SuppressWarnings("squid:S1948") private Map<String, Object> passport;
-    @SuppressWarnings("squid:S1948") private Map<String, AttributeValidation> fieldValidations;
+    @SuppressWarnings("squid:S1948") private Map<String, List<AttributeValidation>> fieldValidations;
 
-    public CreateDraftRequest(Integer refBookId, Structure structure, Map<String, Object> passport, Map<String, AttributeValidation> fieldValidations) {
+    public CreateDraftRequest(Integer refBookId, Structure structure, Map<String, Object> passport, Map<String, List<AttributeValidation>> fieldValidations) {
         this.refBookId = refBookId;
         this.structure = structure;
         this.passport = passport;
@@ -60,11 +61,11 @@ public class CreateDraftRequest implements Serializable {
     }
 
     @ApiModelProperty(value = "Пользовательские проверки")
-    public Map<String, AttributeValidation> getFieldValidations() {
+    public Map<String, List<AttributeValidation>> getFieldValidations() {
         return fieldValidations;
     }
 
-    public void setFieldValidations(Map<String, AttributeValidation> fieldValidations) {
+    public void setFieldValidations(Map<String, List<AttributeValidation>> fieldValidations) {
         this.fieldValidations = fieldValidations;
     }
 
