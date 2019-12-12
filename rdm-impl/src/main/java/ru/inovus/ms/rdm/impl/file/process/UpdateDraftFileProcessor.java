@@ -1,7 +1,6 @@
 package ru.inovus.ms.rdm.impl.file.process;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.n2oapp.platform.i18n.UserException;
 import org.springframework.data.util.Pair;
 import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
@@ -15,8 +14,6 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
-
-    private static final Logger logger = LoggerFactory.getLogger(UpdateDraftFileProcessor.class);
 
     private Integer refBookId;
 
@@ -43,7 +40,11 @@ public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
             return draftService.create(new CreateDraftRequest(refBookId, structure.getFirst(), passport, structure.getSecond()));
 
         }  catch (IOException e) {
-            logger.error("cannot get inputStream", e);
+            XmlParseUtils.throwXmlReadError(e);
+        } catch (UserException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new UserException("check.your.xml", e);
         }
         return null;
     }

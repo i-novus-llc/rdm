@@ -76,9 +76,6 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
     }
 
     private void parseStructure(Structure structure, Map<String, AttributeValidation> validations) throws XMLStreamException {
-        if (structure == null)
-            return;
-
         reader.nextEvent();
         while (!XmlParseUtils.isEndElementWithName(reader.peek(), STRUCTURE_TAG_NAME) &&
                 !XmlParseUtils.isStartElementWithName(reader.peek(), PASSPORT_TAG_NAME, DATA_TAG_NAME)) {

@@ -24,31 +24,14 @@ public class XmlParseUtils {
         parseValues(reader, map, outerTagName, stack);
     }
 
-    public static void parseValues(XMLEventReader reader, Map<String, Object> map, String outerTagName, Deque<String> stack) throws XMLStreamException {
+    private static void parseValues(XMLEventReader reader, Map<String, Object> map, String outerTagName, Deque<String> stack) throws XMLStreamException {
         String keyValue = null;
         XMLEvent curEvent = reader.nextEvent();
         while (curEvent != null && !isEndElementWithName(curEvent, outerTagName)) {
             if (curEvent.isStartElement()) {
                 String curr = curEvent.asStartElement().getName().getLocalPart();
                 if (!stack.peek().equals(outerTagName)) {
-                    Map<String, Object> m = new HashMap<>();
-                    List<String> list = new ArrayList<>();
-                    list.add(curr);
-                    String outer = stack.peek();
-                    stack.push(curr);
-                    parseValues(reader, m, outer, stack);
-                    if (map.containsKey(outer)) {
-                        Object obj = map.get(outer);
-                        if (obj instanceof List)
-                            ((List) obj).add(m);
-                        else { // map
-                            List<Object> l = new ArrayList<>();
-                            l.add(map.get(outer));
-                            l.add(m);
-                            map.put(outer, l);
-                        }
-                    } else
-                        map.put(outer, m);
+                    levelDown(curr, stack, reader, map);
                 } else {
                     stack.push(curr);
                 }
@@ -61,6 +44,25 @@ public class XmlParseUtils {
             }
             curEvent = reader.nextEvent();
         }
+    }
+
+    private static void levelDown(String curr, Deque<String> stack, XMLEventReader reader, Map<String, Object> map) throws XMLStreamException {
+        Map<String, Object> m = new HashMap<>();
+        String outer = stack.peek();
+        stack.push(curr);
+        parseValues(reader, m, outer, stack);
+        if (map.containsKey(outer)) {
+            Object obj = map.get(outer);
+            if (obj instanceof List)
+                ((List) obj).add(m);
+            else { // map
+                List<Object> l = new ArrayList<>();
+                l.add(map.get(outer));
+                l.add(m);
+                map.put(outer, l);
+            }
+        } else
+            map.put(outer, m);
     }
 
     public static boolean isStartElementWithName(XMLEvent event, String... tagNames) {

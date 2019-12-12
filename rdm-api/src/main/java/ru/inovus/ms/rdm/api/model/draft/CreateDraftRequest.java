@@ -16,8 +16,8 @@ public class CreateDraftRequest implements Serializable {
 
     private Integer refBookId;
     private Structure structure;
-    private Map<String, Object> passport;
-    private Map<String, AttributeValidation> fieldValidations;
+    @SuppressWarnings("squid:S1948") private Map<String, Object> passport;
+    @SuppressWarnings("squid:S1948") private Map<String, AttributeValidation> fieldValidations;
 
     public CreateDraftRequest(Integer refBookId, Structure structure, Map<String, Object> passport, Map<String, AttributeValidation> fieldValidations) {
         this.refBookId = refBookId;
@@ -61,8 +61,13 @@ public class CreateDraftRequest implements Serializable {
         this.passport = passport;
     }
 
+    @ApiModelProperty(value = "Пользовательские проверки")
     public Map<String, AttributeValidation> getFieldValidations() {
         return fieldValidations;
+    }
+
+    public void setFieldValidations(Map<String, AttributeValidation> fieldValidations) {
+        this.fieldValidations = fieldValidations;
     }
 
     @Override
