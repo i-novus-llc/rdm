@@ -75,6 +75,7 @@ import java.util.function.*;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.isEmpty;
 import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.isPublished;
@@ -341,12 +342,12 @@ public class DraftServiceImpl implements DraftService {
 
         Map<String, Object> passport = new HashMap<>();
         sourceVersion.getPassportValues().forEach(passportValueEntity -> passport.put(passportValueEntity.getAttribute().getCode(), passportValueEntity.getValue()));
-        CreateDraftRequest draftRequest  = new CreateDraftRequest(sourceVersion.getRefBook().getId(), sourceVersion.getStructure(), passport, emptyMap());
+        Map<String, AttributeValidation> validations = attributeValidationRepository.findAllByVersionId(versionId).stream().collect(toMap(AttributeValidationEntity::getAttribute, e -> e.getType().getValidationInstance().valueFromString(e.getValue())));
+        CreateDraftRequest draftRequest  = new CreateDraftRequest(sourceVersion.getRefBook().getId(), sourceVersion.getStructure(), passport, validations);
         Draft draft = create(draftRequest);
 
         draftDataService.loadData(draft.getStorageCode(), sourceVersion.getStorageCode(), sourceVersion.getFromDate(), sourceVersion.getToDate());
         conflictRepository.copyByReferrerVersion(versionId, draft.getId());
-        attributeValidationRepository.copy(versionId, draft.getId());
 
         return draft;
     }

@@ -75,7 +75,7 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
 
     }
 
-    private void parseStructure(Structure structure, Map<String, AttributeValidation> validations) throws XMLStreamException {
+    private void parseStructureAndValidations(Structure structure, Map<String, AttributeValidation> validations) throws XMLStreamException {
         reader.nextEvent();
         while (!XmlParseUtils.isEndElementWithName(reader.peek(), STRUCTURE_TAG_NAME) &&
                 !XmlParseUtils.isStartElementWithName(reader.peek(), PASSPORT_TAG_NAME, DATA_TAG_NAME)) {
@@ -121,7 +121,7 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
     }
 
     @Override
-    protected Pair<Structure, Map<String, AttributeValidation>> getStructure() {
+    protected Pair<Structure, Map<String, AttributeValidation>> getStructureAndValidations() {
         if (reader.hasNext()) {
             try {
                 XMLEvent curEvent = reader.peek();
@@ -136,7 +136,7 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
 
                 Structure structure = new Structure(new ArrayList<>(), new ArrayList<>());
                 Map<String, AttributeValidation> validations = new HashMap<>();
-                parseStructure(structure, validations);
+                parseStructureAndValidations(structure, validations);
 
                 reader.nextTag();
 

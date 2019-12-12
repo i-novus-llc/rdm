@@ -18,6 +18,14 @@ public class XmlParseUtils {
     private XmlParseUtils() {
     }
 
+    /**
+     * Спарсить значения из XML-ки. В мапе будут ключом будут идти имена тегов, а значениями:
+     * 1) String -- в случае, если тег открылся, в нем текст и тег закрылся
+     * 2) Map<String, Object> -- в случае, если под тегом вложенный объект (для него все те же правила применяются рекурсивно)
+     * 3) List<Object> -- в случае, если несколько тегов с одним ключом в пределах одного уровня вложенности. Тут точно так же могу лежать либо просто String, либо Map<String, Object>
+     * @param map Куда складывать значения
+     * @param outerTagName Открывающий тег (этот тег не должен встречаться в пределах одного уровня вложенности)
+     */
     public static void parseValues(XMLEventReader reader, Map<String, Object> map, String outerTagName) throws XMLStreamException {
         Deque<String> stack = new LinkedList<>();
         stack.push(outerTagName);
@@ -25,7 +33,7 @@ public class XmlParseUtils {
     }
 
     private static void parseValues(XMLEventReader reader, Map<String, Object> map, String outerTagName, Deque<String> stack) throws XMLStreamException {
-        String keyValue = null;
+        String val = null;
         XMLEvent curEvent = reader.nextEvent();
         while (curEvent != null && !isEndElementWithName(curEvent, outerTagName)) {
             if (curEvent.isStartElement()) {
@@ -36,10 +44,11 @@ public class XmlParseUtils {
                     stack.push(curr);
                 }
             } else if (curEvent.isCharacters()) {
-                keyValue = curEvent.asCharacters().getData();
+                val = curEvent.asCharacters().getData();
             } else if (curEvent.isEndElement()) {
-                map.put(curEvent.asEndElement().getName().getLocalPart(), keyValue);
-                keyValue = null;
+                String curr = curEvent.asEndElement().getName().getLocalPart();
+                add(map, curr, val);
+                val = null;
                 stack.pop();
             }
             curEvent = reader.nextEvent();
@@ -51,18 +60,24 @@ public class XmlParseUtils {
         String outer = stack.peek();
         stack.push(curr);
         parseValues(reader, m, outer, stack);
-        if (map.containsKey(outer)) {
-            Object obj = map.get(outer);
-            if (obj instanceof List)
-                ((List) obj).add(m);
-            else { // map
-                List<Object> l = new ArrayList<>();
-                l.add(map.get(outer));
-                l.add(m);
-                map.put(outer, l);
+        add(map, outer, m);
+    }
+
+    private static void add(Map<String, Object> m, String key, Object val) {
+        m.compute(key, (k, v) -> {
+            if (v == null) return val;
+            else {
+                if (v instanceof List) {
+                    ((List) v).add(val);
+                    return v;
+                } else {
+                    List<Object> arr = new ArrayList<>();
+                    arr.add(v);
+                    arr.add(val);
+                    return arr;
+                }
             }
-        } else
-            map.put(outer, m);
+        });
     }
 
     public static boolean isStartElementWithName(XMLEvent event, String... tagNames) {

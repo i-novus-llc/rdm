@@ -30,9 +30,7 @@ public class CreateDraftRequest implements Serializable {
         this(refBookId, structure, emptyMap(), emptyMap());
     }
 
-    public CreateDraftRequest() {
-        this(null, null, null, null);
-    }
+    public CreateDraftRequest() {}
 
     @ApiModelProperty(value = "Идентификатор справочника")
     public Integer getRefBookId() {

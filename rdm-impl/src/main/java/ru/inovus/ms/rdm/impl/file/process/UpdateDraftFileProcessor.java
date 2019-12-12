@@ -28,7 +28,7 @@ public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
 
     public abstract Map<String, Object> getPassport();
 
-    protected abstract Pair<Structure, Map<String, AttributeValidation>> getStructure();
+    protected abstract Pair<Structure, Map<String, AttributeValidation>> getStructureAndValidations();
 
     @Override
     public Draft process(Supplier<InputStream> fileSource) {
@@ -36,7 +36,7 @@ public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
             setFile(inputStream);
 
             Map<String, Object> passport = getPassport();
-            Pair<Structure, Map<String, AttributeValidation>> structure = getStructure();
+            Pair<Structure, Map<String, AttributeValidation>> structure = getStructureAndValidations();
             return draftService.create(new CreateDraftRequest(refBookId, structure.getFirst(), passport, structure.getSecond()));
 
         }  catch (IOException e) {
