@@ -76,7 +76,8 @@ public class CreateDraftRequest implements Serializable {
         CreateDraftRequest that = (CreateDraftRequest) o;
         return Objects.equals(refBookId, that.refBookId) &&
                 Objects.equals(structure, that.structure) &&
-                Objects.equals(passport, that.passport);
+                Objects.equals(passport, that.passport) &&
+                Objects.equals(fieldValidations, that.fieldValidations);
     }
 
     @Override

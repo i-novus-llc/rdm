@@ -4,6 +4,7 @@ import net.n2oapp.platform.i18n.UserException;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 public class FloatRangeAttributeValidation extends AttributeValidation {
 
@@ -54,5 +55,20 @@ public class FloatRangeAttributeValidation extends AttributeValidation {
         if (min != null && max != null && min.compareTo(max) > 0)
             throw new UserException("invalid.range");
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        FloatRangeAttributeValidation that = (FloatRangeAttributeValidation) o;
+        return Objects.equals(min, that.min) &&
+                Objects.equals(max, that.max);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), min, max);
     }
 }

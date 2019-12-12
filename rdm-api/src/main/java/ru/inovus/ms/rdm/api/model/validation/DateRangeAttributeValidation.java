@@ -5,6 +5,7 @@ import ru.inovus.ms.rdm.api.util.TimeUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.Objects;
 
 import static ru.inovus.ms.rdm.api.util.TimeUtils.format;
 
@@ -60,5 +61,20 @@ public class DateRangeAttributeValidation extends AttributeValidation {
             throw new UserException("check.your.date.format");
         }
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        DateRangeAttributeValidation that = (DateRangeAttributeValidation) o;
+        return Objects.equals(min, that.min) &&
+                Objects.equals(max, that.max);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), min, max);
     }
 }

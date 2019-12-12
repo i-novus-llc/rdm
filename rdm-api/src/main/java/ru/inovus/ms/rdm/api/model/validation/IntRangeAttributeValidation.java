@@ -4,6 +4,7 @@ import net.n2oapp.platform.i18n.UserException;
 import org.springframework.util.StringUtils;
 
 import java.math.BigInteger;
+import java.util.Objects;
 
 public class IntRangeAttributeValidation extends AttributeValidation {
 
@@ -55,4 +56,20 @@ public class IntRangeAttributeValidation extends AttributeValidation {
             throw new UserException("invalid.range");
         return this;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        IntRangeAttributeValidation that = (IntRangeAttributeValidation) o;
+        return Objects.equals(min, that.min) &&
+                Objects.equals(max, that.max);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), min, max);
+    }
+
 }
