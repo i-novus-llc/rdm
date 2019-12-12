@@ -34,24 +34,27 @@ public abstract class AttributeValidation {
         return versionId;
     }
 
-    public void setVersionId(Integer versionId) {
+    public AttributeValidation setVersionId(Integer versionId) {
         this.versionId = versionId;
+        return this;
     }
 
     public String getAttribute() {
         return attribute;
     }
 
-    public void setAttribute(String attribute) {
+    public AttributeValidation setAttribute(String attribute) {
         this.attribute = attribute;
+        return this;
     }
 
     public AttributeValidationType getType() {
         return type;
     }
 
-    public void setType(AttributeValidationType type) {
+    public AttributeValidation setType(AttributeValidationType type) {
         this.type = type;
+        return this;
     }
 
     /**

@@ -6,17 +6,16 @@ import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.Test;
 import org.xml.sax.SAXException;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.inovus.ms.rdm.api.model.validation.*;
 import ru.inovus.ms.rdm.impl.file.UploadFileTestData;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.api.model.Structure;
-import ru.inovus.ms.rdm.api.model.validation.AttributeValidation;
-import ru.inovus.ms.rdm.api.model.validation.IntRangeAttributeValidation;
-import ru.inovus.ms.rdm.api.model.validation.RequiredAttributeValidation;
 
 import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.*;
 
 import static java.util.Arrays.asList;
@@ -41,13 +40,16 @@ public class XmlFileGenerateProcessTest {
             put("description", "описание");
         }});
 
-        List<AttributeValidation> attributeValidations = new ArrayList<>();
-        AttributeValidation intValidation = new IntRangeAttributeValidation(BigInteger.valueOf(1), BigInteger.valueOf(10));
-        intValidation.setAttribute("integer");
-        attributeValidations.add(intValidation);
-        AttributeValidation requiredValidation = new RequiredAttributeValidation();
-        requiredValidation.setAttribute("float");
-        attributeValidations.add(requiredValidation);
+        List<AttributeValidation> attributeValidations = List.of(
+            new PlainSizeAttributeValidation(40).setAttribute("string"),
+            new RegExpAttributeValidation("[а-яА-я]*").setAttribute("string"),
+            new IntRangeAttributeValidation(BigInteger.ONE, BigInteger.TEN).setAttribute("integer"),
+            new UniqueAttributeValidation().setAttribute("integer"),
+            new DateRangeAttributeValidation(LocalDate.of(2019, 02, 01), LocalDate.of(2019, 02, 02)).setAttribute("date"),
+            new RequiredAttributeValidation().setAttribute("boolean"),
+            new FloatSizeAttributeValidation(2, 2).setAttribute("float"),
+            new FloatRangeAttributeValidation(BigDecimal.valueOf(2.43), BigDecimal.valueOf(10.12)).setAttribute("float")
+        );
 
         List<Row> rows = createRowsValues()
                 .stream()
