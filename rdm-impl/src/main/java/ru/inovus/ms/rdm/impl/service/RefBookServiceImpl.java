@@ -340,13 +340,14 @@ public class RefBookServiceImpl implements RefBookService {
 
     @Override
     @Transactional
-    public void changeData(String refBookCode, ChangeDataRequest request) {
-        Integer refBookId = getId(refBookCode);
+    public void changeData(ChangeDataRequest request) {
+        Integer refBookId = getId(request.getRefBookCode());
         versionValidation.validateRefBookExists(refBookId);
         String code = getCode(refBookId);
         Integer draftId = draftService.getIdByRefBookCode(code);
         if (draftId == null) {
-            Draft draft = draftService.createFromVersion(draftId);
+            RefBookVersionEntity mostRecentVersion = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(code, RefBookVersionStatus.PUBLISHED);
+            Draft draft = draftService.createFromVersion(mostRecentVersion.getId());
             draftId = draft.getId();
         }
         draftService.updateData(draftId, request.getRowsToAddOrUpdate());

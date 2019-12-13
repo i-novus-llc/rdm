@@ -431,8 +431,9 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
 
         if (isEmpty(rows)) throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
-
+        Set<String> attrs = draftVersion.getStructure().getAttributes().stream().map(Structure.Attribute::getCode).collect(toSet());
         rows = rows.stream().filter(row -> !isEmptyRow(row)).collect(toList());
+        rows.forEach(row -> row.getData().entrySet().removeIf(attr -> !attrs.contains(attr.getKey())));
         if (isEmpty(rows)) throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
         setSystemIdIfPossible(draftVersion.getStructure(), rows, draftId, true);
         validateDataByStructure(draftVersion, rows);
@@ -512,12 +513,16 @@ public class DraftServiceImpl implements DraftService {
     @Override
     @Transactional
     public void deleteRows(Integer draftId, List<Long> systemIds) {
-        List list = systemIds;
-        versionValidation.validateDraft(draftId);
-        RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
-        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftVersion.getId(), systemIds);
-        draftDataService.deleteRows(draftVersion.getStorageCode(), list);
-        auditEditData(draftVersion, "delete_row", systemIds.stream().filter(Objects::nonNull).collect(toList()));
+        if (systemIds != null && !systemIds.isEmpty()) {
+            List list = systemIds;
+            list.removeIf(Objects::isNull);
+            if (list.isEmpty()) return;
+            versionValidation.validateDraft(draftId);
+            RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
+            conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftVersion.getId(), systemIds);
+            draftDataService.deleteRows(draftVersion.getStorageCode(), list);
+            auditEditData(draftVersion, "delete_row", list);
+        }
     }
 
     @Override

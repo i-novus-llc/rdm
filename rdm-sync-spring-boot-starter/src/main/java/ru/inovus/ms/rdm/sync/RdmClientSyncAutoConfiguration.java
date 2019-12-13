@@ -25,6 +25,8 @@ import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
 import ru.inovus.ms.rdm.sync.service.*;
+import ru.inovus.ms.rdm.sync.service.listener.PublishListener;
+import ru.inovus.ms.rdm.sync.service.listener.PullInRdmListener;
 
 import javax.jms.ConnectionFactory;
 import javax.sql.DataSource;
@@ -141,7 +143,6 @@ public class RdmClientSyncAutoConfiguration {
         return new OffsetDateTimeParamConverter();
     }
 
-
     @Bean
     @ConditionalOnMissingBean
     public LocalDateTimeMapperPreparer localDateTimeMapperPreparer() {
@@ -163,7 +164,7 @@ public class RdmClientSyncAutoConfiguration {
     @Bean(name = "publishDictionaryTopicMessageListenerContainerFactory")
     @ConditionalOnProperty(name = "rdm_sync.publish.listener.enable", havingValue = "true")
     @ConditionalOnClass(name = "org.apache.activemq.ActiveMQConnectionFactory")
-    public DefaultJmsListenerContainerFactory unshared(ConnectionFactory connectionFactory) {
+    public DefaultJmsListenerContainerFactory unsharedPublishContainerFactory(ConnectionFactory connectionFactory) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setPubSubDomain(true);
@@ -174,7 +175,7 @@ public class RdmClientSyncAutoConfiguration {
     @Bean(name = "publishDictionaryTopicMessageListenerContainerFactory")
     @ConditionalOnProperty(name = "rdm_sync.publish.listener.enable", havingValue = "true")
     @ConditionalOnClass(name = "org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory")
-    public DefaultJmsListenerContainerFactory shared(ConnectionFactory connectionFactory) {
+    public DefaultJmsListenerContainerFactory sharedPublishContainerFactory(ConnectionFactory connectionFactory) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setPubSubDomain(true);
@@ -183,9 +184,23 @@ public class RdmClientSyncAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnClass(ConnectionFactory.class)
+    public DefaultJmsListenerContainerFactory pullInRdmQueueMessageListenerContainerFactory(ConnectionFactory connectionFactory) {
+        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory);
+        return factory;
+    }
+
+    @Bean
     @ConditionalOnProperty(name = "rdm_sync.publish.listener.enable", havingValue = "true")
     public PublishListener publishListener(RdmSyncRest rdmSyncRest) {
         return new PublishListener(rdmSyncRest);
+    }
+
+    @Bean
+    @ConditionalOnClass(ConnectionFactory.class)
+    public PullInRdmListener pullInRdmListener(RdmSyncRest rdmSyncRest) {
+        return new PullInRdmListener(rdmSyncRest);
     }
 
     @Bean

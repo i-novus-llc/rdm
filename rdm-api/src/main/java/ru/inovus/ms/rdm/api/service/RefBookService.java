@@ -122,8 +122,8 @@ public interface RefBookService {
     void fromArchive(@ApiParam("Идентификатор справочника") @PathParam("refBookId") int refBookId);
 
     @POST
-    @Path("/{refBookCode}/changeData")
+    @Path("/changeData")
     @ApiOperation(value = "Добавить данные в черновик справочника и тут же опубликовать. Если черновика нет -- он будет создан, если есть -- данные отредактируются в существующем.", hidden = true)
-    void changeData(@ApiParam("Идентификатор справочника") @PathParam("refBookCode") String refBookCode, ChangeDataRequest request);
+    void changeData(ChangeDataRequest request);
 
 }

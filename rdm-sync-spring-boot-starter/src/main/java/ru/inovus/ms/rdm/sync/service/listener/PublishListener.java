@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.sync.service;
+package ru.inovus.ms.rdm.sync.service.listener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

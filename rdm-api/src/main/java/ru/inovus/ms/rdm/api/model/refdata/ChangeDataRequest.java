@@ -8,6 +8,24 @@ public class ChangeDataRequest {
     private List<Row> rowsToAddOrUpdate;
     private List<Row> rowsToDelete;
 
+    private String refBookCode;
+
+    public ChangeDataRequest() {}
+
+    public ChangeDataRequest(String refBookCode, List<Row> rowsToAddOrUpdate, List<Row> rowsToDelete) {
+        this.rowsToAddOrUpdate = rowsToAddOrUpdate;
+        this.rowsToDelete = rowsToDelete;
+        this.refBookCode = refBookCode;
+    }
+
+    public String getRefBookCode() {
+        return refBookCode;
+    }
+
+    public void setRefBookCode(String refBookCode) {
+        this.refBookCode = refBookCode;
+    }
+
     public List<Row> getRowsToAddOrUpdate() {
         return rowsToAddOrUpdate;
     }
