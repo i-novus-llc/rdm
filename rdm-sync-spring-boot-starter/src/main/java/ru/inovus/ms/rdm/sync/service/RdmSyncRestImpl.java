@@ -8,17 +8,21 @@ import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ReflectionUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
+import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.api.model.diff.RefBookDataDiff;
 import ru.inovus.ms.rdm.api.model.diff.StructureDiff;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
+import ru.inovus.ms.rdm.api.model.refdata.ChangeDataRequest;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.api.service.CompareService;
 import ru.inovus.ms.rdm.api.service.RefBookService;
@@ -35,8 +39,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum.DELETED;
 import static ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum.INSERTED;
 
@@ -130,6 +134,39 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     @Override
     public List<Log> getLog(LogCriteria criteria) {
         return loggingService.getList(criteria.getDate(), criteria.getRefbookCode());
+    }
+
+    @Override
+    public void sync(String refBookCode, List<Object> addUpdate, List<Object> delete) {
+        List<Row> addUpdateRows = mapToRow(addUpdate);
+        List<Row> deleteRows = mapToRow(delete);
+        ChangeDataRequest changeDataRequest = new ChangeDataRequest();
+        changeDataRequest.setRowsToAddOrUpdate(addUpdateRows);
+        changeDataRequest.setRowsToDelete(deleteRows);
+        boolean success = false;
+        Exception ex = null;
+        try {
+            refBookService.changeData(refBookCode, changeDataRequest);
+            success = true;
+        } catch (Exception e) {
+            logger.error("Export to rdm failed.", e);
+            ex = e;
+        }
+        if (!success) {
+//          TODO: Залогировать в базу
+            throw new RdmException(ex);
+        }
+    }
+
+    private List<Row> mapToRow(List<Object> list) {
+        return list.stream().map(obj -> {
+            Map<String, Object> map = new HashMap<>();
+            ReflectionUtils.doWithFields(obj.getClass(), field -> {
+                field.setAccessible(true);
+                map.put(field.getName(), field.get(obj));
+            });
+            return map;
+        }).map(Row::new).collect(toList());
     }
 
     private VersionMapping getVersionMapping(String refbookCode) {
@@ -237,7 +274,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     }
 
     private void validateStructureChanges(VersionMapping versionMapping, List<FieldMapping> fieldMappings, RefBookDataDiff diff) {
-        List<String> clientRdmFields = fieldMappings.stream().map(FieldMapping::getRdmField).collect(Collectors.toList());
+        List<String> clientRdmFields = fieldMappings.stream().map(FieldMapping::getRdmField).collect(toList());
         //проверяем удаленные поля
         if (!CollectionUtils.isEmpty(diff.getOldAttributes())) {
             diff.getOldAttributes().retainAll(clientRdmFields);

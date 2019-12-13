@@ -340,7 +340,8 @@ public class RefBookServiceImpl implements RefBookService {
 
     @Override
     @Transactional
-    public void changeData(int refBookId, ChangeDataRequest request) {
+    public void changeData(String refBookCode, ChangeDataRequest request) {
+        Integer refBookId = getId(refBookCode);
         versionValidation.validateRefBookExists(refBookId);
         String code = getCode(refBookId);
         Integer draftId = draftService.getIdByRefBookCode(code);

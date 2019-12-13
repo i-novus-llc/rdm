@@ -44,4 +44,13 @@ public interface RdmSyncRest {
         @ApiResponse(code = 400, message = "Укажите пожалуйста дату в формате ISO_LOCAL_DATE [yyyy-MM-dd].")
     })
     List<Log> getLog(@BeanParam LogCriteria criteria);
+
+    @POST
+    @Path("/sync")
+    @ApiOperation(value = "Экспорт данных в рдм")
+    @ApiResponses({
+        @ApiResponse(code = 204, message = "Успех")
+    })
+    void sync(String refBookCode, List<Object> addUpdate, List<Object> delete);
+
 }
