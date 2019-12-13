@@ -516,7 +516,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
         conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftVersion.getId(), systemIds);
         draftDataService.deleteRows(draftVersion.getStorageCode(), list);
-        auditEditData(draftVersion, "delete_row", systemIds);
+        auditEditData(draftVersion, "delete_row", systemIds.stream().filter(Objects::nonNull).collect(toList()));
     }
 
     @Override
