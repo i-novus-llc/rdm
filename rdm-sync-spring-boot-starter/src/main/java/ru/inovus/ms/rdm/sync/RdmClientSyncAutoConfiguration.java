@@ -95,7 +95,7 @@ public class RdmClientSyncAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public RdmSyncRest rdmSyncRest(@Value("${rdm_sync.publish.listener.enable}") boolean publishTopicEnabled) {
+    public RdmSyncRest rdmSyncRest() {
         return new RdmSyncRestImpl();
     }
 
