@@ -5,21 +5,17 @@ import net.n2oapp.platform.jaxrs.LocalDateTimeISOParameterConverter;
 import net.n2oapp.platform.jaxrs.TypedParamConverter;
 import net.n2oapp.platform.jaxrs.autoconfigure.EnableJaxRsProxyClient;
 import net.n2oapp.platform.jaxrs.autoconfigure.MissingGenericBean;
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.*;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
-import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.util.StringUtils;
 import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.api.provider.*;
@@ -89,6 +85,15 @@ public class RdmClientSyncAutoConfiguration {
     }
 
     @Bean
+    @Primary
+    @ConditionalOnMissingBean
+    @ConditionalOnMissingClass(value = "org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory")
+    @ConditionalOnProperty(name = "rdm_sync.publish.listener.enable", havingValue = "true")
+    public RdmSyncRest lockingRdmSyncRest() {
+        return new LockingRdmSyncRest();
+    }
+
+    @Bean
     @ConditionalOnMissingBean
     public RdmSyncRest rdmSyncRest() {
         return new RdmSyncRestImpl();
@@ -155,28 +160,32 @@ public class RdmClientSyncAutoConfiguration {
         return new RdmMapperConfigurer();
     }
 
-    @Bean
-    @ConditionalOnMissingBean(value = ConnectionFactory.class)
+    @Bean(name = "publishDictionaryTopicMessageListenerContainerFactory")
     @ConditionalOnProperty(name = "rdm_sync.publish.listener.enable", havingValue = "true")
-    public ConnectionFactory activeMQConnectionFactory() {
-        ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory();
-        activeMQConnectionFactory.setBrokerURL(brokerUrl);
-        return new CachingConnectionFactory(activeMQConnectionFactory);
-    }
-
-    @Bean
-    @ConditionalOnProperty(name = "rdm_sync.publish.listener.enable", havingValue = "true")
-    public DefaultJmsListenerContainerFactory publishDictionaryTopicMessageListenerContainerFactory(ConnectionFactory connectionFactory) {
+    @ConditionalOnClass(name = "org.apache.activemq.ActiveMQConnectionFactory")
+    public DefaultJmsListenerContainerFactory unshared(ConnectionFactory connectionFactory) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setPubSubDomain(true);
+        factory.setSubscriptionShared(false);
+        return factory;
+    }
+
+    @Bean(name = "publishDictionaryTopicMessageListenerContainerFactory")
+    @ConditionalOnProperty(name = "rdm_sync.publish.listener.enable", havingValue = "true")
+    @ConditionalOnClass(name = "org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory")
+    public DefaultJmsListenerContainerFactory shared(ConnectionFactory connectionFactory) {
+        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory);
+        factory.setPubSubDomain(true);
+        factory.setSubscriptionShared(true);
         return factory;
     }
 
     @Bean
     @ConditionalOnProperty(name = "rdm_sync.publish.listener.enable", havingValue = "true")
-    public PublishListener publishListener() {
-        return new PublishListener(rdmSyncRest());
+    public PublishListener publishListener(RdmSyncRest rdmSyncRest) {
+        return new PublishListener(rdmSyncRest);
     }
 
     @Bean

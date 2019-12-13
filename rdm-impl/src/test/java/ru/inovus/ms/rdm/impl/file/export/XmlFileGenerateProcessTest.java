@@ -6,17 +6,16 @@ import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.Test;
 import org.xml.sax.SAXException;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.inovus.ms.rdm.api.model.validation.*;
 import ru.inovus.ms.rdm.impl.file.UploadFileTestData;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.api.model.Structure;
-import ru.inovus.ms.rdm.api.model.validation.AttributeValidation;
-import ru.inovus.ms.rdm.api.model.validation.IntRangeAttributeValidation;
-import ru.inovus.ms.rdm.api.model.validation.RequiredAttributeValidation;
 
 import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.*;
 
 import static java.util.Arrays.asList;
@@ -41,13 +40,16 @@ public class XmlFileGenerateProcessTest {
             put("description", "описание");
         }});
 
-        List<AttributeValidation> attributeValidations = new ArrayList<>();
-        AttributeValidation intValidation = new IntRangeAttributeValidation(BigInteger.valueOf(1), BigInteger.valueOf(10));
-        intValidation.setAttribute("integer");
-        attributeValidations.add(intValidation);
-        AttributeValidation requiredValidation = new RequiredAttributeValidation();
-        requiredValidation.setAttribute("float");
-        attributeValidations.add(requiredValidation);
+        List<AttributeValidation> attributeValidations = List.of(
+            AttributeValidation.ofTypeWithAttr("PLAIN_SIZE", "40", "string"),
+            AttributeValidation.ofTypeWithAttr("REG_EXP", "[а-яА-я]*", "string"),
+            AttributeValidation.ofTypeWithAttr("INT_RANGE", "1;10", "integer"),
+            AttributeValidation.ofTypeWithAttr("UNIQUE", null, "integer"),
+            AttributeValidation.ofTypeWithAttr("DATE_RANGE", "01.02.2019;02.02.2019", "date"),
+            AttributeValidation.ofTypeWithAttr("REQUIRED", null, "boolean"),
+            AttributeValidation.ofTypeWithAttr("FLOAT_SIZE", "2;2", "float"),
+            AttributeValidation.ofTypeWithAttr("FLOAT_RANGE", "2.43;10.12", "float")
+        );
 
         List<Row> rows = createRowsValues()
                 .stream()

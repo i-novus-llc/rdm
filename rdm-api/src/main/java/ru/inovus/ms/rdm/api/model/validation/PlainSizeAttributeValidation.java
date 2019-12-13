@@ -3,6 +3,8 @@ package ru.inovus.ms.rdm.api.model.validation;
 import io.swagger.annotations.ApiModel;
 import net.n2oapp.platform.i18n.UserException;
 
+import java.util.Objects;
+
 @ApiModel(parent = AttributeValidation.class)
 public class PlainSizeAttributeValidation extends AttributeValidation {
 
@@ -46,5 +48,19 @@ public class PlainSizeAttributeValidation extends AttributeValidation {
             throw new UserException("attribute.validation.value.invalid");
         size = Integer.parseInt(value);
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        PlainSizeAttributeValidation that = (PlainSizeAttributeValidation) o;
+        return size == that.size;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), size);
     }
 }

@@ -3,6 +3,8 @@ package ru.inovus.ms.rdm.api.model.validation;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.util.StringUtils;
 
+import java.util.Objects;
+
 import static java.lang.Integer.parseInt;
 
 public class FloatSizeAttributeValidation extends AttributeValidation {
@@ -53,5 +55,20 @@ public class FloatSizeAttributeValidation extends AttributeValidation {
             fracPartSize = parseInt(split[1]);
         return this;
 
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        FloatSizeAttributeValidation that = (FloatSizeAttributeValidation) o;
+        return intPartSize == that.intPartSize &&
+                fracPartSize == that.fracPartSize;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), intPartSize, fracPartSize);
     }
 }

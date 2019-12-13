@@ -89,7 +89,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void update(String refBookCode) {
         try {
             if (dao.getVersionMapping(refBookCode) != null) {
@@ -104,7 +104,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void update(RefBook newVersion, VersionMapping versionMapping) {
         String refbookCode = newVersion.getCode();
         try {
