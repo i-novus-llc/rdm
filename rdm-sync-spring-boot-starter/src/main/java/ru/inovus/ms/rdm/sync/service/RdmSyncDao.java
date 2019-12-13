@@ -97,4 +97,6 @@ public interface RdmSyncDao {
 
     void insertFieldMapping(String code, List<XmlMappingField> fieldMappings);
 
+    boolean lockRefbookForUpdate(String code);
+
 }

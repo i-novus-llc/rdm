@@ -1,6 +1,9 @@
 package ru.inovus.ms.rdm.sync.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -31,6 +34,9 @@ import static ru.inovus.ms.rdm.api.util.StringUtils.addDoubleQuotes;
  * @since 22.02.2019
  */
 public class RdmSyncDaoImpl implements RdmSyncDao {
+
+    private static final Logger logger = LoggerFactory.getLogger(RdmSyncDaoImpl.class);
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
     @Autowired
@@ -216,4 +222,16 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
 
                 });
     }
+
+    @Override
+    public boolean lockRefbookForUpdate(String code) {
+        try {
+            jdbcTemplate.queryForObject("SELECT 1 FROM rdm_sync.version WHERE code = ? FOR UPDATE NOWAIT", new Object[] {code}, Integer.class);
+            return true;
+        } catch (CannotAcquireLockException ex) {
+            logger.info("Lock for refbook {} is already acquired.", code, ex);
+            return false;
+        }
+    }
+
 }
