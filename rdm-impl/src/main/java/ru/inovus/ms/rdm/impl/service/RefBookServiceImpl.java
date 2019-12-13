@@ -24,7 +24,9 @@ import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
+import ru.inovus.ms.rdm.api.model.refdata.ChangeDataRequest;
 import ru.inovus.ms.rdm.api.service.DraftService;
+import ru.inovus.ms.rdm.api.service.PublishService;
 import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
@@ -71,6 +73,7 @@ public class RefBookServiceImpl implements RefBookService {
     private FileStorage fileStorage;
 
     private DraftService draftService;
+    private PublishService publishService;
 
     @Autowired
     @SuppressWarnings("squid:S00107")
@@ -79,7 +82,8 @@ public class RefBookServiceImpl implements RefBookService {
                               DraftDataService draftDataService, DropDataService dropDataService,
                               RefBookLockService refBookLockService,
                               PassportValueRepository passportValueRepository, RefBookVersionQueryProvider refBookVersionQueryProvider,
-                              VersionValidation versionValidation, AuditLogService auditLogService, FileStorage fileStorage, DraftService draftService) {
+                              VersionValidation versionValidation, AuditLogService auditLogService, FileStorage fileStorage, DraftService draftService,
+                              PublishService publishService) {
         this.refBookRepository = refBookRepository;
         this.versionRepository = versionRepository;
 
@@ -98,6 +102,7 @@ public class RefBookServiceImpl implements RefBookService {
         this.fileStorage = fileStorage;
 
         this.draftService = draftService;
+        this.publishService = publishService;
     }
 
     /**
@@ -331,6 +336,21 @@ public class RefBookServiceImpl implements RefBookService {
         RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
         refBookEntity.setArchived(Boolean.FALSE);
         refBookRepository.save(refBookEntity);
+    }
+
+    @Override
+    @Transactional
+    public void changeData(int refBookId, ChangeDataRequest request) {
+        versionValidation.validateRefBookExists(refBookId);
+        String code = getCode(refBookId);
+        Integer draftId = draftService.getIdByRefBookCode(code);
+        if (draftId == null) {
+            Draft draft = draftService.createFromVersion(draftId);
+            draftId = draft.getId();
+        }
+        draftService.updateData(draftId, request.getRowsToAddOrUpdate());
+        draftService.deleteRows(draftId, draftService.getSystemIdsByPrimaryKey(draftId, request.getRowsToDelete()));
+        publishService.publish(draftId, null, null, null, true);
     }
 
     private RefBook refBookModel(RefBookVersionEntity entity,

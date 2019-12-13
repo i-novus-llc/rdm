@@ -372,43 +372,48 @@ public class DraftServiceImpl implements DraftService {
         return versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
     }
 
-    private Page<RefBookRowValue> findRowsByPrimaryKeysSystemIdMissing(Structure.Attribute pk, List<Row> rows, int draftId, int startingFromPage) {
+    @SuppressWarnings("squid:S3776")
+    private void setSystemIdIfPossible(Structure structure, List<Row> rows, int draftId, boolean breakOnMissingPk) {
+        List<Structure.Attribute> pks = structure.getPrimary();
+        if (pks.isEmpty())
+            return;
         SearchDataCriteria criteria = new SearchDataCriteria();
         List<AttributeFilter> filters = new ArrayList<>();
         for (Row row : rows) {
             if (row.getSystemId() != null)
                 continue;
-            Object val = row.getData().get(pk.getCode());
-            if (val == null || val.toString().isBlank()) // Исключение будет брошено дальше по коду, можем возвращаться
-                return Page.empty();
-            if (pk.getType() == FieldType.DATE)
-                val = TimeUtils.parseLocalDate(val);
-            filters.add(new AttributeFilter(
-                    pk.getCode(), val, pk.getType(), SearchTypeEnum.EXACT
-            ));
+            for (Structure.Attribute pk : pks) {
+                Object val = row.getData().get(pk.getCode());
+                if (breakOnMissingPk && (val == null || val.toString().isBlank())) // Исключение будет брошено дальше по коду, можем возвращаться
+                    return;
+                if (pk.getType() == FieldType.DATE)
+                    val = TimeUtils.parseLocalDate(val);
+                filters.add(new AttributeFilter(
+                        pk.getCode(), val, pk.getType(), SearchTypeEnum.EXACT
+                ));
+            }
         }
         criteria.setAttributeFilter(Set.of(filters));
-        criteria.setPageNumber(startingFromPage);
-        return versionService.search(draftId, criteria);
-    }
-
-    private void setSystemIdIfPossible(Structure structure, List<Row> rows, int draftId) {
-        Structure.Attribute pk = structure.getAttributes().stream().filter(Structure.Attribute::getIsPrimary).findFirst().orElse(null);
-        if (pk == null)
-            return;
         int page = RestCriteria.FIRST_PAGE_NUMBER;
+        criteria.setPageNumber(page);
         Page<RefBookRowValue> search;
-        do {
-            search = findRowsByPrimaryKeysSystemIdMissing(pk, rows, draftId, page++);
+        while (page < (search = versionService.search(draftId, criteria)).getTotalPages()) {
             search.get().forEach(val -> {
                 for (Row row : rows) {
                     if (row.getSystemId() != null)
                         continue;
-                    if (FieldValueUtils.eq(pk, row.getData().get(pk.getCode()), val.getFieldValue(pk.getCode())))
+                    boolean eq = true;
+                    for (Structure.Attribute pk : pks) {
+                        eq = FieldValueUtils.eq(pk, row.getData().get(pk.getCode()), val.getFieldValue(pk.getCode()));
+                        if (!eq)
+                            break;
+                    }
+                    if (eq)
                         row.setSystemId(val.getSystemId());
                 }
             });
-        } while (page < search.getTotalPages());
+            criteria.setPageNumber(++page);
+        }
     }
 
     @Override
@@ -417,16 +422,6 @@ public class DraftServiceImpl implements DraftService {
         updateData(draftId, singletonList(row));
     }
 
-    /**
-     * Типы данных, передаваемых в аргументе Row, в зависимости от типа, указанного в структуре поля:
-     * {@link FieldType#STRING} -> String
-     * {@link FieldType#INTEGER} -> BigInteger
-     * {@link FieldType#FLOAT} -> Double
-     * {@link FieldType#REFERENCE} -> String
-     * {@link FieldType#DATE} -> String (в формате, который может понять метод {@link TimeUtils#parseLocalDate(Object)}
-     * {@link FieldType#BOOLEAN} -> Boolean
-     * {@link FieldType#TREE} -> ????
-     */
     @Override
     @Transactional
     public void updateData(Integer draftId, List<Row> rows) {
@@ -438,7 +433,7 @@ public class DraftServiceImpl implements DraftService {
 
         rows = rows.stream().filter(row -> !isEmptyRow(row)).collect(toList());
         if (isEmpty(rows)) throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
-        setSystemIdIfPossible(draftVersion.getStructure(), rows, draftId);
+        setSystemIdIfPossible(draftVersion.getStructure(), rows, draftId, true);
         validateDataByStructure(draftVersion, rows);
         StructureRowMapper rowMapper = new StructureRowMapper(draftVersion.getStructure(), versionRepository);
         List<RowValue> newRowValues = rows.stream()
@@ -510,14 +505,18 @@ public class DraftServiceImpl implements DraftService {
     @Override
     @Transactional
     public void deleteRow(Integer draftId, Long systemId) {
+        deleteRows(draftId, singletonList(systemId));
+    }
 
+    @Override
+    @Transactional
+    public void deleteRows(Integer draftId, List<Long> systemIds) {
+        List list = systemIds;
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
-
-        conflictRepository.deleteByReferrerVersionIdAndRefRecordId(draftVersion.getId(), systemId);
-        draftDataService.deleteRows(draftVersion.getStorageCode(), singletonList(systemId));
-
-        auditEditData(draftVersion, "delete_row", systemId);
+        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftVersion.getId(), systemIds);
+        draftDataService.deleteRows(draftVersion.getStorageCode(), list);
+        auditEditData(draftVersion, "delete_row", systemIds);
     }
 
     @Override
@@ -929,11 +928,19 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     public Integer getIdByRefBookCode(String refBookCode) {
-
         RefBookVersionEntity draftEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.DRAFT);
-        if (draftEntity == null) throw new NotFoundException(new Message("refbook.draft.not.found", refBookCode));
-
+        if (draftEntity == null)
+            return null;
         return draftEntity.getId();
+    }
+
+    @Override
+    @Transactional
+    public List<Long> getSystemIdsByPrimaryKey(Integer draftId, List<Row> rows) {
+        versionValidation.validateDraftExists(draftId);
+        RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
+        setSystemIdIfPossible(draftVersion.getStructure(), rows, draftId, false);
+        return rows.stream().map(Row::getSystemId).collect(toList());
     }
 
     private void auditStructureEdit(RefBookVersionEntity refBook, String action, Structure.Attribute attribute) {

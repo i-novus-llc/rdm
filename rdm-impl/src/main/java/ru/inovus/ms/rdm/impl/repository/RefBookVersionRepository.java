@@ -80,6 +80,8 @@ public interface RefBookVersionRepository extends
 
     RefBookVersionEntity findFirstByRefBookCodeAndStatusOrderByFromDateDesc(String refBookCode, RefBookVersionStatus status);
 
+    RefBookVersionEntity findFirstByRefBookIdAndStatusOrderByFromDateDesc(int refBookId, RefBookVersionStatus status);
+
     @Query(nativeQuery = true,
             value = FIND_REFERRER_VERSIONS + WHERE_REF_BOOK_STATUS + WHERE_REF_BOOK_SOURCE)
     Page<RefBookVersionEntity> findReferrerVersions(@Param("refBookCode") String refBookCode,

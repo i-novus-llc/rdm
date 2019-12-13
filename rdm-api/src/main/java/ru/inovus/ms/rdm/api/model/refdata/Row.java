@@ -1,5 +1,8 @@
 package ru.inovus.ms.rdm.api.model.refdata;
 
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.inovus.ms.rdm.api.util.TimeUtils;
+
 import java.util.Map;
 import java.util.Objects;
 
@@ -7,6 +10,16 @@ public class Row {
 
     private Long systemId;
 
+    /**
+     * Типы данных, в зависимости от {@link FieldType типа}, указанного в {@link ru.inovus.ms.rdm.api.model.Structure структуре} поля :
+     * {@link FieldType#STRING} -> String
+     * {@link FieldType#INTEGER} -> BigInteger
+     * {@link FieldType#FLOAT} -> Double
+     * {@link FieldType#REFERENCE} -> String
+     * {@link FieldType#DATE} -> String (в формате, который может понять метод {@link TimeUtils#parseLocalDate(Object)}
+     * {@link FieldType#BOOLEAN} -> Boolean
+     * {@link FieldType#TREE} -> ????
+     */
     private Map<String, Object> data;
 
     public Row() {}
