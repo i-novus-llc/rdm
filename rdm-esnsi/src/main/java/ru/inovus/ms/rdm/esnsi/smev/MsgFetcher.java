@@ -46,9 +46,14 @@ public class MsgFetcher implements Job {
     @Value("${esnsi.smev-adapter.message.time-filter-minutes}")
     private int timeFilterMinutes;
 
+    @Value("${esnsi.sync.disable.msg-fetcher:false}")
+    private boolean disabled;
+
     @Override
     @SuppressWarnings({"squid:S3776", "squid:S135"})
     public void execute(JobExecutionContext context) throws JobExecutionException {
+        if (disabled)
+            return;
         int n = 0;
         Map.Entry<ResponseDocument, InputStream> resp;
         do {

@@ -178,7 +178,7 @@ public abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
             job.getJobDataMap().put(PREV_MESSAGE_ID_KEY, jobDataMap.get(MESSAGE_ID_KEY));
         job.getJobDataMap().put(STARTED_AT_KEY, System.currentTimeMillis());
         job.getJobDataMap().put(NUM_RETRIES_KEY, 0);
-        esnsiLoadService.setClassifierProcessingStageAtomically(
+        boolean exec = esnsiLoadService.setClassifierProcessingStageAtomically(
             job.getKey().getGroup(),
             getStage(getClass()),
             getStage(job.getJobClass()),
@@ -187,6 +187,8 @@ public abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
                 scheduler.scheduleJob(job, trigger);
             }
         );
+        if (!exec)
+            logger.warn("Unable to execute job with key {}", job.getKey());
     }
 
     private void interrupt() throws SchedulerException {
