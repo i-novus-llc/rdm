@@ -71,14 +71,6 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     @Autowired
     private RdmSyncDao dao;
 
-    private final boolean needLocking;
-
-    private RdmSyncRestImpl() {this(false);}
-
-    public RdmSyncRestImpl(boolean needLocking) {
-        this.needLocking = needLocking;
-    }
-
     @Override
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void update() {
@@ -111,8 +103,6 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     @Transactional
     public void update(RefBook newVersion, VersionMapping versionMapping) {
         String refbookCode = newVersion.getCode();
-        if (needLocking && !dao.lockRefbookForUpdate(refbookCode))
-            return;
         try {
             if (versionMapping.getVersion() == null) {
                 //заливаем с нуля

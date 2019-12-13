@@ -9,13 +9,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.*;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.api.provider.*;
@@ -84,14 +84,18 @@ public class RdmClientSyncAutoConfiguration {
     }
 
     @Bean
+    @Primary
+    @ConditionalOnMissingBean
+    @ConditionalOnMissingClass(value = "org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory")
+    @ConditionalOnProperty(name = "rdm_sync.publish.listener.enable", havingValue = "true")
+    public RdmSyncRest lockingRdmSyncRest() {
+        return new LockingRdmSyncRest();
+    }
+
+    @Bean
     @ConditionalOnMissingBean
     public RdmSyncRest rdmSyncRest(@Value("${rdm_sync.publish.listener.enable}") boolean publishTopicEnabled) {
-        boolean needLocking = publishTopicEnabled;
-        needLocking &= !ClassUtils.isPresent(
-            "org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory",
-            RdmClientSyncAutoConfiguration.class.getClassLoader()
-        );
-        return new RdmSyncRestImpl(needLocking);
+        return new RdmSyncRestImpl();
     }
 
     @Bean
