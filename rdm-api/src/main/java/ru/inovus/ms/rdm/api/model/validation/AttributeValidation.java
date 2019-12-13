@@ -34,27 +34,24 @@ public abstract class AttributeValidation {
         return versionId;
     }
 
-    public AttributeValidation setVersionId(Integer versionId) {
+    public void setVersionId(Integer versionId) {
         this.versionId = versionId;
-        return this;
     }
 
     public String getAttribute() {
         return attribute;
     }
 
-    public AttributeValidation setAttribute(String attribute) {
+    public void setAttribute(String attribute) {
         this.attribute = attribute;
-        return this;
     }
 
     public AttributeValidationType getType() {
         return type;
     }
 
-    public AttributeValidation setType(AttributeValidationType type) {
+    public void setType(AttributeValidationType type) {
         this.type = type;
-        return this;
     }
 
     /**
@@ -70,8 +67,14 @@ public abstract class AttributeValidation {
     public abstract AttributeValidation valueFromString(String value);
 
     public static AttributeValidation of(String stype, String val) {
+        return ofTypeWithAttr(stype, val, null);
+    }
+
+    public static AttributeValidation ofTypeWithAttr(String stype, String val, String attr) {
         AttributeValidationType type = AttributeValidationType.valueOf(stype.toUpperCase());
-        return type.getValidationInstance().valueFromString(val);
+        AttributeValidation validation = type.getValidationInstance().valueFromString(val);
+        validation.setAttribute(attr);
+        return validation;
     }
 
     @Override

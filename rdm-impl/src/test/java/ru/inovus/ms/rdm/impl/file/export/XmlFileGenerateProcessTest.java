@@ -41,14 +41,14 @@ public class XmlFileGenerateProcessTest {
         }});
 
         List<AttributeValidation> attributeValidations = List.of(
-            new PlainSizeAttributeValidation(40).setAttribute("string"),
-            new RegExpAttributeValidation("[а-яА-я]*").setAttribute("string"),
-            new IntRangeAttributeValidation(BigInteger.ONE, BigInteger.TEN).setAttribute("integer"),
-            new UniqueAttributeValidation().setAttribute("integer"),
-            new DateRangeAttributeValidation(LocalDate.of(2019, 02, 01), LocalDate.of(2019, 02, 02)).setAttribute("date"),
-            new RequiredAttributeValidation().setAttribute("boolean"),
-            new FloatSizeAttributeValidation(2, 2).setAttribute("float"),
-            new FloatRangeAttributeValidation(BigDecimal.valueOf(2.43), BigDecimal.valueOf(10.12)).setAttribute("float")
+            AttributeValidation.ofTypeWithAttr("PLAIN_SIZE", "40", "string"),
+            AttributeValidation.ofTypeWithAttr("REG_EXP", "[а-яА-я]*", "string"),
+            AttributeValidation.ofTypeWithAttr("INT_RANGE", "1;10", "integer"),
+            AttributeValidation.ofTypeWithAttr("UNIQUE", null, "integer"),
+            AttributeValidation.ofTypeWithAttr("DATE_RANGE", "01.02.2019;02.02.2019", "date"),
+            AttributeValidation.ofTypeWithAttr("REQUIRED", null, "boolean"),
+            AttributeValidation.ofTypeWithAttr("FLOAT_SIZE", "2;2", "float"),
+            AttributeValidation.ofTypeWithAttr("FLOAT_RANGE", "2.43;10.12", "float")
         );
 
         List<Row> rows = createRowsValues()
