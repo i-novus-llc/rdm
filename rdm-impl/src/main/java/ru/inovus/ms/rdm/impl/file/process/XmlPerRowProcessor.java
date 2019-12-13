@@ -77,7 +77,7 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
 
     @Override
     public Row next() {
-        Map<String, String> rowValues = new LinkedHashMap<>();
+        Map<String, Object> rowValues = new LinkedHashMap<>();
 
         try {
             reader.nextTag();

@@ -28,6 +28,7 @@ import ru.inovus.ms.rdm.sync.service.*;
 
 import javax.jms.ConnectionFactory;
 import javax.sql.DataSource;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
@@ -120,6 +121,12 @@ public class RdmClientSyncAutoConfiguration {
     @Conditional(MissingGenericBean.class)
     public TypedParamConverter<LocalDateTime> mskUtcLocalDateTimeParamConverter() {
         return new MskUtcLocalDateTimeParamConverter(new LocalDateTimeISOParameterConverter());
+    }
+
+    @Bean
+    @Conditional(MissingGenericBean.class)
+    public TypedParamConverter<LocalDate> isoLocaldateParamConverter() {
+        return new IsoLocalDateParamConverter();
     }
 
     @Bean

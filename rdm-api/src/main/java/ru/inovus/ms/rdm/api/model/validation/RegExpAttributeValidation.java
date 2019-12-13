@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.api.model.validation;
 
 import net.n2oapp.platform.i18n.UserException;
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -40,5 +41,19 @@ public class RegExpAttributeValidation extends AttributeValidation {
         }
         regExp = value;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        RegExpAttributeValidation that = (RegExpAttributeValidation) o;
+        return Objects.equals(regExp, that.regExp);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), regExp);
     }
 }

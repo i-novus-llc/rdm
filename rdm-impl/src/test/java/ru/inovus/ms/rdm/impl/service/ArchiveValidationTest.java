@@ -32,6 +32,8 @@ import ru.inovus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.validation.VersionValidationImpl;
 
+import java.util.Collections;
+
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -89,7 +91,7 @@ public class ArchiveValidationTest {
     @Test
     public void testArchiveValidation() {
 
-        assertArchiveValidationError(() -> draftService.create(new CreateDraftRequest(refBookId, new Structure(), null)));
+        assertArchiveValidationError(() -> draftService.create(new CreateDraftRequest(refBookId, new Structure(), null, Collections.emptyMap())));
         assertArchiveValidationError(() -> draftService.create(refBookId, new FileModel()));
         assertArchiveValidationError(() -> draftService.updateData(draftId, new FileModel()));
         assertArchiveValidationError(() -> draftService.remove(draftId));

@@ -14,5 +14,4 @@ public interface AttributeValidationRepository extends
 
     List<AttributeValidationEntity> findAllByVersionId(Integer versionId);
 
-
 }
