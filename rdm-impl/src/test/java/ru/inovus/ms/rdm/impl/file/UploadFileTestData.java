@@ -80,7 +80,7 @@ public class UploadFileTestData {
         ), PageRequest.of(0, 10), 2);
     }
 
-    public static Map<String, String> createPassport() {
+    public static Map<String, Object> createPassport() {
         return new LinkedHashMap<>() {{
             put("name", "наименование справочника");
             put("shortName", "краткое наим-ие");
