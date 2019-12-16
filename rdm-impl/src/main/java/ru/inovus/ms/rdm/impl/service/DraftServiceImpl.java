@@ -82,7 +82,6 @@ import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.isVersion
 @Service
 public class DraftServiceImpl implements DraftService {
 
-    private static final String ROW_IS_EMPTY_EXCEPTION_CODE = "row.is.empty";
     private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
 
     private RefBookVersionRepository versionRepository;
@@ -288,7 +287,7 @@ public class DraftServiceImpl implements DraftService {
             draftVersion.setRefBook(newRefBook(refBookId));
             String draftCode = draftDataService.createDraft(fields);
             draftVersion.setStorageCode(draftCode);
-
+            draftVersion.getRefBook().setCode(lastRefBookVersion.getRefBook().getCode());
         } else {
             draftVersion = updateDraft(structure, draftVersion, fields, passportValues);
         }
@@ -430,11 +429,10 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
 
-        if (isEmpty(rows)) throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
+        if (isEmpty(rows)) return;
         Set<String> attrs = draftVersion.getStructure().getAttributes().stream().map(Structure.Attribute::getCode).collect(toSet());
-        rows = rows.stream().filter(row -> !isEmptyRow(row)).collect(toList());
-        rows.forEach(row -> row.getData().entrySet().removeIf(attr -> !attrs.contains(attr.getKey())));
-        if (isEmpty(rows)) throw new UserException(new Message(ROW_IS_EMPTY_EXCEPTION_CODE));
+        rows = rows.stream().peek(row -> row.getData().entrySet().removeIf(attr -> !attrs.contains(attr.getKey()))).filter(row -> !isEmptyRow(row)).collect(toList());
+        if (isEmpty(rows)) return;
         setSystemIdIfPossible(draftVersion.getStructure(), rows, draftId, true);
         validateDataByStructure(draftVersion, rows);
         StructureRowMapper rowMapper = new StructureRowMapper(draftVersion.getStructure(), versionRepository);

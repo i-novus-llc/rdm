@@ -3,10 +3,12 @@ package ru.inovus.ms.rdm.api.model.refdata;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.api.util.TimeUtils;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
-public class Row {
+@SuppressWarnings("squid:S1948")
+public class Row implements Serializable {
 
     private Long systemId;
 
