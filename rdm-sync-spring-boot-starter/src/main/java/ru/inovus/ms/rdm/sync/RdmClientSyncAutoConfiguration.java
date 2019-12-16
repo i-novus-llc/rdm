@@ -25,8 +25,11 @@ import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
 import ru.inovus.ms.rdm.sync.service.*;
+import ru.inovus.ms.rdm.sync.service.change_data.ChangeDataClient;
+import ru.inovus.ms.rdm.sync.service.change_data.ChangeDataRequestCallback;
+import ru.inovus.ms.rdm.sync.service.change_data.SyncChangeDataClient;
+import ru.inovus.ms.rdm.sync.service.listener.ChangeDataListener;
 import ru.inovus.ms.rdm.sync.service.listener.PublishListener;
-import ru.inovus.ms.rdm.sync.service.listener.PullInRdmListener;
 
 import javax.jms.ConnectionFactory;
 import javax.sql.DataSource;
@@ -185,9 +188,10 @@ public class RdmClientSyncAutoConfiguration {
 
     @Bean
     @ConditionalOnClass(ConnectionFactory.class)
-    public DefaultJmsListenerContainerFactory pullInRdmQueueMessageListenerContainerFactory(ConnectionFactory connectionFactory) {
+    public DefaultJmsListenerContainerFactory changeDataQueueMessageListenerContainerFactory(ConnectionFactory connectionFactory) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
+        factory.setSessionTransacted(true);
         return factory;
     }
 
@@ -199,13 +203,23 @@ public class RdmClientSyncAutoConfiguration {
 
     @Bean
     @ConditionalOnClass(ConnectionFactory.class)
-    public PullInRdmListener pullInRdmListener(RdmSyncRest rdmSyncRest) {
-        return new PullInRdmListener(rdmSyncRest);
+    public ChangeDataListener changeDataListener(RefBookService refBookService, ChangeDataRequestCallback changeDataRequestCallback) {
+        return new ChangeDataListener(refBookService, changeDataRequestCallback);
     }
 
     @Bean
     public XmlMappingLoaderLockService xmlMappingLoaderLockService() {
         return new XmlMappingLoaderLockService();
+    }
+
+    @Bean
+    public ChangeDataClient changeDataClient() {
+        return new SyncChangeDataClient();
+    }
+
+    @Bean
+    public ChangeDataRequestCallback changeDataRequestCallback() {
+        return new ChangeDataRequestCallback.DefaultChangeDataRequestCallback();
     }
 
 }

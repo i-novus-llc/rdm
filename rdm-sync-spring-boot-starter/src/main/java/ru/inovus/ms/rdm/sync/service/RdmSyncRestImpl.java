@@ -4,13 +4,10 @@ import org.apache.cxf.jaxrs.utils.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.jms.core.JmsTemplate;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ReflectionUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
@@ -21,9 +18,7 @@ import ru.inovus.ms.rdm.api.model.diff.RefBookDataDiff;
 import ru.inovus.ms.rdm.api.model.diff.StructureDiff;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
-import ru.inovus.ms.rdm.api.model.refdata.ChangeDataRequest;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
-import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.api.service.CompareService;
 import ru.inovus.ms.rdm.api.service.RefBookService;
@@ -36,12 +31,11 @@ import ru.inovus.ms.rdm.sync.model.VersionMapping;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
 import ru.inovus.ms.rdm.sync.util.RefBookReferenceSort;
 
-import javax.ws.rs.InternalServerErrorException;
-import javax.ws.rs.ServerErrorException;
-import javax.ws.rs.core.Response;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum.DELETED;
 import static ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum.INSERTED;
@@ -76,12 +70,6 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     private RdmSyncRest self;
     @Autowired
     private RdmSyncDao dao;
-
-    @Autowired(required = false)
-    private JmsTemplate jmsTemplate;
-
-    @Value("${rdm_sync.pull_in_rdm.queue:pullInRdm}")
-    private String pullInRdmQueue;
 
     @Override
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -142,63 +130,6 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     @Override
     public List<Log> getLog(LogCriteria criteria) {
         return loggingService.getList(criteria.getDate(), criteria.getRefbookCode());
-    }
-
-    @Override
-    public void pullInRdm(ChangeDataRequest request) {
-        Exception ex = null;
-        boolean success = false;
-        try {
-            refBookService.changeData(request);
-            success = true;
-        } catch (Exception e) {
-            logger.error("Export to rdm failed.", e);
-            ex = e;
-        }
-        if (!success) {
-//          TODO: Залогировать в базу
-        }
-    }
-
-    @Override
-    public void pullInRdm(String refBookCode, List<Object> addUpdate, List<Object> delete) {
-        pullInRdm(convertToChangeDataRequest(refBookCode, addUpdate, delete));
-    }
-
-    @Override
-    public void pullInRdmAsync(String refBookCode, List<Object> addUpdate, List<Object> delete) {
-        if (jmsTemplate != null) {
-            try {
-                jmsTemplate.convertAndSend(pullInRdmQueue, convertToChangeDataRequest(refBookCode, addUpdate, delete));
-            } catch (Exception e) {
-                logger.error("An error occurred while sending message to the message broker.", e);
-                throw new InternalServerErrorException(e);
-            }
-        } else {
-            logger.warn("Message queue is not configured. Async pull request can't be performed.");
-            throw new ServerErrorException(Response.Status.NOT_IMPLEMENTED);
-        }
-    }
-
-    private ChangeDataRequest convertToChangeDataRequest(String refBookCode, List<Object> addUpdate, List<Object> delete) {
-        List<Row> addUpdateRows = mapToRow(addUpdate);
-        List<Row> deleteRows = mapToRow(delete);
-        return new ChangeDataRequest(refBookCode, addUpdateRows, deleteRows);
-    }
-
-    private List<Row> mapToRow(List<Object> list) {
-        if (list == null)
-            return emptyList();
-        return list.stream().map(obj -> {
-            if (obj instanceof Map)
-                return (Map) obj;
-            Map<String, Object> map = new HashMap<>();
-            ReflectionUtils.doWithFields(obj.getClass(), field -> {
-                field.setAccessible(true);
-                map.put(field.getName(), field.get(obj));
-            });
-            return map;
-        }).map(Row::new).collect(toList());
     }
 
     private VersionMapping getVersionMapping(String refbookCode) {

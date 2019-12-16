@@ -5,7 +5,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
-import ru.inovus.ms.rdm.api.model.refdata.ChangeDataRequest;
 import ru.inovus.ms.rdm.sync.criteria.LogCriteria;
 import ru.inovus.ms.rdm.sync.model.Log;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
@@ -45,31 +44,5 @@ public interface RdmSyncRest {
         @ApiResponse(code = 400, message = "Укажите пожалуйста дату в формате ISO_LOCAL_DATE [yyyy-MM-dd].")
     })
     List<Log> getLog(@BeanParam LogCriteria criteria);
-
-    @POST
-    @Path("/pullInRdm")
-    @ApiOperation(value = "Пульнуть данные в рдм")
-    @ApiResponses({
-            @ApiResponse(code = 204, message = "Успех")
-    })
-    void pullInRdm(ChangeDataRequest request);
-
-    @POST
-    @Path("/pullInRdm")
-    @ApiOperation(value = "Пульнуть данные в рдм")
-    @ApiResponses({
-        @ApiResponse(code = 204, message = "Успех")
-    })
-    void pullInRdm(String refBookCode, List<Object> addUpdate, List<Object> delete);
-
-    @POST
-    @Path("/pullInRdmAsync")
-    @ApiOperation(value = "Пульнуть данные в рдм (через очередь сообщений)")
-    @ApiResponses({
-            @ApiResponse(code = 204, message = "Сообщение поставлено в очередь"),
-            @ApiResponse(code = 500, message = "Брокер сообщений не доступен"),
-            @ApiResponse(code = 501, message = "Очередь сообщений не сконфигурирована")
-    })
-    void pullInRdmAsync(String refBookCode, List<Object> addUpdate, List<Object> delete);
 
 }
