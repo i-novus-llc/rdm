@@ -90,7 +90,7 @@ public interface DraftService {
                    @ApiParam("Идентификатор записи") @PathParam("systemId") Long systemId);
 
     @DELETE
-    @ApiOperation("Удаление записей черновика")
+    @ApiOperation(value = "Удаление записей черновика", hidden = true)
     @ApiResponses({
             @ApiResponse(code = 200, message = "Черновик обновлен"),
             @ApiResponse(code = 400, message = "Некорректный запрос"),
