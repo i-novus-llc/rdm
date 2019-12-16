@@ -578,6 +578,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
+    @Transactional
     public void remove(Integer draftId) {
 
         versionValidation.validateDraft(draftId);
