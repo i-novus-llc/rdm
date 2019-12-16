@@ -1,9 +1,9 @@
-package ru.inovus.ms.rdm.impl.file;
+package ru.inovus.ms.rdm.impl.util.mappers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 
 /**

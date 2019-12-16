@@ -1,7 +1,7 @@
 package ru.inovus.ms.rdm.impl.file.process;
 
 import ru.inovus.ms.rdm.api.exception.RdmException;
-import ru.inovus.ms.rdm.impl.file.RowMapper;
+import ru.inovus.ms.rdm.impl.util.mappers.RowMapper;
 
 public class FileProcessorFactory {
     private FileProcessorFactory() {

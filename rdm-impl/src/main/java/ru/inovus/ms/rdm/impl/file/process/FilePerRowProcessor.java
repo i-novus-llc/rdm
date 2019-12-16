@@ -3,9 +3,9 @@ package ru.inovus.ms.rdm.impl.file.process;
 import net.n2oapp.platform.i18n.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inovus.ms.rdm.impl.file.RowMapper;
 import ru.inovus.ms.rdm.api.model.Result;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
+import ru.inovus.ms.rdm.impl.util.mappers.RowMapper;
 
 import java.io.Closeable;
 import java.io.IOException;
