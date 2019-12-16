@@ -58,11 +58,9 @@ import ru.inovus.ms.rdm.impl.entity.*;
 import ru.inovus.ms.rdm.impl.file.*;
 import ru.inovus.ms.rdm.impl.file.export.VersionDataIterator;
 import ru.inovus.ms.rdm.impl.file.process.*;
-import ru.inovus.ms.rdm.impl.repository.AttributeValidationRepository;
-import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
-import ru.inovus.ms.rdm.impl.repository.RefBookConflictRepository;
-import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.inovus.ms.rdm.impl.repository.*;
 import ru.inovus.ms.rdm.impl.util.*;
+import ru.inovus.ms.rdm.impl.util.mappers.*;
 import ru.inovus.ms.rdm.impl.validation.AttributeUpdateValidator;
 import ru.inovus.ms.rdm.impl.validation.VersionValidationImpl;
 
