@@ -512,7 +512,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void deleteRows(Integer draftId, List<Long> systemIds) {
         if (systemIds != null && !systemIds.isEmpty()) {
-            List list = systemIds;
+            List list = new ArrayList(systemIds);
             list.removeIf(Objects::isNull);
             if (list.isEmpty()) return;
             versionValidation.validateDraft(draftId);
