@@ -25,6 +25,7 @@ import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
 import ru.inovus.ms.rdm.sync.service.*;
+import ru.inovus.ms.rdm.sync.service.change_data.AsyncChangeDataClient;
 import ru.inovus.ms.rdm.sync.service.change_data.ChangeDataClient;
 import ru.inovus.ms.rdm.sync.service.change_data.ChangeDataRequestCallback;
 import ru.inovus.ms.rdm.sync.service.change_data.SyncChangeDataClient;
@@ -213,9 +214,17 @@ public class RdmClientSyncAutoConfiguration {
     }
 
     @Bean
-    public ChangeDataClient changeDataClient() {
+    @ConditionalOnProperty(value = "rdm_sync.change_data_mode", havingValue = "sync", matchIfMissing = true)
+    public ChangeDataClient syncChangeDataClient() {
         return new SyncChangeDataClient();
     }
+
+    @Bean
+    @ConditionalOnProperty(value = "rdm_sync.change_data_mode", havingValue = "async")
+    public ChangeDataClient asyncChangeDataClient() {
+        return new AsyncChangeDataClient();
+    }
+
 
     @Bean
     public ChangeDataRequestCallback changeDataRequestCallback() {
