@@ -208,6 +208,7 @@ public class DraftServiceTest {
         expectedRefBookVersion.setId(null);
         expectedRefBookVersion.setStorageCode(TEST_DRAFT_CODE_NEW);
         expectedRefBookVersion.setRefBook(refBook);
+        expectedRefBookVersion.getRefBook().setCode(TEST_REF_BOOK);
         when(versionRepository.save(eq(expectedRefBookVersion))).thenReturn(expectedRefBookVersion);
 
         draftService.create(new CreateDraftRequest(REFBOOK_ID, new Structure()));
