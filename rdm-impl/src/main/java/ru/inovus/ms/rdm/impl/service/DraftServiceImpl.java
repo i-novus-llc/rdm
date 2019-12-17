@@ -14,20 +14,16 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import ru.i_novus.components.common.exception.CodifiedException;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.exception.NotUniqueException;
-import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
-import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
-import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
+import ru.i_novus.platform.datastorage.temporal.service.*;
 import ru.inovus.ms.rdm.api.enumeration.ConflictType;
 import ru.inovus.ms.rdm.api.enumeration.FileType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -38,26 +34,21 @@ import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
-import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
-import ru.inovus.ms.rdm.api.model.refdata.Row;
-import ru.inovus.ms.rdm.api.model.refdata.RowValuePage;
-import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
-import ru.inovus.ms.rdm.api.model.validation.AttributeValidation;
-import ru.inovus.ms.rdm.api.model.validation.AttributeValidationRequest;
-import ru.inovus.ms.rdm.api.model.validation.AttributeValidationType;
+import ru.inovus.ms.rdm.api.model.refdata.*;
+import ru.inovus.ms.rdm.api.model.validation.*;
 import ru.inovus.ms.rdm.api.model.version.*;
 import ru.inovus.ms.rdm.api.service.DraftService;
 import ru.inovus.ms.rdm.api.service.VersionFileService;
 import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.FieldValueUtils;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
-import ru.inovus.ms.rdm.api.util.TimeUtils;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.*;
 import ru.inovus.ms.rdm.impl.file.*;
 import ru.inovus.ms.rdm.impl.file.export.VersionDataIterator;
 import ru.inovus.ms.rdm.impl.file.process.*;
+import ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates;
 import ru.inovus.ms.rdm.impl.repository.*;
 import ru.inovus.ms.rdm.impl.util.*;
 import ru.inovus.ms.rdm.impl.util.mappers.*;
@@ -72,9 +63,6 @@ import java.util.function.*;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
-import static org.springframework.util.StringUtils.isEmpty;
-import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.isPublished;
-import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.isVersionOfRefBook;
 
 @Primary
 @Service
@@ -371,21 +359,27 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @SuppressWarnings("squid:S3776")
-    private void setSystemIdIfPossible(Structure structure, List<Row> rows, int draftId, boolean breakOnMissingPk) {
+    private void setSystemIdIfPossible(Structure structure, List<Row> srcRows, List<RowValue> convertedRows, int draftId, boolean throwOnMissingPk) {
         List<Structure.Attribute> pks = structure.getPrimary();
         if (pks.isEmpty())
             return;
         SearchDataCriteria criteria = new SearchDataCriteria();
         List<AttributeFilter> filters = new ArrayList<>();
-        for (Row row : rows) {
-            if (row.getSystemId() != null)
+        var ref = new Object() {
+            Iterator<Row> it1 = srcRows.iterator();
+            Iterator<RowValue> it2 = convertedRows.iterator();
+        };
+        while (ref.it1.hasNext()) {
+            Row srcRow = ref.it1.next();
+            RowValue convertedRow = ref.it2.next();
+            if (srcRow.getSystemId() != null)
                 continue;
             for (Structure.Attribute pk : pks) {
-                Object val = row.getData().get(pk.getCode());
-                if (breakOnMissingPk && (val == null || val.toString().isBlank())) // Исключение будет брошено дальше по коду, можем возвращаться
-                    return;
-                if (pk.getType() == FieldType.DATE)
-                    val = TimeUtils.parseLocalDate(val);
+                Object val = convertedRow.getFieldValue(pk.getCode()).getValue();
+                if (throwOnMissingPk && val == null)
+                    throw new UserException(new Message("validation.required.err", pk.getCode()));
+                if (val instanceof Reference)
+                    val = ((Reference) val).getValue();
                 filters.add(new AttributeFilter(
                         pk.getCode(), val, pk.getType(), SearchTypeEnum.EXACT
                 ));
@@ -397,17 +391,23 @@ public class DraftServiceImpl implements DraftService {
         Page<RefBookRowValue> search;
         while (page < (search = versionService.search(draftId, criteria)).getTotalPages()) {
             search.get().forEach(val -> {
-                for (Row row : rows) {
-                    if (row.getSystemId() != null)
+                ref.it1 = srcRows.iterator();
+                ref.it2 = convertedRows.iterator();
+                while (ref.it1.hasNext()) {
+                    Row srcRow = ref.it1.next();
+                    RowValue convertedRow = ref.it2.next();
+                    if (srcRow.getSystemId() != null)
                         continue;
                     boolean eq = true;
                     for (Structure.Attribute pk : pks) {
-                        eq = FieldValueUtils.eq(pk, row.getData().get(pk.getCode()), val.getFieldValue(pk.getCode()));
+                        eq = FieldValueUtils.eq(pk, convertedRow.getFieldValue(pk.getName()), val.getFieldValue(pk.getName()));
                         if (!eq)
                             break;
                     }
-                    if (eq)
-                        row.setSystemId(val.getSystemId());
+                    if (eq) {
+                        srcRow.setSystemId(val.getSystemId());
+                        convertedRow.setSystemId(val.getSystemId());
+                    }
                 }
             });
             criteria.setPageNumber(++page);
@@ -431,14 +431,12 @@ public class DraftServiceImpl implements DraftService {
         Set<String> attrs = draftVersion.getStructure().getAttributes().stream().map(Structure.Attribute::getCode).collect(toSet());
         rows = rows.stream().peek(row -> row.getData().entrySet().removeIf(attr -> !attrs.contains(attr.getKey()))).filter(row -> !isEmptyRow(row)).collect(toList());
         if (isEmpty(rows)) return;
-        setSystemIdIfPossible(draftVersion.getStructure(), rows, draftId, true);
-        validateDataByStructure(draftVersion, rows);
         StructureRowMapper rowMapper = new StructureRowMapper(draftVersion.getStructure(), versionRepository);
-        List<RowValue> newRowValues = rows.stream()
-                .map(row -> ConverterUtil.rowValue(rowMapper.map(row), draftVersion.getStructure()))
-                .collect(toList());
+        List<RowValue> convertedRows = rows.stream().map(row -> ConverterUtil.rowValue(rowMapper.map(row), draftVersion.getStructure())).collect(toList());
+        setSystemIdIfPossible(draftVersion.getStructure(), rows, convertedRows, draftId, true);
+        validateDataByStructure(draftVersion, rows);
 
-        List<RowValue> addedRowValues = newRowValues.stream().filter(rowValue -> rowValue.getSystemId() == null).collect(toList());
+        List<RowValue> addedRowValues = convertedRows.stream().filter(rowValue -> rowValue.getSystemId() == null).collect(toList());
         if (!isEmpty(addedRowValues)) {
             draftDataService.addRows(draftVersion.getStorageCode(), addedRowValues);
 
@@ -446,7 +444,7 @@ public class DraftServiceImpl implements DraftService {
             auditEditData(draftVersion, "create_rows", addedData);
         }
 
-        List<RowValue> updatedRowValues = newRowValues.stream().filter(rowValue -> rowValue.getSystemId() != null).collect(toList());
+        List<RowValue> updatedRowValues = convertedRows.stream().filter(rowValue -> rowValue.getSystemId() != null).collect(toList());
         if (!isEmpty(updatedRowValues)) {
             List<String> fields = draftVersion.getStructure().getAttributes().stream().map(Structure.Attribute::getCode).collect(toList());
             List<Object> systemIds = updatedRowValues.stream().map(RowValue::getSystemId).collect(toList());
@@ -570,7 +568,7 @@ public class DraftServiceImpl implements DraftService {
 
     private RefBookVersionEntity getLastRefBookVersion(Integer refBookId) {
         Page<RefBookVersionEntity> lastPublishedVersions = versionRepository
-                .findAll(isPublished().and(isVersionOfRefBook(refBookId)),
+                .findAll(RefBookVersionPredicates.isPublished().and(RefBookVersionPredicates.isVersionOfRefBook(refBookId)),
                         PageRequest.of(0, 1, new Sort(Sort.Direction.DESC, "fromDate")));
         return lastPublishedVersions.hasContent() ? lastPublishedVersions.getContent().get(0) : null;
     }
@@ -702,7 +700,7 @@ public class DraftServiceImpl implements DraftService {
 
     private void validateDisplayExpression(String displayExpression, String refBookCode) {
 
-        if (isEmpty(displayExpression))
+        if (StringUtils.isEmpty(displayExpression))
             return; // NB: to-do: throw exception and fix absent referredBook in testLifecycle.
 
         RefBookVersion referredVersion = versionService.getLastPublishedVersion(refBookCode);
@@ -942,7 +940,9 @@ public class DraftServiceImpl implements DraftService {
     public List<Long> getSystemIdsByPrimaryKey(Integer draftId, List<Row> rows) {
         versionValidation.validateDraftExists(draftId);
         RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
-        setSystemIdIfPossible(draftVersion.getStructure(), rows, draftId, false);
+        StructureRowMapper structureRowMapper = new StructureRowMapper(draftVersion.getStructure(), versionRepository);
+        List<RowValue> rowValues = rows.stream().map(structureRowMapper::map).map(row -> ConverterUtil.rowValue(row, draftVersion.getStructure())).collect(toList());
+        setSystemIdIfPossible(draftVersion.getStructure(), rows, rowValues, draftId, false);
         return rows.stream().map(Row::getSystemId).collect(toList());
     }
 

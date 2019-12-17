@@ -3,7 +3,10 @@ package ru.inovus.ms.rdm.api.util;
 import org.apache.commons.text.StringSubstitutor;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.*;
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
+import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
@@ -14,14 +17,13 @@ import ru.inovus.ms.rdm.api.model.field.ReferenceFilterValue;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static ru.i_novus.platform.datastorage.temporal.model.DataConstants.*;
+import static ru.i_novus.platform.datastorage.temporal.model.DataConstants.SYS_PRIMARY_COLUMN;
 
 public class FieldValueUtils {
 
@@ -168,22 +170,13 @@ public class FieldValueUtils {
         return new StringSubstitutor(map, DisplayExpression.PLACEHOLDER_START, DisplayExpression.PLACEHOLDER_END).replace(displayExpression);
     }
 
-    public static boolean eq(Structure.Attribute attr, Object val1, FieldValue val2) {
-        boolean eq;
+    public static boolean eq(Structure.Attribute attr, FieldValue v1, FieldValue v2) {
         if (attr.getType() == FieldType.REFERENCE) {
-            Reference ref = (Reference) val2.getValue();
-            eq = ref.getValue().equals(val1);
-        } else if (attr.getType() == FieldType.FLOAT) {
-            Number n = (Number) val1;
-            if (!(n instanceof BigDecimal))
-                n = BigDecimal.valueOf(n.doubleValue());
-            eq = n.equals(val2.getValue());
-        } else if (attr.getType() == FieldType.DATE) {
-            eq = val2.getValue().equals(TimeUtils.parseLocalDate(val1));
-        } else {
-            eq = val2.getValue().equals(val1);
+            Reference ref1 = (Reference) v1.getValue();
+            Reference ref2 = (Reference) v2.getValue();
+            return Objects.equals(ref1.getValue(), ref2.getValue());
         }
-        return eq;
+        return Objects.equals(v1.getValue(), v2.getValue());
     }
 
 }
