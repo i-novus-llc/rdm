@@ -8,16 +8,17 @@ import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
-import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.*;
+import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.compare.ComparableFieldValue;
 import ru.inovus.ms.rdm.api.model.field.ReferenceFilterValue;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
@@ -153,6 +154,19 @@ public class FieldValueUtils {
         return DiffStatusEnum.DELETED.equals(status) ? fieldValue.getOldValue() : fieldValue.getNewValue();
     }
 
+    public static FieldValue getFieldValueFromFieldType(Object value, String fieldCode, FieldType fieldType) {
+        switch (fieldType) {
+            case STRING: return new StringFieldValue(fieldCode, (String) value);
+            case INTEGER: return new IntegerFieldValue(fieldCode, (BigInteger) value);
+            case REFERENCE: return new ReferenceFieldValue(fieldCode, (Reference) value);
+            case FLOAT: return new FloatFieldValue(fieldCode, (BigDecimal) value);
+            case BOOLEAN: return new BooleanFieldValue(fieldCode, (Boolean) value);
+            case DATE: return new DateFieldValue(fieldCode, (LocalDate) value);
+            case TREE: return new TreeFieldValue(fieldCode, (String) value);
+            default: throw new RdmException("Unexpected field type: " + fieldType);
+        }
+    }
+
     /**
      * Получение отображаемого значения.
      *
@@ -170,13 +184,10 @@ public class FieldValueUtils {
         return new StringSubstitutor(map, DisplayExpression.PLACEHOLDER_START, DisplayExpression.PLACEHOLDER_END).replace(displayExpression);
     }
 
-    public static boolean eq(Structure.Attribute attr, FieldValue v1, FieldValue v2) {
-        if (attr.getType() == FieldType.REFERENCE) {
-            Reference ref1 = (Reference) v1.getValue();
-            Reference ref2 = (Reference) v2.getValue();
-            return Objects.equals(ref1.getValue(), ref2.getValue());
-        }
-        return Objects.equals(v1.getValue(), v2.getValue());
+    public static boolean eq(Object v1, FieldValue v2) {
+        if (v1 instanceof Reference && v2.getValue() instanceof Reference)
+            return Objects.equals(((Reference) v1).getValue(), ((Reference) v2.getValue()).getValue());
+        return Objects.equals(v1, v2.getValue());
     }
 
 }

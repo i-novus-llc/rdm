@@ -53,6 +53,7 @@ import ru.inovus.ms.rdm.impl.repository.*;
 import ru.inovus.ms.rdm.impl.util.*;
 import ru.inovus.ms.rdm.impl.util.mappers.*;
 import ru.inovus.ms.rdm.impl.validation.AttributeUpdateValidator;
+import ru.inovus.ms.rdm.impl.validation.TypeValidation;
 import ru.inovus.ms.rdm.impl.validation.VersionValidationImpl;
 
 import java.io.IOException;
@@ -359,25 +360,20 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @SuppressWarnings("squid:S3776")
-    private void setSystemIdIfPossible(Structure structure, List<Row> srcRows, List<RowValue> convertedRows, int draftId, boolean throwOnMissingPk) {
+    private void setSystemIdIfPossible(Structure structure, List<Row> srcRows, int draftId) {
         List<Structure.Attribute> pks = structure.getPrimary();
         if (pks.isEmpty())
             return;
         SearchDataCriteria criteria = new SearchDataCriteria();
         List<AttributeFilter> filters = new ArrayList<>();
-        var ref = new Object() {
-            Iterator<Row> it1 = srcRows.iterator();
-            Iterator<RowValue> it2 = convertedRows.iterator();
-        };
+        var ref = new Object() {Iterator<Row> it1 = srcRows.iterator();};
         while (ref.it1.hasNext()) {
             Row srcRow = ref.it1.next();
-            RowValue convertedRow = ref.it2.next();
             if (srcRow.getSystemId() != null)
                 continue;
             for (Structure.Attribute pk : pks) {
-                Object val = convertedRow.getFieldValue(pk.getCode()).getValue();
-                if (throwOnMissingPk && val == null)
-                    throw new UserException(new Message("validation.required.err", pk.getCode()));
+                Object val = srcRow.getData().get(pk.getCode());
+                if (val == null) continue;
                 if (val instanceof Reference)
                     val = ((Reference) val).getValue();
                 filters.add(new AttributeFilter(
@@ -392,21 +388,18 @@ public class DraftServiceImpl implements DraftService {
         while (page < (search = versionService.search(draftId, criteria)).getTotalPages()) {
             search.get().forEach(val -> {
                 ref.it1 = srcRows.iterator();
-                ref.it2 = convertedRows.iterator();
                 while (ref.it1.hasNext()) {
                     Row srcRow = ref.it1.next();
-                    RowValue convertedRow = ref.it2.next();
                     if (srcRow.getSystemId() != null)
                         continue;
                     boolean eq = true;
                     for (Structure.Attribute pk : pks) {
-                        eq = FieldValueUtils.eq(pk, convertedRow.getFieldValue(pk.getCode()), val.getFieldValue(pk.getCode()));
+                        eq = FieldValueUtils.eq(pk, srcRow.getData().get(pk.getCode()), val.getFieldValue(pk.getCode()));
                         if (!eq)
                             break;
                     }
                     if (eq) {
                         srcRow.setSystemId(val.getSystemId());
-                        convertedRow.setSystemId(val.getSystemId());
                     }
                 }
             });
@@ -431,10 +424,10 @@ public class DraftServiceImpl implements DraftService {
         Set<String> attrs = draftVersion.getStructure().getAttributes().stream().map(Structure.Attribute::getCode).collect(toSet());
         rows = rows.stream().peek(row -> row.getData().entrySet().removeIf(attr -> !attrs.contains(attr.getKey()))).filter(row -> !isEmptyRow(row)).collect(toList());
         if (isEmpty(rows)) return;
+        validateTypeSafety(rows, draftVersion.getStructure());
+        setSystemIdIfPossible(draftVersion.getStructure(), rows, draftId);
+        List<RowValue> convertedRows = rows.stream().map(row -> ConverterUtil.rowValue((row), draftVersion.getStructure())).collect(toList());
         validateDataByStructure(draftVersion, rows);
-        StructureRowMapper rowMapper = new StructureRowMapper(draftVersion.getStructure(), versionRepository);
-        List<RowValue> convertedRows = rows.stream().map(row -> ConverterUtil.rowValue(rowMapper.map(row), draftVersion.getStructure())).collect(toList());
-        setSystemIdIfPossible(draftVersion.getStructure(), rows, convertedRows, draftId, true);
 
         List<RowValue> addedRowValues = convertedRows.stream().filter(rowValue -> rowValue.getSystemId() == null).collect(toList());
         if (!isEmpty(addedRowValues)) {
@@ -480,6 +473,13 @@ public class DraftServiceImpl implements DraftService {
                 .findFirst().orElse(null);
     }
 
+    private void validateTypeSafety(List<Row> rows, Structure structure) {
+        NonStrictOnTypeRowMapper mapper = new NonStrictOnTypeRowMapper(structure, versionRepository);
+        List<Message> errors = rows.stream().map(mapper::map).map(row -> new TypeValidation(row.getData(), structure).validate()).flatMap(Collection::stream).collect(toList());
+        if (!errors.isEmpty())
+            throw new UserException(errors);
+    }
+
     /** Валидация добавляемых/обновляемых строк данных по структуре. */
     private void validateDataByStructure(RefBookVersionEntity draftVersion, List<Row> rows) {
 
@@ -488,8 +488,7 @@ public class DraftServiceImpl implements DraftService {
         RowsValidator validator = new RowsValidatorImpl(versionService, searchDataService,
                 draftVersion.getStructure(), draftVersion.getStorageCode(), errorCountLimit, false,
                 attributeValidationRepository.findAllByVersionId(draftVersion.getId()));
-        NonStrictOnTypeRowMapper nonStrictOnTypeRowMapper = new NonStrictOnTypeRowMapper(draftVersion.getStructure(), versionRepository);
-        rows.forEach(row -> validator.append(nonStrictOnTypeRowMapper.map(row)));
+        rows.forEach(validator::append);
         validator.process();
     }
 
@@ -940,9 +939,8 @@ public class DraftServiceImpl implements DraftService {
     public List<Long> getSystemIdsByPrimaryKey(Integer draftId, List<Row> rows) {
         versionValidation.validateDraftExists(draftId);
         RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
-        StructureRowMapper structureRowMapper = new StructureRowMapper(draftVersion.getStructure(), versionRepository);
-        List<RowValue> rowValues = rows.stream().map(structureRowMapper::map).map(row -> ConverterUtil.rowValue(row, draftVersion.getStructure())).collect(toList());
-        setSystemIdIfPossible(draftVersion.getStructure(), rows, rowValues, draftId, false);
+        validateTypeSafety(rows, draftVersion.getStructure());
+        setSystemIdIfPossible(draftVersion.getStructure(), rows, draftId);
         return rows.stream().map(Row::getSystemId).collect(toList());
     }
 

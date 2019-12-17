@@ -624,9 +624,6 @@ public class ApplicationTest {
             Assert.assertEquals(1, re.getErrors().stream()
                     .map(RestMessage.Error::getMessage)
                     .filter("validation.type.error"::equals).count());
-            Assert.assertEquals(1, re.getErrors().stream()
-                    .map(RestMessage.Error::getMessage)
-                    .filter(ReferenceValueValidation.REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE::equals).count());
         }
 
         // создание двух строк одновременно
@@ -1273,7 +1270,9 @@ public class ApplicationTest {
             fail();
 
         } catch (RestException re) {
-            Assert.assertEquals(9, re.getErrors().size());
+            Assert.assertEquals(10, re.getErrors().size());
+            Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage)
+                    .filter("validation.db.contains.pk.err"::equals).count());
             Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage)
                     .filter("validation.required.err"::equals).count());
             Assert.assertEquals(4, re.getErrors().stream().map(RestMessage.Error::getMessage)

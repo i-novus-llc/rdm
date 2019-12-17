@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.impl.util.mappers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
@@ -21,10 +22,16 @@ public class NonStrictOnTypeRowMapper extends StructureRowMapper {
 
     @Override
     public Row map(Row inputRow) {
-        inputRow.getData().forEach((name, value) ->
-                inputRow.getData().put(name,
-                        castValue(structure.getAttribute(name), value != null ? String.valueOf(value) : null))
-        );
+        inputRow.getData().forEach((name, value) -> {
+            String valstr = null;
+            if (value != null) {
+                if (value instanceof Reference)
+                    valstr = ((Reference) value).getValue();
+                else
+                    valstr = value.toString();
+            }
+            inputRow.getData().put(name,castValue(structure.getAttribute(name), valstr));
+        });
         return inputRow;
     }
 
