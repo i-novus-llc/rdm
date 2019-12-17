@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.sync.service.listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jms.annotation.JmsListener;
+import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.refdata.ChangeDataRequest;
 import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.sync.service.change_data.ChangeDataRequestCallback;
@@ -34,6 +35,7 @@ public class ChangeDataListener {
             callback.onSuccess(converted.getRefBookCode(), addUpdate, delete);
         } catch (Exception e) {
             callback.onError(converted.getRefBookCode(), addUpdate, delete, e);
+            throw new RdmException(); // Кидаем исключение, чтобы JMS не отправил Acknowledge брокеру и соответственно брокер со временем переотправил нам сообщение
         }
     }
 

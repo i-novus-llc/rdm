@@ -400,7 +400,7 @@ public class DraftServiceImpl implements DraftService {
                         continue;
                     boolean eq = true;
                     for (Structure.Attribute pk : pks) {
-                        eq = FieldValueUtils.eq(pk, convertedRow.getFieldValue(pk.getName()), val.getFieldValue(pk.getName()));
+                        eq = FieldValueUtils.eq(pk, convertedRow.getFieldValue(pk.getCode()), val.getFieldValue(pk.getCode()));
                         if (!eq)
                             break;
                     }
