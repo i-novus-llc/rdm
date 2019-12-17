@@ -1273,9 +1273,7 @@ public class ApplicationTest {
             fail();
 
         } catch (RestException re) {
-            Assert.assertEquals(10, re.getErrors().size());
-            Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage)
-                    .filter("validation.db.contains.pk.err"::equals).count());
+            Assert.assertEquals(9, re.getErrors().size());
             Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage)
                     .filter("validation.required.err"::equals).count());
             Assert.assertEquals(4, re.getErrors().stream().map(RestMessage.Error::getMessage)

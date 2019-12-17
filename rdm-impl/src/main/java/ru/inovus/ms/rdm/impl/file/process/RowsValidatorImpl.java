@@ -26,11 +26,7 @@ public class RowsValidatorImpl implements RowsValidator {
 
     private VersionService versionService;
 
-    private SearchDataService searchDataService;
-
     private Structure structure;
-
-    private String storageCode;
 
     private boolean skipReferenceValidation;
 
@@ -49,14 +45,11 @@ public class RowsValidatorImpl implements RowsValidator {
                              boolean skipReferenceValidation,
                              List<AttributeValidationEntity> attributeValidations) {
         this.versionService = versionService;
-        this.searchDataService = searchDataService;
 
         this.structure = structure;
-        this.storageCode = storageCode;
 
         if (errorCountLimit > 0)
             this.errorCountLimit = errorCountLimit;
-
         this.skipReferenceValidation = skipReferenceValidation;
         this.pkUniqueRowAppendValidation = new PkUniqueRowAppendValidation(structure);
         this.attributeCustomValidation = new AttributeCustomValidation(attributeValidations, structure, searchDataService, storageCode);
@@ -119,8 +112,6 @@ public class RowsValidatorImpl implements RowsValidator {
             return;
         }
 
-        DBPrimaryKeyValidation dbPrimaryKeyValidation = new DBPrimaryKeyValidation(searchDataService, structure, buffer, storageCode);
-
         buffer.forEach(row -> {
             List<Message> errors = new ArrayList<>();
             Set<String> errorAttributes = new HashSet<>();
@@ -128,11 +119,9 @@ public class RowsValidatorImpl implements RowsValidator {
                     new PkRequiredValidation(row, structure),
                     new TypeValidation(row.getData(), structure),
                     skipReferenceValidation ? null : new ReferenceValueValidation(versionService, row, structure),
-                    dbPrimaryKeyValidation,
                     pkUniqueRowAppendValidation,
                     attributeCustomValidation
             );
-            dbPrimaryKeyValidation.appendRow(row);
             pkUniqueRowAppendValidation.appendRow(row);
             attributeCustomValidation.appendRow(row);
 

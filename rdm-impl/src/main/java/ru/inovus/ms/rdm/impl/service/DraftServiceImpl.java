@@ -431,10 +431,10 @@ public class DraftServiceImpl implements DraftService {
         Set<String> attrs = draftVersion.getStructure().getAttributes().stream().map(Structure.Attribute::getCode).collect(toSet());
         rows = rows.stream().peek(row -> row.getData().entrySet().removeIf(attr -> !attrs.contains(attr.getKey()))).filter(row -> !isEmptyRow(row)).collect(toList());
         if (isEmpty(rows)) return;
+        validateDataByStructure(draftVersion, rows);
         StructureRowMapper rowMapper = new StructureRowMapper(draftVersion.getStructure(), versionRepository);
         List<RowValue> convertedRows = rows.stream().map(row -> ConverterUtil.rowValue(rowMapper.map(row), draftVersion.getStructure())).collect(toList());
         setSystemIdIfPossible(draftVersion.getStructure(), rows, convertedRows, draftId, true);
-        validateDataByStructure(draftVersion, rows);
 
         List<RowValue> addedRowValues = convertedRows.stream().filter(rowValue -> rowValue.getSystemId() == null).collect(toList());
         if (!isEmpty(addedRowValues)) {
