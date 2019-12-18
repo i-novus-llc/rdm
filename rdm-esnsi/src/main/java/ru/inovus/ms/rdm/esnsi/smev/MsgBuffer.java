@@ -22,7 +22,7 @@ class MsgBuffer {
 
     @Transactional
     public Map.Entry<String, InputStream> get(String msgId) {
-        return jdbcTemplate.query("SELECT msg FROM esnsi_sync.msg_buffer WHERE msg_id = ?",
+        return jdbcTemplate.query("SELECT msg, attachment FROM esnsi_sync.msg_buffer WHERE msg_id = ?",
             (rs, rowNum) -> Map.entry(rs.getString(1), rs.getBytes(2) == null ? EMPTY_INPUT_STREAM : new ByteArrayInputStream(rs.getBytes(2))),
         msgId).stream().findFirst().orElse(null);
     }
