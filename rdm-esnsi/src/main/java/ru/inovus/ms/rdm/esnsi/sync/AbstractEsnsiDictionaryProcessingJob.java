@@ -8,13 +8,11 @@ import org.springframework.core.env.Environment;
 import ru.inovus.ms.rdm.esnsi.ClassifierProcessingStage;
 import ru.inovus.ms.rdm.esnsi.EsnsiLoadService;
 import ru.inovus.ms.rdm.esnsi.EsnsiLoaderDao;
-import ru.inovus.ms.rdm.esnsi.Executable;
 import ru.inovus.ms.rdm.esnsi.api.ObjectFactory;
 import ru.inovus.ms.rdm.esnsi.smev.AdapterClient;
 
 import java.time.Duration;
 
-import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
 
 @PersistJobDataAfterExecution
@@ -49,15 +47,6 @@ public abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
     String classifierCode;
 
     private JobKey selfIdentity;
-
-    private void runAndRetryOnException(Executable exec) throws JobExecutionException {
-        try {
-            exec.exec();
-        } catch (Exception e) {
-            logger.error("Execution failed. Retrying until succeed.", e);
-            throw new JobExecutionException(true);
-        }
-    }
 
     private void init(JobExecutionContext context) {
         this.jobDataMap = context.getJobDetail().getJobDataMap();
@@ -139,7 +128,12 @@ public abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
             }
         }
         if (needToInterrupt) {
-            runAndRetryOnException(this::interrupt);
+            try {
+                this.interrupt();
+            } catch (Exception e) {
+                logger.error("Execution failed. Retrying until succeed.", e);
+                throw new JobExecutionException(true);
+            }
         }
     }
 
@@ -150,8 +144,7 @@ public abstract class AbstractEsnsiDictionaryProcessingJob implements Job {
         if (c == GetClassifierRecordsCountJob.class) return ClassifierProcessingStage.GET_RECORDS_COUNT;
         if (c == GetClassifierStructureJob.class) return ClassifierProcessingStage.GET_STRUCTURE;
         if (c == GetDataPageJob.class || c == PagingJob.class) return ClassifierProcessingStage.GET_DATA;
-        if (c == GetLastRevisionJob.class) return ClassifierProcessingStage.GET_LAST_REVISION;
-        if (c == GetRevisionsCountJob.class) return ClassifierProcessingStage.GET_REVISIONS_COUNT;
+        if (c == GetActualClassifierJob.class) return ClassifierProcessingStage.GET_ACTUAL_CLASSIFIER;
         if (c == SendToRdmJob.class) return ClassifierProcessingStage.SENDING_TO_RDM;
         throw new IllegalStateException("Unexpected Job class.");
     }

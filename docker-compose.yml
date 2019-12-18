@@ -117,6 +117,7 @@ services:
       SPRING_DATASOURCE_USERNAME: rdm
       SPRING_DATASOURCE_PASSWORD: rdm
       JAVA_OPTS: -Xmx200m
+      ESNSI_SYNC_DISABLE_MSG_FETCHER: true # Только чтобы отдебажиться
     depends_on:
       - db
     restart: on-failure
