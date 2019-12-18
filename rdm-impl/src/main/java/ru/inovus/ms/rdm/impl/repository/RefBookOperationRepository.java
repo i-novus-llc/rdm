@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.inovus.ms.rdm.impl.entity.RefBookOperationEntity;
 
 import javax.persistence.LockModeType;
+import java.util.Set;
 
 public interface RefBookOperationRepository extends
         JpaRepository<RefBookOperationEntity, Integer>,
@@ -18,5 +19,6 @@ public interface RefBookOperationRepository extends
         void deleteByRefBookId(Integer refBookId);
 
         @Transactional
-        Integer deleteAllByInstanceId(String instanceId);
+        int deleteAllByLockId(Set<String> lockIds);
+
 }

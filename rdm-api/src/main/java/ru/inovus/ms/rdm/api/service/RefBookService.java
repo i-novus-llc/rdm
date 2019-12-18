@@ -76,7 +76,7 @@ public interface RefBookService {
     RefBook create(RefBookCreateRequest refBookCreateRequest);
 
     @POST
-    @ApiOperation("Создание нового справочника и черновика из файла")
+    @ApiOperation(value = "Создание нового справочника и черновика из файла", hidden = true)
     @ApiResponses({
             @ApiResponse(code = 200, message = "Справочник и черновик созданы"),
             @ApiResponse(code = 400, message = "Некорректный запрос"),

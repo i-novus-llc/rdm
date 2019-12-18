@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
@@ -78,9 +77,6 @@ public class RefBookServiceImpl implements RefBookService {
 
     private DraftService draftService;
     private PublishService publishService;
-
-    @Autowired
-    private RefBookServiceImpl self;
 
     @Autowired
     @SuppressWarnings("squid:S00107")
@@ -346,31 +342,26 @@ public class RefBookServiceImpl implements RefBookService {
     }
 
     @Override
-    @Transactional
+    @SuppressWarnings("squid:S2259")
     public void changeData(ChangeDataRequest request) {
-        Integer refBookId = getId(request.getRefBookCode());
-        versionValidation.validateRefBookExists(refBookId);
-        String code = getCode(refBookId);
-        var ref = new Object() {
-            Integer draftId = draftService.getIdByRefBookCode(code);
-        };
-        self.invokeWithinNewTransaction(() -> {
-            if (ref.draftId == null) {
-                RefBookVersionEntity mostRecentVersion = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(code, RefBookVersionStatus.PUBLISHED);
+        RefBookEntity refBook = refBookRepository.findByCode(request.getRefBookCode());
+        versionValidation.validateRefBookExists(refBook == null ? null : refBook.getId());
+        refBookLockService.setRefBookUploading(refBook.getId());
+        try {
+            Integer draftId = draftService.getIdByRefBookCode(request.getRefBookCode());
+            if (draftId == null) {
+                RefBookVersionEntity mostRecentVersion = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(request.getRefBookCode(), RefBookVersionStatus.PUBLISHED);
                 Draft draft = draftService.createFromVersion(mostRecentVersion.getId());
-                ref.draftId = draft.getId();
+                draftId = draft.getId();
             }
-            if (ref.draftId == null)
-                throw new UserException(new Message("draft.not.found", ref.draftId));
-            draftService.updateData(ref.draftId, request.getRowsToAddOrUpdate());
-            draftService.deleteRows(ref.draftId, draftService.getSystemIdsByPrimaryKey(ref.draftId, request.getRowsToDelete()));
-        });
-        publishService.publish(ref.draftId, null, null, null, false);
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void invokeWithinNewTransaction(Runnable exec) {
-        exec.run();
+            if (draftId == null)
+                throw new UserException(new Message("draft.not.found", draftId));
+            draftService.updateData(draftId, request.getRowsToAddOrUpdate());
+            draftService.deleteRows(draftId, draftService.getSystemIdsByPrimaryKey(draftId, request.getRowsToDelete()));
+            publishService.publish(draftId, null, null, null, false);
+        } finally {
+            refBookLockService.deleteRefBookOperation(refBook.getId());
+        }
     }
 
     private RefBook refBookModel(RefBookVersionEntity entity,

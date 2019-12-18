@@ -5,8 +5,6 @@ package ru.inovus.ms.rdm.impl.service;
  */
 public interface RefBookLockService {
 
-    void cleanOperations();
-
     void setRefBookPublishing(Integer refBookId);
 
     void setRefBookUploading(Integer refBookId);
