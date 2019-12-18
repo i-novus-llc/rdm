@@ -201,7 +201,7 @@ public class EsnsiLoaderDao {
     @Transactional
     public boolean lockStage(String classifierCode) {
         try {
-            namedParameterJdbcTemplate.getJdbcTemplate().queryForObject("SELECT 1 FROM esnsi_sync.version WHERE code = ? FOR UPDATE", new Object[]{classifierCode}, Integer.class);
+            namedParameterJdbcTemplate.execute("SELECT 1 FROM esnsi_sync.version WHERE code = :code FOR UPDATE", Map.of("code", classifierCode), preparedStatement -> null);
             return true;
         } catch (CannotAcquireLockException ex) {
             logger.info("Lock for classifier {} stage is already acquired.", classifierCode, ex);
