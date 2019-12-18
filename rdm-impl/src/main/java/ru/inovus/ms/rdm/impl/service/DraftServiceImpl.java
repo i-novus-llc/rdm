@@ -141,7 +141,7 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateRefBook(refBookId);
 
         Draft draft;
-        refBookLockService.setRefBookUploading(refBookId);
+        refBookLockService.setRefBookUpdating(refBookId);
         try {
             draft = updateDraftDataByFile(refBookId, fileModel);
 
@@ -406,7 +406,7 @@ public class DraftServiceImpl implements DraftService {
 
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
-        refBookLockService.setRefBookUploading(draftVersion.getRefBook().getId());
+        refBookLockService.setRefBookUpdating(draftVersion.getRefBook().getId());
         try {
             if (isEmpty(rows)) return;
             Set<String> attrs = draftVersion.getStructure().getAttributes().stream().map(Structure.Attribute::getCode).collect(toSet());
@@ -504,7 +504,7 @@ public class DraftServiceImpl implements DraftService {
             if (list.isEmpty()) return;
             versionValidation.validateDraft(draftId);
             RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
-            refBookLockService.setRefBookUploading(draftVersion.getRefBook().getId());
+            refBookLockService.setRefBookUpdating(draftVersion.getRefBook().getId());
             try {
                 conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftVersion.getId(), systemIds);
                 draftDataService.deleteRows(draftVersion.getStorageCode(), list);
@@ -521,7 +521,7 @@ public class DraftServiceImpl implements DraftService {
 
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
-        refBookLockService.setRefBookUploading(draftVersion.getRefBook().getId());
+        refBookLockService.setRefBookUpdating(draftVersion.getRefBook().getId());
         try {
             conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draftVersion.getId());
             draftDataService.deleteAllRows(draftVersion.getStorageCode());
@@ -539,7 +539,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draftVersion = versionRepository.findById(draftId).orElseThrow();
 
         Integer refBookId = draftVersion.getRefBook().getId();
-        refBookLockService.setRefBookUploading(refBookId);
+        refBookLockService.setRefBookUpdating(refBookId);
         try {
             updateDraftData(draftVersion, fileModel);
 

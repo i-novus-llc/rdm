@@ -110,8 +110,8 @@ public class RefBookLockServiceImpl implements RefBookLockService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
-    public void setRefBookUploading(Integer refBookId) {
-        addRefBookOperation(refBookId, RefBookOperation.UPLOADING);
+    public void setRefBookUpdating(Integer refBookId) {
+        addRefBookOperation(refBookId, RefBookOperation.UPDATING);
     }
 
     private void addRefBookOperation(Integer refBookId, RefBookOperation operation) {
@@ -185,7 +185,7 @@ public class RefBookLockServiceImpl implements RefBookLockService {
 
         if (RefBookOperation.PUBLISHING.equals(refBookOperationEntity.getOperation())) {
             throw new UserException(new Message(REFBOOK_LOCK_DRAFT_IS_PUBLISHING, refBookId));
-        } else if (RefBookOperation.UPLOADING.equals(refBookOperationEntity.getOperation())) {
+        } else if (RefBookOperation.UPDATING.equals(refBookOperationEntity.getOperation())) {
             throw new UserException(new Message(REFBOOK_LOCK_DRAFT_IS_UPDATING, refBookId));
         }
     }

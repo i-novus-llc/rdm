@@ -7,7 +7,7 @@ public interface RefBookLockService {
 
     void setRefBookPublishing(Integer refBookId);
 
-    void setRefBookUploading(Integer refBookId);
+    void setRefBookUpdating(Integer refBookId);
 
     void deleteRefBookOperation(Integer refBookId);
 

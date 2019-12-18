@@ -346,7 +346,7 @@ public class RefBookServiceImpl implements RefBookService {
     public void changeData(ChangeDataRequest request) {
         RefBookEntity refBook = refBookRepository.findByCode(request.getRefBookCode());
         versionValidation.validateRefBookExists(refBook == null ? null : refBook.getId());
-        refBookLockService.setRefBookUploading(refBook.getId());
+        refBookLockService.setRefBookUpdating(refBook.getId());
         try {
             Integer draftId = draftService.getIdByRefBookCode(request.getRefBookCode());
             if (draftId == null) {
