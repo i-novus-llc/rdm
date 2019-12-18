@@ -147,9 +147,12 @@ public class RefBookLockServiceImpl implements RefBookLockService {
         }
         LOCKS_COUNTER.set(Pair.of(LOCKS_COUNTER.get().getFirst(), --locksAcquired));
         if (locksAcquired == 0) {
-            operationRepository.deleteByRefBookId(refBookId);
             String lockId = LOCKS_COUNTER.get().getFirst();
-            LOCKS_COUNTER.remove();
+            try {
+                operationRepository.deleteByRefBookId(refBookId);
+            } finally {
+                LOCKS_COUNTER.remove();
+            }
             WRITE_WAL_LOCK.lock();
             try {
                 Files.write(WAL_PATH, (LOCK_RELEASED + lockId + "\n").getBytes(), StandardOpenOption.APPEND);
