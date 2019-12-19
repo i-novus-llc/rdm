@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
-import ru.inovus.ms.rdm.api.exception.RdmException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,19 +26,14 @@ public class AsyncChangeDataClient implements ChangeDataClient {
 
     @Override
     public void changeData(String refBookCode, List<Object> addUpdate, List<Object> delete) {
-        if (jmsTemplate != null) {
-            try {
-                jmsTemplate.convertAndSend(
-                    changeDataQueue,
-                    List.of(Arrays.asList(addUpdate, delete), Utils.convertToChangeDataRequest(refBookCode, addUpdate, delete))
-                );
-            } catch (Exception e) {
-                logger.error("An error occurred while sending message to the message broker.", e);
-                callback.onError(refBookCode, addUpdate, delete, e);
-            }
-        } else {
-            String msg = "Message queue is not configured. Async pull request can't be performed.";
-            callback.onError(refBookCode, addUpdate, delete, new RdmException(msg));
+        try {
+            jmsTemplate.convertAndSend(
+                changeDataQueue,
+                List.of(Arrays.asList(addUpdate, delete), Utils.convertToChangeDataRequest(refBookCode, addUpdate, delete))
+            );
+        } catch (Exception e) {
+            logger.error("An error occurred while sending message to the message broker.", e);
+            callback.onError(refBookCode, addUpdate, delete, e);
         }
     }
 }
