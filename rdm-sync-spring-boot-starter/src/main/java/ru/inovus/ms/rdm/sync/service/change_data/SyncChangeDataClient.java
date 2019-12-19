@@ -18,7 +18,7 @@ public class SyncChangeDataClient implements ChangeDataClient {
 
     @Override
     public void changeData(String refBookCode, List<Object> addUpdate, List<Object> delete) {
-        ChangeDataRequest req = ChangeDataClient.convertToChangeDataRequest(refBookCode, addUpdate, delete);
+        ChangeDataRequest req = Utils.convertToChangeDataRequest(refBookCode, addUpdate, delete);
         try {
             refBookService.changeData(req);
             callback.onSuccess(refBookCode, addUpdate, delete);

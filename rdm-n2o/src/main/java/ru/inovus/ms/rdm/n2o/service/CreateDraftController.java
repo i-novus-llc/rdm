@@ -28,8 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 
 @Controller
 @SuppressWarnings("unused")
@@ -123,7 +122,7 @@ public class CreateDraftController {
         if (!Objects.equals(versionId, uiDraft.getId())) {
             systemId = calculateNewSystemId(systemId, versionId, uiDraft.getId());
         }
-        draftService.deleteRow(uiDraft.getId(), systemId);
+        draftService.deleteRow(uiDraft.getId(), new Row(systemId, emptyMap()));
         return uiDraft;
     }
 
