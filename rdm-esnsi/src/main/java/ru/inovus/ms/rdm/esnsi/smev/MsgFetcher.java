@@ -45,16 +45,12 @@ public class MsgFetcher implements Job {
     private boolean disabled;
 
     @Override
-    @SuppressWarnings({"squid:S3776", "squid:S135"})
     public void execute(JobExecutionContext context) throws JobExecutionException {
         if (disabled)
             return;
         int n = 0;
         ResponseDocument resp;
-        do {
-            resp = adapterConsumer.getResponseDocument();
-            if (resp == null)
-                break;
+        while ((resp = adapterConsumer.getResponseDocument()) != null) {
             StringWriter writer = new StringWriter();
             try {
                 RESPONSE_CTX.createMarshaller().marshal(resp, writer);
@@ -72,7 +68,7 @@ public class MsgFetcher implements Job {
             boolean acknowledged = adapterConsumer.acknowledge(msgId);
             if (!acknowledged)
                 logger.info("Message with id {} can't be acknowledged.", msgId);
-        } while (true);
+        }
         logger.info("{} messages fetched from SMEV adapter", n);
     }
 

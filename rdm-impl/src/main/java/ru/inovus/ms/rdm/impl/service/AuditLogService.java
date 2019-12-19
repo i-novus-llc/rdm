@@ -70,7 +70,11 @@ public class AuditLogService {
             m.putAll(additionalContext);
             request.setContext(toJson(m));
             request.setAuditType((short) 1);
-            auditClient.add(request);
+            try {
+                auditClient.add(request);
+            } catch (Exception e) {
+                logger.error("An error occurred during the audit.", e);
+            }
         } else {
             logger.warn("audit action {} disabled", action);
         }
