@@ -513,9 +513,11 @@ public class DraftServiceImpl implements DraftService {
         refBookLockService.setRefBookUpdating(draftVersion.getRefBook().getId());
         try {
             List systemIds = rows.stream().filter(row -> row.getSystemId() != null).map(Row::getSystemId).collect(toList());
-            conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftVersion.getId(), systemIds);
-            draftDataService.deleteRows(draftVersion.getStorageCode(), systemIds);
-            auditEditData(draftVersion, "delete_row", systemIds);
+            if (!systemIds.isEmpty()) {
+                conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftVersion.getId(), systemIds);
+                draftDataService.deleteRows(draftVersion.getStorageCode(), systemIds);
+                auditEditData(draftVersion, "delete_row", systemIds);
+            }
         } finally {
             refBookLockService.deleteRefBookOperation(draftVersion.getRefBook().getId());
         }

@@ -8,15 +8,15 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class AsyncChangeDataClient implements ChangeDataClient {
 
     private static final Logger logger = LoggerFactory.getLogger(AsyncChangeDataClient.class);
 
-    @Autowired(required = false)
+    @Autowired
     private JmsTemplate jmsTemplate;
 
     @Value("${rdm_sync.change_date.queue:changeData}")
@@ -31,10 +31,7 @@ public class AsyncChangeDataClient implements ChangeDataClient {
             try {
                 jmsTemplate.convertAndSend(
                     changeDataQueue,
-                    Map.of(
-                        "src", List.of(addUpdate, delete),
-                        "converted", ChangeDataClient.convertToChangeDataRequest(refBookCode, addUpdate, delete)
-                    )
+                    List.of(Arrays.asList(addUpdate, delete), ChangeDataClient.convertToChangeDataRequest(refBookCode, addUpdate, delete))
                 );
             } catch (Exception e) {
                 logger.error("An error occurred while sending message to the message broker.", e);

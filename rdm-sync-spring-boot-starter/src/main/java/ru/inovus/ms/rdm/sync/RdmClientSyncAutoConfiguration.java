@@ -203,7 +203,7 @@ public class RdmClientSyncAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnClass(ConnectionFactory.class)
+    @ConditionalOnProperty(name = "rdm_sync.change_data_mode", havingValue = "async")
     public ChangeDataListener changeDataListener(RefBookService refBookService, ChangeDataRequestCallback changeDataRequestCallback) {
         return new ChangeDataListener(refBookService, changeDataRequestCallback);
     }
