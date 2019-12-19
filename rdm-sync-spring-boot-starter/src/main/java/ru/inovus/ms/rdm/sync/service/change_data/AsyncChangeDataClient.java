@@ -31,7 +31,7 @@ public class AsyncChangeDataClient implements ChangeDataClient {
             try {
                 jmsTemplate.convertAndSend(
                     changeDataQueue,
-                    List.of(Arrays.asList(addUpdate, delete), ChangeDataClient.convertToChangeDataRequest(refBookCode, addUpdate, delete))
+                    List.of(Arrays.asList(addUpdate, delete), Utils.convertToChangeDataRequest(refBookCode, addUpdate, delete))
                 );
             } catch (Exception e) {
                 logger.error("An error occurred while sending message to the message broker.", e);
