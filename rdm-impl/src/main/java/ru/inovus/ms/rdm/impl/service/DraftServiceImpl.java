@@ -59,6 +59,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.function.*;
+import java.util.stream.Stream;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
@@ -394,6 +395,19 @@ public class DraftServiceImpl implements DraftService {
         }
     }
 
+    private List<Row> preprocessRows(List<Row> rows, RefBookVersionEntity draftVersion, boolean removeEvenIfSystemIdIsPresent) {
+        if (isEmpty(rows)) return emptyList();
+        Set<String> attrs = draftVersion.getStructure().getAttributes().stream().map(Structure.Attribute::getCode).collect(toSet());
+        Stream<Row> stream = rows.stream().peek(row -> row.getData().entrySet().removeIf(attr -> !attrs.contains(attr.getKey())));
+        if (removeEvenIfSystemIdIsPresent)
+            stream = stream.filter(row -> !isEmptyRow(row));
+        rows = stream.collect(toList());
+        if (isEmpty(rows)) return emptyList();
+        validateTypeSafety(rows, draftVersion.getStructure());
+        setSystemIdIfPossible(draftVersion.getStructure(), rows, draftVersion.getId());
+        return rows;
+    }
+
     @Override
     @Transactional
     public void updateData(Integer draftId, Row row) {
@@ -408,12 +422,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
         refBookLockService.setRefBookUpdating(draftVersion.getRefBook().getId());
         try {
-            if (isEmpty(rows)) return;
-            Set<String> attrs = draftVersion.getStructure().getAttributes().stream().map(Structure.Attribute::getCode).collect(toSet());
-            rows = rows.stream().peek(row -> row.getData().entrySet().removeIf(attr -> !attrs.contains(attr.getKey()))).filter(row -> !isEmptyRow(row)).collect(toList());
-            if (isEmpty(rows)) return;
-            validateTypeSafety(rows, draftVersion.getStructure());
-            setSystemIdIfPossible(draftVersion.getStructure(), rows, draftId);
+            rows = preprocessRows(rows, draftVersion, true);
             List<RowValue> convertedRows = rows.stream().map(row -> ConverterUtil.rowValue((row), draftVersion.getStructure())).collect(toList());
             validateDataByStructure(draftVersion, rows);
 
@@ -491,27 +500,24 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void deleteRow(Integer draftId, Long systemId) {
-        deleteRows(draftId, singletonList(systemId));
+    public void deleteRow(Integer draftId, Row row) {
+        deleteRows(draftId, singletonList(row));
     }
 
     @Override
     @Transactional
-    public void deleteRows(Integer draftId, List<Long> systemIds) {
-        if (systemIds != null && !systemIds.isEmpty()) {
-            List list = new ArrayList(systemIds);
-            list.removeIf(Objects::isNull);
-            if (list.isEmpty()) return;
-            versionValidation.validateDraft(draftId);
-            RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
-            refBookLockService.setRefBookUpdating(draftVersion.getRefBook().getId());
-            try {
-                conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftVersion.getId(), systemIds);
-                draftDataService.deleteRows(draftVersion.getStorageCode(), list);
-            } finally {
-                refBookLockService.deleteRefBookOperation(draftVersion.getRefBook().getId());
-            }
-            auditEditData(draftVersion, "delete_row", list);
+    public void deleteRows(Integer draftId, List<Row> rows) {
+        RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
+        versionValidation.validateDraft(draftId);
+        rows = preprocessRows(rows, draftVersion, false);
+        refBookLockService.setRefBookUpdating(draftVersion.getRefBook().getId());
+        try {
+            List systemIds = rows.stream().filter(row -> row.getSystemId() != null).map(Row::getSystemId).collect(toList());
+            conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftVersion.getId(), systemIds);
+            draftDataService.deleteRows(draftVersion.getStorageCode(), systemIds);
+            auditEditData(draftVersion, "delete_row", systemIds);
+        } finally {
+            refBookLockService.deleteRefBookOperation(draftVersion.getRefBook().getId());
         }
     }
 
@@ -933,16 +939,6 @@ public class DraftServiceImpl implements DraftService {
         if (draftEntity == null)
             return null;
         return draftEntity.getId();
-    }
-
-    @Override
-    @Transactional
-    public List<Long> getSystemIdsByPrimaryKey(Integer draftId, List<Row> rows) {
-        versionValidation.validateDraftExists(draftId);
-        RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
-        validateTypeSafety(rows, draftVersion.getStructure());
-        setSystemIdIfPossible(draftVersion.getStructure(), rows, draftId);
-        return rows.stream().map(Row::getSystemId).collect(toList());
     }
 
     private void auditStructureEdit(RefBookVersionEntity refBook, String action, Structure.Attribute attribute) {

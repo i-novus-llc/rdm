@@ -357,7 +357,7 @@ public class RefBookServiceImpl implements RefBookService {
             if (draftId == null)
                 throw new UserException(new Message("draft.not.found", draftId));
             draftService.updateData(draftId, request.getRowsToAddOrUpdate());
-            draftService.deleteRows(draftId, draftService.getSystemIdsByPrimaryKey(draftId, request.getRowsToDelete()));
+            draftService.deleteRows(draftId, request.getRowsToDelete());
             publishService.publish(draftId, null, null, null, false);
         } finally {
             refBookLockService.deleteRefBookOperation(refBook.getId());

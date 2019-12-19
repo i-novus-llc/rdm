@@ -584,7 +584,7 @@ public class ApplicationTest {
         assertRows(fields(structure), singletonList(expectedRowValue), actualRowValues.getContent());
 
         // удаление строки
-        draftService.deleteRow(versionId, 1L);
+        draftService.deleteRow(versionId, new Row(1L, emptyMap()));
 
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertEquals(0, actualRowValues.getContent().size());
@@ -1731,7 +1731,7 @@ public class ApplicationTest {
         assertNotNull(rowValue);
         assertNotNull(rowValue.getSystemId());
 
-        draftService.deleteRow(draft.getId(), rowValue.getSystemId());
+        draftService.deleteRow(draft.getId(), new Row(rowValue.getSystemId(), emptyMap()));
 
         rowValue = getVersionRowValue(draft.getId(), primary, primaryValue);
         assertNull(rowValue);
