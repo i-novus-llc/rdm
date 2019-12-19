@@ -7,13 +7,13 @@ import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.esnsi.api.*;
 
 import javax.xml.bind.JAXBException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static ru.inovus.ms.rdm.esnsi.smev.Utils.JAXB_CTX;
-import static ru.inovus.ms.rdm.esnsi.smev.Utils.OBJECT_FACTORY;
+import static ru.inovus.ms.rdm.esnsi.smev.Utils.*;
 
 @Component
 public class AdapterClient {
@@ -34,13 +34,12 @@ public class AdapterClient {
     }
 
     public <T> Map.Entry<T, InputStream> getResponse(String messageId, Class<T> responseType) {
-        Map.Entry<String, InputStream> msg = msgBuffer.get(messageId);
+        String msg = msgBuffer.get(messageId);
         if (msg == null)
             return null;
-        String xml = msg.getKey();
         ResponseDocument responseDocument;
         try {
-            responseDocument = (ResponseDocument) JAXB_CTX.createUnmarshaller().unmarshal(new StringReader(xml));
+            responseDocument = (ResponseDocument) JAXB_CTX.createUnmarshaller().unmarshal(new StringReader(msg));
         } catch (JAXBException e) {
             throw new RdmException(e);
 //          Не должно выброситься, если никто не лазает в базу
@@ -51,15 +50,18 @@ public class AdapterClient {
                         "[" + requestRejected.getRejectionReasonCode() + ":" + requestRejected.getRejectionReasonDescription() + "]"
                 ).collect(Collectors.joining(",\n")));
             }
-            return Map.entry(extractResponse(responseDocument, responseType), msg.getValue());
+            try {
+                return Map.entry(extractResponse(responseDocument, responseType), responseDocument.getAttachmentContentList() == null ? EMPTY_INPUT_STREAM : responseDocument.getAttachmentContentList().getAttachmentContent().iterator().next().getContent().getInputStream());
+            } catch (IOException e) {
+//              Не должно выброситься, никаких IO операций не производится
+                throw new RdmException(e);
+            }
         }
         return null;
     }
 
-    public boolean acknowledge(String messageId) {
-        boolean acknowledged = adapterConsumer.acknowledge(messageId);
+    public void acknowledge(String messageId) {
         msgBuffer.remove(messageId);
-        return acknowledged;
     }
 
     private void setRequest(CnsiRequest cnsiRequest, Object requestData) {

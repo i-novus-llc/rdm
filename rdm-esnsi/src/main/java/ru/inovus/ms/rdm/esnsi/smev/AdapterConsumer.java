@@ -21,13 +21,10 @@ import javax.xml.transform.dom.DOMResult;
 import javax.xml.ws.Binding;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.soap.SOAPBinding;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
-import java.util.Map;
-import java.util.stream.Collectors;
 
-import static ru.inovus.ms.rdm.esnsi.smev.Utils.*;
+import static ru.inovus.ms.rdm.esnsi.smev.Utils.JAXB_CTX;
+import static ru.inovus.ms.rdm.esnsi.smev.Utils.OBJECT_FACTORY;
 
 /**
  * Потребитель из очереди СМЭВ-3.
@@ -82,30 +79,7 @@ final class AdapterConsumer {
         }
     }
 
-    Map.Entry<ResponseDocument, InputStream> getResponse() {
-        ResponseDocument responseDocument = getResponseDocument();
-        if (responseDocument != null) {
-            if (!responseDocument.getSenderProvidedResponseData().getRequestRejected().isEmpty()) {
-                throw new RdmException(responseDocument.getSenderProvidedResponseData().getRequestRejected().stream().map(requestRejected ->
-                    "[" + requestRejected.getRejectionReasonCode() + ":" + requestRejected.getRejectionReasonDescription() + "]"
-                ).collect(Collectors.joining(",\n")));
-            }
-            InputStream inputStream = null;
-            AttachmentContentList attachmentContent = responseDocument.getAttachmentContentList();
-            if (attachmentContent != null) {
-                try {
-                    inputStream = attachmentContent.getAttachmentContent().iterator().next().getContent().getInputStream();
-                } catch (IOException e) {
-                    logger.error("Cannot extract input stream from message attachment.", e);
-                    throw new RdmException(e);
-                }
-            }
-            return Map.entry(responseDocument, inputStream == null ? EMPTY_INPUT_STREAM : inputStream);
-        }
-        return null;
-    }
-
-    private ResponseDocument getResponseDocument() {
+    ResponseDocument getResponseDocument() {
         GetResponseDocument getResponseDocument = OBJECT_FACTORY.createGetResponseDocument();
         MessageTypeSelector messageTypeSelector = OBJECT_FACTORY.createMessageTypeSelector();
         messageTypeSelector.setNamespaceURI(NAMESPACE_URI);

@@ -13,14 +13,9 @@ import ru.inovus.ms.rdm.esnsi.api.ResponseDocument;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.StringWriter;
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.Map;
-
-import static ru.inovus.ms.rdm.esnsi.smev.Utils.EMPTY_INPUT_STREAM;
 
 @DisallowConcurrentExecution
 public class MsgFetcher implements Job {
@@ -55,30 +50,21 @@ public class MsgFetcher implements Job {
         if (disabled)
             return;
         int n = 0;
-        Map.Entry<ResponseDocument, InputStream> resp;
+        ResponseDocument resp;
         do {
-            resp = adapterConsumer.getResponse();
+            resp = adapterConsumer.getResponseDocument();
             if (resp == null)
                 break;
             StringWriter writer = new StringWriter();
             try {
-                RESPONSE_CTX.createMarshaller().marshal(resp.getKey(), writer);
+                RESPONSE_CTX.createMarshaller().marshal(resp, writer);
             } catch (JAXBException e) {
 //              Не выбросится
                 logger.error("Unexpected error occurred.", e);
                 continue;
             }
-            byte[] attachment = null;
-            if (resp.getValue() != EMPTY_INPUT_STREAM) {
-                try {
-                    attachment = resp.getValue().readAllBytes();
-                } catch (IOException e) {
-                    logger.error("Can't read bytes from input stream.", e);
-                    continue;
-                }
-            }
-            String msgId = resp.getKey().getSenderProvidedResponseData().getMessageID();
-            boolean newMessage = msgBuffer.put(msgId, writer.toString(), LocalDateTime.now(Clock.systemUTC()), attachment);
+            String msgId = resp.getSenderProvidedResponseData().getMessageID();
+            boolean newMessage = msgBuffer.put(msgId, writer.toString(), LocalDateTime.now(Clock.systemUTC()));
             if (newMessage)
                 n++;
             else
