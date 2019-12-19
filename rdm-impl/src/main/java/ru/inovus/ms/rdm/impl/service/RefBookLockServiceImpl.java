@@ -154,7 +154,7 @@ public class RefBookLockServiceImpl implements RefBookLockService {
             if (n == 1) {
                 WRITE_WAL_LOCK.lock();
                 try {
-                    Files.write(WAL_PATH, (LOCK_RELEASED + lockId + "\n").getBytes(), StandardOpenOption.APPEND);
+                    Files.write(WAL_PATH, (LOCK_RELEASED + " " + lockId + "\n").getBytes(), StandardOpenOption.APPEND);
                 } catch (IOException e) {
                     logger.error("Can't access WAL. Lock release will be silently ignored.", e);
                 } finally {
