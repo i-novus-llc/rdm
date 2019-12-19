@@ -5,7 +5,6 @@ import net.n2oapp.platform.jaxrs.LocalDateTimeISOParameterConverter;
 import net.n2oapp.platform.jaxrs.TypedParamConverter;
 import net.n2oapp.platform.jaxrs.autoconfigure.EnableJaxRsProxyClient;
 import net.n2oapp.platform.jaxrs.autoconfigure.MissingGenericBean;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -52,9 +51,6 @@ import java.time.OffsetDateTime;
 @AutoConfigureAfter(LiquibaseAutoConfiguration.class)
 @EnableJms
 public class RdmClientSyncAutoConfiguration {
-
-    @Value("${spring.activemq.broker-url}")
-    private String brokerUrl;
 
     @Bean
     @ConditionalOnMissingBean
