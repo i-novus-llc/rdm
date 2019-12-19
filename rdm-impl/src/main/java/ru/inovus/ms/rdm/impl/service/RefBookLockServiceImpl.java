@@ -45,9 +45,6 @@ public class RefBookLockServiceImpl implements RefBookLockService {
     private static final String LOCK_ACQUIRED = "ACQUIRED";
     private static final String LOCK_RELEASED = "RELEASED";
 
-    private static final String REFBOOK_LOCK_DRAFT_IS_PUBLISHING = "refbook.lock.draft.is.publishing";
-    private static final String REFBOOK_LOCK_DRAFT_IS_UPDATING = "refbook.lock.draft.is.updating";
-
     private static final Logger logger = LoggerFactory.getLogger(RefBookLockServiceImpl.class);
 
     private static final Duration OPERATION_MAX_LIVE_PERIOD = Duration.ofHours(4);
@@ -148,18 +145,23 @@ public class RefBookLockServiceImpl implements RefBookLockService {
         LOCKS_COUNTER.set(Pair.of(LOCKS_COUNTER.get().getFirst(), --locksAcquired));
         if (locksAcquired == 0) {
             String lockId = LOCKS_COUNTER.get().getFirst();
+            int n;
             try {
-                operationRepository.deleteByRefBookId(refBookId);
+                n = operationRepository.deleteByRefBookId(refBookId);
             } finally {
                 LOCKS_COUNTER.remove();
             }
-            WRITE_WAL_LOCK.lock();
-            try {
-                Files.write(WAL_PATH, (LOCK_RELEASED + lockId + "\n").getBytes(), StandardOpenOption.APPEND);
-            } catch (IOException e) {
-                logger.error("Can't access WAL. Lock release will be silently ignored.", e);
-            } finally {
-                WRITE_WAL_LOCK.unlock();
+            if (n == 1) {
+                WRITE_WAL_LOCK.lock();
+                try {
+                    Files.write(WAL_PATH, (LOCK_RELEASED + lockId + "\n").getBytes(), StandardOpenOption.APPEND);
+                } catch (IOException e) {
+                    logger.error("Can't access WAL. Lock release will be silently ignored.", e);
+                } finally {
+                    WRITE_WAL_LOCK.unlock();
+                }
+            } else {
+                logger.error("Lock with id {} was not deleted from database.", lockId);
             }
         }
     }
@@ -176,7 +178,13 @@ public class RefBookLockServiceImpl implements RefBookLockService {
     @Override
     public void validateRefBookNotBusyByRefBookId(Integer refBookId) {
 
-        RefBookOperationEntity refBookOperationEntity = operationRepository.findByRefBookId(refBookId);
+        RefBookOperationEntity refBookOperationEntity;
+        try {
+            refBookOperationEntity = operationRepository.findByRefBookId(refBookId);
+        } catch (Exception e) {
+            logger.error("Error occurred on database level while trying to acquire exclusive lock.", e);
+            throw new UserException(new Message("refbook.lock.cannot-be-acquired", refBookId));
+        }
         if (refBookOperationEntity == null)
             return;
 
@@ -187,9 +195,9 @@ public class RefBookLockServiceImpl implements RefBookLockService {
         }
 
         if (RefBookOperation.PUBLISHING.equals(refBookOperationEntity.getOperation())) {
-            throw new UserException(new Message(REFBOOK_LOCK_DRAFT_IS_PUBLISHING, refBookId));
+            throw new UserException(new Message("refbook.lock.draft.is.publishing", refBookId));
         } else if (RefBookOperation.UPDATING.equals(refBookOperationEntity.getOperation())) {
-            throw new UserException(new Message(REFBOOK_LOCK_DRAFT_IS_UPDATING, refBookId));
+            throw new UserException(new Message("refbook.lock.draft.is.updating", refBookId));
         }
     }
 }

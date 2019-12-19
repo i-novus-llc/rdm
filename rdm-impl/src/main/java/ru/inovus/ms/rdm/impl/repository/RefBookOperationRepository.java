@@ -16,7 +16,7 @@ public interface RefBookOperationRepository extends
         @Lock(value = LockModeType.PESSIMISTIC_WRITE)
         RefBookOperationEntity findByRefBookId(Integer refBookId);
 
-        void deleteByRefBookId(Integer refBookId);
+        int deleteByRefBookId(Integer refBookId);
 
         @Transactional
         int deleteAllByLockId(Set<String> lockIds);
