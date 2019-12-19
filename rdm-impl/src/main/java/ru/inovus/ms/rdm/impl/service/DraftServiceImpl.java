@@ -423,6 +423,7 @@ public class DraftServiceImpl implements DraftService {
         refBookLockService.setRefBookUpdating(draftVersion.getRefBook().getId());
         try {
             rows = preprocessRows(rows, draftVersion, true);
+            if (rows.isEmpty()) return;
             List<RowValue> convertedRows = rows.stream().map(row -> ConverterUtil.rowValue((row), draftVersion.getStructure())).collect(toList());
             validateDataByStructure(draftVersion, rows);
 
