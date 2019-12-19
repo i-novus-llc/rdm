@@ -3,15 +3,18 @@ package ru.inovus.ms.rdm.impl.file.process;
 import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inovus.ms.rdm.impl.file.RowMapper;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
+import ru.inovus.ms.rdm.impl.util.mappers.RowMapper;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
 import java.io.InputStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
 import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.isStartElementWithName;
 import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.parseValues;

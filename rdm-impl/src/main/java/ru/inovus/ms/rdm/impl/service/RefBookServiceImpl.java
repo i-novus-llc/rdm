@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.impl.service;
 import com.querydsl.core.BooleanBuilder;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
@@ -16,21 +17,33 @@ import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookStatusType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.api.exception.NotFoundException;
+import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
+import ru.inovus.ms.rdm.api.model.refdata.ChangeDataRequest;
+import ru.inovus.ms.rdm.api.service.DraftService;
+import ru.inovus.ms.rdm.api.service.PublishService;
 import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.*;
+import ru.inovus.ms.rdm.impl.file.FileStorage;
+import ru.inovus.ms.rdm.impl.file.process.XmlCreateRefBookFileProcessor;
 import ru.inovus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
-import ru.inovus.ms.rdm.impl.repository.*;
+import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
+import ru.inovus.ms.rdm.impl.repository.RefBookModelDataRepository;
+import ru.inovus.ms.rdm.impl.repository.RefBookRepository;
+import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 import ru.inovus.ms.rdm.impl.util.NamingUtils;
 
+import java.io.InputStream;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
@@ -60,6 +73,11 @@ public class RefBookServiceImpl implements RefBookService {
 
     private AuditLogService auditLogService;
 
+    private FileStorage fileStorage;
+
+    private DraftService draftService;
+    private PublishService publishService;
+
     @Autowired
     @SuppressWarnings("squid:S00107")
     public RefBookServiceImpl(RefBookRepository refBookRepository, RefBookVersionRepository versionRepository,
@@ -67,7 +85,8 @@ public class RefBookServiceImpl implements RefBookService {
                               DraftDataService draftDataService, DropDataService dropDataService,
                               RefBookLockService refBookLockService,
                               PassportValueRepository passportValueRepository, RefBookVersionQueryProvider refBookVersionQueryProvider,
-                              VersionValidation versionValidation, AuditLogService auditLogService) {
+                              VersionValidation versionValidation, AuditLogService auditLogService, FileStorage fileStorage, DraftService draftService,
+                              PublishService publishService) {
         this.refBookRepository = refBookRepository;
         this.versionRepository = versionRepository;
 
@@ -83,6 +102,10 @@ public class RefBookServiceImpl implements RefBookService {
 
         this.versionValidation = versionValidation;
         this.auditLogService = auditLogService;
+        this.fileStorage = fileStorage;
+
+        this.draftService = draftService;
+        this.publishService = publishService;
     }
 
     /**
@@ -198,6 +221,30 @@ public class RefBookServiceImpl implements RefBookService {
     }
 
     @Override
+    public Draft create(FileModel fileModel) {
+        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
+        switch (extension) {
+            case "XLSX": return createByXlsx(fileModel);
+            case "XML": return createByXml(fileModel);
+            default: throw new UserException("file.extension.invalid");
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private Draft createByXlsx(FileModel fileModel) {
+        throw new UserException("xlsx.draft.creation.not-supported");
+    }
+
+    private Draft createByXml(FileModel fileModel) {
+        Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
+        RefBook refBook;
+        try (XmlCreateRefBookFileProcessor createRefBookFileProcessor = new XmlCreateRefBookFileProcessor(this)) {
+            refBook = createRefBookFileProcessor.process(inputStreamSupplier);
+        }
+        return draftService.create(refBook.getRefBookId(), fileModel);
+    }
+
+    @Override
     @Transactional
     public RefBook update(RefBookUpdateRequest request) {
 
@@ -292,6 +339,29 @@ public class RefBookServiceImpl implements RefBookService {
         RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
         refBookEntity.setArchived(Boolean.FALSE);
         refBookRepository.save(refBookEntity);
+    }
+
+    @Override
+    @SuppressWarnings("squid:S2259")
+    public void changeData(ChangeDataRequest request) {
+        RefBookEntity refBook = refBookRepository.findByCode(request.getRefBookCode());
+        versionValidation.validateRefBookExists(refBook == null ? null : refBook.getId());
+        refBookLockService.setRefBookUpdating(refBook.getId());
+        try {
+            Integer draftId = draftService.getIdByRefBookCode(request.getRefBookCode());
+            if (draftId == null) {
+                RefBookVersionEntity mostRecentVersion = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(request.getRefBookCode(), RefBookVersionStatus.PUBLISHED);
+                Draft draft = draftService.createFromVersion(mostRecentVersion.getId());
+                draftId = draft.getId();
+            }
+            if (draftId == null)
+                throw new UserException(new Message("draft.not.found", draftId));
+            draftService.updateData(draftId, request.getRowsToAddOrUpdate());
+            draftService.deleteRows(draftId, request.getRowsToDelete());
+            publishService.publish(draftId, null, null, null, false);
+        } finally {
+            refBookLockService.deleteRefBookOperation(refBook.getId());
+        }
     }
 
     private RefBook refBookModel(RefBookVersionEntity entity,

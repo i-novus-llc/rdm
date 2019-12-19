@@ -35,8 +35,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum.DELETED;
 import static ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum.INSERTED;
 
@@ -237,7 +237,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     }
 
     private void validateStructureChanges(VersionMapping versionMapping, List<FieldMapping> fieldMappings, RefBookDataDiff diff) {
-        List<String> clientRdmFields = fieldMappings.stream().map(FieldMapping::getRdmField).collect(Collectors.toList());
+        List<String> clientRdmFields = fieldMappings.stream().map(FieldMapping::getRdmField).collect(toList());
         //проверяем удаленные поля
         if (!CollectionUtils.isEmpty(diff.getOldAttributes())) {
             diff.getOldAttributes().retainAll(clientRdmFields);

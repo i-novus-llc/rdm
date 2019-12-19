@@ -22,8 +22,8 @@ public class RefBookOperationEntity {
     @Enumerated(value = EnumType.STRING)
     private RefBookOperation operation;
 
-    @Column(name = "instance_id")
-    private String instanceId;
+    @Column(name = "lock_id")
+    private String lockId;
 
     @Column(name = "user_name")
     private String userName;
@@ -31,10 +31,10 @@ public class RefBookOperationEntity {
     @Column(name = "creation_date")
     private LocalDateTime creationDate;
 
-    public RefBookOperationEntity(RefBookEntity refBook, RefBookOperation operation, String instanceId, String userName) {
+    public RefBookOperationEntity(RefBookEntity refBook, RefBookOperation operation, String lockId, String userName) {
         this.refBook = refBook;
         this.operation = operation;
-        this.instanceId = instanceId;
+        this.lockId = lockId;
         this.userName = userName;
     }
 
@@ -71,12 +71,12 @@ public class RefBookOperationEntity {
         this.operation = operation;
     }
 
-    public String getInstanceId() {
-        return instanceId;
+    public String getLockId() {
+        return lockId;
     }
 
-    public void setInstanceId(String instanceId) {
-        this.instanceId = instanceId;
+    public void setLockId(String lockId) {
+        this.lockId = lockId;
     }
 
     public String getUserName() {

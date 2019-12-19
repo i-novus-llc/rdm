@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.impl.file;
+package ru.inovus.ms.rdm.impl.util.mappers;
 
 import ru.inovus.ms.rdm.api.model.refdata.Row;
 
