@@ -8,15 +8,13 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
+import org.mockito.*;
 import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.*;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
@@ -35,6 +33,7 @@ import ru.inovus.ms.rdm.api.model.version.CreateAttribute;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.model.version.UpdateAttribute;
 import ru.inovus.ms.rdm.api.service.VersionService;
+import ru.inovus.ms.rdm.api.util.FieldValueUtils;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
 import ru.inovus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
@@ -51,12 +50,13 @@ import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 import ru.inovus.ms.rdm.impl.validation.AttributeUpdateValidator;
 
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.*;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertTrue;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
@@ -208,6 +208,7 @@ public class DraftServiceTest {
         expectedRefBookVersion.setId(null);
         expectedRefBookVersion.setStorageCode(TEST_DRAFT_CODE_NEW);
         expectedRefBookVersion.setRefBook(refBook);
+        expectedRefBookVersion.getRefBook().setCode(TEST_REF_BOOK);
         when(versionRepository.save(eq(expectedRefBookVersion))).thenReturn(expectedRefBookVersion);
 
         draftService.create(new CreateDraftRequest(REFBOOK_ID, new Structure()));
@@ -423,34 +424,54 @@ public class DraftServiceTest {
 
     @Test
     public void testUpdateVersionRowsByPrimaryKey() {
+        FieldType[] primaryAllowedType = {FieldType.STRING, FieldType.INTEGER, FieldType.FLOAT, FieldType.REFERENCE, FieldType.DATE};
+        Object[] primaryValues = {"abc", BigInteger.valueOf(123L), BigDecimal.valueOf(123.123), new Reference("2", "-"), LocalDate.of(2019, 12, 12)};
+        for (int i = 0; i < primaryAllowedType.length; i++) {
+            testUpdateByPrimaryKey(primaryAllowedType[i], primaryValues[i]);
+            Mockito.reset(versionService, searchDataService, versionRepository, searchDataService, draftDataService);
+        }
+    }
+
+    private void testUpdateByPrimaryKey(FieldType primaryType, Object primaryValue) {
         String primaryCode = "Primary";
         String notPrimaryCode = "NotPrimary";
+        FieldType nonPrimaryType = FieldType.INTEGER;
         Structure s = new Structure(
                 List.of(
-                        Structure.Attribute.buildPrimary(primaryCode, "Нонейм", FieldType.INTEGER, "Описание"),
-                        Structure.Attribute.build(notPrimaryCode, "Нонейм", FieldType.INTEGER, "Описание")
+                        Structure.Attribute.buildPrimary(primaryCode, "-", primaryType, "-"),
+                        Structure.Attribute.build(notPrimaryCode, "-", nonPrimaryType, "-")
                 ),
-                emptyList()
+                primaryType == FieldType.REFERENCE ? singletonList(new Structure.Reference(primaryCode, "REF_TO_CODE", "-")) : emptyList()
         );
         RefBookVersionEntity draft = createTestDraftVersionEntity();
         draft.setStructure(s);
-        int pkValue = 666;
-        int notPrimaryInitValue = 667;
-        int notPrimaryNewValue = 668;
         long systemId = 123L;
+        int notPrimaryInitValue = 667;
+        int notPrimaryUpdatedValue = 668;
         RowValue<Long> row = new RefBookRowValue();
         row.setSystemId(systemId);
-        row.setFieldValues(List.of(new IntegerFieldValue(primaryCode, pkValue), new IntegerFieldValue(notPrimaryCode, notPrimaryInitValue)));
+        row.setFieldValues(List.of(FieldValueUtils.getFieldValueFromFieldType(primaryValue, primaryCode, primaryType), new IntegerFieldValue(notPrimaryCode, notPrimaryInitValue)));
         PageImpl page = new PageImpl<>(List.of(row));
         CollectionPage cp = new CollectionPage();
         cp.init(1, List.of(row));
         when(versionService.search(anyInt(), any(SearchDataCriteria.class))).thenReturn(page);
+        if (primaryType == FieldType.REFERENCE) {
+            RefBookVersionEntity refToRefBookVersionEntity = new RefBookVersionEntity();
+            refToRefBookVersionEntity.setId(1234567890);
+            refToRefBookVersionEntity.setStructure(new Structure(singletonList(Structure.Attribute.buildPrimary("-", "-", FieldType.STRING, "-")), emptyList()));
+            when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq("REF_TO_CODE"), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(refToRefBookVersionEntity);
+            RefBookVersion refToRefBookVersion = new RefBookVersion();
+            refToRefBookVersion.setId(refToRefBookVersionEntity.getId());
+            refToRefBookVersion.setCode("REF_TO_CODE");
+            refToRefBookVersion.setStructure(refToRefBookVersionEntity.getStructure());
+            when(versionService.getLastPublishedVersion(eq("REF_TO_CODE"))).thenReturn(refToRefBookVersion);
+        }
         when(searchDataService.getPagedData(any())).thenReturn(cp);
         when(versionRepository.getOne(draft.getId())).thenReturn(draft);
         when(searchDataService.findRows(anyString(), anyList(), anyList())).thenReturn(List.of(row));
         Map<String, Object> map = new HashMap<>();
-        map.put(primaryCode, BigInteger.valueOf(pkValue));
-        map.put(notPrimaryCode, BigInteger.valueOf(notPrimaryNewValue));
+        map.put(primaryCode, primaryValue);
+        map.put(notPrimaryCode, notPrimaryUpdatedValue);
         draftService.updateData(draft.getId(), new Row(null, map));
         verify(draftDataService, times(1)).updateRows(anyString(), any());
     }

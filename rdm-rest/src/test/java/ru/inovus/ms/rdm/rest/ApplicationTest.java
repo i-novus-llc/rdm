@@ -624,9 +624,6 @@ public class ApplicationTest {
             Assert.assertEquals(1, re.getErrors().stream()
                     .map(RestMessage.Error::getMessage)
                     .filter("validation.type.error"::equals).count());
-            Assert.assertEquals(1, re.getErrors().stream()
-                    .map(RestMessage.Error::getMessage)
-                    .filter(ReferenceValueValidation.REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE::equals).count());
         }
 
         // создание двух строк одновременно
@@ -1466,7 +1463,7 @@ public class ApplicationTest {
         // Загрузка из файла.
         FileModel cardinalFileModel = createFileModel(CARDINAL_FILE_NAME, REF_BOOK_FILE_FOLDER + CARDINAL_FILE_NAME);
         assertNotNull(cardinalFileModel);
-        Draft cardinalDraft = draftService.create(cardinalFileModel);
+        Draft cardinalDraft = refBookService.create(cardinalFileModel);
 
         assertNotNull(cardinalDraft);
         RefBookVersion cardinalVersion = versionService.getById(cardinalDraft.getId());
@@ -1498,7 +1495,7 @@ public class ApplicationTest {
         // Загрузка из файла.
         FileModel referrerFileModel = createFileModel(REFERRER_FILE_NAME, REF_BOOK_FILE_FOLDER + REFERRER_FILE_NAME);
         assertNotNull(referrerFileModel);
-        Draft referrerDraft = draftService.create(referrerFileModel);
+        Draft referrerDraft = refBookService.create(referrerFileModel);
         assertNotNull(referrerDraft);
         RefBookVersion referrerVersion = versionService.getById(referrerDraft.getId());
         assertNotNull(referrerVersion);
@@ -2278,7 +2275,7 @@ public class ApplicationTest {
     public void testCreateRefBookFromFile() {
         FileModel fileModel = createFileModel("testCreateRefBookFromFilePath.xml", "refBook.xml");
 
-        Draft expected = draftService.create(fileModel);
+        Draft expected = refBookService.create(fileModel);
 
         // Наличие черновика:
         Draft actual = draftService.getDraft(expected.getId());

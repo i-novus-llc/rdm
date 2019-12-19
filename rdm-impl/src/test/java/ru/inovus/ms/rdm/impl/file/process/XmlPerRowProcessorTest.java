@@ -3,11 +3,11 @@ package ru.inovus.ms.rdm.impl.file.process;
 import org.junit.Before;
 import org.junit.Test;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.inovus.ms.rdm.impl.file.StructureRowMapper;
 import ru.inovus.ms.rdm.api.model.Result;
-import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.impl.file.export.XmlFileGenerateProcessTest;
+import ru.inovus.ms.rdm.impl.util.mappers.StructureRowMapper;
 
 import java.util.ArrayList;
 import java.util.List;

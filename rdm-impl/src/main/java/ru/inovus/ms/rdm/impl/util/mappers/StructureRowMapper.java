@@ -1,12 +1,12 @@
-package ru.inovus.ms.rdm.impl.file;
+package ru.inovus.ms.rdm.impl.util.mappers;
 
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.api.exception.RdmException;
-import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.refdata.Row;
+import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 
 import java.math.BigDecimal;
@@ -37,48 +37,36 @@ public class StructureRowMapper implements RowMapper {
     }
 
     protected Object castValue(Structure.Attribute attribute, Object value) {
-
-        if (attribute == null || value == null || "".equals(String.valueOf(value).trim()))
+        if (attribute == null || value == null || value.toString().isBlank())
             return null;
-
         switch (attribute.getType()) {
             case STRING:
-                return String.valueOf(value);
-
+                return value.toString();
             case INTEGER:
                 if (value instanceof BigInteger)
                     return value;
-
-                return BigInteger.valueOf(Long.parseLong(String.valueOf(value)));
-
+                return new BigInteger(value.toString());
             case FLOAT:
                 if (value instanceof BigDecimal)
                     return value;
-
-                return new BigDecimal(String.valueOf(value).replace(",", "."));
-
+                return new BigDecimal(value.toString().replace(",", "."));
             case DATE:
                 return parseLocalDate(value);
-
             case BOOLEAN:
                 if (value instanceof Boolean)
                     return value;
-
                 String lowerCase = String.valueOf(value).toLowerCase();
                 if (!"true".equals(lowerCase) && !"false".equals(lowerCase))
-                    throw new RdmException("value is not boolean");
+                    throw new RdmException("Value is not of boolean type: " + lowerCase);
                 return Boolean.valueOf(lowerCase);
-
             case REFERENCE:
                 if (value instanceof Reference)
                     return value;
-                return createReference(attribute.getCode(), String.valueOf(value));
-
+                return createReference(attribute.getCode(), value.toString());
             case TREE:
                 return value;
-
             default:
-                throw new RdmException("invalid type: " + attribute.getType());
+                throw new RdmException("Unexpected type: " + attribute.getType());
         }
     }
 

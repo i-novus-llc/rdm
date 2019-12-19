@@ -44,4 +44,5 @@ public interface RdmSyncRest {
         @ApiResponse(code = 400, message = "Укажите пожалуйста дату в формате ISO_LOCAL_DATE [yyyy-MM-dd].")
     })
     List<Log> getLog(@BeanParam LogCriteria criteria);
+
 }

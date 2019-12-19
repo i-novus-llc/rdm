@@ -3,11 +3,13 @@ package ru.inovus.ms.rdm.api.util;
 import org.apache.commons.text.StringSubstitutor;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.*;
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
+import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
-import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.*;
+import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.compare.ComparableFieldValue;
 import ru.inovus.ms.rdm.api.model.field.ReferenceFilterValue;
@@ -16,12 +18,13 @@ import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static ru.i_novus.platform.datastorage.temporal.model.DataConstants.*;
+import static ru.i_novus.platform.datastorage.temporal.model.DataConstants.SYS_PRIMARY_COLUMN;
 
 public class FieldValueUtils {
 
@@ -151,6 +154,19 @@ public class FieldValueUtils {
         return DiffStatusEnum.DELETED.equals(status) ? fieldValue.getOldValue() : fieldValue.getNewValue();
     }
 
+    public static FieldValue getFieldValueFromFieldType(Object value, String fieldCode, FieldType fieldType) {
+        switch (fieldType) {
+            case STRING: return new StringFieldValue(fieldCode, (String) value);
+            case INTEGER: return new IntegerFieldValue(fieldCode, (BigInteger) value);
+            case REFERENCE: return new ReferenceFieldValue(fieldCode, (Reference) value);
+            case FLOAT: return new FloatFieldValue(fieldCode, (BigDecimal) value);
+            case BOOLEAN: return new BooleanFieldValue(fieldCode, (Boolean) value);
+            case DATE: return new DateFieldValue(fieldCode, (LocalDate) value);
+            case TREE: return new TreeFieldValue(fieldCode, (String) value);
+            default: throw new RdmException("Unexpected field type: " + fieldType);
+        }
+    }
+
     /**
      * Получение отображаемого значения.
      *
@@ -168,22 +184,10 @@ public class FieldValueUtils {
         return new StringSubstitutor(map, DisplayExpression.PLACEHOLDER_START, DisplayExpression.PLACEHOLDER_END).replace(displayExpression);
     }
 
-    public static boolean eq(Structure.Attribute attr, Object val1, FieldValue val2) {
-        boolean eq;
-        if (attr.getType() == FieldType.REFERENCE) {
-            Reference ref = (Reference) val2.getValue();
-            eq = ref.getValue().equals(val1);
-        } else if (attr.getType() == FieldType.FLOAT) {
-            Number n = (Number) val1;
-            if (!(n instanceof BigDecimal))
-                n = BigDecimal.valueOf(n.doubleValue());
-            eq = n.equals(val2.getValue());
-        } else if (attr.getType() == FieldType.DATE) {
-            eq = val2.getValue().equals(TimeUtils.parseLocalDate(val1));
-        } else {
-            eq = val2.getValue().equals(val1);
-        }
-        return eq;
+    public static boolean eq(Object v1, FieldValue v2) {
+        if (v1 instanceof Reference && v2.getValue() instanceof Reference)
+            return Objects.equals(((Reference) v1).getValue(), ((Reference) v2.getValue()).getValue());
+        return Objects.equals(v1, v2.getValue());
     }
 
 }

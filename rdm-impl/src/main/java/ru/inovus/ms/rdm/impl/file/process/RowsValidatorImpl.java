@@ -56,7 +56,6 @@ public class RowsValidatorImpl implements RowsValidator {
 
         if (errorCountLimit > 0)
             this.errorCountLimit = errorCountLimit;
-
         this.skipReferenceValidation = skipReferenceValidation;
         this.pkUniqueRowAppendValidation = new PkUniqueRowAppendValidation(structure);
         this.attributeCustomValidation = new AttributeCustomValidation(attributeValidations, structure, searchDataService, storageCode);

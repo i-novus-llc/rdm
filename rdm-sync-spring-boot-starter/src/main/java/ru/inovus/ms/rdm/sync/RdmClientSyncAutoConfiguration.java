@@ -25,6 +25,12 @@ import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
 import ru.inovus.ms.rdm.sync.service.*;
+import ru.inovus.ms.rdm.sync.service.change_data.AsyncChangeDataClient;
+import ru.inovus.ms.rdm.sync.service.change_data.ChangeDataClient;
+import ru.inovus.ms.rdm.sync.service.change_data.ChangeDataRequestCallback;
+import ru.inovus.ms.rdm.sync.service.change_data.SyncChangeDataClient;
+import ru.inovus.ms.rdm.sync.service.listener.ChangeDataListener;
+import ru.inovus.ms.rdm.sync.service.listener.PublishListener;
 
 import javax.jms.ConnectionFactory;
 import javax.sql.DataSource;
@@ -141,7 +147,6 @@ public class RdmClientSyncAutoConfiguration {
         return new OffsetDateTimeParamConverter();
     }
 
-
     @Bean
     @ConditionalOnMissingBean
     public LocalDateTimeMapperPreparer localDateTimeMapperPreparer() {
@@ -163,7 +168,7 @@ public class RdmClientSyncAutoConfiguration {
     @Bean(name = "publishDictionaryTopicMessageListenerContainerFactory")
     @ConditionalOnProperty(name = "rdm_sync.publish.listener.enable", havingValue = "true")
     @ConditionalOnClass(name = "org.apache.activemq.ActiveMQConnectionFactory")
-    public DefaultJmsListenerContainerFactory unshared(ConnectionFactory connectionFactory) {
+    public DefaultJmsListenerContainerFactory unsharedPublishContainerFactory(ConnectionFactory connectionFactory) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setPubSubDomain(true);
@@ -174,11 +179,20 @@ public class RdmClientSyncAutoConfiguration {
     @Bean(name = "publishDictionaryTopicMessageListenerContainerFactory")
     @ConditionalOnProperty(name = "rdm_sync.publish.listener.enable", havingValue = "true")
     @ConditionalOnClass(name = "org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory")
-    public DefaultJmsListenerContainerFactory shared(ConnectionFactory connectionFactory) {
+    public DefaultJmsListenerContainerFactory sharedPublishContainerFactory(ConnectionFactory connectionFactory) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setPubSubDomain(true);
         factory.setSubscriptionShared(true);
+        return factory;
+    }
+
+    @Bean
+    @ConditionalOnClass(ConnectionFactory.class)
+    public DefaultJmsListenerContainerFactory changeDataQueueMessageListenerContainerFactory(ConnectionFactory connectionFactory) {
+        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory);
+        factory.setSessionTransacted(true);
         return factory;
     }
 
@@ -189,8 +203,32 @@ public class RdmClientSyncAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnClass(ConnectionFactory.class)
+    public ChangeDataListener changeDataListener(RefBookService refBookService, ChangeDataRequestCallback changeDataRequestCallback) {
+        return new ChangeDataListener(refBookService, changeDataRequestCallback);
+    }
+
+    @Bean
     public XmlMappingLoaderLockService xmlMappingLoaderLockService() {
         return new XmlMappingLoaderLockService();
+    }
+
+    @Bean
+    @ConditionalOnProperty(value = "rdm_sync.change_data_mode", havingValue = "sync", matchIfMissing = true)
+    public ChangeDataClient syncChangeDataClient() {
+        return new SyncChangeDataClient();
+    }
+
+    @Bean
+    @ConditionalOnProperty(value = "rdm_sync.change_data_mode", havingValue = "async")
+    public ChangeDataClient asyncChangeDataClient() {
+        return new AsyncChangeDataClient();
+    }
+
+
+    @Bean
+    public ChangeDataRequestCallback changeDataRequestCallback() {
+        return new ChangeDataRequestCallback.DefaultChangeDataRequestCallback();
     }
 
 }

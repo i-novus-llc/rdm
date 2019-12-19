@@ -57,16 +57,6 @@ public interface DraftService {
                  @ApiParam("Файл") FileModel fileModel);
 
     @POST
-    @ApiOperation("Создание нового черновика из файла без справочника")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Черновик создан"),
-            @ApiResponse(code = 400, message = "Некорректный запрос"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    @Path("/createByFile")
-    Draft create(@ApiParam("Файл") FileModel fileModel);
-
-    @POST
     @ApiOperation("Добавление или изменение записи черновика")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Черновик обновлен"),
@@ -98,6 +88,16 @@ public interface DraftService {
     @Path("/delete/{draftId}/{systemId}")
     void deleteRow(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
                    @ApiParam("Идентификатор записи") @PathParam("systemId") Long systemId);
+
+    @DELETE
+    @ApiOperation(value = "Удаление записей черновика", hidden = true)
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Черновик обновлен"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    @Path("/delete/{draftId}")
+    void deleteRows(@PathParam("draftId") Integer draftId, List<Long> systemIds);
 
     @DELETE
     @ApiOperation("Удаление всех записей черновика")
@@ -240,10 +240,19 @@ public interface DraftService {
 
     @GET
     @Path("/getIdByRefBookCode/{refBookCode}")
-    @ApiOperation(value = "Идентификатор черновика по идентификатору справочника", hidden = true)
+    @ApiOperation(value = "Идентификатор черновика по коду справочника", hidden = true)
     @ApiResponses({
             @ApiResponse(code = 200, message = "Идентификатор черновика")
     })
     Integer getIdByRefBookCode(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode);
+
+    @GET
+    @Path("/getSystemIdsByPrimaryKey/{draftId}")
+    @ApiOperation(value = "Найти внутренние идентификаторы записей по первичному ключу", hidden = true)
+    @ApiResponses({
+        @ApiResponse(code = 200, message = "Список идентификаторов для записей (или null в случае, если первичный ключ вообще отсутствует в структуре черновика или такой первичный ключ в черновике не присутствует), ровно в том порядке, в каком они были переданы в данный метод"),
+        @ApiResponse(code = 404, message = "Черновик с данным идентификатором не найден")
+    })
+    List<Long> getSystemIdsByPrimaryKey(@PathParam("draftId") Integer draftId, List<Row> rows);
 
 }
