@@ -4,9 +4,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.CannotAcquireLockException;
+import org.springframework.data.util.Pair;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.util.StringUtils;
 import ru.inovus.ms.rdm.sync.model.DataTypeEnum;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
@@ -27,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.singletonList;
 import static ru.inovus.ms.rdm.api.util.StringUtils.addDoubleQuotes;
 
 /**
@@ -39,6 +43,8 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     @Autowired
     private RdmMappingService rdmMappingService;
 
@@ -94,6 +100,18 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     }
 
     @Override
+    public List<Pair<String, String>> getColumnNameAndDataTypeFromLocalDataTable(String schemaTable) {
+        String[] split = schemaTable.split("\\.");
+        String schema = split[0];
+        String table = split[1];
+        String q = "SELECT FROM information_schema.columns WHERE table_schema = :schema AND table_name = :table";
+        List<Pair<String, String>> list = namedParameterJdbcTemplate.query(q, Map.of("schema", schema, "table", table), (rs, rowNum) -> Pair.of(rs.getString(1), rs.getString(2)));
+        if (list.isEmpty())
+            throw new RdmException("No table '" + table + "' in schema '" + schema + "'.");
+        return list;
+    }
+
+    @Override
     public List<Object> getDataIds(String table, FieldMapping primaryField) {
         DataTypeEnum dataType = DataTypeEnum.getByDataType(primaryField.getSysDataType());
         return jdbcTemplate.query(String.format("select %s from %s", addDoubleQuotes(primaryField.getSysField()), table),
@@ -128,6 +146,15 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         }
         jdbcTemplate.update(String.format("insert into %s (%s) values(%s)", table, keys, String.join(",", values)),
                 data.toArray());
+    }
+
+    @Override
+    public void insertRows(String table, Map<String, Object>[] rows) {
+        List<Pair<String, String>> schema = getColumnNameAndDataTypeFromLocalDataTable(table);
+        String columnsJoined = schema.stream().map(Pair::getFirst).collect(Collectors.joining(", "));
+        String columnsPlaceholdersJoined = schema.stream().map(pair -> ":" + pair.getFirst()).collect(Collectors.joining(", "));
+        String q = "INSERT INTO " + table + "(" + columnsJoined + ") VALUES (" + columnsPlaceholdersJoined + ")";
+        namedParameterJdbcTemplate.batchUpdate(q, rows);
     }
 
     public void updateRow(String table, String primaryField, String isDeletedField, Map<String, Object> row) {

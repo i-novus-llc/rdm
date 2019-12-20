@@ -13,6 +13,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.*;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.util.StringUtils;
@@ -24,11 +26,10 @@ import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
 import ru.inovus.ms.rdm.sync.service.*;
-import ru.inovus.ms.rdm.sync.service.change_data.AsyncChangeDataClient;
-import ru.inovus.ms.rdm.sync.service.change_data.ChangeDataClient;
-import ru.inovus.ms.rdm.sync.service.change_data.ChangeDataRequestCallback;
-import ru.inovus.ms.rdm.sync.service.change_data.SyncChangeDataClient;
-import ru.inovus.ms.rdm.sync.service.listener.ChangeDataListener;
+import ru.inovus.ms.rdm.sync.service.change_data.*;
+import ru.inovus.ms.rdm.sync.service.change_data.AsyncRdmChangeDataClient;
+import ru.inovus.ms.rdm.sync.service.change_data.RdmChangeDataClient;
+import ru.inovus.ms.rdm.sync.service.listener.RdmChangeDataListener;
 import ru.inovus.ms.rdm.sync.service.listener.PublishListener;
 
 import javax.jms.ConnectionFactory;
@@ -185,7 +186,7 @@ public class RdmClientSyncAutoConfiguration {
 
     @Bean
     @ConditionalOnClass(ConnectionFactory.class)
-    public DefaultJmsListenerContainerFactory changeDataQueueMessageListenerContainerFactory(ConnectionFactory connectionFactory) {
+    public DefaultJmsListenerContainerFactory rdmChangeDataQueueMessageListenerContainerFactory(ConnectionFactory connectionFactory) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setSessionTransacted(true);
@@ -200,8 +201,8 @@ public class RdmClientSyncAutoConfiguration {
 
     @Bean
     @ConditionalOnProperty(name = "rdm_sync.change_data_mode", havingValue = "async")
-    public ChangeDataListener changeDataListener(RefBookService refBookService, ChangeDataRequestCallback changeDataRequestCallback) {
-        return new ChangeDataListener(refBookService, changeDataRequestCallback);
+    public RdmChangeDataListener rdmChangeDataListener(RefBookService refBookService, RdmChangeDataRequestCallback rdmChangeDataRequestCallback) {
+        return new RdmChangeDataListener(refBookService, rdmChangeDataRequestCallback);
     }
 
     @Bean
@@ -211,20 +212,26 @@ public class RdmClientSyncAutoConfiguration {
 
     @Bean
     @ConditionalOnProperty(value = "rdm_sync.change_data_mode", havingValue = "sync", matchIfMissing = true)
-    public ChangeDataClient syncChangeDataClient() {
-        return new SyncChangeDataClient();
+    public RdmChangeDataClient syncRdmChangeDataClient() {
+        return new SyncRdmChangeDataClient();
     }
 
     @Bean
     @ConditionalOnProperty(value = "rdm_sync.change_data_mode", havingValue = "async")
-    public ChangeDataClient asyncChangeDataClient() {
-        return new AsyncChangeDataClient();
+    public RdmChangeDataClient asyncRdmChangeDataClient() {
+        return new AsyncRdmChangeDataClient();
     }
 
 
     @Bean
-    public ChangeDataRequestCallback changeDataRequestCallback() {
-        return new ChangeDataRequestCallback.DefaultChangeDataRequestCallback();
+    public RdmChangeDataRequestCallback rdmChangeDataRequestCallback() {
+        return new RdmChangeDataRequestCallback.DefaultRdmChangeDataRequestCallback();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public NamedParameterJdbcTemplate namedParameterJdbcTemplate(JdbcTemplate jdbcTemplate) {
+        return new NamedParameterJdbcTemplate(jdbcTemplate);
     }
 
 }

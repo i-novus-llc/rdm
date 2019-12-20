@@ -131,8 +131,10 @@ public class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
         return newFileName;
     }
 
-    private FileModel uploadToFileStorage() throws FileNotFoundException {
-        return fileStorageService.save(new BufferedInputStream(new FileInputStream(fileName)), fileName);
+    private FileModel uploadToFileStorage() throws IOException {
+        try (InputStream in = new BufferedInputStream(new FileInputStream(fileName))) {
+            return fileStorageService.save(in, fileName);
+        }
     }
 
     private Integer checkForExistance() {

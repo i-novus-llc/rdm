@@ -7,29 +7,29 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
 @Service
-public class AsyncChangeDataClient implements ChangeDataClient {
+public class AsyncRdmChangeDataClient extends RdmChangeDataClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(AsyncChangeDataClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(AsyncRdmChangeDataClient.class);
 
     @Autowired
     private JmsTemplate jmsTemplate;
 
-    @Value("${rdm_sync.change_date.queue:changeData}")
-    private String changeDataQueue;
+    @Value("${rdm_sync.change_date.queue:rdmChangeData}")
+    private String rdmChangeDataQueue;
 
-    @Autowired
-    private ChangeDataRequestCallback callback;
+
 
     @Override
-    public void changeData(String refBookCode, List<Object> addUpdate, List<Object> delete) {
+    public <T extends Serializable> void changeData(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete) {
         try {
             jmsTemplate.convertAndSend(
-                changeDataQueue,
-                List.of(Arrays.asList(addUpdate, delete), Utils.convertToChangeDataRequest(refBookCode, addUpdate, delete))
+                    rdmChangeDataQueue,
+                List.of(Arrays.asList(addUpdate, delete), Utils.convertToRdmChangeDataRequest(refBookCode, addUpdate, delete))
             );
         } catch (Exception e) {
             logger.error("An error occurred while sending message to the message broker.", e);

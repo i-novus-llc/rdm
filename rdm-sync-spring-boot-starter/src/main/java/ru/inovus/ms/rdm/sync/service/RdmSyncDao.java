@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.sync.service;
 
+import org.springframework.data.util.Pair;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.Log;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
@@ -36,6 +37,8 @@ public interface RdmSyncDao {
      */
     List<FieldMapping> getFieldMapping(String refbookCode);
 
+    List<Pair<String, String>> getColumnNameAndDataTypeFromLocalDataTable(String table);
+
     void updateVersionMapping(Integer id, String version, LocalDateTime publishDate);
 
     /**
@@ -61,6 +64,8 @@ public interface RdmSyncDao {
      * @param row   строка с данными
      */
     void insertRow(String table, Map<String, Object> row);
+
+    void insertRows(String table, Map<String, Object>[] rows);
 
     /**
      * Изменить строку в справочник клиента
