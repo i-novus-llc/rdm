@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.esnsi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -203,8 +202,8 @@ public class EsnsiLoaderDao {
         try {
             namedParameterJdbcTemplate.execute("SELECT 1 FROM esnsi_sync.version WHERE code = :code FOR UPDATE", Map.of("code", classifierCode), preparedStatement -> null);
             return true;
-        } catch (CannotAcquireLockException ex) {
-            logger.info("Lock for classifier {} stage is already acquired.", classifierCode, ex);
+        } catch (Exception ex) {
+            logger.info("Lock for classifier {} stage can't be acquired.", classifierCode, ex);
             return false;
         }
     }
