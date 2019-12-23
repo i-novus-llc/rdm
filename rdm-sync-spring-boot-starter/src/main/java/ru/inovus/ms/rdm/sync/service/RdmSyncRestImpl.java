@@ -31,11 +31,9 @@ import ru.inovus.ms.rdm.sync.model.VersionMapping;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
 import ru.inovus.ms.rdm.sync.util.RefBookReferenceSort;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum.DELETED;
 import static ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum.INSERTED;
@@ -114,7 +112,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
             } else if (versionMapping.changed()) {
 //              Значит в прошлый раз мы синхронизировались по старому маппингу.
 //              Необходимо полностью залить свежую версию.
-                dao.markDeleted(versionMapping.getTable(), versionMapping.getDeletedField(), true);
+                dao.markDeleted(versionMapping.getTable(), versionMapping.getDeletedField(), true, false);
                 uploadNew(versionMapping, newVersion);
             }
             //обновляем версию в таблице версий клиента
@@ -174,7 +172,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         Integer oldVersionId = versionService.getVersion(versionMapping.getVersion(), versionMapping.getCode()).getId();
         StructureDiff structureDiff = compareService.compareStructures(oldVersionId, newVersion.getId());
         if (!CollectionUtils.isEmpty(structureDiff.getUpdated()) || !CollectionUtils.isEmpty(structureDiff.getDeleted()) || !CollectionUtils.isEmpty(structureDiff.getInserted())) {
-            dao.markDeleted(versionMapping.getTable(), versionMapping.getDeletedField(), true);
+            dao.markDeleted(versionMapping.getTable(), versionMapping.getDeletedField(), true, false);
             uploadNew(versionMapping, newVersion);
             return;
         }
@@ -214,12 +212,12 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         Object primaryValue = mappedRow.get(versionMapping.getPrimaryField());
         boolean idExists = dao.isIdExists(versionMapping.getTable(), versionMapping.getPrimaryField(), primaryValue);
         if (DELETED.equals(row.getStatus())) {
-            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, true);
+            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, true, false);
         } else if (INSERTED.equals(row.getStatus()) && !idExists) {
-            dao.insertRow(versionMapping.getTable(), mappedRow);
+            dao.insertRow(versionMapping.getTable(), mappedRow, false);
         } else {
-            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, false);
-            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow);
+            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, false, false);
+            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow, false);
         }
     }
 
@@ -279,11 +277,11 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         Object primaryValue = mappedRow.get(primaryField);
         if (existingDataIds.contains(primaryValue)) {
             //если запись существует, обновляем
-            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, false);
-            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow);
+            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, false, false);
+            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow, false);
         } else {
             //создаем новую запись
-            dao.insertRow(versionMapping.getTable(), mappedRow);
+            dao.insertRow(versionMapping.getTable(), mappedRow, false);
         }
     }
 }

@@ -63,9 +63,9 @@ public interface RdmSyncDao {
      * @param table таблица справочника на стороне клиента
      * @param row   строка с данными
      */
-    void insertRow(String table, Map<String, Object> row);
+    void insertRow(String table, Map<String, Object> row, boolean markDirty);
 
-    void insertRows(String table, Map<String, Object>[] rows);
+    void insertUpdateRows(String table, String pk, Map<String, Object>[] rows, boolean markDirty);
 
     /**
      * Изменить строку в справочник клиента
@@ -74,7 +74,7 @@ public interface RdmSyncDao {
      * @param isDeletedField поле, отвечающее за признак удаления, в таблице клиента
      * @param row строка с данными
      */
-    void updateRow(String table, String primaryField, String isDeletedField, Map<String, Object> row);
+    void updateRow(String table, String primaryField, String isDeletedField, Map<String, Object> row, boolean markDirty);
 
     /**
      * Пометить запись справочника клиента (не)удаленной
@@ -84,7 +84,7 @@ public interface RdmSyncDao {
      * @param primaryValue значение первичного ключа записи
      * @param deleted новое значение для поля isDeletedField
      */
-    void markDeleted(String table, String primaryField, String isDeletedField, Object primaryValue, boolean deleted);
+    void markDeleted(String table, String primaryField, String isDeletedField, Object primaryValue, boolean deleted, boolean markDirty);
 
     /**
      * Пометить все записи справочника клиента (не)удаленными
@@ -92,7 +92,7 @@ public interface RdmSyncDao {
      * @param isDeletedField поле, отвечающее за признак удаления, в таблице клиента
      * @param deleted новое значение для поля isDeletedField
      */
-    void markDeleted(String table, String isDeletedField, boolean deleted);
+    void markDeleted(String table, String isDeletedField, boolean deleted, boolean markDirty);
 
     void log(String status, String refbookCode, String oldVersion, String newVersion, String message, String stack);
 

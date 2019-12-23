@@ -1,21 +1,23 @@
-package ru.inovus.ms.rdm.sync.service;
+package ru.inovus.ms.rdm.sync.service.init;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import ru.inovus.ms.rdm.sync.service.RdmSyncRestImpl;
 
 import java.sql.Timestamp;
 
-public class XmlMappingLoaderLockService {
+@Component
+class XmlMappingLoaderLockService {
 
     private static final Logger logger = LoggerFactory.getLogger(RdmSyncRestImpl.class);
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    @Autowired private JdbcTemplate jdbcTemplate;
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public boolean tryLock() {

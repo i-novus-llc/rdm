@@ -1,12 +1,15 @@
-package ru.inovus.ms.rdm.sync.service;
+package ru.inovus.ms.rdm.sync.service.init;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.sync.model.loader.XmlMapping;
 import ru.inovus.ms.rdm.sync.model.loader.XmlMappingRefBook;
+import ru.inovus.ms.rdm.sync.service.MappingLoaderService;
+import ru.inovus.ms.rdm.sync.service.RdmSyncDao;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -14,25 +17,20 @@ import javax.xml.bind.Unmarshaller;
 import java.io.IOException;
 import java.io.InputStream;
 
+@Component
 public class XmlMappingLoaderService implements MappingLoaderService {
 
     private static Logger logger = LoggerFactory.getLogger(XmlMappingLoaderService.class);
 
-    private RdmSyncDao rdmSyncDao;
-
-    @Autowired
-    private XmlMappingLoaderLockService lockService;
-
-    public XmlMappingLoaderService(RdmSyncDao dao) {
-        this.rdmSyncDao = dao;
-    }
+    @Autowired private RdmSyncDao rdmSyncDao;
+    @Autowired private XmlMappingLoaderLockService lockService;
 
     @Override
     @Transactional
     public void load() {
         try {
             if (lockService.tryLock()) {
-                try (InputStream io = MappingLoader.class.getResourceAsStream("/rdm-mapping.xml")) {
+                try (InputStream io = RdmSyncInitializer.class.getResourceAsStream("/rdm-mapping.xml")) {
                     if (io == null) {
                         logger.info("rdm-mapping.xml not found, xml mapping loader skipped");
                         return;

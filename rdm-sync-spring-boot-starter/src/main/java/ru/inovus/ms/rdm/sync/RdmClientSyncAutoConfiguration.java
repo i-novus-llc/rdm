@@ -51,6 +51,7 @@ import java.time.OffsetDateTime;
 )
 @AutoConfigureAfter(LiquibaseAutoConfiguration.class)
 @EnableJms
+@ComponentScan({"ru.inovus.ms.rdm.sync.service.init"})
 public class RdmClientSyncAutoConfiguration {
 
     @Bean
@@ -73,18 +74,6 @@ public class RdmClientSyncAutoConfiguration {
         liquibase.setDatabaseChangeLogLockTable("databasechangeloglock_rdms");
         liquibase.setChangeLog("classpath*:/rdm-sync-db/baseChangelog.xml");
         return liquibase;
-    }
-
-    @Bean
-    @DependsOn("liquibaseRdm")
-    public MappingLoaderService mappingLoaderService(){
-        return new XmlMappingLoaderService(rdmSyncDao());
-    }
-
-    @Bean
-    @DependsOn("liquibaseRdm")
-    public MappingLoader mappingLoader(){
-        return new MappingLoader(mappingLoaderService());
     }
 
     @Bean
@@ -203,11 +192,6 @@ public class RdmClientSyncAutoConfiguration {
     @ConditionalOnProperty(name = "rdm_sync.change_data_mode", havingValue = "async")
     public RdmChangeDataListener rdmChangeDataListener(RefBookService refBookService, RdmChangeDataRequestCallback rdmChangeDataRequestCallback) {
         return new RdmChangeDataListener(refBookService, rdmChangeDataRequestCallback);
-    }
-
-    @Bean
-    public XmlMappingLoaderLockService xmlMappingLoaderLockService() {
-        return new XmlMappingLoaderLockService();
     }
 
     @Bean

@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 import static ru.inovus.ms.rdm.api.util.StringUtils.addDoubleQuotes;
+import static ru.inovus.ms.rdm.api.util.StringUtils.addSingleQuotes;
 
 /**
  * @author lgalimova
@@ -104,8 +105,8 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         String[] split = schemaTable.split("\\.");
         String schema = split[0];
         String table = split[1];
-        String q = "SELECT FROM information_schema.columns WHERE table_schema = :schema AND table_name = :table";
-        List<Pair<String, String>> list = namedParameterJdbcTemplate.query(q, Map.of("schema", schema, "table", table), (rs, rowNum) -> Pair.of(rs.getString(1), rs.getString(2)));
+        String q = "SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = :schema AND table_name = :table AND column_name != :internal_local_row_state_column";
+        List<Pair<String, String>> list = namedParameterJdbcTemplate.query(q, Map.of("schema", schema, "table", table, "internal_local_row_state_column", RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN), (rs, rowNum) -> Pair.of(rs.getString(1), rs.getString(2)));
         if (list.isEmpty())
             throw new RdmException("No table '" + table + "' in schema '" + schema + "'.");
         return list;
@@ -132,8 +133,9 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     }
 
     @Override
-    public void insertRow(String table, Map<String, Object> row) {
+    public void insertRow(String table, Map<String, Object> row, boolean markDirty) {
         String keys = row.keySet().stream().map(StringUtils::addDoubleQuotes).collect(Collectors.joining(","));
+        keys += "," + addDoubleQuotes(RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN);
         List<String> values = new ArrayList<>();
         List<Object> data = new ArrayList<>();
         for (Map.Entry<String, Object> entry : row.entrySet()) {
@@ -144,20 +146,44 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
                 data.add(entry.getValue());
             }
         }
+        values.add("?");
+        if (markDirty)
+            data.add(RdmSyncLocalRowState.DIRTY.name());
+        else
+            data.add(RdmSyncLocalRowState.SYNCED.name());
         jdbcTemplate.update(String.format("insert into %s (%s) values(%s)", table, keys, String.join(",", values)),
                 data.toArray());
     }
 
     @Override
-    public void insertRows(String table, Map<String, Object>[] rows) {
+    public void insertUpdateRows(String table, String pk, Map<String, Object>[] rows, boolean markDirty) {
         List<Pair<String, String>> schema = getColumnNameAndDataTypeFromLocalDataTable(table);
-        String columnsJoined = schema.stream().map(Pair::getFirst).collect(Collectors.joining(", "));
-        String columnsPlaceholdersJoined = schema.stream().map(pair -> ":" + pair.getFirst()).collect(Collectors.joining(", "));
-        String q = "INSERT INTO " + table + "(" + columnsJoined + ") VALUES (" + columnsPlaceholdersJoined + ")";
+        schema.add(Pair.of(RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN, "VARCHAR"));
+        String columnsJoined = schema.stream().map(Pair::getFirst).map(StringUtils::addDoubleQuotes).collect(Collectors.joining(", "));
+        String valuesJoined = schema.stream().map(pair -> {
+            if (pair.getFirst().equals(RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN)) {
+                if (markDirty)
+                    return addSingleQuotes(RdmSyncLocalRowState.DIRTY.name());
+                else
+                    return addSingleQuotes(RdmSyncLocalRowState.SYNCED.name());
+            } else
+                return ":" + pair.getFirst();
+        }).collect(Collectors.joining(", "));
+        String onConflict = schema.stream().filter(pair -> !pair.getFirst().equals(pk)).map(pair -> {
+            if (pair.getFirst().equals(RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN)) {
+                if (markDirty)
+                    return RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN + " = " + addSingleQuotes(RdmSyncLocalRowState.DIRTY.name());
+                else
+                    return RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN + " = " + addSingleQuotes(RdmSyncLocalRowState.SYNCED.name());
+            } else
+                return addDoubleQuotes(pair.getFirst()) + " = :" + pair.getFirst();
+        }).collect(Collectors.joining(", "));
+        String q = "INSERT INTO " + table + " (" + columnsJoined + ") VALUES (" + valuesJoined + ") ON CONFLICT(" + pk + ") DO UPDATE SET " + onConflict;
         namedParameterJdbcTemplate.batchUpdate(q, rows);
     }
 
-    public void updateRow(String table, String primaryField, String isDeletedField, Map<String, Object> row) {
+    @Override
+    public void updateRow(String table, String primaryField, String isDeletedField, Map<String, Object> row, boolean markDirty) {
         List<String> keys = new ArrayList<>();
         List<Object> data = new ArrayList<>();
         for (Map.Entry<String, Object> entry : row.entrySet()) {
@@ -169,6 +195,11 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
                 data.add(entry.getValue());
             }
         }
+        keys.add(addDoubleQuotes(RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN) + " = ?");
+        if (markDirty)
+            data.add(RdmSyncLocalRowState.DIRTY.name());
+        else
+            data.add(RdmSyncLocalRowState.SYNCED.name());
         data.add(row.get(primaryField));
         jdbcTemplate.update(String.format("update %s set %s where %s=?",
                 table, String.join(",", keys), addDoubleQuotes(primaryField)),
@@ -176,18 +207,15 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     }
 
     @Override
-    public void markDeleted(String table, String primaryField, String isDeletedField, Object primaryValue, boolean deleted) {
-        jdbcTemplate.update(String.format("update %s set %s=? where %s=?", table, addDoubleQuotes(isDeletedField), addDoubleQuotes(primaryField)),
-                deleted,
-                primaryValue
-        );
+    public void markDeleted(String table, String primaryField, String isDeletedField, Object primaryValue, boolean deleted, boolean markDirty) {
+        String q = String.format("update %s set %s=?, %s=? where %s=?", table, addDoubleQuotes(isDeletedField), addDoubleQuotes(RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN), addDoubleQuotes(primaryField));
+        jdbcTemplate.update(q, deleted, markDirty ? RdmSyncLocalRowState.DIRTY.name() : RdmSyncLocalRowState.SYNCED.name(), primaryValue);
     }
 
     @Override
-    public void markDeleted(String table, String isDeletedField, boolean deleted) {
-        jdbcTemplate.update(String.format("update %s set %s=?", table, addDoubleQuotes(isDeletedField)),
-                deleted
-        );
+    public void markDeleted(String table, String isDeletedField, boolean deleted, boolean markDirty) {
+        String q = String.format("update %s set %s=?, %s=?", table, addDoubleQuotes(isDeletedField), addDoubleQuotes(RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN));
+        jdbcTemplate.update(q, deleted, markDirty ? RdmSyncLocalRowState.DIRTY.name() : RdmSyncLocalRowState.SYNCED.name());
     }
 
     @Override
@@ -254,9 +282,10 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     public boolean lockRefbookForUpdate(String code) {
         try {
             jdbcTemplate.queryForObject("SELECT 1 FROM rdm_sync.version WHERE code = ? FOR UPDATE NOWAIT", new Object[] {code}, Integer.class);
+            logger.info("Lock for refbook {} successfully acquired.", code);
             return true;
         } catch (CannotAcquireLockException ex) {
-            logger.info("Lock for refbook {} is already acquired.", code, ex);
+            logger.info("Lock for refbook {} cannot be acquired.", code, ex);
             return false;
         }
     }
