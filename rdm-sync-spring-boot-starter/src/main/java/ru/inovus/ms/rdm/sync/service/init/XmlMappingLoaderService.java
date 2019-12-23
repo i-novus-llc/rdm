@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 @Component
-public class XmlMappingLoaderService implements MappingLoaderService {
+class XmlMappingLoaderService implements MappingLoaderService {
 
     private static Logger logger = LoggerFactory.getLogger(XmlMappingLoaderService.class);
 
