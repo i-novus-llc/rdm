@@ -21,7 +21,7 @@ import java.util.List;
 @Path("rdm")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-@Api(value = "Синхронизация данных справочников НСИ", hidden = true)
+@Api(value = "Синхронизация данных справочников НСИ", hidden = false)
 public interface RdmSyncRest {
 
     @POST

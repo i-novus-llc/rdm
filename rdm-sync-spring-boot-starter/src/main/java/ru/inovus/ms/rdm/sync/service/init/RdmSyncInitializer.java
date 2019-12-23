@@ -64,8 +64,8 @@ class RdmSyncInitializer {
         String schema = split[0];
         String table = split[1];
         logger.info("Preparing table {} in schema {}.", table, schema);
-        addInternalLocalRowStateColumnIfNotExists(schemaTable);
-        createOrReplaceLocalRowStateUpdateFunction(); // Мы по сути в цикле перезаписываем каждый раз функцию
+        addInternalLocalRowStateColumnIfNotExists(schemaTable, schema, table);
+        createOrReplaceLocalRowStateUpdateFunction(); // Мы по сути в цикле перезаписываем каждый раз функцию, это не страшно
         createTriggerOnInsertOrUpdate(schemaTable, schema, table);
         addUniqueConstraint(schemaTable, schema, table, pk);
         logger.info("Table {} in schema {} successfully prepared.", table, schema);
@@ -98,9 +98,15 @@ class RdmSyncInitializer {
         jdbcTemplate.getJdbcTemplate().execute(q);
     }
 
-    private void addInternalLocalRowStateColumnIfNotExists(String schemaTable) {
-        String q = String.format("ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s VARCHAR", schemaTable, RDM_SYNC_INTERNAL_STATE_COLUMN);
-        jdbcTemplate.getJdbcTemplate().execute(q);
+    private void addInternalLocalRowStateColumnIfNotExists(String schemaTable, String schema, String table) {
+        boolean exists = jdbcTemplate.queryForObject("SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema = :schema AND table_name = :table AND column_name = :internal_state_column)", Map.of("schema", schema, "table", table, "internal_state_column", RDM_SYNC_INTERNAL_STATE_COLUMN), Boolean.class);
+        if (!exists) {
+            String q = String.format("ALTER TABLE %s ADD COLUMN %s VARCHAR", schemaTable, RDM_SYNC_INTERNAL_STATE_COLUMN);
+            jdbcTemplate.getJdbcTemplate().execute(q);
+            int n = jdbcTemplate.update(String.format("UPDATE %s SET %s = :synced", schemaTable, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN)), Map.of("synced", RdmSyncLocalRowState.SYNCED.name()));
+            if (n != 0)
+                logger.info("{} records updated internal state to {} in table {}", n, RdmSyncLocalRowState.SYNCED, schemaTable);
+        }
     }
 
 }

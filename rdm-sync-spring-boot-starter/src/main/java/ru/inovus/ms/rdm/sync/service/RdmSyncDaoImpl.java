@@ -172,9 +172,9 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         String onConflict = schema.stream().filter(pair -> !pair.getFirst().equals(pk)).map(pair -> {
             if (pair.getFirst().equals(RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN)) {
                 if (markDirty)
-                    return RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN + " = " + addSingleQuotes(RdmSyncLocalRowState.DIRTY.name());
+                    return addDoubleQuotes(RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN) + " = " + addSingleQuotes(RdmSyncLocalRowState.DIRTY.name());
                 else
-                    return RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN + " = " + addSingleQuotes(RdmSyncLocalRowState.SYNCED.name());
+                    return addDoubleQuotes(RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN) + " = " + addSingleQuotes(RdmSyncLocalRowState.SYNCED.name());
             } else
                 return addDoubleQuotes(pair.getFirst()) + " = :" + pair.getFirst();
         }).collect(Collectors.joining(", "));
