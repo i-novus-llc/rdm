@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.sync.model.loader.XmlMapping;
 import ru.inovus.ms.rdm.sync.model.loader.XmlMappingRefBook;
-import ru.inovus.ms.rdm.sync.service.MappingLoaderService;
 import ru.inovus.ms.rdm.sync.service.RdmSyncDao;
 
 import javax.xml.bind.JAXBContext;
@@ -18,14 +17,13 @@ import java.io.IOException;
 import java.io.InputStream;
 
 @Component
-class XmlMappingLoaderService implements MappingLoaderService {
+class XmlMappingLoaderService {
 
     private static Logger logger = LoggerFactory.getLogger(XmlMappingLoaderService.class);
 
     @Autowired private RdmSyncDao rdmSyncDao;
     @Autowired private XmlMappingLoaderLockService lockService;
 
-    @Override
     @Transactional
     public void load() {
         try {

@@ -7,7 +7,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
-import ru.inovus.ms.rdm.sync.service.MappingLoaderService;
 import ru.inovus.ms.rdm.sync.service.RdmSyncDao;
 import ru.inovus.ms.rdm.sync.service.RdmSyncLocalRowState;
 
@@ -38,7 +37,7 @@ class RdmSyncInitializer {
     "   $$\n" +
     "LANGUAGE 'plpgsql'";
 
-    @Autowired private MappingLoaderService mappingLoaderService;
+    @Autowired private XmlMappingLoaderService mappingLoaderService;
     @Autowired private RdmSyncDao dao;
     @Autowired private RdmSyncInitializer self;
     @Autowired private NamedParameterJdbcTemplate jdbcTemplate;
