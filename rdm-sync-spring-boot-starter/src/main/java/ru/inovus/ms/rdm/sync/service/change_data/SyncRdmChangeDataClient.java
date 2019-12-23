@@ -11,7 +11,6 @@ import java.util.List;
 @Service
 public class SyncRdmChangeDataClient extends RdmChangeDataClient {
 
-    @Autowired private RdmChangeDataRequestCallback callback;
     @Autowired protected RefBookService refBookService;
 
     @Override
