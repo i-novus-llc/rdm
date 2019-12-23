@@ -85,17 +85,17 @@ public interface DraftService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    @Path("/delete/{draftId}")
+    @Path("/deleteRow/{draftId}")
     void deleteRow(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId, Row row);
 
     @DELETE
-    @ApiOperation(value = "Удаление записей черновика (либо по первичному ключу, либо по системному идентификатору)", hidden = true)
+    @ApiOperation(value = "Удаление записей черновика (либо по первичному ключу, либо по системному идентификатору)")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Черновик обновлен"),
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    @Path("/delete/{draftId}")
+    @Path("/deleteRows/{draftId}")
     void deleteRows(@PathParam("draftId") Integer draftId, List<Row> rows);
 
     @DELETE
