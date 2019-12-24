@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.data.util.Pair;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.api.exception.RdmException;
@@ -20,7 +19,6 @@ import ru.inovus.ms.rdm.sync.model.loader.XmlMappingRefBook;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -30,9 +28,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.singletonList;
 import static ru.inovus.ms.rdm.api.util.StringUtils.addDoubleQuotes;
 import static ru.inovus.ms.rdm.api.util.StringUtils.addSingleQuotes;
+import static ru.inovus.ms.rdm.sync.service.RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN;
 
 /**
  * @author lgalimova
@@ -42,62 +40,80 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
 
     private static final Logger logger = LoggerFactory.getLogger(RdmSyncDaoImpl.class);
 
+    private static final String INTERNAL_FUNCTION = "rdm_sync_internal_update_local_row_state()";
+    private static final String LOCAL_ROW_STATE_UPDATE_FUNC =
+    "CREATE OR REPLACE FUNCTION\n" +
+    "   %1$s\n" +
+    "RETURNS TRIGGER AS\n" +
+    "   $$\n" +
+    "       BEGIN\n" +
+    "			NEW.%2$s='%3$s';\n" +
+    "           RETURN NEW;\n" +
+    "       END;\n" +
+    "   $$\n" +
+    "LANGUAGE 'plpgsql'";
+
     @Autowired
-    private JdbcTemplate jdbcTemplate;
-    @Autowired
-    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    private NamedParameterJdbcTemplate jdbcTemplate;
     @Autowired
     private RdmMappingService rdmMappingService;
 
     @Override
     public List<VersionMapping> getVersionMappings() {
         return jdbcTemplate.query("select id,code,version,publication_dt,sys_table,unique_sys_field,deleted_field,mapping_last_updated,update_dt from rdm_sync.version",
-                (rs, rowNum) -> new VersionMapping(
-                        rs.getInt(1),
-                        rs.getString(2),
-                        rs.getString(3),
-                        rs.getTimestamp(4) != null ? rs.getTimestamp(4).toLocalDateTime() : null,
-                        rs.getString(5),
-                        rs.getString(6),
-                        rs.getString(7),
-                        rs.getTimestamp(8) == null ? LocalDateTime.MIN : rs.getTimestamp(8).toLocalDateTime(),
-                        rs.getTimestamp(9) == null ? LocalDateTime.MIN : rs.getTimestamp(9).toLocalDateTime()
-                ));
+            (rs, rowNum) -> new VersionMapping(
+                rs.getInt(1),
+                rs.getString(2),
+                rs.getString(3),
+                rs.getTimestamp(4) != null ? rs.getTimestamp(4).toLocalDateTime() : null,
+                rs.getString(5),
+                rs.getString(6),
+                rs.getString(7),
+                rs.getTimestamp(8) == null ? LocalDateTime.MIN : rs.getTimestamp(8).toLocalDateTime(),
+                rs.getTimestamp(9) == null ? LocalDateTime.MIN : rs.getTimestamp(9).toLocalDateTime()
+            )
+        );
     }
 
     @Override
     public VersionMapping getVersionMapping(String refbookCode) {
-        List<VersionMapping> list = jdbcTemplate.query("select id,code,version,publication_dt,sys_table,unique_sys_field,deleted_field,mapping_last_updated,update_dt from rdm_sync.version where code=?",
-                (rs, rowNum) -> new VersionMapping(
-                        rs.getInt(1),
-                        rs.getString(2),
-                        rs.getString(3),
-                        rs.getTimestamp(4) != null ? rs.getTimestamp(4).toLocalDateTime() : null,
-                        rs.getString(5),
-                        rs.getString(6),
-                        rs.getString(7),
-                        rs.getTimestamp(8) == null ? LocalDateTime.MIN : rs.getTimestamp(8).toLocalDateTime(),
-                        rs.getTimestamp(9) == null ? LocalDateTime.MIN : rs.getTimestamp(9).toLocalDateTime()
-                ), refbookCode);
+        List<VersionMapping> list = jdbcTemplate.query(
+            "select id,code,version,publication_dt,sys_table,unique_sys_field,deleted_field,mapping_last_updated,update_dt from rdm_sync.version where code=:code",
+            Map.of("code", refbookCode),
+            (rs, rowNum) -> new VersionMapping(
+                rs.getInt(1),
+                rs.getString(2),
+                rs.getString(3),
+                rs.getTimestamp(4) != null ? rs.getTimestamp(4).toLocalDateTime() : null,
+                rs.getString(5),
+                rs.getString(6),
+                rs.getString(7),
+                rs.getTimestamp(8) == null ? LocalDateTime.MIN : rs.getTimestamp(8).toLocalDateTime(),
+                rs.getTimestamp(9) == null ? LocalDateTime.MIN : rs.getTimestamp(9).toLocalDateTime()
+            )
+        );
         return !list.isEmpty() ? list.get(0) : null;
     }
 
     @Override
     public int getLastVersion(String refbookCode) {
-
-        List<Integer> list = jdbcTemplate.query("select mapping_version from rdm_sync.version where code=?",
-                (rs, rowNum) -> rs.getInt(1), refbookCode);
+        List<Integer> list = jdbcTemplate.query("select mapping_version from rdm_sync.version where code=:code",
+            Map.of("code", refbookCode),
+            (rs, rowNum) -> rs.getInt(1)
+        );
         return !list.isEmpty() ? list.get(0) : 0;
     }
 
     @Override
     public List<FieldMapping> getFieldMapping(String refbookCode) {
-        return jdbcTemplate.query("select sys_field, sys_data_type, rdm_field from rdm_sync.field_mapping where code=?",
-                (rs, rowNum) -> new FieldMapping(
-                        rs.getString(1),
-                        rs.getString(2),
-                        rs.getString(3)
-                ), refbookCode);
+        return jdbcTemplate.query("select sys_field, sys_data_type, rdm_field from rdm_sync.field_mapping where code=:code",
+            Map.of("code", refbookCode),
+            (rs, rowNum) -> new FieldMapping(
+                rs.getString(1),
+                rs.getString(2),
+                rs.getString(3)
+            )
+        );
     }
 
     @Override
@@ -106,7 +122,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         String schema = split[0];
         String table = split[1];
         String q = "SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = :schema AND table_name = :table AND column_name != :internal_local_row_state_column";
-        List<Pair<String, String>> list = namedParameterJdbcTemplate.query(q, Map.of("schema", schema, "table", table, "internal_local_row_state_column", RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN), (rs, rowNum) -> Pair.of(rs.getString(1), rs.getString(2)));
+        List<Pair<String, String>> list = jdbcTemplate.query(q, Map.of("schema", schema, "table", table, "internal_local_row_state_column", RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN), (rs, rowNum) -> Pair.of(rs.getString(1), rs.getString(2)));
         if (list.isEmpty())
             throw new RdmException("No table '" + table + "' in schema '" + schema + "'.");
         return list;
@@ -115,27 +131,32 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     @Override
     public List<Object> getDataIds(String table, FieldMapping primaryField) {
         DataTypeEnum dataType = DataTypeEnum.getByDataType(primaryField.getSysDataType());
-        return jdbcTemplate.query(String.format("select %s from %s", addDoubleQuotes(primaryField.getSysField()), table),
-                (rs, rowNum) -> rdmMappingService.map(FieldType.STRING, dataType, rs.getObject(1)));
+        return jdbcTemplate.query(
+            String.format("select %s from %s", addDoubleQuotes(primaryField.getSysField()), table),
+            (rs, rowNum) -> rdmMappingService.map(FieldType.STRING, dataType, rs.getObject(1))
+        );
     }
 
     @Override
     public boolean isIdExists(String table, String primaryField, Object primaryValue) {
-        return jdbcTemplate.queryForObject(String.format("select count(*)>0 from %s where %s=?", table, addDoubleQuotes(primaryField)),
-                Boolean.class,
-                primaryValue);
+        return jdbcTemplate.queryForObject(
+            String.format("select count(*)>0 from %s where %s=:primary", table, addDoubleQuotes(primaryField)),
+            Map.of("primary", primaryValue),
+            Boolean.class
+        );
     }
 
     @Override
     public void updateVersionMapping(Integer id, String version, LocalDateTime publishDate) {
-        jdbcTemplate.update("update rdm_sync.version set version=?, publication_dt=?, update_dt=? where id=?",
-                version, publishDate, Timestamp.valueOf(LocalDateTime.now(Clock.systemUTC())), id);
+        jdbcTemplate.update(
+            "update rdm_sync.version set version=:version, publication_dt=:publication_dt, update_dt=:update_dt where id=:id",
+            Map.of("version", version, "publication_dt", publishDate, "update_dt", LocalDateTime.now(Clock.systemUTC()), "id", id)
+        );
     }
 
     @Override
-    public void insertRow(String table, Map<String, Object> row, boolean markDirty) {
+    public void insertRow(String table, Map<String, Object> row, boolean markSynced) {
         String keys = row.keySet().stream().map(StringUtils::addDoubleQuotes).collect(Collectors.joining(","));
-        keys += "," + addDoubleQuotes(RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN);
         List<String> values = new ArrayList<>();
         List<Object> data = new ArrayList<>();
         for (Map.Entry<String, Object> entry : row.entrySet()) {
@@ -146,44 +167,18 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
                 data.add(entry.getValue());
             }
         }
-        values.add("?");
-        if (markDirty)
-            data.add(RdmSyncLocalRowState.DIRTY.name());
-        else
-            data.add(RdmSyncLocalRowState.SYNCED.name());
-        jdbcTemplate.update(String.format("insert into %s (%s) values(%s)", table, keys, String.join(",", values)),
-                data.toArray());
+        if (markSynced) {
+            keys += ", " + addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN);
+            values.add(addSingleQuotes(RdmSyncLocalRowState.SYNCED.name()));
+        }
+        jdbcTemplate.getJdbcTemplate().update(
+            String.format("insert into %s (%s) values(%s)", table, keys, String.join(",", values)),
+            data.toArray()
+        );
     }
 
     @Override
-    public void insertUpdateRows(String table, String pk, Map<String, Object>[] rows, boolean markDirty) {
-        List<Pair<String, String>> schema = getColumnNameAndDataTypeFromLocalDataTable(table);
-        schema.add(Pair.of(RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN, "VARCHAR"));
-        String columnsJoined = schema.stream().map(Pair::getFirst).map(StringUtils::addDoubleQuotes).collect(Collectors.joining(", "));
-        String valuesJoined = schema.stream().map(pair -> {
-            if (pair.getFirst().equals(RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN)) {
-                if (markDirty)
-                    return addSingleQuotes(RdmSyncLocalRowState.DIRTY.name());
-                else
-                    return addSingleQuotes(RdmSyncLocalRowState.SYNCED.name());
-            } else
-                return ":" + pair.getFirst();
-        }).collect(Collectors.joining(", "));
-        String onConflict = schema.stream().filter(pair -> !pair.getFirst().equals(pk)).map(pair -> {
-            if (pair.getFirst().equals(RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN)) {
-                if (markDirty)
-                    return addDoubleQuotes(RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN) + " = " + addSingleQuotes(RdmSyncLocalRowState.DIRTY.name());
-                else
-                    return addDoubleQuotes(RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN) + " = " + addSingleQuotes(RdmSyncLocalRowState.SYNCED.name());
-            } else
-                return addDoubleQuotes(pair.getFirst()) + " = :" + pair.getFirst();
-        }).collect(Collectors.joining(", "));
-        String q = "INSERT INTO " + table + " (" + columnsJoined + ") VALUES (" + valuesJoined + ") ON CONFLICT(" + pk + ") DO UPDATE SET " + onConflict;
-        namedParameterJdbcTemplate.batchUpdate(q, rows);
-    }
-
-    @Override
-    public void updateRow(String table, String primaryField, String isDeletedField, Map<String, Object> row, boolean markDirty) {
+    public void updateRow(String table, String primaryField, String isDeletedField, Map<String, Object> row, boolean markSynced) {
         List<String> keys = new ArrayList<>();
         List<Object> data = new ArrayList<>();
         for (Map.Entry<String, Object> entry : row.entrySet()) {
@@ -195,33 +190,57 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
                 data.add(entry.getValue());
             }
         }
-        keys.add(addDoubleQuotes(RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN) + " = ?");
-        if (markDirty)
-            data.add(RdmSyncLocalRowState.DIRTY.name());
-        else
-            data.add(RdmSyncLocalRowState.SYNCED.name());
         data.add(row.get(primaryField));
-        jdbcTemplate.update(String.format("update %s set %s where %s=?",
-                table, String.join(",", keys), addDoubleQuotes(primaryField)),
-                data.toArray());
+        if (markSynced) {
+            keys.add(addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN));
+            data.add(RdmSyncLocalRowState.SYNCED.name());
+        }
+        jdbcTemplate.getJdbcTemplate().update(
+            String.format("update %s set %s where %s=?",table, String.join(",", keys), addDoubleQuotes(primaryField)),
+            data.toArray()
+        );
     }
 
     @Override
-    public void markDeleted(String table, String primaryField, String isDeletedField, Object primaryValue, boolean deleted, boolean markDirty) {
-        String q = String.format("update %s set %s=?, %s=? where %s=?", table, addDoubleQuotes(isDeletedField), addDoubleQuotes(RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN), addDoubleQuotes(primaryField));
-        jdbcTemplate.update(q, deleted, markDirty ? RdmSyncLocalRowState.DIRTY.name() : RdmSyncLocalRowState.SYNCED.name(), primaryValue);
+    public void markDeleted(String table, String primaryField, String isDeletedField, Object primaryValue, boolean deleted, boolean markSynced) {
+        if (markSynced) {
+            jdbcTemplate.getJdbcTemplate().update(
+                String.format("update %s set %s=?, %s=? where %s=?", table, addDoubleQuotes(isDeletedField), addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), addDoubleQuotes(primaryField)),
+                deleted,
+                RdmSyncLocalRowState.SYNCED.name(),
+                primaryValue
+            );
+        } else {
+            jdbcTemplate.getJdbcTemplate().update(
+                String.format("update %s set %s=? where %s=?", table, addDoubleQuotes(isDeletedField), addDoubleQuotes(primaryField)),
+                deleted,
+                primaryValue
+            );
+        }
     }
 
     @Override
-    public void markDeleted(String table, String isDeletedField, boolean deleted, boolean markDirty) {
-        String q = String.format("update %s set %s=?, %s=?", table, addDoubleQuotes(isDeletedField), addDoubleQuotes(RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN));
-        jdbcTemplate.update(q, deleted, markDirty ? RdmSyncLocalRowState.DIRTY.name() : RdmSyncLocalRowState.SYNCED.name());
+    public void markDeleted(String table, String isDeletedField, boolean deleted, boolean markSynced) {
+        if (markSynced) {
+            jdbcTemplate.getJdbcTemplate().update(
+                String.format("update %s set %s=?, %s=?", table, addDoubleQuotes(isDeletedField), addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN)),
+                deleted,
+                RdmSyncLocalRowState.SYNCED.name()
+            );
+        } else {
+            jdbcTemplate.getJdbcTemplate().update(
+                String.format("update %s set %s=?", table, addDoubleQuotes(isDeletedField)),
+                deleted
+            );
+        }
     }
 
     @Override
     public void log(String status, String refbookCode, String oldVersion, String newVersion, String message, String stack) {
-        jdbcTemplate.update("insert into rdm_sync.log (code, current_version, new_version, status, date, message, stack) values(?,?,?,?,?,?,?)",
-                refbookCode, oldVersion, newVersion, status, new Date(), message, stack);
+        jdbcTemplate.getJdbcTemplate().update(
+            "insert into rdm_sync.log (code, current_version, new_version, status, date, message, stack) values(?,?,?,?,?,?,?)",
+            refbookCode, oldVersion, newVersion, status, new Date(), message, stack
+        );
     }
 
     @Override
@@ -232,22 +251,23 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         args.add(end);
         if (refbookCode != null)
             args.add(refbookCode);
-        return jdbcTemplate.query(
-                String.format("select id, code, current_version, new_version, status, date, message, stack from rdm_sync.log where date>=? and date<? %s", refbookCode != null ? "and code=?" : ""),
-                (rs, rowNum) -> new Log(rs.getLong(1),
-                        rs.getString(2),
-                        rs.getString(3),
-                        rs.getString(4),
-                        rs.getString(5),
-                        rs.getTimestamp(6).toLocalDateTime(),
-                        rs.getString(7),
-                        rs.getString(8)),
-                args.toArray());
+        return jdbcTemplate.getJdbcTemplate().query(
+            String.format("select id, code, current_version, new_version, status, date, message, stack from rdm_sync.log where date>=? and date<? %s", refbookCode != null ? "and code=?" : ""),
+            (rs, rowNum) -> new Log(rs.getLong(1),
+                rs.getString(2),
+                rs.getString(3),
+                rs.getString(4),
+                rs.getString(5),
+                rs.getTimestamp(6).toLocalDateTime(),
+                rs.getString(7),
+                rs.getString(8)),
+            args.toArray()
+        );
     }
 
     @Override
     public void upsertVersionMapping(XmlMappingRefBook versionMapping) {
-        jdbcTemplate.update("insert into rdm_sync.version(code, sys_table, unique_sys_field, deleted_field, mapping_version) values (?, ?, ?, ?, ? )" +
+        jdbcTemplate.getJdbcTemplate().update("insert into rdm_sync.version(code, sys_table, unique_sys_field, deleted_field, mapping_version) values (?, ?, ?, ?, ? )" +
                         "            on conflict (code)\n" +
                         "            do update set (sys_table, unique_sys_field, deleted_field, mapping_version) = (?, ?, ?, ?)",
                 versionMapping.getCode(), versionMapping.getSysTable(), versionMapping.getUniqueSysField(), versionMapping.getDeletedField(), versionMapping.getMappingVersion(),
@@ -258,8 +278,8 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     @Override
     public void insertFieldMapping(String code, List<XmlMappingField> fieldMappings) {
 
-        jdbcTemplate.update("delete from rdm_sync.field_mapping where code = ?", code);
-        jdbcTemplate.batchUpdate(
+        jdbcTemplate.getJdbcTemplate().update("delete from rdm_sync.field_mapping where code = ?", code);
+        jdbcTemplate.getJdbcTemplate().batchUpdate(
                 "insert into rdm_sync.field_mapping(code, sys_field, sys_data_type, rdm_field) " +
                         "values (?, ?, ?, ?)",
                 new BatchPreparedStatementSetter() {
@@ -281,13 +301,61 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     @Override
     public boolean lockRefbookForUpdate(String code) {
         try {
-            jdbcTemplate.queryForObject("SELECT 1 FROM rdm_sync.version WHERE code = ? FOR UPDATE NOWAIT", new Object[] {code}, Integer.class);
+            jdbcTemplate.queryForObject("SELECT 1 FROM rdm_sync.version WHERE code = :code FOR UPDATE NOWAIT", Map.of("code", code), Integer.class);
             logger.info("Lock for refbook {} successfully acquired.", code);
             return true;
         } catch (CannotAcquireLockException ex) {
             logger.info("Lock for refbook {} cannot be acquired.", code, ex);
             return false;
         }
+    }
+
+    @Override
+    public void addInternalLocalRowStateUpdateTrigger(String schema, String table) {
+        String triggerName = getInternalLocalStateUpdateTriggerName(schema, table);
+        String schemaTable = schema + "." + table;
+        boolean exists = jdbcTemplate.queryForObject("SELECT EXISTS(SELECT 1 FROM pg_trigger WHERE NOT tgisinternal AND tgname = :tgname)", Map.of("tgname", triggerName), Boolean.class);
+        if (!exists) {
+            String q = String.format("CREATE TRIGGER %s BEFORE INSERT OR UPDATE ON %s FOR EACH ROW EXECUTE PROCEDURE %s;", triggerName, schemaTable, INTERNAL_FUNCTION);
+            jdbcTemplate.getJdbcTemplate().execute(q);
+        }
+    }
+
+    @Override
+    public void createOrReplaceLocalRowStateUpdateFunction() {
+        String q = String.format(LOCAL_ROW_STATE_UPDATE_FUNC, INTERNAL_FUNCTION, RDM_SYNC_INTERNAL_STATE_COLUMN, RdmSyncLocalRowState.DIRTY);
+        jdbcTemplate.getJdbcTemplate().execute(q);
+    }
+
+    @Override
+    public void addInternalLocalRowStateColumnIfNotExists(String schema, String table) {
+        String schemaTable = schema + "." + table;
+        boolean exists = jdbcTemplate.queryForObject("SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema = :schema AND table_name = :table AND column_name = :internal_state_column)", Map.of("schema", schema, "table", table, "internal_state_column", RDM_SYNC_INTERNAL_STATE_COLUMN), Boolean.class);
+        if (!exists) {
+            String q = String.format("ALTER TABLE %s ADD COLUMN %s VARCHAR NOT NULL DEFAULT '%s'", schemaTable, RDM_SYNC_INTERNAL_STATE_COLUMN, RdmSyncLocalRowState.DIRTY);
+            jdbcTemplate.getJdbcTemplate().execute(q);
+            int n = jdbcTemplate.update(String.format("UPDATE %s SET %s = :synced", schemaTable, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN)), Map.of("synced", RdmSyncLocalRowState.SYNCED.name()));
+            if (n != 0)
+                logger.info("{} records updated internal state to {} in table {}", n, RdmSyncLocalRowState.SYNCED, schemaTable);
+        }
+    }
+
+    @Override
+    public void disableInternalLocalRowStateUpdateTrigger(String table) {
+        String[] split = table.split("\\.");
+        String q = String.format("ALTER TABLE %s DISABLE TRIGGER %s", table, getInternalLocalStateUpdateTriggerName(split[0], split[1]));
+        jdbcTemplate.getJdbcTemplate().execute(q);
+    }
+
+    @Override
+    public void enableInternalLocalRowStateUpdateTrigger(String table) {
+        String[] split = table.split("\\.");
+        String q = String.format("ALTER TABLE %s ENABLE TRIGGER %s", table, getInternalLocalStateUpdateTriggerName(split[0], split[1]));
+        jdbcTemplate.getJdbcTemplate().execute(q);
+    }
+
+    private static String getInternalLocalStateUpdateTriggerName(String schema, String table) {
+        return schema + "_" + table + "_intrnl_lcl_rw_stt_updt";
     }
 
 }
