@@ -334,6 +334,8 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         if (!exists) {
             String q = String.format("ALTER TABLE %s ADD COLUMN %s VARCHAR NOT NULL DEFAULT '%s'", schemaTable, RDM_SYNC_INTERNAL_STATE_COLUMN, RdmSyncLocalRowState.DIRTY);
             jdbcTemplate.getJdbcTemplate().execute(q);
+            q = String.format("CREATE INDEX ON %s (%s)", schemaTable, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN));
+            jdbcTemplate.getJdbcTemplate().execute(q);
             int n = jdbcTemplate.update(String.format("UPDATE %s SET %s = :synced", schemaTable, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN)), Map.of("synced", RdmSyncLocalRowState.SYNCED.name()));
             if (n != 0)
                 logger.info("{} records updated internal state to {} in table {}", n, RdmSyncLocalRowState.SYNCED, schemaTable);
