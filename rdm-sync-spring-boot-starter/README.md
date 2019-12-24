@@ -130,5 +130,5 @@ is_deleted - признак удалена ли запись или нет. ук
 4) `ERROR` -- указывающее, что экспорт в RDM завершился с ошибкой. Это состояние также логически является расширением состояния `DIRTY`.  
 Диаграмма переходов состояний, при условии, что запись не модифицируется во время пребывания ее в состоянии `PENDING`, выглядит так:  
 `SYNCHED`→`DIRTY`  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↑&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↙  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↑&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↙  
 `PENDING`→`ERROR`  
