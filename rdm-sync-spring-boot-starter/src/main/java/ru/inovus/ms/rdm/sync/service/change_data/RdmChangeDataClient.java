@@ -33,13 +33,15 @@ public abstract class RdmChangeDataClient {
     @Transactional
     public final <T extends Serializable> void changeData(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete) {
         VersionMapping vm = dao.getVersionMapping(refBookCode);
+        boolean exec = true;
         if (vm != null && !addUpdate.isEmpty()) {
             List<Object> list = RdmSyncChangeDataUtils.extractSnakeCaseKey(vm.getPrimaryField(), addUpdate);
             dao.disableInternalLocalRowStateUpdateTrigger(vm.getTable());
-            dao.setLocalRecordsState(vm.getTable(), vm.getPrimaryField(), list, RdmSyncLocalRowState.DIRTY, RdmSyncLocalRowState.PENDING);
+            exec = dao.setLocalRecordsState(vm.getTable(), vm.getPrimaryField(), list, RdmSyncLocalRowState.DIRTY, RdmSyncLocalRowState.PENDING);
             dao.enableInternalLocalRowStateUpdateTrigger(vm.getTable());
         }
-        changeData0(refBookCode, addUpdate, delete);
+        if (exec)
+            changeData0(refBookCode, addUpdate, delete);
     }
 
     abstract <T extends Serializable> void changeData0(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete);

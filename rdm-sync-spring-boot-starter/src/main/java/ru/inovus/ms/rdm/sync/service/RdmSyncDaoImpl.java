@@ -360,7 +360,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         var v = new Object() {
             int n = -1;
         };
-        return jdbcTemplate.query(q, Map.of("state", state), (rs, rowNum) -> {
+        return jdbcTemplate.query(q, Map.of("state", state.name()), (rs, rowNum) -> {
             HashMap<String, Object> map = new HashMap<>();
             if (v.n == -1)
                 v.n = getInternalStateColumnIdx(rs.getMetaData(), table);
@@ -385,11 +385,16 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     }
 
     @Override
-    public <T> void setLocalRecordsState(String table, String pk, List<? extends T> pvs, RdmSyncLocalRowState expectedState, RdmSyncLocalRowState toState) {
+    public <T> boolean setLocalRecordsState(String table, String pk, List<? extends T> pvs, RdmSyncLocalRowState expectedState, RdmSyncLocalRowState toState) {
         if (pvs.isEmpty())
-            return;
-        String q = String.format("UPDATE %1$s SET %2$s = :toState WHERE %3$s IN (:pvs) AND %2$s = :expectedState", table, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), addDoubleQuotes(pk));
-        jdbcTemplate.update(q, Map.of("toState", toState.name(), "pvs", pvs, "expectedState", expectedState.name()));
+            return false;
+        String q = String.format("SELECT COUNT(*) FROM %s WHERE %s IN (:pvs)", table, addDoubleQuotes(pk));
+        int count = jdbcTemplate.queryForObject(q, Map.of("pvs", pvs), Integer.class);
+        if (count == 0)
+            return false;
+        q = String.format("UPDATE %1$s SET %2$s = :toState WHERE %3$s IN (:pvs) AND %2$s = :expectedState", table, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), addDoubleQuotes(pk));
+        int n = jdbcTemplate.update(q, Map.of("toState", toState.name(), "pvs", pvs, "expectedState", expectedState.name()));
+        return n == count;
     }
 
     @Override

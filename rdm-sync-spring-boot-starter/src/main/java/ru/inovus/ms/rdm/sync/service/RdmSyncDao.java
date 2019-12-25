@@ -110,7 +110,7 @@ public interface RdmSyncDao {
     void enableInternalLocalRowStateUpdateTrigger(String table);
 
     List<HashMap<String, Object>> getRecordsOfStateWithLimitOffset(String table, int limit, int offset, boolean keysToCamelCase, RdmSyncLocalRowState state);
-    <T> void setLocalRecordsState(String table, String pk, List<? extends T> pvs, RdmSyncLocalRowState expectedState, RdmSyncLocalRowState state);
+    <T> boolean setLocalRecordsState(String table, String pk, List<? extends T> pvs, RdmSyncLocalRowState expectedState, RdmSyncLocalRowState state);
     RdmSyncLocalRowState getLocalRowState(String table, String pk, Object pv);
 
 }

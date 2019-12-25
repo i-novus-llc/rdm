@@ -26,8 +26,8 @@ public abstract class RdmChangeDataRequestCallback {
      */
     @Transactional
     public final <T extends Serializable> void onSuccess(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete) {
-        casState(refBookCode, addUpdate, RdmSyncLocalRowState.SYNCED);
-        onSuccess0(refBookCode, addUpdate, delete);
+        if (casState(refBookCode, addUpdate, RdmSyncLocalRowState.SYNCED))
+            onSuccess0(refBookCode, addUpdate, delete);
     }
 
     protected abstract <T extends Serializable> void onSuccess0(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete);
@@ -40,22 +40,24 @@ public abstract class RdmChangeDataRequestCallback {
      */
     @Transactional
     public final <T extends Serializable> void onError(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete, Exception ex) {
-        casState(refBookCode, addUpdate, RdmSyncLocalRowState.ERROR);
-        onError0(refBookCode, addUpdate, delete, ex);
+        if (casState(refBookCode, addUpdate, RdmSyncLocalRowState.ERROR))
+            onError0(refBookCode, addUpdate, delete, ex);
     }
 
     protected abstract <T extends Serializable> void onError0(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete, Exception ex);
 
-    private <T extends Serializable> void casState(String refBookCode, List<? extends T> addUpdate, RdmSyncLocalRowState state) {
+    private <T extends Serializable> boolean casState(String refBookCode, List<? extends T> addUpdate, RdmSyncLocalRowState state) {
+        boolean stateChanged = true;
         VersionMapping vm = dao.getVersionMapping(refBookCode);
         if (vm != null) {
             String pk = vm.getPrimaryField();
             String table = vm.getTable();
             List<Object> pks = RdmSyncChangeDataUtils.extractSnakeCaseKey(pk, addUpdate);
             dao.disableInternalLocalRowStateUpdateTrigger(vm.getTable());
-            dao.setLocalRecordsState(table, pk, pks, RdmSyncLocalRowState.PENDING, state);
+            stateChanged = dao.setLocalRecordsState(table, pk, pks, RdmSyncLocalRowState.PENDING, state);
             dao.enableInternalLocalRowStateUpdateTrigger(vm.getTable());
         }
+        return stateChanged;
     }
 
     public static class DefaultRdmChangeDataRequestCallback extends RdmChangeDataRequestCallback {
