@@ -3,7 +3,7 @@ package ru.inovus.ms.rdm.api.util;
 public class StringUtils {
 
     private static final String DOUBLE_QUOTE_CHAR = "\"";
-    private static final String SINGLE_QUOTE_CHAR = "\"";
+    private static final String SINGLE_QUOTE_CHAR = "'";
 
     private StringUtils() {
     }
