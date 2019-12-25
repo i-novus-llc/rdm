@@ -18,14 +18,12 @@ import ru.inovus.ms.rdm.sync.model.loader.XmlMappingField;
 import ru.inovus.ms.rdm.sync.model.loader.XmlMappingRefBook;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static ru.inovus.ms.rdm.api.util.StringUtils.addDoubleQuotes;
@@ -354,6 +352,44 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         String[] split = table.split("\\.");
         String q = String.format("ALTER TABLE %s ENABLE TRIGGER %s", table, getInternalLocalStateUpdateTriggerName(split[0], split[1]));
         jdbcTemplate.getJdbcTemplate().execute(q);
+    }
+
+    @Override
+    public List<HashMap<String, Object>> getRecordsOfStateWithLimitOffset(String table, int limit, int offset, final boolean keysToCamelCase, RdmSyncLocalRowState state) {
+        String q = String.format("SELECT * FROM %s WHERE %s = :state LIMIT %d OFFSET %d", table, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), limit, offset);
+        var v = new Object() {
+            int n = -1;
+        };
+        return jdbcTemplate.query(q, Map.of("state", state), (rs, rowNum) -> {
+            HashMap<String, Object> map = new HashMap<>();
+            if (v.n == -1)
+                v.n = getInternalStateColumnIdx(rs.getMetaData(), table);
+            for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
+                if (i != v.n) {
+                    Object val = rs.getObject(i);
+                    String key = keysToCamelCase ? StringUtils.snakeCaseToCamelCase(rs.getMetaData().getColumnName(i)) : rs.getMetaData().getColumnName(i);
+                    map.put(key, val);
+                }
+            }
+            return map;
+        });
+    }
+
+    private int getInternalStateColumnIdx(ResultSetMetaData meta, String table) throws SQLException {
+        for (int i = 1; i <= meta.getColumnCount(); i++) {
+            if (meta.getColumnName(i).equals(RDM_SYNC_INTERNAL_STATE_COLUMN)) {
+                return i;
+            }
+        }
+        throw new SQLException("Internal state \"" + RDM_SYNC_INTERNAL_STATE_COLUMN + "\" column not found in " + table);
+    }
+
+    @Override
+    public <T> void setLocalRecordsState(String table, String pk, List<? extends T> pvs, RdmSyncLocalRowState expectedState, RdmSyncLocalRowState toState) {
+        if (pvs.isEmpty())
+            return;
+        String q = String.format("UPDATE %1$s SET %2$s = :toState WHERE %3$s IN (:pvs) AND %2$s = :expectedState", table, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), addDoubleQuotes(pk));
+        jdbcTemplate.update(q, Map.of("toState", toState.name(), "pvs", pvs, "expectedState", expectedState.name()));
     }
 
     private static String getInternalLocalStateUpdateTriggerName(String schema, String table) {

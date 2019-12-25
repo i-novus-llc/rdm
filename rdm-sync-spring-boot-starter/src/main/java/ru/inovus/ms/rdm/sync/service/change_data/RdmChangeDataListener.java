@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.sync.service.listener;
+package ru.inovus.ms.rdm.sync.service.change_data;
 
 import net.n2oapp.platform.jaxrs.RestException;
 import org.slf4j.Logger;
@@ -7,7 +7,6 @@ import org.springframework.jms.annotation.JmsListener;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.refdata.RdmChangeDataRequest;
 import ru.inovus.ms.rdm.api.service.RefBookService;
-import ru.inovus.ms.rdm.sync.service.change_data.RdmChangeDataRequestCallback;
 
 import java.io.Serializable;
 import java.util.List;
@@ -17,7 +16,7 @@ public class RdmChangeDataListener {
 
     private static final Logger logger = LoggerFactory.getLogger(RdmChangeDataListener.class);
 
-    private static final Set<String> CONCURRENCY_ISSUES = Set.of("refbook.lock.draft.is.publishing", "refbook.lock.draft.is.updating");
+    private static final Set<String> CONCURRENCY_ISSUES = Set.of("refbook.lock.draft.is.publishing", "refbook.lock.draft.is.updating", "refbook.lock.cannot-be-acquired");
 
     private final RefBookService refBookService;
     private final RdmChangeDataRequestCallback callback;

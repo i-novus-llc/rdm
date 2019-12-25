@@ -22,18 +22,17 @@ public class AsyncRdmChangeDataClient extends RdmChangeDataClient {
     @Value("${rdm_sync.change_date.queue:rdmChangeData}")
     private String rdmChangeDataQueue;
 
-
-
     @Override
-    public <T extends Serializable> void changeData(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete) {
+    public <T extends Serializable> void changeData0(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete) {
         try {
             jmsTemplate.convertAndSend(
-                    rdmChangeDataQueue,
-                List.of(Arrays.asList(addUpdate, delete), Utils.convertToRdmChangeDataRequest(refBookCode, addUpdate, delete))
+                rdmChangeDataQueue,
+                List.of(Arrays.asList(addUpdate, delete), RdmSyncChangeDataUtils.convertToRdmChangeDataRequest(refBookCode, addUpdate, delete))
             );
         } catch (Exception e) {
             logger.error("An error occurred while sending message to the message broker.", e);
             callback.onError(refBookCode, addUpdate, delete, e);
         }
     }
+
 }

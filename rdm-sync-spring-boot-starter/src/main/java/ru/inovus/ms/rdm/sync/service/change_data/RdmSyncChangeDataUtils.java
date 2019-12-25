@@ -14,14 +14,39 @@ import static java.util.stream.Collectors.toSet;
 import static ru.inovus.ms.rdm.api.util.StringUtils.camelCaseToSnakeCase;
 import static ru.inovus.ms.rdm.api.util.StringUtils.snakeCaseToCamelCase;
 
-final class Utils {
+final class RdmSyncChangeDataUtils {
 
-    private Utils() {throw new UnsupportedOperationException();}
+    private RdmSyncChangeDataUtils() {throw new UnsupportedOperationException();}
 
     static <T extends Serializable> RdmChangeDataRequest convertToRdmChangeDataRequest(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete) {
         List<Row> addUpdateRows = mapToRows(addUpdate);
         List<Row> deleteRows = mapToRows(delete);
         return new RdmChangeDataRequest(refBookCode, addUpdateRows, deleteRows);
+    }
+
+    static <T extends Serializable> List<Object> extractSnakeCaseKey(String snakeCaseKey, List<? extends T> ts) {
+        if (ts.isEmpty())
+            return emptyList();
+        String key = snakeCaseToCamelCase(snakeCaseKey);
+        List<Object> list = new ArrayList<>();
+        for (T t : ts) {
+            var v = new Object() {
+                Object val = null;
+            };
+            if (t instanceof Map)
+                v.val = ((Map) t).get(key);
+            else {
+                ReflectionUtils.doWithFields(t.getClass(), field -> {
+                    if (field.getName().equals(key)) {
+                        field.setAccessible(true);
+                        v.val = field.get(t);
+                    }
+                });
+            }
+            if (v.val != null)
+                list.add(v.val);
+        }
+        return list;
     }
 
     private static <T extends Serializable> List<Row> mapToRows(List<? extends T> list) {
@@ -45,7 +70,7 @@ final class Utils {
         return arr;
     }
 
-    private static <T extends Serializable> Map<String, Object> tToMap(T t, final boolean toSnakeCase, Set<String> schemaColumnsCamelCase, Set<String> schemaColumnsSnakeCase) {
+    static <T extends Serializable> Map<String, Object> tToMap(T t, final boolean toSnakeCase, Set<String> schemaColumnsCamelCase, Set<String> schemaColumnsSnakeCase) {
         Map<String, Object> map = new HashMap<>();
         ReflectionUtils.doWithFields(t.getClass(), field -> {
             if (schemaColumnsCamelCase != null && !schemaColumnsCamelCase.contains(field.getName()))

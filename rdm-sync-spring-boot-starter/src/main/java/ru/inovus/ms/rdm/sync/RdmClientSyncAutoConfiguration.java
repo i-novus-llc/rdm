@@ -27,10 +27,6 @@ import ru.inovus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
 import ru.inovus.ms.rdm.sync.service.*;
 import ru.inovus.ms.rdm.sync.service.change_data.*;
-import ru.inovus.ms.rdm.sync.service.change_data.AsyncRdmChangeDataClient;
-import ru.inovus.ms.rdm.sync.service.change_data.RdmChangeDataClient;
-import ru.inovus.ms.rdm.sync.service.listener.RdmChangeDataListener;
-import ru.inovus.ms.rdm.sync.service.listener.PublishListener;
 
 import javax.jms.ConnectionFactory;
 import javax.sql.DataSource;

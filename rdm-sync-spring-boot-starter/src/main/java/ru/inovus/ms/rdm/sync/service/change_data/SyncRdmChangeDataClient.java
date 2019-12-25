@@ -14,8 +14,8 @@ public class SyncRdmChangeDataClient extends RdmChangeDataClient {
     @Autowired protected RefBookService refBookService;
 
     @Override
-    public <T extends Serializable> void changeData(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete) {
-        RdmChangeDataRequest req = Utils.convertToRdmChangeDataRequest(refBookCode, addUpdate, delete);
+    public <T extends Serializable> void changeData0(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete) {
+        RdmChangeDataRequest req = RdmSyncChangeDataUtils.convertToRdmChangeDataRequest(refBookCode, addUpdate, delete);
         try {
             refBookService.changeData(req);
             callback.onSuccess(refBookCode, addUpdate, delete);
