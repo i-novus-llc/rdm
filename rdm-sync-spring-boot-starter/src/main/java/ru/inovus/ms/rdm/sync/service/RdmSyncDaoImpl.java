@@ -392,6 +392,15 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         jdbcTemplate.update(q, Map.of("toState", toState.name(), "pvs", pvs, "expectedState", expectedState.name()));
     }
 
+    @Override
+    public RdmSyncLocalRowState getLocalRowState(String table, String pk, Object pv) {
+        String q = String.format("SELECT %s FROM %s WHERE %s = :pv", addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), table, addDoubleQuotes(pk));
+        List<String> list = jdbcTemplate.query(q, Map.of("pv", pv), (rs, rowNum) -> rs.getString(1));
+        if (list.size() > 1)
+            throw new RdmException("Cannot identify record by " + pk);
+        return list.stream().findAny().map(RdmSyncLocalRowState::valueOf).orElse(null);
+    }
+
     private static String getInternalLocalStateUpdateTriggerName(String schema, String table) {
         return schema + "_" + table + "_intrnl_lcl_rw_stt_updt";
     }

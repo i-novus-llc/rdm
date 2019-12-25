@@ -214,4 +214,9 @@ public class RdmClientSyncAutoConfiguration {
         return new NamedParameterJdbcTemplate(jdbcTemplate);
     }
 
+    @Bean
+    public RdmSyncLocalRowStateService rdmSyncLocalRowStateService() {
+        return new RdmSyncLocalRowStateService();
+    }
+
 }
