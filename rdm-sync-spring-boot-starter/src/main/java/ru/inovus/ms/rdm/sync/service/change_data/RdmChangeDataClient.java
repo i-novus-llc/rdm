@@ -24,8 +24,6 @@ public abstract class RdmChangeDataClient {
     @Autowired protected RdmChangeDataRequestCallback callback;
     @Autowired private RdmSyncDao dao;
 
-    @Autowired private RdmChangeDataClient self;
-
     /**
      * Экспортировать данные в RDM (синхронно или через очередь сообщений, в зависимости от реализации).
      * В зависимости от результатов операции будет вызван соответствующий метод у {@link RdmChangeDataRequestCallback}.

@@ -1,14 +1,14 @@
 package ru.inovus.ms.rdm.sync.service.change_data;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import ru.inovus.ms.rdm.api.model.refdata.RdmChangeDataRequest;
 import ru.inovus.ms.rdm.api.service.RefBookService;
 
 import java.io.Serializable;
 import java.util.List;
 
-@Service
+@Component
 public class SyncRdmChangeDataClient extends RdmChangeDataClient {
 
     @Autowired protected RefBookService refBookService;
