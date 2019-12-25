@@ -18,6 +18,8 @@ import java.util.List;
  */
 public abstract class RdmChangeDataRequestCallback {
 
+    private static final Logger logger = LoggerFactory.getLogger(RdmChangeDataRequestCallback.class);
+
     @Autowired
     private RdmSyncDao dao;
 
@@ -54,7 +56,12 @@ public abstract class RdmChangeDataRequestCallback {
             String table = vm.getTable();
             List<Object> pks = RdmSyncChangeDataUtils.extractSnakeCaseKey(pk, addUpdate);
             dao.disableInternalLocalRowStateUpdateTrigger(vm.getTable());
-            stateChanged = dao.setLocalRecordsState(table, pk, pks, RdmSyncLocalRowState.PENDING, state);
+            try {
+                stateChanged = dao.setLocalRecordsState(table, pk, pks, RdmSyncLocalRowState.PENDING, state);
+            } catch (Exception ex) {
+                stateChanged = false;
+                logger.info("State change did not pass. Skipping request on {}.", refBookCode, ex);
+            }
             dao.enableInternalLocalRowStateUpdateTrigger(vm.getTable());
         }
         return stateChanged;

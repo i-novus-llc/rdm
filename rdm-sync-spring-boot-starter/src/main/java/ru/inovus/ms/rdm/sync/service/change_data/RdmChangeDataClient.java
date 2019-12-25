@@ -1,5 +1,7 @@
 package ru.inovus.ms.rdm.sync.service.change_data;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +18,8 @@ import java.util.Map;
  * Клиент для экспорта данных в RDM.
  */
 public abstract class RdmChangeDataClient {
+
+    private static final Logger logger = LoggerFactory.getLogger(RdmChangeDataClient.class);
 
     @Autowired protected RdmChangeDataRequestCallback callback;
     @Autowired private RdmSyncDao dao;
@@ -37,7 +41,12 @@ public abstract class RdmChangeDataClient {
         if (vm != null && !addUpdate.isEmpty()) {
             List<Object> list = RdmSyncChangeDataUtils.extractSnakeCaseKey(vm.getPrimaryField(), addUpdate);
             dao.disableInternalLocalRowStateUpdateTrigger(vm.getTable());
-            exec = dao.setLocalRecordsState(vm.getTable(), vm.getPrimaryField(), list, RdmSyncLocalRowState.DIRTY, RdmSyncLocalRowState.PENDING);
+            try {
+                exec = dao.setLocalRecordsState(vm.getTable(), vm.getPrimaryField(), list, RdmSyncLocalRowState.DIRTY, RdmSyncLocalRowState.PENDING);
+            } catch (Exception ex) {
+                exec = false;
+                logger.error("State change did not pass. Skipping request on {}.", refBookCode, ex);
+            }
             dao.enableInternalLocalRowStateUpdateTrigger(vm.getTable());
         }
         if (exec)

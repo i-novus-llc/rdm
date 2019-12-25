@@ -394,7 +394,10 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
             return false;
         q = String.format("UPDATE %1$s SET %2$s = :toState WHERE %3$s IN (:pvs) AND %2$s = :expectedState", table, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), addDoubleQuotes(pk));
         int n = jdbcTemplate.update(q, Map.of("toState", toState.name(), "pvs", pvs, "expectedState", expectedState.name()));
-        return n == count;
+        if (n == count)
+            return true;
+        else
+            throw new RdmException();
     }
 
     @Override
