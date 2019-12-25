@@ -327,7 +327,7 @@ public class DraftServiceImpl implements DraftService {
 
         } else {
             passportValueRepository.deleteInBatch(draftVersion.getPassportValues());
-            draftDataService.deleteAllRows(draftCode);
+            deleteDraftAllRows(draftVersion);
 
             if (passportValues != null) draftVersion.setPassportValues(passportValues);
         }
@@ -510,14 +510,19 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
         refBookLockService.setRefBookUpdating(draftVersion.getRefBook().getId());
         try {
-            conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draftVersion.getId());
-            draftDataService.deleteAllRows(draftVersion.getStorageCode());
+            deleteDraftAllRows(draftVersion);
 
         } finally {
             refBookLockService.deleteRefBookOperation(draftVersion.getRefBook().getId());
         }
 
         auditEditData(draftVersion, "delete_all_rows", "-");
+    }
+
+    private void deleteDraftAllRows(RefBookVersionEntity draftVersion) {
+
+        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draftVersion.getId());
+        draftDataService.deleteAllRows(draftVersion.getStorageCode());
     }
 
     @Override
