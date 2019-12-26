@@ -445,7 +445,7 @@ public class DraftServiceImpl implements DraftService {
                 List<RowValue> oldRowValues = searchDataService.findRows(draftVersion.getStorageCode(), fields, systemIds);
 
                 List<Message> messages = systemIds.stream()
-                        .filter(systemId -> !RowUtils.existsSystemIdRowValue(systemId, oldRowValues))
+                        .filter(systemId -> !RowUtils.isSystemIdRowValue(systemId, oldRowValues))
                         .map(systemId -> new Message(ROW_NOT_FOUND_EXCEPTION_CODE, systemId))
                         .collect(toList());
                 if (!isEmpty(messages)) throw new UserException(messages);

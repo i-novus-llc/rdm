@@ -77,7 +77,7 @@ public class RowUtils {
     }
 
     /** Проверка на наличие значения RowValue с совпадающим значением systemId. */
-    public static boolean existsSystemIdRowValue(Object systemId, List<RowValue> rowValues) {
+    public static boolean isSystemIdRowValue(Object systemId, List<RowValue> rowValues) {
         return !isEmpty(rowValues)
                 && rowValues.stream().anyMatch(rowValue -> isSystemIdRowValue(systemId, rowValue));
     }
