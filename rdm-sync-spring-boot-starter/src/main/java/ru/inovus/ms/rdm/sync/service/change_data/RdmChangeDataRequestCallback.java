@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
 import ru.inovus.ms.rdm.sync.service.RdmSyncDao;
 import ru.inovus.ms.rdm.sync.service.RdmSyncLocalRowState;
@@ -27,9 +28,9 @@ public abstract class RdmChangeDataRequestCallback {
      * Этот метод будет вызван, если изменения применились в RDM.
      */
     @Transactional
-    public final <T extends Serializable> void onSuccess(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete) {
-        if (casState(refBookCode, addUpdate, RdmSyncLocalRowState.SYNCED))
-            onSuccess0(refBookCode, addUpdate, delete);
+    public <T extends Serializable> void onSuccess(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete) {
+        casState(refBookCode, addUpdate, RdmSyncLocalRowState.SYNCED);
+        onSuccess0(refBookCode, addUpdate, delete);
     }
 
     protected abstract <T extends Serializable> void onSuccess0(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete);
@@ -41,30 +42,27 @@ public abstract class RdmChangeDataRequestCallback {
      * (однако изменения могут как появится, так и нет).
      */
     @Transactional
-    public final <T extends Serializable> void onError(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete, Exception ex) {
-        if (casState(refBookCode, addUpdate, RdmSyncLocalRowState.ERROR))
-            onError0(refBookCode, addUpdate, delete, ex);
+    public <T extends Serializable> void onError(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete, Exception ex) {
+        casState(refBookCode, addUpdate, RdmSyncLocalRowState.ERROR);
+        onError0(refBookCode, addUpdate, delete, ex);
     }
 
     protected abstract <T extends Serializable> void onError0(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete, Exception ex);
 
-    private <T extends Serializable> boolean casState(String refBookCode, List<? extends T> addUpdate, RdmSyncLocalRowState state) {
-        boolean stateChanged = true;
+    private <T extends Serializable> void casState(String refBookCode, List<? extends T> addUpdate, RdmSyncLocalRowState state) {
         VersionMapping vm = dao.getVersionMapping(refBookCode);
         if (vm != null) {
             String pk = vm.getPrimaryField();
             String table = vm.getTable();
             List<Object> pks = RdmSyncChangeDataUtils.extractSnakeCaseKey(pk, addUpdate);
             dao.disableInternalLocalRowStateUpdateTrigger(vm.getTable());
-            try {
-                stateChanged = dao.setLocalRecordsState(table, pk, pks, RdmSyncLocalRowState.PENDING, state);
-            } catch (Exception ex) {
-                stateChanged = false;
-                logger.info("State change did not pass. Skipping request on {}.", refBookCode, ex);
+            boolean stateChanged = dao.setLocalRecordsState(table, pk, pks, RdmSyncLocalRowState.PENDING, state);
+            if (!stateChanged) {
+                logger.info("State change did not pass. Skipping callback on {}.", refBookCode);
+                throw new RdmException();
             }
             dao.enableInternalLocalRowStateUpdateTrigger(vm.getTable());
         }
-        return stateChanged;
     }
 
     public static class DefaultRdmChangeDataRequestCallback extends RdmChangeDataRequestCallback {

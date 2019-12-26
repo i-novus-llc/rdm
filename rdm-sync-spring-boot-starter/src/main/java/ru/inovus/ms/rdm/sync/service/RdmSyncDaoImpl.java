@@ -355,7 +355,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     }
 
     @Override
-    public List<HashMap<String, Object>> getRecordsOfStateWithLimitOffset(String table, int limit, int offset, final boolean keysToCamelCase, RdmSyncLocalRowState state) {
+    public List<HashMap<String, Object>> getRecordsOfStateWithLimitOffset(String table, int limit, int offset, RdmSyncLocalRowState state) {
         String q = String.format("SELECT * FROM %s WHERE %s = :state LIMIT %d OFFSET %d", table, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), limit, offset);
         var v = new Object() {
             int n = -1;
@@ -367,7 +367,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
             for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
                 if (i != v.n) {
                     Object val = rs.getObject(i);
-                    String key = keysToCamelCase ? StringUtils.snakeCaseToCamelCase(rs.getMetaData().getColumnName(i)) : rs.getMetaData().getColumnName(i);
+                    String key = rs.getMetaData().getColumnName(i);
                     map.put(key, val);
                 }
             }
@@ -394,10 +394,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
             return false;
         q = String.format("UPDATE %1$s SET %2$s = :toState WHERE %3$s IN (:pvs) AND %2$s = :expectedState", table, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), addDoubleQuotes(pk));
         int n = jdbcTemplate.update(q, Map.of("toState", toState.name(), "pvs", pvs, "expectedState", expectedState.name()));
-        if (n == count)
-            return true;
-        else
-            throw new RdmException();
+        return n == count;
     }
 
     @Override

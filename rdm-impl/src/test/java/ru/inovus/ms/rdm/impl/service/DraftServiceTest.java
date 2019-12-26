@@ -454,7 +454,7 @@ public class DraftServiceTest {
         PageImpl page = new PageImpl<>(List.of(row));
         CollectionPage cp = new CollectionPage();
         cp.init(1, List.of(row));
-        when(versionService.search(anyInt(), any(SearchDataCriteria.class))).thenReturn(page);
+        when(versionService.search(anyInt(), ArgumentMatchers.argThat(searchDataCriteria -> !searchDataCriteria.getAttributeFilter().isEmpty()))).thenReturn(page);
         if (primaryType == FieldType.REFERENCE) {
             RefBookVersionEntity refToRefBookVersionEntity = new RefBookVersionEntity();
             refToRefBookVersionEntity.setId(1234567890);

@@ -222,8 +222,8 @@ public class RdmClientSyncAutoConfiguration {
 
     @Bean
     @SuppressWarnings("squid:S2440")
-    public RdmSyncJobContext rdmSyncJobContext(RdmChangeDataClient rdmChangeDataClient, @Value("${rdm_sync.export_from_local.batch_size:100}") int exportToRdmBatchSize) {
-        return new RdmSyncJobContext(rdmSyncDao(), rdmChangeDataClient, exportToRdmBatchSize);
+    public RdmSyncJobContext rdmSyncJobContext(RdmSyncDao rdmSyncDao, RdmChangeDataClient rdmChangeDataClient, @Value("${rdm_sync.export_from_local.batch_size:100}") int exportToRdmBatchSize) {
+        return new RdmSyncJobContext(rdmSyncDao, rdmChangeDataClient, exportToRdmBatchSize);
     }
 
 }

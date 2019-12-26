@@ -7,15 +7,16 @@ import ru.inovus.ms.rdm.api.service.RefBookService;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
 @Component
 public class SyncRdmChangeDataClient extends RdmChangeDataClient {
 
     @Autowired protected RefBookService refBookService;
 
-    @Override
-    public <T extends Serializable> void changeData0(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete) {
-        RdmChangeDataRequest req = RdmSyncChangeDataUtils.convertToRdmChangeDataRequest(refBookCode, addUpdate, delete);
+    public <T extends Serializable> void changeData0(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete, Function<? super T, Map<String, Object>> map) {
+        RdmChangeDataRequest req = toRdmChangeDataRequest(refBookCode, addUpdate, delete, map);
         try {
             refBookService.changeData(req);
             callback.onSuccess(refBookCode, addUpdate, delete);

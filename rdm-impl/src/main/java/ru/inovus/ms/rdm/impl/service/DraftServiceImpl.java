@@ -378,7 +378,7 @@ public class DraftServiceImpl implements DraftService {
         if (pks.isEmpty())
             return;
         Page<RefBookRowValue> search;
-        List<AttributeFilter> filters = srcRows.stream().filter(row -> row.getSystemId() != null).map(row -> getFilter(pks, row)).flatMap(Collection::stream).collect(toList());
+        List<AttributeFilter> filters = srcRows.stream().filter(row -> row.getSystemId() == null).map(row -> getFilter(pks, row)).flatMap(Collection::stream).collect(toList());
         int page = RestCriteria.FIRST_PAGE_NUMBER;
         SearchDataCriteria criteria = new SearchDataCriteria();
         criteria.setAttributeFilter(Set.of(filters));
