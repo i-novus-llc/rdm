@@ -368,7 +368,7 @@ public class DraftServiceImpl implements DraftService {
             return;
 
         List<AttributeFilter> filters = sourceRows.stream()
-                .filter(row -> row.getSystemId() != null)
+                .filter(row -> row.getSystemId() == null)
                 .map(row -> RowUtils.getPrimaryKeyValueFilters(row, primaryKeys))
                 .flatMap(Collection::stream).collect(toList());
 
