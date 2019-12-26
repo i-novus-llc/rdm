@@ -7,11 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.inovus.ms.rdm.api.exception.RdmException;
-import ru.inovus.ms.rdm.esnsi.api.AcceptRequestDocument;
-import ru.inovus.ms.rdm.esnsi.api.GetClassifierRevisionsCountRequestType;
-import ru.inovus.ms.rdm.esnsi.api.ObjectFactory;
+import ru.inovus.ms.rdm.esnsi.api.*;
 import ru.inovus.ms.rdm.esnsi.smev.AdapterClient;
-import ru.inovus.ms.rdm.esnsi.sync.GetRevisionsCountJob;
+import ru.inovus.ms.rdm.esnsi.sync.GetActualClassifierJob;
 
 import java.util.List;
 import java.util.UUID;
@@ -24,8 +22,6 @@ import static ru.inovus.ms.rdm.esnsi.sync.AbstractEsnsiDictionaryProcessingJob.*
 public class EsnsiLoaderImpl implements EsnsiLoader {
 
     private static final Logger logger = LoggerFactory.getLogger(EsnsiLoaderImpl.class);
-
-    private static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
 
     @Autowired
     private Scheduler scheduler;
@@ -54,11 +50,11 @@ public class EsnsiLoaderImpl implements EsnsiLoader {
     public String update(String classifierCode) {
         classifierCode = getCodeIgnoreCase(classifierCode);
         logger.info("Forcing sync of {} classifier.", classifierCode);
-        GetClassifierRevisionsCountRequestType getClassifierRevisionsCountRequestType = OBJECT_FACTORY.createGetClassifierRevisionsCountRequestType();
-        getClassifierRevisionsCountRequestType.setCode(classifierCode);
-        AcceptRequestDocument acceptRequestDocument = adapterClient.sendRequest(getClassifierRevisionsCountRequestType, UUID.randomUUID().toString());
-        JobKey jobKey = JobKey.jobKey(GetRevisionsCountJob.class.getSimpleName(), classifierCode);
-        JobDetail job = JobBuilder.newJob(GetRevisionsCountJob.class).
+        ListClassifiersRequestType listClassifiersRequestType = new ListClassifiersRequestType();
+        listClassifiersRequestType.setClassifierDescriptorList(true);
+        AcceptRequestDocument acceptRequestDocument = adapterClient.sendRequest(listClassifiersRequestType, UUID.randomUUID().toString());
+        JobKey jobKey = JobKey.jobKey(GetActualClassifierJob.class.getSimpleName(), classifierCode);
+        JobDetail job = JobBuilder.newJob(GetActualClassifierJob.class).
                 withIdentity(jobKey).requestRecovery().
                 usingJobData(MESSAGE_ID_KEY, acceptRequestDocument.getMessageId()).build();
         Trigger trigger = newTrigger().startNow().forJob(job).withSchedule(cronSchedule(fetchInterval)).build();
@@ -82,7 +78,7 @@ public class EsnsiLoaderImpl implements EsnsiLoader {
         return esnsiLoadService.setClassifierProcessingStageAtomically(
             job.getKey().getGroup(),
             ClassifierProcessingStage.NONE,
-            ClassifierProcessingStage.GET_REVISIONS_COUNT,
+            ClassifierProcessingStage.GET_ACTUAL_CLASSIFIER,
             () -> {
                 scheduler.deleteJob(job.getKey());
                 scheduler.scheduleJob(job, trigger);

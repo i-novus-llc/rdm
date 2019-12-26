@@ -8,6 +8,7 @@ import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidation;
 import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.util.StructureUtils;
 import ru.inovus.ms.rdm.impl.util.ConverterUtil;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -76,8 +77,7 @@ public class XmlFileGenerator extends PerRowFileGenerator {
     protected void write(Row row) {
         try {
             writer.writeStartElement("row");
-            for (String fieldCode :
-                    getStructure().getAttributes().stream().map(Structure.Attribute::getCode).collect(toList())) {
+            for (String fieldCode : StructureUtils.getAttributeCodes(getStructure()).collect(toList())) {
                 if (row.getData().get(fieldCode) != null) {
                     String stringValue = ConverterUtil.toString(row.getData().get(fieldCode));
                     if (stringValue == null) {

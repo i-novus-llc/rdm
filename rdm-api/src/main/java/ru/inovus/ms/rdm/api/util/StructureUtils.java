@@ -6,6 +6,7 @@ import ru.inovus.ms.rdm.api.model.Structure;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
@@ -15,6 +16,11 @@ import static org.springframework.util.StringUtils.isEmpty;
 public class StructureUtils {
 
     private StructureUtils() {
+    }
+
+    /** Получение кодов атрибутов структуры. */
+    public static Stream<String> getAttributeCodes(Structure structure) {
+        return structure.getAttributes().stream().map(Structure.Attribute::getCode);
     }
 
     /**

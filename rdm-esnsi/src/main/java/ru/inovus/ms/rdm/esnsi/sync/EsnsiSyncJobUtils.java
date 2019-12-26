@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.esnsi.sync;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
+import org.apache.commons.io.IOUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidationType;
@@ -73,7 +74,7 @@ final class EsnsiSyncJobUtils {
             for (int i = 0; i < row.length; i++)
                 row[i] = new StringBuilder();
             try (inputStream) {
-                byte[] bytes = inputStream.readAllBytes();
+                byte[] bytes = IOUtils.toByteArray(inputStream);
                 try (ZipFile zip = new ZipFile(new SeekableInMemoryByteChannel(bytes))) {
                     Iterator<ZipArchiveEntry> iterator = zip.getEntries().asIterator();
                     while (iterator.hasNext()) {

@@ -17,7 +17,7 @@ public class RdmChangeDataListener {
 
     private static final Logger logger = LoggerFactory.getLogger(RdmChangeDataListener.class);
 
-    private static final Set<String> CONCURRENCY_ISSUES = Set.of("refbook.lock.draft.is.publishing", "refbook.lock.draft.is.updating");
+    private static final Set<String> CONCURRENCY_ISSUES = Set.of("refbook.lock.draft.is.publishing", "refbook.lock.draft.is.updating", "refbook.lock.cannot-be-acquired");
 
     private final RefBookService refBookService;
     private final RdmChangeDataRequestCallback callback;
