@@ -85,26 +85,31 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void update(String refBookCode) {
-        try {
-            if (dao.getVersionMapping(refBookCode) != null) {
-                RefBook newVersion = getNewVersionFromRdm(refBookCode);
-                VersionMapping versionMapping = getVersionMapping(refBookCode);
-                update(newVersion, versionMapping);
+        if (dao.getVersionMapping(refBookCode) != null) {
+            RefBook newVersion;
+            try {
+                newVersion = getNewVersionFromRdm(refBookCode);
+            } catch (Exception e) {
+                logger.error(String.format(ERROR_WHILE_FETCHING_NEW_VERSION, refBookCode), e);
+                return;
             }
-        } catch (RuntimeException ex) {
-            logger.error(String.format(ERROR_WHILE_FETCHING_NEW_VERSION, refBookCode), ex);
-            loggingService.logError(refBookCode, null, null, ex.getMessage(), ExceptionUtils.getStackTrace(ex));
+            VersionMapping versionMapping = getVersionMapping(refBookCode);
+            try {
+                self.update(newVersion, versionMapping);
+                loggingService.logOk(refBookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion());
+            } catch (Exception e) {
+                logger.error(String.format(ERROR_WHILE_UPDATING_NEW_VERSION, refBookCode), e);
+                loggingService.logError(refBookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion(), e.getMessage(), ExceptionUtils.getStackTrace(e));
+            }
         }
     }
 
     @Override
     @Transactional
     public void update(RefBook newVersion, VersionMapping versionMapping) {
-        String refbookCode = newVersion.getCode();
         dao.disableInternalLocalRowStateUpdateTrigger(versionMapping.getTable());
-        boolean completeExceptionally = false;
         try {
             if (versionMapping.getVersion() == null) {
                 //заливаем с нуля
@@ -121,15 +126,9 @@ public class RdmSyncRestImpl implements RdmSyncRest {
             }
             //обновляем версию в таблице версий клиента
             dao.updateVersionMapping(versionMapping.getId(), newVersion.getLastPublishedVersion(), newVersion.getLastPublishedVersionFromDate());
-        } catch (RuntimeException e) {
-            logger.error(String.format(ERROR_WHILE_UPDATING_NEW_VERSION, refbookCode), e);
-            loggingService.logError(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion(), e.getMessage(), ExceptionUtils.getStackTrace(e));
-            completeExceptionally = true;
         } finally {
             dao.enableInternalLocalRowStateUpdateTrigger(versionMapping.getTable());
         }
-        if (!completeExceptionally)
-            loggingService.logOk(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion());
     }
 
     @Override
