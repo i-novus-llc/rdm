@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.sync;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -71,6 +72,11 @@ public class RdmSyncRestTest {
     private DraftService draftService;
     @Mock
     private PublishService publishService;
+
+    @Before
+    public void setUp() {
+        rdmSyncRest.setSelf(rdmSyncRest);
+    }
 
     /**
      * Кейс: Обновление справочника в первый раз, версия в маппинге не указана. В таблице клиента уже есть запись с id=1, из НСИ приходят записи с id=1,2.
