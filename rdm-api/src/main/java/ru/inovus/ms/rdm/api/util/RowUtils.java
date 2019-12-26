@@ -65,21 +65,21 @@ public class RowUtils {
     }
 
     /** Проверка на совпадение systemId со значением из RowValue. */
-    public static boolean isRowValueSystemId(RowValue<?> rowValue, Object systemId) {
+    public static boolean isSystemIdRowValue(Object systemId, RowValue<?> rowValue) {
         return systemId.equals(rowValue.getSystemId());
     }
 
     /** Получение значения RowValue с совпадающим значением systemId. */
     public static RowValue getSystemIdRowValue(Object systemId, List<RowValue> rowValues) {
         return rowValues.stream()
-                .filter(rowValue -> isRowValueSystemId(rowValue, systemId))
+                .filter(rowValue -> isSystemIdRowValue(systemId, rowValue))
                 .findFirst().orElse(null);
     }
 
     /** Проверка на наличие значения RowValue с совпадающим значением systemId. */
     public static boolean existsSystemIdRowValue(Object systemId, List<RowValue> rowValues) {
         return !isEmpty(rowValues)
-                && rowValues.stream().anyMatch(rowValue -> isRowValueSystemId(rowValue, systemId));
+                && rowValues.stream().anyMatch(rowValue -> isSystemIdRowValue(systemId, rowValue));
     }
 
     public static List<AttributeFilter> getPrimaryKeyValueFilters(Row row, List<Structure.Attribute> primaryKeys) {
