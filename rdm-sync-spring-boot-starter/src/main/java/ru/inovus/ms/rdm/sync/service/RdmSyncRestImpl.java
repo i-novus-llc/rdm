@@ -104,6 +104,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     public void update(RefBook newVersion, VersionMapping versionMapping) {
         String refbookCode = newVersion.getCode();
         dao.disableInternalLocalRowStateUpdateTrigger(versionMapping.getTable());
+        boolean completeExceptionally = false;
         try {
             if (versionMapping.getVersion() == null) {
                 //заливаем с нуля
@@ -123,10 +124,12 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         } catch (RuntimeException e) {
             logger.error(String.format(ERROR_WHILE_UPDATING_NEW_VERSION, refbookCode), e);
             loggingService.logError(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion(), e.getMessage(), ExceptionUtils.getStackTrace(e));
-            return;
+            completeExceptionally = true;
+        } finally {
+            dao.enableInternalLocalRowStateUpdateTrigger(versionMapping.getTable());
         }
-        dao.enableInternalLocalRowStateUpdateTrigger(versionMapping.getTable());
-        loggingService.logOk(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion());
+        if (!completeExceptionally)
+            loggingService.logOk(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion());
     }
 
     @Override

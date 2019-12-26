@@ -14,13 +14,11 @@ import ru.inovus.ms.rdm.sync.service.RdmSyncDao;
 import ru.inovus.ms.rdm.sync.service.RdmSyncLocalRowState;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 import static java.util.Collections.emptyList;
+import static ru.inovus.ms.rdm.api.util.StringUtils.camelCaseToSnakeCase;
 import static ru.inovus.ms.rdm.sync.service.change_data.RdmSyncChangeDataUtils.*;
 
 /**
@@ -43,7 +41,15 @@ public abstract class RdmChangeDataClient {
     public <T extends Serializable> void changeData(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete) {
         List<FieldMapping> fieldMappings = dao.getFieldMapping(refBookCode);
         changeData(refBookCode, addUpdate, delete, t -> {
-            Map<String, Object> map = tToMap(t, true, null, null);
+            Map<String, Object> map;
+            if (!(t instanceof Map))
+                map = tToMap(t, true, null, null);
+            else {
+                map = new HashMap<>();
+                for (Map.Entry<String, Object> e : ((Map<String, Object>) t).entrySet()) {
+                    map.put(camelCaseToSnakeCase(e.getKey()), e.getValue());
+                }
+            }
             if (!fieldMappings.isEmpty())
                 reindex(fieldMappings, map);
             return map;

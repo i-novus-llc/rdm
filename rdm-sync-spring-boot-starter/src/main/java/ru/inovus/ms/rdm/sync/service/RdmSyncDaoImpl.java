@@ -190,7 +190,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         }
         data.add(row.get(primaryField));
         if (markSynced) {
-            keys.add(addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN));
+            keys.add(addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN) + " = ?");
             data.add(RdmSyncLocalRowState.SYNCED.name());
         }
         jdbcTemplate.getJdbcTemplate().update(
@@ -381,7 +381,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
                 return i;
             }
         }
-        throw new SQLException("Internal state \"" + RDM_SYNC_INTERNAL_STATE_COLUMN + "\" column not found in " + table);
+        throw new RdmException("Internal state \"" + RDM_SYNC_INTERNAL_STATE_COLUMN + "\" column not found in " + table);
     }
 
     @Override
