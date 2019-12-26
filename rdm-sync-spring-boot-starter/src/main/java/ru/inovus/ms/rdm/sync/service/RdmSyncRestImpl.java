@@ -67,9 +67,14 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     @Autowired
     private RdmLoggingService loggingService;
     @Autowired
-    private RdmSyncRest self;
-    @Autowired
     private RdmSyncDao dao;
+
+    private RdmSyncRest self;
+
+    @Autowired
+    public void setSelf(RdmSyncRest self) {
+        this.self = self;
+    }
 
     @Override
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
