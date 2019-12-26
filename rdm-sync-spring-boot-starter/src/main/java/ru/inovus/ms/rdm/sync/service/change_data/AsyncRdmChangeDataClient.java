@@ -5,13 +5,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
-@Service
+@Component
 public class AsyncRdmChangeDataClient extends RdmChangeDataClient {
 
     private static final Logger logger = LoggerFactory.getLogger(AsyncRdmChangeDataClient.class);
@@ -22,14 +24,12 @@ public class AsyncRdmChangeDataClient extends RdmChangeDataClient {
     @Value("${rdm_sync.change_date.queue:rdmChangeData}")
     private String rdmChangeDataQueue;
 
-
-
     @Override
-    public <T extends Serializable> void changeData(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete) {
+    public <T extends Serializable> void changeData0(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete, Function<? super T, Map<String, Object>> map) {
         try {
             jmsTemplate.convertAndSend(
-                    rdmChangeDataQueue,
-                List.of(Arrays.asList(addUpdate, delete), Utils.convertToRdmChangeDataRequest(refBookCode, addUpdate, delete))
+                rdmChangeDataQueue,
+                List.of(Arrays.asList(addUpdate, delete), toRdmChangeDataRequest(refBookCode, addUpdate, delete, map))
             );
         } catch (Exception e) {
             logger.error("An error occurred while sending message to the message broker.", e);

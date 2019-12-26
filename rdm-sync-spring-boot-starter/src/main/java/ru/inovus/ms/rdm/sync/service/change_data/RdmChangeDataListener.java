@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.sync.service.listener;
+package ru.inovus.ms.rdm.sync.service.change_data;
 
 import net.n2oapp.platform.jaxrs.RestException;
 import org.slf4j.Logger;
@@ -7,7 +7,6 @@ import org.springframework.jms.annotation.JmsListener;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.refdata.RdmChangeDataRequest;
 import ru.inovus.ms.rdm.api.service.RefBookService;
-import ru.inovus.ms.rdm.sync.service.change_data.RdmChangeDataRequestCallback;
 
 import java.io.Serializable;
 import java.util.List;
@@ -40,8 +39,9 @@ public class RdmChangeDataListener {
         } catch (RestException re) {
             boolean concurrencyIssue = false;
             if (re.getErrors() != null)
-                concurrencyIssue = re.getErrors().stream().anyMatch(error -> CONCURRENCY_ISSUES.contains(error.getMessage()));
-            concurrencyIssue |= CONCURRENCY_ISSUES.contains(re.getMessage());
+                concurrencyIssue = re.getErrors().stream().filter(error -> error != null && error.getMessage() != null).anyMatch(error -> CONCURRENCY_ISSUES.contains(error.getMessage()));
+            if (re.getMessage() != null)
+                concurrencyIssue |= CONCURRENCY_ISSUES.contains(re.getMessage());
             if (!concurrencyIssue)
                 callback.onError(converted.getRefBookCode(), addUpdate, delete, re);
             else

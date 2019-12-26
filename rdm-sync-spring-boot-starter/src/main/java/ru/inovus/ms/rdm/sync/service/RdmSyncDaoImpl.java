@@ -18,14 +18,12 @@ import ru.inovus.ms.rdm.sync.model.loader.XmlMappingField;
 import ru.inovus.ms.rdm.sync.model.loader.XmlMappingRefBook;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static ru.inovus.ms.rdm.api.util.StringUtils.addDoubleQuotes;
@@ -192,7 +190,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         }
         data.add(row.get(primaryField));
         if (markSynced) {
-            keys.add(addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN));
+            keys.add(addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN) + " = ?");
             data.add(RdmSyncLocalRowState.SYNCED.name());
         }
         jdbcTemplate.getJdbcTemplate().update(
@@ -354,6 +352,58 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         String[] split = table.split("\\.");
         String q = String.format("ALTER TABLE %s ENABLE TRIGGER %s", table, getInternalLocalStateUpdateTriggerName(split[0], split[1]));
         jdbcTemplate.getJdbcTemplate().execute(q);
+    }
+
+    @Override
+    public List<HashMap<String, Object>> getRecordsOfState(String table, int limit, int offset, RdmSyncLocalRowState state) {
+        String q = String.format("SELECT * FROM %s WHERE %s = :state LIMIT %d OFFSET %d", table, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), limit, offset);
+        var v = new Object() {
+            int n = -1;
+        };
+        return jdbcTemplate.query(q, Map.of("state", state.name()), (rs, rowNum) -> {
+            HashMap<String, Object> map = new HashMap<>();
+            if (v.n == -1)
+                v.n = getInternalStateColumnIdx(rs.getMetaData(), table);
+            for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
+                if (i != v.n) {
+                    Object val = rs.getObject(i);
+                    String key = rs.getMetaData().getColumnName(i);
+                    map.put(key, val);
+                }
+            }
+            return map;
+        });
+    }
+
+    private int getInternalStateColumnIdx(ResultSetMetaData meta, String table) throws SQLException {
+        for (int i = 1; i <= meta.getColumnCount(); i++) {
+            if (meta.getColumnName(i).equals(RDM_SYNC_INTERNAL_STATE_COLUMN)) {
+                return i;
+            }
+        }
+        throw new RdmException("Internal state \"" + RDM_SYNC_INTERNAL_STATE_COLUMN + "\" column not found in " + table);
+    }
+
+    @Override
+    public <T> boolean setLocalRecordsState(String table, String pk, List<? extends T> pvs, RdmSyncLocalRowState expectedState, RdmSyncLocalRowState toState) {
+        if (pvs.isEmpty())
+            return false;
+        String q = String.format("SELECT COUNT(*) FROM %s WHERE %s IN (:pvs)", table, addDoubleQuotes(pk));
+        int count = jdbcTemplate.queryForObject(q, Map.of("pvs", pvs), Integer.class);
+        if (count == 0)
+            return false;
+        q = String.format("UPDATE %1$s SET %2$s = :toState WHERE %3$s IN (:pvs) AND %2$s = :expectedState", table, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), addDoubleQuotes(pk));
+        int n = jdbcTemplate.update(q, Map.of("toState", toState.name(), "pvs", pvs, "expectedState", expectedState.name()));
+        return n == count;
+    }
+
+    @Override
+    public RdmSyncLocalRowState getLocalRowState(String table, String pk, Object pv) {
+        String q = String.format("SELECT %s FROM %s WHERE %s = :pv", addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), table, addDoubleQuotes(pk));
+        List<String> list = jdbcTemplate.query(q, Map.of("pv", pv), (rs, rowNum) -> rs.getString(1));
+        if (list.size() > 1)
+            throw new RdmException("Cannot identify record by " + pk);
+        return list.stream().findAny().map(RdmSyncLocalRowState::valueOf).orElse(null);
     }
 
     private static String getInternalLocalStateUpdateTriggerName(String schema, String table) {

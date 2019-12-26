@@ -1,23 +1,60 @@
 package ru.inovus.ms.rdm.sync.service.change_data;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.transaction.annotation.Transactional;
 import ru.inovus.ms.rdm.api.exception.RdmException;
+import ru.inovus.ms.rdm.api.model.refdata.RdmChangeDataRequest;
+import ru.inovus.ms.rdm.api.model.refdata.Row;
+import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
 import ru.inovus.ms.rdm.sync.service.RdmSyncDao;
+import ru.inovus.ms.rdm.sync.service.RdmSyncLocalRowState;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
+
+import static java.util.Collections.emptyList;
+import static ru.inovus.ms.rdm.api.util.StringUtils.camelCaseToSnakeCase;
+import static ru.inovus.ms.rdm.sync.service.change_data.RdmSyncChangeDataUtils.*;
 
 /**
  * Клиент для экспорта данных в RDM.
  */
 public abstract class RdmChangeDataClient {
 
+    private static final Logger logger = LoggerFactory.getLogger(RdmChangeDataClient.class);
+
     @Autowired protected RdmChangeDataRequestCallback callback;
-    @Autowired private RdmSyncDao dao;
+    @Autowired protected RdmSyncDao dao;
+
+    /**
+     * Этот метод сам сконвертирует ваши объекты в новую {@code Map<String, Object> M} используя следующие правила:
+     * - Если объект не экземпляр класса Map -- берем все его поля вплоть до Object-а, переводим их в snake_case, кладем в {@code M}
+     * - Если объект экземпляр класса Map -- берем все ее ключи, переводим их в snake_case, кладем в новую {@code M}
+     * - Если локально присутствуют записи в таблице rdm_sync.field_mappings для полей справочника с кодом {@code refBookCode} -- применяем описанные там правила к {@code M}.
+     */
+    @Transactional
+    public <T extends Serializable> void changeData(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete) {
+        List<FieldMapping> fieldMappings = dao.getFieldMapping(refBookCode);
+        changeData(refBookCode, addUpdate, delete, t -> {
+            Map<String, Object> map;
+            if (!(t instanceof Map))
+                map = tToMap(t, true, null, null);
+            else {
+                map = new HashMap<>();
+                for (Map.Entry<String, Object> e : ((Map<String, Object>) t).entrySet()) {
+                    map.put(camelCaseToSnakeCase(e.getKey()), e.getValue());
+                }
+            }
+            if (!fieldMappings.isEmpty())
+                reindex(fieldMappings, map);
+            return map;
+        });
+    }
 
     /**
      * Экспортировать данные в RDM (синхронно или через очередь сообщений, в зависимости от реализации).
@@ -25,9 +62,34 @@ public abstract class RdmChangeDataClient {
      * @param refBookCode Код справочника
      * @param addUpdate Записи, которые нужно добавить/изменить в RDM
      * @param delete Записи, которые нужно удалить из RDM
-     * @param <T> Этот параметр должен реализовывать интерфейс Serializable ({@link java.util.Map} отлично подойдет).
+     * @param map Функция, преобразовабающая экземпляр класса {@code <T>} в {@code Map<String, Object>}. Ключами в мапе должны идти поля в RDM, типы данных должны быть приводимыми.
+     * @param <T> Этот параметр должен реализовывать интерфейс Serializable ({@link java.util.HashMap} отлично подойдет).
      */
-    public abstract <T extends Serializable> void changeData(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete);
+    @Transactional
+    public <T extends Serializable> void changeData(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete, Function<? super T, Map<String, Object>> map) {
+        VersionMapping vm = dao.getVersionMapping(refBookCode);
+        if (vm != null && !addUpdate.isEmpty()) {
+            boolean ensureState = false;
+            ListIterator<? extends T> it = addUpdate.listIterator(addUpdate.size());
+            if (it.previous() == INTERNAL_TAG) {
+                ensureState = true;
+                it.remove();
+            }
+            if (ensureState) {
+                List<Object> list = extractSnakeCaseKey(vm.getPrimaryField(), addUpdate);
+                dao.disableInternalLocalRowStateUpdateTrigger(vm.getTable());
+                boolean stateChanged = dao.setLocalRecordsState(vm.getTable(), vm.getPrimaryField(), list, RdmSyncLocalRowState.DIRTY, RdmSyncLocalRowState.PENDING);
+                if (!stateChanged) {
+                    logger.info("State change did not pass. Skipping request on {}.", refBookCode);
+                    throw new RdmException();
+                }
+                dao.enableInternalLocalRowStateUpdateTrigger(vm.getTable());
+            }
+        }
+        changeData0(refBookCode, addUpdate, delete, map);
+    }
+
+    public abstract <T extends Serializable>  void changeData0(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete, Function<? super T, Map<String, Object>> map);
 
     /**
      * Вставить/Обновить записи в локальной таблице. Существующие записи и новые записи (проверяется по первичному ключу) из состояния {@link ru.inovus.ms.rdm.sync.service.RdmSyncLocalRowState#SYNCED} переходят в состояние
@@ -38,12 +100,13 @@ public abstract class RdmChangeDataClient {
      * @param <T> Этот параметр должен реализовывать интерфейс Serializable (для единообразия)
      */
     @Transactional
-    public <T extends Serializable> void lazyInsertData(List<? extends T> addUpdate, String localTable) {
+    public <T extends Serializable> void lazyUpdateData(List<? extends T> addUpdate, String localTable) {
         VersionMapping versionMapping = dao.getVersionMappings().stream().filter(vm -> vm.getTable().equals(localTable)).findAny().orElseThrow(() -> new RdmException("No table " + localTable + " found."));
         String pk = versionMapping.getPrimaryField();
         String isDeletedField = versionMapping.getDeletedField();
         List<Pair<String, String>> schema = dao.getColumnNameAndDataTypeFromLocalDataTable(localTable);
-        Map<String, Object>[] arr = Utils.mapForPgBatchInsert(addUpdate, schema);
+        IdentityHashMap<? super T, Map<String, Object>> identityHashMap = new IdentityHashMap<>();
+        Map<String, Object>[] arr = mapForPgBatchInsert(addUpdate, schema, identityHashMap);
         for (Map<String, Object> m : arr) {
             Object pv = m.get(pk);
             if (pv == null)
@@ -55,6 +118,20 @@ public abstract class RdmChangeDataClient {
                 dao.updateRow(localTable, pk, isDeletedField, m, false);
             }
         }
+        List<FieldMapping> fieldMappings = dao.getFieldMapping(versionMapping.getCode());
+        changeData(versionMapping.getCode(), addUpdate, emptyList(), t -> {
+            Map<String, Object> m = identityHashMap.get(t);
+            reindex(fieldMappings, m);
+            return m;
+        });
+    }
+
+    static <T extends Serializable>  RdmChangeDataRequest toRdmChangeDataRequest(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete, Function<? super T, Map<String, Object>> map) {
+        List<Row> addUpdateRows = new ArrayList<>();
+        List<Row> toDeleteRows = new ArrayList<>();
+        for (T t : addUpdate) addUpdateRows.add(new Row(map.apply(t)));
+        for (T t : delete) toDeleteRows.add(new Row(map.apply(t)));
+        return new RdmChangeDataRequest(refBookCode, addUpdateRows, toDeleteRows);
     }
 
 }

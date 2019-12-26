@@ -5,6 +5,7 @@ import net.n2oapp.platform.jaxrs.LocalDateTimeISOParameterConverter;
 import net.n2oapp.platform.jaxrs.TypedParamConverter;
 import net.n2oapp.platform.jaxrs.autoconfigure.EnableJaxRsProxyClient;
 import net.n2oapp.platform.jaxrs.autoconfigure.MissingGenericBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -27,10 +28,6 @@ import ru.inovus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
 import ru.inovus.ms.rdm.sync.service.*;
 import ru.inovus.ms.rdm.sync.service.change_data.*;
-import ru.inovus.ms.rdm.sync.service.change_data.AsyncRdmChangeDataClient;
-import ru.inovus.ms.rdm.sync.service.change_data.RdmChangeDataClient;
-import ru.inovus.ms.rdm.sync.service.listener.RdmChangeDataListener;
-import ru.inovus.ms.rdm.sync.service.listener.PublishListener;
 
 import javax.jms.ConnectionFactory;
 import javax.sql.DataSource;
@@ -216,6 +213,17 @@ public class RdmClientSyncAutoConfiguration {
     @ConditionalOnMissingBean
     public NamedParameterJdbcTemplate namedParameterJdbcTemplate(JdbcTemplate jdbcTemplate) {
         return new NamedParameterJdbcTemplate(jdbcTemplate);
+    }
+
+    @Bean
+    public RdmSyncLocalRowStateService rdmSyncLocalRowStateService() {
+        return new RdmSyncLocalRowStateService();
+    }
+
+    @Bean
+    @SuppressWarnings("squid:S2440")
+    public RdmSyncJobContext rdmSyncJobContext(RdmSyncDao rdmSyncDao, RdmChangeDataClient rdmChangeDataClient, @Value("${rdm_sync.export_from_local.batch_size:100}") int exportToRdmBatchSize) {
+        return new RdmSyncJobContext(rdmSyncDao, rdmChangeDataClient, exportToRdmBatchSize);
     }
 
 }

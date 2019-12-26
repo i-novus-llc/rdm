@@ -1,21 +1,22 @@
 package ru.inovus.ms.rdm.sync.service.change_data;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import ru.inovus.ms.rdm.api.model.refdata.RdmChangeDataRequest;
 import ru.inovus.ms.rdm.api.service.RefBookService;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
-@Service
+@Component
 public class SyncRdmChangeDataClient extends RdmChangeDataClient {
 
     @Autowired protected RefBookService refBookService;
 
-    @Override
-    public <T extends Serializable> void changeData(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete) {
-        RdmChangeDataRequest req = Utils.convertToRdmChangeDataRequest(refBookCode, addUpdate, delete);
+    public <T extends Serializable> void changeData0(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete, Function<? super T, Map<String, Object>> map) {
+        RdmChangeDataRequest req = toRdmChangeDataRequest(refBookCode, addUpdate, delete, map);
         try {
             refBookService.changeData(req);
             callback.onSuccess(refBookCode, addUpdate, delete);

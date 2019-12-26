@@ -22,7 +22,7 @@ class XmlMappingLoaderService {
     private static Logger logger = LoggerFactory.getLogger(XmlMappingLoaderService.class);
 
     @Autowired private RdmSyncDao rdmSyncDao;
-    @Autowired private XmlMappingLoaderLockService lockService;
+    @Autowired private ClusterLockService lockService;
 
     @Transactional
     public void load() {
