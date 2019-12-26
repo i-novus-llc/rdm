@@ -40,6 +40,7 @@ import ru.inovus.ms.rdm.api.service.VersionFileService;
 import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
 import ru.inovus.ms.rdm.api.util.RowUtils;
+import ru.inovus.ms.rdm.api.util.StructureUtils;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.*;
@@ -296,7 +297,9 @@ public class DraftServiceImpl implements DraftService {
 
         Map<String, Object> passport = new HashMap<>();
         sourceVersion.getPassportValues().forEach(passportValueEntity -> passport.put(passportValueEntity.getAttribute().getCode(), passportValueEntity.getValue()));
-        Map<String, List<AttributeValidation>> validations = attributeValidationRepository.findAllByVersionId(versionId).stream().collect(groupingBy(AttributeValidationEntity::getAttribute, mapping(entity -> entity.getType().getValidationInstance().valueFromString(entity.getValue()), toList())));
+
+        Map<String, List<AttributeValidation>> validations = attributeValidationRepository.findAllByVersionId(versionId).stream()
+                .collect(groupingBy(AttributeValidationEntity::getAttribute, mapping(entity -> entity.getType().getValidationInstance().valueFromString(entity.getValue()), toList())));
         CreateDraftRequest draftRequest  = new CreateDraftRequest(sourceVersion.getRefBook().getId(), sourceVersion.getStructure(), passport, validations);
         Draft draft = create(draftRequest);
 
@@ -380,8 +383,8 @@ public class DraftServiceImpl implements DraftService {
             criteria.setPageNumber(++page);
             for (RefBookRowValue oldValue : search) {
                 for (Row row : sourceRows) {
-                    if (row.getSystemId() != null) continue;
-                    if (RowUtils.equalsValuesByAttributes(row, oldValue, primaryKeys))
+                    if (row.getSystemId() == null
+                            && RowUtils.equalsValuesByAttributes(row, oldValue, primaryKeys))
                         row.setSystemId(oldValue.getSystemId());
                 }
             }
@@ -389,15 +392,22 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private List<Row> preprocessRows(List<Row> rows, RefBookVersionEntity draftVersion, boolean removeEvenIfSystemIdIsPresent) {
-        if (isEmpty(rows)) return emptyList();
-        Set<String> attrs = draftVersion.getStructure().getAttributes().stream().map(Structure.Attribute::getCode).collect(toSet());
-        Stream<Row> stream = rows.stream().peek(row -> row.getData().entrySet().removeIf(attr -> !attrs.contains(attr.getKey())));
+        if (isEmpty(rows))
+            return emptyList();
+
+        Set<String> attributeCodes = StructureUtils.getAttributeCodes(draftVersion.getStructure()).collect(toSet());
+        Stream<Row> stream = rows.stream()
+                .peek(row -> row.getData().entrySet().removeIf(entry -> !attributeCodes.contains(entry.getKey())));
         if (removeEvenIfSystemIdIsPresent)
             stream = stream.filter(row -> !RowUtils.isEmptyRow(row));
+
         rows = stream.collect(toList());
-        if (isEmpty(rows)) return emptyList();
+        if (isEmpty(rows))
+            return emptyList();
+
         validateTypeSafety(rows, draftVersion.getStructure());
         setSystemIdIfPossible(draftVersion.getStructure(), rows, draftVersion.getId());
+
         return rows;
     }
 
@@ -430,7 +440,7 @@ public class DraftServiceImpl implements DraftService {
 
             List<RowValue> updatedRowValues = convertedRows.stream().filter(rowValue -> rowValue.getSystemId() != null).collect(toList());
             if (!isEmpty(updatedRowValues)) {
-                List<String> fields = draftVersion.getStructure().getAttributes().stream().map(Structure.Attribute::getCode).collect(toList());
+                List<String> fields = StructureUtils.getAttributeCodes(draftVersion.getStructure()).collect(toList());
                 List<Object> systemIds = updatedRowValues.stream().map(RowValue::getSystemId).collect(toList());
                 List<RowValue> oldRowValues = searchDataService.findRows(draftVersion.getStorageCode(), fields, systemIds);
 

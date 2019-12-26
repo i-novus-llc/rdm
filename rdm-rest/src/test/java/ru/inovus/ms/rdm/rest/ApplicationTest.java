@@ -57,6 +57,7 @@ import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.api.model.version.*;
 import ru.inovus.ms.rdm.api.service.*;
 import ru.inovus.ms.rdm.api.util.FieldValueUtils;
+import ru.inovus.ms.rdm.api.util.StructureUtils;
 import ru.inovus.ms.rdm.impl.validation.ReferenceValueValidation;
 
 import javax.sql.DataSource;
@@ -1001,7 +1002,7 @@ public class ApplicationTest {
                 null);
         Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), structure));
 
-        List<String> codes = structure.getAttributes().stream().map(Structure.Attribute::getCode).collect(toList());
+        List<String> codes = StructureUtils.getAttributeCodes(structure).collect(toList());
         Map<String, Object> rowMap1 = new HashMap<>();
         rowMap1.put(codes.get(0), BigInteger.valueOf(1));
         rowMap1.put(codes.get(1), "Дублирующееся имя");

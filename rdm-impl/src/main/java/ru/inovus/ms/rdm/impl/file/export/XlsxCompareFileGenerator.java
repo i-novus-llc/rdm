@@ -17,6 +17,7 @@ import org.springframework.data.domain.Sort;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.model.DataConstants;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.inovus.ms.rdm.api.util.StructureUtils;
 import ru.inovus.ms.rdm.impl.entity.PassportAttributeEntity;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.Structure;
@@ -318,9 +319,7 @@ class XlsxCompareFileGenerator implements FileGenerator {
         Map<String, String> allAttributes = new HashMap<>();
         Stream.concat(oldVersion.getStructure().getAttributes().stream(), newVersion.getStructure().getAttributes().stream())
                 .forEach(a -> allAttributes.put(a.getCode(), a.getName()));
-        Stream.concat(
-                newVersion.getStructure().getAttributes().stream().map(Structure.Attribute::getCode),
-                deletedColumns.stream())
+        Stream.concat(StructureUtils.getAttributeCodes(newVersion.getStructure()), deletedColumns.stream())
                 .peek(attribute -> dataColumnIndexes.put(attribute, dataColumnIndexes.size()))
                 .forEach(attribute -> {
                     Cell cell = headRow.createCell(dataColumnIndexes.get(attribute));
