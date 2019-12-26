@@ -69,14 +69,22 @@ public abstract class RdmChangeDataClient {
     public <T extends Serializable> void changeData(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete, Function<? super T, Map<String, Object>> map) {
         VersionMapping vm = dao.getVersionMapping(refBookCode);
         if (vm != null && !addUpdate.isEmpty()) {
-            List<Object> list = extractSnakeCaseKey(vm.getPrimaryField(), addUpdate);
-            dao.disableInternalLocalRowStateUpdateTrigger(vm.getTable());
-            boolean stateChanged = dao.setLocalRecordsState(vm.getTable(), vm.getPrimaryField(), list, RdmSyncLocalRowState.DIRTY, RdmSyncLocalRowState.PENDING);
-            if (!stateChanged) {
-                logger.info("State change did not pass. Skipping request on {}.", refBookCode);
-                throw new RdmException();
+            boolean ensureState = false;
+            ListIterator<? extends T> it = addUpdate.listIterator(addUpdate.size());
+            if (it.previous() == INTERNAL_TAG) {
+                ensureState = true;
+                it.remove();
             }
-            dao.enableInternalLocalRowStateUpdateTrigger(vm.getTable());
+            if (ensureState) {
+                List<Object> list = extractSnakeCaseKey(vm.getPrimaryField(), addUpdate);
+                dao.disableInternalLocalRowStateUpdateTrigger(vm.getTable());
+                boolean stateChanged = dao.setLocalRecordsState(vm.getTable(), vm.getPrimaryField(), list, RdmSyncLocalRowState.DIRTY, RdmSyncLocalRowState.PENDING);
+                if (!stateChanged) {
+                    logger.info("State change did not pass. Skipping request on {}.", refBookCode);
+                    throw new RdmException();
+                }
+                dao.enableInternalLocalRowStateUpdateTrigger(vm.getTable());
+            }
         }
         changeData0(refBookCode, addUpdate, delete, map);
     }

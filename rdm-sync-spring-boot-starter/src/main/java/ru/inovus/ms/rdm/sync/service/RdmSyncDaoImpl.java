@@ -355,7 +355,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     }
 
     @Override
-    public List<HashMap<String, Object>> getRecordsOfStateWithLimitOffset(String table, int limit, int offset, RdmSyncLocalRowState state) {
+    public List<HashMap<String, Object>> getRecordsOfState(String table, int limit, int offset, RdmSyncLocalRowState state) {
         String q = String.format("SELECT * FROM %s WHERE %s = :state LIMIT %d OFFSET %d", table, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), limit, offset);
         var v = new Object() {
             int n = -1;

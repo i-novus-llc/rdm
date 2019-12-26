@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.emptyList;
+import static ru.inovus.ms.rdm.sync.service.change_data.RdmSyncChangeDataUtils.INTERNAL_TAG;
 import static ru.inovus.ms.rdm.sync.service.change_data.RdmSyncChangeDataUtils.reindex;
 
 @DisallowConcurrentExecution
@@ -31,9 +32,10 @@ public final class RdmSyncExportDirtyRecordsToRdmJob implements Job {
             String table = vm.getTable();
             List<FieldMapping> fieldMappings = dao.getFieldMapping(vm.getCode());
             for (;;) {
-                List<HashMap<String, Object>> batch = dao.getRecordsOfStateWithLimitOffset(table, limit, offset, RdmSyncLocalRowState.DIRTY);
+                List<HashMap<String, Object>> batch = dao.getRecordsOfState(table, limit, offset, RdmSyncLocalRowState.DIRTY);
                 if (batch.isEmpty())
                     break;
+                batch.add(INTERNAL_TAG);
                 changeDataClient.changeData(vm.getCode(), batch, emptyList(), t -> {
                     Map<String, Object> m = new HashMap<>(t);
                     reindex(fieldMappings, m);

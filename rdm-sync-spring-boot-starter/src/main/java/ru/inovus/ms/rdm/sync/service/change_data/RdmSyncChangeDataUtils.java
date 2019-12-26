@@ -14,6 +14,8 @@ import static ru.inovus.ms.rdm.api.util.StringUtils.snakeCaseToCamelCase;
 
 final class RdmSyncChangeDataUtils {
 
+    static final HashMap<String, Object> INTERNAL_TAG = new HashMap<>();
+
     private RdmSyncChangeDataUtils() {throw new UnsupportedOperationException();}
 
     static void reindex(List<FieldMapping> fieldMappings, Map<String, Object> map) {
