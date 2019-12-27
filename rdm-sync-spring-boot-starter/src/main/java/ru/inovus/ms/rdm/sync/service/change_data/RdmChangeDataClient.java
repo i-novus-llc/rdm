@@ -18,7 +18,6 @@ import java.util.*;
 import java.util.function.Function;
 
 import static java.util.Collections.emptyList;
-import static ru.inovus.ms.rdm.api.util.StringUtils.camelCaseToSnakeCase;
 import static ru.inovus.ms.rdm.sync.service.change_data.RdmSyncChangeDataUtils.*;
 
 /**
@@ -36,20 +35,18 @@ public abstract class RdmChangeDataClient {
      * - Если объект не экземпляр класса Map -- берем все его поля вплоть до Object-а, переводим их в snake_case, кладем в {@code M}
      * - Если объект экземпляр класса Map -- берем все ее ключи, переводим их в snake_case, кладем в новую {@code M}
      * - Если локально присутствуют записи в таблице rdm_sync.field_mappings для полей справочника с кодом {@code refBookCode} -- применяем описанные там правила к {@code M}.
+     *
+     * Правила, по которым строки переводятся в snake_case могут быть найдены здесь: {@link com.google.common.base.CaseFormat#LOWER_UNDERSCORE}.
+     * Пара примеров:
+     * 1) camelCase -> camel_case
+     * 2) camelCase123 -> camel_case123
+     *
      */
     @Transactional
     public <T extends Serializable> void changeData(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete) {
         List<FieldMapping> fieldMappings = dao.getFieldMapping(refBookCode);
         changeData(refBookCode, addUpdate, delete, t -> {
-            Map<String, Object> map;
-            if (!(t instanceof Map))
-                map = tToMap(t, true, null, null);
-            else {
-                map = new HashMap<>();
-                for (Map.Entry<String, Object> e : ((Map<String, Object>) t).entrySet()) {
-                    map.put(camelCaseToSnakeCase(e.getKey()), e.getValue());
-                }
-            }
+            Map<String, Object> map = tToMap(t, true, null);
             if (!fieldMappings.isEmpty())
                 reindex(fieldMappings, map);
             return map;
@@ -89,7 +86,26 @@ public abstract class RdmChangeDataClient {
         changeData0(refBookCode, addUpdate, delete, map);
     }
 
-    public abstract <T extends Serializable>  void changeData0(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete, Function<? super T, Map<String, Object>> map);
+    abstract <T extends Serializable>  void changeData0(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete, Function<? super T, Map<String, Object>> map);
+
+    /**
+     * Этот метод сам попытается преобразовать экземпляр класса {@code <T>} в {@code Map<String, Object> M} используя следующие правила:
+     * - Если T экземпляр класса Map, берем все ее ключи, переводим их в snake_case, оставляем только те ключи, что содержатся в локальной таблице клиента (смотрим по схеме таблицы) и кладем в {@code M}
+     * - Если T не экземляр класса Map, берем все поля вплоть до Object-а и применяем ту же самую логику к ним
+     * - Дополняем {@code M} нехватающими ключами из схемы локальной таблицы.
+     *
+     * Правила, по которым строки переводятся в snake_case могут быть найдены здесь: {@link com.google.common.base.CaseFormat#LOWER_UNDERSCORE}.
+     * Пара примеров:
+     * 1) camelCase -> camel_case
+     * 2) camelCase123 -> camel_case123
+     *
+     */
+    @Transactional
+    public <T extends Serializable> void lazyUpdateData(List<? extends T> addUpdate, String localTable) {
+        VersionMapping versionMapping = getVersionMappingByTableOrElseThrow(localTable);
+        List<Pair<String, String>> schema = dao.getColumnNameAndDataTypeFromLocalDataTable(versionMapping.getTable());
+        lazyUpdateData(addUpdate, localTable, t -> mapForPgInsert(t, schema));
+    }
 
     /**
      * Вставить/Обновить записи в локальной таблице. Существующие записи и новые записи (проверяется по первичному ключу) из состояния {@link ru.inovus.ms.rdm.sync.service.RdmSyncLocalRowState#SYNCED} переходят в состояние
@@ -97,17 +113,17 @@ public abstract class RdmChangeDataClient {
      * Откуда они могут перейти либо обратно в состояние {@link ru.inovus.ms.rdm.sync.service.RdmSyncLocalRowState#SYNCED}, либо в состояние {@link ru.inovus.ms.rdm.sync.service.RdmSyncLocalRowState#ERROR}.
      * @param addUpdate Записи, которые нужно вставить/изменить в локальной таблице и, со временем, вставить/изменить в RDM.
      * @param localTable Локальная таблица с данными (с явно указанными схемой и названием таблицы)
+     * @param map Функция для преобразования экземляра класса {@code <T>} в {@code Map<String, Object>}, ключами которой идут соответствующие колонки и типы данных в локальной таблице клиента.
      * @param <T> Этот параметр должен реализовывать интерфейс Serializable (для единообразия)
      */
     @Transactional
-    public <T extends Serializable> void lazyUpdateData(List<? extends T> addUpdate, String localTable) {
-        VersionMapping versionMapping = dao.getVersionMappings().stream().filter(vm -> vm.getTable().equals(localTable)).findAny().orElseThrow(() -> new RdmException("No table " + localTable + " found."));
+    public <T extends Serializable> void lazyUpdateData(List<? extends T> addUpdate, String localTable, Function<? super T, Map<String, Object>> map) {
+        VersionMapping versionMapping = getVersionMappingByTableOrElseThrow(localTable);
         String pk = versionMapping.getPrimaryField();
         String isDeletedField = versionMapping.getDeletedField();
-        List<Pair<String, String>> schema = dao.getColumnNameAndDataTypeFromLocalDataTable(localTable);
         IdentityHashMap<? super T, Map<String, Object>> identityHashMap = new IdentityHashMap<>();
-        Map<String, Object>[] arr = mapForPgBatchInsert(addUpdate, schema, identityHashMap);
-        for (Map<String, Object> m : arr) {
+        for (T t : addUpdate) {
+            Map<String, Object> m = map.apply(t);
             Object pv = m.get(pk);
             if (pv == null)
                 throw new RdmException("No primary key found. Primary field: " + pk);
@@ -117,6 +133,7 @@ public abstract class RdmChangeDataClient {
                 dao.markDeleted(localTable, pk, isDeletedField, pv, false, false);
                 dao.updateRow(localTable, pk, isDeletedField, m, false);
             }
+            identityHashMap.put(t, m);
         }
         List<FieldMapping> fieldMappings = dao.getFieldMapping(versionMapping.getCode());
         changeData(versionMapping.getCode(), addUpdate, emptyList(), t -> {
@@ -124,6 +141,10 @@ public abstract class RdmChangeDataClient {
             reindex(fieldMappings, m);
             return m;
         });
+    }
+
+    private VersionMapping getVersionMappingByTableOrElseThrow(String table) {
+        return dao.getVersionMappings().stream().filter(vm -> vm.getTable().equals(table)).findAny().orElseThrow(() -> new RdmException("No table " + table + " found."));
     }
 
     static <T extends Serializable>  RdmChangeDataRequest toRdmChangeDataRequest(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete, Function<? super T, Map<String, Object>> map) {

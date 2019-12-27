@@ -10,7 +10,6 @@ import java.util.*;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toSet;
 import static ru.inovus.ms.rdm.api.util.StringUtils.camelCaseToSnakeCase;
-import static ru.inovus.ms.rdm.api.util.StringUtils.snakeCaseToCamelCase;
 
 final class RdmSyncChangeDataUtils {
 
@@ -72,34 +71,38 @@ final class RdmSyncChangeDataUtils {
         return list;
     }
 
-    static <T extends Serializable> Map<String, Object>[] mapForPgBatchInsert(List<? extends T> list, List<Pair<String, String>> schema, IdentityHashMap<? super T, Map<String, Object>> identityHashMap) {
+    static <T extends Serializable> Map<String, Object> mapForPgInsert(T t, List<Pair<String, String>> schema) {
         Set<String> columnsSnakeCase = schema.stream().map(Pair::getFirst).collect(toSet());
-        Set<String> columnsCamelCase = schema.stream().map(pair -> snakeCaseToCamelCase(pair.getFirst())).collect(toSet());
-        Map<String, Object>[] arr = new Map[list.size()];
-        Iterator<? extends T> it = list.iterator();
-        for (int i = 0; i < arr.length; i++) {
-            T t = it.next();
-            arr[i] = tToMap(t, true, columnsCamelCase, columnsSnakeCase);
-            identityHashMap.put(t, arr[i]);
-        }
-        return arr;
+        return tToMap(t, true, columnsSnakeCase);
     }
 
-    static <T extends Serializable> Map<String, Object> tToMap(T t, final boolean toSnakeCase, Set<String> schemaColumnsCamelCase, Set<String> schemaColumnsSnakeCase) {
+    @SuppressWarnings("squid:S3776")
+    static <T extends Serializable> Map<String, Object> tToMap(T t, final boolean toSnakeCase, Set<String> schema) {
         Map<String, Object> map = new HashMap<>();
-        ReflectionUtils.doWithFields(t.getClass(), field -> {
-            if (schemaColumnsCamelCase != null && !schemaColumnsCamelCase.contains(field.getName()))
-                return;
-            field.setAccessible(true);
-            String key = toSnakeCase ? camelCaseToSnakeCase(field.getName()) : field.getName();
-            map.put(key, field.get(t));
-        });
-        if (schemaColumnsSnakeCase != null) {
-            for (String s : schemaColumnsSnakeCase) {
+        if (!(t instanceof Map)) {
+            ReflectionUtils.doWithFields(t.getClass(), field -> {
+                field.setAccessible(true);
+                String snakeCase = camelCaseToSnakeCase(field.getName());
+                if (shouldConsiderThisField(snakeCase, schema))
+                    map.put(toSnakeCase ? snakeCase : field.getName(), field.get(t));
+            });
+        } else {
+            for (Map.Entry<String, Object> e : ((Map<String, Object>) t).entrySet()) {
+                String snakeCase = camelCaseToSnakeCase(e.getKey());
+                if (shouldConsiderThisField(snakeCase, schema))
+                    map.put(toSnakeCase ? snakeCase : e.getKey(), e.getValue());
+            }
+        }
+        if (schema != null) {
+            for (String s : schema) {
                 map.putIfAbsent(s, null);
             }
         }
         return map;
+    }
+
+    private static boolean shouldConsiderThisField(String fieldName, Set<String> schema) {
+        return schema == null || schema.contains(fieldName);
     }
 
 }

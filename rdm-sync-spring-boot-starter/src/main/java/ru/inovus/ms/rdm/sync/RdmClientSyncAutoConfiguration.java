@@ -171,7 +171,7 @@ public class RdmClientSyncAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnClass(ConnectionFactory.class)
+    @ConditionalOnProperty(value = "rdm_sync.change_data_mode", havingValue = "async")
     public DefaultJmsListenerContainerFactory rdmChangeDataQueueMessageListenerContainerFactory(ConnectionFactory connectionFactory) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
