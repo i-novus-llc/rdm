@@ -8,7 +8,7 @@ import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
-import ru.inovus.ms.rdm.api.model.refdata.ChangeDataRequest;
+import ru.inovus.ms.rdm.api.model.refdata.RdmChangeDataRequest;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -124,6 +124,6 @@ public interface RefBookService {
     @POST
     @Path("/changeData")
     @ApiOperation(value = "Добавить данные в черновик справочника и тут же опубликовать. Если черновика нет -- он будет создан, если есть -- данные отредактируются в существующем.", hidden = true)
-    void changeData(ChangeDataRequest request);
+    void changeData(RdmChangeDataRequest request);
 
 }

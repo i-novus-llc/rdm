@@ -19,7 +19,7 @@ import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -92,7 +92,7 @@ public class RefBookLockServiceImpl implements RefBookLockService {
     }
 
     private void clearWal() {
-        try (InputStream in = Files.newInputStream(WAL_PATH, StandardOpenOption.TRUNCATE_EXISTING)) {
+        try (Writer in = Files.newBufferedWriter(WAL_PATH)) {
             /*Удаляем, все что было в файле, так как оно нам больше не нужно*/
         } catch (IOException e) {
             logger.warn("Can't remove previous content of the WAL file.", e);

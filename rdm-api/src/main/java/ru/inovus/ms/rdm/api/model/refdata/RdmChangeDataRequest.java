@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 
 @SuppressWarnings("squid:S1948")
-public class ChangeDataRequest implements Serializable {
+public class RdmChangeDataRequest implements Serializable {
 
 //  Выставляем systemId, если он известен. Если нет -- система попытается найти systemId по первичному ключу.
     private List<Row> rowsToAddOrUpdate;
@@ -12,9 +12,9 @@ public class ChangeDataRequest implements Serializable {
 
     private String refBookCode;
 
-    public ChangeDataRequest() {}
+    public RdmChangeDataRequest() {}
 
-    public ChangeDataRequest(String refBookCode, List<Row> rowsToAddOrUpdate, List<Row> rowsToDelete) {
+    public RdmChangeDataRequest(String refBookCode, List<Row> rowsToAddOrUpdate, List<Row> rowsToDelete) {
         this.rowsToAddOrUpdate = rowsToAddOrUpdate;
         this.rowsToDelete = rowsToDelete;
         this.refBookCode = refBookCode;

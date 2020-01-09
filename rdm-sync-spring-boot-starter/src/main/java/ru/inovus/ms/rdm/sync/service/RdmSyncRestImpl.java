@@ -67,9 +67,14 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     @Autowired
     private RdmLoggingService loggingService;
     @Autowired
-    private RdmSyncRest self;
-    @Autowired
     private RdmSyncDao dao;
+
+    private RdmSyncRest self;
+
+    @Autowired
+    public void setSelf(RdmSyncRest self) {
+        this.self = self;
+    }
 
     @Override
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -78,31 +83,38 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         List<RefBook> refBooks = getRefBooks(versionMappings);
         for (String code : RefBookReferenceSort.getSortedCodes(refBooks)) {
             self.update(
-                    refBooks.stream().filter(refBook -> refBook.getCode().equals(code)).findFirst().orElseThrow(),
-                    versionMappings.stream().filter(versionMapping -> versionMapping.getCode().equals(code)).findFirst().orElseThrow()
+                refBooks.stream().filter(refBook -> refBook.getCode().equals(code)).findFirst().orElseThrow(),
+                versionMappings.stream().filter(versionMapping -> versionMapping.getCode().equals(code)).findFirst().orElseThrow()
             );
         }
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void update(String refBookCode) {
-        try {
-            if (dao.getVersionMapping(refBookCode) != null) {
-                RefBook newVersion = getNewVersionFromRdm(refBookCode);
-                VersionMapping versionMapping = getVersionMapping(refBookCode);
-                update(newVersion, versionMapping);
+        if (dao.getVersionMapping(refBookCode) != null) {
+            RefBook newVersion;
+            try {
+                newVersion = getNewVersionFromRdm(refBookCode);
+            } catch (Exception e) {
+                logger.error(String.format(ERROR_WHILE_FETCHING_NEW_VERSION, refBookCode), e);
+                return;
             }
-        } catch (RuntimeException ex) {
-            logger.error(String.format(ERROR_WHILE_FETCHING_NEW_VERSION, refBookCode), ex);
-            loggingService.logError(refBookCode, null, null, ex.getMessage(), ExceptionUtils.getStackTrace(ex));
+            VersionMapping versionMapping = getVersionMapping(refBookCode);
+            try {
+                self.update(newVersion, versionMapping);
+                loggingService.logOk(refBookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion());
+            } catch (Exception e) {
+                logger.error(String.format(ERROR_WHILE_UPDATING_NEW_VERSION, refBookCode), e);
+                loggingService.logError(refBookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion(), e.getMessage(), ExceptionUtils.getStackTrace(e));
+            }
         }
     }
 
     @Override
     @Transactional
     public void update(RefBook newVersion, VersionMapping versionMapping) {
-        String refbookCode = newVersion.getCode();
+        dao.disableInternalLocalRowStateUpdateTrigger(versionMapping.getTable());
         try {
             if (versionMapping.getVersion() == null) {
                 //заливаем с нуля
@@ -114,17 +126,14 @@ public class RdmSyncRestImpl implements RdmSyncRest {
             } else if (versionMapping.changed()) {
 //              Значит в прошлый раз мы синхронизировались по старому маппингу.
 //              Необходимо полностью залить свежую версию.
-                dao.markDeleted(versionMapping.getTable(), versionMapping.getDeletedField(), true);
+                dao.markDeleted(versionMapping.getTable(), versionMapping.getDeletedField(), true, true);
                 uploadNew(versionMapping, newVersion);
             }
             //обновляем версию в таблице версий клиента
             dao.updateVersionMapping(versionMapping.getId(), newVersion.getLastPublishedVersion(), newVersion.getLastPublishedVersionFromDate());
-        } catch (RuntimeException e) {
-            logger.error(String.format(ERROR_WHILE_UPDATING_NEW_VERSION, refbookCode), e);
-            loggingService.logError(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion(), e.getMessage(), ExceptionUtils.getStackTrace(e));
-            return;
+        } finally {
+            dao.enableInternalLocalRowStateUpdateTrigger(versionMapping.getTable());
         }
-        loggingService.logOk(refbookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion());
     }
 
     @Override
@@ -174,7 +183,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         Integer oldVersionId = versionService.getVersion(versionMapping.getVersion(), versionMapping.getCode()).getId();
         StructureDiff structureDiff = compareService.compareStructures(oldVersionId, newVersion.getId());
         if (!CollectionUtils.isEmpty(structureDiff.getUpdated()) || !CollectionUtils.isEmpty(structureDiff.getDeleted()) || !CollectionUtils.isEmpty(structureDiff.getInserted())) {
-            dao.markDeleted(versionMapping.getTable(), versionMapping.getDeletedField(), true);
+            dao.markDeleted(versionMapping.getTable(), versionMapping.getDeletedField(), true, true);
             uploadNew(versionMapping, newVersion);
             return;
         }
@@ -214,12 +223,12 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         Object primaryValue = mappedRow.get(versionMapping.getPrimaryField());
         boolean idExists = dao.isIdExists(versionMapping.getTable(), versionMapping.getPrimaryField(), primaryValue);
         if (DELETED.equals(row.getStatus())) {
-            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, true);
+            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, true, true);
         } else if (INSERTED.equals(row.getStatus()) && !idExists) {
-            dao.insertRow(versionMapping.getTable(), mappedRow);
+            dao.insertRow(versionMapping.getTable(), mappedRow, true);
         } else {
-            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, false);
-            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow);
+            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, false, true);
+            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow, true);
         }
     }
 
@@ -279,11 +288,11 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         Object primaryValue = mappedRow.get(primaryField);
         if (existingDataIds.contains(primaryValue)) {
             //если запись существует, обновляем
-            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, false);
-            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow);
+            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, false, true);
+            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow, true);
         } else {
             //создаем новую запись
-            dao.insertRow(versionMapping.getTable(), mappedRow);
+            dao.insertRow(versionMapping.getTable(), mappedRow, true);
         }
     }
 }

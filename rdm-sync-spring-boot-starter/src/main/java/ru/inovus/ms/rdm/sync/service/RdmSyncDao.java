@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.sync.service;
 
+import org.springframework.data.util.Pair;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.Log;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
@@ -8,6 +9,7 @@ import ru.inovus.ms.rdm.sync.model.loader.XmlMappingRefBook;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -36,6 +38,8 @@ public interface RdmSyncDao {
      */
     List<FieldMapping> getFieldMapping(String refbookCode);
 
+    List<Pair<String, String>> getColumnNameAndDataTypeFromLocalDataTable(String table);
+
     void updateVersionMapping(Integer id, String version, LocalDateTime publishDate);
 
     /**
@@ -60,7 +64,7 @@ public interface RdmSyncDao {
      * @param table таблица справочника на стороне клиента
      * @param row   строка с данными
      */
-    void insertRow(String table, Map<String, Object> row);
+    void insertRow(String table, Map<String, Object> row, boolean markSynced);
 
     /**
      * Изменить строку в справочник клиента
@@ -69,7 +73,7 @@ public interface RdmSyncDao {
      * @param isDeletedField поле, отвечающее за признак удаления, в таблице клиента
      * @param row строка с данными
      */
-    void updateRow(String table, String primaryField, String isDeletedField, Map<String, Object> row);
+    void updateRow(String table, String primaryField, String isDeletedField, Map<String, Object> row, boolean markSynced);
 
     /**
      * Пометить запись справочника клиента (не)удаленной
@@ -79,7 +83,7 @@ public interface RdmSyncDao {
      * @param primaryValue значение первичного ключа записи
      * @param deleted новое значение для поля isDeletedField
      */
-    void markDeleted(String table, String primaryField, String isDeletedField, Object primaryValue, boolean deleted);
+    void markDeleted(String table, String primaryField, String isDeletedField, Object primaryValue, boolean deleted, boolean markSynced);
 
     /**
      * Пометить все записи справочника клиента (не)удаленными
@@ -87,7 +91,7 @@ public interface RdmSyncDao {
      * @param isDeletedField поле, отвечающее за признак удаления, в таблице клиента
      * @param deleted новое значение для поля isDeletedField
      */
-    void markDeleted(String table, String isDeletedField, boolean deleted);
+    void markDeleted(String table, String isDeletedField, boolean deleted, boolean markSynced);
 
     void log(String status, String refbookCode, String oldVersion, String newVersion, String message, String stack);
 
@@ -98,5 +102,15 @@ public interface RdmSyncDao {
     void insertFieldMapping(String code, List<XmlMappingField> fieldMappings);
 
     boolean lockRefbookForUpdate(String code);
+
+    void addInternalLocalRowStateUpdateTrigger(String schema, String table);
+    void createOrReplaceLocalRowStateUpdateFunction();
+    void addInternalLocalRowStateColumnIfNotExists(String schema, String table);
+    void disableInternalLocalRowStateUpdateTrigger(String table);
+    void enableInternalLocalRowStateUpdateTrigger(String table);
+
+    List<HashMap<String, Object>> getRecordsOfState(String table, int limit, int offset, RdmSyncLocalRowState state);
+    <T> boolean setLocalRecordsState(String table, String pk, List<? extends T> pvs, RdmSyncLocalRowState expectedState, RdmSyncLocalRowState state);
+    RdmSyncLocalRowState getLocalRowState(String table, String pk, Object pv);
 
 }

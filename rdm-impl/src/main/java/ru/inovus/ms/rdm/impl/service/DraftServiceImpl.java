@@ -371,7 +371,6 @@ public class DraftServiceImpl implements DraftService {
                 .filter(row -> row.getSystemId() == null)
                 .map(row -> RowUtils.getPrimaryKeyValueFilters(row, primaryKeys))
                 .flatMap(Collection::stream).collect(toList());
-
         SearchDataCriteria criteria = new SearchDataCriteria();
         criteria.setAttributeFilter(Set.of(filters));
 

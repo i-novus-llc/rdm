@@ -5,6 +5,7 @@ import net.n2oapp.platform.jaxrs.LocalDateTimeISOParameterConverter;
 import net.n2oapp.platform.jaxrs.TypedParamConverter;
 import net.n2oapp.platform.jaxrs.autoconfigure.EnableJaxRsProxyClient;
 import net.n2oapp.platform.jaxrs.autoconfigure.MissingGenericBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -13,6 +14,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.*;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.util.StringUtils;
@@ -24,12 +27,7 @@ import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
 import ru.inovus.ms.rdm.sync.service.*;
-import ru.inovus.ms.rdm.sync.service.change_data.AsyncChangeDataClient;
-import ru.inovus.ms.rdm.sync.service.change_data.ChangeDataClient;
-import ru.inovus.ms.rdm.sync.service.change_data.ChangeDataRequestCallback;
-import ru.inovus.ms.rdm.sync.service.change_data.SyncChangeDataClient;
-import ru.inovus.ms.rdm.sync.service.listener.ChangeDataListener;
-import ru.inovus.ms.rdm.sync.service.listener.PublishListener;
+import ru.inovus.ms.rdm.sync.service.change_data.*;
 
 import javax.jms.ConnectionFactory;
 import javax.sql.DataSource;
@@ -50,6 +48,7 @@ import java.time.OffsetDateTime;
 )
 @AutoConfigureAfter(LiquibaseAutoConfiguration.class)
 @EnableJms
+@ComponentScan({"ru.inovus.ms.rdm.sync.service.init"})
 public class RdmClientSyncAutoConfiguration {
 
     @Bean
@@ -72,18 +71,6 @@ public class RdmClientSyncAutoConfiguration {
         liquibase.setDatabaseChangeLogLockTable("databasechangeloglock_rdms");
         liquibase.setChangeLog("classpath*:/rdm-sync-db/baseChangelog.xml");
         return liquibase;
-    }
-
-    @Bean
-    @DependsOn("liquibaseRdm")
-    public MappingLoaderService mappingLoaderService(){
-        return new XmlMappingLoaderService(rdmSyncDao());
-    }
-
-    @Bean
-    @DependsOn("liquibaseRdm")
-    public MappingLoader mappingLoader(){
-        return new MappingLoader(mappingLoaderService());
     }
 
     @Bean
@@ -184,8 +171,8 @@ public class RdmClientSyncAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnClass(ConnectionFactory.class)
-    public DefaultJmsListenerContainerFactory changeDataQueueMessageListenerContainerFactory(ConnectionFactory connectionFactory) {
+    @ConditionalOnProperty(value = "rdm_sync.change_data_mode", havingValue = "async")
+    public DefaultJmsListenerContainerFactory rdmChangeDataQueueMessageListenerContainerFactory(ConnectionFactory connectionFactory) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setSessionTransacted(true);
@@ -200,31 +187,43 @@ public class RdmClientSyncAutoConfiguration {
 
     @Bean
     @ConditionalOnProperty(name = "rdm_sync.change_data_mode", havingValue = "async")
-    public ChangeDataListener changeDataListener(RefBookService refBookService, ChangeDataRequestCallback changeDataRequestCallback) {
-        return new ChangeDataListener(refBookService, changeDataRequestCallback);
-    }
-
-    @Bean
-    public XmlMappingLoaderLockService xmlMappingLoaderLockService() {
-        return new XmlMappingLoaderLockService();
+    public RdmChangeDataListener rdmChangeDataListener(RefBookService refBookService, RdmChangeDataRequestCallback rdmChangeDataRequestCallback) {
+        return new RdmChangeDataListener(refBookService, rdmChangeDataRequestCallback);
     }
 
     @Bean
     @ConditionalOnProperty(value = "rdm_sync.change_data_mode", havingValue = "sync", matchIfMissing = true)
-    public ChangeDataClient syncChangeDataClient() {
-        return new SyncChangeDataClient();
+    public RdmChangeDataClient syncRdmChangeDataClient() {
+        return new SyncRdmChangeDataClient();
     }
 
     @Bean
     @ConditionalOnProperty(value = "rdm_sync.change_data_mode", havingValue = "async")
-    public ChangeDataClient asyncChangeDataClient() {
-        return new AsyncChangeDataClient();
+    public RdmChangeDataClient asyncRdmChangeDataClient() {
+        return new AsyncRdmChangeDataClient();
     }
 
 
     @Bean
-    public ChangeDataRequestCallback changeDataRequestCallback() {
-        return new ChangeDataRequestCallback.DefaultChangeDataRequestCallback();
+    public RdmChangeDataRequestCallback rdmChangeDataRequestCallback() {
+        return new RdmChangeDataRequestCallback.DefaultRdmChangeDataRequestCallback();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public NamedParameterJdbcTemplate namedParameterJdbcTemplate(JdbcTemplate jdbcTemplate) {
+        return new NamedParameterJdbcTemplate(jdbcTemplate);
+    }
+
+    @Bean
+    public RdmSyncLocalRowStateService rdmSyncLocalRowStateService() {
+        return new RdmSyncLocalRowStateService();
+    }
+
+    @Bean
+    @SuppressWarnings("squid:S2440")
+    public RdmSyncJobContext rdmSyncJobContext(RdmSyncDao rdmSyncDao, RdmChangeDataClient rdmChangeDataClient, @Value("${rdm_sync.export_from_local.batch_size:100}") int exportToRdmBatchSize) {
+        return new RdmSyncJobContext(rdmSyncDao, rdmChangeDataClient, exportToRdmBatchSize);
     }
 
 }

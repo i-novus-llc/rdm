@@ -24,7 +24,7 @@ import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
-import ru.inovus.ms.rdm.api.model.refdata.ChangeDataRequest;
+import ru.inovus.ms.rdm.api.model.refdata.RdmChangeDataRequest;
 import ru.inovus.ms.rdm.api.service.DraftService;
 import ru.inovus.ms.rdm.api.service.PublishService;
 import ru.inovus.ms.rdm.api.service.RefBookService;
@@ -343,7 +343,7 @@ public class RefBookServiceImpl implements RefBookService {
 
     @Override
     @SuppressWarnings("squid:S2259")
-    public void changeData(ChangeDataRequest request) {
+    public void changeData(RdmChangeDataRequest request) {
         RefBookEntity refBook = refBookRepository.findByCode(request.getRefBookCode());
         versionValidation.validateRefBookExists(refBook == null ? null : refBook.getId());
         refBookLockService.setRefBookUpdating(refBook.getId());
