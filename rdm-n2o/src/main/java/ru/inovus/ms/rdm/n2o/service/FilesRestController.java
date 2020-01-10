@@ -1,7 +1,9 @@
 package ru.inovus.ms.rdm.n2o.service;
 
+import net.n2oapp.platform.i18n.Messages;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -25,6 +27,12 @@ public class FilesRestController {
     private final FileStorageService fileStorageService;
     private final VersionService versionService;
 
+    @Value("${rdm.max-file-size-mb}")
+    private int maxFileSizeMb;
+
+    @Autowired
+    private Messages messages;
+
     @Autowired
     public FilesRestController(FileStorageService fileStorageService, VersionService versionService) {
         this.fileStorageService = fileStorageService;
@@ -34,6 +42,9 @@ public class FilesRestController {
     @CrossOrigin(origins = "*")
     @PostMapping(value = "")
     public FileModel uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
+        long size = file.getSize();
+        if (size / 1024 / 1024 > maxFileSizeMb)
+            throw new IllegalArgumentException(messages.getMessage("file.is.too.big", maxFileSizeMb));
         String storageFileName = toStorageFileName(file.getOriginalFilename());
         FileModel save = fileStorageService.save(file.getInputStream(), storageFileName);
         save.setName(file.getOriginalFilename());
