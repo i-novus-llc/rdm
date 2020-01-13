@@ -163,7 +163,7 @@ public class DraftServiceImpl implements DraftService {
         switch (extension) {
             case "XLSX": return updateDraftDataByXlsx(refBookId, fileModel, inputStreamSupplier);
             case "XML": return updateDraftDataByXml(refBookId, fileModel, inputStreamSupplier);
-            default: throw new RdmException("file.extension.invalid");
+            default: throw new UserException("file.extension.invalid");
         }
     }
 
