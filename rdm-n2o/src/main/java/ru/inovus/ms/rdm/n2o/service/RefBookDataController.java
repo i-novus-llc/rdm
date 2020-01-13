@@ -269,9 +269,7 @@ public class RefBookDataController {
     }
 
     private String referenceToString(Reference reference) {
-        return reference.getValue() != null
-                ? reference.getValue() + ": " + reference.getDisplayValue()
-                : null;
+        return reference.getValue() != null ? reference.getDisplayValue() : null;
     }
 
     private List<DataGridColumn> createHead(Structure structure) {
