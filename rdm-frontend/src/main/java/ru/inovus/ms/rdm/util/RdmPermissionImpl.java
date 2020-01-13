@@ -13,6 +13,8 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class RdmPermissionImpl implements RdmPermission {
 
+    private static final String ANY_PERMISSION = "*";
+
     @Value("${rdm.permissions.nsi.draft.version}")
     private List<String> rdmPermissionsNsiDraftVersion;
 
@@ -30,6 +32,9 @@ public class RdmPermissionImpl implements RdmPermission {
     public boolean excludeDraft() {
         return  isEmpty(rdmPermissionsNsiDraftVersion) ||
                 rdmPermissionsNsiDraftVersion.stream()
-                        .noneMatch(permission -> permissionApi.hasPermission(userContext, permission));
+                        .noneMatch(permission ->
+                                ANY_PERMISSION.equals(permission)
+                                        || permissionApi.hasPermission(userContext, permission)
+                        );
     }
 }
