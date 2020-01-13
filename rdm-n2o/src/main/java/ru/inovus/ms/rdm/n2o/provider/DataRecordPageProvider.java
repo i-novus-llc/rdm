@@ -137,7 +137,7 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
                 referenceField.setQueryId("reference");
                 // NB: value-field-id is deprecated:
                 referenceField.setValueFieldId("value");
-                referenceField.setPlaceholder("${value}: ${displayValue}");
+                referenceField.setLabelFieldId("displayValue");
                 referenceField.setDomain(N2oDomain.STRING);
 
                 N2oPreFilter versionFilter = new N2oPreFilter();
