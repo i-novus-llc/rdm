@@ -120,6 +120,8 @@ public class CreateDraftController {
             if (!primary.isEmpty()) {
                 List<AttributeFilter> primaryKeyValueFilters = RowUtils.getPrimaryKeyValueFilters(row, primary);
                 SearchDataCriteria searchDataCriteria = new SearchDataCriteria(Set.of(primaryKeyValueFilters), null);
+                searchDataCriteria.setPageSize(1);
+                searchDataCriteria.setPageNumber(1);
                 long n = versionService.search(uiDraft.getId(), searchDataCriteria).getTotalElements();
                 if (n > 0)
                     throw new UserException("pk.is.already.exists");
