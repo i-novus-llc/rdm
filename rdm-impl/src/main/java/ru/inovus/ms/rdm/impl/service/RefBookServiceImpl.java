@@ -278,6 +278,7 @@ public class RefBookServiceImpl implements RefBookService {
 
     @Override
     @Transactional
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public void delete(int refBookId) {
 
         versionValidation.validateRefBookExists(refBookId);
@@ -285,29 +286,28 @@ public class RefBookServiceImpl implements RefBookService {
 
         // NB: may-be: Move to `RefBookVersionQueryProvider`.
         RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
-        List<RefBookVersionEntity> l = refBookEntity.getVersionList();
-        RefBookVersionEntity last = null;
-        for (RefBookVersionEntity e : l) {
-            if (last == null || last.getId() < e.getId())
-                last = e;
+        List<RefBookVersionEntity> refBookVersions = refBookEntity.getVersionList();
+        RefBookVersionEntity lastVersion = null;
+        for (RefBookVersionEntity version : refBookVersions) {
+            if (lastVersion == null || lastVersion.getId() < version.getId())
+                lastVersion = version;
         }
-//      Подтягиваем из базы данные о пасспорте,
-//      потому что их уже не будет там после удаления (fetchType по дефолту -- LAZY)
-        if (last != null) {
-            last.getPassportValues().forEach(PassportValueEntity::getAttribute);
-            last.setRefBook(refBookEntity);
+
+        // Подтягиваем из базы данные о паспорте,
+        // потому что их уже не будет там после удаления (fetchType по дефолту -- LAZY).
+        if (lastVersion != null) {
+            lastVersion.getPassportValues().forEach(PassportValueEntity::getAttribute);
+            lastVersion.setRefBook(refBookEntity);
         }
-        l.forEach(v ->
-                dropDataService.drop(refBookRepository.getOne(refBookId).getVersionList().stream()
-                        .map(RefBookVersionEntity::getStorageCode)
-                        .collect(Collectors.toSet())));
+
+        dropDataService.drop(refBookVersions.stream()
+                .map(RefBookVersionEntity::getStorageCode)
+                .collect(Collectors.toSet()));
         refBookRepository.deleteById(refBookId);
-        if (last != null) {
-            RefBookVersionEntity finalLast = last;
-            auditLogService.addAction(
-                AuditAction.DELETE_REF_BOOK,
-                () -> finalLast
-            );
+
+        if (lastVersion != null) {
+            final RefBookVersionEntity finalVersion = lastVersion;
+            auditLogService.addAction(AuditAction.DELETE_REF_BOOK, () -> finalVersion);
         }
     }
 
@@ -349,6 +349,7 @@ public class RefBookServiceImpl implements RefBookService {
     public void changeData(RdmChangeDataRequest request) {
         RefBookEntity refBook = refBookRepository.findByCode(request.getRefBookCode());
         versionValidation.validateRefBookExists(refBook == null ? null : refBook.getId());
+
         refBookLockService.setRefBookUpdating(refBook.getId());
         try {
             Integer draftId = draftService.getIdByRefBookCode(request.getRefBookCode());
