@@ -13,7 +13,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class RdmPermissionImpl implements RdmPermission {
 
-    @Value("${rdm.permissions.nsi.draft.version}")
+    @Value("${rdm.permissions.draft.version}")
     private List<String> rdmPermissionsNsiDraftVersion;
 
     private UserContext userContext;

@@ -34,7 +34,7 @@
 
     </permit-all>
 
-    <permission id="nsi.edit" name="Добавление/редактирование справочников">
+    <permission id="rdm.edit" name="Добавление/редактирование справочников">
         <page-access page-id="refBook"/>
         <page-access page-id="attribute"/>
         <page-access page-id="createRefBook"/>
@@ -57,7 +57,7 @@
 
     </permission>
 
-    <permission id="nsi.archive" name="Архивирование справочников">
+    <permission id="rdm.archive" name="Архивирование справочников">
         <object-access object-id="refBook"
                        remove-filters="nonArchived,onlyPublished,oncePublished"
                        operations="toArchive,fromArchive"
@@ -66,7 +66,7 @@
 
     </permission>
 
-    <permission id="nsi.download" name="Выгрузка справочников">
+    <permission id="rdm.download" name="Выгрузка справочников">
         <page-access page-id="downloadFile"/>
 
     </permission>
