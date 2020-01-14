@@ -1,23 +1,8 @@
 <access xmlns="http://n2oapp.net/framework/config/schema/access-2.0">
 
-<!--    <authenticated>-->
-<!--        <page-access page-id="refBookList"/>-->
-<!--        <page-access page-id="refBookView"/>-->
-<!--        <page-access page-id="downloadFile"/>-->
-
-<!--    </authenticated>-->
-
-<!--    <anonymous>-->
-<!--        <page-access page-id="refBookList"/>-->
-<!--        <page-access page-id="refBookView"/>-->
-<!--        <page-access page-id="downloadFile"/>-->
-
-<!--    </anonymous>-->
-
     <permit-all>
         <page-access page-id="refBookList"/>
         <page-access page-id="refBookView"/>
-<!--        <page-access page-id="downloadFile"/>-->
 
         <object-access object-id="refBook"/>
         <object-access object-id="refBookStatusList"/>
@@ -85,15 +70,5 @@
         <page-access page-id="downloadFile"/>
 
     </permission>
-
-    <permission id="audit">
-        <page-access page-id="audit"/>
-
-    </permission>
-
-    <role id="admin">
-        <url-access pattern="${rdm.user.admin.url}"/>
-
-    </role>
 
 </access>
