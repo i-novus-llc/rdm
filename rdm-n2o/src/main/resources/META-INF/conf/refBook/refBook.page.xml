@@ -100,7 +100,7 @@
             <table ref-id="structure" name="Структура" id="structure_table" depends-on="version_select"
                    master-field-id="id" detail-field-id="versionId" upload="query">
                 <toolbar place="bottomRight">
-                    <button label="Добавить" id="create_r" model="resolve" widget-id="version_select">
+                    <button label="Добавить" id="createAttribute_r" model="resolve" widget-id="version_select">
                         <show-modal page-id="attribute" submit-operation-id="create" upload="defaults">
                             <pre-filters>
                                 <eq field-id="versionId" value="{version.id}" ref-model="resolve"
@@ -108,7 +108,7 @@
                             </pre-filters>
                         </show-modal>
                     </button>
-                    <button label="Изменить" id="edit_r">
+                    <button label="Изменить" id="editAttribute_r">
                         <show-modal page-id="attribute" submit-operation-id="updateAttribute" submit-model="resolve">
                             <pre-filters>
                                 <eq field-id="versionId" value="{versionId}"/>
