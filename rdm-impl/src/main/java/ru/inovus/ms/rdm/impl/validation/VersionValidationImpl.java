@@ -11,6 +11,7 @@ import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.util.StructureUtils;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates;
+import ru.inovus.ms.rdm.impl.repository.RefBookRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.NamingUtils;
 
@@ -22,6 +23,7 @@ import static org.springframework.util.StringUtils.isEmpty;
 public class VersionValidationImpl implements VersionValidation {
 
     public static final String REFBOOK_NOT_FOUND_EXCEPTION_CODE = "refbook.not.found";
+    public static final String REFBOOK_CODE_NOT_FOUND_EXCEPTION_CODE = "refbook.with.code.not.found";
     private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
     public static final String DRAFT_NOT_FOUND_EXCEPTION_CODE = "draft.not.found";
     public static final String REFBOOK_IS_ARCHIVED_EXCEPTION_CODE = "refbook.is.archived";
@@ -31,10 +33,13 @@ public class VersionValidationImpl implements VersionValidation {
     private static final String REFERENCE_REFERRED_ATTRIBUTE_NOT_FOUND = "reference.referred.attribute.not.found";
     private static final String REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND = "reference.referred.attributes.not.found";
 
+    private RefBookRepository refbookRepository;
     private RefBookVersionRepository versionRepository;
 
     @Autowired
-    public VersionValidationImpl(RefBookVersionRepository versionRepository) {
+    public VersionValidationImpl(RefBookRepository refbookRepository,
+                                 RefBookVersionRepository versionRepository) {
+        this.refbookRepository = refbookRepository;
         this.versionRepository = versionRepository;
     }
 
@@ -78,8 +83,20 @@ public class VersionValidationImpl implements VersionValidation {
      */
     @Override
     public void validateRefBookExists(Integer refBookId) {
-        if (refBookId == null || !versionRepository.exists(RefBookVersionPredicates.isVersionOfRefBook(refBookId))) {
+        if (refBookId == null || !refbookRepository.existsById(refBookId)) {
             throw new NotFoundException(new Message(REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
+        }
+    }
+
+    /**
+     * Проверка существования справочника по коду.
+     *
+     * @param refBookCode код справочника
+     */
+    @Override
+    public void validateRefBookCodeExists(String refBookCode) {
+        if (isEmpty(refBookCode) || !refbookRepository.existsByCode(refBookCode)) {
+            throw new NotFoundException(new Message(REFBOOK_CODE_NOT_FOUND_EXCEPTION_CODE, refBookCode));
         }
     }
 
