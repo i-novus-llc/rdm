@@ -236,11 +236,14 @@ public class RefBookServiceImpl implements RefBookService {
     }
 
     private Draft createByXml(FileModel fileModel) {
-        Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
         RefBook refBook;
         try (XmlCreateRefBookFileProcessor createRefBookFileProcessor = new XmlCreateRefBookFileProcessor(this)) {
+            Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
             refBook = createRefBookFileProcessor.process(inputStreamSupplier);
         }
+        if (refBook == null)
+            throw new UserException("check.your.xml");
+
         return draftService.create(refBook.getRefBookId(), fileModel);
     }
 
