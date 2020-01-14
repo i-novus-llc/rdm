@@ -57,7 +57,7 @@ class DataGridPagination extends Component {
       <Pagination
         onSelect={onChangePage}
         activePage={activePage}
-        count={count-1}
+        count={count > 0 ? count - 1 : count}
         size={size}
         maxButtons={maxButtons}
         stepIncrement={10}
