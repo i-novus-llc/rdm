@@ -27,7 +27,7 @@ public class FilesRestController {
     private final FileStorageService fileStorageService;
     private final VersionService versionService;
 
-    @Value("${rdm.max-file-size-mb}")
+    @Value("${rdm.max-file-size-mb:55}")
     private int maxFileSizeMb;
 
     @Autowired
