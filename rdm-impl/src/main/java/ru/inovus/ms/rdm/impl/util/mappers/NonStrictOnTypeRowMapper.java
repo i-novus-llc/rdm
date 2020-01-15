@@ -21,7 +21,13 @@ public class NonStrictOnTypeRowMapper extends StructureRowMapper {
 
     @Override
     public Row map(Row inputRow) {
-        inputRow.getData().entrySet().stream().filter(e -> e.getValue() != castValue(structure.getAttribute(e.getKey()), e.getValue())).forEach(e -> e.setValue(castValue(structure.getAttribute(e.getKey()), e.getValue())));
+        inputRow.getData().entrySet()
+                .forEach(e -> {
+                    Object value = castValue(structure.getAttribute(e.getKey()), e.getValue());
+                    if (e.getValue() != value) {
+                        e.setValue(value);
+                    }
+                });
         return inputRow;
     }
 
@@ -29,6 +35,7 @@ public class NonStrictOnTypeRowMapper extends StructureRowMapper {
     protected Object castValue(Structure.Attribute attribute, Object value) {
         try {
             return super.castValue(attribute, value);
+
         } catch (Exception e) {
             logger.error("value can not be casted to a needed type", e);
             return value;
