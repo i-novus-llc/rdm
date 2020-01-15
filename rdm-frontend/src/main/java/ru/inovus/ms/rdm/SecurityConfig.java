@@ -1,8 +1,10 @@
 package ru.inovus.ms.rdm;
 
-import net.n2oapp.framework.security.auth.oauth2.OpenIdSecurityConfigurerAdapter;
+import net.n2oapp.framework.security.auth.oauth2.gateway.GatewayPrincipalExtractor;
+import net.n2oapp.security.auth.oauth2.OpenIdSecurityConfigurerAdapter;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2SsoProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoRestTemplateFactory;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -16,6 +18,11 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 @EnableWebSecurity
 @SuppressWarnings("unused")
 public class SecurityConfig extends OpenIdSecurityConfigurerAdapter {
+
+    @Bean
+    public GatewayPrincipalExtractor gatewayPrincipalExtractor() {
+        return new GatewayPrincipalExtractor();
+    }
 
     @Override
     protected void authorize(ExpressionUrlAuthorizationConfigurer<HttpSecurity>
