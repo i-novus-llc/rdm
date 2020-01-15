@@ -2,15 +2,16 @@ package ru.inovus.ms.rdm.n2o.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import ru.inovus.ms.rdm.api.service.ConflictService;
-import ru.inovus.ms.rdm.api.service.PublishService;
-import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.api.enumeration.ConflictType;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.api.service.ConflictService;
+import ru.inovus.ms.rdm.api.service.PublishService;
+import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.n2o.model.UiRefBookPublish;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -58,8 +59,8 @@ public class RefBookPublishController {
      *
      * @param draftId идентификатор черновика
      */
-    public void publishDraft(Integer draftId) {
-        publishService.publish(draftId, null, null, null, false);
+    public UUID publishDraft(Integer draftId) {
+        return publishService.publishAsync(draftId, null, null, null, false);
     }
 
     /**
@@ -67,8 +68,8 @@ public class RefBookPublishController {
      *
      * @param draftId идентификатор черновика
      */
-    public void publishAndRefresh(Integer draftId) {
-        publishService.publish(draftId, null, null, null, true);
+    public UUID publishAndRefresh(Integer draftId) {
+        return publishService.publishAsync(draftId, null, null, null, true);
     }
 
     /**

@@ -3,7 +3,7 @@
 
     <operations>
         <operation id="publishDraft" submit-label="Опубликовать"
-                   success-text="Справочник опубликован" confirm="false">
+                   success-text="Операция на публикацию справочника поставлена в очередь. Идентификатор операции: {opId}. Вы можете просмотреть ее результат во вкладке 'Журнал операций'." confirm="false">
             <invocation>
                 <java class="ru.inovus.ms.rdm.n2o.service.RefBookPublishController"
                       method="publishDraft">
@@ -16,10 +16,13 @@
             <in-parameters>
                 <param id="version.id" mapping="[0]" domain="integer" mapper="spel"/>
             </in-parameters>
+            <out-parameters>
+                <param id="opId" domain="string"/>
+            </out-parameters>
         </operation>
 
         <operation id="publishAndRefresh" submit-label="Опубликовать и обновить ссылки"
-                   success-text="Справочник опубликован, ссылки обновлены" confirm="false">
+                   success-text="Операция на публикацию справочника поставлена в очередь. Идентификатор операции: {opId}. Вы можете просмотреть ее результат во вкладке 'Журнал операций'." confirm="false">
             <invocation>
                 <java class="ru.inovus.ms.rdm.n2o.service.RefBookPublishController"
                       method="publishAndRefresh">
@@ -32,6 +35,9 @@
             <in-parameters>
                 <param id="version.id" mapping="[0]" domain="integer" mapper="spel"/>
             </in-parameters>
+            <out-parameters>
+                <param id="opId" domain="string"/>
+            </out-parameters>
         </operation>
 
     </operations>
