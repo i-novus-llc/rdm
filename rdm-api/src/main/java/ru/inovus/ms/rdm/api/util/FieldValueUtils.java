@@ -38,21 +38,35 @@ public class FieldValueUtils {
      * @param rowValue          запись со значениями подставляемых полей
      * @return Отображаемое значение
      */
-    public static String rowValueToDisplayValue(String displayExpression, RowValue rowValue) {
-        return fieldValuesToDisplayValue(displayExpression, ((LongRowValue)rowValue).getFieldValues());
+    public static String rowValueToDisplayValueWithPkLeading(String displayExpression, String pk, RowValue rowValue) {
+        return fieldValuesToDisplayValue(displayExpression, pk, ((LongRowValue)rowValue).getFieldValues());
     }
 
     /**
      * Получение отображаемого значения.
      *
      * @param displayExpression выражение для вычисления отображаемого значения
+     * @param pk Первичный ключ
      * @param fieldValues       список значений подставляемых полей
      * @return Отображаемое значение
      */
-    private static String fieldValuesToDisplayValue(String displayExpression, List<FieldValue> fieldValues) {
+    private static String fieldValuesToDisplayValue(String displayExpression, String pk, List<FieldValue> fieldValues) {
         Map<String, Object> map = new HashMap<>();
-        fieldValues.forEach(fieldValue -> map.put(fieldValue.getField(), fieldValue.getValue()));
-        return new StringSubstitutor(map, DisplayExpression.PLACEHOLDER_START, DisplayExpression.PLACEHOLDER_END).replace(displayExpression);
+        Map<String, String> placeholders = new DisplayExpression(displayExpression).getPlaceholders();
+        String pkVal = null;
+        boolean pkInDisplayExpression = false;
+        for (FieldValue fieldValue : fieldValues) {
+            String defaultVal = placeholders.get(fieldValue.getField());
+            if (defaultVal != null) {
+                map.put(fieldValue.getField(), fieldValue.getValue() == null ? defaultVal : fieldValue.getValue());
+                if (fieldValue.getField().equals(pk))
+                    pkInDisplayExpression = true;
+            }
+            if (!pkInDisplayExpression && fieldValue.getField().equals(pk))
+                pkVal = fieldValue.getValue().toString();
+        }
+        String display = new StringSubstitutor(map, DisplayExpression.PLACEHOLDER_START, DisplayExpression.PLACEHOLDER_END).replace(displayExpression);
+        return pkInDisplayExpression ? display : pkVal + ": " + display;
     }
 
     /**

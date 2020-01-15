@@ -616,7 +616,7 @@ public class DraftServiceImpl implements DraftService {
         if (isReference != attribute.isReferenceType()) throw new IllegalArgumentException("Can not update structure, illegal create attribute");
 
         if (isReference) {
-            validateDisplayExpression(reference.getDisplayExpression(), reference.getReferenceCode());
+            validateRef(reference.getDisplayExpression(), reference.getReferenceCode());
         }
 
         draftDataService.addField(draftEntity.getStorageCode(), ConverterUtil.field(attribute));
@@ -671,7 +671,7 @@ public class DraftServiceImpl implements DraftService {
 
             if (Objects.isNull(oldDisplayExpression)
                     || !oldDisplayExpression.equals(newDisplayExpression)) {
-                validateDisplayExpression(newDisplayExpression, updateAttribute.getReferenceCode().get());
+                validateRef(newDisplayExpression, updateAttribute.getReferenceCode().get());
             }
         }
 
@@ -701,13 +701,15 @@ public class DraftServiceImpl implements DraftService {
         auditStructureEdit(draftEntity, "update_attribute", structure.getAttribute(updateAttribute.getCode()));
     }
 
-    private void validateDisplayExpression(String displayExpression, String refBookCode) {
+    private void validateRef(String displayExpression, String refBookCode) {
 
         if (StringUtils.isEmpty(displayExpression))
             return; // NB: to-do: throw exception and fix absent referredBook in testLifecycle.
 
         RefBookVersion referredVersion = versionService.getLastPublishedVersion(refBookCode);
         versionValidation.validateReferenceDisplayExpression(displayExpression, referredVersion);
+        List<Structure.Attribute> pks = referredVersion.getStructure().getPrimary();
+        if (pks.size() != 1) throw new UserException("referenced.refbook.has.more.or.less.than.one.pk");
     }
 
     private void fillUpdatableAttribute(UpdateAttribute updateAttribute, Structure.Attribute attribute) {
