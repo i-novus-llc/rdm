@@ -10,35 +10,37 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 /**
- * Created by znurgaliev on 15.08.2018.
+ * Проверка на уникальность строк по первичным ключам.
  */
 public class PkUniqueRowAppendValidation extends AppendRowValidation {
 
     private static final String NOT_UNIQUE_PK_ERR = "validation.not.unique.pk.err";
 
-    private final Set<String> uniqueRowAttributes;
+    private final Set<String> primaryKeyCodes;
 
-    private final Set<Map<String, Object>> uniqueRow;
+    private final Set<Map<String, Object>> uniqueRowSet;
 
     private final Structure structure;
 
     public PkUniqueRowAppendValidation(Structure structure) {
         this.structure = structure;
-        this.uniqueRowAttributes = structure.getAttributes().stream()
+        this.primaryKeyCodes = structure.getAttributes().stream()
                 .filter(Structure.Attribute::getIsPrimary)
                 .map(Structure.Attribute::getCode)
                 .collect(Collectors.toSet());
-        this.uniqueRow = new HashSet<>();
+        this.uniqueRowSet = new HashSet<>();
     }
 
     @Override
-    protected List<Message> validate(Long systemId, Map<String, Object> attributeValues) {
-        if (uniqueRowAttributes.isEmpty() || !attributeValues.keySet().containsAll(uniqueRowAttributes))
+    protected List<Message> validate(Long systemId, Map<String, Object> rowData) {
+
+        if (primaryKeyCodes.isEmpty() || !rowData.keySet().containsAll(primaryKeyCodes))
             return Collections.emptyList();
-        attributeValues.entrySet().removeIf(entry -> !uniqueRowAttributes.contains(entry.getKey()));
-        if (!uniqueRow.add(attributeValues)) {
+
+        rowData.entrySet().removeIf(entry -> !primaryKeyCodes.contains(entry.getKey()));
+        if (!uniqueRowSet.add(rowData)) {
             return singletonList(new Message(NOT_UNIQUE_PK_ERR,
-                    attributeValues.entrySet().stream()
+                    rowData.entrySet().stream()
                             .map(e -> structure.getAttribute(e.getKey()).getName() + "\" - \"" + e.getValue())
                             .collect(Collectors.joining("\", \""))));
         }

@@ -30,9 +30,10 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
     private static final String DB_CONTAINS_PK_ERROR_CODE = "validation.db.contains.pk.err";
 
     private SearchDataService searchDataService;
-    private List<Map<Structure.Attribute, Object>> primaryKeys;
-    private List<String> primaryKeyAttributes;
     private String storageCode;
+
+    private List<Map<Structure.Attribute, Object>> primaryKeyMaps;
+    private List<String> primaryKeyCodes;
     private Collection<RowValue> rowValues;
 
     public DBPrimaryKeyValidation(SearchDataService searchDataService, Structure structure, Row row, String storageCode) {
@@ -42,13 +43,12 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
     public DBPrimaryKeyValidation(SearchDataService searchDataService, Structure structure, List<Row> rows, String storageCode) {
         this.searchDataService = searchDataService;
         this.storageCode = storageCode;
-        this.primaryKeys = rows.stream().map(row -> getPrimaryKeyMap(structure, row)).filter(MapUtils::isNotEmpty).collect(toList());
-        this.primaryKeyAttributes = isNotEmpty(primaryKeys)
-                ? primaryKeys.get(0).keySet().stream().map(Structure.Attribute::getCode).collect(toList())
+
+        this.primaryKeyMaps = rows.stream().map(row -> getPrimaryKeyMap(structure, row)).filter(MapUtils::isNotEmpty).collect(toList());
+        this.primaryKeyCodes = isNotEmpty(primaryKeyMaps)
+                ? primaryKeyMaps.get(0).keySet().stream().map(Structure.Attribute::getCode).collect(toList())
                 : emptyList();
-        this.rowValues = isNotEmpty(primaryKeys)
-                ? getRefBookData(rows)
-                : emptyList();
+        this.rowValues = isNotEmpty(primaryKeyMaps) ? getRefBookData(rows) : emptyList();
     }
 
     @Override
@@ -58,14 +58,15 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
     }
 
     @Override
-    protected List<Message> validate(Long systemId, Map<String, Object> attributeValues) {
-        if (!isEmpty(primaryKeyAttributes) &&
-                primaryKeyAttributes.stream().noneMatch(a -> getErrorAttributes().contains(a))) {
+    protected List<Message> validate(Long systemId, Map<String, Object> rowData) {
 
-            RowValue refBookRow = findRowValue(primaryKeyAttributes, attributeValues, rowValues);
+        if (!isEmpty(primaryKeyCodes) &&
+                primaryKeyCodes.stream().noneMatch(a -> getErrorAttributes().contains(a))) {
+
+            RowValue refBookRow = findRowValue(primaryKeyCodes, rowData, rowValues);
             if (refBookRow != null && !refBookRow.getSystemId().equals(systemId)) {
-                primaryKeyAttributes.forEach(this::addErrorAttribute);
-                return singletonList(toMessageFromValues(attributeValues));
+                primaryKeyCodes.forEach(this::addErrorAttribute);
+                return singletonList(createMessage(rowData));
             }
         }
         return emptyList();
@@ -78,8 +79,9 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
     }
 
     private DataCriteria createCriteria(List<Row> rows) {
-        List<Field> fields = primaryKeys.get(0).keySet().stream().map(ConverterUtil::field).collect(toList());
-        Set<List<FieldSearchCriteria>> filters = primaryKeys.stream()
+
+        List<Field> fields = primaryKeyMaps.get(0).keySet().stream().map(ConverterUtil::field).collect(toList());
+        Set<List<FieldSearchCriteria>> filters = primaryKeyMaps.stream()
                 .filter(this::isCorrectType)
                 .map(entry -> entry.entrySet().stream()
                         .map(this::toFieldSearchCriteria)
@@ -104,11 +106,11 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
         return map;
     }
 
-    private boolean isCorrectType(Map<Structure.Attribute, Object> primaryAttributeValues) {
-        return primaryAttributeValues.keySet().stream()
-                .allMatch(primaryKeyAttr ->
-                        TypeValidation.checkType(primaryKeyAttr.getType(), primaryKeyAttr.getCode(),
-                                primaryAttributeValues.get(primaryKeyAttr)) == null
+    private boolean isCorrectType(Map<Structure.Attribute, Object> primaryKeyMap) {
+        return primaryKeyMap.keySet().stream()
+                .allMatch(attribute ->
+                        TypeValidation.checkType(attribute.getType(), attribute.getCode(),
+                                primaryKeyMap.get(attribute)) == null
                 );
     }
 
@@ -119,11 +121,18 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
                 singletonList(ConverterUtil.toSearchValue(primaryKeyValue.getValue())));
     }
 
-    private Message toMessageFromValues(Map<String, Object> attributeValues) {
-        return new Message(DB_CONTAINS_PK_ERROR_CODE, primaryKeys.get(0).keySet().stream()
-                .map(primaryKey ->
-                        primaryKey.getName() + "\" - \"" + attributeValues.get(primaryKey.getCode())
-                ).collect(Collectors.joining("\", \"")));
+    private Message createMessage(Map<String, Object> rowData) {
+        return new Message(DB_CONTAINS_PK_ERROR_CODE, primaryKeysToString(rowData));
+    }
+
+    private String primaryKeysToString(Map<String, Object> rowData) {
+        return primaryKeyMaps.get(0).keySet().stream()
+                .map(primaryKey -> primaryKeyToString(primaryKey, rowData))
+                .collect(Collectors.joining("\", \""));
+    }
+
+    private String primaryKeyToString(Structure.Attribute primaryKey, Map<String, Object> rowData) {
+        return primaryKey.getName() + "\" - \"" + rowData.get(primaryKey.getCode());
     }
 
     /**
