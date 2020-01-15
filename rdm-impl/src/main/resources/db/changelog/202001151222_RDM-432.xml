@@ -19,8 +19,8 @@
                 id UUID PRIMARY KEY NOT NULL,
                 status VARCHAR (30) NOT NULL DEFAULT 'QUEUED',
                 op_enum VARCHAR(100) NOT NULL,
-                result JSONB,
-                payload JSONB,
+                result VARCHAR,
+                payload VARCHAR,
                 error TEXT,
                 start_ts TIMESTAMP WITHOUT TIME ZONE DEFAULT (now() AT TIME ZONE 'UTC'),
                 end_ts TIMESTAMP WITHOUT TIME ZONE
@@ -28,8 +28,8 @@
             COMMENT ON TABLE n2o_rdm_management.async_log_entry IS 'Асинхронные операции';
             COMMENT ON COLUMN n2o_rdm_management.async_log_entry.id IS 'Идентификатор операции';
             COMMENT ON COLUMN n2o_rdm_management.async_log_entry.op_enum IS 'Тип операции';
-            COMMENT ON COLUMN n2o_rdm_management.async_log_entry.result IS 'Результат операции';
-            COMMENT ON COLUMN n2o_rdm_management.async_log_entry.payload IS 'Полезная нагрузка (например, код справочника, аргументы операции и т.д)';
+            COMMENT ON COLUMN n2o_rdm_management.async_log_entry.result IS 'Результат операции в формате JSON';
+            COMMENT ON COLUMN n2o_rdm_management.async_log_entry.payload IS 'Полезная нагрузка в формате JSON (например, код справочника, аргументы операции и т.д)';
             COMMENT ON COLUMN n2o_rdm_management.async_log_entry.error IS 'Текст ошибки операции';
             COMMENT ON COLUMN n2o_rdm_management.async_log_entry.status IS 'Статус операции';
             COMMENT ON COLUMN n2o_rdm_management.async_log_entry.start_ts IS 'Дата создания операции';

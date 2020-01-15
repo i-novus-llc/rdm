@@ -17,7 +17,7 @@
                 <param id="version.id" mapping="[0]" domain="integer" mapper="spel"/>
             </in-parameters>
             <out-parameters>
-                <param id="opId" mapping="#{[0].toString()}" domain="string" mapper="spel"/>
+                <param id="opId" mapping="toString()" default-value="123" domain="string"/>
             </out-parameters>
         </operation>
 
@@ -36,7 +36,7 @@
                 <param id="version.id" mapping="[0]" domain="integer" mapper="spel"/>
             </in-parameters>
             <out-parameters>
-                <param id="opId" mapping="#{[0].toString()}" domain="string" mapper="spel"/>
+                <param id="opId" mapping="toString()" domain="string"/>
             </out-parameters>
         </operation>
 

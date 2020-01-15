@@ -13,7 +13,7 @@ public final class Async {
         PUBLICATION;
 
         public enum Status {
-            QUEUED, WORKING, ERROR, DONE
+            QUEUED, BUSY, ERROR, DONE
         }
 
         public static class LogEntry {

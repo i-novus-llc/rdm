@@ -1,11 +1,9 @@
 package ru.inovus.ms.rdm.impl.entity;
 
 import ru.inovus.ms.rdm.api.async.Async;
-import ru.inovus.ms.rdm.impl.util.MapJsonConverter;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.UUID;
 
 @Entity
@@ -28,12 +26,10 @@ public class AsyncOperationLogEntryEntity {
     private String error;
 
     @Column(name = "payload")
-    @Convert(converter = MapJsonConverter.class)
-    private Map<String, Object> payload;
+    private String payload;
 
     @Column(name = "result")
-    @Convert(converter = MapJsonConverter.class)
-    private Map<String, Object> result;
+    private String result;
 
     @Column(name = "start_ts", nullable = false, updatable = false)
     private LocalDateTime tsStartUTC;
@@ -73,19 +69,19 @@ public class AsyncOperationLogEntryEntity {
         this.error = error;
     }
 
-    public Map<String, Object> getPayload() {
+    public String getPayload() {
         return payload;
     }
 
-    public void setPayload(Map<String, Object> payload) {
+    public void setPayload(String payload) {
         this.payload = payload;
     }
 
-    public Map<String, Object> getResult() {
+    public String getResult() {
         return result;
     }
 
-    public void setResult(Map<String, Object> result) {
+    public void setResult(String result) {
         this.result = result;
     }
 

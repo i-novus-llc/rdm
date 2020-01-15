@@ -32,6 +32,7 @@ import ru.inovus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
 import ru.inovus.ms.rdm.impl.file.export.VersionDataIterator;
 import ru.inovus.ms.rdm.impl.repository.AsyncOperationLogEntryRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.inovus.ms.rdm.impl.util.AsyncOperationLogEntryUtils;
 import ru.inovus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 
 import java.time.LocalDateTime;
@@ -208,7 +209,7 @@ public class PublishServiceImpl implements PublishService {
         AsyncOperationLogEntryEntity entity = new AsyncOperationLogEntryEntity();
         entity.setUuid(uuid);
         entity.setOperation(Async.Operation.PUBLICATION);
-        entity.setPayload(Map.of(Async.Constants.OPERATION_ARGS_KEY, new Object[] {draftId, version, fromDate, toDate, resolveConflicts}));
+        AsyncOperationLogEntryUtils.setPayload(Map.of(Async.Constants.OPERATION_ARGS_KEY, new Object[] {draftId, version, fromDate, toDate, resolveConflicts}), entity);
         asyncOperationLogEntryRepository.save(entity);
         return uuid;
     }
