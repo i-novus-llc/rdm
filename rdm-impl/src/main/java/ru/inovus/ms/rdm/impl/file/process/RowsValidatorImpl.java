@@ -123,7 +123,7 @@ public class RowsValidatorImpl implements RowsValidator {
             return;
         }
 
-        DBPrimaryKeyValidation dbPrimaryKeyValidation = new DBPrimaryKeyValidation(searchDataService, structure, buffer, storageCode);
+        DBPrimaryKeyValidation dbPrimaryKeyValidation = new DBPrimaryKeyValidation(searchDataService, storageCode, structure, buffer);
 
         buffer.forEach(row -> {
             List<Message> errors = new ArrayList<>();

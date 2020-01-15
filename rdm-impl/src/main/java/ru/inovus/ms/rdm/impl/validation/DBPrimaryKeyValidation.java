@@ -36,11 +36,13 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
     private List<String> primaryKeyCodes;
     private Collection<RowValue> rowValues;
 
-    public DBPrimaryKeyValidation(SearchDataService searchDataService, Structure structure, Row row, String storageCode) {
-        this(searchDataService, structure, singletonList(row), storageCode);
+    public DBPrimaryKeyValidation(SearchDataService searchDataService, String storageCode, Structure structure, Row row) {
+        this(searchDataService, storageCode, structure, singletonList(row));
     }
 
-    public DBPrimaryKeyValidation(SearchDataService searchDataService, Structure structure, List<Row> rows, String storageCode) {
+    public DBPrimaryKeyValidation(SearchDataService searchDataService, String storageCode,
+                                  Structure structure, List<Row> rows) {
+
         this.searchDataService = searchDataService;
         this.storageCode = storageCode;
 
