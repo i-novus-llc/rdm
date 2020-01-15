@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Converter
-public class MapToJsonConverter implements javax.persistence.AttributeConverter<Map<String, Object>, Object> {
+public class MapJsonConverter implements javax.persistence.AttributeConverter<Map<String, Object>, Object> {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 

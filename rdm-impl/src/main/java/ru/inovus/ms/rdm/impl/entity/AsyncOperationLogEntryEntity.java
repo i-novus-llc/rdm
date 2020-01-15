@@ -1,7 +1,7 @@
 package ru.inovus.ms.rdm.impl.entity;
 
 import ru.inovus.ms.rdm.api.async.Async;
-import ru.inovus.ms.rdm.impl.util.MapToJsonConverter;
+import ru.inovus.ms.rdm.impl.util.MapJsonConverter;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -28,11 +28,11 @@ public class AsyncOperationLogEntryEntity {
     private String error;
 
     @Column(name = "payload")
-    @Convert(converter = MapToJsonConverter.class)
+    @Convert(converter = MapJsonConverter.class)
     private Map<String, Object> payload;
 
     @Column(name = "result")
-    @Convert(converter = MapToJsonConverter.class)
+    @Convert(converter = MapJsonConverter.class)
     private Map<String, Object> result;
 
     @Column(name = "start_ts", nullable = false, updatable = false)
