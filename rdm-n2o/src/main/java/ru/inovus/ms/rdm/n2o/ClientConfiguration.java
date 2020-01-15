@@ -14,7 +14,6 @@ import net.n2oapp.platform.jaxrs.autoconfigure.EnableJaxRsProxyClient;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import ru.inovus.ms.rdm.api.provider.AttributeFilterConverter;
 import ru.inovus.ms.rdm.api.provider.ExportFileProvider;
 import ru.inovus.ms.rdm.api.provider.OffsetDateTimeParamConverter;
@@ -34,7 +33,6 @@ import ru.inovus.ms.rdm.n2o.util.json.RdmN2oLocalDateTimeMapperPreparer;
 public class ClientConfiguration {
 
     @Bean
-    @Primary
     public RdmPermission rdmPermission() {
         return new RdmPermissionImpl();
     }
