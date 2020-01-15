@@ -86,6 +86,11 @@
         </dependency>
 
         <dependency>
+            <groupId>net.n2oapp.framework.security</groupId>
+            <artifactId>security-auth-oauth2-gateway</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.sun.xml.ws</groupId>
             <artifactId>rt</artifactId>
         </dependency>
