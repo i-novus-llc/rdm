@@ -31,7 +31,7 @@ public class TypeValidation extends ErrorAttributeHolderValidation {
     public List<Message> validate() {
         List<Message> messages = new ArrayList<>();
         row.entrySet().stream()
-                .filter(entry -> getErrorAttributes() == null || !getErrorAttributes().contains(entry.getKey()))
+                .filter(entry -> !isErrorAttribute(entry.getKey()))
                 .forEach(entry -> {
                     Structure.Attribute attribute = structure.getAttribute(entry.getKey());
                     if (attribute != null)

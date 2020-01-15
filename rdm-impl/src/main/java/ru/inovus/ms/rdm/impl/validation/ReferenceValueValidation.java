@@ -24,7 +24,7 @@ import static ru.inovus.ms.rdm.impl.util.ConverterUtil.castReferenceValue;
 import static ru.inovus.ms.rdm.impl.util.ConverterUtil.field;
 
 /**
- * Проверка конкретного строкового значения на ссылочную целостность
+ * Проверка конкретного строкового значения на ссылочную целостность.
  */
 public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
 
@@ -72,7 +72,7 @@ public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
     @Override
     public List<Message> validate() {
         return referenceWithValueMap.entrySet().stream()
-                .filter(entry -> getErrorAttributes() == null || !getErrorAttributes().contains(entry.getKey().getAttribute()))
+                .filter(entry -> !isErrorAttribute(entry.getKey().getAttribute()))
                 .filter(this::isReferenceNotValid)
                 .peek(this::addErrorAttribute)
                 .map(this::createMessage)
@@ -90,6 +90,7 @@ public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
     }
 
     private boolean isReferenceNotValid(Map.Entry<Structure.Reference, String> entry) {
+
         if (getErrorAttributes().contains(entry.getKey().getAttribute()) || entry.getValue() == null) {
             return false;
         }
@@ -128,6 +129,7 @@ public class ReferenceValueValidation extends ErrorAttributeHolderValidation {
     }
 
     private static Map<Structure.Reference, String> getReferenceWithValueMap(Row row, Structure structure) {
+
         Map<Structure.Reference, String> map = new HashMap<>();
         structure.getReferences().stream()
                 .filter(reference -> row.getData().get(reference.getAttribute()) != null)
