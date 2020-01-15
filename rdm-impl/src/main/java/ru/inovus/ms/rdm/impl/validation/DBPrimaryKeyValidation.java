@@ -23,7 +23,7 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 /**
- * Created by znurgaliev on 14.08.2018.
+ * Проверка на уникальность строк по первичным ключам в таблице БД.
  */
 public class DBPrimaryKeyValidation extends AppendRowValidation {
 
@@ -72,6 +72,7 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
     }
 
     private Collection<RowValue> getRefBookData(List<Row> rows) {
+
         DataCriteria criteria = createCriteria(rows);
         return searchDataService.getPagedData(criteria).getCollection();
     }
@@ -111,11 +112,11 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
                 );
     }
 
-    private FieldSearchCriteria toFieldSearchCriteria(Map.Entry<Structure.Attribute, Object> primaryAttributeValue) {
+    private FieldSearchCriteria toFieldSearchCriteria(Map.Entry<Structure.Attribute, Object> primaryKeyValue) {
         return new FieldSearchCriteria(
-                ConverterUtil.field(primaryAttributeValue.getKey()),
+                ConverterUtil.field(primaryKeyValue.getKey()),
                 SearchTypeEnum.EXACT,
-                singletonList(ConverterUtil.toSearchType(primaryAttributeValue.getValue())));
+                singletonList(ConverterUtil.toSearchValue(primaryKeyValue.getValue())));
     }
 
     private Message toMessageFromValues(Map<String, Object> attributeValues) {
@@ -129,16 +130,15 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
      * В списке записей #rowValues ищется строка, которая соответствует строке с данными #attributeValues
      * на основании набора значений первичных атрибутов #primaries.
      *
-     * @param primaries список кодов первичных атрибутов со значениями для идентификации записи
+     * @param primaries       список кодов первичных атрибутов со значениями для идентификации записи
      * @param attributeValues значения атрибутов строки, для которой ведется поиск
-     * @param rowValues список записей, среди которых ведется поиск
+     * @param rowValues       список записей, среди которых ведется поиск
      * @return Найденная запись либо null
      */
     private RowValue findRowValue(List<String> primaries,
                                          Map<String, Object> attributeValues,
                                          Collection<? extends RowValue> rowValues) {
-        return rowValues
-                .stream()
+        return rowValues.stream()
                 .filter(rowValue ->
                         primaries.stream().allMatch(primary -> {
                             Object primaryValue = attributeValues.get(primary);
@@ -148,8 +148,6 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
                                     && primaryValue.equals(fieldValue.getValue());
                         })
                 )
-                .findFirst()
-                .orElse(null);
+                .findFirst().orElse(null);
     }
-
 }

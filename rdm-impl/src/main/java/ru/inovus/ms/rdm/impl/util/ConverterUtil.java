@@ -77,8 +77,9 @@ public class ConverterUtil {
     public static Set<List<FieldSearchCriteria>> getFieldSearchCriteriaList(Set<List<AttributeFilter>> attributeFilters) {
         if (Objects.isNull(attributeFilters))
             return emptySet();
-        return attributeFilters.stream().map(attrFiltersList ->
-                attrFiltersList.stream().map(attrFilter ->
+
+        return attributeFilters.stream().map(attrFilterList ->
+                attrFilterList.stream().map(attrFilter ->
                         new FieldSearchCriteria(
                                 fieldFactory.createField(attrFilter.getAttributeName(), attrFilter.getFieldType()),
                                 attrFilter.getSearchType(),
@@ -89,12 +90,16 @@ public class ConverterUtil {
     public static Set<List<FieldSearchCriteria>> getFieldSearchCriteriaList(Map<String, String> filters, Structure structure) {
         if (isEmpty(filters))
             return emptySet();
+
         return singleton(filters.entrySet().stream()
                 .map(e -> {
                     Structure.Attribute attribute = structure.getAttribute(e.getKey());
                     if (attribute == null) return null;
+
                     Field field = field(attribute);
-                    return new FieldSearchCriteria(field, SearchTypeEnum.LIKE, singletonList(toSearchType(field, e.getValue())));
+                    return new FieldSearchCriteria(field, SearchTypeEnum.LIKE,
+                            singletonList(toSearchValue(field, e.getValue()))
+                    );
                 }).collect(toList()));
     }
 
@@ -152,14 +157,14 @@ public class ConverterUtil {
             throw new RdmException("invalid field type");
     }
 
-    public static Object toSearchType(Object value) {
+    public static Object toSearchValue(Object value) {
         if (value instanceof Reference) {
             return ((Reference) value).getValue();
         }
         return value;
     }
 
-    public static Object toSearchType(Field field, String value) {
+    public static Object toSearchValue(Field field, String value) {
         try {
             if (field instanceof BooleanField) {
                 return Boolean.valueOf(value);
