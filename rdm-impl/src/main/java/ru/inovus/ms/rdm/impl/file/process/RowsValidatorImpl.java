@@ -12,6 +12,7 @@ import ru.inovus.ms.rdm.impl.validation.*;
 
 import java.util.*;
 
+import static java.util.Collections.singletonList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 
 public class RowsValidatorImpl implements RowsValidator {
@@ -124,6 +125,7 @@ public class RowsValidatorImpl implements RowsValidator {
         }
 
         DBPrimaryKeyValidation dbPrimaryKeyValidation = new DBPrimaryKeyValidation(searchDataService, storageCode, structure, buffer);
+        ReferenceValueValidation referenceValueValidation = skipReferenceValidation ? null : new ReferenceValueValidation(versionService, structure, buffer);
 
         buffer.forEach(row -> {
             List<Message> errors = new ArrayList<>();
@@ -131,7 +133,7 @@ public class RowsValidatorImpl implements RowsValidator {
             List<ErrorAttributeHolderValidation> validations = Arrays.asList(
                     new PkRequiredValidation(row, structure),
                     new TypeValidation(row.getData(), structure),
-                    skipReferenceValidation ? null : new ReferenceValueValidation(versionService, row, structure),
+                    referenceValueValidation,
                     dbPrimaryKeyValidation,
                     pkUniqueRowAppendValidation,
                     attributeCustomValidation
@@ -155,14 +157,8 @@ public class RowsValidatorImpl implements RowsValidator {
 
     private void addResult(List<Message> errors) {
 
-        Result newResult;
-        if (isEmpty(errors)) {
-            newResult = new Result(1, 1, null);
-        } else {
-            newResult = new Result(0, 1, errors);
-        }
-
-        addResult(newResult);
+        boolean isErrors = isEmpty(errors);
+        addResult(new Result(isErrors ? 1 : 0, 1, isErrors ? null : errors));
     }
 
     private void addResult(Result result) {
@@ -170,8 +166,8 @@ public class RowsValidatorImpl implements RowsValidator {
         this.result = (this.result == null) ? result : this.result.addResult(result);
 
         if (this.result != null && this.result.getErrors().size() > errorCountLimit) {
-            this.result.addResult(new Result(0, 0,
-                    Collections.singletonList(new Message(ERROR_COUNT_EXCEEDED, errorCountLimit))));
+            Message error = new Message(ERROR_COUNT_EXCEEDED, errorCountLimit);
+            this.result.addResult(new Result(0, 0, singletonList(error)));
             throw new UserException(this.result.getErrors());
         }
     }
