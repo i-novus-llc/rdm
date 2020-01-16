@@ -25,8 +25,8 @@ import ru.inovus.ms.rdm.api.util.TimeUtils;
 import ru.inovus.ms.rdm.api.util.VersionNumberStrategy;
 import ru.inovus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
+import ru.inovus.ms.rdm.impl.async.AsyncOperationQueue;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
-import ru.inovus.ms.rdm.impl.entity.AsyncOperationLogEntryEntity;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
 import ru.inovus.ms.rdm.impl.file.export.VersionDataIterator;
@@ -36,10 +36,7 @@ import ru.inovus.ms.rdm.impl.util.AsyncOperationLogEntryUtils;
 import ru.inovus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static java.util.Collections.singletonList;
 import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
@@ -73,6 +70,9 @@ public class PublishServiceImpl implements PublishService {
 
     @Autowired
     private AsyncOperationLogEntryRepository asyncOperationLogEntryRepository;
+
+    @Autowired
+    private AsyncOperationQueue queue;
 
     @Value("${rdm.publish.topic:publish_topic}")
     private String publishTopic;
@@ -125,20 +125,13 @@ public class PublishServiceImpl implements PublishService {
                         LocalDateTime fromDate, LocalDateTime toDate,
                         boolean resolveConflicts) {
 
-        versionValidation.validateDraft(draftId);
-
-        RefBookVersionEntity draftEntity = versionRepository.findById(draftId).orElseThrow();
+        RefBookVersionEntity draftEntity = getVersionOrElseThrow(draftId);
+        if (draftEntity.getStatus() == RefBookVersionStatus.PUBLISHED)
+            return;
+        versionValidation.validateDraftNotArchived(draftId);
         if (draftEntity.getStructure().getAttributes().isEmpty())
             throw new UserException("draft.structure.is-empty");
-        boolean empty = true;
-        for (Structure.Attribute attr : draftEntity.getStructure().getAttributes()) {
-            if (draftDataService.isFieldNotEmpty(draftEntity.getStorageCode(), attr.getCode())) {
-                empty = false;
-                break;
-            }
-        }
-        if (empty)
-            throw new UserException("draft.has-no-data");
+        validateNotEmpty(draftEntity);
         Integer refBookId = draftEntity.getRefBook().getId();
 
         refBookLockService.setRefBookPublishing(refBookId);
@@ -203,15 +196,32 @@ public class PublishServiceImpl implements PublishService {
             jmsTemplate.convertAndSend(publishTopic, draftEntity.getRefBook().getCode());
     }
 
+    private void validateNotEmpty(RefBookVersionEntity draftEntity) {
+        boolean empty = true;
+        for (Structure.Attribute attr : draftEntity.getStructure().getAttributes()) {
+            if (draftDataService.isFieldNotEmpty(draftEntity.getStorageCode(), attr.getCode())) {
+                empty = false;
+                break;
+            }
+        }
+        if (empty)
+            throw new UserException("draft.has-no-data");
+    }
+
     @Override
+    @Transactional
     public UUID publishAsync(Integer draftId, String version, LocalDateTime fromDate, LocalDateTime toDate, boolean resolveConflicts) {
         UUID uuid = UUID.randomUUID();
-        AsyncOperationLogEntryEntity entity = new AsyncOperationLogEntryEntity();
-        entity.setUuid(uuid);
-        entity.setOperation(Async.Operation.PUBLICATION);
-        AsyncOperationLogEntryUtils.setPayload(Map.of(Async.Constants.OPERATION_ARGS_KEY, new Object[] {draftId, version, fromDate, toDate, resolveConflicts}), entity);
-        asyncOperationLogEntryRepository.save(entity);
+        Object[] args = {draftId, version, fromDate, toDate, resolveConflicts};
+        Map<String, Object> payload = Map.of(Async.PayloadConstants.ARGS_KEY, args);
+        asyncOperationLogEntryRepository.save(AsyncOperationLogEntryUtils.createAsyncOperationLogEntryEntity(uuid, Async.Operation.PUBLICATION, payload));
+        queue.add(uuid, Async.Operation.PUBLICATION, payload);
         return uuid;
+    }
+
+    private RefBookVersionEntity getVersionOrElseThrow(Integer versionId) {
+        Optional<RefBookVersionEntity> draftEntityOptional = versionRepository.findById(versionId);
+        return draftEntityOptional.orElseThrow(() -> new UserException(new Message("draft.not.found", versionId)));
     }
 
     private RefBookVersionEntity getLastPublishedVersionEntity(RefBookVersionEntity draftVersion) {

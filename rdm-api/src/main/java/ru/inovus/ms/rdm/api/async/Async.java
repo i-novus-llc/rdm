@@ -10,10 +10,19 @@ public final class Async {
 
     public enum Operation {
 
-        PUBLICATION;
+        PUBLICATION(Void.TYPE);
+
+        private final Class<?> resultClass;
+        Operation(Class<?> resultClass) {
+            this.resultClass = resultClass;
+        }
+
+        public Class<?> getResultClass() {
+            return resultClass;
+        }
 
         public enum Status {
-            QUEUED, BUSY, ERROR, DONE
+            QUEUED, IN_PROGRESS, ERROR, DONE
         }
 
         public static class LogEntry {
@@ -95,12 +104,11 @@ public final class Async {
 
     }
 
-    public static final class Constants {
+    public static final class PayloadConstants {
 
-        public static final String REFBOOK_CODE_KEY = "refBookCode";
-        public static final String OPERATION_ARGS_KEY = "args";
+        public static final String ARGS_KEY = "args";
 
-        private Constants() {throw new UnsupportedOperationException();}
+        private PayloadConstants() {throw new UnsupportedOperationException();}
 
     }
 

@@ -25,6 +25,7 @@ import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
 import ru.inovus.ms.rdm.api.model.refdata.RdmChangeDataRequest;
+import ru.inovus.ms.rdm.api.service.AsyncOperationLogEntryService;
 import ru.inovus.ms.rdm.api.service.DraftService;
 import ru.inovus.ms.rdm.api.service.PublishService;
 import ru.inovus.ms.rdm.api.service.RefBookService;
@@ -79,6 +80,9 @@ public class RefBookServiceImpl implements RefBookService {
     private PublishService publishService;
 
     @Autowired
+    private AsyncOperationLogEntryService asyncOperationLogEntryService;
+
+    @Autowired
     @SuppressWarnings("squid:S00107")
     public RefBookServiceImpl(RefBookRepository refBookRepository, RefBookVersionRepository versionRepository,
                               RefBookModelDataRepository refBookModelDataRepository,
@@ -123,11 +127,13 @@ public class RefBookServiceImpl implements RefBookService {
         List<Integer> refBookIds = entities.getContent().stream()
                 .map(v -> v.getRefBook().getId())
                 .collect(toList());
-
-        return entities.map(entity ->
-                refBookModel(entity,
-                        criteria.getExcludeDraft() ? emptyList() : getSourceTypeVersions(refBookIds, RefBookSourceType.DRAFT),
-                        getSourceTypeVersions(refBookIds, RefBookSourceType.LAST_PUBLISHED))
+        List<Integer> refBookVersionIds = entities.getContent().stream().map(RefBookVersionEntity::getId).collect(toList());
+        Set<Integer> publishing = asyncOperationLogEntryService.getPublishingRefBookVersions(refBookVersionIds);
+        return entities.map(entity -> {
+                RefBook model = refBookModel(entity, criteria.getExcludeDraft() ? emptyList() : getSourceTypeVersions(refBookIds, RefBookSourceType.DRAFT), getSourceTypeVersions(refBookIds, RefBookSourceType.LAST_PUBLISHED));
+                model.setPublishing(publishing.contains(entity.getId()));
+                return model;
+            }
         );
     }
 

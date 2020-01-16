@@ -31,10 +31,10 @@ public class AsyncOperationLogEntryEntity {
     @Column(name = "result")
     private String result;
 
-    @Column(name = "start_ts", nullable = false, updatable = false)
+    @Column(name = "start_ts", nullable = false, updatable = false, insertable = false)
     private LocalDateTime tsStartUTC;
 
-    @Column(name = "end_ts", updatable = false)
+    @Column(name = "end_ts", updatable = false, insertable = false)
     private LocalDateTime tsEndUTC;
 
     public UUID getUuid() {
