@@ -4,6 +4,7 @@ import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.inovus.ms.rdm.api.model.Structure;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -36,7 +37,7 @@ public class StructureUtils {
             return false;
 
         DisplayExpression expression = new DisplayExpression(displayExpression);
-        return CollectionUtils.containsAny(expression.getPlaceholders(), placeholders);
+        return CollectionUtils.containsAny(expression.getPlaceholders().keySet(), placeholders);
     }
 
     /**
@@ -52,7 +53,7 @@ public class StructureUtils {
             return emptyList();
 
         DisplayExpression expression = new DisplayExpression(displayExpression);
-        return expression.getPlaceholders().stream()
+        return expression.getPlaceholders().keySet().stream()
                 .filter(placeholder -> Objects.isNull(structure.getAttribute(placeholder)))
                 .collect(toList());
     }
@@ -69,9 +70,9 @@ public class StructureUtils {
             return null;
 
         DisplayExpression expression = new DisplayExpression(displayExpression);
-        List<String> placeholders = expression.getPlaceholders();
-        if (Objects.nonNull(placeholders) && placeholders.size() == 1) {
-            String placeholder = placeholders.get(0);
+        Collection<String> placeholders = expression.getPlaceholders().keySet();
+        if (placeholders.size() == 1) {
+            String placeholder = placeholders.iterator().next();
             if (DisplayExpression.toPlaceholder(placeholder).equals(displayExpression)) {
                 return placeholder;
             }

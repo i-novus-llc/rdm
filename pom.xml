@@ -19,7 +19,7 @@
         <encoding>UTF-8</encoding>
         <apache.poi.version>3.17</apache.poi.version>
         <filestorage.version>2.2</filestorage.version>
-        <vds.version>2.15</vds.version>
+        <vds.version>2.16</vds.version>
         <n2o.version>7.4.8</n2o.version>
         <itext.version>5.5.9</itext.version>
         <commons.text.version>1.6</commons.text.version>
@@ -30,7 +30,7 @@
         <cxf.version>3.2.7</cxf.version>
         <swagger-annotations.version>1.5.21</swagger-annotations.version>
         <javax.activation.version>1.1.1</javax.activation.version>
-        <security.admin.version>3.5</security.admin.version>
+        <security.admin.version>4.3</security.admin.version>
         <security.oauth2.autoconfigure.version>2.1.1.RELEASE</security.oauth2.autoconfigure.version>
         <internal.repository.releases>https://maven.i-novus.ru/libs-release-local</internal.repository.releases>
         <internal.repository.shapshots>https://maven.i-novus.ru/libs-snapshot-local</internal.repository.shapshots>
@@ -51,7 +51,6 @@
         <module>rdm-rest</module>
         <module>rdm-impl</module>
         <module>rdm-frontend</module>
-        <module>rdm-fnsi-impl</module>
         <module>rdm-sync-spring-boot-starter</module>
         <module>rdm-n2o</module>
         <module>rdm-esnsi</module>
@@ -90,20 +89,6 @@
                 <groupId>ru.inovus.ms.rdm</groupId>
                 <artifactId>rdm-n2o</artifactId>
                 <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>ru.inovus.ms.rdm</groupId>
-                <artifactId>rdm-fnsi-impl</artifactId>
-                <version>${project.version}</version>
-                <scope>runtime</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>ru.inovus.ms.rdm</groupId>
-                <artifactId>rdm-fnsi-n2o</artifactId>
-                <version>${project.version}</version>
-                <scope>runtime</scope>
             </dependency>
 
             <dependency>
@@ -155,12 +140,6 @@
             </dependency>
 
             <dependency>
-                <groupId>net.n2oapp.framework</groupId>
-                <artifactId>n2o-web</artifactId>
-                <version>${n2o.version}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>com.itextpdf</groupId>
                 <artifactId>itextpdf</artifactId>
                 <version>${itext.version}</version>
@@ -199,7 +178,7 @@
 
             <dependency>
                 <groupId>net.n2oapp.framework.security</groupId>
-                <artifactId>security-auth-simple</artifactId>
+                <artifactId>security-auth-oauth2-gateway</artifactId>
                 <version>${security.admin.version}</version>
             </dependency>
 

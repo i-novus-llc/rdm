@@ -10,7 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
-import ru.i_novus.platform.datastorage.temporal.model.*;
+import ru.i_novus.platform.datastorage.temporal.model.DataConstants;
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
+import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
@@ -19,11 +21,6 @@ import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.inovus.ms.rdm.api.service.CompareService;
-import ru.inovus.ms.rdm.api.service.ConflictService;
-import ru.inovus.ms.rdm.api.service.VersionService;
-import ru.inovus.ms.rdm.impl.entity.RefBookConflictEntity;
-import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.api.enumeration.ConflictType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -38,29 +35,35 @@ import ru.inovus.ms.rdm.api.model.field.ReferenceFilterValue;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.impl.util.ModelGenerator;
-import ru.inovus.ms.rdm.impl.util.PageIterator;
-import ru.inovus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
+import ru.inovus.ms.rdm.api.service.CompareService;
+import ru.inovus.ms.rdm.api.service.ConflictService;
+import ru.inovus.ms.rdm.api.service.VersionService;
+import ru.inovus.ms.rdm.api.util.StructureUtils;
+import ru.inovus.ms.rdm.api.validation.VersionValidation;
+import ru.inovus.ms.rdm.impl.entity.RefBookConflictEntity;
+import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.impl.queryprovider.RefBookConflictQueryProvider;
 import ru.inovus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.inovus.ms.rdm.api.util.StructureUtils;
-import ru.inovus.ms.rdm.api.validation.VersionValidation;
+import ru.inovus.ms.rdm.impl.util.ModelGenerator;
+import ru.inovus.ms.rdm.impl.util.PageIterator;
+import ru.inovus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 
 import java.util.*;
 import java.util.function.Function;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.api.util.ComparableUtils.*;
 import static ru.inovus.ms.rdm.api.util.ConflictUtils.conflictTypeToDiffStatus;
 import static ru.inovus.ms.rdm.api.util.ConflictUtils.diffStatusToConflictType;
+import static ru.inovus.ms.rdm.api.util.FieldValueUtils.*;
 import static ru.inovus.ms.rdm.impl.util.ConverterUtil.field;
 import static ru.inovus.ms.rdm.impl.util.ConverterUtil.fields;
-import static ru.inovus.ms.rdm.api.util.FieldValueUtils.*;
 
 @Primary
 @Service
@@ -968,7 +971,7 @@ public class ConflictServiceImpl implements ConflictService {
         return references.stream()
                 .anyMatch(reference -> {
                     DisplayExpression expression = new DisplayExpression(reference.getDisplayExpression());
-                    return CollectionUtils.containsAny(attributeCodes, expression.getPlaceholders());
+                    return CollectionUtils.containsAny(attributeCodes, expression.getPlaceholders().keySet());
                 });
     }
 
