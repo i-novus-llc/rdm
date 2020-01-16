@@ -19,7 +19,7 @@ public abstract class AppendRowValidation extends ErrorAttributeHolderValidation
     public void appendRow(Row row) {
         if (row != null) {
             Map<String, Object> rowData = new HashMap<>(row.getData());
-            rowData.entrySet().removeIf(entry -> getErrorAttributes().contains(entry.getKey()));
+            rowData.entrySet().removeIf(entry -> isErrorAttribute(entry.getKey()));
             buffer.put(rowData, row.getSystemId());
         }
     }
@@ -30,7 +30,7 @@ public abstract class AppendRowValidation extends ErrorAttributeHolderValidation
             throw new RdmException("Missing refData to validate, append refData before validation");
 
         buffer.keySet().forEach(map ->
-                map.entrySet().removeIf(entry -> getErrorAttributes().contains(entry.getKey()))
+                map.entrySet().removeIf(entry -> isErrorAttribute(entry.getKey()))
         );
 
         List<Message> messages = buffer.entrySet().stream().flatMap(this::validateEntry).collect(toList());
