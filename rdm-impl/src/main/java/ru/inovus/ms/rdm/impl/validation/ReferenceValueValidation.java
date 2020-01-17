@@ -4,11 +4,12 @@ import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.data.domain.Page;
+import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
 import ru.inovus.ms.rdm.api.exception.NotFoundException;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.Structure;
@@ -18,6 +19,7 @@ import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.service.VersionService;
+import ru.inovus.ms.rdm.impl.util.ConverterUtil;
 
 import java.util.*;
 
@@ -88,9 +90,12 @@ public class ReferenceValueValidation extends AppendRowValidation {
 
     private Message validate(Structure.Reference reference, Map<String, Object> rowData) {
 
+        String referenceValue = toReferenceValue(reference.getAttribute(), rowData);
+        if (StringUtils.isEmpty(referenceValue))
+            return null;
+
         List<RefBookRowValue> referenceSearchValues = referenceSearchValuesMap.get(reference.getAttribute());
-        RowValue refBookRow = !isEmpty(referenceSearchValues) ? findRowValue(reference, rowData, referenceSearchValues) : null;
-        if (refBookRow != null)
+        if (!isEmpty(referenceSearchValues) && matchRowValue(referenceValue, referenceSearchValues))
             return null;
 
         addErrorAttribute(reference.getAttribute());
@@ -146,12 +151,13 @@ public class ReferenceValueValidation extends AppendRowValidation {
         Set<List<AttributeFilter>> attributeFilters = createSearchFilters(reference, rows, referredAttribute);
 
         SearchDataCriteria criteria = new SearchDataCriteria(attributeFilters, null);
-        criteria.setPageNumber(1);
+        criteria.setPageNumber(0);
         criteria.setPageSize(rows.size());
         return criteria;
     }
 
     private Set<List<AttributeFilter>> createSearchFilters(Structure.Reference reference, List<Row> rows, Structure.Attribute referredAttribute) {
+
         List<String> referenceValues = rows.stream()
                 .map(row -> toReferenceValue(reference.getAttribute(), row.getData()))
                 .filter(Objects::nonNull)
@@ -160,6 +166,7 @@ public class ReferenceValueValidation extends AppendRowValidation {
         Field referredField = field(referredAttribute);
         List<Object> referredValues = referenceValues.stream()
                 .map(referenceValue -> castReferenceValue(referredField, referenceValue))
+                .filter(Objects::nonNull)
                 .collect(toList());
 
         return referredValues.stream()
@@ -192,7 +199,9 @@ public class ReferenceValueValidation extends AppendRowValidation {
 
     private RefBookRowValue toReferredRowValue(String attribute, RefBookRowValue rowValue) {
 
-        List<FieldValue> fieldValues = singletonList(rowValue.getFieldValue(attribute));
+        FieldValue fieldValue = rowValue.getFieldValue(attribute);
+        String value = ConverterUtil.toString(fieldValue.getValue());
+        List<FieldValue> fieldValues = singletonList(new StringFieldValue(attribute, value));
         rowValue.setFieldValues(fieldValues);
 
         return rowValue;
@@ -204,27 +213,20 @@ public class ReferenceValueValidation extends AppendRowValidation {
     }
 
     /**
-     * В списке записей #searchValues ищется строка, которая соответствует строке с данными #rowData
-     * на основании значения ссылки #reference.
+     * В списке записей #searchValues ищется запись,
+     * которая соответствует значению атрибута-ссылки #referenceValue.
      *
-     * @param reference    атрибут-ссылка на запись
-     * @param rowData      строка с данными, для которой ведётся поиск
-     * @param searchValues список записей, среди которых ведётся поиск
-     * @return Найденная запись либо null
+     * @param referenceValue значение атрибута-ссылки
+     * @param searchValues   список записей, среди которых ведётся поиск
+     * @return Признак успешности поиска
      */
-    private RefBookRowValue findRowValue(Structure.Reference reference,
-                                         Map<String, Object> rowData,
-                                         List<RefBookRowValue> searchValues) {
-        return searchValues.stream()
-                .filter(searchValue -> {
-                    String referenceValue = toReferenceValue(reference.getAttribute(), rowData);
-                    List<FieldValue> fieldValues = searchValue.getFieldValues();
-                    FieldValue fieldValue = !isEmpty(fieldValues) ? fieldValues.get(0) : null;
-                    return referenceValue != null
-                            && fieldValue != null
-                            && referenceValue.equals(fieldValue.getValue());
-                })
-                .findFirst().orElse(null);
+    private boolean matchRowValue(String referenceValue, List<RefBookRowValue> searchValues) {
+
+        return searchValues.stream().anyMatch(searchValue -> {
+            List<FieldValue> fieldValues = searchValue.getFieldValues();
+            FieldValue fieldValue = !isEmpty(fieldValues) ? fieldValues.get(0) : null;
+            return fieldValue != null && referenceValue.equals(fieldValue.getValue());
+        });
     }
 
     private String toReferenceValue(String attributeCode, Map<String, Object> rowData) {
