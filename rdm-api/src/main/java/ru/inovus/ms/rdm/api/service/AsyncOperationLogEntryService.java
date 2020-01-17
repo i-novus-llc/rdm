@@ -1,7 +1,7 @@
 package ru.inovus.ms.rdm.api.service;
 
 import io.swagger.annotations.*;
-import ru.inovus.ms.rdm.api.async.Async;
+import ru.inovus.ms.rdm.api.async.AsyncOperationLogEntry;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -20,6 +20,6 @@ public interface AsyncOperationLogEntryService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Async.Operation.LogEntry getById(@ApiParam("Идентификатор операции") @PathParam("logEntryId") UUID uuid);
+    AsyncOperationLogEntry getById(@ApiParam("Идентификатор операции") @PathParam("logEntryId") UUID uuid);
 
 }

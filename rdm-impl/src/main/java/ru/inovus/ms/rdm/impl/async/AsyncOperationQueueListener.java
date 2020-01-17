@@ -13,7 +13,7 @@ import org.springframework.jms.annotation.JmsListener;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import ru.inovus.ms.rdm.api.async.Async;
+import ru.inovus.ms.rdm.api.async.AsyncOperation;
 import ru.inovus.ms.rdm.api.service.PublishService;
 import ru.inovus.ms.rdm.impl.entity.AsyncOperationLogEntryEntity;
 import ru.inovus.ms.rdm.impl.repository.AsyncOperationLogEntryRepository;
@@ -27,8 +27,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
-import static ru.inovus.ms.rdm.api.async.Async.PayloadConstants.ARGS_KEY;
-import static ru.inovus.ms.rdm.api.async.Async.PayloadConstants.USER_KEY;
+import static ru.inovus.ms.rdm.api.async.AsyncPayloadConstants.ARGS_KEY;
+import static ru.inovus.ms.rdm.api.async.AsyncPayloadConstants.USER_KEY;
 import static ru.inovus.ms.rdm.impl.async.AsyncOperationQueue.*;
 
 @Component
@@ -52,7 +52,7 @@ public class AsyncOperationQueueListener {
 
     @JmsListener(destination = QUEUE_ID, containerFactory = "internalAsyncOperationContainerFactory")
     public void onOperationReceived(List<Object> ctx) {
-        Async.Operation op = (Async.Operation) ctx.get(OP_IDX);
+        AsyncOperation op = (AsyncOperation) ctx.get(OP_IDX);
         UUID uuid = (UUID) ctx.get(OP_ID_IDX);
         Map<String, Object> payload = (Map<String, Object>) ctx.get(OP_PAYLOAD_IDX);
         Object[] args = (Object[]) payload.get(ARGS_KEY);
@@ -68,10 +68,10 @@ public class AsyncOperationQueueListener {
             @Override public Object getCredentials() {return null;}
             @Override public Object getPrincipal() {return user;}
         });
-        entity.setStatus(Async.Operation.Status.IN_PROGRESS);
+        entity.setStatus(AsyncOperation.Status.IN_PROGRESS);
         entity = asyncOperationLogEntryRepository.save(entity);
         Pair<Object, Exception> pair = null;
-        if (op == Async.Operation.PUBLICATION) {
+        if (op == AsyncOperation.PUBLICATION) {
             Integer draftId = (Integer) args[0];
             String version = (String) args[1];
             LocalDateTime from = (LocalDateTime) args[2];
@@ -86,7 +86,7 @@ public class AsyncOperationQueueListener {
         if (pair.getSecond() != NO_EXCEPTION) {
             String error = getErrorMsg(pair);
             entity.setError(error);
-            entity.setStatus(Async.Operation.Status.ERROR);
+            entity.setStatus(AsyncOperation.Status.ERROR);
         } else {
             String result = null;
             if (pair.getFirst() != NO_RESULT) {
@@ -98,7 +98,7 @@ public class AsyncOperationQueueListener {
             }
             String finalResult = result;
             entity.setResult(finalResult);
-            entity.setStatus(Async.Operation.Status.DONE);
+            entity.setStatus(AsyncOperation.Status.DONE);
         }
         asyncOperationLogEntryRepository.save(entity);
         logger.info("Async operation with id {} completed with status {}", entity.getUuid(), entity.getStatus());

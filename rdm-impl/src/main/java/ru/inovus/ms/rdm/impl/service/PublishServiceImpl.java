@@ -12,7 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
-import ru.inovus.ms.rdm.api.async.Async;
+import ru.inovus.ms.rdm.api.async.AsyncOperation;
+import ru.inovus.ms.rdm.api.async.AsyncPayloadConstants;
 import ru.inovus.ms.rdm.api.enumeration.FileType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -205,8 +206,8 @@ public class PublishServiceImpl implements PublishService {
 
     @Override
     public UUID publishAsync(Integer draftId, String version, LocalDateTime fromDate, LocalDateTime toDate, boolean resolveConflicts) {
-        Map<String, Object> payload = Map.of(Async.PayloadConstants.ARGS_KEY, new Object[] {draftId, version, fromDate, toDate, resolveConflicts});
-        return queue.add(UUID.randomUUID(), Async.Operation.PUBLICATION, payload);
+        Map<String, Object> payload = Map.of(AsyncPayloadConstants.ARGS_KEY, new Object[] {draftId, version, fromDate, toDate, resolveConflicts});
+        return queue.add(UUID.randomUUID(), AsyncOperation.PUBLICATION, payload);
     }
 
     private RefBookVersionEntity getVersionOrElseThrow(Integer versionId) {

@@ -10,7 +10,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.ms.audit.client.UserAccessor;
 import ru.i_novus.ms.audit.client.model.User;
-import ru.inovus.ms.rdm.api.async.Async;
+import ru.inovus.ms.rdm.api.async.AsyncOperation;
+import ru.inovus.ms.rdm.api.async.AsyncPayloadConstants;
 import ru.inovus.ms.rdm.impl.repository.AsyncOperationLogEntryRepository;
 import ru.inovus.ms.rdm.impl.util.AsyncOperationLogEntryUtils;
 
@@ -43,10 +44,10 @@ public class AsyncOperationQueue {
     private UserAccessor userAccessor;
 
     @Transactional
-    public UUID add(UUID uuid, Async.Operation op, Map<String, Object> payload) {
+    public UUID add(UUID uuid, AsyncOperation op, Map<String, Object> payload) {
         User user = userAccessor.get();
         payload = new HashMap<>(payload == null ? emptyMap() : payload);
-        payload.put(Async.PayloadConstants.USER_KEY, user.getUsername());
+        payload.put(AsyncPayloadConstants.USER_KEY, user.getUsername());
         asyncOperationLogEntryRepository.saveConflictFree(uuid, op.name(), AsyncOperationLogEntryUtils.getPayloadAsJson(payload));
         logger.info("Sending message to internal async op queue. Operation id: {}; Type of operation: {}; Payload: {}", uuid, op, payload);
         try {

@@ -2,7 +2,7 @@ package ru.inovus.ms.rdm.impl.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.inovus.ms.rdm.api.async.Async;
+import ru.inovus.ms.rdm.api.async.AsyncOperationLogEntry;
 import ru.inovus.ms.rdm.api.service.AsyncOperationLogEntryService;
 import ru.inovus.ms.rdm.impl.entity.AsyncOperationLogEntryEntity;
 import ru.inovus.ms.rdm.impl.repository.AsyncOperationLogEntryRepository;
@@ -17,14 +17,14 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
     private AsyncOperationLogEntryRepository repository;
 
     @Override
-    public Async.Operation.LogEntry getById(UUID uuid) {
+    public AsyncOperationLogEntry getById(UUID uuid) {
         return map(repository.findById(uuid).orElse(null));
     }
 
-    private Async.Operation.LogEntry map(AsyncOperationLogEntryEntity entity) {
+    private AsyncOperationLogEntry map(AsyncOperationLogEntryEntity entity) {
         if (entity == null)
             return null;
-        Async.Operation.LogEntry logEntry = new Async.Operation.LogEntry();
+        AsyncOperationLogEntry logEntry = new AsyncOperationLogEntry();
         logEntry.setUuid(entity.getUuid());
         logEntry.setError(entity.getError());
         logEntry.setOperation(entity.getOperation());
