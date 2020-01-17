@@ -10,7 +10,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 /**
- * Проверка на уникальность строк по первичным ключам.
+ * Проверка на уникальность добавляемых строк по первичным ключам между собой.
  */
 public class PkUniqueRowAppendValidation extends AppendRowValidation {
 
