@@ -480,6 +480,7 @@ public class DraftServiceImpl implements DraftService {
                 notUnique = "23505".equals(((PSQLException) e.getCause().getCause()).getSQLState());
             if (notUnique)
                 throw new UserException(ROW_NOT_UNIQUE, e);
+            else throw e;
         }
     }
 
