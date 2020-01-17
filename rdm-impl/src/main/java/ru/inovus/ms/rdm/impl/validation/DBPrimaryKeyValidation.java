@@ -156,7 +156,7 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
     }
 
     /**
-     * В списке записей #searchValues ищется строка, которая соответствует строке с данными #rowData
+     * В списке записей #searchValues ищется запись, которая соответствует строке с данными #rowData
      * на основании набора значений первичных атрибутов #primaries.
      *
      * @param primaries    список кодов первичных атрибутов со значениями для идентификации записи
