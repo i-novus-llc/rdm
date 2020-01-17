@@ -22,7 +22,7 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
 
     @Override
     public Async.Operation.LogEntry getById(UUID uuid) {
-        return map(repository.getOne(uuid));
+        return map(repository.findById(uuid).orElse(null));
     }
 
     @Override
@@ -31,6 +31,8 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
     }
 
     private Async.Operation.LogEntry map(AsyncOperationLogEntryEntity entity) {
+        if (entity == null)
+            return null;
         Async.Operation.LogEntry logEntry = new Async.Operation.LogEntry();
         logEntry.setUuid(entity.getUuid());
         logEntry.setError(entity.getError());

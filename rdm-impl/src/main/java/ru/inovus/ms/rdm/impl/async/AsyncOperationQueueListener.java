@@ -27,6 +27,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
+import static ru.inovus.ms.rdm.api.async.Async.PayloadConstants.ARGS_KEY;
+import static ru.inovus.ms.rdm.api.async.Async.PayloadConstants.USER_KEY;
 import static ru.inovus.ms.rdm.impl.async.AsyncOperationQueue.*;
 
 @Component
@@ -53,21 +55,21 @@ public class AsyncOperationQueueListener {
         Async.Operation op = (Async.Operation) ctx.get(OP_IDX);
         UUID uuid = (UUID) ctx.get(OP_ID_IDX);
         Map<String, Object> payload = (Map<String, Object>) ctx.get(OP_PAYLOAD_IDX);
-        Object[] args = (Object[]) payload.get(Async.PayloadConstants.ARGS_KEY);
+        Object[] args = (Object[]) payload.get(ARGS_KEY);
+        String user = (String) payload.get(USER_KEY);
         logger.info("Message from internal async operation queue received. Operation id: {}", uuid);
         AsyncOperationLogEntryEntity entity = asyncOperationLogEntryRepository.findByUuid(uuid);
         if (entity == null) {
             logger.warn("The entity does not yet committed. Forcing save.");
             entity = AsyncOperationLogEntryUtils.createAsyncOperationLogEntryEntity(uuid, op, payload);
-            asyncOperationLogEntryRepository.save(entity);
+            entity = asyncOperationLogEntryRepository.save(entity);
         }
-        String user = (String) ctx.get(USER_NAME_IDX);
         SecurityContextHolder.getContext().setAuthentication(new AbstractAuthenticationToken(emptyList()) {
             @Override public Object getCredentials() {return null;}
             @Override public Object getPrincipal() {return user;}
         });
         entity.setStatus(Async.Operation.Status.IN_PROGRESS);
-        asyncOperationLogEntryRepository.save(entity);
+        entity = asyncOperationLogEntryRepository.save(entity);
         Pair<Object, Exception> pair = null;
         if (op == Async.Operation.PUBLICATION) {
             Integer draftId = (Integer) args[0];

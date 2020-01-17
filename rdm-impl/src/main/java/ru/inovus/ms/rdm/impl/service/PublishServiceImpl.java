@@ -30,9 +30,7 @@ import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
 import ru.inovus.ms.rdm.impl.file.export.VersionDataIterator;
-import ru.inovus.ms.rdm.impl.repository.AsyncOperationLogEntryRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.inovus.ms.rdm.impl.util.AsyncOperationLogEntryUtils;
 import ru.inovus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 
 import java.time.LocalDateTime;
@@ -67,9 +65,6 @@ public class PublishServiceImpl implements PublishService {
     private AuditLogService auditLogService;
 
     private JmsTemplate jmsTemplate;
-
-    @Autowired
-    private AsyncOperationLogEntryRepository asyncOperationLogEntryRepository;
 
     @Autowired
     private AsyncOperationQueue queue;
@@ -211,12 +206,8 @@ public class PublishServiceImpl implements PublishService {
     @Override
     @Transactional
     public UUID publishAsync(Integer draftId, String version, LocalDateTime fromDate, LocalDateTime toDate, boolean resolveConflicts) {
-        UUID uuid = UUID.randomUUID();
-        Object[] args = {draftId, version, fromDate, toDate, resolveConflicts};
-        Map<String, Object> payload = Map.of(Async.PayloadConstants.ARGS_KEY, args);
-        asyncOperationLogEntryRepository.save(AsyncOperationLogEntryUtils.createAsyncOperationLogEntryEntity(uuid, Async.Operation.PUBLICATION, payload));
-        queue.add(uuid, Async.Operation.PUBLICATION, payload);
-        return uuid;
+        Map<String, Object> payload = Map.of(Async.PayloadConstants.ARGS_KEY, new Object[] {draftId, version, fromDate, toDate, resolveConflicts});
+        return queue.add(UUID.randomUUID(), Async.Operation.PUBLICATION, payload);
     }
 
     private RefBookVersionEntity getVersionOrElseThrow(Integer versionId) {

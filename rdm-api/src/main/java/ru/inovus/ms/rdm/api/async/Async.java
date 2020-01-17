@@ -107,6 +107,7 @@ public final class Async {
     public static final class PayloadConstants {
 
         public static final String ARGS_KEY = "args";
+        public static final String USER_KEY = "user";
 
         private PayloadConstants() {throw new UnsupportedOperationException();}
 

@@ -10,7 +10,10 @@ import org.springframework.stereotype.Component;
 import ru.i_novus.ms.audit.client.UserAccessor;
 import ru.i_novus.ms.audit.client.model.User;
 import ru.inovus.ms.rdm.api.async.Async;
+import ru.inovus.ms.rdm.impl.repository.AsyncOperationLogEntryRepository;
+import ru.inovus.ms.rdm.impl.util.AsyncOperationLogEntryUtils;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -34,18 +37,24 @@ public class AsyncOperationQueue {
     private JmsTemplate jmsTemplate;
 
     @Autowired
+    private AsyncOperationLogEntryRepository asyncOperationLogEntryRepository;
+
+    @Autowired
     private UserAccessor userAccessor;
 
-    public void add(UUID opId, Async.Operation op, Map<String, Object> payload) {
-        payload = payload == null ? emptyMap() : payload;
+    public UUID add(UUID uuid, Async.Operation op, Map<String, Object> payload) {
         User user = userAccessor.get();
-        logger.info("Sending message to internal async op queue. Operation id: {}; Type of operation: {}; Payload: {}, User: {}", opId, op, payload, user.getUsername());
+        payload = new HashMap<>(payload == null ? emptyMap() : payload);
+        payload.put(Async.PayloadConstants.USER_KEY, user.getUsername());
+        asyncOperationLogEntryRepository.save(AsyncOperationLogEntryUtils.createAsyncOperationLogEntryEntity(uuid, Async.Operation.PUBLICATION, payload));
+        logger.info("Sending message to internal async op queue. Operation id: {}; Type of operation: {}; Payload: {}", uuid, op, payload);
         try {
-            jmsTemplate.convertAndSend(QUEUE_ID, List.of(op, opId, payload, user.getUsername()));
+            jmsTemplate.convertAndSend(QUEUE_ID, List.of(op, uuid, payload));
         } catch (Exception e) {
             logger.error("Error while sending message to internal async op queue.", e);
             throw new UserException("async.operation.queue.not.available", e);
         }
+        return uuid;
     }
 
 }
