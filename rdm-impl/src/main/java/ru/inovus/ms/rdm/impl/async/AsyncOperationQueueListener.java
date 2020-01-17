@@ -61,8 +61,8 @@ public class AsyncOperationQueueListener {
         AsyncOperationLogEntryEntity entity = asyncOperationLogEntryRepository.findByUuid(uuid);
         if (entity == null) {
             logger.warn("The entity does not yet committed. Forcing save.");
-            entity = AsyncOperationLogEntryUtils.createAsyncOperationLogEntryEntity(uuid, op, payload);
-            entity = asyncOperationLogEntryRepository.save(entity);
+            asyncOperationLogEntryRepository.saveConflictFree(uuid, op.name(), AsyncOperationLogEntryUtils.getPayloadAsJson(payload));
+            entity = asyncOperationLogEntryRepository.findByUuid(uuid);
         }
         SecurityContextHolder.getContext().setAuthentication(new AbstractAuthenticationToken(emptyList()) {
             @Override public Object getCredentials() {return null;}

@@ -47,7 +47,7 @@ public class AsyncOperationQueue {
         User user = userAccessor.get();
         payload = new HashMap<>(payload == null ? emptyMap() : payload);
         payload.put(Async.PayloadConstants.USER_KEY, user.getUsername());
-        asyncOperationLogEntryRepository.save(AsyncOperationLogEntryUtils.createAsyncOperationLogEntryEntity(uuid, Async.Operation.PUBLICATION, payload));
+        asyncOperationLogEntryRepository.saveConflictFree(uuid, op.name(), AsyncOperationLogEntryUtils.getPayloadAsJson(payload));
         logger.info("Sending message to internal async op queue. Operation id: {}; Type of operation: {}; Payload: {}", uuid, op, payload);
         try {
             jmsTemplate.convertAndSend(QUEUE_ID, List.of(op, uuid, payload));
