@@ -10,7 +10,6 @@ import ru.inovus.ms.rdm.impl.entity.AsyncOperationLogEntryEntity;
 
 import java.util.UUID;
 
-@SuppressWarnings("squid:S1214")
 public interface AsyncOperationLogEntryRepository extends JpaRepository<AsyncOperationLogEntryEntity, UUID>, QuerydslPredicateExecutor<AsyncOperationLogEntryEntity> {
 
     @Transactional

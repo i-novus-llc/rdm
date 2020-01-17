@@ -1,7 +1,6 @@
 package ru.inovus.ms.rdm.impl.entity;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.SerializationUtils;
@@ -23,9 +22,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class StructureType implements UserType {
+import static ru.inovus.ms.rdm.api.util.json.JsonUtil.MAPPER;
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+public class StructureType implements UserType {
 
     @Override
     public int[] sqlTypes() {

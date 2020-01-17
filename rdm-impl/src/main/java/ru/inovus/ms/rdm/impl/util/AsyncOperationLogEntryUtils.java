@@ -1,16 +1,15 @@
 package ru.inovus.ms.rdm.impl.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import ru.inovus.ms.rdm.impl.entity.AsyncOperationLogEntryEntity;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class AsyncOperationLogEntryUtils {
+import static ru.inovus.ms.rdm.api.util.json.JsonUtil.MAPPER;
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+public final class AsyncOperationLogEntryUtils {
 
     private AsyncOperationLogEntryUtils() {throw new UnsupportedOperationException();}
 
@@ -40,14 +39,6 @@ public final class AsyncOperationLogEntryUtils {
             return MAPPER.readValue(entity.getPayload(), HashMap.class);
         } catch (IOException e) {
             throw new IllegalArgumentException("Cannot deserialize jsonb value.", e);
-        }
-    }
-
-    public static String getPayloadAsJson(Map<String, Object> payload) {
-        try {
-            return MAPPER.writeValueAsString(payload);
-        } catch (JsonProcessingException e) {
-            throw new IllegalArgumentException("Cannot serialize jsonb value.", e);
         }
     }
 
