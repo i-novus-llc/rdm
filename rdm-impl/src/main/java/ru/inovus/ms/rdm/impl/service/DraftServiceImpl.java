@@ -820,16 +820,8 @@ public class DraftServiceImpl implements DraftService {
         if (attribute.isReferenceType())
             structure.getReferences().remove(structure.getReference(attributeCode));
         structure.getAttributes().remove(attribute);
-
-        try {
-            draftDataService.deleteField(draftEntity.getStorageCode(), attributeCode);
-
-        } catch (NotUniqueException e) {
-            throw new UserException(ROW_NOT_UNIQUE, e);
-        }
-
+        mutateCatchNotUniqueAndRethrow(() -> draftDataService.deleteField(draftEntity.getStorageCode(), attributeCode));
         attributeValidationRepository.deleteAll(attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attributeCode));
-
         auditStructureEdit(draftEntity, "delete_attribute", attribute);
     }
 
