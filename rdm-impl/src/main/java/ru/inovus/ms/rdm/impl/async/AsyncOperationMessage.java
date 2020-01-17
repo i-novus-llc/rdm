@@ -12,7 +12,7 @@ import java.util.UUID;
 
 class AsyncOperationMessage implements Serializable {
 
-    private Object[] args;
+    private Object[] args; // NOSONAR
     private String userName;
     private UUID operationId;
     private AsyncOperation operation;

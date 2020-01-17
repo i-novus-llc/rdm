@@ -17,8 +17,8 @@ public class CreateDraftRequest implements Serializable {
 
     private Integer refBookId;
     private Structure structure;
-    private Map<String, Object> passport;
-    private Map<String, List<AttributeValidation>> fieldValidations;
+    private Map<String, Object> passport; // NOSONAR
+    private Map<String, List<AttributeValidation>> fieldValidations; // NOSONAR
 
     public CreateDraftRequest(Integer refBookId, Structure structure, Map<String, Object> passport, Map<String, List<AttributeValidation>> fieldValidations) {
         this.refBookId = refBookId;

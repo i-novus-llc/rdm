@@ -7,7 +7,7 @@ import java.util.Objects;
 public class Row implements Serializable {
 
     private Long systemId;
-    private Map<String, Object> data;
+    private Map<String, Object> data; // NOSONAR
 
     public Row() {}
 
