@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.ms.audit.client.UserAccessor;
 import ru.i_novus.ms.audit.client.model.User;
 import ru.inovus.ms.rdm.api.async.Async;
@@ -30,7 +31,6 @@ public class AsyncOperationQueue {
     static final int OP_IDX = 0;
     static final int OP_ID_IDX = 1;
     static final int OP_PAYLOAD_IDX = 2;
-    static final int USER_NAME_IDX = 3;
 
     @Autowired
     @Qualifier("queueJmsTemplate")
@@ -42,6 +42,7 @@ public class AsyncOperationQueue {
     @Autowired
     private UserAccessor userAccessor;
 
+    @Transactional
     public UUID add(UUID uuid, Async.Operation op, Map<String, Object> payload) {
         User user = userAccessor.get();
         payload = new HashMap<>(payload == null ? emptyMap() : payload);

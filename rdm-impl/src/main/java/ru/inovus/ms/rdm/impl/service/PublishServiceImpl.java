@@ -204,7 +204,6 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
-    @Transactional
     public UUID publishAsync(Integer draftId, String version, LocalDateTime fromDate, LocalDateTime toDate, boolean resolveConflicts) {
         Map<String, Object> payload = Map.of(Async.PayloadConstants.ARGS_KEY, new Object[] {draftId, version, fromDate, toDate, resolveConflicts});
         return queue.add(UUID.randomUUID(), Async.Operation.PUBLICATION, payload);
