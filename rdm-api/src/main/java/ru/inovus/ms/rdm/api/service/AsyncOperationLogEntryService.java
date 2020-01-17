@@ -27,6 +27,6 @@ public interface AsyncOperationLogEntryService {
     @GET
     @Path("/isPublishing")
     @ApiOperation("Получить идентификаторы версиий справочников, на которые в журнале на данный момент заведена операция")
-    Set<Integer> getPublishingRefBookVersions(@ApiParam("Идентификаторы версий справочников") @QueryParam("version_ids") List<Integer> versionIds);
+    Set<Integer> getPublishingRefBookVersions(@ApiParam("Идентификаторы версий справочников") @QueryParam("vid") List<Integer> versionIds);
 
 }
