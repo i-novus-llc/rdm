@@ -13,7 +13,7 @@ public final class JsonUtil {
 
     private JsonUtil() {throw new UnsupportedOperationException();}
 
-    public static String getMapAsJson(Object obj) {
+    public static String getAsJson(Object obj) {
         try {
             return MAPPER.writeValueAsString(obj);
         } catch (JsonProcessingException e) {

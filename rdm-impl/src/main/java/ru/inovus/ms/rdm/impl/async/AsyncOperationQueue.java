@@ -21,10 +21,6 @@ public class AsyncOperationQueue {
 
     static final String QUEUE_ID = "RDM-INTERNAL-ASYNC-OPERATION-QUEUE";
 
-    static final int OP_IDX = 0;
-    static final int OP_ID_IDX = 1;
-    static final int OP_PAYLOAD_IDX = 2;
-
     @Autowired
     @Qualifier("queueJmsTemplate")
     private JmsTemplate jmsTemplate;

@@ -34,14 +34,14 @@ public class AsyncOperationQueueListener {
     private static final Object NO_RESULT = new Object();
     private static final Exception NO_EXCEPTION = new RuntimeException();
 
-    @Autowired private PublishService publishService;
-    @Autowired private AsyncOperationLogEntryRepository asyncOperationLogEntryRepository;
+    @Autowired
+    private PublishService publishService;
+
+    @Autowired
+    private AsyncOperationLogEntryRepository asyncOperationLogEntryRepository;
 
     @Autowired
     private Messages messages;
-
-    @Autowired
-    private AsyncOperationQueueListener self;
 
     @JmsListener(destination = QUEUE_ID, containerFactory = "internalAsyncOperationContainerFactory")
     public void onOperationReceived(AsyncOperationMessage message) {

@@ -64,7 +64,7 @@ public class AuditLogService {
             request.setEventType(action.getName());
             Map<String, Object> m = new HashMap<>(action.getContext(obj));
             m.putAll(additionalContext);
-            request.setContext(JsonUtil.getMapAsJson(m));
+            request.setContext(JsonUtil.getAsJson(m));
             request.setAuditType((short) 1);
             try {
                 auditClient.add(request);
