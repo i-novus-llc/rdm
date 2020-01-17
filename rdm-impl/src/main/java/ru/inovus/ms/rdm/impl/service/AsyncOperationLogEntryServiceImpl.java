@@ -1,11 +1,11 @@
 package ru.inovus.ms.rdm.impl.service;
 
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.dsl.Expressions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.inovus.ms.rdm.api.async.AsyncOperation;
 import ru.inovus.ms.rdm.api.async.AsyncOperationLogEntry;
@@ -30,15 +30,21 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
     @Override
     public Page<AsyncOperationLogEntry> search(AsyncOperationLogEntryCriteria criteria) {
         QAsyncOperationLogEntryEntity q = QAsyncOperationLogEntryEntity.asyncOperationLogEntryEntity;
-        BooleanBuilder builder = new BooleanBuilder(Expressions.TRUE);
+        if (criteria.getSort() == null)
+            criteria.setOrders(List.of(Sort.Order.desc("tsStart")));
+        BooleanBuilder builder = new BooleanBuilder();
         if (criteria.getUuid() != null)
             builder.and(q.uuid.eq(criteria.getUuid()));
         if (criteria.getOperation() != null)
             builder.and(q.operation.eq(criteria.getOperation()));
         if (criteria.getStatus() != null)
             builder.and(q.status.eq(criteria.getStatus()));
-        assert builder.getValue() != null;
-        return repository.findAll(builder.getValue(), criteria).map(this::map);
+        Page<AsyncOperationLogEntryEntity> page;
+        if (builder.getValue() == null)
+            page = repository.findAll(criteria);
+        else
+            page = repository.findAll(builder.getValue(), criteria);
+        return page.map(this::map);
     }
 
     @Override
