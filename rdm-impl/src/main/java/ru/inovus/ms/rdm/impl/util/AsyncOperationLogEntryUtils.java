@@ -8,8 +8,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static java.util.Collections.emptyMap;
-
 public final class AsyncOperationLogEntryUtils {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -37,9 +35,9 @@ public final class AsyncOperationLogEntryUtils {
 
     public static Map<String, Object> getPayload(AsyncOperationLogEntryEntity entity) {
         if (entity.getPayload() == null)
-            return emptyMap();
+            return null;
         try {
-            return MAPPER.readValue(entity.getResult(), HashMap.class);
+            return MAPPER.readValue(entity.getPayload(), HashMap.class);
         } catch (IOException e) {
             throw new IllegalArgumentException("Cannot deserialize jsonb value.", e);
         }

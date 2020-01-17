@@ -15,8 +15,6 @@ import java.util.UUID;
 @Service
 public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntryService {
 
-
-
     @Autowired
     private AsyncOperationLogEntryRepository repository;
 
