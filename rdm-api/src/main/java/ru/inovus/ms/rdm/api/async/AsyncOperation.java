@@ -13,8 +13,4 @@ public enum AsyncOperation {
         return resultClass;
     }
 
-    public enum Status {
-        QUEUED, IN_PROGRESS, ERROR, DONE
-    }
-
 }

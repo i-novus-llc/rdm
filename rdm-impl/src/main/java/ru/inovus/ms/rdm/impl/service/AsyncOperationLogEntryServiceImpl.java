@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.impl.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import ru.inovus.ms.rdm.api.async.AsyncOperationLogEntry;
 import ru.inovus.ms.rdm.api.service.AsyncOperationLogEntryService;
@@ -11,6 +12,7 @@ import ru.inovus.ms.rdm.impl.util.AsyncOperationLogEntryUtils;
 import java.util.UUID;
 
 @Service
+@Primary
 public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntryService {
 
     @Autowired
@@ -30,8 +32,8 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
         logEntry.setOperation(entity.getOperation());
         logEntry.setPayload(AsyncOperationLogEntryUtils.getPayload(entity));
         logEntry.setStatus(entity.getStatus());
-        logEntry.setTsStartUTC(entity.getTsStartUTC());
-        logEntry.setTsEndUTC(entity.getTsEndUTC());
+        logEntry.setTsStart(entity.getTsStart());
+        logEntry.setTsEnd(entity.getTsEnd());
         logEntry.setResult(AsyncOperationLogEntryUtils.getResult(entity.getOperation().getResultClass(), entity));
         return logEntry;
     }

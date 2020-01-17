@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.impl.entity;
 
 import ru.inovus.ms.rdm.api.async.AsyncOperation;
+import ru.inovus.ms.rdm.api.async.AsyncOperationStatus;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -20,7 +21,7 @@ public class AsyncOperationLogEntryEntity {
 
     @Enumerated(value = EnumType.STRING)
     @Column(name = "status", nullable = false, insertable = false)
-    private AsyncOperation.Status status;
+    private AsyncOperationStatus status;
 
     @Column(name = "error")
     private String error;
@@ -32,10 +33,10 @@ public class AsyncOperationLogEntryEntity {
     private String result;
 
     @Column(name = "start_ts", nullable = false, updatable = false, insertable = false)
-    private LocalDateTime tsStartUTC;
+    private LocalDateTime tsStart;
 
     @Column(name = "end_ts", updatable = false, insertable = false)
-    private LocalDateTime tsEndUTC;
+    private LocalDateTime tsEnd;
 
     public UUID getUuid() {
         return uuid;
@@ -53,11 +54,11 @@ public class AsyncOperationLogEntryEntity {
         this.operation = operation;
     }
 
-    public AsyncOperation.Status getStatus() {
+    public AsyncOperationStatus getStatus() {
         return status;
     }
 
-    public void setStatus(AsyncOperation.Status status) {
+    public void setStatus(AsyncOperationStatus status) {
         this.status = status;
     }
 
@@ -85,20 +86,20 @@ public class AsyncOperationLogEntryEntity {
         this.result = result;
     }
 
-    public LocalDateTime getTsStartUTC() {
-        return tsStartUTC;
+    public LocalDateTime getTsStart() {
+        return tsStart;
     }
 
-    public void setTsStartUTC(LocalDateTime tsStartUTC) {
-        this.tsStartUTC = tsStartUTC;
+    public void setTsStart(LocalDateTime tsStart) {
+        this.tsStart = tsStart;
     }
 
-    public LocalDateTime getTsEndUTC() {
-        return tsEndUTC;
+    public LocalDateTime getTsEnd() {
+        return tsEnd;
     }
 
-    public void setTsEndUTC(LocalDateTime tsEndUTC) {
-        this.tsEndUTC = tsEndUTC;
+    public void setTsEnd(LocalDateTime tsEnd) {
+        this.tsEnd = tsEnd;
     }
 
 }

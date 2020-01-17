@@ -26,7 +26,6 @@ import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
 import ru.inovus.ms.rdm.api.model.refdata.RdmChangeDataRequest;
-import ru.inovus.ms.rdm.api.service.AsyncOperationLogEntryService;
 import ru.inovus.ms.rdm.api.service.DraftService;
 import ru.inovus.ms.rdm.api.service.PublishService;
 import ru.inovus.ms.rdm.api.service.RefBookService;
@@ -79,9 +78,6 @@ public class RefBookServiceImpl implements RefBookService {
 
     private DraftService draftService;
     private PublishService publishService;
-
-    @Autowired
-    private AsyncOperationLogEntryService asyncOperationLogEntryService;
 
     @Autowired
     @SuppressWarnings("squid:S00107")

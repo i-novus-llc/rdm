@@ -14,6 +14,7 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import ru.inovus.ms.rdm.api.async.AsyncOperation;
+import ru.inovus.ms.rdm.api.async.AsyncOperationStatus;
 import ru.inovus.ms.rdm.api.service.PublishService;
 import ru.inovus.ms.rdm.impl.entity.AsyncOperationLogEntryEntity;
 import ru.inovus.ms.rdm.impl.repository.AsyncOperationLogEntryRepository;
@@ -68,7 +69,7 @@ public class AsyncOperationQueueListener {
             @Override public Object getCredentials() {return null;}
             @Override public Object getPrincipal() {return user;}
         });
-        entity.setStatus(AsyncOperation.Status.IN_PROGRESS);
+        entity.setStatus(AsyncOperationStatus.IN_PROGRESS);
         entity = asyncOperationLogEntryRepository.save(entity);
         Pair<Object, Exception> pair = null;
         if (op == AsyncOperation.PUBLICATION) {
@@ -86,7 +87,7 @@ public class AsyncOperationQueueListener {
         if (pair.getSecond() != NO_EXCEPTION) {
             String error = getErrorMsg(pair);
             entity.setError(error);
-            entity.setStatus(AsyncOperation.Status.ERROR);
+            entity.setStatus(AsyncOperationStatus.ERROR);
         } else {
             String result = null;
             if (pair.getFirst() != NO_RESULT) {
@@ -98,7 +99,7 @@ public class AsyncOperationQueueListener {
             }
             String finalResult = result;
             entity.setResult(finalResult);
-            entity.setStatus(AsyncOperation.Status.DONE);
+            entity.setStatus(AsyncOperationStatus.DONE);
         }
         asyncOperationLogEntryRepository.save(entity);
         logger.info("Async operation with id {} completed with status {}", entity.getUuid(), entity.getStatus());

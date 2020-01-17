@@ -8,12 +8,12 @@ public class AsyncOperationLogEntry {
 
     private UUID uuid;
     private AsyncOperation operation;
-    private AsyncOperation.Status status;
+    private AsyncOperationStatus status;
     private String error;
     private Map<String, Object> payload;
     private Object result;
-    private LocalDateTime tsStartUTC;
-    private LocalDateTime tsEndUTC;
+    private LocalDateTime tsStart;
+    private LocalDateTime tsEnd;
 
     public UUID getUuid() {
         return uuid;
@@ -31,11 +31,11 @@ public class AsyncOperationLogEntry {
         this.operation = operation;
     }
 
-    public AsyncOperation.Status getStatus() {
+    public AsyncOperationStatus getStatus() {
         return status;
     }
 
-    public void setStatus(AsyncOperation.Status status) {
+    public void setStatus(AsyncOperationStatus status) {
         this.status = status;
     }
 
@@ -47,20 +47,20 @@ public class AsyncOperationLogEntry {
         this.error = error;
     }
 
-    public LocalDateTime getTsStartUTC() {
-        return tsStartUTC;
+    public LocalDateTime getTsStart() {
+        return tsStart;
     }
 
-    public void setTsStartUTC(LocalDateTime tsStartUTC) {
-        this.tsStartUTC = tsStartUTC;
+    public void setTsStart(LocalDateTime tsStart) {
+        this.tsStart = tsStart;
     }
 
-    public LocalDateTime getTsEndUTC() {
-        return tsEndUTC;
+    public LocalDateTime getTsEnd() {
+        return tsEnd;
     }
 
-    public void setTsEndUTC(LocalDateTime tsEndUTC) {
-        this.tsEndUTC = tsEndUTC;
+    public void setTsEnd(LocalDateTime tsEnd) {
+        this.tsEnd = tsEnd;
     }
 
     public Map<String, Object> getPayload() {
