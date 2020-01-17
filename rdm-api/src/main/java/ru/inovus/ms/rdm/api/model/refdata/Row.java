@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
-@SuppressWarnings("squid:S1948")
 public class Row implements Serializable {
 
     private Long systemId;

@@ -1,8 +1,6 @@
 package ru.inovus.ms.rdm.impl.async;
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.platform.i18n.Messages;
 import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
@@ -21,16 +19,12 @@ import ru.inovus.ms.rdm.impl.repository.AsyncOperationLogEntryRepository;
 import ru.inovus.ms.rdm.impl.util.AsyncOperationLogEntryUtils;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
-import static ru.inovus.ms.rdm.api.async.AsyncPayloadConstants.ARGS_KEY;
-import static ru.inovus.ms.rdm.api.async.AsyncPayloadConstants.USER_KEY;
-import static ru.inovus.ms.rdm.impl.async.AsyncOperationQueue.*;
+import static ru.inovus.ms.rdm.impl.async.AsyncOperationQueue.QUEUE_ID;
 
 @Component
 public class AsyncOperationQueueListener {
@@ -39,8 +33,6 @@ public class AsyncOperationQueueListener {
 
     private static final Object NO_RESULT = new Object();
     private static final Exception NO_EXCEPTION = new RuntimeException();
-
-    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Autowired private PublishService publishService;
     @Autowired private AsyncOperationLogEntryRepository asyncOperationLogEntryRepository;
@@ -52,17 +44,16 @@ public class AsyncOperationQueueListener {
     private AsyncOperationQueueListener self;
 
     @JmsListener(destination = QUEUE_ID, containerFactory = "internalAsyncOperationContainerFactory")
-    public void onOperationReceived(List<Object> ctx) {
-        AsyncOperation op = (AsyncOperation) ctx.get(OP_IDX);
-        UUID uuid = (UUID) ctx.get(OP_ID_IDX);
-        Map<String, Object> payload = (Map<String, Object>) ctx.get(OP_PAYLOAD_IDX);
-        Object[] args = (Object[]) payload.get(ARGS_KEY);
-        String user = (String) payload.get(USER_KEY);
+    public void onOperationReceived(AsyncOperationMessage message) {
+        AsyncOperation op = message.getOperation();
+        UUID uuid = message.getOperationId();
+        Object[] args = message.getArgs();
+        String user = message.getUserName();
         logger.info("Message from internal async operation queue received. Operation id: {}", uuid);
         AsyncOperationLogEntryEntity entity = asyncOperationLogEntryRepository.findByUuid(uuid);
         if (entity == null) {
             logger.warn("The entity does not yet committed. Forcing save.");
-            asyncOperationLogEntryRepository.saveConflictFree(uuid, op.name(), AsyncOperationLogEntryUtils.getPayloadAsJson(payload));
+            asyncOperationLogEntryRepository.saveConflictFree(uuid, op.name(), message.getPayloadAsJson());
             entity = asyncOperationLogEntryRepository.findByUuid(uuid);
         }
         SecurityContextHolder.getContext().setAuthentication(new AbstractAuthenticationToken(emptyList()) {
@@ -89,16 +80,8 @@ public class AsyncOperationQueueListener {
             entity.setError(error);
             entity.setStatus(AsyncOperationStatus.ERROR);
         } else {
-            String result = null;
-            if (pair.getFirst() != NO_RESULT) {
-                try {
-                    result = MAPPER.writeValueAsString(pair.getFirst());
-                } catch (JsonProcessingException e) {
-                    logger.error("Error while serializing result to json.", e);
-                }
-            }
-            String finalResult = result;
-            entity.setResult(finalResult);
+            if (pair.getFirst() != NO_RESULT)
+                AsyncOperationLogEntryUtils.setResult(pair.getFirst(), entity);
             entity.setStatus(AsyncOperationStatus.DONE);
         }
         asyncOperationLogEntryRepository.save(entity);

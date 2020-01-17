@@ -9,18 +9,10 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.ms.audit.client.UserAccessor;
-import ru.i_novus.ms.audit.client.model.User;
 import ru.inovus.ms.rdm.api.async.AsyncOperation;
-import ru.inovus.ms.rdm.api.async.AsyncPayloadConstants;
 import ru.inovus.ms.rdm.impl.repository.AsyncOperationLogEntryRepository;
-import ru.inovus.ms.rdm.impl.util.AsyncOperationLogEntryUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-
-import static java.util.Collections.emptyMap;
 
 @Component
 public class AsyncOperationQueue {
@@ -44,14 +36,13 @@ public class AsyncOperationQueue {
     private UserAccessor userAccessor;
 
     @Transactional
-    public UUID add(UUID uuid, AsyncOperation op, Map<String, Object> payload) {
-        User user = userAccessor.get();
-        payload = new HashMap<>(payload == null ? emptyMap() : payload);
-        payload.put(AsyncPayloadConstants.USER_KEY, user.getUsername());
-        asyncOperationLogEntryRepository.saveConflictFree(uuid, op.name(), AsyncOperationLogEntryUtils.getPayloadAsJson(payload));
-        logger.info("Sending message to internal async op queue. Operation id: {}; Type of operation: {}; Payload: {}", uuid, op, payload);
+    public UUID add(AsyncOperation op, Object[] args) {
+        UUID uuid = UUID.randomUUID();
+        AsyncOperationMessage message = new AsyncOperationMessage(args, userAccessor.get(), uuid, op);
+        asyncOperationLogEntryRepository.saveConflictFree(uuid, op.name(), message.getPayloadAsJson());
+        logger.info("Sending message to internal async op queue. Message: {}", message);
         try {
-            jmsTemplate.convertAndSend(QUEUE_ID, List.of(op, uuid, payload));
+            jmsTemplate.convertAndSend(QUEUE_ID, message);
         } catch (Exception e) {
             logger.error("Error while sending message to internal async op queue.", e);
             throw new UserException("async.operation.queue.not.available", e);

@@ -1,7 +1,5 @@
 package ru.inovus.ms.rdm.impl.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.ms.audit.client.AuditClient;
 import ru.i_novus.ms.audit.client.model.AuditClientRequest;
-import ru.inovus.ms.rdm.api.exception.RdmException;
+import ru.inovus.ms.rdm.api.util.json.JsonUtil;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
 
 import java.util.EnumSet;
@@ -27,8 +25,6 @@ import static java.util.stream.Collectors.toList;
 public class AuditLogService {
 
     private static final Logger logger = LoggerFactory.getLogger(AuditLogService.class);
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private EnumSet<AuditAction> disabledActions;
 
@@ -68,7 +64,7 @@ public class AuditLogService {
             request.setEventType(action.getName());
             Map<String, Object> m = new HashMap<>(action.getContext(obj));
             m.putAll(additionalContext);
-            request.setContext(toJson(m));
+            request.setContext(JsonUtil.getMapAsJson(m));
             request.setAuditType((short) 1);
             try {
                 auditClient.add(request);
@@ -78,18 +74,6 @@ public class AuditLogService {
         } else {
             logger.warn("audit action {} disabled", action);
         }
-    }
-
-    private static String toJson(Map<String, Object> ctx) {
-        String json;
-        try {
-            json = OBJECT_MAPPER.writeValueAsString(ctx);
-        } catch (JsonProcessingException e) {
-            /*Не выбросится*/
-            logger.error("Error while serializing to json {0}", e);
-            throw new RdmException(e);
-        }
-        return json;
     }
 
 }
