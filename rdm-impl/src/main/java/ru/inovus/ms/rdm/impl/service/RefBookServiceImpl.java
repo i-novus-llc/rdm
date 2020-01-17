@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
+import ru.inovus.ms.rdm.api.enumeration.RefBookOperation;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookStatusType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -127,13 +128,7 @@ public class RefBookServiceImpl implements RefBookService {
         List<Integer> refBookIds = entities.getContent().stream()
                 .map(v -> v.getRefBook().getId())
                 .collect(toList());
-        List<Integer> refBookVersionIds = entities.getContent().stream().map(RefBookVersionEntity::getId).collect(toList());
-        Set<Integer> publishing = asyncOperationLogEntryService.getPublishingRefBookVersions(refBookVersionIds);
-        return entities.map(entity -> {
-                RefBook model = refBookModel(entity, criteria.getExcludeDraft() ? emptyList() : getSourceTypeVersions(refBookIds, RefBookSourceType.DRAFT), getSourceTypeVersions(refBookIds, RefBookSourceType.LAST_PUBLISHED));
-                model.setPublishing(publishing.contains(entity.getId()));
-                return model;
-            }
+        return entities.map(entity -> refBookModel(entity, criteria.getExcludeDraft() ? emptyList() : getSourceTypeVersions(refBookIds, RefBookSourceType.DRAFT), getSourceTypeVersions(refBookIds, RefBookSourceType.LAST_PUBLISHED))
         );
     }
 
@@ -415,7 +410,15 @@ public class RefBookServiceImpl implements RefBookService {
         model.setHasAlteredConflict(refBookModelData.getHasAlteredConflict());
         model.setHasStructureConflict(refBookModelData.getHasStructureConflict());
         model.setLastHasDataConflict(refBookModelData.getLastHasDataConflict());
-
+        if (entity.getRunningOp() != null) {
+            if (entity.getRunningOp().getOperation() == RefBookOperation.PUBLISHING)
+                model.setPublishing(true);
+            else
+                model.setUpdating(true);
+        } else {
+            model.setUpdating(false);
+            model.setPublishing(false);
+        }
         return model;
     }
 

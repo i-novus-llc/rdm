@@ -5,8 +5,6 @@ import ru.inovus.ms.rdm.api.async.Async;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @Path("/asynclog")
@@ -23,10 +21,5 @@ public interface AsyncOperationLogEntryService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     Async.Operation.LogEntry getById(@ApiParam("Идентификатор операции") @PathParam("logEntryId") UUID uuid);
-
-    @GET
-    @Path("/isPublishing")
-    @ApiOperation("Получить идентификаторы версиий справочников, на которые в журнале на данный момент заведена операция")
-    Set<Integer> getPublishingRefBookVersions(@ApiParam("Идентификаторы версий справочников") @QueryParam("vid") List<Integer> versionIds);
 
 }

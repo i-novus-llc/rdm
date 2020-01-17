@@ -7,6 +7,7 @@ import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.util.TimeUtils;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -14,7 +15,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "ref_book_version", schema = "n2o_rdm_management")
 @TypeDef(name = "structure", typeClass = StructureType.class)
-public class RefBookVersionEntity {
+public class RefBookVersionEntity implements Serializable {
 
     @Id
     @Column(name = "id", nullable = false)
@@ -56,6 +57,10 @@ public class RefBookVersionEntity {
 
     @OneToMany(mappedBy="version", cascade = CascadeType.ALL)
     private List<PassportValueEntity> passportValues;
+
+    @ManyToOne
+    @JoinColumn(name = "ref_book_id", referencedColumnName = "ref_book_id", insertable = false, updatable = false)
+    private RefBookOperationEntity runningOp;
 
     public Integer getId() {
         return id;
@@ -152,6 +157,14 @@ public class RefBookVersionEntity {
     public void setPassportValues(List<PassportValueEntity> passportValues) {
         passportValues.forEach(v -> v.setVersion(this));
         this.passportValues = passportValues;
+    }
+
+    public RefBookOperationEntity getRunningOp() {
+        return runningOp;
+    }
+
+    public void setRunningOp(RefBookOperationEntity runningOp) {
+        this.runningOp = runningOp;
     }
 
     /**

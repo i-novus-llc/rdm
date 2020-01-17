@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.impl.entity;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -8,7 +9,7 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "passport_value", schema = "n2o_rdm_management")
-public class PassportValueEntity {
+public class PassportValueEntity implements Serializable {
 
     @Id
     @Column(name = "id", nullable = false)

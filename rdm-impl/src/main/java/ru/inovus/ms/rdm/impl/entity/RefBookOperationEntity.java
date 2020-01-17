@@ -3,12 +3,13 @@ package ru.inovus.ms.rdm.impl.entity;
 import ru.inovus.ms.rdm.api.enumeration.RefBookOperation;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.time.Clock;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "ref_book_operation", schema = "n2o_rdm_management")
-public class RefBookOperationEntity {
+public class RefBookOperationEntity implements Serializable {
     @Id
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)

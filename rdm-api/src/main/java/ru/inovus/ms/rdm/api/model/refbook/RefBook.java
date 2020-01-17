@@ -57,6 +57,9 @@ public class RefBook extends RefBookVersion {
     @ApiModelProperty("Публикуется ли данный справочник в данный момент")
     private Boolean publishing;
 
+    @ApiModelProperty("Обновляется ли данный справочник в данный момент")
+    private Boolean updating;
+
     public RefBook() {
     }
 
@@ -203,5 +206,13 @@ public class RefBook extends RefBookVersion {
 
     public void setPublishing(Boolean publishing) {
         this.publishing = publishing;
+    }
+
+    public Boolean getUpdating() {
+        return updating;
+    }
+
+    public void setUpdating(Boolean updating) {
+        this.updating = updating;
     }
 }

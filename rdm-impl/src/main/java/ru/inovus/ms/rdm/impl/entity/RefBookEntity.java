@@ -1,13 +1,14 @@
 package ru.inovus.ms.rdm.impl.entity;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 @Entity
 @Table(name = "ref_book", schema = "n2o_rdm_management")
-public class RefBookEntity {
+public class RefBookEntity implements Serializable {
 
     @Id
     @Column(name = "id", nullable = false)

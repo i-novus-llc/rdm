@@ -200,4 +200,5 @@ public class RefBookLockServiceImpl implements RefBookLockService {
             throw new UserException(new Message("refbook.lock.draft.is.updating", refBookId));
         }
     }
+
 }

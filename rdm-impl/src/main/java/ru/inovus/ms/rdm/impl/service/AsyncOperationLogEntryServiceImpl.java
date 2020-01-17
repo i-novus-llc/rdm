@@ -8,8 +8,6 @@ import ru.inovus.ms.rdm.impl.entity.AsyncOperationLogEntryEntity;
 import ru.inovus.ms.rdm.impl.repository.AsyncOperationLogEntryRepository;
 import ru.inovus.ms.rdm.impl.util.AsyncOperationLogEntryUtils;
 
-import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -21,11 +19,6 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
     @Override
     public Async.Operation.LogEntry getById(UUID uuid) {
         return map(repository.findById(uuid).orElse(null));
-    }
-
-    @Override
-    public Set<Integer> getPublishingRefBookVersions(List<Integer> versionIds) {
-        return repository.getPublishingRefBookVersions(versionIds);
     }
 
     private Async.Operation.LogEntry map(AsyncOperationLogEntryEntity entity) {
