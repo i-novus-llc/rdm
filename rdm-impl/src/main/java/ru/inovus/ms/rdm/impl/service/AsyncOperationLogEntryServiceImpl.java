@@ -19,7 +19,7 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
     private AsyncOperationLogEntryRepository repository;
 
     @Override
-    public AsyncOperationLogEntry getById(UUID uuid) {
+    public AsyncOperationLogEntry get(UUID uuid) {
         return map(repository.findById(uuid).orElse(null));
     }
 

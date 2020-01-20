@@ -20,6 +20,6 @@ public interface AsyncOperationLogEntryService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    AsyncOperationLogEntry getById(@ApiParam("Идентификатор операции") @PathParam("logEntryId") UUID uuid);
+    AsyncOperationLogEntry get(@ApiParam("Идентификатор операции") @PathParam("logEntryId") UUID uuid);
 
 }
