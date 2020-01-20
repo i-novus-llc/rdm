@@ -62,19 +62,7 @@ public class AsyncOperationQueueListener {
         });
         entity.setStatus(AsyncOperationStatus.IN_PROGRESS);
         entity = asyncOperationLogEntryRepository.save(entity);
-        Pair<Object, Exception> pair = null;
-        if (op == AsyncOperation.PUBLICATION) {
-            Integer draftId = (Integer) args[0];
-            String version = (String) args[1];
-            LocalDateTime from = (LocalDateTime) args[2];
-            LocalDateTime to = (LocalDateTime) args[3];
-            boolean resolveConflicts = (boolean) args[4];
-            pair = exec(() -> {
-                publishService.publish(draftId, version, from, to, resolveConflicts);
-                return NO_RESULT;
-            });
-        }
-        assert pair != null;
+        Pair<Object, Exception> pair = handle(op, args);
         if (pair.getSecond() != NO_EXCEPTION) {
             String error = getErrorMsg(pair);
             entity.setError(error);
@@ -86,6 +74,21 @@ public class AsyncOperationQueueListener {
         }
         asyncOperationLogEntryRepository.save(entity);
         logger.info("Async operation with id {} completed with status {}", entity.getUuid(), entity.getStatus());
+    }
+
+    private Pair<Object, Exception> handle(AsyncOperation op, Object[] args) {
+        if (op == AsyncOperation.PUBLICATION) {
+            Integer draftId = (Integer) args[0];
+            String version = (String) args[1];
+            LocalDateTime from = (LocalDateTime) args[2];
+            LocalDateTime to = (LocalDateTime) args[3];
+            boolean resolveConflicts = (boolean) args[4];
+            return exec(() -> {
+                publishService.publish(draftId, version, from, to, resolveConflicts);
+                return NO_RESULT;
+            });
+        } else
+            throw new IllegalArgumentException("Unrealized operation: " + op);
     }
 
     private String getErrorMsg(Pair<Object, Exception> pair) {
