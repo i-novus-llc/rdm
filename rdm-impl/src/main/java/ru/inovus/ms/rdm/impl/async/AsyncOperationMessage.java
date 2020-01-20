@@ -2,7 +2,6 @@ package ru.inovus.ms.rdm.impl.async;
 
 import ru.i_novus.ms.audit.client.model.User;
 import ru.inovus.ms.rdm.api.async.AsyncOperation;
-import ru.inovus.ms.rdm.api.async.AsyncPayloadConstants;
 import ru.inovus.ms.rdm.api.util.json.JsonUtil;
 
 import java.io.Serializable;
@@ -10,7 +9,10 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 
-class AsyncOperationMessage implements Serializable {
+public class AsyncOperationMessage implements Serializable {
+
+    public static final String ARGS_KEY = "args";
+    public static final String USER_KEY = "user";
 
     private Object[] args;
     private String userName;
@@ -57,7 +59,7 @@ class AsyncOperationMessage implements Serializable {
     }
 
     public String getPayloadAsJson() {
-        return JsonUtil.getAsJson(Map.of(AsyncPayloadConstants.ARGS_KEY, args, AsyncPayloadConstants.USER_KEY, userName));
+        return JsonUtil.getAsJson(Map.of(ARGS_KEY, args, USER_KEY, userName));
     }
 
     @Override
