@@ -26,7 +26,7 @@ public interface AsyncOperationLogEntryService {
     @GET
     @Path("/entry/{logEntryId}")
     @ApiOperation("Получение текущего статуса асинхронной операции по ее идентификатору")
-    AsyncOperationLogEntry getById(@ApiParam("Идентификатор операции") @PathParam("logEntryId") UUID uuid);
+    AsyncOperationLogEntry get(@ApiParam("Идентификатор операции") @PathParam("logEntryId") UUID uuid);
 
     @GET
     @Path("/opTypes")

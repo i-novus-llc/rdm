@@ -17,7 +17,7 @@ public interface AsyncOperationLogEntryRepository extends JpaRepository<AsyncOpe
 
     @Transactional
     @Modifying
-    @Query(nativeQuery = true, value = "INSERT INTO n2o_rdm_management.async_log_entry (id, op_enum, payload) VALUES (:id, :op_enum, :payload) ON CONFLICT (id) DO NOTHING;")
+    @Query(nativeQuery = true, value = "INSERT INTO n2o_rdm_management.async_log_entry (id, op_enum, payload) VALUES (:id, :op_enum, :payload) ON CONFLICT (id) DO UPDATE SET status = 'IN_PROGRESS'")
     void saveConflictFree(@Param("id") UUID uuid, @Param("op_enum") String op, @Param("payload") String payload);
 
 }
