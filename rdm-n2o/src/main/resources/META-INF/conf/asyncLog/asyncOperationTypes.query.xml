@@ -4,8 +4,8 @@
         <rest>${rdm.backend.path}/asynclog/opTypes</rest>
     </list>
     <fields>
-        <field id="opType" domain="string">
-            <select mapping="name()"/>
+        <field id="id" domain="string">
+            <select mapping="toString()"/>
         </field>
     </fields>
 </query>

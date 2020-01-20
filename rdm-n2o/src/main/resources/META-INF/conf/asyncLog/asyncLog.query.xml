@@ -1,28 +1,28 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" name="Типы операций">
     <list count-mapping="[totalElements]" result-mapping="[content]">
-        <rest>${rdm.backend.path}/asynclog</rest>
+        <rest filters-separator="&amp;">${rdm.backend.path}/asynclog?{filters}&amp;page={page}</rest>
     </list>
-    <unique filters="opId">
-        <rest>${rdm.backend.path}/asynclog/entry/{opId}</rest>
+    <unique filters="uuid">
+        <rest>${rdm.backend.path}/asynclog/entry/{uuid}</rest>
     </unique>
     <fields>
-        <field id="opId" domain="string">
-            <select mapping="['uuid'].toString()"/>
+        <field id="uuid" domain="string">
+            <select mapping="['uuid']"/>
             <filters>
-                <eq filter-id="opId"/>
+                <eq filter-id="uuid">uuid={uuid}</eq>
             </filters>
         </field>
         <field id="status" domain="string">
-            <select mapping="['status'].name()"/>
+            <select/>
             <filters>
-                <eq filter-id="status"/>
+                <eq filter-id="status.id">status={status.id}</eq>
             </filters>
         </field>
-        <field id="opType" domain="string">
-            <select mapping="['operation'].name()"/>
+        <field id="operation" domain="string">
+            <select/>
             <filters>
-                <eq filter-id="opType"/>
+                <eq filter-id="operation.id">operation={operation.id}</eq>
             </filters>
         </field>
         <field id="error" domain="string">

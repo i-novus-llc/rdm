@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.inovus.ms.rdm.api.async.AsyncOperation;
 import ru.inovus.ms.rdm.api.async.AsyncOperationLogEntry;
@@ -29,9 +28,10 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
 
     @Override
     public Page<AsyncOperationLogEntry> search(AsyncOperationLogEntryCriteria criteria) {
+        criteria.setPageNumber(Math.max(0, criteria.getPageNumber() - 1));
         QAsyncOperationLogEntryEntity q = QAsyncOperationLogEntryEntity.asyncOperationLogEntryEntity;
         if (criteria.getSort() == null)
-            criteria.setOrders(List.of(Sort.Order.desc("tsStart")));
+            criteria.setOrders(List.of(AsyncOperationLogEntryEntity.DEFAUL_ORDER));
         BooleanBuilder builder = new BooleanBuilder();
         if (criteria.getUuid() != null)
             builder.and(q.uuid.eq(criteria.getUuid()));

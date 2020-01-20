@@ -10,10 +10,10 @@ public class AsyncOperationLogEntryCriteria extends AbstractCriteria {
     @QueryParam("status")
     private AsyncOperationStatus status;
 
-    @QueryParam("opType")
+    @QueryParam("operation")
     private AsyncOperation operation;
 
-    @QueryParam("opId")
+    @QueryParam("uuid")
     private UUID uuid;
 
     public AsyncOperationStatus getStatus() {
