@@ -144,16 +144,16 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         return loggingService.getList(criteria.getDate(), criteria.getRefbookCode());
     }
 
-    private static boolean isFirstLoad(VersionMapping versionMapping) {
+    private boolean isFirstLoad(VersionMapping versionMapping) {
         return versionMapping.getVersion() == null;
     }
 
-    private static boolean isNewVersionPublished(RefBook newVersion, VersionMapping versionMapping) {
+    private boolean isNewVersionPublished(RefBook newVersion, VersionMapping versionMapping) {
         return !versionMapping.getVersion().equals(newVersion.getLastPublishedVersion())
                 && !versionMapping.getPublicationDate().equals(newVersion.getLastPublishedVersionFromDate());
     }
 
-    private static boolean isMappingChanged(VersionMapping versionMapping) {
+    private boolean isMappingChanged(VersionMapping versionMapping) {
         return versionMapping.changed();
     }
 
