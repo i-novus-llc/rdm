@@ -3,7 +3,6 @@
     <form object-id="publish" default-values-query-id="publish">
 
         <fields>
-<!--            <output-text id="version.version" label="Версия"/>-->
 
             <output-text id="listCheckDeletedConflictReferrers"
                          label="Были удалены строки, на которые ссылались справочники системы:">
@@ -33,21 +32,19 @@
                 </dependencies>
             </output-text>
 
-<!--            <line collapsible="false">-->
                 <output-text id="confirmPublish"
                              label="Вы уверены, что хотите опубликовать этот справочник?"/>
-<!--            </line>-->
 
         </fields>
 
         <toolbar place="bottomRight">
             <button id="publishDraft" label="Опубликовать"
                     visibility-condition="isPublishable">
-                <invoke operation-id="publishDraft" close-after-success="true"/>
+                <invoke operation-id="publishDraft" close-after-success="true" redirect-target="application" redirect-url="/"/>
             </button>
 
             <button id="publishAndRefresh" label="Опубликовать и обновить ссылки"
-                    visibility-condition="isPublishable &amp;&amp; (hasCheckUpdatedConflicts || hasCheckAlteredConflicts)">
+                    visibility-condition="isPublishable &amp;&amp; (hasCheckUpdatedConflicts || hasCheckAlteredConflicts)" redirect-target="application" redirect-url="/">
                 <invoke operation-id="publishAndRefresh" close-after-success="true"/>
             </button>
 

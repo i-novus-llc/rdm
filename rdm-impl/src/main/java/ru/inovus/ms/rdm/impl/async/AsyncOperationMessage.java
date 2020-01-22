@@ -14,7 +14,7 @@ public class AsyncOperationMessage implements Serializable {
     public static final String ARGS_KEY = "args";
     public static final String USER_KEY = "user";
 
-    private Object[] args;
+    private Object[] args; // NOSONAR
     private String userName;
     private UUID operationId;
     private AsyncOperation operation;

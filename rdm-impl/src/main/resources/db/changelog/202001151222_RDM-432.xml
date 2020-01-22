@@ -7,13 +7,12 @@
     <changeSet id="202001151222_RDM-432" author="Ikarimullin" dbms="postgresql">
         <preConditions onFail="MARK_RAN">
             <not>
-                <tableExists tableName="operation" schemaName="n2o_rdm_management"/>
+                <tableExists tableName="async_log_entry" schemaName="n2o_rdm_management"/>
             </not>
         </preConditions>
         <comment>Добавление таблицы операций</comment>
         <sql splitStatements="false">
-
-            CREATE TABLE IF NOT EXISTS
+            CREATE TABLE
                 n2o_rdm_management.async_log_entry
             (
                 id UUID PRIMARY KEY NOT NULL,
@@ -54,7 +53,6 @@
 
             CREATE INDEX ON n2o_rdm_management.async_log_entry (op_enum);
             CREATE INDEX ON n2o_rdm_management.async_log_entry (status);
-
         </sql>
 
     </changeSet>
