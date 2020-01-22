@@ -5,11 +5,6 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
 
     <changeSet id="202001151222_RDM-432" author="Ikarimullin" dbms="postgresql">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <tableExists tableName="operation" schemaName="n2o_rdm_management"/>
-            </not>
-        </preConditions>
         <comment>Добавление таблицы операций</comment>
         <sql splitStatements="false">
 
