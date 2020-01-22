@@ -39,7 +39,7 @@ class QuartzConfigurer {
             if (!scheduler.getMetaData().isJobStoreClustered())
                 logger.warn("Scheduler configured in non clustered mode. There may be concurrency issues.");
             TriggerKey exportToRdmTriggerKey = TriggerKey.triggerKey(RdmSyncExportDirtyRecordsToRdmJob.NAME, group);
-            Trigger trigger = scheduler.getTrigger(exportToRdmTriggerKey);
+            Trigger exportToRdmExistingTrigger = scheduler.getTrigger(exportToRdmTriggerKey);
             JobDetail exportToRdmJob = newJob(RdmSyncExportDirtyRecordsToRdmJob.class).
                     withIdentity(RdmSyncExportDirtyRecordsToRdmJob.NAME, group).
                     build();
@@ -48,11 +48,11 @@ class QuartzConfigurer {
                     forJob(exportToRdmJob).
                     withSchedule(CronScheduleBuilder.cronSchedule(exportToRdmJobScanIntervalCron)).
                     build();
-            if (trigger == null) {
+            if (exportToRdmExistingTrigger == null) {
                 scheduler.scheduleJob(exportToRdmJob, exportToRdmTrigger);
             } else {
-                if (trigger instanceof CronTrigger) {
-                    CronTrigger ct = (CronTrigger) trigger;
+                if (exportToRdmExistingTrigger instanceof CronTrigger) {
+                    CronTrigger ct = (CronTrigger) exportToRdmExistingTrigger;
                     if (!ct.getCronExpression().equals(exportToRdmJobScanIntervalCron)) {
                         scheduler.unscheduleJob(exportToRdmTriggerKey);
                         scheduler.scheduleJob(exportToRdmJob, exportToRdmTrigger);
