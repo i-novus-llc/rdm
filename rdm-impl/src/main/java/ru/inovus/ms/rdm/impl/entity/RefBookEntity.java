@@ -28,7 +28,7 @@ public class RefBookEntity implements Serializable {
     private Boolean archived;
 
     @OneToMany(mappedBy="refBook", cascade = CascadeType.ALL)
-    List<RefBookVersionEntity> versionList = new ArrayList<>();
+    List<RefBookVersionEntity> versionList = new ArrayList<>(); // NOSONAR
 
     public Integer getId() {
         return id;
