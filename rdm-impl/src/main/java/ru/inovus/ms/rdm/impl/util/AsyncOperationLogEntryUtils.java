@@ -14,12 +14,14 @@ public final class AsyncOperationLogEntryUtils {
     private AsyncOperationLogEntryUtils() {throw new UnsupportedOperationException();}
 
     public static AsyncOperationLogEntryEntity setResult(Object result, AsyncOperationLogEntryEntity entity) {
-        try {
-            entity.setResult(MAPPER.writeValueAsString(result));
-            return entity;
-        } catch (JsonProcessingException e) {
-            throw new IllegalArgumentException("Cannot serialize jsonb value.", e);
+        if (result != null) {
+            try {
+                entity.setResult(MAPPER.writeValueAsString(result));
+            } catch (JsonProcessingException e) {
+                throw new IllegalArgumentException("Cannot serialize jsonb value.", e);
+            }
         }
+        return entity;
     }
 
     public static <T> T getResult(Class<? extends T> forClass, AsyncOperationLogEntryEntity entity) {

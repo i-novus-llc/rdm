@@ -57,22 +57,14 @@ public class AsyncOperationQueueListener {
         });
         entity.setStatus(AsyncOperationStatus.IN_PROGRESS);
         entity = asyncOperationLogEntryRepository.save(entity);
-        Object res = null;
-        Exception ex = null;
         try {
-            res = handle(op, args);
-        } catch (Exception e) {
-            ex = e;
-            logger.error("Error while handling deferred operation. Operation type: {}, Operation id: {}", op, uuid);
-        }
-        if (ex != null) {
+            AsyncOperationLogEntryUtils.setResult(handle(op, args), entity);
+            entity.setStatus(AsyncOperationStatus.DONE);
+        } catch (Exception ex) {
+            logger.error("Error while handling deferred operation. Operation type: {}, Operation id: {}", op, uuid, ex);
             String error = getErrorMsg(ex);
             entity.setError(error);
             entity.setStatus(AsyncOperationStatus.ERROR);
-        } else {
-            if (res != null)
-                AsyncOperationLogEntryUtils.setResult(res, entity);
-            entity.setStatus(AsyncOperationStatus.DONE);
         }
         asyncOperationLogEntryRepository.save(entity);
         logger.info("Async operation with id {} completed with status {}", entity.getUuid(), entity.getStatus());
