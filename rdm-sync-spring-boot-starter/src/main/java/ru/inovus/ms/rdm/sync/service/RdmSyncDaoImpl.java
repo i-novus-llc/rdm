@@ -29,8 +29,7 @@ import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
 import static ru.inovus.ms.rdm.api.util.StringUtils.addDoubleQuotes;
 import static ru.inovus.ms.rdm.api.util.StringUtils.addSingleQuotes;
-import static ru.inovus.ms.rdm.sync.service.RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN;
-import static ru.inovus.ms.rdm.sync.service.RdmSyncLocalRowState.SYNCED;
+import static ru.inovus.ms.rdm.sync.service.RdmSyncLocalRowState.*;
 
 /**
  * @author lgalimova
@@ -122,7 +121,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         String schema = split[0];
         String table = split[1];
         String q = "SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = :schema AND table_name = :table AND column_name != :internal_local_row_state_column";
-        List<Pair<String, String>> list = jdbcTemplate.query(q, Map.of("schema", schema, "table", table, "internal_local_row_state_column", RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN), (rs, rowNum) -> Pair.of(rs.getString(1), rs.getString(2)));
+        List<Pair<String, String>> list = jdbcTemplate.query(q, Map.of("schema", schema, "table", table, "internal_local_row_state_column", RDM_SYNC_INTERNAL_STATE_COLUMN), (rs, rowNum) -> Pair.of(rs.getString(1), rs.getString(2)));
         if (list.isEmpty())
             throw new RdmException("No table '" + table + "' in schema '" + schema + "'.");
         return list;
@@ -169,7 +168,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         }
         if (markSynced) {
             keys += ", " + addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN);
-            values.add(addSingleQuotes(RdmSyncLocalRowState.SYNCED.name()));
+            values.add(addSingleQuotes(SYNCED.name()));
         }
         jdbcTemplate.getJdbcTemplate().update(
             format("insert into %s (%s) values(%s)", table, keys, String.join(",", values)),
@@ -180,51 +179,38 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     @Override
     public void updateRow(String table, String primaryField, Map<String, Object> row, boolean markSynced) {
         if (markSynced)
-            row.put(RDM_SYNC_INTERNAL_STATE_COLUMN, SYNCED);
-        jdbcTemplate.update(
-            format(
-                "UPDATE %s SET %s WHERE %s = :%s",
-                table,
-                row.keySet().stream().map(field -> addDoubleQuotes(field) + " = :" + field).collect(joining(", ")),
-                addDoubleQuotes(primaryField),
-                primaryField
-            ),
-            row
-        );
+            row.put(RDM_SYNC_INTERNAL_STATE_COLUMN, SYNCED.name());
+        executeUpdate(table, row, primaryField);
     }
 
     @Override
     public void markDeleted(String table, String primaryField, String isDeletedField, Object primaryValue, boolean deleted, boolean markSynced) {
-        if (markSynced) {
-            jdbcTemplate.getJdbcTemplate().update(
-                format("update %s set %s=?, %s=? where %s=?", table, addDoubleQuotes(isDeletedField), addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), addDoubleQuotes(primaryField)),
-                deleted,
-                RdmSyncLocalRowState.SYNCED.name(),
-                primaryValue
-            );
-        } else {
-            jdbcTemplate.getJdbcTemplate().update(
-                format("update %s set %s=? where %s=?", table, addDoubleQuotes(isDeletedField), addDoubleQuotes(primaryField)),
-                deleted,
-                primaryValue
-            );
-        }
+        Map<String, Object> args = markSynced ?
+                Map.of(primaryField, primaryValue, isDeletedField, deleted, RDM_SYNC_INTERNAL_STATE_COLUMN, SYNCED) :
+                Map.of(primaryField, primaryValue, isDeletedField, deleted);
+        executeUpdate(table, args, primaryField);
     }
 
     @Override
     public void markDeleted(String table, String isDeletedField, boolean deleted, boolean markSynced) {
-        if (markSynced) {
-            jdbcTemplate.getJdbcTemplate().update(
-                format("update %s set %s=?, %s=?", table, addDoubleQuotes(isDeletedField), addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN)),
-                deleted,
-                RdmSyncLocalRowState.SYNCED.name()
-            );
-        } else {
-            jdbcTemplate.getJdbcTemplate().update(
-                format("update %s set %s=?", table, addDoubleQuotes(isDeletedField)),
-                deleted
-            );
-        }
+        Map<String, Object> args = markSynced ?
+            Map.of(isDeletedField, deleted, RDM_SYNC_INTERNAL_STATE_COLUMN, SYNCED.name()) :
+            Map.of(isDeletedField, deleted);
+        executeUpdate(table, args, null);
+    }
+
+    private void executeUpdate(String table, Map<String, Object> args, String primaryField) {
+        String q = "UPDATE %s SET %s";
+        if (primaryField != null)
+            q += " WHERE %s = :%s";
+        String formattedQ = format(
+            q,
+            table,
+            args.keySet().stream().filter(field -> !field.equals(primaryField)).map(field -> addDoubleQuotes(field) + " = :" + field).collect(joining(", ")),
+            addDoubleQuotes(primaryField),
+            primaryField
+        );
+        jdbcTemplate.update(formattedQ, args);
     }
 
     @Override
@@ -315,7 +301,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
 
     @Override
     public void createOrReplaceLocalRowStateUpdateFunction() {
-        String q = format(LOCAL_ROW_STATE_UPDATE_FUNC, INTERNAL_FUNCTION, RDM_SYNC_INTERNAL_STATE_COLUMN, RdmSyncLocalRowState.DIRTY);
+        String q = format(LOCAL_ROW_STATE_UPDATE_FUNC, INTERNAL_FUNCTION, RDM_SYNC_INTERNAL_STATE_COLUMN, DIRTY);
         jdbcTemplate.getJdbcTemplate().execute(q);
     }
 
@@ -324,13 +310,13 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         String schemaTable = schema + "." + table;
         boolean exists = jdbcTemplate.queryForObject("SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema = :schema AND table_name = :table AND column_name = :internal_state_column)", Map.of("schema", schema, "table", table, "internal_state_column", RDM_SYNC_INTERNAL_STATE_COLUMN), Boolean.class);
         if (!exists) {
-            String q = format("ALTER TABLE %s ADD COLUMN %s VARCHAR NOT NULL DEFAULT '%s'", schemaTable, RDM_SYNC_INTERNAL_STATE_COLUMN, RdmSyncLocalRowState.DIRTY);
+            String q = format("ALTER TABLE %s ADD COLUMN %s VARCHAR NOT NULL DEFAULT '%s'", schemaTable, RDM_SYNC_INTERNAL_STATE_COLUMN, DIRTY);
             jdbcTemplate.getJdbcTemplate().execute(q);
             q = format("CREATE INDEX ON %s (%s)", schemaTable, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN));
             jdbcTemplate.getJdbcTemplate().execute(q);
-            int n = jdbcTemplate.update(format("UPDATE %s SET %s = :synced", schemaTable, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN)), Map.of("synced", RdmSyncLocalRowState.SYNCED.name()));
+            int n = jdbcTemplate.update(format("UPDATE %s SET %s = :synced", schemaTable, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN)), Map.of("synced", SYNCED.name()));
             if (n != 0)
-                logger.info("{} records updated internal state to {} in table {}", n, RdmSyncLocalRowState.SYNCED, schemaTable);
+                logger.info("{} records updated internal state to {} in table {}", n, SYNCED, schemaTable);
         }
     }
 
