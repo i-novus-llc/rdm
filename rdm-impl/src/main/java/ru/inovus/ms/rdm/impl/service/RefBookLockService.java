@@ -14,4 +14,5 @@ public interface RefBookLockService {
     void validateRefBookNotBusyByVersionId(Integer versionId);
 
     void validateRefBookNotBusyByRefBookId(Integer refBookId);
+
 }

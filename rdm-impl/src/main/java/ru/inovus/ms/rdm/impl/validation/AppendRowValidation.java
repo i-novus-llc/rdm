@@ -5,11 +5,12 @@ import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
 /**
- * Created by znurgaliev on 20.11.2018.
+ * Проверка одновременно нескольких строк.
  */
 public abstract class AppendRowValidation extends ErrorAttributeHolderValidation {
 
@@ -17,9 +18,9 @@ public abstract class AppendRowValidation extends ErrorAttributeHolderValidation
 
     public void appendRow(Row row) {
         if (row != null) {
-            Map<String, Object> rowMap = new HashMap<>(row.getData());
-            rowMap.entrySet().removeIf(entry -> getErrorAttributes().contains(entry.getKey()));
-            buffer.put(rowMap, row.getSystemId());
+            Map<String, Object> rowData = new HashMap<>(row.getData());
+            rowData.entrySet().removeIf(entry -> isErrorAttribute(entry.getKey()));
+            buffer.put(rowData, row.getSystemId());
         }
     }
 
@@ -29,16 +30,18 @@ public abstract class AppendRowValidation extends ErrorAttributeHolderValidation
             throw new RdmException("Missing refData to validate, append refData before validation");
 
         buffer.keySet().forEach(map ->
-                map.entrySet().removeIf(entry -> getErrorAttributes().contains(entry.getKey()))
+                map.entrySet().removeIf(entry -> isErrorAttribute(entry.getKey()))
         );
 
-        List<Message> messages = buffer.entrySet().stream()
-                .flatMap(entry -> validate(entry.getValue(), entry.getKey()).stream())
-                .collect(toList());
+        List<Message> messages = buffer.entrySet().stream().flatMap(this::validateEntry).collect(toList());
         buffer.clear();
 
         return messages;
     }
 
-    protected abstract List<Message> validate(Long systemId, Map<String, Object> attributeValues);
+    private Stream<Message> validateEntry(Map.Entry<Map<String, Object>, Long> entry) {
+        return validate(entry.getValue(), entry.getKey()).stream();
+    }
+
+    protected abstract List<Message> validate(Long systemId, Map<String, Object> rowData);
 }

@@ -19,7 +19,7 @@ import static ru.inovus.ms.rdm.sync.service.change_data.RdmSyncChangeDataUtils.r
 @PersistJobDataAfterExecution
 public final class RdmSyncExportDirtyRecordsToRdmJob implements Job {
 
-    public static final String JOB_NAME = "ExportDirtyRecordsToRdm";
+    public static final String NAME = "ExportDirtyRecordsToRdm";
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {

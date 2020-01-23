@@ -1,7 +1,6 @@
 package ru.inovus.ms.rdm.impl.service;
 
 import com.querydsl.core.types.Predicate;
-import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -21,7 +20,6 @@ import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.inovus.ms.rdm.api.enumeration.FileType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
-import ru.inovus.ms.rdm.api.exception.NotFoundException;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.service.ConflictService;
@@ -43,7 +41,6 @@ import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.repository.VersionFileRepository;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
-import ru.inovus.ms.rdm.impl.validation.VersionValidationImpl;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -148,8 +145,6 @@ public class PublishServiceTest {
 
         Integer draftId = 0;
 
-        doThrow(new NotFoundException(new Message(VersionValidationImpl.DRAFT_NOT_FOUND_EXCEPTION_CODE, draftId)))
-                .when(versionValidation).validateDraft(eq(draftId));
         when(versionRepository.exists(hasVersionId(draftVersionEntity.getId()).and(isDraft()))).thenReturn(true);
 
         //invalid draftId

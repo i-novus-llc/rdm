@@ -2,7 +2,6 @@ package ru.inovus.ms.rdm.rest;
 
 import net.n2oapp.platform.i18n.Messages;
 import net.n2oapp.platform.jaxrs.LocalDateTimeISOParameterConverter;
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,7 +10,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.jms.connection.CachingConnectionFactory;
+import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
 import ru.i_novus.ms.audit.client.SourceApplicationAccessor;
 import ru.i_novus.ms.audit.client.UserAccessor;
@@ -90,20 +89,26 @@ public class BackendConfiguration {
     }
 
     @Bean
+    @Qualifier("topicJmsTemplate")
     @ConditionalOnProperty(name = "rdm.enable.publish.topic", havingValue = "true")
-    public ConnectionFactory activeMQConnectionFactory() {
-        ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory();
-        activeMQConnectionFactory.setBrokerURL(brokerUrl);
-        return new CachingConnectionFactory(activeMQConnectionFactory);
+    public JmsTemplate topicJmsTemplate(ConnectionFactory connectionFactory) {
+        JmsTemplate jmsTemplate = new JmsTemplate(connectionFactory);
+        jmsTemplate.setPubSubDomain(true);
+        return jmsTemplate;
     }
 
     @Bean
-    @Qualifier("topicJmsTemplate")
-    @ConditionalOnProperty(name = "rdm.enable.publish.topic", havingValue = "true")
-    public JmsTemplate topicJmsTemplate() {
-        JmsTemplate jmsTemplate = new JmsTemplate(activeMQConnectionFactory());
-        jmsTemplate.setPubSubDomain(true);
-        return jmsTemplate;
+    @Qualifier("queueJmsTemplate")
+    public JmsTemplate queueJmsTemplate(ConnectionFactory connectionFactory) {
+        return new JmsTemplate(connectionFactory);
+    }
+
+    @Bean
+    public DefaultJmsListenerContainerFactory internalAsyncOperationContainerFactory(ConnectionFactory connectionFactory) {
+        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory);
+        factory.setSessionTransacted(true);
+        return factory;
     }
 
     @Bean

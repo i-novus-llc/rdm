@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
+import ru.inovus.ms.rdm.api.async.AsyncOperation;
 import ru.inovus.ms.rdm.api.enumeration.FileType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -24,6 +25,7 @@ import ru.inovus.ms.rdm.api.util.TimeUtils;
 import ru.inovus.ms.rdm.api.util.VersionNumberStrategy;
 import ru.inovus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
+import ru.inovus.ms.rdm.impl.async.AsyncOperationQueue;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
@@ -33,7 +35,9 @@ import ru.inovus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import static java.util.Collections.singletonList;
 import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
@@ -64,6 +68,9 @@ public class PublishServiceImpl implements PublishService {
     private AuditLogService auditLogService;
 
     private JmsTemplate jmsTemplate;
+
+    @Autowired
+    private AsyncOperationQueue queue;
 
     @Value("${rdm.publish.topic:publish_topic}")
     private String publishTopic;
@@ -116,20 +123,13 @@ public class PublishServiceImpl implements PublishService {
                         LocalDateTime fromDate, LocalDateTime toDate,
                         boolean resolveConflicts) {
 
-        versionValidation.validateDraft(draftId);
-
-        RefBookVersionEntity draftEntity = versionRepository.findById(draftId).orElseThrow();
+        RefBookVersionEntity draftEntity = getVersionOrElseThrow(draftId);
+        if (draftEntity.getStatus() == RefBookVersionStatus.PUBLISHED)
+            return;
+        versionValidation.validateDraftNotArchived(draftId);
         if (draftEntity.getStructure().getAttributes().isEmpty())
             throw new UserException("draft.structure.is-empty");
-        boolean empty = true;
-        for (Structure.Attribute attr : draftEntity.getStructure().getAttributes()) {
-            if (draftDataService.isFieldNotEmpty(draftEntity.getStorageCode(), attr.getCode())) {
-                empty = false;
-                break;
-            }
-        }
-        if (empty)
-            throw new UserException("draft.has-no-data");
+        validateNotEmpty(draftEntity);
         Integer refBookId = draftEntity.getRefBook().getId();
 
         refBookLockService.setRefBookPublishing(refBookId);
@@ -192,6 +192,28 @@ public class PublishServiceImpl implements PublishService {
         );
         if (enablePublishTopic)
             jmsTemplate.convertAndSend(publishTopic, draftEntity.getRefBook().getCode());
+    }
+
+    private void validateNotEmpty(RefBookVersionEntity draftEntity) {
+        boolean empty = true;
+        for (Structure.Attribute attr : draftEntity.getStructure().getAttributes()) {
+            if (draftDataService.isFieldNotEmpty(draftEntity.getStorageCode(), attr.getCode())) {
+                empty = false;
+                break;
+            }
+        }
+        if (empty)
+            throw new UserException("draft.has-no-data");
+    }
+
+    @Override
+    public UUID publishAsync(Integer draftId, String version, LocalDateTime fromDate, LocalDateTime toDate, boolean resolveConflicts) {
+        return queue.add(AsyncOperation.PUBLICATION, new Object[] {draftId, version, fromDate, toDate, resolveConflicts});
+    }
+
+    private RefBookVersionEntity getVersionOrElseThrow(Integer versionId) {
+        Optional<RefBookVersionEntity> draftEntityOptional = versionRepository.findById(versionId);
+        return draftEntityOptional.orElseThrow(() -> new UserException(new Message("draft.not.found", versionId)));
     }
 
     private RefBookVersionEntity getLastPublishedVersionEntity(RefBookVersionEntity draftVersion) {
