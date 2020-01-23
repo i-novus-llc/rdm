@@ -11,6 +11,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DataConstants;
 import ru.inovus.ms.rdm.api.exception.NotFoundException;
 import ru.inovus.ms.rdm.api.model.FileModel;
+import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
@@ -20,13 +21,12 @@ import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.service.DraftService;
 import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.api.service.VersionService;
+import ru.inovus.ms.rdm.api.util.RowUtils;
 import ru.inovus.ms.rdm.n2o.model.FormAttribute;
 import ru.inovus.ms.rdm.n2o.model.UiDraft;
 import ru.inovus.ms.rdm.n2o.model.UiPassport;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static java.util.Collections.*;
 
@@ -110,6 +110,22 @@ public class CreateDraftController {
 
         if (!Objects.equals(versionId, uiDraft.getId())) {
             row.setSystemId(calculateNewSystemId(row.getSystemId(), versionId, uiDraft.getId()));
+        }
+//      Значит была нажата кнопка "Добавить строку".
+//      Если добавят строку с существующим первичным ключом, ошибки не будет, строка просто обновится новыми данными.
+//      Поэтому надо самим проверить, есть ли уже такой первичный ключ в справочнике и если есть -- бросить ошибку.
+        if (row.getSystemId() == null) {
+            RefBookVersion refBookVersion = versionService.getById(uiDraft.getId());
+            List<Structure.Attribute> primary = refBookVersion.getStructure().getPrimary();
+            if (!primary.isEmpty()) {
+                List<AttributeFilter> primaryKeyValueFilters = RowUtils.getPrimaryKeyValueFilters(row, primary);
+                SearchDataCriteria searchDataCriteria = new SearchDataCriteria(Set.of(primaryKeyValueFilters), null);
+                searchDataCriteria.setPageSize(1);
+                searchDataCriteria.setPageNumber(1);
+                long n = versionService.search(uiDraft.getId(), searchDataCriteria).getTotalElements();
+                if (n > 0)
+                    throw new UserException("pk.is.already.exists");
+            }
         }
         dataRecordController.updateData(uiDraft.getId(), row);
         return uiDraft;

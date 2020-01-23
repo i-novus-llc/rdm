@@ -91,14 +91,14 @@ public class DBPrimaryKeyValidationTest {
 
         when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>(1, Collections.singletonList(rowValue), new Criteria()));
 
-        AppendRowValidation validation = new DBPrimaryKeyValidation(searchDataService, pkStructure, pkRow, STORAGE_CODE);
+        AppendRowValidation validation = new DBPrimaryKeyValidation(searchDataService, STORAGE_CODE, pkStructure, pkRow);
         validation.appendRow(pkRow);
         List<Message> messages = validation.validate();
         Set<String> errorAttributes = validation.getErrorAttributes();
         Assert.assertEquals(1, messages.size());
         Assert.assertEquals(6, errorAttributes.size());
 
-        validation = new DBPrimaryKeyValidation(searchDataService, pkStructure, pkRow, STORAGE_CODE);
+        validation = new DBPrimaryKeyValidation(searchDataService, STORAGE_CODE, pkStructure, pkRow);
         validation.appendRow(pkRow);
         validation.setErrorAttributes(Collections.singleton(PK_STRING));
         messages = validation.validate();
@@ -106,7 +106,7 @@ public class DBPrimaryKeyValidationTest {
         Assert.assertEquals(0, messages.size());
         Assert.assertEquals(1, errorAttributes.size());
 
-        validation = new DBPrimaryKeyValidation(searchDataService, noPkStructure, noPkRow, STORAGE_CODE);
+        validation = new DBPrimaryKeyValidation(searchDataService, STORAGE_CODE, noPkStructure, noPkRow);
         validation.appendRow(noPkRow);
         validation.setErrorAttributes(Collections.singleton(PK_STRING));
         messages = validation.validate();
@@ -116,14 +116,14 @@ public class DBPrimaryKeyValidationTest {
 
         when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>(0, emptyList(), new Criteria()));
 
-        validation = new DBPrimaryKeyValidation(searchDataService, pkStructure, pkRow, STORAGE_CODE);
+        validation = new DBPrimaryKeyValidation(searchDataService, STORAGE_CODE, pkStructure, pkRow);
         validation.appendRow(pkRow);
         messages = validation.validate();
         errorAttributes = validation.getErrorAttributes();
         Assert.assertEquals(0, messages.size());
         Assert.assertEquals(0, errorAttributes.size());
 
-        validation = new DBPrimaryKeyValidation(searchDataService, pkStructure, pkRow, STORAGE_CODE);
+        validation = new DBPrimaryKeyValidation(searchDataService, STORAGE_CODE, pkStructure, pkRow);
         validation.appendRow(pkRow);
         validation.setErrorAttributes(Collections.singleton(PK_STRING));
         messages = validation.validate();

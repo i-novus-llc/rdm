@@ -151,7 +151,7 @@ public class VersionValidationImpl implements VersionValidation {
      *
      * @param draftId идентификатор черновика
      */
-    private void validateDraftNotArchived(Integer draftId) {
+    public void validateDraftNotArchived(Integer draftId) {
         if (draftId != null && versionRepository.exists(RefBookVersionPredicates.hasVersionId(draftId).and(RefBookVersionPredicates.isArchived()))) {
             throw new UserException(new Message(REFBOOK_IS_ARCHIVED_EXCEPTION_CODE));
         }

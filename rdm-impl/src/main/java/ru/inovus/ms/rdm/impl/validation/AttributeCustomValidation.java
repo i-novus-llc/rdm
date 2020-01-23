@@ -12,7 +12,7 @@ import ru.inovus.ms.rdm.impl.validation.resolver.*;
 import java.util.*;
 
 /**
- * Пользовательские проверки значений атрибутов
+ * Пользовательские проверки значений атрибутов.
  */
 public class AttributeCustomValidation extends AppendRowValidation {
 
@@ -27,10 +27,12 @@ public class AttributeCustomValidation extends AppendRowValidation {
         this.structure = structure;
         this.searchDataService = searchDataService;
         this.storageCode = storageCode;
+
         setResolvers(attributeValidations);
     }
 
     private void setResolvers(List<AttributeValidationEntity> attributeValidations) {
+
         attributeValidations.sort(Comparator.comparing(AttributeValidationEntity::getType));
 
         resolvers = new HashMap<>();
@@ -47,9 +49,11 @@ public class AttributeCustomValidation extends AppendRowValidation {
     }
 
     private AttributeValidationResolver toResolver(AttributeValidationEntity validationEntity) {
+
         Structure.Attribute attribute = structure.getAttribute(validationEntity.getAttribute());
         AttributeValidation validationValue =
                 validationEntity.getType().getValidationInstance().valueFromString(validationEntity.getValue());
+
         switch (validationEntity.getType()) {
             case REQUIRED:
                 return new RequiredAttributeValidationResolver(attribute);
@@ -73,7 +77,8 @@ public class AttributeCustomValidation extends AppendRowValidation {
     }
 
     @Override
-    protected List<Message> validate(Long systemId, Map<String, Object> attributeValues) {
+    protected List<Message> validate(Long systemId, Map<String, Object> rowData) {
+
         List<Message> messages = new ArrayList<>();
         resolvers.entrySet().stream()
                 .filter(e -> !getErrorAttributes().contains(e.getKey()))
@@ -81,8 +86,9 @@ public class AttributeCustomValidation extends AppendRowValidation {
                     for (AttributeValidationResolver resolver : e.getValue()) {
                         Object attributeValue =
                                 resolver instanceof UniqueAttributeValidationResolver
-                                        ? new UniqueAttributeValue(systemId, attributeValues.get(e.getKey()))
-                                        : attributeValues.get(e.getKey());
+                                        ? new UniqueAttributeValue(systemId, rowData.get(e.getKey()))
+                                        : rowData.get(e.getKey());
+                        @SuppressWarnings("unchecked")
                         Message message = resolver.resolve(attributeValue);
                         if (message != null) {
                             messages.add(message);
@@ -92,6 +98,4 @@ public class AttributeCustomValidation extends AppendRowValidation {
                 });
         return messages;
     }
-
-
 }

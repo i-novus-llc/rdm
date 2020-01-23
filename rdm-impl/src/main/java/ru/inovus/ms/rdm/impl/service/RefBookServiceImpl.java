@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
+import ru.inovus.ms.rdm.api.enumeration.RefBookOperation;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookStatusType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -105,7 +106,7 @@ public class RefBookServiceImpl implements RefBookService {
 
         this.draftService = draftService;
         this.publishService = publishService;
-        
+
         this.auditLogService = auditLogService;
     }
 
@@ -324,13 +325,13 @@ public class RefBookServiceImpl implements RefBookService {
         versionValidation.validateRefBookExists(refBookId);
 
         RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
-        
+
         refBookEntity.setArchived(Boolean.FALSE);
         refBookRepository.save(refBookEntity);
     }
 
     @Override
-    @SuppressWarnings({"squid:S2259"})
+    @SuppressWarnings("squid:S2259")
     public void changeData(RdmChangeDataRequest request) {
         RefBookEntity refBook = refBookRepository.findByCode(request.getRefBookCode());
         versionValidation.validateRefBookExists(refBook == null ? null : refBook.getId());
@@ -400,7 +401,15 @@ public class RefBookServiceImpl implements RefBookService {
         model.setHasAlteredConflict(refBookModelData.getHasAlteredConflict());
         model.setHasStructureConflict(refBookModelData.getHasStructureConflict());
         model.setLastHasDataConflict(refBookModelData.getLastHasDataConflict());
-
+        if (entity.getRunningOp() != null) {
+            if (entity.getRunningOp().getOperation() == RefBookOperation.PUBLISHING)
+                model.setPublishing(true);
+            else
+                model.setUpdating(true);
+        } else {
+            model.setUpdating(false);
+            model.setPublishing(false);
+        }
         return model;
     }
 
@@ -492,7 +501,7 @@ public class RefBookServiceImpl implements RefBookService {
 
     private RefBookVersionEntity getRefBookSourceTypeVersion(Integer refBookId, List<RefBookVersionEntity> versions) {
         return versions.stream()
-                .filter(version -> version.getRefBook().getId().equals(refBookId))
+                .filter(v -> v.getRefBook().getId().equals(refBookId))
                 .findAny().orElse(null);
     }
 

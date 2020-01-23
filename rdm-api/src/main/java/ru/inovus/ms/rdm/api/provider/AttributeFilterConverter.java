@@ -1,12 +1,12 @@
 package ru.inovus.ms.rdm.api.provider;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import net.n2oapp.platform.jaxrs.TypedParamConverter;
 import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 
 import java.io.IOException;
+
+import static ru.inovus.ms.rdm.api.util.json.JsonUtil.MAPPER;
 
 public class AttributeFilterConverter implements TypedParamConverter<AttributeFilter> {
 
@@ -17,11 +17,8 @@ public class AttributeFilterConverter implements TypedParamConverter<AttributeFi
 
     @Override
     public AttributeFilter fromString(String value) {
-        ObjectMapper mapper = new ObjectMapper();
-        JavaTimeModule jtm = new JavaTimeModule();
-        mapper.registerModule(jtm);
         try {
-            return mapper.readValue(value, AttributeFilter.class);
+            return MAPPER.readValue(value, AttributeFilter.class);
         } catch (IOException e) {
             throw new IllegalArgumentException(String.format("Failed to convert string '%s' to AttributeFilter", value), e);
         }
@@ -29,11 +26,8 @@ public class AttributeFilterConverter implements TypedParamConverter<AttributeFi
 
     @Override
     public String toString(AttributeFilter value) {
-        ObjectMapper mapper = new ObjectMapper();
-        JavaTimeModule jtm = new JavaTimeModule();
-        mapper.registerModule(jtm);
         try {
-            return mapper.writeValueAsString(value);
+            return MAPPER.writeValueAsString(value);
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("Failed to convert from AttributeFilter to string", e);
         }
