@@ -101,7 +101,7 @@ public class RdmSyncRestTest {
         when(mappingService.map(FieldType.INTEGER, DataTypeEnum.INTEGER, data.getContent().get(1).getFieldValues().get(0).getValue())).thenReturn(BigInteger.valueOf(2L));
         when(mappingService.map(FieldType.STRING, DataTypeEnum.VARCHAR, data.getContent().get(1).getFieldValues().get(1).getValue())).thenReturn("Moscow");
         rdmSyncRest.update(versionMapping.getCode());
-        verify(dao).updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), dataMap.get(0), true);
+        verify(dao).updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), dataMap.get(0), true);
         verify(dao).insertRow(versionMapping.getTable(), dataMap.get(1), true);
         verify(dao).updateVersionMapping(versionMapping.getId(), firstVersion.getLastPublishedVersion(), firstVersion.getLastPublishedVersionFromDate());
     }
@@ -161,7 +161,7 @@ public class RdmSyncRestTest {
         when(compareService.compareStructures(any(Integer.class), any(Integer.class))).thenReturn(new StructureDiff(Collections.emptyList(), Collections.emptyList(), Collections.emptyList()));
         rdmSyncRest.update(versionMapping.getCode());
         verify(dao).markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), BigInteger.valueOf(1L), false, true);
-        verify(dao).updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), dataMap.get(2), true);
+        verify(dao).updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), dataMap.get(2), true);
         verify(dao).updateVersionMapping(versionMapping.getId(), newVersion.getLastPublishedVersion(), newVersion.getLastPublishedVersionFromDate());
     }
 
@@ -247,8 +247,8 @@ public class RdmSyncRestTest {
         rdmSyncRest.update(code);
 
         verify(dao, never()).insertRow(eq(table), anyMap(), eq(true));
-        verify(dao, never()).updateRow(eq(table), eq(primaryField), eq(deletedField), eq(row1version1), eq(true));
-        verify(dao, never()).updateRow(eq(table), eq(primaryField), eq(deletedField), eq(row2version1), eq(true));
+        verify(dao, never()).updateRow(eq(table), eq(primaryField), eq(row1version1), eq(true));
+        verify(dao, never()).updateRow(eq(table), eq(primaryField), eq(row2version1), eq(true));
         clearInvocations(dao);
 //      sync2 прошел успешно, однако мы пропустили добавленное поле, хотя разница по структуре и по данным была ненулевой
         vm.setLastSync(sync2.atDate(date));
@@ -257,8 +257,8 @@ public class RdmSyncRestTest {
         fm.add(new FieldMapping(addedField, "varchar", addedField)); // обновили маппинги
         vm.setMappingLastUpdated(mappingChanged.atDate(date));
         rdmSyncRest.update(code);
-        verify(dao, times(1)).updateRow(eq(table), eq(primaryField), eq(deletedField), eq(row1version1), eq(true));
-        verify(dao, times(1)).updateRow(eq(table), eq(primaryField), eq(deletedField), eq(row2version1), eq(true));
+        verify(dao, times(1)).updateRow(eq(table), eq(primaryField), eq(row1version1), eq(true));
+        verify(dao, times(1)).updateRow(eq(table), eq(primaryField), eq(row2version1), eq(true));
     }
 
     private RefBook createFirstRdmVersion() {
