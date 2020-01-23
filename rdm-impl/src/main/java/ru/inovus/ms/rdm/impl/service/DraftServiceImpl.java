@@ -207,8 +207,8 @@ public class DraftServiceImpl implements DraftService {
     }
 
     /** Обработка строк файла в соответствии с заданными параметрами. */
-    private void processFileRows(String extension, RowsProcessor rowsProcessor, RowMapper rowMapper,
-                                 Supplier<InputStream> fileSupplier) {
+    private void processFileRows(String extension, RowsProcessor rowsProcessor, RowMapper rowMapper, Supplier<InputStream> fileSupplier) {
+
         try (FilePerRowProcessor persister = FileProcessorFactory.createProcessor(extension, rowsProcessor, rowMapper)) {
             persister.process(fileSupplier);
 
@@ -548,7 +548,9 @@ public class DraftServiceImpl implements DraftService {
         } finally {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
-//      Нельзя просто передать draftVersion, так как в аудите подтягиваются значения пасспорта справочника (а у них lazy инициализация), поэтому нужна транзакция (которой в этом методе нет)
+
+        // Нельзя просто передать draftVersion, так как в аудите подтягиваются значения паспорта справочника
+        // (а у них lazy-инициализация), поэтому нужна транзакция (которой в этом методе нет).
         auditLogService.addAction(AuditAction.UPLOAD_DATA, () -> versionRepository.findById(draftId).get());
     }
 

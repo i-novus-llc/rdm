@@ -17,38 +17,39 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.*;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.*;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 /**
- * Created by znurgaliev on 14.08.2018.
+ * Проверка на уникальность строк по первичным ключам в таблице БД.
  */
 public class DBPrimaryKeyValidation extends AppendRowValidation {
 
     private static final String DB_CONTAINS_PK_ERROR_CODE = "validation.db.contains.pk.err";
 
-    private SearchDataService searchDataService;
-    private List<Map<Structure.Attribute, Object>> primaryKeys;
-    private List<String> primaryKeyAttributes;
-    private String storageCode;
-    private Collection<RowValue> rowValues;
+    private final SearchDataService searchDataService;
+    private final String storageCode;
 
-    public DBPrimaryKeyValidation(SearchDataService searchDataService, Structure structure, Row row, String storageCode) {
-        this(searchDataService, structure, singletonList(row), storageCode);
+    private final List<Structure.Attribute> primaryKeys;
+    private final List<String> primaryKeyCodes;
+
+    private final List<Map<Structure.Attribute, Object>> primaryKeyMaps;
+    private final List<RowValue> primarySearchValues;
+
+    public DBPrimaryKeyValidation(SearchDataService searchDataService, String storageCode, Structure structure, Row row) {
+        this(searchDataService, storageCode, structure, singletonList(row));
     }
 
-    public DBPrimaryKeyValidation(SearchDataService searchDataService, Structure structure, List<Row> rows, String storageCode) {
+    public DBPrimaryKeyValidation(SearchDataService searchDataService, String storageCode, Structure structure, List<Row> rows) {
+
         this.searchDataService = searchDataService;
         this.storageCode = storageCode;
-        this.primaryKeys = rows.stream().map(row -> getPrimaryKeyMap(structure, row)).filter(MapUtils::isNotEmpty).collect(toList());
-        this.primaryKeyAttributes = isNotEmpty(primaryKeys)
-                ? primaryKeys.get(0).keySet().stream().map(Structure.Attribute::getCode).collect(toList())
-                : emptyList();
-        this.rowValues = isNotEmpty(primaryKeys)
-                ? getRefBookData(rows)
-                : emptyList();
+
+        this.primaryKeys = structure.getPrimary();
+        this.primaryKeyCodes = primaryKeys.stream().map(Structure.Attribute::getCode).collect(toList());
+
+        this.primaryKeyMaps = toPrimaryKeyMaps(rows);
+        this.primarySearchValues = getRefBookData(rows);
     }
 
     @Override
@@ -58,27 +59,44 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
     }
 
     @Override
-    protected List<Message> validate(Long systemId, Map<String, Object> attributeValues) {
-        if (!isEmpty(primaryKeyAttributes) &&
-                primaryKeyAttributes.stream().noneMatch(a -> getErrorAttributes().contains(a))) {
+    protected List<Message> validate(Long systemId, Map<String, Object> rowData) {
 
-            RowValue refBookRow = findRowValue(primaryKeyAttributes, attributeValues, rowValues);
-            if (refBookRow != null && !refBookRow.getSystemId().equals(systemId)) {
-                primaryKeyAttributes.forEach(this::addErrorAttribute);
-                return singletonList(toMessageFromValues(attributeValues));
+        if (!isEmpty(primaryKeyCodes) &&
+                primaryKeyCodes.stream().noneMatch(this::isErrorAttribute)) {
+
+            RowValue rowValue = findRowValue(primaryKeyCodes, rowData, primarySearchValues);
+            if (rowValue != null && !rowValue.getSystemId().equals(systemId)) {
+                primaryKeyCodes.forEach(this::addErrorAttribute);
+                return singletonList(createMessage(rowData));
             }
         }
         return emptyList();
     }
 
-    private Collection<RowValue> getRefBookData(List<Row> rows) {
+    private List<Map<Structure.Attribute, Object>> toPrimaryKeyMaps(List<Row> rows) {
+        return rows.stream().map(this::toPrimaryKeyMap).filter(MapUtils::isNotEmpty).collect(toList());
+    }
+
+    private Map<Structure.Attribute, Object> toPrimaryKeyMap(Row row) {
+        Map<Structure.Attribute, Object> map = new HashMap<>();
+        primaryKeys.forEach(attribute -> map.put(attribute, row.getData().get(attribute.getCode())));
+        return map;
+    }
+
+    private List<RowValue> getRefBookData(List<Row> rows) {
+
+        if (isEmpty(primaryKeyMaps))
+            return emptyList();
+
         DataCriteria criteria = createCriteria(rows);
-        return searchDataService.getPagedData(criteria).getCollection();
+        Collection<RowValue> rowValues = searchDataService.getPagedData(criteria).getCollection();
+        return rowValues.stream().map(this::toPrimaryRowValue).collect(toList());
     }
 
     private DataCriteria createCriteria(List<Row> rows) {
-        List<Field> fields = primaryKeys.get(0).keySet().stream().map(ConverterUtil::field).collect(toList());
-        Set<List<FieldSearchCriteria>> filters = primaryKeys.stream()
+
+        List<Field> fields = primaryKeys.stream().map(ConverterUtil::field).collect(toList());
+        Set<List<FieldSearchCriteria>> filters = primaryKeyMaps.stream()
                 .filter(this::isCorrectType)
                 .map(entry -> entry.entrySet().stream()
                         .map(this::toFieldSearchCriteria)
@@ -87,69 +105,78 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
 
         DataCriteria criteria = new DataCriteria(storageCode, null, null, fields, filters, null);
         criteria.setPage(1);
-        int systemIdsCount = (int) rows.stream().map(Row::getSystemId).filter(Objects::nonNull).count();
-        if (systemIdsCount > 0) {
-            criteria.setSize(2 * systemIdsCount);
-        } else {
-            criteria.setSize(rows.size());
-        }
+        criteria.setSize(calculateCriteriaSize(rows));
         return criteria;
     }
 
-    private static Map<Structure.Attribute, Object> getPrimaryKeyMap(Structure structure, Row row) {
-        Map<Structure.Attribute, Object> map = new HashMap<>();
-        structure.getPrimary()
-                .forEach(attribute -> map.put(attribute, row.getData().get(attribute.getCode())));
-        return map;
+    private int calculateCriteriaSize(List<Row> rows) {
+
+        int systemIdsCount = (int) rows.stream().map(Row::getSystemId).filter(Objects::nonNull).count();
+        return (systemIdsCount > 0) ? 2 * systemIdsCount : rows.size();
     }
 
-    private boolean isCorrectType(Map<Structure.Attribute, Object> primaryAttributeValues) {
-        return primaryAttributeValues.keySet().stream()
-                .allMatch(primaryKeyAttr ->
-                        TypeValidation.checkType(primaryKeyAttr.getType(), primaryKeyAttr.getCode(),
-                                primaryAttributeValues.get(primaryKeyAttr)) == null
+    private boolean isCorrectType(Map<Structure.Attribute, Object> primaryKeyMap) {
+        return primaryKeyMap.keySet().stream()
+                .allMatch(attribute ->
+                        TypeValidation.checkType(attribute.getType(), attribute.getCode(),
+                                primaryKeyMap.get(attribute)) == null
                 );
     }
 
-    private FieldSearchCriteria toFieldSearchCriteria(Map.Entry<Structure.Attribute, Object> primaryAttributeValue) {
+    private FieldSearchCriteria toFieldSearchCriteria(Map.Entry<Structure.Attribute, Object> primaryKeyValue) {
         return new FieldSearchCriteria(
-                ConverterUtil.field(primaryAttributeValue.getKey()),
+                ConverterUtil.field(primaryKeyValue.getKey()),
                 SearchTypeEnum.EXACT,
-                singletonList(ConverterUtil.toSearchType(primaryAttributeValue.getValue())));
+                singletonList(ConverterUtil.toSearchValue(primaryKeyValue.getValue())));
     }
 
-    private Message toMessageFromValues(Map<String, Object> attributeValues) {
-        return new Message(DB_CONTAINS_PK_ERROR_CODE, primaryKeys.get(0).keySet().stream()
-                .map(primaryKey ->
-                        primaryKey.getName() + "\" - \"" + attributeValues.get(primaryKey.getCode())
-                ).collect(Collectors.joining("\", \"")));
+    private RowValue toPrimaryRowValue(RowValue rowValue) {
+
+        List<FieldValue> fieldValues = primaryKeyCodes.stream()
+                .map(rowValue::getFieldValue)
+                .filter(Objects::nonNull)
+                .collect(toList());
+        rowValue.setFieldValues(fieldValues);
+
+        return rowValue;
+    }
+
+    private Message createMessage(Map<String, Object> rowData) {
+        return new Message(DB_CONTAINS_PK_ERROR_CODE, primaryKeysToString(rowData));
+    }
+
+    private String primaryKeysToString(Map<String, Object> rowData) {
+        return primaryKeys.stream()
+                .map(primaryKey -> primaryKeyToString(primaryKey, rowData))
+                .collect(Collectors.joining("\", \""));
+    }
+
+    private String primaryKeyToString(Structure.Attribute primaryKey, Map<String, Object> rowData) {
+        return primaryKey.getName() + "\" - \"" + rowData.get(primaryKey.getCode());
     }
 
     /**
-     * В списке записей #rowValues ищется строка, которая соответствует строке с данными #attributeValues
+     * В списке записей #searchValues ищется запись, которая соответствует строке с данными #rowData
      * на основании набора значений первичных атрибутов #primaries.
      *
-     * @param primaries список кодов первичных атрибутов со значениями для идентификации записи
-     * @param attributeValues значения атрибутов строки, для которой ведется поиск
-     * @param rowValues список записей, среди которых ведется поиск
+     * @param primaries    список кодов первичных атрибутов со значениями для идентификации записи
+     * @param rowData      строка с данными, для которой ведётся поиск
+     * @param searchValues список записей, среди которых ведётся поиск
      * @return Найденная запись либо null
      */
     private RowValue findRowValue(List<String> primaries,
-                                         Map<String, Object> attributeValues,
-                                         Collection<? extends RowValue> rowValues) {
-        return rowValues
-                .stream()
-                .filter(rowValue ->
+                                  Map<String, Object> rowData,
+                                  List<RowValue> searchValues) {
+        return searchValues.stream()
+                .filter(searchValue ->
                         primaries.stream().allMatch(primary -> {
-                            Object primaryValue = attributeValues.get(primary);
-                            FieldValue fieldValue = rowValue.getFieldValue(primary);
+                            Object primaryValue = rowData.get(primary);
+                            FieldValue fieldValue = searchValue.getFieldValue(primary);
                             return primaryValue != null
                                     && fieldValue != null
                                     && primaryValue.equals(fieldValue.getValue());
                         })
                 )
-                .findFirst()
-                .orElse(null);
+                .findFirst().orElse(null);
     }
-
 }
