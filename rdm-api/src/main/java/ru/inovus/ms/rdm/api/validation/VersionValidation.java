@@ -17,6 +17,8 @@ public interface VersionValidation {
 
     void validateDraftExists(Integer draftId);
 
+    void validateDraftNotArchived(Integer draftId);
+
     void validateAttributeExists(Integer versionId, Structure structure, String attribute);
 
     void validateDraftAttributeExists(Integer versionId, String attribute);

@@ -4,13 +4,14 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.io.Serializable;
 
 /**
  * Created by znurgaliev on 30.07.2018.
  */
 @Entity
 @Table(name = "passport_attribute", schema = "n2o_rdm_management")
-public class PassportAttributeEntity {
+public class PassportAttributeEntity implements Serializable {
 
     @Id
     @Column(name = "code", nullable = false)
