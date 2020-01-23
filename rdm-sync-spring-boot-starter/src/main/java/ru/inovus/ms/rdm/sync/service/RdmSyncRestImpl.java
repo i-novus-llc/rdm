@@ -13,6 +13,7 @@ import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
+import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.api.model.diff.RefBookDataDiff;
 import ru.inovus.ms.rdm.api.model.diff.StructureDiff;
@@ -28,9 +29,17 @@ import ru.inovus.ms.rdm.sync.model.DataTypeEnum;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.Log;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
+import ru.inovus.ms.rdm.sync.model.loader.XmlMapping;
+import ru.inovus.ms.rdm.sync.model.loader.XmlMappingField;
+import ru.inovus.ms.rdm.sync.model.loader.XmlMappingRefBook;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
 import ru.inovus.ms.rdm.sync.util.RefBookReferenceSort;
 
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,6 +55,7 @@ import static ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum.INSE
  */
 
 public class RdmSyncRestImpl implements RdmSyncRest {
+
     private static final Logger logger = LoggerFactory.getLogger(RdmSyncRestImpl.class);
     private static final int MAX_SIZE = 100;
 
@@ -139,6 +149,33 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     @Override
     public List<Log> getLog(LogCriteria criteria) {
         return loggingService.getList(criteria.getDate(), criteria.getRefbookCode());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Response downloadXmlFieldMapping(List<String> forRefBooks) {
+        List<VersionMapping> versionMappings = dao.getVersionMappings();
+        if (forRefBooks.stream().noneMatch("all"::equalsIgnoreCase))
+            versionMappings = versionMappings.stream().filter(vm -> forRefBooks.contains(vm.getCode())).collect(toList());
+        XmlMapping xmlMapping = new XmlMapping();
+        xmlMapping.setRefbooks(new ArrayList<>());
+        for (VersionMapping vm : versionMappings) {
+            XmlMappingRefBook xmlMappingRefBook = XmlMappingRefBook.createBy(vm);
+            xmlMappingRefBook.setField(dao.getFieldMapping(vm.getCode()).stream().map(XmlMappingField::createBy).collect(toList()));
+            xmlMapping.getRefbooks().add(xmlMappingRefBook);
+        }
+        StreamingOutput stream = out -> {
+            try {
+                Marshaller marshaller = XmlMapping.JAXB_CONTEXT.createMarshaller();
+                marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+                marshaller.marshal(xmlMapping, out);
+                out.flush();
+            } catch (JAXBException e) {
+//              Не выбросится
+                throw new RdmException(e);
+            }
+        };
+        return Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", "filename=\"rdm-mapping.xml\"") .entity(stream).build();
     }
 
     private VersionMapping getVersionMapping(String refbookCode) {
@@ -295,4 +332,5 @@ public class RdmSyncRestImpl implements RdmSyncRest {
             dao.insertRow(versionMapping.getTable(), mappedRow, true);
         }
     }
+
 }
