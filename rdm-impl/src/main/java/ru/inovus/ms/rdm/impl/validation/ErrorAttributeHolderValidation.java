@@ -24,4 +24,7 @@ public abstract class ErrorAttributeHolderValidation implements RdmValidation {
         errorAttributes.add(errorAttribute);
     }
 
+    protected boolean isErrorAttribute(String attribute) {
+        return errorAttributes != null && errorAttributes.contains(attribute);
+    }
 }
