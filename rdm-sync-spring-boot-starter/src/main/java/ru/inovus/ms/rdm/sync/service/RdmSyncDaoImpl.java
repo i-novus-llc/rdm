@@ -297,9 +297,12 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     }
 
     @Override
-    public boolean lockRefbookForUpdate(String code) {
+    public boolean lockRefBookForUpdate(String code, boolean blocking) {
         try {
-            jdbcTemplate.queryForObject("SELECT 1 FROM rdm_sync.version WHERE code = :code FOR UPDATE NOWAIT", Map.of("code", code), Integer.class);
+            String q = "SELECT 1 FROM rdm_sync.version WHERE code = :code FOR UPDATE ";
+            if (!blocking)
+                q += "NOWAIT";
+            jdbcTemplate.queryForObject(q, Map.of("code", code), Integer.class);
             logger.info("Lock for refbook {} successfully acquired.", code);
             return true;
         } catch (CannotAcquireLockException ex) {
@@ -404,6 +407,21 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         if (list.size() > 1)
             throw new RdmException("Cannot identify record by " + pk);
         return list.stream().findAny().map(RdmSyncLocalRowState::valueOf).orElse(null);
+    }
+
+    @Override
+    public boolean createRefBookTableIfNotExists(String schema, String table, String refBookCode, String isDeletedFieldName) {
+        List<FieldMapping> fieldMapping = getFieldMapping(refBookCode);
+        if (fieldMapping.isEmpty()) {
+            logger.warn("Field mapping for RefBook with code {} is empty. Skipping creating table in auto mode.", refBookCode);
+            return false;
+        }
+        jdbcTemplate.getJdbcTemplate().execute(String.format("CREATE SCHEMA IF NOT EXISTS %s", schema));
+        String q = String.format("CREATE TABLE IF NOT EXISTS \"%s\".\"%s\" (", schema, table);
+        q += fieldMapping.stream().map(fm -> String.format("\"%s\" %s", fm.getSysField(), fm.getSysDataType())).collect(Collectors.joining(", "));
+        q += String.format(", %s BOOLEAN)", isDeletedFieldName);
+        jdbcTemplate.getJdbcTemplate().execute(q);
+        return true;
     }
 
     private static String getInternalLocalStateUpdateTriggerName(String schema, String table) {

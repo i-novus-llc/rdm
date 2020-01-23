@@ -37,17 +37,21 @@ class RdmSyncInitializer {
     private void addInternal() {
         List<VersionMapping> versionMappings = dao.getVersionMappings();
         for (VersionMapping versionMapping : versionMappings) {
-            self.addInternal(versionMapping.getTable(), versionMapping.getCode());
+            self.addInternal(versionMapping.getTable(), versionMapping.getCode(), versionMapping.getDeletedField());
         }
     }
 
     @Transactional
-    public void addInternal(String schemaTable, String code) {
-        if (!dao.lockRefbookForUpdate(code))
+    public void addInternal(String schemaTable, String code, String isDeletedFieldName) {
+        if (!dao.lockRefBookForUpdate(code, true))
             return;
         String[] split = schemaTable.split("\\.");
         String schema = split[0];
         String table = split[1];
+        if (!dao.createRefBookTableIfNotExists(schema, table, code, isDeletedFieldName)) {
+            logger.warn("Skipping preparing of table {} in schema {}.", table, schema);
+            return;
+        }
         logger.info("Preparing table {} in schema {}.", table, schema);
         dao.addInternalLocalRowStateColumnIfNotExists(schema, table);
         dao.createOrReplaceLocalRowStateUpdateFunction(); // Мы по сути в цикле перезаписываем каждый раз функцию, это не страшно

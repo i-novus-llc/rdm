@@ -101,7 +101,7 @@ public interface RdmSyncDao {
 
     void insertFieldMapping(String code, List<XmlMappingField> fieldMappings);
 
-    boolean lockRefbookForUpdate(String code);
+    boolean lockRefBookForUpdate(String code, boolean blocking);
 
     void addInternalLocalRowStateUpdateTrigger(String schema, String table);
     void createOrReplaceLocalRowStateUpdateFunction();
@@ -112,5 +112,7 @@ public interface RdmSyncDao {
     List<HashMap<String, Object>> getRecordsOfState(String table, int limit, int offset, RdmSyncLocalRowState state);
     <T> boolean setLocalRecordsState(String table, String pk, List<? extends T> pvs, RdmSyncLocalRowState expectedState, RdmSyncLocalRowState state);
     RdmSyncLocalRowState getLocalRowState(String table, String pk, Object pv);
+
+    boolean createRefBookTableIfNotExists(String schema, String table, String refBookCode, String isDeletedFieldName);
 
 }
