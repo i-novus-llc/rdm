@@ -131,7 +131,7 @@ public abstract class RdmChangeDataClient {
                 dao.insertRow(localTable, m, false);
             else {
                 dao.markDeleted(localTable, pk, isDeletedField, pv, false, false);
-                dao.updateRow(localTable, pk, isDeletedField, m, false);
+                dao.updateRow(localTable, pk, m, false);
             }
             identityHashMap.put(t, m);
         }

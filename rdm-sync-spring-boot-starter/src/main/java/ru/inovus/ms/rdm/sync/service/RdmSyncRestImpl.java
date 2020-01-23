@@ -228,7 +228,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
             dao.insertRow(versionMapping.getTable(), mappedRow, true);
         } else {
             dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, false, true);
-            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow, true);
+            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), mappedRow, true);
         }
     }
 
@@ -289,7 +289,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         if (existingDataIds.contains(primaryValue)) {
             //если запись существует, обновляем
             dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, false, true);
-            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow, true);
+            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), mappedRow, true);
         } else {
             //создаем новую запись
             dao.insertRow(versionMapping.getTable(), mappedRow, true);

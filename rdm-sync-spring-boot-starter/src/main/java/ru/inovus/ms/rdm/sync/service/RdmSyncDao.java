@@ -70,10 +70,9 @@ public interface RdmSyncDao {
      * Изменить строку в справочник клиента
      * @param table таблица справочника на стороне клиента
      * @param primaryField поле, являющееся первичном ключом справочника, в таблице клиента
-     * @param isDeletedField поле, отвечающее за признак удаления, в таблице клиента
      * @param row строка с данными
      */
-    void updateRow(String table, String primaryField, String isDeletedField, Map<String, Object> row, boolean markSynced);
+    void updateRow(String table, String primaryField, Map<String, Object> row, boolean markSynced);
 
     /**
      * Пометить запись справочника клиента (не)удаленной
