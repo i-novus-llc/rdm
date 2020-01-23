@@ -417,8 +417,8 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
             return false;
         }
         jdbcTemplate.getJdbcTemplate().execute(String.format("CREATE SCHEMA IF NOT EXISTS %s", schema));
-        String q = String.format("CREATE TABLE IF NOT EXISTS \"%s\".\"%s\" (", schema, table);
-        q += fieldMapping.stream().map(fm -> String.format("\"%s\" %s", fm.getSysField(), fm.getSysDataType())).collect(Collectors.joining(", "));
+        String q = String.format("CREATE TABLE IF NOT EXISTS %s.%s (", schema, table);
+        q += fieldMapping.stream().map(fm -> String.format("%s %s", fm.getSysField(), fm.getSysDataType())).collect(Collectors.joining(", "));
         q += String.format(", %s BOOLEAN)", isDeletedFieldName);
         jdbcTemplate.getJdbcTemplate().execute(q);
         return true;
