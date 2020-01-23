@@ -10,8 +10,8 @@ import {
   makeWidgetSizeSelector,
   makeWidgetPageSelector,
 } from 'n2o-framework/lib/selectors/widgets';
-import { makeGetModelByPrefixSelector } from 'n2o-framework/lib/selectors/models';
-import { dataRequestWidget, changePageWidget } from 'n2o-framework/lib//actions/widgets';
+import { makeGetModelByPrefixSelector, makeGetFilterModelSelector } from 'n2o-framework/lib/selectors/models';
+import { dataRequestWidget } from 'n2o-framework/lib/actions/widgets';
 import { PREFIXES } from 'n2o-framework/lib/constants/models';
 
 /**
@@ -51,11 +51,12 @@ class DataGridPagination extends Component {
       withoutBody,
       prevText,
       nextText,
+      filters,
     } = this.props;
 
     return (
       <Pagination
-        onSelect={onChangePage}
+        onSelect={page =>  onChangePage(page, { ...filters })}
         activePage={activePage}
         count={count > 0 ? count - 1 : count}
         size={size}
@@ -102,14 +103,17 @@ const mapStateToProps = createStructuredSelector({
       state,
       props
     ),
+  filters: (state, props) =>
+    makeGetFilterModelSelector(props.widgetId)(state, props),
 });
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
-    onChangePage: page => {
+    onChangePage: (page, filters) => {
       dispatch(
         dataRequestWidget(ownProps.widgetId, {
           page,
+          ...filters
         })
       );
     },
