@@ -54,6 +54,12 @@ public class RefBook extends RefBookVersion {
     @ApiModelProperty("Наличие конфликта в последней опубликованной версии")
     private Boolean lastHasDataConflict;
 
+    @ApiModelProperty("Публикуется ли данный справочник в данный момент")
+    private Boolean publishing;
+
+    @ApiModelProperty("Обновляется ли данный справочник в данный момент")
+    private Boolean updating;
+
     public RefBook() {
     }
 
@@ -192,5 +198,21 @@ public class RefBook extends RefBookVersion {
 
     public void setLastHasDataConflict(Boolean lastHasDataConflict) {
         this.lastHasDataConflict = lastHasDataConflict;
+    }
+
+    public Boolean getPublishing() {
+        return publishing;
+    }
+
+    public void setPublishing(Boolean publishing) {
+        this.publishing = publishing;
+    }
+
+    public Boolean getUpdating() {
+        return updating;
+    }
+
+    public void setUpdating(Boolean updating) {
+        this.updating = updating;
     }
 }

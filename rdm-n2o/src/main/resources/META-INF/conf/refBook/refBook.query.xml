@@ -185,6 +185,14 @@
             <select/>
         </field>
 
+        <field id="publishing" domain="boolean">
+            <select/>
+        </field>
+
+        <field id="updating" domain="boolean">
+            <select/>
+        </field>
+
         <field id="lastHasDataConflictMsg" domain="string">
             <select mapping="
                 (lastHasDataConflict ? 'В опубликованной версии справочника есть ссылки на неактуальные данные' : '')
@@ -197,14 +205,7 @@
         </field>
 
         <field id="displayVersion" domain="string">
-            <select mapping="
-                (archived ? 'В архиве: ' : '') +
-                (status?.toString() != 'DRAFT' ?
-                 version :
-                 'Новая (изм. ' +
-                    editDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy')) +
-                    ')')
-                "/>
+            <select mapping="(publishing ? 'Публикуется' : updating ? 'Обновляется' : (archived ? 'В архиве: ' : '') + (status?.toString() != 'DRAFT' ? version : 'Новая (изм. ' + editDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy')) +')'))"/>
         </field>
 
         <field id="displayCode" domain="string">

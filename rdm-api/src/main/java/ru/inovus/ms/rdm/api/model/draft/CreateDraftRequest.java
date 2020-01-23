@@ -12,14 +12,13 @@ import java.util.Objects;
 
 import static java.util.Collections.emptyMap;
 
-@SuppressWarnings("squid:S1948")
 @ApiModel(value = "Модель создания черновика", description = "Набор данных для создания черновика")
 public class CreateDraftRequest implements Serializable {
 
     private Integer refBookId;
     private Structure structure;
-    private Map<String, Object> passport;
-    private Map<String, List<AttributeValidation>> fieldValidations;
+    private Map<String, Object> passport; // NOSONAR
+    private Map<String, List<AttributeValidation>> fieldValidations; // NOSONAR
 
     public CreateDraftRequest(Integer refBookId, Structure structure, Map<String, Object> passport, Map<String, List<AttributeValidation>> fieldValidations) {
         this.refBookId = refBookId;
