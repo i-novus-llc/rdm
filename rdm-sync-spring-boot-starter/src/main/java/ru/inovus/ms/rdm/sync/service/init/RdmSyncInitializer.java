@@ -105,7 +105,7 @@ class RdmSyncInitializer {
 
     @Transactional
     public void establishInternalInfrastructure(String schemaTable, String code, String isDeletedFieldName) {
-        if (!dao.lockRefBookForUpdate(code, true, true))
+        if (!dao.lockRefBookForUpdate(code, true))
             return;
         String[] split = schemaTable.split("\\.");
         String schema = split[0];
