@@ -186,7 +186,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     @Override
     public void markDeleted(String table, String primaryField, String isDeletedField, Object primaryValue, boolean deleted, boolean markSynced) {
         Map<String, Object> args = markSynced ?
-                Map.of(primaryField, primaryValue, isDeletedField, deleted, RDM_SYNC_INTERNAL_STATE_COLUMN, SYNCED) :
+                Map.of(primaryField, primaryValue, isDeletedField, deleted, RDM_SYNC_INTERNAL_STATE_COLUMN, SYNCED.name()) :
                 Map.of(primaryField, primaryValue, isDeletedField, deleted);
         executeUpdate(table, args, primaryField);
     }
