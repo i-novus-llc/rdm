@@ -31,7 +31,7 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
         criteria.setPageNumber(Math.max(0, criteria.getPageNumber() - 1));
         QAsyncOperationLogEntryEntity q = QAsyncOperationLogEntryEntity.asyncOperationLogEntryEntity;
         if (criteria.getSort() == null)
-            criteria.setOrders(List.of(AsyncOperationLogEntryEntity.DEFAUL_ORDER));
+            criteria.setOrders(List.of(AsyncOperationLogEntryEntity.DEFAULT_ORDER));
         BooleanBuilder builder = new BooleanBuilder();
         if (criteria.getUuid() != null)
             builder.and(q.uuid.eq(criteria.getUuid()));

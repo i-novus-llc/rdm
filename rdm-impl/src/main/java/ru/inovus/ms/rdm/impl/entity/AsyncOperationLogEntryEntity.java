@@ -12,7 +12,7 @@ import java.util.UUID;
 @Table(name = "async_log_entry", schema = "n2o_rdm_management")
 public class AsyncOperationLogEntryEntity {
 
-    public static final Sort.Order DEFAUL_ORDER = Sort.Order.desc("tsStart");
+    public static final Sort.Order DEFAULT_ORDER = Sort.Order.desc("tsStart");
 
     @Id
     @Column(name = "id", nullable = false)
