@@ -27,6 +27,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 import static ru.inovus.ms.rdm.api.util.StringUtils.addDoubleQuotes;
 import static ru.inovus.ms.rdm.api.util.StringUtils.addSingleQuotes;
@@ -347,6 +348,8 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
                 collect(joining(" "));
         }
         int count = jdbcTemplate.queryForObject("SELECT COUNT(*) " + q, args, Integer.class);
+        if (count == 0)
+            return Pair.of(0, emptyList());
         q += format(" LIMIT %d OFFSET %d", limit, offset);
         var v = new Object() {
             int n = -1;
