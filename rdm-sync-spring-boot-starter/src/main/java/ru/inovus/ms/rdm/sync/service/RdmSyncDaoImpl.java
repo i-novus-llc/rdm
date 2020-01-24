@@ -17,6 +17,7 @@ import ru.inovus.ms.rdm.sync.model.VersionMapping;
 import ru.inovus.ms.rdm.sync.model.loader.XmlMappingField;
 import ru.inovus.ms.rdm.sync.model.loader.XmlMappingRefBook;
 
+import javax.ws.rs.core.MultivaluedMap;
 import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -335,12 +336,22 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     }
 
     @Override
-    public List<HashMap<String, Object>> getRecordsOfState(String table, int limit, int offset, RdmSyncLocalRowState state) {
-        String q = format("SELECT * FROM %s WHERE %s = :state LIMIT %d OFFSET %d", table, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), limit, offset);
+    public Pair<Integer, List<HashMap<String, Object>>> getRecordsOfState(String table, int limit, int offset, RdmSyncLocalRowState state, MultivaluedMap<String, Object> filters) {
+        String q = format("FROM %s WHERE %s = :state ", table, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN));
+        Map<String, Object> args = new HashMap<>();
+        args.put("state", state.name());
+        if (filters != null) {
+            q += filters.entrySet().stream().
+                peek(entry -> args.put(entry.getKey(), entry.getValue())).
+                map(entry -> "AND " + addDoubleQuotes(entry.getKey()) + " IN (:" + entry.getKey() + ")").
+                collect(joining(" "));
+        }
+        int count = jdbcTemplate.queryForObject("SELECT COUNT(*) " + q, args, Integer.class);
+        q += format(" LIMIT %d OFFSET %d", limit, offset);
         var v = new Object() {
             int n = -1;
         };
-        return jdbcTemplate.query(q, Map.of("state", state.name()), (rs, rowNum) -> {
+        return Pair.of(count, jdbcTemplate.query("SELECT * " + q, args, (rs, rowNum) -> {
             HashMap<String, Object> map = new HashMap<>();
             if (v.n == -1)
                 v.n = getInternalStateColumnIdx(rs.getMetaData(), table);
@@ -352,7 +363,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
                 }
             }
             return map;
-        });
+        }));
     }
 
     private int getInternalStateColumnIdx(ResultSetMetaData meta, String table) throws SQLException {

@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.sync.service.change_data;
 
 import org.quartz.*;
+import org.springframework.data.util.Pair;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
 import ru.inovus.ms.rdm.sync.service.RdmSyncDao;
@@ -32,11 +33,11 @@ public final class RdmSyncExportDirtyRecordsToRdmJob implements Job {
             String table = vm.getTable();
             List<FieldMapping> fieldMappings = dao.getFieldMapping(vm.getCode());
             for (;;) {
-                List<HashMap<String, Object>> batch = dao.getRecordsOfState(table, limit, offset, RdmSyncLocalRowState.DIRTY);
-                if (batch.isEmpty())
+                Pair<Integer, List<HashMap<String, Object>>> batch = dao.getRecordsOfState(table, limit, offset, RdmSyncLocalRowState.DIRTY, null);
+                if (batch.getFirst() == 0)
                     break;
-                batch.add(INTERNAL_TAG);
-                changeDataClient.changeData(vm.getCode(), batch, emptyList(), t -> {
+                batch.getSecond().add(INTERNAL_TAG);
+                changeDataClient.changeData(vm.getCode(), batch.getSecond(), emptyList(), t -> {
                     Map<String, Object> m = new HashMap<>(t);
                     reindex(fieldMappings, m);
                     return m;
