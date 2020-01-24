@@ -45,6 +45,6 @@ public interface RdmSyncRest {
 
     void update(RefBook refBook, VersionMapping versionMapping);
 
-    RefBook getNewVersionFromRdmThrowOnMissingOrPrimaryKeyMissingOrCompositePrimaryKey(String code);
+    RefBook getLastPublishedVersionFromRdm(String code);
 
 }

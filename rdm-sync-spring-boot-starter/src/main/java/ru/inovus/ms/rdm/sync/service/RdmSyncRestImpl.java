@@ -97,7 +97,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         if (dao.getVersionMapping(refBookCode) != null) {
             RefBook newVersion;
             try {
-                newVersion = getNewVersionFromRdmThrowOnMissingOrPrimaryKeyMissingOrCompositePrimaryKey(refBookCode);
+                newVersion = getLastPublishedVersionFromRdm(refBookCode);
             } catch (Exception e) {
                 logger.error(String.format(ERROR_WHILE_FETCHING_NEW_VERSION, refBookCode), e);
                 return;
@@ -152,7 +152,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         return versionMapping;
     }
 
-    public RefBook getNewVersionFromRdmThrowOnMissingOrPrimaryKeyMissingOrCompositePrimaryKey(String refbookCode) {
+    public RefBook getLastPublishedVersionFromRdm(String refbookCode) {
         RefBookCriteria refBookCriteria = new RefBookCriteria();
         refBookCriteria.setCode(refbookCode);
         refBookCriteria.setSourceType(RefBookSourceType.LAST_PUBLISHED);
@@ -173,7 +173,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         List<RefBook> refBooks = new ArrayList<>();
         for (VersionMapping versionMapping : versionMappings) {
             try {
-                refBooks.add(getNewVersionFromRdmThrowOnMissingOrPrimaryKeyMissingOrCompositePrimaryKey(versionMapping.getCode()));
+                refBooks.add(getLastPublishedVersionFromRdm(versionMapping.getCode()));
             } catch (RuntimeException ex) {
                 logger.error(String.format(ERROR_WHILE_FETCHING_NEW_VERSION, versionMapping.getCode()), ex);
                 loggingService.logError(versionMapping.getCode(), null, null, ex.getMessage(), ExceptionUtils.getStackTrace(ex));

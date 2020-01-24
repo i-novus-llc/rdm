@@ -66,7 +66,7 @@ class RdmSyncInitializer {
         logger.info("Auto creating structures of RefBook with code {}", refBookCode);
         RefBook lastPublished;
         try {
-            lastPublished = rdmSyncRest.getNewVersionFromRdmThrowOnMissingOrPrimaryKeyMissingOrCompositePrimaryKey(refBookCode);
+            lastPublished = rdmSyncRest.getLastPublishedVersionFromRdm(refBookCode);
         } catch (Exception e) {
             logger.error("Error while auto creating structures of RefBook with code {}. Can't get last published version from RDM.", refBookCode, e);
             return;
