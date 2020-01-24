@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import ru.i_novus.components.common.exception.CodifiedException;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.exception.NotUniqueException;
 import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
@@ -431,8 +430,11 @@ public class DraftServiceImpl implements DraftService {
 
             List<RowValue> addedRowValues = convertedRows.stream().filter(rowValue -> rowValue.getSystemId() == null).collect(toList());
             if (!isEmpty(addedRowValues)) {
-                draftDataService.addRows(draftVersion.getStorageCode(), addedRowValues);
-
+                try {
+                    draftDataService.addRows(draftVersion.getStorageCode(), addedRowValues);
+                } catch (RuntimeException e) {
+                    ErrorUtil.rethrowError(e);
+                }
                 List<Object> addedData = addedRowValues.stream().map(RowValue::getFieldValues).collect(toList());
                 auditEditData(draftVersion, "create_rows", addedData);
             }
@@ -457,8 +459,11 @@ public class DraftServiceImpl implements DraftService {
                         .collect(toList());
 
                 conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftVersion.getId(), RowUtils.toLongSystemIds(systemIds));
-                draftDataService.updateRows(draftVersion.getStorageCode(), updatedRowValues);
-
+                try {
+                    draftDataService.updateRows(draftVersion.getStorageCode(), updatedRowValues);
+                } catch (RuntimeException e) {
+                    ErrorUtil.rethrowError(e);
+                }
                 auditEditData(draftVersion, "update_rows", rowDiffs);
             }
         } finally {
@@ -804,16 +809,12 @@ public class DraftServiceImpl implements DraftService {
         if (attribute.isReferenceType())
             structure.getReferences().remove(structure.getReference(attributeCode));
         structure.getAttributes().remove(attribute);
-
         try {
             draftDataService.deleteField(draftEntity.getStorageCode(), attributeCode);
-
-        } catch (NotUniqueException e) {
-            throw new UserException("row.not.unique", e);
+        } catch (RuntimeException e) {
+            ErrorUtil.rethrowError(e);
         }
-
         attributeValidationRepository.deleteAll(attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attributeCode));
-
         auditStructureEdit(draftEntity, "delete_attribute", attribute);
     }
 
