@@ -5,7 +5,6 @@ import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.jaxrs.RestCriteria;
 import org.apache.commons.io.FilenameUtils;
-import org.postgresql.util.PSQLException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
@@ -17,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import ru.i_novus.components.common.exception.CodifiedException;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.exception.NotUniqueException;
 import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
@@ -56,7 +54,6 @@ import ru.inovus.ms.rdm.impl.validation.AttributeUpdateValidator;
 import ru.inovus.ms.rdm.impl.validation.TypeValidation;
 import ru.inovus.ms.rdm.impl.validation.VersionValidationImpl;
 
-import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -72,7 +69,6 @@ import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 public class DraftServiceImpl implements DraftService {
 
     private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
-    private static final String ROW_NOT_UNIQUE = "row.not.unique";
 
     private RefBookVersionRepository versionRepository;
     private RefBookConflictRepository conflictRepository;
@@ -434,8 +430,11 @@ public class DraftServiceImpl implements DraftService {
 
             List<RowValue> addedRowValues = convertedRows.stream().filter(rowValue -> rowValue.getSystemId() == null).collect(toList());
             if (!isEmpty(addedRowValues)) {
-                mutateCatchNotUniqueAndRethrow(() -> draftDataService.addRows(draftVersion.getStorageCode(), addedRowValues));
-
+                try {
+                    draftDataService.addRows(draftVersion.getStorageCode(), addedRowValues);
+                } catch (RuntimeException e) {
+                    ErrorUtil.rethrowError(e);
+                }
                 List<Object> addedData = addedRowValues.stream().map(RowValue::getFieldValues).collect(toList());
                 auditEditData(draftVersion, "create_rows", addedData);
             }
@@ -460,27 +459,15 @@ public class DraftServiceImpl implements DraftService {
                         .collect(toList());
 
                 conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftVersion.getId(), RowUtils.toLongSystemIds(systemIds));
-                mutateCatchNotUniqueAndRethrow(() -> draftDataService.updateRows(draftVersion.getStorageCode(), updatedRowValues));
-
+                try {
+                    draftDataService.updateRows(draftVersion.getStorageCode(), updatedRowValues);
+                } catch (RuntimeException e) {
+                    ErrorUtil.rethrowError(e);
+                }
                 auditEditData(draftVersion, "update_rows", rowDiffs);
             }
         } finally {
             refBookLockService.deleteRefBookOperation(draftVersion.getRefBook().getId());
-        }
-    }
-
-    private void mutateCatchNotUniqueAndRethrow(Runnable exec) {
-        try {
-            exec.run();
-        } catch (NotUniqueException e) {
-            throw new UserException(ROW_NOT_UNIQUE, e);
-        } catch (PersistenceException e) {
-            boolean notUnique = false;
-            if (e.getCause() != null && e.getCause().getCause() != null && e.getCause().getCause() instanceof PSQLException)
-                notUnique = "23505".equals(((PSQLException) e.getCause().getCause()).getSQLState());
-            if (notUnique)
-                throw new UserException(ROW_NOT_UNIQUE, e);
-            else throw e;
         }
     }
 
@@ -822,7 +809,11 @@ public class DraftServiceImpl implements DraftService {
         if (attribute.isReferenceType())
             structure.getReferences().remove(structure.getReference(attributeCode));
         structure.getAttributes().remove(attribute);
-        mutateCatchNotUniqueAndRethrow(() -> draftDataService.deleteField(draftEntity.getStorageCode(), attributeCode));
+        try {
+            draftDataService.deleteField(draftEntity.getStorageCode(), attributeCode);
+        } catch (RuntimeException e) {
+            ErrorUtil.rethrowError(e);
+        }
         attributeValidationRepository.deleteAll(attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attributeCode));
         auditStructureEdit(draftEntity, "delete_attribute", attribute);
     }
