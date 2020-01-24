@@ -33,7 +33,7 @@ public final class RdmSyncExportDirtyRecordsToRdmJob implements Job {
             int offset = 0;
             String table = vm.getTable();
             List<FieldMapping> fieldMappings = dao.getFieldMapping(vm.getCode());
-            String deleted = vm.getDeletedField();
+            String deletedKey = vm.getDeletedField();
             for (;;) {
                 List<HashMap<String, Object>> batch = dao.getRecordsOfState(table, limit, offset, RdmSyncLocalRowState.DIRTY);
                 if (batch.isEmpty())
@@ -41,17 +41,17 @@ public final class RdmSyncExportDirtyRecordsToRdmJob implements Job {
                 List<HashMap<String, Object>> addUpdate = new ArrayList<>();
                 List<HashMap<String, Object>> delete = new ArrayList<>();
                 for (HashMap<String, Object> map : batch) {
-                    Boolean b = (Boolean) map.get(deleted);
-                    if (b == null || !b)
+                    Boolean deletedVal = (Boolean) map.get(deletedKey);
+                    if (deletedVal == null || !deletedVal)
                         addUpdate.add(map);
                     else
                         delete.add(map);
                 }
                 addUpdate.add(INTERNAL_TAG);
-                changeDataClient.changeData(vm.getCode(), addUpdate, delete, t -> {
-                    Map<String, Object> m = new HashMap<>(t);
-                    reindex(fieldMappings, m);
-                    return m;
+                changeDataClient.changeData(vm.getCode(), addUpdate, delete, record -> {
+                    Map<String, Object> map = new HashMap<>(record);
+                    reindex(fieldMappings, map);
+                    return map;
                 });
                 offset += limit;
             }
