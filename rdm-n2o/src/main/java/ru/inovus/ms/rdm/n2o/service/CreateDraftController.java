@@ -56,8 +56,13 @@ public class CreateDraftController {
         final RefBookVersion version = versionService.getById(versionId);
         if (version.isDraft())
             return new UiDraft(versionId, version.getRefBookId());
-        else
-            return new UiDraft(draftService.createFromVersion(versionId).getId(), version.getRefBookId());
+        else {
+            Integer draftId = draftService.getIdByRefBookCode(version.getCode());
+            if (draftId == null)
+                return new UiDraft(draftService.createFromVersion(versionId).getId(), version.getRefBookId());
+            else
+                return new UiDraft(draftId, version.getRefBookId());
+        }
     }
 
     public UiDraft editPassport(Integer versionId, UiPassport uiPassport) {
