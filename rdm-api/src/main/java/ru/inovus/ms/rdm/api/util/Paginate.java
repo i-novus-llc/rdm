@@ -31,9 +31,8 @@ public class Paginate<C extends AbstractCriteria, E> {
         });
     }
 
-    @SuppressWarnings("squid:S1452")
-    public Optional<? extends E> findOneSuchThat(Predicate<? super E> findOne) {
-        final Optional<? extends E>[] optional = new Optional[]{Optional.empty()};
+    public Optional<E> findOneSuchThat(Predicate<? super E> findOne) {
+        final Optional<E>[] optional = new Optional[]{Optional.empty()};
         go(e -> {
             if (findOne.test(e)) {
                 optional[0] = Optional.ofNullable(e);
