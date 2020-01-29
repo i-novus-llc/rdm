@@ -264,6 +264,7 @@ public class RdmSyncRestTest {
     private RefBook createFirstRdmVersion() {
         RefBook refBook = new RefBook();
         refBook.setId(1);
+        refBook.setCode("TEST");
         refBook.setLastPublishedVersion("1.0");
         refBook.setLastPublishedVersionFromDate(LocalDateTime.of(2019, Month.FEBRUARY, 26, 10, 0));
         Structure.Attribute idAttribute = Structure.Attribute.build("id", null, FieldType.INTEGER, null);
@@ -276,6 +277,7 @@ public class RdmSyncRestTest {
     private RefBook createSecondRdmVersion() {
         RefBook refBook = new RefBook();
         refBook.setId(2);
+        refBook.setCode("TEST");
         refBook.setLastPublishedVersion("1.1");
         refBook.setLastPublishedVersionFromDate(LocalDateTime.of(2019, Month.FEBRUARY, 27, 10, 0));
         Structure.Attribute idAttribute = Structure.Attribute.build("id", null, FieldType.INTEGER, null);
@@ -288,6 +290,7 @@ public class RdmSyncRestTest {
     private RefBook createThirdRdmVersion() {
         RefBook refBook = new RefBook();
         refBook.setId(3);
+        refBook.setCode("TEST");
         refBook.setLastPublishedVersion("1.2");
         refBook.setLastPublishedVersionFromDate(LocalDateTime.of(2019, Month.MARCH, 7, 10, 0));
         Structure.Attribute idAttribute = Structure.Attribute.build("id", null, FieldType.INTEGER, null);
