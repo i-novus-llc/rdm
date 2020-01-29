@@ -372,12 +372,11 @@ public class DraftServiceImpl implements DraftService {
                 .flatMap(Collection::stream).collect(toList());
         SearchDataCriteria criteria = new SearchDataCriteria();
         criteria.setAttributeFilter(Set.of(filters));
-        Paginate.<SearchDataCriteria, RefBookRowValue>over(criteria).supplyWith(c -> versionService.search(draftId, criteria)).onEachDo(refBookRowValue -> {
+        Paginate.<SearchDataCriteria, RefBookRowValue>over(criteria).withPageSupply(c -> versionService.search(draftId, criteria)).forEach(refBookRowValue -> {
             for (Row row : sourceRows)
                 if (row.getSystemId() == null && RowUtils.equalsValuesByAttributes(row, refBookRowValue, primaryKeys))
                     row.setSystemId(refBookRowValue.getSystemId());
-            return false;
-        }).go();
+        });
     }
 
     private List<Row> preprocessRows(List<Row> rows, RefBookVersionEntity draftVersion, boolean removeEvenIfSystemIdIsPresent) {

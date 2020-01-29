@@ -171,21 +171,13 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         RefBookCriteria refBookCriteria = new RefBookCriteria();
         refBookCriteria.setCode(code);
         refBookCriteria.setSourceType(RefBookSourceType.LAST_PUBLISHED);
-        var ref = new Object() {
-            RefBook last = null;
-        };
-        Paginate.<RefBookCriteria, RefBook>over(refBookCriteria).supplyWith(criteria -> refBookService.search(criteria)).onEachDo(refBook -> {
-            if (refBook.getCode().equals(code)) {
-                ref.last = refBook;
-                return true;
-            }
-            return false;
-        }).go();
-        if (ref.last == null)
-            throw new IllegalStateException(String.format(NO_REFBOOK_FOUND, code));
-        if (ref.last.getStructure().getPrimary().isEmpty())
+        RefBook last = Paginate.<RefBookCriteria, RefBook>over(refBookCriteria).
+                withPageSupply(refBookService::search).
+                findOneSuchThat(refBook -> refBook.getCode().equals(code)).
+                orElseThrow(() -> new IllegalStateException(String.format(NO_REFBOOK_FOUND, code)));
+        if (last.getStructure().getPrimary().isEmpty())
             throw new IllegalStateException(String.format(NO_PRIMARY_KEY_FOUND, code));
-        return ref.last;
+        return last;
     }
 
     private List<RefBook> getRefBooks(List<VersionMapping> versionMappings) {
