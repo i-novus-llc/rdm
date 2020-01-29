@@ -60,14 +60,11 @@ public class Paginate<C extends AbstractCriteria, E> {
         long total = res.getTotalElements();
         while (total / pageSize >= page) {
             criteria.setPageNumber(++page);
-            boolean done = false;
             for (E e : res.getContent()) {
-                done = handle.apply(e);
+                boolean done = handle.apply(e);
                 if (done)
-                    break;
+                    return;
             }
-            if (done)
-                break;
             if (total / pageSize >= page)
                 res = supplier.apply(criteria);
         }
