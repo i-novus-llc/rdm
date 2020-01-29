@@ -401,14 +401,13 @@ public class RefBookServiceImpl implements RefBookService {
         model.setHasAlteredConflict(refBookModelData.getHasAlteredConflict());
         model.setHasStructureConflict(refBookModelData.getHasStructureConflict());
         model.setLastHasDataConflict(refBookModelData.getLastHasDataConflict());
+        model.setUpdating(false);
+        model.setPublishing(false);
         if (entity.getRunningOp() != null) {
             if (entity.getRunningOp().getOperation() == RefBookOperation.PUBLISHING)
                 model.setPublishing(true);
             else
                 model.setUpdating(true);
-        } else {
-            model.setUpdating(false);
-            model.setPublishing(false);
         }
         return model;
     }

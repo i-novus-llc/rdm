@@ -27,8 +27,8 @@ import java.util.*;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
-import static ru.inovus.ms.rdm.api.util.StringUtils.addDoubleQuotes;
-import static ru.inovus.ms.rdm.api.util.StringUtils.addSingleQuotes;
+import static ru.inovus.ms.rdm.api.util.StringUtils.dQuote;
+import static ru.inovus.ms.rdm.api.util.StringUtils.sQuote;
 import static ru.inovus.ms.rdm.sync.service.RdmSyncLocalRowState.*;
 
 /**
@@ -131,7 +131,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     public List<Object> getDataIds(String table, FieldMapping primaryField) {
         DataTypeEnum dataType = DataTypeEnum.getByDataType(primaryField.getSysDataType());
         return jdbcTemplate.query(
-            format("select %s from %s", addDoubleQuotes(primaryField.getSysField()), table),
+            format("select %s from %s", dQuote(primaryField.getSysField()), table),
             (rs, rowNum) -> rdmMappingService.map(FieldType.STRING, dataType, rs.getObject(1))
         );
     }
@@ -139,7 +139,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     @Override
     public boolean isIdExists(String table, String primaryField, Object primaryValue) {
         return jdbcTemplate.queryForObject(
-            format("select count(*)>0 from %s where %s=:primary", table, addDoubleQuotes(primaryField)),
+            format("select count(*)>0 from %s where %s=:primary", table, dQuote(primaryField)),
             Map.of("primary", primaryValue),
             Boolean.class
         );
@@ -155,7 +155,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
 
     @Override
     public void insertRow(String table, Map<String, Object> row, boolean markSynced) {
-        String keys = row.keySet().stream().map(StringUtils::addDoubleQuotes).collect(joining(","));
+        String keys = row.keySet().stream().map(StringUtils::dQuote).collect(joining(","));
         List<String> values = new ArrayList<>();
         List<Object> data = new ArrayList<>();
         for (Map.Entry<String, Object> entry : row.entrySet()) {
@@ -167,8 +167,8 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
             }
         }
         if (markSynced) {
-            keys += ", " + addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN);
-            values.add(addSingleQuotes(SYNCED.name()));
+            keys += ", " + dQuote(RDM_SYNC_INTERNAL_STATE_COLUMN);
+            values.add(sQuote(SYNCED.name()));
         }
         jdbcTemplate.getJdbcTemplate().update(
             format("insert into %s (%s) values(%s)", table, keys, String.join(",", values)),
@@ -206,8 +206,8 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         String formattedQ = format(
             q,
             table,
-            args.keySet().stream().filter(field -> !field.equals(primaryField)).map(field -> addDoubleQuotes(field) + " = :" + field).collect(joining(", ")),
-            addDoubleQuotes(primaryField),
+            args.keySet().stream().filter(field -> !field.equals(primaryField)).map(field -> dQuote(field) + " = :" + field).collect(joining(", ")),
+            dQuote(primaryField),
             primaryField
         );
         jdbcTemplate.update(formattedQ, args);
@@ -312,9 +312,9 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         if (!exists) {
             String q = format("ALTER TABLE %s ADD COLUMN %s VARCHAR NOT NULL DEFAULT '%s'", schemaTable, RDM_SYNC_INTERNAL_STATE_COLUMN, DIRTY);
             jdbcTemplate.getJdbcTemplate().execute(q);
-            q = format("CREATE INDEX ON %s (%s)", schemaTable, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN));
+            q = format("CREATE INDEX ON %s (%s)", schemaTable, dQuote(RDM_SYNC_INTERNAL_STATE_COLUMN));
             jdbcTemplate.getJdbcTemplate().execute(q);
-            int n = jdbcTemplate.update(format("UPDATE %s SET %s = :synced", schemaTable, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN)), Map.of("synced", SYNCED.name()));
+            int n = jdbcTemplate.update(format("UPDATE %s SET %s = :synced", schemaTable, dQuote(RDM_SYNC_INTERNAL_STATE_COLUMN)), Map.of("synced", SYNCED.name()));
             if (n != 0)
                 logger.info("{} records updated internal state to {} in table {}", n, SYNCED, schemaTable);
         }
@@ -336,7 +336,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
 
     @Override
     public List<HashMap<String, Object>> getRecordsOfState(String table, int limit, int offset, RdmSyncLocalRowState state) {
-        String q = format("SELECT * FROM %s WHERE %s = :state LIMIT %d OFFSET %d", table, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), limit, offset);
+        String q = format("SELECT * FROM %s WHERE %s = :state LIMIT %d OFFSET %d", table, dQuote(RDM_SYNC_INTERNAL_STATE_COLUMN), limit, offset);
         var v = new Object() {
             int n = -1;
         };
@@ -368,18 +368,18 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     public <T> boolean setLocalRecordsState(String table, String pk, List<? extends T> pvs, RdmSyncLocalRowState expectedState, RdmSyncLocalRowState toState) {
         if (pvs.isEmpty())
             return false;
-        String q = format("SELECT COUNT(*) FROM %s WHERE %s IN (:pvs)", table, addDoubleQuotes(pk));
+        String q = format("SELECT COUNT(*) FROM %s WHERE %s IN (:pvs)", table, dQuote(pk));
         int count = jdbcTemplate.queryForObject(q, Map.of("pvs", pvs), Integer.class);
         if (count == 0)
             return false;
-        q = format("UPDATE %1$s SET %2$s = :toState WHERE %3$s IN (:pvs) AND %2$s = :expectedState", table, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), addDoubleQuotes(pk));
+        q = format("UPDATE %1$s SET %2$s = :toState WHERE %3$s IN (:pvs) AND %2$s = :expectedState", table, dQuote(RDM_SYNC_INTERNAL_STATE_COLUMN), dQuote(pk));
         int n = jdbcTemplate.update(q, Map.of("toState", toState.name(), "pvs", pvs, "expectedState", expectedState.name()));
         return n == count;
     }
 
     @Override
     public RdmSyncLocalRowState getLocalRowState(String table, String pk, Object pv) {
-        String q = format("SELECT %s FROM %s WHERE %s = :pv", addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), table, addDoubleQuotes(pk));
+        String q = format("SELECT %s FROM %s WHERE %s = :pv", dQuote(RDM_SYNC_INTERNAL_STATE_COLUMN), table, dQuote(pk));
         List<String> list = jdbcTemplate.query(q, Map.of("pv", pv), (rs, rowNum) -> rs.getString(1));
         if (list.size() > 1)
             throw new RdmException("Cannot identify record by " + pk);

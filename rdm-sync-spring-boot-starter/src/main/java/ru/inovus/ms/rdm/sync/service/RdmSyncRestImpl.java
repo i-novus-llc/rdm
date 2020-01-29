@@ -23,6 +23,7 @@ import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.api.service.CompareService;
 import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.api.service.VersionService;
+import ru.inovus.ms.rdm.api.util.Paginate;
 import ru.inovus.ms.rdm.sync.criteria.LogCriteria;
 import ru.inovus.ms.rdm.sync.model.DataTypeEnum;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
@@ -166,20 +167,25 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         return versionMapping;
     }
 
-    private RefBook getNewVersionFromRdm(String refbookCode) {
+    private RefBook getNewVersionFromRdm(String code) {
         RefBookCriteria refBookCriteria = new RefBookCriteria();
-        refBookCriteria.setCode(refbookCode);
+        refBookCriteria.setCode(code);
         refBookCriteria.setSourceType(RefBookSourceType.LAST_PUBLISHED);
-        Page<RefBook> rdmRefbooks = refBookService.search(refBookCriteria);
-        if (CollectionUtils.isEmpty(rdmRefbooks.getContent())) {
-            throw new IllegalStateException(String.format(NO_REFBOOK_FOUND, refbookCode));
-        }
-        RefBook rdmRefbook = rdmRefbooks.getContent().get(0);
-        //проверяем наличие первичного ключа
-        if (rdmRefbook.getStructure().getPrimary().isEmpty()) {
-            throw new IllegalStateException(String.format(NO_PRIMARY_KEY_FOUND, refbookCode));
-        }
-        return rdmRefbook;
+        var ref = new Object() {
+            RefBook last = null;
+        };
+        Paginate.<RefBookCriteria, RefBook>over(refBookCriteria).supplyWith(criteria -> refBookService.search(criteria)).onEachDo(refBook -> {
+            if (refBook.getCode().equals(code)) {
+                ref.last = refBook;
+                return true;
+            }
+            return false;
+        }).go();
+        if (ref.last == null)
+            throw new IllegalStateException(String.format(NO_REFBOOK_FOUND, code));
+        if (ref.last.getStructure().getPrimary().isEmpty())
+            throw new IllegalStateException(String.format(NO_PRIMARY_KEY_FOUND, code));
+        return ref.last;
     }
 
     private List<RefBook> getRefBooks(List<VersionMapping> versionMappings) {

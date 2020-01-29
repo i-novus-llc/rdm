@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.impl.service;
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
-import net.n2oapp.platform.jaxrs.RestCriteria;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,6 +37,7 @@ import ru.inovus.ms.rdm.api.service.DraftService;
 import ru.inovus.ms.rdm.api.service.VersionFileService;
 import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
+import ru.inovus.ms.rdm.api.util.Paginate;
 import ru.inovus.ms.rdm.api.util.RowUtils;
 import ru.inovus.ms.rdm.api.util.StructureUtils;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
@@ -372,21 +372,12 @@ public class DraftServiceImpl implements DraftService {
                 .flatMap(Collection::stream).collect(toList());
         SearchDataCriteria criteria = new SearchDataCriteria();
         criteria.setAttributeFilter(Set.of(filters));
-
-        int page = RestCriteria.FIRST_PAGE_NUMBER;
-        criteria.setPageNumber(page);
-
-        Page<RefBookRowValue> search;
-        while (page < (search = versionService.search(draftId, criteria)).getTotalPages()) {
-            criteria.setPageNumber(++page);
-            for (RefBookRowValue oldValue : search) {
-                for (Row row : sourceRows) {
-                    if (row.getSystemId() == null
-                            && RowUtils.equalsValuesByAttributes(row, oldValue, primaryKeys))
-                        row.setSystemId(oldValue.getSystemId());
-                }
-            }
-        }
+        Paginate.<SearchDataCriteria, RefBookRowValue>over(criteria).supplyWith(c -> versionService.search(draftId, criteria)).onEachDo(refBookRowValue -> {
+            for (Row row : sourceRows)
+                if (row.getSystemId() == null && RowUtils.equalsValuesByAttributes(row, refBookRowValue, primaryKeys))
+                    row.setSystemId(refBookRowValue.getSystemId());
+            return false;
+        }).go();
     }
 
     private List<Row> preprocessRows(List<Row> rows, RefBookVersionEntity draftVersion, boolean removeEvenIfSystemIdIsPresent) {

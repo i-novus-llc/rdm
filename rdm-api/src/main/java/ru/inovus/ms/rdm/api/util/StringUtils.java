@@ -10,11 +10,11 @@ public class StringUtils {
     private StringUtils() {
     }
 
-    public static String addDoubleQuotes(String value) {
+    public static String dQuote(String value) {
         return DOUBLE_QUOTE_CHAR + value + DOUBLE_QUOTE_CHAR;
     }
 
-    public static String addSingleQuotes(String value) {
+    public static String sQuote(String value) {
         return SINGLE_QUOTE_CHAR + value + SINGLE_QUOTE_CHAR;
     }
 

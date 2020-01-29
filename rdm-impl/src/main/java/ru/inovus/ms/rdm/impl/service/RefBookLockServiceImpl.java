@@ -66,7 +66,7 @@ public class RefBookLockServiceImpl implements RefBookLockService {
             try {
                 Set<String> unreleasedLocks = new HashSet<>();
                 try (Stream<String> lines = Files.lines(WAL_PATH)) {
-                    lines.filter(String::isBlank).forEach(str -> {
+                    lines.filter(s -> !s.isBlank()).forEach(str -> {
                         String[] split = str.split("\\s+");
                         if (split[0].startsWith(LOCK_ACQUIRED)) {
                             unreleasedLocks.add(split[1]);
