@@ -207,21 +207,12 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         compareDataCriteria.setNewVersionId(newVersion.getId());
         compareDataCriteria.setCountOnly(true);
         compareDataCriteria.setPageSize(1);
-        int page = 0;
         RefBookDataDiff diff = compareService.compareData(compareDataCriteria);
         //если изменилась структура, проверяем актуальность полей в маппинге
         validateStructureChanges(versionMapping, fieldMappings, diff);
         if (diff.getRows().getTotalElements() > 0) {
             compareDataCriteria.setCountOnly(false);
-            compareDataCriteria.setPageSize(MAX_SIZE);
-            for (int i = 0; i < diff.getRows().getTotalElements(); i = i + MAX_SIZE) {
-                compareDataCriteria.setPageNumber(page);
-                diff = compareService.compareData(compareDataCriteria);
-                for (DiffRowValue row : diff.getRows().getContent()) {
-                    mergeRow(row, versionMapping, fieldMappings, newVersion);
-                }
-                page++;
-            }
+            Paginate.<CompareDataCriteria, DiffRowValue>over(compareDataCriteria).withPageSupply(c -> compareService.compareData(c).getRows()).pageSize(MAX_SIZE).forEach(row -> mergeRow(row, versionMapping, fieldMappings, newVersion));
         }
     }
 
