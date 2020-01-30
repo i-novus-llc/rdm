@@ -266,9 +266,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         List<FieldMapping> fieldMappings = dao.getFieldMapping(versionMapping.getCode());
         List<Object> existingDataIds = dao.getDataIds(versionMapping.getTable(),
                 fieldMappings.stream().filter(f -> f.getSysField().equals(versionMapping.getPrimaryField())).findFirst().orElse(null));
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
-        searchDataCriteria.setPageSize(1);
-        Paginate.<SearchDataCriteria, RefBookRowValue>over(searchDataCriteria).
+        Paginate.<SearchDataCriteria, RefBookRowValue>over(new SearchDataCriteria()).
                 withPageSupply(c -> versionService.search(versionMapping.getCode(), c)).
                 pageSize(MAX_SIZE).
                 forEach(row -> insertOrUpdateRow(row, existingDataIds, versionMapping, fieldMappings, newVersion));
