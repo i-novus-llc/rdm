@@ -42,7 +42,6 @@ import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.repository.VersionFileRepository;
 import ru.inovus.ms.rdm.impl.util.ConverterUtil;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
-import ru.inovus.ms.rdm.impl.validation.ReferenceValidation;
 import ru.inovus.ms.rdm.impl.validation.VersionValidationImpl;
 
 import java.io.IOException;
@@ -146,7 +145,7 @@ public class VersionServiceImpl implements VersionService {
 
         RefBookVersionEntity versionEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.PUBLISHED);
         if (versionEntity == null)
-            throw new NotFoundException(new Message(ReferenceValidation.LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE, refBookCode));
+            throw new NotFoundException(new Message(VersionValidationImpl.LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE, refBookCode));
 
         return ModelGenerator.versionModel(versionEntity);
     }
@@ -257,14 +256,14 @@ public class VersionServiceImpl implements VersionService {
         final Integer versionId = Integer.parseInt(split[1]);
         RefBookVersionEntity version = getVersionOrThrow(versionId);
 
-        DataCriteria criteria = new DataCriteria(
+        DataCriteria dataCriteria = new DataCriteria(
                 version.getStorageCode(),
                 version.getFromDate(),
                 version.getToDate(),
                 ConverterUtil.fields(version.getStructure()),
-                singletonList(split[0]));
-
-        List<RowValue> data = searchDataService.getData(criteria);
+                singletonList(split[0])
+        );
+        List<RowValue> data = searchDataService.getData(dataCriteria);
         if (CollectionUtils.isEmpty(data))
             throw new NotFoundException(new Message(ROW_NOT_FOUND_EXCEPTION_CODE, rowId));
 
