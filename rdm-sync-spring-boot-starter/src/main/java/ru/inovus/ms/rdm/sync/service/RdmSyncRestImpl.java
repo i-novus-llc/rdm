@@ -4,7 +4,6 @@ import org.apache.cxf.jaxrs.utils.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -269,17 +268,10 @@ public class RdmSyncRestImpl implements RdmSyncRest {
                 fieldMappings.stream().filter(f -> f.getSysField().equals(versionMapping.getPrimaryField())).findFirst().orElse(null));
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
         searchDataCriteria.setPageSize(1);
-        int page = 0;
-        Page<RefBookRowValue> list = versionService.search(versionMapping.getCode(), searchDataCriteria);
-        searchDataCriteria.setPageSize(MAX_SIZE);
-        for (int i = 0; i < list.getTotalElements(); i = i + MAX_SIZE) {
-            searchDataCriteria.setPageNumber(page);
-            list = versionService.search(versionMapping.getCode(), searchDataCriteria);
-            for (RefBookRowValue row : list.getContent()) {
-                insertOrUpdateRow(row, existingDataIds, versionMapping, fieldMappings, newVersion);
-            }
-            page++;
-        }
+        Paginate.<SearchDataCriteria, RefBookRowValue>over(searchDataCriteria).
+                withPageSupply(c -> versionService.search(versionMapping.getCode(), c)).
+                pageSize(MAX_SIZE).
+                forEach(row -> insertOrUpdateRow(row, existingDataIds, versionMapping, fieldMappings, newVersion));
     }
 
     private void insertOrUpdateRow(RefBookRowValue row, List<Object> existingDataIds, VersionMapping versionMapping, List<FieldMapping> fieldMappings, RefBook newVersion) {
