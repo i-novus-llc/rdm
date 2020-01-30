@@ -172,6 +172,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         refBookCriteria.setSourceType(RefBookSourceType.LAST_PUBLISHED);
         RefBook last = Paginate.<RefBookCriteria, RefBook>over(refBookCriteria).
                 withPageSupply(refBookService::search).
+                defaultSortProvided().
                 findOneSuchThat(refBook -> refBook.getCode().equals(code)).
                 orElseThrow(() -> new IllegalStateException(String.format(NO_REFBOOK_FOUND, code)));
         if (last.getStructure().getPrimary().isEmpty())
@@ -211,7 +212,11 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         validateStructureChanges(versionMapping, fieldMappings, diff);
         if (diff.getRows().getTotalElements() > 0) {
             compareDataCriteria.setCountOnly(false);
-            Paginate.<CompareDataCriteria, DiffRowValue>over(compareDataCriteria).withPageSupply(c -> compareService.compareData(c).getRows()).pageSize(MAX_SIZE).forEach(row -> mergeRow(row, versionMapping, fieldMappings, newVersion));
+            Paginate.<CompareDataCriteria, DiffRowValue>over(compareDataCriteria).
+                withPageSupply(c -> compareService.compareData(c).getRows()).
+                pageSize(MAX_SIZE).
+                defaultSortProvided().
+                forEach(row -> mergeRow(row, versionMapping, fieldMappings, newVersion));
         }
     }
 
@@ -269,6 +274,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         Paginate.<SearchDataCriteria, RefBookRowValue>over(new SearchDataCriteria()).
                 withPageSupply(c -> versionService.search(versionMapping.getCode(), c)).
                 pageSize(MAX_SIZE).
+                defaultSortProvided().
                 forEach(row -> insertOrUpdateRow(row, existingDataIds, versionMapping, fieldMappings, newVersion));
     }
 

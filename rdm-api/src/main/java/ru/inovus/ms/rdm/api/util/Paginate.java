@@ -9,11 +9,19 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+/**
+ * Здесь нет сортировки, поэтому пользователь должен сам указать сортировку в переданной критерии, либо убедиться, что {@link #supplier} предоставляет дефолтную сортировку
+ * (для этого должен быть вызван метод {@link #defaultSortProvided()}.
+ *
+ * @param <C> Тип критерии, по которой будет производиться пагинация.
+ * @param <E> Тип элементов, которые пользователь может обработать
+ */
 public class Paginate<C extends AbstractCriteria, E> {
 
     private C criteria;
     private int pageSize = 10;
     private Function<? super C, Page<? extends E>> supplier;
+    private boolean defaultSortProvided;
 
     private Paginate(C criteria) {
         this.criteria = criteria;
@@ -21,6 +29,11 @@ public class Paginate<C extends AbstractCriteria, E> {
 
     public Paginate<C, E> withPageSupply(Function<? super C, Page<? extends E>> supplier) {
         this.supplier = supplier;
+        return this;
+    }
+
+    public Paginate<C, E> defaultSortProvided() {
+        this.defaultSortProvided = true;
         return this;
     }
 
@@ -53,6 +66,8 @@ public class Paginate<C extends AbstractCriteria, E> {
     private void go(Function<? super E, Boolean> handle) {
         Objects.requireNonNull(supplier);
         Objects.requireNonNull(handle);
+        if (!defaultSortProvided && criteria.getSort() == null)
+            throw new IllegalArgumentException("You must either provide a correct sort or call defaultSortProvided() explicitly (if you're sure it's actually provided).");
         int page = AbstractCriteria.FIRST_PAGE_NUMBER;
         criteria.setPageNumber(page);
         criteria.setPageSize(pageSize);

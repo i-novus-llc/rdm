@@ -372,10 +372,13 @@ public class DraftServiceImpl implements DraftService {
                 .flatMap(Collection::stream).collect(toList());
         SearchDataCriteria criteria = new SearchDataCriteria();
         criteria.setAttributeFilter(Set.of(filters));
-        Paginate.<SearchDataCriteria, RefBookRowValue>over(criteria).withPageSupply(c -> versionService.search(draftId, criteria)).forEach(refBookRowValue -> {
-            for (Row row : sourceRows)
-                if (row.getSystemId() == null && RowUtils.equalsValuesByAttributes(row, refBookRowValue, primaryKeys))
-                    row.setSystemId(refBookRowValue.getSystemId());
+        Paginate.<SearchDataCriteria, RefBookRowValue>over(criteria).
+            withPageSupply(c -> versionService.search(draftId, criteria)).
+            defaultSortProvided().
+            forEach(refBookRowValue -> {
+                for (Row row : sourceRows)
+                    if (row.getSystemId() == null && RowUtils.equalsValuesByAttributes(row, refBookRowValue, primaryKeys))
+                        row.setSystemId(refBookRowValue.getSystemId());
         });
     }
 
