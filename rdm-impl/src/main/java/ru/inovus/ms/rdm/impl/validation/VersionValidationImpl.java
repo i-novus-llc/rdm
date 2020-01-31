@@ -189,7 +189,7 @@ public class VersionValidationImpl implements VersionValidation {
      *
      * @param draftId        идентификатор черновика
      * @param draftLockValue значение оптимистической блокировки черновика
-     * @param optLockValue   проверяемое значение оптимистической блокировки
+     * @param optLockValue   проверяемое значение оптимистической блокировки версии
      */
     public void validateOptLockValue(Integer draftId, Integer draftLockValue, Integer optLockValue) {
 

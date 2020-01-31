@@ -63,7 +63,7 @@ public class DataRecordController {
      *
      * @param versionId    идентификатор версии справочника
      * @param sysRecordId  идентификатор записи
-     * @param optLockValue значение оптимистической блокировки
+     * @param optLockValue значение оптимистической блокировки версии
      * @param dataAction   действие, которое планируется выполнять над записью
      */
     public Map<String, Object> getRow(Integer versionId, Integer sysRecordId, Integer optLockValue, String dataAction) {
@@ -217,7 +217,7 @@ public class DataRecordController {
      *
      * @param draftId      идентификатор черновика справочника
      * @param row          строка данных для добавления/изменения
-     * @param optLockValue значение оптимистической блокировки
+     * @param optLockValue значение оптимистической блокировки версии-черновика
      */
     @SuppressWarnings("WeakerAccess")
     public void updateData(Integer draftId, Row row, Integer optLockValue) {
