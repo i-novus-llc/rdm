@@ -44,6 +44,7 @@ public abstract class RdmChangeDataRequestCallback {
     @Transactional
     public <T extends Serializable> void onError(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete, Exception ex) {
         casState(refBookCode, addUpdate, RdmSyncLocalRowState.ERROR);
+        casState(refBookCode, delete, RdmSyncLocalRowState.ERROR);
         onError0(refBookCode, addUpdate, delete, ex);
     }
 
