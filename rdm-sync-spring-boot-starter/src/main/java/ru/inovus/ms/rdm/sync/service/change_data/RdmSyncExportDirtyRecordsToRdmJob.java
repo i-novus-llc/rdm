@@ -4,7 +4,7 @@ import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.springframework.data.util.Pair;
+import org.springframework.data.domain.Page;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
 import ru.inovus.ms.rdm.sync.service.RdmSyncDao;
@@ -36,12 +36,12 @@ public final class RdmSyncExportDirtyRecordsToRdmJob implements Job {
             List<FieldMapping> fieldMappings = dao.getFieldMapping(vm.getCode());
             String deletedKey = vm.getDeletedField();
             for (;;) {
-                Pair<Integer, List<HashMap<String, Object>>> batch = dao.getRecordsOfState(table, limit, offset, RdmSyncLocalRowState.DIRTY, null);
-                if (batch.getFirst() == 0)
+                Page<HashMap<String, Object>> dirtyBatch = dao.getData(table, vm.getPrimaryField(), limit, offset, RdmSyncLocalRowState.DIRTY, null);
+                if (dirtyBatch.getContent().isEmpty())
                     break;
                 List<HashMap<String, Object>> addUpdate = new ArrayList<>();
                 List<HashMap<String, Object>> delete = new ArrayList<>();
-                for (HashMap<String, Object> map : batch.getSecond()) {
+                for (HashMap<String, Object> map : dirtyBatch.getContent()) {
                     Boolean deletedVal = (Boolean) map.get(deletedKey);
                     if (deletedVal == null || !deletedVal)
                         addUpdate.add(map);
