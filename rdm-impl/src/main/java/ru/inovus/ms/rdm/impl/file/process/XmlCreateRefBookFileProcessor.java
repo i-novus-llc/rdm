@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.impl.file.process;
 
+import net.n2oapp.platform.i18n.UserException;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.inovus.ms.rdm.api.service.RefBookService;
 
@@ -57,7 +58,7 @@ public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor im
         } catch (XMLStreamException e) {
             XmlParseUtils.throwXmlReadError(e);
         }
-        return null;
+        throw new UserException("check.your.xml");
     }
 
     @Override
