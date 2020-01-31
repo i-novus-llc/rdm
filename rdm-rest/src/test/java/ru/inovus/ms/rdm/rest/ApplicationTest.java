@@ -1440,17 +1440,20 @@ public class ApplicationTest {
      * Тест на изменение optLockValue при изменении структуры.
      * <p>
      * - Создание нового черновика
-     * - Добавление наполнения
      * - Проверка создания атрибута
      * - Проверка изменения атрибута
      * - Проверка удаления атрибута
+     * - Проверка создания строки
+     * - Проверка изменения строки
+     * - Проверка удаления строки
+     * - Проверка загрузки данных
      * <p>
      * Во всех случаях меняется optLockValue.
      */
     @Test
-    public void testChangeOptLockValueOnProcessAttribute() {
+    public void testChangeOptLockValue() {
 
-        RefBookCreateRequest refBookCreate = new RefBookCreateRequest("OptLockValueOnAttr", new HashMap<>());
+        RefBookCreateRequest refBookCreate = new RefBookCreateRequest("testOptLockValue", new HashMap<>());
         RefBook refBook = refBookService.create(refBookCreate);
         Structure structure = createTestStructureWithSimpleTypesOnly();
         extendTestStructureForReferenceType(structure);
@@ -1458,42 +1461,71 @@ public class ApplicationTest {
         Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), structure));
         Integer draftId = draft.getId();
 
-        FileModel fileModel = createFileModel("update_testUpdateStr.xlsx", "testUpload.xlsx");
-        draftService.updateData(draftId, fileModel, null);
-
-        try {
-            draftService.updateData(draftId, fileModel, -1);
-            fail();
-
-        } catch (RestException e) {
-            Draft actualDraft = draftService.getDraft(draftId);
-            assertNotEquals(draft.getOptLockValue(), actualDraft.getOptLockValue());
-        }
-
         // Создание атрибута.
-        Draft lastDraft = draftService.getDraft(draftId);
+        //draft = actualDraft;
         String optAttributeCode = "opt_attr";
         Structure.Attribute optAttribute = Structure.Attribute.build(optAttributeCode, "optAttr", FieldType.INTEGER, "opt-значение");
-        draftService.createAttribute(new CreateAttribute(lastDraft.getId(), optAttribute, null), lastDraft.getOptLockValue());
+        draftService.createAttribute(new CreateAttribute(draft.getId(), optAttribute, null), draft.getOptLockValue());
 
         Draft actualDraft = draftService.getDraft(draftId);
-        assertNotEquals(lastDraft.getOptLockValue(), actualDraft.getOptLockValue());
+        assertNotEquals(draft.getOptLockValue(), actualDraft.getOptLockValue());
 
         // Изменение атрибута.
-        lastDraft = actualDraft;
+        draft = actualDraft;
         structure = versionService.getStructure(draftId);
         structure.getAttribute(optAttributeCode).setType(FieldType.STRING);
-        draftService.updateAttribute(new UpdateAttribute(draftId, structure.getAttribute("float"), null), lastDraft.getOptLockValue());
+        draftService.updateAttribute(new UpdateAttribute(draftId, structure.getAttribute("float"), null), draft.getOptLockValue());
 
         actualDraft = draftService.getDraft(draftId);
-        assertNotEquals(lastDraft.getOptLockValue(), actualDraft.getOptLockValue());
+        assertNotEquals(draft.getOptLockValue(), actualDraft.getOptLockValue());
 
         // Удаление атрибута.
-        lastDraft = actualDraft;
-        draftService.deleteAttribute(draftId, optAttributeCode, lastDraft.getOptLockValue());
+        draft = actualDraft;
+        draftService.deleteAttribute(draftId, optAttributeCode, draft.getOptLockValue());
 
         actualDraft = draftService.getDraft(draftId);
-        assertNotEquals(lastDraft.getOptLockValue(), actualDraft.getOptLockValue());
+        assertNotEquals(draft.getOptLockValue(), actualDraft.getOptLockValue());
+
+        // Создание строки.
+        draft = actualDraft;
+        Row row = createRowForAllTypesStructure("string", BigInteger.valueOf(1), DATE_STR, true, 1.1, null);
+        draftService.updateData(draftId, row, draft.getOptLockValue());
+
+        actualDraft = draftService.getDraft(draftId);
+        assertNotEquals(draft.getOptLockValue(), actualDraft.getOptLockValue());
+
+        // Изменение строки.
+        draft = actualDraft;
+        Long systemId = 1L;
+        row.setSystemId(systemId);
+        row.getData().replace("string", "string1");
+        row.getData().replace("boolean", false);
+        row.getData().replace("float", 1.2);
+        draftService.updateData(draftId, row, draft.getOptLockValue());
+
+        actualDraft = draftService.getDraft(draftId);
+        assertNotEquals(draft.getOptLockValue(), actualDraft.getOptLockValue());
+
+        // Удаление строки.
+        draft = actualDraft;
+        draftService.deleteRow(draftId, new Row(systemId, emptyMap()), draft.getOptLockValue());
+
+        actualDraft = draftService.getDraft(draftId);
+        assertNotEquals(draft.getOptLockValue(), actualDraft.getOptLockValue());
+
+        // Загрузка данных.
+        FileModel fileModel = createFileModel("update_testOptLockValue.xlsx", "testUpload.xlsx");
+        draftService.updateData(draftId, fileModel, null);
+
+        actualDraft = draftService.getDraft(draftId);
+        assertNotEquals(draft.getOptLockValue(), actualDraft.getOptLockValue());
+
+        // Обновление ссылок.
+        draft = actualDraft;
+        referenceService.refreshReferrer(draftId, draft.getOptLockValue());
+
+        actualDraft = draftService.getDraft(draftId);
+        assertNotEquals(draft.getOptLockValue(), actualDraft.getOptLockValue());
     }
 
     /**
