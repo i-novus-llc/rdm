@@ -20,7 +20,6 @@ import ru.inovus.ms.rdm.sync.service.RdmSyncLocalRowState;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Component
 @DependsOn("liquibaseRdm")
@@ -37,14 +36,14 @@ class RdmSyncInitializer {
     @Value("${rdm_sync.auto_create.schema:rdm}")
     private String autoCreateSchema;
 
-    @Value("#{${rdm_sync.auto_create.ref_book_codes:{}}}")
-    private Map<String, String> autoCreateRefBookCodes;
+    @Value("${rdm_sync.auto_create.ref_book_codes:}")
+    private List<String> autoCreateRefBookCodes;
 
     @PostConstruct
     public void start() {
         List<String> load = mappingLoaderService.load();
         if (autoCreateRefBookCodes != null) {
-            for (String refBookCode : autoCreateRefBookCodes.keySet()) {
+            for (String refBookCode : autoCreateRefBookCodes) {
                 if (!load.contains(refBookCode)) {
                     self.autoCreate(refBookCode);
                 }
@@ -79,7 +78,7 @@ class RdmSyncInitializer {
         Structure.Attribute uniqueSysField = structure.getPrimary().get(0);
         XmlMappingRefBook mapping = new XmlMappingRefBook();
         mapping.setCode(refBookCode);
-        mapping.setSysTable(String.format("%s.%s", autoCreateSchema, autoCreateRefBookCodes.get(refBookCode)));
+        mapping.setSysTable(String.format("%s.%s", autoCreateSchema, refBookCode.replaceAll("[-.]", "_").toLowerCase()));
         mapping.setDeletedField(isDeletedField);
         mapping.setUniqueSysField(uniqueSysField.getCode());
         mapping.setMappingVersion(-1);
@@ -110,7 +109,7 @@ class RdmSyncInitializer {
         String[] split = schemaTable.split("\\.");
         String schema = split[0];
         String table = split[1];
-        if (!dao.createRefBookTableIfNotExists(schema, table, code, isDeletedFieldName)) {
+        if (autoCreateRefBookCodes.contains(code) && !dao.createRefBookTableIfNotExists(schema, table, code, isDeletedFieldName)) {
             logger.warn("Skipping preparing of table {} in schema {}.", table, schema);
             return;
         }
