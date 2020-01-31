@@ -17,7 +17,6 @@ import ru.inovus.ms.rdm.api.enumeration.RefBookOperation;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookStatusType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
-import ru.inovus.ms.rdm.api.exception.NotFoundException;
 import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
@@ -72,12 +71,12 @@ public class RefBookServiceImpl implements RefBookService {
 
     private VersionValidation versionValidation;
 
-    private AuditLogService auditLogService;
-
     private FileStorage fileStorage;
 
     private DraftService draftService;
     private PublishService publishService;
+
+    private AuditLogService auditLogService;
 
     @Autowired
     @SuppressWarnings("squid:S00107")
@@ -86,8 +85,9 @@ public class RefBookServiceImpl implements RefBookService {
                               DraftDataService draftDataService, DropDataService dropDataService,
                               RefBookLockService refBookLockService,
                               PassportValueRepository passportValueRepository, RefBookVersionQueryProvider refBookVersionQueryProvider,
-                              VersionValidation versionValidation, AuditLogService auditLogService, FileStorage fileStorage, DraftService draftService,
-                              PublishService publishService) {
+                              VersionValidation versionValidation, FileStorage fileStorage,
+                              DraftService draftService, PublishService publishService,
+                              AuditLogService auditLogService) {
         this.refBookRepository = refBookRepository;
         this.versionRepository = versionRepository;
 
@@ -102,11 +102,12 @@ public class RefBookServiceImpl implements RefBookService {
         this.refBookVersionQueryProvider = refBookVersionQueryProvider;
 
         this.versionValidation = versionValidation;
-        this.auditLogService = auditLogService;
         this.fileStorage = fileStorage;
 
         this.draftService = draftService;
         this.publishService = publishService;
+
+        this.auditLogService = auditLogService;
     }
 
     /**
@@ -120,11 +121,12 @@ public class RefBookServiceImpl implements RefBookService {
     public Page<RefBook> search(RefBookCriteria criteria) {
 
         Page<RefBookVersionEntity> entities = refBookVersionQueryProvider.search(criteria);
+        List<Integer> refBookIds = entities.getContent().stream().map(v -> v.getRefBook().getId()).collect(toList());
 
-        List<Integer> refBookIds = entities.getContent().stream()
-                .map(v -> v.getRefBook().getId())
-                .collect(toList());
-        return entities.map(entity -> refBookModel(entity, criteria.getExcludeDraft() ? emptyList() : getSourceTypeVersions(refBookIds, RefBookSourceType.DRAFT), getSourceTypeVersions(refBookIds, RefBookSourceType.LAST_PUBLISHED))
+        return entities.map(entity ->
+                refBookModel(entity,
+                        criteria.getExcludeDraft() ? emptyList() : getSourceTypeVersions(refBookIds, RefBookSourceType.DRAFT),
+                        getSourceTypeVersions(refBookIds, RefBookSourceType.LAST_PUBLISHED))
         );
     }
 
@@ -139,7 +141,6 @@ public class RefBookServiceImpl implements RefBookService {
     public Page<RefBook> searchVersions(RefBookCriteria criteria) {
 
         criteria.setIncludeVersions(true);
-
         return search(criteria);
     }
 
@@ -150,7 +151,6 @@ public class RefBookServiceImpl implements RefBookService {
         versionValidation.validateVersionExists(versionId);
 
         RefBookVersionEntity version = versionRepository.getOne(versionId);
-
         boolean hasReferrerVersions = hasReferrerVersions(version.getRefBook().getCode());
 
         return refBookModel(version, hasReferrerVersions,
@@ -172,10 +172,9 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional
     public Integer getId(String refBookCode) {
 
+        versionValidation.validateRefBookCodeExists(refBookCode);
+
         final RefBookEntity refBookEntity = refBookRepository.findByCode(refBookCode);
-        if (refBookEntity == null) {
-            throw new NotFoundException();
-        }
         return refBookEntity.getId();
     }
 
@@ -186,6 +185,7 @@ public class RefBookServiceImpl implements RefBookService {
         if (refBookRepository.existsByCode(request.getCode()))
             throw new UserException(new Message(REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE, request.getCode()));
         NamingUtils.checkCode(request.getCode());
+
         RefBookEntity refBookEntity = new RefBookEntity();
         refBookEntity.setArchived(Boolean.FALSE);
         refBookEntity.setRemovable(Boolean.TRUE);
@@ -210,10 +210,9 @@ public class RefBookServiceImpl implements RefBookService {
             getSourceTypeVersion(savedVersion.getRefBook().getId(), RefBookSourceType.DRAFT),
             getSourceTypeVersion(savedVersion.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED)
         );
-        auditLogService.addAction(
-            AuditAction.CREATE_REF_BOOK,
-            () -> savedVersion
-        );
+
+        auditLogService.addAction(AuditAction.CREATE_REF_BOOK, () -> savedVersion);
+
         return refBook;
     }
 
@@ -233,11 +232,14 @@ public class RefBookServiceImpl implements RefBookService {
     }
 
     private Draft createByXml(FileModel fileModel) {
-        Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
         RefBook refBook;
         try (XmlCreateRefBookFileProcessor createRefBookFileProcessor = new XmlCreateRefBookFileProcessor(this)) {
+            Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
             refBook = createRefBookFileProcessor.process(inputStreamSupplier);
         }
+        if (refBook == null)
+            throw new UserException("check.your.xml");
+
         return draftService.create(refBook.getRefBookId(), fileModel);
     }
 
@@ -260,11 +262,9 @@ public class RefBookServiceImpl implements RefBookService {
         refBookEntity.setCategory(request.getCategory());
         updateVersionFromPassport(versionEntity, request.getPassport());
         versionEntity.setComment(request.getComment());
-        auditLogService.addAction(
-                AuditAction.EDIT_PASSPORT,
-                () -> versionEntity,
-                Map.of("newPassport", request.getPassport())
-        );
+
+        auditLogService.addAction(AuditAction.EDIT_PASSPORT, () -> versionEntity, Map.of("newPassport", request.getPassport()));
+
         return refBookModel(versionEntity, false,
                 getSourceTypeVersion(versionEntity.getRefBook().getId(), RefBookSourceType.DRAFT),
                 getSourceTypeVersion(versionEntity.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED));
@@ -272,36 +272,31 @@ public class RefBookServiceImpl implements RefBookService {
 
     @Override
     @Transactional
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public void delete(int refBookId) {
 
         versionValidation.validateRefBookExists(refBookId);
         refBookLockService.validateRefBookNotBusyByRefBookId(refBookId);
 
-        // NB: may-be: Move to `RefBookVersionQueryProvider`.
         RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
-        List<RefBookVersionEntity> l = refBookEntity.getVersionList();
-        RefBookVersionEntity last = null;
-        for (RefBookVersionEntity e : l) {
-            if (last == null || last.getId() < e.getId())
-                last = e;
+        List<RefBookVersionEntity> refBookVersions = refBookEntity.getVersionList();
+        RefBookVersionEntity lastVersion = getLastVersion(refBookVersions);
+
+        // Подтягиваем из базы данные о паспорте,
+        // потому что их уже не будет там после удаления (fetchType по дефолту -- LAZY).
+        if (lastVersion != null) {
+            lastVersion.getPassportValues().forEach(PassportValueEntity::getAttribute);
+            lastVersion.setRefBook(refBookEntity);
         }
-//      Подтягиваем из базы данные о пасспорте,
-//      потому что их уже не будет там после удаления (fetchType по дефолту -- LAZY)
-        if (last != null) {
-            last.getPassportValues().forEach(PassportValueEntity::getAttribute);
-            last.setRefBook(refBookEntity);
-        }
-        l.forEach(v ->
-                dropDataService.drop(refBookRepository.getOne(refBookId).getVersionList().stream()
-                        .map(RefBookVersionEntity::getStorageCode)
-                        .collect(Collectors.toSet())));
+
+        dropDataService.drop(refBookVersions.stream()
+                .map(RefBookVersionEntity::getStorageCode)
+                .collect(Collectors.toSet()));
         refBookRepository.deleteById(refBookId);
-        if (last != null) {
-            RefBookVersionEntity finalLast = last;
-            auditLogService.addAction(
-                AuditAction.DELETE_REF_BOOK,
-                () -> finalLast
-            );
+
+        if (lastVersion != null) {
+            final RefBookVersionEntity finalVersion = lastVersion;
+            auditLogService.addAction(AuditAction.DELETE_REF_BOOK, () -> finalVersion);
         }
     }
 
@@ -312,19 +307,15 @@ public class RefBookServiceImpl implements RefBookService {
         versionValidation.validateRefBookExists(refBookId);
 
         RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
+        RefBookVersionEntity lastVersion = getLastVersion(refBookEntity.getVersionList());
+
         // NB: Add checking references to this refBook.
         refBookEntity.setArchived(Boolean.TRUE);
-        RefBookVersionEntity last = null;
-        for (RefBookVersionEntity e : refBookEntity.getVersionList()) {
-            if (last == null || e.getId() > last.getId())
-                last = e;
-        }
+
         refBookRepository.save(refBookEntity);
-        RefBookVersionEntity finalLast = last;
-        auditLogService.addAction(
-            AuditAction.ARCHIVE,
-            () -> finalLast
-        );
+
+        final RefBookVersionEntity finalVersion = lastVersion;
+        auditLogService.addAction(AuditAction.ARCHIVE, () -> finalVersion);
     }
 
     @Override
@@ -334,6 +325,7 @@ public class RefBookServiceImpl implements RefBookService {
         versionValidation.validateRefBookExists(refBookId);
 
         RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
+
         refBookEntity.setArchived(Boolean.FALSE);
         refBookRepository.save(refBookEntity);
     }
@@ -343,6 +335,7 @@ public class RefBookServiceImpl implements RefBookService {
     public void changeData(RdmChangeDataRequest request) {
         RefBookEntity refBook = refBookRepository.findByCode(request.getRefBookCode());
         versionValidation.validateRefBookExists(refBook == null ? null : refBook.getId());
+
         refBookLockService.setRefBookUpdating(refBook.getId());
         try {
             Integer draftId = draftService.getIdByRefBookCode(request.getRefBookCode());
@@ -353,9 +346,11 @@ public class RefBookServiceImpl implements RefBookService {
             }
             if (draftId == null)
                 throw new UserException(new Message("draft.not.found", draftId));
+
             draftService.updateData(draftId, request.getRowsToAddOrUpdate());
             draftService.deleteRows(draftId, request.getRowsToDelete());
             publishService.publish(draftId, null, null, null, false);
+
         } finally {
             refBookLockService.deleteRefBookOperation(refBook.getId());
         }
@@ -508,5 +503,17 @@ public class RefBookServiceImpl implements RefBookService {
         return versions.stream()
                 .filter(v -> v.getRefBook().getId().equals(refBookId))
                 .findAny().orElse(null);
+    }
+
+    /** Получение последней (по идентификатору) версии из списка версий. */
+    private RefBookVersionEntity getLastVersion(List<RefBookVersionEntity> versions) {
+
+        RefBookVersionEntity result = null;
+        for (RefBookVersionEntity version : versions) {
+            if (result == null || result.getId() < version.getId())
+                result = version;
+        }
+
+        return result;
     }
 }

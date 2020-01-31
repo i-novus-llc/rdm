@@ -104,8 +104,12 @@ public class RdmSyncRestImpl implements RdmSyncRest {
             }
             VersionMapping versionMapping = getVersionMapping(refBookCode);
             try {
-                self.update(newVersion, versionMapping);
-                loggingService.logOk(refBookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion());
+                if (isFirstLoad(versionMapping) || isNewVersionPublished(newVersion, versionMapping) || isMappingChanged(versionMapping)) {
+                    self.update(newVersion, versionMapping);
+                    loggingService.logOk(refBookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion());
+                } else {
+                    logger.info("Skipping update on {}. No changes.", refBookCode);
+                }
             } catch (Exception e) {
                 logger.error(String.format(ERROR_WHILE_UPDATING_NEW_VERSION, refBookCode), e);
                 loggingService.logError(refBookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion(), e.getMessage(), ExceptionUtils.getStackTrace(e));
@@ -118,14 +122,13 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     public void update(RefBook newVersion, VersionMapping versionMapping) {
         dao.disableInternalLocalRowStateUpdateTrigger(versionMapping.getTable());
         try {
-            if (versionMapping.getVersion() == null) {
+            if (isFirstLoad(versionMapping)) {
                 //заливаем с нуля
                 uploadNew(versionMapping, newVersion);
-            } else if (!versionMapping.getVersion().equals(newVersion.getLastPublishedVersion()) &&
-                    !versionMapping.getPublicationDate().equals(newVersion.getLastPublishedVersionFromDate())) {
+            } else if (isNewVersionPublished(newVersion, versionMapping)) {
                 //если версия и дата публикация не совпадают - нужно обновить справочник
                 mergeData(versionMapping, newVersion);
-            } else if (versionMapping.changed()) {
+            } else if (isMappingChanged(versionMapping)) {
 //              Значит в прошлый раз мы синхронизировались по старому маппингу.
 //              Необходимо полностью залить свежую версию.
                 dao.markDeleted(versionMapping.getTable(), versionMapping.getDeletedField(), true, true);
@@ -141,6 +144,19 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     @Override
     public List<Log> getLog(LogCriteria criteria) {
         return loggingService.getList(criteria.getDate(), criteria.getRefbookCode());
+    }
+
+    private boolean isFirstLoad(VersionMapping versionMapping) {
+        return versionMapping.getVersion() == null;
+    }
+
+    private boolean isNewVersionPublished(RefBook newVersion, VersionMapping versionMapping) {
+        return !versionMapping.getVersion().equals(newVersion.getLastPublishedVersion())
+                && !versionMapping.getPublicationDate().equals(newVersion.getLastPublishedVersionFromDate());
+    }
+
+    private boolean isMappingChanged(VersionMapping versionMapping) {
+        return versionMapping.changed();
     }
 
     private VersionMapping getVersionMapping(String refbookCode) {
@@ -231,7 +247,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
             dao.insertRow(versionMapping.getTable(), mappedRow, true);
         } else {
             dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, false, true);
-            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow, true);
+            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), mappedRow, true);
         }
     }
 
@@ -292,7 +308,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         if (existingDataIds.contains(primaryValue)) {
             //если запись существует, обновляем
             dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, false, true);
-            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow, true);
+            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), mappedRow, true);
         } else {
             //создаем новую запись
             dao.insertRow(versionMapping.getTable(), mappedRow, true);

@@ -65,15 +65,16 @@ public abstract class RdmChangeDataClient {
     @Transactional
     public <T extends Serializable> void changeData(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete, Function<? super T, Map<String, Object>> map) {
         VersionMapping vm = dao.getVersionMapping(refBookCode);
-        if (vm != null && !addUpdate.isEmpty()) {
+        if (vm != null && (!addUpdate.isEmpty() || !delete.isEmpty())) {
             boolean ensureState = false;
             ListIterator<? extends T> it = addUpdate.listIterator(addUpdate.size());
-            if (it.previous() == INTERNAL_TAG) {
+            if (it.hasPrevious() && it.previous() == INTERNAL_TAG) {
                 ensureState = true;
                 it.remove();
             }
             if (ensureState) {
-                List<Object> list = extractSnakeCaseKey(vm.getPrimaryField(), addUpdate);
+                List<Object> list = new ArrayList<>(extractSnakeCaseKey(vm.getPrimaryField(), addUpdate));
+                list.addAll(extractSnakeCaseKey(vm.getPrimaryField(), delete));
                 dao.disableInternalLocalRowStateUpdateTrigger(vm.getTable());
                 boolean stateChanged = dao.setLocalRecordsState(vm.getTable(), vm.getPrimaryField(), list, RdmSyncLocalRowState.DIRTY, RdmSyncLocalRowState.PENDING);
                 if (!stateChanged) {
@@ -131,7 +132,7 @@ public abstract class RdmChangeDataClient {
                 dao.insertRow(localTable, m, false);
             else {
                 dao.markDeleted(localTable, pk, isDeletedField, pv, false, false);
-                dao.updateRow(localTable, pk, isDeletedField, m, false);
+                dao.updateRow(localTable, pk, m, false);
             }
             identityHashMap.put(t, m);
         }

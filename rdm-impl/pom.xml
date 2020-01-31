@@ -7,7 +7,7 @@
     <parent>
         <groupId>ru.inovus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
-        <version>1.116-SNAPSHOT</version>
+        <version>1.117-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -135,6 +135,11 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
+
 
     </dependencies>
 
