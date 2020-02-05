@@ -16,12 +16,13 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(XlsPerRowProcessor.class);
 
+    private static final ExcelStyleDateFormatter EXCEL_DATE_FORMATTER = new ExcelStyleDateFormatter("dd.MM.yyyy");
+
     private Map<Integer, String> numberToNameParam = new HashMap<>();
 
     private Workbook workbook;
     private Iterator<Sheet> sheetIterator;
     private Iterator<org.apache.poi.ss.usermodel.Row> rowIterator;
-
 
     public XlsPerRowProcessor(RowMapper rowMapper, RowsProcessor rowsProcessor) {
         super(rowMapper, rowsProcessor);
@@ -51,7 +52,7 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
         if (row == null) return;
         for (Cell cell : row) {
             if (cell.getStringCellValue() != null && !"".equals(cell.getStringCellValue().trim()))
-                numberToNameParam.put(cell.getColumnIndex(), cell.getStringCellValue());
+                numberToNameParam.put(cell.getColumnIndex(), cell.getStringCellValue().trim());
         }
     }
 
@@ -85,7 +86,7 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
             String nameParam = numberToNameParam.get(cell.getColumnIndex());
             if (nameParam != null) {
                 if (cell.getCellTypeEnum().equals(CellType.NUMERIC) && DateUtil.isCellDateFormatted(cell)) {
-                    params.put(nameParam, new ExcelStyleDateFormatter("dd.MM.yyyy").format(cell.getDateCellValue()));
+                    params.put(nameParam, EXCEL_DATE_FORMATTER.format(cell.getDateCellValue()));
                 } else params.put(nameParam, Optional.of(formatter.formatCellValue(cell).trim())
                         .filter(val -> !"".equals(val))
                         .orElse(null));
