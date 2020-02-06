@@ -16,7 +16,7 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(XlsPerRowProcessor.class);
 
-    private static final ExcelStyleDateFormatter EXCEL_DATE_FORMATTER = new ExcelStyleDateFormatter("dd.MM.yyyy");
+    private final ExcelStyleDateFormatter EXCEL_DATE_FORMATTER = new ExcelStyleDateFormatter("dd.MM.yyyy");
 
     private Map<Integer, String> numberToNameParam = new HashMap<>();
 
