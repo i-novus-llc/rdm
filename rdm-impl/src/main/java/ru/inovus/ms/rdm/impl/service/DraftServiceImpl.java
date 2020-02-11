@@ -695,7 +695,7 @@ public class DraftServiceImpl implements DraftService {
             draftDataService.updateField(draftEntity.getStorageCode(), ConverterUtil.field(attribute));
 
         } catch (CodifiedException ce) {
-            throw new UserException(ce.getMessage(), ce);
+            throw new UserException(new Message(ce.getMessage(), ce.getArgs()), ce);
         }
 
         fillUpdatableReference(updateAttribute, draftEntity, structure, oldType);
