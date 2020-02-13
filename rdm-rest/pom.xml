@@ -109,12 +109,29 @@
             <artifactId>audit-client-spring-boot-starter</artifactId>
         </dependency>
 
-
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-activemq</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-loader-server</artifactId>
+        </dependency>
+
+        <!-- fix NoClassDefFoundError for CommonsMultipartResolver -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-fileupload</groupId>
+            <artifactId>commons-fileupload</artifactId>
+            <version>1.4</version>
+        </dependency>
+        <!-- / fix NoClassDefFoundError for CommonsMultipartResolver -->
 
     </dependencies>
 
