@@ -28,8 +28,8 @@
   "dependencies": {
     "classnames": "^2.2.6",
     "lodash": "^4.17.15",
-    "n2o-auth": "7.3.34",
-    "n2o-framework": "7.3.34",
+    "n2o-auth": "~7.3.34",
+    "n2o-framework": "~7.3.34",
     "react": "^16.8.6",
     "react-autosize-textarea": "^6.0.0",
     "react-avatar": "^3.5.0",
