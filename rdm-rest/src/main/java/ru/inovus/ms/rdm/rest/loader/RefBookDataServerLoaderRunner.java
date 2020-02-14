@@ -37,7 +37,6 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
     private static final Logger logger = LoggerFactory.getLogger(RefBookDataServerLoaderRunner.class);
 
     @Autowired
-    @Qualifier("fileStorageServiceJaxRsProxyClient")
     private FileStorageService fileStorageService;
 
     public RefBookDataServerLoaderRunner(List<ServerLoader> loaders) {

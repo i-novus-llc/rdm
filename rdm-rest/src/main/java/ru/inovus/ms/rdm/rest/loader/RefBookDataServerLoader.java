@@ -1,12 +1,12 @@
 package ru.inovus.ms.rdm.rest.loader;
 
-import net.n2oapp.platform.jaxrs.RestException;
+import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.loader.server.ServerLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import ru.inovus.ms.rdm.api.exception.NotFoundException;
 import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.service.PublishService;
@@ -22,16 +22,16 @@ public class RefBookDataServerLoader implements ServerLoader<FileModel> {
     private static final Logger logger = LoggerFactory.getLogger(RefBookDataServerLoader.class);
 
     private static final String REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.already.exists";
-    public static final String LOG_REF_BOOK_IS_ALREADY_EXISTS_SKIP_CREATE = "RefBook is already exists. Skip create from file '{}'";
+    public static final String LOG_REF_BOOK_IS_ALREADY_EXISTS = "RefBook '{}' is already exists";
+    public static final String LOG_SKIP_CREATE_REF_BOOK = "Skip create RefBook from file '{}'";
     public static final String LOG_ERROR_CREATING_AND_PUBLISHING_REF_BOOK = "Error creating and publishing refBook from file '{}'";
     public static final String LOG_ERROR_DATA_LOADING_WITH_EXCEPTION = "Error data loading from file '%s':";
+    public static final String UNKNOWN_ERROR_EXCEPTION_TEXT = "Unknown error";
 
     @Autowired
-    @Qualifier("refBookServiceJaxRsProxyClient")
     private RefBookService refBookService;
 
     @Autowired
-    @Qualifier("publishServiceJaxRsProxyClient")
     private PublishService publishService;
 
     @Override
@@ -73,9 +73,15 @@ public class RefBookDataServerLoader implements ServerLoader<FileModel> {
 
             logger.info("Finish data loading from file '{}'", fileModel.getName());
 
-        } catch (RestException e) {
-            if (REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE.equals(e.getMessage())) {
-                logger.info(LOG_REF_BOOK_IS_ALREADY_EXISTS_SKIP_CREATE, fileModel.getName());
+        } catch (NotFoundException | IllegalArgumentException e) {
+            String errorMsg = String.format(LOG_ERROR_DATA_LOADING_WITH_EXCEPTION, fileModel.getName());
+            logger.error(errorMsg, e);
+            throw e;
+
+        } catch (UserException e) {
+            if (REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE.equals(e.getCode())) {
+                logger.info(LOG_REF_BOOK_IS_ALREADY_EXISTS, e.getArgs()[0]);
+                logger.info(LOG_SKIP_CREATE_REF_BOOK, fileModel.getName());
 
             } else {
                 logger.error(LOG_ERROR_CREATING_AND_PUBLISHING_REF_BOOK, fileModel.getName());
@@ -83,6 +89,11 @@ public class RefBookDataServerLoader implements ServerLoader<FileModel> {
                 logger.error(errorMsg, e);
                 throw e;
             }
+
+        } catch (Exception e) {
+            String errorMsg = String.format(LOG_ERROR_DATA_LOADING_WITH_EXCEPTION, fileModel.getName());
+            logger.error(errorMsg, e);
+            throw new UserException(UNKNOWN_ERROR_EXCEPTION_TEXT, e);
         }
     }
 }

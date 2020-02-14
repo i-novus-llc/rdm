@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.rest;
 
 import net.n2oapp.criteria.api.CollectionPage;
+import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.jaxrs.RestMessage;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
@@ -2621,8 +2622,8 @@ public class ApplicationTest {
             refBookDataServerLoaderRunner.runFile(LOADED_SUBJECT, LOADED_TARGET, body);
             fail();
 
-        } catch (RestException e) {
-            assertEquals("code.not-valid", e.getMessage());
+        } catch (UserException e) {
+            assertEquals("code.not-valid", e.getCode());
 
         } catch (Exception e) {
             fail();
