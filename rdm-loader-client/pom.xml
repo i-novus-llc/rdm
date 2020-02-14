@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>ru.inovus.ms.rdm</groupId>
+        <artifactId>rdm</artifactId>
+        <version>1.117-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>rdm-loader-client</artifactId>
+    <packaging>jar</packaging>
+
+    <description>RDM dictionary loader: Client part</description>
+
+    <properties>
+        <config.server.enable>false</config.server.enable>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.inovus.ms.rdm</groupId>
+            <artifactId>rdm-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-loader-client</artifactId>
+        </dependency>
+
+        <!-- TEST -->
+        <dependency>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-jaxrs-client</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>rdm-loader-client</finalName>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>production</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <config.server.enable>true</config.server.enable>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <configuration>
+                            <executable>true</executable>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>
