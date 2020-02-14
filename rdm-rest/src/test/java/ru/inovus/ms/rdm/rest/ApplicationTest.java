@@ -116,7 +116,7 @@ public class ApplicationTest {
 
     private static final String CONFLICTS_REF_BOOK_CODE = "conflicts_ref_book";
 
-    private static final String SEARCH_CODE_STR = "78 ";
+    private static final String SEARCH_CODE_STR = "A078 ";
     private static final String SEARCH_BY_NAME_STR = "отличное от последней версии ";
     private static final String SEARCH_BY_NAME_STR_ASSERT_CODE = "Z001";
     private static final String PASSPORT_ATTRIBUTE_FULL_NAME = "TEST_fullName";
