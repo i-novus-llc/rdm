@@ -5,6 +5,9 @@ import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.jaxrs.RestMessage;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
 import net.n2oapp.platform.test.autoconfigure.EnableEmbeddedPg;
+import org.apache.cxf.jaxrs.ext.multipart.Attachment;
+import org.apache.cxf.jaxrs.ext.multipart.InputStreamDataSource;
+import org.apache.cxf.jaxrs.ext.multipart.MultipartBody;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -15,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -59,8 +64,10 @@ import ru.inovus.ms.rdm.api.service.*;
 import ru.inovus.ms.rdm.api.util.FieldValueUtils;
 import ru.inovus.ms.rdm.api.util.StructureUtils;
 import ru.inovus.ms.rdm.impl.validation.ReferenceValueValidation;
+import ru.inovus.ms.rdm.rest.loader.RefBookDataServerLoaderRunner;
 
 import javax.sql.DataSource;
+import javax.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -70,6 +77,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -102,7 +110,7 @@ import static ru.inovus.ms.rdm.impl.util.ConverterUtil.rowValue;
         })
 @DefinePort
 @EnableEmbeddedPg
-@Import(BackendConfiguration.class)
+@Import({BackendConfiguration.class, AppConfig.class})
 public class ApplicationTest {
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ApplicationTest.class);
@@ -187,6 +195,9 @@ public class ApplicationTest {
     @Autowired
     private SearchDataService searchDataService;
 
+    @Autowired
+    private RefBookDataServerLoaderRunner refBookDataServerLoaderRunner;
+
     @BeforeClass
     public static void initialize() {
         refBookCreateRequest = new RefBookCreateRequest();
@@ -242,6 +253,7 @@ public class ApplicationTest {
         deleteFile(file);
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     private static void deleteFile(File file) {
         if (Objects.isNull(file) || !file.exists())
             return;
@@ -1421,10 +1433,6 @@ public class ApplicationTest {
         final String REFERRER_STRING_ATTRIBUTE_CODE = "REF_CHAR";
         final String REFERRER_MADEOF_ATTRIBUTE_CODE = "REF_MADE";
 
-        final String REFERRER_PRIMARY_VALUE_111 = "REF_111";
-        final String REFERRER_PRIMARY_VALUE_4__ = "REF_4__";
-        final String REFERRER_PRIMARY_VALUE_69_ = "REF_69_";
-
         final List<String> REFERRER_UNCHANGED_PRIMARIES = asList("REF_111", "REF_123");
         final List<String> REFERRER_UPDATED_NUMBER_PRIMARIES = asList("REF_4__", "REF_444", "REF_69_");
         final List<String> REFERRER_UPDATED_STRING_PRIMARIES = asList("REF_14_", "REF_444", "REF_169");
@@ -1450,8 +1458,6 @@ public class ApplicationTest {
         final String CARDINAL_STRING_ATTRIBUTE_CODE = "CAR_CHAR";
 
         final String CARDINAL_PRIMARY_VALUE_1_UNCHANGED = "TEST_1";
-        final String CARDINAL_PRIMARY_VALUE_2_UNCHANGED = "TEST_2";
-        final String CARDINAL_PRIMARY_VALUE_3_UNCHANGED = "TEST_3";
         final String CARDINAL_PRIMARY_VALUE_4_UPDATED = "TEST_4";
         final String CARDINAL_PRIMARY_VALUE_5_UPDATED = "TEST_5";
         final String CARDINAL_PRIMARY_VALUE_6_UPDATED = "TEST_6";
@@ -2119,7 +2125,7 @@ public class ApplicationTest {
                         new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4)))),
 
                 new Conflict(ref_del.getCode(), ConflictType.DELETED, singletonList(
-                    new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1)))),
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1)))),
                 new Conflict(ref_del.getCode(), ConflictType.UPDATED, singletonList(
                         new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(3)))),
                 new Conflict(ref_del.getCode(), ConflictType.UPDATED, singletonList(
@@ -2316,12 +2322,11 @@ public class ApplicationTest {
             boolean isPresent = values2.stream().anyMatch(val2 -> {
                 if (val2 == val1) return true;
                 if (val2.getField().equals(val1.getField())) {
-                    Field field = fields.stream().filter(f -> f.getName().equals(val2.getField())).findFirst().get();
+                    Field field = fields.stream().filter(f -> f.getName().equals(val2.getField())).findFirst().orElse(null);
                     //noinspection unchecked
-                    return field.valueOf(val2.getValue()).equals(val1);
+                    return field != null && field.valueOf(val2.getValue()).equals(val1);
                 }
                 return false;
-
             });
 
             if (!isPresent) {
@@ -2487,6 +2492,7 @@ public class ApplicationTest {
         }});
     }
 
+    @SuppressWarnings("SameParameterValue")
     private List<RowValue> createOneStringFieldRow(String fieldName, String... values) {
         StringField stringField = new StringField(fieldName);
 
@@ -2577,4 +2583,53 @@ public class ApplicationTest {
         return (rowValues != null && !CollectionUtils.isEmpty(rowValues.getContent())) ? rowValues.getContent().get(0) : null;
     }
 
+    @Test
+    public void testRefBookDataServerLoader() {
+
+        final int LOADED_FILE_COUNT = 2;
+        final String LOADED_FILE_NAME = "loadedData_";
+        final String LOADED_FILE_EXT = ".xml";
+        final String LOADED_FILE_FOLDER = "src/test/resources/" + "testLoader/";
+
+        final String LOADED_CODE = "LOADED_DATA_";
+        final String LOADED_SUBJECT = "test";
+        final String LOADED_TARGET = "dictionaryData";
+
+        List<Resource> resources = IntStream.rangeClosed(1, LOADED_FILE_COUNT)
+                .mapToObj(value -> new FileSystemResource(String.format("%s%s%d%s", LOADED_FILE_FOLDER, LOADED_FILE_NAME, value, LOADED_FILE_EXT)))
+                .collect(toList());
+
+        List<Attachment> attachments = resources.stream()
+                .map(resource -> {
+                    try {
+                        javax.activation.DataSource dataSource = new InputStreamDataSource(resource.getInputStream(), MediaType.APPLICATION_XML, resource.getFilename());
+                        return new Attachment("file", dataSource, null);
+
+                    } catch (IOException e) {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(toList());
+
+        MultipartBody body = new MultipartBody(attachments, MediaType.MULTIPART_FORM_DATA_TYPE, false);
+
+        refBookDataServerLoaderRunner.runFile(LOADED_SUBJECT, LOADED_TARGET, body);
+
+        IntStream.rangeClosed(1, LOADED_FILE_COUNT).forEach(value -> {
+
+            String code = String.format("%s%d", LOADED_CODE, value);
+            try {
+                Integer id = refBookService.getId(code);
+                assertNotNull(id);
+
+                RefBookVersion version = versionService.getLastPublishedVersion(code);
+                assertNotNull(version);
+                assertNotNull(version.getId());
+
+            } catch (Exception e) {
+                fail();
+            }
+        });
+    }
 }
