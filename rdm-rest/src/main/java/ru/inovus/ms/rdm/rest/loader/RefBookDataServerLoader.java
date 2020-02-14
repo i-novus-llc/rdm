@@ -36,7 +36,7 @@ public class RefBookDataServerLoader implements ServerLoader<FileModel> {
 
     @Override
     public String getTarget() {
-        return "dictionaryData";
+        return "refBookData";
     }
 
     @Override

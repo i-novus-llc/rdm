@@ -2592,7 +2592,7 @@ public class ApplicationTest {
 
         final String LOADED_CODE = "LOADED_DATA_";
         final String LOADED_SUBJECT = "test";
-        final String LOADED_TARGET = "dictionaryData";
+        final String LOADED_TARGET = "refBookData";
 
         // Успешная загрузка справочников из корректных xml.
         MultipartBody body = createBody(IntStream.rangeClosed(1, LOADED_FILE_SUCCESS_COUNT));
