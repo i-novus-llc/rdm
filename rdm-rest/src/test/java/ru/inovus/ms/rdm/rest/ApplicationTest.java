@@ -2586,16 +2586,65 @@ public class ApplicationTest {
     @Test
     public void testRefBookDataServerLoader() {
 
-        final int LOADED_FILE_COUNT = 2;
-        final String LOADED_FILE_NAME = "loadedData_";
-        final String LOADED_FILE_EXT = ".xml";
-        final String LOADED_FILE_FOLDER = "src/test/resources/" + "testLoader/";
+        final int LOADED_FILE_SUCCESS_COUNT = 2;
+        final int LOADED_FILE_ATTRIBUTE_CODE_FAILURE_INDEX = 3;
+        final int LOADED_FILE_CODE_EXISTS_FAILURE_INDEX = 4;
 
         final String LOADED_CODE = "LOADED_DATA_";
         final String LOADED_SUBJECT = "test";
         final String LOADED_TARGET = "dictionaryData";
 
-        List<Resource> resources = IntStream.rangeClosed(1, LOADED_FILE_COUNT)
+        // Успешная загрузка справочников из корректных xml.
+        MultipartBody body = createBody(IntStream.rangeClosed(1, LOADED_FILE_SUCCESS_COUNT));
+
+        refBookDataServerLoaderRunner.runFile(LOADED_SUBJECT, LOADED_TARGET, body);
+
+        IntStream.rangeClosed(1, LOADED_FILE_SUCCESS_COUNT).forEach(value -> {
+
+            String code = String.format("%s%d", LOADED_CODE, value);
+            try {
+                Integer id = refBookService.getId(code);
+                assertNotNull(id);
+
+                RefBookVersion version = versionService.getLastPublishedVersion(code);
+                assertNotNull(version);
+                assertNotNull(version.getId());
+
+            } catch (Exception e) {
+                fail();
+            }
+        });
+
+        // Ошибка загрузки справочников из ошибочной xml (невалидный код атрибута).
+        body = createBody(IntStream.of(LOADED_FILE_ATTRIBUTE_CODE_FAILURE_INDEX));
+        try {
+            refBookDataServerLoaderRunner.runFile(LOADED_SUBJECT, LOADED_TARGET, body);
+            fail();
+
+        } catch (RestException e) {
+            assertEquals("code.not-valid", e.getMessage());
+
+        } catch (Exception e) {
+            fail();
+        }
+
+        // Пропуск загрузки существующих справочников из xml.
+        body = createBody(IntStream.of(LOADED_FILE_CODE_EXISTS_FAILURE_INDEX));
+        try {
+            refBookDataServerLoaderRunner.runFile(LOADED_SUBJECT, LOADED_TARGET, body);
+
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
+    private MultipartBody createBody(IntStream intStream) {
+
+        final String LOADED_FILE_NAME = "loadedData_";
+        final String LOADED_FILE_EXT = ".xml";
+        final String LOADED_FILE_FOLDER = "src/test/resources/" + "testLoader/";
+
+        List<Resource> resources = intStream
                 .mapToObj(value -> new FileSystemResource(String.format("%s%s%d%s", LOADED_FILE_FOLDER, LOADED_FILE_NAME, value, LOADED_FILE_EXT)))
                 .collect(toList());
 
@@ -2612,24 +2661,6 @@ public class ApplicationTest {
                 .filter(Objects::nonNull)
                 .collect(toList());
 
-        MultipartBody body = new MultipartBody(attachments, MediaType.MULTIPART_FORM_DATA_TYPE, false);
-
-        refBookDataServerLoaderRunner.runFile(LOADED_SUBJECT, LOADED_TARGET, body);
-
-        IntStream.rangeClosed(1, LOADED_FILE_COUNT).forEach(value -> {
-
-            String code = String.format("%s%d", LOADED_CODE, value);
-            try {
-                Integer id = refBookService.getId(code);
-                assertNotNull(id);
-
-                RefBookVersion version = versionService.getLastPublishedVersion(code);
-                assertNotNull(version);
-                assertNotNull(version.getId());
-
-            } catch (Exception e) {
-                fail();
-            }
-        });
+        return new MultipartBody(attachments, MediaType.MULTIPART_FORM_DATA_TYPE, false);
     }
 }
