@@ -11,7 +11,7 @@ import org.apache.cxf.jaxrs.ext.multipart.MultipartBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -38,6 +38,9 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
 
     @Autowired
     private FileStorageService fileStorageService;
+
+    @Value("${rdm.loader.server.enabled}")
+    private boolean loaderEnabled;
 
     public RefBookDataServerLoaderRunner(List<ServerLoader> loaders) {
         super(loaders);
@@ -74,6 +77,9 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
     public void runFile(@ApiParam("Владелец данных") @PathParam("subject") String subject,
                         @ApiParam("Вид данных") @PathParam("target") String target,
                         @ApiParam("Содержимое") MultipartBody body) {
+        if (!loaderEnabled)
+            return;
+
         ServerLoader loader = find(target);
         List<Object> fileModels = body.getAllAttachments().stream()
                 .map(file -> read(file, loader))
