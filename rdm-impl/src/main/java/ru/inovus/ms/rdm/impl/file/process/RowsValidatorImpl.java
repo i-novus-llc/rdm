@@ -11,6 +11,7 @@ import ru.inovus.ms.rdm.impl.entity.AttributeValidationEntity;
 import ru.inovus.ms.rdm.impl.validation.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
@@ -40,6 +41,7 @@ public class RowsValidatorImpl implements RowsValidator {
     private AttributeCustomValidation attributeCustomValidation;
 
     private boolean structureVerified;
+    private final Set<String> structFields;
 
     // NB: Add `RowsValidatorCriteria` to allow exclusion of some standard validations.
     public RowsValidatorImpl(VersionService versionService,
@@ -53,6 +55,7 @@ public class RowsValidatorImpl implements RowsValidator {
         this.searchDataService = searchDataService;
 
         this.structure = structure;
+        this.structFields = structure.getAttributes().stream().map(Structure.Attribute::getCode).collect(Collectors.toSet());
         this.storageCode = storageCode;
 
         if (errorCountLimit > 0) {
@@ -102,10 +105,8 @@ public class RowsValidatorImpl implements RowsValidator {
         if (attributes == null)
             return;
 
-        boolean isNotKeyMatched = row.getData().keySet().stream()
-                .anyMatch(key -> attributes.stream()
-                        .noneMatch(attribute -> attribute.getCode().equals(key)));
-        if (isNotKeyMatched)
+        boolean structOk = structFields.containsAll(row.getData().keySet());
+        if (!structOk)
             throw new UserException("structure.does-not-match");
     }
 
