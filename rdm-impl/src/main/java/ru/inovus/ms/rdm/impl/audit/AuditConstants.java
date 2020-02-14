@@ -21,7 +21,7 @@ class AuditConstants {
     static final String REFBOOK_VERSION_KEY = "version";
     static final String REFBOOK_STRUCTURE_KEY = "structure";
 
-    static final Function<Object, String> GET_REFBOOK_ID_FROM_REFBOOK_VERSION_ENTITY = obj -> ((RefBookVersionEntity) obj).getRefBook().getId().toString();
+    static final Function<Object, String> GET_REFBOOK_ID_FROM_REFBOOK_VERSION_ENTITY = obj -> ((RefBookVersionEntity) obj).getRefBook().getCode();
 
     private AuditConstants() {}
 
