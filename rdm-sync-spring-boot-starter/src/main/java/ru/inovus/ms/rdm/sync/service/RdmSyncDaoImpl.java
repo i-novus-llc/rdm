@@ -391,18 +391,16 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     }
 
     @Override
-    public boolean createRefBookTableIfNotExists(String schema, String table, String refBookCode, String isDeletedFieldName) {
-        List<FieldMapping> fieldMapping = getFieldMapping(refBookCode);
-        if (fieldMapping.isEmpty()) {
-            logger.warn("Field mapping for RefBook with code {} is empty. Skipping creating table in auto mode.", refBookCode);
-            return false;
-        }
+    public void createSchemaIfNotExists(String schema) {
         jdbcTemplate.getJdbcTemplate().execute(String.format("CREATE SCHEMA IF NOT EXISTS %s", schema));
+    }
+
+    @Override
+    public void createRefBookTableIfNotExists(String schema, String table, List<FieldMapping> fieldMappings, String isDeletedFieldName) {
         String q = String.format("CREATE TABLE IF NOT EXISTS %s.%s (", schema, table);
-        q += fieldMapping.stream().map(fm -> String.format("%s %s", fm.getSysField(), fm.getSysDataType())).collect(Collectors.joining(", "));
+        q += fieldMappings.stream().map(fm -> String.format("%s %s", fm.getSysField(), fm.getSysDataType())).collect(Collectors.joining(", "));
         q += String.format(", %s BOOLEAN)", isDeletedFieldName);
         jdbcTemplate.getJdbcTemplate().execute(q);
-        return true;
     }
 
     private static String getInternalLocalStateUpdateTriggerName(String schema, String table) {

@@ -15,10 +15,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-
-import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
 
 @Component
 class XmlMappingLoaderService {
@@ -29,11 +25,11 @@ class XmlMappingLoaderService {
     @Autowired private ClusterLockService lockService;
 
     @Transactional
-    public List<String> load() {
+    public void load() {
         try (InputStream io = RdmSyncInitializer.class.getResourceAsStream("/rdm-mapping.xml")) {
             if (io == null) {
                 logger.info("rdm-mapping.xml not found, xml mapping loader skipped");
-                return emptyList();
+                return;
             }
             JAXBContext jaxbContext = JAXBContext.newInstance(XmlMapping.class);
             Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
@@ -47,7 +43,6 @@ class XmlMappingLoaderService {
                     logger.info("Lock successfully released.");
                 }
             }
-            return mapping.getRefbooks().stream().map(XmlMappingRefBook::getCode).collect(toList());
         } catch (IOException | JAXBException e) {
             logger.error("xml mapping load error ", e);
             throw new RdmException(e);
