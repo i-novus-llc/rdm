@@ -55,27 +55,4 @@
         <finalName>rdm-loader-client</finalName>
     </build>
 
-    <profiles>
-        <profile>
-            <id>production</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <properties>
-                <config.server.enable>true</config.server.enable>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-maven-plugin</artifactId>
-                        <configuration>
-                            <executable>true</executable>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
 </project>
