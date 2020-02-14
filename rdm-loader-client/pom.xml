@@ -13,7 +13,7 @@
     <artifactId>rdm-loader-client</artifactId>
     <packaging>jar</packaging>
 
-    <description>RDM dictionary loader: Client part</description>
+    <description>RefBookData client loader</description>
 
     <properties>
         <config.server.enable>false</config.server.enable>
