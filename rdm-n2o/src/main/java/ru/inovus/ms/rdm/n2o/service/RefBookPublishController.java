@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toMap;
-import static ru.inovus.ms.rdm.api.util.StringUtils.dQuote;
+import static ru.inovus.ms.rdm.api.util.StringUtils.addDoubleQuotes;
 
 @Controller
 @SuppressWarnings("unused")
@@ -95,7 +95,7 @@ public class RefBookPublishController {
     private String getReferrerDisplayName(RefBookVersion version) {
         Map<String, String> passport = version.getPassport();
         return (passport != null && passport.get(PASSPORT_ATTRIBUTE_NAME) != null)
-                ? dQuote(passport.get(PASSPORT_ATTRIBUTE_NAME))
+                ? addDoubleQuotes(passport.get(PASSPORT_ATTRIBUTE_NAME))
                 : version.getCode();
     }
 }
