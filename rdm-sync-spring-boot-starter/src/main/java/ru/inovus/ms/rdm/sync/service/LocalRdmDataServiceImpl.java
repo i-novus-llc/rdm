@@ -14,7 +14,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,7 +26,7 @@ public class LocalRdmDataServiceImpl implements LocalRdmDataService {
     private RdmSyncDao dao;
 
     @Override
-    public Page<? extends Map<String, Object>> getData(String refBookCode, Boolean getDeleted, Integer page, Integer size, @Context UriInfo uriInfo) {
+    public Page<Map<String, Object>> getData(String refBookCode, Boolean getDeleted, Integer page, Integer size, @Context UriInfo uriInfo) {
         VersionMapping versionMapping = getVersionMappingOrThrowRefBookNotFound(refBookCode);
         if (getDeleted == null) getDeleted = false;
         if (page == null) page = 0;
@@ -42,7 +41,7 @@ public class LocalRdmDataServiceImpl implements LocalRdmDataService {
         VersionMapping versionMapping = getVersionMappingOrThrowRefBookNotFound(refBookCode);
         FieldMapping fieldMapping = dao.getFieldMapping(refBookCode).stream().filter(fm -> fm.getSysField().equals(versionMapping.getPrimaryField())).findFirst().orElseThrow(() -> new RdmException(versionMapping.getPrimaryField() + " not found in RefBook with code " + refBookCode));
         DataTypeEnum dt = DataTypeEnum.getByDataType(fieldMapping.getSysDataType());
-        Page<HashMap<String, Object>> synced = dao.getData(versionMapping.getTable(), versionMapping.getPrimaryField(), 1, 0, SYNCED, new MultivaluedHashMap<>(Map.of(versionMapping.getPrimaryField(), dt.castFromString(pk))));
+        Page<Map<String, Object>> synced = dao.getData(versionMapping.getTable(), versionMapping.getPrimaryField(), 1, 0, SYNCED, new MultivaluedHashMap<>(Map.of(versionMapping.getPrimaryField(), dt.castFromString(pk))));
         return synced.get().findAny().orElseThrow(NotFoundException::new);
     }
 

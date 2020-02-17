@@ -340,7 +340,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     }
 
     @Override
-    public Page<HashMap<String, Object>> getData(String table, String pk, int limit, int offset, RdmSyncLocalRowState state, MultivaluedMap<String, Object> filters) {
+    public Page<Map<String, Object>> getData(String table, String pk, int limit, int offset, RdmSyncLocalRowState state, MultivaluedMap<String, Object> filters) {
         String query = format("FROM %s WHERE %s = :state ", table, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN));
         Map<String, Object> args = new HashMap<>();
         args.put("state", state.name());
@@ -357,8 +357,8 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         var wrap = new Object() {
             int internalStateColumnIndex = -1;
         };
-        List<HashMap<String, Object>> result = jdbcTemplate.query("SELECT * " + query, args, (rs, rowNum) -> {
-            HashMap<String, Object> map = new HashMap<>();
+        List<Map<String, Object>> result = jdbcTemplate.query("SELECT * " + query, args, (rs, rowNum) -> {
+            Map<String, Object> map = new HashMap<>();
             if (wrap.internalStateColumnIndex == -1)
                 wrap.internalStateColumnIndex = getInternalStateColumnIdx(rs.getMetaData(), table);
             for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {

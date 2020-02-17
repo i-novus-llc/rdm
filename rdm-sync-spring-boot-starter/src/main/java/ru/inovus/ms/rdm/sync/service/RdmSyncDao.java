@@ -11,7 +11,6 @@ import ru.inovus.ms.rdm.sync.model.loader.XmlMappingRefBook;
 import javax.ws.rs.core.MultivaluedMap;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -110,7 +109,7 @@ public interface RdmSyncDao {
     void disableInternalLocalRowStateUpdateTrigger(String table);
     void enableInternalLocalRowStateUpdateTrigger(String table);
 
-    Page<HashMap<String, Object>> getData(String table, String pk, int limit, int offset, RdmSyncLocalRowState state, MultivaluedMap<String, Object> filters);
+    Page<Map<String, Object>> getData(String table, String pk, int limit, int offset, RdmSyncLocalRowState state, MultivaluedMap<String, Object> filters);
     <T> boolean setLocalRecordsState(String table, String pk, List<? extends T> primaryValues, RdmSyncLocalRowState expectedState, RdmSyncLocalRowState state);
     RdmSyncLocalRowState getLocalRowState(String table, String pk, Object pv);
 

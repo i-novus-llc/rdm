@@ -15,7 +15,7 @@ public interface LocalRdmDataService {
     @GET
     @Path("/{refBookCode}")
     @SuppressWarnings("squid:S1452")
-    Page<? extends Map<String, Object>> getData(
+    Page<Map<String, Object>> getData(
             @PathParam("refBookCode") String refBookCode,
             @QueryParam("getDeleted") Boolean getDeleted,
             @QueryParam("page") Integer page,
