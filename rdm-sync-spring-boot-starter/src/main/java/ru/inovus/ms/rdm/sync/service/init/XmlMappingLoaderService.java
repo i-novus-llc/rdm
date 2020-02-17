@@ -10,7 +10,6 @@ import ru.inovus.ms.rdm.sync.model.loader.XmlMapping;
 import ru.inovus.ms.rdm.sync.model.loader.XmlMappingRefBook;
 import ru.inovus.ms.rdm.sync.service.RdmSyncDao;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.IOException;
@@ -31,8 +30,8 @@ class XmlMappingLoaderService {
                 logger.info("rdm-mapping.xml not found, xml mapping loader skipped");
                 return;
             }
-            JAXBContext jaxbContext = JAXBContext.newInstance(XmlMapping.class);
-            Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+
+            Unmarshaller jaxbUnmarshaller = XmlMapping.JAXB_CONTEXT.createUnmarshaller();
             XmlMapping mapping = (XmlMapping) jaxbUnmarshaller.unmarshal(io);
             if (lockService.tryLock()) {
                 try  {

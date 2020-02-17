@@ -11,6 +11,7 @@ import ru.inovus.ms.rdm.sync.model.VersionMapping;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.List;
 
 /**
@@ -34,6 +35,8 @@ public interface RdmSyncRest {
     @ApiOperation(value = "Синхронизация отдельного справочника")
     void update(@PathParam("refbookCode") String refbookCode);
 
+    void update(RefBook refBook, VersionMapping versionMapping);
+
     @GET
     @Path("/log")
     @ApiOperation(value = "Получение журнала за дату")
@@ -43,7 +46,10 @@ public interface RdmSyncRest {
     })
     List<Log> getLog(@BeanParam LogCriteria criteria);
 
-    void update(RefBook refBook, VersionMapping versionMapping);
+    @GET
+    @Path("/xml-fm")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    Response downloadXmlFieldMapping(@QueryParam("code") List<String> forRefBooks);
 
     RefBook getLastPublishedVersionFromRdm(String code);
 

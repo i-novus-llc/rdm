@@ -16,7 +16,7 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(XlsPerRowProcessor.class);
 
-    private final ExcelStyleDateFormatter EXCEL_DATE_FORMATTER = new ExcelStyleDateFormatter("dd.MM.yyyy");
+    private final ExcelStyleDateFormatter excelStyleDateFormatter = new ExcelStyleDateFormatter("dd.MM.yyyy");
 
     private Map<Integer, String> numberToNameParam = new HashMap<>();
 
@@ -86,7 +86,7 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
             String nameParam = numberToNameParam.get(cell.getColumnIndex());
             if (nameParam != null) {
                 if (cell.getCellTypeEnum().equals(CellType.NUMERIC) && DateUtil.isCellDateFormatted(cell)) {
-                    params.put(nameParam, EXCEL_DATE_FORMATTER.format(cell.getDateCellValue()));
+                    params.put(nameParam, excelStyleDateFormatter.format(cell.getDateCellValue()));
                 } else params.put(nameParam, Optional.of(formatter.formatCellValue(cell).trim())
                         .filter(val -> !"".equals(val))
                         .orElse(null));
