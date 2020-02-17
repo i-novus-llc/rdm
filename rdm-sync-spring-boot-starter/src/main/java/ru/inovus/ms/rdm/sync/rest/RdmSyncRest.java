@@ -11,6 +11,7 @@ import ru.inovus.ms.rdm.sync.model.VersionMapping;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.List;
 
 /**
@@ -44,5 +45,10 @@ public interface RdmSyncRest {
         @ApiResponse(code = 400, message = "Укажите пожалуйста дату в формате ISO_LOCAL_DATE [yyyy-MM-dd].")
     })
     List<Log> getLog(@BeanParam LogCriteria criteria);
+
+    @GET
+    @Path("/xml-fm")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    Response downloadXmlFieldMapping(@QueryParam("code") List<String> forRefBooks);
 
 }
