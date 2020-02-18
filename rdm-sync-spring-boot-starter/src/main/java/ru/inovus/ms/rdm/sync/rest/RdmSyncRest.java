@@ -41,8 +41,8 @@ public interface RdmSyncRest {
     @Path("/log")
     @ApiOperation(value = "Получение журнала за дату")
     @ApiResponses({
-        @ApiResponse(code = 200, message = "Успех"),
-        @ApiResponse(code = 400, message = "Укажите пожалуйста дату в формате ISO_LOCAL_DATE [yyyy-MM-dd].")
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 400, message = "Укажите пожалуйста дату в формате ISO_LOCAL_DATE [yyyy-MM-dd].")
     })
     List<Log> getLog(@BeanParam LogCriteria criteria);
 
@@ -50,5 +50,7 @@ public interface RdmSyncRest {
     @Path("/xml-fm")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     Response downloadXmlFieldMapping(@QueryParam("code") List<String> forRefBooks);
+
+    RefBook getLastPublishedVersionFromRdm(String code);
 
 }

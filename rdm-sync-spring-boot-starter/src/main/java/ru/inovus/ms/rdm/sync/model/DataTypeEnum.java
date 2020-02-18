@@ -7,6 +7,9 @@ import ru.inovus.ms.rdm.api.util.TimeUtils;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashMap;
+import ru.inovus.ms.rdm.api.exception.RdmException;
+import ru.inovus.ms.rdm.api.model.Structure;
+
 import java.util.List;
 import java.util.Map;
 
@@ -17,10 +20,10 @@ import static java.util.stream.Collectors.toList;
 public enum DataTypeEnum {
 
     VARCHAR(asList("varchar", "text", "character varying")),
-    INTEGER(asList("smallint", "integer", "bigint", "serial", "bigserial")),
+    INTEGER(asList("integer", "smallint", "bigint", "serial", "bigserial")),
     DATE(singletonList("date")),
     BOOLEAN(singletonList("boolean")),
-    FLOAT(asList("numeric", "decimal")),
+    FLOAT(asList("decimal", "numeric")),
     JSONB(singletonList("jsonb"));
 
     private static final Map<String, DataTypeEnum> DATA_TYPE_FROM_STR = new HashMap<>();
@@ -61,6 +64,21 @@ public enum DataTypeEnum {
     public static DataTypeEnum getByDataType(String dataType) {
         return dataType == null ? null : DATA_TYPE_FROM_STR.get(dataType);
     }
+
+    public static DataTypeEnum getByRdmAttr(Structure.Attribute attr) {
+        switch (attr.getType()) {
+            case DATE: return DATE;
+            case FLOAT: return FLOAT;
+            case INTEGER: return INTEGER;
+            case STRING:
+            case REFERENCE:
+                return VARCHAR;
+            case BOOLEAN: return BOOLEAN;
+            default:
+                throw new RdmException("Not supported field type: " + attr.getType());
+        }
+    }
+
 
 }
 

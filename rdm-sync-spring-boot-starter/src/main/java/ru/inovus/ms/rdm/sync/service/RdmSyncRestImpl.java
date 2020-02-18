@@ -13,6 +13,7 @@ import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
+import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.api.model.diff.RefBookDataDiff;
@@ -65,6 +66,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     private static final String NO_REFBOOK_FOUND                    = "No reference book with code %s found.";
     private static final String NO_PRIMARY_KEY_FOUND                = "No primary key found in reference book with code %s.";
     private static final String MAPPING_OUT_OF_DATE                 = "Field %s was deleted in version %s. Update your mappings.";
+    private static final String COMPOSITE_PK_NOT_SUPPORTED          = "RefBook %s has composite primary key. They are not implemented yet.";
 
     @Autowired
     private RefBookService refBookService;
@@ -105,7 +107,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         if (dao.getVersionMapping(refBookCode) != null) {
             RefBook newVersion;
             try {
-                newVersion = getNewVersionFromRdm(refBookCode);
+                newVersion = getLastPublishedVersionFromRdm(refBookCode);
             } catch (Exception e) {
                 logger.error(String.format(ERROR_WHILE_FETCHING_NEW_VERSION, refBookCode), e);
                 return;
@@ -203,19 +205,20 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         return versionMapping;
     }
 
-    private RefBook getNewVersionFromRdm(String refbookCode) {
+    public RefBook getLastPublishedVersionFromRdm(String refbookCode) {
         RefBookCriteria refBookCriteria = new RefBookCriteria();
         refBookCriteria.setCode(refbookCode);
         refBookCriteria.setSourceType(RefBookSourceType.LAST_PUBLISHED);
         Page<RefBook> rdmRefbooks = refBookService.search(refBookCriteria);
-        if (CollectionUtils.isEmpty(rdmRefbooks.getContent())) {
+        if (CollectionUtils.isEmpty(rdmRefbooks.getContent()))
             throw new IllegalStateException(String.format(NO_REFBOOK_FOUND, refbookCode));
-        }
         RefBook rdmRefbook = rdmRefbooks.getContent().get(0);
         //проверяем наличие первичного ключа
-        if (rdmRefbook.getStructure().getPrimary().isEmpty()) {
+        List<Structure.Attribute> primary = rdmRefbook.getStructure().getPrimary();
+        if (primary.isEmpty())
             throw new IllegalStateException(String.format(NO_PRIMARY_KEY_FOUND, refbookCode));
-        }
+        if (primary.size() > 1)
+            throw new UnsupportedOperationException(String.format(COMPOSITE_PK_NOT_SUPPORTED, refbookCode));
         return rdmRefbook;
     }
 
@@ -223,7 +226,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         List<RefBook> refBooks = new ArrayList<>();
         for (VersionMapping versionMapping : versionMappings) {
             try {
-                refBooks.add(getNewVersionFromRdm(versionMapping.getCode()));
+                refBooks.add(getLastPublishedVersionFromRdm(versionMapping.getCode()));
             } catch (RuntimeException ex) {
                 logger.error(String.format(ERROR_WHILE_FETCHING_NEW_VERSION, versionMapping.getCode()), ex);
                 loggingService.logError(versionMapping.getCode(), null, null, ex.getMessage(), ExceptionUtils.getStackTrace(ex));
