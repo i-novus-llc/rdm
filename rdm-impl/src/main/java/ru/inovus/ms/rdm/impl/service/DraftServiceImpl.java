@@ -37,7 +37,6 @@ import ru.inovus.ms.rdm.api.service.DraftService;
 import ru.inovus.ms.rdm.api.service.VersionFileService;
 import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
-import ru.inovus.ms.rdm.api.util.Paginate;
 import ru.inovus.ms.rdm.api.util.RowUtils;
 import ru.inovus.ms.rdm.api.util.StructureUtils;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
@@ -371,15 +370,16 @@ public class DraftServiceImpl implements DraftService {
                 .map(row -> RowUtils.getPrimaryKeyValueFilters(row, primaryKeys))
                 .flatMap(Collection::stream).collect(toList());
         SearchDataCriteria criteria = new SearchDataCriteria();
+        criteria.setPageSize(sourceRows.size());
         criteria.setAttributeFilter(Set.of(filters));
-        Paginate.<SearchDataCriteria, RefBookRowValue>over(criteria).
-            withPageSupply(c -> versionService.search(draftId, criteria)).
-            defaultSortProvided().
-            forEach(refBookRowValue -> {
-                for (Row row : sourceRows)
-                    if (row.getSystemId() == null && RowUtils.equalsValuesByAttributes(row, refBookRowValue, primaryKeys))
-                        row.setSystemId(refBookRowValue.getSystemId());
-        });
+        Page<RefBookRowValue> search = versionService.search(draftId, criteria);
+        for (RefBookRowValue refBookRowValue : search.getContent()) {
+            for (Row row : sourceRows) {
+                if (row.getSystemId() == null && RowUtils.equalsValuesByAttributes(row, refBookRowValue, primaryKeys)) {
+                    row.setSystemId(refBookRowValue.getSystemId());
+                }
+            }
+        }
     }
 
     private List<Row> preprocessRows(List<Row> rows, RefBookVersionEntity draftVersion, boolean removeEvenIfSystemIdIsPresent) {

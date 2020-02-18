@@ -108,7 +108,9 @@ public class RefBookVersionQueryProvider {
             where.and(RefBookVersionPredicates.isVersionOfRefBooks(criteria.getRefBookIds()));
 
         if (!isEmpty(criteria.getCode()))
-            where.and(RefBookVersionPredicates.isCodeEquals(criteria.getCode()));
+            where.and(RefBookVersionPredicates.isCodeContains(criteria.getCode()));
+        else if (!isEmpty(criteria.getCodeExact()))
+            where.and(RefBookVersionPredicates.isCodeEquals(criteria.getCodeExact()));
 
         if (nonNull(criteria.getVersionId()))
             where.and(RefBookVersionPredicates.refBookHasVersion(criteria.getVersionId()));

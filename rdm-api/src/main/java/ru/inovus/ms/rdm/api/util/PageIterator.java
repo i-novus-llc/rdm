@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.impl.util;
+package ru.inovus.ms.rdm.api.util;
 
 import org.springframework.data.domain.Page;
 import ru.inovus.ms.rdm.api.model.AbstractCriteria;
@@ -6,21 +6,23 @@ import ru.inovus.ms.rdm.api.model.AbstractCriteria;
 import java.util.Iterator;
 import java.util.function.Function;
 
-public class PageIterator<T, C extends AbstractCriteria> implements Iterator<Page<T>> {
+public class PageIterator<T, C extends AbstractCriteria> implements Iterator<Page<? extends T>> {
 
-    private static final String SORT_CANNOT_BE_NULL_EXCEPTION_CODE = "sort.cannot.be.null";
-
-    private Function<C, Page<T>> pageSource;
+    private Function<? super C, Page<? extends T>> pageSource;
 
     private C criteria;
 
-    private Page<T> nextPage;
+    private Page<? extends T> nextPage;
 
     private int currentPage;
 
-    public PageIterator(Function<C, Page<T>> pageSource, C criteria) {
-        if(criteria.getSort() == null) {
-            throw new IllegalArgumentException(SORT_CANNOT_BE_NULL_EXCEPTION_CODE);
+    public PageIterator(Function<? super C, Page<? extends T>> pageSource, C criteria) {
+        this(pageSource, criteria, false);
+    }
+
+    public PageIterator(Function<? super C, Page<? extends T>> pageSource, C criteria, boolean defaultSortProvied) {
+        if (!defaultSortProvied && criteria.getSort() == null) {
+            throw new IllegalArgumentException("You must either ensure that default sort is provided by pageSource or set some sorting in your criteria.");
         }
         this.pageSource = pageSource;
         this.criteria = criteria;
@@ -36,8 +38,8 @@ public class PageIterator<T, C extends AbstractCriteria> implements Iterator<Pag
 
     @Override
     @SuppressWarnings("squid:S2272")
-    public Page<T> next() {
-        Page<T> result;
+    public Page<? extends T> next() {
+        Page<? extends T> result;
         if (nextPage != null) {
             result = nextPage;
             nextPage = null;

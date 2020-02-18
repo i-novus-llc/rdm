@@ -2,7 +2,6 @@ package ru.inovus.ms.rdm.impl.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
@@ -19,17 +18,16 @@ import ru.inovus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.service.DraftService;
 import ru.inovus.ms.rdm.api.service.ReferenceService;
+import ru.inovus.ms.rdm.api.util.PageIterator;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.impl.queryprovider.RefBookConflictQueryProvider;
 import ru.inovus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.inovus.ms.rdm.impl.util.PageIterator;
 import ru.inovus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 
 import java.util.List;
-import java.util.function.Function;
 
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -187,8 +185,7 @@ public class ReferenceServiceImpl implements ReferenceService {
         criteria.setOrders(RefBookConflictQueryProvider.getSortRefBookConflicts());
         criteria.setPageSize(RefBookConflictQueryProvider.REF_BOOK_CONFLICT_PAGE_SIZE);
 
-        Function<RefBookConflictCriteria, Page<RefBookConflictEntity>> pageSource = conflictQueryProvider::search;
-        PageIterator<RefBookConflictEntity, RefBookConflictCriteria> pageIterator = new PageIterator<>(pageSource, criteria);
+        PageIterator<RefBookConflictEntity, RefBookConflictCriteria> pageIterator = new PageIterator<>(conflictQueryProvider::search, criteria);
         pageIterator.forEachRemaining(page -> {
             List<Object> systemIds = page.getContent().stream()
                     .map(RefBookConflictEntity::getRefRecordId)
