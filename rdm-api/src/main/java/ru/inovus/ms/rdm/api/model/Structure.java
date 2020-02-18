@@ -243,6 +243,12 @@ public class Structure implements Serializable {
                     Objects.equals(description, that.description);
         }
 
+        public boolean equalsByTypeAndCode(Attribute other) {
+            if (this == other) return true;
+            if (other == null) return false;
+            return other.type == this.type && other.code.equals(this.code);
+        }
+
         @Override
         public int hashCode() {
             return Objects.hash(code, name, type, isPrimary);
