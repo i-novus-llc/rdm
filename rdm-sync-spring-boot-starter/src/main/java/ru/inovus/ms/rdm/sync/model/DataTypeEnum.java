@@ -2,14 +2,12 @@ package ru.inovus.ms.rdm.sync.model;
 
 
 import ru.inovus.ms.rdm.api.exception.RdmException;
+import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.util.TimeUtils;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashMap;
-import ru.inovus.ms.rdm.api.exception.RdmException;
-import ru.inovus.ms.rdm.api.model.Structure;
-
 import java.util.List;
 import java.util.Map;
 
