@@ -1,6 +1,9 @@
 package ru.inovus.ms.rdm.sync.model;
 
 
+import ru.inovus.ms.rdm.api.exception.RdmException;
+import ru.inovus.ms.rdm.api.model.Structure;
+
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -8,10 +11,10 @@ import static java.util.Collections.singletonList;
 
 public enum DataTypeEnum {
     VARCHAR(asList("varchar", "text", "character varying")),
-    INTEGER(asList("smallint", "integer", "bigint", "serial", "bigserial")),
+    INTEGER(asList("integer", "smallint", "bigint", "serial", "bigserial")),
     DATE(singletonList("date")),
     BOOLEAN(singletonList("boolean")),
-    FLOAT(asList("numeric", "decimal")),
+    FLOAT(asList("decimal", "numeric")),
     JSONB(singletonList("jsonb"));
 
     private List<String> dataTypes;
@@ -34,5 +37,20 @@ public enum DataTypeEnum {
         }
         return null;
     }
+
+    public static DataTypeEnum getByRdmAttr(Structure.Attribute attr) {
+        switch (attr.getType()) {
+            case DATE: return DATE;
+            case FLOAT: return FLOAT;
+            case INTEGER: return INTEGER;
+            case STRING:
+            case REFERENCE:
+                return VARCHAR;
+            case BOOLEAN: return BOOLEAN;
+            default:
+                throw new RdmException("Not supported field type: " + attr.getType());
+        }
+    }
+
 }
 
