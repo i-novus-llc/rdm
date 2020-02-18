@@ -24,6 +24,7 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
@@ -277,9 +278,12 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     }
 
     @Override
-    public boolean lockRefbookForUpdate(String code) {
+    public boolean lockRefBookForUpdate(String code, boolean blocking) {
         try {
-            jdbcTemplate.queryForObject("SELECT 1 FROM rdm_sync.version WHERE code = :code FOR UPDATE NOWAIT", Map.of("code", code), Integer.class);
+            String q = "SELECT 1 FROM rdm_sync.version WHERE code = :code FOR UPDATE ";
+            if (!blocking)
+                q += "NOWAIT";
+            jdbcTemplate.queryForObject(q, Map.of("code", code), Integer.class);
             logger.info("Lock for refbook {} successfully acquired.", code);
             return true;
         } catch (CannotAcquireLockException ex) {
@@ -384,6 +388,19 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         if (list.size() > 1)
             throw new RdmException("Cannot identify record by " + pk);
         return list.stream().findAny().map(RdmSyncLocalRowState::valueOf).orElse(null);
+    }
+
+    @Override
+    public void createSchemaIfNotExists(String schema) {
+        jdbcTemplate.getJdbcTemplate().execute(String.format("CREATE SCHEMA IF NOT EXISTS %s", schema));
+    }
+
+    @Override
+    public void createRefBookTableIfNotExists(String schema, String table, List<FieldMapping> fieldMappings, String isDeletedFieldName) {
+        String q = String.format("CREATE TABLE IF NOT EXISTS %s.%s (", schema, table);
+        q += fieldMappings.stream().map(fm -> String.format("%s %s", fm.getSysField(), fm.getSysDataType())).collect(Collectors.joining(", "));
+        q += String.format(", %s BOOLEAN)", isDeletedFieldName);
+        jdbcTemplate.getJdbcTemplate().execute(q);
     }
 
     private static String getInternalLocalStateUpdateTriggerName(String schema, String table) {

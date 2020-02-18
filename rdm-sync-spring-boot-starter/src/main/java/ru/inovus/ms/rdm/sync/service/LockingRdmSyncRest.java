@@ -9,7 +9,7 @@ public class LockingRdmSyncRest extends RdmSyncRestImpl {
 
     @Override
     public void update(String refBookCode) {
-        if (dao.lockRefbookForUpdate(refBookCode))
+        if (dao.lockRefBookForUpdate(refBookCode, false))
             super.update(refBookCode);
     }
 }
