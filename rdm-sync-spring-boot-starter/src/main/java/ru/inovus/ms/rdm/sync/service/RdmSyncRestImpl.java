@@ -13,7 +13,6 @@ import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
-import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.api.model.diff.RefBookDataDiff;
@@ -215,7 +214,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         if (last.getStructure().getPrimary().isEmpty())
             throw new IllegalStateException(format(NO_PRIMARY_KEY_FOUND, code));
         if (last.getStructure().getPrimary().size() > 1)
-            throw new UnsupportedOperationException(String.format(COMPOSITE_PK_NOT_SUPPORTED, refbookCode));
+            throw new UnsupportedOperationException(String.format(COMPOSITE_PK_NOT_SUPPORTED, code));
         return last;
     }
 
