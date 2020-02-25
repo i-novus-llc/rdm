@@ -40,11 +40,11 @@
         <toolbar place="bottomRight">
             <button id="publishDraft" label="Опубликовать"
                     visibility-condition="isPublishable">
-                <invoke operation-id="publishDraft" close-after-success="true" redirect-target="application" redirect-url="/"/>
+                <invoke operation-id="publishDraft" close-after-success="true" redirect-target="application" redirect-url="${rdm.context-path}/#/refBookList"/>
             </button>
 
             <button id="publishAndRefresh" label="Опубликовать и обновить ссылки"
-                    visibility-condition="isPublishable &amp;&amp; (hasCheckUpdatedConflicts || hasCheckAlteredConflicts)" redirect-target="application" redirect-url="/">
+                    visibility-condition="isPublishable &amp;&amp; (hasCheckUpdatedConflicts || hasCheckAlteredConflicts)" redirect-target="application"  redirect-url="${rdm.context-path}/#/refBookList">
                 <invoke operation-id="publishAndRefresh" close-after-success="true"/>
             </button>
 
