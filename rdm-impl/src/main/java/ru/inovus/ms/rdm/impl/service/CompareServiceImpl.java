@@ -16,28 +16,24 @@ import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.CompareDataService;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
-import ru.inovus.ms.rdm.api.service.CompareService;
-import ru.inovus.ms.rdm.api.service.VersionService;
-import ru.inovus.ms.rdm.impl.entity.PassportAttributeEntity;
-import ru.inovus.ms.rdm.impl.entity.PassportValueEntity;
-import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.compare.ComparableField;
 import ru.inovus.ms.rdm.api.model.compare.ComparableFieldValue;
 import ru.inovus.ms.rdm.api.model.compare.ComparableRow;
 import ru.inovus.ms.rdm.api.model.compare.CompareCriteria;
-import ru.inovus.ms.rdm.api.model.diff.DiffRowValuePage;
-import ru.inovus.ms.rdm.api.model.diff.RefBookDataDiff;
-import ru.inovus.ms.rdm.api.model.diff.StructureDiff;
+import ru.inovus.ms.rdm.api.model.diff.*;
+import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.api.model.version.PassportAttribute;
-import ru.inovus.ms.rdm.api.model.diff.PassportAttributeDiff;
-import ru.inovus.ms.rdm.api.model.diff.PassportDiff;
-import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
-import ru.inovus.ms.rdm.impl.util.ConverterUtil;
+import ru.inovus.ms.rdm.api.service.CompareService;
+import ru.inovus.ms.rdm.api.service.VersionService;
+import ru.inovus.ms.rdm.api.validation.VersionValidation;
+import ru.inovus.ms.rdm.impl.entity.PassportAttributeEntity;
+import ru.inovus.ms.rdm.impl.entity.PassportValueEntity;
+import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.impl.repository.PassportAttributeRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.inovus.ms.rdm.api.validation.VersionValidation;
+import ru.inovus.ms.rdm.impl.util.ConverterUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +43,6 @@ import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.api.util.ComparableUtils.*;
-import static ru.inovus.ms.rdm.impl.util.ConverterUtil.getFieldSearchCriteriaList;
 
 @Service
 @Primary
@@ -347,7 +342,7 @@ public class CompareServiceImpl implements CompareService {
             throw new UserException(new Message(COMPARE_NEW_PRIMARIES_NOT_FOUND_EXCEPTION_CODE));
 
         if (oldPrimaries.size() != newPrimaries.size()
-                || oldPrimaries.stream().anyMatch(oldPrimary -> newPrimaries.stream().noneMatch(newPrimary -> newPrimary.equals(oldPrimary))))
+                || oldPrimaries.stream().anyMatch(oldPrimary -> newPrimaries.stream().noneMatch(newPrimary -> newPrimary.equalsByTypeAndCode(oldPrimary))))
             throw new UserException(new Message(COMPARE_PRIMARIES_NOT_EQUALS_EXCEPTION_CODE));
     }
 
