@@ -3,7 +3,7 @@
     <parent>
         <groupId>ru.inovus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
-        <version>1.121-SNAPSHOT</version>
+        <version>1.121</version>
         <relativePath>..</relativePath>
     </parent>
 
