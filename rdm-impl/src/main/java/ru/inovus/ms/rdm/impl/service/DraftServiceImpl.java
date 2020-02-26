@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.impl.service;
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
-import net.n2oapp.platform.jaxrs.RestCriteria;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -371,19 +370,13 @@ public class DraftServiceImpl implements DraftService {
                 .map(row -> RowUtils.getPrimaryKeyValueFilters(row, primaryKeys))
                 .flatMap(Collection::stream).collect(toList());
         SearchDataCriteria criteria = new SearchDataCriteria();
+        criteria.setPageSize(sourceRows.size());
         criteria.setAttributeFilter(Set.of(filters));
-
-        int page = RestCriteria.FIRST_PAGE_NUMBER;
-        criteria.setPageNumber(page);
-
-        Page<RefBookRowValue> search;
-        while (page < (search = versionService.search(draftId, criteria)).getTotalPages()) {
-            criteria.setPageNumber(++page);
-            for (RefBookRowValue oldValue : search) {
-                for (Row row : sourceRows) {
-                    if (row.getSystemId() == null
-                            && RowUtils.equalsValuesByAttributes(row, oldValue, primaryKeys))
-                        row.setSystemId(oldValue.getSystemId());
+        Page<RefBookRowValue> search = versionService.search(draftId, criteria);
+        for (RefBookRowValue refBookRowValue : search.getContent()) {
+            for (Row row : sourceRows) {
+                if (row.getSystemId() == null && RowUtils.equalsValuesByAttributes(row, refBookRowValue, primaryKeys)) {
+                    row.setSystemId(refBookRowValue.getSystemId());
                 }
             }
         }

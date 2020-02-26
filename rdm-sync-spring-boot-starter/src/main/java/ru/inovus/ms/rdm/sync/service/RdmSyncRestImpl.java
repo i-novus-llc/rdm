@@ -13,7 +13,6 @@ import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
-import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.api.model.diff.RefBookDataDiff;
@@ -25,6 +24,7 @@ import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.api.service.CompareService;
 import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.api.service.VersionService;
+import ru.inovus.ms.rdm.api.util.PageIterator;
 import ru.inovus.ms.rdm.sync.criteria.LogCriteria;
 import ru.inovus.ms.rdm.sync.model.DataTypeEnum;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum.DELETED;
 import static ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum.INSERTED;
@@ -109,7 +110,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
             try {
                 newVersion = getLastPublishedVersionFromRdm(refBookCode);
             } catch (Exception e) {
-                logger.error(String.format(ERROR_WHILE_FETCHING_NEW_VERSION, refBookCode), e);
+                logger.error(format(ERROR_WHILE_FETCHING_NEW_VERSION, refBookCode), e);
                 return;
             }
             VersionMapping versionMapping = getVersionMapping(refBookCode);
@@ -121,7 +122,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
                     logger.info("Skipping update on {}. No changes.", refBookCode);
                 }
             } catch (Exception e) {
-                logger.error(String.format(ERROR_WHILE_UPDATING_NEW_VERSION, refBookCode), e);
+                logger.error(format(ERROR_WHILE_UPDATING_NEW_VERSION, refBookCode), e);
                 loggingService.logError(refBookCode, versionMapping.getVersion(), newVersion.getLastPublishedVersion(), e.getMessage(), ExceptionUtils.getStackTrace(e));
             }
         }
@@ -200,26 +201,21 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         VersionMapping versionMapping = dao.getVersionMapping(refbookCode);
         List<FieldMapping> fieldMappings = dao.getFieldMapping(versionMapping.getCode());
         if (fieldMappings.stream().noneMatch(f -> f.getSysField().equals(versionMapping.getPrimaryField()))) {
-            throw new IllegalArgumentException(String.format(NO_MAPPING_FOR_PRIMARY_KEY, versionMapping.getPrimaryField()));
+            throw new IllegalArgumentException(format(NO_MAPPING_FOR_PRIMARY_KEY, versionMapping.getPrimaryField()));
         }
         return versionMapping;
     }
 
-    public RefBook getLastPublishedVersionFromRdm(String refbookCode) {
+    public RefBook getLastPublishedVersionFromRdm(String code) {
         RefBookCriteria refBookCriteria = new RefBookCriteria();
-        refBookCriteria.setCode(refbookCode);
         refBookCriteria.setSourceType(RefBookSourceType.LAST_PUBLISHED);
-        Page<RefBook> rdmRefbooks = refBookService.search(refBookCriteria);
-        if (CollectionUtils.isEmpty(rdmRefbooks.getContent()))
-            throw new IllegalStateException(String.format(NO_REFBOOK_FOUND, refbookCode));
-        RefBook rdmRefbook = rdmRefbooks.getContent().get(0);
-        //проверяем наличие первичного ключа
-        List<Structure.Attribute> primary = rdmRefbook.getStructure().getPrimary();
-        if (primary.isEmpty())
-            throw new IllegalStateException(String.format(NO_PRIMARY_KEY_FOUND, refbookCode));
-        if (primary.size() > 1)
-            throw new UnsupportedOperationException(String.format(COMPOSITE_PK_NOT_SUPPORTED, refbookCode));
-        return rdmRefbook;
+        refBookCriteria.setCodeExact(code);
+        RefBook last = refBookService.search(refBookCriteria).get().findAny().orElseThrow(() -> new IllegalArgumentException(format(NO_REFBOOK_FOUND, code)));
+        if (last.getStructure().getPrimary().isEmpty())
+            throw new IllegalStateException(format(NO_PRIMARY_KEY_FOUND, code));
+        if (last.getStructure().getPrimary().size() > 1)
+            throw new UnsupportedOperationException(String.format(COMPOSITE_PK_NOT_SUPPORTED, code));
+        return last;
     }
 
     private List<RefBook> getRefBooks(List<VersionMapping> versionMappings) {
@@ -228,7 +224,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
             try {
                 refBooks.add(getLastPublishedVersionFromRdm(versionMapping.getCode()));
             } catch (RuntimeException ex) {
-                logger.error(String.format(ERROR_WHILE_FETCHING_NEW_VERSION, versionMapping.getCode()), ex);
+                logger.error(format(ERROR_WHILE_FETCHING_NEW_VERSION, versionMapping.getCode()), ex);
                 loggingService.logError(versionMapping.getCode(), null, null, ex.getMessage(), ExceptionUtils.getStackTrace(ex));
             }
         }
@@ -249,20 +245,18 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         compareDataCriteria.setNewVersionId(newVersion.getId());
         compareDataCriteria.setCountOnly(true);
         compareDataCriteria.setPageSize(1);
-        int page = 0;
         RefBookDataDiff diff = compareService.compareData(compareDataCriteria);
         //если изменилась структура, проверяем актуальность полей в маппинге
         validateStructureChanges(versionMapping, fieldMappings, diff);
         if (diff.getRows().getTotalElements() > 0) {
             compareDataCriteria.setCountOnly(false);
             compareDataCriteria.setPageSize(MAX_SIZE);
-            for (int i = 0; i < diff.getRows().getTotalElements(); i = i + MAX_SIZE) {
-                compareDataCriteria.setPageNumber(page);
-                diff = compareService.compareData(compareDataCriteria);
-                for (DiffRowValue row : diff.getRows().getContent()) {
-                    mergeRow(row, versionMapping, fieldMappings, newVersion);
+            PageIterator<DiffRowValue, CompareDataCriteria> iter = new PageIterator<>(criteria -> compareService.compareData(criteria).getRows(), compareDataCriteria, true);
+            while (iter.hasNext()) {
+                Page<? extends DiffRowValue> page = iter.next();
+                for (DiffRowValue diffRowValue : page.getContent()) {
+                    mergeRow(diffRowValue, versionMapping, fieldMappings, newVersion);
                 }
-                page++;
             }
         }
     }
@@ -308,7 +302,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
             diff.getOldAttributes().retainAll(clientRdmFields);
             if (!diff.getOldAttributes().isEmpty()) {
                 //в новой версии удалены поля, которые ведутся в системе
-                throw new IllegalStateException(String.format(MAPPING_OUT_OF_DATE,
+                throw new IllegalStateException(format(MAPPING_OUT_OF_DATE,
                         String.join(",", diff.getOldAttributes()), versionMapping.getCode()));
             }
         }
@@ -319,17 +313,13 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         List<Object> existingDataIds = dao.getDataIds(versionMapping.getTable(),
                 fieldMappings.stream().filter(f -> f.getSysField().equals(versionMapping.getPrimaryField())).findFirst().orElse(null));
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
-        searchDataCriteria.setPageSize(1);
-        int page = 0;
-        Page<RefBookRowValue> list = versionService.search(versionMapping.getCode(), searchDataCriteria);
         searchDataCriteria.setPageSize(MAX_SIZE);
-        for (int i = 0; i < list.getTotalElements(); i = i + MAX_SIZE) {
-            searchDataCriteria.setPageNumber(page);
-            list = versionService.search(versionMapping.getCode(), searchDataCriteria);
-            for (RefBookRowValue row : list.getContent()) {
-                insertOrUpdateRow(row, existingDataIds, versionMapping, fieldMappings, newVersion);
+        PageIterator<RefBookRowValue, SearchDataCriteria> iter = new PageIterator<>(criteria -> versionService.search(versionMapping.getCode(), criteria), searchDataCriteria, true);
+        while (iter.hasNext()) {
+            Page<? extends RefBookRowValue> page = iter.next();
+            for (RefBookRowValue refBookRowValue : page.getContent()) {
+                insertOrUpdateRow(refBookRowValue, existingDataIds, versionMapping, fieldMappings, newVersion);
             }
-            page++;
         }
     }
 
