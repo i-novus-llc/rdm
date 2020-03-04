@@ -10,6 +10,7 @@ import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.inovus.ms.rdm.api.util.json.JsonUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -17,9 +18,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.text.StringEscapeUtils.escapeJson;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 @ApiModel("Структура")
@@ -256,13 +255,7 @@ public class Structure implements Serializable {
 
         @Override
         public String toString() {
-            StringBuilder sb = new StringBuilder("{");
-            sb.append("\"code\": \"").append(escapeJson(code)).append("\"").append(", ");
-            sb.append("\"name\": \"").append(escapeJson(name)).append("\"").append(", ");
-            sb.append("\"type\": \"").append(type.name()).append("\"").append(", ");
-            sb.append("\"isPrimary\": ").append(isPrimary).append(", ");
-            sb.append("\"description\": \"").append(escapeJson(description)).append("\"");
-            return sb.append("}").toString();
+            return JsonUtil.getAsJson(this);
         }
 
     }
@@ -362,11 +355,7 @@ public class Structure implements Serializable {
 
         @Override
         public String toString() {
-            StringBuilder sb = new StringBuilder("{");
-            sb.append("\"attribute\": \"").append(escapeJson(attribute)).append("\"").append(", ");
-            sb.append("\"referenceCode\": \"").append(escapeJson(referenceCode)).append("\"").append(", ");
-            sb.append("\"displayExpression\": \"").append(escapeJson(displayExpression)).append("\"");
-            return sb.append("}").toString();
+            return JsonUtil.getAsJson(this);
         }
 
     }
@@ -396,12 +385,7 @@ public class Structure implements Serializable {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("{");
-        sb.append("\"attributes\": [");
-        sb.append(attributes == null || attributes.isEmpty() ? "" : attributes.stream().map(Attribute::toString).collect(joining(", ")));
-        sb.append("], \"references\": [");
-        sb.append(references == null || references.isEmpty() ? "" : references.stream().map(Reference::toString).collect(joining(", ")));
-        return sb.append("]}").toString();
+        return JsonUtil.getAsJson(this);
     }
 
 }
