@@ -10,6 +10,7 @@ public class AsyncOperationLogEntry {
     private AsyncOperation operation;
     private AsyncOperationStatus status;
     private String error;
+    private String stackTrace;
     private String payload;
     private String result;
     private LocalDateTime tsStart;
@@ -87,6 +88,14 @@ public class AsyncOperationLogEntry {
         this.result = result;
     }
 
+    public String getStackTrace() {
+        return stackTrace;
+    }
+
+    public void setStackTrace(String stackTrace) {
+        this.stackTrace = stackTrace;
+    }
+
     @Override
     public String toString() {
         return "AsyncOperationLogEntry{" +
@@ -95,8 +104,9 @@ public class AsyncOperationLogEntry {
                 ", operation=" + operation +
                 ", status=" + status +
                 ", error='" + error + '\'' +
-                ", payload=" + payload +
-                ", result=" + result +
+                ", stackTrace='" + stackTrace + '\'' +
+                ", payload='" + payload + '\'' +
+                ", result='" + result + '\'' +
                 ", tsStart=" + tsStart +
                 ", tsEnd=" + tsEnd +
                 '}';

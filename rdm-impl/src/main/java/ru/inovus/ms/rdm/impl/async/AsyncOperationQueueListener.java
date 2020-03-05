@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.impl.async;
 
 import net.n2oapp.platform.i18n.Messages;
 import net.n2oapp.platform.i18n.UserException;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,6 +65,7 @@ class AsyncOperationQueueListener {
             logger.error("Error while handling deferred operation. Operation type: {}, Operation id: {}", op, uuid, ex);
             String error = getErrorMsg(ex);
             entity.setError(error);
+            entity.setStackTrace(ExceptionUtils.getStackTrace(ex));
             entity.setStatus(AsyncOperationStatus.ERROR);
         }
         asyncOperationLogEntryRepository.save(entity);

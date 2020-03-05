@@ -12,6 +12,11 @@
             ADD COLUMN
                 code VARCHAR NOT NULL DEFAULT 'N/A';
 
+            ALTER TABLE
+                n2o_rdm_management.async_log_entry
+            ADD COLUMN
+                stacktrace VARCHAR;
+
             COMMENT ON COLUMN
                 n2o_rdm_management.async_log_entry.code
             IS
