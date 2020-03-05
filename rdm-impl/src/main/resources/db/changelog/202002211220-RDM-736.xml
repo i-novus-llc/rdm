@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="202002211220-RDM-736_1.0" author="arahmatullin" dbms="postgresql">
+        <comment>Исправление вычисления hash</comment>
+        <sql splitStatements="false">
+            <![CDATA[
+do
+$$
+
+declare
+    r record;
+    n record;
+
+    updatedField varchar;
+
+begin
+    for r in
+        select distinct
+               l_t.table_catalog, l_t.table_schema, l_t.table_name,
+               quote_ident(l_t.table_name) as quoted_name
+          from information_schema.tables as l_t
+         where l_t.table_schema = 'data'
+           and l_t.table_type = 'BASE TABLE'
+           and exists(
+               select 1
+                 from information_schema.columns as l_c
+                where l_c.table_catalog = l_t.table_catalog
+                  and l_c.table_schema = l_t.table_schema
+                  and l_c.table_name = l_t.table_name
+                  and l_c.data_type  = 'jsonb'
+               )
+           and l_t.table_name in (
+               select distinct
+                 first_value(v.storage_code) over
+                   (partition by v.ref_book_id
+                    order by v.creation_date desc)
+                 from n2o_rdm_management.ref_book_version v
+               )
+           and not exists (
+               select 1
+                 from pg_proc l_p
+                where l_p.proname = l_t.table_name || '_hash_tf'
+                  and l_p.prosrc like '%->>''value''%'
+               )
+    loop
+        -- -- HASH trigger:
+        select
+            string_agg('"' || column_name || '"', ',') as clear_names,
+
+            string_agg(
+              'NEW."' || column_name || '"'
+                || (case when data_type = 'jsonb' then '->>''value''' else '' end),
+              ', ') as hash_names
+        into n
+        from information_schema.columns as l_c
+        where l_c.table_catalog = r.table_catalog
+          and l_c.table_schema = r.table_schema
+          and l_c.table_name = r.table_name;
+
+        continue when (n is null) or (n.clear_names is null) or (n.clear_names = '');
+
+        execute 'DROP TRIGGER IF EXISTS hash_tg ON data.' || quote_ident(r.table_name) || ';' || chr(10) ||
+                chr(10) ||
+                'CREATE OR REPLACE FUNCTION data.' ||
+                    quote_ident(r.table_name || '_hash_tf') || '()' || chr(10) ||
+                '  RETURNS trigger AS' || chr(10) ||
+                '$BODY$' || chr(10) ||
+                '  BEGIN' || chr(10) ||
+                '    NEW."SYS_HASH" = md5(ROW(' || n.hash_names || ')||'''');' || chr(10) ||
+                '    RETURN NEW;' || chr(10) ||
+                '  END;' || chr(10) ||
+                '$BODY$' || chr(10) ||
+                '  LANGUAGE plpgsql;' || chr(10) ||
+                chr(10) ||
+                'CREATE TRIGGER hash_tg' || chr(10) ||
+                '  BEFORE INSERT OR UPDATE OF ' || n.clear_names || chr(10) ||
+                '  ON data.' || quote_ident(r.table_name) || chr(10) ||
+                '  FOR EACH ROW' || chr(10) ||
+                '  EXECUTE PROCEDURE data.' || quote_ident(r.table_name || '_hash_tf') || '();'
+              ;
+
+        -- -- Field to update for HASH:
+        select '"' || l_c.column_name || '"'
+          into updatedField
+          from information_schema.columns as l_c
+         where l_c.table_schema = 'data'
+           and l_c.table_name = r.table_name
+           and l_c.column_name not in ('SYS_RECORDID', 'SYS_PUBLISHTIME', 'SYS_CLOSETIME', 'SYS_HASH', 'FTS')
+         limit 1;
+
+        -- -- FTS update:
+        execute 'update data.' || r.quoted_name || chr(10) ||
+                '   set ' || updatedField || ' = ' || updatedField || ';';
+    end loop;
+end;
+
+$$ language plpgsql;
+            ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
