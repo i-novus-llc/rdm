@@ -26,6 +26,9 @@ public class AsyncOperationLogEntryEntity {
     @Column(name = "status", nullable = false, insertable = false)
     private AsyncOperationStatus status;
 
+    @Column(name = "code", nullable = false)
+    private String code;
+
     @Column(name = "error")
     private String error;
 
@@ -103,6 +106,14 @@ public class AsyncOperationLogEntryEntity {
 
     public void setTsEnd(LocalDateTime tsEnd) {
         this.tsEnd = tsEnd;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 
 }

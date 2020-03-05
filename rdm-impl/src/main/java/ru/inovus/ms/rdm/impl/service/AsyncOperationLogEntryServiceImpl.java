@@ -14,7 +14,6 @@ import ru.inovus.ms.rdm.api.service.AsyncOperationLogEntryService;
 import ru.inovus.ms.rdm.impl.entity.AsyncOperationLogEntryEntity;
 import ru.inovus.ms.rdm.impl.entity.QAsyncOperationLogEntryEntity;
 import ru.inovus.ms.rdm.impl.repository.AsyncOperationLogEntryRepository;
-import ru.inovus.ms.rdm.impl.util.AsyncOperationLogEntryUtils;
 
 import java.util.List;
 import java.util.UUID;
@@ -66,14 +65,15 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
         if (entity == null)
             return null;
         AsyncOperationLogEntry logEntry = new AsyncOperationLogEntry();
-        logEntry.setUuid(entity.getUuid());
+        logEntry.setId(entity.getUuid());
+        logEntry.setCode(entity.getCode());
         logEntry.setError(entity.getError());
         logEntry.setOperation(entity.getOperation());
-        logEntry.setPayload(AsyncOperationLogEntryUtils.getPayload(entity));
+        logEntry.setPayload(entity.getPayload());
         logEntry.setStatus(entity.getStatus());
         logEntry.setTsStart(entity.getTsStart());
         logEntry.setTsEnd(entity.getTsEnd());
-        logEntry.setResult(AsyncOperationLogEntryUtils.getResult(entity.getOperation().getResultClass(), entity));
+        logEntry.setResult(entity.getResult());
         return logEntry;
     }
 
