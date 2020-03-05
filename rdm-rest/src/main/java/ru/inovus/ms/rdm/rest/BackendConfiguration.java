@@ -95,7 +95,7 @@ public class BackendConfiguration {
         JmsTemplate jmsTemplate = new JmsTemplate(connectionFactory);
         jmsTemplate.setPubSubDomain(true);
         jmsTemplate.setExplicitQosEnabled(true);
-        long oneHour = 60000*60;
+        long oneHour = 60 * 60000L;
         jmsTemplate.setTimeToLive(oneHour);
         return jmsTemplate;
     }
