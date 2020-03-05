@@ -11,6 +11,7 @@ import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -43,7 +44,7 @@ public class PlainDataRequestFilter implements ContainerRequestFilter {
 
             if (!isEmpty(plainAttributeFilter)) {
                 String s = (String) message.get(Message.QUERY_STRING);
-                s += "&" + PLAIN_FILTER_QUERY_PARAM + "=" + URLEncoder.encode(JsonUtil.MAPPER.writeValueAsString(plainAttributeFilter), "UTF-8");
+                s += "&" + PLAIN_FILTER_QUERY_PARAM + "=" + URLEncoder.encode(JsonUtil.jsonMapper.writeValueAsString(plainAttributeFilter), StandardCharsets.UTF_8);
                 message.put(Message.QUERY_STRING, s);
             }
         }

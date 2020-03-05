@@ -6,7 +6,7 @@ import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 
 import java.io.IOException;
 
-import static ru.inovus.ms.rdm.api.util.json.JsonUtil.MAPPER;
+import static ru.inovus.ms.rdm.api.util.json.JsonUtil.jsonMapper;
 
 public class AttributeFilterConverter implements TypedParamConverter<AttributeFilter> {
 
@@ -18,7 +18,7 @@ public class AttributeFilterConverter implements TypedParamConverter<AttributeFi
     @Override
     public AttributeFilter fromString(String value) {
         try {
-            return MAPPER.readValue(value, AttributeFilter.class);
+            return jsonMapper.readValue(value, AttributeFilter.class);
         } catch (IOException e) {
             throw new IllegalArgumentException(String.format("Failed to convert string '%s' to AttributeFilter", value), e);
         }
@@ -27,7 +27,7 @@ public class AttributeFilterConverter implements TypedParamConverter<AttributeFi
     @Override
     public String toString(AttributeFilter value) {
         try {
-            return MAPPER.writeValueAsString(value);
+            return jsonMapper.writeValueAsString(value);
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("Failed to convert from AttributeFilter to string", e);
         }
