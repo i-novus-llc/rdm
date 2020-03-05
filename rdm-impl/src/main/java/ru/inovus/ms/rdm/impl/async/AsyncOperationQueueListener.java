@@ -25,7 +25,7 @@ import static java.util.Collections.emptyList;
 import static ru.inovus.ms.rdm.impl.async.AsyncOperationQueue.QUEUE_ID;
 
 @Component
-public class AsyncOperationQueueListener {
+class AsyncOperationQueueListener {
 
     private static final Logger logger = LoggerFactory.getLogger(AsyncOperationQueueListener.class);
 
@@ -48,7 +48,7 @@ public class AsyncOperationQueueListener {
         AsyncOperationLogEntryEntity entity = asyncOperationLogEntryRepository.findByUuid(uuid);
         if (entity == null) {
             logger.warn("The entity does not yet committed. Forcing save.");
-            asyncOperationLogEntryRepository.saveConflictFree(uuid, op.name(), message.getPayloadAsJson());
+            asyncOperationLogEntryRepository.saveConflictFree(uuid, message.getCode(), op.name(), message.getPayloadAsJson());
             entity = asyncOperationLogEntryRepository.findByUuid(uuid);
         }
         SecurityContextHolder.getContext().setAuthentication(new AbstractAuthenticationToken(emptyList()) {

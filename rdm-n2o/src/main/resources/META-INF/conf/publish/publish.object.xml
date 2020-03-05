@@ -2,8 +2,7 @@
 <object xmlns="http://n2oapp.net/framework/config/schema/object-3.0" name="Публикация справочника">
 
     <operations>
-        <operation id="publishDraft" submit-label="Опубликовать"
-                   success-text="Операция на публикацию справочника с кодом '{code}' поставлена в очередь. Идентификатор операции: {opId}. Вы можете просмотреть ее результат во вкладке 'Журнал операций'." confirm="false">
+        <operation id="publishDraft" submit-label="Опубликовать" confirm="false">
             <invocation>
                 <java class="ru.inovus.ms.rdm.n2o.service.RefBookPublishController"
                       method="publishDraft">
@@ -21,8 +20,7 @@
             </out-parameters>
         </operation>
 
-        <operation id="publishAndRefresh" submit-label="Опубликовать и обновить ссылки"
-                   success-text="Операция на публикацию справочника с кодом '{code}' поставлена в очередь. Идентификатор операции: {opId}. Вы можете просмотреть ее результат во вкладке 'Журнал операций'." confirm="false">
+        <operation id="publishAndRefresh" submit-label="Опубликовать и обновить ссылки" confirm="false">
             <invocation>
                 <java class="ru.inovus.ms.rdm.n2o.service.RefBookPublishController"
                       method="publishAndRefresh">

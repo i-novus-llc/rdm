@@ -1,26 +1,34 @@
 package ru.inovus.ms.rdm.api.async;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.UUID;
 
 public class AsyncOperationLogEntry {
 
-    private UUID uuid;
+    private UUID id;
+    private String code;
     private AsyncOperation operation;
     private AsyncOperationStatus status;
     private String error;
-    private Map<String, Object> payload;
-    private Object result;
+    private String payload;
+    private String result;
     private LocalDateTime tsStart;
     private LocalDateTime tsEnd;
 
-    public UUID getUuid() {
-        return uuid;
+    public String getCode() {
+        return code;
     }
 
-    public void setUuid(UUID uuid) {
-        this.uuid = uuid;
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public AsyncOperation getOperation() {
@@ -63,20 +71,35 @@ public class AsyncOperationLogEntry {
         this.tsEnd = tsEnd;
     }
 
-    public Map<String, Object> getPayload() {
+    public String getPayload() {
         return payload;
     }
 
-    public void setPayload(Map<String, Object> payload) {
+    public void setPayload(String payload) {
         this.payload = payload;
     }
 
-    public Object getResult() {
+    public String getResult() {
         return result;
     }
 
-    public void setResult(Object result) {
+    public void setResult(String result) {
         this.result = result;
+    }
+
+    @Override
+    public String toString() {
+        return "AsyncOperationLogEntry{" +
+                "id=" + id +
+                ", code='" + code + '\'' +
+                ", operation=" + operation +
+                ", status=" + status +
+                ", error='" + error + '\'' +
+                ", payload=" + payload +
+                ", result=" + result +
+                ", tsStart=" + tsStart +
+                ", tsEnd=" + tsEnd +
+                '}';
     }
 
 }

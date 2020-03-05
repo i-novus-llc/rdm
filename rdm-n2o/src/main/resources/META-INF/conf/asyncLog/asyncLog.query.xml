@@ -1,16 +1,16 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" name="Типы операций">
     <list count-mapping="[totalElements]" result-mapping="[content]">
-        <rest filters-separator="&amp;">${rdm.backend.path}/asynclog?{filters}&amp;page={page}</rest>
+        <rest method="GET" filters-separator="&amp;">${rdm.backend.path}/asynclog?{filters}&amp;page={page}</rest>
     </list>
-    <unique filters="uuid">
-        <rest>${rdm.backend.path}/asynclog/entry/{uuid}</rest>
+    <unique>
+        <rest method="GET">${rdm.backend.path}/asynclog/entry/{id}</rest>
     </unique>
     <fields>
-        <field id="uuid" domain="string">
-            <select mapping="['uuid']"/>
+        <field id="id" domain="string">
+            <select mapping="['id']"/>
             <filters>
-                <eq filter-id="uuid">uuid={uuid}</eq>
+                <eq filter-id="id">id={id}</eq>
             </filters>
         </field>
         <field id="status" domain="string">
@@ -25,20 +25,23 @@
                 <eq filter-id="operation.id">operation={operation.id}</eq>
             </filters>
         </field>
-        <field id="error" domain="string">
-            <select mapping="['error']"/>
-        </field>
-        <field id="payload" domain="object">
-            <select mapping="['payload']"/>
-        </field>
-        <field id="result" domain="object">
-            <select mapping="['result']"/>
-        </field>
         <field id="tsStart" domain="localdatetime">
             <select mapping="['tsStart']"/>
         </field>
         <field id="tsEnd" domain="localdatetime">
             <select mapping="['tsEnd']"/>
+        </field>
+        <field id="code" domain="string">
+            <select mapping="['code']"/>
+        </field>
+        <field id="error" domain="string">
+            <select/>
+        </field>
+        <field id="payload" domain="string">
+            <select/>
+        </field>
+        <field id="result" domain="string">
+            <select/>
         </field>
     </fields>
 </query>

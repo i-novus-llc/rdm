@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 
-public class AsyncOperationMessage implements Serializable {
+class AsyncOperationMessage implements Serializable {
 
     public static final String ARGS_KEY = "args";
     public static final String USER_KEY = "user";
@@ -18,12 +18,22 @@ public class AsyncOperationMessage implements Serializable {
     private String userName;
     private UUID operationId;
     private AsyncOperation operation;
+    private String code;
 
-    public AsyncOperationMessage(Object[] args, User user, UUID operationId, AsyncOperation operation) {
+    public AsyncOperationMessage(Object[] args, User user, UUID operationId, AsyncOperation operation, String code) {
         this.args = args == null ? new Object[0] : args;
         this.userName = user.getUsername();
         this.operationId = operationId;
         this.operation = operation;
+        this.code = code;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public Object[] getArgs() {
@@ -69,6 +79,7 @@ public class AsyncOperationMessage implements Serializable {
                 ", userName='" + userName + '\'' +
                 ", operationId=" + operationId +
                 ", operation=" + operation +
+                ", code='" + code + '\'' +
                 '}';
     }
 

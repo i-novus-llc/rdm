@@ -207,8 +207,10 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
+    @Transactional
     public UUID publishAsync(Integer draftId, String version, LocalDateTime fromDate, LocalDateTime toDate, boolean resolveConflicts) {
-        return queue.add(AsyncOperation.PUBLICATION, new Object[] {draftId, version, fromDate, toDate, resolveConflicts});
+        String code = versionRepository.getOne(draftId).getRefBook().getCode();
+        return queue.add(AsyncOperation.PUBLICATION, code, new Object[]{draftId, version, fromDate, toDate, resolveConflicts});
     }
 
     private RefBookVersionEntity getVersionOrElseThrow(Integer versionId) {

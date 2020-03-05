@@ -32,10 +32,10 @@ public class AsyncOperationQueue {
     private UserAccessor userAccessor;
 
     @Transactional
-    public UUID add(AsyncOperation op, Object[] args) {
+    public UUID add(AsyncOperation op, String code, Object[] args) {
         UUID uuid = UUID.randomUUID();
-        AsyncOperationMessage message = new AsyncOperationMessage(args, userAccessor.get(), uuid, op);
-        asyncOperationLogEntryRepository.saveConflictFree(uuid, op.name(), message.getPayloadAsJson());
+        AsyncOperationMessage message = new AsyncOperationMessage(args, userAccessor.get(), uuid, op, code);
+        asyncOperationLogEntryRepository.saveConflictFree(uuid, code, op.name(), message.getPayloadAsJson());
         logger.info("Sending message to internal async op queue. Message: {}", message);
         try {
             jmsTemplate.convertAndSend(QUEUE_ID, message);
