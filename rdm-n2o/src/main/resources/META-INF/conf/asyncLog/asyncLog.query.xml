@@ -43,14 +43,5 @@
         <field id="error" domain="string">
             <select/>
         </field>
-        <field id="payload" domain="string">
-            <select/>
-        </field>
-        <field id="result" domain="string">
-            <select/>
-        </field>
-        <field id="stackTrace" domain="string">
-            <select/>
-        </field>
     </fields>
 </query>

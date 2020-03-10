@@ -10,9 +10,6 @@
                 <output-text id="operationDisplay" label="Тип операции: " label-class="w-50"/>
                 <output-text id="statusDisplay" label="Статус операции: " label-class="w-50"/>
                 <output-text id="error" label="Сообщение об ошибке: " class="text-break" label-class="w-50"/>
-                <code-editor id="stackTrace" label="StackTrace: " max-lines="10" enabled="false" label-class="w-50"/>
-                <code-editor id="payload" label="Полезная нагрузка: " max-lines="10" enabled="false" label-class="w-50"/>
-                <code-editor id="result" label="Возвращенное значение: " max-lines="10" enabled="false" label-class="w-50"/>
             </set>
         </fields>
     </form>
