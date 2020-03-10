@@ -74,6 +74,7 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
         logEntry.setTsStart(entity.getTsStart());
         logEntry.setTsEnd(entity.getTsEnd());
         logEntry.setResult(entity.getResult());
+        logEntry.setStackTrace(entity.getStackTrace());
         return logEntry;
     }
 

@@ -35,6 +35,9 @@ public class AsyncOperationLogEntryEntity {
     @Column(name = "payload")
     private String payload;
 
+    @Column(name = "stacktrace")
+    private String stackTrace;
+
     @Column(name = "result")
     private String result;
 
@@ -116,4 +119,11 @@ public class AsyncOperationLogEntryEntity {
         this.code = code;
     }
 
+    public String getStackTrace() {
+        return stackTrace;
+    }
+
+    public void setStackTrace(String stackTrace) {
+        this.stackTrace = stackTrace;
+    }
 }

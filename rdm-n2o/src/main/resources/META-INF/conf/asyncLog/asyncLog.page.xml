@@ -6,8 +6,8 @@
                 <filters>
                     <row>
                         <input-text id="id" label="Идентификатор операции" domain="string"/>
-                        <input-select id="operation" label="Тип операции" type="single" query-id="asyncOperationTypes" label-field-id="id" search="false"/>
-                        <input-select id="status" label="Статус операции" type="single" query-id="asyncOperationStatuses" label-field-id="id" search="false"/>
+                        <input-select id="operation" label="Тип операции" type="single" query-id="asyncOperationTypes" label-field-id="operationDisplay" search="false"/>
+                        <input-select id="status" label="Статус операции" type="single" query-id="asyncOperationStatuses" label-field-id="statusDisplay" search="false"/>
                     </row>
                 </filters>
                 <columns>
@@ -19,8 +19,8 @@
                     </column>
                     <column text-field-id="code" label="Код справочника"/>
                     <column text-field-id="id" label="Идентификатор операции"/>
-                    <column text-field-id="operation" label="Тип операции"/>
-                    <column text-field-id="status" label="Статус операции"/>
+                    <column text-field-id="operationDisplay" label="Тип операции"/>
+                    <column text-field-id="statusDisplay" label="Статус операции"/>
                 </columns>
                 <rows>
                     <click>

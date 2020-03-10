@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+
+    <changeSet id="202005032208_RDM-432" author="Ikarimullin" dbms="postgresql">
+        <sql splitStatements="false">
+
+            ALTER TABLE
+                n2o_rdm_management.async_log_entry
+            ADD COLUMN
+                stacktrace VARCHAR;
+
+        </sql>
+
+    </changeSet>
+
+</databaseChangeLog>

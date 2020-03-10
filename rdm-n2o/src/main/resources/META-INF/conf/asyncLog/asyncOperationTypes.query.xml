@@ -7,5 +7,8 @@
         <field id="id" domain="string">
             <select mapping="toString()"/>
         </field>
+        <field id="operationDisplay">
+            <select mapping="'Публикация'"/>
+        </field>
     </fields>
 </query>

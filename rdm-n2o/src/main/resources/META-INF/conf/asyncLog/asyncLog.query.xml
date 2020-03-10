@@ -19,11 +19,17 @@
                 <eq filter-id="status.id">status={status.id}</eq>
             </filters>
         </field>
+        <field id="statusDisplay" domain="string">
+            <select mapping="(['status'] == 'QUEUED' ? 'В очереди' : ['status'] == 'IN_PROGRESS' ? 'Выполняется' : ['status'] == 'DONE' ? 'Завершено' : 'Ошибка')"/>
+        </field>
         <field id="operation" domain="string">
             <select/>
             <filters>
                 <eq filter-id="operation.id">operation={operation.id}</eq>
             </filters>
+        </field>
+        <field id="operationDisplay" domain="string">
+            <select mapping="'Публикация'"/>
         </field>
         <field id="tsStart" domain="localdatetime">
             <select mapping="['tsStart']"/>
@@ -35,12 +41,6 @@
             <select mapping="['code']"/>
         </field>
         <field id="error" domain="string">
-            <select/>
-        </field>
-        <field id="payload" domain="string">
-            <select/>
-        </field>
-        <field id="result" domain="string">
             <select/>
         </field>
     </fields>
