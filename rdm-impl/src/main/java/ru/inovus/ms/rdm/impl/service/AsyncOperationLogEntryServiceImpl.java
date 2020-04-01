@@ -28,7 +28,6 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
 
     @Override
     public Page<AsyncOperationLogEntry> search(AsyncOperationLogEntryCriteria criteria) {
-        criteria.setPageNumber(Math.max(0, criteria.getPageNumber() - 1));
         QAsyncOperationLogEntryEntity q = QAsyncOperationLogEntryEntity.asyncOperationLogEntryEntity;
         if (criteria.getSort() == null)
             criteria.setOrders(List.of(AsyncOperationLogEntryEntity.DEFAULT_ORDER));
