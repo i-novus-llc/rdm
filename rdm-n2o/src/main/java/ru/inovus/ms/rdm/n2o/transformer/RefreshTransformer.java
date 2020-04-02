@@ -23,11 +23,11 @@ public class RefreshTransformer implements CompileTransformer<InvokeAction, Comp
 
     @Override
     public InvokeAction transform(InvokeAction invokeAction, CompileContext<?, ?> compileContext, CompileProcessor compileProcessor) {
-        if (invokeAction.getId().endsWith("_r") || compileContext.getRoute((N2oCompileProcessor) compileProcessor).endsWith("_r")) {
+        if (compileContext.getRoute((N2oCompileProcessor) compileProcessor).endsWith("_r")) {
             RefreshSaga refresh = new RefreshSaga();
             refresh.setType(RefreshSaga.Type.widget);
             refresh.getOptions().setWidgetId("main_edit_version_select");
-            invokeAction.getOptions().getMeta().getSuccess().setRefresh(refresh);
+            invokeAction.getMeta().getSuccess().setRefresh(refresh);
             return invokeAction;
 
         }

@@ -71,6 +71,13 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
     @SuppressWarnings("unchecked")
     public List<? extends SourceMetadata> read(String context) {
 
+        //провайдер также отрабатывает на Transform этапе
+        // см. AbstractActionTransformer
+        // на Transform этапе у id метаданной неразрешенный плейсхолдер
+        // поэтому просто пропускаем
+        if (context.contains("{") || context.contains("}"))
+            return singletonList(new N2oSimplePage());
+
         String[] params = context.split("_");
 
         Integer versionId = Integer.parseInt(params[0]);
@@ -196,7 +203,7 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         rowSystemIdArgument.setClassName("java.lang.Long");
         rowSystemIdArgument.setName("rowSystemId");
 
-        dataProvider.setArguments(new Argument[] {refFromIdArgument, refFieldCodeArgument, rowSystemIdArgument});
+        dataProvider.setArguments(new Argument[]{refFromIdArgument, refFieldCodeArgument, rowSystemIdArgument});
 
         N2oConstraint constraint = new N2oConstraint();
         constraint.setId("_constraint_validation");
