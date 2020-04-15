@@ -177,12 +177,6 @@
             </dependency>
 
             <dependency>
-                <groupId>net.n2oapp.framework.security</groupId>
-                <artifactId>security-auth-oauth2</artifactId>
-                <version>${security.admin.version}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>com.sun.xml.ws</groupId>
                 <artifactId>rt</artifactId>
                 <version>${jaxws.version}</version>
