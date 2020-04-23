@@ -3,30 +3,29 @@
     <form object-id="publish" default-values-query-id="publish">
 
         <fields>
-
             <output-text id="listCheckDeletedConflictReferrers"
-                         label="Были удалены строки, на которые ссылались справочники системы:">
+                         label="Были удалены строки, на которые ссылались справочники системы.">
                 <dependencies>
                     <visibility>hasCheckDeletedConflicts</visibility>
                 </dependencies>
             </output-text>
 
             <output-text id="listCheckUpdatedConflictReferrers"
-                         label="Были изменены строки, на которые ссылались справочники системы:">
+                         label="Были изменены строки, на которые ссылались справочники системы.">
                 <dependencies>
                     <visibility>hasCheckUpdatedConflicts</visibility>
                 </dependencies>
             </output-text>
 
             <output-text id="listCheckAlteredConflictReferrers"
-                         label="Была изменена структура справочника, на который ссылаются справочники системы:">
+                         label="Была изменена структура справочника, на который ссылаются справочники системы.">
                 <dependencies>
                     <visibility>hasCheckAlteredConflicts &amp;&amp; !hasCheckDisplayDamagedConflicts</visibility>
                 </dependencies>
             </output-text>
 
             <output-text id="listCheckDisplayDamagedConflictReferrers"
-                         label="Была изменена структура справочника, публикация новой версии нарушит работу ссылок справочников системы:">
+                         label="Была изменена структура справочника, публикация новой версии нарушит работу ссылок справочников системы.">
                 <dependencies>
                     <visibility>hasCheckDisplayDamagedConflicts</visibility>
                 </dependencies>
@@ -40,12 +39,14 @@
         <toolbar place="bottomRight">
             <button id="publishDraft" label="Опубликовать"
                     visibility-condition="isPublishable">
-                <invoke operation-id="publishDraft" close-after-success="true" redirect-target="application" redirect-url="${rdm.context-path}/#/refBookList"/>
+                <invoke operation-id="publishDraft" close-after-success="true"
+                        redirect-target="application" redirect-url="${rdm.context-path}/#/refBookList"/>
             </button>
 
             <button id="publishAndRefresh" label="Опубликовать и обновить ссылки"
-                    visibility-condition="isPublishable &amp;&amp; (hasCheckUpdatedConflicts || hasCheckAlteredConflicts)" redirect-target="application"  redirect-url="${rdm.context-path}/#/refBookList">
-                <invoke operation-id="publishAndRefresh" close-after-success="true"/>
+                    visibility-condition="isPublishable &amp;&amp; (hasCheckUpdatedConflicts || hasCheckAlteredConflicts)">
+                <invoke operation-id="publishAndRefresh" close-after-success="true"
+                        redirect-target="application" redirect-url="${rdm.context-path}/#/refBookList"/>
             </button>
 
             <button id="cancel" label="Отмена">
