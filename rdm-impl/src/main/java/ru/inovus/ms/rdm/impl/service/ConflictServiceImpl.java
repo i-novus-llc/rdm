@@ -38,6 +38,7 @@ import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.service.CompareService;
 import ru.inovus.ms.rdm.api.service.ConflictService;
 import ru.inovus.ms.rdm.api.service.VersionService;
+import ru.inovus.ms.rdm.api.util.ConflictUtils;
 import ru.inovus.ms.rdm.api.util.PageIterator;
 import ru.inovus.ms.rdm.api.util.StructureUtils;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
@@ -72,7 +73,7 @@ public class ConflictServiceImpl implements ConflictService {
     static final int REF_BOOK_VERSION_DATA_PAGE_SIZE = 100;
 
     private static final List<DiffStatusEnum> CALCULATING_DIFF_STATUSES = asList(DiffStatusEnum.DELETED, DiffStatusEnum.UPDATED);
-    private static final List<ConflictType> RECALCULATING_CONFLICT_TYPES = asList(ConflictType.UPDATED, ConflictType.ALTERED);
+    private static final List<ConflictType> ALTERED_RECALCULATING_CONFLICT_TYPES = singletonList(ConflictType.DELETED);
 
     static final List<Sort.Order> SORT_VERSION_DATA = singletonList(
             new Sort.Order(Sort.Direction.ASC, DataConstants.SYS_PRIMARY_COLUMN)
@@ -274,7 +275,7 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Поиск конфликтов по критерию поиска.
+     * Поиск конфликтов по критерию.
      *
      * @param criteria критерий поиска
      * @return Страница конфликтов
@@ -368,10 +369,11 @@ public class ConflictServiceImpl implements ConflictService {
         List<DiffRowValue> diffRowValues = getRefToDiffRowValues(oldRefToEntity.getId(), newRefToEntity.getId(), filterValues);
 
         List<RefBookConflictEntity> filteredConflicts = conflicts.stream()
-                // NB: Если структура изменена, то все строки помечаются как ALTERED-конфликтные,
+                // Если структура не изменена, то для перевычисления нужны все конфликты.
+                // Если же структура изменена, то все строки помечаются как ALTERED-конфликтные,
                 // поэтому для перевычисления достаточно отработать только удалённые конфликты
                 // (see details in javadoc of ConflictServiceTest#testRecalculateConflicts).
-                .filter(conflict -> !(isAltered && RECALCULATING_CONFLICT_TYPES.contains(conflict.getConflictType())))
+                .filter(conflict -> !isAltered || ALTERED_RECALCULATING_CONFLICT_TYPES.contains(conflict.getConflictType()))
                 .collect(toList());
 
         return recalculateDataConflicts(refFromEntity, oldRefToEntity, newRefToEntity, filteredConflicts, refFromRowValues, diffRowValues);
@@ -395,16 +397,9 @@ public class ConflictServiceImpl implements ConflictService {
                                                                  List<RefBookRowValue> refFromRowValues,
                                                                  List<DiffRowValue> diffRowValues) {
         return conflicts.stream()
+                .filter(conflict -> ConflictUtils.getDataConflictTypes().contains(conflict.getConflictType()))
                 .map(conflict -> {
-                    if (conflict.isDisplayDamaged()) {
-                        // NB: Analyze dipslayExpression ?!
-                        return new RefBookConflictEntity(refFromEntity, newRefToEntity,
-                                null, conflict.getRefFieldCode(), conflict.getConflictType());
-                    }
-
-                    RefBookRowValue refFromRowValue = refFromRowValues.stream()
-                            .filter(rowValue -> rowValue.getSystemId().equals(conflict.getRefRecordId()))
-                            .findFirst().orElse(null);
+                    RefBookRowValue refFromRowValue = getConflictedRefFromRowValue(refFromRowValues, conflict);
                     if (refFromRowValue == null)
                         return null;
 
@@ -467,7 +462,7 @@ public class ConflictServiceImpl implements ConflictService {
                 break; // Есть только старое обновление
 
             default:
-                break; // Нет старых конфликтов, только новые.
+                return null; // Нет старых конфликтов, только новые
         }
 
         return new RefBookConflictEntity(refFromEntity, newRefToEntity,
@@ -492,9 +487,9 @@ public class ConflictServiceImpl implements ConflictService {
 
         new ReferrerEntityIteratorProvider(versionRepository, oldRefToEntity.getRefBook().getCode(), RefBookSourceType.ALL)
                 .iterate().forEachRemaining(referrers ->
-            referrers.getContent().forEach(refFromEntity ->
-                discoverConflicts(refFromEntity, oldRefToEntity, newRefToEntity, structureDiff)
-            )
+                referrers.getContent().forEach(refFromEntity ->
+                        discoverConflicts(refFromEntity, oldRefToEntity, newRefToEntity, structureDiff)
+                )
         );
     }
 
@@ -601,7 +596,7 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Получение ссылочных значений для фильтрации
+     * Получение ссылочных значений для фильтрации.
      *
      * @param refFromEntity    версия справочника, которая ссылается
      * @param refToEntity      версия справочника, на которую ссылались
@@ -614,19 +609,24 @@ public class ConflictServiceImpl implements ConflictService {
         return conflicts.stream()
                 .filter(conflict -> Objects.nonNull(conflict.getRefRecordId()))
                 .map(conflict -> {
-                    RefBookRowValue refBookRowValue = refFromRowValues.stream()
-                            .filter(rowValue -> rowValue.getSystemId().equals(conflict.getRefRecordId()))
-                            .findFirst().orElse(null);
-                    if (refBookRowValue == null)
+                    RefBookRowValue refFromRowValue = getConflictedRefFromRowValue(refFromRowValues, conflict);
+                    if (refFromRowValue == null)
                         return null;
 
                     Structure.Reference refFromReference = refFromEntity.getStructure().getReference(conflict.getRefFieldCode());
                     Structure.Attribute refToAttribute = refFromReference.findReferenceAttribute(refToEntity.getStructure());
-                    ReferenceFieldValue fieldValue = (ReferenceFieldValue) (refBookRowValue.getFieldValue(conflict.getRefFieldCode()));
+                    ReferenceFieldValue fieldValue = (ReferenceFieldValue) (refFromRowValue.getFieldValue(conflict.getRefFieldCode()));
                     return new ReferenceFilterValue(refToAttribute, fieldValue);
                 })
                 .filter(Objects::nonNull)
                 .collect(toList());
+    }
+
+    private static RefBookRowValue getConflictedRefFromRowValue(List<RefBookRowValue> refFromRowValues,
+                                                                RefBookConflictEntity conflict) {
+        return refFromRowValues.stream()
+                .filter(rowValue -> rowValue.getSystemId().equals(conflict.getRefRecordId()))
+                .findFirst().orElse(null);
     }
 
     /**
@@ -871,7 +871,7 @@ public class ConflictServiceImpl implements ConflictService {
                                                StructureDiff structureDiff) {
 
         RefBookConflictCriteria criteria = new RefBookConflictCriteria(refFromEntity.getId(), oldRefToEntity.getId());
-        criteria.setConflictType(ConflictType.DISPLAY_DAMAGED);
+        criteria.setConflictTypes(ConflictUtils.getStructureConflictTypes());
         criteria.setOrders(RefBookConflictQueryProvider.getSortRefBookConflicts());
         criteria.setPageSize(RefBookConflictQueryProvider.REF_BOOK_CONFLICT_PAGE_SIZE);
 
@@ -927,7 +927,7 @@ public class ConflictServiceImpl implements ConflictService {
         boolean isAltered = isRefBookAltered(structureDiff);
 
         RefBookConflictCriteria criteria = new RefBookConflictCriteria(refFromEntity.getId(), oldRefToEntity.getId());
-        criteria.setConflictTypes(List.of(ConflictType.UPDATED, ConflictType.DELETED, ConflictType.ALTERED));
+        criteria.setConflictTypes(ConflictUtils.getDataConflictTypes());
         criteria.setOrders(RefBookConflictQueryProvider.getSortRefBookConflicts());
         criteria.setPageSize(RefBookConflictQueryProvider.REF_BOOK_CONFLICT_PAGE_SIZE);
 

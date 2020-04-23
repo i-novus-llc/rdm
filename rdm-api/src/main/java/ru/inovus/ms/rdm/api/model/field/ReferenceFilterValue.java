@@ -3,12 +3,17 @@ package ru.inovus.ms.rdm.api.model.field;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.inovus.ms.rdm.api.model.Structure;
 
+/**
+ * Ссылочное значение.
+ *
+ * Используется для формирования промежуточных данных с целью дальнейшей обработки.
+ */
 public class ReferenceFilterValue {
 
-    // Атрибут.
+    // Атрибут, на который ссылаются.
     private Structure.Attribute attribute;
 
-    // Значение поля.
+    // Значение ссылающегося поля.
     private ReferenceFieldValue referenceValue;
 
     public ReferenceFilterValue(Structure.Attribute attribute, ReferenceFieldValue referenceValue) {
