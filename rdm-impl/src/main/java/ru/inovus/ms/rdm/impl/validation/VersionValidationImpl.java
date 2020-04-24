@@ -23,7 +23,7 @@ import static org.springframework.util.StringUtils.isEmpty;
 public class VersionValidationImpl implements VersionValidation {
 
     public static final String REFBOOK_NOT_FOUND_EXCEPTION_CODE = "refbook.not.found";
-    public static final String REFBOOK_CODE_NOT_FOUND_EXCEPTION_CODE = "refbook.with.code.not.found";
+    public static final String REFBOOK_WITH_CODE_NOT_FOUND_EXCEPTION_CODE = "refbook.with.code.not.found";
     private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
     public static final String DRAFT_NOT_FOUND_EXCEPTION_CODE = "draft.not.found";
     public static final String REFBOOK_IS_ARCHIVED_EXCEPTION_CODE = "refbook.is.archived";
@@ -96,7 +96,7 @@ public class VersionValidationImpl implements VersionValidation {
     @Override
     public void validateRefBookCodeExists(String refBookCode) {
         if (isEmpty(refBookCode) || !refbookRepository.existsByCode(refBookCode)) {
-            throw new NotFoundException(new Message(REFBOOK_CODE_NOT_FOUND_EXCEPTION_CODE, refBookCode));
+            throw new NotFoundException(new Message(REFBOOK_WITH_CODE_NOT_FOUND_EXCEPTION_CODE, refBookCode));
         }
     }
 
