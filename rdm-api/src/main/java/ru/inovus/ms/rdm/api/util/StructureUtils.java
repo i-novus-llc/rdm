@@ -41,6 +41,23 @@ public class StructureUtils {
     }
 
     /**
+     * Проверка полей выражения на отсутствие в структуре.
+     *
+     * @param displayExpression выражение для вычисления отображаемого значения
+     * @param structure         структура версии, на которую ссылаются
+     * @return Признак отсутствия
+     */
+    public static boolean hasAbsentPlaceholder(String displayExpression, Structure structure) {
+
+        if (isEmpty(displayExpression))
+            return false;
+
+        DisplayExpression expression = new DisplayExpression(displayExpression);
+        return expression.getPlaceholders().keySet().stream()
+                .anyMatch(placeholder -> Objects.isNull(structure.getAttribute(placeholder)));
+    }
+
+    /**
      * Поиск полей выражения, которые отсутствуют в структуре.
      *
      * @param displayExpression выражение для вычисления отображаемого значения
