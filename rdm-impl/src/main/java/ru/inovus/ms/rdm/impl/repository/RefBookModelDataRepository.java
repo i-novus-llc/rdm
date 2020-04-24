@@ -44,7 +44,7 @@ public interface RefBookModelDataRepository extends
             "      inner join n2o_rdm_management.ref_book_version pv \n" +
             "         on pv.id = c.published_id \n" +
             "      where c.referrer_id = :lastPublishedReferrerVersionId \n" +
-            // Last published referred version only:
+                         // Last published referred version only:
             "        and c.published_id = ( \n" +
             "            select lv.id \n" +
             "              from n2o_rdm_management.ref_book_version lv \n" +
@@ -52,7 +52,6 @@ public interface RefBookModelDataRepository extends
             "               and lv.status = 'PUBLISHED' \n" +
             "             order by lv.from_date desc \n" +
             "             limit 1 )\n" +
-            "        and c.ref_recordid is not null \n" +
             "   )\n" +
             "  ) as last_has_data_conflict \n";
 
