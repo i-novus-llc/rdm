@@ -7,11 +7,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.model.DataConstants;
-import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
@@ -40,7 +38,6 @@ import ru.inovus.ms.rdm.api.service.ConflictService;
 import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.ConflictUtils;
 import ru.inovus.ms.rdm.api.util.PageIterator;
-import ru.inovus.ms.rdm.api.util.StructureUtils;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
@@ -62,6 +59,8 @@ import static ru.inovus.ms.rdm.api.util.ComparableUtils.*;
 import static ru.inovus.ms.rdm.api.util.ConflictUtils.conflictTypeToDiffStatus;
 import static ru.inovus.ms.rdm.api.util.ConflictUtils.diffStatusToConflictType;
 import static ru.inovus.ms.rdm.api.util.FieldValueUtils.*;
+import static ru.inovus.ms.rdm.api.util.StructureUtils.containsAnyPlaceholder;
+import static ru.inovus.ms.rdm.api.util.StructureUtils.hasAbsentPlaceholder;
 import static ru.inovus.ms.rdm.impl.util.ConverterUtil.field;
 import static ru.inovus.ms.rdm.impl.util.ConverterUtil.fields;
 
@@ -735,14 +734,12 @@ public class ConflictServiceImpl implements ConflictService {
                                                                         RefBookVersionEntity newRefToEntity,
                                                                         List<Structure.Reference> refFromReferences,
                                                                         StructureDiff structureDiff) {
-        List<String> deletedCodes = structureDiff.getDeleted().stream()
-                .map(attributeDiff -> attributeDiff.getOldAttribute().getCode())
-                .collect(toList());
+        List<String> deletedCodes = getDeletedCodes(structureDiff);
         if (StringUtils.isEmpty(deletedCodes))
             return emptyList();
 
         return refFromReferences.stream()
-                .filter(reference -> StructureUtils.containsAnyPlaceholder(reference.getDisplayExpression(), deletedCodes))
+                .filter(reference -> containsAnyPlaceholder(reference.getDisplayExpression(), deletedCodes))
                 .map(reference ->
                         new RefBookConflictEntity(refFromEntity, newRefToEntity,
                                 null, reference.getAttribute(), ConflictType.DISPLAY_DAMAGED))
@@ -897,15 +894,18 @@ public class ConflictServiceImpl implements ConflictService {
                                                                       List<? extends RefBookConflictEntity> conflicts,
                                                                       StructureDiff structureDiff) {
         Structure refFromStructure = refFromEntity.getStructure();
+        Structure newRefToStructure = newRefToEntity.getStructure();
         boolean isAltered = isRefBookAltered(structureDiff);
 
         return conflicts.stream()
+                .filter(conflict -> ConflictUtils.getStructureConflictTypes().contains(conflict.getConflictType()))
                 .filter(conflict -> {
-                    if (!isAltered)
-                        return true;
-
                     Structure.Reference reference = refFromStructure.getReference(conflict.getRefFieldCode());
-                    return !isDisplayDamagedConflict(singletonList(reference), structureDiff);
+
+                    // Если не будет нового конфликта по структуре и
+                    // если старый конфликт по структуре не устранён:
+                    return !(isAltered && isDisplayDamagedConflict(singletonList(reference), structureDiff))
+                            && hasAbsentPlaceholder(reference.getDisplayExpression(), newRefToStructure);
                 })
                 .map(conflict -> new RefBookConflictEntity(refFromEntity, newRefToEntity,
                         null, conflict.getRefFieldCode(), conflict.getConflictType()))
@@ -947,25 +947,22 @@ public class ConflictServiceImpl implements ConflictService {
      * @return Наличие конфликта
      */
     private static boolean isDisplayDamagedConflict(List<Structure.Reference> references, StructureDiff structureDiff) {
-        List<String> deletedAttributeCodes = structureDiff.getDeleted().stream()
-                .map(deleted -> deleted.getOldAttribute().getCode())
-                .collect(toList());
-        return isDisplayDamagedConflict(references, deletedAttributeCodes);
+
+        List<String> deletedCodes = getDeletedCodes(structureDiff);
+        return !StringUtils.isEmpty(deletedCodes)
+                && references.stream().anyMatch(reference -> containsAnyPlaceholder(reference.getDisplayExpression(), deletedCodes));
     }
 
     /**
-     * Проверка на наличие конфликта DISPLAY_DAMAGED.
+     * Получение кодов удалённых атрибутов.
      *
-     * @param references     список ссылок версии, которая ссылается
-     * @param attributeCodes список кодов атрибутов, влияющих на ссылки
-     * @return Наличие конфликта
+     * @param structureDiff различие в структурах версий
+     * @return Список кодов
      */
-    private static boolean isDisplayDamagedConflict(List<Structure.Reference> references, List<String> attributeCodes) {
-        return references.stream()
-                .anyMatch(reference -> {
-                    DisplayExpression expression = new DisplayExpression(reference.getDisplayExpression());
-                    return CollectionUtils.containsAny(attributeCodes, expression.getPlaceholders().keySet());
-                });
+    private static List<String> getDeletedCodes(StructureDiff structureDiff) {
+        return structureDiff.getDeleted().stream()
+                .map(deleted -> deleted.getOldAttribute().getCode())
+                .collect(toList());
     }
 
     /**
