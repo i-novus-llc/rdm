@@ -53,7 +53,7 @@ public interface RefBookModelDataRepository extends
             "             order by lv.from_date desc \n" +
             "             limit 1 )\n" +
             "   )\n" +
-            "  ) as last_has_data_conflict \n";
+            "  ) as last_has_conflict \n";
 
     /**
      * Проверка существования конфликтов.
