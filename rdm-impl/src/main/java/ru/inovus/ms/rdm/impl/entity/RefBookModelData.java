@@ -38,8 +38,8 @@ public class RefBookModelData {
     private Boolean hasStructureConflict;
 
     /** Наличие конфликта в последней опубликованной версии */
-    @Column(name = "last_has_data_conflict")
-    private Boolean lastHasDataConflict;
+    @Column(name = "last_has_conflict")
+    private Boolean lastHasConflict;
 
     public RefBookModelData() {
         // nothing to do.
@@ -101,11 +101,11 @@ public class RefBookModelData {
         this.hasStructureConflict = hasStructureConflict;
     }
 
-    public Boolean getLastHasDataConflict() {
-        return lastHasDataConflict;
+    public Boolean getLastHasConflict() {
+        return lastHasConflict;
     }
 
-    public void setLastHasDataConflict(Boolean lastHasDataConflict) {
-        this.lastHasDataConflict = lastHasDataConflict;
+    public void setLastHasConflict(Boolean lastHasConflict) {
+        this.lastHasConflict = lastHasConflict;
     }
 }
