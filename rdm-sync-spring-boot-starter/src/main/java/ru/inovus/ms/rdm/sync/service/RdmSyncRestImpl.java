@@ -4,6 +4,7 @@ import org.apache.cxf.jaxrs.utils.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,8 +30,13 @@ import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.Log;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
+import ru.inovus.ms.rdm.sync.service.throttle.Throttle;
+import ru.inovus.ms.rdm.sync.service.throttle.ThrottlingCompareService;
+import ru.inovus.ms.rdm.sync.service.throttle.ThrottlingRefBookService;
+import ru.inovus.ms.rdm.sync.service.throttle.ThrottlingVersionService;
 import ru.inovus.ms.rdm.sync.util.RefBookReferenceSort;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -70,6 +76,22 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     private RdmSyncDao dao;
 
     private RdmSyncRest self;
+
+    @Value("${rdm_sync.append.mode:false}")
+    private boolean appendMode;
+
+    @Value("${rdm_sync.request.delay_millis:-1}")
+    private long requestDelayMillis;
+
+    @PostConstruct
+    public void setupThrottlingProxies() {
+        if (requestDelayMillis > 0) {
+            Throttle throttle = new Throttle(requestDelayMillis);
+            this.refBookService = new ThrottlingRefBookService(throttle, refBookService);
+            this.versionService = new ThrottlingVersionService(throttle, versionService);
+            this.compareService = new ThrottlingCompareService(throttle, compareService);
+        }
+    }
 
     @Autowired
     public void setSelf(RdmSyncRest self) {
@@ -227,8 +249,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         } else if (INSERTED.equals(row.getStatus()) && !idExists) {
             dao.insertRow(versionMapping.getTable(), mappedRow, true);
         } else {
-            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, false, true);
-            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow, true);
+            updateRow(versionMapping, mappedRow, primaryValue);
         }
     }
 
@@ -288,11 +309,21 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         Object primaryValue = mappedRow.get(primaryField);
         if (existingDataIds.contains(primaryValue)) {
             //если запись существует, обновляем
-            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, false, true);
-            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow, true);
+            updateRow(versionMapping, mappedRow, primaryValue);
         } else {
             //создаем новую запись
             dao.insertRow(versionMapping.getTable(), mappedRow, true);
         }
     }
+
+    private void updateRow(VersionMapping versionMapping, Map<String, Object> mappedRow, Object primaryValue) {
+        if (appendMode) {
+            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, true, true);
+            dao.insertRow(versionMapping.getTable(), mappedRow, true);
+        } else {
+            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, false, true);
+            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow, true);
+        }
+    }
+
 }
