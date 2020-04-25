@@ -25,57 +25,57 @@ public class ThrottlingVersionService implements VersionService {
     }
 
     public Page<RefBookRowValue> search(Integer versionId, SearchDataCriteria criteria) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return versionService.search(versionId, criteria);
     }
 
     public Page<RefBookVersion> getVersions(VersionCriteria criteria) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return versionService.getVersions(criteria);
     }
 
     public RefBookVersion getById(Integer versionId) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return versionService.getById(versionId);
     }
 
     public RefBookVersion getVersion(String version, String refBookCode) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return versionService.getVersion(version, refBookCode);
     }
 
     public RefBookVersion getLastPublishedVersion(String refBookCode) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return versionService.getLastPublishedVersion(refBookCode);
     }
 
     public Page<RefBookRowValue> search(String refBookCode, LocalDateTime date, SearchDataCriteria criteria) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return versionService.search(refBookCode, date, criteria);
     }
 
     public Page<RefBookRowValue> search(String refBookCode, SearchDataCriteria criteria) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return versionService.search(refBookCode, criteria);
     }
 
     public Structure getStructure(Integer versionId) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return versionService.getStructure(versionId);
     }
 
     public ExportFile getVersionFile(Integer versionId, FileType fileType) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return versionService.getVersionFile(versionId, fileType);
     }
 
     public ExistsData existsData(List<String> rowIds) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return versionService.existsData(rowIds);
     }
 
     public RefBookRowValue getRow(String rowId) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return versionService.getRow(rowId);
     }
 

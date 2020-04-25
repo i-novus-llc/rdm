@@ -8,13 +8,13 @@ public class Throttle {
     private final Logger logger = LoggerFactory.getLogger(Throttle.class);
 
     private final long delayMillis;
-    private volatile long prevRequestMillis;
+    private long prevRequestMillis;
 
     public Throttle(long delayMillis) {
         this.delayMillis = delayMillis;
     }
 
-    synchronized void throttleAndUpdatePrevRequestTime() {
+    synchronized void throttleAndUpdateRequestTime() {
         if (prevRequestMillis == 0L) {
             prevRequestMillis = System.currentTimeMillis();
             return;

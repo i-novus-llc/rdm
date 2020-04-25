@@ -21,62 +21,62 @@ public class ThrottlingRefBookService implements RefBookService {
     }
 
     public Page<RefBook> search(RefBookCriteria criteria) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return refBookService.search(criteria);
     }
 
     public Page<RefBook> searchVersions(RefBookCriteria criteria) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return refBookService.searchVersions(criteria);
     }
 
     public RefBook getByVersionId(Integer versionId) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return refBookService.getByVersionId(versionId);
     }
 
     public String getCode(Integer refBookId) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return refBookService.getCode(refBookId);
     }
 
     public Integer getId(String refBookCode) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return refBookService.getId(refBookCode);
     }
 
     public RefBook create(RefBookCreateRequest refBookCreateRequest) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return refBookService.create(refBookCreateRequest);
     }
 
     public Draft create(FileModel fileModel) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return refBookService.create(fileModel);
     }
 
     public RefBook update(RefBookUpdateRequest refBookUpdateRequest) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return refBookService.update(refBookUpdateRequest);
     }
 
     public void delete(int refBookId) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         refBookService.delete(refBookId);
     }
 
     public void toArchive(int refBookId) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         refBookService.toArchive(refBookId);
     }
 
     public void fromArchive(int refBookId) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         refBookService.fromArchive(refBookId);
     }
 
     public void changeData(RdmChangeDataRequest request) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         refBookService.changeData(request);
     }
 

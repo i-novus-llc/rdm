@@ -20,27 +20,27 @@ public class ThrottlingCompareService implements CompareService {
     }
 
     public PassportDiff comparePassports(Integer oldVersionId, Integer newVersionId) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return compareService.comparePassports(oldVersionId, newVersionId);
     }
 
     public StructureDiff compareStructures(Structure oldStructure, Structure newStructure) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return compareService.compareStructures(oldStructure, newStructure);
     }
 
     public StructureDiff compareStructures(Integer oldVersionId, Integer newVersionId) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return compareService.compareStructures(oldVersionId, newVersionId);
     }
 
     public RefBookDataDiff compareData(CompareDataCriteria compareDataCriteria) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return compareService.compareData(compareDataCriteria);
     }
 
     public Page<ComparableRow> getCommonComparableRows(CompareDataCriteria criteria) {
-        throttle.throttleAndUpdatePrevRequestTime();
+        throttle.throttleAndUpdateRequestTime();
         return compareService.getCommonComparableRows(criteria);
     }
 
