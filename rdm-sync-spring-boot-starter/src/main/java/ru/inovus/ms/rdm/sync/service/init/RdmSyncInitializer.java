@@ -1,9 +1,6 @@
 package ru.inovus.ms.rdm.sync.service.init;
 
-import org.quartz.JobDetail;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.Trigger;
+import org.quartz.*;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +36,9 @@ class RdmSyncInitializer {
     @Value("${rdm_sync.export_from_local.scan_interval_seconds:1}")
     private Integer exportToRdmJobScanIntervalSeconds;
 
+    @Value("${rdm_sync.export_from_local.enabled:false}")
+    private boolean exportToRdmJobEnabled;
+
     @PostConstruct
     public void start() {
         mappingLoaderService.load();
@@ -54,14 +54,21 @@ class RdmSyncInitializer {
         if (!clusterLockService.tryLock())
             return;
         String jobGroup = "RDM_SYNC_INTERNAL";
+        JobKey jobKey = JobKey.jobKey(RdmSyncExportDirtyRecordsToRdmJob.JOB_NAME, jobGroup);
         try {
-            if (scheduler.getJobKeys(GroupMatcher.groupEquals(jobGroup)).isEmpty()) {
-                JobDetail exportToRdmJob = newJob(RdmSyncExportDirtyRecordsToRdmJob.class).
-                        withIdentity(RdmSyncExportDirtyRecordsToRdmJob.JOB_NAME, jobGroup).
-                        build();
-                Trigger exportToRdmTrigger = newTrigger().forJob(exportToRdmJob).startNow().withSchedule(repeatSecondlyForever(exportToRdmJobScanIntervalSeconds)).build();
-                scheduler.scheduleJob(exportToRdmJob, exportToRdmTrigger);
-                scheduler.triggerJob(exportToRdmJob.getKey());
+            if (exportToRdmJobEnabled) {
+                if (scheduler.getJobKeys(GroupMatcher.groupEquals(jobGroup)).isEmpty()) {
+                    JobDetail exportToRdmJob = newJob(RdmSyncExportDirtyRecordsToRdmJob.class).
+                            withIdentity(jobKey).
+                            build();
+                    Trigger exportToRdmTrigger = newTrigger().forJob(exportToRdmJob).startNow().withSchedule(repeatSecondlyForever(exportToRdmJobScanIntervalSeconds)).build();
+                    scheduler.scheduleJob(exportToRdmJob, exportToRdmTrigger);
+                    scheduler.triggerJob(exportToRdmJob.getKey());
+                }
+            } else {
+                List<? extends Trigger> triggersOfJob = scheduler.getTriggersOfJob(jobKey);
+                for (Trigger trigger : triggersOfJob)
+                    scheduler.unscheduleJob(trigger.getKey());
             }
         } catch (SchedulerException e) {
             logger.error("Cannot schedule {} job. All records in the {} state will remain in it.", RdmSyncExportDirtyRecordsToRdmJob.JOB_NAME, RdmSyncLocalRowState.DIRTY, e);

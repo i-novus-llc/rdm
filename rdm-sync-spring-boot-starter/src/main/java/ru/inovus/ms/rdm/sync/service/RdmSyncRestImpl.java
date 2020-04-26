@@ -4,6 +4,7 @@ import org.apache.cxf.jaxrs.utils.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,6 +71,9 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     private RdmSyncDao dao;
 
     private RdmSyncRest self;
+
+    @Value("${rdm_sync.append.mode:false}")
+    private boolean appendMode;
 
     @Autowired
     public void setSelf(RdmSyncRest self) {
@@ -227,8 +231,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         } else if (INSERTED.equals(row.getStatus()) && !idExists) {
             dao.insertRow(versionMapping.getTable(), mappedRow, true);
         } else {
-            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, false, true);
-            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow, true);
+            updateRow(versionMapping, mappedRow, primaryValue);
         }
     }
 
@@ -288,11 +291,21 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         Object primaryValue = mappedRow.get(primaryField);
         if (existingDataIds.contains(primaryValue)) {
             //если запись существует, обновляем
-            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, false, true);
-            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow, true);
+            updateRow(versionMapping, mappedRow, primaryValue);
         } else {
             //создаем новую запись
             dao.insertRow(versionMapping.getTable(), mappedRow, true);
         }
     }
+
+    private void updateRow(VersionMapping versionMapping, Map<String, Object> mappedRow, Object primaryValue) {
+        if (appendMode) {
+            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, true, true);
+            dao.insertRow(versionMapping.getTable(), mappedRow, true);
+        } else {
+            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, false, true);
+            dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow, true);
+        }
+    }
+
 }
