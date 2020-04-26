@@ -30,13 +30,8 @@ import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.Log;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
-import ru.inovus.ms.rdm.sync.service.throttle.Throttle;
-import ru.inovus.ms.rdm.sync.service.throttle.ThrottlingCompareService;
-import ru.inovus.ms.rdm.sync.service.throttle.ThrottlingRefBookService;
-import ru.inovus.ms.rdm.sync.service.throttle.ThrottlingVersionService;
 import ru.inovus.ms.rdm.sync.util.RefBookReferenceSort;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -79,19 +74,6 @@ public class RdmSyncRestImpl implements RdmSyncRest {
 
     @Value("${rdm_sync.append.mode:false}")
     private boolean appendMode;
-
-    @Value("${rdm_sync.request.delay_millis:-1}")
-    private long requestDelayMillis;
-
-    @PostConstruct
-    public void setupThrottlingProxies() {
-        if (requestDelayMillis > 0) {
-            Throttle throttle = new Throttle(requestDelayMillis);
-            this.refBookService = new ThrottlingRefBookService(throttle, refBookService);
-            this.versionService = new ThrottlingVersionService(throttle, versionService);
-            this.compareService = new ThrottlingCompareService(throttle, compareService);
-        }
-    }
 
     @Autowired
     public void setSelf(RdmSyncRest self) {
