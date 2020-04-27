@@ -93,6 +93,7 @@ public class StructureController {
         conflictCriteria.setReferrerVersionId(versionId);
         conflictCriteria.setRefFieldCode(fieldCode);
         conflictCriteria.setConflictTypes(ConflictUtils.getStructureConflictTypes());
+        conflictCriteria.setIsLastPublishedVersion(true);
         conflictCriteria.setPageSize(1);
 
         Page<RefBookConflict> conflicts = conflictService.search(conflictCriteria);
