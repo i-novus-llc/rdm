@@ -57,7 +57,7 @@
         </field>
 
         <field id="version.isLast" domain="boolean">
-            <select mapping="id == draftVersionId or (id == lastPublishedVersionId and draftVersionId == null)"/>
+            <select mapping="id == draftVersionId || (id == lastPublishedVersionId &amp;&amp; draftVersionId == null)"/>
         </field>
 
         <field id="version.hasDataConflict" domain="boolean">
