@@ -88,7 +88,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         for (String code : RefBookReferenceSort.getSortedCodes(refBooks)) {
             self.update(
                 refBooks.stream().filter(refBook -> refBook.getCode().equals(code)).findFirst().orElseThrow(),
-                versionMappings.stream().filter(versionMapping -> versionMapping.getCode().equals(code)).findFirst().orElseThrow()
+                    versionMappings.stream().filter(versionMapping -> versionMapping.getCode().equals(code)).findFirst().orElseThrow()
             );
         }
     }
@@ -138,6 +138,8 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         } finally {
             dao.enableInternalLocalRowStateUpdateTrigger(versionMapping.getTable());
         }
+        if (appendMode)
+            dao.deleteDuplicates(versionMapping, dao.getFieldMapping(versionMapping.getCode()));
     }
 
     @Override
@@ -262,6 +264,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     }
 
     private void uploadNew(VersionMapping versionMapping, RefBook newVersion) {
+        dao.markDeleted(versionMapping.getTable(), versionMapping.getDeletedField(), true, true); // Затираем все, что было
         List<FieldMapping> fieldMappings = dao.getFieldMapping(versionMapping.getCode());
         List<Object> existingDataIds = dao.getDataIds(versionMapping.getTable(),
                 fieldMappings.stream().filter(f -> f.getSysField().equals(versionMapping.getPrimaryField())).findFirst().orElse(null));

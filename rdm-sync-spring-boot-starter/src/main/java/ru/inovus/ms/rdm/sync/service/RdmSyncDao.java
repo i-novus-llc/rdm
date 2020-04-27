@@ -93,6 +93,8 @@ public interface RdmSyncDao {
      */
     void markDeleted(String table, String isDeletedField, boolean deleted, boolean markSynced);
 
+    void deleteDuplicates(VersionMapping versionMapping, List<FieldMapping> fieldMappings);
+
     void log(String status, String refbookCode, String oldVersion, String newVersion, String message, String stack);
 
     List<Log> getList(LocalDate date, String refbookCode);
