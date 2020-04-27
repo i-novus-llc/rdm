@@ -138,8 +138,6 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         } finally {
             dao.enableInternalLocalRowStateUpdateTrigger(versionMapping.getTable());
         }
-        if (appendMode)
-            dao.deleteDuplicates(versionMapping, dao.getFieldMapping(versionMapping.getCode()));
     }
 
     @Override
@@ -303,8 +301,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
 
     private void updateRow(VersionMapping versionMapping, Map<String, Object> mappedRow, Object primaryValue) {
         if (appendMode) {
-            dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, true, true);
-            dao.insertRow(versionMapping.getTable(), mappedRow, true);
+            dao.insertInAppendMode(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow);
         } else {
             dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, false, true);
             dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow, true);

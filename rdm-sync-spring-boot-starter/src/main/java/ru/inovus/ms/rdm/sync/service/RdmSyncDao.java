@@ -66,6 +66,8 @@ public interface RdmSyncDao {
      */
     void insertRow(String table, Map<String, Object> row, boolean markSynced);
 
+    void insertInAppendMode(String table, String primaryField, String isDeletedField, Map<String, Object> row);
+
     /**
      * Изменить строку в справочник клиента
      * @param table таблица справочника на стороне клиента
@@ -92,8 +94,6 @@ public interface RdmSyncDao {
      * @param deleted новое значение для поля isDeletedField
      */
     void markDeleted(String table, String isDeletedField, boolean deleted, boolean markSynced);
-
-    void deleteDuplicates(VersionMapping versionMapping, List<FieldMapping> fieldMappings);
 
     void log(String status, String refbookCode, String oldVersion, String newVersion, String message, String stack);
 

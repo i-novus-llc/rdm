@@ -25,7 +25,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static ru.inovus.ms.rdm.api.util.StringUtils.addDoubleQuotes;
@@ -178,6 +177,45 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     }
 
     @Override
+    public void insertInAppendMode(String table, String primaryField, String isDeletedField, Map<String, Object> row) {
+        Integer duplicateId = findDuplicateId(table, row);
+        if (duplicateId == null) {
+            Object primaryValue = row.get(primaryField);
+            markDeleted(table, primaryField, isDeletedField, primaryValue, true, true);
+            insertRow(table, row, true);
+        } else
+            unmarkDeleted(table, isDeletedField, duplicateId);
+    }
+
+    private void unmarkDeleted(String table, String isDeletedField, Integer duplicateId) {
+        jdbcTemplate.update(
+            format(
+                "UPDATE %s SET %s = :deleted, %s = %s WHERE id = :id",
+                table,
+                addDoubleQuotes(isDeletedField),
+                addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN),
+                addSingleQuotes(RdmSyncLocalRowState.SYNCED.name())
+            ),
+            Map.of("deleted", false, "id", duplicateId)
+        );
+    }
+
+    private Integer findDuplicateId(String table, Map<String, Object> row) {
+        List<Object> data = new ArrayList<>();
+        String criteria = row.entrySet().stream().map(e -> {
+            String key = addDoubleQuotes(e.getKey());
+            Object value = e.getValue();
+            if (value == null)
+                return key + " IS NULL ";
+            else {
+                data.add(value);
+                return key + " = ? ";
+            }
+        }).collect(Collectors.joining(" AND "));
+        return jdbcTemplate.getJdbcTemplate().queryForObject(format("SELECT id FROM %s WHERE %s", table, criteria), data.toArray(), Integer.class);
+    }
+
+    @Override
     public void updateRow(String table, String primaryField, String isDeletedField, Map<String, Object> row, boolean markSynced) {
         List<String> keys = new ArrayList<>();
         List<Object> data = new ArrayList<>();
@@ -233,32 +271,6 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
                 deleted
             );
         }
-    }
-
-    @Override
-    public void deleteDuplicates(VersionMapping versionMapping, List<FieldMapping> fieldMappings) {
-        String table = versionMapping.getTable();
-        String fields = Stream.concat(fieldMappings.stream().map(FieldMapping::getSysField), Stream.of(versionMapping.getDeletedField())).
-                map(StringUtils::addDoubleQuotes).
-                collect(Collectors.joining(", "));
-        String query =  "DELETE FROM %1$s\n" +
-                        "WHERE id IN (\n" +
-                        "    SELECT\n" +
-                        "        id\n" +
-                        "    FROM (\n" +
-                        "        SELECT\n" +
-                        "            id,\n" +
-                        "            ROW_NUMBER() OVER w AS rnum\n" +
-                        "        FROM %1$s\n" +
-                        "        WINDOW w AS (\n" +
-                        "            PARTITION BY %2$s\n" +
-                        "            ORDER BY id\n" +
-                        "        )\n" +
-                        " \n" +
-                        "    ) t\n" +
-                        "WHERE t.rnum > 1)";
-        query = format(query, table, fields);
-        jdbcTemplate.getJdbcTemplate().execute(query);
     }
 
     @Override
