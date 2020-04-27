@@ -178,7 +178,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     }
 
     @Override
-    public void insertInAppendMode(String table, String primaryField, String isDeletedField, Map<String, Object> row) {
+    public void updateInAppendMode(String table, String primaryField, String isDeletedField, Map<String, Object> row) {
         Integer duplicateId = findDuplicateId(table, primaryField, row);
         if (duplicateId == null) {
             Object primaryValue = row.get(primaryField);

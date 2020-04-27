@@ -301,7 +301,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
 
     private void updateRow(VersionMapping versionMapping, Map<String, Object> mappedRow, Object primaryValue) {
         if (appendMode) {
-            dao.insertInAppendMode(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow);
+            dao.updateInAppendMode(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow);
         } else {
             dao.markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), primaryValue, false, true);
             dao.updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), mappedRow, true);
