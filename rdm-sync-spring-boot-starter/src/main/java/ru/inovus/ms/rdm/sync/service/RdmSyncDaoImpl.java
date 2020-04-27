@@ -25,6 +25,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static ru.inovus.ms.rdm.api.util.StringUtils.addDoubleQuotes;
@@ -178,7 +179,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
 
     @Override
     public void insertInAppendMode(String table, String primaryField, String isDeletedField, Map<String, Object> row) {
-        Integer duplicateId = findDuplicateId(table, row);
+        Integer duplicateId = findDuplicateId(table, primaryField, row);
         if (duplicateId == null) {
             Object primaryValue = row.get(primaryField);
             markDeleted(table, primaryField, isDeletedField, primaryValue, true, true);
@@ -200,19 +201,28 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         );
     }
 
-    private Integer findDuplicateId(String table, Map<String, Object> row) {
-        List<Object> data = new ArrayList<>();
-        String criteria = row.entrySet().stream().map(e -> {
-            String key = addDoubleQuotes(e.getKey());
-            Object value = e.getValue();
-            if (value == null)
-                return key + " IS NULL ";
-            else {
-                data.add(value);
-                return key + " = ? ";
+    private Integer findDuplicateId(String table, String primaryField, Map<String, Object> row) {
+        final int numNonPrimaryFields = row.size() - 1;
+        Object primaryValue = row.get(primaryField);
+        String fields = Stream.concat(Stream.of("id"), row.keySet().stream()).filter(field -> !field.equals(primaryField)).map(StringUtils::addDoubleQuotes).collect(Collectors.joining(", "));
+        return jdbcTemplate.getJdbcTemplate().query(format("SELECT %s FROM %s WHERE %s = ?", fields, table, addDoubleQuotes(primaryField)), new Object[]{primaryValue}, resultSet -> {
+            try (resultSet) {
+                while (resultSet.next()) {
+                    boolean eq = true;
+                    for (int i = 1; i < numNonPrimaryFields + 1; i++) {
+                        String colName = resultSet.getMetaData().getColumnName(i + 1);
+                        Object colValue = resultSet.getObject(i + 1);
+                        if (!Objects.equals(row.get(colName), colValue)) {
+                            eq = false;
+                            break;
+                        }
+                    }
+                    if (eq)
+                        return resultSet.getInt(1);
+                }
             }
-        }).collect(Collectors.joining(" AND "));
-        return jdbcTemplate.getJdbcTemplate().queryForObject(format("SELECT id FROM %s WHERE %s", table, criteria), data.toArray(), Integer.class);
+            return null;
+        });
     }
 
     @Override
