@@ -333,8 +333,10 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     @SuppressWarnings("squid:S2259")
     public void changeData(RdmChangeDataRequest request) {
+
+        versionValidation.validateRefBookCodeExists(request.getRefBookCode());
+
         RefBookEntity refBook = refBookRepository.findByCode(request.getRefBookCode());
-        versionValidation.validateRefBookExists(refBook == null ? null : refBook.getId());
 
         refBookLockService.setRefBookUpdating(refBook.getId());
         try {
