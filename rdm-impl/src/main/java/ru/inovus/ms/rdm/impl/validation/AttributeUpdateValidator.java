@@ -50,12 +50,12 @@ public class AttributeUpdateValidator {
                 ))
             throw new IllegalArgumentException(ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE);
 
-        // проверка отсутствия пустых значений в поле при установке первичного ключа
-        if (!isUpdateValueNullOrEmpty(updateAttribute.getIsPrimary()) && updateAttribute.getIsPrimary().get()
-                && draftDataService.isFieldContainEmptyValues(storageCode, updateAttribute.getCode()))
-            throw new UserException(new Message(INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE, attribute.getName()));
+        if (updateAttribute.hasIsPrimary()) {
+            // Проверка отсутствия пустых значений в поле при установке первичного ключа
+            if (draftDataService.isFieldContainEmptyValues(storageCode, updateAttribute.getCode())) {
+                throw new UserException(new Message(INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE, attribute.getName()));
+            }
 
-        if (!isUpdateValueNullOrEmpty(updateAttribute.getIsPrimary()) && updateAttribute.getIsPrimary().get()) {
             validatePrimaryKeyUnique(storageCode, updateAttribute);
         }
 

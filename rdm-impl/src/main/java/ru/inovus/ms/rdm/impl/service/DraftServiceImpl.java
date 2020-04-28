@@ -609,7 +609,7 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateStructure(structure);
 
         //clear previous primary keys
-        if (BooleanUtils.isTrue(createAttribute.getAttribute().getIsPrimary()))
+        if (createAttribute.getAttribute().hasIsPrimary())
             structure.clearPrimary();
 
         Structure.Reference reference = createAttribute.getReference();
@@ -639,7 +639,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private void validateRequired(Structure.Attribute attribute, String storageCode, Structure structure) {
-        if (structure != null && structure.getAttributes() != null && attribute.getIsPrimary()) {
+        if (structure != null && structure.getAttributes() != null && attribute.hasIsPrimary()) {
             List<RowValue> data = searchDataService.getData(
                     new DataCriteria(storageCode, null, null, ConverterUtil.fields(structure), emptySet(), null)
             );
@@ -675,9 +675,7 @@ public class DraftServiceImpl implements DraftService {
         }
 
         //clear previous primary keys
-        if (updateAttribute.getIsPrimary() != null
-                && updateAttribute.getIsPrimary().isPresent()
-                && updateAttribute.getIsPrimary().get())
+        if (updateAttribute.hasIsPrimary())
             structure.clearPrimary();
 
         FieldType oldType = attribute.getType();
