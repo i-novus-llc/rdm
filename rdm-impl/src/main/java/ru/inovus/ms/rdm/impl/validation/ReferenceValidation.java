@@ -106,7 +106,7 @@ public class ReferenceValidation implements RdmValidation {
         validateData(draftDataCriteria, incorrectValues, referredEntity, referredField);
 
         return incorrectValues.stream()
-                .map(value -> new Message(INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE, draftAttribute.getDescription(), value))
+                .map(value -> new Message(INCONVERTIBLE_DATA_TYPES_EXCEPTION_CODE, draftAttribute.getName(), value))
                 .collect(toList());
     }
 
