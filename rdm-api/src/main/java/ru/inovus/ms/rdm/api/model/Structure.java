@@ -88,8 +88,8 @@ public class Structure implements Serializable {
             return;
         }
         attributes.forEach(a -> {
-            if (a.getIsPrimary())
-                a.setPrimary(false);
+            if (a.hasIsPrimary())
+                a.setPrimary(Boolean.FALSE);
         });
     }
 
@@ -155,7 +155,7 @@ public class Structure implements Serializable {
 
         public static Attribute buildPrimary(String code, String name, FieldType type, String description) {
             Attribute attribute = new Attribute();
-            attribute.setPrimary(true);
+            attribute.setPrimary(Boolean.TRUE);
             attribute.setCode(code);
             attribute.setName(name);
             attribute.setType(type);
@@ -165,7 +165,7 @@ public class Structure implements Serializable {
 
         public static Attribute build(String code, String name, FieldType type, String description) {
             Attribute attribute = new Attribute();
-            attribute.setPrimary(false);
+            attribute.setPrimary(Boolean.FALSE);
             attribute.setCode(code);
             attribute.setName(name);
             attribute.setType(type);
@@ -224,7 +224,11 @@ public class Structure implements Serializable {
                     Objects.equals(type, that.type);
         }
 
-        public Boolean isReferenceType() {
+        public boolean hasIsPrimary() {
+            return getIsPrimary() != null && getIsPrimary();
+        }
+
+        public boolean isReferenceType() {
             return FieldType.REFERENCE.equals(getType());
         }
 
