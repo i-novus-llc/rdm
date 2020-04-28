@@ -36,8 +36,7 @@ public class UpdateAttribute extends UpdatableDto {
         if (attribute.getName() != null)
             this.name = of(attribute.getName());
         this.type = attribute.getType();
-        if (attribute.getIsPrimary() != null)
-            this.isPrimary = of(attribute.getIsPrimary());
+        this.isPrimary = of(attribute.hasIsPrimary());
         if (attribute.getDescription() != null)
             setDescription(of(attribute.getDescription()));
 
@@ -124,7 +123,7 @@ public class UpdateAttribute extends UpdatableDto {
         this.displayExpression = displayExpression;
     }
 
-    public Boolean isReferenceType() {
+    public boolean isReferenceType() {
         return FieldType.REFERENCE.equals(getType());
     }
 }
