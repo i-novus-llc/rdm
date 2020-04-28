@@ -66,6 +66,8 @@ public interface RdmSyncDao {
      */
     void insertRow(String table, Map<String, Object> row, boolean markSynced);
 
+    void updateInAppendMode(String table, String primaryField, String isDeletedField, Map<String, Object> row);
+
     /**
      * Изменить строку в справочник клиента
      * @param table таблица справочника на стороне клиента
