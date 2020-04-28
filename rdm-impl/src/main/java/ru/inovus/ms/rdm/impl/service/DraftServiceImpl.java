@@ -4,6 +4,7 @@ import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
@@ -60,6 +61,8 @@ import java.util.function.*;
 import java.util.stream.Stream;
 
 import static java.util.Collections.*;
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.*;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 
@@ -606,11 +609,11 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateStructure(structure);
 
         //clear previous primary keys
-        if (createAttribute.getAttribute().getIsPrimary())
+        if (BooleanUtils.isTrue(createAttribute.getAttribute().getIsPrimary()))
             structure.clearPrimary();
 
         Structure.Reference reference = createAttribute.getReference();
-        boolean isReference = Objects.nonNull(reference) && !reference.isNull();
+        boolean isReference = nonNull(reference) && !reference.isNull();
         if (isReference != attribute.isReferenceType()) throw new IllegalArgumentException("Can not update structure, illegal create attribute");
 
         if (isReference) {
@@ -663,9 +666,9 @@ public class DraftServiceImpl implements DraftService {
         if (updateAttribute.isReferenceType()) {
             String newDisplayExpression = updateAttribute.getDisplayExpression().get();
             Structure.Reference reference = structure.getReference(updateAttribute.getCode());
-            String oldDisplayExpression = Objects.nonNull(reference) ? reference.getDisplayExpression() : null;
+            String oldDisplayExpression = nonNull(reference) ? reference.getDisplayExpression() : null;
 
-            if (Objects.isNull(oldDisplayExpression)
+            if (isNull(oldDisplayExpression)
                     || !oldDisplayExpression.equals(newDisplayExpression)) {
                 validateRef(newDisplayExpression, updateAttribute.getReferenceCode().get());
             }
@@ -731,7 +734,7 @@ public class DraftServiceImpl implements DraftService {
             else
                 structure.getReferences().add(reference);
 
-            if (Objects.isNull(oldDisplayExpression)
+            if (isNull(oldDisplayExpression)
                     || !oldDisplayExpression.equals(updateAttribute.getDisplayExpression().get())) {
                 refreshReferenceDisplayValues(draftEntity, reference);
             }
@@ -860,31 +863,20 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private void updateAttributeValidations(RefBookVersionEntity versionEntity,
-                                            RefBookVersionAttribute oldVersionAttribute,
-                                            RefBookVersionAttribute newVersionAttribute,
+                                            RefBookVersionAttribute oldAttribute,
+                                            RefBookVersionAttribute newAttribute,
                                             List<AttributeValidation> validations) {
 
-        String attributeCode = newVersionAttribute.getAttribute().getCode();
+        String attributeCode = newAttribute.getAttribute().getCode();
         Structure structure = versionEntity.getStructure();
 
         versionValidation.validateAttributeExists(versionEntity.getId(), structure, attributeCode);
 
         List<AttributeValidationEntity> validationEntities = validations.stream()
-                .map(validation -> new AttributeValidationEntity(versionEntity, attributeCode, validation.getType(),
-                        validation.valuesToString())).collect(toList());
+                .map(validation -> new AttributeValidationEntity(versionEntity, attributeCode, validation.getType(), validation.valuesToString()))
+                .collect(toList());
 
-        boolean skipReferenceValidation = false;
-        if (newVersionAttribute.getAttribute().isReferenceType()
-                && Objects.nonNull(newVersionAttribute.getReference())
-                && Objects.nonNull(oldVersionAttribute)
-                && oldVersionAttribute.getAttribute().isReferenceType()) {
-            skipReferenceValidation = Objects.nonNull(oldVersionAttribute.getReference())
-                    && !Objects.equals(newVersionAttribute.getReference().getDisplayExpression(),
-                    oldVersionAttribute.getReference().getDisplayExpression())
-                    && conflictRepository.existsByReferrerVersionIdAndRefFieldCodeAndConflictType(
-                            versionEntity.getId(), attributeCode, ConflictType.DISPLAY_DAMAGED);
-        }
-
+        boolean skipReferenceValidation = isReferenceValidationSkipped(versionEntity.getId(), oldAttribute, newAttribute);
         validateVersionData(versionEntity, skipReferenceValidation, validationEntities);
 
         deleteAttributeValidation(versionEntity.getId(), attributeCode, null);
@@ -892,6 +884,26 @@ public class DraftServiceImpl implements DraftService {
         attributeValidationRepository.saveAll(validationEntities);
 
         conflictRepository.deleteByReferrerVersionIdAndRefFieldCodeAndRefRecordIdIsNull(versionEntity.getId(), attributeCode);
+    }
+
+    /**
+     * Возможность отключения валидации данных для ссылочных значений
+     * из-за отсутствия ссылок, различия выражений или наличия конфликтов по структуре.
+     */
+    private boolean isReferenceValidationSkipped(Integer versionId,
+                                                 RefBookVersionAttribute oldAttribute,
+                                                 RefBookVersionAttribute newAttribute) {
+        if (newAttribute.hasReference() && nonNull(oldAttribute) && oldAttribute.hasReference()) {
+            if (newAttribute.equalsReferenceDisplayExpression(oldAttribute))
+                return false;
+
+            return BooleanUtils.isTrue(
+                    conflictRepository.hasReferrerConflict(versionId, newAttribute.getAttribute().getCode(),
+                            ConflictType.DISPLAY_DAMAGED, RefBookVersionStatus.PUBLISHED)
+            );
+        }
+
+        return false;
     }
 
     private void validateVersionData(RefBookVersionEntity versionEntity,
