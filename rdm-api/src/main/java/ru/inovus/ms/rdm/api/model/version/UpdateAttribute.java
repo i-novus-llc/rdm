@@ -123,6 +123,12 @@ public class UpdateAttribute extends UpdatableDto {
         this.displayExpression = displayExpression;
     }
 
+    public boolean hasIsPrimary() {
+        return getIsPrimary() != null
+                && getIsPrimary().isPresent()
+                && Boolean.TRUE.equals(getIsPrimary().get());
+    }
+
     public boolean isReferenceType() {
         return FieldType.REFERENCE.equals(getType());
     }
