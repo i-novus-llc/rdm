@@ -82,7 +82,7 @@
                     <!-- '.*_r$' паттерн названия кнопки, при котором обновляется виджет version_select -->
                     <!--см. RefreshTransformer-->
                     <!--to-do: сделать отдельную кнопку без рефреша для редактирования черновика-->
-                    <button label="Изменить" id="edit_r">
+                    <button label="Изменить" id="editPassport_r">
                         <invoke operation-id="edit" close-after-success="false" />
                     </button>
                 </toolbar>
@@ -107,7 +107,7 @@
                             </pre-filters>
                         </show-modal>
                     </button>
-                    <button label="Удалить" id="delete_r" color="danger" icon="fa fa-trash">
+                    <button label="Удалить" id="deleteAttribute_r" color="danger" icon="fa fa-trash">
                         <invoke operation-id="delete" close-after-success="false"/>
                     </button>
                 </toolbar>
