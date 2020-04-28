@@ -13,14 +13,34 @@ import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import java.util.Collection;
 import java.util.List;
 
+@SuppressWarnings("squid:S1214")
 public interface RefBookConflictRepository extends
         JpaRepository<RefBookConflictEntity, Integer>,
         QuerydslPredicateExecutor<RefBookConflictEntity> {
 
+    String AND_REFERRED_IS_LAST_WITH_STATUS =
+            "   and c.publishedVersion.fromDate = ( \n" +
+            "       select max(v.fromDate) \n" +
+            "         from RefBookVersionEntity v \n" +
+            "        where v.refBook.id = c.publishedVersion.refBook.id \n" +
+            "          and v.status = :status )\n";
+
     /**
-     * Проверка на конфликт заданного типа.
+     * Проверка на конфликт заданного типа у указанного справочника
+     * с последней опубликованной версией справочника для обновления ссылок.
      */
-    Boolean existsByReferrerVersionIdAndRefFieldCodeAndConflictType(Integer referrerVersionId, String refFieldCode, ConflictType conflictType);
+    @Query("select distinct true \n" +
+            "  from RefBookConflictEntity c \n" +
+            " where c.referrerVersion.id = :referrerVersionId \n" +
+            "   and c.refFieldCode = :refFieldCode \n" +
+            "   and c.conflictType = :conflictType \n" +
+            AND_REFERRED_IS_LAST_WITH_STATUS)
+    Boolean hasReferrerConflict(
+            @Param("referrerVersionId") Integer referrerVersionId,
+            @Param("refFieldCode") String refFieldCode,
+            @Param("conflictType") ConflictType conflictType,
+            @Param("status") RefBookVersionStatus status
+    );
 
     /**
      * Поиск записей данных с конфликтами указанного справочника
@@ -29,32 +49,22 @@ public interface RefBookConflictRepository extends
     @Query("select distinct c.refRecordId from RefBookConflictEntity c\n" +
             " where c.referrerVersion.id = :referrerVersionId\n" +
             "   and c.refRecordId in (:refRecordIds)" +
-            // NB: Last published versions only:
-            "   and c.publishedVersion.fromDate = (\n" +
-            "       select max(v.fromDate)\n" +
-            "         from RefBookVersionEntity v\n" +
-            "        where v.refBook.id = c.publishedVersion.refBook.id\n" +
-            "          and v.status = :status\n" +
-            "       )")
-    List<Long> findReferrerConflictedIds(@Param("referrerVersionId") Integer referrerVersionId,
-                                         @Param("refRecordIds") List<Long> refRecordIds,
-                                         @Param("status") RefBookVersionStatus status);
+            AND_REFERRED_IS_LAST_WITH_STATUS)
+    List<Long> findReferrerConflictedIds(
+            @Param("referrerVersionId") Integer referrerVersionId,
+            @Param("refRecordIds") List<Long> refRecordIds,
+            @Param("status") RefBookVersionStatus status
+    );
 
     /**
      * Поиск последних опубликованных версий справочников для обновления ссылок.
      */
-    @Query("select distinct c.publishedVersion\n" +
-            "  from RefBookConflictEntity c\n" +
-            " where c.referrerVersion.id = :referrerVersionId\n" +
-            "   and c.refFieldCode = :refFieldCode\n" +
-            "   and c.conflictType = :conflictType\n" +
-            // NB: Last published versions only:
-            "   and c.publishedVersion.fromDate = (\n" +
-            "       select max(v.fromDate)\n" +
-            "         from RefBookVersionEntity v\n" +
-            "        where v.refBook.id = c.publishedVersion.refBook.id\n" +
-            "          and v.status = :status\n" +
-            "       )")
+    @Query("select distinct c.publishedVersion \n" +
+            "  from RefBookConflictEntity c \n" +
+            " where c.referrerVersion.id = :referrerVersionId \n" +
+            "   and c.refFieldCode = :refFieldCode \n" +
+            "   and c.conflictType = :conflictType \n" +
+            AND_REFERRED_IS_LAST_WITH_STATUS)
     List<RefBookVersionEntity> findRefreshingPublishedVersions(
             @Param("referrerVersionId") Integer referrerVersionId,
             @Param("refFieldCode") String refFieldCode,
@@ -64,12 +74,12 @@ public interface RefBookConflictRepository extends
 
     @Modifying
     @Query(nativeQuery = true,
-            value = "insert into n2o_rdm_management.ref_book_conflict\n" +
-                    "      (referrer_id, published_id, ref_recordid,\n" +
-                    "       ref_field_code, conflict_type, creation_date)\n" +
-                    "select :newReferrerVersionId, published_id, ref_recordid,\n" +
-                    "       ref_field_code, conflict_type, creation_date\n" +
-                    "  from n2o_rdm_management.ref_book_conflict c\n" +
+            value = "insert into n2o_rdm_management.ref_book_conflict \n" +
+                    "      (referrer_id, published_id, ref_recordid, \n" +
+                    "       ref_field_code, conflict_type, creation_date) \n" +
+                    "select :newReferrerVersionId, published_id, ref_recordid, \n" +
+                    "       ref_field_code, conflict_type, creation_date \n" +
+                    "  from n2o_rdm_management.ref_book_conflict c \n" +
                     " where referrer_id = :oldReferrerVersionId")
     void copyByReferrerVersion(@Param("oldReferrerVersionId") Integer oldReferrerVersionId,
                                @Param("newReferrerVersionId") Integer newReferrerVersionId);
