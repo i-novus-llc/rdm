@@ -601,6 +601,7 @@ public class DraftServiceImpl implements DraftService {
 
         versionValidation.validateDraft(createAttribute.getVersionId());
         refBookLockService.validateRefBookNotBusyByVersionId(createAttribute.getVersionId());
+
         RefBookVersionEntity draftEntity = versionRepository.getOne(createAttribute.getVersionId());
         Structure structure = draftEntity.getStructure();
 
@@ -608,12 +609,15 @@ public class DraftServiceImpl implements DraftService {
         validateRequired(attribute, draftEntity.getStorageCode(), structure);
         versionValidation.validateStructure(structure);
 
-        //clear previous primary keys
-        if (createAttribute.getAttribute().hasIsPrimary())
+        // Clear previous primary keys:
+        if (attribute.hasIsPrimary())
             structure.clearPrimary();
 
         Structure.Reference reference = createAttribute.getReference();
-        boolean isReference = nonNull(reference) && !reference.isNull();
+        if (reference.isNull())
+            reference = null;
+
+        boolean isReference = nonNull(reference);
         if (isReference != attribute.isReferenceType()) throw new IllegalArgumentException("Can not update structure, illegal create attribute");
 
         if (isReference) {
@@ -622,31 +626,26 @@ public class DraftServiceImpl implements DraftService {
 
         draftDataService.addField(draftEntity.getStorageCode(), ConverterUtil.field(attribute));
 
-        if (structure == null) structure = new Structure();
+        if (structure == null)
+            structure = new Structure();
 
-        if (structure.getAttributes() == null) structure.setAttributes(new ArrayList<>());
-
-        structure.getAttributes().add(attribute);
-
-        if (isReference) {
-            if (structure.getReferences() == null)
-                structure.setReferences(new ArrayList<>());
-            structure.getReferences().add(reference);
-        }
+        structure.add(attribute, reference);
         draftEntity.setStructure(structure);
 
         auditStructureEdit(draftEntity, "create_attribute", createAttribute.getAttribute());
     }
 
     private void validateRequired(Structure.Attribute attribute, String storageCode, Structure structure) {
-        if (structure != null && structure.getAttributes() != null && attribute.hasIsPrimary()) {
-            List<RowValue> data = searchDataService.getData(
-                    new DataCriteria(storageCode, null, null, ConverterUtil.fields(structure), emptySet(), null)
-            );
-            if (!isEmpty(data)) {
-                throw new UserException(new Message("validation.required.err", attribute.getName()));
-            }
-        }
+
+        if (structure == null || structure.getAttributes() == null || !attribute.hasIsPrimary())
+            return;
+
+        List<RowValue> data = searchDataService.getData(
+                new DataCriteria(storageCode, null, null, ConverterUtil.fields(structure), emptySet(), null)
+        );
+
+        if (!isEmpty(data))
+            throw new UserException(new Message("validation.required.err", attribute.getName()));
     }
 
     @Override
@@ -733,7 +732,7 @@ public class DraftServiceImpl implements DraftService {
                 structure.getReferences().add(reference);
 
             if (isNull(oldDisplayExpression)
-                    || !oldDisplayExpression.equals(updateAttribute.getDisplayExpression().get())) {
+                    || !oldDisplayExpression.equals(reference.getDisplayExpression())) {
                 refreshReferenceDisplayValues(draftEntity, reference);
             }
 

@@ -100,6 +100,25 @@ public class Structure implements Serializable {
                 .collect(toList());
     }
 
+    public void add(Attribute attribute, Reference reference) {
+
+        if (attribute == null)
+            return;
+
+        if (getAttributes() == null)
+            setAttributes(new ArrayList<>());
+
+        getAttributes().add(attribute);
+
+        if (reference == null)
+            return;
+
+        if (getReferences() == null)
+            setReferences(new ArrayList<>());
+
+        getReferences().add(reference);
+    }
+
     /**
      * Получение всех ссылок на справочник с указанным кодом.
      *
@@ -391,5 +410,4 @@ public class Structure implements Serializable {
     public String toString() {
         return JsonUtil.getAsJson(this);
     }
-
 }
