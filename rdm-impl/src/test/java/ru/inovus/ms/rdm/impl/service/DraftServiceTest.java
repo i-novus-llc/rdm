@@ -411,7 +411,7 @@ public class DraftServiceTest {
         assertFalse(pks.contains(updateNameAttribute));
 
         // удаление первичности атрибута и проверка, что первичных нет
-        assertFalse(isEmpty(structure.getPrimary()));
+        assertFalse(structure.hasPrimary());
         pkAttribute.setPrimary(false);
         updateAttributeModel = new UpdateAttribute(updateAttributeModel.getVersionId(), pkAttribute, nullReference);
         draftService.updateAttribute(updateAttributeModel);

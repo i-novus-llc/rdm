@@ -619,7 +619,7 @@ public class DraftServiceImpl implements DraftService {
             throw new IllegalArgumentException("Can not update structure, illegal create attribute");
 
         if (isReference) {
-            validateReference(attribute, reference, structure);
+            validateReference(attribute, reference, structure, draftEntity.getRefBook().getCode());
         }
 
         draftDataService.addField(draftEntity.getStorageCode(), ConverterUtil.field(attribute));
@@ -672,7 +672,7 @@ public class DraftServiceImpl implements DraftService {
             reference = new Structure.Reference();
             updateAttribute.fillReference(reference);
 
-            validateReference(attribute, reference, structure);
+            validateReference(attribute, reference, structure, draftEntity.getRefBook().getCode());
         }
 
         try {
@@ -698,14 +698,16 @@ public class DraftServiceImpl implements DraftService {
         auditStructureEdit(draftEntity, "update_attribute", structure.getAttribute(updateAttribute.getCode()));
     }
 
-    private void validateReference(Structure.Attribute newAttribute, Structure.Reference newReference, Structure oldStructure) {
+    private void validateReference(Structure.Attribute newAttribute, Structure.Reference newReference,
+                                   Structure oldStructure, String refBookCode) {
 
-        if (newReference == null)
-            return;
+        if (newReference == null) return;
 
-        // TODO: EPMP-1180:
-        // Вставить проверку отсутствия первичного ключа в атрибуте.
-        // Вставить проверку наличия первичного ключа в структуре.
+        if (newAttribute.hasIsPrimary())
+            throw new UserException(new Message(VersionValidationImpl.REFERENCE_ATTRIBUTE_CANNOT_BE_PRIMARY_KEY_EXCEPTION_CODE, newAttribute.getName()));
+
+        if (!oldStructure.hasPrimary())
+            throw new UserException(new Message(VersionValidationImpl.REFERENCE_BOOK_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE, refBookCode));
 
         Structure.Reference oldReference = oldStructure.getReference(newReference.getAttribute());
         if (!StructureUtils.isDisplayExpressionEquals(oldReference, newReference)) {

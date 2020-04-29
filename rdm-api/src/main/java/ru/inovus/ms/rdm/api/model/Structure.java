@@ -100,6 +100,10 @@ public class Structure implements Serializable {
                 .collect(toList());
     }
 
+    public boolean hasPrimary() {
+        return attributes.stream().anyMatch(attribute -> attribute.isPrimary);
+    }
+
     public void add(Attribute attribute, Reference reference) {
 
         if (attribute == null)
@@ -273,6 +277,7 @@ public class Structure implements Serializable {
             return getIsPrimary() != null && getIsPrimary();
         }
 
+        @JsonIgnore
         public boolean isReferenceType() {
             return FieldType.REFERENCE.equals(getType());
         }
