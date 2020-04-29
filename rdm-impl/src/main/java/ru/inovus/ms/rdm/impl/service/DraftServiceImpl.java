@@ -633,15 +633,18 @@ public class DraftServiceImpl implements DraftService {
         auditStructureEdit(draftEntity, "create_attribute", createAttribute.getAttribute());
     }
 
+    /** Проверка наличия данных для добавляемого атрибута, обязательного к заполнению. */
     private void validateRequired(Structure.Attribute attribute, String storageCode, Structure structure) {
 
         if (structure == null || structure.getAttributes() == null || !attribute.hasIsPrimary())
             return;
 
-        List<RowValue> data = searchDataService.getData(
-                new DataCriteria(storageCode, null, null, ConverterUtil.fields(structure), emptySet(), null)
-        );
+        DataCriteria dataCriteria = new DataCriteria(storageCode, null, null, ConverterUtil.fields(structure), emptySet(), null);
+        dataCriteria.setCount(1);
+        dataCriteria.setPage(DataCriteria.MIN_PAGE);
+        dataCriteria.setSize(DataCriteria.MIN_SIZE);
 
+        Collection<RowValue> data = searchDataService.getPagedData(dataCriteria).getCollection();
         if (!isEmpty(data))
             throw new UserException(new Message("validation.required.err", attribute.getName()));
     }
@@ -664,7 +667,7 @@ public class DraftServiceImpl implements DraftService {
         updateAttribute.fillAttribute(attribute);
 
         // Clear previous primary keys:
-        if (attribute.hasIsPrimary())
+        if (updateAttribute.hasIsPrimary())
             structure.clearPrimary();
 
         Structure.Reference reference = null;
