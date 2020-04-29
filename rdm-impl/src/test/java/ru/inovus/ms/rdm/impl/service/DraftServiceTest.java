@@ -36,6 +36,7 @@ import ru.inovus.ms.rdm.api.model.version.UpdateAttribute;
 import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.FieldValueUtils;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
+import ru.inovus.ms.rdm.api.util.json.JsonUtil;
 import ru.inovus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.entity.PassportAttributeEntity;
@@ -60,7 +61,6 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertTrue;
-import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static ru.inovus.ms.rdm.api.model.version.UpdateValue.of;
@@ -130,7 +130,9 @@ public class DraftServiceTest {
     private static final String UPD_SUFFIX = "_upd";
     private static final String PK_SUFFIX = "_pk";
 
+    private static Structure.Attribute idAttribute;
     private static Structure.Attribute nameAttribute;
+    private static Structure.Attribute updateIdAttribute;
     private static Structure.Attribute updateNameAttribute;
     private static Structure.Attribute codeAttribute;
     private static Structure.Attribute pkAttribute;
@@ -142,8 +144,10 @@ public class DraftServiceTest {
     @BeforeClass
     public static void initialize() {
 
-        nameAttribute = Structure.Attribute.buildPrimary("name", "Наименование", FieldType.REFERENCE, "описание");
-        updateNameAttribute = Structure.Attribute.buildPrimary(nameAttribute.getCode(), nameAttribute.getName() + UPD_SUFFIX, FieldType.REFERENCE, nameAttribute.getDescription() + UPD_SUFFIX);
+        idAttribute = Structure.Attribute.buildPrimary("id", "Идентификатор", FieldType.INTEGER, "описание id");
+        nameAttribute = Structure.Attribute.build("name", "Наименование", FieldType.REFERENCE, "описание name");
+        updateIdAttribute = Structure.Attribute.buildPrimary(idAttribute.getCode(), idAttribute.getName() + UPD_SUFFIX, FieldType.INTEGER, idAttribute.getDescription() + UPD_SUFFIX);
+        updateNameAttribute = Structure.Attribute.build(nameAttribute.getCode(), nameAttribute.getName() + UPD_SUFFIX, FieldType.REFERENCE, nameAttribute.getDescription() + UPD_SUFFIX);
         codeAttribute = Structure.Attribute.buildPrimary("code", "Код", FieldType.STRING, "описание code");
         pkAttribute = Structure.Attribute.buildPrimary(nameAttribute.getCode() + PK_SUFFIX, nameAttribute.getName() + PK_SUFFIX, FieldType.STRING, nameAttribute.getDescription() + PK_SUFFIX);
 
@@ -330,10 +334,12 @@ public class DraftServiceTest {
 
     @Test
     public void testUpdateStructure() {
+
         RefBookVersionEntity draftVersion = createTestDraftVersionEntity();
         when(versionRepository.getOne(eq(draftVersion.getId()))).thenReturn(draftVersion);
         when(versionService.getStructure(eq(draftVersion.getId()))).thenReturn(draftVersion.getStructure());
-        doCallRealMethod().when(attributeUpdateValidator).validateUpdateAttribute(any(), any(), any());
+        doCallRealMethod().when(attributeUpdateValidator).validateUpdateAttribute(any(), any());
+        doCallRealMethod().when(attributeUpdateValidator).validateUpdateAttributeStorage(any(), any(), any());
 
         // добавление атрибута, получение структуры, проверка добавленного атрибута
 //        RefBookVersion referredVersion1 = new RefBookVersion();
@@ -341,10 +347,15 @@ public class DraftServiceTest {
 //        referredVersion1.setStructure(new Structure(singletonList(codeAttribute), null));
 //        when(versionService.getLastPublishedVersion(eq(referredVersion1.getCode()))).thenReturn(referredVersion1);
 
-        CreateAttribute createAttributeModel = new CreateAttribute(draftVersion.getId(), nameAttribute, nameReference);
+        when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>());
+
+        CreateAttribute createAttributeModel = new CreateAttribute(draftVersion.getId(), idAttribute, null);
+        draftService.createAttribute(createAttributeModel);
+
+        createAttributeModel = new CreateAttribute(draftVersion.getId(), nameAttribute, nameReference);
         draftService.createAttribute(createAttributeModel);
         Structure structure = versionService.getStructure(draftVersion.getId());
-        assertEquals(1, structure.getAttributes().size());
+        assertEquals(2, structure.getAttributes().size());
         assertEquals(nameAttribute, structure.getAttribute((nameAttribute.getCode())));
         assertEquals(nameReference, structure.getReference(nameAttribute.getCode()));
 
@@ -399,25 +410,32 @@ public class DraftServiceTest {
         assertEquals(updateNameReference, structure.getReference(updateAttributeModel.getCode()));
 
         // добавление нового первичного атрибута и проверка, что первичность предыдущего удалена
-        assertTrue(structure.getAttributes().stream().anyMatch(Structure.Attribute::getIsPrimary));
-        assertEquals(updateNameAttribute, structure.getAttributes().stream().filter(Structure.Attribute::getIsPrimary).findFirst().orElse(null));
+        updateAttributeModel = new UpdateAttribute(updateAttributeModel.getVersionId(), updateIdAttribute, null);
+        draftService.updateAttribute(updateAttributeModel);
+        assertEquals(updateIdAttribute, structure.getAttribute(updateAttributeModel.getCode()));
+
+        assertTrue(structure.getAttributes().stream().anyMatch(Structure.Attribute::hasIsPrimary));
+        assertEquals(updateIdAttribute, structure.getAttributes().stream().filter(Structure.Attribute::hasIsPrimary).findFirst().orElse(null));
+
         CreateAttribute primaryCreateAttributeModel = new CreateAttribute(draftVersion.getId(), pkAttribute, nullReference);
         draftService.createAttribute(primaryCreateAttributeModel);
 
         structure = versionService.getStructure(draftVersion.getId());
-        List<Structure.Attribute> pks = structure.getPrimary();
-        assertEquals(1, pks.size());
-        assertTrue(pks.contains(pkAttribute));
-        assertFalse(pks.contains(updateNameAttribute));
+        List<Structure.Attribute> primaries = structure.getPrimary();
+        assertEquals(1, primaries.size());
+        assertTrue(primaries.contains(pkAttribute));
+        assertFalse(primaries.contains(updateIdAttribute));
+
+        // удаление атрибута-ссылки для удаления первичности
+        draftService.deleteAttribute(draftVersion.getId(), nameAttribute.getCode());
 
         // удаление первичности атрибута и проверка, что первичных нет
-        assertFalse(structure.hasPrimary());
+        assertTrue(structure.hasPrimary());
         pkAttribute.setPrimary(false);
         updateAttributeModel = new UpdateAttribute(updateAttributeModel.getVersionId(), pkAttribute, nullReference);
         draftService.updateAttribute(updateAttributeModel);
         structure = versionService.getStructure(draftVersion.getId());
-        pks = structure.getPrimary();
-        assertEquals(0, pks.size());
+        assertFalse(structure.hasPrimary());
     }
 
     @Test

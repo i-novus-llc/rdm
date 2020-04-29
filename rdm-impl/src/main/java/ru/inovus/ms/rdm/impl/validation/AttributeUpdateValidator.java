@@ -38,7 +38,8 @@ public class AttributeUpdateValidator {
     }
 
     @SuppressWarnings({"squid:S1067", "squid:S3776"})
-    public void validateUpdateAttribute(UpdateAttribute updateAttribute, Structure.Attribute attribute, String storageCode) {
+    public void validateUpdateAttribute(UpdateAttribute updateAttribute, Structure.Attribute attribute) {
+
         if (attribute == null
                 || updateAttribute.getVersionId() == null
                 || updateAttribute.getType() == null)
@@ -49,6 +50,10 @@ public class AttributeUpdateValidator {
                         || (!attribute.isReferenceType() && isValidUpdateReferenceValues(updateAttribute, this::isUpdateValueNullOrEmpty))
                 ))
             throw new IllegalArgumentException(ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE);
+    }
+
+    @SuppressWarnings({"squid:S1067", "squid:S3776"})
+    public void validateUpdateAttributeStorage(UpdateAttribute updateAttribute, Structure.Attribute attribute, String storageCode) {
 
         if (updateAttribute.hasIsPrimary()) {
             // Проверка отсутствия пустых значений в поле при установке первичного ключа

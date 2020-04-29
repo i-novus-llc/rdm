@@ -26,5 +26,7 @@ public interface VersionValidation {
 
     void validateStructure(Structure structure);
 
+    void validateAttribute(Structure.Attribute attribute);
+
     void validateReference(Structure.Reference reference);
 }
