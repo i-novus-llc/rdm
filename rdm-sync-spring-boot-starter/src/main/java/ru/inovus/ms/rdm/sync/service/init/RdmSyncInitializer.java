@@ -39,10 +39,15 @@ class RdmSyncInitializer {
     @Value("${rdm_sync.export_from_local.enabled:false}")
     private boolean exportToRdmJobEnabled;
 
+    @Value("${rdm_sync.row_state.enabled:false}")
+    private boolean rowStateEnabled;
+
     @PostConstruct
     public void start() {
         mappingLoaderService.load();
-        addInternal();
+        if (rowStateEnabled) {
+            addInternal();
+        }
         if (scheduler != null) {
             self.setupJobs();
         } else
