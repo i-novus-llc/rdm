@@ -136,6 +136,15 @@ public class Structure implements Serializable {
         }
     }
 
+    public void remove(String attributeCode) {
+
+        Attribute attribute = getAttribute(attributeCode);
+
+        if (attribute.isReferenceType())
+            getReferences().remove(getReference(attributeCode));
+        getAttributes().remove(attribute);
+    }
+
     /**
      * Получение всех ссылок на справочник с указанным кодом.
      *

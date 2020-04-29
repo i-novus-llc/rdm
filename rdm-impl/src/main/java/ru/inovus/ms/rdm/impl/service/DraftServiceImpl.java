@@ -752,17 +752,18 @@ public class DraftServiceImpl implements DraftService {
 
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
         Structure structure = draftEntity.getStructure();
-        Structure.Attribute attribute = structure.getAttribute(attributeCode);
 
-        if (attribute.isReferenceType())
-            structure.getReferences().remove(structure.getReference(attributeCode));
-        structure.getAttributes().remove(attribute);
+        Structure.Attribute attribute = structure.getAttribute(attributeCode);
+        structure.remove(attributeCode);
+
         try {
             draftDataService.deleteField(draftEntity.getStorageCode(), attributeCode);
+
         } catch (RuntimeException e) {
             ErrorUtil.rethrowError(e);
         }
         attributeValidationRepository.deleteAll(attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attributeCode));
+
         auditStructureEdit(draftEntity, "delete_attribute", attribute);
     }
 
@@ -784,6 +785,7 @@ public class DraftServiceImpl implements DraftService {
     @Override
     @Transactional
     public void deleteAttributeValidation(Integer draftId, String attribute, AttributeValidationType type) {
+
         List<AttributeValidationEntity> validations;
         if (attribute == null) {
             versionValidation.validateDraftExists(draftId);
@@ -802,6 +804,7 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     public List<AttributeValidation> getAttributeValidations(Integer draftId, String attribute) {
+
         List<AttributeValidationEntity> validationEntities = (attribute == null)
                 ? attributeValidationRepository.findAllByVersionId(draftId)
                 : attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attribute);
