@@ -43,8 +43,8 @@ public class Structure implements Serializable {
         this.references = references == null ? new ArrayList<>(0) : references;
     }
 
-    public Structure(Structure other) {
-        this(other.getAttributes(), other.getReferences());
+    public Structure(Structure structure) {
+        this(structure.getAttributes(), structure.getReferences());
     }
 
     @JsonGetter
@@ -123,12 +123,21 @@ public class Structure implements Serializable {
         getReferences().add(reference);
     }
 
+    public void update(Attribute oldAttribute, Attribute newAttribute) {
+
+        if (oldAttribute == null || newAttribute == null)
+            return;
+
+        int index = getAttributes().indexOf(oldAttribute);
+        getAttributes().set(index, newAttribute);
+    }
+
     public void update(Reference oldReference, Reference newReference) {
 
         if (newReference != null) {
             if (oldReference != null) {
-                int referenceIndex = getReferences().indexOf(oldReference);
-                getReferences().set(referenceIndex, newReference);
+                int index = getReferences().indexOf(oldReference);
+                getReferences().set(index, newReference);
 
             } else {
                 getReferences().add(newReference);
@@ -201,6 +210,24 @@ public class Structure implements Serializable {
         /** Описание атрибута. */
         @ApiModelProperty("Описание атрибута")
         private String description;
+
+        public Attribute() {
+        }
+
+        public Attribute(Attribute attribute) {
+            this.code = attribute.code;
+            this.name = attribute.name;
+            this.type = attribute.type;
+            this.isPrimary = attribute.isPrimary;
+            this.description = attribute.description;
+        }
+
+        public static Attribute build(Attribute attribute) {
+            if (attribute != null)
+                return new Attribute(attribute);
+
+            return new Attribute();
+        }
 
         public static Attribute buildPrimary(String code, String name, FieldType type, String description) {
             Attribute attribute = new Attribute();
@@ -335,10 +362,21 @@ public class Structure implements Serializable {
         public Reference() {
         }
 
+        public Reference(Reference reference) {
+            this(reference.attribute, reference.referenceCode, reference.displayExpression);
+        }
+
         public Reference(String attribute, String referenceCode, String displayExpression) {
             this.attribute = attribute;
             this.referenceCode = referenceCode;
             this.displayExpression = displayExpression;
+        }
+
+        public static Reference build(Reference reference) {
+            if (reference != null)
+                return new Reference(reference);
+
+            return new Reference();
         }
 
         @JsonGetter

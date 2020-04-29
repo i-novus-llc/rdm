@@ -207,16 +207,28 @@ public class VersionValidationImpl implements VersionValidation {
      *
      * @param structure структура версии справочника
      */
+    @Override
     public void validateStructure(Structure structure) {
         if (structure == null
                 || structure.getAttributes() == null)
             return;
 
-        structure.getAttributes().forEach(attr -> NamingUtils.checkCode(attr.getCode()));
+        structure.getAttributes().forEach(this::validateAttribute);
     }
 
     /**
-     * Проверка ссылки перед добавлением в структуру.
+     * Проверка атрибута перед добавлением/изменением.
+     *
+     * @param attribute атрибут
+     */
+    @Override
+    public void validateAttribute(Structure.Attribute attribute) {
+
+        NamingUtils.checkCode(attribute.getCode());
+    }
+
+    /**
+     * Проверка атрибута-ссылки перед добавлением/изменением.
      *
      * @param reference атрибут-ссылка
      */
@@ -232,7 +244,7 @@ public class VersionValidationImpl implements VersionValidation {
 
         validateReferenceDisplayExpression(reference.getDisplayExpression(), referredEntity.getStructure());
 
-        if (referredEntity.getStructure().hasPrimary())
+        if (referredEntity.getStructure().getPrimary().size() != 1)
             throw new UserException(new Message(REFERRED_BOOK_MUST_HAVE_ONLY_ONE_PRIMARY_KEY_EXCEPTION_CODE, reference.getReferenceCode()));
     }
 
