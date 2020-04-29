@@ -119,6 +119,23 @@ public class Structure implements Serializable {
         getReferences().add(reference);
     }
 
+    public void update(Reference oldReference, Reference newReference) {
+
+        if (newReference != null) {
+            if (oldReference != null) {
+                int referenceIndex = getReferences().indexOf(oldReference);
+                getReferences().set(referenceIndex, newReference);
+
+            } else {
+                getReferences().add(newReference);
+
+            }
+
+        } else if (oldReference != null) {
+            getReferences().remove(oldReference);
+        }
+    }
+
     /**
      * Получение всех ссылок на справочник с указанным кодом.
      *

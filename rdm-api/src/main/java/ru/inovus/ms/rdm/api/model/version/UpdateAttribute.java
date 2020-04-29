@@ -5,6 +5,9 @@ import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.UpdatableDto;
 import ru.inovus.ms.rdm.api.util.TimeUtils;
 
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
 import static ru.inovus.ms.rdm.api.model.version.UpdateValue.of;
 
 public class UpdateAttribute extends UpdatableDto {
@@ -33,22 +36,19 @@ public class UpdateAttribute extends UpdatableDto {
 
         //attribute fields
         this.code = attribute.getCode();
-        if (attribute.getName() != null)
-            this.name = of(attribute.getName());
         this.type = attribute.getType();
-        this.isPrimary = of(attribute.hasIsPrimary());
-        if (attribute.getDescription() != null)
-            setDescription(of(attribute.getDescription()));
+
+        setUpdateValueIfPresent(attribute::getName, this::setName);
+        setUpdateValueIfPresent(attribute::getIsPrimary, this::setIsPrimary);
+        setUpdateValueIfPresent(attribute::getDescription, this::setDescription);
 
         //reference fields
         if (reference == null)
             return;
-        if (reference.getAttribute() != null)
-            this.attribute = of(reference.getAttribute());
-        if (reference.getReferenceCode() != null)
-            this.referenceCode = of(reference.getReferenceCode());
-        if (reference.getDisplayExpression() != null)
-            this.displayExpression = of(reference.getDisplayExpression());
+
+        setUpdateValueIfPresent(reference::getAttribute, this::setAttribute);
+        setUpdateValueIfPresent(reference::getReferenceCode, this::setReferenceCode);
+        setUpdateValueIfPresent(reference::getDisplayExpression, this::setDisplayExpression);
     }
 
     public Integer getVersionId() {
@@ -131,5 +131,37 @@ public class UpdateAttribute extends UpdatableDto {
 
     public boolean isReferenceType() {
         return FieldType.REFERENCE.equals(getType());
+    }
+
+    public void fillAttribute(Structure.Attribute attribute) {
+
+        setValueIfPresent(this::getName, attribute::setName);
+        setValueIfPresent(this::getDescription, attribute::setDescription);
+        setValueIfPresent(this::getIsPrimary, attribute::setPrimary);
+
+        attribute.setType(getType());
+    }
+
+    public void fillReference(Structure.Reference reference) {
+
+        setValueIfPresent(this::getAttribute, reference::setAttribute);
+        setValueIfPresent(this::getReferenceCode, reference::setReferenceCode);
+        setValueIfPresent(this::getDisplayExpression, reference::setDisplayExpression);
+    }
+
+    private static <T> void setValueIfPresent(Supplier<UpdateValue<T>> valueGetter, Consumer<T> valueSetter) {
+
+        UpdateValue<T> value = valueGetter.get();
+        if (value != null) {
+            valueSetter.accept(value.isPresent() ? value.get() : null);
+        }
+    }
+
+    private static <T> void setUpdateValueIfPresent(Supplier<T> valueGetter, Consumer<UpdateValue<T>> valueSetter) {
+
+        T value = valueGetter.get();
+        if (value != null) {
+            valueSetter.accept(of(value));
+        }
     }
 }
