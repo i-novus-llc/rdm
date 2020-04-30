@@ -29,7 +29,6 @@ import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static ru.inovus.ms.rdm.api.util.StringUtils.addDoubleQuotes;
-import static ru.inovus.ms.rdm.api.util.StringUtils.addSingleQuotes;
 import static ru.inovus.ms.rdm.sync.service.RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN;
 
 /**
@@ -167,10 +166,6 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
                 data.add(entry.getValue());
             }
         }
-        if (markSynced) {
-            keys += ", " + addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN);
-            values.add(addSingleQuotes(RdmSyncLocalRowState.SYNCED.name()));
-        }
         jdbcTemplate.getJdbcTemplate().update(
             format("insert into %s (%s) values(%s)", table, keys, String.join(",", values)),
             data.toArray()
@@ -191,13 +186,11 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     private void unmarkDeleted(String table, String isDeletedField, Integer duplicateId) {
         jdbcTemplate.update(
             format(
-                "UPDATE %s SET %s = :deleted, %s = %s WHERE id = :id",
+                "UPDATE %s SET %s = FALSE WHERE id = :id",
                 table,
-                addDoubleQuotes(isDeletedField),
-                addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN),
-                addSingleQuotes(RdmSyncLocalRowState.SYNCED.name())
+                addDoubleQuotes(isDeletedField)
             ),
-            Map.of("deleted", false, "id", duplicateId)
+            Map.of("id", duplicateId)
         );
     }
 
@@ -239,10 +232,6 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
             }
         }
         data.add(row.get(primaryField));
-        if (markSynced) {
-            keys.add(addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN) + " = ?");
-            data.add(RdmSyncLocalRowState.SYNCED.name());
-        }
         jdbcTemplate.getJdbcTemplate().update(
             format("update %s set %s where %s=?",table, String.join(",", keys), addDoubleQuotes(primaryField)),
             data.toArray()
@@ -251,36 +240,19 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
 
     @Override
     public void markDeleted(String table, String primaryField, String isDeletedField, Object primaryValue, boolean deleted, boolean markSynced) {
-        if (markSynced) {
-            jdbcTemplate.getJdbcTemplate().update(
-                format("update %s set %s=?, %s=? where %s=?", table, addDoubleQuotes(isDeletedField), addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), addDoubleQuotes(primaryField)),
-                deleted,
-                RdmSyncLocalRowState.SYNCED.name(),
-                primaryValue
-            );
-        } else {
-            jdbcTemplate.getJdbcTemplate().update(
-                format("update %s set %s=? where %s=?", table, addDoubleQuotes(isDeletedField), addDoubleQuotes(primaryField)),
-                deleted,
-                primaryValue
-            );
-        }
+        jdbcTemplate.getJdbcTemplate().update(
+            format("update %s set %s=? where %s=?", table, addDoubleQuotes(isDeletedField), addDoubleQuotes(primaryField)),
+            deleted,
+            primaryValue
+        );
     }
 
     @Override
     public void markDeleted(String table, String isDeletedField, boolean deleted, boolean markSynced) {
-        if (markSynced) {
-            jdbcTemplate.getJdbcTemplate().update(
-                format("update %s set %s=?, %s=?", table, addDoubleQuotes(isDeletedField), addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN)),
-                deleted,
-                RdmSyncLocalRowState.SYNCED.name()
-            );
-        } else {
-            jdbcTemplate.getJdbcTemplate().update(
-                format("update %s set %s=?", table, addDoubleQuotes(isDeletedField)),
-                deleted
-            );
-        }
+        jdbcTemplate.getJdbcTemplate().update(
+            format("update %s set %s=?", table, addDoubleQuotes(isDeletedField)),
+            deleted
+        );
     }
 
     @Override
