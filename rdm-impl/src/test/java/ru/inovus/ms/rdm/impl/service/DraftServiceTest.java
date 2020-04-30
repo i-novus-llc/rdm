@@ -36,7 +36,6 @@ import ru.inovus.ms.rdm.api.model.version.UpdateAttribute;
 import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.FieldValueUtils;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
-import ru.inovus.ms.rdm.api.util.json.JsonUtil;
 import ru.inovus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.entity.PassportAttributeEntity;
@@ -49,7 +48,7 @@ import ru.inovus.ms.rdm.impl.file.UploadFileTestData;
 import ru.inovus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
 import ru.inovus.ms.rdm.impl.repository.*;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
-import ru.inovus.ms.rdm.impl.validation.AttributeUpdateValidator;
+import ru.inovus.ms.rdm.impl.validation.StructureChangeValidator;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -122,7 +121,7 @@ public class DraftServiceTest {
     private AuditLogService auditLogService;
 
     @Mock
-    private AttributeUpdateValidator attributeUpdateValidator;
+    private StructureChangeValidator structureChangeValidator;
 
     @Mock
     private RefBookConflictRepository conflictRepository;
@@ -161,9 +160,9 @@ public class DraftServiceTest {
         reset(draftDataService, fileNameGenerator, fileGeneratorFactory);
         when(draftDataService.createDraft(anyList())).thenReturn(TEST_DRAFT_CODE_NEW);
 
-        FieldSetter.setField(attributeUpdateValidator, AttributeUpdateValidator.class.getDeclaredField("draftDataService"), draftDataService);
-        FieldSetter.setField(attributeUpdateValidator, AttributeUpdateValidator.class.getDeclaredField("searchDataService"), searchDataService);
-        FieldSetter.setField(attributeUpdateValidator, AttributeUpdateValidator.class.getDeclaredField("versionRepository"), versionRepository);
+        FieldSetter.setField(structureChangeValidator, StructureChangeValidator.class.getDeclaredField("draftDataService"), draftDataService);
+        FieldSetter.setField(structureChangeValidator, StructureChangeValidator.class.getDeclaredField("searchDataService"), searchDataService);
+        FieldSetter.setField(structureChangeValidator, StructureChangeValidator.class.getDeclaredField("versionRepository"), versionRepository);
     }
 
     @Test
@@ -339,8 +338,8 @@ public class DraftServiceTest {
         RefBookVersionEntity draftVersion = createTestDraftVersionEntity();
         when(versionRepository.getOne(eq(draftVersion.getId()))).thenReturn(draftVersion);
         when(versionService.getStructure(eq(draftVersion.getId()))).thenReturn(draftVersion.getStructure());
-        doCallRealMethod().when(attributeUpdateValidator).validateUpdateAttribute(any(), any());
-        doCallRealMethod().when(attributeUpdateValidator).validateUpdateAttributeStorage(any(), any(), any());
+        doCallRealMethod().when(structureChangeValidator).validateUpdateAttribute(any(), any());
+        doCallRealMethod().when(structureChangeValidator).validateUpdateAttributeStorage(any(), any(), any());
 
         // добавление атрибута, получение структуры, проверка добавленного атрибута
         //RefBookEntity referredBook1 = new RefBookEntity();
@@ -473,17 +472,17 @@ public class DraftServiceTest {
         long systemId = 123L;
         int notPrimaryInitValue = 667;
         int notPrimaryUpdatedValue = 668;
-        RowValue<Long> row = new RefBookRowValue();
+        RefBookRowValue row = new RefBookRowValue();
         row.setSystemId(systemId);
         row.setFieldValues(List.of(
                 FieldValueUtils.getFieldValueFromFieldType(primaryValue, primaryCode, primaryType),
                 new IntegerFieldValue(notPrimaryCode, notPrimaryInitValue))
         );
 
-        PageImpl page = new PageImpl<>(List.of(row));
-        CollectionPage pagedData = new CollectionPage();
+        PageImpl<RefBookRowValue> dataPage = new PageImpl<>(List.of(row));
+        CollectionPage<RowValue> pagedData = new CollectionPage<>();
         pagedData.init(1, List.of(row));
-        when(versionService.search(eq(draft.getId()), ArgumentMatchers.argThat(searchDataCriteria -> !searchDataCriteria.getAttributeFilter().isEmpty()))).thenReturn(page);
+        when(versionService.search(eq(draft.getId()), ArgumentMatchers.argThat(searchDataCriteria -> !searchDataCriteria.getAttributeFilter().isEmpty()))).thenReturn(dataPage);
 
         if (primaryType == FieldType.REFERENCE) {
             RefBookVersionEntity refToRefBookVersionEntity = new RefBookVersionEntity();
