@@ -160,6 +160,7 @@ public class DraftServiceTest {
     public void setUp() throws NoSuchFieldException {
         reset(draftDataService, fileNameGenerator, fileGeneratorFactory);
         when(draftDataService.createDraft(anyList())).thenReturn(TEST_DRAFT_CODE_NEW);
+
         FieldSetter.setField(attributeUpdateValidator, AttributeUpdateValidator.class.getDeclaredField("draftDataService"), draftDataService);
         FieldSetter.setField(attributeUpdateValidator, AttributeUpdateValidator.class.getDeclaredField("searchDataService"), searchDataService);
         FieldSetter.setField(attributeUpdateValidator, AttributeUpdateValidator.class.getDeclaredField("versionRepository"), versionRepository);
@@ -342,10 +343,13 @@ public class DraftServiceTest {
         doCallRealMethod().when(attributeUpdateValidator).validateUpdateAttributeStorage(any(), any(), any());
 
         // добавление атрибута, получение структуры, проверка добавленного атрибута
-//        RefBookVersion referredVersion1 = new RefBookVersion();
-//        referredVersion1.setCode("REF_801");
-//        referredVersion1.setStructure(new Structure(singletonList(codeAttribute), null));
-//        when(versionService.getLastPublishedVersion(eq(referredVersion1.getCode()))).thenReturn(referredVersion1);
+        //RefBookEntity referredBook1 = new RefBookEntity();
+        //referredBook1.setCode("REF_801");
+        //RefBookVersionEntity referredEntity1 = new RefBookVersionEntity();
+        //referredEntity1.setRefBook(referredBook1);
+        //referredEntity1.setStructure(new Structure(singletonList(codeAttribute), null));
+        //doCallRealMethod().when(versionValidation).validateReference(any());
+        //when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(referredEntity1.getRefBook().getCode()), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(referredEntity1);
 
         when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>());
 
@@ -360,10 +364,13 @@ public class DraftServiceTest {
         assertEquals(nameReference, structure.getReference(nameAttribute.getCode()));
 
         // изменение атрибута и проверка
-        RefBookVersion referredVersion2 = new RefBookVersion();
-        referredVersion2.setCode("REF_802");
-        referredVersion2.setStructure(new Structure(singletonList(codeAttribute), null));
-        when(versionService.getLastPublishedVersion(eq(referredVersion2.getCode()))).thenReturn(referredVersion2);
+        RefBookEntity referredBook2 = new RefBookEntity();
+        referredBook2.setCode("REF_802");
+        RefBookVersionEntity referredEntity2 = new RefBookVersionEntity();
+        referredEntity2.setRefBook(referredBook2);
+        referredEntity2.setStructure(new Structure(singletonList(codeAttribute), null));
+        //doCallRealMethod().when(versionValidation).validateReference(any());
+        //when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(referredEntity2.getRefBook().getCode()), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(referredEntity2);
 
         when(draftDataService.isUnique(eq(TEST_DRAFT_CODE), anyList())).thenReturn(true);
         UpdateAttribute updateAttributeModel = new UpdateAttribute(draftVersion.getId(), updateNameAttribute, nameReference);
