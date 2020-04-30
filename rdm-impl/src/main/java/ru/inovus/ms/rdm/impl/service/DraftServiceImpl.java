@@ -48,7 +48,7 @@ import ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates;
 import ru.inovus.ms.rdm.impl.repository.*;
 import ru.inovus.ms.rdm.impl.util.*;
 import ru.inovus.ms.rdm.impl.util.mappers.*;
-import ru.inovus.ms.rdm.impl.validation.AttributeUpdateValidator;
+import ru.inovus.ms.rdm.impl.validation.StructureChangeValidator;
 import ru.inovus.ms.rdm.impl.validation.TypeValidation;
 import ru.inovus.ms.rdm.impl.validation.VersionValidationImpl;
 
@@ -86,7 +86,7 @@ public class DraftServiceImpl implements DraftService {
 
     private PassportValueRepository passportValueRepository;
     private AttributeValidationRepository attributeValidationRepository;
-    private AttributeUpdateValidator attributeUpdateValidator;
+    private StructureChangeValidator structureChangeValidator;
 
     private AuditLogService auditLogService;
 
@@ -101,7 +101,7 @@ public class DraftServiceImpl implements DraftService {
                             VersionFileService versionFileService,
                             VersionValidation versionValidation,
                             PassportValueRepository passportValueRepository,
-                            AttributeValidationRepository attributeValidationRepository, AttributeUpdateValidator attributeUpdateValidator,
+                            AttributeValidationRepository attributeValidationRepository, StructureChangeValidator structureChangeValidator,
                             AuditLogService auditLogService) {
         this.versionRepository = versionRepository;
         this.conflictRepository = conflictRepository;
@@ -121,7 +121,7 @@ public class DraftServiceImpl implements DraftService {
 
         this.passportValueRepository = passportValueRepository;
         this.attributeValidationRepository = attributeValidationRepository;
-        this.attributeUpdateValidator = attributeUpdateValidator;
+        this.structureChangeValidator = structureChangeValidator;
 
         this.auditLogService = auditLogService;
     }
@@ -384,8 +384,10 @@ public class DraftServiceImpl implements DraftService {
         if (isEmpty(rows)) return emptyList();
 
         Set<String> attributeCodes = StructureUtils.getAttributeCodes(draftVersion.getStructure()).collect(toSet());
-        Stream<Row> stream = rows.stream()
-                .peek(row -> row.getData().entrySet().removeIf(entry -> !attributeCodes.contains(entry.getKey())));
+
+        Stream<Row> stream = rows.stream().peek(row ->
+                row.getData().entrySet().removeIf(entry -> !attributeCodes.contains(entry.getKey()))
+        );
         if (removeEvenIfSystemIdIsPresent)
             stream = stream.filter(row -> !RowUtils.isEmptyRow(row));
 
@@ -603,6 +605,8 @@ public class DraftServiceImpl implements DraftService {
         if (structure == null)
             structure = new Structure();
 
+        structureChangeValidator.validateCreateAttribute(createAttribute);
+
         Structure.Attribute attribute = createAttribute.getAttribute();
         validateAttribute(attribute, structure, draftEntity.getRefBook().getCode());
 
@@ -617,11 +621,7 @@ public class DraftServiceImpl implements DraftService {
         if (reference != null && reference.isNull())
             reference = null;
 
-        boolean isReference = reference != null;
-        if (isReference != attribute.isReferenceType())
-            throw new IllegalArgumentException("Can not update structure, illegal create attribute");
-
-        if (isReference) {
+        if (reference != null) {
             validateReference(attribute, reference, structure, draftEntity.getRefBook().getCode());
         }
 
@@ -666,7 +666,7 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateStructure(structure);
 
         Structure.Attribute oldAttribute = structure.getAttribute(updateAttribute.getCode());
-        attributeUpdateValidator.validateUpdateAttribute(updateAttribute, oldAttribute);
+        structureChangeValidator.validateUpdateAttribute(updateAttribute, oldAttribute);
 
         Structure.Attribute newAttribute = Structure.Attribute.build(oldAttribute);
         updateAttribute.fillAttribute(newAttribute);
@@ -684,7 +684,7 @@ public class DraftServiceImpl implements DraftService {
             validateReference(newAttribute, newReference, structure, draftEntity.getRefBook().getCode());
         }
 
-        attributeUpdateValidator.validateUpdateAttributeStorage(updateAttribute, oldAttribute, draftEntity.getStorageCode());
+        structureChangeValidator.validateUpdateAttributeStorage(updateAttribute, oldAttribute, draftEntity.getStorageCode());
 
         try {
             draftDataService.updateField(draftEntity.getStorageCode(), ConverterUtil.field(newAttribute));
