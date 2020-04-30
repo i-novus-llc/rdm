@@ -546,7 +546,7 @@ public class DraftServiceImpl implements DraftService {
 
         // Нельзя просто передать draftVersion, так как в аудите подтягиваются значения паспорта справочника
         // (а у них lazy-инициализация), поэтому нужна транзакция (которой в этом методе нет).
-        auditLogService.addAction(AuditAction.UPLOAD_DATA, () -> versionRepository.findById(draftId).get());
+        auditLogService.addAction(AuditAction.UPLOAD_DATA, () -> versionRepository.findById(draftId).orElse(null));
     }
 
     @Override

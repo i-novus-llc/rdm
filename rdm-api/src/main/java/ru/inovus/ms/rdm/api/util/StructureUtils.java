@@ -25,12 +25,11 @@ public class StructureUtils {
     }
 
     /** Сравнение displayExpression двух ссылок. */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean isDisplayExpressionEquals(Structure.Reference reference1,
                                                     Structure.Reference reference2) {
         return reference1 != null && reference2 != null
-                // Не object.equals, т.к. поле обязательно к заполнению:
-                && reference1.getDisplayExpression() != null
-                && reference1.getDisplayExpression().equals(reference2.getDisplayExpression());
+                && Objects.equals(reference1.getDisplayExpression(), reference2.getDisplayExpression());
     }
 
     /**
