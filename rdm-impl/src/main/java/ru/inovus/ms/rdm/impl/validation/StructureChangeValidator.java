@@ -26,8 +26,8 @@ public class StructureChangeValidator {
 
     private static final String ILLEGAL_CREATE_ATTRIBUTE_EXCEPTION_CODE = "Can not update structure, illegal creating value for attribute";
     private static final String ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE = "Can not update structure, illegal updating value for attribute";
-    private static final String INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE = "incompatible.new.structure";
-    private static final String INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE = "incompatible.new.type";
+    private static final String ATTRIBUTE_PRIMARY_INCOMPATIBLE_WITH_DATA_EXCEPTION_CODE = "attribute.primary.incompatible.with.data";
+    private static final String ATTRIBUTE_TYPE_INCOMPATIBLE_WITH_DATA_EXCEPTION_CODE = "attribute.type.incompatible.with.data";
 
     private DraftDataService draftDataService;
     private SearchDataService searchDataService;
@@ -73,7 +73,7 @@ public class StructureChangeValidator {
         if (updateAttribute.hasIsPrimary()) {
             // Проверка отсутствия пустых значений в поле при установке первичного ключа
             if (draftDataService.isFieldContainEmptyValues(storageCode, updateAttribute.getCode())) {
-                throw new UserException(new Message(INCOMPATIBLE_NEW_STRUCTURE_EXCEPTION_CODE, attribute.getName()));
+                throw new UserException(new Message(ATTRIBUTE_PRIMARY_INCOMPATIBLE_WITH_DATA_EXCEPTION_CODE, attribute.getName()));
             }
 
             validatePrimaryKeyUnique(storageCode, updateAttribute);
@@ -83,7 +83,7 @@ public class StructureChangeValidator {
         // Если столбец пустой - можно изменить тип.
         if (draftDataService.isFieldNotEmpty(storageCode, updateAttribute.getCode())) {
             if (!isCompatibleTypes(attribute.getType(), updateAttribute.getType())) {
-                throw new UserException(new Message(INCOMPATIBLE_NEW_TYPE_EXCEPTION_CODE, attribute.getName()));
+                throw new UserException(new Message(ATTRIBUTE_TYPE_INCOMPATIBLE_WITH_DATA_EXCEPTION_CODE, attribute.getName()));
             }
         } else
             return;
