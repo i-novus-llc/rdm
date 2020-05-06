@@ -39,8 +39,8 @@ public class Structure implements Serializable {
     }
 
     public Structure(List<Attribute> attributes, List<Reference> references) {
-        this.attributes = getList(attributes);
-        this.references = getList(references);
+        this.attributes = getOrCreateList(attributes);
+        this.references = getOrCreateList(references);
     }
 
     public Structure(Structure structure) {
@@ -53,7 +53,7 @@ public class Structure implements Serializable {
     }
 
     public void setAttributes(List<Attribute> attributes) {
-        this.attributes = getList(attributes);
+        this.attributes = getOrCreateList(attributes);
     }
 
     @JsonGetter
@@ -62,7 +62,7 @@ public class Structure implements Serializable {
     }
 
     public void setReferences(List<Reference> references) {
-        this.references = getList(references);
+        this.references = getOrCreateList(references);
     }
 
     public Attribute getAttribute(String code) {
@@ -110,7 +110,7 @@ public class Structure implements Serializable {
             return;
 
         if (getAttributes() == null)
-            setAttributes(getList(null));
+            setAttributes(getOrCreateList(null));
 
         getAttributes().add(attribute);
 
@@ -118,7 +118,7 @@ public class Structure implements Serializable {
             return;
 
         if (getReferences() == null)
-            setReferences(getList(null));
+            setReferences(getOrCreateList(null));
 
         getReferences().add(reference);
     }
@@ -155,6 +155,7 @@ public class Structure implements Serializable {
 
         if (attribute.isReferenceType())
             getReferences().remove(getReference(attributeCode));
+
         getAttributes().remove(attribute);
     }
 
@@ -188,7 +189,7 @@ public class Structure implements Serializable {
                 .collect(toList());
     }
 
-    private static <T> List<T> getList(List<T> list) {
+    private static <T> List<T> getOrCreateList(List<T> list) {
         return list == null ? new ArrayList<>(0) : list;
     }
 
