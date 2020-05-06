@@ -56,7 +56,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.function.*;
-import java.util.stream.Stream;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
@@ -387,13 +386,13 @@ public class DraftServiceImpl implements DraftService {
 
         Set<String> attributeCodes = StructureUtils.getAttributeCodes(draftVersion.getStructure()).collect(toSet());
 
-        Stream<Row> stream = rows.stream().peek(row ->
-                row.getData().entrySet().removeIf(entry -> !attributeCodes.contains(entry.getKey()))
-        );
-        if (removeEvenIfSystemIdIsPresent)
-            stream = stream.filter(row -> !RowUtils.isEmptyRow(row));
+        // Исключение полей, не соответствующих атрибутам структуры
+        rows.forEach(row -> row.getData().entrySet().removeIf(entry -> !attributeCodes.contains(entry.getKey())));
 
-        rows = stream.collect(toList());
+        if (removeEvenIfSystemIdIsPresent) {
+            rows = rows.stream().filter(row -> !RowUtils.isEmptyRow(row)).collect(toList());
+        }
+
         if (isEmpty(rows)) return emptyList();
 
         validateTypeSafety(rows, draftVersion.getStructure());
