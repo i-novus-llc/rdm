@@ -500,6 +500,10 @@ public class ApplicationTest {
         structure = createTestStructureWithReferenceType();
         structure.setAttributes(structure.getPrimary());
         failDraftReferrerCreate(structure, "reference.attribute.not.found");
+
+        structure = createTestStructureWithReferenceType();
+        structure.getAttribute(structure.getReferences().get(0).getAttribute()).setPrimary(Boolean.TRUE);
+        failDraftReferrerCreate(structure, "reference.attribute.cannot.be.primary.key");
     }
 
     private void failDraftReferrerCreate(Structure structure, String message) {
@@ -1394,6 +1398,24 @@ public class ApplicationTest {
         rowValues = versionService.search(draft.getId(), new SearchDataCriteria(null, null)).getContent();
         assertTrue(rowValues.get(0).getFieldValue("float") instanceof FloatFieldValue);
 
+    }
+
+    /**
+     * Тест на изменение структуры черновика с данными
+     * <p>
+     * Создаем новый черновик с ссылкой на опубликованную версию
+     * Добавляем в версию наполнение
+     * Пытаемся изменить тип атрибута с любого на любой
+     * Без ошибок изменяется только тип поля string -> любой -> string. Возвращаются данные измененного типа
+     * В остальных случаях ожидается ошибка
+     */
+    //@Test
+    public void testCreateUpdateReference() {
+        RefBookCreateRequest refBookCreate = new RefBookCreateRequest(ALL_TYPES_REF_BOOK_CODE + "_with_ref", new HashMap<>());
+        RefBook refBook = refBookService.create(refBookCreate);
+
+        Structure structure = createTestStructureWithReferenceType();
+        Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), structure));
     }
 
     /*

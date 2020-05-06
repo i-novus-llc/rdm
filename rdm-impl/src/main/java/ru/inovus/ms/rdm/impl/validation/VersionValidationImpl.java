@@ -278,6 +278,8 @@ public class VersionValidationImpl implements VersionValidation {
         if (attribute == null)
             throw new NotFoundException(new Message(REFERENCE_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, reference.getAttribute()));
 
+        if (attribute.hasIsPrimary())
+            throw new UserException(new Message(REFERENCE_ATTRIBUTE_CANNOT_BE_PRIMARY_KEY_EXCEPTION_CODE, attribute.getName()));
     }
     /**
      * Проверка ссылочности перед добавлением/изменением.
