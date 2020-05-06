@@ -39,8 +39,8 @@ public class Structure implements Serializable {
     }
 
     public Structure(List<Attribute> attributes, List<Reference> references) {
-        this.attributes = attributes == null ? new ArrayList<>(0) : attributes;
-        this.references = references == null ? new ArrayList<>(0) : references;
+        this.attributes = getList(attributes);
+        this.references = getList(references);
     }
 
     public Structure(Structure structure) {
@@ -53,7 +53,7 @@ public class Structure implements Serializable {
     }
 
     public void setAttributes(List<Attribute> attributes) {
-        this.attributes = attributes;
+        this.attributes = getList(attributes);
     }
 
     @JsonGetter
@@ -62,7 +62,7 @@ public class Structure implements Serializable {
     }
 
     public void setReferences(List<Reference> references) {
-        this.references = references;
+        this.references = getList(references);
     }
 
     public Attribute getAttribute(String code) {
@@ -110,7 +110,7 @@ public class Structure implements Serializable {
             return;
 
         if (getAttributes() == null)
-            setAttributes(new ArrayList<>());
+            setAttributes(getList(null));
 
         getAttributes().add(attribute);
 
@@ -118,7 +118,7 @@ public class Structure implements Serializable {
             return;
 
         if (getReferences() == null)
-            setReferences(new ArrayList<>());
+            setReferences(getList(null));
 
         getReferences().add(reference);
     }
@@ -186,6 +186,10 @@ public class Structure implements Serializable {
         return getRefCodeReferences(referenceCode).stream()
                 .map(ref -> getAttribute(ref.getAttribute()))
                 .collect(toList());
+    }
+
+    private static <T> List<T> getList(List<T> list) {
+        return list == null ? new ArrayList<>(0) : list;
     }
 
     @ApiModel("Атрибут справочника")

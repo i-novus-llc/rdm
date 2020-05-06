@@ -110,11 +110,11 @@ public class ReferenceValidation implements RdmValidation {
                 .collect(toList());
     }
 
-    // NB: Странный проход по страницам.
+    // NB: Странный рекурсивный проход по страницам.
     private void validateData(DataCriteria draftDataCriteria, List<String> incorrectValues,
                               RefBookVersionEntity referredEntity, Field referredField) {
         CollectionPage<RowValue> draftRowValues = searchDataService.getPagedData(draftDataCriteria);
-        // значения, которые приведены к типу атрибута из ссылки
+        // Значения, которые приведены к типу атрибута из ссылки
         List<Object> castedValues = new ArrayList<>();
 
         (draftRowValues.getCollection()).forEach(rowValue -> {

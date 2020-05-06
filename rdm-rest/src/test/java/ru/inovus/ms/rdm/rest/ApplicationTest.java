@@ -561,7 +561,7 @@ public class ApplicationTest {
         assertEquals(0, draftService.search(versionId, new SearchDataCriteria()).getContent().size());
 
         // создание строки
-        Row row = createRowWithSimpleTypesOnly("string", BigInteger.valueOf(1), DATE_STR, true, 1.1);
+        Row row = createRowWithSimpleTypesOnly("string", BigInteger.valueOf(1L), DATE_STR, true, 1.1);
         draftService.updateData(versionId, row);
 
         Long systemId = 1L;
@@ -590,8 +590,8 @@ public class ApplicationTest {
         assertEquals(0, actualRowValues.getContent().size());
 
         // создание двух строк
-        Row row1 = createRowWithSimpleTypesOnly("string1", BigInteger.valueOf(1), null, null, null);
-        Row row2 = createRowWithSimpleTypesOnly("string2", BigInteger.valueOf(2), null, null, null);
+        Row row1 = createRowWithSimpleTypesOnly("string1", BigInteger.valueOf(1L), null, null, null);
+        Row row2 = createRowWithSimpleTypesOnly("string2", BigInteger.valueOf(2L), null, null, null);
         draftService.updateData(versionId, row1);
         draftService.updateData(versionId, row2);
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
@@ -615,7 +615,7 @@ public class ApplicationTest {
         assertEquals(0, actualRowValues.getContent().size());
 
         // создание невалидной строки
-        Row badRow = createRowWithSimpleTypesOnly("string", BigInteger.valueOf(1), DATE_STR, true, 1.1);
+        Row badRow = createRowWithSimpleTypesOnly("string", BigInteger.valueOf(1L), DATE_STR, true, 1.1);
         badRow.getData().replace("integer", "abc");
         try {
             draftService.updateData(versionId, badRow);
@@ -627,8 +627,8 @@ public class ApplicationTest {
         }
 
         // создание двух строк одновременно
-        row1 = createRowWithSimpleTypesOnly("string11", BigInteger.valueOf(11), null, null, null);
-        row2 = createRowWithSimpleTypesOnly("string22", BigInteger.valueOf(22), null, null, null);
+        row1 = createRowWithSimpleTypesOnly("string11", BigInteger.valueOf(11L), null, null, null);
+        row2 = createRowWithSimpleTypesOnly("string22", BigInteger.valueOf(22L), null, null, null);
         draftService.updateData(versionId, asList(row1, row2));
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertEquals(2, actualRowValues.getContent().size());
@@ -641,7 +641,7 @@ public class ApplicationTest {
 
         // создание третьей строки и изменение второй одновременно
         row2.getData().replace("float", 2.2);
-        Row row3 = createRowWithSimpleTypesOnly("string33", BigInteger.valueOf(33), null, null, null);
+        Row row3 = createRowWithSimpleTypesOnly("string33", BigInteger.valueOf(33L), null, null, null);
         draftService.updateData(versionId, asList(row2, row3));
 
         systemId++; // for row3
@@ -698,7 +698,7 @@ public class ApplicationTest {
         assertEquals(0, draftService.search(versionId, new SearchDataCriteria()).getContent().size());
 
         // создание строки
-        Row row = createRowWithReferenceType(BigInteger.valueOf(1), "string", "2");
+        Row row = createRowWithReferenceType(BigInteger.valueOf(1L), "string", "2");
         draftService.updateData(versionId, row);
 
         Long systemId = 1L;
@@ -727,8 +727,8 @@ public class ApplicationTest {
         assertEquals(0, actualRowValues.getContent().size());
 
         // создание двух строк
-        Row row1 = createRowWithReferenceType(BigInteger.valueOf(1), "string1", null);
-        Row row2 = createRowWithReferenceType(BigInteger.valueOf(2), "string2", null);
+        Row row1 = createRowWithReferenceType(BigInteger.valueOf(1L), "string1", null);
+        Row row2 = createRowWithReferenceType(BigInteger.valueOf(2L), "string2", null);
         draftService.updateData(versionId, row1);
         draftService.updateData(versionId, row2);
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
@@ -752,8 +752,8 @@ public class ApplicationTest {
         assertEquals(0, actualRowValues.getContent().size());
 
         // создание двух строк одновременно
-        row1 = createRowWithReferenceType(BigInteger.valueOf(11), "string11", null);
-        row2 = createRowWithReferenceType(BigInteger.valueOf(22), "string22", null);
+        row1 = createRowWithReferenceType(BigInteger.valueOf(11L), "string11", null);
+        row2 = createRowWithReferenceType(BigInteger.valueOf(22L), "string22", null);
         draftService.updateData(versionId, asList(row1, row2));
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertEquals(2, actualRowValues.getContent().size());
@@ -766,7 +766,7 @@ public class ApplicationTest {
 
         // создание третьей строки и изменение второй одновременно
         row2.getData().replace("string", "string.2.2");
-        Row row3 = createRowWithReferenceType(BigInteger.valueOf(33), "string33", null);
+        Row row3 = createRowWithReferenceType(BigInteger.valueOf(33L), "string33", null);
         draftService.updateData(versionId, asList(row2, row3));
 
         systemId++; // for row3
@@ -829,7 +829,7 @@ public class ApplicationTest {
         publishService.publish(oldVersionId, "1.0", LocalDateTime.now(), null, false);
 
         Map<String, Object> rowMap = new HashMap<>(){{
-            put(id.getCode(), BigInteger.valueOf(1));
+            put(id.getCode(), BigInteger.valueOf(1L));
             put(code.getCode(), "001");
             put(common.getCode(), "c1");
             put(descr.getCode(), "descr1");
@@ -893,7 +893,7 @@ public class ApplicationTest {
 
         Set<List<AttributeFilter>> filters = new HashSet<>(){{
             add(asList(
-                    new AttributeFilter(id.getCode(), BigInteger.valueOf(1), id.getType()),
+                    new AttributeFilter(id.getCode(), BigInteger.valueOf(1L), id.getType()),
                     new AttributeFilter(code.getCode(), "001", code.getType())
             ));
         }};
@@ -921,9 +921,8 @@ public class ApplicationTest {
         FileModel fileModel = createFileModel("update_testUpload.xlsx", "testUpload.xlsx");
         draftService.updateData(draft.getId(), fileModel);
 
-        Row row = createRowWithSimpleTypesOnly("Иван", BigInteger.valueOf(4), DATE_STR, true, 1.0);
-        row.getData().put("id", BigInteger.valueOf(1));
-        row.getData().put("reference", "2");
+        Row row = createRowWithSimpleTypesOnly("Иван", BigInteger.valueOf(4L), DATE_STR, true, 1.0);
+        extendRowWithReferenceType(row, BigInteger.valueOf(1L), "2");
         List<RowValue> expected = singletonList(rowValue(row, structure));
 
         Page<RefBookRowValue> search = draftService.search(draft.getId(), new SearchDataCriteria(null, null));
@@ -946,9 +945,8 @@ public class ApplicationTest {
 
         draftService.updateData(draft.getId(), fileModel);
 
-        Row row = createRowWithSimpleTypesOnly("Иван", BigInteger.valueOf(4), DATE_STR, true, 1.0);
-        row.getData().put("id", BigInteger.valueOf(1));
-        row.getData().put("reference", new Reference("2", "2"));
+        Row row = createRowWithSimpleTypesOnly("Иван", BigInteger.valueOf(4L), DATE_STR, true, 1.0);
+        extendRowWithReferenceType(row, BigInteger.valueOf(1L), new Reference("2", "2"));
         List<RowValue> expected = singletonList(rowValue(row, structure));
 
         Page<RefBookRowValue> search = draftService.search(draft.getId(), new SearchDataCriteria(null, null));
@@ -962,11 +960,11 @@ public class ApplicationTest {
     @Test()
     public void testDraftUpdateDataFromFileWithInvalidReference() {
 
-        Structure structure = createTestStructureWithoutTreeFieldType();
+        Structure structure = createTestStructureWithSimpleTypesOnly();
+        extendTestStructureForReferenceType(structure);
         Draft draft = draftService.create(new CreateDraftRequest(1, structure));
 
         FileModel fileModel = createFileModel("update_testUploadInvalidReference.xlsx", "testUploadInvalidReference.xlsx");
-
         try {
             draftService.updateData(draft.getId(), fileModel);
             fail();
@@ -1001,34 +999,28 @@ public class ApplicationTest {
     }
 
     /*
-    * Создается черновик справочника, заполняется данными, публикуется
-    * Создается новый черновик из версии с указанием предыдущей версии
-    * Проверяется, что структура и данные совпадают с предыдущей версией
+    * Создаётся черновик справочника, заполняется данными, публикуется.
+    * Создаётся новый черновик из версии с указанием предыдущей версии.
+    * Проверяется, что структура и данные совпадают с предыдущей версией.
     * */
     @Test
     public void testDraftCreateFromVersion() {
+
         RefBookCreateRequest createRequest = new RefBookCreateRequest();
         createRequest.setCode("testDraftCreateFromVersionCode");
         RefBook refBook = refBookService.create(createRequest);
-        Structure structure = createTestStructureWithoutTreeFieldType();
+
+        Structure structure = createTestStructureWithSimpleTypesOnly();
+        extendTestStructureForReferenceType(structure);
         Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), structure));
 
-        Row row1 = createRowForAllTypesStructure("test1",
-                BigInteger.valueOf(1),
-                "01.09.2014",
-                true,
-                1.1,
-                new Reference("77", null));
-        Row row2 = createRowForAllTypesStructure("test2",
-                BigInteger.valueOf(2),
-                "01.10.2014",
-                false,
-                2.2,
-                null);
+        Row row1 = createRowWithSimpleTypesOnly("test1", BigInteger.valueOf(1L), "01.09.2014", true, 1.1);
+        extendRowWithReferenceType(row1, BigInteger.valueOf(1L), new Reference("77", null));
 
-        List<RowValue> rowValues = asList(
-                rowValue(row1, structure),
-                rowValue(row2, structure));
+        Row row2 = createRowWithSimpleTypesOnly("test2", BigInteger.valueOf(2L), "01.10.2014", false, 2.2);
+        extendRowWithReferenceType(row2, BigInteger.valueOf(2L), null);
+
+        List<RowValue> rowValues = asList(rowValue(row1, structure), rowValue(row2, structure));
         draftDataService.addRows(draft.getStorageCode(), rowValues);
         publishService.publish(draft.getId(), null, null, null, false);
 
@@ -1049,32 +1041,25 @@ public class ApplicationTest {
 
     @Test
     public void testSearchInDraft() {
+
         RefBookCreateRequest createRequest = new RefBookCreateRequest();
         createRequest.setCode("myTestCodeRefBook");
         Map<String, String> createPassport = new HashMap<>();
         createPassport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "Справочник для тестирования версий");
         createRequest.setPassport(createPassport);
-
         RefBook refBook = refBookService.create(createRequest);
-        Structure structure = createTestStructureWithoutTreeFieldType();
+
+        Structure structure = createTestStructureWithSimpleTypesOnly();
+        extendTestStructureForReferenceType(structure);
         Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), structure));
 
-        Row row1 = createRowForAllTypesStructure("Первое тестовое наименование",
-                BigInteger.valueOf(1),
-                "01.09.2014",
-                true,
-                2.4,
-                new Reference("77", null));
-        Row row2 = createRowForAllTypesStructure("Второе тестовое наименование",
-                BigInteger.valueOf(3),
-                "01.10.2014",
-                false,
-                0.4,
-                null);
+        Row row1 = createRowWithSimpleTypesOnly("Первое тестовое наименование", BigInteger.valueOf(1L), "01.09.2014", true, 2.4);
+        extendRowWithReferenceType(row1, BigInteger.valueOf(1L), new Reference("77", null));
 
-        List<RowValue> rowValues = asList(
-                rowValue(row1, structure),
-                rowValue(row2, structure));
+        Row row2 = createRowWithSimpleTypesOnly("Второе тестовое наименование", BigInteger.valueOf(3L), "01.10.2014", false, 0.4);
+        extendRowWithReferenceType(row2, BigInteger.valueOf(2L), null);
+
+        List<RowValue> rowValues = asList(rowValue(row1, structure), rowValue(row2, structure));
         draftDataService.addRows(draft.getStorageCode(), rowValues);
 
         List<RowValue> expectedRowValues = singletonList(rowValues.get(0));
@@ -1082,8 +1067,9 @@ public class ApplicationTest {
         List<Field> fields = fields(structure);
 
         structure.getAttributes().forEach(attribute -> {
-            String fullTextSearchValue = FieldType.REFERENCE.equals(attribute.getType()) ?
-                    ((Reference) row1.getData().get(attribute.getCode())).getValue() : row1.getData().get(attribute.getCode()).toString();
+            String fullTextSearchValue = attribute.isReferenceType()
+                    ? ((Reference) row1.getData().get(attribute.getCode())).getValue()
+                    : row1.getData().get(attribute.getCode()).toString();
             Page<RefBookRowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(null, fullTextSearchValue));
             Assert.assertEquals("Full text search failed", 1, actualPage.getContent().size());
             assertRows(fields, expectedRowValues, actualPage.getContent());
@@ -1162,12 +1148,12 @@ public class ApplicationTest {
 
         List<String> codes = StructureUtils.getAttributeCodes(structure).collect(toList());
         Map<String, Object> rowMap1 = new HashMap<>();
-        rowMap1.put(codes.get(0), BigInteger.valueOf(1));
+        rowMap1.put(codes.get(0), BigInteger.valueOf(1L));
         rowMap1.put(codes.get(1), "Дублирующееся имя");
         rowMap1.put(codes.get(2), "001");
 
         Map<String, Object> rowMap2 = new HashMap<>();
-        rowMap2.put(codes.get(0), BigInteger.valueOf(2));
+        rowMap2.put(codes.get(0), BigInteger.valueOf(2L));
         rowMap2.put(codes.get(1), "Дублирующееся имя");
         rowMap2.put(codes.get(2), "0021");
 
@@ -1834,7 +1820,7 @@ public class ApplicationTest {
     }
 
     private BigInteger getPublishWithConflictedReferrerNewNumberValue(BigInteger value) {
-        return value.multiply(BigInteger.valueOf(11));
+        return value.multiply(BigInteger.valueOf(11L));
     }
 
     private String getPublishWithConflictedReferrerNewStringValue(String value) {
@@ -2038,19 +2024,19 @@ public class ApplicationTest {
         List<DiffRowValue> expectedDiffRowValues = new ArrayList<>();
         expectedDiffRowValues.add(new DiffRowValue(
                 asList(
-                        new DiffFieldValue<>(idField, BigInteger.valueOf(1), null, DiffStatusEnum.DELETED),
+                        new DiffFieldValue<>(idField, BigInteger.valueOf(1L), null, DiffStatusEnum.DELETED),
                         new DiffFieldValue<>(codeField, "001", null, DiffStatusEnum.DELETED),
                         new DiffFieldValue<>(commonField, "c1", null, DiffStatusEnum.DELETED)),
                 DiffStatusEnum.DELETED));
         expectedDiffRowValues.add(new DiffRowValue(
                 asList(
-                        new DiffFieldValue<>(idField, null,  BigInteger.valueOf(4), DiffStatusEnum.INSERTED),
+                        new DiffFieldValue<>(idField, null,  BigInteger.valueOf(4L), DiffStatusEnum.INSERTED),
                         new DiffFieldValue<>(codeField, null, "004", DiffStatusEnum.INSERTED),
                         new DiffFieldValue<>(commonField, null,  "c4", DiffStatusEnum.INSERTED)),
                 DiffStatusEnum.INSERTED));
         expectedDiffRowValues.add(new DiffRowValue(
                 asList(
-                        new DiffFieldValue<>(idField, null,  BigInteger.valueOf(3), null),
+                        new DiffFieldValue<>(idField, null,  BigInteger.valueOf(3L), null),
                         new DiffFieldValue<>(codeField, null, "003", null),
                         new DiffFieldValue<>(commonField, "c3",  "c3_1", DiffStatusEnum.UPDATED)),
                 DiffStatusEnum.UPDATED));
@@ -2207,13 +2193,13 @@ public class ApplicationTest {
 
         List<Conflict> expectedConflicts = asList(
                 new Conflict(ref_id_1.getCode(), ConflictType.DELETED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1)))),
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1L)))),
                 new Conflict(ref_id_2.getCode(), ConflictType.UPDATED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1)))),
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1L)))),
                 new Conflict(ref_id_1.getCode(), ConflictType.DELETED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(3)))),
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(3L)))),
                 new Conflict(ref_id_2.getCode(), ConflictType.UPDATED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4))))
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4L))))
         );
 
         // NB: Use createCalculatedDataConflicts + load conflicts from DB.
@@ -2275,21 +2261,21 @@ public class ApplicationTest {
 
         List<Conflict> expectedConflicts = asList(
                 new Conflict(ref_fix.getCode(), ConflictType.DELETED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1)))),
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1L)))),
                 new Conflict(ref_fix.getCode(), ConflictType.DELETED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(3)))),
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(3L)))),
 
                 new Conflict(ref_upd.getCode(), ConflictType.UPDATED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1)))),
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1L)))),
                 new Conflict(ref_upd.getCode(), ConflictType.UPDATED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4)))),
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4L)))),
 
                 new Conflict(ref_del.getCode(), ConflictType.DELETED, singletonList(
-                    new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1)))),
+                    new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1L)))),
                 new Conflict(ref_del.getCode(), ConflictType.UPDATED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(3)))),
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(3L)))),
                 new Conflict(ref_del.getCode(), ConflictType.UPDATED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4))))
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4L))))
         );
 
         // NB: Use createCalculatedDataConflicts + load conflicts from DB.
@@ -2668,15 +2654,6 @@ public class ApplicationTest {
         );
     }
 
-    private void extendTestStructureForReferenceTypeAsString(Structure structure) {
-        structure.getAttributes().add(
-                Structure.Attribute.build("id", "id", FieldType.INTEGER, "идентификатор")
-        );
-        structure.getAttributes().add(
-                Structure.Attribute.build("reference", "reference", FieldType.STRING, "строка-ссылка")
-        );
-    }
-
     private void extendTestStructureForReferenceType(Structure structure) {
 
         if (!structure.hasPrimary() && structure.getAttribute("id") == null) {
@@ -2685,6 +2662,15 @@ public class ApplicationTest {
         structure.add(
                 Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, "ссылка"),
                 new Structure.Reference("reference", TEST_REFERENCE_BOOK_CODE, toPlaceholder("count"))
+        );
+    }
+
+    private void extendTestStructureForReferenceTypeAsString(Structure structure) {
+        structure.getAttributes().add(
+                Structure.Attribute.build("id", "id", FieldType.INTEGER, "идентификатор")
+        );
+        structure.getAttributes().add(
+                Structure.Attribute.build("reference", "reference", FieldType.STRING, "строка-ссылка")
         );
     }
 
@@ -2708,12 +2694,21 @@ public class ApplicationTest {
         }});
     }
 
+    private void extendRowWithReferenceType(Row row, BigInteger id, Object ref) {
+
+        Map<String, Object> map = row.getData();
+        map.put("id", id);
+        map.put("reference", ref);
+    }
+
     private Row createRowWithReferenceType(BigInteger id, String str, Object ref) {
-        return new Row(new HashMap<>() {{
-            put("id", id);
+
+        Row row = new Row(new HashMap<>() {{
             put("string", str);
-            put("reference", ref);
         }});
+        extendRowWithReferenceType(row, id, ref);
+
+        return row;
     }
 
     private List<RowValue> createOneStringFieldRow(String fieldName, String... values) {
