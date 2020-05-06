@@ -5,6 +5,7 @@ import net.n2oapp.platform.i18n.UserException;
 import org.apache.cxf.common.util.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.api.exception.NotFoundException;
 import ru.inovus.ms.rdm.api.model.Structure;
@@ -17,8 +18,6 @@ import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.NamingUtils;
 
 import java.util.List;
-
-import static org.springframework.util.StringUtils.isEmpty;
 
 @Component
 public class VersionValidationImpl implements VersionValidation {
@@ -33,6 +32,7 @@ public class VersionValidationImpl implements VersionValidation {
 
     public static final String REFERENCE_ATTRIBUTE_CANNOT_BE_PRIMARY_KEY_EXCEPTION_CODE = "reference.attribute.cannot.be.primary.key";
     public static final String REFERENCE_BOOK_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE = "reference.book.must.have.primary.key";
+    public static final String REFERENCE_STRUCTURE_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE = "reference.structure.must.have.primary.key";
     private static final String REFERENCE_REFERRED_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "reference.referred.attribute.not.found";
     private static final String REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND_EXCEPTION_CODE = "reference.referred.attributes.not.found";
     private static final String REFERRED_BOOK_MUST_HAVE_ONLY_ONE_PRIMARY_KEY_EXCEPTION_CODE = "referred.book.must.have.only.one.primary.key";
@@ -99,7 +99,9 @@ public class VersionValidationImpl implements VersionValidation {
      */
     @Override
     public void validateRefBookCodeExists(String refBookCode) {
-        if (isEmpty(refBookCode) || !refbookRepository.existsByCode(refBookCode)) {
+
+        if (StringUtils.isEmpty(refBookCode)
+                || !refbookRepository.existsByCode(refBookCode)) {
             throw new NotFoundException(new Message(REFBOOK_WITH_CODE_NOT_FOUND_EXCEPTION_CODE, refBookCode));
         }
     }
@@ -209,15 +211,38 @@ public class VersionValidationImpl implements VersionValidation {
      */
     @Override
     public void validateStructure(Structure structure) {
+
+        validateAttributeStructure(structure);
+        validateReferenceStructure(structure);
+    }
+
+    /** Проверка только атрибутов структуры.
+     *
+     * @param structure структура версии справочника
+     */
+    private void validateAttributeStructure(Structure structure) {
         if (structure == null
-                || structure.getAttributes() == null)
+                || CollectionUtils.isEmpty(structure.getAttributes()))
             return;
 
         structure.getAttributes().forEach(this::validateAttribute);
     }
 
+    /** Проверка атрибутов-ссылок структуры.
+     *
+     * @param structure структура версии справочника
+     */
+    private void validateReferenceStructure(Structure structure) {
+        if (structure == null
+                || CollectionUtils.isEmpty(structure.getReferences()))
+            return;
+
+        if (!structure.hasPrimary())
+            throw new UserException(REFERENCE_STRUCTURE_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE);
+    }
+
     /**
-     * Проверка атрибута перед добавлением/изменением.
+     * Проверка атрибута.
      *
      * @param attribute атрибут
      */
@@ -228,14 +253,14 @@ public class VersionValidationImpl implements VersionValidation {
     }
 
     /**
-     * Проверка атрибута-ссылки перед добавлением/изменением.
+     * Проверка ссылочности перед добавлением/изменением.
      *
      * @param reference атрибут-ссылка
      */
     @Override
-    public void validateReference(Structure.Reference reference) {
+    public void validateReferenceAbility(Structure.Reference reference) {
 
-        if (isEmpty(reference.getDisplayExpression()))
+        if (StringUtils.isEmpty(reference.getDisplayExpression()))
             return; // NB: to-do: throw exception and fix absent referredBook in testLifecycle.
 
         RefBookVersionEntity referredEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
@@ -256,7 +281,7 @@ public class VersionValidationImpl implements VersionValidation {
      */
     private void validateReferenceDisplayExpression(String displayExpression,
                                                    Structure referredStructure) {
-        if (isEmpty(displayExpression))
+        if (StringUtils.isEmpty(displayExpression))
             return; // NB: to-do: throw exception and fix absent referredBook in testLifecycle.
 
         List<String> incorrectFields = StructureUtils.getAbsentPlaceholders(displayExpression, referredStructure);

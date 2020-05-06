@@ -663,7 +663,6 @@ public class DraftServiceImpl implements DraftService {
 
         RefBookVersionEntity draftEntity = versionRepository.getOne(updateAttribute.getVersionId());
         Structure structure = draftEntity.getStructure();
-        versionValidation.validateStructure(structure);
 
         Structure.Attribute oldAttribute = structure.getAttribute(updateAttribute.getCode());
         structureChangeValidator.validateUpdateAttribute(updateAttribute, oldAttribute);
@@ -711,7 +710,8 @@ public class DraftServiceImpl implements DraftService {
 
     private void validateAttribute(Structure.Attribute newAttribute, Structure oldStructure, String refBookCode) {
 
-        if (!newAttribute.isReferenceType() && !oldStructure.getReferences().isEmpty() && !oldStructure.hasPrimary())
+        if (!newAttribute.hasIsPrimary() && !newAttribute.isReferenceType()
+                && !isEmpty(oldStructure.getReferences()) && !oldStructure.hasPrimary())
             throw new UserException(new Message(VersionValidationImpl.REFERENCE_BOOK_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE, refBookCode));
 
         versionValidation.validateAttribute(newAttribute);
@@ -728,7 +728,7 @@ public class DraftServiceImpl implements DraftService {
 
         Structure.Reference oldReference = oldStructure.getReference(newReference.getAttribute());
         if (!StructureUtils.isDisplayExpressionEquals(oldReference, newReference)) {
-            versionValidation.validateReference(newReference);
+            versionValidation.validateReferenceAbility(newReference);
         }
     }
 
