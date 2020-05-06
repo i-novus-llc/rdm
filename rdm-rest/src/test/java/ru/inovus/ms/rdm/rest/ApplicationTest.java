@@ -21,6 +21,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import ru.i_novus.common.file.storage.api.FileStorage;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -449,6 +450,7 @@ public class ApplicationTest {
      */
     @Test
     public void testGetVersions() {
+
         VersionCriteria criteria = new VersionCriteria();
         criteria.setRefBookId(versionList.get(0).getRefBookId());
         Page<RefBookVersion> search = versionService.getVersions(criteria);
@@ -472,22 +474,54 @@ public class ApplicationTest {
 
     @Test
     public void testDraftCreate() {
+
         Structure structure = createStructure();
         Draft expected = draftService.create(new CreateDraftRequest(1, structure));
 
         Draft actual = draftService.getDraft(expected.getId());
-
         assertEquals(expected.getId(), actual.getId());
     }
 
     @Test
+    public void testDraftReferrerCreate() {
+
+        Structure structure = createTestStructureWithReferenceType();
+        structure.getAttributes().clear();
+        failDraftReferrerCreate(structure, "reference.requires.primary.key");
+
+        structure = createTestStructureWithReferenceType();
+        structure.clearPrimary();
+        failDraftReferrerCreate(structure, "reference.requires.primary.key");
+
+        structure = createTestStructureWithReferenceType();
+        structure.setReferences(null);
+        failDraftReferrerCreate(structure, "attribute.reference.not.found");
+
+        structure = createTestStructureWithReferenceType();
+        structure.setAttributes(structure.getPrimary());
+        failDraftReferrerCreate(structure, "reference.attribute.not.found");
+    }
+
+    private void failDraftReferrerCreate(Structure structure, String message) {
+        try {
+            draftService.create(new CreateDraftRequest(1, structure));
+            fail();
+
+        } catch (RestException re) {
+            assertEquals(message, getRestExceptionMessage(re));
+        }
+    }
+
+    @Test
     public void testDraftRemove() {
+
         Structure structure = createStructure();
         Draft draft = draftService.create(new CreateDraftRequest(1, structure));
 
         draftService.remove(draft.getId());
         try{
             draftService.getDraft(draft.getId());
+
         } catch (RestException e) {
             assertEquals("draft.not.found", e.getMessage());
         }
@@ -606,7 +640,7 @@ public class ApplicationTest {
             draftService.updateData(versionId, row2);
             fail();
         } catch (RestException re) {
-            assertEquals("row.not.found", re.getErrors().iterator().next().getMessage());
+            assertEquals("row.not.found", getRestExceptionMessage(re));
         }
 
         // удаление всех строк
@@ -743,7 +777,7 @@ public class ApplicationTest {
             draftService.updateData(versionId, row2);
             fail();
         } catch (RestException re) {
-            assertEquals("validation.db.contains.pk.err", re.getErrors().iterator().next().getMessage());
+            assertEquals("validation.db.contains.pk.err", getRestExceptionMessage(re));
         }
 
         // удаление всех строк
@@ -969,8 +1003,8 @@ public class ApplicationTest {
             draftService.updateData(draft.getId(), fileModel);
             fail();
 
-        } catch (RestException e) {
-            assertEquals(ReferenceValueValidation.REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE, e.getErrors().get(0).getMessage());
+        } catch (RestException re) {
+            assertEquals(ReferenceValueValidation.REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE, getRestExceptionMessage(re));
         }
     }
 
@@ -1174,7 +1208,7 @@ public class ApplicationTest {
             fail();
         } catch (Exception e) {
             assertTrue(e instanceof RestException);
-            assertEquals("primary.key.not.unique", ((RestException) e).getErrors().get(0).getMessage());
+            assertEquals("primary.key.not.unique", getRestExceptionMessage((RestException) e));
         }
     }
 
@@ -2801,4 +2835,14 @@ public class ApplicationTest {
         return (rowValues != null && !CollectionUtils.isEmpty(rowValues.getContent())) ? rowValues.getContent().get(0) : null;
     }
 
+    private static String getRestExceptionMessage(RestException re) {
+
+        if (!StringUtils.isEmpty(re.getMessage()))
+            return re.getMessage();
+
+        if (!isEmpty(re.getErrors()))
+            return re.getErrors().get(0).getMessage();
+
+        return null;
+    }
 }
