@@ -775,6 +775,7 @@ public class DraftServiceImpl implements DraftService {
 
         Structure.Attribute attribute = structure.getAttribute(attributeCode);
         structure.remove(attributeCode);
+        versionValidation.validateStructure(structure);
 
         try {
             draftDataService.deleteField(draftEntity.getStorageCode(), attributeCode);
