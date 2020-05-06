@@ -265,6 +265,8 @@ public class DraftServiceImpl implements DraftService {
         }
 
         final Structure structure = createDraftRequest.getStructure();
+        versionValidation.validateStructure(structure);
+
         List<Field> fields = ConverterUtil.fields(structure);
         if (draftVersion == null) {
             draftVersion = newDraftVersion(structure, passportValues != null ? passportValues : lastRefBookVersion.getPassportValues());
@@ -611,7 +613,6 @@ public class DraftServiceImpl implements DraftService {
         validateAttribute(attribute, structure, draftEntity.getRefBook().getCode());
 
         validateRequired(attribute, draftEntity.getStorageCode(), structure);
-        versionValidation.validateStructure(structure);
 
         // Clear previous primary keys:
         if (attribute.hasIsPrimary())
