@@ -8,6 +8,7 @@ import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiParam;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.api.util.json.JsonUtil;
@@ -19,7 +20,6 @@ import java.util.Objects;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
-import static org.springframework.util.CollectionUtils.isEmpty;
 
 @ApiModel("Структура")
 @JsonPropertyOrder({"references", "attributes"})
@@ -66,27 +66,30 @@ public class Structure implements Serializable {
     }
 
     public Attribute getAttribute(String code) {
-        if (isEmpty(attributes)) {
+
+        if (CollectionUtils.isEmpty(attributes))
             return null;
-        }
+
         return attributes.stream()
                 .filter(attribute -> attribute.getCode().equals(code))
                 .findAny().orElse(null);
     }
 
     public Reference getReference(String attributeCode) {
-        if (isEmpty(references)) {
+
+        if (CollectionUtils.isEmpty(references))
             return null;
-        }
+
         return references.stream()
                 .filter(reference -> reference.getAttribute().equals(attributeCode))
                 .findAny().orElse(null);
     }
 
     public void clearPrimary() {
-        if (isEmpty(attributes)) {
+
+        if (CollectionUtils.isEmpty(attributes))
             return;
-        }
+
         attributes.forEach(a -> {
             if (a.hasIsPrimary())
                 a.setPrimary(Boolean.FALSE);
@@ -102,6 +105,11 @@ public class Structure implements Serializable {
 
     public boolean hasPrimary() {
         return attributes.stream().anyMatch(attribute -> attribute.isPrimary);
+    }
+
+    @JsonIgnore
+    public boolean isEmpty() {
+        return CollectionUtils.isEmpty(attributes);
     }
 
     public void add(Attribute attribute, Reference reference) {
@@ -166,9 +174,10 @@ public class Structure implements Serializable {
      * @return Список ссылок
      */
     public List<Reference> getRefCodeReferences(String referenceCode) {
-        if (isEmpty(references)) {
+
+        if (CollectionUtils.isEmpty(references))
             return emptyList();
-        }
+
         return references.stream()
                 .filter(reference -> reference.getReferenceCode().equals(referenceCode))
                 .collect(toList());
@@ -181,9 +190,10 @@ public class Structure implements Serializable {
      * @return Список атрибутов
      */
     public List<Attribute> getRefCodeAttributes(String referenceCode) {
-        if (isEmpty(attributes)) {
+
+        if (CollectionUtils.isEmpty(attributes))
             return emptyList();
-        }
+
         return getRefCodeReferences(referenceCode).stream()
                 .map(ref -> getAttribute(ref.getAttribute()))
                 .collect(toList());
@@ -421,8 +431,9 @@ public class Structure implements Serializable {
         public Structure.Attribute findReferenceAttribute(Structure referenceStructure) {
 
             List<Structure.Attribute> primaryAttributes = referenceStructure.getPrimary();
-            if (isEmpty(primaryAttributes))
+            if (CollectionUtils.isEmpty(primaryAttributes))
                 throw new UserException(new Message(PRIMARY_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE));
+
             if (primaryAttributes.size() > 1)
                 throw new UserException(new Message(PRIMARY_ATTRIBUTE_IS_MULTIPLE_EXCEPTION_CODE));
 
@@ -459,8 +470,8 @@ public class Structure implements Serializable {
 
     public boolean storageEquals(Structure that) {
         List<Attribute> others = that.getAttributes();
-        return isEmpty(attributes)
-                ? isEmpty(others)
+        return CollectionUtils.isEmpty(attributes)
+                ? CollectionUtils.isEmpty(others)
                 : attributes.size() == others.size()
                 && attributes.stream().noneMatch(attribute -> others.stream().noneMatch(attribute::storageEquals));
     }
