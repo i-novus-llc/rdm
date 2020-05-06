@@ -37,7 +37,6 @@ import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.FieldValueUtils;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
 import ru.inovus.ms.rdm.api.validation.VersionPeriodPublishValidation;
-import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.entity.PassportAttributeEntity;
 import ru.inovus.ms.rdm.impl.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.impl.entity.RefBookEntity;
@@ -49,6 +48,7 @@ import ru.inovus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
 import ru.inovus.ms.rdm.impl.repository.*;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 import ru.inovus.ms.rdm.impl.validation.StructureChangeValidator;
+import ru.inovus.ms.rdm.impl.validation.VersionValidationImpl;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -101,7 +101,7 @@ public class DraftServiceTest {
     private FileNameGenerator fileNameGenerator;
 
     @Mock
-    private VersionValidation versionValidation;
+    private VersionValidationImpl versionValidation;
     @Mock
     private VersionPeriodPublishValidation versionPeriodPublishValidation;
 
@@ -150,7 +150,7 @@ public class DraftServiceTest {
         codeAttribute = Structure.Attribute.buildPrimary("code", "Код", FieldType.STRING, "описание code");
         pkAttribute = Structure.Attribute.buildPrimary(nameAttribute.getCode() + PK_SUFFIX, nameAttribute.getName() + PK_SUFFIX, FieldType.STRING, nameAttribute.getDescription() + PK_SUFFIX);
 
-        nameReference = new Structure.Reference(nameAttribute.getCode(), "REF_801", "");
+        nameReference = new Structure.Reference(nameAttribute.getCode(), "REF_801", DisplayExpression.toPlaceholder(idAttribute.getCode()));
         updateNameReference = new Structure.Reference(nameAttribute.getCode(), "REF_802", DisplayExpression.toPlaceholder(codeAttribute.getCode()));
         nullReference = new Structure.Reference(null, null, null);
     }
@@ -163,6 +163,9 @@ public class DraftServiceTest {
         FieldSetter.setField(structureChangeValidator, StructureChangeValidator.class.getDeclaredField("draftDataService"), draftDataService);
         FieldSetter.setField(structureChangeValidator, StructureChangeValidator.class.getDeclaredField("searchDataService"), searchDataService);
         FieldSetter.setField(structureChangeValidator, StructureChangeValidator.class.getDeclaredField("versionRepository"), versionRepository);
+
+        FieldSetter.setField(versionValidation, VersionValidationImpl.class.getDeclaredField("refbookRepository"), refBookRepository);
+        FieldSetter.setField(versionValidation, VersionValidationImpl.class.getDeclaredField("versionRepository"), versionRepository);
     }
 
     @Test
@@ -341,14 +344,15 @@ public class DraftServiceTest {
         doCallRealMethod().when(structureChangeValidator).validateUpdateAttribute(any(), any());
         doCallRealMethod().when(structureChangeValidator).validateUpdateAttributeStorage(any(), any(), any());
 
+        doCallRealMethod().when(versionValidation).validateReferenceAbility(any());
+
         // добавление атрибута, получение структуры, проверка добавленного атрибута
-        //RefBookEntity referredBook1 = new RefBookEntity();
-        //referredBook1.setCode("REF_801");
-        //RefBookVersionEntity referredEntity1 = new RefBookVersionEntity();
-        //referredEntity1.setRefBook(referredBook1);
-        //referredEntity1.setStructure(new Structure(singletonList(codeAttribute), null));
-        //doCallRealMethod().when(versionValidation).validateReference(any());
-        //when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(referredEntity1.getRefBook().getCode()), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(referredEntity1);
+        RefBookEntity referredBook1 = new RefBookEntity();
+        referredBook1.setCode("REF_801");
+        RefBookVersionEntity referredEntity1 = new RefBookVersionEntity();
+        referredEntity1.setRefBook(referredBook1);
+        referredEntity1.setStructure(new Structure(singletonList(idAttribute), null));
+        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(referredEntity1.getRefBook().getCode()), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(referredEntity1);
 
         when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>());
 
@@ -368,8 +372,7 @@ public class DraftServiceTest {
         RefBookVersionEntity referredEntity2 = new RefBookVersionEntity();
         referredEntity2.setRefBook(referredBook2);
         referredEntity2.setStructure(new Structure(singletonList(codeAttribute), null));
-        //doCallRealMethod().when(versionValidation).validateReference(any());
-        //when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(referredEntity2.getRefBook().getCode()), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(referredEntity2);
+        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(referredEntity2.getRefBook().getCode()), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(referredEntity2);
 
         when(draftDataService.isUnique(eq(TEST_DRAFT_CODE), anyList())).thenReturn(true);
         UpdateAttribute updateAttributeModel = new UpdateAttribute(draftVersion.getId(), updateNameAttribute, nameReference);
