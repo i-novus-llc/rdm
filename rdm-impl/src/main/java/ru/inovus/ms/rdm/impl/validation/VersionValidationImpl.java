@@ -19,6 +19,8 @@ import ru.inovus.ms.rdm.impl.util.NamingUtils;
 
 import java.util.List;
 
+import static java.util.stream.Collectors.toList;
+
 @Component
 public class VersionValidationImpl implements VersionValidation {
 
@@ -30,9 +32,11 @@ public class VersionValidationImpl implements VersionValidation {
     private static final String VERSION_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "version.attribute.not.found";
     private static final String DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "draft.attribute.not.found";
 
+    public static final String ATTRIBUTE_REFERENCE_NOT_FOUND_EXCEPTION_CODE = "attribute.reference.not.found";
     public static final String REFERENCE_ATTRIBUTE_CANNOT_BE_PRIMARY_KEY_EXCEPTION_CODE = "reference.attribute.cannot.be.primary.key";
+    public static final String REFERENCE_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "reference.attribute.not.found";
     public static final String REFERENCE_BOOK_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE = "reference.book.must.have.primary.key";
-    public static final String REFERENCE_STRUCTURE_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE = "reference.structure.must.have.primary.key";
+    public static final String REFERENCE_STRUCTURE_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE = "reference.requires.primary.key";
     private static final String REFERENCE_REFERRED_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "reference.referred.attribute.not.found";
     private static final String REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND_EXCEPTION_CODE = "reference.referred.attributes.not.found";
     private static final String REFERRED_BOOK_MUST_HAVE_ONLY_ONE_PRIMARY_KEY_EXCEPTION_CODE = "referred.book.must.have.only.one.primary.key";
@@ -225,6 +229,14 @@ public class VersionValidationImpl implements VersionValidation {
                 || CollectionUtils.isEmpty(structure.getAttributes()))
             return;
 
+        List<Message> errors = structure.getAttributes().stream()
+                .filter(attribute -> attribute.isReferenceType()
+                        && structure.getReference(attribute.getCode()) == null)
+                .map(attribute -> new Message(ATTRIBUTE_REFERENCE_NOT_FOUND_EXCEPTION_CODE, attribute.getCode()))
+                .collect(toList());
+        if (!CollectionUtils.isEmpty(errors))
+            throw new UserException(errors);
+
         structure.getAttributes().forEach(this::validateAttribute);
     }
 
@@ -239,6 +251,8 @@ public class VersionValidationImpl implements VersionValidation {
 
         if (!structure.hasPrimary())
             throw new UserException(REFERENCE_STRUCTURE_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE);
+
+        structure.getReferences().forEach(reference -> validateReference(reference, structure));
     }
 
     /**
@@ -252,6 +266,19 @@ public class VersionValidationImpl implements VersionValidation {
         NamingUtils.checkCode(attribute.getCode());
     }
 
+
+    /**
+     * Проверка атрибута-ссылки.
+     *
+     * @param reference атрибут-ссылка
+     */
+    private void validateReference(Structure.Reference reference, Structure structure) {
+
+        Structure.Attribute attribute = structure.getAttribute(reference.getAttribute());
+        if (attribute == null)
+            throw new NotFoundException(new Message(REFERENCE_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, reference.getAttribute()));
+
+    }
     /**
      * Проверка ссылочности перед добавлением/изменением.
      *
