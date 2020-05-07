@@ -613,10 +613,6 @@ public class DraftServiceImpl implements DraftService {
 
         validateRequired(attribute, draftEntity.getStorageCode(), structure);
 
-        // Clear previous primary keys:
-        if (attribute.hasIsPrimary())
-            structure.clearPrimary();
-
         Structure.Reference reference = createAttribute.getReference();
         if (reference != null && reference.isNull())
             reference = null;
@@ -631,6 +627,10 @@ public class DraftServiceImpl implements DraftService {
         } catch (CodifiedException ce) {
             throw new UserException(new Message(ce.getMessage(), ce.getArgs()), ce);
         }
+
+        // Должен быть только один первичный ключ:
+        if (attribute.hasIsPrimary())
+            structure.clearPrimary();
 
         structure.add(attribute, reference);
         draftEntity.setStructure(structure);
@@ -671,10 +671,6 @@ public class DraftServiceImpl implements DraftService {
         updateAttribute.fillAttribute(newAttribute);
         validateNewAttribute(newAttribute, structure, draftEntity.getRefBook().getCode());
 
-        // Clear previous primary keys:
-        if (newAttribute.hasIsPrimary())
-            structure.clearPrimary();
-
         Structure.Reference oldReference = structure.getReference(oldAttribute.getCode());
         Structure.Reference newReference = null;
         if (newAttribute.isReferenceType()) {
@@ -691,6 +687,10 @@ public class DraftServiceImpl implements DraftService {
         } catch (CodifiedException ce) {
             throw new UserException(new Message(ce.getMessage(), ce.getArgs()), ce);
         }
+
+        // Должен быть только один первичный ключ:
+        if (newAttribute.hasIsPrimary())
+            structure.clearPrimary();
 
         structure.update(oldAttribute, newAttribute);
         structure.update(oldReference, newReference);
