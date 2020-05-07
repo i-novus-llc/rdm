@@ -12,11 +12,9 @@ import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.version.CreateAttribute;
 import ru.inovus.ms.rdm.api.model.version.UpdateAttribute;
-import ru.inovus.ms.rdm.api.model.version.UpdateValue;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 
 import java.util.List;
-import java.util.function.Predicate;
 
 import static java.util.Collections.singletonList;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
@@ -50,8 +48,9 @@ public class StructureChangeValidator {
             throw new IllegalArgumentException(ATTRIBUTE_CREATE_ILLEGAL_VALUE_EXCEPTION_CODE);
 
         Structure.Reference reference = createAttribute.getReference();
-        if ((attribute.isReferenceType() && (reference == null || reference.isNull()))
-            || (!attribute.isReferenceType() && reference != null && !reference.isNull()))
+        if (attribute.isReferenceType() !=
+                (reference != null && !reference.isNull()
+                        && attribute.getCode().equals(reference.getAttribute())))
             throw new IllegalArgumentException(ATTRIBUTE_CREATE_ILLEGAL_VALUE_EXCEPTION_CODE);
     }
 
@@ -59,13 +58,16 @@ public class StructureChangeValidator {
 
         if (attribute == null
                 || updateAttribute.getVersionId() == null
+                || StringUtils.isEmpty(updateAttribute.getCode())
                 || updateAttribute.getType() == null)
             throw new IllegalArgumentException(ATTRIBUTE_UPDATE_ILLEGAL_VALUE_EXCEPTION_CODE);
 
-        if (updateAttribute.isReferenceType() &&
-                ((attribute.isReferenceType() && isValidUpdateReferenceValues(updateAttribute, this::isUpdateValueNotNullAndEmpty))
-                        || (!attribute.isReferenceType() && isValidUpdateReferenceValues(updateAttribute, this::isUpdateValueNullOrEmpty))
-                ))
+        if (!updateAttribute.isReferenceType())
+            return;
+
+        if ((attribute.isReferenceType() && !updateAttribute.isNullOrPresentReference())
+                || (!attribute.isReferenceType() && !updateAttribute.isNotNullAndPresentReference())
+                || !updateAttribute.getCode().equals(updateAttribute.getAttribute().get()))
             throw new IllegalArgumentException(ATTRIBUTE_UPDATE_ILLEGAL_VALUE_EXCEPTION_CODE);
     }
 
@@ -129,18 +131,4 @@ public class StructureChangeValidator {
         return realDataType.equals(newDataType)
                 || STRING.equals(realDataType) || STRING.equals(newDataType);
     }
-
-    private boolean isValidUpdateReferenceValues(UpdateAttribute updateAttribute, Predicate<UpdateValue> valueValidateFunc) {
-        return valueValidateFunc.test(updateAttribute.getAttribute())
-                || valueValidateFunc.test(updateAttribute.getReferenceCode());
-    }
-
-    private boolean isUpdateValueNotNullAndEmpty(UpdateValue updateValue) {
-        return updateValue != null && !updateValue.isPresent();
-    }
-
-    private boolean isUpdateValueNullOrEmpty(UpdateValue updateValue) {
-        return updateValue == null || !updateValue.isPresent();
-    }
-
 }
