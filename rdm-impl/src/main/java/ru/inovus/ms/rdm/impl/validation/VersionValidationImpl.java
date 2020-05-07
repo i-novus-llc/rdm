@@ -38,6 +38,7 @@ public class VersionValidationImpl implements VersionValidation {
     public static final String REFERENCE_BOOK_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE = "reference.book.must.have.primary.key";
     public static final String REFERENCE_STRUCTURE_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE = "reference.requires.primary.key";
     private static final String REFERENCE_REFERRED_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "reference.referred.attribute.not.found";
+    private static final String REFERENCE_DISPLAY_EXPRESSION_IS_EMPTY_EXCEPTION_CODE = "reference.display.expression.is.empty";
     private static final String REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND_EXCEPTION_CODE = "reference.referred.attributes.not.found";
     private static final String REFERRED_BOOK_MUST_HAVE_ONLY_ONE_PRIMARY_KEY_EXCEPTION_CODE = "referred.book.must.have.only.one.primary.key";
 
@@ -290,13 +291,14 @@ public class VersionValidationImpl implements VersionValidation {
     public void validateReferenceAbility(Structure.Reference reference) {
 
         if (StringUtils.isEmpty(reference.getDisplayExpression()))
-            return; // NB: to-do: throw exception and fix absent referredBook in testLifecycle.
+            throw new UserException(new Message(REFERENCE_DISPLAY_EXPRESSION_IS_EMPTY_EXCEPTION_CODE, reference.getAttribute()));
 
-        RefBookVersionEntity referredEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
+        RefBookVersionEntity referredEntity = versionRepository
+                .findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
         if (referredEntity == null)
             throw new NotFoundException(new Message(REFBOOK_WITH_CODE_NOT_FOUND_EXCEPTION_CODE, reference.getReferenceCode()));
 
-        validateReferenceDisplayExpression(reference.getDisplayExpression(), referredEntity.getStructure());
+        validateReferenceDisplayExpression(reference, referredEntity.getStructure());
 
         if (referredEntity.getStructure().getPrimary().size() != 1)
             throw new UserException(new Message(REFERRED_BOOK_MUST_HAVE_ONLY_ONE_PRIMARY_KEY_EXCEPTION_CODE, reference.getReferenceCode()));
@@ -305,21 +307,23 @@ public class VersionValidationImpl implements VersionValidation {
     /**
      * Проверка выражения для вычисления отображаемого ссылочного значения.
      *
-     * @param displayExpression выражение для вычисления отображаемого ссылочного значения
+     * @param reference         атрибут-ссылка
      * @param referredStructure структура версии справочника, на который ссылаются
      */
-    private void validateReferenceDisplayExpression(String displayExpression,
-                                                   Structure referredStructure) {
-        if (StringUtils.isEmpty(displayExpression))
-            return; // NB: to-do: throw exception and fix absent referredBook in testLifecycle.
+    private void validateReferenceDisplayExpression(Structure.Reference reference, Structure referredStructure) {
 
-        List<String> incorrectFields = StructureUtils.getAbsentPlaceholders(displayExpression, referredStructure);
-        if (!CollectionUtils.isEmpty(incorrectFields)) {
-            if (incorrectFields.size() == 1)
-                throw new NotFoundException(new Message(REFERENCE_REFERRED_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, incorrectFields.get(0)));
+        List<String> absents = StructureUtils.getAbsentPlaceholders(reference.getDisplayExpression(), referredStructure);
+        if (CollectionUtils.isEmpty(absents))
+            return;
 
-            String incorrectCodes = String.join("\",\"", incorrectFields);
-            throw new NotFoundException(new Message(REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND_EXCEPTION_CODE, incorrectCodes));
+        Message error;
+        if (absents.size() == 1) {
+            error = new Message(REFERENCE_REFERRED_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE,
+                    reference.getAttribute(), absents.get(0));
+        } else {
+            error = new Message(REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND_EXCEPTION_CODE,
+                    reference.getAttribute(), String.join("\",\"", absents));
         }
+        throw new NotFoundException(error);
     }
 }

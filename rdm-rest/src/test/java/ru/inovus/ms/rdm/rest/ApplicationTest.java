@@ -135,6 +135,9 @@ public class ApplicationTest {
 
     private static final String DATE_STR = "01.01.2011";
 
+    private static RefBookCreateRequest referredBookRequest;
+    private static Structure.Attribute referredIdAttribute;
+
     private static RefBookCreateRequest refBookCreateRequest;
     private static RefBookUpdateRequest refBookUpdateRequest;
     private static Structure.Attribute idAttribute;
@@ -191,8 +194,15 @@ public class ApplicationTest {
 
     @BeforeClass
     public static void initialize() {
+
+        referredBookRequest = new RefBookCreateRequest();
+        referredBookRequest.setCode("REF_801");
+
+        referredIdAttribute = Structure.Attribute.buildPrimary("id", "Идентификатор", FieldType.STRING, "значение для привязки");
+
         refBookCreateRequest = new RefBookCreateRequest();
         refBookCreateRequest.setCode("T1");
+
         Map<String, String> createPassport = new HashMap<>();
         createPassport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "Справочник специальностей");
         createPassport.put(PASSPORT_ATTRIBUTE_ANNOTATION, "Аннотация для справочника специальностей");
@@ -212,7 +222,7 @@ public class ApplicationTest {
 
         idAttribute = Structure.Attribute.buildPrimary("id", "Идентификатор", FieldType.INTEGER, "уникальное значение");
         createAttribute = Structure.Attribute.build("name", "Наименование", FieldType.REFERENCE, "описание");
-        createReference = new Structure.Reference(createAttribute.getCode(), "REF_801", "");
+        createReference = new Structure.Reference(createAttribute.getCode(), referredBookRequest.getCode(), toPlaceholder(referredIdAttribute.getCode()));
         updateAttribute = Structure.Attribute.build(createAttribute.getCode(),
                 createAttribute.getName() + "_upd", createAttribute.getType(), createAttribute.getDescription() + "_upd");
         deleteAttribute = Structure.Attribute.build("code", "Код", FieldType.STRING, "на удаление");
@@ -271,6 +281,22 @@ public class ApplicationTest {
     @Test
     public void testLifecycle() {
 
+        RefBook referredBook = refBookService.create(referredBookRequest);
+        assertNotNull(referredBook.getId());
+        assertNotNull(referredBook.getRefBookId());
+        assertEquals(referredBookRequest.getCode(), referredBook.getCode());
+
+        Draft referredDraft = draftService.getDraft(referredBook.getId());
+        assertNotNull(referredDraft);
+        assertNotNull(referredDraft.getStorageCode());
+
+        CreateAttribute createReferredAttribute = new CreateAttribute(referredDraft.getId(), referredIdAttribute, null);
+        draftService.createAttribute(createReferredAttribute);
+
+        Row referredRow = new Row(new HashMap<>() {{ put(referredIdAttribute.getCode(), "1"); }});
+        draftService.updateData(referredDraft.getId(), referredRow);
+        publishService.publish(referredDraft.getId(), null, null, null, false);
+
         // создание справочника
         RefBook refBook = refBookService.create(refBookCreateRequest);
         assertNotNull(refBook.getId());
@@ -283,6 +309,7 @@ public class ApplicationTest {
         assertTrue(refBook.getRemovable());
         assertFalse(refBook.getArchived());
         assertNull(refBook.getFromDate());
+        // получение черновика
         Draft draft = draftService.getDraft(refBook.getId());
         assertNotNull(draft);
         assertNotNull(draft.getStorageCode());
@@ -1456,7 +1483,7 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.buildPrimary(PK_STRING, PK_STRING, FieldType.STRING, "string"), null));
         draftService.createAttribute(new CreateAttribute(versionId,
                 Structure.Attribute.build(PK_REFERENCE, PK_REFERENCE, FieldType.REFERENCE, "count"),
-                new Structure.Reference(PK_REFERENCE, RELATION_REFBOOK_CODE, null)
+                new Structure.Reference(PK_REFERENCE, RELATION_REFBOOK_CODE, toPlaceholder(RELATION_ATTR_CODE))
         ));
         draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.buildPrimary(PK_FLOAT, PK_FLOAT, FieldType.FLOAT, "float"), null));
         draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.buildPrimary(PK_DATE, PK_DATE, FieldType.DATE, "date"), null));
@@ -1466,7 +1493,7 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.build(NOT_PK_STRING, NOT_PK_STRING, FieldType.STRING, "string"), null));
         draftService.createAttribute(new CreateAttribute(versionId,
                 Structure.Attribute.build(NOT_PK_REFERENCE, NOT_PK_REFERENCE, FieldType.REFERENCE, "count"),
-                new Structure.Reference(NOT_PK_REFERENCE, RELATION_REFBOOK_CODE, null)
+                new Structure.Reference(NOT_PK_REFERENCE, RELATION_REFBOOK_CODE, toPlaceholder(RELATION_ATTR_CODE))
         ));
         draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.build(NOT_PK_FLOAT, NOT_PK_FLOAT, FieldType.FLOAT, "float"), null));
         draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.build(NOT_PK_DATE, NOT_PK_DATE, FieldType.DATE, "date"), null));
