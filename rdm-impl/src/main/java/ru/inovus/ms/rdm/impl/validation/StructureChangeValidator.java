@@ -24,8 +24,9 @@ import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
 @Component
 public class StructureChangeValidator {
 
-    private static final String ILLEGAL_CREATE_ATTRIBUTE_EXCEPTION_CODE = "Can not update structure, illegal creating value for attribute";
-    private static final String ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE = "Can not update structure, illegal updating value for attribute";
+    private static final String ATTRIBUTE_CREATE_ILLEGAL_VALUE_EXCEPTION_CODE = "attribute.create.illegal.value";
+    private static final String ATTRIBUTE_UPDATE_ILLEGAL_VALUE_EXCEPTION_CODE = "attribute.update.illegal.value";
+
     private static final String ATTRIBUTE_PRIMARY_INCOMPATIBLE_WITH_DATA_EXCEPTION_CODE = "attribute.primary.incompatible.with.data";
     private static final String ATTRIBUTE_TYPE_INCOMPATIBLE_WITH_DATA_EXCEPTION_CODE = "attribute.type.incompatible.with.data";
 
@@ -46,12 +47,12 @@ public class StructureChangeValidator {
         if (attribute == null
                 || StringUtils.isEmpty(attribute.getCode())
                 || attribute.getType() == null)
-            throw new IllegalArgumentException(ILLEGAL_CREATE_ATTRIBUTE_EXCEPTION_CODE);
+            throw new IllegalArgumentException(ATTRIBUTE_CREATE_ILLEGAL_VALUE_EXCEPTION_CODE);
 
         Structure.Reference reference = createAttribute.getReference();
         if ((attribute.isReferenceType() && (reference == null || reference.isNull()))
             || (!attribute.isReferenceType() && reference != null && !reference.isNull()))
-            throw new IllegalArgumentException(ILLEGAL_CREATE_ATTRIBUTE_EXCEPTION_CODE);
+            throw new IllegalArgumentException(ATTRIBUTE_CREATE_ILLEGAL_VALUE_EXCEPTION_CODE);
     }
 
     public void validateUpdateAttribute(UpdateAttribute updateAttribute, Structure.Attribute attribute) {
@@ -59,13 +60,13 @@ public class StructureChangeValidator {
         if (attribute == null
                 || updateAttribute.getVersionId() == null
                 || updateAttribute.getType() == null)
-            throw new IllegalArgumentException(ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE);
+            throw new IllegalArgumentException(ATTRIBUTE_UPDATE_ILLEGAL_VALUE_EXCEPTION_CODE);
 
         if (updateAttribute.isReferenceType() &&
                 ((attribute.isReferenceType() && isValidUpdateReferenceValues(updateAttribute, this::isUpdateValueNotNullAndEmpty))
                         || (!attribute.isReferenceType() && isValidUpdateReferenceValues(updateAttribute, this::isUpdateValueNullOrEmpty))
                 ))
-            throw new IllegalArgumentException(ILLEGAL_UPDATE_ATTRIBUTE_EXCEPTION_CODE);
+            throw new IllegalArgumentException(ATTRIBUTE_UPDATE_ILLEGAL_VALUE_EXCEPTION_CODE);
     }
 
     public void validateUpdateAttributeStorage(UpdateAttribute updateAttribute, Structure.Attribute attribute, String storageCode) {
