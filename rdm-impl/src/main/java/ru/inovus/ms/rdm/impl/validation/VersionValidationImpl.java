@@ -235,7 +235,7 @@ public class VersionValidationImpl implements VersionValidation {
                 .map(attribute -> new Message(ATTRIBUTE_REFERENCE_NOT_FOUND_EXCEPTION_CODE, attribute.getCode()))
                 .collect(toList());
         if (!CollectionUtils.isEmpty(errors))
-            throw new UserException(errors);
+            throw new NotFoundException(errors);
 
         structure.getAttributes().forEach(this::validateAttribute);
     }
@@ -316,10 +316,10 @@ public class VersionValidationImpl implements VersionValidation {
         List<String> incorrectFields = StructureUtils.getAbsentPlaceholders(displayExpression, referredStructure);
         if (!CollectionUtils.isEmpty(incorrectFields)) {
             if (incorrectFields.size() == 1)
-                throw new UserException(new Message(REFERENCE_REFERRED_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, incorrectFields.get(0)));
+                throw new NotFoundException(new Message(REFERENCE_REFERRED_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, incorrectFields.get(0)));
 
             String incorrectCodes = String.join("\",\"", incorrectFields);
-            throw new UserException(new Message(REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND_EXCEPTION_CODE, incorrectCodes));
+            throw new NotFoundException(new Message(REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND_EXCEPTION_CODE, incorrectCodes));
         }
     }
 }
