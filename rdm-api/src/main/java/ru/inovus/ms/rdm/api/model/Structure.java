@@ -428,9 +428,9 @@ public class Structure implements Serializable {
          * @param referenceStructure структура версии справочника, на который ссылаются
          * @return Атрибут версии справочника
          */
-        public Structure.Attribute findReferenceAttribute(Structure referenceStructure) {
+        public Attribute findReferenceAttribute(Structure referenceStructure) {
 
-            List<Structure.Attribute> primaryAttributes = referenceStructure.getPrimary();
+            List<Attribute> primaryAttributes = referenceStructure.getPrimary();
             if (CollectionUtils.isEmpty(primaryAttributes))
                 throw new UserException(new Message(PRIMARY_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE));
 
