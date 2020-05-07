@@ -189,4 +189,8 @@ public class FormAttribute {
     public void setRegExp(String regExp) {
         this.regExp = regExp;
     }
+
+    public boolean hasIsPrimary() {
+        return getIsPrimary() != null && getIsPrimary();
+    }
 }

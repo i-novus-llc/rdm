@@ -290,7 +290,7 @@ public class StructureController {
     }
 
     private Structure.Attribute buildAttribute(FormAttribute request) {
-        if (request.getIsPrimary())
+        if (request.hasIsPrimary())
             return Structure.Attribute.buildPrimary(request.getCode(),
                     request.getName(), request.getType(), request.getDescription());
         else {
