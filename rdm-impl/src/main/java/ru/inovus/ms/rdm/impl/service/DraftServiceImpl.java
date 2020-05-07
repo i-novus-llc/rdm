@@ -609,7 +609,7 @@ public class DraftServiceImpl implements DraftService {
         structureChangeValidator.validateCreateAttribute(createAttribute);
 
         Structure.Attribute attribute = createAttribute.getAttribute();
-        validateAttribute(attribute, structure, draftEntity.getRefBook().getCode());
+        validateNewAttribute(attribute, structure, draftEntity.getRefBook().getCode());
 
         validateRequired(attribute, draftEntity.getStorageCode(), structure);
 
@@ -622,7 +622,7 @@ public class DraftServiceImpl implements DraftService {
             reference = null;
 
         if (reference != null) {
-            validateReference(attribute, reference, structure, draftEntity.getRefBook().getCode());
+            validateNewReference(attribute, reference, structure, draftEntity.getRefBook().getCode());
         }
 
         try {
@@ -669,7 +669,7 @@ public class DraftServiceImpl implements DraftService {
 
         Structure.Attribute newAttribute = Structure.Attribute.build(oldAttribute);
         updateAttribute.fillAttribute(newAttribute);
-        validateAttribute(newAttribute, structure, draftEntity.getRefBook().getCode());
+        validateNewAttribute(newAttribute, structure, draftEntity.getRefBook().getCode());
 
         // Clear previous primary keys:
         if (newAttribute.hasIsPrimary())
@@ -680,7 +680,7 @@ public class DraftServiceImpl implements DraftService {
         if (newAttribute.isReferenceType()) {
             newReference = Structure.Reference.build(oldReference);
             updateAttribute.fillReference(newReference);
-            validateReference(newAttribute, newReference, structure, draftEntity.getRefBook().getCode());
+            validateNewReference(newAttribute, newReference, structure, draftEntity.getRefBook().getCode());
         }
 
         structureChangeValidator.validateUpdateAttributeStorage(updateAttribute, oldAttribute, draftEntity.getStorageCode());
@@ -708,7 +708,8 @@ public class DraftServiceImpl implements DraftService {
         auditStructureEdit(draftEntity, "update_attribute", newAttribute);
     }
 
-    private void validateAttribute(Structure.Attribute newAttribute, Structure oldStructure, String refBookCode) {
+    private void validateNewAttribute(Structure.Attribute newAttribute,
+                                      Structure oldStructure, String refBookCode) {
 
         if (!newAttribute.hasIsPrimary() && !newAttribute.isReferenceType()
                 && !isEmpty(oldStructure.getReferences()) && !oldStructure.hasPrimary())
@@ -717,8 +718,9 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateAttribute(newAttribute);
     }
 
-    private void validateReference(Structure.Attribute newAttribute, Structure.Reference newReference,
-                                   Structure oldStructure, String refBookCode) {
+    private void validateNewReference(Structure.Attribute newAttribute,
+                                      Structure.Reference newReference,
+                                      Structure oldStructure, String refBookCode) {
 
         if (newAttribute.hasIsPrimary())
             throw new UserException(new Message(VersionValidationImpl.REFERENCE_ATTRIBUTE_CANNOT_BE_PRIMARY_KEY_EXCEPTION_CODE, newAttribute.getName()));
@@ -773,8 +775,7 @@ public class DraftServiceImpl implements DraftService {
         Structure structure = draftEntity.getStructure();
 
         Structure.Attribute attribute = structure.getAttribute(attributeCode);
-        structure.remove(attributeCode);
-        versionValidation.validateStructure(structure);
+        validateOldAttribute(attribute, structure, draftEntity.getRefBook().getCode());
 
         try {
             draftDataService.deleteField(draftEntity.getStorageCode(), attributeCode);
@@ -782,9 +783,19 @@ public class DraftServiceImpl implements DraftService {
         } catch (RuntimeException e) {
             ErrorUtil.rethrowError(e);
         }
+
+        structure.remove(attributeCode);
+
         attributeValidationRepository.deleteAll(attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attributeCode));
 
         auditStructureEdit(draftEntity, "delete_attribute", attribute);
+    }
+
+    private void validateOldAttribute(Structure.Attribute oldAttribute,
+                                      Structure oldStructure, String refBookCode) {
+
+        if (oldAttribute.hasIsPrimary() && !isEmpty(oldStructure.getReferences()) && oldStructure.getPrimary().size() == 1)
+            throw new UserException(new Message(VersionValidationImpl.REFERENCE_BOOK_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE, refBookCode));
     }
 
     @Override
