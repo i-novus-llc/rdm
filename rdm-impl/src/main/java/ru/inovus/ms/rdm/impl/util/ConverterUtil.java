@@ -4,6 +4,7 @@ import net.n2oapp.criteria.api.Direction;
 import net.n2oapp.criteria.api.Sorting;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.data.domain.Sort;
+import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
@@ -43,17 +44,17 @@ public class ConverterUtil {
 
     public static List<Field> fields(Structure structure) {
         List<Field> fields = new ArrayList<>();
-        if (structure != null) {
-            Optional.ofNullable(structure.getAttributes()).ifPresent(s ->
-                    s.forEach(attribute -> fields.add(field(attribute)))
-            );
+        if (structure != null && !CollectionUtils.isEmpty(structure.getAttributes())) {
+            structure.getAttributes().forEach(attribute -> fields.add(field(attribute)));
         }
         return fields;
     }
 
     public static Field field(Structure.Attribute attribute) {
-        boolean isSearchable = Boolean.TRUE.equals(attribute.getIsPrimary()) && FieldType.STRING.equals(attribute.getType());
-        return isSearchable ? fieldFactory.createSearchField(attribute.getCode(), attribute.getType()) : fieldFactory.createField(attribute.getCode(), attribute.getType());
+        boolean isSearchable = attribute.hasIsPrimary() && FieldType.STRING.equals(attribute.getType());
+        return isSearchable
+                ? fieldFactory.createSearchField(attribute.getCode(), attribute.getType())
+                : fieldFactory.createField(attribute.getCode(), attribute.getType());
     }
 
     public static RowValue rowValue(Row row, Structure structure) {
