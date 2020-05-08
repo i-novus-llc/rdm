@@ -534,7 +534,7 @@ public class DraftServiceTest {
         // Удаление атрибута-ссылки для удаления первичного ключа
         draftService.deleteAttribute(draftEntity.getId(), nameAttribute.getCode());
 
-        // Удаление первичного ключа. Не должно быть атрибутов - первичных ключей
+        // Удаление первичности ключа. Не должно быть атрибутов - первичных ключей
         assertTrue(structure.hasPrimary());
         pkAttribute.setPrimary(false);
         updateRefAttribute = new UpdateAttribute(draftEntity.getId(), pkAttribute, nullReference);
