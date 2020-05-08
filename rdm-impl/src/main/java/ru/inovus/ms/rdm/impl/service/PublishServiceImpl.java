@@ -34,10 +34,7 @@ import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static java.util.Collections.singletonList;
 import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
@@ -126,9 +123,11 @@ public class PublishServiceImpl implements PublishService {
         RefBookVersionEntity draftEntity = getVersionOrElseThrow(draftId);
         if (draftEntity.getStatus() == RefBookVersionStatus.PUBLISHED)
             return;
+
         versionValidation.validateDraftNotArchived(draftId);
-        if (draftEntity.getStructure().getAttributes().isEmpty())
+        if (draftEntity.getStructure() == null || draftEntity.getStructure().isEmpty())
             throw new UserException("draft.structure.is-empty");
+
         validateNotEmpty(draftEntity);
         Integer refBookId = draftEntity.getRefBook().getId();
 
@@ -168,9 +167,11 @@ public class PublishServiceImpl implements PublishService {
                     && draftEntity.getStructure().storageEquals(lastPublishedEntity.getStructure())) {
                 droppedDataStorages.add(lastStorageCode);
 
-                versionRepository.findByStorageCode(lastStorageCode).stream()
-                        .peek(entity -> entity.setStorageCode(newStorageCode))
-                        .forEach(versionRepository::save);
+                List<RefBookVersionEntity> storageEntities = versionRepository.findByStorageCode(lastStorageCode);
+                storageEntities.forEach(entity -> {
+                    entity.setStorageCode(newStorageCode);
+                    versionRepository.save(entity);
+                });
             }
             dropDataService.drop(droppedDataStorages);
 
