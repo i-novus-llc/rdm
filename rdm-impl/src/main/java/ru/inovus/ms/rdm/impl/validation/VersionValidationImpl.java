@@ -271,7 +271,7 @@ public class VersionValidationImpl implements VersionValidation {
                 || CollectionUtils.isEmpty(structure.getReferences()))
             return;
 
-        if (!structure.hasPrimary())
+        if (structure.isEmpty() || !structure.hasPrimary())
             throw new UserException(REFERENCE_STRUCTURE_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE);
 
         structure.getReferences().forEach(reference -> validateReference(reference, structure));
