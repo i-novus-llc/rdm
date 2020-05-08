@@ -48,42 +48,43 @@ public class StructureChangeValidator {
 
     public void validateCreateAttribute(CreateAttribute createAttribute) {
 
-        Structure.Attribute attribute = createAttribute.getAttribute();
-        if (attribute == null
-                || StringUtils.isEmpty(attribute.getCode())
-                || attribute.getType() == null)
+        Structure.Attribute newAttribute = createAttribute.getAttribute();
+        if (newAttribute == null
+                || StringUtils.isEmpty(newAttribute.getCode())
+                || newAttribute.getType() == null)
             throw new IllegalArgumentException(ATTRIBUTE_CREATE_ILLEGAL_VALUE_EXCEPTION_CODE);
 
         Structure.Reference reference = createAttribute.getReference();
         boolean hasReference = reference != null && !reference.isNull();
 
-        if (attribute.isReferenceType() != hasReference)
+        if (newAttribute.isReferenceType() != hasReference)
             throw new IllegalArgumentException(ATTRIBUTE_CREATE_ILLEGAL_VALUE_EXCEPTION_CODE);
 
-        if (hasReference && !attribute.getCode().equals(reference.getAttribute()))
+        if (hasReference && !newAttribute.getCode().equals(reference.getAttribute()))
             throw new IllegalArgumentException(ATTRIBUTE_CREATE_ILLEGAL_VALUE_EXCEPTION_CODE);
     }
 
-    public void validateCreateAttributeStorage(Structure.Attribute attribute,
-                                               Structure structure, String storageCode) {
+    public void validateCreateAttributeStorage(Structure.Attribute newAttribute,
+                                               Structure oldStructure, String storageCode) {
 
-        if (structure == null || structure.getAttributes() == null || !attribute.hasIsPrimary())
+        if (oldStructure == null || oldStructure.getAttributes() == null || !newAttribute.hasIsPrimary())
             return;
 
         // Проверка наличия данных для добавляемого атрибута, обязательного к заполнению
-        DataCriteria dataCriteria = new DataCriteria(storageCode, null, null, ConverterUtil.fields(structure), emptySet(), null);
+        DataCriteria dataCriteria = new DataCriteria(storageCode, null, null,
+                ConverterUtil.fields(oldStructure), emptySet(), null);
         dataCriteria.setCount(1);
         dataCriteria.setPage(DataCriteria.MIN_PAGE);
         dataCriteria.setSize(DataCriteria.MIN_SIZE);
 
         Collection<RowValue> data = searchDataService.getPagedData(dataCriteria).getCollection();
         if (!isEmpty(data))
-            throw new UserException(new Message(VALIDATION_REQUIRED_ERR_EXCEPTION_CODE, attribute.getName()));
+            throw new UserException(new Message(VALIDATION_REQUIRED_ERR_EXCEPTION_CODE, newAttribute.getName()));
     }
 
-    public void validateUpdateAttribute(UpdateAttribute updateAttribute, Structure.Attribute attribute) {
+    public void validateUpdateAttribute(UpdateAttribute updateAttribute, Structure.Attribute oldAttribute) {
 
-        if (attribute == null
+        if (oldAttribute == null
                 || updateAttribute.getVersionId() == null
                 || StringUtils.isEmpty(updateAttribute.getCode())
                 || updateAttribute.getType() == null)
@@ -92,34 +93,32 @@ public class StructureChangeValidator {
         if (!updateAttribute.isReferenceType())
             return;
 
-        if ((attribute.isReferenceType() && !updateAttribute.isNullOrPresentReference())
-                || (!attribute.isReferenceType() && !updateAttribute.isNotNullAndPresentReference())
+        if ((oldAttribute.isReferenceType() && !updateAttribute.isNullOrPresentReference())
+                || (!oldAttribute.isReferenceType() && !updateAttribute.isNotNullAndPresentReference())
                 || !updateAttribute.getCode().equals(updateAttribute.getAttribute().get()))
             throw new IllegalArgumentException(ATTRIBUTE_UPDATE_ILLEGAL_VALUE_EXCEPTION_CODE);
     }
 
     public void validateUpdateAttributeStorage(UpdateAttribute updateAttribute,
-                                               Structure.Attribute attribute, String storageCode) {
+                                               Structure.Attribute oldAttribute, String storageCode) {
 
         if (updateAttribute.hasIsPrimary()) {
             // Проверка отсутствия пустых значений в поле при установке первичного ключа
             if (draftDataService.isFieldContainEmptyValues(storageCode, updateAttribute.getCode())) {
-                throw new UserException(new Message(ATTRIBUTE_PRIMARY_INCOMPATIBLE_WITH_DATA_EXCEPTION_CODE, attribute.getName()));
+                throw new UserException(new Message(ATTRIBUTE_PRIMARY_INCOMPATIBLE_WITH_DATA_EXCEPTION_CODE, oldAttribute.getName()));
             }
 
             validatePrimaryKeyUnique(storageCode, updateAttribute);
         }
 
-        // Проверка совместимости типов, если столбец не пустой и изменяется тип.
-        // Если столбец пустой - можно изменить тип.
-        if (draftDataService.isFieldNotEmpty(storageCode, updateAttribute.getCode())) {
-            if (!isCompatibleTypes(attribute.getType(), updateAttribute.getType())) {
-                throw new UserException(new Message(ATTRIBUTE_TYPE_INCOMPATIBLE_WITH_DATA_EXCEPTION_CODE, attribute.getName()));
-            }
-        } else
+        // Если столбец для поля пустой, то проверка с учётом наличия данных не нужна
+        if (!draftDataService.isFieldNotEmpty(storageCode, updateAttribute.getCode()))
             return;
 
-        if (updateAttribute.isReferenceType() && !attribute.isReferenceType()) {
+        if (!isCompatibleTypes(oldAttribute.getType(), updateAttribute.getType()))
+            throw new UserException(new Message(ATTRIBUTE_TYPE_INCOMPATIBLE_WITH_DATA_EXCEPTION_CODE, oldAttribute.getName()));
+
+        if (updateAttribute.isReferenceType() && !oldAttribute.isReferenceType()) {
             validateReferenceValues(updateAttribute);
         }
     }
