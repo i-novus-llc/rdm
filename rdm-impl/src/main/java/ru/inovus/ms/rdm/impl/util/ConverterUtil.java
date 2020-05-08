@@ -4,7 +4,6 @@ import net.n2oapp.criteria.api.Direction;
 import net.n2oapp.criteria.api.Sorting;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.data.domain.Sort;
-import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
@@ -42,14 +41,16 @@ public class ConverterUtil {
     private ConverterUtil() {
     }
 
+    /** Возвращает список столбцов таблицы на основе структуры справочника. */
     public static List<Field> fields(Structure structure) {
         List<Field> fields = new ArrayList<>();
-        if (structure != null && !CollectionUtils.isEmpty(structure.getAttributes())) {
+        if (structure != null && !structure.isEmpty()) {
             structure.getAttributes().forEach(attribute -> fields.add(field(attribute)));
         }
         return fields;
     }
 
+    /** Возвращает столбец таблицы на основе атрибута структуры справочника. */
     public static Field field(Structure.Attribute attribute) {
         boolean isSearchable = attribute.hasIsPrimary() && FieldType.STRING.equals(attribute.getType());
         return isSearchable
