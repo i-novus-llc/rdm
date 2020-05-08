@@ -16,6 +16,7 @@ import org.springframework.data.domain.*;
 import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
+import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
@@ -342,15 +343,23 @@ public class DraftServiceTest {
     public void testChangeStructure() {
 
         RefBookVersionEntity draftEntity = createTestDraftVersionEntity();
+        String draftTable = draftEntity.getStorageCode();
+        String draftTableWithData = draftTable + "_with_data";
         when(versionRepository.getOne(eq(draftEntity.getId()))).thenReturn(draftEntity);
         when(versionService.getStructure(eq(draftEntity.getId()))).thenReturn(draftEntity.getStructure());
 
+        doCallRealMethod().when(versionValidation).validateAttribute(any());
         doCallRealMethod().when(versionValidation).validateReferenceAbility(any());
 
         doCallRealMethod().when(structureChangeValidator).validateCreateAttribute(any());
+        doCallRealMethod().when(structureChangeValidator).validateCreateAttributeStorage(any(), any(), eq(draftTableWithData));
+
+        List<RowValue> listWithData = singletonList(new LongRowValue());
+        CollectionPage<RowValue> pageWithData = new CollectionPage<>(1, listWithData, null);
+        when(searchDataService.getPagedData(argThat(arg -> arg.getTableName().equals(draftTableWithData)))).thenReturn(pageWithData);
+
         doCallRealMethod().when(structureChangeValidator).validateUpdateAttribute(any(), any());
         doCallRealMethod().when(structureChangeValidator).validateUpdateAttributeStorage(any(), any(), any());
-        when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>());
 
         // Добавление ссылочного атрибута
         RefBookEntity referredBook1 = new RefBookEntity();
@@ -360,24 +369,65 @@ public class DraftServiceTest {
         referredEntity1.setStructure(new Structure(singletonList(idAttribute), null));
         when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(referredEntity1.getRefBook().getCode()), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(referredEntity1);
 
-        // -- Добавление ссылочного атрибута - первичного ключа
-        CreateAttribute createRefAttribute = new CreateAttribute(draftEntity.getId(), nameAttribute, nameReference);
-        boolean isNamePrimary = nameAttribute.hasIsPrimary();
+        // -- Добавление атрибута null. Должна быть ошибка
+        CreateAttribute createRefAttribute = new CreateAttribute(draftEntity.getId(), null, null);
+        failCreateAttribute(createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
+
+        // -- Добавление ссылочного атрибута без ссылки. Должна быть ошибка
+        createRefAttribute = new CreateAttribute(draftEntity.getId(), nameAttribute, null);
+        failCreateAttribute(createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
+
+        // -- Добавление ссылки без ссылочного атрибута. Должна быть ошибка
+        createRefAttribute = new CreateAttribute(draftEntity.getId(), idAttribute, nameReference);
+        failCreateAttribute(createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
+
+        // -- Добавление атрибута с неверным кодом. Должна быть ошибка
+        createRefAttribute = new CreateAttribute(draftEntity.getId(), idAttribute, null);
+        String idCode = idAttribute.getCode();
+        idAttribute.setCode("Код");
+        failCreateAttribute(createRefAttribute, "attribute.code.is.invalid", UserException.class);
+        idAttribute.setCode(idCode);
+
+        createRefAttribute = new CreateAttribute(draftEntity.getId(), nameAttribute, nameReference);
+
+        // -- Добавление атрибута с кодом null. Должна быть ошибка
+        String nameCode = nameAttribute.getCode();
+        nameAttribute.setCode(null);
+        failCreateAttribute(createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
+        nameAttribute.setCode(nameCode);
+
+        // -- Добавление атрибута с типом null. Должна быть ошибка
+        FieldType nameType = nameAttribute.getType();
+        nameAttribute.setType(null);
+        failCreateAttribute(createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
+        nameAttribute.setType(nameType);
+
+        // -- Добавление ссылочного атрибута - первичного ключа. Должна быть ошибка
+        boolean isRefPrimary = nameAttribute.hasIsPrimary();
         nameAttribute.setPrimary(Boolean.TRUE);
         failCreateAttribute(createRefAttribute, "reference.attribute.cannot.be.primary.key", UserException.class);
-        // -- Добавление ссылочного атрибута в структуру без первичного ключа
+        // -- Добавление ссылочного атрибута в структуру без первичного ключа. Должна быть ошибка
         nameAttribute.setPrimary(Boolean.FALSE);
         failCreateAttribute(createRefAttribute, "reference.book.must.have.primary.key", UserException.class);
+        nameAttribute.setPrimary(isRefPrimary);
 
-        // -- Добавление первичного ключа для возможности добавления ссылки
+        // -- Добавление первичного ключа при наличии данных. Должна быть ошибка
         CreateAttribute createIdAttribute = new CreateAttribute(draftEntity.getId(), idAttribute, null);
-        draftService.createAttribute(createIdAttribute);
+        draftEntity.setStorageCode(draftTableWithData);
+        failCreateAttribute(createIdAttribute, "validation.required.err", UserException.class);
+        draftEntity.setStorageCode(draftTable);
 
-        // -- Добавление ссылочного атрибута
-        nameAttribute.setPrimary(isNamePrimary);
+        // -- Добавление первичного ключа для возможности добавления ссылочного атрибута
+        draftService.createAttribute(createIdAttribute);
+        Structure structure = versionService.getStructure(draftEntity.getId());
+        assertTrue(structure.hasPrimary());
+        assertEquals(createIdAttribute.getAttribute(), structure.getPrimary().get(0));
+        assertEquals(createIdAttribute.getReference(), structure.getReference(createIdAttribute.getAttribute().getCode()));
+
+        // -- Корректное добавление
         draftService.createAttribute(createRefAttribute);
 
-        Structure structure = versionService.getStructure(draftEntity.getId());
+        structure = versionService.getStructure(draftEntity.getId());
         assertEquals(2, structure.getAttributes().size());
         assertEquals(nameAttribute, structure.getAttribute(nameAttribute.getCode()));
         assertEquals(nameReference, structure.getReference(nameAttribute.getCode()));
@@ -393,6 +443,7 @@ public class DraftServiceTest {
         referredEntity2.setStructure(new Structure(singletonList(codeAttribute), null));
         when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(referredEntity2.getRefBook().getCode()), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(referredEntity2);
 
+        // -- Корректное изменение
         when(draftDataService.isUnique(eq(TEST_DRAFT_CODE), anyList())).thenReturn(true);
         UpdateAttribute updateRefAttribute = new UpdateAttribute(draftEntity.getId(), DraftServiceTest.updateNameAttribute, nameReference);
         draftService.updateAttribute(updateRefAttribute);
@@ -445,14 +496,14 @@ public class DraftServiceTest {
         assertEquals(updateNameAttribute, structure.getAttribute(updateRefAttribute.getCode()));
         assertEquals(updateNameReference, structure.getReference(updateRefAttribute.getCode()));
 
+        // Изменение первичного атрибута
+        UpdateAttribute updatePrimaryAttribute = new UpdateAttribute(draftEntity.getId(), updateIdAttribute, null);
+        draftService.updateAttribute(updatePrimaryAttribute);
+        assertEquals(updateIdAttribute, structure.getAttribute(updatePrimaryAttribute.getCode()));
+        assertEquals(1, structure.getPrimary().size());
+        assertEquals(updateIdAttribute, structure.getPrimary().get(0));
+
         // Добавление нового первичного атрибута. Первичность предыдущего атрибута должна быть удалена
-        updateRefAttribute = new UpdateAttribute(draftEntity.getId(), updateIdAttribute, null);
-        draftService.updateAttribute(updateRefAttribute);
-        assertEquals(updateIdAttribute, structure.getAttribute(updateRefAttribute.getCode()));
-
-        assertTrue(structure.getAttributes().stream().anyMatch(Structure.Attribute::hasIsPrimary));
-        assertEquals(updateIdAttribute, structure.getAttributes().stream().filter(Structure.Attribute::hasIsPrimary).findFirst().orElse(null));
-
         CreateAttribute createPrimaryAttribute = new CreateAttribute(draftEntity.getId(), pkAttribute, nullReference);
         draftService.createAttribute(createPrimaryAttribute);
 
@@ -558,7 +609,7 @@ public class DraftServiceTest {
             assertEquals(message, getExceptionMessage(e));
 
             Structure newStructure = versionService.getStructure(createAttribute.getVersionId());
-            assertNull("Атрибут не должен добавиться", newStructure.getAttribute(attribute.getCode()));
+            assertNull("Атрибут не должен добавиться", attribute == null ? null : newStructure.getAttribute(attribute.getCode()));
             assertNull("Ссылка не должна добавиться", reference == null ? null : newStructure.getReference(reference.getAttribute()));
         }
     }
@@ -716,15 +767,15 @@ public class DraftServiceTest {
     /** Получение кода сообщения об ошибке из исключения. */
     private static String getExceptionMessage(Exception e) {
 
-        if (!StringUtils.isEmpty(e.getMessage()))
-            return e.getMessage();
-
         if (e instanceof UserException) {
             UserException ue = (UserException) e;
 
             if (!isEmpty(ue.getMessages()))
                 return ue.getMessages().get(0).getCode();
         }
+
+        if (!StringUtils.isEmpty(e.getMessage()))
+            return e.getMessage();
 
         return null;
     }
