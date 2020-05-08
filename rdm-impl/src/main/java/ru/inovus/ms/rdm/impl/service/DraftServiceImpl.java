@@ -611,8 +611,6 @@ public class DraftServiceImpl implements DraftService {
         Structure.Attribute attribute = createAttribute.getAttribute();
         validateNewAttribute(attribute, structure, draftEntity.getRefBook().getCode());
 
-        validateRequired(attribute, draftEntity.getStorageCode(), structure);
-
         Structure.Reference reference = createAttribute.getReference();
         if (reference != null && reference.isNull())
             reference = null;
@@ -620,6 +618,8 @@ public class DraftServiceImpl implements DraftService {
         if (reference != null) {
             validateNewReference(attribute, reference, structure, draftEntity.getRefBook().getCode());
         }
+
+        structureChangeValidator.validateCreateAttributeStorage(attribute, structure, draftEntity.getStorageCode());
 
         try {
             draftDataService.addField(draftEntity.getStorageCode(), ConverterUtil.field(attribute));
@@ -636,22 +636,6 @@ public class DraftServiceImpl implements DraftService {
         draftEntity.setStructure(structure);
 
         auditStructureEdit(draftEntity, "create_attribute", attribute);
-    }
-
-    /** Проверка наличия данных для добавляемого атрибута, обязательного к заполнению. */
-    private void validateRequired(Structure.Attribute attribute, String storageCode, Structure structure) {
-
-        if (structure == null || structure.getAttributes() == null || !attribute.hasIsPrimary())
-            return;
-
-        DataCriteria dataCriteria = new DataCriteria(storageCode, null, null, ConverterUtil.fields(structure), emptySet(), null);
-        dataCriteria.setCount(1);
-        dataCriteria.setPage(DataCriteria.MIN_PAGE);
-        dataCriteria.setSize(DataCriteria.MIN_SIZE);
-
-        Collection<RowValue> data = searchDataService.getPagedData(dataCriteria).getCollection();
-        if (!isEmpty(data))
-            throw new UserException(new Message("validation.required.err", attribute.getName()));
     }
 
     @Override
