@@ -103,10 +103,20 @@ public class Structure implements Serializable {
                 .collect(toList());
     }
 
+    /**
+     * Проверка наличия первичного ключа.
+     *
+     * @return {@code true}, если есть хотя бы один первичный ключ, иначе - {@code false}.
+     */
     public boolean hasPrimary() {
         return attributes.stream().anyMatch(attribute -> attribute.isPrimary);
     }
 
+    /**
+     * Проверка наличия структуры.
+     *
+     * @return {@code true}, если есть хотя бы один атрибут, иначе - {@code false}.
+     */
     @JsonIgnore
     public boolean isEmpty() {
         return CollectionUtils.isEmpty(attributes);
