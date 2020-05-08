@@ -15,15 +15,17 @@ import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates;
 import ru.inovus.ms.rdm.impl.repository.RefBookRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.inovus.ms.rdm.impl.util.NamingUtils;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.toList;
 
 @Component
 public class VersionValidationImpl implements VersionValidation {
 
+    public static final String CODE_IS_INVALID_EXCEPTION_CODE = "code.is.invalid";
+    public static final String REFBOOK_CODE_IS_INVALID_EXCEPTION_CODE = "refbook.code.is.invalid";
     public static final String REFBOOK_NOT_FOUND_EXCEPTION_CODE = "refbook.not.found";
     public static final String REFBOOK_WITH_CODE_NOT_FOUND_EXCEPTION_CODE = "refbook.with.code.not.found";
     private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
@@ -32,6 +34,7 @@ public class VersionValidationImpl implements VersionValidation {
     private static final String VERSION_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "version.attribute.not.found";
     private static final String DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "draft.attribute.not.found";
 
+    public static final String ATTRIBUTE_CODE_IS_INVALID_EXCEPTION_CODE = "attribute.code.is.invalid";
     public static final String ATTRIBUTE_REFERENCE_NOT_FOUND_EXCEPTION_CODE = "attribute.reference.not.found";
     public static final String REFERENCE_ATTRIBUTE_CANNOT_BE_PRIMARY_KEY_EXCEPTION_CODE = "reference.attribute.cannot.be.primary.key";
     public static final String REFERENCE_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "reference.attribute.not.found";
@@ -41,6 +44,8 @@ public class VersionValidationImpl implements VersionValidation {
     private static final String REFERENCE_DISPLAY_EXPRESSION_IS_EMPTY_EXCEPTION_CODE = "reference.display.expression.is.empty";
     private static final String REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND_EXCEPTION_CODE = "reference.referred.attributes.not.found";
     private static final String REFERRED_BOOK_MUST_HAVE_ONLY_ONE_PRIMARY_KEY_EXCEPTION_CODE = "referred.book.must.have.only.one.primary.key";
+
+    private static final Pattern CODE_PATTERN = Pattern.compile("[A-Za-z][0-9A-Za-z\\-._]{0,49}");
 
     private RefBookRepository refbookRepository;
     private RefBookVersionRepository versionRepository;
@@ -83,6 +88,22 @@ public class VersionValidationImpl implements VersionValidation {
     public void validateDraft(Integer draftId) {
         validateDraftExists(draftId);
         validateDraftNotArchived(draftId);
+    }
+
+    /**
+     * Проверка кода справочника.
+     *
+     * @param code код справочника
+     */
+    @Override
+    public void validateRefBookCode(String code) {
+
+        if (!isValidCode(code)) {
+            throw new UserException(List.of(
+                    new Message(REFBOOK_CODE_IS_INVALID_EXCEPTION_CODE, code),
+                    new Message(CODE_IS_INVALID_EXCEPTION_CODE)
+            ));
+        }
     }
 
     /**
@@ -264,9 +285,23 @@ public class VersionValidationImpl implements VersionValidation {
     @Override
     public void validateAttribute(Structure.Attribute attribute) {
 
-        NamingUtils.checkCode(attribute.getCode());
+        validateAttributeCode(attribute.getCode());
     }
 
+    /**
+     * Проверка кода атрибута.
+     *
+     * @param code код атрибута
+     */
+    private void validateAttributeCode(String code) {
+
+        if (!isValidCode(code)) {
+            throw new UserException(List.of(
+                    new Message(ATTRIBUTE_CODE_IS_INVALID_EXCEPTION_CODE, code),
+                    new Message(CODE_IS_INVALID_EXCEPTION_CODE)
+            ));
+        }
+    }
 
     /**
      * Проверка атрибута-ссылки.
@@ -282,6 +317,7 @@ public class VersionValidationImpl implements VersionValidation {
         if (attribute.hasIsPrimary())
             throw new UserException(new Message(REFERENCE_ATTRIBUTE_CANNOT_BE_PRIMARY_KEY_EXCEPTION_CODE, attribute.getName()));
     }
+
     /**
      * Проверка ссылочности перед добавлением/изменением.
      *
@@ -298,10 +334,10 @@ public class VersionValidationImpl implements VersionValidation {
         if (referredEntity == null)
             throw new NotFoundException(new Message(REFBOOK_WITH_CODE_NOT_FOUND_EXCEPTION_CODE, reference.getReferenceCode()));
 
-        validateReferenceDisplayExpression(reference, referredEntity.getStructure());
-
         if (referredEntity.getStructure().getPrimary().size() != 1)
             throw new UserException(new Message(REFERRED_BOOK_MUST_HAVE_ONLY_ONE_PRIMARY_KEY_EXCEPTION_CODE, reference.getReferenceCode()));
+
+        validateReferenceDisplayExpression(reference, referredEntity.getStructure());
     }
 
     /**
@@ -325,5 +361,9 @@ public class VersionValidationImpl implements VersionValidation {
                     reference.getAttribute(), String.join("\",\"", absents));
         }
         throw new NotFoundException(error);
+    }
+
+    public static boolean isValidCode(String code) {
+        return CODE_PATTERN.matcher(code).matches();
     }
 }

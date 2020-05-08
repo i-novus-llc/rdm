@@ -10,6 +10,8 @@ public interface VersionValidation {
 
     void validateDraft(Integer draftId);
 
+    void validateRefBookCode(String refBookCode);
+
     void validateRefBookExists(Integer refBookId);
 
     void validateRefBookCodeExists(String refBookCode);
