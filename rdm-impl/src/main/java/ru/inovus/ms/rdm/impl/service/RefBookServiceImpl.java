@@ -39,7 +39,6 @@ import ru.inovus.ms.rdm.impl.repository.RefBookModelDataRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
-import ru.inovus.ms.rdm.impl.util.NamingUtils;
 
 import java.io.InputStream;
 import java.util.*;
@@ -182,9 +181,9 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional
     public RefBook create(RefBookCreateRequest request) {
 
+        versionValidation.validateRefBookCode(request.getCode());
         if (refBookRepository.existsByCode(request.getCode()))
             throw new UserException(new Message(REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE, request.getCode()));
-        NamingUtils.checkCode(request.getCode());
 
         RefBookEntity refBookEntity = new RefBookEntity();
         refBookEntity.setArchived(Boolean.FALSE);
@@ -253,7 +252,7 @@ public class RefBookServiceImpl implements RefBookService {
         RefBookVersionEntity versionEntity = versionRepository.getOne(request.getVersionId());
         RefBookEntity refBookEntity = versionEntity.getRefBook();
         if (!refBookEntity.getCode().equals(request.getCode())) {
-            NamingUtils.checkCode(refBookEntity.getCode());
+            versionValidation.validateRefBookCode(request.getCode());
             if (refBookRepository.existsByCode((request.getCode())))
                 throw new UserException(new Message(REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE, request.getCode()));
 
