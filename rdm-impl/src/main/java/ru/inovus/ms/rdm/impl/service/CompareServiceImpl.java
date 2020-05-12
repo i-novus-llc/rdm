@@ -50,6 +50,7 @@ public class CompareServiceImpl implements CompareService {
 
     private static final String COMPARE_OLD_PRIMARIES_NOT_FOUND_EXCEPTION_CODE = "compare.old.primaries.not.found";
     private static final String COMPARE_NEW_PRIMARIES_NOT_FOUND_EXCEPTION_CODE = "compare.new.primaries.not.found";
+    private static final String COMPARE_PRIMARIES_NOT_MATCH_EXCEPTION_CODE = "compare.primaries.not.match";
     private static final String COMPARE_PRIMARIES_NOT_EQUALS_EXCEPTION_CODE = "compare.primaries.not.equals";
 
     private CompareDataService compareDataService;
@@ -147,12 +148,12 @@ public class CompareServiceImpl implements CompareService {
 
         RefBookVersionEntity oldVersion = versionRepository.getOne(criteria.getOldVersionId());
         RefBookVersionEntity newVersion = versionRepository.getOne(criteria.getNewVersionId());
+        validatePrimariesEquality(oldVersion, newVersion);
+
+        CompareDataCriteria compareDataCriteria = createVdsCompareDataCriteria(oldVersion, newVersion, criteria);
 
         Structure oldStructure = oldVersion.getStructure();
         Structure newStructure = newVersion.getStructure();
-        validatePrimariesEquality(oldStructure.getPrimary(), newStructure.getPrimary());
-
-        CompareDataCriteria compareDataCriteria = createVdsCompareDataCriteria(oldVersion, newVersion, criteria);
 
         List<String> newAttributes = new ArrayList<>();
         List<String> oldAttributes = new ArrayList<>();
@@ -333,17 +334,31 @@ public class CompareServiceImpl implements CompareService {
         }
     }
 
-    private void validatePrimariesEquality(List<Structure.Attribute> oldPrimaries, List<Structure.Attribute> newPrimaries) {
+    private void validatePrimariesEquality(RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion) {
 
+        List<Structure.Attribute> oldPrimaries = oldVersion.getStructure().getPrimary();
         if (isEmpty(oldPrimaries))
-            throw new UserException(new Message(COMPARE_OLD_PRIMARIES_NOT_FOUND_EXCEPTION_CODE));
+            throw new UserException(new Message(COMPARE_OLD_PRIMARIES_NOT_FOUND_EXCEPTION_CODE, oldVersion.getRefBook().getCode(), oldVersion.getVersion()));
 
+        List<Structure.Attribute> newPrimaries = newVersion.getStructure().getPrimary();
         if (isEmpty(newPrimaries))
-            throw new UserException(new Message(COMPARE_NEW_PRIMARIES_NOT_FOUND_EXCEPTION_CODE));
+            throw new UserException(new Message(COMPARE_NEW_PRIMARIES_NOT_FOUND_EXCEPTION_CODE, newVersion.getRefBook().getCode(), newVersion.getVersion()));
 
         if (oldPrimaries.size() != newPrimaries.size()
-                || oldPrimaries.stream().anyMatch(oldPrimary -> newPrimaries.stream().noneMatch(newPrimary -> newPrimary.equalsByTypeAndCode(oldPrimary))))
-            throw new UserException(new Message(COMPARE_PRIMARIES_NOT_EQUALS_EXCEPTION_CODE));
+                || oldPrimaries.stream().anyMatch(oldPrimary -> !containsPrimary(newPrimaries, oldPrimary))) {
+            if (newVersion.getRefBook().getCode().equals(oldVersion.getRefBook().getCode())) {
+                throw new UserException(new Message(COMPARE_PRIMARIES_NOT_MATCH_EXCEPTION_CODE,
+                        oldVersion.getRefBook().getCode(), oldVersion.getVersion(), newVersion.getVersion()));
+            } else {
+                throw new UserException(new Message(COMPARE_PRIMARIES_NOT_EQUALS_EXCEPTION_CODE,
+                        oldVersion.getRefBook().getCode(), oldVersion.getVersion(),
+                        newVersion.getRefBook().getCode(), newVersion.getVersion()));
+            }
+        }
+    }
+
+    private boolean containsPrimary(List<Structure.Attribute> primaries, Structure.Attribute primary) {
+        return primaries.stream().anyMatch(p -> p.storageEquals(primary));
     }
 
     /**

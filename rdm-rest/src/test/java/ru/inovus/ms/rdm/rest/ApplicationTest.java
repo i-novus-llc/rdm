@@ -2214,7 +2214,7 @@ public class ApplicationTest {
             compareService.compareData(new CompareDataCriteria(oldVersionId, newVersionId));
             fail();
         } catch (RestException re) {
-            assertEquals("compare.primaries.not.equals", re.getMessage());
+            assertEquals("compare.primaries.not.match", re.getMessage());
         }
     }
 
@@ -2404,7 +2404,7 @@ public class ApplicationTest {
             calculateDataConflicts(refFromVersionId, refToVersionId, draft.getId());
             fail();
         } catch (RestException re) {
-            assertEquals("compare.primaries.not.equals", re.getMessage());
+            assertEquals("compare.primaries.not.match", re.getMessage());
         }
     }
 
