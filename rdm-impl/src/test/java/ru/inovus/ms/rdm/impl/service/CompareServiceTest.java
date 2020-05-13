@@ -757,16 +757,10 @@ public class CompareServiceTest {
         for (int i = 0; i < expectedRowsWithDiff.getContent().size(); i++) {
             ComparableRow expectedRow = expectedRowsWithDiff.getContent().get(i);
             ComparableRow actualRow = actualRowsWithDiff.getContent().get(i);
-            assertTrue(statusEquals(actualRow.getStatus(), expectedRow.getStatus())
-                    && actualRow.getFieldValues().size() == expectedRow.getFieldValues().size()
-                    && actualRow.getFieldValues().containsAll(expectedRow.getFieldValues()));
+            assertEquals(expectedRow.getStatus(), actualRow.getStatus());
+            assertEquals(expectedRow.getFieldValues().size(), actualRow.getFieldValues().size());
+            assertTrue(actualRow.getFieldValues().containsAll(expectedRow.getFieldValues()));
         }
-    }
-
-    private boolean statusEquals(DiffStatusEnum status1, DiffStatusEnum status2) {
-        return status1 == null
-                ? status2 == null
-                : status1.equals(status2);
     }
 
     private Criteria createCriteria(int pageNumber, int pageSize, Integer count) {

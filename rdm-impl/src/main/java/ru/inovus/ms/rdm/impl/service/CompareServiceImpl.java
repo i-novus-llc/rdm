@@ -37,6 +37,7 @@ import ru.inovus.ms.rdm.impl.util.ConverterUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
@@ -163,7 +164,7 @@ public class CompareServiceImpl implements CompareService {
             Structure.Attribute oldAttribute = oldStructure.getAttribute(newAttribute.getCode());
             if (oldAttribute == null)
                 newAttributes.add(newAttribute.getCode());
-            else if (!oldAttribute.storageEquals(newAttribute))
+            else if (!attributeEquals(oldAttribute, newAttribute))
                 updatedAttributes.add(newAttribute.getCode());
         });
 
@@ -202,15 +203,22 @@ public class CompareServiceImpl implements CompareService {
         return new RestPage<>(comparableRows, criteria, newData.getTotalElements() + refBookDataDiffDeleted.getRows().getTotalElements());
     }
 
-    private List<Field> getCommonFields(Structure structure1, Structure structure2) {
-        return structure2.getAttributes()
-                .stream()
+    private List<Field> getCommonFields(Structure oldStructure, Structure newStructure) {
+
+        return newStructure.getAttributes().stream()
                 .filter(newAttribute -> {
-                    Structure.Attribute oldAttribute = structure1.getAttribute(newAttribute.getCode());
-                    return (oldAttribute != null && oldAttribute.storageEquals(newAttribute));
+                    Structure.Attribute oldAttribute = oldStructure.getAttribute(newAttribute.getCode());
+                    return attributeEquals(oldAttribute, newAttribute);
                 })
                 .map(attribute -> fieldFactory.createField(attribute.getCode(), attribute.getType()))
                 .collect(toList());
+    }
+
+    /** Сравнение атрибутов только по полям, связанным с изменением атрибута. */
+    private boolean attributeEquals(Structure.Attribute oldAttribute, Structure.Attribute newAttribute) {
+        return oldAttribute != null
+                && oldAttribute.storageEquals(newAttribute)
+                && Objects.equals(oldAttribute.getName(), newAttribute.getName());
     }
 
     private boolean equalValues(PassportValueEntity oldPassportValue, PassportValueEntity newPassportValue) {
