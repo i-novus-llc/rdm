@@ -309,8 +309,6 @@ public class DraftServiceImpl implements DraftService {
 
     private RefBookVersionEntity updateDraft(Structure structure, RefBookVersionEntity draftVersion, List<Field> fields, List<PassportValueEntity> passportValues) {
 
-        versionValidation.validateStructure(structure);
-
         String draftCode = draftVersion.getStorageCode();
 
         if (!structure.equals(draftVersion.getStructure())) {
@@ -343,8 +341,6 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private RefBookVersionEntity newDraftVersion(Structure structure, List<PassportValueEntity> passportValues) {
-
-        versionValidation.validateStructure(structure);
 
         RefBookVersionEntity draftVersion = new RefBookVersionEntity();
         draftVersion.setStatus(RefBookVersionStatus.DRAFT);
