@@ -1,7 +1,6 @@
 package ru.inovus.ms.rdm.api.validation;
 
 import ru.inovus.ms.rdm.api.model.Structure;
-import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 
 public interface VersionValidation {
 
@@ -10,6 +9,8 @@ public interface VersionValidation {
     void validateVersion(Integer versionId);
 
     void validateDraft(Integer draftId);
+
+    void validateRefBookCode(String refBookCode);
 
     void validateRefBookExists(Integer refBookId);
 
@@ -27,6 +28,7 @@ public interface VersionValidation {
 
     void validateStructure(Structure structure);
 
-    void validateReferenceDisplayExpression(String displayExpression,
-                                            RefBookVersion referredVersion);
+    void validateAttribute(Structure.Attribute attribute);
+
+    void validateReferenceAbility(Structure.Reference reference);
 }

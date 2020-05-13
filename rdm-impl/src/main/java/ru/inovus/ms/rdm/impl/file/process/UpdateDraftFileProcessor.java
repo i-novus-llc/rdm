@@ -37,13 +37,16 @@ public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
             setFile(inputStream);
 
             Map<String, Object> passport = getPassport();
-            Pair<Structure, Map<String, List<AttributeValidation>>> structure = getStructureAndValidations();
-            return draftService.create(new CreateDraftRequest(refBookId, structure.getFirst(), passport, structure.getSecond()));
+            Pair<Structure, Map<String, List<AttributeValidation>>> pair = getStructureAndValidations();
+            CreateDraftRequest request = new CreateDraftRequest(refBookId, pair.getFirst(), passport, pair.getSecond());
+            return draftService.create(request);
 
         }  catch (IOException e) {
             XmlParseUtils.throwXmlReadError(e);
+
         } catch (UserException e) {
             throw e;
+
         } catch (Exception e) {
             throw new UserException("check.your.xml", e);
         }
