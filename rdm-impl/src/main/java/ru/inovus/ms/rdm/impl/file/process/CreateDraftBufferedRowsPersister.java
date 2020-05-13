@@ -24,22 +24,24 @@ public class CreateDraftBufferedRowsPersister implements RowsProcessor {
 
     private boolean isFirstRowAppended;
 
-    private int size = 100;
+    private int bufferSize = 100;
 
-    private BiConsumer saveDraftConsumer;
+    private BiConsumer<String, Structure> saveDraftConsumer;
 
     private String storageCode;
     private Structure structure = null;
     private Set<String> allKeys = new LinkedHashSet<>();
 
-    public CreateDraftBufferedRowsPersister(DraftDataService draftDataService, BiConsumer<String, Structure> saveDraftConsumer) {
+    public CreateDraftBufferedRowsPersister(DraftDataService draftDataService,
+                                            BiConsumer<String, Structure> saveDraftConsumer) {
         this.draftDataService = draftDataService;
         this.saveDraftConsumer = saveDraftConsumer;
     }
 
-    public CreateDraftBufferedRowsPersister(DraftDataService draftDataService, int size, BiConsumer<String, Structure> saveDraftConsumer) {
+    public CreateDraftBufferedRowsPersister(DraftDataService draftDataService, int bufferSize,
+                                            BiConsumer<String, Structure> saveDraftConsumer) {
         this.draftDataService = draftDataService;
-        this.size = size;
+        this.bufferSize = bufferSize;
         this.saveDraftConsumer = saveDraftConsumer;
     }
 
@@ -49,32 +51,33 @@ public class CreateDraftBufferedRowsPersister implements RowsProcessor {
             allKeys.addAll(row.getData().keySet());
             structure = stringStructure(allKeys);
             storageCode = draftDataService.createDraft(fields(structure));
-            this.bufferedRowsPersister = new BufferedRowsPersister(size, draftDataService, storageCode, structure);
+            this.bufferedRowsPersister = new BufferedRowsPersister(bufferSize, draftDataService, storageCode, structure);
             isFirstRowAppended = true;
+
         } else {
             updateStructure(row);
         }
+
         return bufferedRowsPersister.append(row);
     }
 
     private void updateStructure(Row row) {
+
         List<String> newKeys = row.getData().keySet().stream()
                 .filter(k -> !allKeys.contains(k))
                 .collect(Collectors.toList());
+
         if (allKeys.addAll(newKeys)) {
-            newKeys.stream()
-                    .map(this::stringAttribute)
-                    .peek(attribute -> draftDataService.addField(storageCode, field(attribute)))
-                    .forEach(attribute -> structure.getAttributes().add(attribute));
+            newKeys.forEach(this::addAttribute);
             bufferedRowsPersister.setStructure(structure);
         }
     }
 
     private Structure stringStructure(Set<String> keySet) {
+
         List<Structure.Attribute> attributes = new ArrayList<>();
-        keySet.forEach(columnName ->
-                attributes.add(stringAttribute(columnName))
-        );
+        keySet.forEach(columnName -> attributes.add(stringAttribute(columnName)));
+
         return new Structure(attributes, null);
     }
 
@@ -82,10 +85,19 @@ public class CreateDraftBufferedRowsPersister implements RowsProcessor {
         return Structure.Attribute.build(attrCode, attrCode, FieldType.STRING, attrCode);
     }
 
+    private void addAttribute(String columnName) {
+
+        Structure.Attribute attribute = stringAttribute(columnName);
+        draftDataService.addField(storageCode, field(attribute));
+        structure.getAttributes().add(attribute);
+    }
+
     @Override
     public Result process() {
+
         Result result = bufferedRowsPersister != null ? bufferedRowsPersister.process() : null;
         saveDraftConsumer.accept(storageCode, structure);
+
         return result;
     }
 }

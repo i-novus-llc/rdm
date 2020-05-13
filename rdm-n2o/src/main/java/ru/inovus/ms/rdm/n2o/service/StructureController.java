@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static ru.inovus.ms.rdm.api.model.version.UpdateAttribute.setUpdateValueIfExists;
+
 @Controller
 @SuppressWarnings("WeakerAccess")
 public class StructureController {
@@ -288,7 +290,7 @@ public class StructureController {
     }
 
     private Structure.Attribute buildAttribute(FormAttribute request) {
-        if (request.getIsPrimary())
+        if (request.hasIsPrimary())
             return Structure.Attribute.buildPrimary(request.getCode(),
                     request.getName(), request.getType(), request.getDescription());
         else {
@@ -309,20 +311,18 @@ public class StructureController {
         attribute.setLastActionDate(TimeUtils.nowZoned());
         attribute.setVersionId(versionId);
 
+        // attribute fields
         attribute.setCode(formAttribute.getCode());
-
-        if (formAttribute.getName() != null)
-            attribute.setName(UpdateValue.of(formAttribute.getName()));
         attribute.setType(formAttribute.getType());
-        if (formAttribute.getIsPrimary() != null)
-            attribute.setIsPrimary(UpdateValue.of(formAttribute.getIsPrimary()));
-        if (formAttribute.getDescription() != null)
-            attribute.setDescription(UpdateValue.of(formAttribute.getDescription()));
-        attribute.setAttribute(UpdateValue.of(formAttribute.getCode()));
-        if (formAttribute.getReferenceCode() != null)
-            attribute.setReferenceCode(UpdateValue.of(formAttribute.getReferenceCode()));
-        if (formAttribute.getDisplayExpression() != null)
-            attribute.setDisplayExpression(UpdateValue.of(formAttribute.getDisplayExpression()));
+
+        setUpdateValueIfExists(formAttribute::getName, attribute::setName);
+        setUpdateValueIfExists(formAttribute::getIsPrimary, attribute::setIsPrimary);
+        setUpdateValueIfExists(formAttribute::getDescription, attribute::setDescription);
+
+        // reference fields
+        setUpdateValueIfExists(formAttribute::getCode, attribute::setAttribute);
+        setUpdateValueIfExists(formAttribute::getReferenceCode, attribute::setReferenceCode);
+        setUpdateValueIfExists(formAttribute::getDisplayExpression, attribute::setDisplayExpression);
 
         return attribute;
     }

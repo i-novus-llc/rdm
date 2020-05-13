@@ -34,21 +34,21 @@ public class UpdateAttribute extends UpdatableDto {
 
         this.versionId = versionId;
 
-        //attribute fields
+        // attribute fields
         this.code = attribute.getCode();
         this.type = attribute.getType();
 
-        setUpdateValueIfPresent(attribute::getName, this::setName);
-        setUpdateValueIfPresent(attribute::getIsPrimary, this::setIsPrimary);
-        setUpdateValueIfPresent(attribute::getDescription, this::setDescription);
+        setUpdateValueIfExists(attribute::getName, this::setName);
+        setUpdateValueIfExists(attribute::getIsPrimary, this::setIsPrimary);
+        setUpdateValueIfExists(attribute::getDescription, this::setDescription);
 
-        //reference fields
+        // reference fields
         if (reference == null)
             return;
 
-        setUpdateValueIfPresent(reference::getAttribute, this::setAttribute);
-        setUpdateValueIfPresent(reference::getReferenceCode, this::setReferenceCode);
-        setUpdateValueIfPresent(reference::getDisplayExpression, this::setDisplayExpression);
+        setUpdateValueIfExists(reference::getAttribute, this::setAttribute);
+        setUpdateValueIfExists(reference::getReferenceCode, this::setReferenceCode);
+        setUpdateValueIfExists(reference::getDisplayExpression, this::setDisplayExpression);
     }
 
     public Integer getVersionId() {
@@ -133,35 +133,55 @@ public class UpdateAttribute extends UpdatableDto {
         return FieldType.REFERENCE.equals(getType());
     }
 
+    public boolean isNullOrPresentReference() {
+        return isNullOrPresent(getAttribute())
+                && isNullOrPresent(getReferenceCode())
+                && isNullOrPresent(getDisplayExpression());
+    }
+
+    public boolean isNotNullAndPresentReference() {
+        return isNotNullAndPresent(getAttribute())
+                && isNotNullAndPresent(getReferenceCode())
+                && isNotNullAndPresent(getDisplayExpression());
+    }
+
     public void fillAttribute(Structure.Attribute attribute) {
 
-        setValueIfPresent(this::getName, attribute::setName);
-        setValueIfPresent(this::getDescription, attribute::setDescription);
-        setValueIfPresent(this::getIsPrimary, attribute::setPrimary);
-
         attribute.setType(getType());
+
+        setValueIfExists(this::getName, attribute::setName);
+        setValueIfExists(this::getDescription, attribute::setDescription);
+        setValueIfExists(this::getIsPrimary, attribute::setPrimary);
     }
 
     public void fillReference(Structure.Reference reference) {
 
-        setValueIfPresent(this::getAttribute, reference::setAttribute);
-        setValueIfPresent(this::getReferenceCode, reference::setReferenceCode);
-        setValueIfPresent(this::getDisplayExpression, reference::setDisplayExpression);
+        setValueIfExists(this::getAttribute, reference::setAttribute);
+        setValueIfExists(this::getReferenceCode, reference::setReferenceCode);
+        setValueIfExists(this::getDisplayExpression, reference::setDisplayExpression);
     }
 
-    private static <T> void setValueIfPresent(Supplier<UpdateValue<T>> valueGetter, Consumer<T> valueSetter) {
+    private static <T> boolean isNotNullAndPresent(UpdateValue<T> value) {
+        return value != null && value.isPresent();
+    }
 
-        UpdateValue<T> value = valueGetter.get();
+    private static <T> boolean isNullOrPresent(UpdateValue<T> value) {
+        return value == null || value.isPresent();
+    }
+
+    private static <T> void setValueIfExists(Supplier<UpdateValue<T>> getter, Consumer<T> setter) {
+
+        UpdateValue<T> value = getter.get();
         if (value != null) {
-            valueSetter.accept(value.isPresent() ? value.get() : null);
+            setter.accept(value.isPresent() ? value.get() : null);
         }
     }
 
-    private static <T> void setUpdateValueIfPresent(Supplier<T> valueGetter, Consumer<UpdateValue<T>> valueSetter) {
+    public static <T> void setUpdateValueIfExists(Supplier<T> getter, Consumer<UpdateValue<T>> setter) {
 
-        T value = valueGetter.get();
+        T value = getter.get();
         if (value != null) {
-            valueSetter.accept(of(value));
+            setter.accept(of(value));
         }
     }
 }
