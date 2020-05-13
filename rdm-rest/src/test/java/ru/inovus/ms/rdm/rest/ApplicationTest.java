@@ -2627,6 +2627,7 @@ public class ApplicationTest {
     }
 
     private void assertRefBookDataDiffs(RefBookDataDiff expectedRefBookDataDiff, RefBookDataDiff actualRefBookDataDiff) {
+
         assertListsEquals(expectedRefBookDataDiff.getNewAttributes(), actualRefBookDataDiff.getNewAttributes());
         assertListsEquals(expectedRefBookDataDiff.getOldAttributes(), actualRefBookDataDiff.getOldAttributes());
         assertListsEquals(expectedRefBookDataDiff.getUpdatedAttributes(), actualRefBookDataDiff.getUpdatedAttributes());
@@ -2641,10 +2642,12 @@ public class ApplicationTest {
     }
 
     private void assertDiffRowValues(List<DiffRowValue> expectedDiffRowValues, List<DiffRowValue> actualDiffRowValues) {
+
         assertEquals(expectedDiffRowValues.size(), actualDiffRowValues.size());
         expectedDiffRowValues.forEach(expectedDiffRowValue -> {
             if (actualDiffRowValues.stream().noneMatch(actualDiffRowValue ->
-                    expectedDiffRowValue.getValues().size() == actualDiffRowValue.getValues().size() && actualDiffRowValue.getValues().containsAll(expectedDiffRowValue.getValues())))
+                    expectedDiffRowValue.getValues().size() == actualDiffRowValue.getValues().size()
+                            && actualDiffRowValue.getValues().containsAll(expectedDiffRowValue.getValues())))
                 fail();
         });
     }
