@@ -356,16 +356,16 @@ public class CompareServiceImpl implements CompareService {
                 || oldPrimaries.stream().anyMatch(oldPrimary -> !containsPrimary(newPrimaries, oldPrimary))) {
             if (newVersion.getRefBook().getCode().equals(oldVersion.getRefBook().getCode())) {
                 throw new UserException(new Message(COMPARE_PRIMARIES_NOT_MATCH_EXCEPTION_CODE,
-                        oldVersion.getRefBook().getCode(), oldVersion.getVersion(), newVersion.getVersion()));
+                        oldVersion.getRefBook().getCode(), oldVersion.getVersionNumber(), newVersion.getVersionNumber()));
             } else {
                 throw new UserException(new Message(COMPARE_PRIMARIES_NOT_EQUALS_EXCEPTION_CODE,
-                        oldVersion.getRefBook().getCode(), oldVersion.getVersion(),
-                        newVersion.getRefBook().getCode(), newVersion.getVersion()));
+                        oldVersion.getRefBook().getCode(), oldVersion.getVersionNumber(),
+                        newVersion.getRefBook().getCode(), newVersion.getVersionNumber()));
             }
         }
     }
 
-    private boolean containsPrimary(List<Structure.Attribute> primaries, Structure.Attribute primary) {
+    private static boolean containsPrimary(List<Structure.Attribute> primaries, Structure.Attribute primary) {
         return primaries.stream().anyMatch(p -> p.storageEquals(primary));
     }
 
