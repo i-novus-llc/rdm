@@ -22,6 +22,8 @@ import java.util.regex.Pattern;
 import static java.util.stream.Collectors.toList;
 
 @Component
+// Использовать VersionValidation без интерфейса как ReferenceValidation
+// Выделить RefBookValidation с refbookRepository.
 public class VersionValidationImpl implements VersionValidation {
 
     public static final String CODE_IS_INVALID_EXCEPTION_CODE = "code.is.invalid";
@@ -44,6 +46,7 @@ public class VersionValidationImpl implements VersionValidation {
     private static final String REFERENCE_DISPLAY_EXPRESSION_IS_EMPTY_EXCEPTION_CODE = "reference.display.expression.is.empty";
     private static final String REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND_EXCEPTION_CODE = "reference.referred.attributes.not.found";
     private static final String REFERRED_BOOK_NOT_FOUND_EXCEPTION_CODE = "referred.book.not.found";
+    private static final String REFERRED_BOOK_STRUCTURE_NOT_FOUND_EXCEPTION_CODE = "referred.book.structure.not.found";
     private static final String REFERRED_BOOK_MUST_HAVE_ONLY_ONE_PRIMARY_KEY_EXCEPTION_CODE = "referred.book.must.have.only.one.primary.key";
 
     private static final Pattern CODE_PATTERN = Pattern.compile("[A-Za-z][0-9A-Za-z\\-._]{0,49}");
@@ -335,6 +338,8 @@ public class VersionValidationImpl implements VersionValidation {
                 .findFirstByRefBookCodeAndStatusOrderByFromDateDesc(code, RefBookVersionStatus.PUBLISHED);
         if (version == null)
             throw new UserException(new Message(REFERRED_BOOK_NOT_FOUND_EXCEPTION_CODE, code));
+        if (version.getStructure() == null)
+            throw new UserException(new Message(REFERRED_BOOK_STRUCTURE_NOT_FOUND_EXCEPTION_CODE, code));
     }
 
     /**
