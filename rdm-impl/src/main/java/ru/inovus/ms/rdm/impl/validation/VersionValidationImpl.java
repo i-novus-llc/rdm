@@ -43,6 +43,7 @@ public class VersionValidationImpl implements VersionValidation {
     private static final String REFERENCE_REFERRED_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "reference.referred.attribute.not.found";
     private static final String REFERENCE_DISPLAY_EXPRESSION_IS_EMPTY_EXCEPTION_CODE = "reference.display.expression.is.empty";
     private static final String REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND_EXCEPTION_CODE = "reference.referred.attributes.not.found";
+    private static final String REFERRED_BOOK_NOT_FOUND_EXCEPTION_CODE = "referred.book.not.found";
     private static final String REFERRED_BOOK_MUST_HAVE_ONLY_ONE_PRIMARY_KEY_EXCEPTION_CODE = "referred.book.must.have.only.one.primary.key";
 
     private static final Pattern CODE_PATTERN = Pattern.compile("[A-Za-z][0-9A-Za-z\\-._]{0,49}");
@@ -233,6 +234,9 @@ public class VersionValidationImpl implements VersionValidation {
 
     /** Проверка структуры.
      *
+     * Используется при создании черновика с требуемой структурой.
+     * Например, при создании справочника из файла и загрузке черновика из файла.
+     *
      * @param structure структура версии справочника
      */
     @Override
@@ -316,6 +320,21 @@ public class VersionValidationImpl implements VersionValidation {
 
         if (attribute.hasIsPrimary())
             throw new UserException(new Message(REFERENCE_ATTRIBUTE_CANNOT_BE_PRIMARY_KEY_EXCEPTION_CODE, attribute.getName()));
+
+        validateReferenceCode(reference.getReferenceCode());
+    }
+
+    /**
+     * Проверка кода справочника из ссылки.
+     *
+     * @param code код справочника из ссылки
+     */
+    private void validateReferenceCode(String code) {
+
+        RefBookVersionEntity version = versionRepository
+                .findFirstByRefBookCodeAndStatusOrderByFromDateDesc(code, RefBookVersionStatus.PUBLISHED);
+        if (version == null)
+            throw new UserException(new Message(REFERRED_BOOK_NOT_FOUND_EXCEPTION_CODE, code));
     }
 
     /**
@@ -363,6 +382,7 @@ public class VersionValidationImpl implements VersionValidation {
         throw new NotFoundException(error);
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean isValidCode(String code) {
         return CODE_PATTERN.matcher(code).matches();
     }
