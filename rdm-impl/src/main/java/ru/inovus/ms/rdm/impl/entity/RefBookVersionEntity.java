@@ -17,6 +17,8 @@ import java.util.Objects;
 @TypeDef(name = "structure", typeClass = StructureType.class)
 public class RefBookVersionEntity implements Serializable {
 
+    private static final String DRAFT_VERSION = "0.0";
+
     @Id
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -174,6 +176,15 @@ public class RefBookVersionEntity implements Serializable {
      */
     public boolean isDraft() {
         return RefBookVersionStatus.DRAFT.equals(status);
+    }
+
+    /**
+     * Получение номера версии.
+     *
+     * @return Номер версии
+     */
+    public String getVersionNumber() {
+        return isDraft() ? DRAFT_VERSION : getVersion();
     }
 
     @PrePersist
