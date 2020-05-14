@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.CollectionUtils;
+import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.api.service.RefBookService;
@@ -74,6 +75,23 @@ public class RefBookController {
         if (refBooks == null || CollectionUtils.isEmpty(refBooks.getContent()))
             throw new UserException("refbook.not.found");
         return refBooks.getContent().get(0);
+    }
+
+    /**
+     * Поиск справочников, на которые можно ссылаться.
+     * Обёртка над сервисным методом для учёта ограничений.
+     *
+     * @param criteria критерий поиска
+     * @return Список справочников
+     */
+    @SuppressWarnings("unused") // used in: referenceRefBook.query.xml
+    public Page<RefBook> searchReferenceRefBooks(RefBookCriteria criteria) {
+
+        criteria.setHasPublished(true);
+        criteria.setExcludeDraft(true);
+        criteria.setSourceType(RefBookSourceType.LAST_PUBLISHED);
+
+        return refBookService.search(permitCriteria(criteria));
     }
 
     /**

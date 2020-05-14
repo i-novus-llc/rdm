@@ -22,14 +22,13 @@
             </select>
 
             <input-select id="referenceRefBook" label="Выбор справочника"
-                          query-id="refBook" label-field-id="displayCode">
+                          query-id="referenceRefBook" label-field-id="displayCode">
                 <dependencies>
                     <visibility on="attrType">
                         attrType.id == 'REFERENCE'
                     </visibility>
                 </dependencies>
                 <pre-filters>
-                    <eq field-id="hasPublished" value="true" />
                     <eq field-id="excludeByVersionId" value="{versionId}"/>
                 </pre-filters>
                 <validations>
