@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.inovus.ms.rdm.api.async.AsyncOperation;
@@ -131,6 +132,7 @@ public class PublishServiceImpl implements PublishService {
         validateNotEmpty(draftEntity);
         Integer refBookId = draftEntity.getRefBook().getId();
 
+        String newStorageCode = null;
         refBookLockService.setRefBookPublishing(refBookId);
         try {
             if (versionName == null) {
@@ -148,7 +150,7 @@ public class PublishServiceImpl implements PublishService {
 
             RefBookVersionEntity lastPublishedEntity = getLastPublishedVersionEntity(draftEntity);
             String lastStorageCode = lastPublishedEntity != null ? lastPublishedEntity.getStorageCode() : null;
-            String newStorageCode = draftDataService.applyDraft(lastStorageCode, draftEntity.getStorageCode(), fromDate, toDate);
+            newStorageCode = draftDataService.applyDraft(lastStorageCode, draftEntity.getStorageCode(), fromDate, toDate);
 
             Set<String> droppedDataStorages = new HashSet<>();
             droppedDataStorages.add(draftEntity.getStorageCode());
@@ -167,9 +169,9 @@ public class PublishServiceImpl implements PublishService {
                     && draftEntity.getStructure().storageEquals(lastPublishedEntity.getStructure())) {
                 droppedDataStorages.add(lastStorageCode);
 
-                List<RefBookVersionEntity> storageEntities = versionRepository.findByStorageCode(lastStorageCode);
-                storageEntities.forEach(entity -> {
-                    entity.setStorageCode(newStorageCode);
+                String finalStorageCode = newStorageCode;
+                versionRepository.findByStorageCode(lastStorageCode).forEach(entity -> {
+                    entity.setStorageCode(finalStorageCode);
                     versionRepository.save(entity);
                 });
             }
@@ -184,9 +186,17 @@ public class PublishServiceImpl implements PublishService {
                 processDiscoveredConflicts(lastPublishedEntity, draftId, resolveConflicts);
             }
 
+        } catch (Exception e) {
+            if (!StringUtils.isEmpty(newStorageCode)) {
+                dropDataService.drop(Set.of(newStorageCode));
+            }
+
+            throw e;
+
         } finally {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
+
         auditLogService.addAction(
             AuditAction.PUBLICATION,
             () -> draftEntity
