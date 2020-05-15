@@ -319,19 +319,20 @@ public class Structure implements Serializable {
             this.description = description;
         }
 
-        public boolean storageEquals(Attribute that) {
-            return Objects.equals(code, that.code) &&
-                    Objects.equals(name, that.name) &&
-                    Objects.equals(type, that.type);
-        }
-
         public boolean hasIsPrimary() {
-            return getIsPrimary() != null && getIsPrimary();
+            return isPrimary != null && isPrimary;
         }
 
         @JsonIgnore
         public boolean isReferenceType() {
             return FieldType.REFERENCE.equals(getType());
+        }
+
+        /** Сравнение атрибутов только по полям, связанным с хранением данных. */
+        public boolean storageEquals(Attribute that) {
+            return (that != null) &&
+                    Objects.equals(code, that.code) &&
+                    Objects.equals(type, that.type);
         }
 
         @Override
@@ -346,12 +347,6 @@ public class Structure implements Serializable {
                     Objects.equals(name, that.name) &&
                     Objects.equals(type, that.type) &&
                     Objects.equals(description, that.description);
-        }
-
-        public boolean equalsByTypeAndCode(Attribute other) {
-            if (this == other) return true;
-            if (other == null) return false;
-            return other.type == this.type && other.code.equals(this.code);
         }
 
         @Override
