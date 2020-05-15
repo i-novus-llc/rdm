@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.api.service;
 
 import io.swagger.annotations.*;
+import ru.inovus.ms.rdm.api.model.draft.PublishRequest;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -21,11 +22,7 @@ public interface PublishService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void publish(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
-                 @ApiParam("Версия") @QueryParam("version") String version,
-                 @ApiParam("Дата начала действия версии") @QueryParam("fromDate") LocalDateTime fromDate,
-                 @ApiParam("Дата окончания действия версии") @QueryParam("toDate") LocalDateTime toDate,
-                 @ApiParam("Обработка разрешаемых конфликтов") @DefaultValue("false") @QueryParam("resolveConflicts") boolean resolveConflicts);
+    void publish(PublishRequest request);
 
     @POST
     @Path("/async/{draftId}")
@@ -33,9 +30,5 @@ public interface PublishService {
     @ApiResponses({
         @ApiResponse(code = 200, message = "Запрос поставлен в очередь")
     })
-    UUID publishAsync(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
-                      @ApiParam("Версия") @QueryParam("version") String version,
-                      @ApiParam("Дата начала действия версии") @QueryParam("fromDate") LocalDateTime fromDate,
-                      @ApiParam("Дата окончания действия версии") @QueryParam("toDate") LocalDateTime toDate,
-                      @ApiParam("Обработка разрешаемых конфликтов") @DefaultValue("false") @QueryParam("resolveConflicts") boolean resolveConflicts);
+    UUID publishAsync(PublishRequest request);
 }
