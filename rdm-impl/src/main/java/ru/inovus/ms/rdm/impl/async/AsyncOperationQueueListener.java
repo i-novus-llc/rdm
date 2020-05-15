@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.impl.async;
 
-
 import net.n2oapp.platform.i18n.Messages;
 import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
@@ -11,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import ru.inovus.ms.rdm.api.async.AsyncOperation;
 import ru.inovus.ms.rdm.api.async.AsyncOperationStatus;
+import ru.inovus.ms.rdm.api.model.draft.PublishRequest;
 import ru.inovus.ms.rdm.api.service.PublishService;
 import ru.inovus.ms.rdm.impl.entity.AsyncOperationLogEntryEntity;
 import ru.inovus.ms.rdm.impl.repository.AsyncOperationLogEntryRepository;
@@ -20,9 +20,10 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.joining;
+import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.impl.async.AsyncOperationQueue.QUEUE_ID;
 
 @Component
@@ -44,75 +45,114 @@ class AsyncOperationQueueListener {
 
     @JmsListener(destination = QUEUE_ID, containerFactory = "internalAsyncOperationContainerFactory")
     public void onOperationReceived(AsyncOperationMessage message) {
-        AsyncOperation op = message.getOperation();
+
+        AsyncOperation operation = message.getOperation();
         UUID uuid = message.getOperationId();
         Object[] args = message.getArgs();
-        logger.info("Message from internal async operation queue received. Operation id: {}", uuid);
-        AsyncOperationLogEntryEntity entity = asyncOperationLogEntryRepository.findByUuid(uuid);
-        if (entity == null)
-            entity = forceSave(message);
+        logger.info("Message from internal async operation queue is received. Operation id: {}", uuid);
+
+        AsyncOperationLogEntryEntity logEntity = asyncOperationLogEntryRepository.findByUuid(uuid);
+        if (logEntity == null)
+            logEntity = forceSave(message);
+
         setSecurityContext(message.getUserName());
-        entity.setStatus(AsyncOperationStatus.IN_PROGRESS);
-        entity = asyncOperationLogEntryRepository.save(entity);
+        logEntity.setStatus(AsyncOperationStatus.IN_PROGRESS);
+        logEntity = asyncOperationLogEntryRepository.save(logEntity);
+
         try {
-            AsyncOperationLogEntryUtils.setResult(handle(op, args), entity);
-            entity.setStatus(AsyncOperationStatus.DONE);
-        } catch (Exception ex) {
-            logger.error("Error while handling deferred operation. Operation type: {}, Operation id: {}", op, uuid, ex);
-            setErrorContext(ex, entity);
-            entity.setStatus(AsyncOperationStatus.ERROR);
+            AsyncOperationLogEntryUtils.setResult(handle(operation, args), logEntity);
+            logEntity.setStatus(AsyncOperationStatus.DONE);
+
+        } catch (Exception e) {
+            logger.error("Error while handling deferred operation. Operation type: {}, Operation id: {}", operation, uuid, e);
+            setErrorContext(e, logEntity);
+            logEntity.setStatus(AsyncOperationStatus.ERROR);
         }
-        asyncOperationLogEntryRepository.save(entity);
-        logger.info("Async operation with id {} completed with status {}", entity.getUuid(), entity.getStatus());
+        asyncOperationLogEntryRepository.save(logEntity);
+
+        logger.info("Async operation with id {} is completed with status {}", logEntity.getUuid(), logEntity.getStatus());
     }
 
-    private void setSecurityContext(String user) {
-        SecurityContextHolder.getContext().setAuthentication(new AbstractAuthenticationToken(emptyList()) {
-            @Override public Object getCredentials() {return null;}
-            @Override public Object getPrincipal() {return user;}
-        });
+    private Object handle(AsyncOperation operation, Object[] args) {
+
+        if (operation == AsyncOperation.PUBLICATION) {
+            return handlePublication(args);
+        }
+
+        throw new IllegalArgumentException(String.format("Operation '%s' is not implemented", operation.toString()));
     }
 
-    private AsyncOperationLogEntryEntity forceSave(AsyncOperationMessage message) {
-        logger.warn("The entity does not yet committed. Forcing save.");
-        asyncOperationLogEntryRepository.saveConflictFree(message.getOperationId(), message.getCode(), message.getOperation().name(), message.getPayloadAsJson());
-        return asyncOperationLogEntryRepository.findByUuid(message.getOperationId());
-    }
+    private Object handlePublication(Object[] args) {
 
-    private void setErrorContext(Exception ex, AsyncOperationLogEntryEntity entity) {
-        entity.setError(getErrorMsg(ex));
-        entity.setStackTrace(getStackTrace(ex));
-    }
+        PublishRequest request;
 
-    private String getStackTrace(Exception ex) {
-        StringWriter stringWriter = new StringWriter();
-        ex.printStackTrace(new PrintWriter(stringWriter));
-        return stringWriter.toString();
-    }
+        Object arg = args[0];
+        if (arg instanceof PublishRequest) {
+            request = (PublishRequest) arg;
 
-    private Object handle(AsyncOperation op, Object[] args) {
-        if (op == AsyncOperation.PUBLICATION) {
-            Integer draftId = (Integer) args[0];
-            String version = (String) args[1];
-            LocalDateTime from = (LocalDateTime) args[2];
-            LocalDateTime to = (LocalDateTime) args[3];
-            boolean resolveConflicts = (boolean) args[4];
-            publishService.publish(draftId, version, from, to, resolveConflicts);
-        } else
-            throw new IllegalArgumentException("Unexpected operation: " + op);
+        } else {
+            request = new PublishRequest((Integer) arg);
+            request.setVersionName((String) args[1]);
+            request.setFromDate((LocalDateTime) args[2]);
+            request.setToDate((LocalDateTime) args[3]);
+            request.setResolveConflicts((boolean) args[4]);
+        }
+
+        publishService.publish(request);
+
         return null;
     }
 
-    private String getErrorMsg(Exception ex) {
-        if (ex instanceof UserException) {
-            UserException ue = (UserException) ex;
-            if (ue.getMessage() != null)
-                return messages.getMessage(ue.getMessage(), ue.getArgs());
-            else if (ue.getMessages() != null && !ue.getMessages().isEmpty()) {
-                return ue.getMessages().stream().map(messages::getMessage).collect(Collectors.joining("\n"));
-            }
-        }
-        return ex.toString();
+    private void setSecurityContext(String user) {
+        SecurityContextHolder.getContext()
+                .setAuthentication(new AbstractAuthenticationToken(emptyList()) {
+                    @Override
+                    public Object getCredentials() {
+                        return null;
+                    }
+
+                    @Override
+                    public Object getPrincipal() {
+                        return user;
+                    }
+                });
     }
 
+    private AsyncOperationLogEntryEntity forceSave(AsyncOperationMessage message) {
+        logger.warn("The entity is not yet committed. Forcing save.");
+
+        UUID uuid = message.getOperationId();
+        asyncOperationLogEntryRepository.saveConflictFree(uuid, message.getCode(),
+                message.getOperation().name(), message.getPayloadAsJson());
+        return asyncOperationLogEntryRepository.findByUuid(uuid);
+    }
+
+    private void setErrorContext(Exception error, AsyncOperationLogEntryEntity logEntity) {
+
+        logEntity.setError(getErrorMsg(error));
+        logEntity.setStackTrace(getStackTrace(error));
+    }
+
+    private String getStackTrace(Exception error) {
+
+        StringWriter stringWriter = new StringWriter();
+        error.printStackTrace(new PrintWriter(stringWriter));
+        return stringWriter.toString();
+    }
+
+    private String getErrorMsg(Exception error) {
+        if (error instanceof UserException) {
+            UserException ue = (UserException) error;
+            if (ue.getMessage() != null)
+                return messages.getMessage(ue.getMessage(), ue.getArgs());
+
+            if (!isEmpty(ue.getMessages())) {
+                return ue.getMessages().stream()
+                        .map(messages::getMessage)
+                        .collect(joining("\n"));
+            }
+        }
+
+        return error.toString();
+    }
 }

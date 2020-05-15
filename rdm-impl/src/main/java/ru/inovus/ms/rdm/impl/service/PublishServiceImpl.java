@@ -20,6 +20,7 @@ import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.conflict.RefBookConflict;
 import ru.inovus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
+import ru.inovus.ms.rdm.api.model.draft.PublishRequest;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.service.*;
 import ru.inovus.ms.rdm.api.util.TimeUtils;
@@ -107,20 +108,13 @@ public class PublishServiceImpl implements PublishService {
     /**
      * Публикация черновика справочника.
      *
-     * @param draftId          идентификатор черновика справочника
-     * @param versionName      версия, под которой публикуется черновик
-     *                         (если не указано, используется встроенная нумерация)
-     * @param fromDate         дата начала действия опубликованной версии
-     * @param toDate           дата окончания действия опубликованной версии
-     * @param resolveConflicts признак разрешения конфликтов
+     * @param request          параметры публикации
      */
     @Override
     @Transactional
-    // NB: Use PublishCriteria, required for publishNonConflictReferrers.
-    public void publish(Integer draftId, String versionName,
-                        LocalDateTime fromDate, LocalDateTime toDate,
-                        boolean resolveConflicts) {
+    public void publish(PublishRequest request) {
 
+        Integer draftId = request.getDraftId();
         RefBookVersionEntity draftEntity = getVersionOrElseThrow(draftId);
         if (draftEntity.getStatus() == RefBookVersionStatus.PUBLISHED)
             return;
@@ -128,13 +122,14 @@ public class PublishServiceImpl implements PublishService {
         versionValidation.validateDraftNotArchived(draftId);
         if (draftEntity.getStructure() == null || draftEntity.getStructure().isEmpty())
             throw new UserException("draft.structure.is-empty");
-
         validateNotEmpty(draftEntity);
-        Integer refBookId = draftEntity.getRefBook().getId();
 
+        Integer refBookId = draftEntity.getRefBook().getId();
         String newStorageCode = null;
+
         refBookLockService.setRefBookPublishing(refBookId);
         try {
+            String versionName = request.getVersionName();
             if (versionName == null) {
                 versionName = versionNumberStrategy.next(refBookId);
 
@@ -142,7 +137,9 @@ public class PublishServiceImpl implements PublishService {
                 throw new UserException(new Message(INVALID_VERSION_NAME_EXCEPTION_CODE, versionName));
             }
 
+            LocalDateTime fromDate = request.getFromDate();
             if (fromDate == null) fromDate = TimeUtils.now();
+            LocalDateTime toDate = request.getToDate();
             if (toDate != null && fromDate.isAfter(toDate))
                 throw new UserException(INVALID_VERSION_PERIOD_EXCEPTION_CODE);
 
@@ -183,7 +180,7 @@ public class PublishServiceImpl implements PublishService {
             // ссылочных атрибутов со значениями для ранее опубликованной версии.
             if (lastPublishedEntity != null) {
                 conflictService.discoverConflicts(lastPublishedEntity.getId(), draftId);
-                processDiscoveredConflicts(lastPublishedEntity, draftId, resolveConflicts);
+                processDiscoveredConflicts(lastPublishedEntity, draftId, request.getResolveConflicts());
             }
 
         } catch (Exception e) {
@@ -197,31 +194,27 @@ public class PublishServiceImpl implements PublishService {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
 
-        auditLogService.addAction(
-            AuditAction.PUBLICATION,
-            () -> draftEntity
-        );
+        auditLogService.addAction(AuditAction.PUBLICATION, () -> draftEntity);
         if (enablePublishTopic)
             jmsTemplate.convertAndSend(publishTopic, draftEntity.getRefBook().getCode());
     }
 
-    private void validateNotEmpty(RefBookVersionEntity draftEntity) {
-        boolean empty = true;
-        for (Structure.Attribute attr : draftEntity.getStructure().getAttributes()) {
-            if (draftDataService.isFieldNotEmpty(draftEntity.getStorageCode(), attr.getCode())) {
-                empty = false;
-                break;
-            }
-        }
-        if (empty)
-            throw new UserException("draft.has-no-data");
-    }
-
     @Override
     @Transactional
-    public UUID publishAsync(Integer draftId, String version, LocalDateTime fromDate, LocalDateTime toDate, boolean resolveConflicts) {
-        String code = versionRepository.getOne(draftId).getRefBook().getCode();
-        return queue.add(AsyncOperation.PUBLICATION, code, new Object[]{draftId, version, fromDate, toDate, resolveConflicts});
+    public UUID publishAsync(PublishRequest request) {
+        String code = versionRepository.getOne(request.getDraftId()).getRefBook().getCode();
+        return queue.add(AsyncOperation.PUBLICATION, code, new Object[] { request });
+    }
+
+    private void validateNotEmpty(RefBookVersionEntity draftEntity) {
+        // Optimize using one query.
+        for (Structure.Attribute attr : draftEntity.getStructure().getAttributes()) {
+            if (draftDataService.isFieldNotEmpty(draftEntity.getStorageCode(), attr.getCode())) {
+                return;
+            }
+        }
+
+        throw new UserException("draft.has-no-data");
     }
 
     private RefBookVersionEntity getVersionOrElseThrow(Integer versionId) {
@@ -298,8 +291,10 @@ public class PublishServiceImpl implements PublishService {
         new ReferrerEntityIteratorProvider(versionRepository, refBookCode, RefBookSourceType.DRAFT)
                 .iterate().forEachRemaining(referrers ->
             referrers.forEach(referrer -> {
-                if (notExistsConflict(referrer.getId(), publishedVersionId))
-                    publish(referrer.getId(), null, null, null, false);
+                if (notExistsConflict(referrer.getId(), publishedVersionId)) {
+                    PublishRequest request = new PublishRequest(referrer.getId());
+                    publish(request);
+                }
             })
         );
     }
