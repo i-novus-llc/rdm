@@ -4,7 +4,7 @@
 
     <groupId>ru.inovus.ms.rdm</groupId>
     <artifactId>rdm</artifactId>
-    <version>1.128.4</version>
+    <version>1.128.5</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -19,7 +19,7 @@
         <encoding>UTF-8</encoding>
         <apache.poi.version>3.17</apache.poi.version>
         <filestorage.version>2.2</filestorage.version>
-        <vds.version>2.18</vds.version>
+        <vds.version>2.20</vds.version>
         <n2o.version>7.4.8</n2o.version>
         <itext.version>5.5.9</itext.version>
         <commons.text.version>1.6</commons.text.version>
@@ -43,7 +43,7 @@
         <connection>scm:git:https://git.i-novus.ru/microservices/rdm.git</connection>
         <url>https://git.i-novus.ru/microservices/rdm</url>
         <developerConnection>scm:git:https://git.i-novus.ru/microservices/rdm.git</developerConnection>
-        <tag>1.128.4</tag>
+        <tag>1.128.5</tag>
     </scm>
 
     <modules>

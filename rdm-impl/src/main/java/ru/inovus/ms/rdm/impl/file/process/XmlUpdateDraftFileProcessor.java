@@ -105,6 +105,7 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
                     structure.getReferences().add(structureReference);
                 }
             }
+
             Object obj = attribute.get("validation");
             if (obj == null)
                 continue;

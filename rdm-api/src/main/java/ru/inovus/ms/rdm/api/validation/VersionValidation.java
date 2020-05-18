@@ -10,6 +10,8 @@ public interface VersionValidation {
 
     void validateDraft(Integer draftId);
 
+    void validateRefBookCode(String refBookCode);
+
     void validateRefBookExists(Integer refBookId);
 
     void validateRefBookCodeExists(String refBookCode);
@@ -26,5 +28,7 @@ public interface VersionValidation {
 
     void validateStructure(Structure structure);
 
-    void validateReference(Structure.Reference reference);
+    void validateAttribute(Structure.Attribute attribute);
+
+    void validateReferenceAbility(Structure.Reference reference);
 }

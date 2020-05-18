@@ -5,8 +5,6 @@ import ru.inovus.ms.rdm.api.model.Structure;
 import java.io.Serializable;
 import java.util.Objects;
 
-import static java.util.Objects.nonNull;
-
 public class RefBookVersionAttribute implements Serializable {
 
     private Integer versionId;
@@ -50,7 +48,7 @@ public class RefBookVersionAttribute implements Serializable {
 
     /* Полная проверка на атрибут-ссылку. */
     public boolean hasReference() {
-        return nonNull(attribute) && attribute.isReferenceType() && nonNull(reference);
+        return attribute != null && attribute.isReferenceType() && reference != null;
     }
 
     /* Полная проверка на совпадение выражений для вычисления отображаемого ссылочного значения. */
