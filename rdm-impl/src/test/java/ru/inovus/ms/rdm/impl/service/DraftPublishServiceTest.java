@@ -18,6 +18,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.api.enumeration.FileType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.api.model.Structure;
@@ -55,7 +56,7 @@ import static org.mockito.Mockito.*;
 import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class PublishServiceTest {
+public class DraftPublishServiceTest {
 
     private static final String TEST_STORAGE_CODE = "test_storage_code";
     private static final String TEST_DRAFT_CODE = "test_draft_code";
@@ -64,7 +65,7 @@ public class PublishServiceTest {
     private static final int REFBOOK_ID = 2;
 
     @InjectMocks
-    private PublishServiceImpl publishService;
+    private DraftPublishServiceImpl draftPublishService;
 
     @Mock
     private RefBookVersionRepository versionRepository;
@@ -72,14 +73,14 @@ public class PublishServiceTest {
     @Mock
     private DraftDataService draftDataService;
     @Mock
+    private SearchDataService searchDataService;
+    @Mock
     private DropDataService dropDataService;
 
     @Mock
     private RefBookLockService refBookLockService;
     @Mock
     private VersionService versionService;
-    @Mock
-    private ConflictService conflictService;
 
     @Spy
     private FileStorage fileStorage = new MockFileStorage();
@@ -119,7 +120,7 @@ public class PublishServiceTest {
     public void setUp() {
         reset(draftDataService, fileNameGenerator, fileGeneratorFactory);
         when(draftDataService.applyDraft(any(), any(), any(), any())).thenReturn(TEST_STORAGE_CODE);
-        when(draftDataService.isFieldNotEmpty(any(), any())).thenReturn(true);
+        when(searchDataService.hasData(any())).thenReturn(true);
     }
 
     @Test
@@ -331,6 +332,6 @@ public class PublishServiceTest {
         request.setToDate(toDate);
         request.setResolveConflicts(resolveConflicts);
 
-        publishService.publish(request);
+        draftPublishService.publish(request);
     }
 }
