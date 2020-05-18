@@ -5,20 +5,19 @@ import ru.inovus.ms.rdm.api.model.draft.PublishRequest;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Path("/publish")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Api(value = "Методы публикации", hidden = true)
+@Api(value = "Методы публикации справочника", hidden = true)
 public interface PublishService {
 
     @POST
     @Path("/{draftId}")
-    @ApiOperation("Публикация черновика")
+    @ApiOperation("Публикация справочника")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Черновик опубликован"),
+            @ApiResponse(code = 200, message = "Справочник опубликован"),
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })

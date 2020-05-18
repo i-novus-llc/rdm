@@ -3,11 +3,13 @@ package ru.inovus.ms.rdm.api.model.draft;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiParam;
+import ru.inovus.ms.rdm.api.util.json.JsonUtil;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-@ApiModel(value = "Модель публикации черновика", description = "Набор данных для публикации черновика")
+@ApiModel(value = "Модель публикации черновика",
+        description = "Набор входных параметров для публикации черновика")
 public class PublishRequest implements Serializable {
 
     @ApiModelProperty(value = "Идентификатор черновика")
@@ -68,5 +70,10 @@ public class PublishRequest implements Serializable {
 
     public void setResolveConflicts(boolean resolveConflicts) {
         this.resolveConflicts = resolveConflicts;
+    }
+
+    @Override
+    public String toString() {
+        return JsonUtil.getAsJson(this);
     }
 }
