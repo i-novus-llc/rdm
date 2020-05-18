@@ -7,22 +7,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.version.CreateAttribute;
 import ru.inovus.ms.rdm.api.model.version.UpdateAttribute;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.inovus.ms.rdm.impl.util.ConverterUtil;
 
-import java.util.Collection;
 import java.util.List;
 
-import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
-import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
 
 @Component
@@ -71,14 +65,7 @@ public class StructureChangeValidator {
             return;
 
         // Проверка наличия данных для добавляемого атрибута, обязательного к заполнению
-        DataCriteria dataCriteria = new DataCriteria(storageCode, null, null,
-                ConverterUtil.fields(oldStructure), emptySet(), null);
-        dataCriteria.setCount(1);
-        dataCriteria.setPage(DataCriteria.MIN_PAGE);
-        dataCriteria.setSize(DataCriteria.MIN_SIZE);
-
-        Collection<RowValue> data = searchDataService.getPagedData(dataCriteria).getCollection();
-        if (!isEmpty(data))
+        if (searchDataService.hasData(storageCode))
             throw new UserException(new Message(VALIDATION_REQUIRED_ERR_EXCEPTION_CODE, newAttribute.getName()));
     }
 
