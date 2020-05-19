@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.impl.service;
 import com.querydsl.core.BooleanBuilder;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
-import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
@@ -39,6 +38,7 @@ import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookModelDataRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.inovus.ms.rdm.impl.util.FileUtil;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 
 import java.io.InputStream;
@@ -218,11 +218,11 @@ public class RefBookServiceImpl implements RefBookService {
 
     @Override
     public Draft create(FileModel fileModel) {
-        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
-        switch (extension) {
+
+        switch (FileUtil.getExtension(fileModel.getName())) {
             case "XLSX": return createByXlsx(fileModel);
             case "XML": return createByXml(fileModel);
-            default: throw new UserException("file.extension.invalid");
+            default: throw new UserException(FileUtil.FILE_EXTENSION_INVALID_EXCEPTION_CODE);
         }
     }
 
