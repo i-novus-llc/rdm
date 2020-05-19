@@ -49,6 +49,7 @@ public class FilesRestController {
             throw new IllegalArgumentException(messages.getMessage("file.is.too.big", maxFileSizeMb));
 
         String storageFileName = toStorageFileName(file.getOriginalFilename());
+
         FileModel save = fileStorageService.save(file.getInputStream(), storageFileName);
         save.setName(file.getOriginalFilename());
 
