@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
+import static org.springframework.util.StringUtils.isEmpty;
 
 public class XlsPerRowProcessor extends FilePerRowProcessor {
 
@@ -18,11 +19,13 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
 
     private final ExcelStyleDateFormatter excelStyleDateFormatter = new ExcelStyleDateFormatter("dd.MM.yyyy");
 
-    private Map<Integer, String> numberToNameParam = new HashMap<>();
+    private Map<Integer, String> columnNames = new HashMap<>();
 
     private Workbook workbook;
     private Iterator<Sheet> sheetIterator;
     private Iterator<org.apache.poi.ss.usermodel.Row> rowIterator;
+
+    private DataFormatter dataFormatter;
 
     public XlsPerRowProcessor(RowMapper rowMapper, RowsProcessor rowsProcessor) {
         super(rowMapper, rowsProcessor);
@@ -41,6 +44,9 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
                 rowIterator = sheetIterator.next().rowIterator();
             if (rowIterator != null && rowIterator.hasNext())
                 processFirstRow(rowIterator.next());
+
+            dataFormatter = new DataFormatter();
+
         } catch (Exception e) {
             logger.error("cannot read xlsx", e);
             throw new UserException("cannot read xlsx");
@@ -51,8 +57,9 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
     private void processFirstRow(org.apache.poi.ss.usermodel.Row row) {
         if (row == null) return;
         for (Cell cell : row) {
-            if (cell.getStringCellValue() != null && !"".equals(cell.getStringCellValue().trim()))
-                numberToNameParam.put(cell.getColumnIndex(), cell.getStringCellValue().trim());
+            String value = cell.getStringCellValue() != null ? cell.getStringCellValue().trim() : null;
+            if (!isEmpty(value))
+                columnNames.put(cell.getColumnIndex(), value);
         }
     }
 
@@ -77,22 +84,67 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
     }
 
     private ru.inovus.ms.rdm.api.model.refdata.Row parseFromXlsx(org.apache.poi.ss.usermodel.Row row) {
-        LinkedHashMap<String, Object> params = new LinkedHashMap<>();
-        DataFormatter formatter = new DataFormatter();
 
-        numberToNameParam.values().forEach(nameParam -> params.put(nameParam, null));
+        LinkedHashMap<String, Object> data = new LinkedHashMap<>();
+        columnNames.values().forEach(name -> data.put(name, null));
 
         for (Cell cell : row) {
-            String nameParam = numberToNameParam.get(cell.getColumnIndex());
-            if (nameParam != null) {
-                if (cell.getCellTypeEnum().equals(CellType.NUMERIC) && DateUtil.isCellDateFormatted(cell)) {
-                    params.put(nameParam, excelStyleDateFormatter.format(cell.getDateCellValue()));
-                } else params.put(nameParam, Optional.of(formatter.formatCellValue(cell).trim())
-                        .filter(val -> !"".equals(val))
-                        .orElse(null));
+            String name = columnNames.get(cell.getColumnIndex());
+            if (name != null) {
+                data.put(name, getCellValue(cell, dataFormatter));
             }
         }
-        return new ru.inovus.ms.rdm.api.model.refdata.Row(params);
+        return new ru.inovus.ms.rdm.api.model.refdata.Row(data);
+    }
+
+    private String getCellValue(Cell cell, DataFormatter dataFormatter) {
+
+        if (cell.getCellTypeEnum().equals(CellType.NUMERIC)
+                && DateUtil.isCellDateFormatted(cell)) {
+            return excelStyleDateFormatter.format(cell.getDateCellValue());
+        }
+
+        if (cell.getCellTypeEnum().equals(CellType.FORMULA))
+            return getCachedCellValue(cell);
+
+        String value = dataFormatter.formatCellValue(cell).trim();
+        return !isEmpty(value) ? value : null;
+    }
+
+    private String getCachedCellValue(Cell cell) {
+
+        switch (cell.getCachedFormulaResultTypeEnum()) {
+            case NUMERIC:
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    return excelStyleDateFormatter.format(cell.getDateCellValue());
+                }
+
+                return getNumericCellValue(cell);
+
+            case STRING:
+                return cell.getRichStringCellValue().getString();
+
+            case BOOLEAN:
+                return cell.getBooleanCellValue() ? "TRUE" : "FALSE";
+
+            default:
+                return cell.getCellFormula();
+        }
+    }
+
+    private String getNumericCellValue(Cell cell) {
+
+        // dataFormatter.getFormattedNumberString недоступен.
+        String value = toNumeric(cell.getStringCellValue());
+        return !isEmpty(value) ? value : String.valueOf(cell.getNumericCellValue());
+    }
+
+    private String toNumeric(String value) {
+
+        if (value == null) return null;
+
+        return value.replace(',', '.')
+                .replaceAll("\"", "");
     }
 
     @Override
