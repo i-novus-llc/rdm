@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.impl.service;
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,11 +13,16 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.components.common.exception.CodifiedException;
-import ru.i_novus.platform.datastorage.temporal.model.*;
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
+import ru.i_novus.platform.datastorage.temporal.model.Field;
+import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.i_novus.platform.datastorage.temporal.service.*;
+import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.api.enumeration.ConflictType;
 import ru.inovus.ms.rdm.api.enumeration.FileType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -29,8 +33,13 @@ import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
-import ru.inovus.ms.rdm.api.model.refdata.*;
-import ru.inovus.ms.rdm.api.model.validation.*;
+import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.api.model.refdata.Row;
+import ru.inovus.ms.rdm.api.model.refdata.RowValuePage;
+import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.api.model.validation.AttributeValidation;
+import ru.inovus.ms.rdm.api.model.validation.AttributeValidationRequest;
+import ru.inovus.ms.rdm.api.model.validation.AttributeValidationType;
 import ru.inovus.ms.rdm.api.model.version.*;
 import ru.inovus.ms.rdm.api.service.DraftService;
 import ru.inovus.ms.rdm.api.service.VersionFileService;
@@ -41,13 +50,19 @@ import ru.inovus.ms.rdm.api.util.StructureUtils;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.*;
-import ru.inovus.ms.rdm.impl.file.*;
+import ru.inovus.ms.rdm.impl.file.FileStorage;
 import ru.inovus.ms.rdm.impl.file.export.VersionDataIterator;
 import ru.inovus.ms.rdm.impl.file.process.*;
 import ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates;
-import ru.inovus.ms.rdm.impl.repository.*;
+import ru.inovus.ms.rdm.impl.repository.AttributeValidationRepository;
+import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
+import ru.inovus.ms.rdm.impl.repository.RefBookConflictRepository;
+import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.*;
-import ru.inovus.ms.rdm.impl.util.mappers.*;
+import ru.inovus.ms.rdm.impl.util.mappers.NonStrictOnTypeRowMapper;
+import ru.inovus.ms.rdm.impl.util.mappers.PlainRowMapper;
+import ru.inovus.ms.rdm.impl.util.mappers.RowMapper;
+import ru.inovus.ms.rdm.impl.util.mappers.StructureRowMapper;
 import ru.inovus.ms.rdm.impl.validation.StructureChangeValidator;
 import ru.inovus.ms.rdm.impl.validation.TypeValidation;
 import ru.inovus.ms.rdm.impl.validation.VersionValidationImpl;
@@ -55,7 +70,8 @@ import ru.inovus.ms.rdm.impl.validation.VersionValidationImpl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import java.util.function.*;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
@@ -155,17 +171,18 @@ public class DraftServiceImpl implements DraftService {
     private Draft updateDraftDataByFile(Integer refBookId, FileModel fileModel) {
 
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
-        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
-        switch (extension) {
+
+        switch (FileUtil.getExtension(fileModel.getName())) {
             case "XLSX": return updateDraftDataByXlsx(refBookId, fileModel, inputStreamSupplier);
             case "XML": return updateDraftDataByXml(refBookId, fileModel, inputStreamSupplier);
-            default: throw new UserException("file.extension.invalid");
+            default: throw new UserException(FileUtil.FILE_EXTENSION_INVALID_EXCEPTION_CODE);
         }
     }
 
-    private Draft updateDraftDataByXlsx(Integer refBookId, FileModel fileModel, Supplier<InputStream> inputStreamSupplier) {
+    private Draft updateDraftDataByXlsx(Integer refBookId, FileModel fileModel,
+                                        Supplier<InputStream> inputStreamSupplier) {
 
-        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
+        String extension = FileUtil.getExtension(fileModel.getName());
         BiConsumer<String, Structure> saveDraftConsumer = getSaveDraftConsumer(refBookId);
         RowsProcessor rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, saveDraftConsumer);
         processFileRows(extension, rowsProcessor, new PlainRowMapper(), inputStreamSupplier);
@@ -174,7 +191,8 @@ public class DraftServiceImpl implements DraftService {
         return new Draft(createdDraft.getId(), createdDraft.getStorageCode());
     }
 
-    private Draft updateDraftDataByXml(Integer refBookId, FileModel fileModel, Supplier<InputStream> inputStreamSupplier) {
+    private Draft updateDraftDataByXml(Integer refBookId, FileModel fileModel,
+                                       Supplier<InputStream> inputStreamSupplier) {
 
         try (XmlUpdateDraftFileProcessor xmlUpdateDraftFileProcessor = new XmlUpdateDraftFileProcessor(refBookId, this)) {
             Draft draft = xmlUpdateDraftFileProcessor.process(inputStreamSupplier);
@@ -188,7 +206,7 @@ public class DraftServiceImpl implements DraftService {
 
         Structure structure = draft.getStructure();
 
-        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
+        String extension = FileUtil.getExtension(fileModel.getName());
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
 
         RowsProcessor rowsValidator = new RowsValidatorImpl(versionService, searchDataService,
@@ -203,7 +221,8 @@ public class DraftServiceImpl implements DraftService {
     }
 
     /** Обработка строк файла в соответствии с заданными параметрами. */
-    private void processFileRows(String extension, RowsProcessor rowsProcessor, RowMapper rowMapper, Supplier<InputStream> fileSupplier) {
+    private void processFileRows(String extension, RowsProcessor rowsProcessor,
+                                 RowMapper rowMapper, Supplier<InputStream> fileSupplier) {
 
         try (FilePerRowProcessor persister = FileProcessorFactory.createProcessor(extension, rowsProcessor, rowMapper)) {
             persister.process(fileSupplier);
