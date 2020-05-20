@@ -63,6 +63,7 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
         } catch (XMLStreamException e) {
             throwFileContentError(e);
         }
+
         return false;
     }
 

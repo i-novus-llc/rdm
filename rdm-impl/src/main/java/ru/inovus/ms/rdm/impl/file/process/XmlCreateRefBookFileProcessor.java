@@ -12,8 +12,7 @@ import javax.xml.stream.events.XMLEvent;
 import java.io.Closeable;
 import java.io.InputStream;
 
-import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.throwFileContentError;
-import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.throwFileProcessingError;
+import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.*;
 import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.closeEventReader;
 import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.createEvenReader;
 
@@ -64,9 +63,7 @@ public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor im
             return new RefBookCreateRequest(refBookCode, null, null);
         }
 
-        throwFileProcessingError(new UserException(REFBOOK_DOES_NOT_CREATE_EXCEPTION_CODE));
-
-        return null;
+        throw new UserException(FILE_PROCESSING_FAILED_EXCEPTION_CODE, new UserException(REFBOOK_DOES_NOT_CREATE_EXCEPTION_CODE));
     }
 
     @Override

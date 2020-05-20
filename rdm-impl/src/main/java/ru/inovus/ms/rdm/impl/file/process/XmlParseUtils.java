@@ -37,9 +37,7 @@ public class XmlParseUtils {
             throwFileContentError(e);
         }
 
-        throwFileProcessingError(new UserException("event.reader.does.not.create"));
-
-        return null;
+        throw new UserException(FILE_PROCESSING_FAILED_EXCEPTION_CODE);
     }
 
     /**
@@ -56,7 +54,7 @@ public class XmlParseUtils {
             reader.close();
 
         } catch (XMLStreamException e) {
-            throwFileContentError(e);
+            throwFileProcessingError(e);
         }
     }
 
