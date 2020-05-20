@@ -49,6 +49,7 @@ import java.util.stream.Collectors;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.throwFileProcessingError;
 import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 
 @Primary
@@ -56,7 +57,7 @@ import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 public class RefBookServiceImpl implements RefBookService {
 
     private static final String REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.already.exists";
-    private static final String XML_FILE_INVALID_EXCEPTION_CODE = "check.your.xml";
+    private static final String REFBOOK_DOES_NOT_CREATE_EXCEPTION_CODE = "refbook.does.not.create";
 
     private RefBookRepository refBookRepository;
     private RefBookVersionRepository versionRepository;
@@ -233,15 +234,20 @@ public class RefBookServiceImpl implements RefBookService {
     }
 
     private Draft createByXml(FileModel fileModel) {
+
         RefBook refBook;
         try (XmlCreateRefBookFileProcessor createRefBookFileProcessor = new XmlCreateRefBookFileProcessor(this)) {
             Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
             refBook = createRefBookFileProcessor.process(inputStreamSupplier);
         }
-        if (refBook == null)
-            throw new UserException(XML_FILE_INVALID_EXCEPTION_CODE);
 
-        return draftService.create(refBook.getRefBookId(), fileModel);
+        if (refBook != null) {
+            return draftService.create(refBook.getRefBookId(), fileModel);
+        }
+
+        throwFileProcessingError(new UserException(REFBOOK_DOES_NOT_CREATE_EXCEPTION_CODE));
+
+        return null;
     }
 
     @Override
