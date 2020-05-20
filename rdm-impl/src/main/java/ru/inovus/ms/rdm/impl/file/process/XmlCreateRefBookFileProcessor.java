@@ -18,6 +18,8 @@ public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor im
     private static final String STRUCTURE_TAG_NAME = "structure";
     private static final String DATA_TAG_NAME = "data";
 
+    private static final String XML_FILE_INVALID_EXCEPTION_CODE = "check.your.xml";
+
     private static final XMLInputFactory FACTORY = XMLInputFactory.newInstance();
 
     private XMLEventReader reader;
@@ -58,7 +60,7 @@ public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor im
         } catch (XMLStreamException e) {
             XmlParseUtils.throwXmlReadError(e);
         }
-        throw new UserException("check.your.xml");
+        throw new UserException(XML_FILE_INVALID_EXCEPTION_CODE);
     }
 
     @Override
