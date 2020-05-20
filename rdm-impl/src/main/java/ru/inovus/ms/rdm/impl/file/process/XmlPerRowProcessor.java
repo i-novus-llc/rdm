@@ -80,6 +80,7 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
 
         } catch (XMLStreamException e) {
             logger.error(LOG_FILE_CONTENT_ERROR, e);
+            // by contract of this method:
             throw new NoSuchElementException(FILE_CONTENT_INVALID_EXCEPTION_CODE);
         }
 
