@@ -48,6 +48,7 @@ import java.util.stream.Collectors;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.FILE_PROCESSING_FAILED_EXCEPTION_CODE;
 import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.throwFileProcessingError;
 import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 
@@ -244,9 +245,7 @@ public class RefBookServiceImpl implements RefBookService {
             return draftService.create(refBook.getRefBookId(), fileModel);
         }
 
-        throwFileProcessingError(new UserException(REFBOOK_DOES_NOT_CREATE_EXCEPTION_CODE));
-
-        return null;
+        throw new UserException(FILE_PROCESSING_FAILED_EXCEPTION_CODE, new UserException(REFBOOK_DOES_NOT_CREATE_EXCEPTION_CODE));
     }
 
     @Override
