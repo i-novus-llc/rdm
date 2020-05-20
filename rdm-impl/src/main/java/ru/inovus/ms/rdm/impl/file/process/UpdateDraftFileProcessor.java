@@ -16,6 +16,8 @@ import java.util.function.Supplier;
 
 public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
 
+    private static final String FILE_INVALID_EXCEPTION_CODE = "check.your.xml";
+
     private Integer refBookId;
 
     private DraftService draftService;
@@ -48,7 +50,7 @@ public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
             throw e;
 
         } catch (Exception e) {
-            throw new UserException("check.your.xml", e);
+            throw new UserException(FILE_INVALID_EXCEPTION_CODE, e);
         }
         return null;
     }

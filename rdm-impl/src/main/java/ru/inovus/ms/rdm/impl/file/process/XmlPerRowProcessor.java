@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.impl.file.process;
 
-import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
@@ -31,7 +30,6 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
     private static final XMLInputFactory FACTORY = XMLInputFactory.newInstance();
 
     private XMLEventReader reader;
-
 
     XmlPerRowProcessor(RowMapper rowMapper, RowsProcessor rowsProcessor) {
         super(rowMapper, rowsProcessor);
@@ -90,8 +88,8 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
             parseValues(reader, rowValues, ROW_TAG_NAME);
 
         } catch (XMLStreamException e) {
-            logger.error(XML_READ_ERROR_MESSAGE, e);
-            throw new NoSuchElementException(XML_READ_ERROR_MESSAGE);
+            logger.error(XmlParseUtils.LOG_XML_PROCESSING_ERROR, e);
+            throw new NoSuchElementException(XmlParseUtils.XML_PROCESSING_FAILED_EXCEPTION_CODE);
         }
 
         return new Row(new HashMap<>(rowValues));
@@ -107,10 +105,4 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
             }
         }
     }
-
-    private void throwXmlReadError(Exception e) {
-        logger.error(XML_READ_ERROR_MESSAGE, e);
-        throw new UserException(XML_READ_ERROR_MESSAGE);
-    }
-
 }
