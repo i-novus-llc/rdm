@@ -87,13 +87,6 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
 
     @Override
     public void close() {
-        if (reader != null) {
-            try {
-                reader.close();
-
-            } catch (XMLStreamException e) {
-                throwFileContentError(e);
-            }
-        }
+        closeEventReader(reader);
     }
 }

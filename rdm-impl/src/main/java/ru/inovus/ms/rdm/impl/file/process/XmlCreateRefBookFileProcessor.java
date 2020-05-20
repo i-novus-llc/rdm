@@ -14,6 +14,7 @@ import java.io.InputStream;
 
 import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.throwFileContentError;
 import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.throwFileProcessingError;
+import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.closeEventReader;
 import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.createEvenReader;
 
 public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor implements Closeable {
@@ -70,13 +71,6 @@ public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor im
 
     @Override
     public void close() {
-        if (reader != null) {
-            try {
-                reader.close();
-
-            } catch (XMLStreamException e) {
-                throwFileContentError(e);
-            }
-        }
+        closeEventReader(reader);
     }
 }
