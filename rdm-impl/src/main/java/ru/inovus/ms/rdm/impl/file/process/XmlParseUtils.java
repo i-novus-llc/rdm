@@ -15,6 +15,9 @@ public class XmlParseUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(XmlParseUtils.class);
 
+    public static final String XML_PROCESSING_FAILED_EXCEPTION_CODE = "xml.processing.failed";
+    public static final String LOG_XML_PROCESSING_ERROR = "Error while processing xml file.";
+
     private XmlParseUtils() {
     }
 
@@ -85,14 +88,14 @@ public class XmlParseUtils {
                 && asList(tagNames).contains(event.asStartElement().getName().getLocalPart());
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean isEndElementWithName(XMLEvent event, String... tagNames) {
         return event.isEndElement()
                 && asList(tagNames).contains(event.asEndElement().getName().getLocalPart());
     }
 
     public static void throwXmlReadError(Exception e) {
-        logger.error("Error while processing xml file.", e);
-        throw new UserException("xml.processing.failed", e);
+        logger.error(LOG_XML_PROCESSING_ERROR, e);
+        throw new UserException(XML_PROCESSING_FAILED_EXCEPTION_CODE, e);
     }
-
 }

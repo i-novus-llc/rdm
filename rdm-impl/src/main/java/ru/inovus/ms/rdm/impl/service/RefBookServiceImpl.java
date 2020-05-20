@@ -55,6 +55,7 @@ import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 public class RefBookServiceImpl implements RefBookService {
 
     private static final String REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.already.exists";
+    private static final String XML_FILE_INVALID_EXCEPTION_CODE = "check.your.xml";
 
     private RefBookRepository refBookRepository;
     private RefBookVersionRepository versionRepository;
@@ -237,7 +238,7 @@ public class RefBookServiceImpl implements RefBookService {
             refBook = createRefBookFileProcessor.process(inputStreamSupplier);
         }
         if (refBook == null)
-            throw new UserException("check.your.xml");
+            throw new UserException(XML_FILE_INVALID_EXCEPTION_CODE);
 
         return draftService.create(refBook.getRefBookId(), fileModel);
     }
