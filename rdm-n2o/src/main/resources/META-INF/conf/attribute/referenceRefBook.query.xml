@@ -30,6 +30,15 @@
             </filters>
         </field>
 
+
+        <field id="code" domain="string">
+            <select/>
+            <filters>
+                <eq filter-id="code" mapping="code"/>
+            </filters>
+            <sorting/>
+        </field>
+
         <field id="excludeByVersionId" domain="integer">
             <filters>
                 <eq filter-id="excludeByVersionId" mapping="excludeByVersionId"/>
