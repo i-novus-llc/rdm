@@ -9,7 +9,11 @@ import ru.inovus.ms.rdm.api.service.RefBookService;
 import java.io.InputStream;
 import java.util.function.Supplier;
 
+import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.FILE_PROCESSING_FAILED_EXCEPTION_CODE;
+
 public abstract class CreateRefBookFileProcessor implements FileProcessor<RefBook> {
+
+    private static final String REFBOOK_DOES_NOT_CREATE_EXCEPTION_CODE = "refbook.does.not.create";
 
     private RefBookService refBookService;
 
@@ -23,17 +27,23 @@ public abstract class CreateRefBookFileProcessor implements FileProcessor<RefBoo
 
     @Override
     public RefBook process(Supplier<InputStream> fileSource) {
+
+        RefBookCreateRequest refBookCreateRequest = null;
         try(InputStream inputStream = fileSource.get()) {
             setFile(inputStream);
-            RefBookCreateRequest refBookCreateRequest = getRefBookCreateRequest();
-            if (refBookCreateRequest == null) {
-                return null;
-            }
-            return refBookService.create(refBookCreateRequest);
+            refBookCreateRequest = getRefBookCreateRequest();
+
         } catch (UserException e) {
             throw e;
+
         } catch (Exception e) {
             throw new RdmException(e);
         }
+
+        if (refBookCreateRequest != null) {
+            return refBookService.create(refBookCreateRequest);
+        }
+
+        throw new UserException(FILE_PROCESSING_FAILED_EXCEPTION_CODE, new UserException(REFBOOK_DOES_NOT_CREATE_EXCEPTION_CODE));
     }
 }

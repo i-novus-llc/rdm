@@ -13,8 +13,7 @@ import java.io.Closeable;
 import java.io.InputStream;
 
 import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.*;
-import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.closeEventReader;
-import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.createEvenReader;
+import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.*;
 
 public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor implements Closeable {
 
@@ -48,15 +47,22 @@ public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor im
             }
 
             XMLEvent event = reader.nextEvent();
-            while (!XmlParseUtils.isStartElementWithName(event, CODE_TAG_NAME, PASSPORT_TAG_NAME, STRUCTURE_TAG_NAME, DATA_TAG_NAME) && reader.hasNext()) {
+            while (!isStartElementWithName(event, CODE_TAG_NAME, PASSPORT_TAG_NAME, STRUCTURE_TAG_NAME, DATA_TAG_NAME) && reader.hasNext()) {
                 event = reader.nextEvent();
             }
 
-            if(XmlParseUtils.isStartElementWithName(event, CODE_TAG_NAME)) {
+            if(isStartElementWithName(event, CODE_TAG_NAME)) {
                 refBookCode = reader.getElementText();
             }
+
         } catch (XMLStreamException e) {
             throwFileContentError(e);
+
+        } catch (Exception e) {
+            if (e.getCause() instanceof XMLStreamException)
+                throwFileContentError(e);
+
+            throwFileProcessingError(e);
         }
 
         if (!StringUtils.isEmpty(refBookCode)) {
