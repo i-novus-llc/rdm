@@ -43,6 +43,24 @@ public class XmlParseUtils {
     }
 
     /**
+     * Закрытие считывателя для парсинга xml.
+     *
+     * @param reader считыватель xml
+     */
+    public static void closeEventReader(XMLEventReader reader) {
+
+        if (reader == null)
+            return;
+
+        try {
+            reader.close();
+
+        } catch (XMLStreamException e) {
+            throwFileContentError(e);
+        }
+    }
+
+    /**
      * Спарсить значения из XML-ки. В мапе будут ключом будут идти имена тегов, а значениями:
      * 1) String -- в случае, если тег открылся, в нем текст и тег закрылся
      * 2) Map<String, Object> -- в случае, если под тегом вложенный объект (для него все те же правила применяются рекурсивно)
