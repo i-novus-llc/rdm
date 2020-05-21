@@ -27,6 +27,12 @@
                     <visibility on="attrType">
                         attrType.id == 'REFERENCE'
                     </visibility>
+                    <set-value on="attrType">
+                        if (attrType.id != 'REFERENCE') return null;
+                    </set-value>
+                    <requiring on="attrType">
+                        attrType.id == 'REFERENCE'
+                    </requiring>
                 </dependencies>
                 <pre-filters>
                     <eq field-id="excludeByVersionId" value="{versionId}"/>
@@ -51,6 +57,9 @@
                     <visibility on="attrType,referenceRefBook">
                         (attrType.id == 'REFERENCE' &amp;&amp; referenceRefBook != null)
                     </visibility>
+                    <set-value on="attrType">
+                        if (attrType.id != 'REFERENCE') return null;
+                    </set-value>
                 </dependencies>
                 <pre-filters>
                     <eq field-id="versionId" value="{referenceRefBook.version.id}" />
@@ -58,7 +67,7 @@
                 <validations>
                     <condition id="hasAttribute" severity="danger"
                                message="Атрибут не выбран">
-                        displayAttribute != null
+                        displayAttribute != null || displayExpression != null
                     </condition>
                 </validations>
             </input-select>
@@ -68,10 +77,15 @@
                     <visibility on="attrType,referenceRefBook">
                         (attrType.id == 'REFERENCE' &amp;&amp; referenceRefBook != null)
                     </visibility>
-                    <set-value on="displayAttribute">
+                    <set-value on="attrType,displayAttribute">
+                        if (attrType.id != 'REFERENCE') return null;
+
                         if (displayAttribute.codeExpression != null)
                             return displayAttribute.codeExpression;
                     </set-value>
+                    <requiring on="attrType">
+                        attrType.id == 'REFERENCE'
+                    </requiring>
                 </dependencies>
                 <validations>
                     <condition id="hasExpression" severity="danger"
