@@ -1,5 +1,7 @@
 package ru.inovus.ms.rdm.n2o.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import ru.inovus.ms.rdm.api.enumeration.ConflictType;
@@ -10,6 +12,7 @@ import ru.inovus.ms.rdm.api.service.PublishService;
 import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.n2o.model.UiRefBookPublish;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -19,8 +22,10 @@ import static java.util.stream.Collectors.toMap;
 import static ru.inovus.ms.rdm.api.util.StringUtils.addDoubleQuotes;
 
 @Controller
-@SuppressWarnings("unused")
+@SuppressWarnings("unused") // used in: publish.*.xml
 public class RefBookPublishController {
+
+    private static final Logger logger = LoggerFactory.getLogger(RefBookPublishController.class);
 
     private static final String PASSPORT_ATTRIBUTE_NAME = "name";
     private static final String REFERRER_NAME_SEPARATOR = ", ";
@@ -42,14 +47,23 @@ public class RefBookPublishController {
 
         RefBook refBook = refBookService.getByVersionId(versionId);
 
+        // NB: Получать информацию одним запросом сразу по всем типам конфликта.
         UiRefBookPublish uiRefBookPublish = new UiRefBookPublish(refBook);
-        Map<String, String> conflictingReferrerNames =
-                Stream.of(ConflictType.values())
-                        .collect(toMap(ConflictType::name,
-                                conflictType -> getConflictingReferrerNames(versionId, conflictType)
-                                )
-                        );
-        uiRefBookPublish.setConflictingReferrerNames(conflictingReferrerNames);
+        try {
+            Map<String, String> conflictingReferrerNames =
+                    Stream.of(ConflictType.values())
+                            .collect(toMap(ConflictType::name,
+                                    conflictType -> getConflictingReferrerNames(versionId, conflictType)
+                                    )
+                            );
+            uiRefBookPublish.setConflictingReferrerNames(conflictingReferrerNames);
+
+        } catch (Exception e) {
+            logger.error("Error on check conflicting referrers", e);
+
+            uiRefBookPublish.setErrorMessage(e.getMessage());
+            uiRefBookPublish.setConflictingReferrerNames(new HashMap<>(0));
+        }
 
         return uiRefBookPublish;
     }
@@ -80,8 +94,8 @@ public class RefBookPublishController {
      * @return Названия справочников (через запятую)
      */
     private String getConflictingReferrerNames(Integer versionId, ConflictType conflictType) {
-        return conflictService.getConflictingReferrers(versionId, conflictType)
-                .stream()
+
+        return conflictService.getConflictingReferrers(versionId, conflictType).stream()
                 .map(this::getReferrerDisplayName)
                 .collect(Collectors.joining(REFERRER_NAME_SEPARATOR));
     }
@@ -93,6 +107,7 @@ public class RefBookPublishController {
      * @return Отображаемое название
      */
     private String getReferrerDisplayName(RefBookVersion version) {
+
         Map<String, String> passport = version.getPassport();
         return (passport != null && passport.get(PASSPORT_ATTRIBUTE_NAME) != null)
                 ? addDoubleQuotes(passport.get(PASSPORT_ATTRIBUTE_NAME))
