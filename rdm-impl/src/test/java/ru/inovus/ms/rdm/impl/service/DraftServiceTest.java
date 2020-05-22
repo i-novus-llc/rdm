@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.impl.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.querydsl.core.types.Predicate;
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.criteria.api.Criteria;
@@ -15,7 +16,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.*;
 import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
@@ -40,6 +40,7 @@ import ru.inovus.ms.rdm.api.model.version.UpdateAttribute;
 import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.FieldValueUtils;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
+import ru.inovus.ms.rdm.api.util.json.JsonUtil;
 import ru.inovus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.inovus.ms.rdm.impl.entity.PassportAttributeEntity;
 import ru.inovus.ms.rdm.impl.entity.PassportValueEntity;
@@ -80,6 +81,8 @@ public class DraftServiceTest {
     private static final String TEST_DRAFT_CODE_NEW = "test_draft_code_new";
     private static final String TEST_REF_BOOK = "test_ref_book";
     private static final int REFBOOK_ID = 2;
+
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
     private DraftServiceImpl draftService;
@@ -163,6 +166,9 @@ public class DraftServiceTest {
 
     @Before
     public void setUp() throws NoSuchFieldException {
+
+        JsonUtil.jsonMapper = objectMapper;
+
         reset(draftDataService, fileNameGenerator, fileGeneratorFactory);
         when(draftDataService.createDraft(anyList())).thenReturn(TEST_DRAFT_CODE_NEW);
 
@@ -172,6 +178,13 @@ public class DraftServiceTest {
 
         FieldSetter.setField(versionValidation, VersionValidationImpl.class.getDeclaredField("refbookRepository"), refBookRepository);
         FieldSetter.setField(versionValidation, VersionValidationImpl.class.getDeclaredField("versionRepository"), versionRepository);
+    }
+
+    @Test
+    public void testStructureToString() {
+        RefBookVersionEntity testDraftVersion = createTestDraftVersionEntity();
+
+        assertNotNull(testDraftVersion.getStructure().toString());
     }
 
     @Test
@@ -356,9 +369,7 @@ public class DraftServiceTest {
         doCallRealMethod().when(structureChangeValidator).validateCreateAttribute(any());
         doCallRealMethod().when(structureChangeValidator).validateCreateAttributeStorage(any(), any(), eq(draftTableWithData));
 
-        List<RowValue> listWithData = singletonList(new LongRowValue());
-        CollectionPage<RowValue> pageWithData = new CollectionPage<>(1, listWithData, null);
-        when(searchDataService.getPagedData(argThat(arg -> arg.getTableName().equals(draftTableWithData)))).thenReturn(pageWithData);
+        when(searchDataService.hasData(eq(draftTableWithData))).thenReturn(true);
 
         doCallRealMethod().when(structureChangeValidator).validateUpdateAttribute(any(), any());
         doCallRealMethod().when(structureChangeValidator).validateUpdateAttributeStorage(any(), any(), any());
