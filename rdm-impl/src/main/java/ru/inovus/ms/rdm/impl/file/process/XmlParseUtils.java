@@ -1,21 +1,61 @@
 package ru.inovus.ms.rdm.impl.file.process;
 
 import net.n2oapp.platform.i18n.UserException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
+import java.io.InputStream;
 import java.util.*;
 
 import static java.util.Arrays.asList;
+import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.*;
 
 public class XmlParseUtils {
 
-    private static final Logger logger = LoggerFactory.getLogger(XmlParseUtils.class);
-
     private XmlParseUtils() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Создание считывателя для парсинга xml.
+     *
+     * @param inputStream входной поток xml
+     * @param factory     фабрика для создания считывателя
+     * @return Считыватель xml
+     */
+    public static XMLEventReader createEvenReader(InputStream inputStream, XMLInputFactory factory) {
+
+        try {
+            factory.setProperty(XMLInputFactory.IS_COALESCING, true);
+            XMLEventReader simpleReader = factory.createXMLEventReader(inputStream);
+            return factory.createFilteredReader(simpleReader,
+                    event -> !(event.isCharacters() && event.asCharacters().isWhiteSpace())
+            );
+        } catch (XMLStreamException e) {
+            throwFileContentError(e);
+        }
+
+        throw new UserException(FILE_PROCESSING_FAILED_EXCEPTION_CODE);
+    }
+
+    /**
+     * Закрытие считывателя для парсинга xml.
+     *
+     * @param reader считыватель xml
+     */
+    public static void closeEventReader(XMLEventReader reader) {
+
+        if (reader == null)
+            return;
+
+        try {
+            reader.close();
+
+        } catch (XMLStreamException e) {
+            throwFileProcessingError(e);
+        }
     }
 
     /**
@@ -85,14 +125,9 @@ public class XmlParseUtils {
                 && asList(tagNames).contains(event.asStartElement().getName().getLocalPart());
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean isEndElementWithName(XMLEvent event, String... tagNames) {
         return event.isEndElement()
                 && asList(tagNames).contains(event.asEndElement().getName().getLocalPart());
     }
-
-    public static void throwXmlReadError(Exception e) {
-        logger.error("Error while processing xml file.", e);
-        throw new UserException("xml.processing.failed", e);
-    }
-
 }

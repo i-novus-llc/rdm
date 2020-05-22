@@ -14,6 +14,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.throwFileContentError;
+import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.throwFileProcessingError;
+
 public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
 
     private Integer refBookId;
@@ -33,23 +36,30 @@ public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
 
     @Override
     public Draft process(Supplier<InputStream> fileSource) {
+
+        Map<String, Object> passport = null;
+        Pair<Structure, Map<String, List<AttributeValidation>>> pair = null;
+
         try(InputStream inputStream = fileSource.get()) {
             setFile(inputStream);
-
-            Map<String, Object> passport = getPassport();
-            Pair<Structure, Map<String, List<AttributeValidation>>> pair = getStructureAndValidations();
-            CreateDraftRequest request = new CreateDraftRequest(refBookId, pair.getFirst(), passport, pair.getSecond());
-            return draftService.create(request);
+            passport = getPassport();
+            pair = getStructureAndValidations();
 
         }  catch (IOException e) {
-            XmlParseUtils.throwXmlReadError(e);
+            throwFileContentError(e);
 
         } catch (UserException e) {
             throw e;
 
         } catch (Exception e) {
-            throw new UserException("check.your.xml", e);
+            throwFileProcessingError(e);
         }
+
+        if (passport != null && pair != null) {
+            CreateDraftRequest request = new CreateDraftRequest(refBookId, pair.getFirst(), passport, pair.getSecond());
+            return draftService.create(request);
+        }
+
         return null;
     }
 }

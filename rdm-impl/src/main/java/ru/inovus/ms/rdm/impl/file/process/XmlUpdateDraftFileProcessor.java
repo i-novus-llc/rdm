@@ -15,6 +15,9 @@ import java.io.InputStream;
 import java.util.*;
 
 import static java.util.Collections.singletonList;
+import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.throwFileContentError;
+import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.closeEventReader;
+import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.createEvenReader;
 
 public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implements Closeable {
 
@@ -37,15 +40,7 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
 
     @Override
     protected void setFile(InputStream inputStream) {
-        try {
-            FACTORY.setProperty(XMLInputFactory.IS_COALESCING, true);
-            XMLEventReader simpleReader = FACTORY.createXMLEventReader(inputStream);
-            reader = FACTORY.createFilteredReader(simpleReader,
-                    event ->
-                            !(event.isCharacters() && event.asCharacters().isWhiteSpace()));
-        } catch (XMLStreamException e) {
-            XmlParseUtils.throwXmlReadError(e);
-        }
+        reader = createEvenReader(inputStream, FACTORY);
     }
 
     @Override
@@ -70,11 +65,10 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
                 XmlParseUtils.parseValues(reader, passport, PASSPORT_TAG_NAME);
             }
         } catch (XMLStreamException e) {
-            XmlParseUtils.throwXmlReadError(e);
+            throwFileContentError(e);
         }
         passportProcessed = true;
         return passport;
-
     }
 
     private void parseStructureAndValidations(Structure structure, Map<String, List<AttributeValidation>> validations) throws XMLStreamException {
@@ -151,22 +145,14 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
                 return Pair.of(structure, validations);
 
             } catch (XMLStreamException e) {
-                XmlParseUtils.throwXmlReadError(e);
+                throwFileContentError(e);
             }
-
         }
         return null;
     }
 
-
     @Override
     public void close() {
-        if (reader != null) {
-            try {
-                reader.close();
-            } catch (XMLStreamException e) {
-                XmlParseUtils.throwXmlReadError(e);
-            }
-        }
+        closeEventReader(reader);
     }
 }

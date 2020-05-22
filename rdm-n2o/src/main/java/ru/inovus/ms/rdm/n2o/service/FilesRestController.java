@@ -9,6 +9,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.inovus.ms.rdm.api.enumeration.FileType;
@@ -42,17 +43,24 @@ public class FilesRestController {
     @CrossOrigin(origins = "*")
     @PostMapping(value = "")
     public FileModel uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
+
         long size = file.getSize();
         if (size / 1024 / 1024 > maxFileSizeMb)
             throw new IllegalArgumentException(messages.getMessage("file.is.too.big", maxFileSizeMb));
+
         String storageFileName = toStorageFileName(file.getOriginalFilename());
         FileModel save = fileStorageService.save(file.getInputStream(), storageFileName);
         save.setName(file.getOriginalFilename());
+
         return save;
     }
 
     private String toStorageFileName(String originalFilename) {
+
         String extension = FilenameUtils.getExtension(originalFilename);
+        if (StringUtils.isEmpty(extension))
+            throw new IllegalArgumentException(messages.getMessage("file.extension.invalid"));
+
         return System.currentTimeMillis() + "." + extension;
     }
 
