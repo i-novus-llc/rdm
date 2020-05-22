@@ -369,9 +369,6 @@ public class DraftServiceTest {
         doCallRealMethod().when(structureChangeValidator).validateCreateAttribute(any());
         doCallRealMethod().when(structureChangeValidator).validateCreateAttributeStorage(any(), any(), eq(draftTableWithData));
 
-        //List<RowValue> listWithData = singletonList(new LongRowValue());
-        //CollectionPage<RowValue> pageWithData = new CollectionPage<>(1, listWithData, null);
-        //when(searchDataService.getPagedData(argThat(arg -> arg.getTableName().equals(draftTableWithData)))).thenReturn(pageWithData);
         when(searchDataService.hasData(eq(draftTableWithData))).thenReturn(true);
 
         doCallRealMethod().when(structureChangeValidator).validateUpdateAttribute(any(), any());
