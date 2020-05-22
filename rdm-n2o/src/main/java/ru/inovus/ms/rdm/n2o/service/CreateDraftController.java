@@ -19,6 +19,7 @@ import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.service.DraftService;
+import ru.inovus.ms.rdm.api.service.RefBookDataService;
 import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.RowUtils;
@@ -38,15 +39,20 @@ public class CreateDraftController {
     private VersionService versionService;
     private DraftService draftService;
 
+    private RefBookDataService refBookDataService;
+
     private StructureController structureController;
     private DataRecordController dataRecordController;
 
     @Autowired
     public CreateDraftController(RefBookService refBookService, VersionService versionService, DraftService draftService,
+                                 RefBookDataService refBookDataService,
                                  StructureController structureController, DataRecordController dataRecordController) {
         this.refBookService = refBookService;
         this.versionService = versionService;
         this.draftService = draftService;
+
+        this.refBookDataService = refBookDataService;
 
         this.structureController = structureController;
         this.dataRecordController = dataRecordController;
@@ -175,7 +181,7 @@ public class CreateDraftController {
 
     public UiDraft createFromFile(FileModel fileModel) {
 
-        Integer versionId = refBookService.create(fileModel).getId();
+        Integer versionId = refBookDataService.create(fileModel).getId();
         RefBookVersion version = versionService.getById(versionId);
 
         return new UiDraft(versionId, version.getRefBookId());

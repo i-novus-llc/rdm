@@ -2,8 +2,6 @@ package ru.inovus.ms.rdm.api.service;
 
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
-import ru.inovus.ms.rdm.api.model.FileModel;
-import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
@@ -74,16 +72,6 @@ public interface RefBookService {
             @ApiResponse(code = 400, message = "Некорректный запрос")
     })
     RefBook create(RefBookCreateRequest refBookCreateRequest);
-
-    @POST
-    @ApiOperation(value = "Создание нового справочника и черновика из файла", hidden = true)
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Справочник и черновик созданы"),
-            @ApiResponse(code = 400, message = "Некорректный запрос"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    @Path("/createByFile")
-    Draft create(@ApiParam("Файл") FileModel fileModel);
 
     @PUT
     @ApiOperation(value = "Изменение метаданных справочника", hidden = true)
