@@ -15,4 +15,10 @@
         </sql>
     </changeSet>
 
+    <changeSet id="202005220710_RDM-557" author="arahmatullin" dbms="postgresql">
+        <sql>
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_operation.lock_id IS 'Идентификатор блокировки';
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

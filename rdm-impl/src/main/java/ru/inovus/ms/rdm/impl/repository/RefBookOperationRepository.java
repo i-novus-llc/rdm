@@ -19,6 +19,6 @@ public interface RefBookOperationRepository extends
         int deleteByRefBookId(Integer refBookId);
 
         @Transactional
-        int deleteAllByLockId(Set<String> lockIds);
+        int deleteAllByLockIdIn(Set<String> lockIds);
 
 }
