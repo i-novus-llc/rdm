@@ -32,6 +32,8 @@ public class RefBookPublishController {
     private static final String PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE = "publishing.draft.structure.not.found";
     private static final String PUBLISHING_DRAFT_DATA_NOT_FOUND_EXCEPTION_CODE = "publishing.draft.data.not.found";
 
+    private static final ConflictType[] CONFLICT_TYPE_VALUES = ConflictType.values();
+
     private static final String PASSPORT_ATTRIBUTE_NAME = "name";
     private static final String REFERRER_NAME_SEPARATOR = ", ";
 
@@ -73,15 +75,8 @@ public class RefBookPublishController {
             return uiRefBookPublish;
         }
 
-        // NB: Получать информацию одним запросом сразу по всем типам конфликта.
         try {
-            Map<String, String> conflictingReferrerNames =
-                    Stream.of(ConflictType.values())
-                            .collect(toMap(ConflictType::name,
-                                    conflictType -> getConflictTypeReferrerNames(versionId, conflictType)
-                                    )
-                            );
-            uiRefBookPublish.setConflictingReferrerNames(conflictingReferrerNames);
+            uiRefBookPublish.setConflictingReferrerNames(getConflictingReferrerNames(versionId));
 
         } catch (Exception e) {
             logger.error("Error on check conflicting referrers", e);
@@ -116,6 +111,21 @@ public class RefBookPublishController {
 
     /**
      * Получение названий справочников, имеющих конфликтные ссылки на версию.
+     *
+     * @param versionId идентификатор версии справочника
+     * @return Набор названий справочников для каждого типа конфликта
+     */
+    private Map<String, String> getConflictingReferrerNames(Integer versionId) {
+
+        return Stream.of(CONFLICT_TYPE_VALUES).collect(
+                toMap(ConflictType::name,
+                        conflictType -> getConflictTypeReferrerNames(versionId, conflictType)
+                )
+        );
+    }
+
+    /**
+     * Получение названий справочников, имеющих конфликтные ссылки заданного типа на версию.
      *
      * @param versionId    идентификатор версии справочника
      * @param conflictType тип конфликта
