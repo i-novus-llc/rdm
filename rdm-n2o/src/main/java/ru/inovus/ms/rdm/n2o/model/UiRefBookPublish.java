@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.n2o.model;
 
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -21,7 +22,7 @@ public class UiRefBookPublish extends RefBook {
      * <p>
      * Формат записи: <Тип конфликта> = <Список названий через запятую>
      */
-    private Map<String, String> conflictingReferrerNames;
+    private Map<String, String> conflictingReferrerNames = new HashMap<>(0);
 
     public UiRefBookPublish(RefBook refBook) {
         super(refBook);

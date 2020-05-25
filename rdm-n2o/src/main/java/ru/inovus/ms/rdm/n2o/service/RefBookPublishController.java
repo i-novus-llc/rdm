@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.n2o.service;
 
+import net.n2oapp.platform.i18n.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,11 +10,11 @@ import ru.inovus.ms.rdm.api.model.draft.PublishRequest;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.service.ConflictService;
+import ru.inovus.ms.rdm.api.service.DraftService;
 import ru.inovus.ms.rdm.api.service.PublishService;
 import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.n2o.model.UiRefBookPublish;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -28,28 +29,51 @@ public class RefBookPublishController {
 
     private static final Logger logger = LoggerFactory.getLogger(RefBookPublishController.class);
 
+    private static final String PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE = "publishing.draft.structure.not.found";
+    private static final String PUBLISHING_DRAFT_DATA_NOT_FOUND_EXCEPTION_CODE = "publishing.draft.data.not.found";
+
     private static final String PASSPORT_ATTRIBUTE_NAME = "name";
     private static final String REFERRER_NAME_SEPARATOR = ", ";
 
     private RefBookService refBookService;
+    private DraftService draftService;
     private PublishService publishService;
     private ConflictService conflictService;
 
+    private Messages messages;
+
     @Autowired
-    public RefBookPublishController(RefBookService refBookService,
-                                    PublishService publishService, ConflictService conflictService) {
+    public RefBookPublishController(RefBookService refBookService, DraftService draftService,
+                                    PublishService publishService, ConflictService conflictService,
+                                    Messages messages) {
         this.refBookService = refBookService;
+        this.draftService = draftService;
 
         this.publishService = publishService;
         this.conflictService = conflictService;
+
+        this.messages = messages;
     }
 
     public UiRefBookPublish getByVersionId(Integer versionId) {
 
         RefBook refBook = refBookService.getByVersionId(versionId);
 
-        // NB: Получать информацию одним запросом сразу по всем типам конфликта.
         UiRefBookPublish uiRefBookPublish = new UiRefBookPublish(refBook);
+
+        if (refBook.getStructure() == null || refBook.getStructure().isEmpty()) {
+            String message = messages.getMessage(PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE, refBook.getCode());
+            uiRefBookPublish.setErrorMessage(message);
+            return uiRefBookPublish;
+        }
+
+        if (!Boolean.TRUE.equals(draftService.hasData(versionId))) {
+            String message = messages.getMessage(PUBLISHING_DRAFT_DATA_NOT_FOUND_EXCEPTION_CODE, refBook.getCode());
+            uiRefBookPublish.setErrorMessage(message);
+            return uiRefBookPublish;
+        }
+
+        // NB: Получать информацию одним запросом сразу по всем типам конфликта.
         try {
             Map<String, String> conflictingReferrerNames =
                     Stream.of(ConflictType.values())
@@ -61,9 +85,7 @@ public class RefBookPublishController {
 
         } catch (Exception e) {
             logger.error("Error on check conflicting referrers", e);
-
             uiRefBookPublish.setErrorMessage(e.getMessage());
-            uiRefBookPublish.setConflictingReferrerNames(new HashMap<>(0));
         }
 
         return uiRefBookPublish;
