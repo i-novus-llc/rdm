@@ -62,13 +62,13 @@ public class RefBookPublishController {
         UiRefBookPublish uiRefBookPublish = new UiRefBookPublish(refBook);
 
         if (refBook.getStructure() == null || refBook.getStructure().isEmpty()) {
-            String message = messages.getMessage(PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE, refBook.getCode());
+            String message = messages.getMessage(PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE);
             uiRefBookPublish.setErrorMessage(message);
             return uiRefBookPublish;
         }
 
         if (!Boolean.TRUE.equals(draftService.hasData(versionId))) {
-            String message = messages.getMessage(PUBLISHING_DRAFT_DATA_NOT_FOUND_EXCEPTION_CODE, refBook.getCode());
+            String message = messages.getMessage(PUBLISHING_DRAFT_DATA_NOT_FOUND_EXCEPTION_CODE);
             uiRefBookPublish.setErrorMessage(message);
             return uiRefBookPublish;
         }
@@ -78,7 +78,7 @@ public class RefBookPublishController {
             Map<String, String> conflictingReferrerNames =
                     Stream.of(ConflictType.values())
                             .collect(toMap(ConflictType::name,
-                                    conflictType -> getConflictingReferrerNames(versionId, conflictType)
+                                    conflictType -> getConflictTypeReferrerNames(versionId, conflictType)
                                     )
                             );
             uiRefBookPublish.setConflictingReferrerNames(conflictingReferrerNames);
@@ -121,7 +121,7 @@ public class RefBookPublishController {
      * @param conflictType тип конфликта
      * @return Названия справочников (через запятую)
      */
-    private String getConflictingReferrerNames(Integer versionId, ConflictType conflictType) {
+    private String getConflictTypeReferrerNames(Integer versionId, ConflictType conflictType) {
 
         return conflictService.getConflictingReferrers(versionId, conflictType).stream()
                 .map(this::getReferrerDisplayName)
