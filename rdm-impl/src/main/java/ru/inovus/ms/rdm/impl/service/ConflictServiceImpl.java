@@ -223,7 +223,7 @@ public class ConflictServiceImpl implements ConflictService {
      * @return Наличие конфликтов для версии, которая ссылается
      * @see #calculateDataDiffConflicts
      */
-    private Boolean checkDataDiffConflicts(RefBookVersionEntity refFromEntity, RefBookVersionEntity refToEntity,
+    private boolean checkDataDiffConflicts(RefBookVersionEntity refFromEntity, RefBookVersionEntity refToEntity,
                                            List<DiffRowValue> diffRowValues, DiffStatusEnum diffStatus) {
 
         List<Structure.Attribute> refToPrimaries = refToEntity.getStructure().getPrimary();
