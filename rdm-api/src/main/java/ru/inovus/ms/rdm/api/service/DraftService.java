@@ -131,6 +131,15 @@ public interface DraftService {
     Page<RefBookRowValue> search(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
                                  @BeanParam SearchDataCriteria criteria);
 
+    @GET
+    @Path("/{draftId}/hasData")
+    @ApiOperation("Проверка на наличие записей в черновике")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    Boolean hasData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId);
+
     @POST
     @Path("{draftId}/remove")
     @ApiOperation("Удаление черновика")
