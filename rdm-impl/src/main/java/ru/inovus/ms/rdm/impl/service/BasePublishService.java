@@ -39,7 +39,7 @@ import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 
 @Primary
 @Service
-public class DraftPublishServiceImpl implements DraftPublishService {
+class BasePublishService {
 
     private static final String INVALID_VERSION_NAME_EXCEPTION_CODE = "invalid.version.name";
     private static final String INVALID_VERSION_PERIOD_EXCEPTION_CODE = "invalid.version.period";
@@ -74,12 +74,12 @@ public class DraftPublishServiceImpl implements DraftPublishService {
 
     @Autowired
     @SuppressWarnings("squid:S00107")
-    public DraftPublishServiceImpl(RefBookVersionRepository versionRepository,
-                                   DraftDataService draftDataService, SearchDataService searchDataService, DropDataService dropDataService,
-                                   RefBookLockService refBookLockService, VersionService versionService,
-                                   VersionFileService versionFileService, VersionNumberStrategy versionNumberStrategy,
-                                   VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation,
-                                   AuditLogService auditLogService, @Qualifier("topicJmsTemplate") @Autowired(required = false) JmsTemplate jmsTemplate) {
+    public BasePublishService(RefBookVersionRepository versionRepository,
+                              DraftDataService draftDataService, SearchDataService searchDataService, DropDataService dropDataService,
+                              RefBookLockService refBookLockService, VersionService versionService, ConflictService conflictService,
+                              VersionFileService versionFileService, VersionNumberStrategy versionNumberStrategy,
+                              VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation,
+                              AuditLogService auditLogService, @Qualifier("topicJmsTemplate") @Autowired(required = false) JmsTemplate jmsTemplate) {
         this.versionRepository = versionRepository;
 
         this.draftDataService = draftDataService;
@@ -105,7 +105,6 @@ public class DraftPublishServiceImpl implements DraftPublishService {
      * @param request параметры публикации
      * @return результат публикации
      */
-    @Override
     @Transactional
     public PublishResponse publish(PublishRequest request) {
 
