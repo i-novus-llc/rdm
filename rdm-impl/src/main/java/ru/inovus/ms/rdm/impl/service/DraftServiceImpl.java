@@ -19,9 +19,7 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.*;
-import ru.inovus.ms.rdm.api.enumeration.ConflictType;
-import ru.inovus.ms.rdm.api.enumeration.FileType;
-import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.api.enumeration.*;
 import ru.inovus.ms.rdm.api.exception.NotFoundException;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.ExportFile;
@@ -565,10 +563,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private RefBookVersionEntity getLastRefBookVersion(Integer refBookId) {
-        Page<RefBookVersionEntity> lastPublishedVersions = versionRepository
-                .findAll(RefBookVersionPredicates.isPublished().and(RefBookVersionPredicates.isVersionOfRefBook(refBookId)),
-                        PageRequest.of(0, 1, new Sort(Sort.Direction.DESC, "fromDate")));
-        return lastPublishedVersions.hasContent() ? lastPublishedVersions.getContent().get(0) : null;
+        return versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(refBookId, RefBookVersionStatus.PUBLISHED);
     }
 
     @Override
@@ -909,9 +904,7 @@ public class DraftServiceImpl implements DraftService {
     @Override
     public Integer getIdByRefBookCode(String refBookCode) {
         RefBookVersionEntity draftEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.DRAFT);
-        if (draftEntity == null)
-            return null;
-        return draftEntity.getId();
+        return draftEntity != null ? draftEntity.getId() : null;
     }
 
     private void auditStructureEdit(RefBookVersionEntity refBook, String action, Structure.Attribute attribute) {
@@ -925,5 +918,4 @@ public class DraftServiceImpl implements DraftService {
     private void auditEditData(RefBookVersionEntity refBook, Map<String, Object> payload) {
         auditLogService.addAction(AuditAction.DRAFT_EDITING, () -> refBook, payload);
     }
-
 }
