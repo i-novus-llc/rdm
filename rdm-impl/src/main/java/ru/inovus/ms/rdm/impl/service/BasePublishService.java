@@ -219,7 +219,7 @@ class BasePublishService {
     }
 
     private RefBookVersionEntity getLastPublishedVersionEntity(RefBookVersionEntity draftVersion) {
-        return versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(draftVersion.getRefBook().getCode(), RefBookVersionStatus.PUBLISHED);
+        return versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(draftVersion.getRefBook().getId(), RefBookVersionStatus.PUBLISHED);
     }
 
     /** Замена старого кода хранилища на новый в версиях справочника. */
