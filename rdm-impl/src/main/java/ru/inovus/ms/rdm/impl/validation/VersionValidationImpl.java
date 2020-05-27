@@ -6,6 +6,8 @@ import org.apache.cxf.common.util.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
+import ru.inovus.ms.rdm.api.enumeration.RefBookStatusType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.api.exception.NotFoundException;
 import ru.inovus.ms.rdm.api.model.Structure;
@@ -20,6 +22,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.toList;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 // Использовать VersionValidation без интерфейса как ReferenceValidation
@@ -48,6 +51,7 @@ public class VersionValidationImpl implements VersionValidation {
     private static final String REFERRED_BOOK_NOT_FOUND_EXCEPTION_CODE = "referred.book.not.found";
     private static final String REFERRED_BOOK_STRUCTURE_NOT_FOUND_EXCEPTION_CODE = "referred.book.structure.not.found";
     private static final String REFERRED_BOOK_MUST_HAVE_ONLY_ONE_PRIMARY_KEY_EXCEPTION_CODE = "referred.book.must.have.only.one.primary.key";
+    private static final String REFERRED_DRAFT_PRIMARIES_NOT_MATCH_EXCEPTION_CODE = "referred.draft.primaries.not.match";
 
     private static final Pattern CODE_PATTERN = Pattern.compile("[A-Za-z][0-9A-Za-z\\-._]{0,49}");
 
@@ -388,6 +392,52 @@ public class VersionValidationImpl implements VersionValidation {
     }
 
     /**
+     * Проверка структуры черновика справочника.
+     *
+     * @param refBookCode    код справочника
+     * @param draftStructure структура черновика этого справочника
+     */
+    @Override
+    public void validateDraftStructure(String refBookCode, Structure draftStructure) {
+
+        validateStructure(draftStructure);
+
+        if (hasReferrerVersions(refBookCode)) {
+            validateReferredDraftStructure(refBookCode, draftStructure);
+        }
+    }
+
+    /**
+     * Проверка структуры черновика справочника, на который ссылаются.
+     *
+     * @param referredCode   код справочника, на который ссылаются
+     * @param draftStructure структура черновика этого справочника
+     */
+    private void validateReferredDraftStructure(String referredCode, Structure draftStructure) {
+
+        RefBookVersionEntity referredEntity = versionRepository
+                .findFirstByRefBookCodeAndStatusOrderByFromDateDesc(referredCode, RefBookVersionStatus.PUBLISHED);
+        if (referredEntity == null)
+            throw new NotFoundException(new Message(REFBOOK_WITH_CODE_NOT_FOUND_EXCEPTION_CODE, referredCode));
+
+        if (draftStructure == null)
+            throw new UserException(new Message(REFERRED_BOOK_STRUCTURE_NOT_FOUND_EXCEPTION_CODE, referredCode));
+
+        if (draftStructure.getPrimary().size() != 1)
+            throw new UserException(new Message(REFERRED_BOOK_MUST_HAVE_ONLY_ONE_PRIMARY_KEY_EXCEPTION_CODE, referredCode));
+
+        if (!equalsPrimaries(referredEntity.getStructure().getPrimary(), draftStructure.getPrimary()))
+            throw new UserException(new Message(REFERRED_DRAFT_PRIMARIES_NOT_MATCH_EXCEPTION_CODE, referredCode, referredEntity.getVersion()));
+    }
+
+    /** Проверка на наличие справочников, ссылающихся на указанный справочник. */
+    private boolean hasReferrerVersions(String refBookCode) {
+        Boolean exists = versionRepository.existsReferrerVersions(refBookCode,
+                RefBookStatusType.ALL.name(), RefBookSourceType.ALL.name());
+        return Boolean.TRUE.equals(exists);
+    }
+
+    /**
      * Проверка первичных ключей на совпадение.
      *
      * @param primaries1 первичные ключи из первой структуры
@@ -396,7 +446,8 @@ public class VersionValidationImpl implements VersionValidation {
      */
     public boolean equalsPrimaries(List<Structure.Attribute> primaries1,
                                    List<Structure.Attribute> primaries2) {
-        return primaries1.size() == primaries2.size()
+        return !isEmpty(primaries1) && !isEmpty(primaries2)
+                && primaries1.size() == primaries2.size()
                 && primaries1.stream().allMatch(primary1 -> containsPrimary(primaries2, primary1));
     }
 
