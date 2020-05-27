@@ -2,6 +2,8 @@ package ru.inovus.ms.rdm.api.validation;
 
 import ru.inovus.ms.rdm.api.model.Structure;
 
+import java.util.List;
+
 public interface VersionValidation {
 
     void validateRefBook(Integer refBookId);
@@ -31,4 +33,7 @@ public interface VersionValidation {
     void validateAttribute(Structure.Attribute attribute);
 
     void validateReferenceAbility(Structure.Reference reference);
+
+    boolean equalsPrimaries(List<Structure.Attribute> primaries1,
+                            List<Structure.Attribute> primaries2);
 }
