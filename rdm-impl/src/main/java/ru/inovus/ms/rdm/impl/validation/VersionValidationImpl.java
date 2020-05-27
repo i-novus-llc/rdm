@@ -387,6 +387,24 @@ public class VersionValidationImpl implements VersionValidation {
         throw new NotFoundException(error);
     }
 
+    /**
+     * Проверка первичных ключей на совпадение.
+     *
+     * @param primaries1 первичные ключи из первой структуры
+     * @param primaries2 первичные ключи из второй структуры
+     * @return Результат проверки
+     */
+    public boolean equalsPrimaries(List<Structure.Attribute> primaries1,
+                                   List<Structure.Attribute> primaries2) {
+        return primaries1.size() == primaries2.size()
+                && primaries1.stream().allMatch(primary1 -> containsPrimary(primaries2, primary1));
+    }
+
+    /** Проверка на наличие первичного ключа в списке первичных ключей. */
+    private static boolean containsPrimary(List<Structure.Attribute> primaries, Structure.Attribute primary) {
+        return primaries.stream().anyMatch(p -> p.storageEquals(primary));
+    }
+
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean isValidCode(String code) {
         return CODE_PATTERN.matcher(code).matches();
