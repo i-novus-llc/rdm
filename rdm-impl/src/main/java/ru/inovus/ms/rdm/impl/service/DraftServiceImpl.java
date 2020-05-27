@@ -281,7 +281,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
         RefBookVersionEntity draftVersion = getDraftByRefBook(refBookId);
         if (draftVersion == null && lastRefBookVersion == null)
-            throw new CodifiedException("invalid refbook");
+            throw new NotFoundException(new Message(VersionValidationImpl.REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
 
         List<PassportValueEntity> passportValues = null;
         if (createDraftRequest.getPassport() != null) {
