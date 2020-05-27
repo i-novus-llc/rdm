@@ -379,11 +379,9 @@ public class RefBookServiceImpl implements RefBookService {
     /** Проверка на наличие справочников, ссылающихся на указанный справочник. */
     private boolean hasReferrerVersions(String refBookCode) {
 
-        PageRequest pageRequest = PageRequest.of(0, 1);
-        Page<RefBookVersionEntity> entities = versionRepository.findReferrerVersions(refBookCode,
-                RefBookStatusType.ALL.name(), RefBookSourceType.ALL.name(), pageRequest);
-
-        return entities != null && !entities.getContent().isEmpty();
+        Boolean exists = versionRepository.existsReferrerVersions(refBookCode,
+                RefBookStatusType.ALL.name(), RefBookSourceType.ALL.name());
+        return Boolean.TRUE.equals(exists);
     }
 
     private boolean isRefBookRemovable(Integer refBookId) {
