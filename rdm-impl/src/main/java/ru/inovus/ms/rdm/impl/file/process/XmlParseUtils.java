@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.impl.file.process;
 
+import ru.inovus.ms.rdm.api.exception.FileContentException;
 import ru.inovus.ms.rdm.api.exception.FileProcessingException;
 
 import javax.xml.stream.XMLEventReader;
@@ -10,8 +11,6 @@ import java.io.InputStream;
 import java.util.*;
 
 import static java.util.Arrays.asList;
-import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.throwFileContentError;
-import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.throwFileProcessingError;
 
 public class XmlParseUtils {
 
@@ -34,10 +33,8 @@ public class XmlParseUtils {
                     event -> !(event.isCharacters() && event.asCharacters().isWhiteSpace())
             );
         } catch (XMLStreamException e) {
-            throwFileContentError(e);
+            throw new FileContentException(e);
         }
-
-        throw new FileProcessingException();
     }
 
     /**
@@ -54,7 +51,7 @@ public class XmlParseUtils {
             reader.close();
 
         } catch (XMLStreamException e) {
-            throwFileProcessingError(e);
+            throw new FileProcessingException(e);
         }
     }
 

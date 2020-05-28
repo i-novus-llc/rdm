@@ -1,7 +1,6 @@
 package ru.inovus.ms.rdm.impl.file.process;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import ru.inovus.ms.rdm.api.exception.FileContentException;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.impl.util.mappers.RowMapper;
 
@@ -15,12 +14,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.*;
 import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.*;
 
 public class XmlPerRowProcessor extends FilePerRowProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(XmlPerRowProcessor.class);
+    public static final String FILE_CONTENT_INVALID_EXCEPTION_CODE = "file.content.invalid";
 
     private static final String DATA_TAG_NAME = "data";
     private static final String ROW_TAG_NAME = "row";
@@ -58,13 +56,12 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
                 return false;
             }
             reader.nextEvent();
+
             return isStartElementWithName(reader.peek(), ROW_TAG_NAME);
 
         } catch (XMLStreamException e) {
-            throwFileContentError(e);
+            throw new FileContentException(e);
         }
-
-        return false;
     }
 
     @Override
@@ -78,7 +75,6 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
             parseValues(reader, rowValues, ROW_TAG_NAME);
 
         } catch (XMLStreamException e) {
-            logger.error(LOG_FILE_CONTENT_ERROR, e);
             // by contract of this method:
             throw new NoSuchElementException(FILE_CONTENT_INVALID_EXCEPTION_CODE);
         }
