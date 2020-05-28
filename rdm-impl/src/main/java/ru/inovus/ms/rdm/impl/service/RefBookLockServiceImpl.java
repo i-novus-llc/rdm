@@ -74,7 +74,7 @@ public class RefBookLockServiceImpl implements RefBookLockService {
                             unreleasedLocks.remove(split[1]);
                     });
                 }
-                int released = operationRepository.deleteAllByLockId(unreleasedLocks);
+                int released = operationRepository.deleteAllByLockIdIn(unreleasedLocks);
                 logger.info("{} unreleased locks detected.", released);
                 clearWal();
             } catch (IOException e) {
