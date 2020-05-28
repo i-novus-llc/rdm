@@ -56,9 +56,9 @@ public interface RefBookConflictRepository extends
      * с последними опубликованными версиями справочников.
      */
     @Query("select distinct c.refRecordId \n" +
-            "  from RefBookConflictEntity c\n" +
-            " where c.referrerVersion.id = :referrerVersionId\n" +
-            "   and c.refRecordId in (:refRecordIds)" +
+            "  from RefBookConflictEntity c \n" +
+            " where c.referrerVersion.id = :referrerVersionId \n" +
+            "   and c.refRecordId in (:refRecordIds) \n" +
             AND_REFERRED_IS_LAST_WITH_STATUS)
     List<Long> findReferrerConflictedIds(
             @Param("referrerVersionId") Integer referrerVersionId,

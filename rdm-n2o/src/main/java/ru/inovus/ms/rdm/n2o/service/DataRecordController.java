@@ -28,6 +28,7 @@ public class DataRecordController {
 
     @Autowired
     private VersionService versionService;
+
     @Autowired
     private DraftService draftService;
 
@@ -41,14 +42,18 @@ public class DataRecordController {
         if (isEmpty(search.getContent()))
             return emptyMap();
 
-        LongRowValue rowValue = search.getContent().get(0);
+        return getRow(versionId, sysRecordId, search.getContent().get(0));
+    }
+
+    public Map<String, Object> getRow(Integer versionId, Integer sysRecordId, LongRowValue rowValue) {
+
         Map<String, Object> map = new HashMap<>();
         map.put("id", sysRecordId);
         map.put("versionId", versionId);
 
-        rowValue.getFieldValues()
-                .forEach(fieldValue ->
-                        map.put(addPrefix(fieldValue.getField()), fieldValue.getValue()));
+        rowValue.getFieldValues().forEach(
+                fieldValue -> map.put(addPrefix(fieldValue.getField()), fieldValue.getValue())
+        );
         return map;
     }
 

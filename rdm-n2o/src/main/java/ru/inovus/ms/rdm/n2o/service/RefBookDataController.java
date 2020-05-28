@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.n2o.service;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableMap;
 import net.n2oapp.criteria.api.Direction;
+import net.n2oapp.criteria.api.Sorting;
 import net.n2oapp.framework.api.MetadataEnvironment;
 import net.n2oapp.framework.api.metadata.compile.CompileContext;
 import net.n2oapp.framework.api.metadata.control.N2oField;
@@ -15,7 +16,6 @@ import net.n2oapp.framework.config.compile.pipeline.N2oPipelineSupport;
 import net.n2oapp.framework.config.metadata.compile.context.WidgetContext;
 import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.jaxrs.RestPage;
-import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -47,8 +47,7 @@ import java.time.LocalDate;
 import java.util.*;
 
 import static java.time.format.DateTimeFormatter.ofPattern;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singleton;
+import static java.util.Collections.*;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.data.domain.Sort.Direction.ASC;
@@ -56,6 +55,7 @@ import static org.springframework.data.domain.Sort.Direction.DESC;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
 import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.EXACT;
 import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.LIKE;
+import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
 
 @Component
 public class RefBookDataController {
@@ -63,22 +63,28 @@ public class RefBookDataController {
     private static final String BOOL_FIELD_ID = "id";
     private static final String BOOL_FIELD_NAME = "name";
 
+    private static final String BOOL_REGEX_TRUE = "true|t|y|yes|yeah|д|да|истина|правда";
+    private static final String BOOL_REGEX_FALSE = "false|f|n|no|nah|н|нет|ложь|неправда";
+
     private static Map<String, Object> dataConflictedCellOptions = getDataConflictedCellOptions();
 
     @Autowired
     private MetadataEnvironment env;
+
     @Autowired
     private VersionService versionService;
+
     @Autowired
     private ConflictService conflictService;
 
     @SuppressWarnings("unused") // used in: data.query.xml
     public Page<DataGridRow> getList(DataCriteria criteria) {
 
-        Structure structure = versionService.getStructure(criteria.getVersionId());
+        final Structure structure = versionService.getStructure(criteria.getVersionId());
+        final boolean hasDataConflict = Boolean.TRUE.equals(criteria.getHasDataConflict());
 
         Page<Long> conflictedRowIdsPage = null;
-        if (BooleanUtils.isTrue(criteria.getHasDataConflict())) {
+        if (hasDataConflict) {
 
             long conflictsCount = conflictService.countConflictedRowIds(toRefBookDataConflictCriteria(criteria));
             if (conflictsCount == 0)
@@ -94,10 +100,10 @@ public class RefBookDataController {
         SearchDataCriteria searchDataCriteria = toSearchDataCriteria(criteria, structure, conflictedRowIds);
 
         Page<RefBookRowValue> search = versionService.search(criteria.getVersionId(), searchDataCriteria);
-        List<DataGridRow> result = getDataGridContent(criteria, search.getContent(), structure, BooleanUtils.isTrue(criteria.getHasDataConflict()));
+        List<DataGridRow> result = getDataGridContent(criteria, search.getContent(), structure, hasDataConflict);
 
         long total;
-        if (BooleanUtils.isTrue(criteria.getHasDataConflict()))
+        if (hasDataConflict)
             total = (conflictedRowIdsPage == null) ? 0 : conflictedRowIdsPage.getTotalElements();
         else
             total = search.getTotalElements();
@@ -125,37 +131,46 @@ public class RefBookDataController {
     }
 
     private SearchDataCriteria toSearchDataCriteria(DataCriteria criteria, Structure structure, List<Long> conflictedRowIds) {
-        List<AttributeFilter> filters = new ArrayList<>();
-        if (criteria.getFilter() != null) {
-            try {
-                criteria.getFilter().forEach((k, v) -> {
-                    if (v == null) return;
-                    String attributeCode = RdmUiUtil.deletePrefix(k);
-                    Structure.Attribute attribute = structure.getAttribute(attributeCode);
-                    if (attribute == null)
-                        throw new IllegalArgumentException("Filter field not found");
-                    AttributeFilter attributeFilter = new AttributeFilter(attributeCode, castValue(attribute, v), attribute.getType());
-                    attributeFilter.setSearchType(attribute.getType() == STRING ? LIKE : EXACT);
-                    filters.add(attributeFilter);
-                });
-            } catch (Exception e) {
-                throw new UserException("invalid.filter.exception", e);
-            }
-        }
 
+        List<AttributeFilter> filters = toAttributeFilters(criteria, structure);
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPage() - 1, criteria.getSize(), singleton(filters));
-        List<Sort.Order> orders = ofNullable(criteria.getSorting())
-                .map(sorting -> new Sort.Order(Direction.ASC.equals(sorting.getDirection()) ? ASC : DESC, sorting.getField()))
-                .map(Collections::singletonList).orElse(emptyList());
+
+        List<Sort.Order> orders = criteria.getSorting() == null ? emptyList() : singletonList(toSortOrder(criteria.getSorting()));
         searchDataCriteria.setOrders(orders);
 
-        if (BooleanUtils.isTrue(criteria.getHasDataConflict())) {
+        if (Boolean.TRUE.equals(criteria.getHasDataConflict())) {
             searchDataCriteria.setRowSystemIds(conflictedRowIds);
         }
         return searchDataCriteria;
     }
 
-    private Serializable castValue(Structure.Attribute attribute, Serializable value) {
+    private List<AttributeFilter> toAttributeFilters(DataCriteria criteria, Structure structure) {
+
+        List<AttributeFilter> filters = new ArrayList<>();
+        if (criteria.getFilter() == null)
+            return filters;
+
+        try {
+            criteria.getFilter().forEach((k, v) -> {
+                if (v == null) return;
+
+                String attributeCode = RdmUiUtil.deletePrefix(k);
+                Structure.Attribute attribute = structure.getAttribute(attributeCode);
+                if (attribute == null)
+                    throw new IllegalArgumentException("Filter field not found");
+
+                AttributeFilter attributeFilter = new AttributeFilter(attributeCode, castFilterValue(attribute, v), attribute.getType());
+                attributeFilter.setSearchType(attribute.getType() == STRING ? LIKE : EXACT);
+                filters.add(attributeFilter);
+            });
+        } catch (Exception e) {
+            throw new UserException("invalid.filter.exception", e);
+        }
+
+        return filters;
+    }
+
+    private static Serializable castFilterValue(Structure.Attribute attribute, Serializable value) {
         if (attribute == null || value == null)
             return null;
 
@@ -170,20 +185,30 @@ public class RefBookDataController {
                 return LocalDate.parse((String) value, TimeUtils.DATE_TIME_PATTERN_EUROPEAN_FORMATTER);
 
             case BOOLEAN:
-//              Добавим универсальности
-                String bool = ((String) value).toLowerCase();
-                if (bool.matches("true|t|y|yes|yeah|д|да|истина|правда"))
-                    return true;
-                else if (bool.matches("false|f|n|no|nah|н|нет|ложь|неправда"))
-                    return false;
-                else
-                    throw new UserException("invalid.filter.exception");
+                return parseBoolean((String)value);
+
             default:
                 return value;
         }
     }
 
-    private List<DataGridRow> getDataGridContent(DataCriteria criteria, List<RefBookRowValue> search, Structure structure, boolean allWithConflicts) {
+    private static Serializable parseBoolean(String value) {
+
+        String stringValue = value.toLowerCase();
+        if (stringValue.matches(BOOL_REGEX_TRUE))
+            return true;
+        if (stringValue.matches(BOOL_REGEX_FALSE))
+            return false;
+
+        throw new UserException("invalid.filter.exception");
+    }
+
+    private static Sort.Order toSortOrder(Sorting sorting) {
+        return new Sort.Order(Direction.ASC.equals(sorting.getDirection()) ? ASC : DESC, sorting.getField());
+    }
+
+    private List<DataGridRow> getDataGridContent(DataCriteria criteria, List<RefBookRowValue> search,
+                                                 Structure structure, boolean allWithConflicts) {
         DataGridRow dataGridHead = new DataGridRow(createHead(structure));
         List<DataGridRow> dataGridRows = getDataGridRows(criteria, search, allWithConflicts);
 
@@ -201,35 +226,31 @@ public class RefBookDataController {
 
         return search.stream()
                 .map(rowValue -> {
-                            boolean isDataConflict = allWithConflicts || conflictedRowsIds.contains(rowValue.getSystemId());
-
-                            return toDataGridRow(
-                                    rowValue,
-                                    criteria.getVersionId(),
-                                    isDataConflict
-                            );
-                        }
-                )
+                    boolean isDataConflict = allWithConflicts || conflictedRowsIds.contains(rowValue.getSystemId());
+                    return toDataGridRow(rowValue, criteria.getVersionId(), isDataConflict);
+                })
                 .collect(toList());
     }
 
     private List<Long> getRowSystemIds(List<RefBookRowValue> rowValues) {
-        return rowValues.stream()
-                .map(RowValue::getSystemId)
-                .collect(toList());
+
+        return rowValues.stream().map(RowValue::getSystemId).collect(toList());
     }
 
     // NB: to-do: DataGridRowCriteria ?!
     private DataGridRow toDataGridRow(RowValue rowValue, Integer versionId, boolean isDataConflict) {
+
         Map<String, Object> row = new HashMap<>();
         LongRowValue longRowValue = (LongRowValue) rowValue;
-        longRowValue.getFieldValues()
-                .forEach(fieldValue ->
-                            row.put(RdmUiUtil.addPrefix(fieldValue.getField()),
-                                    fieldValueToCell(fieldValue, isDataConflict))
-                );
+
+        longRowValue.getFieldValues().forEach(fieldValue ->
+                row.put(addPrefix(fieldValue.getField()),
+                        fieldValueToCell(fieldValue, isDataConflict))
+        );
+
         row.put("id", String.valueOf(longRowValue.getSystemId()));
         row.put("versionId", String.valueOf(versionId));
+
         return new DataGridRow(longRowValue.getSystemId(), row);
     }
 
@@ -255,39 +276,47 @@ public class RefBookDataController {
     }
 
     private String fieldValueToString(FieldValue fieldValue) {
-        Optional<Object> valueOptional = ofNullable(fieldValue).map(FieldValue::getValue);
-        if (fieldValue instanceof ReferenceFieldValue)
-            return valueOptional.filter(o -> o instanceof Reference).map(o -> (Reference) o)
-                    .map(this::referenceToString).orElse(null);
 
-        else if (fieldValue instanceof DateFieldValue)
-            return valueOptional.filter(o -> o instanceof LocalDate).map(o -> (LocalDate) o)
-                    .map(localDate -> localDate.format(ofPattern(TimeUtils.DATE_PATTERN_EUROPEAN)))
-                    .orElse(null);
+        Optional<Object> valueOptional = ofNullable(fieldValue).map(FieldValue::getValue);
+
+        if (fieldValue instanceof ReferenceFieldValue) {
+            return valueOptional.filter(o -> o instanceof Reference).map(o -> (Reference)o)
+                    .map(RefBookDataController::referenceToString).orElse(null);
+
+        }
+
+        if (fieldValue instanceof DateFieldValue) {
+            return valueOptional.filter(o -> o instanceof LocalDate).map(o -> (LocalDate)o)
+                    .map(RefBookDataController::dateToString).orElse(null);
+        }
 
         return valueOptional.map(String::valueOf).orElse(null);
     }
 
-    private String referenceToString(Reference reference) {
+    private static String referenceToString(Reference reference) {
         return reference.getValue() != null ? reference.getDisplayValue() : null;
     }
 
+    private static String dateToString(LocalDate localDate) {
+        return localDate.format(ofPattern(TimeUtils.DATE_PATTERN_EUROPEAN));
+    }
+
     private List<DataGridColumn> createHead(Structure structure) {
-        return structure.getAttributes().stream()
-                .map(this::toDataColumn)
-                .collect(toList());
+
+        return structure.getAttributes().stream().map(this::toDataColumn).collect(toList());
     }
 
     private DataGridColumn toDataColumn(Structure.Attribute attribute) {
+
         N2oField n2oField = toN2oField(attribute);
-        n2oField.setId(RdmUiUtil.addPrefix(attribute.getCode()));
+        n2oField.setId(addPrefix(attribute.getCode()));
+
         CompilePipeline pipeline = N2oPipelineSupport.compilePipeline(env);
         CompileContext<?, ?> ctx = new WidgetContext("");
         StandardField field = pipeline.compile().get(n2oField, ctx);
 
-        return new DataGridColumn(RdmUiUtil.addPrefix(attribute.getCode()), attribute.getName(),
-                true, true, true,
-                field.getControl());
+        return new DataGridColumn(addPrefix(attribute.getCode()), attribute.getName(),
+                true, true, true, field.getControl());
     }
 
     private N2oField toN2oField(Structure.Attribute attribute) {
@@ -335,8 +364,10 @@ public class RefBookDataController {
 
         @JsonProperty
         Long id;
+
         @JsonProperty
         List<DataGridColumn> columns;
+
         @JsonProperty
         Map<String, Object> row;
 
@@ -380,8 +411,10 @@ public class RefBookDataController {
 
     @SuppressWarnings("WeakerAccess")
     public static class DataGridCell {
+
         @JsonProperty
         String value;
+
         @JsonProperty
         Map<String, Object> cellOptions;
 

@@ -17,10 +17,10 @@ import ru.inovus.ms.rdm.n2o.service.CreateDraftController;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.of;
 import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
 
@@ -29,9 +29,11 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
 
     static final String OBJECT_PROVIDER_ID = "dataRecordObject";
 
+    private static final String CONTROLLER_CLASS_NAME = CreateDraftController.class.getName();
+    private static final String CONTROLLER_CLASS_METHOD = "updateDataRecord";
+
     @Autowired
     private VersionService versionService;
-
 
     @Override
     public String getCode() {
@@ -67,7 +69,8 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
         operation.setFormSubmitLabel("Сохранить");
         operation.setInvocation(createInvocation());
         operation.setInParameters(Stream.concat(
-                Stream.of(versionIdParameter(versionId)), createDynamicParams(structure).stream())
+                Stream.of(versionIdParameter(versionId)),
+                createDynamicParams(structure).stream())
                 .toArray(N2oObject.Parameter[]::new));
         return operation;
     }
@@ -79,7 +82,8 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
         operation.setFormSubmitLabel("Изменить");
         operation.setInvocation(createInvocation());
         operation.setInParameters(Stream.concat(
-                of(versionIdParameter(versionId), systemIdParameter()), createDynamicParams(structure).stream())
+                of(versionIdParameter(versionId), systemIdParameter()),
+                createDynamicParams(structure).stream())
                 .toArray(N2oObject.Parameter[]::new));
         return operation;
     }
@@ -87,47 +91,51 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
     private AbstractDataProvider createInvocation() {
 
         N2oJavaDataProvider invocation = new N2oJavaDataProvider();
-        invocation.setClassName(CreateDraftController.class.getName());
-        invocation.setMethod("updateDataRecord");
+        invocation.setClassName(CONTROLLER_CLASS_NAME);
+        invocation.setMethod(CONTROLLER_CLASS_METHOD);
         invocation.setSpringProvider(new SpringProvider());
 
-        Argument draftId = new Argument();
-        draftId.setType(Argument.Type.PRIMITIVE);
-        draftId.setName("draftId");
-        draftId.setClassName(Integer.class.getName());
+        Argument versionIdArgument = new Argument();
+        versionIdArgument.setType(Argument.Type.PRIMITIVE);
+        versionIdArgument.setName("versionId");
+        versionIdArgument.setClassName(Integer.class.getName());
 
-        Argument row = new Argument();
-        row.setType(Argument.Type.CLASS);
-        row.setName("row");
-        row.setClassName(Row.class.getName());
-        invocation.setArguments(new Argument[]{draftId, row});
+        Argument rowArgument = new Argument();
+        rowArgument.setType(Argument.Type.CLASS);
+        rowArgument.setName("row");
+        rowArgument.setClassName(Row.class.getName());
+
+        invocation.setArguments(new Argument[]{versionIdArgument, rowArgument});
 
         return invocation;
     }
 
     private N2oObject.Parameter versionIdParameter(Integer versionId) {
-        N2oObject.Parameter versionIdParameter = new N2oObject.Parameter();
-        versionIdParameter.setId("versionId");
-        versionIdParameter.setMapping("[0]");
-        versionIdParameter.setDomain(N2oDomain.INTEGER);
-        versionIdParameter.setDefaultValue(String.valueOf(versionId));
-        return versionIdParameter;
+
+        N2oObject.Parameter parameter = new N2oObject.Parameter();
+        parameter.setId("versionId");
+        parameter.setMapping("[0]");
+        parameter.setDomain(N2oDomain.INTEGER);
+        parameter.setDefaultValue(String.valueOf(versionId));
+        return parameter;
     }
 
     private N2oObject.Parameter systemIdParameter() {
-        N2oObject.Parameter systemId = new N2oObject.Parameter();
-        systemId.setId("id");
-        systemId.setDomain(N2oDomain.INTEGER);
-        systemId.setMapping("[1].systemId");
-        return systemId;
+
+        N2oObject.Parameter parameter = new N2oObject.Parameter();
+        parameter.setId("id");
+        parameter.setDomain(N2oDomain.INTEGER);
+        parameter.setMapping("[1].systemId");
+        return parameter;
     }
 
     private List<N2oObject.Parameter> createDynamicParams(Structure structure) {
-        return structure.getAttributes().stream()
-                .map(this::createParam).collect(Collectors.toList());
+
+        return structure.getAttributes().stream().map(this::createParam).collect(toList());
     }
 
     private N2oObject.Parameter createParam(Structure.Attribute attribute) {
+
         String codeWithPrefix = addPrefix(attribute.getCode());
 
         N2oObject.Parameter parameter = new N2oObject.Parameter();
@@ -153,8 +161,7 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
             default:
                 throw new IllegalArgumentException("attribute type not supported");
         }
+
         return parameter;
     }
-
-
 }
