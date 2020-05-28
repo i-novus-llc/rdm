@@ -1,6 +1,6 @@
 package ru.inovus.ms.rdm.impl.file.process;
 
-import net.n2oapp.platform.i18n.UserException;
+import ru.inovus.ms.rdm.api.exception.FileProcessingException;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -10,7 +10,8 @@ import java.io.InputStream;
 import java.util.*;
 
 import static java.util.Arrays.asList;
-import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.*;
+import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.throwFileContentError;
+import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.throwFileProcessingError;
 
 public class XmlParseUtils {
 
@@ -37,7 +38,7 @@ public class XmlParseUtils {
             throwFileContentError(e);
         }
 
-        throw new UserException(FILE_PROCESSING_FAILED_EXCEPTION_CODE);
+        throw new FileProcessingException();
     }
 
     /**

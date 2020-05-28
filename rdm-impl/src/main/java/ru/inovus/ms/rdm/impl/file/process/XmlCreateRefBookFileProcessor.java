@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.impl.file.process;
 
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.util.StringUtils;
+import ru.inovus.ms.rdm.api.exception.FileProcessingException;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.inovus.ms.rdm.api.service.RefBookService;
 
@@ -12,7 +13,8 @@ import javax.xml.stream.events.XMLEvent;
 import java.io.Closeable;
 import java.io.InputStream;
 
-import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.*;
+import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.throwFileContentError;
+import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.throwFileProcessingError;
 import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.*;
 
 public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor implements Closeable {
@@ -69,7 +71,7 @@ public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor im
             return new RefBookCreateRequest(refBookCode, null, null);
         }
 
-        throw new UserException(FILE_PROCESSING_FAILED_EXCEPTION_CODE, new UserException(REFBOOK_DOES_NOT_CREATE_EXCEPTION_CODE));
+        throw new FileProcessingException(new UserException(REFBOOK_DOES_NOT_CREATE_EXCEPTION_CODE));
     }
 
     @Override

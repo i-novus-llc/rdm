@@ -2,9 +2,9 @@ package ru.inovus.ms.rdm.impl.file.process;
 
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.data.util.Pair;
+import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
-import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidation;
 import ru.inovus.ms.rdm.api.service.DraftService;
 
