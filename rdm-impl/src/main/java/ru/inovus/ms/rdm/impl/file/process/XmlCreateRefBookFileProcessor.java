@@ -52,7 +52,7 @@ public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor im
                 event = reader.nextEvent();
             }
 
-            if(isStartElementWithName(event, CODE_TAG_NAME)) {
+            if (isStartElementWithName(event, CODE_TAG_NAME)) {
                 refBookCode = reader.getElementText();
             }
 
