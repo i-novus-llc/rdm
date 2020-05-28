@@ -16,8 +16,6 @@ import ru.inovus.ms.rdm.api.enumeration.RefBookOperation;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookStatusType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
-import ru.inovus.ms.rdm.api.exception.FileExtensionException;
-import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.model.draft.PublishRequest;
@@ -45,7 +43,6 @@ import java.util.stream.Collectors;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.FILE_PROCESSING_FAILED_EXCEPTION_CODE;
 import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 
 @Primary

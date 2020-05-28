@@ -16,9 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.throwFileContentError;
-import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.throwFileProcessingError;
-
 public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
 
     private Integer refBookId;
