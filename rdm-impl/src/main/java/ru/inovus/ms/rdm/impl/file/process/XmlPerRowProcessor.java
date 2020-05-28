@@ -35,7 +35,7 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
 
     @Override
     protected void setFile(InputStream inputStream) {
-        reader = createEvenReader(inputStream, FACTORY);
+        reader = createEventReader(inputStream, FACTORY);
     }
 
     // check if next tag is <row>. Will move to next tag if meets <data> tag
@@ -70,7 +70,6 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
     @Override
     public Row next() {
         Map<String, Object> rowValues = new LinkedHashMap<>();
-
         try {
             reader.nextTag();
             if (isStartElementWithName(reader.peek(), DATA_TAG_NAME)) {

@@ -17,7 +17,7 @@ import java.util.*;
 import static java.util.Collections.singletonList;
 import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.throwFileContentError;
 import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.closeEventReader;
-import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.createEvenReader;
+import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.createEventReader;
 
 public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implements Closeable {
 
@@ -40,7 +40,7 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
 
     @Override
     protected void setFile(InputStream inputStream) {
-        reader = createEvenReader(inputStream, FACTORY);
+        reader = createEventReader(inputStream, FACTORY);
     }
 
     @Override
