@@ -26,8 +26,7 @@ public class XmlParseUtils {
      * @param factory     фабрика для создания считывателя
      * @return Считыватель xml
      */
-    public static XMLEventReader createEvenReader(InputStream inputStream, XMLInputFactory factory) {
-
+    public static XMLEventReader createEventReader(InputStream inputStream, XMLInputFactory factory) {
         try {
             factory.setProperty(XMLInputFactory.IS_COALESCING, true);
             XMLEventReader simpleReader = factory.createXMLEventReader(inputStream);

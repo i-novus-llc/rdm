@@ -36,7 +36,7 @@ public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor im
 
     @Override
     protected void setFile(InputStream inputStream) {
-        reader = createEvenReader(inputStream, FACTORY);
+        reader = createEventReader(inputStream, FACTORY);
     }
 
     @Override
