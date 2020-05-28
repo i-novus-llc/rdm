@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.impl.file.process;
 
 import org.springframework.data.util.Pair;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.inovus.ms.rdm.api.exception.FileContentException;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidation;
 import ru.inovus.ms.rdm.api.service.DraftService;
@@ -15,7 +16,6 @@ import java.io.InputStream;
 import java.util.*;
 
 import static java.util.Collections.singletonList;
-import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.throwFileContentError;
 import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.closeEventReader;
 import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.createEventReader;
 
@@ -65,7 +65,7 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
                 XmlParseUtils.parseValues(reader, passport, PASSPORT_TAG_NAME);
             }
         } catch (XMLStreamException e) {
-            throwFileContentError(e);
+            throw new FileContentException(e);
         }
         passportProcessed = true;
         return passport;
@@ -145,7 +145,7 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
                 return Pair.of(structure, validations);
 
             } catch (XMLStreamException e) {
-                throwFileContentError(e);
+                throw new FileContentException(e);
             }
         }
         return null;
