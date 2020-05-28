@@ -9,8 +9,6 @@ public class FileParseUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(FileParseUtils.class);
 
-    public static final String FILE_CONTENT_INVALID_EXCEPTION_CODE = "file.content.invalid";
-
     public static final String LOG_FILE_CONTENT_ERROR = "Error with file content.";
     public static final String LOG_FILE_PROCESSING_ERROR = "Error while processing file.";
 

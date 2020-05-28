@@ -4,6 +4,8 @@ import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
+import ru.inovus.ms.rdm.api.exception.FileExtensionException;
+import ru.inovus.ms.rdm.api.exception.FileProcessingException;
 import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
@@ -16,8 +18,6 @@ import ru.inovus.ms.rdm.impl.util.FileUtil;
 
 import java.io.InputStream;
 import java.util.function.Supplier;
-
-import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.FILE_PROCESSING_FAILED_EXCEPTION_CODE;
 
 @Primary
 @Service
@@ -49,7 +49,7 @@ public class RefBookDataServiceImpl implements RefBookDataService {
         switch (FileUtil.getExtension(fileModel.getName())) {
             case "XLSX": return createByXlsx(fileModel);
             case "XML": return createByXml(fileModel);
-            default: throw new UserException(FileUtil.FILE_EXTENSION_INVALID_EXCEPTION_CODE);
+            default: throw new FileExtensionException();
         }
     }
 
@@ -67,7 +67,7 @@ public class RefBookDataServiceImpl implements RefBookDataService {
         }
 
         if (refBook == null)
-            throw new UserException(FILE_PROCESSING_FAILED_EXCEPTION_CODE, new UserException(REFBOOK_DOES_NOT_CREATE_EXCEPTION_CODE));
+            throw new FileProcessingException(new UserException(REFBOOK_DOES_NOT_CREATE_EXCEPTION_CODE));
 
         try {
             return draftService.create(refBook.getRefBookId(), fileModel);
