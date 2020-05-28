@@ -10,9 +10,8 @@ import net.n2oapp.framework.api.register.DynamicMetadataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.inovus.ms.rdm.api.model.Structure;
-import ru.inovus.ms.rdm.n2o.service.DataRecordController;
 import ru.inovus.ms.rdm.api.service.VersionService;
-import ru.inovus.ms.rdm.n2o.util.RdmUiUtil;
+import ru.inovus.ms.rdm.n2o.service.DataRecordController;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,6 +20,8 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static java.util.stream.Stream.of;
+import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
+import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addSuffix;
 
 @Service
 public class DataRecordQueryProvider implements DynamicMetadataProvider {
@@ -29,7 +30,13 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
 
     private static final String CONTROLLER_CLASS_NAME = DataRecordController.class.getName();
     private static final String CONTROLLER_METHOD = "getRow";
+
     private static final String VERSION_ID_NAME = "versionId";
+    private static final String SYS_RECORD_ID_NAME = "sysRecordId";
+
+    static final String REFERENCE_VALUE = "value";
+    static final String REFERENCE_DISPLAY_VALUE = "displayValue";
+    static final String REFERENCE_HAS_CONFLICT = "hasConflict";
 
     @Autowired
     private VersionService versionService;
@@ -78,12 +85,12 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
 
         Argument sysRecordId = new Argument();
         sysRecordId.setType(Argument.Type.PRIMITIVE);
-        sysRecordId.setName("sysRecordId");
+        sysRecordId.setName(SYS_RECORD_ID_NAME);
 
         provider.setArguments(new Argument[]{versionId, sysRecordId});
 
         N2oQuery.Selection selection = new N2oQuery.Selection(N2oQuery.Selection.Type.list);
-        selection.setFilters(VERSION_ID_NAME + ",sysRecordId");
+        selection.setFilters(VERSION_ID_NAME + "," + SYS_RECORD_ID_NAME);
         selection.setResultMapping("#this");
         selection.setInvocation(provider);
         return selection;
@@ -106,7 +113,7 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
         recordIdField.setSelectMapping("['id']");
         N2oQuery.Filter recordIdFilter = new N2oQuery.Filter();
         recordIdFilter.setType(FilterType.eq);
-        recordIdFilter.setFilterField("sysRecordId");
+        recordIdFilter.setFilterField(SYS_RECORD_ID_NAME);
         recordIdFilter.setMapping("[1]");
         recordIdFilter.setDomain(N2oDomain.INTEGER);
         recordIdField.setFilterList(new N2oQuery.Filter[]{recordIdFilter});
@@ -120,7 +127,7 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
     private List<N2oQuery.Field> dynamicFields(Structure structure) {
         List<N2oQuery.Field> list = new ArrayList<>();
         for (Structure.Attribute attribute : structure.getAttributes()) {
-            String codeWithPrefix = RdmUiUtil.addPrefix(attribute.getCode());
+            String codeWithPrefix = addPrefix(attribute.getCode());
 
             N2oQuery.Field field = new N2oQuery.Field();
             field.setId(codeWithPrefix);
@@ -140,14 +147,14 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
 
                 case REFERENCE:
                     // NB: field used as valueField
-                    field.setId(codeWithPrefix + ".value");
-                    field.setSelectMapping(attributeMapping + ".value");
+                    field.setId(addSuffix(codeWithPrefix, REFERENCE_VALUE));
+                    field.setSelectMapping(addSuffix(attributeMapping, REFERENCE_VALUE));
                     field.setDomain(N2oDomain.STRING);
                     list.add(field);
 
                     N2oQuery.Field displayField = new N2oQuery.Field();
-                    displayField.setId(codeWithPrefix + ".displayValue");
-                    displayField.setSelectMapping(attributeMapping + ".displayValue");
+                    displayField.setId(addSuffix(codeWithPrefix, REFERENCE_DISPLAY_VALUE));
+                    displayField.setSelectMapping(addSuffix(attributeMapping, REFERENCE_DISPLAY_VALUE));
                     displayField.setDomain(N2oDomain.STRING);
                     list.add(displayField);
                     continue;

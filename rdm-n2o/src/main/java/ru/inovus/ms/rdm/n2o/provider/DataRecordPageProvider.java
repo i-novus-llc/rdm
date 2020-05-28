@@ -25,13 +25,13 @@ import org.springframework.stereotype.Service;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.service.ConflictService;
 import ru.inovus.ms.rdm.api.service.VersionService;
-import ru.inovus.ms.rdm.n2o.util.RdmUiUtil;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.singletonList;
+import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
 
 @Service
 @SuppressWarnings("unused")
@@ -143,8 +143,8 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
                 N2oInputSelect referenceField = new N2oInputSelect();
                 referenceField.setQueryId("reference");
                 // NB: value-field-id is deprecated:
-                referenceField.setValueFieldId("value");
-                referenceField.setLabelFieldId("displayValue");
+                referenceField.setValueFieldId(DataRecordQueryProvider.REFERENCE_VALUE);
+                referenceField.setLabelFieldId(DataRecordQueryProvider.REFERENCE_DISPLAY_VALUE);
                 referenceField.setDomain(N2oDomain.STRING);
 
                 N2oPreFilter versionFilter = new N2oPreFilter();
@@ -173,7 +173,7 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
                 n2oField = new N2oInputText();
         }
 
-        n2oField.setId(RdmUiUtil.addPrefix(attribute.getCode()));
+        n2oField.setId(addPrefix(attribute.getCode()));
         n2oField.setLabel(attribute.getName());
 
         return n2oField;
@@ -181,7 +181,7 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
 
     private N2oValidation createRefValueValidation(Integer versionId, String attributeCode) {
 
-        String attributeCodeWithPrefix = RdmUiUtil.addPrefix(attributeCode);
+        String attributeCodeWithPrefix = addPrefix(attributeCode);
 
         N2oJavaDataProvider dataProvider = new N2oJavaDataProvider();
         dataProvider.setClassName(ConflictService.class.getName());
