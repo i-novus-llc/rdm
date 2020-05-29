@@ -60,6 +60,10 @@ import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
 @Component
 public class RefBookDataController {
 
+    private static final String DATA_FILTER_IS_INVALID_EXCEPTION_CODE = "data.filter.is.invalid";
+    private static final String DATA_FILTER_FIELD_NOT_FOUND_EXCEPTION_CODE = "data.filter.field.not.found";
+    private static final String DATA_FILTER_BOOL_IS_INVALID_EXCEPTION_CODE = "data.filter.bool.is.invalid";
+
     private static final String BOOL_FIELD_ID = "id";
     private static final String BOOL_FIELD_NAME = "name";
 
@@ -157,14 +161,14 @@ public class RefBookDataController {
                 String attributeCode = RdmUiUtil.deletePrefix(k);
                 Structure.Attribute attribute = structure.getAttribute(attributeCode);
                 if (attribute == null)
-                    throw new IllegalArgumentException("Filter field not found");
+                    throw new IllegalArgumentException(DATA_FILTER_FIELD_NOT_FOUND_EXCEPTION_CODE);
 
                 AttributeFilter attributeFilter = new AttributeFilter(attributeCode, castFilterValue(attribute, v), attribute.getType());
                 attributeFilter.setSearchType(attribute.getType() == STRING ? LIKE : EXACT);
                 filters.add(attributeFilter);
             });
         } catch (Exception e) {
-            throw new UserException("invalid.filter.exception", e);
+            throw new UserException(DATA_FILTER_IS_INVALID_EXCEPTION_CODE, e);
         }
 
         return filters;
@@ -200,7 +204,7 @@ public class RefBookDataController {
         if (stringValue.matches(BOOL_REGEX_FALSE))
             return false;
 
-        throw new UserException("invalid.filter.exception");
+        throw new IllegalArgumentException(DATA_FILTER_BOOL_IS_INVALID_EXCEPTION_CODE);
     }
 
     private static Sort.Order toSortOrder(Sorting sorting) {
