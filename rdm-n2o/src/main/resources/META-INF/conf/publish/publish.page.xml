@@ -16,21 +16,21 @@
             </output-text>
 
             <output-text id="listCheckDeletedConflictReferrers"
-                         label="Были удалены строки, на которые ссылались справочники системы.">
+                         label="Были удалены строки, на которые ссылались справочники системы:">
                 <dependencies>
                     <visibility>hasCheckDeletedConflicts</visibility>
                 </dependencies>
             </output-text>
 
             <output-text id="listCheckUpdatedConflictReferrers"
-                         label="Были изменены строки, на которые ссылались справочники системы.">
+                         label="Были изменены строки, на которые ссылались справочники системы:">
                 <dependencies>
                     <visibility>hasCheckUpdatedConflicts</visibility>
                 </dependencies>
             </output-text>
 
             <output-text id="listCheckAlteredConflictReferrers"
-                         label="Была изменена структура справочника, на который ссылаются справочники системы.">
+                         label="Была изменена структура справочника, на который ссылаются справочники системы:">
                 <dependencies>
                     <visibility>hasCheckAlteredConflicts &amp;&amp; !hasCheckDisplayDamagedConflicts</visibility>
                 </dependencies>
