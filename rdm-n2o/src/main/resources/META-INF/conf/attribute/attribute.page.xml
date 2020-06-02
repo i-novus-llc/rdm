@@ -2,24 +2,36 @@
 <simple-page xmlns="http://n2oapp.net/framework/config/schema/page-2.0" name="Структура">
     <form default-values-query-id="versionDefault" query-id="attribute" object-id="attribute">
         <fields>
-            <input-text id="code" label="Код" required="true">
-                <dependencies>
-                    <enabling>typeof id == 'undefined'</enabling>
-                </dependencies>
-            </input-text>
+            <row>
+                <input-text id="code" label="Код" required="true">
+                    <dependencies>
+                        <enabling>typeof id == 'undefined'</enabling>
+                    </dependencies>
+                </input-text>
 
-            <input-text id="name" label="Наименование" required="true"/>
+                <input-text id="name" label="Наименование" required="true"/>
+            </row>
 
-            <select id="attrType" label="Тип" required="true" label-field-id="name">
-                <options>
-                    <option id="STRING" name="Строковый"/>
-                    <option id="INTEGER" name="Целочисленный"/>
-                    <option id="FLOAT" name="Дробный"/>
-                    <option id="DATE" name="Дата"/>
-                    <option id="BOOLEAN" name="Логический"/>
-                    <option id="REFERENCE" name="Ссылочный"/>
-                </options>
-            </select>
+            <row>
+                <checkbox id="isPrimary" label="Первичный ключ">
+                    <dependencies>
+                        <enabling on="attrType,hasReferrer">
+                            (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; (typeof hasReferrer == 'undefined' || !hasReferrer))
+                        </enabling>
+                    </dependencies>
+                </checkbox>
+
+                <select id="attrType" label="Тип" required="true" label-field-id="name">
+                    <options>
+                        <option id="STRING" name="Строковый"/>
+                        <option id="INTEGER" name="Целочисленный"/>
+                        <option id="FLOAT" name="Дробный"/>
+                        <option id="DATE" name="Дата"/>
+                        <option id="BOOLEAN" name="Логический"/>
+                        <option id="REFERENCE" name="Ссылочный"/>
+                    </options>
+                </select>
+            </row>
 
             <input-select id="referenceRefBook" label="Выбор справочника"
                           query-id="referenceRefBook" label-field-id="displayCode">
@@ -27,6 +39,12 @@
                     <visibility on="attrType">
                         attrType.id == 'REFERENCE'
                     </visibility>
+                    <set-value on="attrType">
+                        if (attrType.id != 'REFERENCE') return null;
+                    </set-value>
+                    <requiring on="attrType">
+                        attrType.id == 'REFERENCE'
+                    </requiring>
                 </dependencies>
                 <pre-filters>
                     <eq field-id="excludeByVersionId" value="{versionId}"/>
@@ -44,98 +62,116 @@
             </input-select>
 
             <!-- NB: После NNO-1629 сделать скрытие на основе toolbar\button\set-value\displayType\return 1|2; -->
-            
-            <input-select id="displayAttribute" label="Отображаемый атрибут"
-                          query-id="attribute" label-field-id="name">
-                <dependencies>
-                    <visibility on="attrType,referenceRefBook">
-                        (attrType.id == 'REFERENCE' &amp;&amp; referenceRefBook != null)
-                    </visibility>
-                </dependencies>
-                <pre-filters>
-                    <eq field-id="versionId" value="{referenceRefBook.version.id}" />
-                </pre-filters>
-                <validations>
-                    <condition id="hasAttribute" severity="danger"
-                               message="Атрибут не выбран">
-                        displayAttribute != null
-                    </condition>
-                </validations>
-            </input-select>
+            <row>
+                <input-select id="displayAttribute" label="Отображаемый атрибут"
+                              query-id="attribute" label-field-id="name">
+                    <dependencies>
+                        <visibility on="attrType,referenceRefBook">
+                            (attrType.id == 'REFERENCE' &amp;&amp; referenceRefBook != null)
+                        </visibility>
+                        <set-value on="attrType">
+                            if (attrType.id != 'REFERENCE') return null;
+                        </set-value>
+                    </dependencies>
+                    <pre-filters>
+                        <eq field-id="versionId" value="{referenceRefBook.version.id}" />
+                    </pre-filters>
+                    <validations>
+                        <condition id="hasAttribute" severity="danger"
+                                   message="Атрибут не выбран">
+                            displayAttribute != null || displayExpression != null
+                        </condition>
+                    </validations>
+                </input-select>
 
-            <input-text id="displayExpression" label="Отображаемое поле">
-                <dependencies>
-                    <visibility on="attrType,referenceRefBook">
-                        (attrType.id == 'REFERENCE' &amp;&amp; referenceRefBook != null)
-                    </visibility>
-                    <set-value on="displayAttribute">
-                        if (displayAttribute.codeExpression != null)
-                            return displayAttribute.codeExpression;
-                    </set-value>
-                </dependencies>
-                <validations>
-                    <condition id="hasExpression" severity="danger"
-                               message="Поле не заполнено">
-                        displayExpression != null
-                    </condition>
-                </validations>
-            </input-text>
+                <input-text id="displayExpression" label="Отображаемое поле">
+                    <dependencies>
+                        <visibility on="attrType,referenceRefBook">
+                            (attrType.id == 'REFERENCE' &amp;&amp; referenceRefBook != null)
+                        </visibility>
+                        <set-value on="attrType,displayAttribute">
+                            if (attrType.id != 'REFERENCE') return null;
 
-            <checkbox id="isPrimary" label="Первичный ключ">
-                <dependencies>
-                    <enabling on="attrType,hasReferrer">
-                        (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; (typeof hasReferrer == 'undefined' || !hasReferrer))
-                    </enabling>
-                </dependencies>
-            </checkbox>
+                            if (displayAttribute.codeExpression != null)
+                                return displayAttribute.codeExpression;
+                        </set-value>
+                        <requiring on="attrType">
+                            attrType.id == 'REFERENCE'
+                        </requiring>
+                    </dependencies>
+                    <validations>
+                        <condition id="hasExpression" severity="danger"
+                                   message="Поле не заполнено">
+                            displayExpression != null
+                        </condition>
+                    </validations>
+                </input-text>
+            </row>
 
             <text-area id="description" label="Описание" rows="2"/>
 
             <!-- Пользовательские проверки -->
-            <checkbox id="required" label="Обязательный атрибут">
-                <dependencies>
-                    <visibility on="attrType,isPrimary">
-                        (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; (typeof isPrimary === 'undefined' || !isPrimary))
-                    </visibility>
-                    <set-value on="attrType,isPrimary">
-                        if (isPrimary)
-                            return false;
-                        else if (attrType.id == 'BOOLEAN')
-                            return null;
-                        else
-                            return;
-                    </set-value>
-                </dependencies>
-            </checkbox>
+            
+            <row>
+                <checkbox id="required" label="Обязательный атрибут">
+                    <dependencies>
+                        <visibility on="attrType,isPrimary">
+                            (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; (typeof isPrimary === 'undefined' || !isPrimary))
+                        </visibility>
+                        <set-value on="attrType,isPrimary">
+                            if (isPrimary)
+                                return false;
+                            else if (attrType.id == 'BOOLEAN')
+                                return null;
+                            else
+                                return;
+                        </set-value>
+                    </dependencies>
+                </checkbox>
 
-            <checkbox id="unique" label="Уникальный атрибут">
-                <dependencies>
-                    <visibility on="attrType,isPrimary">
-                        (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; (typeof isPrimary === 'undefined' || !isPrimary))
-                    </visibility>
-                    <set-value on="attrType,isPrimary">
-                        if (isPrimary)
-                            return false;
-                        else if (attrType.id == 'BOOLEAN')
-                            return null;
-                        else
-                            return;
-                    </set-value>
-                </dependencies>
-            </checkbox>
+                <checkbox id="unique" label="Уникальный атрибут">
+                    <dependencies>
+                        <visibility on="attrType,isPrimary">
+                            (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; (typeof isPrimary === 'undefined' || !isPrimary))
+                        </visibility>
+                        <set-value on="attrType,isPrimary">
+                            if (isPrimary)
+                                return false;
+                            else if (attrType.id == 'BOOLEAN')
+                                return null;
+                            else
+                                return;
+                        </set-value>
+                    </dependencies>
+                </checkbox>
+            </row>
 
-            <input-text id="plainSize" domain="integer" label="Максимальная длина" min="1">
-                <dependencies>
-                    <visibility on="attrType">
-                        attrType.id == 'STRING' || attrType.id == 'INTEGER'
-                    </visibility>
-                    <set-value on="attrType">
-                        if (attrType.id != 'STRING' &amp;&amp; attrType.id != 'INTEGER')
-                            return null;
-                        else return;
-                    </set-value>
-                </dependencies>
-            </input-text>
+            <row>
+                <input-text id="plainSize" domain="integer" label="Максимальная длина" min="1">
+                    <dependencies>
+                        <visibility on="attrType">
+                            attrType.id == 'STRING' || attrType.id == 'INTEGER'
+                        </visibility>
+                        <set-value on="attrType">
+                            if (attrType.id != 'STRING' &amp;&amp; attrType.id != 'INTEGER')
+                                return null;
+                            else return;
+                        </set-value>
+                    </dependencies>
+                </input-text>
+
+                <input-text id="regExp" domain="string" label="Регулярное выражение">
+                    <dependencies>
+                        <visibility on="attrType">
+                            attrType.id == 'STRING'
+                        </visibility>
+                        <set-value on="attrType">
+                            if (attrType.id != 'STRING') return null; else return;
+                        </set-value>
+                    </dependencies>
+                </input-text>
+            </row>
+
             <row>
                 <input-text id="intPartSize" domain="integer" label="Максимальная длина целой части" min="1">
                     <dependencies>
@@ -147,6 +183,7 @@
                         </set-value>
                     </dependencies>
                 </input-text>
+
                 <input-text id="fracPartSize" domain="integer" label="Максимальная длина дробной части" min="1">
                     <dependencies>
                         <visibility on="attrType">
@@ -170,6 +207,7 @@
                         </set-value>
                     </dependencies>
                 </input-text>
+
                 <input-text id="maxInteger" domain="integer" label="Максимальное значение">
                     <dependencies>
                         <visibility on="attrType">
@@ -192,6 +230,7 @@
                         </set-value>
                     </dependencies>
                 </input-text>
+
                 <input-text id="maxFloat" domain="numeric" label="Максимальное значение">
                     <dependencies>
                         <visibility on="attrType">
@@ -215,16 +254,7 @@
                     </dependencies>
                 </date-interval>
             </row>
-            <input-text id="regExp" domain="string" label="Регулярное выражение">
-                <dependencies>
-                    <visibility on="attrType">
-                        attrType.id == 'STRING'
-                    </visibility>
-                    <set-value on="attrType">
-                        if (attrType.id != 'STRING') return null; else return;
-                    </set-value>
-                </dependencies>
-            </input-text>
+
             <!-- / Пользовательские проверки -->
 
         </fields>
