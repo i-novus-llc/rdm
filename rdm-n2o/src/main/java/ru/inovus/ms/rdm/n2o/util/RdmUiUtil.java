@@ -5,8 +5,11 @@ public class RdmUiUtil {
     /** Префикс для полей (колонок) справочника, чтобы отличать их от системных. */
     private static final String FIELD_PREFIX = "_refBook_";
 
-    /** Разделитель названия и суффикса. */
-    private static final char SUFFIX_SEPARATOR = '.';
+    /** Разделитель названий частей в составном названии поля. */
+    private static final char FIELD_PART_SEPARATOR = '_';
+
+    /** Разделитель названия поля и названия свойства. */
+    private static final char FIELD_PROPERTY_SEPARATOR = '.';
 
     private RdmUiUtil() {
     }
@@ -36,13 +39,24 @@ public class RdmUiUtil {
     }
 
     /**
-     * Добавление суффикса к названию.
+     * Добавление названия части к названию поля.
      *
-     * @param name   название
-     * @param suffix суффикс
-     * @return Идентификатор
+     * @param fieldName название поля
+     * @param partName  название части
+     * @return Название поля с частью
      */
-    public static String addSuffix(String name, String suffix) {
-        return name + SUFFIX_SEPARATOR + suffix;
+    public static String addFieldPart(String fieldName, String partName) {
+        return fieldName + FIELD_PART_SEPARATOR + partName;
+    }
+
+    /**
+     * Добавление названия свойства к названию поля.
+     *
+     * @param fieldName    название поля
+     * @param propertyName название свойства
+     * @return Название поля со свойством
+     */
+    public static String addFieldProperty(String fieldName, String propertyName) {
+        return fieldName + FIELD_PROPERTY_SEPARATOR + propertyName;
     }
 }
