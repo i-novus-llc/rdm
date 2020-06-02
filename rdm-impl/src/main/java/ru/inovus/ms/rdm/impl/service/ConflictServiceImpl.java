@@ -206,7 +206,9 @@ public class ConflictServiceImpl implements ConflictService {
         PageIterator<DiffRowValue, CompareDataCriteria> pageIterator = new PageIterator<>(pageCriteria -> compareService.compareData(pageCriteria).getRows(), criteria);
         while (pageIterator.hasNext()) {
             Page<? extends DiffRowValue> page = pageIterator.next();
-            if (checkDataDiffConflicts(refFromEntity, oldRefToEntity, getDataDiffContent(page, false), diffStatus))
+
+            Boolean checked = checkDataDiffConflicts(refFromEntity, oldRefToEntity, getDataDiffContent(page, false), diffStatus);
+            if (Boolean.TRUE.equals(checked))
                 return true;
         }
 
@@ -305,20 +307,6 @@ public class ConflictServiceImpl implements ConflictService {
     @Transactional
     public void delete(DeleteRefBookConflictCriteria criteria) {
         conflictQueryProvider.delete(criteria);
-    }
-
-    @Override
-    public RefBookConflict findDataConflict(Integer refFromId, String refFieldCode, Long rowSystemId) {
-
-        RefBookConflictCriteria criteria = new RefBookConflictCriteria();
-        criteria.setReferrerVersionId(refFromId);
-        criteria.setIsLastPublishedVersion(true);
-        criteria.setRefFieldCode(refFieldCode);
-        criteria.setRefRecordId(rowSystemId);
-        criteria.setPageSize(1);
-
-        Page<RefBookConflict> conflicts = search(criteria);
-        return (conflicts != null && !isEmpty(conflicts.getContent())) ? conflicts.getContent().get(0) : null;
     }
 
     /**

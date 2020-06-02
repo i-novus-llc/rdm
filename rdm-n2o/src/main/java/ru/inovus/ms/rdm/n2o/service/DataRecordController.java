@@ -10,6 +10,7 @@ import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.inovus.ms.rdm.api.enumeration.ConflictType;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.conflict.RefBookConflict;
+import ru.inovus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
@@ -20,9 +21,11 @@ import ru.inovus.ms.rdm.api.service.VersionService;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.*;
+import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.api.util.TimeUtils.parseLocalDate;
 import static ru.inovus.ms.rdm.n2o.provider.DataRecordQueryProvider.REFERENCE_CONFLICT_TEXT;
@@ -65,8 +68,6 @@ public class DataRecordController {
 
     public Map<String, Object> getRow(Integer versionId, Integer sysRecordId, LongRowValue rowValue) {
 
-        final Structure structure = versionService.getStructure(versionId);
-
         Map<String, Object> map = new HashMap<>();
         map.put("id", sysRecordId);
         map.put("versionId", versionId);
@@ -75,13 +76,45 @@ public class DataRecordController {
                 fieldValue -> map.put(addPrefix(fieldValue.getField()), fieldValue.getValue())
         );
 
-        structure.getReferences().forEach(reference -> {
-            RefBookConflict conflict = conflictService.findDataConflict(versionId, reference.getAttribute(), Long.valueOf(sysRecordId));
-            String conflictTypeName = addFieldPart(addPrefix(reference.getAttribute()), REFERENCE_CONFLICT_TEXT);
-            map.put(conflictTypeName, conflict != null ? getConflictText(conflict.getConflictType()) : null);
-        });
+        final Structure structure = versionService.getStructure(versionId);
+        if (!isEmpty(structure.getReferences())) {
+            List<RefBookConflict> conflicts = findDataConflicts(versionId, Long.valueOf(sysRecordId), structure.getReferences());
+
+            if (!isEmpty(conflicts)) {
+                structure.getReferences().forEach(reference -> {
+                    ConflictType conflictType = conflicts.stream()
+                            .filter(conflict -> reference.getAttribute().equals(conflict.getRefFieldCode()))
+                            .map(RefBookConflict::getConflictType)
+                            .findFirst().orElse(null);
+                    String conflictTextName = addFieldPart(addPrefix(reference.getAttribute()), REFERENCE_CONFLICT_TEXT);
+                    map.put(conflictTextName, conflictType != null ? getConflictText(conflictType) : null);
+                });
+            }
+        }
 
         return map;
+    }
+
+    /**
+     * Поиск конфликта по ссылаемой версии, идентификатору строки и ссылкам.
+     *
+     * @param versionId   идентификатор версии
+     * @param rowSystemId идентификатор строки
+     * @param references  список ссылок структуры
+     * @return Список конфликтов
+     */
+    private List<RefBookConflict> findDataConflicts(Integer versionId, Long rowSystemId,
+                                                    List<Structure.Reference> references) {
+
+        RefBookConflictCriteria criteria = new RefBookConflictCriteria();
+        criteria.setReferrerVersionId(versionId);
+        criteria.setIsLastPublishedVersion(true);
+        criteria.setRefFieldCodes(references.stream().map(Structure.Reference::getAttribute).collect(toList()));
+        criteria.setRefRecordId(rowSystemId);
+        criteria.setPageSize(references.size());
+
+        Page<RefBookConflict> conflicts = conflictService.search(criteria);
+        return (conflicts != null) ? conflicts.getContent() : emptyList();
     }
 
     private String getConflictText(ConflictType type) {
