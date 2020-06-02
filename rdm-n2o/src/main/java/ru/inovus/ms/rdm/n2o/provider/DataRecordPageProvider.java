@@ -24,8 +24,6 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.singletonList;
-import static ru.inovus.ms.rdm.n2o.provider.DataRecordQueryProvider.REFERENCE_CONFLICT_TEXT;
-import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addFieldPart;
 import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
 
 @Service
@@ -67,7 +65,7 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
 
         N2oSimplePage page = new N2oSimplePage();
         String dataAction = params[1];
-        N2oForm form = createForm(versionId, structure, dataAction);
+        N2oForm form = createForm(versionId, structure);
         page.setWidget(form);
         page.setName(pageNames.get(dataAction));
         page.setId(FORM_PROVIDER_ID + "?" + context);
@@ -79,28 +77,28 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         return singletonList(N2oPage.class);
     }
 
-    private N2oForm createForm(Integer versionId, Structure structure, String dataAction) {
+    private N2oForm createForm(Integer versionId, Structure structure) {
 
         N2oForm n2oForm = new N2oForm();
-        n2oForm.setItems(createPageFields(versionId, structure, dataAction));
+        n2oForm.setItems(createPageFields(versionId, structure));
         n2oForm.setQueryId(DataRecordQueryProvider.QUERY_PROVIDER_ID + "?" + versionId);
         n2oForm.setObjectId(DataRecordObjectProvider.OBJECT_PROVIDER_ID + "?" + versionId);
 
         return n2oForm;
     }
 
-    private N2oField[] createPageFields(Integer versionId, Structure structure, String dataAction) {
+    private N2oField[] createPageFields(Integer versionId, Structure structure) {
 
-        return createDynamicFields(versionId, structure, dataAction).toArray(N2oField[]::new);
+        return createDynamicFields(versionId, structure).toArray(N2oField[]::new);
     }
 
-    private List<N2oField> createDynamicFields(Integer versionId, Structure structure, String dataAction) {
+    private List<N2oField> createDynamicFields(Integer versionId, Structure structure) {
 
         List<N2oField> list = new ArrayList<>();
         for (Structure.Attribute attribute : structure.getAttributes()) {
 
             if (attribute.isReferenceType()) {
-                list.add(createReferenceField(versionId, attribute, dataAction));
+                list.add(createReferenceField(versionId, attribute));
 
             } else {
                 list.add(createField(attribute));
@@ -148,19 +146,13 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         return n2oField;
     }
 
-    private N2oStandardField createReferenceField(Integer versionId,
-                                                  Structure.Attribute attribute,
-                                                  String dataAction) {
+    private N2oStandardField createReferenceField(Integer versionId, Structure.Attribute attribute) {
+
         final String codeWithPrefix = addPrefix(attribute.getCode());
-        final String conflictTextName = addFieldPart(codeWithPrefix, REFERENCE_CONFLICT_TEXT);
 
         N2oInputSelect referenceField = new N2oInputSelect();
         referenceField.setId(codeWithPrefix);
         referenceField.setLabel(attribute.getName());
-
-        if (!DATA_ACTION_CREATE.equals(dataAction)) {
-            referenceField.setDescription('{' + conflictTextName + '}');
-        }
 
         referenceField.setQueryId("reference");
         // NB: value-field-id is deprecated:

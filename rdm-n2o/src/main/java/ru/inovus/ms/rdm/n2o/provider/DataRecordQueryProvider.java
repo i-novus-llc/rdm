@@ -19,8 +19,8 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
-import static java.util.stream.Stream.of;
-import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.*;
+import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addFieldProperty;
+import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
 
 @Service
 public class DataRecordQueryProvider implements DynamicMetadataProvider {
@@ -30,12 +30,11 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
     private static final String CONTROLLER_CLASS_NAME = DataRecordController.class.getName();
     private static final String CONTROLLER_METHOD = "getRow";
 
-    private static final String VERSION_ID_NAME = "versionId";
-    private static final String SYS_RECORD_ID_NAME = "sysRecordId";
+    static final String VERSION_ID_NAME = "versionId";
+    static final String SYS_RECORD_ID_NAME = "sysRecordId";
 
     public static final String REFERENCE_VALUE = "value";
     public static final String REFERENCE_DISPLAY_VALUE = "displayValue";
-    public static final String REFERENCE_CONFLICT_TEXT = "conflictText";
 
     @Autowired
     private VersionService versionService;
@@ -120,7 +119,7 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
         recordIdField.setFilterList(new N2oQuery.Filter[]{ recordIdFilter });
 
         return Stream.concat(
-                of(versionIdField, recordIdField),
+                Stream.of(versionIdField, recordIdField),
                 createDynamicFields(structure).stream())
                 .toArray(N2oQuery.Field[]::new);
     }
@@ -178,13 +177,7 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
         displayValueField.setSelectMapping(addFieldProperty(attributeMapping, REFERENCE_DISPLAY_VALUE));
         displayValueField.setDomain(N2oDomain.STRING);
 
-        N2oQuery.Field conflictTextField = new N2oQuery.Field();
-        final String conflictTextName = addFieldPart(codeWithPrefix, REFERENCE_CONFLICT_TEXT);
-        conflictTextField.setId(conflictTextName);
-        conflictTextField.setSelectMapping(getAttributeMapping(conflictTextName));
-        conflictTextField.setDomain(N2oDomain.STRING);
-
-        return List.of(valueField, displayValueField, conflictTextField);
+        return List.of(valueField, displayValueField);
     }
 
     private String getAttributeMapping(String attributeCode) {
