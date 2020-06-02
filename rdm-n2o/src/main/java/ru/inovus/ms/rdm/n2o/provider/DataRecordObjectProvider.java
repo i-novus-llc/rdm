@@ -53,7 +53,8 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
         N2oObject n2oObject = new N2oObject();
         n2oObject.setOperations(new N2oObject.Operation[]{
                 getCreateOperation(versionId, structure),
-                getUpdateOperation(versionId, structure)});
+                getUpdateOperation(versionId, structure)
+        });
         return singletonList(n2oObject);
     }
 
@@ -105,7 +106,7 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
         rowArgument.setName("row");
         rowArgument.setClassName(Row.class.getName());
 
-        invocation.setArguments(new Argument[]{versionIdArgument, rowArgument});
+        invocation.setArguments(new Argument[]{ versionIdArgument, rowArgument });
 
         return invocation;
     }
@@ -136,7 +137,7 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
 
     private N2oObject.Parameter createParam(Structure.Attribute attribute) {
 
-        String codeWithPrefix = addPrefix(attribute.getCode());
+        final String codeWithPrefix = addPrefix(attribute.getCode());
 
         N2oObject.Parameter parameter = new N2oObject.Parameter();
         parameter.setId(codeWithPrefix);

@@ -1,7 +1,6 @@
 package ru.inovus.ms.rdm.n2o.provider;
 
 import net.n2oapp.criteria.filters.FilterType;
-import net.n2oapp.framework.api.exception.SeverityType;
 import net.n2oapp.framework.api.metadata.SourceMetadata;
 import net.n2oapp.framework.api.metadata.control.N2oField;
 import net.n2oapp.framework.api.metadata.control.N2oStandardField;
@@ -9,13 +8,7 @@ import net.n2oapp.framework.api.metadata.control.list.N2oInputSelect;
 import net.n2oapp.framework.api.metadata.control.plain.N2oCheckbox;
 import net.n2oapp.framework.api.metadata.control.plain.N2oDatePicker;
 import net.n2oapp.framework.api.metadata.control.plain.N2oInputText;
-import net.n2oapp.framework.api.metadata.dataprovider.N2oJavaDataProvider;
-import net.n2oapp.framework.api.metadata.dataprovider.SpringProvider;
 import net.n2oapp.framework.api.metadata.global.dao.N2oPreFilter;
-import net.n2oapp.framework.api.metadata.global.dao.invocation.model.Argument;
-import net.n2oapp.framework.api.metadata.global.dao.object.N2oObject;
-import net.n2oapp.framework.api.metadata.global.dao.validation.N2oConstraint;
-import net.n2oapp.framework.api.metadata.global.dao.validation.N2oValidation;
 import net.n2oapp.framework.api.metadata.global.view.page.N2oPage;
 import net.n2oapp.framework.api.metadata.global.view.page.N2oSimplePage;
 import net.n2oapp.framework.api.metadata.global.view.widget.N2oForm;
@@ -23,14 +16,16 @@ import net.n2oapp.framework.api.register.DynamicMetadataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.inovus.ms.rdm.api.model.Structure;
-import ru.inovus.ms.rdm.api.service.ConflictService;
 import ru.inovus.ms.rdm.api.service.VersionService;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.singletonList;
+import static ru.inovus.ms.rdm.n2o.provider.DataRecordQueryProvider.REFERENCE_CONFLICT_TEXT;
+import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addFieldPart;
 import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
 
 @Service
@@ -45,12 +40,6 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
             DATA_ACTION_CREATE, "Добавление новой записи",
             DATA_ACTION_EDIT, "Редактирование записи"
     );
-
-    private static final String CONFLICT_TEXT_MAPPING = "#this == null ? \"\" : " +
-            "\"UPDATED\".equals(conflictType?.name()) ? \"изменена строка\" : " +
-            "\"DELETED\".equals(conflictType?.name()) ? \"удалена строка\" : " +
-            "\"ALTERED\".equals(conflictType?.name()) ? \"изменена структура\" : " +
-            "\"\"";
 
     @Autowired
     private VersionService versionService;
@@ -98,20 +87,37 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
     }
 
     private N2oForm createForm(Integer versionId, Structure structure, String dataAction) {
+
         N2oForm n2oForm = new N2oForm();
-        n2oForm.setItems(createFields(versionId, structure, dataAction));
+        n2oForm.setItems(createPageFields(versionId, structure, dataAction));
         n2oForm.setQueryId(DataRecordQueryProvider.QUERY_PROVIDER_ID + "?" + versionId);
         n2oForm.setObjectId(DataRecordObjectProvider.OBJECT_PROVIDER_ID + "?" + versionId);
+
         return n2oForm;
     }
 
-    private N2oField[] createFields(Integer versionId, Structure structure, String dataAction) {
-        return structure.getAttributes().stream()
-                .map(attribute -> toN2oField(versionId, attribute, dataAction))
-                .toArray(N2oField[]::new);
+    private N2oField[] createPageFields(Integer versionId, Structure structure, String dataAction) {
+
+        return createDynamicFields(versionId, structure, dataAction).toArray(N2oField[]::new);
     }
 
-    private N2oStandardField toN2oField(Integer versionId, Structure.Attribute attribute, String dataAction) {
+    private List<N2oField> createDynamicFields(Integer versionId, Structure structure, String dataAction) {
+
+        List<N2oField> list = new ArrayList<>();
+        for (Structure.Attribute attribute : structure.getAttributes()) {
+
+            if (attribute.isReferenceType()) {
+                list.add(createReferenceField(versionId, attribute, dataAction));
+
+            } else {
+                list.add(createField(attribute));
+            }
+        }
+        return list;
+    }
+
+    private N2oStandardField createField(Structure.Attribute attribute) {
+
         N2oStandardField n2oField;
 
         switch (attribute.getType()) {
@@ -139,36 +145,6 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
                 n2oField = new N2oCheckbox();
                 break;
 
-            case REFERENCE:
-                N2oInputSelect referenceField = new N2oInputSelect();
-                referenceField.setQueryId("reference");
-                // NB: value-field-id is deprecated:
-                referenceField.setValueFieldId(DataRecordQueryProvider.REFERENCE_VALUE);
-                referenceField.setLabelFieldId(DataRecordQueryProvider.REFERENCE_DISPLAY_VALUE);
-                referenceField.setDomain(N2oDomain.STRING);
-
-                N2oPreFilter versionFilter = new N2oPreFilter();
-                versionFilter.setType(FilterType.eq);
-                versionFilter.setFieldId("versionId");
-                versionFilter.setValueAttr(versionId.toString());
-
-                N2oPreFilter referenceFilter = new N2oPreFilter();
-                referenceFilter.setType(FilterType.eq);
-                referenceFilter.setFieldId("reference");
-                referenceFilter.setValueAttr(attribute.getCode());
-
-                referenceField.setPreFilters(new N2oPreFilter[]{versionFilter, referenceFilter});
-
-                if (!DATA_ACTION_CREATE.equals(dataAction)) {
-                    N2oValidation validation = createRefValueValidation(versionId, attribute.getCode());
-                    N2oField.Validations validations = new N2oField.Validations();
-                    validations.setInlineValidations(new N2oValidation[]{validation});
-                    referenceField.setValidations(validations);
-                }
-
-                n2oField = referenceField;
-                break;
-
             default:
                 n2oField = new N2oInputText();
         }
@@ -179,59 +155,38 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         return n2oField;
     }
 
-    private N2oValidation createRefValueValidation(Integer versionId, String attributeCode) {
+    private N2oStandardField createReferenceField(Integer versionId,
+                                                  Structure.Attribute attribute,
+                                                  String dataAction) {
+        final String codeWithPrefix = addPrefix(attribute.getCode());
+        final String conflictTextName = addFieldPart(codeWithPrefix, REFERENCE_CONFLICT_TEXT);
 
-        String attributeCodeWithPrefix = addPrefix(attributeCode);
+        N2oInputSelect referenceField = new N2oInputSelect();
+        referenceField.setId(codeWithPrefix);
+        referenceField.setLabel(attribute.getName());
 
-        N2oJavaDataProvider dataProvider = new N2oJavaDataProvider();
-        dataProvider.setClassName(ConflictService.class.getName());
-        dataProvider.setMethod("findDataConflict");
-        dataProvider.setSpringProvider(new SpringProvider());
+        if (!DATA_ACTION_CREATE.equals(dataAction)) {
+            referenceField.setDescription('{' + conflictTextName + '}');
+        }
 
-        Argument refFromIdArgument = new Argument();
-        refFromIdArgument.setType(Argument.Type.PRIMITIVE);
-        refFromIdArgument.setClassName("java.lang.Integer");
-        refFromIdArgument.setName("refFromId");
+        referenceField.setQueryId("reference");
+        // NB: value-field-id is deprecated:
+        referenceField.setValueFieldId(DataRecordQueryProvider.REFERENCE_VALUE);
+        referenceField.setLabelFieldId(DataRecordQueryProvider.REFERENCE_DISPLAY_VALUE);
+        referenceField.setDomain(N2oDomain.STRING);
 
-        Argument refFieldCodeArgument = new Argument();
-        refFieldCodeArgument.setType(Argument.Type.PRIMITIVE);
-        refFieldCodeArgument.setClassName("java.lang.String");
-        refFieldCodeArgument.setName("refFieldCode");
+        N2oPreFilter versionFilter = new N2oPreFilter();
+        versionFilter.setType(FilterType.eq);
+        versionFilter.setFieldId("versionId");
+        versionFilter.setValueAttr(versionId.toString());
 
-        Argument rowSystemIdArgument = new Argument();
-        rowSystemIdArgument.setType(Argument.Type.PRIMITIVE);
-        rowSystemIdArgument.setClassName("java.lang.Long");
-        rowSystemIdArgument.setName("rowSystemId");
+        N2oPreFilter referenceFilter = new N2oPreFilter();
+        referenceFilter.setType(FilterType.eq);
+        referenceFilter.setFieldId("reference");
+        referenceFilter.setValueAttr(attribute.getCode());
 
-        dataProvider.setArguments(new Argument[]{refFromIdArgument, refFieldCodeArgument, rowSystemIdArgument});
+        referenceField.setPreFilters(new N2oPreFilter[]{ versionFilter, referenceFilter });
 
-        N2oConstraint constraint = new N2oConstraint();
-        constraint.setId("_constraint_validation");
-        constraint.setFieldId(attributeCodeWithPrefix);
-        constraint.setMessage("В связанном справочнике была {conflictText}");
-        constraint.setSeverity(SeverityType.danger);
-        constraint.setResult("#this == null");
-
-        N2oObject.Parameter refFromIdParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, "versionId", "[0]");
-        refFromIdParam.setDefaultValue(versionId.toString());
-        refFromIdParam.setDomain(N2oDomain.INTEGER);
-        N2oObject.Parameter refFieldCodeParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, attributeCode, "[1]");
-        refFieldCodeParam.setDefaultValue(attributeCode);
-        refFieldCodeParam.setDomain(N2oDomain.STRING);
-        N2oObject.Parameter rowSystemIdParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, "id", "[2]");
-        rowSystemIdParam.setDomain(N2oDomain.LONG);
-
-        constraint.setInParameters(new N2oObject.Parameter[]{refFromIdParam, refFieldCodeParam, rowSystemIdParam});
-
-        N2oObject.Parameter conflictTextParam = new N2oObject.Parameter(N2oObject.Parameter.Type.out, "conflictText", CONFLICT_TEXT_MAPPING);
-        conflictTextParam.setDomain(N2oDomain.STRING);
-        N2oObject.Parameter[] outParams = new N2oObject.Parameter[]{conflictTextParam};
-        constraint.setOutParameters(outParams);
-        constraint.setServerMoment(N2oValidation.ServerMoment.afterSuccessQuery);
-        constraint.setSide("server");
-
-        constraint.setN2oInvocation(dataProvider);
-
-        return constraint;
+        return referenceField;
     }
 }
