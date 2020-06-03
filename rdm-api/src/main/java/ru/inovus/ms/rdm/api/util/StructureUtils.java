@@ -24,6 +24,14 @@ public class StructureUtils {
         return structure.getAttributes().stream().map(Structure.Attribute::getCode);
     }
 
+    /** Сравнение displayExpression двух ссылок. */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public static boolean isDisplayExpressionEquals(Structure.Reference reference1,
+                                                    Structure.Reference reference2) {
+        return reference1 != null && reference2 != null
+                && Objects.equals(reference1.getDisplayExpression(), reference2.getDisplayExpression());
+    }
+
     /**
      * Проверка на наличие хотя бы одного placeholder`а в выражении.
      *

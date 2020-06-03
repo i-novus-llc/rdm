@@ -13,7 +13,7 @@ import ru.inovus.ms.rdm.api.model.version.UpdateValue;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static java.util.Collections.singletonList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
@@ -93,9 +93,9 @@ public class AttributeUpdateValidator {
         return realDataType.equals(newDataType) || STRING.equals(realDataType) || STRING.equals(newDataType);
     }
 
-    private boolean isValidUpdateReferenceValues(UpdateAttribute updateAttribute, Function<UpdateValue, Boolean> valueValidateFunc) {
-        return valueValidateFunc.apply(updateAttribute.getReferenceCode())
-                || valueValidateFunc.apply(updateAttribute.getAttribute());
+    private boolean isValidUpdateReferenceValues(UpdateAttribute updateAttribute, Predicate<UpdateValue> valueValidateFunc) {
+        return valueValidateFunc.test(updateAttribute.getReferenceCode())
+                || valueValidateFunc.test(updateAttribute.getAttribute());
     }
 
     private boolean isUpdateValueNotNullAndEmpty(UpdateValue updateValue) {
