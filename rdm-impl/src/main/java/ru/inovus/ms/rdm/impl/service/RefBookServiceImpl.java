@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.impl.service;
 import com.querydsl.core.BooleanBuilder;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
@@ -37,7 +38,9 @@ import ru.inovus.ms.rdm.impl.repository.RefBookRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 
+import java.io.InputStream;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
@@ -50,6 +53,7 @@ import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 public class RefBookServiceImpl implements RefBookService {
 
     private static final String REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.already.exists";
+    private static final String DRAFT_NOT_FOUND_EXCEPTION_CODE = "draft.not.found";
 
     private RefBookRepository refBookRepository;
     private RefBookVersionRepository versionRepository;
@@ -297,19 +301,23 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     @SuppressWarnings("squid:S2259")
     public void changeData(RdmChangeDataRequest request) {
-        RefBookEntity refBook = refBookRepository.findByCode(request.getRefBookCode());
-        versionValidation.validateRefBookExists(refBook == null ? null : refBook.getId());
+
+        final String refBookCode =request.getRefBookCode();
+        versionValidation.validateRefBookCodeExists(refBookCode);
+
+        RefBookEntity refBook = refBookRepository.findByCode(refBookCode);
 
         refBookLockService.setRefBookUpdating(refBook.getId());
         try {
-            Integer draftId = draftService.getIdByRefBookCode(request.getRefBookCode());
+            Integer draftId = draftService.getIdByRefBookCode(refBookCode);
             if (draftId == null) {
-                RefBookVersionEntity mostRecentVersion = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(request.getRefBookCode(), RefBookVersionStatus.PUBLISHED);
-                Draft draft = draftService.createFromVersion(mostRecentVersion.getId());
+                RefBookVersionEntity lastPublishedEntity = versionRepository
+                        .findFirstByRefBookIdAndStatusOrderByFromDateDesc(refBook.getId(), RefBookVersionStatus.PUBLISHED);
+                Draft draft = draftService.createFromVersion(lastPublishedEntity.getId());
                 draftId = draft.getId();
             }
             if (draftId == null)
-                throw new UserException(new Message("draft.not.found", draftId));
+                throw new UserException(new Message(DRAFT_NOT_FOUND_EXCEPTION_CODE, draftId));
 
             draftService.updateData(draftId, request.getRowsToAddOrUpdate());
             draftService.deleteRows(draftId, request.getRowsToDelete());

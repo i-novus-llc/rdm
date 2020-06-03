@@ -210,7 +210,7 @@ public class BasePublishServiceTest {
         expectedVersionEntity.setFromDate(now);
 
         when(versionRepository.findById(eq(draft.getId()))).thenReturn(java.util.Optional.of(draft));
-        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(anyString(), eq(RefBookVersionStatus.PUBLISHED)))
+        when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(anyInt(), eq(RefBookVersionStatus.PUBLISHED)))
                 .thenReturn(versionEntity);
 
         when(versionService.getById(eq(draft.getId())))
