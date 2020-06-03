@@ -55,6 +55,7 @@ class BasePublishService {
 
     private RefBookLockService refBookLockService;
     private VersionService versionService;
+    private ConflictService conflictService;
 
     private VersionFileService versionFileService;
     private VersionNumberStrategy versionNumberStrategy;
@@ -88,6 +89,7 @@ class BasePublishService {
 
         this.refBookLockService = refBookLockService;
         this.versionService = versionService;
+        this.conflictService = conflictService;
 
         this.versionFileService = versionFileService;
         this.versionNumberStrategy = versionNumberStrategy;
@@ -153,6 +155,12 @@ class BasePublishService {
             result.setOldId(lastPublishedEntity != null ? lastPublishedEntity.getId() : null);
             result.setNewId(draftId);
 
+            // Конфликты могут быть только при наличии
+            // ссылочных атрибутов со значениями для ранее опубликованной версии.
+            if (result.getOldId() != null) {
+                conflictService.discoverConflicts(result.getOldId(), result.getNewId());
+            }
+
             if (lastPublishedEntity != null && lastStorageCode != null
                     && draftEntity.getStructure().storageEquals(lastPublishedEntity.getStructure())) {
                 droppedDataStorages.add(lastStorageCode);
@@ -165,7 +173,7 @@ class BasePublishService {
 
         } catch (Exception e) {
             if (!StringUtils.isEmpty(newStorageCode)) {
-                dropDataService.drop(Set.of(newStorageCode));
+                dropDataService.drop(newStorageCode);
             }
 
             throw e;
