@@ -5,11 +5,12 @@ import net.n2oapp.platform.i18n.UserException;
 import org.apache.cxf.common.util.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.api.exception.NotFoundException;
 import ru.inovus.ms.rdm.api.model.Structure;
-import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.util.StructureUtils;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
+import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates;
 import ru.inovus.ms.rdm.impl.repository.RefBookRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
@@ -30,8 +31,9 @@ public class VersionValidationImpl implements VersionValidation {
     private static final String VERSION_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "version.attribute.not.found";
     private static final String DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "draft.attribute.not.found";
 
-    private static final String REFERENCE_REFERRED_ATTRIBUTE_NOT_FOUND = "reference.referred.attribute.not.found";
-    private static final String REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND = "reference.referred.attributes.not.found";
+    private static final String REFERENCE_REFERRED_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "reference.referred.attribute.not.found";
+    private static final String REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND_EXCEPTION_CODE = "reference.referred.attributes.not.found";
+    private static final String REFERRED_BOOK_MUST_HAVE_ONLY_ONE_PRIMARY_KEY_EXCEPTION_CODE = "referred.book.must.have.only.one.primary.key";
 
     private RefBookRepository refbookRepository;
     private RefBookVersionRepository versionRepository;
@@ -107,7 +109,9 @@ public class VersionValidationImpl implements VersionValidation {
      */
     @Override
     public void validateVersionExists(Integer versionId) {
-        if (versionId == null || !versionRepository.exists(RefBookVersionPredicates.hasVersionId(versionId))) {
+
+        if (versionId == null
+                || !versionRepository.exists(RefBookVersionPredicates.hasVersionId(versionId))) {
             throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
         }
     }
@@ -119,7 +123,9 @@ public class VersionValidationImpl implements VersionValidation {
      */
     @Override
     public void validateDraftExists(Integer draftId) {
-        if (draftId == null || !versionRepository.exists(RefBookVersionPredicates.hasVersionId(draftId).and(RefBookVersionPredicates.isDraft()))) {
+
+        if (draftId == null
+                || !versionRepository.exists(RefBookVersionPredicates.hasVersionId(draftId).and(RefBookVersionPredicates.isDraft()))) {
             throw new NotFoundException(new Message(DRAFT_NOT_FOUND_EXCEPTION_CODE, draftId));
         }
     }
@@ -130,7 +136,9 @@ public class VersionValidationImpl implements VersionValidation {
      * @param refBookId идентификатор справочника
      */
     private void validateRefBookNotArchived(Integer refBookId) {
-        if (refBookId != null && versionRepository.exists(RefBookVersionPredicates.isVersionOfRefBook(refBookId).and(RefBookVersionPredicates.isArchived()))) {
+
+        if (refBookId != null
+                && versionRepository.exists(RefBookVersionPredicates.isVersionOfRefBook(refBookId).and(RefBookVersionPredicates.isArchived()))) {
             throw new UserException(new Message(REFBOOK_IS_ARCHIVED_EXCEPTION_CODE));
         }
     }
@@ -141,7 +149,9 @@ public class VersionValidationImpl implements VersionValidation {
      * @param versionId идентификатор версии
      */
     private void validateVersionNotArchived(Integer versionId) {
-        if (versionId != null && versionRepository.exists(RefBookVersionPredicates.hasVersionId(versionId).and(RefBookVersionPredicates.isArchived()))) {
+
+        if (versionId != null
+                && versionRepository.exists(RefBookVersionPredicates.hasVersionId(versionId).and(RefBookVersionPredicates.isArchived()))) {
             throw new UserException(new Message(REFBOOK_IS_ARCHIVED_EXCEPTION_CODE));
         }
     }
@@ -152,7 +162,9 @@ public class VersionValidationImpl implements VersionValidation {
      * @param draftId идентификатор черновика
      */
     public void validateDraftNotArchived(Integer draftId) {
-        if (draftId != null && versionRepository.exists(RefBookVersionPredicates.hasVersionId(draftId).and(RefBookVersionPredicates.isArchived()))) {
+
+        if (draftId != null
+                && versionRepository.exists(RefBookVersionPredicates.hasVersionId(draftId).and(RefBookVersionPredicates.isArchived()))) {
             throw new UserException(new Message(REFBOOK_IS_ARCHIVED_EXCEPTION_CODE));
         }
     }
@@ -166,6 +178,7 @@ public class VersionValidationImpl implements VersionValidation {
      */
     @Override
     public void validateAttributeExists(Integer versionId, Structure structure, String attribute) {
+
         if (structure.getAttribute(attribute) == null) {
             throw new NotFoundException(new Message(VERSION_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, versionId, attribute));
         }
@@ -201,24 +214,44 @@ public class VersionValidationImpl implements VersionValidation {
     }
 
     /**
+     * Проверка ссылки перед добавлением в структуру.
+     *
+     * @param reference атрибут-ссылка
+     */
+    @Override
+    public void validateReference(Structure.Reference reference) {
+
+        if (isEmpty(reference.getDisplayExpression()))
+            return; // NB: to-do: throw exception and fix absent referredBook in testLifecycle.
+
+        RefBookVersionEntity referredEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
+        if (referredEntity == null)
+            throw new NotFoundException(new Message(REFBOOK_WITH_CODE_NOT_FOUND_EXCEPTION_CODE, reference.getReferenceCode()));
+
+        validateReferenceDisplayExpression(reference.getDisplayExpression(), referredEntity.getStructure());
+
+        if (referredEntity.getStructure().getPrimary().size() != 1)
+            throw new UserException(new Message(REFERRED_BOOK_MUST_HAVE_ONLY_ONE_PRIMARY_KEY_EXCEPTION_CODE, reference.getReferenceCode()));
+    }
+
+    /**
      * Проверка выражения для вычисления отображаемого ссылочного значения.
      *
      * @param displayExpression выражение для вычисления отображаемого ссылочного значения
-     * @param referredVersion   версия справочника, на который ссылаются
+     * @param referredStructure структура версии справочника, на который ссылаются
      */
-    @Override
-    public void validateReferenceDisplayExpression(String displayExpression,
-                                                   RefBookVersion referredVersion) {
+    private void validateReferenceDisplayExpression(String displayExpression,
+                                                   Structure referredStructure) {
         if (isEmpty(displayExpression))
             return; // NB: to-do: throw exception and fix absent referredBook in testLifecycle.
 
-        List<String> incorrectFields = StructureUtils.getAbsentPlaceholders(displayExpression, referredVersion.getStructure());
+        List<String> incorrectFields = StructureUtils.getAbsentPlaceholders(displayExpression, referredStructure);
         if (!CollectionUtils.isEmpty(incorrectFields)) {
             if (incorrectFields.size() == 1)
-                throw new UserException(new Message(REFERENCE_REFERRED_ATTRIBUTE_NOT_FOUND, incorrectFields.get(0)));
+                throw new UserException(new Message(REFERENCE_REFERRED_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, incorrectFields.get(0)));
 
             String incorrectCodes = String.join("\",\"", incorrectFields);
-            throw new UserException(new Message(REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND, incorrectCodes));
+            throw new UserException(new Message(REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND_EXCEPTION_CODE, incorrectCodes));
         }
     }
 }
