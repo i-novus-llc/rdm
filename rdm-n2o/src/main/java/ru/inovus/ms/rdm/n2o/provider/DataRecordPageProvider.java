@@ -58,10 +58,9 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
     @SuppressWarnings("unchecked")
     public List<? extends SourceMetadata> read(String context) {
 
-        //провайдер также отрабатывает на Transform этапе
-        // см. AbstractActionTransformer
-        // на Transform этапе у id метаданной неразрешенный плейсхолдер
-        // поэтому просто пропускаем
+        // Метод провайдера отрабатывает также на Transform этапе
+        // (@see AbstractActionTransformer.mapSecurity).
+        // На этом этапе для {id} не установлено значение.
         if (context.contains("{") || context.contains("}"))
             return singletonList(new N2oSimplePage());
 
