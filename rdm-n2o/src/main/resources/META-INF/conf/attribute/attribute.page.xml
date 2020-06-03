@@ -242,18 +242,17 @@
                     </dependencies>
                 </input-text>
             </row>
-            <row>
-                <date-interval id="dateInterval" label="Интервал значений">
-                    <dependencies>
-                        <visibility on="attrType">
-                            attrType.id == 'DATE'
-                        </visibility>
-                        <set-value on="attrType">
-                            if (attrType.id != 'DATE') return null; else return;
-                        </set-value>
-                    </dependencies>
-                </date-interval>
-            </row>
+
+            <date-interval id="dateInterval" label="Интервал значений">
+                <dependencies>
+                    <visibility on="attrType">
+                        attrType.id == 'DATE'
+                    </visibility>
+                    <set-value on="attrType">
+                        if (attrType.id != 'DATE') return null; else return;
+                    </set-value>
+                </dependencies>
+            </date-interval>
 
             <!-- / Пользовательские проверки -->
 
