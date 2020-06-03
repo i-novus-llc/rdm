@@ -178,6 +178,10 @@ public class ApplicationTest {
     private ReferenceService referenceService;
 
     @Autowired
+    @Qualifier("refBookDataServiceJaxRsProxyClient")
+    private RefBookDataService refBookDataService;
+
+    @Autowired
     private DataSource dataSource;
 
     @Autowired
@@ -1700,7 +1704,7 @@ public class ApplicationTest {
         // Загрузка из файла.
         FileModel cardinalFileModel = createFileModel(CARDINAL_FILE_NAME, REF_BOOK_FILE_FOLDER + CARDINAL_FILE_NAME);
         assertNotNull(cardinalFileModel);
-        Draft cardinalDraft = refBookService.create(cardinalFileModel);
+        Draft cardinalDraft = refBookDataService.create(cardinalFileModel);
 
         assertNotNull(cardinalDraft);
         RefBookVersion cardinalVersion = versionService.getById(cardinalDraft.getId());
@@ -1732,7 +1736,7 @@ public class ApplicationTest {
         // Загрузка из файла.
         FileModel referrerFileModel = createFileModel(REFERRER_FILE_NAME, REF_BOOK_FILE_FOLDER + REFERRER_FILE_NAME);
         assertNotNull(referrerFileModel);
-        Draft referrerDraft = refBookService.create(referrerFileModel);
+        Draft referrerDraft = refBookDataService.create(referrerFileModel);
         assertNotNull(referrerDraft);
         RefBookVersion referrerVersion = versionService.getById(referrerDraft.getId());
         assertNotNull(referrerVersion);
@@ -2512,7 +2516,7 @@ public class ApplicationTest {
     public void testCreateRefBookFromFile() {
         FileModel fileModel = createFileModel("testCreateRefBookFromFilePath.xml", "refBook.xml");
 
-        Draft expected = refBookService.create(fileModel);
+        Draft expected = refBookDataService.create(fileModel);
 
         // Наличие черновика:
         Draft actual = draftService.getDraft(expected.getId());
