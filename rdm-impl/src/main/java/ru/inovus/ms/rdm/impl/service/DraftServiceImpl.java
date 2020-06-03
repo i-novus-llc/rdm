@@ -3,13 +3,12 @@ package ru.inovus.ms.rdm.impl.service;
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.components.common.exception.CodifiedException;
@@ -53,7 +52,6 @@ import ru.inovus.ms.rdm.impl.entity.*;
 import ru.inovus.ms.rdm.impl.file.FileStorage;
 import ru.inovus.ms.rdm.impl.file.export.VersionDataIterator;
 import ru.inovus.ms.rdm.impl.file.process.*;
-import ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates;
 import ru.inovus.ms.rdm.impl.repository.AttributeValidationRepository;
 import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookConflictRepository;
@@ -173,8 +171,8 @@ public class DraftServiceImpl implements DraftService {
     private Draft updateDraftDataByFile(Integer refBookId, FileModel fileModel) {
 
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
-
-        switch (FileUtil.getExtension(fileModel.getName())) {
+        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
+        switch (extension) {
             case "XLSX": return updateDraftDataByXlsx(refBookId, fileModel, inputStreamSupplier);
             case "XML": return updateDraftDataByXml(refBookId, fileModel, inputStreamSupplier);
             default: throw new UserException(FileUtil.FILE_EXTENSION_INVALID_EXCEPTION_CODE);
@@ -184,7 +182,7 @@ public class DraftServiceImpl implements DraftService {
     private Draft updateDraftDataByXlsx(Integer refBookId, FileModel fileModel,
                                         Supplier<InputStream> inputStreamSupplier) {
 
-        String extension = FileUtil.getExtension(fileModel.getName());
+        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
         BiConsumer<String, Structure> saveDraftConsumer = getSaveDraftConsumer(refBookId);
         RowsProcessor rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, saveDraftConsumer);
         processFileRows(extension, rowsProcessor, new PlainRowMapper(), inputStreamSupplier);
@@ -208,7 +206,7 @@ public class DraftServiceImpl implements DraftService {
 
         Structure structure = draft.getStructure();
 
-        String extension = FileUtil.getExtension(fileModel.getName());
+        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
 
         RowsProcessor rowsValidator = new RowsValidatorImpl(versionService, searchDataService,
@@ -602,10 +600,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private RefBookVersionEntity getLastRefBookVersion(Integer refBookId) {
-        Page<RefBookVersionEntity> lastPublishedVersions = versionRepository
-                .findAll(RefBookVersionPredicates.isPublished().and(RefBookVersionPredicates.isVersionOfRefBook(refBookId)),
-                        PageRequest.of(0, 1, new Sort(Sort.Direction.DESC, "fromDate")));
-        return lastPublishedVersions.hasContent() ? lastPublishedVersions.getContent().get(0) : null;
+        return versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(refBookId, RefBookVersionStatus.PUBLISHED);
     }
 
     @Override
@@ -946,9 +941,7 @@ public class DraftServiceImpl implements DraftService {
     @Override
     public Integer getIdByRefBookCode(String refBookCode) {
         RefBookVersionEntity draftEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.DRAFT);
-        if (draftEntity == null)
-            return null;
-        return draftEntity.getId();
+        return draftEntity != null ? draftEntity.getId() : null;
     }
 
     private void auditStructureEdit(RefBookVersionEntity refBook, String action, Structure.Attribute attribute) {
@@ -962,5 +955,4 @@ public class DraftServiceImpl implements DraftService {
     private void auditEditData(RefBookVersionEntity refBook, Map<String, Object> payload) {
         auditLogService.addAction(AuditAction.DRAFT_EDITING, () -> refBook, payload);
     }
-
 }
