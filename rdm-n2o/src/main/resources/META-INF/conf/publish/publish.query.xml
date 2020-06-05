@@ -87,6 +87,13 @@
         </field>
         <!-- / Checking conflicts -->
 
+        <field id="hasErrorMessage" domain="boolean">
+            <select mapping="errorMessage?.length() > 0"/>
+        </field>
+        <field id="errorMessage" domain="string">
+            <select/>
+        </field>
+
         <!-- Existing conflicts -->
         <field id="hasDataConflict" domain="boolean">
             <select/>
@@ -107,10 +114,11 @@
 
         <field id="isPublishable" domain="boolean">
             <select mapping="
-                (!archived) and
-                (status?.toString()=='DRAFT') and
-                (!hasDataConflict) and
-                (!hasStructureConflict)
+                !archived and
+                (status?.toString() == 'DRAFT') and
+                !hasDataConflict and
+                !hasStructureConflict and
+                !(errorMessage?.length() > 0)
                 "/>
         </field>
 
