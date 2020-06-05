@@ -1,7 +1,6 @@
 package ru.inovus.ms.rdm.impl.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.querydsl.core.types.Predicate;
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.criteria.api.Criteria;
 import net.n2oapp.platform.i18n.UserException;
@@ -13,10 +12,9 @@ import org.junit.runner.RunWith;
 import org.mockito.*;
 import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
@@ -62,7 +60,8 @@ import java.time.LocalDate;
 import java.util.*;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.*;
@@ -70,8 +69,6 @@ import static org.mockito.Mockito.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 import static ru.inovus.ms.rdm.api.model.version.UpdateValue.of;
-import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.isPublished;
-import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.isVersionOfRefBook;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DraftServiceTest {
@@ -192,7 +189,6 @@ public class DraftServiceTest {
         RefBookVersionEntity testDraftVersion = createTestDraftVersionEntity();
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(testDraftVersion);
         when(versionRepository.save(any(RefBookVersionEntity.class))).thenReturn(testDraftVersion);
-        when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(Page.empty());
 
         Draft expected = new Draft(1, TEST_DRAFT_CODE);
         Draft actual = draftService.create(new CreateDraftRequest(REFBOOK_ID, testDraftVersion.getStructure()));
@@ -210,7 +206,6 @@ public class DraftServiceTest {
             saved.setId(testDraftVersion.getId() + 1);
             return saved;
         });
-        when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(Page.empty());
 
         Structure structure = new Structure();
         structure.setAttributes(singletonList(Structure.Attribute.build("name", "name", FieldType.STRING, "description")));
@@ -223,12 +218,13 @@ public class DraftServiceTest {
 
     @Test
     public void testCreateWithoutDraftWithPublishedVersion() {
+
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(null);
+
         RefBookVersionEntity lastRefBookVersion = createTestPublishedVersion();
-        Page<RefBookVersionEntity> lastRefBookVersionPage = new PageImpl<>(Collections.singletonList(lastRefBookVersion));
-        when(versionRepository
-                .findAll(eq(isPublished().and(isVersionOfRefBook(REFBOOK_ID))),
-                        eq(PageRequest.of(0, 1, new Sort(Sort.Direction.DESC, "fromDate"))))).thenReturn(lastRefBookVersionPage);
+        when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(eq(REFBOOK_ID), eq(RefBookVersionStatus.PUBLISHED)))
+                .thenReturn(lastRefBookVersion);
+
         RefBookEntity refBook = new RefBookEntity();
         refBook.setId(REFBOOK_ID);
         RefBookVersionEntity expectedRefBookVersion = createTestDraftVersionEntity();
@@ -250,7 +246,6 @@ public class DraftServiceTest {
         refBook.setId(REFBOOK_ID);
 
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(testDraftVersion);
-        when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(Page.empty());
 
         RefBookVersionEntity expectedRefBookVersion = createTestDraftVersionEntity();
         expectedRefBookVersion.setId(null);
@@ -278,12 +273,11 @@ public class DraftServiceTest {
 
     @Test
     public void testCreateDraftFromXlsFileWithPublishedVersion() {
+
         RefBookVersionEntity lastRefBookVersion = createTestPublishedVersion();
-        Page<RefBookVersionEntity> lastRefBookVersionPage = new PageImpl<>(singletonList(lastRefBookVersion));
-        when(versionRepository
-                .findAll(eq(isPublished().and(isVersionOfRefBook(REFBOOK_ID))),
-                        eq(PageRequest.of(0, 1, new Sort(Sort.Direction.DESC, "fromDate")))))
-                .thenReturn(lastRefBookVersionPage);
+        when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(eq(REFBOOK_ID), eq(RefBookVersionStatus.PUBLISHED)))
+                .thenReturn(lastRefBookVersion);
+
         RefBookEntity refBook = new RefBookEntity();
         refBook.setId(REFBOOK_ID);
         RefBookVersionEntity expectedRefBookVersion = createTestDraftVersionEntity();
@@ -314,7 +308,6 @@ public class DraftServiceTest {
 
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID)))
                 .thenReturn(createCopyOfVersion(versionBefore)).thenReturn(createCopyOfVersion(versionWithStructure));
-        when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(Page.empty());
 
         versionWithStructure.setStorageCode(TEST_DRAFT_CODE_NEW);
         versionWithStructure.setRefBook(refBook);

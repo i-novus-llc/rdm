@@ -56,7 +56,7 @@ import static org.mockito.Mockito.*;
 import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class DraftPublishServiceTest {
+public class BasePublishServiceTest {
 
     private static final String TEST_STORAGE_CODE = "test_storage_code";
     private static final String TEST_DRAFT_CODE = "test_draft_code";
@@ -65,7 +65,7 @@ public class DraftPublishServiceTest {
     private static final int REFBOOK_ID = 2;
 
     @InjectMocks
-    private DraftPublishServiceImpl draftPublishService;
+    private BasePublishService basePublishService;
 
     @Mock
     private RefBookVersionRepository versionRepository;
@@ -79,8 +79,11 @@ public class DraftPublishServiceTest {
 
     @Mock
     private RefBookLockService refBookLockService;
+
     @Mock
     private VersionService versionService;
+    @Mock
+    private ConflictService conflictService;
 
     @Spy
     private FileStorage fileStorage = new MockFileStorage();
@@ -207,7 +210,7 @@ public class DraftPublishServiceTest {
         expectedVersionEntity.setFromDate(now);
 
         when(versionRepository.findById(eq(draft.getId()))).thenReturn(java.util.Optional.of(draft));
-        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(anyString(), eq(RefBookVersionStatus.PUBLISHED)))
+        when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(anyInt(), eq(RefBookVersionStatus.PUBLISHED)))
                 .thenReturn(versionEntity);
 
         when(versionService.getById(eq(draft.getId())))
@@ -332,6 +335,6 @@ public class DraftPublishServiceTest {
         request.setToDate(toDate);
         request.setResolveConflicts(resolveConflicts);
 
-        draftPublishService.publish(request);
+        basePublishService.publish(request);
     }
 }

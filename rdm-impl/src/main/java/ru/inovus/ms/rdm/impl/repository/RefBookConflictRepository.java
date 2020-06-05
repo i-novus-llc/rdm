@@ -43,10 +43,20 @@ public interface RefBookConflictRepository extends
     );
 
     /**
+     * Проверка на конфликт у указанного ссылочного справочника
+     * с указанной версией справочника для проверки возможности публикации.
+     */
+    boolean existsByReferrerVersionIdAndPublishedVersionId(
+            @Param("referrerVersionId") Integer referrerVersionId,
+            @Param("publishedVersionId") Integer publishedVersionId
+    );
+
+    /**
      * Поиск записей данных с конфликтами указанного справочника
      * с последними опубликованными версиями справочников.
      */
-    @Query("select distinct c.refRecordId from RefBookConflictEntity c\n" +
+    @Query("select distinct c.refRecordId \n" +
+            "  from RefBookConflictEntity c\n" +
             " where c.referrerVersion.id = :referrerVersionId\n" +
             "   and c.refRecordId in (:refRecordIds)" +
             AND_REFERRED_IS_LAST_WITH_STATUS)

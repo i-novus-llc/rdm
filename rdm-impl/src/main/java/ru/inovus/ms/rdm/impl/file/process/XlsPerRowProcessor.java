@@ -19,7 +19,7 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
 
     private final ExcelStyleDateFormatter excelStyleDateFormatter = new ExcelStyleDateFormatter("dd.MM.yyyy");
 
-    private Map<Integer, String> columnNames = new HashMap<>();
+    private Map<Integer, String> indexToNameMap = new HashMap<>();
 
     private Workbook workbook;
     private Iterator<Sheet> sheetIterator;
@@ -59,7 +59,7 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
         for (Cell cell : row) {
             String value = cell.getStringCellValue() != null ? cell.getStringCellValue().trim() : null;
             if (!isEmpty(value))
-                columnNames.put(cell.getColumnIndex(), value);
+                indexToNameMap.put(cell.getColumnIndex(), value);
         }
     }
 
@@ -86,10 +86,10 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
     private ru.inovus.ms.rdm.api.model.refdata.Row parseFromXlsx(org.apache.poi.ss.usermodel.Row row) {
 
         LinkedHashMap<String, Object> data = new LinkedHashMap<>();
-        columnNames.values().forEach(name -> data.put(name, null));
+        indexToNameMap.values().forEach(name -> data.put(name, null));
 
         for (Cell cell : row) {
-            String name = columnNames.get(cell.getColumnIndex());
+            String name = indexToNameMap.get(cell.getColumnIndex());
             if (name != null) {
                 data.put(name, getCellValue(cell, dataFormatter));
             }

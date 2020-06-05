@@ -50,6 +50,7 @@ import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 public class RefBookServiceImpl implements RefBookService {
 
     private static final String REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.already.exists";
+    private static final String DRAFT_NOT_FOUND_EXCEPTION_CODE = "draft.not.found";
 
     private RefBookRepository refBookRepository;
     private RefBookVersionRepository versionRepository;
@@ -298,20 +299,22 @@ public class RefBookServiceImpl implements RefBookService {
     @SuppressWarnings("squid:S2259")
     public void changeData(RdmChangeDataRequest request) {
 
-        versionValidation.validateRefBookCodeExists(request.getRefBookCode());
+        final String refBookCode =request.getRefBookCode();
+        versionValidation.validateRefBookCodeExists(refBookCode);
 
-        RefBookEntity refBook = refBookRepository.findByCode(request.getRefBookCode());
+        RefBookEntity refBook = refBookRepository.findByCode(refBookCode);
 
         refBookLockService.setRefBookUpdating(refBook.getId());
         try {
-            Integer draftId = draftService.getIdByRefBookCode(request.getRefBookCode());
+            Integer draftId = draftService.getIdByRefBookCode(refBookCode);
             if (draftId == null) {
-                RefBookVersionEntity mostRecentVersion = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(request.getRefBookCode(), RefBookVersionStatus.PUBLISHED);
-                Draft draft = draftService.createFromVersion(mostRecentVersion.getId());
+                RefBookVersionEntity lastPublishedEntity = versionRepository
+                        .findFirstByRefBookIdAndStatusOrderByFromDateDesc(refBook.getId(), RefBookVersionStatus.PUBLISHED);
+                Draft draft = draftService.createFromVersion(lastPublishedEntity.getId());
                 draftId = draft.getId();
             }
             if (draftId == null)
-                throw new UserException(new Message("draft.not.found", draftId));
+                throw new UserException(new Message(DRAFT_NOT_FOUND_EXCEPTION_CODE, draftId));
 
             draftService.updateData(draftId, request.getRowsToAddOrUpdate());
             draftService.deleteRows(draftId, request.getRowsToDelete());
@@ -381,11 +384,9 @@ public class RefBookServiceImpl implements RefBookService {
     /** Проверка на наличие справочников, ссылающихся на указанный справочник. */
     private boolean hasReferrerVersions(String refBookCode) {
 
-        PageRequest pageRequest = PageRequest.of(0, 1);
-        Page<RefBookVersionEntity> entities = versionRepository.findReferrerVersions(refBookCode,
-                RefBookStatusType.ALL.name(), RefBookSourceType.ALL.name(), pageRequest);
-
-        return entities != null && !entities.getContent().isEmpty();
+        Boolean exists = versionRepository.existsReferrerVersions(refBookCode,
+                RefBookStatusType.ALL.name(), RefBookSourceType.ALL.name());
+        return Boolean.TRUE.equals(exists);
     }
 
     private boolean isRefBookRemovable(Integer refBookId) {

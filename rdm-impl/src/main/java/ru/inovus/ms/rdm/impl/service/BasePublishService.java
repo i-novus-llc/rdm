@@ -39,7 +39,7 @@ import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 
 @Primary
 @Service
-public class DraftPublishServiceImpl implements DraftPublishService {
+class BasePublishService {
 
     private static final String INVALID_VERSION_NAME_EXCEPTION_CODE = "invalid.version.name";
     private static final String INVALID_VERSION_PERIOD_EXCEPTION_CODE = "invalid.version.period";
@@ -55,6 +55,7 @@ public class DraftPublishServiceImpl implements DraftPublishService {
 
     private RefBookLockService refBookLockService;
     private VersionService versionService;
+    private ConflictService conflictService;
 
     private VersionFileService versionFileService;
     private VersionNumberStrategy versionNumberStrategy;
@@ -74,12 +75,12 @@ public class DraftPublishServiceImpl implements DraftPublishService {
 
     @Autowired
     @SuppressWarnings("squid:S00107")
-    public DraftPublishServiceImpl(RefBookVersionRepository versionRepository,
-                                   DraftDataService draftDataService, SearchDataService searchDataService, DropDataService dropDataService,
-                                   RefBookLockService refBookLockService, VersionService versionService,
-                                   VersionFileService versionFileService, VersionNumberStrategy versionNumberStrategy,
-                                   VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation,
-                                   AuditLogService auditLogService, @Qualifier("topicJmsTemplate") @Autowired(required = false) JmsTemplate jmsTemplate) {
+    public BasePublishService(RefBookVersionRepository versionRepository,
+                              DraftDataService draftDataService, SearchDataService searchDataService, DropDataService dropDataService,
+                              RefBookLockService refBookLockService, VersionService versionService, ConflictService conflictService,
+                              VersionFileService versionFileService, VersionNumberStrategy versionNumberStrategy,
+                              VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation,
+                              AuditLogService auditLogService, @Qualifier("topicJmsTemplate") @Autowired(required = false) JmsTemplate jmsTemplate) {
         this.versionRepository = versionRepository;
 
         this.draftDataService = draftDataService;
@@ -88,6 +89,7 @@ public class DraftPublishServiceImpl implements DraftPublishService {
 
         this.refBookLockService = refBookLockService;
         this.versionService = versionService;
+        this.conflictService = conflictService;
 
         this.versionFileService = versionFileService;
         this.versionNumberStrategy = versionNumberStrategy;
@@ -105,7 +107,6 @@ public class DraftPublishServiceImpl implements DraftPublishService {
      * @param request параметры публикации
      * @return результат публикации
      */
-    @Override
     @Transactional
     public PublishResponse publish(PublishRequest request) {
 
@@ -154,6 +155,12 @@ public class DraftPublishServiceImpl implements DraftPublishService {
             result.setOldId(lastPublishedEntity != null ? lastPublishedEntity.getId() : null);
             result.setNewId(draftId);
 
+            // Конфликты могут быть только при наличии
+            // ссылочных атрибутов со значениями для ранее опубликованной версии.
+            if (result.getOldId() != null) {
+                conflictService.discoverConflicts(result.getOldId(), result.getNewId());
+            }
+
             if (lastPublishedEntity != null && lastStorageCode != null
                     && draftEntity.getStructure().storageEquals(lastPublishedEntity.getStructure())) {
                 droppedDataStorages.add(lastStorageCode);
@@ -166,7 +173,7 @@ public class DraftPublishServiceImpl implements DraftPublishService {
 
         } catch (Exception e) {
             if (!StringUtils.isEmpty(newStorageCode)) {
-                dropDataService.drop(Set.of(newStorageCode));
+                dropDataService.drop(newStorageCode);
             }
 
             throw e;
@@ -212,7 +219,7 @@ public class DraftPublishServiceImpl implements DraftPublishService {
     }
 
     private RefBookVersionEntity getLastPublishedVersionEntity(RefBookVersionEntity draftVersion) {
-        return versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(draftVersion.getRefBook().getCode(), RefBookVersionStatus.PUBLISHED);
+        return versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(draftVersion.getRefBook().getId(), RefBookVersionStatus.PUBLISHED);
     }
 
     /** Замена старого кода хранилища на новый в версиях справочника. */
