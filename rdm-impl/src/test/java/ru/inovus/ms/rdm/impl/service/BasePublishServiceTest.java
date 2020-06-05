@@ -18,9 +18,11 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.api.enumeration.FileType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.draft.PublishRequest;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.service.ConflictService;
 import ru.inovus.ms.rdm.api.service.VersionFileService;
@@ -54,7 +56,7 @@ import static org.mockito.Mockito.*;
 import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class PublishServiceTest {
+public class BasePublishServiceTest {
 
     private static final String TEST_STORAGE_CODE = "test_storage_code";
     private static final String TEST_DRAFT_CODE = "test_draft_code";
@@ -63,7 +65,7 @@ public class PublishServiceTest {
     private static final int REFBOOK_ID = 2;
 
     @InjectMocks
-    private PublishServiceImpl publishService;
+    private BasePublishService basePublishService;
 
     @Mock
     private RefBookVersionRepository versionRepository;
@@ -71,10 +73,13 @@ public class PublishServiceTest {
     @Mock
     private DraftDataService draftDataService;
     @Mock
+    private SearchDataService searchDataService;
+    @Mock
     private DropDataService dropDataService;
 
     @Mock
     private RefBookLockService refBookLockService;
+
     @Mock
     private VersionService versionService;
     @Mock
@@ -118,7 +123,7 @@ public class PublishServiceTest {
     public void setUp() {
         reset(draftDataService, fileNameGenerator, fileGeneratorFactory);
         when(draftDataService.applyDraft(any(), any(), any(), any())).thenReturn(TEST_STORAGE_CODE);
-        when(draftDataService.isFieldNotEmpty(any(), any())).thenReturn(true);
+        when(searchDataService.hasData(any())).thenReturn(true);
     }
 
     @Test
@@ -149,7 +154,7 @@ public class PublishServiceTest {
 
         //invalid draftId
         try {
-            publishService.publish(draftId, "1.0", now, null, false);
+            publish(draftId, "1.0", now, null, false);
             fail();
         } catch (UserException e) {
             Assert.assertEquals("draft.not.found", e.getCode());
@@ -159,7 +164,7 @@ public class PublishServiceTest {
         //invalid versionName
         when(versionRepository.exists(eq(isVersionOfRefBook(REFBOOK_ID)))).thenReturn(true);
         try {
-            publishService.publish(draftVersionEntity.getId(), "1.1", now, null, false);
+            publish(draftVersionEntity.getId(), "1.1", now, null, false);
             fail();
         } catch (UserException e) {
             Assert.assertEquals("invalid.version.name", e.getCode());
@@ -169,14 +174,14 @@ public class PublishServiceTest {
         //invalid version period
         when(versionRepository.exists(eq(isVersionOfRefBook(REFBOOK_ID)))).thenReturn(true);
         try {
-            publishService.publish(draftVersionEntity.getId(), null, now, LocalDateTime.MIN, false);
+            publish(draftVersionEntity.getId(), null, now, LocalDateTime.MIN, false);
             fail();
         } catch (UserException e) {
             Assert.assertEquals("invalid.version.period", e.getCode());
         }
 
         //valid publishing, null version name
-        publishService.publish(draftVersionEntity.getId(), null, now, null, false);
+        publish(draftVersionEntity.getId(), null, now, null, false);
         assertEquals("1.1", draftVersionEntity.getVersion());
 
         verify(draftDataService).applyDraft(isNull(), eq(expectedDraftStorageCode), eq(now), any());
@@ -205,7 +210,7 @@ public class PublishServiceTest {
         expectedVersionEntity.setFromDate(now);
 
         when(versionRepository.findById(eq(draft.getId()))).thenReturn(java.util.Optional.of(draft));
-        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(anyString(), eq(RefBookVersionStatus.PUBLISHED)))
+        when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(anyInt(), eq(RefBookVersionStatus.PUBLISHED)))
                 .thenReturn(versionEntity);
 
         when(versionService.getById(eq(draft.getId())))
@@ -213,7 +218,7 @@ public class PublishServiceTest {
         when(versionNumberStrategy.check("2.2", REFBOOK_ID)).thenReturn(true);
         when(versionRepository.exists(hasVersionId(draft.getId()).and(isDraft()))).thenReturn(true);
 
-        publishService.publish(draft.getId(), expectedVersionEntity.getVersion(), now, null, false);
+        publish(draft.getId(), expectedVersionEntity.getVersion(), now, null, false);
 
         verify(draftDataService)
                 .applyDraft(eq(versionEntity.getStorageCode()), eq(expectedDraftStorageCode), eq(now), any());
@@ -239,7 +244,7 @@ public class PublishServiceTest {
                 .when(versionRepository).deleteById(anyInt());
         when(versionRepository.exists(eq(hasVersionId(draftVersion.getId()).and(isDraft())))).thenReturn(true);
 
-        publishService.publish(draftVersion.getId(), "2.4", LocalDateTime.of(2017, 1, 4, 1, 1), LocalDateTime.of(2017, 1, 9, 1, 1), false);
+        publish(draftVersion.getId(), "2.4", LocalDateTime.of(2017, 1, 4, 1, 1), LocalDateTime.of(2017, 1, 9, 1, 1), false);
         assertEquals(expected, actual);
         reset(versionRepository, versionService, versionNumberStrategy);
 
@@ -319,5 +324,17 @@ public class PublishServiceTest {
         testRefBook.setId(REFBOOK_ID);
         testRefBook.setCode(TEST_REF_BOOK);
         return testRefBook;
+    }
+
+    private void publish(Integer draftId, String versionName,
+                         LocalDateTime fromDate, LocalDateTime toDate,
+                         boolean resolveConflicts) {
+        PublishRequest request = new PublishRequest(draftId);
+        request.setVersionName(versionName);
+        request.setFromDate(fromDate);
+        request.setToDate(toDate);
+        request.setResolveConflicts(resolveConflicts);
+
+        basePublishService.publish(request);
     }
 }

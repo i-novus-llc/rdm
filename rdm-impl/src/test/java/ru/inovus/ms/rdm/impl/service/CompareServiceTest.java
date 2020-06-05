@@ -25,26 +25,25 @@ import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
 import ru.i_novus.platform.datastorage.temporal.service.CompareDataService;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
-import ru.inovus.ms.rdm.api.service.VersionService;
-import ru.inovus.ms.rdm.impl.entity.PassportAttributeEntity;
-import ru.inovus.ms.rdm.impl.entity.PassportValueEntity;
-import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.compare.ComparableField;
 import ru.inovus.ms.rdm.api.model.compare.ComparableFieldValue;
 import ru.inovus.ms.rdm.api.model.compare.ComparableRow;
 import ru.inovus.ms.rdm.api.model.compare.CompareDataCriteria;
-import ru.inovus.ms.rdm.api.model.field.CommonField;
-import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
-import ru.inovus.ms.rdm.api.model.version.PassportAttribute;
 import ru.inovus.ms.rdm.api.model.diff.PassportAttributeDiff;
 import ru.inovus.ms.rdm.api.model.diff.PassportDiff;
+import ru.inovus.ms.rdm.api.model.field.CommonField;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
-import ru.inovus.ms.rdm.impl.service.CompareServiceImpl;
+import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.api.model.version.PassportAttribute;
+import ru.inovus.ms.rdm.api.service.VersionService;
+import ru.inovus.ms.rdm.api.validation.VersionValidation;
+import ru.inovus.ms.rdm.impl.entity.PassportAttributeEntity;
+import ru.inovus.ms.rdm.impl.entity.PassportValueEntity;
+import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.impl.repository.PassportAttributeRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.inovus.ms.rdm.api.validation.VersionValidation;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -145,11 +144,17 @@ public class CompareServiceTest {
                 .thenReturn(asList(passportAttributeFullName, passportAttributeShortName, passportAttributeAnnotation,
                         passportAttributeGroup, passportAttributeType));
 
-        when(versionService.getStructure(OLD_ID)).thenReturn(new Structure(asList(id, code, common, descr, upd1, typeS), emptyList()));
-        when(versionService.getStructure(NEW_ID)).thenReturn(new Structure(asList(id, code, common, name, upd2, typeI), emptyList()));
+        final Structure oldStructure = new Structure(asList(id, code, common, descr, upd1, typeS), emptyList());
+        final Structure newStructure = new Structure(asList(id, code, common, name, upd2, typeI), emptyList());
+        when(versionService.getStructure(OLD_ID)).thenReturn(oldStructure);
+        when(versionService.getStructure(NEW_ID)).thenReturn(newStructure);
+        when(versionValidation.equalsPrimaries(eq(oldStructure.getPrimary()), eq(newStructure.getPrimary()))).thenReturn(true);
 
-        when(versionService.getStructure(OLD_ID_1)).thenReturn(new Structure(asList(id, common), emptyList()));
-        when(versionService.getStructure(NEW_ID_1)).thenReturn(new Structure(asList(id, common), emptyList()));
+        final Structure oldStructure1 = new Structure(asList(id, common), emptyList());
+        final Structure newStructure1 = new Structure(asList(id, common), emptyList());
+        when(versionService.getStructure(OLD_ID_1)).thenReturn(oldStructure1);
+        when(versionService.getStructure(NEW_ID_1)).thenReturn(newStructure1);
+        when(versionValidation.equalsPrimaries(eq(oldStructure1.getPrimary()), eq(newStructure1.getPrimary()))).thenReturn(true);
     }
 
     private void initPassportAttributes() {
