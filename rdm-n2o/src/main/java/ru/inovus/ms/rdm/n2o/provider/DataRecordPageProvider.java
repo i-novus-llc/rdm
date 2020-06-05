@@ -58,7 +58,7 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
     @SuppressWarnings("unchecked")
     public List<? extends SourceMetadata> read(String context) {
 
-        // Метод провайдера отрабатывает также на Transform этапе
+        // Метод провайдера отрабатывает также на этапе Transform
         // (@see AbstractActionTransformer.mapSecurity).
         // На этом этапе для {id} не установлено значение.
         if (context.contains("{") || context.contains("}"))

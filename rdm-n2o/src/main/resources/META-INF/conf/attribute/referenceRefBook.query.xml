@@ -30,7 +30,6 @@
             </filters>
         </field>
 
-
         <field id="code" domain="string">
             <select/>
             <filters>
