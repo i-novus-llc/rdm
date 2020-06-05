@@ -36,7 +36,7 @@
             <input-select id="referenceRefBook" label="Выбор справочника"
                           query-id="referenceRefBook" label-field-id="displayCode">
                 <dependencies>
-                    <visibility on="attrType">
+                    <visibility on="attrType" reset="false">
                         attrType.id == 'REFERENCE'
                     </visibility>
                     <set-value on="attrType">
@@ -66,7 +66,7 @@
                 <input-select id="displayAttribute" label="Отображаемый атрибут"
                               query-id="attribute" label-field-id="name">
                     <dependencies>
-                        <visibility on="attrType,referenceRefBook">
+                        <visibility on="attrType,referenceRefBook" reset="false">
                             (attrType.id == 'REFERENCE' &amp;&amp; referenceRefBook != null)
                         </visibility>
                         <set-value on="attrType">
@@ -86,7 +86,7 @@
 
                 <input-text id="displayExpression" label="Отображаемое поле">
                     <dependencies>
-                        <visibility on="attrType,referenceRefBook">
+                        <visibility on="attrType,referenceRefBook" reset="false">
                             (attrType.id == 'REFERENCE' &amp;&amp; referenceRefBook != null)
                         </visibility>
                         <set-value on="attrType,displayAttribute">
