@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.impl.file.process;
 
-import net.n2oapp.platform.i18n.UserException;
+import ru.inovus.ms.rdm.api.exception.FileContentException;
+import ru.inovus.ms.rdm.api.exception.FileProcessingException;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -25,8 +26,7 @@ public class XmlParseUtils {
      * @param factory     фабрика для создания считывателя
      * @return Считыватель xml
      */
-    public static XMLEventReader createEvenReader(InputStream inputStream, XMLInputFactory factory) {
-
+    public static XMLEventReader createEventReader(InputStream inputStream, XMLInputFactory factory) {
         try {
             factory.setProperty(XMLInputFactory.IS_COALESCING, true);
             XMLEventReader simpleReader = factory.createXMLEventReader(inputStream);
@@ -34,10 +34,8 @@ public class XmlParseUtils {
                     event -> !(event.isCharacters() && event.asCharacters().isWhiteSpace())
             );
         } catch (XMLStreamException e) {
-            throwFileContentError(e);
+            throw new FileContentException(e);
         }
-
-        throw new UserException(FILE_PROCESSING_FAILED_EXCEPTION_CODE);
     }
 
     /**
@@ -54,7 +52,7 @@ public class XmlParseUtils {
             reader.close();
 
         } catch (XMLStreamException e) {
-            throwFileProcessingError(e);
+            throw new FileProcessingException(e);
         }
     }
 

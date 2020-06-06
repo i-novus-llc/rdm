@@ -6,8 +6,6 @@ import static org.springframework.util.StringUtils.isEmpty;
 
 public class FileUtil {
 
-    public static final String FILE_EXTENSION_INVALID_EXCEPTION_CODE = "file.extension.invalid";
-
     private FileUtil() { throw new UnsupportedOperationException(); }
 
     /**

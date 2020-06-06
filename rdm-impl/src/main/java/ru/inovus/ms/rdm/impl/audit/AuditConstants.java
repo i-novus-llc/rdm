@@ -21,6 +21,8 @@ class AuditConstants {
     static final String REFBOOK_VERSION_KEY = "version";
     static final String REFBOOK_STRUCTURE_KEY = "structure";
 
+    static final String ABSENT_VALUE_SUBST = "-";
+
     static final Function<Object, String> GET_REFBOOK_ID_FROM_REFBOOK_VERSION_ENTITY = obj -> ((RefBookVersionEntity) obj).getRefBook().getCode();
 
     private AuditConstants() {}
@@ -40,14 +42,14 @@ class AuditConstants {
                             REFBOOK_NAME_KEY,
                             passport.stream().filter(
                                 p -> p.getAttribute().getCode().equals(REFBOOK_NAME_KEY)
-                        ).findFirst().map(PassportValueEntity::getValue).orElse("NA"));
+                        ).findFirst().map(PassportValueEntity::getValue).orElse(ABSENT_VALUE_SUBST));
                         break;
                     case REFBOOK_SHORT_NAME_KEY:
                         m.put(
                             REFBOOK_SHORT_NAME_KEY,
                                 passport.stream().filter(
                                 p -> p.getAttribute().getCode().equals(REFBOOK_SHORT_NAME_KEY)
-                        ).findFirst().map(PassportValueEntity::getValue).orElse("NA"));
+                        ).findFirst().map(PassportValueEntity::getValue).orElse(ABSENT_VALUE_SUBST));
                         break;
                     case REFBOOK_VERSION_KEY:
                         m.put(REFBOOK_VERSION_KEY, refBookVersion.getVersion());

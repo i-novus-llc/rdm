@@ -342,6 +342,7 @@ public class CompareServiceImpl implements CompareService {
         }
     }
 
+    /** Проверка первичных ключей версий на совпадение. */
     private void validatePrimariesEquality(RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion) {
 
         List<Structure.Attribute> oldPrimaries = oldVersion.getStructure().getPrimary();
@@ -352,8 +353,7 @@ public class CompareServiceImpl implements CompareService {
         if (isEmpty(newPrimaries))
             throw new UserException(new Message(COMPARE_NEW_PRIMARIES_NOT_FOUND_EXCEPTION_CODE, newVersion.getRefBook().getCode(), newVersion.getVersion()));
 
-        if (oldPrimaries.size() != newPrimaries.size()
-                || oldPrimaries.stream().anyMatch(oldPrimary -> !containsPrimary(newPrimaries, oldPrimary))) {
+        if (!versionValidation.equalsPrimaries(oldPrimaries, newPrimaries)) {
             if (newVersion.getRefBook().getCode().equals(oldVersion.getRefBook().getCode())) {
                 throw new UserException(new Message(COMPARE_PRIMARIES_NOT_MATCH_EXCEPTION_CODE,
                         oldVersion.getRefBook().getCode(), oldVersion.getVersionNumber(), newVersion.getVersionNumber()));
@@ -363,10 +363,6 @@ public class CompareServiceImpl implements CompareService {
                         newVersion.getRefBook().getCode(), newVersion.getVersionNumber()));
             }
         }
-    }
-
-    private static boolean containsPrimary(List<Structure.Attribute> primaries, Structure.Attribute primary) {
-        return primaries.stream().anyMatch(p -> p.storageEquals(primary));
     }
 
     /**

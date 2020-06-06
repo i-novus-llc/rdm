@@ -8,8 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.components.common.exception.CodifiedException;
@@ -26,6 +24,7 @@ import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.api.enumeration.ConflictType;
 import ru.inovus.ms.rdm.api.enumeration.FileType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.api.exception.FileExtensionException;
 import ru.inovus.ms.rdm.api.exception.NotFoundException;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.ExportFile;
@@ -177,7 +176,7 @@ public class DraftServiceImpl implements DraftService {
         switch (FileUtil.getExtension(fileModel.getName())) {
             case "XLSX": return updateDraftDataByXlsx(refBookId, fileModel, inputStreamSupplier);
             case "XML": return updateDraftDataByXml(refBookId, fileModel, inputStreamSupplier);
-            default: throw new UserException(FileUtil.FILE_EXTENSION_INVALID_EXCEPTION_CODE);
+            default: throw new FileExtensionException();
         }
     }
 
@@ -242,12 +241,14 @@ public class DraftServiceImpl implements DraftService {
 
     private BiConsumer<String, Structure> getSaveDraftConsumer(Integer refBookId) {
         return (storageCode, structure) -> {
-            versionValidation.validateStructure(structure);
 
             RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
             RefBookVersionEntity draftVersion = getDraftByRefBook(refBookId);
             if (draftVersion == null && lastRefBookVersion == null)
                 throw new NotFoundException(new Message(VersionValidationImpl.REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
+
+            final String refBookCode = (draftVersion != null ? draftVersion : lastRefBookVersion).getRefBook().getCode();
+            versionValidation.validateDraftStructure(refBookCode, structure);
 
             // NB: structure == null means that draft was created during passport saving
             if (draftVersion != null && draftVersion.getStructure() != null) {
@@ -281,7 +282,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
         RefBookVersionEntity draftVersion = getDraftByRefBook(refBookId);
         if (draftVersion == null && lastRefBookVersion == null)
-            throw new CodifiedException("invalid refbook");
+            throw new NotFoundException(new Message(VersionValidationImpl.REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
 
         List<PassportValueEntity> passportValues = null;
         if (createDraftRequest.getPassport() != null) {
@@ -291,7 +292,8 @@ public class DraftServiceImpl implements DraftService {
         }
 
         final Structure structure = createDraftRequest.getStructure();
-        versionValidation.validateStructure(structure);
+        final String refBookCode = (draftVersion != null ? draftVersion : lastRefBookVersion).getRefBook().getCode();
+        versionValidation.validateDraftStructure(refBookCode, structure);
 
         List<Field> fields = ConverterUtil.fields(structure);
         if (draftVersion == null) {
@@ -592,10 +594,7 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private RefBookVersionEntity getLastRefBookVersion(Integer refBookId) {
-        Page<RefBookVersionEntity> lastPublishedVersions = versionRepository
-                .findAll(RefBookVersionPredicates.isPublished().and(RefBookVersionPredicates.isVersionOfRefBook(refBookId)),
-                        PageRequest.of(0, 1, new Sort(Sort.Direction.DESC, "fromDate")));
-        return lastPublishedVersions.hasContent() ? lastPublishedVersions.getContent().get(0) : null;
+        return versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(refBookId, RefBookVersionStatus.PUBLISHED);
     }
 
     @Override
@@ -936,9 +935,7 @@ public class DraftServiceImpl implements DraftService {
     @Override
     public Integer getIdByRefBookCode(String refBookCode) {
         RefBookVersionEntity draftEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.DRAFT);
-        if (draftEntity == null)
-            return null;
-        return draftEntity.getId();
+        return draftEntity != null ? draftEntity.getId() : null;
     }
 
     private void auditStructureEdit(RefBookVersionEntity refBook, String action, Structure.Attribute attribute) {
@@ -952,5 +949,4 @@ public class DraftServiceImpl implements DraftService {
     private void auditEditData(RefBookVersionEntity refBook, Map<String, Object> payload) {
         auditLogService.addAction(AuditAction.DRAFT_EDITING, () -> refBook, payload);
     }
-
 }

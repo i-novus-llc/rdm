@@ -2,6 +2,8 @@ package ru.inovus.ms.rdm.impl.file.process;
 
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.util.StringUtils;
+import ru.inovus.ms.rdm.api.exception.FileContentException;
+import ru.inovus.ms.rdm.api.exception.FileProcessingException;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.inovus.ms.rdm.api.service.RefBookService;
 
@@ -12,7 +14,6 @@ import javax.xml.stream.events.XMLEvent;
 import java.io.Closeable;
 import java.io.InputStream;
 
-import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.*;
 import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.*;
 
 public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor implements Closeable {
@@ -34,7 +35,7 @@ public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor im
 
     @Override
     protected void setFile(InputStream inputStream) {
-        reader = createEvenReader(inputStream, FACTORY);
+        reader = createEventReader(inputStream, FACTORY);
     }
 
     @Override
@@ -51,25 +52,25 @@ public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor im
                 event = reader.nextEvent();
             }
 
-            if(isStartElementWithName(event, CODE_TAG_NAME)) {
+            if (isStartElementWithName(event, CODE_TAG_NAME)) {
                 refBookCode = reader.getElementText();
             }
 
         } catch (XMLStreamException e) {
-            throwFileContentError(e);
+            throw new FileContentException(e);
 
         } catch (Exception e) {
             if (e.getCause() instanceof XMLStreamException)
-                throwFileContentError(e);
+                throw new FileContentException(e);
 
-            throwFileProcessingError(e);
+            throw new FileProcessingException(e);
         }
 
         if (!StringUtils.isEmpty(refBookCode)) {
             return new RefBookCreateRequest(refBookCode, null, null);
         }
 
-        throw new UserException(FILE_PROCESSING_FAILED_EXCEPTION_CODE, new UserException(REFBOOK_DOES_NOT_CREATE_EXCEPTION_CODE));
+        throw new FileProcessingException(new UserException(REFBOOK_DOES_NOT_CREATE_EXCEPTION_CODE));
     }
 
     @Override
