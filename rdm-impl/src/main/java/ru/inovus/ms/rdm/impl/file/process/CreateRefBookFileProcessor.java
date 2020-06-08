@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.impl.file.process;
 
 import net.n2oapp.platform.i18n.UserException;
+import ru.inovus.ms.rdm.api.exception.FileProcessingException;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
@@ -10,6 +11,8 @@ import java.io.InputStream;
 import java.util.function.Supplier;
 
 public abstract class CreateRefBookFileProcessor implements FileProcessor<RefBook> {
+
+    private static final String REFBOOK_DOES_NOT_CREATE_EXCEPTION_CODE = "refbook.does.not.create";
 
     private RefBookService refBookService;
 
@@ -23,17 +26,23 @@ public abstract class CreateRefBookFileProcessor implements FileProcessor<RefBoo
 
     @Override
     public RefBook process(Supplier<InputStream> fileSource) {
+
+        RefBookCreateRequest refBookCreateRequest = null;
         try(InputStream inputStream = fileSource.get()) {
             setFile(inputStream);
-            RefBookCreateRequest refBookCreateRequest = getRefBookCreateRequest();
-            if (refBookCreateRequest == null) {
-                return null;
-            }
-            return refBookService.create(refBookCreateRequest);
+            refBookCreateRequest = getRefBookCreateRequest();
+
         } catch (UserException e) {
             throw e;
+
         } catch (Exception e) {
             throw new RdmException(e);
         }
+
+        if (refBookCreateRequest != null) {
+            return refBookService.create(refBookCreateRequest);
+        }
+
+        throw new FileProcessingException(new UserException(REFBOOK_DOES_NOT_CREATE_EXCEPTION_CODE));
     }
 }
