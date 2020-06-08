@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.n2o.service;
 
-import net.n2oapp.platform.i18n.Messages;
+import net.n2oapp.platform.i18n.Message;
+import net.n2oapp.platform.i18n.UserException;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,10 +33,8 @@ public class FilesRestController {
     private int maxFileSizeMb;
 
     @Autowired
-    private Messages messages;
-
-    @Autowired
-    public FilesRestController(FileStorageService fileStorageService, VersionService versionService) {
+    public FilesRestController(FileStorageService fileStorageService,
+                               VersionService versionService) {
         this.fileStorageService = fileStorageService;
         this.versionService = versionService;
     }
@@ -46,7 +45,7 @@ public class FilesRestController {
 
         long size = file.getSize();
         if (size / 1024 / 1024 > maxFileSizeMb)
-            throw new IllegalArgumentException(messages.getMessage("file.is.too.big", maxFileSizeMb));
+            throw new UserException(new Message("file.is.too.big", maxFileSizeMb));
 
         String storageFileName = toStorageFileName(file.getOriginalFilename());
         FileModel save = fileStorageService.save(file.getInputStream(), storageFileName);
@@ -59,7 +58,7 @@ public class FilesRestController {
 
         String extension = FilenameUtils.getExtension(originalFilename);
         if (StringUtils.isEmpty(extension))
-            throw new IllegalArgumentException(messages.getMessage("file.extension.invalid"));
+            throw new UserException(new Message("file.extension.invalid"));
 
         return System.currentTimeMillis() + "." + extension;
     }
@@ -72,8 +71,8 @@ public class FilesRestController {
 
         return ResponseEntity.ok()
                 .contentType(MediaType.MULTIPART_FORM_DATA)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + versionFile.getFileName() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + versionFile.getFileName() + "\"")
                 .body(new InputStreamResource(versionFile.getInputStream()));
     }
-
 }
