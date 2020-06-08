@@ -52,8 +52,10 @@ import ru.inovus.ms.rdm.impl.entity.*;
 import ru.inovus.ms.rdm.impl.file.FileStorage;
 import ru.inovus.ms.rdm.impl.file.export.VersionDataIterator;
 import ru.inovus.ms.rdm.impl.file.process.*;
-import ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates;
-import ru.inovus.ms.rdm.impl.repository.*;
+import ru.inovus.ms.rdm.impl.repository.AttributeValidationRepository;
+import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
+import ru.inovus.ms.rdm.impl.repository.RefBookConflictRepository;
+import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.*;
 import ru.inovus.ms.rdm.impl.util.mappers.NonStrictOnTypeRowMapper;
 import ru.inovus.ms.rdm.impl.util.mappers.PlainRowMapper;
@@ -72,8 +74,6 @@ import java.util.function.Supplier;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
-import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.FILE_CONTENT_INVALID_EXCEPTION_CODE;
-import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.throwFileContentError;
 
 @Primary
 @Service
