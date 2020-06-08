@@ -2,9 +2,11 @@ package ru.inovus.ms.rdm.impl.file.process;
 
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.data.util.Pair;
+import ru.inovus.ms.rdm.api.exception.FileContentException;
+import ru.inovus.ms.rdm.api.exception.FileProcessingException;
+import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
-import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidation;
 import ru.inovus.ms.rdm.api.service.DraftService;
 
@@ -13,9 +15,6 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-
-import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.throwFileContentError;
-import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.throwFileProcessingError;
 
 public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
 
@@ -46,13 +45,13 @@ public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
             pair = getStructureAndValidations();
 
         }  catch (IOException e) {
-            throwFileContentError(e);
+            throw new FileContentException(e);
 
         } catch (UserException e) {
             throw e;
 
         } catch (Exception e) {
-            throwFileProcessingError(e);
+            throw new FileProcessingException(e);
         }
 
         if (passport != null && pair != null) {
