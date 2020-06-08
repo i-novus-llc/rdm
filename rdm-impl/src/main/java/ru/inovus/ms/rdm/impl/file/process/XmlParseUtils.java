@@ -11,7 +11,6 @@ import java.io.InputStream;
 import java.util.*;
 
 import static java.util.Arrays.asList;
-import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.*;
 
 public class XmlParseUtils {
 

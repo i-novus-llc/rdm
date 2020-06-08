@@ -24,6 +24,7 @@ import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.api.enumeration.ConflictType;
 import ru.inovus.ms.rdm.api.enumeration.FileType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.api.exception.FileContentException;
 import ru.inovus.ms.rdm.api.exception.FileExtensionException;
 import ru.inovus.ms.rdm.api.exception.NotFoundException;
 import ru.inovus.ms.rdm.api.exception.RdmException;
@@ -74,14 +75,13 @@ import java.util.function.Supplier;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
-import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.FILE_CONTENT_INVALID_EXCEPTION_CODE;
-import static ru.inovus.ms.rdm.impl.file.process.FileParseUtils.throwFileContentError;
 
 @Primary
 @Service
 public class DraftServiceImpl implements DraftService {
 
     private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
+    public static final String FILE_CONTENT_INVALID_EXCEPTION_CODE = "file.content.invalid";
 
     private RefBookVersionRepository versionRepository;
     private RefBookConflictRepository conflictRepository;
@@ -229,7 +229,7 @@ public class DraftServiceImpl implements DraftService {
 
         } catch (NoSuchElementException e) {
             if (FILE_CONTENT_INVALID_EXCEPTION_CODE.equals(e.getMessage()))
-                throwFileContentError(e);
+                throw new FileContentException(e);
 
             throw e;
 
