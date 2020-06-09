@@ -10,9 +10,8 @@ import net.n2oapp.framework.api.register.DynamicMetadataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.inovus.ms.rdm.api.model.Structure;
-import ru.inovus.ms.rdm.n2o.service.DataRecordController;
 import ru.inovus.ms.rdm.api.service.VersionService;
-import ru.inovus.ms.rdm.n2o.util.RdmUiUtil;
+import ru.inovus.ms.rdm.n2o.service.DataRecordController;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,7 +19,8 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
-import static java.util.stream.Stream.of;
+import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addFieldProperty;
+import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
 
 @Service
 public class DataRecordQueryProvider implements DynamicMetadataProvider {
@@ -29,7 +29,12 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
 
     private static final String CONTROLLER_CLASS_NAME = DataRecordController.class.getName();
     private static final String CONTROLLER_METHOD = "getRow";
-    private static final String VERSION_ID_NAME = "versionId";
+
+    static final String VERSION_ID_NAME = "versionId";
+    static final String SYS_RECORD_ID_NAME = "sysRecordId";
+
+    public static final String REFERENCE_VALUE = "value";
+    public static final String REFERENCE_DISPLAY_VALUE = "displayValue";
 
     @Autowired
     private VersionService versionService;
@@ -59,9 +64,11 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
 
     @SuppressWarnings("WeakerAccess")
     public N2oQuery createQuery(Integer versionId, Structure structure) {
+
         N2oQuery n2oQuery = new N2oQuery();
-        n2oQuery.setUniques(new N2oQuery.Selection[]{createSelection()});
+        n2oQuery.setUniques(new N2oQuery.Selection[]{ createSelection() });
         n2oQuery.setFields(createQueryFields(versionId, structure));
+
         return n2oQuery;
     }
 
@@ -78,12 +85,12 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
 
         Argument sysRecordId = new Argument();
         sysRecordId.setType(Argument.Type.PRIMITIVE);
-        sysRecordId.setName("sysRecordId");
+        sysRecordId.setName(SYS_RECORD_ID_NAME);
 
-        provider.setArguments(new Argument[]{versionId, sysRecordId});
+        provider.setArguments(new Argument[]{ versionId, sysRecordId });
 
         N2oQuery.Selection selection = new N2oQuery.Selection(N2oQuery.Selection.Type.list);
-        selection.setFilters(VERSION_ID_NAME + ",sysRecordId");
+        selection.setFilters(VERSION_ID_NAME + "," + SYS_RECORD_ID_NAME);
         selection.setResultMapping("#this");
         selection.setInvocation(provider);
         return selection;
@@ -99,65 +106,78 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
         versionIdFilter.setMapping("[0]");
         versionIdFilter.setDomain(N2oDomain.INTEGER);
         versionIdFilter.setDefaultValue(String.valueOf(versionId));
-        versionIdField.setFilterList(new N2oQuery.Filter[]{versionIdFilter});
+        versionIdField.setFilterList(new N2oQuery.Filter[]{ versionIdFilter });
 
         N2oQuery.Field recordIdField = new N2oQuery.Field();
         recordIdField.setId("id");
         recordIdField.setSelectMapping("['id']");
         N2oQuery.Filter recordIdFilter = new N2oQuery.Filter();
         recordIdFilter.setType(FilterType.eq);
-        recordIdFilter.setFilterField("sysRecordId");
+        recordIdFilter.setFilterField(SYS_RECORD_ID_NAME);
         recordIdFilter.setMapping("[1]");
         recordIdFilter.setDomain(N2oDomain.INTEGER);
-        recordIdField.setFilterList(new N2oQuery.Filter[]{recordIdFilter});
+        recordIdField.setFilterList(new N2oQuery.Filter[]{ recordIdFilter });
 
         return Stream.concat(
-                of(versionIdField, recordIdField),
-                dynamicFields(structure).stream())
+                Stream.of(versionIdField, recordIdField),
+                createDynamicFields(structure).stream())
                 .toArray(N2oQuery.Field[]::new);
     }
 
-    private List<N2oQuery.Field> dynamicFields(Structure structure) {
+    private List<N2oQuery.Field> createDynamicFields(Structure structure) {
+
         List<N2oQuery.Field> list = new ArrayList<>();
         for (Structure.Attribute attribute : structure.getAttributes()) {
-            String codeWithPrefix = RdmUiUtil.addPrefix(attribute.getCode());
-
-            N2oQuery.Field field = new N2oQuery.Field();
-            field.setId(codeWithPrefix);
-            field.setName(attribute.getName());
-
-            String attributeMapping = getAttributeMapping(codeWithPrefix);
-            field.setSelectMapping(attributeMapping);
 
             switch (attribute.getType()) {
-                case INTEGER:
                 case STRING:
+                case INTEGER:
                 case FLOAT:
                 case DATE:
                 case BOOLEAN:
-                    field.setDomain(N2oDomain.fieldTypeToDomain(attribute.getType()));
+                    list.add(createField(attribute));
                     break;
 
                 case REFERENCE:
-                    // NB: field used as valueField
-                    field.setId(codeWithPrefix + ".value");
-                    field.setSelectMapping(attributeMapping + ".value");
-                    field.setDomain(N2oDomain.STRING);
-                    list.add(field);
-
-                    N2oQuery.Field displayField = new N2oQuery.Field();
-                    displayField.setId(codeWithPrefix + ".displayValue");
-                    displayField.setSelectMapping(attributeMapping + ".displayValue");
-                    displayField.setDomain(N2oDomain.STRING);
-                    list.add(displayField);
-                    continue;
+                    list.addAll(createReferenceFields(attribute));
+                    break;
 
                 default:
                     throw new IllegalArgumentException("attribute type not supported");
             }
-            list.add(field);
         }
         return list;
+    }
+
+    private N2oQuery.Field createField(Structure.Attribute attribute) {
+
+        final String codeWithPrefix = addPrefix(attribute.getCode());
+
+        N2oQuery.Field field = new N2oQuery.Field();
+        field.setId(codeWithPrefix);
+        field.setName(attribute.getName());
+        field.setSelectMapping(getAttributeMapping(codeWithPrefix));
+        field.setDomain(N2oDomain.fieldTypeToDomain(attribute.getType()));
+
+        return field;
+    }
+
+    private List<N2oQuery.Field> createReferenceFields(Structure.Attribute attribute) {
+
+        final String codeWithPrefix = addPrefix(attribute.getCode());
+        final String attributeMapping = getAttributeMapping(codeWithPrefix);
+
+        N2oQuery.Field valueField = new N2oQuery.Field();
+        valueField.setId(addFieldProperty(codeWithPrefix, REFERENCE_VALUE));
+        valueField.setSelectMapping(addFieldProperty(attributeMapping, REFERENCE_VALUE));
+        valueField.setDomain(N2oDomain.STRING);
+
+        N2oQuery.Field displayValueField = new N2oQuery.Field();
+        displayValueField.setId(addFieldProperty(codeWithPrefix, REFERENCE_DISPLAY_VALUE));
+        displayValueField.setSelectMapping(addFieldProperty(attributeMapping, REFERENCE_DISPLAY_VALUE));
+        displayValueField.setDomain(N2oDomain.STRING);
+
+        return List.of(valueField, displayValueField);
     }
 
     private String getAttributeMapping(String attributeCode) {
