@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.rest;
 
 import net.n2oapp.criteria.api.CollectionPage;
+import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.jaxrs.RestMessage;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
@@ -176,6 +177,10 @@ public class ApplicationTest {
     @Autowired
     @Qualifier("referenceServiceJaxRsProxyClient")
     private ReferenceService referenceService;
+
+    @Autowired
+    @Qualifier("refBookDataServiceJaxRsProxyClient")
+    private RefBookDataService refBookDataService;
 
     @Autowired
     private DataSource dataSource;
@@ -1700,7 +1705,7 @@ public class ApplicationTest {
         // Загрузка из файла.
         FileModel cardinalFileModel = createFileModel(CARDINAL_FILE_NAME, REF_BOOK_FILE_FOLDER + CARDINAL_FILE_NAME);
         assertNotNull(cardinalFileModel);
-        Draft cardinalDraft = refBookService.create(cardinalFileModel);
+        Draft cardinalDraft = refBookDataService.create(cardinalFileModel);
 
         assertNotNull(cardinalDraft);
         RefBookVersion cardinalVersion = versionService.getById(cardinalDraft.getId());
@@ -1732,7 +1737,7 @@ public class ApplicationTest {
         // Загрузка из файла.
         FileModel referrerFileModel = createFileModel(REFERRER_FILE_NAME, REF_BOOK_FILE_FOLDER + REFERRER_FILE_NAME);
         assertNotNull(referrerFileModel);
-        Draft referrerDraft = refBookService.create(referrerFileModel);
+        Draft referrerDraft = refBookDataService.create(referrerFileModel);
         assertNotNull(referrerDraft);
         RefBookVersion referrerVersion = versionService.getById(referrerDraft.getId());
         assertNotNull(referrerVersion);
@@ -2506,13 +2511,15 @@ public class ApplicationTest {
     }
 
     /**
-     * Создание справочника из файла
+     * Создание справочника из файла XML.
      */
     @Test
-    public void testCreateRefBookFromFile() {
-        FileModel fileModel = createFileModel("testCreateRefBookFromFilePath.xml", "refBook.xml");
+    public void testCreateRefBookFromXmlFile() {
 
-        Draft expected = refBookService.create(fileModel);
+        String filename = "fromXml.xml";
+
+        FileModel fileModel = createFileModel("testCreate_" + filename, "testCreate/" + filename);
+        Draft expected = refBookDataService.create(fileModel);
 
         // Наличие черновика:
         Draft actual = draftService.getDraft(expected.getId());
@@ -2541,7 +2548,36 @@ public class ApplicationTest {
         }};
         List actualData1 = search.getContent().get(1).getFieldValues();
         assertEquals(expectedData1, actualData1);
+    }
 
+    /**
+     * Создание справочника из файла XML неправильного формата.
+     */
+    @Test
+    public void testCreateRefBookFromBadXmlFile() {
+
+        // Общие проверки файла:
+        failCreateRefBook("badNoExt", "file.extension.invalid");
+        failCreateRefBook("badAnsi.xml", "file.content.invalid");
+
+        // Проверки файла по блокам:
+        failCreateRefBook("badRefBookCodeTag.xml", "file.content.invalid");
+        failCreateRefBook("badPassportNameTag.xml", "file.content.invalid");
+        failCreateRefBook("badStructureRowCodeTag.xml", "file.content.invalid");
+        failCreateRefBook("badDataRowCodeTag.xml", "file.content.invalid");
+    }
+
+    private void failCreateRefBook(String filename, String message) {
+        try {
+            FileModel fileModel = createFileModel("testCreate_" + filename, "testCreate/" + filename);
+            Draft expected = refBookDataService.create(fileModel);
+
+            fail("Ожидается ошибка:\n" + message);
+
+        } catch (RestException e) {
+            assertEquals(message, getExceptionMessage(e));
+
+        }
     }
 
     private boolean equalsFieldValues(List<Field> fields, List<FieldValue> values1, List<FieldValue> values2) {
@@ -2907,6 +2943,22 @@ public class ApplicationTest {
 
         if (!isEmpty(re.getErrors()))
             return re.getErrors().get(0).getMessage();
+
+        return null;
+    }
+
+    /** Получение кода сообщения об ошибке из исключения. */
+    private static String getExceptionMessage(Exception e) {
+
+        if (e instanceof UserException) {
+            UserException ue = (UserException) e;
+
+            if (!isEmpty(ue.getMessages()))
+                return ue.getMessages().get(0).getCode();
+        }
+
+        if (!StringUtils.isEmpty(e.getMessage()))
+            return e.getMessage();
 
         return null;
     }

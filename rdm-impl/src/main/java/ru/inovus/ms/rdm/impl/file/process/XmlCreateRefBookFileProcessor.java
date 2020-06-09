@@ -18,7 +18,7 @@ import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.*;
 
 public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor implements Closeable {
 
-    private static final String REFBOOK_DOES_NOT_CREATE_EXCEPTION_CODE = "refbook.does.not.create";
+    private static final String REFBOOK_IS_NOT_CREATED_EXCEPTION_CODE = "refbook.is.not.created";
 
     private static final String CODE_TAG_NAME = "code";
     private static final String PASSPORT_TAG_NAME = "passport";
@@ -70,7 +70,7 @@ public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor im
             return new RefBookCreateRequest(refBookCode, null, null);
         }
 
-        throw new FileProcessingException(new UserException(REFBOOK_DOES_NOT_CREATE_EXCEPTION_CODE));
+        throw new UserException(REFBOOK_IS_NOT_CREATED_EXCEPTION_CODE);
     }
 
     @Override
