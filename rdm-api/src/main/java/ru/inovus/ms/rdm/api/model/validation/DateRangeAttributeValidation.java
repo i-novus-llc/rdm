@@ -11,6 +11,10 @@ import static ru.inovus.ms.rdm.api.util.TimeUtils.format;
 
 public class DateRangeAttributeValidation extends AttributeValidation {
 
+    private static final String ATTRIBUTE_VALIDATION_DATE_RANGE_INVALID_EXCEPTION_CODE = "attribute.validation.date.range.invalid";
+
+    private static final String DATE_RANGE_REGEX = "(\\d{2}\\.\\d{2}\\.\\d{4})?;(\\d{2}\\.\\d{2}\\.\\d{4})?";
+
     private LocalDate min;
     private LocalDate max;
 
@@ -20,6 +24,7 @@ public class DateRangeAttributeValidation extends AttributeValidation {
 
     public DateRangeAttributeValidation(LocalDate min, LocalDate max) {
         this();
+
         this.min = min;
         this.max = max;
     }
@@ -47,19 +52,25 @@ public class DateRangeAttributeValidation extends AttributeValidation {
 
     @Override
     public DateRangeAttributeValidation valueFromString(String value) {
-        if (value == null || !value.matches("(\\d{2}\\.\\d{2}\\.\\d{4})?;(\\d{2}\\.\\d{2}\\.\\d{4})?"))
-            throw new UserException("check.your.date.format");
+
+        if (value == null || !value.matches(DATE_RANGE_REGEX))
+            throw new UserException(ATTRIBUTE_VALIDATION_DATE_RANGE_INVALID_EXCEPTION_CODE);
+
         String[] split = value.split(";");
         try {
-            if (!split[0].isEmpty())
+            if (split.length > 0 && !split[0].isEmpty())
                 min = LocalDate.parse(split[0], TimeUtils.STRICT_EUROPEAN_FORMATTER);
-            if (!split[1].isEmpty())
+
+            if (split.length > 1 && !split[1].isEmpty())
                 max = LocalDate.parse(split[1], TimeUtils.STRICT_EUROPEAN_FORMATTER);
+
             if (min != null && max != null && min.isAfter(max))
                 throw new UserException("invalid.range");
-        } catch (DateTimeParseException ex) {
-            throw new UserException("check.your.date.format");
+
+        } catch (DateTimeParseException e) {
+            throw new UserException(ATTRIBUTE_VALIDATION_DATE_RANGE_INVALID_EXCEPTION_CODE, e);
         }
+
         return this;
     }
 
@@ -68,6 +79,7 @@ public class DateRangeAttributeValidation extends AttributeValidation {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
+
         DateRangeAttributeValidation that = (DateRangeAttributeValidation) o;
         return Objects.equals(min, that.min) &&
                 Objects.equals(max, that.max);
