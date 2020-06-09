@@ -592,6 +592,16 @@ public class DraftServiceImpl implements DraftService {
         return new RowValuePage(pagedData).map(rv -> new RefBookRowValue((LongRowValue) rv, draft.getId()));
     }
 
+    @Override
+    @Transactional
+    public Boolean hasData(Integer draftId) {
+
+        versionValidation.validateDraftExists(draftId);
+
+        RefBookVersionEntity draft = versionRepository.getOne(draftId);
+        return searchDataService.hasData(draft.getStorageCode());
+    }
+
     private RefBookVersionEntity getLastRefBookVersion(Integer refBookId) {
         return versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(refBookId, RefBookVersionStatus.PUBLISHED);
     }
