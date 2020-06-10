@@ -12,7 +12,6 @@ import net.n2oapp.framework.api.metadata.global.dao.validation.N2oValidation;
 import net.n2oapp.framework.api.register.DynamicMetadataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.api.service.VersionService;
@@ -193,7 +192,6 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
         final String codeWithPrefix = addPrefix(attribute.getCode());
 
         N2oObject.Parameter parameter = new N2oObject.Parameter();
-        parameter.setId(codeWithPrefix);
         parameter.setMapping("[1].data['" + attribute.getCode() + "']");
 
         switch (attribute.getType()) {
@@ -202,9 +200,9 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
             case FLOAT:
             case DATE:
             case BOOLEAN:
+                parameter.setId(codeWithPrefix);
                 parameter.setDomain(N2oDomain.fieldTypeToDomain(attribute.getType()));
-                if (attribute.getType() == FieldType.BOOLEAN)
-                    parameter.setDefaultValue("false");
+                enrichParam(parameter, attribute);
                 break;
 
             case REFERENCE:
@@ -217,5 +215,22 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
         }
 
         return parameter;
+    }
+
+    /** Заполнение дополнительных полей параметра в зависимости от типа атрибута. */
+    private void enrichParam(N2oObject.Parameter parameter, Structure.Attribute attribute) {
+
+        switch (attribute.getType()) {
+            case DATE:
+                parameter.setNormalize("T(ru.inovus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)");
+                break;
+
+            case BOOLEAN:
+                parameter.setDefaultValue("false");
+                break;
+
+            default:
+                break;
+        }
     }
 }
