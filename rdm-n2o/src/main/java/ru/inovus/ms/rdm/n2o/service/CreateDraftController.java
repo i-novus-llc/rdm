@@ -35,6 +35,9 @@ import static java.util.Collections.*;
 @SuppressWarnings("unused")
 public class CreateDraftController {
 
+    private static final String UPDATED_DATA_NOT_FOUND_IN_CURRENT_EXCEPTION_CODE = "updated.data.not.found.in.current";
+    private static final String UPDATED_DATA_NOT_FOUND_IN_DRAFT_EXCEPTION_CODE = "updated.data.not.found.in.draft";
+
     private RefBookService refBookService;
     private VersionService versionService;
     private DraftService draftService;
@@ -119,12 +122,12 @@ public class CreateDraftController {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
+        // Изменение записи в опубликованной версии:
         if (!Objects.equals(versionId, uiDraft.getId())) {
             row.setSystemId(calculateNewSystemId(row.getSystemId(), versionId, uiDraft.getId()));
         }
-//      Значит была нажата кнопка "Добавить строку".
-//      Если добавят строку с существующим первичным ключом, ошибки не будет, строка просто обновится новыми данными.
-//      Поэтому надо самим проверить, есть ли уже такой первичный ключ в справочнике и если есть -- бросить ошибку.
+
+        // Поиск добавляемой записи по первичным ключам:
         if (row.getSystemId() == null) {
             RefBookVersion refBookVersion = versionService.getById(uiDraft.getId());
             List<Structure.Attribute> primary = refBookVersion.getStructure().getPrimary();
@@ -133,11 +136,13 @@ public class CreateDraftController {
                 SearchDataCriteria searchDataCriteria = new SearchDataCriteria(Set.of(primaryKeyValueFilters), null);
                 searchDataCriteria.setPageSize(1);
                 searchDataCriteria.setPageNumber(1);
-                long n = versionService.search(uiDraft.getId(), searchDataCriteria).getTotalElements();
-                if (n > 0)
+
+                long total = versionService.search(uiDraft.getId(), searchDataCriteria).getTotalElements();
+                if (total > 0)
                     throw new UserException("pk.is.already.exists");
             }
         }
+
         dataRecordController.updateData(uiDraft.getId(), row);
         return uiDraft;
     }
@@ -149,6 +154,7 @@ public class CreateDraftController {
         if (!Objects.equals(versionId, uiDraft.getId())) {
             systemId = calculateNewSystemId(systemId, versionId, uiDraft.getId());
         }
+
         draftService.deleteRow(uiDraft.getId(), new Row(systemId, emptyMap()));
         return uiDraft;
     }
@@ -161,6 +167,7 @@ public class CreateDraftController {
     }
 
     private Long calculateNewSystemId(Long oldSystemId, Integer oldVersionId, Integer newVersionId) {
+
         if (oldSystemId == null) return null;
 
         SearchDataCriteria criteria = new SearchDataCriteria();
@@ -168,14 +175,16 @@ public class CreateDraftController {
         criteria.setAttributeFilter(singleton(singletonList(recordIdFilter)));
 
         Page<RefBookRowValue> oldRow = versionService.search(oldVersionId, criteria);
-        if (CollectionUtils.isEmpty(oldRow.getContent())) throw new NotFoundException("record not found");
+        if (CollectionUtils.isEmpty(oldRow.getContent()))
+            throw new NotFoundException(UPDATED_DATA_NOT_FOUND_IN_CURRENT_EXCEPTION_CODE);
         String hash = oldRow.getContent().get(0).getHash();
 
         AttributeFilter hashFilter = new AttributeFilter(DataConstants.SYS_HASH, hash, FieldType.STRING);
         final SearchDataCriteria hashCriteria = new SearchDataCriteria(ImmutableSet.of(singletonList(hashFilter)), null);
 
         final Page<RefBookRowValue> newRow = versionService.search(newVersionId, hashCriteria);
-        if (CollectionUtils.isEmpty(newRow.getContent())) throw new NotFoundException("record not found");
+        if (CollectionUtils.isEmpty(newRow.getContent()))
+            throw new NotFoundException(UPDATED_DATA_NOT_FOUND_IN_DRAFT_EXCEPTION_CODE);
         return newRow.getContent().get(0).getSystemId();
     }
 
@@ -214,5 +223,4 @@ public class CreateDraftController {
 
         return new UiDraft(versionId, version.getRefBookId());
     }
-
 }
