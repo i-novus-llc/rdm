@@ -116,10 +116,10 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
     }
 
     private boolean isCorrectType(Map<Structure.Attribute, Object> primaryKeyMap) {
+
         return primaryKeyMap.keySet().stream()
                 .allMatch(attribute ->
-                        TypeValidation.checkType(attribute.getType(), attribute.getCode(),
-                                primaryKeyMap.get(attribute)) == null
+                        TypeValidation.validateType(attribute, primaryKeyMap.get(attribute)) == null
                 );
     }
 
