@@ -23,17 +23,22 @@ public class RowUtils {
     private RowUtils() {
     }
 
-    /** Проверка строки данных на наличие значений. */
+    /** Проверка строки данных на отсутствие значений. */
     public static boolean isEmptyRow(Row row) {
         return row == null
                 || row.getData().values().stream().allMatch(ObjectUtils::isEmpty);
     }
 
-    /** Сравнение значения из Row::getData::get и из RefBookRowValue::getFieldValue. */
+    /**
+     * Сравнение значения из разных записей.
+     *
+     * @param newDataValue  значение из Row::getData::get
+     * @param oldFieldValue значение из RefBookRowValue::getFieldValue
+     * @return Результат проверки
+     */
     public static boolean equalsValues(Object newDataValue, FieldValue<?> oldFieldValue) {
 
-        if ((newDataValue != null && oldFieldValue == null)
-                || (newDataValue == null && oldFieldValue != null))
+        if ((newDataValue == null) != (oldFieldValue == null))
             return false;
 
         if (newDataValue == null)
@@ -42,20 +47,28 @@ public class RowUtils {
         Object oldDataValue = oldFieldValue.getValue();
         if (newDataValue instanceof Reference
                 && oldDataValue instanceof Reference
-                && !Objects.equals(((Reference) newDataValue).getValue(),  ((Reference) oldDataValue).getValue()))
+                && !Objects.equals(((Reference) newDataValue).getValue(), ((Reference) oldDataValue).getValue()))
             return false;
 
         return Objects.equals(newDataValue, oldDataValue);
     }
 
-    /** Сравнение значений из Row и из RefBookRowValue по атрибутам. */
-    public static boolean equalsValuesByAttributes(Row newRow, RefBookRowValue oldRowValue, List<Structure.Attribute> attributes) {
+    /**
+     *  Сравнение значений по атрибутам.
+     *
+     * @param newRow      новая запись
+     * @param oldRowValue старая запись
+     * @param attributes  список атрибутов
+     * @return Результат проверки
+     */
+    public static boolean equalsValuesByAttributes(Row newRow, RefBookRowValue oldRowValue,
+                                                   List<Structure.Attribute> attributes) {
         return attributes.stream()
                 .allMatch(attribute -> {
                     Object newDataValue = newRow.getData().get(attribute.getCode());
                     @SuppressWarnings("unchecked")
                     FieldValue<Serializable> oldFieldValue = oldRowValue.getFieldValue(attribute.getCode());
-                    return RowUtils.equalsValues(newDataValue, oldFieldValue);
+                    return equalsValues(newDataValue, oldFieldValue);
                 });
     }
 
@@ -82,8 +95,15 @@ public class RowUtils {
                 && rowValues.stream().anyMatch(rowValue -> isSystemIdRowValue(systemId, rowValue));
     }
 
-    public static List<AttributeFilter> getPrimaryKeyValueFilters(Row row, List<Structure.Attribute> primaryKeys) {
-        return primaryKeys.stream()
+    /**
+     * Создание фильтров по точному совпадению значений первичных ключей.
+     *
+     * @param row       запись со значениями
+     * @param primaries первичные ключи
+     * @return Список фильтров
+     */
+    public static List<AttributeFilter> getPrimaryKeyValueFilters(Row row, List<Structure.Attribute> primaries) {
+        return primaries.stream()
                 .map(key -> {
                     Object value = row.getData().get(key.getCode());
                     if (value == null)
