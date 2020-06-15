@@ -76,7 +76,8 @@
         </region>
 
         <tabs place="single">
-            <form ref-id="passport" name="Паспорт" id="passport_form" depends-on="version_select"
+            <form ref-id="passport" name="Паспорт" id="passport_form"
+                  depends-on="version_select" fetch-on-init="true"
                   master-field-id="id" detail-field-id="version.id" object-id="refBook">
                 <toolbar place="bottomRight">
                     <!-- '.*_r$' паттерн названия кнопки, при котором обновляется виджет version_select -->
@@ -88,8 +89,9 @@
                 </toolbar>
             </form>
 
-            <table ref-id="structure" name="Структура" id="structure_table" depends-on="version_select"
-                   master-field-id="id" detail-field-id="versionId" upload="query" fetch-on-init="true">
+            <table ref-id="structure" name="Структура" id="structure_table"
+                   upload="query" depends-on="version_select" fetch-on-init="true"
+                   master-field-id="id" detail-field-id="versionId">
                 <toolbar place="bottomRight">
                     <button label="Добавить" id="createAttribute_r" model="resolve" widget-id="version_select">
                         <show-modal page-id="attribute" submit-operation-id="create" upload="defaults">
@@ -113,17 +115,18 @@
                 </toolbar>
             </table>
 
-            <table src="DataGrid" name="Данные" id="dataTable" query-id="data" depends-on="version_select"
-                   master-field-id="id" detail-field-id="versionId" object-id="data" fetch-on-init="true">
+            <table src="DataGrid" name="Данные" id="dataTable"
+                   query-id="data" depends-on="version_select" fetch-on-init="true"
+                   master-field-id="id" detail-field-id="versionId" object-id="data">
                 <toolbar place="topRight">
                     <!--to-do: сделать отдельные кнопки без рефреша для редактирования черновика-->
-                    <button id="createRecord_r" label="Добавить строку" icon="fa fa-plus" model="resolve" widget-id="version_select">
+                    <button id="createRecord_r" label="Добавить строку" icon="fa fa-plus"
+                            widget-id="version_select" model="resolve">
                         <show-modal page-id="dataRecordPage?{id}_create" upload="defaults" route="/create"
                                     submit-operation-id="create" refresh-widget-id="version_select"/>
                     </button>
-                    <!-- порядок кнопок в данном toolbar важен, так как эта кнопка изменяется в UpdateDependencyTransformer-->
                     <button id="updateRecord_r" label="Изменить строку" icon="fa fa-pencil"
-                            widget-id="version_select" model="resolve">
+                            widget-id="version_select" model="resolve" enabling-condition="!_.isEmpty(dataTable)">
                         <show-modal page-id="dataRecordPage?{id}_edit" upload="query" route="/update"
                                     submit-operation-id="update" refresh-widget-id="version_select">
                             <pre-filters>
@@ -140,14 +143,15 @@
                 </toolbar>
             </table>
 
-            <table src="DataGrid" name="Данные с конфликтами" id="dataTableWithConflicts" query-id="data" depends-on="version_select"
-                   master-field-id="id" detail-field-id="versionId" object-id="data" fetch-on-init="true">
+            <table src="DataGrid" name="Данные с конфликтами" id="dataTableWithConflicts"
+                   query-id="data" depends-on="version_select" fetch-on-init="true"
+                   master-field-id="id" detail-field-id="versionId" object-id="data">
                 <pre-filters>
                     <eq field-id="hasDataConflict" value="true"/>
                 </pre-filters>
                 <toolbar place="topRight">
                     <button id="updateConflictedRecord_r" label="Изменить строку" icon="fa fa-pencil"
-                            widget-id="version_select" model="resolve">
+                            widget-id="version_select" model="resolve" enabling-condition="!_.isEmpty(dataTableWithConflicts)">
                         <show-modal page-id="dataRecordPage?{id}_edit" upload="query" route="/update"
                                     submit-operation-id="update" refresh-widget-id="version_select">
                             <pre-filters>
