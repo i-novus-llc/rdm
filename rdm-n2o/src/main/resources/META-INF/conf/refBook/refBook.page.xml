@@ -93,7 +93,8 @@
                    upload="query" depends-on="version_select" fetch-on-init="true"
                    master-field-id="id" detail-field-id="versionId">
                 <toolbar place="bottomRight">
-                    <button label="Добавить" id="createAttribute_r" model="resolve" widget-id="version_select">
+                    <button label="Добавить" id="createAttribute_r"
+                            widget-id="version_select" model="resolve">
                         <show-modal page-id="attribute" submit-operation-id="create" upload="defaults">
                             <pre-filters>
                                 <eq field-id="versionId" value="{version.id}" ref-model="resolve"
@@ -121,12 +122,14 @@
                 <toolbar place="topRight">
                     <!--to-do: сделать отдельные кнопки без рефреша для редактирования черновика-->
                     <button id="createRecord_r" label="Добавить строку" icon="fa fa-plus"
-                            widget-id="version_select" model="resolve">
+                            widget-id="version_select" model="resolve"
+                            enabling-condition="!version.isEmptyStructure">
                         <show-modal page-id="dataRecordPage?{id}_create" upload="defaults" route="/create"
                                     submit-operation-id="create" refresh-widget-id="version_select"/>
                     </button>
                     <button id="updateRecord_r" label="Изменить строку" icon="fa fa-pencil"
-                            widget-id="version_select" model="resolve" enabling-condition="!_.isEmpty(dataTable)">
+                            widget-id="version_select" model="resolve"
+                            enabling-condition="!_.isEmpty(dataTable)">
                         <show-modal page-id="dataRecordPage?{id}_edit" upload="query" route="/update"
                                     submit-operation-id="update" refresh-widget-id="version_select">
                             <pre-filters>
@@ -151,7 +154,8 @@
                 </pre-filters>
                 <toolbar place="topRight">
                     <button id="updateConflictedRecord_r" label="Изменить строку" icon="fa fa-pencil"
-                            widget-id="version_select" model="resolve" enabling-condition="!_.isEmpty(dataTableWithConflicts)">
+                            widget-id="version_select" model="resolve"
+                            enabling-condition="!_.isEmpty(dataTableWithConflicts)">
                         <show-modal page-id="dataRecordPage?{id}_edit" upload="query" route="/update"
                                     submit-operation-id="update" refresh-widget-id="version_select">
                             <pre-filters>
