@@ -111,12 +111,19 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         List<N2oField> list = new ArrayList<>();
         for (Structure.Attribute attribute : structure.getAttributes()) {
 
+            N2oStandardField n2oField;
             if (attribute.isReferenceType()) {
-                list.add(createReferenceField(versionId, attribute));
+                n2oField = createReferenceField(versionId, attribute);
 
             } else {
-                list.add(createField(attribute));
+                n2oField = createField(attribute);
             }
+
+            if (attribute.hasIsPrimary()) {
+                n2oField.setRequired(true);
+            }
+
+            list.add(n2oField);
         }
         return list;
     }
