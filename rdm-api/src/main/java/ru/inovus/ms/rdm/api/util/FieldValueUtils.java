@@ -40,9 +40,9 @@ public class FieldValueUtils {
      * @param primaryKeyCodes   список кодов первичных ключей
      * @return Отображаемое значение
      */
-    public static String rowValueToDisplayValue(String displayExpression,
-                                                RowValue rowValue,
-                                                List<String> primaryKeyCodes) {
+    public static String toDisplayValue(String displayExpression,
+                                        RowValue rowValue,
+                                        List<String> primaryKeyCodes) {
         return toDisplayValue(displayExpression, ((LongRowValue)rowValue).getFieldValues(), primaryKeyCodes);
     }
 
@@ -75,7 +75,7 @@ public class FieldValueUtils {
         if (!CollectionUtils.containsAny(placeholders.keySet(), primaryKeyCodes)) {
 
             String primaryKeysValue = primaryKeyCodes.stream()
-                    .map(code -> map.get(code).toString())
+                    .map(code -> String.valueOf(map.get(code)))
                     .filter(value -> !StringUtils.isEmpty(value))
                     .reduce("", (result, value) -> result + value + PRIMARY_KEY_CODE_DELIMITER);
             displayValue = primaryKeysValue + displayValue;
@@ -88,7 +88,7 @@ public class FieldValueUtils {
     private static String toDisplayValue(FieldValue fieldValue, Map<String, String> placeholders) {
 
         if (fieldValue.getValue() != null)
-            return fieldValue.getValue().toString();
+            return String.valueOf(fieldValue.getValue());
 
         String value = placeholders.get(fieldValue.getField());
         return (value != null) ? value : "";
