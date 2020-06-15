@@ -54,12 +54,7 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
         Integer versionId = Integer.parseInt(context);
         Structure structure = versionService.getStructure(versionId);
 
-        N2oObject n2oObject = new N2oObject();
-        n2oObject.setOperations(new N2oObject.Operation[]{
-                getCreateOperation(versionId, structure),
-                getUpdateOperation(versionId, structure)
-        });
-        return singletonList(n2oObject);
+        return singletonList(createObject(versionId, structure));
     }
 
     @Override
@@ -67,11 +62,23 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
         return singletonList(N2oObject.class);
     }
 
+    private N2oObject createObject(Integer versionId, Structure structure) {
+
+        N2oObject n2oObject = new N2oObject();
+        n2oObject.setOperations(new N2oObject.Operation[]{
+                getCreateOperation(versionId, structure),
+                getUpdateOperation(versionId, structure)
+        });
+
+        return n2oObject;
+    }
+
     private N2oObject.Operation getCreateOperation(Integer versionId, Structure structure) {
 
         N2oObject.Operation operation = new N2oObject.Operation();
         operation.setId("create");
         operation.setFormSubmitLabel("Сохранить");
+
         operation.setInvocation(createInvocation());
         operation.setInParameters(Stream.concat(
                 Stream.of(versionIdParameter(versionId)),
@@ -86,6 +93,7 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
         N2oObject.Operation operation = new N2oObject.Operation();
         operation.setId("update");
         operation.setFormSubmitLabel("Изменить");
+
         operation.setInvocation(createInvocation());
         operation.setInParameters(Stream.concat(
                 Stream.of(versionIdParameter(versionId), systemIdParameter()),
@@ -114,7 +122,7 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
         rowSystemIdArgument.setClassName("java.lang.Long");
         rowSystemIdArgument.setName("rowSystemId");
 
-        dataProvider.setArguments(new Argument[] {refFromIdArgument, rowSystemIdArgument});
+        dataProvider.setArguments(new Argument[]{ refFromIdArgument, rowSystemIdArgument });
 
         N2oConstraint constraint = new N2oConstraint();
         constraint.setId("checkDataConflicts");

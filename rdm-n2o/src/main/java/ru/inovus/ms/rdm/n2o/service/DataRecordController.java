@@ -59,11 +59,11 @@ public class DataRecordController {
         AttributeFilter recordIdFilter = new AttributeFilter(SYS_PRIMARY_COLUMN, sysRecordId, FieldType.INTEGER);
         criteria.setAttributeFilter(singleton(singletonList(recordIdFilter)));
 
-        Page<RefBookRowValue> search = versionService.search(versionId, criteria);
-        if (isEmpty(search.getContent()))
+        Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
+        if (rowValues == null || isEmpty(rowValues.getContent()))
             return emptyMap();
 
-        return getRow(versionId, sysRecordId, search.getContent().get(0));
+        return getRow(versionId, sysRecordId, rowValues.getContent().get(0));
     }
 
     public Map<String, Object> getRow(Integer versionId, Integer sysRecordId, LongRowValue rowValue) {
