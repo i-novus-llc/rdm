@@ -128,8 +128,7 @@
                                     submit-operation-id="create" refresh-widget-id="version_select"/>
                     </button>
                     <button id="updateRecord_r" label="Изменить строку" icon="fa fa-pencil"
-                            widget-id="version_select" model="resolve"
-                            enabling-condition="!_.isEmpty(dataTable)">
+                            widget-id="version_select" model="resolve">
                         <show-modal page-id="dataRecordPage?{id}_edit" upload="query" route="/update"
                                     submit-operation-id="update" refresh-widget-id="version_select">
                             <pre-filters>
@@ -154,8 +153,7 @@
                 </pre-filters>
                 <toolbar place="topRight">
                     <button id="updateConflictedRecord_r" label="Изменить строку" icon="fa fa-pencil"
-                            widget-id="version_select" model="resolve"
-                            enabling-condition="!_.isEmpty(dataTableWithConflicts)">
+                            widget-id="version_select" model="resolve">
                         <show-modal page-id="dataRecordPage?{id}_edit" upload="query" route="/update"
                                     submit-operation-id="update" refresh-widget-id="version_select">
                             <pre-filters>
