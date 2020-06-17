@@ -14,6 +14,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.inovus.ms.rdm.api.enumeration.FileType;
+import ru.inovus.ms.rdm.api.exception.FileExtensionException;
 import ru.inovus.ms.rdm.api.model.ExportFile;
 import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.service.FileStorageService;
@@ -26,7 +27,10 @@ import java.io.IOException;
 @SuppressWarnings("unused")
 public class FilesRestController {
 
+    private static final String FILE_IS_TOO_BIG_EXCEPTION_CODE = "file.is.too.big";
+
     private final FileStorageService fileStorageService;
+
     private final VersionService versionService;
 
     @Value("${rdm.max-file-size-mb:55}")
@@ -45,7 +49,7 @@ public class FilesRestController {
 
         long size = file.getSize();
         if (size / 1024 / 1024 > maxFileSizeMb)
-            throw new UserException(new Message("file.is.too.big", maxFileSizeMb));
+            throw new UserException(new Message(FILE_IS_TOO_BIG_EXCEPTION_CODE, maxFileSizeMb));
 
         String storageFileName = toStorageFileName(file.getOriginalFilename());
 
@@ -59,7 +63,7 @@ public class FilesRestController {
 
         String extension = FilenameUtils.getExtension(originalFilename);
         if (StringUtils.isEmpty(extension))
-            throw new UserException(new Message("file.extension.invalid"));
+            throw new FileExtensionException();
 
         return System.currentTimeMillis() + "." + extension;
     }
