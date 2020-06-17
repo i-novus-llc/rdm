@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.impl.service;
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -172,8 +171,8 @@ public class DraftServiceImpl implements DraftService {
     private Draft updateDraftDataByFile(Integer refBookId, FileModel fileModel) {
 
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
-        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
-        switch (extension) {
+
+        switch (FileUtil.getExtension(fileModel.getName())) {
             case "XLSX": return updateDraftDataByXlsx(refBookId, fileModel, inputStreamSupplier);
             case "XML": return updateDraftDataByXml(refBookId, fileModel, inputStreamSupplier);
             default: throw new FileExtensionException();
@@ -183,7 +182,7 @@ public class DraftServiceImpl implements DraftService {
     private Draft updateDraftDataByXlsx(Integer refBookId, FileModel fileModel,
                                         Supplier<InputStream> inputStreamSupplier) {
 
-        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
+        String extension = FileUtil.getExtension(fileModel.getName());
         BiConsumer<String, Structure> saveDraftConsumer = getSaveDraftConsumer(refBookId);
         RowsProcessor rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, saveDraftConsumer);
         processFileRows(extension, rowsProcessor, new PlainRowMapper(), inputStreamSupplier);
@@ -207,7 +206,7 @@ public class DraftServiceImpl implements DraftService {
 
         Structure structure = draft.getStructure();
 
-        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
+        String extension = FileUtil.getExtension(fileModel.getName());
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
 
         RowsProcessor rowsValidator = new RowsValidatorImpl(versionService, searchDataService,
@@ -327,7 +326,7 @@ public class DraftServiceImpl implements DraftService {
 
         Map<String, List<AttributeValidation>> validations = attributeValidationRepository.findAllByVersionId(versionId).stream()
                 .collect(groupingBy(AttributeValidationEntity::getAttribute, mapping(entity -> entity.getType().getValidationInstance().valueFromString(entity.getValue()), toList())));
-        CreateDraftRequest draftRequest  = new CreateDraftRequest(sourceVersion.getRefBook().getId(), sourceVersion.getStructure(), passport, validations);
+        CreateDraftRequest draftRequest = new CreateDraftRequest(sourceVersion.getRefBook().getId(), sourceVersion.getStructure(), passport, validations);
         Draft draft = create(draftRequest);
 
         draftDataService.loadData(draft.getStorageCode(), sourceVersion.getStorageCode(), sourceVersion.getFromDate(), sourceVersion.getToDate());
