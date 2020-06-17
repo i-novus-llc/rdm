@@ -250,9 +250,8 @@ public class DraftServiceImpl implements DraftService {
             versionValidation.validateDraftStructure(refBookCode, structure);
 
             // NB: structure == null means that draft was created during passport saving
-            if (draftVersion != null && draftVersion.getStructure() != null) {
-                dropDataService.drop(singleton(draftVersion.getStorageCode()));
-                versionRepository.deleteById(draftVersion.getId());
+            if (draftVersion != null && draftVersion.getStructure() != null && !draftVersion.getStructure().isEmpty()) {
+                removeDraft(draftVersion);
                 versionRepository.flush(); // Delete old draft before insert new draft!
 
                 draftVersion = newDraftVersion(structure, draftVersion.getPassportValues());
@@ -298,15 +297,19 @@ public class DraftServiceImpl implements DraftService {
         if (draftVersion == null) {
             draftVersion = newDraftVersion(structure, passportValues != null ? passportValues : lastRefBookVersion.getPassportValues());
             draftVersion.setRefBook(newRefBook(refBookId));
+
             String draftCode = draftDataService.createDraft(fields);
             draftVersion.setStorageCode(draftCode);
             draftVersion.getRefBook().setCode(lastRefBookVersion.getRefBook().getCode());
+
         } else {
-            draftVersion = updateDraft(structure, draftVersion, fields, passportValues);
+            draftVersion = recreateDraft(structure, draftVersion, fields, passportValues);
         }
 
         RefBookVersionEntity savedDraftVersion = versionRepository.save(draftVersion);
         addValidations(createDraftRequest.getFieldValidations(), savedDraftVersion);
+        // create display_damaged conflicts
+
         return new Draft(savedDraftVersion.getId(), savedDraftVersion.getStorageCode());
     }
 
@@ -335,21 +338,20 @@ public class DraftServiceImpl implements DraftService {
         return draft;
     }
 
-    private RefBookVersionEntity updateDraft(Structure structure, RefBookVersionEntity draftVersion, List<Field> fields, List<PassportValueEntity> passportValues) {
-
-        String draftCode = draftVersion.getStorageCode();
+    /** Пересоздание черновика при его наличии. */
+    private RefBookVersionEntity recreateDraft(Structure structure, RefBookVersionEntity draftVersion,
+                                               List<Field> fields, List<PassportValueEntity> passportValues) {
 
         if (!structure.equals(draftVersion.getStructure())) {
             Integer refBookId = draftVersion.getRefBook().getId();
 
             if (passportValues == null) passportValues = draftVersion.getPassportValues();
 
-            dropDataService.drop(singleton(draftCode));
-            versionRepository.deleteById(draftVersion.getId());
+            removeDraft(draftVersion);
 
             draftVersion = newDraftVersion(structure, passportValues);
             draftVersion.setRefBook(newRefBook(refBookId));
-            draftCode = draftDataService.createDraft(fields);
+            String draftCode = draftDataService.createDraft(fields);
             draftVersion.setStorageCode(draftCode);
 
         } else {
@@ -613,7 +615,14 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateDraft(draftId);
         refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
-        versionRepository.deleteById(draftId);
+        RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
+        removeDraft(draftVersion);
+    }
+
+    public void removeDraft(RefBookVersionEntity draftVersion) {
+
+        dropDataService.drop(singleton(draftVersion.getStorageCode()));
+        versionRepository.deleteById(draftVersion.getId());
     }
 
     @Override
