@@ -552,6 +552,7 @@ public class DraftServiceImpl implements DraftService {
         auditEditData(draftVersion, "delete_all_rows", "-");
     }
 
+    /** Удаление всех строк черновика. */
     private void deleteDraftAllRows(RefBookVersionEntity draftVersion) {
 
         conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draftVersion.getId());
@@ -619,9 +620,11 @@ public class DraftServiceImpl implements DraftService {
         removeDraft(draftVersion);
     }
 
+    /** Удаление черновика. */
     public void removeDraft(RefBookVersionEntity draftVersion) {
 
         dropDataService.drop(singleton(draftVersion.getStorageCode()));
+        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draftVersion.getId());
         versionRepository.deleteById(draftVersion.getId());
     }
 
