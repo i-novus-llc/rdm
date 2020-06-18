@@ -25,7 +25,7 @@ public class StructureChangeValidator {
     private static final String ATTRIBUTE_CREATE_ILLEGAL_VALUE_EXCEPTION_CODE = "attribute.create.illegal.value";
     private static final String ATTRIBUTE_UPDATE_ILLEGAL_VALUE_EXCEPTION_CODE = "attribute.update.illegal.value";
 
-    private static final String VALIDATION_REQUIRED_ERR_EXCEPTION_CODE = "validation.required.err";
+    private static final String VALIDATION_REQUIRED_PK_ERR_EXCEPTION_CODE = "validation.required.pk.err";
     private static final String ATTRIBUTE_PRIMARY_INCOMPATIBLE_WITH_DATA_EXCEPTION_CODE = "attribute.primary.incompatible.with.data";
     private static final String ATTRIBUTE_TYPE_INCOMPATIBLE_WITH_DATA_EXCEPTION_CODE = "attribute.type.incompatible.with.data";
 
@@ -64,9 +64,9 @@ public class StructureChangeValidator {
         if (oldStructure == null || oldStructure.getAttributes() == null || !newAttribute.hasIsPrimary())
             return;
 
-        // Проверка наличия данных для добавляемого атрибута, обязательного к заполнению
+        // Проверка наличия данных для добавляемого первичного ключа, обязательного к заполнению
         if (searchDataService.hasData(storageCode))
-            throw new UserException(new Message(VALIDATION_REQUIRED_ERR_EXCEPTION_CODE, newAttribute.getName()));
+            throw new UserException(new Message(VALIDATION_REQUIRED_PK_ERR_EXCEPTION_CODE, newAttribute.getName()));
     }
 
     public void validateUpdateAttribute(UpdateAttribute updateAttribute, Structure.Attribute oldAttribute) {

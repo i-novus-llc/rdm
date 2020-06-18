@@ -1170,7 +1170,7 @@ public class ApplicationTest {
             draftService.createAttribute(createAttributeModel);
             fail();
         } catch (Exception e) {
-            assertEquals("validation.required.err", e.getMessage());
+            assertEquals("validation.required.pk.err", e.getMessage());
         }
     }
 
@@ -1516,7 +1516,7 @@ public class ApplicationTest {
             Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage)
                     .filter("validation.db.contains.pk.err"::equals).count());
             Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage)
-                    .filter("validation.required.err"::equals).count());
+                    .filter("validation.required.pk.err"::equals).count());
             Assert.assertEquals(4, re.getErrors().stream().map(RestMessage.Error::getMessage)
                     .filter("validation.type.error"::equals).count());
             Assert.assertEquals(2, re.getErrors().stream().map(RestMessage.Error::getMessage)
