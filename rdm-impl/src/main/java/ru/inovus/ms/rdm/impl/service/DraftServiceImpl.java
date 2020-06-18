@@ -224,6 +224,15 @@ public class DraftServiceImpl implements DraftService {
         }
     }
 
+    /**
+     * Создание черновика при загрузке из XLSX (в виде consumer'а).
+     * <p>
+     * Таблица черновика не меняется,
+     * т.к. уже изменена внутри CreateDraftBufferedRowsPersister.append .
+     *
+     * @param refBookId идентификатор справочника
+     * @return consumer
+     */
     private BiConsumer<String, Structure> getSaveDraftConsumer(Integer refBookId) {
         return (storageCode, structure) -> {
 
@@ -234,6 +243,7 @@ public class DraftServiceImpl implements DraftService {
 
             final String refBookCode = (draftVersion != null ? draftVersion : lastRefBookVersion).getRefBook().getCode();
             versionValidation.validateDraftStructure(refBookCode, structure);
+            // Валидация структуры ссылочного справочника не нужна, т.к. все атрибуты строковые.
 
             if (draftVersion == null) {
                 draftVersion = newDraftVersion(structure, lastRefBookVersion.getPassportValues());
@@ -274,7 +284,10 @@ public class DraftServiceImpl implements DraftService {
 
         final Structure structure = createDraftRequest.getStructure();
         final String refBookCode = (draftVersion != null ? draftVersion : lastRefBookVersion).getRefBook().getCode();
+
         versionValidation.validateDraftStructure(refBookCode, structure);
+        if (createDraftRequest.getReferrerValidationRequired())
+            versionValidation.validateReferrerStructure(structure);
 
         List<Field> fields = ConverterUtil.fields(structure);
         if (draftVersion == null) {
@@ -290,8 +303,7 @@ public class DraftServiceImpl implements DraftService {
         }
 
         RefBookVersionEntity savedDraftVersion = versionRepository.save(draftVersion);
-        addValidations(createDraftRequest.getFieldValidations(), savedDraftVersion);
-        // create display_damaged conflicts
+        addValidations(createDraftRequest.getValidations(), savedDraftVersion);
 
         return new Draft(savedDraftVersion.getId(), savedDraftVersion.getStorageCode());
     }

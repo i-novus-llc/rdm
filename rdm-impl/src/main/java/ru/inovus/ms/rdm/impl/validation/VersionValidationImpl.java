@@ -282,9 +282,6 @@ public class VersionValidationImpl implements VersionValidation {
                 || CollectionUtils.isEmpty(structure.getReferences()))
             return;
 
-        if (structure.isEmpty() || !structure.hasPrimary())
-            throw new UserException(REFERENCE_STRUCTURE_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE);
-
         structure.getReferences().forEach(reference -> validateReference(reference, structure));
     }
 
@@ -406,6 +403,24 @@ public class VersionValidationImpl implements VersionValidation {
         if (hasReferrerVersions(refBookCode)) {
             validateReferredDraftStructure(refBookCode, draftStructure);
         }
+    }
+
+    /**
+     * Проверка структуры ссылочного справочника.
+     *
+     * @param structure структура справочника, который ссылается
+     */
+    @Override
+    public void validateReferrerStructure(Structure structure) {
+
+        if (structure == null
+                || CollectionUtils.isEmpty(structure.getReferences()))
+            return;
+
+        if (structure.isEmpty() || !structure.hasPrimary())
+            throw new UserException(REFERENCE_STRUCTURE_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE);
+
+        structure.getReferences().forEach(this::validateReferenceAbility);
     }
 
     /**

@@ -520,28 +520,32 @@ public class ApplicationTest {
 
         Structure structure = createTestStructureWithReferenceType();
         structure.getAttributes().clear();
-        failDraftReferrerCreate(structure, "reference.requires.primary.key");
-
-        structure = createTestStructureWithReferenceType();
-        structure.clearPrimary();
-        failDraftReferrerCreate(structure, "reference.requires.primary.key");
+        failDraftReferrerCreate(structure, false, "reference.attribute.not.found");
 
         structure = createTestStructureWithReferenceType();
         structure.setReferences(null);
-        failDraftReferrerCreate(structure, "attribute.reference.not.found");
+        failDraftReferrerCreate(structure, false, "attribute.reference.not.found");
 
         structure = createTestStructureWithReferenceType();
         structure.setAttributes(structure.getPrimary());
-        failDraftReferrerCreate(structure, "reference.attribute.not.found");
+        failDraftReferrerCreate(structure, false, "reference.attribute.not.found");
 
         structure = createTestStructureWithReferenceType();
         structure.getAttribute(structure.getReferences().get(0).getAttribute()).setPrimary(Boolean.TRUE);
-        failDraftReferrerCreate(structure, "reference.attribute.cannot.be.primary.key");
+        failDraftReferrerCreate(structure, false, "reference.attribute.cannot.be.primary.key");
+
+        structure = createTestStructureWithReferenceType();
+        structure.clearPrimary();
+        failDraftReferrerCreate(structure, true, "reference.requires.primary.key");
     }
 
-    private void failDraftReferrerCreate(Structure structure, String message) {
+    private void failDraftReferrerCreate(Structure structure, boolean asUploaded, String message) {
         try {
-            draftService.create(new CreateDraftRequest(1, structure));
+            CreateDraftRequest request = new CreateDraftRequest(1, structure);
+            if (asUploaded)
+                request.setReferrerValidationRequired(true);
+
+            draftService.create(request);
             fail();
 
         } catch (RestException re) {

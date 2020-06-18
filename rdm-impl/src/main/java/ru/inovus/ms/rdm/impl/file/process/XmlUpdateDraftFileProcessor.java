@@ -71,7 +71,8 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
         return passport;
     }
 
-    private void parseStructureAndValidations(Structure structure, Map<String, List<AttributeValidation>> validations) throws XMLStreamException {
+    private void parseStructureAndValidations(Structure structure,
+                                              Map<String, List<AttributeValidation>> validations) throws XMLStreamException {
         reader.nextEvent();
         while (!XmlParseUtils.isEndElementWithName(reader.peek(), STRUCTURE_TAG_NAME) &&
                 !XmlParseUtils.isStartElementWithName(reader.peek(), PASSPORT_TAG_NAME, DATA_TAG_NAME)) {
@@ -113,11 +114,13 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
         }
     }
 
-    private void groupValidationsByCode(String code, List<Map<String, Object>> list, Map<String, List<AttributeValidation>> validations) {
+    private void groupValidationsByCode(String code, List<Map<String, Object>> list,
+                                        Map<String, List<AttributeValidation>> validations) {
         for (Map<String, Object> map : list) {
             AttributeValidation validation = AttributeValidation.of((String) map.get("type"), (String) map.get("value"));
             if (!validations.containsKey(code))
                 validations.put(code, new ArrayList<>());
+
             validations.get(code).add(validation);
         }
     }
@@ -136,7 +139,7 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
                         XmlParseUtils.isStartElementWithName(reader.peek(), PASSPORT_TAG_NAME, DATA_TAG_NAME))
                     return null;
 
-                Structure structure = new Structure(new ArrayList<>(), new ArrayList<>());
+                Structure structure = new Structure();
                 Map<String, List<AttributeValidation>> validations = new HashMap<>();
                 parseStructureAndValidations(structure, validations);
 
