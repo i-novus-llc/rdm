@@ -11,10 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.components.common.exception.CodifiedException;
-import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
-import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
@@ -24,19 +21,13 @@ import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.api.enumeration.ConflictType;
 import ru.inovus.ms.rdm.api.enumeration.FileType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
-import ru.inovus.ms.rdm.api.exception.FileContentException;
-import ru.inovus.ms.rdm.api.exception.FileExtensionException;
-import ru.inovus.ms.rdm.api.exception.NotFoundException;
-import ru.inovus.ms.rdm.api.exception.RdmException;
+import ru.inovus.ms.rdm.api.exception.*;
 import ru.inovus.ms.rdm.api.model.ExportFile;
 import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
-import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
-import ru.inovus.ms.rdm.api.model.refdata.Row;
-import ru.inovus.ms.rdm.api.model.refdata.RowValuePage;
-import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.api.model.refdata.*;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidation;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidationRequest;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidationType;
@@ -53,15 +44,9 @@ import ru.inovus.ms.rdm.impl.entity.*;
 import ru.inovus.ms.rdm.impl.file.FileStorage;
 import ru.inovus.ms.rdm.impl.file.export.VersionDataIterator;
 import ru.inovus.ms.rdm.impl.file.process.*;
-import ru.inovus.ms.rdm.impl.repository.AttributeValidationRepository;
-import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
-import ru.inovus.ms.rdm.impl.repository.RefBookConflictRepository;
-import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.inovus.ms.rdm.impl.repository.*;
 import ru.inovus.ms.rdm.impl.util.*;
-import ru.inovus.ms.rdm.impl.util.mappers.NonStrictOnTypeRowMapper;
-import ru.inovus.ms.rdm.impl.util.mappers.PlainRowMapper;
-import ru.inovus.ms.rdm.impl.util.mappers.RowMapper;
-import ru.inovus.ms.rdm.impl.util.mappers.StructureRowMapper;
+import ru.inovus.ms.rdm.impl.util.mappers.*;
 import ru.inovus.ms.rdm.impl.validation.StructureChangeValidator;
 import ru.inovus.ms.rdm.impl.validation.TypeValidation;
 import ru.inovus.ms.rdm.impl.validation.VersionValidationImpl;
@@ -75,6 +60,7 @@ import java.util.function.Supplier;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+import static ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity.objectPassportToValues;
 
 @Primary
 @Service
@@ -283,9 +269,7 @@ public class DraftServiceImpl implements DraftService {
 
         List<PassportValueEntity> passportValues = null;
         if (createDraftRequest.getPassport() != null) {
-            passportValues = createDraftRequest.getPassport().entrySet().stream()
-                    .map(entry -> new PassportValueEntity(new PassportAttributeEntity(entry.getKey()), (String) entry.getValue(), null))
-                    .collect(toList());
+            passportValues = objectPassportToValues(createDraftRequest.getPassport(), true, null);
         }
 
         final Structure structure = createDraftRequest.getStructure();
