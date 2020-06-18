@@ -249,18 +249,17 @@ public class DraftServiceImpl implements DraftService {
             final String refBookCode = (draftVersion != null ? draftVersion : lastRefBookVersion).getRefBook().getCode();
             versionValidation.validateDraftStructure(refBookCode, structure);
 
-            // NB: structure == null means that draft was created during passport saving
-            if (draftVersion != null && draftVersion.getStructure() != null && !draftVersion.getStructure().isEmpty()) {
+            if (draftVersion == null) {
+                draftVersion = newDraftVersion(structure, lastRefBookVersion.getPassportValues());
+
+            } else if (draftVersion.hasEmptyStructure()) {
+                draftVersion.setStructure(structure);
+
+            } else {
                 removeDraft(draftVersion);
                 versionRepository.flush(); // Delete old draft before insert new draft!
 
                 draftVersion = newDraftVersion(structure, draftVersion.getPassportValues());
-
-            } else if (draftVersion == null) {
-                draftVersion = newDraftVersion(structure, lastRefBookVersion.getPassportValues());
-
-            } else {
-                draftVersion.setStructure(structure);
             }
 
             draftVersion.setRefBook(newRefBook(refBookId));

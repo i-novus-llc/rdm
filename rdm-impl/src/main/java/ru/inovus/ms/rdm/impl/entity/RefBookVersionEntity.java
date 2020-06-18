@@ -179,6 +179,15 @@ public class RefBookVersionEntity implements Serializable {
     }
 
     /**
+     * Проверка отсутствия структуры.
+     *
+     * @return Результат проверки
+     */
+    public boolean hasEmptyStructure() {
+        return structure == null || structure.isEmpty();
+    }
+
+    /**
      * Получение номера версии.
      *
      * @return Номер версии
