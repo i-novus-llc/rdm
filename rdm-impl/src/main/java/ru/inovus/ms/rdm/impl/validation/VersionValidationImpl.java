@@ -342,7 +342,8 @@ public class VersionValidationImpl implements VersionValidation {
                 .findFirstByRefBookCodeAndStatusOrderByFromDateDesc(code, RefBookVersionStatus.PUBLISHED);
         if (version == null)
             throw new UserException(new Message(REFERRED_BOOK_NOT_FOUND_EXCEPTION_CODE, code));
-        if (version.getStructure() == null)
+
+        if (version.hasEmptyStructure())
             throw new UserException(new Message(REFERRED_BOOK_STRUCTURE_NOT_FOUND_EXCEPTION_CODE, code));
     }
 

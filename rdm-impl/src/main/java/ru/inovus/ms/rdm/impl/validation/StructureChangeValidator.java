@@ -17,6 +17,7 @@ import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
+import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
 
 @Component
@@ -61,7 +62,7 @@ public class StructureChangeValidator {
     public void validateCreateAttributeStorage(Structure.Attribute newAttribute,
                                                Structure oldStructure, String storageCode) {
 
-        if (oldStructure == null || oldStructure.getAttributes() == null || !newAttribute.hasIsPrimary())
+        if (oldStructure == null || isEmpty(oldStructure.getAttributes()) || !newAttribute.hasIsPrimary())
             return;
 
         // Проверка наличия данных для добавляемого первичного ключа, обязательного к заполнению
