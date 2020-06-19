@@ -1,8 +1,7 @@
 package ru.inovus.ms.rdm.n2o;
 
 import net.n2oapp.cache.template.SyncCacheTemplate;
-import net.n2oapp.framework.api.context.ContextProcessor;
-import net.n2oapp.framework.api.data.DomainProcessor;
+import net.n2oapp.framework.api.MetadataEnvironment;
 import net.n2oapp.framework.api.data.QueryExceptionHandler;
 import net.n2oapp.framework.api.data.QueryProcessor;
 import net.n2oapp.framework.api.register.MetadataRegister;
@@ -14,10 +13,7 @@ import net.n2oapp.platform.jaxrs.autoconfigure.EnableJaxRsProxyClient;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.inovus.ms.rdm.api.provider.AttributeFilterConverter;
-import ru.inovus.ms.rdm.api.provider.ExportFileProvider;
-import ru.inovus.ms.rdm.api.provider.OffsetDateTimeParamConverter;
-import ru.inovus.ms.rdm.api.provider.RdmMapperConfigurer;
+import ru.inovus.ms.rdm.api.provider.*;
 import ru.inovus.ms.rdm.api.util.RdmPermission;
 import ru.inovus.ms.rdm.n2o.criteria.RestCriteriaConstructor;
 import ru.inovus.ms.rdm.n2o.operation.RdmCompileCacheOperation;
@@ -63,11 +59,11 @@ public class ClientConfiguration {
     }
 
     @Bean
-    public QueryProcessor queryProcessor(ContextProcessor contextProcessor,
-                                         N2oInvocationFactory invocationFactory,
-                                         DomainProcessor domainProcessor,
-                                         QueryExceptionHandler exceptionHandler) {
-        N2oQueryProcessor queryProcessor = new N2oQueryProcessor(invocationFactory, contextProcessor, domainProcessor, exceptionHandler);
+    public QueryProcessor queryProcessor(N2oInvocationFactory invocationFactory,
+                                         QueryExceptionHandler exceptionHandler,
+                                         MetadataEnvironment metadataEnvironment) {
+        N2oQueryProcessor queryProcessor = new N2oQueryProcessor(invocationFactory, exceptionHandler);
+        queryProcessor.setEnvironment(metadataEnvironment);
         queryProcessor.setCriteriaResolver(new RestCriteriaConstructor());
         return queryProcessor;
     }
