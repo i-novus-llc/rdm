@@ -12,7 +12,8 @@
                         </dependencies>
                     </output-text>
 
-                    <select id="version" label="Версия" query-id="versionList" label-field-id="version" cleanable="false">
+                    <select id="version" label="Версия" cleanable="false"
+                            query-id="versionList" label-field-id="version">
                         <pre-filters>
                             <eq field-id="refBookId" value="{refBookId}"/>
                         </pre-filters>
