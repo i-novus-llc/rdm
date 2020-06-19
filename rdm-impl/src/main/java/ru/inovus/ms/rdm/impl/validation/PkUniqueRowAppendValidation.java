@@ -2,9 +2,9 @@ package ru.inovus.ms.rdm.impl.validation;
 
 import net.n2oapp.platform.i18n.Message;
 import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.util.RowUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -33,14 +33,13 @@ public class PkUniqueRowAppendValidation extends AppendRowValidation {
     protected List<Message> validate(Long systemId, Map<String, Object> rowData) {
 
         if (primaryKeyCodes.isEmpty() || !rowData.keySet().containsAll(primaryKeyCodes))
-            return Collections.emptyList();
+            return emptyList();
 
         rowData.entrySet().removeIf(entry -> !primaryKeyCodes.contains(entry.getKey()));
         if (!uniqueRowSet.add(rowData)) {
             return singletonList(new Message(VALIDATION_NOT_UNIQUE_PK_ERR_EXCEPTION_CODE,
-                    rowData.entrySet().stream()
-                            .map(e -> structure.getAttribute(e.getKey()).getName() + "\" - \"" + e.getValue())
-                            .collect(Collectors.joining("\", \""))));
+                    RowUtils.toNamedValues(rowData, structure.getPrimary())
+            ));
         }
 
         return emptyList();

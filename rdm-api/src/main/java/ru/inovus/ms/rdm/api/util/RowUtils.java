@@ -12,7 +12,9 @@ import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
@@ -34,7 +36,7 @@ public class RowUtils {
      *
      * @param newDataValue  значение из Row::getData::get
      * @param oldFieldValue значение из RefBookRowValue::getFieldValue
-     * @return Результат проверки
+     * @return Признак успешности проверки
      */
     public static boolean equalsValues(Object newDataValue, FieldValue<?> oldFieldValue) {
 
@@ -54,12 +56,12 @@ public class RowUtils {
     }
 
     /**
-     *  Сравнение значений по атрибутам.
+     * Сравнение значений по атрибутам.
      *
      * @param newRow      новая запись
      * @param oldRowValue старая запись
      * @param attributes  список атрибутов
-     * @return Результат проверки
+     * @return Признак успешности проверки
      */
     public static boolean equalsValuesByAttributes(Row newRow, RefBookRowValue oldRowValue,
                                                    List<Structure.Attribute> attributes) {
@@ -70,6 +72,24 @@ public class RowUtils {
                     FieldValue<Serializable> oldFieldValue = oldRowValue.getFieldValue(attribute.getCode());
                     return equalsValues(newDataValue, oldFieldValue);
                 });
+    }
+
+    /**
+     * Преобразование значений атрибутов с их наименованиями в строку.
+     *
+     * @param rowData    запись
+     * @param attributes список атрибутов
+     * @return Результат преобразования
+     */
+    public static String toNamedValues(Map<String, Object> rowData,
+                                       List<Structure.Attribute> attributes) {
+        return attributes.stream()
+                .map(attribute -> toNamedValue(rowData, attribute))
+                .collect(Collectors.joining("\", \""));
+    }
+
+    private static String toNamedValue(Map<String, Object> rowData, Structure.Attribute attribute) {
+        return attribute.getName() + "\" - \"" + rowData.get(attribute.getCode());
     }
 
     /** Преобразование списка systemIds из vds в список для rdm. */
