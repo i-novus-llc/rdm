@@ -16,10 +16,12 @@ import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
+import java.util.List;
+
+import static java.util.Collections.*;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
-import static ru.inovus.ms.rdm.api.util.FieldValueUtils.rowValueToDisplayValueWithPkLeading;
+import static ru.inovus.ms.rdm.api.util.FieldValueUtils.rowValueToDisplayValue;
 
 @Controller
 public class ReferenceController {
@@ -38,21 +40,27 @@ public class ReferenceController {
                 .getReference(referenceCriteria.getReference());
 
         RefBookVersion referenceVersion = versionService.getLastPublishedVersion(reference.getReferenceCode());
-        String pk = referenceVersion.getStructure().getPrimary().iterator().next().getCode();
+        if (referenceVersion == null
+                || referenceVersion.hasEmptyStructure()
+                || !referenceVersion.getStructure().hasPrimary()) {
+            return new RestPage<>();
+        }
+
+        List<String> primaryKeyCodes = referenceVersion.getStructure().getPrimary().stream().map(Structure.Attribute::getCode).collect(toList());
         Structure.Attribute referenceAttribute = reference.findReferenceAttribute(referenceVersion.getStructure());
 
         SearchDataCriteria criteria = toSearchDataCriteria(referenceAttribute, referenceCriteria);
-
         Page<RefBookRowValue> rowValues = versionService.search(reference.getReferenceCode(), criteria);
 
         return new RestPage<>(rowValues.getContent(), criteria, rowValues.getTotalElements())
-                .map(rowValue -> toReferenceValue(referenceAttribute, reference.getDisplayExpression(), rowValue, pk));
+                .map(rowValue -> toReferenceValue(referenceAttribute, reference.getDisplayExpression(), rowValue, primaryKeyCodes));
     }
 
-    private Reference toReferenceValue(Structure.Attribute attribute, String displayExpression, RowValue rowValue, String pk) {
+    private Reference toReferenceValue(Structure.Attribute attribute, String displayExpression,
+                                       RowValue rowValue, List<String> primaryKeyCodes) {
         Reference referenceValue = new Reference();
         referenceValue.setValue(String.valueOf(rowValue.getFieldValue(attribute.getCode()).getValue()));
-        referenceValue.setDisplayValue(rowValueToDisplayValueWithPkLeading(displayExpression, pk, rowValue));
+        referenceValue.setDisplayValue(rowValueToDisplayValue(displayExpression, rowValue, primaryKeyCodes));
         return referenceValue;
     }
 
