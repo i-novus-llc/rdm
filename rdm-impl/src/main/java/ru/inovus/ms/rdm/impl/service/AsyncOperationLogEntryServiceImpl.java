@@ -7,10 +7,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
-import ru.inovus.ms.rdm.api.async.AsyncOperation;
-import ru.inovus.ms.rdm.api.async.AsyncOperationLogEntry;
-import ru.inovus.ms.rdm.api.async.AsyncOperationLogEntryCriteria;
-import ru.inovus.ms.rdm.api.async.AsyncOperationStatus;
+import ru.inovus.ms.rdm.api.async.*;
 import ru.inovus.ms.rdm.api.service.AsyncOperationLogEntryService;
 import ru.inovus.ms.rdm.impl.entity.AsyncOperationLogEntryEntity;
 import ru.inovus.ms.rdm.impl.entity.QAsyncOperationLogEntryEntity;
@@ -61,8 +58,8 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
         QAsyncOperationLogEntryEntity q = QAsyncOperationLogEntryEntity.asyncOperationLogEntryEntity;
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (criteria.getUuid() != null)
-            builder.and(q.uuid.eq(criteria.getUuid()));
+        if (criteria.getId() != null)
+            builder.and(q.uuid.eq(criteria.getId()));
 
         if (criteria.getOperation() != null)
             builder.and(q.operation.eq(criteria.getOperation()));
@@ -74,8 +71,8 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
     }
 
     @Override
-    public AsyncOperationLogEntry get(UUID uuid) {
-        return toModel(repository.findById(uuid).orElse(null));
+    public AsyncOperationLogEntry get(UUID id) {
+        return toModel(repository.findById(id).orElse(null));
     }
 
     @Override
