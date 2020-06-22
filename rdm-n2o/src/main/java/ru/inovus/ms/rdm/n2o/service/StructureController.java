@@ -9,28 +9,24 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
-import ru.inovus.ms.rdm.api.model.validation.*;
-import ru.inovus.ms.rdm.api.model.version.*;
-import ru.inovus.ms.rdm.api.service.ConflictService;
-import ru.inovus.ms.rdm.api.service.DraftService;
-import ru.inovus.ms.rdm.api.service.RefBookService;
-import ru.inovus.ms.rdm.api.service.VersionService;
-import ru.inovus.ms.rdm.n2o.model.AttributeCriteria;
-import ru.inovus.ms.rdm.n2o.model.FormAttribute;
-import ru.inovus.ms.rdm.n2o.model.ReadAttribute;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.conflict.RefBookConflict;
 import ru.inovus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
+import ru.inovus.ms.rdm.api.model.validation.*;
+import ru.inovus.ms.rdm.api.model.version.*;
+import ru.inovus.ms.rdm.api.service.*;
 import ru.inovus.ms.rdm.api.util.ConflictUtils;
 import ru.inovus.ms.rdm.api.util.StructureUtils;
 import ru.inovus.ms.rdm.api.util.TimeUtils;
+import ru.inovus.ms.rdm.n2o.model.AttributeCriteria;
+import ru.inovus.ms.rdm.n2o.model.FormAttribute;
+import ru.inovus.ms.rdm.n2o.model.ReadAttribute;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.*;
 
+import static java.util.stream.Collectors.toList;
+import static org.springframework.util.StringUtils.isEmpty;
 import static ru.inovus.ms.rdm.api.model.version.UpdateAttribute.setUpdateValueIfExists;
 
 @Controller
@@ -46,47 +42,154 @@ public class StructureController {
     @Autowired
     private ConflictService conflictService;
 
+    // used in: attribute.query.xml
     RestPage<ReadAttribute> getPage(AttributeCriteria criteria) {
-        List<ReadAttribute> list = new ArrayList<>();
 
-        Structure structure = versionService.getStructure(criteria.getVersionId());
+        Integer versionId = criteria.getVersionId();
+        Structure structure = versionService.getStructure(versionId);
 
-        List<AttributeValidation> attributeValidations = draftService.getAttributeValidations(criteria.getVersionId(), null);
+        List<AttributeValidation> validations = draftService.getAttributeValidations(versionId, criteria.getCode());
 
-        if (structure != null)
-            structure.getAttributes().stream()
-                    .filter(attribute -> isCriteriaAttribute(attribute, criteria))
-                    .forEach(attribute -> {
-                        Structure.Reference reference = attribute.isReferenceType() ? structure.getReference(attribute.getCode()) : null;
-                        ReadAttribute readAttribute = getReadAttribute(attribute, reference);
-                        enrichAtribute(readAttribute, filterByAttribute(attributeValidations, attribute.getCode()));
+        List<Structure.Attribute> attributes = (structure != null) ? structure.getAttributes() : new ArrayList<>();
+        List<ReadAttribute> list = toPageAttributes(attributes, criteria).stream()
+                .map(attribute -> toReadAttribute(attribute, structure, versionId, validations))
+                .collect(toList());
 
-                        readAttribute.setVersionId(criteria.getVersionId());
-
-                        RefBook refBook = refBookService.getByVersionId(criteria.getVersionId());
-                        readAttribute.setHasReferrer(refBook.getHasReferrer());
-
-                        readAttribute.setCodeExpression(DisplayExpression.toPlaceholder(attribute.getCode()));
-                        if (reference != null) {
-                            enrichReference(readAttribute, reference);
-
-                            readAttribute.setHasStructureConflict(getHasStructureConflict(refBook.getId(), readAttribute.getCode()));
-                        }
-
-                        list.add(readAttribute);
-                    });
-
-        List<ReadAttribute> currentPageAttributes = list.stream()
-                .skip((long) (criteria.getPage() - 1) * criteria.getSize())
-                .limit(criteria.getSize())
-                .collect(Collectors.toList());
-
-        return new RestPage<>(currentPageAttributes, PageRequest.of(criteria.getPage(), criteria.getSize()), list.size());
+        return new RestPage<>(list, PageRequest.of(criteria.getPage(), criteria.getSize()), attributes.size());
     }
 
+    /** Отбор атрибутов, отображаемых на текущей странице. */
+    private List<Structure.Attribute> toPageAttributes(List<Structure.Attribute> attributes, AttributeCriteria criteria) {
+        return attributes.stream()
+                .filter(attribute -> isCriteriaAttribute(attribute, criteria))
+                .skip((long) (criteria.getPage() - 1) * criteria.getSize())
+                .limit(criteria.getSize())
+                .collect(toList());
+    }
+
+    /** Проверка на соответствие атрибута критерию поиска. */
     private boolean isCriteriaAttribute(Structure.Attribute attribute, AttributeCriteria criteria) {
-        return (Objects.isNull(criteria.getCode()) || criteria.getCode().equals(attribute.getCode()))
-                && (Objects.isNull(criteria.getName()) || StringUtils.containsIgnoreCase(attribute.getName(), criteria.getName()));
+        return (isEmpty(criteria.getCode()) || criteria.getCode().equals(attribute.getCode()))
+                && (isEmpty(criteria.getName()) || StringUtils.containsIgnoreCase(attribute.getName(), criteria.getName()));
+    }
+
+    /** Преобразование атрибута в атрибут для отображения на форме. */
+    private ReadAttribute toReadAttribute(Structure.Attribute attribute, Structure structure,
+                                          Integer versionId, List<AttributeValidation> validations) {
+
+        Structure.Reference reference = attribute.isReferenceType() ? structure.getReference(attribute.getCode()) : null;
+        ReadAttribute readAttribute = getReadAttribute(attribute, reference);
+        enrichAtribute(readAttribute, getValidations(validations, attribute.getCode()));
+
+        readAttribute.setVersionId(versionId);
+        readAttribute.setCodeExpression(DisplayExpression.toPlaceholder(attribute.getCode()));
+
+        if (reference != null) {
+            enrichReference(readAttribute, reference);
+        }
+
+        enrichByRefBook(versionId, readAttribute);
+
+        return readAttribute;
+    }
+
+    private List<AttributeValidation> getValidations(List<AttributeValidation> validations, String attribute) {
+
+        if (CollectionUtils.isEmpty(validations))
+            return Collections.emptyList();
+
+        return validations.stream().filter(v -> Objects.equals(attribute, v.getAttribute())).collect(toList());
+    }
+
+    /** Заполнение атрибута для отображения с учётом его представления. */
+    private void enrichAtribute(ReadAttribute attribute, List<AttributeValidation> validations) {
+
+        for (AttributeValidation validation : validations) {
+            switch (validation.getType()) {
+                case REQUIRED:
+                    attribute.setRequired(true);
+                    break;
+
+                case UNIQUE:
+                    attribute.setUnique(true);
+                    break;
+
+                case PLAIN_SIZE:
+                    attribute.setPlainSize(((PlainSizeAttributeValidation) validation).getSize());
+                    break;
+
+                case FLOAT_SIZE:
+                    FloatSizeAttributeValidation floatSize = (FloatSizeAttributeValidation) validation;
+                    attribute.setIntPartSize(floatSize.getIntPartSize());
+                    attribute.setFracPartSize(floatSize.getFracPartSize());
+                    break;
+
+                case INT_RANGE:
+                    IntRangeAttributeValidation intRange = (IntRangeAttributeValidation) validation;
+                    attribute.setMinInteger(intRange.getMin());
+                    attribute.setMaxInteger(intRange.getMax());
+                    break;
+
+                case FLOAT_RANGE:
+                    FloatRangeAttributeValidation floatRange = (FloatRangeAttributeValidation) validation;
+                    attribute.setMinFloat(floatRange.getMin());
+                    attribute.setMaxFloat(floatRange.getMax());
+                    break;
+
+                case DATE_RANGE:
+                    DateRangeAttributeValidation dateRange = (DateRangeAttributeValidation) validation;
+                    attribute.setMinDate(dateRange.getMin());
+                    attribute.setMaxDate(dateRange.getMax());
+                    break;
+
+                case REG_EXP:
+                    attribute.setRegExp(((RegExpAttributeValidation) validation).getRegExp());
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    }
+
+    /** Заполнение атрибута-ссылки для отображения с учётом его представления. */
+    private void enrichReference(ReadAttribute attribute, Structure.Reference reference) {
+
+        Integer referenceRefBookId = refBookService.getId(reference.getReferenceCode());
+        attribute.setReferenceRefBookId(referenceRefBookId);
+
+        int displayType = 1;
+        String displayExpression = reference.getDisplayExpression();
+        if (StringUtils.isNotEmpty(displayExpression)) {
+            attribute.setDisplayExpression(displayExpression);
+
+            displayType = 2;
+            String attributeCode = StructureUtils.displayExpressionToPlaceholder(displayExpression);
+            if (attributeCode != null) {
+                displayType = 1;
+                attribute.setDisplayAttribute(attributeCode);
+                attribute.setDisplayAttributeName(attributeCodeToName(reference.getReferenceCode(), attributeCode));
+            }
+        }
+        attribute.setDisplayType(displayType);
+    }
+
+    private String attributeCodeToName(String refBookCode, String attributeCode) {
+
+        RefBookVersion version = versionService.getLastPublishedVersion(refBookCode);
+        Structure.Attribute attribute = version.getStructure().getAttribute(attributeCode);
+        return (attribute != null) ? attribute.getName() : null;
+    }
+
+    /** Заполнение атрибута (+ ссылки) для отображения по информации о справочнике. */
+    private void enrichByRefBook(Integer versionId, ReadAttribute readAttribute) {
+
+        RefBook refBook = refBookService.getByVersionId(versionId);
+        readAttribute.setHasReferrer(refBook.getHasReferrer());
+
+        if (readAttribute.isReferenceType()) {
+            readAttribute.setHasStructureConflict(getHasStructureConflict(refBook.getId(), readAttribute.getCode()));
+        }
     }
 
     private Boolean getHasStructureConflict(Integer versionId, String fieldCode) {
@@ -147,7 +250,9 @@ public class StructureController {
         draftService.deleteAttribute(versionId, attributeCode);
     }
 
+    /** Заполнение валидаций атрибута из атрибута формы. */
     private List<AttributeValidation> createValidations(FormAttribute formAttribute) {
+
         List<AttributeValidation> validations = new ArrayList<>();
 
         if (Boolean.TRUE.equals(formAttribute.getRequired())) {
@@ -181,110 +286,32 @@ public class StructureController {
         return validations;
     }
 
-    private String attributeCodeToName(String refBookCode, String attributeCode) {
+    /** Получение атрибута для отображения на форме из конкретного атрибута (+ ссылки). */
+    private ReadAttribute getReadAttribute(Structure.Attribute attribute, Structure.Reference reference) {
 
-        RefBookVersion version = versionService.getLastPublishedVersion(refBookCode);
-        Structure.Attribute attribute = version.getStructure().getAttribute(attributeCode);
-        return (attribute != null) ? attribute.getName() : null;
-    }
-
-    private void enrichReference(ReadAttribute attribute, Structure.Reference reference) {
-
-        Integer refRefBookId = refBookService.getId(reference.getReferenceCode());
-        attribute.setReferenceRefBookId(refRefBookId);
-
-        int displayType = 1;
-        String displayExpression = reference.getDisplayExpression();
-        if (StringUtils.isNotEmpty(displayExpression)) {
-            attribute.setDisplayExpression(displayExpression);
-
-            displayType = 2;
-            String attributeCode = StructureUtils.displayExpressionToPlaceholder(displayExpression);
-            if (attributeCode != null) {
-                displayType = 1;
-                attribute.setDisplayAttribute(attributeCode);
-                attribute.setDisplayAttributeName(attributeCodeToName(reference.getReferenceCode(), attributeCode));
-            }
-        }
-        attribute.setDisplayType(displayType);
-    }
-
-    private void enrichAtribute(ReadAttribute attribute, List<AttributeValidation> validations) {
-        for (AttributeValidation validation : validations) {
-            switch (validation.getType()) {
-                case REQUIRED:
-                    attribute.setRequired(true);
-                    break;
-
-                case UNIQUE:
-                    attribute.setUnique(true);
-                    break;
-
-                case PLAIN_SIZE:
-                    attribute.setPlainSize(((PlainSizeAttributeValidation) validation).getSize());
-                    break;
-
-                case FLOAT_SIZE:
-                    FloatSizeAttributeValidation floatSize = (FloatSizeAttributeValidation) validation;
-                    attribute.setIntPartSize(floatSize.getIntPartSize());
-                    attribute.setFracPartSize(floatSize.getFracPartSize());
-                    break;
-
-                case INT_RANGE:
-                    IntRangeAttributeValidation intRange = (IntRangeAttributeValidation) validation;
-                    attribute.setMinInteger(intRange.getMin());
-                    attribute.setMaxInteger(intRange.getMax());
-                    break;
-
-                case FLOAT_RANGE:
-                    FloatRangeAttributeValidation floatRange = (FloatRangeAttributeValidation) validation;
-                    attribute.setMinFloat(floatRange.getMin());
-                    attribute.setMaxFloat(floatRange.getMax());
-                    break;
-
-                case DATE_RANGE:
-                    DateRangeAttributeValidation dateRange = (DateRangeAttributeValidation) validation;
-                    attribute.setMinDate(dateRange.getMin());
-                    attribute.setMaxDate(dateRange.getMax());
-                    break;
-
-                case REG_EXP:
-                    attribute.setRegExp(((RegExpAttributeValidation) validation).getRegExp());
-                    break;
-
-                default:
-                    break;
-            }
-        }
-    }
-
-    private List<AttributeValidation> filterByAttribute(List<AttributeValidation> validations, String attribute) {
-        return validations.stream()
-                .filter(v -> Objects.equals(attribute, v.getAttribute()))
-                .collect(Collectors.toList());
-    }
-
-    private ReadAttribute getReadAttribute(Structure.Attribute structureAttribute, Structure.Reference reference) {
-
-        ReadAttribute attribute = new ReadAttribute();
-        attribute.setCode(structureAttribute.getCode());
-        attribute.setName(structureAttribute.getName());
-        attribute.setDescription(structureAttribute.getDescription());
-        attribute.setType(structureAttribute.getType());
-        attribute.setIsPrimary(structureAttribute.getIsPrimary());
+        ReadAttribute readAttribute = new ReadAttribute();
+        readAttribute.setCode(attribute.getCode());
+        readAttribute.setName(attribute.getName());
+        readAttribute.setDescription(attribute.getDescription());
+        readAttribute.setType(attribute.getType());
+        readAttribute.setIsPrimary(attribute.getIsPrimary());
 
         if (Objects.nonNull(reference)) {
-            attribute.setReferenceCode(reference.getReferenceCode());
-            attribute.setDisplayExpression(reference.getDisplayExpression());
+            readAttribute.setReferenceCode(reference.getReferenceCode());
+            readAttribute.setDisplayExpression(reference.getDisplayExpression());
         }
 
-        return attribute;
+        return readAttribute;
     }
 
-    private RefBookVersionAttribute getVersionAttribute(Integer versionId, Structure.Attribute attribute, Structure.Reference reference) {
+    /** Получение атрибута для версии из конкретного атрибута (+ ссылки). */
+    private RefBookVersionAttribute getVersionAttribute(Integer versionId,
+                                                        Structure.Attribute attribute,
+                                                        Structure.Reference reference) {
         return new RefBookVersionAttribute(versionId, attribute, reference);
     }
 
+    /** Получение атрибута для добавления из атрибута формы. */
     private CreateAttribute getCreateAttribute(Integer versionId, FormAttribute formAttribute) {
         return new CreateAttribute(versionId, buildAttribute(formAttribute), buildReference(formAttribute));
     }
@@ -305,6 +332,7 @@ public class StructureController {
                 request.getDisplayExpression());
     }
 
+    /** Получение атрибута для изменения из атрибута формы. */
     private UpdateAttribute getUpdateAttribute(Integer versionId, FormAttribute formAttribute) {
 
         UpdateAttribute attribute = new UpdateAttribute();
