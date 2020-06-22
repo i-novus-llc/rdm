@@ -111,7 +111,8 @@
                             </pre-filters>
                         </show-modal>
                     </button>
-                    <button label="Удалить" id="deleteAttribute_r" color="danger" icon="fa fa-trash">
+                    <button label="Удалить" id="deleteAttribute_r" color="danger" icon="fa fa-trash"
+                            enabling-condition="!(isPrimary &amp;&amp; (isReferrer || hasReferrer))">
                         <invoke operation-id="delete" close-after-success="false"/>
                     </button>
                 </toolbar>
