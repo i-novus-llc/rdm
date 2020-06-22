@@ -7,21 +7,21 @@ import java.util.UUID;
 
 public class AsyncOperationLogEntryCriteria extends AbstractCriteria {
 
-    @QueryParam("status")
-    private AsyncOperationStatus status;
+    @QueryParam("uuid")
+    private UUID id;
 
     @QueryParam("operation")
     private AsyncOperation operation;
 
-    @QueryParam("uuid")
-    private UUID uuid;
+    @QueryParam("status")
+    private AsyncOperationStatus status;
 
-    public AsyncOperationStatus getStatus() {
-        return status;
+    public UUID getId() {
+        return id;
     }
 
-    public void setStatus(AsyncOperationStatus status) {
-        this.status = status;
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public AsyncOperation getOperation() {
@@ -32,11 +32,11 @@ public class AsyncOperationLogEntryCriteria extends AbstractCriteria {
         this.operation = operation;
     }
 
-    public UUID getUuid() {
-        return uuid;
+    public AsyncOperationStatus getStatus() {
+        return status;
     }
 
-    public void setUuid(UUID uuid) {
-        this.uuid = uuid;
+    public void setStatus(AsyncOperationStatus status) {
+        this.status = status;
     }
 }
