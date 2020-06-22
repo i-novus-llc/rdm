@@ -58,6 +58,15 @@ public class StructureController {
         return new RestPage<>(list, PageRequest.of(criteria.getPage(), criteria.getSize()), attributes.size());
     }
 
+    // used in: attributeDefault.query.xml
+    ReadAttribute getDefault(Integer versionId) {
+
+        ReadAttribute readAttribute = new ReadAttribute();
+        enrichByRefBook(versionId, readAttribute);
+
+        return readAttribute;
+    }
+
     /** Отбор атрибутов, отображаемых на текущей странице. */
     private List<Structure.Attribute> toPageAttributes(List<Structure.Attribute> attributes, AttributeCriteria criteria) {
         return attributes.stream()
