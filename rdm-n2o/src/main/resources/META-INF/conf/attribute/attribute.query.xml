@@ -41,6 +41,10 @@
             </filters>
         </field>
 
+        <field id="isReferrer" domain="boolean">
+            <select/>
+        </field>
+
         <field id="hasReferrer" domain="boolean">
             <select/>
         </field>

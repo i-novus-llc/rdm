@@ -94,6 +94,7 @@ public class StructureController {
         enrichAtribute(readAttribute, getValidations(validations, attribute.getCode()));
 
         readAttribute.setVersionId(versionId);
+        readAttribute.setIsReferrer(!CollectionUtils.isEmpty(structure.getReferences()));
         readAttribute.setCodeExpression(DisplayExpression.toPlaceholder(attribute.getCode()));
 
         if (reference != null) {
