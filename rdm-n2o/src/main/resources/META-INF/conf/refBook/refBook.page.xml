@@ -65,20 +65,12 @@
                                 </pre-filters>
                             </show-modal>
                         </menu-item>
+
                         <menu-item label="Обновить ссылки"
                                    visibility-condition="version.isLast &amp;&amp; version.hasRefreshedConflict">
                             <invoke operation-id="refreshReferrer"/>
                         </menu-item>
 
-                        <menu-item label="Загрузить данные" visibility-condition="version.status=='DRAFT'">
-                            <show-modal page-id="uploadData" submit-operation-id="uploadData" upload="defaults"
-                                        redirect-target="application"
-                                        redirect-url-after-submit="${rdm.context-path}/main/:refBookId/edit">
-                                <pre-filters>
-                                    <eq field-id="versionId" value="{version.id}"/>
-                                </pre-filters>
-                            </show-modal>
-                        </menu-item>
                         <menu-item label="Загрузить из файла">
                             <show-modal page-id="uploadFile" submit-operation-id="uploadFromFile" upload="defaults"
                                         redirect-target="application"
@@ -194,6 +186,17 @@
                                     ref-widget-id="version_select"/>
                                 <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve"
                                     ref-widget-id="version_select"/>
+                            </pre-filters>
+                        </show-modal>
+                    </button>
+
+                    <button id="uploadData_r" label="Загрузить данные"
+                            widget-id="version_select" model="resolve"
+                            visibility-condition="version.status=='DRAFT'">
+                        <show-modal page-id="uploadData" upload="defaults"
+                                    submit-operation-id="uploadData" refresh-widget-id="version_select">
+                            <pre-filters>
+                                <eq field-id="versionId" value="{version.id}"/>
                             </pre-filters>
                         </show-modal>
                     </button>
