@@ -149,7 +149,7 @@
 
                 <toolbar place="topRight">
                     <!--to-do: сделать отдельные кнопки без рефреша для редактирования черновика-->
-                    <button id="createRecord_r" label="Добавить строку" icon="fa fa-plus"
+                    <button id="createRecord_r" label="Добавить" icon="fa fa-plus"
                             widget-id="version_select" model="resolve"
                             enabling-condition="!version.isEmptyStructure">
                         <show-modal page-id="dataRecordPage?{id}_create" upload="query" route="/create"
@@ -162,7 +162,7 @@
                         </show-modal>
                     </button>
 
-                    <button id="updateRecord_r" label="Изменить строку" icon="fa fa-pencil"
+                    <button id="updateRecord_r" label="Изменить" icon="fa fa-pencil"
                             widget-id="version_select" model="resolve">
                         <show-modal page-id="dataRecordPage?{id}_edit" upload="query" route="/update"
                                     submit-operation-id="update" refresh-widget-id="version_select">
@@ -174,7 +174,7 @@
                         </show-modal>
                     </button>
 
-                    <button id="deleteRecord_r" label="Удалить строку" color="danger" icon="fa fa-trash">
+                    <button id="deleteRecord_r" label="Удалить" color="danger" icon="fa fa-trash">
                         <invoke operation-id="deleteRecord" refresh-widget-id="version_select" route="/delete"/>
                     </button>
 
@@ -225,7 +225,7 @@
                 </pre-filters>
 
                 <toolbar place="topRight">
-                    <button id="updateConflictedRecord_r" label="Изменить строку" icon="fa fa-pencil"
+                    <button id="updateConflictedRecord_r" label="Изменить" icon="fa fa-pencil"
                             widget-id="version_select" model="resolve">
                         <show-modal page-id="dataRecordPage?{id}_edit" upload="query" route="/update"
                                     submit-operation-id="update" refresh-widget-id="version_select">
@@ -237,7 +237,7 @@
                         </show-modal>
                     </button>
 
-                    <button id="deleteConflictedRecord_r" label="Удалить строку" color="danger" icon="fa fa-trash">
+                    <button id="deleteConflictedRecord_r" label="Удалить" color="danger" icon="fa fa-trash">
                         <invoke operation-id="deleteRecord" refresh-widget-id="version_select" route="/delete"/>
                     </button>
                 </toolbar>
