@@ -358,7 +358,6 @@ public class Structure implements Serializable {
         public String toString() {
             return JsonUtil.getAsJson(this);
         }
-
     }
 
     @ApiModel("Ссылка на запись справочника")
@@ -470,7 +469,6 @@ public class Structure implements Serializable {
         public String toString() {
             return JsonUtil.getAsJson(this);
         }
-
     }
 
     public boolean storageEquals(Structure that) {

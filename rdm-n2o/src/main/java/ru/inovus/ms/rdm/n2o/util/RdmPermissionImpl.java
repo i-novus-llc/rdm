@@ -16,7 +16,7 @@ public class RdmPermissionImpl implements RdmPermission {
     private static final String ANY_PERMISSION = "*";
 
     @Value("${rdm.permissions.draft.version}")
-    private List<String> rdmPermissionsNsiDraftVersion;
+    private List<String> rdmPermissionsDraftVersion;
 
     private UserContext userContext;
 
@@ -30,8 +30,8 @@ public class RdmPermissionImpl implements RdmPermission {
     // Исключение черновика из списка версий справочника.
     @Override
     public boolean excludeDraft() {
-        return  isEmpty(rdmPermissionsNsiDraftVersion) ||
-                rdmPermissionsNsiDraftVersion.stream()
+        return  isEmpty(rdmPermissionsDraftVersion) ||
+                rdmPermissionsDraftVersion.stream()
                         .noneMatch(permission ->
                                 ANY_PERMISSION.equals(permission)
                                         || permissionApi.hasPermission(userContext, permission)

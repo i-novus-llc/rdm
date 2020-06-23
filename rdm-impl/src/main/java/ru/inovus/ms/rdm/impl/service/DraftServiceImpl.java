@@ -715,6 +715,7 @@ public class DraftServiceImpl implements DraftService {
             refreshReferenceDisplayValues(draftEntity, newReference);
         }
 
+        // Валидации для старого типа удаляются отдельным вызовом updateAttributeValidations.
         if (Objects.equals(oldAttribute.getType(), updateAttribute.getType())) {
             attributeValidationRepository.deleteByVersionIdAndAttribute(updateAttribute.getVersionId(), updateAttribute.getCode());
         }

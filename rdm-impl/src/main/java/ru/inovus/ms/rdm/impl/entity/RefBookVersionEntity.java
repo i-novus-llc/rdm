@@ -220,7 +220,8 @@ public class RefBookVersionEntity implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, refBook, structure, storageCode, version, comment, status, fromDate, toDate, creationDate, lastActionDate);
+        return Objects.hash(id, refBook, structure, storageCode, version, comment, status,
+                fromDate, toDate, creationDate, lastActionDate);
     }
 
     @Override
