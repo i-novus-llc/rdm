@@ -716,8 +716,7 @@ public class DraftServiceImpl implements DraftService {
         }
 
         if (Objects.equals(oldAttribute.getType(), updateAttribute.getType())) {
-            attributeValidationRepository.deleteAll(
-                    attributeValidationRepository.findAllByVersionIdAndAttribute(updateAttribute.getVersionId(), updateAttribute.getCode()));
+            attributeValidationRepository.deleteByVersionIdAndAttribute(updateAttribute.getVersionId(), updateAttribute.getCode());
         }
 
         auditStructureEdit(draftEntity, "update_attribute", newAttribute);
@@ -801,7 +800,7 @@ public class DraftServiceImpl implements DraftService {
 
         structure.remove(attributeCode);
 
-        attributeValidationRepository.deleteAll(attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attributeCode));
+        attributeValidationRepository.deleteByVersionIdAndAttribute(draftId, attributeCode);
 
         auditStructureEdit(draftEntity, "delete_attribute", attribute);
     }
