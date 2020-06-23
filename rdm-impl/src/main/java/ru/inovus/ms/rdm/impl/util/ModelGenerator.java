@@ -24,8 +24,9 @@ public class ModelGenerator {
         model.setId(entity.getId());
         model.setRefBookId(entity.getRefBook().getId());
         model.setCode(entity.getRefBook().getCode());
-        model.setComment(entity.getComment());
         model.setVersion(entity.getVersion());
+        model.setComment(entity.getComment());
+
         model.setFromDate(entity.getFromDate());
         model.setToDate(entity.getToDate());
         model.setStatus(entity.getStatus());
@@ -46,7 +47,9 @@ public class ModelGenerator {
                             LinkedHashMap::new)));
 
         model.setStructure(entity.getStructure());
+
         model.setEditDate(entity.getLastActionDate());
+        model.setOptLockValue(entity.getOptLockValue());
 
         return model;
     }

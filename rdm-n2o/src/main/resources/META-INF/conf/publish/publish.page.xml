@@ -9,6 +9,9 @@
         </toolbar>
 
         <fields>
+<!--            <output-text id="version.version" label="Версия"/>-->
+<!--            <output-text id="version.optLockValue" label="Опт-блок-значение"/>-->
+
             <output-text id="errorMessage" no-label="true">
                 <dependencies>
                     <visibility>hasErrorMessage</visibility>

@@ -9,10 +9,7 @@ import ru.inovus.ms.rdm.api.enumeration.ConflictType;
 import ru.inovus.ms.rdm.api.model.draft.PublishRequest;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.api.service.ConflictService;
-import ru.inovus.ms.rdm.api.service.DraftService;
-import ru.inovus.ms.rdm.api.service.PublishService;
-import ru.inovus.ms.rdm.api.service.RefBookService;
+import ru.inovus.ms.rdm.api.service.*;
 import ru.inovus.ms.rdm.n2o.model.UiRefBookPublish;
 
 import java.util.Map;
@@ -29,6 +26,7 @@ public class RefBookPublishController {
 
     private static final Logger logger = LoggerFactory.getLogger(RefBookPublishController.class);
 
+    private static final String PUBLISHING_DRAFT_WAS_CHANGED_EXCEPTION_CODE = "publishing.draft.was.changed";
     private static final String PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE = "publishing.draft.structure.not.found";
     private static final String PUBLISHING_DRAFT_DATA_NOT_FOUND_EXCEPTION_CODE = "publishing.draft.data.not.found";
 
@@ -57,11 +55,17 @@ public class RefBookPublishController {
         this.messages = messages;
     }
 
-    public UiRefBookPublish getByVersionId(Integer versionId) {
+    public UiRefBookPublish getByVersionId(Integer versionId, Integer optLockValue) {
 
         RefBook refBook = refBookService.getByVersionId(versionId);
 
         UiRefBookPublish uiRefBookPublish = new UiRefBookPublish(refBook);
+
+        if (optLockValue != null && !optLockValue.equals(uiRefBookPublish.getOptLockValue())) {
+            String message = messages.getMessage(PUBLISHING_DRAFT_WAS_CHANGED_EXCEPTION_CODE);
+            uiRefBookPublish.setErrorMessage(message);
+            return uiRefBookPublish;
+        }
 
         if (refBook.getStructure() == null || refBook.getStructure().isEmpty()) {
             String message = messages.getMessage(PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE);

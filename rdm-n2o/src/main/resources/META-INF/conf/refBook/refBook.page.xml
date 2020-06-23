@@ -12,6 +12,12 @@
                         </dependencies>
                     </output-text>
 
+                    <output-text id="optLockValue">
+                        <dependencies>
+                            <set-value on="version">version.optLockValue</set-value>
+                        </dependencies>
+                    </output-text>
+
                     <select id="version" label="Версия" cleanable="false"
                             query-id="versionList" label-field-id="version">
                         <pre-filters>
@@ -38,6 +44,7 @@
                             <show-modal page-id="publish" upload="defaults">
                                 <pre-filters>
                                     <eq field-id="version.id" value="{version.id}"/>
+                                    <eq field-id="version.optLockValue" value="{version.optLockValue}"/>
                                 </pre-filters>
                             </show-modal>
                         </menu-item>

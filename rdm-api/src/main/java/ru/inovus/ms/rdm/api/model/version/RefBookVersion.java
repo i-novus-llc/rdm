@@ -20,11 +20,11 @@ public class RefBookVersion {
     @ApiModelProperty("Код справочника")
     private String code;
 
-    @ApiModelProperty("Комментарий к версии")
-    private String comment;
-
     @ApiModelProperty("Версия")
     private String version;
+
+    @ApiModelProperty("Комментарий к версии")
+    private String comment;
 
     @ApiModelProperty("Дата публикации")
     private LocalDateTime fromDate;
@@ -47,6 +47,9 @@ public class RefBookVersion {
     @ApiModelProperty("Дата последнего изменения")
     private LocalDateTime editDate;
 
+    @ApiModelProperty("Значение оптимистической блокировки версии")
+    private Integer optLockValue;
+
     public RefBookVersion() {
     }
 
@@ -54,15 +57,19 @@ public class RefBookVersion {
         this.id = refBookVersion.getId();
         this.refBookId = refBookVersion.getRefBookId();
         this.code = refBookVersion.getCode();
-        this.comment = refBookVersion.getComment();
         this.version = refBookVersion.getVersion();
+        this.comment = refBookVersion.getComment();
+
         this.fromDate = refBookVersion.getFromDate();
         this.toDate = refBookVersion.getToDate();
         this.status = refBookVersion.getStatus();
         this.archived = refBookVersion.getArchived();
+
         this.passport = refBookVersion.getPassport();
         this.structure = refBookVersion.getStructure();
+
         this.editDate = refBookVersion.getEditDate();
+        this.optLockValue = refBookVersion.getOptLockValue();
     }
 
     public Integer getId() {
@@ -89,20 +96,20 @@ public class RefBookVersion {
         this.code = code;
     }
 
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
-
     public String getVersion() {
         return version;
     }
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 
     public LocalDateTime getFromDate() {
@@ -159,6 +166,14 @@ public class RefBookVersion {
 
     public void setEditDate(LocalDateTime editDate) {
         this.editDate = editDate;
+    }
+
+    public Integer getOptLockValue() {
+        return optLockValue;
+    }
+
+    public void setOptLockValue(Integer optLockValue) {
+        this.optLockValue = optLockValue;
     }
 
     /**

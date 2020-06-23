@@ -24,6 +24,10 @@ public class RefBookVersionEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Version
+    @Column(name = "opt_lock_value")
+    private Integer optLockValue = 0;
+
     @ManyToOne
     @JoinColumn(name = "ref_book_id", nullable = false)
     private RefBookEntity refBook;
@@ -70,6 +74,10 @@ public class RefBookVersionEntity implements Serializable {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public Integer getOptLockValue() {
+        return optLockValue;
     }
 
     public RefBookEntity getRefBook() {
@@ -206,12 +214,14 @@ public class RefBookVersionEntity implements Serializable {
 
         RefBookVersionEntity that = (RefBookVersionEntity) o;
         return Objects.equals(id, that.id) &&
+                Objects.equals(optLockValue, that.optLockValue) &&
                 Objects.equals(refBook, that.refBook) &&
                 Objects.equals(structure, that.structure) &&
                 Objects.equals(storageCode, that.storageCode) &&
                 Objects.equals(version, that.version) &&
                 Objects.equals(comment, that.comment) &&
                 Objects.equals(status, that.status) &&
+
                 Objects.equals(fromDate, that.fromDate) &&
                 Objects.equals(toDate, that.toDate) &&
                 Objects.equals(creationDate, that.creationDate) &&
@@ -220,7 +230,8 @@ public class RefBookVersionEntity implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, refBook, structure, storageCode, version, comment, status,
+        return Objects.hash(id, optLockValue, refBook,
+                structure, storageCode, version, comment, status,
                 fromDate, toDate, creationDate, lastActionDate);
     }
 
@@ -228,12 +239,14 @@ public class RefBookVersionEntity implements Serializable {
     public String toString() {
         final StringBuilder sb = new StringBuilder("RefBookVersionEntity{");
         sb.append("id=").append(id);
+        sb.append(", optLockValue=").append(optLockValue);
         sb.append(", refBook=").append(refBook);
         sb.append(", structure=").append(structure);
         sb.append(", storageCode='").append(storageCode).append('\'');
         sb.append(", version='").append(version).append('\'');
         sb.append(", comment='").append(comment).append('\'');
         sb.append(", status=").append(status);
+
         sb.append(", fromDate=").append(fromDate);
         sb.append(", toDate=").append(toDate);
         sb.append(", creationDate=").append(creationDate);

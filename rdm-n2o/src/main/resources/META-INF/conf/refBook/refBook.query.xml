@@ -204,6 +204,10 @@
             <select/>
         </field>
 
+        <field id="optLockValue" domain="integer">
+            <select/>
+        </field>
+
         <field id="displayVersion" domain="string">
             <select mapping="(publishing ? 'Публикуется' : updating ? 'Обновляется' : (archived ? 'В архиве: ' : '') + (status?.toString() != 'DRAFT' ? version : 'Новая (изм. ' + editDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy')) +')'))"/>
         </field>

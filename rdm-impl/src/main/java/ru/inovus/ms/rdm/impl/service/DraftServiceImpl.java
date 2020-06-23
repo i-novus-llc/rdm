@@ -44,9 +44,7 @@ import ru.inovus.ms.rdm.api.model.version.*;
 import ru.inovus.ms.rdm.api.service.DraftService;
 import ru.inovus.ms.rdm.api.service.VersionFileService;
 import ru.inovus.ms.rdm.api.service.VersionService;
-import ru.inovus.ms.rdm.api.util.FileNameGenerator;
-import ru.inovus.ms.rdm.api.util.RowUtils;
-import ru.inovus.ms.rdm.api.util.StructureUtils;
+import ru.inovus.ms.rdm.api.util.*;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.*;
@@ -450,6 +448,8 @@ public class DraftServiceImpl implements DraftService {
             if (!isEmpty(addedRowValues)) {
                 try {
                     draftDataService.addRows(draftVersion.getStorageCode(), addedRowValues);
+                    draftVersion.setLastActionDate(TimeUtils.now());
+
                 } catch (RuntimeException e) {
                     ErrorUtil.rethrowError(e);
                 }
@@ -478,6 +478,8 @@ public class DraftServiceImpl implements DraftService {
                 conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftVersion.getId(), RowUtils.toLongSystemIds(systemIds));
                 try {
                     draftDataService.updateRows(draftVersion.getStorageCode(), updatedRowValues);
+                    draftVersion.setLastActionDate(TimeUtils.now());
+
                 } catch (RuntimeException e) {
                     ErrorUtil.rethrowError(e);
                 }
@@ -526,6 +528,7 @@ public class DraftServiceImpl implements DraftService {
             if (!systemIds.isEmpty()) {
                 conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftVersion.getId(), RowUtils.toLongSystemIds(systemIds));
                 draftDataService.deleteRows(draftVersion.getStorageCode(), systemIds);
+                draftVersion.setLastActionDate(TimeUtils.now());
             }
         } finally {
             refBookLockService.deleteRefBookOperation(draftVersion.getRefBook().getId());
@@ -709,6 +712,7 @@ public class DraftServiceImpl implements DraftService {
 
         structure.update(oldAttribute, newAttribute);
         structure.update(oldReference, newReference);
+        draftEntity.setLastActionDate(TimeUtils.now());
 
         // Обновление значений ссылки только по необходимости:
         if (!StructureUtils.isDisplayExpressionEquals(oldReference, newReference)) {

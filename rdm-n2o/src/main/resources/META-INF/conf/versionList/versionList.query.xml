@@ -62,6 +62,10 @@
             <select/>
         </field>
 
+        <field id="optLockValue" domain="integer">
+            <select/>
+        </field>
+
         <field id="archived" domain="boolean">
             <select/>
         </field>
