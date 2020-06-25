@@ -370,14 +370,11 @@ public class RefBookServiceImpl implements RefBookService {
         model.setHasAlteredConflict(refBookModelData.getHasAlteredConflict());
         model.setHasStructureConflict(refBookModelData.getHasStructureConflict());
         model.setLastHasConflict(refBookModelData.getLastHasConflict());
-        model.setUpdating(false);
-        model.setPublishing(false);
-        if (entity.getRunningOp() != null) {
-            if (entity.getRunningOp().getOperation() == RefBookOperation.PUBLISHING)
-                model.setPublishing(true);
-            else
-                model.setUpdating(true);
-        }
+
+        // Use refBookModelData to get RefBookOperation instead of:
+        model.setUpdating(entity.isOperation(RefBookOperation.UPDATING));
+        model.setPublishing(entity.isOperation(RefBookOperation.PUBLISHING));
+
         return model;
     }
 

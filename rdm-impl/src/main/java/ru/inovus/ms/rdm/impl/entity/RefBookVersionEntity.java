@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.impl.entity;
 
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
+import ru.inovus.ms.rdm.api.enumeration.RefBookOperation;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.util.TimeUtils;
@@ -31,6 +32,10 @@ public class RefBookVersionEntity implements Serializable {
     @ManyToOne
     @JoinColumn(name = "ref_book_id", nullable = false)
     private RefBookEntity refBook;
+
+    @ManyToOne
+    @JoinColumn(name = "ref_book_id", referencedColumnName = "ref_book_id", insertable = false, updatable = false)
+    private RefBookOperationEntity refBookOperation;
 
     @Column(name = "structure", columnDefinition = "json")
     @Type(type = "structure")
@@ -64,10 +69,6 @@ public class RefBookVersionEntity implements Serializable {
     @OneToMany(mappedBy="version", cascade = CascadeType.ALL)
     private List<PassportValueEntity> passportValues;
 
-    @ManyToOne
-    @JoinColumn(name = "ref_book_id", referencedColumnName = "ref_book_id", insertable = false, updatable = false)
-    private RefBookOperationEntity runningOp;
-
     public Integer getId() {
         return id;
     }
@@ -86,6 +87,14 @@ public class RefBookVersionEntity implements Serializable {
 
     public void setRefBook(RefBookEntity refBook) {
         this.refBook = refBook;
+    }
+
+    public RefBookOperationEntity getRefBookOperation() {
+        return refBookOperation;
+    }
+
+    public void setRefBookOperation(RefBookOperationEntity refBookOperation) {
+        this.refBookOperation = refBookOperation;
     }
 
     public Structure getStructure() {
@@ -169,12 +178,14 @@ public class RefBookVersionEntity implements Serializable {
         this.passportValues = passportValues;
     }
 
-    public RefBookOperationEntity getRunningOp() {
-        return runningOp;
-    }
-
-    public void setRunningOp(RefBookOperationEntity runningOp) {
-        this.runningOp = runningOp;
+    /**
+     * Проверка на операцию, выполняемую над справочником.
+     *
+     * @param operation операция
+     * @return Результат проверки
+     */
+    public boolean isOperation(RefBookOperation operation) {
+        return refBookOperation != null && operation.equals(refBookOperation.getOperation());
     }
 
     /**
