@@ -7,10 +7,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
-import ru.inovus.ms.rdm.api.async.AsyncOperation;
-import ru.inovus.ms.rdm.api.async.AsyncOperationLogEntry;
-import ru.inovus.ms.rdm.api.async.AsyncOperationLogEntryCriteria;
-import ru.inovus.ms.rdm.api.async.AsyncOperationStatus;
+import ru.inovus.ms.rdm.api.async.*;
 import ru.inovus.ms.rdm.api.service.AsyncOperationLogEntryService;
 import ru.inovus.ms.rdm.impl.entity.AsyncOperationLogEntryEntity;
 import ru.inovus.ms.rdm.impl.entity.QAsyncOperationLogEntryEntity;
@@ -37,9 +34,6 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
      */
     @Override
     public Page<AsyncOperationLogEntry> search(AsyncOperationLogEntryCriteria criteria) {
-
-        if (criteria.getSort() == null || criteria.getSort().isEmpty())
-            criteria.setOrders(List.of(AsyncOperationLogEntryEntity.DEFAULT_ORDER));
 
         Predicate predicate = toPredicate(criteria);
 
