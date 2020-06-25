@@ -4,7 +4,7 @@
         <java method="getById">
             <spring bean="versionServiceJaxRsProxyClient"/>
             <arguments>
-                <argument type="primitive" name="versionId"/>
+                <argument type="primitive" name="versionId" class="java.lang.Integer"/>
             </arguments>
         </java>
     </unique>
