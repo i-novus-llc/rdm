@@ -5,6 +5,7 @@ import org.hibernate.annotations.TypeDef;
 import ru.inovus.ms.rdm.api.enumeration.RefBookOperation;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.util.TimeUtils;
 
 import javax.persistence.*;
@@ -195,6 +196,15 @@ public class RefBookVersionEntity implements Serializable {
      */
     public boolean isDraft() {
         return RefBookVersionStatus.DRAFT.equals(status);
+    }
+
+    /**
+     * Формирование модели черновика.
+     *
+     * @return Модель черновика
+     */
+    public Draft toDraft() {
+        return new Draft(getId(), getStorageCode(), getOptLockValue());
     }
 
     /**

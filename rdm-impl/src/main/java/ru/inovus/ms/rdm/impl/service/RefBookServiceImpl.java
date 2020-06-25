@@ -29,6 +29,7 @@ import ru.inovus.ms.rdm.api.model.refdata.RdmChangeDataRequest;
 import ru.inovus.ms.rdm.api.service.DraftService;
 import ru.inovus.ms.rdm.api.service.PublishService;
 import ru.inovus.ms.rdm.api.service.RefBookService;
+import ru.inovus.ms.rdm.api.util.TimeUtils;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.*;
@@ -276,6 +277,8 @@ public class RefBookServiceImpl implements RefBookService {
         refBookEntity.setCategory(request.getCategory());
         updateVersionFromPassport(versionEntity, request.getPassport());
         versionEntity.setComment(request.getComment());
+
+        versionEntity.setLastActionDate(TimeUtils.now());
 
         auditLogService.addAction(AuditAction.EDIT_PASSPORT, () -> versionEntity, Map.of("newPassport", request.getPassport()));
 

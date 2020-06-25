@@ -190,7 +190,7 @@ public class DraftServiceTest {
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(testDraftVersion);
         when(versionRepository.save(any(RefBookVersionEntity.class))).thenReturn(testDraftVersion);
 
-        Draft expected = new Draft(1, TEST_DRAFT_CODE);
+        Draft expected = new Draft(1, TEST_DRAFT_CODE, 0);
         Draft actual = draftService.create(new CreateDraftRequest(REFBOOK_ID, testDraftVersion.getStructure()));
 
         verify(draftDataService).deleteAllRows(eq(TEST_DRAFT_CODE));

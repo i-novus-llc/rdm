@@ -15,7 +15,8 @@
                     <spring/>
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
-                        <argument type="primitive" name="systemId" class="java.lang.Long"/>
+                        <argument type="primitive" name="sysRecordId" class="java.lang.Long"/>
+                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
                     </arguments>
                 </java>
             </invocation>
@@ -23,6 +24,7 @@
             <in-parameters>
                 <param id="versionId" mapping="[0]" domain="integer" mapper="spel" />
                 <param id="id" mapping="[1]" domain="long" mapper="spel"/>
+                <param id="optLockValue" mapping="[2]" domain="integer" mapper="spel"/>
             </in-parameters>
         </operation>
 
@@ -34,12 +36,14 @@
                     <spring/>
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
+                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
                     </arguments>
                 </java>
             </invocation>
 
             <in-parameters>
                 <param id="versionId" mapping="[0]" domain="integer" mapper="spel" />
+                <param id="optLockValue" mapping="[1]" domain="integer" mapper="spel"/>
             </in-parameters>
         </operation>
     </operations>

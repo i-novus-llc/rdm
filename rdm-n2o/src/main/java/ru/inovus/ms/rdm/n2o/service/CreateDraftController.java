@@ -12,6 +12,7 @@ import ru.i_novus.platform.datastorage.temporal.model.DataConstants;
 import ru.inovus.ms.rdm.api.exception.NotFoundException;
 import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
@@ -34,6 +35,11 @@ import static java.util.Collections.*;
 @SuppressWarnings("unused")
 public class CreateDraftController {
 
+    private static final String ACTION_DRAFT_WAS_CHANGED_EXCEPTION_CODE = "action.draft.was.changed";
+    private static final String VERSION_IS_NOT_DRAFT_EXCEPTION_CODE = "version.is.not.draft";
+    private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
+    private static final String VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE = "version.has.not.structure";
+
     private RefBookService refBookService;
     private VersionService versionService;
     private DraftService draftService;
@@ -53,16 +59,22 @@ public class CreateDraftController {
     }
 
     private UiDraft getOrCreateDraft(Integer versionId) {
+
         final RefBookVersion version = versionService.getById(versionId);
-        if (version.isDraft())
-            return new UiDraft(versionId, version.getRefBookId());
-        else {
-            Integer draftId = draftService.getIdByRefBookCode(version.getCode());
-            if (draftId == null)
-                return new UiDraft(draftService.createFromVersion(versionId).getId(), version.getRefBookId());
-            else
-                return new UiDraft(draftId, version.getRefBookId());
+        final Integer refBookId = version.getRefBookId();
+        
+        if (version.isDraft()) {
+            return new UiDraft(versionId, refBookId, version.getOptLockValue());
         }
+
+        Integer draftId = draftService.getIdByRefBookCode(version.getCode());
+        if (draftId != null) {
+            Draft draft = draftService.getDraft(draftId);
+            return new UiDraft(draftId, refBookId, draft.getOptLockValue());
+        }
+
+        Draft newDraft = draftService.createFromVersion(versionId);
+        return new UiDraft(newDraft.getId(), refBookId, newDraft.getOptLockValue());
     }
 
     public UiDraft editPassport(Integer versionId, UiPassport uiPassport) {
@@ -109,47 +121,70 @@ public class CreateDraftController {
         return uiDraft;
     }
 
-    public UiDraft updateDataRecord(Integer versionId, Row row) {
+    public UiDraft updateDataRecord(Integer versionId, Row row, Integer optLockValue) {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (!Objects.equals(versionId, uiDraft.getId())) {
+        if (Objects.equals(versionId, uiDraft.getId())) {
+            validateOptLockValue(uiDraft, optLockValue);
+        } else {
+            optLockValue = null;
             row.setSystemId(calculateNewSystemId(row.getSystemId(), versionId, uiDraft.getId()));
         }
+
 //      Значит была нажата кнопка "Добавить строку".
 //      Если добавят строку с существующим первичным ключом, ошибки не будет, строка просто обновится новыми данными.
 //      Поэтому надо самим проверить, есть ли уже такой первичный ключ в справочнике и если есть -- бросить ошибку.
         if (row.getSystemId() == null) {
-            RefBookVersion refBookVersion = versionService.getById(uiDraft.getId());
-            List<Structure.Attribute> primary = refBookVersion.getStructure().getPrimary();
-            if (!primary.isEmpty()) {
-                List<AttributeFilter> primaryKeyValueFilters = RowUtils.getPrimaryKeyValueFilters(row, primary);
-                SearchDataCriteria searchDataCriteria = new SearchDataCriteria(Set.of(primaryKeyValueFilters), null);
-                searchDataCriteria.setPageSize(1);
-                searchDataCriteria.setPageNumber(1);
-                long n = versionService.search(uiDraft.getId(), searchDataCriteria).getTotalElements();
-                if (n > 0)
-                    throw new UserException("pk.is.already.exists");
-            }
+            validateCreatedRowExist(uiDraft.getId(), row);
         }
-        dataRecordController.updateData(uiDraft.getId(), row);
+
+        dataRecordController.updateData(uiDraft.getId(), row, optLockValue);
         return uiDraft;
     }
 
-    public UiDraft deleteDataRecord(Integer versionId, Long systemId) {
+    private void validateCreatedRowExist(Integer draftId, Row row) {
+
+        RefBookVersion refBookVersion = versionService.getById(draftId);
+        List<Structure.Attribute> primary = refBookVersion.getStructure().getPrimary();
+        if (primary.isEmpty())
+            return;
+
+        List<AttributeFilter> primaryKeyValueFilters = RowUtils.getPrimaryKeyValueFilters(row, primary);
+        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(Set.of(primaryKeyValueFilters), null);
+        searchDataCriteria.setPageSize(1);
+        searchDataCriteria.setPageNumber(1);
+
+        boolean exists = versionService.search(draftId, searchDataCriteria).getTotalElements() > 0;
+        if (exists)
+            throw new UserException("pk.is.already.exists");
+    }
+
+    public UiDraft deleteDataRecord(Integer versionId, Long sysRecordId, Integer optLockValue) {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (!Objects.equals(versionId, uiDraft.getId())) {
-            systemId = calculateNewSystemId(systemId, versionId, uiDraft.getId());
+        if (Objects.equals(versionId, uiDraft.getId())) {
+            validateOptLockValue(uiDraft, optLockValue);
+        } else {
+            optLockValue = null;
+            sysRecordId = calculateNewSystemId(sysRecordId, versionId, uiDraft.getId());
         }
-        draftService.deleteRow(uiDraft.getId(), new Row(systemId, emptyMap()));
+
+        draftService.deleteRow(uiDraft.getId(), new Row(sysRecordId, emptyMap()));
         return uiDraft;
     }
 
-    public UiDraft deleteAllDataRecords(Integer versionId) {
+    public UiDraft deleteAllDataRecords(Integer versionId, Integer optLockValue) {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
+
+        if (Objects.equals(versionId, uiDraft.getId())) {
+            validateOptLockValue(uiDraft, optLockValue);
+        } else {
+            optLockValue = null;
+        }
+
         draftService.deleteAllRows(uiDraft.getId());
         return uiDraft;
     }
@@ -178,35 +213,45 @@ public class CreateDraftController {
         Integer versionId = refBookService.create(fileModel).getId();
         RefBookVersion version = versionService.getById(versionId);
 
-        return new UiDraft(versionId, version.getRefBookId());
+        return new UiDraft(versionId, version.getRefBookId(), version.getOptLockValue());
     }
 
     public UiDraft uploadFromFile(Integer versionId, FileModel fileModel) {
 
         RefBookVersion version = versionService.getById(versionId);
         if (version == null)
-            throw new UserException(new Message("version.not.found", versionId));
+            throw new UserException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
 
-        versionId = draftService.create(version.getRefBookId(), fileModel).getId();
+        if (!version.isDraft())
+            throw new UserException(new Message(VERSION_IS_NOT_DRAFT_EXCEPTION_CODE, versionId));
 
-        return new UiDraft(versionId, version.getRefBookId());
+        Draft draft = draftService.create(version.getRefBookId(), fileModel);
+        versionId = draft.getId();
+
+        return new UiDraft(versionId, version.getRefBookId(), draft.getOptLockValue());
     }
 
     public UiDraft uploadData(Integer versionId, FileModel fileModel) {
 
         RefBookVersion version = versionService.getById(versionId);
         if (version == null)
-            throw new UserException(new Message("version.not.found", versionId));
+            throw new UserException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
 
         if (!version.isDraft())
-            throw new UserException(new Message("version.is.not.draft", versionId));
+            throw new UserException(new Message(VERSION_IS_NOT_DRAFT_EXCEPTION_CODE, versionId));
 
         if (version.getStructure() == null || version.getStructure().isEmpty())
-            throw new UserException(new Message("version.has.not.structure", versionId));
+            throw new UserException(new Message(VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE, versionId));
 
         draftService.updateData(versionId, fileModel);
 
-        return new UiDraft(versionId, version.getRefBookId());
+        return new UiDraft(versionId, version.getRefBookId(), version.getOptLockValue());
     }
 
+    private void validateOptLockValue(UiDraft uiDraft, Integer optLockValue) {
+
+        if (optLockValue != null && !optLockValue.equals(uiDraft.getOptLockValue())) {
+            throw new UserException(new Message(ACTION_DRAFT_WAS_CHANGED_EXCEPTION_CODE));
+        }
+    }
 }

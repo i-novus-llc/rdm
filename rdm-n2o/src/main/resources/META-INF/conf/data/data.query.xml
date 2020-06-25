@@ -22,6 +22,12 @@
             </filters>
         </field>
 
+        <field id="optLockValue" domain="integer">
+            <filters>
+                <eq filter-id="optLockValue" mapping="optLockValue" domain="integer"/>
+            </filters>
+        </field>
+
         <field id="columns">
             <select/>
         </field>

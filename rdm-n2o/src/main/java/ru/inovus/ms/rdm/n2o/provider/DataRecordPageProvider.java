@@ -31,12 +31,10 @@ import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
 public class DataRecordPageProvider implements DynamicMetadataProvider {
 
     private static final String FORM_PROVIDER_ID = "dataRecordPage";
-    private static final String DATA_ACTION_CREATE = "create";
-    private static final String DATA_ACTION_EDIT = "edit";
 
     private static final Map<String, String> pageNames = Map.of(
-            DATA_ACTION_CREATE, "Добавление новой записи",
-            DATA_ACTION_EDIT, "Редактирование записи"
+            DataRecordConstants.DATA_ACTION_CREATE, "Добавление новой записи",
+            DataRecordConstants.DATA_ACTION_EDIT, "Редактирование записи"
     );
 
     @Autowired
@@ -160,10 +158,10 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         referenceField.setId(codeWithPrefix);
         referenceField.setLabel(attribute.getName());
 
-        referenceField.setQueryId("reference");
+        referenceField.setQueryId(DataRecordConstants.REFERENCE_QUERY_ID);
         // NB: value-field-id is deprecated:
-        referenceField.setValueFieldId(DataRecordQueryProvider.REFERENCE_VALUE);
-        referenceField.setLabelFieldId(DataRecordQueryProvider.REFERENCE_DISPLAY_VALUE);
+        referenceField.setValueFieldId(DataRecordConstants.REFERENCE_VALUE);
+        referenceField.setLabelFieldId(DataRecordConstants.REFERENCE_DISPLAY_VALUE);
         referenceField.setDomain(N2oDomain.STRING);
 
         N2oPreFilter versionFilter = new N2oPreFilter();

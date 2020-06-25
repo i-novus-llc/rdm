@@ -1,11 +1,14 @@
 package ru.inovus.ms.rdm.n2o.service;
 
+import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.Messages;
+import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.inovus.ms.rdm.api.enumeration.ConflictType;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.conflict.RefBookConflict;
@@ -14,14 +17,13 @@ import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
+import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.service.ConflictService;
 import ru.inovus.ms.rdm.api.service.DraftService;
 import ru.inovus.ms.rdm.api.service.VersionService;
+import ru.inovus.ms.rdm.n2o.provider.DataRecordConstants;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static java.util.Collections.*;
@@ -35,6 +37,8 @@ import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
 @Controller
 @SuppressWarnings("unused")
 public class DataRecordController {
+
+    private static final String ACTION_DRAFT_WAS_CHANGED_EXCEPTION_CODE = "action.draft.was.changed";
 
     private static final String CONFLICT_TEXT = "conflict.text";
     private static final String CONFLICT_TEXT_UPDATED = "conflict.text.updated";
@@ -53,40 +57,89 @@ public class DataRecordController {
     @Autowired
     private ConflictService conflictService;
 
-    public Map<String, Object> getRow(Integer versionId, Integer sysRecordId) {
+    /**
+     * Получение записи версии справочника для создания/редактирования.
+     *
+     * @param versionId    идентификатор версии справочника
+     * @param sysRecordId  идентификатор записи
+     * @param optLockValue значение оптимистической блокировки
+     * @param dataAction   действие, которое планируется выполнять над записью
+     */
+    public Map<String, Object> getRow(Integer versionId, Integer sysRecordId, Integer optLockValue, String dataAction) {
 
-        SearchDataCriteria criteria = new SearchDataCriteria();
-        AttributeFilter recordIdFilter = new AttributeFilter(SYS_PRIMARY_COLUMN, sysRecordId, FieldType.INTEGER);
-        criteria.setAttributeFilter(singleton(singletonList(recordIdFilter)));
+        RefBookVersion version = versionService.getById(versionId);
+        if (optLockValue != null && !optLockValue.equals(version.getOptLockValue()))
+            throw new UserException(new Message(ACTION_DRAFT_WAS_CHANGED_EXCEPTION_CODE));
 
-        Page<RefBookRowValue> search = versionService.search(versionId, criteria);
-        if (isEmpty(search.getContent()))
-            return emptyMap();
+        if (StringUtils.isEmpty(dataAction))
+            throw new IllegalArgumentException("data action is not supported");
 
-        return getRow(versionId, sysRecordId, search.getContent().get(0));
+        Map<String, Object> map = createRow(version, optLockValue, dataAction);
+
+        switch (dataAction) {
+            case DataRecordConstants.DATA_ACTION_CREATE: return getCreatedRow(version, map);
+            case DataRecordConstants.DATA_ACTION_EDIT: return getUpdatedRow(versionId, sysRecordId, map);
+            default: return emptyMap();
+        }
     }
 
-    public Map<String, Object> getRow(Integer versionId, Integer sysRecordId, LongRowValue rowValue) {
+    private Map<String, Object> createRow(RefBookVersion version, Integer optLockValue, String dataAction) {
 
-        Map<String, Object> map = new HashMap<>();
-        map.put("id", sysRecordId);
-        map.put("versionId", versionId);
+        int atributeCount = version.getStructure().getAttributes().size();
+        Map<String, Object> map = new HashMap<>(4 + atributeCount);
 
-        rowValue.getFieldValues().forEach(
+        map.put(DataRecordConstants.FIELD_VERSION_ID, version.getId());
+        map.put(DataRecordConstants.FIELD_OPT_LOCK_VALUE, optLockValue);
+        map.put(DataRecordConstants.FIELD_DATA_ACTION, dataAction);
+
+        return map;
+    }
+
+    private Map<String, Object> getCreatedRow(RefBookVersion version, Map<String, Object> map) {
+
+        // sysRecordId is null
+
+        // Get default values from backend by versionService.searchDefaults(versionId) instead of:
+        version.getStructure().getReferences().forEach(reference ->
+                map.put(addPrefix(reference.getAttribute()), new Reference())
+        );
+
+        return map;
+    }
+
+    private Map<String, Object> getUpdatedRow(Integer versionId, Integer sysRecordId, Map<String, Object> map) {
+
+        map.put(DataRecordConstants.FIELD_SYSTEM_ID, sysRecordId);
+
+        List<RefBookRowValue> rowValues = findRowValues(versionId, sysRecordId);
+        if (isEmpty(rowValues))
+            return emptyMap();
+
+        rowValues.get(0).getFieldValues().forEach(
                 fieldValue -> map.put(addPrefix(fieldValue.getField()), fieldValue.getValue())
         );
 
         return map;
     }
 
+    private List<RefBookRowValue> findRowValues(Integer versionId, Integer sysRecordId) {
+
+        SearchDataCriteria criteria = new SearchDataCriteria();
+        AttributeFilter recordIdFilter = new AttributeFilter(SYS_PRIMARY_COLUMN, sysRecordId, FieldType.INTEGER);
+        criteria.setAttributeFilter(singleton(singletonList(recordIdFilter)));
+
+        Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
+        return !isEmpty(rowValues.getContent()) ? rowValues.getContent() : emptyList();
+    }
+
     /**
      * Проверка наличия конфликтов для записи у ссылаемой версии.
      *
      * @param referrerVersionId идентификатор версии, которая ссылается
-     * @param rowSystemId       идентификатор записи этой версии
+     * @param sysRecordId       идентификатор записи этой версии
      * @return Строка со всеми конфликтами
      */
-    public String getDataConflicts(Integer referrerVersionId, Long rowSystemId) {
+    public String getDataConflicts(Integer referrerVersionId, Long sysRecordId) {
 
         final Structure structure = versionService.getStructure(referrerVersionId);
         if (isEmpty(structure.getReferences()))
@@ -95,7 +148,7 @@ public class DataRecordController {
         List<String> refFieldCodes = structure.getReferences().stream()
                 .map(Structure.Reference::getAttribute)
                 .collect(toList());
-        List<RefBookConflict> conflicts = findDataConflicts(referrerVersionId, rowSystemId, refFieldCodes);
+        List<RefBookConflict> conflicts = findDataConflicts(referrerVersionId, sysRecordId, refFieldCodes);
         if (isEmpty(conflicts))
             return null;
 
@@ -153,8 +206,15 @@ public class DataRecordController {
         }
     }
 
+    /**
+     * Обновление строки данных версии справочника.
+     *
+     * @param draftId      идентификатор черновика справочника
+     * @param row          строка данных для добавления/изменения
+     * @param optLockValue значение оптимистической блокировки
+     */
     @SuppressWarnings("WeakerAccess")
-    public void updateData(Integer draftId, Row row) {
+    public void updateData(Integer draftId, Row row, Integer optLockValue) {
         row.getData().entrySet().stream()
                 .filter(e -> e.getValue() instanceof Date)
                 .forEach(e -> e.setValue(parseLocalDate(e.getValue())));

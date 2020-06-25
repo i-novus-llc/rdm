@@ -131,8 +131,14 @@
                     <!--to-do: сделать отдельные кнопки без рефреша для редактирования черновика-->
                     <button id="createRecord_r" label="Добавить строку" icon="fa fa-plus"
                             widget-id="version_select" model="resolve">
-                        <show-modal page-id="dataRecordPage?{id}_create" upload="defaults" route="/create"
-                                    submit-operation-id="create" refresh-widget-id="version_select"/>
+                        <show-modal page-id="dataRecordPage?{id}_create" upload="query" route="/create"
+                                    submit-operation-id="create" refresh-widget-id="version_select">
+                            <pre-filters>
+                                <eq field-id="id" value="0"/>
+                                <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve" ref-widget-id="version_select"/>
+                                <eq field-id="dataAction" value="create"/>
+                            </pre-filters>
+                        </show-modal>
                     </button>
                     <!-- порядок кнопок в данном toolbar важен, так как эта кнопка изменяется в UpdateDependencyTransformer-->
                     <button id="updateRecord_r" label="Изменить строку" icon="fa fa-pencil"
@@ -141,6 +147,8 @@
                                     submit-operation-id="update" refresh-widget-id="version_select">
                             <pre-filters>
                                 <eq field-id="id" value="{id}" ref-model="resolve" ref-widget-id="dataTable"/>
+                                <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve" ref-widget-id="version_select"/>
+                                <eq field-id="dataAction" value="edit"/>
                             </pre-filters>
                         </show-modal>
                     </button>
@@ -166,6 +174,8 @@
                                     submit-operation-id="update" refresh-widget-id="version_select">
                             <pre-filters>
                                 <eq field-id="id" value="{id}" ref-model="resolve" ref-widget-id="dataTableWithConflicts"/>
+                                <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve" ref-widget-id="version_select"/>
+                                <eq field-id="dataAction" value="edit"/>
                             </pre-filters>
                         </show-modal>
                     </button>

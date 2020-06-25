@@ -5,13 +5,11 @@ import ru.inovus.ms.rdm.api.model.draft.Draft;
 import java.util.Objects;
 
 public class UiDraft extends Draft {
+
     private Integer refBookId;
 
-    public UiDraft() {
-    }
-
-    public UiDraft(Integer id, Integer refBookId) {
-        super(id, null);
+    public UiDraft(Integer id, Integer refBookId, Integer optLockValue) {
+        super(id, null, optLockValue);
         this.refBookId = refBookId;
     }
 
@@ -28,8 +26,9 @@ public class UiDraft extends Draft {
         if (this == o) return true;
         if (!(o instanceof UiDraft)) return false;
         if (!super.equals(o)) return false;
-        UiDraft uiDraft = (UiDraft) o;
-        return Objects.equals(refBookId, uiDraft.refBookId);
+
+        UiDraft that = (UiDraft) o;
+        return Objects.equals(refBookId, that.refBookId);
     }
 
     @Override

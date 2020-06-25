@@ -34,6 +34,9 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
     private static final String CONTROLLER_CLASS_NAME = CreateDraftController.class.getName();
     private static final String CONTROLLER_CLASS_METHOD = "updateDataRecord";
 
+    private static final String CONFLICT_VALIDATION_NAME = "checkDataConflicts";
+    private static final String CONFLICT_VALIDATION_CLASS_NAME = DataRecordController.class.getName();
+    private static final String CONFLICT_VALIDATION_CLASS_METHOD = "getDataConflicts";
     private static final String CONFLICT_TEXT_RESULT = "conflictText";
 
     @Autowired
@@ -74,7 +77,8 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
         operation.setFormSubmitLabel("Сохранить");
         operation.setInvocation(createInvocation());
         operation.setInParameters(Stream.concat(
-                Stream.of(versionIdParameter(versionId)),
+                Stream.of(createVersionIdParameter(versionId),
+                        createOptLockValueParameter()),
                 createDynamicParams(structure).stream())
                 .toArray(N2oObject.Parameter[]::new));
 
@@ -88,57 +92,15 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
         operation.setFormSubmitLabel("Изменить");
         operation.setInvocation(createInvocation());
         operation.setInParameters(Stream.concat(
-                Stream.of(versionIdParameter(versionId), systemIdParameter()),
+                Stream.of(createVersionIdParameter(versionId),
+                        createSystemIdParameter(),
+                        createOptLockValueParameter()),
                 createDynamicParams(structure).stream())
                 .toArray(N2oObject.Parameter[]::new));
 
         addDataConflictValidation(versionId, operation);
 
         return operation;
-    }
-
-    private void addDataConflictValidation(Integer versionId, N2oObject.Operation operation) {
-
-        N2oJavaDataProvider dataProvider = new N2oJavaDataProvider();
-        dataProvider.setClassName(DataRecordController.class.getName());
-        dataProvider.setMethod("getDataConflicts");
-        dataProvider.setSpringProvider(new SpringProvider());
-
-        Argument refFromIdArgument = new Argument();
-        refFromIdArgument.setType(Argument.Type.PRIMITIVE);
-        refFromIdArgument.setClassName("java.lang.Integer");
-        refFromIdArgument.setName("referrerVersionId");
-
-        Argument rowSystemIdArgument = new Argument();
-        rowSystemIdArgument.setType(Argument.Type.PRIMITIVE);
-        rowSystemIdArgument.setClassName("java.lang.Long");
-        rowSystemIdArgument.setName("rowSystemId");
-
-        dataProvider.setArguments(new Argument[] {refFromIdArgument, rowSystemIdArgument});
-
-        N2oConstraint constraint = new N2oConstraint();
-        constraint.setId("checkDataConflicts");
-        constraint.setSeverity(SeverityType.warning);
-        constraint.setServerMoment(N2oValidation.ServerMoment.beforeQuery);
-        constraint.setResult("#this == null");
-        constraint.setMessage('{' + CONFLICT_TEXT_RESULT + '}');
-        constraint.setN2oInvocation(dataProvider);
-
-        N2oObject.Parameter versionIdParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, DataRecordQueryProvider.VERSION_ID_NAME, "[0]");
-        versionIdParam.setDefaultValue(versionId.toString());
-        versionIdParam.setDomain(N2oDomain.INTEGER);
-        N2oObject.Parameter rowSystemIdParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, DataRecordQueryProvider.SYS_RECORD_ID_NAME, "[1]");
-        rowSystemIdParam.setDomain(N2oDomain.LONG);
-        constraint.setInParameters(new N2oObject.Parameter[]{ versionIdParam, rowSystemIdParam });
-
-        N2oObject.Parameter conflictTextParam = new N2oObject.Parameter(N2oObject.Parameter.Type.out, CONFLICT_TEXT_RESULT, "(#this)");
-        conflictTextParam.setDomain(N2oDomain.STRING);
-        N2oObject.Parameter[] outParams = new N2oObject.Parameter[]{ conflictTextParam };
-        constraint.setOutParameters(outParams);
-
-        N2oObject.Operation.Validations validations = new N2oObject.Operation.Validations();
-        validations.setInlineValidations(new N2oValidation[]{ constraint });
-        operation.setValidations(validations);
     }
 
     private AbstractDataProvider createInvocation() {
@@ -158,28 +120,42 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
         rowArgument.setName("row");
         rowArgument.setClassName(Row.class.getName());
 
-        invocation.setArguments(new Argument[]{ versionIdArgument, rowArgument });
+        Argument optLockValueArgument = new Argument();
+        optLockValueArgument.setType(Argument.Type.PRIMITIVE);
+        optLockValueArgument.setName(DataRecordConstants.FIELD_OPT_LOCK_VALUE);
+        optLockValueArgument.setClassName(Integer.class.getName());
+
+        invocation.setArguments(new Argument[]{ versionIdArgument, rowArgument, optLockValueArgument });
 
         return invocation;
     }
 
-    private N2oObject.Parameter versionIdParameter(Integer versionId) {
+    private N2oObject.Parameter createVersionIdParameter(Integer versionId) {
 
         N2oObject.Parameter parameter = new N2oObject.Parameter();
-        parameter.setId("versionId");
+        parameter.setId(DataRecordConstants.FIELD_VERSION_ID);
         parameter.setMapping("[0]");
         parameter.setDomain(N2oDomain.INTEGER);
         parameter.setDefaultValue(String.valueOf(versionId));
         return parameter;
     }
 
-    private N2oObject.Parameter systemIdParameter() {
+    private N2oObject.Parameter createSystemIdParameter() {
 
         N2oObject.Parameter parameter = new N2oObject.Parameter();
-        parameter.setId("id");
+        parameter.setId(DataRecordConstants.FIELD_SYSTEM_ID);
         parameter.setDomain(N2oDomain.INTEGER);
         parameter.setMapping("[1].systemId");
         return parameter;
+    }
+
+    private N2oObject.Parameter createOptLockValueParameter() {
+        N2oObject.Parameter optLockValueParameter = new N2oObject.Parameter();
+        optLockValueParameter.setId(DataRecordConstants.FIELD_OPT_LOCK_VALUE);
+        optLockValueParameter.setMapping("[2]");
+        optLockValueParameter.setDomain(N2oDomain.INTEGER);
+        optLockValueParameter.setDefaultValue(String.valueOf(DataRecordConstants.DEFAULT_OPT_LOCK_VALUE));
+        return optLockValueParameter;
     }
 
     private List<N2oObject.Parameter> createDynamicParams(Structure structure) {
@@ -232,5 +208,50 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
             default:
                 break;
         }
+    }
+
+    private void addDataConflictValidation(Integer versionId, N2oObject.Operation operation) {
+
+        N2oJavaDataProvider dataProvider = new N2oJavaDataProvider();
+        dataProvider.setClassName(CONFLICT_VALIDATION_CLASS_NAME);
+        dataProvider.setMethod(CONFLICT_VALIDATION_CLASS_METHOD);
+        dataProvider.setSpringProvider(new SpringProvider());
+
+        Argument refFromIdArgument = new Argument();
+        refFromIdArgument.setType(Argument.Type.PRIMITIVE);
+        refFromIdArgument.setClassName("java.lang.Integer");
+        refFromIdArgument.setName("referrerVersionId");
+
+        Argument rowSystemIdArgument = new Argument();
+        rowSystemIdArgument.setType(Argument.Type.PRIMITIVE);
+        rowSystemIdArgument.setClassName("java.lang.Long");
+        rowSystemIdArgument.setName("rowSystemId");
+
+        dataProvider.setArguments(new Argument[] { refFromIdArgument, rowSystemIdArgument });
+
+        N2oConstraint constraint = new N2oConstraint();
+        constraint.setId(CONFLICT_VALIDATION_NAME);
+        constraint.setSeverity(SeverityType.warning);
+        constraint.setServerMoment(N2oValidation.ServerMoment.beforeQuery);
+        constraint.setResult("#this == null");
+        constraint.setMessage('{' + CONFLICT_TEXT_RESULT + '}');
+        constraint.setN2oInvocation(dataProvider);
+
+        N2oObject.Parameter versionIdParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, DataRecordConstants.FIELD_VERSION_ID, "[0]");
+        versionIdParam.setDefaultValue(versionId.toString());
+        versionIdParam.setDomain(N2oDomain.INTEGER);
+
+        N2oObject.Parameter rowSystemIdParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, DataRecordConstants.FIELD_SYS_RECORD_ID, "[1]");
+        rowSystemIdParam.setDomain(N2oDomain.LONG);
+        constraint.setInParameters(new N2oObject.Parameter[]{ versionIdParam, rowSystemIdParam });
+
+        N2oObject.Parameter conflictTextParam = new N2oObject.Parameter(N2oObject.Parameter.Type.out, CONFLICT_TEXT_RESULT, "(#this)");
+        conflictTextParam.setDomain(N2oDomain.STRING);
+        N2oObject.Parameter[] outParams = new N2oObject.Parameter[]{ conflictTextParam };
+        constraint.setOutParameters(outParams);
+
+        N2oObject.Operation.Validations validations = new N2oObject.Operation.Validations();
+        validations.setInlineValidations(new N2oValidation[]{ constraint });
+        operation.setValidations(validations);
     }
 }
