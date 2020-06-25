@@ -3,11 +3,11 @@
 
     <unique filters="version.id,version.optLockValue" result-mapping="#this">
         <java class="ru.inovus.ms.rdm.n2o.service.RefBookPublishController"
-              method="getByVersionId">
+              method="getDraft">
             <spring/>
             <arguments>
-                <argument type="primitive"/>
-                <argument type="primitive"/>
+                <argument type="primitive" name="versionId" class="java.lang.Integer"/>
+                <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
             </arguments>
         </java>
     </unique>

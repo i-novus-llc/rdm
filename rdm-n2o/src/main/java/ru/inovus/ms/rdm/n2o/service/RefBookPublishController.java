@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import ru.inovus.ms.rdm.api.enumeration.ConflictType;
 import ru.inovus.ms.rdm.api.model.draft.PublishRequest;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
@@ -55,26 +56,14 @@ public class RefBookPublishController {
         this.messages = messages;
     }
 
-    public UiRefBookPublish getByVersionId(Integer versionId, Integer optLockValue) {
+    public UiRefBookPublish getDraft(Integer versionId, Integer optLockValue) {
 
         RefBook refBook = refBookService.getByVersionId(versionId);
 
         UiRefBookPublish uiRefBookPublish = new UiRefBookPublish(refBook);
 
-        if (optLockValue != null && !optLockValue.equals(uiRefBookPublish.getOptLockValue())) {
-            String message = messages.getMessage(PUBLISHING_DRAFT_WAS_CHANGED_EXCEPTION_CODE);
-            uiRefBookPublish.setErrorMessage(message);
-            return uiRefBookPublish;
-        }
-
-        if (refBook.getStructure() == null || refBook.getStructure().isEmpty()) {
-            String message = messages.getMessage(PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE);
-            uiRefBookPublish.setErrorMessage(message);
-            return uiRefBookPublish;
-        }
-
-        if (!Boolean.TRUE.equals(draftService.hasData(versionId))) {
-            String message = messages.getMessage(PUBLISHING_DRAFT_DATA_NOT_FOUND_EXCEPTION_CODE);
+        String message = checkPublishedDraft(versionId, optLockValue);
+        if (!StringUtils.isEmpty(message)) {
             uiRefBookPublish.setErrorMessage(message);
             return uiRefBookPublish;
         }
@@ -88,6 +77,25 @@ public class RefBookPublishController {
         }
 
         return uiRefBookPublish;
+    }
+
+    /** Проверка публикуемого черновика перед открытием окна публикации. */
+    public String checkPublishedDraft(Integer versionId, Integer optLockValue) {
+
+        RefBook refBook = refBookService.getByVersionId(versionId);
+        if (optLockValue != null && !optLockValue.equals(refBook.getOptLockValue())) {
+            return messages.getMessage(PUBLISHING_DRAFT_WAS_CHANGED_EXCEPTION_CODE);
+        }
+
+        if (refBook.getStructure() == null || refBook.getStructure().isEmpty()) {
+            return messages.getMessage(PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE);
+        }
+
+        if (!Boolean.TRUE.equals(draftService.hasData(versionId))) {
+            return messages.getMessage(PUBLISHING_DRAFT_DATA_NOT_FOUND_EXCEPTION_CODE);
+        }
+
+        return null;
     }
 
     /**

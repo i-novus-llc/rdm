@@ -9,11 +9,13 @@
                     <spring/>
                     <arguments>
                         <argument type="primitive" name="draftId" class="java.lang.Integer"/>
+                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
                     </arguments>
                 </java>
             </invocation>
             <in-parameters>
                 <param id="version.id" mapping="[0]" domain="integer" mapper="spel"/>
+                <param id="version.optLockValue" mapping="[1]" domain="integer" mapper="spel"/>
             </in-parameters>
             <out-parameters>
                 <param id="opId" mapping="toString()" default-value="123" domain="string"/>
@@ -27,11 +29,13 @@
                     <spring/>
                     <arguments>
                         <argument type="primitive" name="draftId" class="java.lang.Integer"/>
+                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
                     </arguments>
                 </java>
             </invocation>
             <in-parameters>
                 <param id="version.id" mapping="[0]" domain="integer" mapper="spel"/>
+                <param id="version.optLockValue" mapping="[1]" domain="integer" mapper="spel"/>
             </in-parameters>
             <out-parameters>
                 <param id="opId" mapping="toString()" domain="string"/>
