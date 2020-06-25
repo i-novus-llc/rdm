@@ -16,6 +16,8 @@ import ru.inovus.ms.rdm.api.enumeration.RefBookOperation;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookStatusType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.api.exception.FileExtensionException;
+import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.model.draft.PublishRequest;
@@ -30,14 +32,19 @@ import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.*;
+import ru.inovus.ms.rdm.impl.file.FileStorage;
+import ru.inovus.ms.rdm.impl.file.process.XmlCreateRefBookFileProcessor;
 import ru.inovus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
 import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookModelDataRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.inovus.ms.rdm.impl.util.FileUtil;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 
+import java.io.InputStream;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
@@ -49,6 +56,8 @@ import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 @Service
 public class RefBookServiceImpl implements RefBookService {
 
+    private static final String REFBOOK_IS_NOT_CREATED_EXCEPTION_CODE = "refbook.is.not.created";
+    private static final String REFBOOK_IS_NOT_CREATED_FROM_XLSX_EXCEPTION_CODE = "refbook.is.not.created.from.xlsx";
     private static final String REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.already.exists";
     private static final String DRAFT_NOT_FOUND_EXCEPTION_CODE = "draft.not.found";
 
@@ -66,6 +75,8 @@ public class RefBookServiceImpl implements RefBookService {
 
     private VersionValidation versionValidation;
 
+    private FileStorage fileStorage;
+
     private DraftService draftService;
     private PublishService publishService;
 
@@ -78,7 +89,7 @@ public class RefBookServiceImpl implements RefBookService {
                               DraftDataService draftDataService, DropDataService dropDataService,
                               RefBookLockService refBookLockService,
                               PassportValueRepository passportValueRepository, RefBookVersionQueryProvider refBookVersionQueryProvider,
-                              VersionValidation versionValidation,
+                              VersionValidation versionValidation, FileStorage fileStorage,
                               DraftService draftService, PublishService publishService,
                               AuditLogService auditLogService) {
         this.refBookRepository = refBookRepository;
@@ -95,6 +106,7 @@ public class RefBookServiceImpl implements RefBookService {
         this.refBookVersionQueryProvider = refBookVersionQueryProvider;
 
         this.versionValidation = versionValidation;
+        this.fileStorage = fileStorage;
 
         this.draftService = draftService;
         this.publishService = publishService;
@@ -206,6 +218,43 @@ public class RefBookServiceImpl implements RefBookService {
         auditLogService.addAction(AuditAction.CREATE_REF_BOOK, () -> savedVersion);
 
         return refBook;
+    }
+
+    @Override
+    @Transactional(timeout = 1200000)
+    public Draft create(FileModel fileModel) {
+
+        switch (FileUtil.getExtension(fileModel.getName())) {
+            case "XLSX": return createByXlsx(fileModel);
+            case "XML": return createByXml(fileModel);
+            default: throw new FileExtensionException();
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private Draft createByXlsx(FileModel fileModel) {
+        throw new UserException(REFBOOK_IS_NOT_CREATED_FROM_XLSX_EXCEPTION_CODE);
+    }
+
+    private Draft createByXml(FileModel fileModel) {
+
+        RefBook refBook;
+        try (XmlCreateRefBookFileProcessor createRefBookFileProcessor = new XmlCreateRefBookFileProcessor(this)) {
+            Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
+            refBook = createRefBookFileProcessor.process(inputStreamSupplier);
+        }
+
+        if (refBook == null)
+            throw new UserException(REFBOOK_IS_NOT_CREATED_EXCEPTION_CODE);
+
+        try {
+            return draftService.create(refBook.getRefBookId(), fileModel);
+
+        } catch (Exception e) {
+            delete(refBook.getRefBookId());
+
+            throw e;
+        }
     }
 
     @Override

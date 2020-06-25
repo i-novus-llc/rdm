@@ -28,7 +28,7 @@ import static org.quartz.TriggerBuilder.newTrigger;
 @Configuration
 @DependsOn("liquibase")
 @EnableJaxRsProxyClient(
-    classes = {RefBookService.class, DraftService.class, FileStorageService.class, PublishService.class, RefBookDataService.class},
+    classes = {RefBookService.class, DraftService.class, FileStorageService.class, PublishService.class},
     address = "${rdm.backend.path}"
 )
 public class EsnsiSyncConfig {
