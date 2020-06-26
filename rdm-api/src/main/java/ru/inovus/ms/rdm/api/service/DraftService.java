@@ -65,7 +65,8 @@ public interface DraftService {
     })
     @Path("/update/{draftId}")
     void updateData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
-                    @ApiParam("Запись черновика") Row row);
+                    @ApiParam("Запись черновика") Row row,
+                    @ApiParam("Значение оптимистической блокировки") @QueryParam("optLockValue") Integer optLockValue);
 
     @POST
     @ApiOperation("Добавление или изменение записей черновика")
@@ -76,7 +77,8 @@ public interface DraftService {
     })
     @Path("/updateList/{draftId}")
     void updateData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
-                    @ApiParam("Записи черновика") List<Row> rows);
+                    @ApiParam("Записи черновика") List<Row> rows,
+                    @ApiParam("Значение оптимистической блокировки") @QueryParam("optLockValue") Integer optLockValue);
 
     @DELETE
     @ApiOperation("Удаление записи черновика (либо по первичному ключу, либо по системному идентификатору)")
@@ -86,7 +88,9 @@ public interface DraftService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/deleteRow/{draftId}")
-    void deleteRow(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId, Row row);
+    void deleteRow(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
+                   @ApiParam("Запись черновика") Row row,
+                   @ApiParam("Значение оптимистической блокировки") @QueryParam("optLockValue") Integer optLockValue);
 
     @DELETE
     @ApiOperation(value = "Удаление записей черновика (либо по первичному ключу, либо по системному идентификатору)")
@@ -96,7 +100,9 @@ public interface DraftService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/deleteRows/{draftId}")
-    void deleteRows(@PathParam("draftId") Integer draftId, List<Row> rows);
+    void deleteRows(@PathParam("draftId") Integer draftId,
+                    @ApiParam("Записи черновика") List<Row> rows,
+                    @ApiParam("Значение оптимистической блокировки") @QueryParam("optLockValue") Integer optLockValue);
 
     @DELETE
     @ApiOperation("Удаление всех записей черновика")
@@ -106,7 +112,8 @@ public interface DraftService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/deleteAll/{draftId}")
-    void deleteAllRows(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId);
+    void deleteAllRows(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
+                       @ApiParam("Значение оптимистической блокировки") @QueryParam("optLockValue") Integer optLockValue);
 
     @POST
     @ApiOperation("Обновление черновика из файла")

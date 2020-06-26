@@ -382,29 +382,30 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void updateData(Integer draftId, Row row) {
-        updateData(draftId, singletonList(row));
+    public void updateData(Integer draftId, Row row, Integer optLockValue) {
+        updateData(draftId, singletonList(row), optLockValue);
     }
 
     @Override
     @Transactional
-    public void updateData(Integer draftId, List<Row> rows) {
+    public void updateData(Integer draftId, List<Row> rows, Integer optLockValue) {
 
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
 
         List<Object> addedData = null;
         List<RowDiff> rowDiffs = null;
-
         refBookLockService.setRefBookUpdating(draftVersion.getRefBook().getId());
         try {
+            versionValidation.validateOptLockValue(draftId, draftVersion.getOptLockValue(), optLockValue);
+
             rows = prepareRows(rows, draftVersion, true);
             if (rows.isEmpty()) return;
 
-            List<RowValue> convertedRows = rows.stream().map(row -> ConverterUtil.rowValue((row), draftVersion.getStructure())).collect(toList());
+            List<RowValue> rowValues = rows.stream().map(row -> ConverterUtil.rowValue((row), draftVersion.getStructure())).collect(toList());
             validateDataByStructure(draftVersion, rows);
 
-            List<RowValue> addedRowValues = convertedRows.stream().filter(rowValue -> rowValue.getSystemId() == null).collect(toList());
+            List<RowValue> addedRowValues = rowValues.stream().filter(rowValue -> rowValue.getSystemId() == null).collect(toList());
             if (!isEmpty(addedRowValues)) {
                 try {
                     draftDataService.addRows(draftVersion.getStorageCode(), addedRowValues);
@@ -416,7 +417,7 @@ public class DraftServiceImpl implements DraftService {
                 addedData = addedRowValues.stream().map(RowValue::getFieldValues).collect(toList());
             }
 
-            List<RowValue> updatedRowValues = convertedRows.stream().filter(rowValue -> rowValue.getSystemId() != null).collect(toList());
+            List<RowValue> updatedRowValues = rowValues.stream().filter(rowValue -> rowValue.getSystemId() != null).collect(toList());
             if (!isEmpty(updatedRowValues)) {
                 List<String> fields = StructureUtils.getAttributeCodes(draftVersion.getStructure()).collect(toList());
                 List<Object> systemIds = updatedRowValues.stream().map(RowValue::getSystemId).collect(toList());
@@ -453,22 +454,25 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void deleteRow(Integer draftId, Row row) {
-        deleteRows(draftId, singletonList(row));
+    public void deleteRow(Integer draftId, Row row, Integer optLockValue) {
+        deleteRows(draftId, singletonList(row), optLockValue);
     }
 
     @Override
     @Transactional
-    public void deleteRows(Integer draftId, List<Row> rows) {
+    public void deleteRows(Integer draftId, List<Row> rows, Integer optLockValue) {
 
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
 
-        rows = prepareRows(rows, draftEntity, false);
         List<Object> systemIds;
-
         refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
         try {
+            versionValidation.validateOptLockValue(draftId, draftEntity.getOptLockValue(), optLockValue);
+
+            rows = prepareRows(rows, draftEntity, false);
+            if (rows.isEmpty()) return;
+
             systemIds = rows.stream().map(Row::getSystemId).filter(Objects::nonNull).collect(toList());
             if (!systemIds.isEmpty()) {
                 conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftEntity.getId(), RowUtils.toLongSystemIds(systemIds));
@@ -559,13 +563,15 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void deleteAllRows(Integer draftId) {
+    public void deleteAllRows(Integer draftId, Integer optLockValue) {
 
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
 
         refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
         try {
+            versionValidation.validateOptLockValue(draftId, draftEntity.getOptLockValue(), optLockValue);
+
             deleteDraftAllRows(draftEntity);
             draftEntity.setLastActionDate(TimeUtils.now());
 

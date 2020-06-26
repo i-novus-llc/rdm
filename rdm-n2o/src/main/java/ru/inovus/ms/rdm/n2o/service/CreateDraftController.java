@@ -135,7 +135,7 @@ public class CreateDraftController {
             validateOptLockValue(uiDraft, optLockValue);
         } else {
             // Изменение записи в опубликованной версии:
-            optLockValue = null;
+            optLockValue = null; // Новый справочник, поэтому блокировки нет (также в других методах).
             row.setSystemId(findNewSystemId(row.getSystemId(), versionId, uiDraft.getId()));
         }
 
@@ -194,7 +194,7 @@ public class CreateDraftController {
             sysRecordId = findNewSystemId(sysRecordId, versionId, uiDraft.getId());
         }
 
-        draftService.deleteRow(uiDraft.getId(), new Row(sysRecordId, emptyMap()));
+        draftService.deleteRow(uiDraft.getId(), new Row(sysRecordId, emptyMap()), optLockValue);
         return uiDraft;
     }
 
@@ -208,7 +208,7 @@ public class CreateDraftController {
             optLockValue = null;
         }
 
-        draftService.deleteAllRows(uiDraft.getId());
+        draftService.deleteAllRows(uiDraft.getId(), optLockValue);
         return uiDraft;
     }
 
