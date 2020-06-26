@@ -81,10 +81,6 @@ public class RefBookCriteria extends AbstractCriteria {
     @QueryParam("displayCode")
     private String displayCode;
 
-    @ApiParam("Значение оптимистической блокировки версии")
-    @QueryParam("optLockValue")
-    private Integer optLockValue;
-
     @ApiParam(value = "Паспорт справочника", hidden = true)
     @QueryParam("passport")
     private Map<String, String> passport;
