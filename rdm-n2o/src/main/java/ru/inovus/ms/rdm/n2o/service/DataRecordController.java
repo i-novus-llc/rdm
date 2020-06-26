@@ -21,6 +21,7 @@ import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.service.ConflictService;
 import ru.inovus.ms.rdm.api.service.DraftService;
 import ru.inovus.ms.rdm.api.service.VersionService;
+import ru.inovus.ms.rdm.api.util.StructureUtils;
 import ru.inovus.ms.rdm.n2o.provider.DataRecordConstants;
 
 import java.util.*;
@@ -145,9 +146,7 @@ public class DataRecordController {
         if (isEmpty(structure.getReferences()))
             return null;
 
-        List<String> refFieldCodes = structure.getReferences().stream()
-                .map(Structure.Reference::getAttribute)
-                .collect(toList());
+        List<String> refFieldCodes = StructureUtils.getReferenceAttributeCodes(structure).collect(toList());
         List<RefBookConflict> conflicts = findDataConflicts(referrerVersionId, sysRecordId, refFieldCodes);
         if (isEmpty(conflicts))
             return null;
@@ -162,17 +161,18 @@ public class DataRecordController {
      * Поиск конфликта по ссылаемой версии, идентификатору строки и ссылкам.
      *
      * @param referrerVersionId идентификатор версии, которая ссылается
-     * @param rowSystemId       идентификатор записи этой версии
+     * @param sysRecordId       идентификатор записи этой версии
      * @param refFieldCodes     список кодов ссылок в структуре этой версии
      * @return Список конфликтов
      */
-    private List<RefBookConflict> findDataConflicts(Integer referrerVersionId, Long rowSystemId,
+    private List<RefBookConflict> findDataConflicts(Integer referrerVersionId,
+                                                    Long sysRecordId,
                                                     List<String> refFieldCodes) {
         RefBookConflictCriteria criteria = new RefBookConflictCriteria();
         criteria.setReferrerVersionId(referrerVersionId);
         criteria.setIsLastPublishedVersion(true);
         criteria.setRefFieldCodes(refFieldCodes);
-        criteria.setRefRecordId(rowSystemId);
+        criteria.setRefRecordId(sysRecordId);
         criteria.setPageSize(refFieldCodes.size());
 
         Page<RefBookConflict> conflicts = conflictService.search(criteria);

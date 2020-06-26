@@ -241,9 +241,9 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
         versionIdParam.setDefaultValue(versionId.toString());
         versionIdParam.setDomain(N2oDomain.INTEGER);
 
-        N2oObject.Parameter rowSystemIdParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, DataRecordConstants.FIELD_SYS_RECORD_ID, "[1]");
-        rowSystemIdParam.setDomain(N2oDomain.LONG);
-        constraint.setInParameters(new N2oObject.Parameter[]{ versionIdParam, rowSystemIdParam });
+        N2oObject.Parameter rowSysRecordIdParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, DataRecordConstants.FIELD_SYS_RECORD_ID, "[1]");
+        rowSysRecordIdParam.setDomain(N2oDomain.LONG);
+        constraint.setInParameters(new N2oObject.Parameter[]{ versionIdParam, rowSysRecordIdParam });
 
         N2oObject.Parameter conflictTextParam = new N2oObject.Parameter(N2oObject.Parameter.Type.out, CONFLICT_TEXT_RESULT, "(#this)");
         conflictTextParam.setDomain(N2oDomain.STRING);
