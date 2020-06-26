@@ -611,7 +611,7 @@ public class DraftServiceTest {
         Map<String, Object> map = new HashMap<>();
         map.put(primaryCode, primaryValue);
         map.put(notPrimaryCode, notPrimaryUpdatedValue);
-        draftService.updateData(draft.getId(), new Row(null, map));
+        draftService.updateData(draft.getId(), new Row(null, map), null);
 
         verify(draftDataService, times(1)).updateRows(anyString(), any());
     }

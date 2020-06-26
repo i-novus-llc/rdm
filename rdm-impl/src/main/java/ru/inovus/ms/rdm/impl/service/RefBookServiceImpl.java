@@ -368,8 +368,8 @@ public class RefBookServiceImpl implements RefBookService {
             if (draftId == null)
                 throw new UserException(new Message(DRAFT_NOT_FOUND_EXCEPTION_CODE, draftId));
 
-            draftService.updateData(draftId, request.getRowsToAddOrUpdate());
-            draftService.deleteRows(draftId, request.getRowsToDelete());
+            draftService.updateData(draftId, request.getRowsToAddOrUpdate(), null);
+            draftService.deleteRows(draftId, request.getRowsToDelete(), null);
             publishService.publish(new PublishRequest(draftId));
 
         } finally {

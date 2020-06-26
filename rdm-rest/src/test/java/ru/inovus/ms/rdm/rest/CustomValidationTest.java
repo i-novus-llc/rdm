@@ -78,15 +78,17 @@ public class CustomValidationTest {
                 valueOf(-5),
                 valueOf(4)));
         //правильная строка
-        draftService.updateData(draft.getId(), new Row(of(
-                STRING_ATTR, "test1",
-                INTEGER_ATTR, 3)));
+        draftService.updateData(draft.getId(),
+                new Row(of(
+                        STRING_ATTR, "test1",
+                        INTEGER_ATTR, 3)
+                ), null);
         //неправильная строка
         Row testRow = new Row(of(
                 STRING_ATTR, "test1",
                 INTEGER_ATTR, 6));
         try {
-            draftService.updateData(draft.getId(), testRow);
+            draftService.updateData(draft.getId(), testRow, null);
             fail();
         } catch (RestException e) {
             assertEquals(INT_RANGE_EXCEPTION_CODE, e.getErrors().get(0).getMessage());
@@ -95,7 +97,7 @@ public class CustomValidationTest {
         //удаление проверки
         draftService.deleteAttributeValidation(draft.getId(), INTEGER_ATTR, AttributeValidationType.INT_RANGE);
         //ввод той же строки после удаления
-        draftService.updateData(draft.getId(), testRow);
+        draftService.updateData(draft.getId(), testRow, null);
     }
 
     /**
