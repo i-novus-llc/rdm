@@ -32,6 +32,7 @@ public class VersionValidationImpl implements VersionValidation {
     public static final String REFBOOK_CODE_IS_INVALID_EXCEPTION_CODE = "refbook.code.is.invalid";
     public static final String REFBOOK_NOT_FOUND_EXCEPTION_CODE = "refbook.not.found";
     public static final String REFBOOK_WITH_CODE_NOT_FOUND_EXCEPTION_CODE = "refbook.with.code.not.found";
+    private static final String REFBOOK_WITH_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.with.code.already.exists";
     private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
     public static final String DRAFT_NOT_FOUND_EXCEPTION_CODE = "draft.not.found";
     private static final String DRAFT_WAS_CHANGED_EXCEPTION_CODE = "draft.was.changed";
@@ -55,13 +56,13 @@ public class VersionValidationImpl implements VersionValidation {
 
     private static final Pattern CODE_PATTERN = Pattern.compile("[A-Za-z][0-9A-Za-z\\-._]{0,49}");
 
-    private RefBookRepository refbookRepository;
+    private RefBookRepository refBookRepository;
     private RefBookVersionRepository versionRepository;
 
     @Autowired
-    public VersionValidationImpl(RefBookRepository refbookRepository,
+    public VersionValidationImpl(RefBookRepository refBookRepository,
                                  RefBookVersionRepository versionRepository) {
-        this.refbookRepository = refbookRepository;
+        this.refBookRepository = refBookRepository;
         this.versionRepository = versionRepository;
     }
 
@@ -101,14 +102,14 @@ public class VersionValidationImpl implements VersionValidation {
     /**
      * Проверка кода справочника.
      *
-     * @param code код справочника
+     * @param refBookCode код справочника
      */
     @Override
-    public void validateRefBookCode(String code) {
+    public void validateRefBookCode(String refBookCode) {
 
-        if (!isValidCode(code)) {
+        if (!isValidCode(refBookCode)) {
             throw new UserException(List.of(
-                    new Message(REFBOOK_CODE_IS_INVALID_EXCEPTION_CODE, code),
+                    new Message(REFBOOK_CODE_IS_INVALID_EXCEPTION_CODE, refBookCode),
                     new Message(CODE_IS_INVALID_EXCEPTION_CODE)
             ));
         }
@@ -121,13 +122,13 @@ public class VersionValidationImpl implements VersionValidation {
      */
     @Override
     public void validateRefBookExists(Integer refBookId) {
-        if (refBookId == null || !refbookRepository.existsById(refBookId)) {
+        if (refBookId == null || !refBookRepository.existsById(refBookId)) {
             throw new NotFoundException(new Message(REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
         }
     }
 
     /**
-     * Проверка существования справочника по коду.
+     * Проверка наличия справочника с указанным кодом.
      *
      * @param refBookCode код справочника
      */
@@ -135,9 +136,22 @@ public class VersionValidationImpl implements VersionValidation {
     public void validateRefBookCodeExists(String refBookCode) {
 
         if (StringUtils.isEmpty(refBookCode)
-                || !refbookRepository.existsByCode(refBookCode)) {
+                || !refBookRepository.existsByCode(refBookCode)) {
             throw new NotFoundException(new Message(REFBOOK_WITH_CODE_NOT_FOUND_EXCEPTION_CODE, refBookCode));
         }
+    }
+
+    /**
+     * Проверка отсутствия справочника с указанным кодом.
+     *
+     * @param refBookCode код справочника
+     */
+    @Override
+    public void validateRefBookCodeNotExists(String refBookCode) {
+
+        if (StringUtils.isEmpty(refBookCode)
+                        || refBookRepository.existsByCode(refBookCode))
+            throw new UserException(new Message(REFBOOK_WITH_ALREADY_EXISTS_EXCEPTION_CODE, refBookCode));
     }
 
     /**
