@@ -70,6 +70,10 @@
             <select/>
         </field>
 
+        <field id="isEmptyStructure" domain="boolean">
+            <select mapping="structure == null || structure.isEmpty()"/>
+        </field>
+
         <field id="excludeDraft" domain="boolean">
             <filters>
                 <eq filter-id="excludeDraft" mapping="excludeDraft" default-value="false"/>

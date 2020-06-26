@@ -130,7 +130,8 @@
                 <toolbar place="topRight">
                     <!--to-do: сделать отдельные кнопки без рефреша для редактирования черновика-->
                     <button id="createRecord_r" label="Добавить строку" icon="fa fa-plus"
-                            widget-id="version_select" model="resolve">
+                            widget-id="version_select" model="resolve"
+                            enabling-condition="!version.isEmptyStructure">
                         <show-modal page-id="dataRecordPage?{id}_create" upload="query" route="/create"
                                     submit-operation-id="create" refresh-widget-id="version_select">
                             <pre-filters>
