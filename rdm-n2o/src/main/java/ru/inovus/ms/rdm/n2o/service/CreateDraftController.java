@@ -104,24 +104,45 @@ public class CreateDraftController {
         return refBookUpdateRequest;
     }
 
-    public UiDraft createAttribute(Integer versionId, FormAttribute formAttribute) {
+    public UiDraft createAttribute(Integer versionId, FormAttribute formAttribute, Integer optLockValue) {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
-        structureController.createAttribute(uiDraft.getId(), formAttribute);
+
+        if (Objects.equals(versionId, uiDraft.getId())) {
+            validateOptLockValue(uiDraft, optLockValue);
+        } else {
+            optLockValue = null;
+        }
+
+        structureController.createAttribute(uiDraft.getId(), formAttribute, optLockValue);
         return uiDraft;
     }
 
-    public UiDraft updateAttribute(Integer versionId, FormAttribute formAttribute) {
+    public UiDraft updateAttribute(Integer versionId, FormAttribute formAttribute, Integer optLockValue) {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
-        structureController.updateAttribute(uiDraft.getId(), formAttribute);
+
+        if (Objects.equals(versionId, uiDraft.getId())) {
+            validateOptLockValue(uiDraft, optLockValue);
+        } else {
+            optLockValue = null;
+        }
+
+        structureController.updateAttribute(uiDraft.getId(), formAttribute, optLockValue);
         return uiDraft;
     }
 
-    public UiDraft deleteAttribute(Integer versionId, String attributeCode) {
+    public UiDraft deleteAttribute(Integer versionId, String attributeCode, Integer optLockValue) {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
-        structureController.deleteAttribute(uiDraft.getId(), attributeCode);
+
+        if (Objects.equals(versionId, uiDraft.getId())) {
+            validateOptLockValue(uiDraft, optLockValue);
+        } else {
+            optLockValue = null;
+        }
+
+        structureController.deleteAttribute(uiDraft.getId(), attributeCode, optLockValue);
         return uiDraft;
     }
 
@@ -135,7 +156,7 @@ public class CreateDraftController {
             validateOptLockValue(uiDraft, optLockValue);
         } else {
             // Изменение записи в опубликованной версии:
-            optLockValue = null; // Новый справочник, поэтому блокировки нет (также в других методах).
+            optLockValue = null; // Новый справочник, поэтому блокировки нет (см. также в других методах).
             row.setSystemId(findNewSystemId(row.getSystemId(), versionId, uiDraft.getId()));
         }
 

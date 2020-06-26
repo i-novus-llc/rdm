@@ -6,20 +6,30 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 
+/** Модель атрибута для UI. */
 public class FormAttribute {
 
+    // attribute:
+    /** Код атрибута. */
     private String code;
 
+    /** Наименование атрибута. */
     private String name;
 
+    /** Тип атрибута. */
     private FieldType type;
 
+    /** Признак первичного атрибута. */
     private Boolean isPrimary;
 
+    /** Описание атрибута. */
     private String description;
 
+    // reference:
+    /** Код справочника, на который ссылаются. */
     private String referenceCode;
 
+    /** Выражение для вычисления отображаемого ссылочного значения. */
     private String displayExpression;
 
     // Пользовательские проверки

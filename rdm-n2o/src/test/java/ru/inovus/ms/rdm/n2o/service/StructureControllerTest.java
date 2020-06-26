@@ -109,8 +109,10 @@ public class StructureControllerTest extends TestCase {
     @Test
     public void testReadSimple() {
 
-        when(versionService.getStructure(eq(versionId)))
-                .thenReturn(new Structure(singletonList(build(testCode, null, FieldType.INTEGER, null)), null));
+        Structure structure = new Structure(singletonList(build(testCode, null, FieldType.INTEGER, null)), null);
+        RefBookVersion version = createVersion(versionId, structure);
+        when(versionService.getById(eq(versionId))).thenReturn(version);
+
         when(draftService.getAttributeValidations(eq(versionId), isNull())).thenReturn(emptyList());
         when(refBookService.getByVersionId(eq(versionId))).thenReturn(new RefBook());
 
@@ -127,11 +129,14 @@ public class StructureControllerTest extends TestCase {
      */
     @Test
     public void testReadValidations() {
-        Structure structure = new Structure(singletonList(build(testCode, null, null, null)), null);
-        FormAttribute expectedValidation = createAllValidationAttribute();
 
-        when(versionService.getStructure(eq(versionId))).thenReturn(structure);
+        Structure structure = new Structure(singletonList(build(testCode, null, null, null)), null);
+        RefBookVersion version = createVersion(versionId, structure);
+        when(versionService.getById(eq(versionId))).thenReturn(version);
+
+        FormAttribute expectedValidation = createAllValidationAttribute();
         when(draftService.getAttributeValidations(eq(versionId), isNull())).thenReturn(expectedValidations);
+
         when(refBookService.getByVersionId(eq(versionId))).thenReturn(new RefBook());
 
         RestPage<ReadAttribute> page = structureController.getPage(new AttributeCriteria(versionId));
@@ -147,10 +152,12 @@ public class StructureControllerTest extends TestCase {
      */
     @Test
     public void testUpdateValidations() throws Exception {
-        FormAttribute formAttribute = createAllValidationAttribute();
-        when(versionService.getStructure(eq(versionId))).thenReturn(new Structure());
 
-        structureController.updateAttribute(versionId, formAttribute);
+        Structure structure = new Structure();
+        when(versionService.getStructure(eq(versionId))).thenReturn(structure);
+
+        FormAttribute formAttribute = createAllValidationAttribute();
+        structureController.updateAttribute(versionId, formAttribute, null);
 
         verify(draftService, times(1)).updateAttribute(updateAttributeArgumentCaptor.capture());
         verify(draftService, times(1)).updateAttributeValidations(eq(versionId), validationRequestArgumentCaptor.capture());
@@ -173,7 +180,7 @@ public class StructureControllerTest extends TestCase {
         formAttribute.setType(FieldType.REFERENCE);
         formAttribute.setDisplayExpression(referenceDisplayExpression);
         formAttribute.setReferenceCode(referenceCode);
-        structureController.createAttribute(versionId, formAttribute);
+        structureController.createAttribute(versionId, formAttribute, null);
 
         verify(draftService, times(1)).createAttribute(createAttributeArgumentCaptor.capture());
         verify(draftService, times(1)).updateAttributeValidations(eq(versionId), any(AttributeValidationRequest.class));
@@ -198,12 +205,14 @@ public class StructureControllerTest extends TestCase {
         RefBook referenceRefbook = new RefBook();
         referenceRefbook.setRefBookId(refBookId);
 
-        when(versionService.getStructure(eq(versionId)))
-                .thenReturn(new Structure(
-                        singletonList(build(testCode, null, FieldType.REFERENCE, null)),
-                        singletonList(new Structure.Reference(testCode, referenceCode, referenceDisplayExpression))));
-        when(draftService.getAttributeValidations(eq(versionId), isNull()))
-                .thenReturn(emptyList());
+        Structure structure = new Structure(
+                singletonList(build(testCode, null, FieldType.REFERENCE, null)),
+                singletonList(new Structure.Reference(testCode, referenceCode, referenceDisplayExpression))
+        );
+        RefBookVersion version = createVersion(versionId, structure);
+        when(versionService.getById(eq(versionId))).thenReturn(version);
+
+        when(draftService.getAttributeValidations(eq(versionId), isNull())).thenReturn(emptyList());
         when(refBookService.getId(eq(referenceCode))).thenReturn(refBookId);
 
         RefBookVersion referenceVersion = new RefBookVersion();
@@ -310,5 +319,13 @@ public class StructureControllerTest extends TestCase {
             default:
                 fail();
         }
+    }
+
+    private RefBookVersion createVersion(Integer versionId, Structure structure) {
+        RefBookVersion version = new RefBookVersion();
+        version.setId(versionId);
+        version.setStructure(structure);
+
+        return version;
     }
 }

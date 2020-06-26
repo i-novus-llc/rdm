@@ -26,6 +26,7 @@ import ru.inovus.ms.rdm.n2o.model.ReadAttribute;
 import java.util.*;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.springframework.util.StringUtils.isEmpty;
 import static ru.inovus.ms.rdm.api.model.version.UpdateAttribute.setUpdateValueIfExists;
 
@@ -49,14 +50,25 @@ public class StructureController {
     RestPage<ReadAttribute> getPage(AttributeCriteria criteria) {
 
         Integer versionId = criteria.getVersionId();
-        Structure structure = versionService.getStructure(versionId);
+        RefBookVersion version = versionService.getById(criteria.getVersionId());
+
+        if (criteria.getOptLockValue() == null) {
+            criteria.setOptLockValue(version.getOptLockValue());
+        }
 
         List<AttributeValidation> validations = draftService.getAttributeValidations(versionId, criteria.getCode());
 
-        List<Structure.Attribute> attributes = (structure != null) ? structure.getAttributes() : new ArrayList<>();
-        List<ReadAttribute> list = toPageAttributes(attributes, criteria).stream()
-                .map(attribute -> toReadAttribute(attribute, structure, versionId, validations))
-                .collect(toList());
+        final Structure structure = version.getStructure() != null ? version.getStructure() : new Structure();
+        List<Structure.Attribute> attributes = structure.getAttributes();
+
+        List<ReadAttribute> list;
+        if (!isEmpty(attributes)) {
+            list = toPageAttributes(attributes, criteria).stream()
+                    .map(attribute -> toReadAttribute(attribute, structure, criteria, validations))
+                    .collect(toList());
+        } else {
+            list = new ArrayList<>();
+        }
 
         return new RestPage<>(list, PageRequest.of(criteria.getPage(), criteria.getSize()), attributes.size());
     }
@@ -81,19 +93,22 @@ public class StructureController {
 
     /** Проверка на соответствие атрибута критерию поиска. */
     private boolean isCriteriaAttribute(Structure.Attribute attribute, AttributeCriteria criteria) {
+
         return (isEmpty(criteria.getCode()) || criteria.getCode().equals(attribute.getCode()))
-                && (isEmpty(criteria.getName()) || StringUtils.containsIgnoreCase(attribute.getName(), criteria.getName()));
+                && (isEmpty(criteria.getName()) || containsIgnoreCase(attribute.getName(), criteria.getName()));
     }
 
     /** Преобразование атрибута в атрибут для отображения на форме. */
     private ReadAttribute toReadAttribute(Structure.Attribute attribute, Structure structure,
-                                          Integer versionId, List<AttributeValidation> validations) {
+                                          AttributeCriteria criteria, List<AttributeValidation> validations) {
 
         Structure.Reference reference = attribute.isReferenceType() ? structure.getReference(attribute.getCode()) : null;
         ReadAttribute readAttribute = getReadAttribute(attribute, reference);
         enrichAtribute(readAttribute, getValidations(validations, attribute.getCode()));
 
-        readAttribute.setVersionId(versionId);
+        readAttribute.setVersionId(criteria.getVersionId());
+        readAttribute.setOptLockValue(criteria.getOptLockValue());
+
         readAttribute.setIsReferrer(!CollectionUtils.isEmpty(structure.getReferences()));
         readAttribute.setCodeExpression(DisplayExpression.toPlaceholder(attribute.getCode()));
 
@@ -101,7 +116,7 @@ public class StructureController {
             enrichReference(readAttribute, reference);
         }
 
-        enrichByRefBook(versionId, readAttribute);
+        enrichByRefBook(criteria.getVersionId(), readAttribute);
 
         return readAttribute;
     }
@@ -218,7 +233,7 @@ public class StructureController {
         return conflicts != null && !CollectionUtils.isEmpty(conflicts.getContent());
     }
 
-    public void createAttribute(Integer versionId, FormAttribute formAttribute) {
+    public void createAttribute(Integer versionId, FormAttribute formAttribute, Integer optLockValue) {
 
         CreateAttribute attributeModel = getCreateAttribute(versionId, formAttribute);
         draftService.createAttribute(attributeModel);
@@ -235,7 +250,7 @@ public class StructureController {
         }
     }
 
-    public void updateAttribute(Integer versionId, FormAttribute formAttribute) {
+    public void updateAttribute(Integer versionId, FormAttribute formAttribute, Integer optLockValue) {
 
         Structure oldStructure = versionService.getStructure(versionId);
         Structure.Attribute oldAttribute = oldStructure.getAttribute(formAttribute.getCode());
@@ -257,7 +272,7 @@ public class StructureController {
         }
     }
 
-    public void deleteAttribute(Integer versionId, String attributeCode) {
+    public void deleteAttribute(Integer versionId, String attributeCode, Integer optLockValue) {
 
         draftService.deleteAttributeValidation(versionId, attributeCode, null);
         draftService.deleteAttribute(versionId, attributeCode);
@@ -330,6 +345,7 @@ public class StructureController {
     }
 
     private Structure.Attribute buildAttribute(FormAttribute request) {
+
         if (request.hasIsPrimary())
             return Structure.Attribute.buildPrimary(request.getCode(),
                     request.getName(), request.getType(), request.getDescription());
@@ -340,6 +356,7 @@ public class StructureController {
     }
 
     private Structure.Reference buildReference(FormAttribute request) {
+
         return new Structure.Reference(request.getCode(),
                 request.getReferenceCode(),
                 request.getDisplayExpression());
@@ -352,7 +369,7 @@ public class StructureController {
         attribute.setLastActionDate(TimeUtils.nowZoned());
         attribute.setVersionId(versionId);
 
-        // attribute fields
+        // attribute fields:
         attribute.setCode(formAttribute.getCode());
         attribute.setType(formAttribute.getType());
 
@@ -360,7 +377,7 @@ public class StructureController {
         setUpdateValueIfExists(formAttribute::getIsPrimary, attribute::setIsPrimary);
         setUpdateValueIfExists(formAttribute::getDescription, attribute::setDescription);
 
-        // reference fields
+        // reference fields:
         setUpdateValueIfExists(formAttribute::getCode, attribute::setAttribute);
         setUpdateValueIfExists(formAttribute::getReferenceCode, attribute::setReferenceCode);
         setUpdateValueIfExists(formAttribute::getDisplayExpression, attribute::setDisplayExpression);

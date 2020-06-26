@@ -173,7 +173,7 @@ public class DraftServiceTest {
         FieldSetter.setField(structureChangeValidator, StructureChangeValidator.class.getDeclaredField("searchDataService"), searchDataService);
         FieldSetter.setField(structureChangeValidator, StructureChangeValidator.class.getDeclaredField("versionRepository"), versionRepository);
 
-        FieldSetter.setField(versionValidation, VersionValidationImpl.class.getDeclaredField("refbookRepository"), refBookRepository);
+        FieldSetter.setField(versionValidation, VersionValidationImpl.class.getDeclaredField("refBookRepository"), refBookRepository);
         FieldSetter.setField(versionValidation, VersionValidationImpl.class.getDeclaredField("versionRepository"), versionRepository);
     }
 
