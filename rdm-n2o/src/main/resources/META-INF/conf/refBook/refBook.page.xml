@@ -103,7 +103,7 @@
                 <toolbar place="bottomRight">
                     <button label="Добавить" id="createAttribute_r"
                             widget-id="version_select" model="resolve">
-                        <show-modal page-id="attribute" submit-operation-id="create" upload="defaults">
+                        <show-modal page-id="attribute" submit-operation-id="createAttribute" upload="defaults">
                             <pre-filters>
                                 <eq field-id="versionId" value="{version.id}" ref-model="resolve"
                                     ref-widget-id="version_select"/>
