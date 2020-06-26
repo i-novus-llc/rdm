@@ -51,7 +51,8 @@ public class VersionValidationImpl implements VersionValidation {
     private static final String REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND_EXCEPTION_CODE = "reference.referred.attributes.not.found";
     private static final String REFERRED_BOOK_NOT_FOUND_EXCEPTION_CODE = "referred.book.not.found";
     private static final String REFERRED_BOOK_STRUCTURE_NOT_FOUND_EXCEPTION_CODE = "referred.book.structure.not.found";
-    private static final String REFERRED_BOOK_MUST_HAVE_ONLY_ONE_PRIMARY_KEY_EXCEPTION_CODE = "referred.book.must.have.only.one.primary.key";
+    private static final String REFERRED_BOOK_HAS_NO_PRIMARY_EXCEPTION_CODE = "referred.book.has.no.primary";
+    private static final String REFERRED_BOOK_HAS_MORE_PRIMARIES_EXCEPTION_CODE = "referred.book.has.more.primaries";
     private static final String REFERRED_DRAFT_PRIMARIES_NOT_MATCH_EXCEPTION_CODE = "referred.draft.primaries.not.match";
 
     private static final Pattern CODE_PATTERN = Pattern.compile("[A-Za-z][0-9A-Za-z\\-._]{0,49}");
@@ -386,13 +387,8 @@ public class VersionValidationImpl implements VersionValidation {
         if (StringUtils.isEmpty(reference.getDisplayExpression()))
             throw new UserException(new Message(REFERENCE_DISPLAY_EXPRESSION_IS_EMPTY_EXCEPTION_CODE, reference.getAttribute()));
 
-        RefBookVersionEntity referredEntity = versionRepository
-                .findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
-        if (referredEntity == null)
-            throw new NotFoundException(new Message(REFBOOK_WITH_CODE_NOT_FOUND_EXCEPTION_CODE, reference.getReferenceCode()));
-
-        if (referredEntity.getStructure().getPrimary().size() != 1)
-            throw new UserException(new Message(REFERRED_BOOK_MUST_HAVE_ONLY_ONE_PRIMARY_KEY_EXCEPTION_CODE, reference.getReferenceCode()));
+        RefBookVersionEntity referredEntity = getReferredEntity(reference.getReferenceCode());
+        validateReferredStructure(referredEntity.getStructure(), referredEntity.getRefBook().getCode());
 
         validateReferenceDisplayExpression(reference, referredEntity.getStructure());
     }
@@ -444,19 +440,41 @@ public class VersionValidationImpl implements VersionValidation {
      */
     private void validateReferredDraftStructure(String referredCode, Structure draftStructure) {
 
+        RefBookVersionEntity referredEntity = getReferredEntity(referredCode);
+        validateReferredStructure(draftStructure, referredCode);
+
+        if (!equalsPrimaries(referredEntity.getStructure().getPrimary(), draftStructure.getPrimary()))
+            throw new UserException(new Message(REFERRED_DRAFT_PRIMARIES_NOT_MATCH_EXCEPTION_CODE, referredCode, referredEntity.getVersion()));
+    }
+
+    /** Получение версии справочника, на который указывает ссылка. */
+    private RefBookVersionEntity getReferredEntity(String referredCode) {
+
         RefBookVersionEntity referredEntity = versionRepository
                 .findFirstByRefBookCodeAndStatusOrderByFromDateDesc(referredCode, RefBookVersionStatus.PUBLISHED);
         if (referredEntity == null)
             throw new NotFoundException(new Message(REFBOOK_WITH_CODE_NOT_FOUND_EXCEPTION_CODE, referredCode));
 
-        if (draftStructure == null)
+        return referredEntity;
+    }
+
+    /**
+     * Проверка структуры версии справочника, на который ссылаются.
+     *
+     * @param structure    проверяемая структура
+     * @param referredCode код этого справочника
+     */
+    private void validateReferredStructure(Structure structure, String referredCode) {
+
+        if (structure == null)
             throw new UserException(new Message(REFERRED_BOOK_STRUCTURE_NOT_FOUND_EXCEPTION_CODE, referredCode));
 
-        if (draftStructure.getPrimary().size() != 1)
-            throw new UserException(new Message(REFERRED_BOOK_MUST_HAVE_ONLY_ONE_PRIMARY_KEY_EXCEPTION_CODE, referredCode));
-
-        if (!equalsPrimaries(referredEntity.getStructure().getPrimary(), draftStructure.getPrimary()))
-            throw new UserException(new Message(REFERRED_DRAFT_PRIMARIES_NOT_MATCH_EXCEPTION_CODE, referredCode, referredEntity.getVersion()));
+        int primaryCount = structure.getPrimary().size();
+        if (primaryCount == 0)
+            throw new UserException(new Message(REFERRED_BOOK_HAS_NO_PRIMARY_EXCEPTION_CODE, referredCode));
+        else
+        if (primaryCount > 1)
+            throw new UserException(new Message(REFERRED_BOOK_HAS_MORE_PRIMARIES_EXCEPTION_CODE, referredCode));
     }
 
     /** Проверка на наличие справочников, ссылающихся на указанный справочник. */
