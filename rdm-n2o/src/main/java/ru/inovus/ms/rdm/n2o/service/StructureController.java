@@ -1,5 +1,7 @@
 package ru.inovus.ms.rdm.n2o.service;
 
+import net.n2oapp.platform.i18n.Message;
+import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.jaxrs.RestPage;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +36,8 @@ import static ru.inovus.ms.rdm.api.model.version.UpdateAttribute.setUpdateValueI
 @SuppressWarnings("WeakerAccess")
 public class StructureController {
 
+    private static final String ACTION_DRAFT_WAS_CHANGED_EXCEPTION_CODE = "action.draft.was.changed";
+
     @Autowired
     private RefBookService refBookService;
 
@@ -52,8 +56,13 @@ public class StructureController {
         Integer versionId = criteria.getVersionId();
         RefBookVersion version = versionService.getById(criteria.getVersionId());
 
-        if (criteria.getOptLockValue() == null) {
+        Integer optLockValue = criteria.getOptLockValue();
+        if (optLockValue == null) {
             criteria.setOptLockValue(version.getOptLockValue());
+
+        } else // Проверка только при редактировании выбранного атрибута:
+        if (!StringUtils.isEmpty(criteria.getCode()) && !optLockValue.equals(version.getOptLockValue())) {
+            throw new UserException(new Message(ACTION_DRAFT_WAS_CHANGED_EXCEPTION_CODE));
         }
 
         List<AttributeValidation> validations = draftService.getAttributeValidations(versionId, criteria.getCode());
@@ -74,7 +83,7 @@ public class StructureController {
     }
 
     // used in: attributeDefault.query.xml
-    ReadAttribute getDefault(Integer versionId) {
+    ReadAttribute getDefault(Integer versionId, Integer optLockValue) {
 
         ReadAttribute readAttribute = new ReadAttribute();
         enrichByRefBook(versionId, readAttribute);

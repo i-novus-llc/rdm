@@ -105,8 +105,8 @@
                             widget-id="version_select" model="resolve">
                         <show-modal page-id="attribute" submit-operation-id="createAttribute" upload="defaults">
                             <pre-filters>
-                                <eq field-id="versionId" value="{version.id}" ref-model="resolve"
-                                    ref-widget-id="version_select"/>
+                                <eq field-id="versionId" value="{version.id}" ref-model="resolve" ref-widget-id="version_select"/>
+                                <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve" ref-widget-id="version_select"/>
                             </pre-filters>
                         </show-modal>
                     </button>
@@ -115,6 +115,7 @@
                             <pre-filters>
                                 <eq field-id="versionId" value="{versionId}"/>
                                 <eq field-id="code" value="{code}"/>
+                                <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve" ref-widget-id="version_select"/>
                             </pre-filters>
                         </show-modal>
                     </button>
