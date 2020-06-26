@@ -25,7 +25,6 @@ import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
-// Использовать VersionValidation без интерфейса как ReferenceValidation
 // Выделить RefBookValidation с refbookRepository.
 public class VersionValidationImpl implements VersionValidation {
 
@@ -178,7 +177,8 @@ public class VersionValidationImpl implements VersionValidation {
      */
     public void validateOptLockValue(Integer draftId, Integer draftLockValue, Integer optLockValue) {
 
-        if (optLockValue != null && !optLockValue.equals(draftLockValue)) {
+        if (draftId != null && optLockValue != null
+                && !optLockValue.equals(draftLockValue)) {
             throw new UserException(new Message(DRAFT_WAS_CHANGED_EXCEPTION_CODE, draftId));
         }
     }
