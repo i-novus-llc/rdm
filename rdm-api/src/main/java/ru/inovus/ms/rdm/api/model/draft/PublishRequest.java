@@ -14,6 +14,8 @@ public class PublishRequest implements Serializable {
 
     @ApiModelProperty(value = "Идентификатор черновика")
     private Integer draftId;
+    @ApiParam("Значение оптимистической блокировки версии")
+    private Integer optLockValue;
 
     @ApiParam("Версия, под которой публикуется черновик")
     private String versionName;
@@ -28,8 +30,9 @@ public class PublishRequest implements Serializable {
     public PublishRequest() {
     }
 
-    public PublishRequest(Integer draftId) {
+    public PublishRequest(Integer draftId, Integer optLockValue) {
         this.draftId = draftId;
+        this.optLockValue = optLockValue;
     }
 
     public Integer getDraftId() {
@@ -38,6 +41,14 @@ public class PublishRequest implements Serializable {
 
     public void setDraftId(Integer draftId) {
         this.draftId = draftId;
+    }
+
+    public Integer getOptLockValue() {
+        return optLockValue;
+    }
+
+    public void setOptLockValue(Integer optLockValue) {
+        this.optLockValue = optLockValue;
     }
 
     public String getVersionName() {

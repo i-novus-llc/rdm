@@ -574,6 +574,7 @@ public class ApplicationTest {
 
     @Test
     public void testPublishFirstDraft() {
+
         publish(TEST_PUBLISHING_VERSION_ID, "1.0", LocalDateTime.now(), null, false);
         Page<RefBookRowValue> rowValuesInVersion = versionService.search(TEST_PUBLISHING_BOOK_CODE, LocalDateTime.now(), new SearchDataCriteria());
 
@@ -2872,7 +2873,7 @@ public class ApplicationTest {
     private void publish(Integer draftId, String versionName,
                          LocalDateTime fromDate, LocalDateTime toDate,
                          boolean resolveConflicts) {
-        PublishRequest request = new PublishRequest(draftId);
+        PublishRequest request = new PublishRequest(draftId, null);
         request.setVersionName(versionName);
         request.setFromDate(fromDate);
         request.setToDate(toDate);

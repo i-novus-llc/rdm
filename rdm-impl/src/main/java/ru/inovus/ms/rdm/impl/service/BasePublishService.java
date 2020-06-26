@@ -114,7 +114,7 @@ class BasePublishService {
 
         Integer draftId = request.getDraftId();
         RefBookVersionEntity draftEntity = getVersionOrElseThrow(draftId);
-        if (draftEntity.getStatus() == RefBookVersionStatus.PUBLISHED)
+        if (RefBookVersionStatus.PUBLISHED.equals(draftEntity.getStatus()))
             return null;
 
         validatePublishingDraft(draftEntity);
@@ -234,7 +234,6 @@ class BasePublishService {
     /** Корректировка времён в версиях справочника с перекрывающимся периодом времени. */
     private void resolveOverlappingPeriodsInFuture(LocalDateTime fromDate, LocalDateTime toDate,
                                                    Integer refBookId, Integer draftId) {
-
         if (toDate == null)
             toDate = MAX_TIMESTAMP;
 

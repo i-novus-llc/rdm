@@ -140,7 +140,7 @@ public class PublishServiceImpl implements PublishService {
      */
     private boolean publishReferrer(Integer versionId) {
         return tryRun(
-                () -> publish(new PublishRequest(versionId)),
+                () -> publish(new PublishRequest(versionId, null)),
                 LOG_ERROR_PUBLISHING_NONCONFLICT_REFERRERS
         );
     }

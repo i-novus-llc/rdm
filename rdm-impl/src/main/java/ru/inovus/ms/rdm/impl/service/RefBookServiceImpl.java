@@ -353,7 +353,6 @@ public class RefBookServiceImpl implements RefBookService {
 
         final String refBookCode = request.getRefBookCode();
         versionValidation.validateRefBookCodeExists(refBookCode);
-
         RefBookEntity refBook = refBookRepository.findByCode(refBookCode);
 
         refBookLockService.setRefBookUpdating(refBook.getId());
@@ -370,7 +369,7 @@ public class RefBookServiceImpl implements RefBookService {
 
             draftService.updateData(draftId, request.getRowsToAddOrUpdate(), null);
             draftService.deleteRows(draftId, request.getRowsToDelete(), null);
-            publishService.publish(new PublishRequest(draftId));
+            publishService.publish(new PublishRequest(draftId, null));
 
         } finally {
             refBookLockService.deleteRefBookOperation(refBook.getId());

@@ -103,9 +103,9 @@ public class RefBookPublishController {
      *
      * @param draftId идентификатор черновика
      */
-    public UUID publishDraft(Integer draftId) {
+    public UUID publishDraft(Integer draftId, Integer optLockValue) {
 
-        PublishRequest request = new PublishRequest(draftId);
+        PublishRequest request = new PublishRequest(draftId, optLockValue);
         return publishService.publishAsync(request);
     }
 
@@ -114,9 +114,9 @@ public class RefBookPublishController {
      *
      * @param draftId идентификатор черновика
      */
-    public UUID publishAndRefresh(Integer draftId) {
+    public UUID publishAndRefresh(Integer draftId, Integer optLockValue) {
 
-        PublishRequest request = new PublishRequest(draftId);
+        PublishRequest request = new PublishRequest(draftId, optLockValue);
         request.setResolveConflicts(true);
         return publishService.publishAsync(request);
     }
