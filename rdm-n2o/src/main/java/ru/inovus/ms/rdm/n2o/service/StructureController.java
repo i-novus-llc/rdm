@@ -35,10 +35,13 @@ public class StructureController {
 
     @Autowired
     private RefBookService refBookService;
+
     @Autowired
     private VersionService versionService;
+
     @Autowired
     private DraftService draftService;
+
     @Autowired
     private ConflictService conflictService;
 
