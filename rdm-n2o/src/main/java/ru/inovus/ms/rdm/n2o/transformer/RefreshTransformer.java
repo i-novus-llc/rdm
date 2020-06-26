@@ -15,7 +15,9 @@ import org.springframework.stereotype.Component;
  * Для того чтобы был переход на черновик после изменения версии
  */
 @Component
-public class RefreshTransformer implements CompileTransformer<InvokeAction, CompileContext<?, ?>>, CompiledClassAware {
+public class RefreshTransformer
+        implements CompileTransformer<InvokeAction, CompileContext<?, ?>>, CompiledClassAware {
+
     @Override
     public Class<? extends Compiled> getCompiledClass() {
         return InvokeAction.class;
@@ -23,11 +25,13 @@ public class RefreshTransformer implements CompileTransformer<InvokeAction, Comp
 
     @Override
     public InvokeAction transform(InvokeAction invokeAction, CompileContext<?, ?> compileContext, CompileProcessor compileProcessor) {
+
         if (compileContext.getRoute((N2oCompileProcessor) compileProcessor).endsWith("_r")) {
             RefreshSaga refresh = new RefreshSaga();
             refresh.setType(RefreshSaga.Type.widget);
             refresh.getOptions().setWidgetId("main_edit_version_select");
             invokeAction.getMeta().getSuccess().setRefresh(refresh);
+
             return invokeAction;
 
         }

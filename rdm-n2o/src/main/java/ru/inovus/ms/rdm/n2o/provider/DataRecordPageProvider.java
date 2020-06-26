@@ -67,18 +67,26 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         Integer versionId = Integer.parseInt(params[0]);
         Structure structure = versionService.getStructure(versionId);
 
-        N2oSimplePage page = new N2oSimplePage();
+        N2oSimplePage page = createPage(context);
+        page.setWidget(createForm(versionId, structure));
+
         String dataAction = params[1];
-        N2oForm form = createForm(versionId, structure);
-        page.setWidget(form);
         page.setName(pageNames.get(dataAction));
-        page.setId(FORM_PROVIDER_ID + "?" + context);
+
         return singletonList(page);
     }
 
     @Override
     public Collection<Class<? extends SourceMetadata>> getMetadataClasses() {
         return singletonList(N2oPage.class);
+    }
+
+    private N2oSimplePage createPage(String context) {
+
+        N2oSimplePage page = new N2oSimplePage();
+        page.setId(FORM_PROVIDER_ID + "?" + context);
+
+        return page;
     }
 
     private N2oForm createForm(Integer versionId, Structure structure) {
