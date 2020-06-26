@@ -48,7 +48,8 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
     }
 
     /**
-     * @param context Контекст: ID версии
+     * @param context параметры провайдера в формате versionId, где
+     *                  versionId - идентификатор версии справочника
      */
     @Override
     @SuppressWarnings("unchecked")
@@ -218,6 +219,15 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
         }
     }
 
+    /**
+     * Добавление валидации о наличии конфликтов в записи справочника.
+     * <p>
+     * При наличии хотя бы одного конфликта выводит предупреждение
+     * после открытия модальной формы на редактирование записи.
+     *
+     * @param versionId версия справочника
+     * @param operation операция, выполняемая над записью
+     */
     private void addDataConflictValidation(Integer versionId, N2oObject.Operation operation) {
 
         N2oJavaDataProvider dataProvider = new N2oJavaDataProvider();

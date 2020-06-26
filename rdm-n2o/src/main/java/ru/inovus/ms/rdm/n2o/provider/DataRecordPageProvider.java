@@ -30,6 +30,8 @@ import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
 @SuppressWarnings("unused")
 public class DataRecordPageProvider implements DynamicMetadataProvider {
 
+    private static final String CONTEXT_PARAM_SEPARATOR_REGEX = "_";
+
     private static final String FORM_PROVIDER_ID = "dataRecordPage";
 
     private static final Map<String, String> pageNames = Map.of(
@@ -49,8 +51,10 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
     }
 
     /**
-     * @param context Параметры провайдера (ID версии и тип действия) в формате versionId_pageType,
-     *                где pageType - create (Создание записи) или edit (Редактирование записи)
+     * @param context параметры провайдера в формате versionId_pageType, где
+     *                  versionId - идентификатор версии справочника,
+     *                  pageType - тип действия:
+     *                      create (Добавление новой записи) или edit (Редактирование записи)
      */
     @Override
     @SuppressWarnings("unchecked")
@@ -62,7 +66,7 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         if (context.contains("{") || context.contains("}"))
             return singletonList(new N2oSimplePage());
 
-        String[] params = context.split("_");
+        String[] params = context.split(CONTEXT_PARAM_SEPARATOR_REGEX);
 
         Integer versionId = Integer.parseInt(params[0]);
         Structure structure = versionService.getStructure(versionId);

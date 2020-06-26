@@ -39,7 +39,8 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
     }
 
     /**
-     * @param context Контекст: ID версии
+     * @param context параметры провайдера в формате versionId, где
+     *                  versionId - идентификатор версии справочника
      */
     @Override
     @SuppressWarnings("unchecked")
