@@ -277,7 +277,7 @@ public class DraftServiceImpl implements DraftService {
 
         RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
         RefBookVersionEntity draftVersion = getDraftByRefBook(refBookId);
-        if (draftVersion == null && lastRefBookVersion  == null)
+        if (draftVersion == null && lastRefBookVersion == null)
             throw new NotFoundException(new Message(VersionValidationImpl.REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
 
         List<PassportValueEntity> passportValues = null;
@@ -288,16 +288,16 @@ public class DraftServiceImpl implements DraftService {
         }
 
         final Structure structure = createDraftRequest.getStructure();
-        final String refBookCode = (draftVersion != null ? draftVersion : lastRefBookVersion ).getRefBook().getCode();
+        final String refBookCode = (draftVersion != null ? draftVersion : lastRefBookVersion).getRefBook().getCode();
         versionValidation.validateDraftStructure(refBookCode, structure);
 
         List<Field> fields = ConverterUtil.fields(structure);
         if (draftVersion == null) {
-            draftVersion = newDraftVersion(structure, passportValues != null ? passportValues : lastRefBookVersion .getPassportValues());
+            draftVersion = newDraftVersion(structure, passportValues != null ? passportValues : lastRefBookVersion.getPassportValues());
             draftVersion.setRefBook(newRefBook(refBookId));
             String draftCode = draftDataService.createDraft(fields);
             draftVersion.setStorageCode(draftCode);
-            draftVersion.getRefBook().setCode(lastRefBookVersion .getRefBook().getCode());
+            draftVersion.getRefBook().setCode(lastRefBookVersion.getRefBook().getCode());
         } else {
             draftVersion = updateDraft(structure, draftVersion, fields, passportValues);
         }
