@@ -11,6 +11,7 @@
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
                         <argument type="class" name="attribute" class="ru.inovus.ms.rdm.n2o.model.FormAttribute"/>
+                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
                     </arguments>
                 </java>
             </invocation>
@@ -23,6 +24,8 @@
                 <param id="description" mapping="[1].description" domain="string"/>
                 <param id="referenceRefBook.code" mapping="[1].referenceCode" domain="string"/>
                 <param id="displayExpression" mapping="[1].displayExpression"/>
+
+                <!-- Пользовательские проверки -->
                 <param id="required" mapping="[1].required" domain="boolean"/>
                 <param id="unique" mapping="[1].unique" domain="boolean"/>
                 <param id="plainSize" mapping="[1].plainSize" domain="integer"/>
@@ -37,6 +40,9 @@
                 <param id="dateInterval.end" mapping="[1].maxDate" domain="date"
                        normalize="T(ru.inovus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)"/>
                 <param id="regExp" mapping="[1].regExp" domain="string"/>
+                <!-- / Пользовательские проверки -->
+
+                <param id="optLockValue" mapping="[2]" domain="integer" mapper="spel"/>
             </in-parameters>
             <validations white-list="checkCode,checkMinMaxInt"/>
         </operation>
@@ -50,6 +56,7 @@
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
                         <argument type="class" name="attribute" class="ru.inovus.ms.rdm.n2o.model.FormAttribute"/>
+                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
                     </arguments>
                 </java>
             </invocation>
@@ -62,6 +69,8 @@
                 <param id="description" mapping="[1].description" domain="string"/>
                 <param id="referenceRefBook.code" mapping="[1].referenceCode" domain="string"/>
                 <param id="displayExpression" mapping="[1].displayExpression"/>
+
+                <!-- Пользовательские проверки -->
                 <param id="required" mapping="[1].required" domain="boolean"/>
                 <param id="unique" mapping="[1].unique" domain="boolean"/>
                 <param id="plainSize" mapping="[1].plainSize" domain="integer"/>
@@ -76,6 +85,9 @@
                 <param id="dateInterval.end" mapping="[1].maxDate" domain="date"
                        normalize="T(ru.inovus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)"/>
                 <param id="regExp" mapping="[1].regExp" domain="string"/>
+                <!-- / Пользовательские проверки -->
+
+                <param id="optLockValue" mapping="[2]" domain="integer" mapper="spel"/>
             </in-parameters>
             <validations white-list="checkCode,checkMinMaxInt"/>
         </operation>
@@ -89,12 +101,14 @@
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
                         <argument type="primitive" name="attributeCode" class="java.lang.String"/>
+                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
                     </arguments>
                 </java>
             </invocation>
             <in-parameters>
                 <param id="versionId" mapping="[0]" domain="integer"/>
                 <param id="code" mapping="[1]" domain="string"/>
+                <param id="optLockValue" mapping="[2]" domain="integer" mapper="spel"/>
             </in-parameters>
         </operation>
     </operations>
