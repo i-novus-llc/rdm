@@ -19,12 +19,16 @@ import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.deletePrefix;
 @SuppressWarnings("unused")
 public class DataCriteria extends Criteria {
 
+    /** Идентификатор версии справочника. */
     private Integer versionId;
 
+    /** Значение оптимистической блокировки версии. */
     private Integer optLockValue;
 
+    /** Фильтр по атрибутам: код = значение. */
     private Map<String, Serializable> filter;
 
+    /** Наличие конфликта данных. */
     private Boolean hasDataConflict;
 
     public DataCriteria() {

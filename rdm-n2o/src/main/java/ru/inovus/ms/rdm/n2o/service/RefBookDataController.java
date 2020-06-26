@@ -108,7 +108,7 @@ public class RefBookDataController {
             if (conflictsCount == 0)
                 return new RestPage<>(emptyList(), new SearchDataCriteria(), 0);
 
-            long dataCount = versionService.search(criteria.getVersionId(), new SearchDataCriteria()).getTotalElements();
+            long dataCount = versionService.search(version.getId(), new SearchDataCriteria()).getTotalElements();
             if (conflictsCount != dataCount) {
                 conflictedRowIdsPage = getConflictedRowIds(criteria, (int) conflictsCount);
             }
@@ -117,7 +117,7 @@ public class RefBookDataController {
         List<Long> conflictedRowIds = (conflictedRowIdsPage == null) ? emptyList() : conflictedRowIdsPage.getContent();
         SearchDataCriteria searchDataCriteria = toSearchDataCriteria(criteria, structure, conflictedRowIds);
 
-        Page<RefBookRowValue> search = versionService.search(criteria.getVersionId(), searchDataCriteria);
+        Page<RefBookRowValue> search = versionService.search(version.getId(), searchDataCriteria);
         List<DataGridRow> result = getDataGridContent(criteria, structure, search.getContent());
 
         long total;
