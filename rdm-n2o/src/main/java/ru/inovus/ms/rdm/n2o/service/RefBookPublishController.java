@@ -35,6 +35,7 @@ public class RefBookPublishController {
 
     private static final String PASSPORT_ATTRIBUTE_NAME = "name";
     private static final String REFERRER_NAME_SEPARATOR = ", ";
+    private static final String REFERRER_NAME_LIST_END = ".";
 
     private RefBookService refBookService;
     private DraftService draftService;
@@ -141,13 +142,15 @@ public class RefBookPublishController {
      *
      * @param versionId    идентификатор версии справочника
      * @param conflictType тип конфликта
-     * @return Названия справочников (через запятую)
+     * @return Названия справочников (через запятую и с точкой в конце)
      */
     private String getConflictTypeReferrerNames(Integer versionId, ConflictType conflictType) {
 
-        return conflictService.getConflictingReferrers(versionId, conflictType).stream()
+        String result = conflictService.getConflictingReferrers(versionId, conflictType).stream()
                 .map(this::getReferrerDisplayName)
                 .collect(Collectors.joining(REFERRER_NAME_SEPARATOR));
+
+        return StringUtils.isEmpty(result) ? "" : result + REFERRER_NAME_LIST_END;
     }
 
     /**
