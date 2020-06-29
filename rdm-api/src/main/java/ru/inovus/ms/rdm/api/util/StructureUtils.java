@@ -24,6 +24,14 @@ public class StructureUtils {
         return structure.getAttributes().stream().map(Structure.Attribute::getCode);
     }
 
+    /** Сравнение displayExpression двух ссылок. */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public static boolean isDisplayExpressionEquals(Structure.Reference reference1,
+                                                    Structure.Reference reference2) {
+        return reference1 != null && reference2 != null
+                && Objects.equals(reference1.getDisplayExpression(), reference2.getDisplayExpression());
+    }
+
     /**
      * Проверка на наличие хотя бы одного placeholder`а в выражении.
      *
@@ -38,6 +46,23 @@ public class StructureUtils {
 
         DisplayExpression expression = new DisplayExpression(displayExpression);
         return CollectionUtils.containsAny(expression.getPlaceholders().keySet(), placeholders);
+    }
+
+    /**
+     * Проверка полей выражения на отсутствие в структуре.
+     *
+     * @param displayExpression выражение для вычисления отображаемого значения
+     * @param structure         структура версии, на которую ссылаются
+     * @return Признак отсутствия
+     */
+    public static boolean hasAbsentPlaceholder(String displayExpression, Structure structure) {
+
+        if (isEmpty(displayExpression))
+            return false;
+
+        DisplayExpression expression = new DisplayExpression(displayExpression);
+        return expression.getPlaceholders().keySet().stream()
+                .anyMatch(placeholder -> Objects.isNull(structure.getAttribute(placeholder)));
     }
 
     /**

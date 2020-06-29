@@ -37,6 +37,7 @@ import ru.inovus.ms.rdm.impl.util.ConverterUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
@@ -50,6 +51,7 @@ public class CompareServiceImpl implements CompareService {
 
     private static final String COMPARE_OLD_PRIMARIES_NOT_FOUND_EXCEPTION_CODE = "compare.old.primaries.not.found";
     private static final String COMPARE_NEW_PRIMARIES_NOT_FOUND_EXCEPTION_CODE = "compare.new.primaries.not.found";
+    private static final String COMPARE_PRIMARIES_NOT_MATCH_EXCEPTION_CODE = "compare.primaries.not.match";
     private static final String COMPARE_PRIMARIES_NOT_EQUALS_EXCEPTION_CODE = "compare.primaries.not.equals";
 
     private CompareDataService compareDataService;
@@ -147,12 +149,12 @@ public class CompareServiceImpl implements CompareService {
 
         RefBookVersionEntity oldVersion = versionRepository.getOne(criteria.getOldVersionId());
         RefBookVersionEntity newVersion = versionRepository.getOne(criteria.getNewVersionId());
+        validatePrimariesEquality(oldVersion, newVersion);
+
+        CompareDataCriteria compareDataCriteria = createVdsCompareDataCriteria(oldVersion, newVersion, criteria);
 
         Structure oldStructure = oldVersion.getStructure();
         Structure newStructure = newVersion.getStructure();
-        validatePrimariesEquality(oldStructure.getPrimary(), newStructure.getPrimary());
-
-        CompareDataCriteria compareDataCriteria = createVdsCompareDataCriteria(oldVersion, newVersion, criteria);
 
         List<String> newAttributes = new ArrayList<>();
         List<String> oldAttributes = new ArrayList<>();
@@ -162,7 +164,7 @@ public class CompareServiceImpl implements CompareService {
             Structure.Attribute oldAttribute = oldStructure.getAttribute(newAttribute.getCode());
             if (oldAttribute == null)
                 newAttributes.add(newAttribute.getCode());
-            else if (!oldAttribute.storageEquals(newAttribute))
+            else if (!attributeEquals(oldAttribute, newAttribute))
                 updatedAttributes.add(newAttribute.getCode());
         });
 
@@ -201,15 +203,22 @@ public class CompareServiceImpl implements CompareService {
         return new RestPage<>(comparableRows, criteria, newData.getTotalElements() + refBookDataDiffDeleted.getRows().getTotalElements());
     }
 
-    private List<Field> getCommonFields(Structure structure1, Structure structure2) {
-        return structure2.getAttributes()
-                .stream()
+    private List<Field> getCommonFields(Structure oldStructure, Structure newStructure) {
+
+        return newStructure.getAttributes().stream()
                 .filter(newAttribute -> {
-                    Structure.Attribute oldAttribute = structure1.getAttribute(newAttribute.getCode());
-                    return (oldAttribute != null && oldAttribute.storageEquals(newAttribute));
+                    Structure.Attribute oldAttribute = oldStructure.getAttribute(newAttribute.getCode());
+                    return attributeEquals(oldAttribute, newAttribute);
                 })
                 .map(attribute -> fieldFactory.createField(attribute.getCode(), attribute.getType()))
                 .collect(toList());
+    }
+
+    /** Сравнение атрибутов только по полям, связанным с изменением атрибута. */
+    private boolean attributeEquals(Structure.Attribute oldAttribute, Structure.Attribute newAttribute) {
+        return oldAttribute != null
+                && oldAttribute.storageEquals(newAttribute)
+                && Objects.equals(oldAttribute.getName(), newAttribute.getName());
     }
 
     private boolean equalValues(PassportValueEntity oldPassportValue, PassportValueEntity newPassportValue) {
@@ -333,17 +342,27 @@ public class CompareServiceImpl implements CompareService {
         }
     }
 
-    private void validatePrimariesEquality(List<Structure.Attribute> oldPrimaries, List<Structure.Attribute> newPrimaries) {
+    /** Проверка первичных ключей версий на совпадение. */
+    private void validatePrimariesEquality(RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion) {
 
+        List<Structure.Attribute> oldPrimaries = oldVersion.getStructure().getPrimary();
         if (isEmpty(oldPrimaries))
-            throw new UserException(new Message(COMPARE_OLD_PRIMARIES_NOT_FOUND_EXCEPTION_CODE));
+            throw new UserException(new Message(COMPARE_OLD_PRIMARIES_NOT_FOUND_EXCEPTION_CODE, oldVersion.getRefBook().getCode(), oldVersion.getVersion()));
 
+        List<Structure.Attribute> newPrimaries = newVersion.getStructure().getPrimary();
         if (isEmpty(newPrimaries))
-            throw new UserException(new Message(COMPARE_NEW_PRIMARIES_NOT_FOUND_EXCEPTION_CODE));
+            throw new UserException(new Message(COMPARE_NEW_PRIMARIES_NOT_FOUND_EXCEPTION_CODE, newVersion.getRefBook().getCode(), newVersion.getVersion()));
 
-        if (oldPrimaries.size() != newPrimaries.size()
-                || oldPrimaries.stream().anyMatch(oldPrimary -> newPrimaries.stream().noneMatch(newPrimary -> newPrimary.equalsByTypeAndCode(oldPrimary))))
-            throw new UserException(new Message(COMPARE_PRIMARIES_NOT_EQUALS_EXCEPTION_CODE));
+        if (!versionValidation.equalsPrimaries(oldPrimaries, newPrimaries)) {
+            if (newVersion.getRefBook().getCode().equals(oldVersion.getRefBook().getCode())) {
+                throw new UserException(new Message(COMPARE_PRIMARIES_NOT_MATCH_EXCEPTION_CODE,
+                        oldVersion.getRefBook().getCode(), oldVersion.getVersionNumber(), newVersion.getVersionNumber()));
+            } else {
+                throw new UserException(new Message(COMPARE_PRIMARIES_NOT_EQUALS_EXCEPTION_CODE,
+                        oldVersion.getRefBook().getCode(), oldVersion.getVersionNumber(),
+                        newVersion.getRefBook().getCode(), newVersion.getVersionNumber()));
+            }
+        }
     }
 
     /**

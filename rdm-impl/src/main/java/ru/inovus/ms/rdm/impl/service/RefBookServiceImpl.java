@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.impl.service;
 import com.querydsl.core.BooleanBuilder;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
-import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
@@ -17,9 +16,11 @@ import ru.inovus.ms.rdm.api.enumeration.RefBookOperation;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookStatusType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.api.exception.FileExtensionException;
 import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
+import ru.inovus.ms.rdm.api.model.draft.PublishRequest;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
@@ -38,8 +39,8 @@ import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookModelDataRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.inovus.ms.rdm.impl.util.FileUtil;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
-import ru.inovus.ms.rdm.impl.util.NamingUtils;
 
 import java.io.InputStream;
 import java.util.*;
@@ -55,7 +56,10 @@ import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 @Service
 public class RefBookServiceImpl implements RefBookService {
 
+    private static final String REFBOOK_IS_NOT_CREATED_EXCEPTION_CODE = "refbook.is.not.created";
+    private static final String REFBOOK_IS_NOT_CREATED_FROM_XLSX_EXCEPTION_CODE = "refbook.is.not.created.from.xlsx";
     private static final String REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.already.exists";
+    private static final String DRAFT_NOT_FOUND_EXCEPTION_CODE = "draft.not.found";
 
     private RefBookRepository refBookRepository;
     private RefBookVersionRepository versionRepository;
@@ -182,9 +186,9 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional
     public RefBook create(RefBookCreateRequest request) {
 
+        versionValidation.validateRefBookCode(request.getCode());
         if (refBookRepository.existsByCode(request.getCode()))
             throw new UserException(new Message(REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE, request.getCode()));
-        NamingUtils.checkCode(request.getCode());
 
         RefBookEntity refBookEntity = new RefBookEntity();
         refBookEntity.setArchived(Boolean.FALSE);
@@ -217,30 +221,40 @@ public class RefBookServiceImpl implements RefBookService {
     }
 
     @Override
+    @Transactional(timeout = 1200000)
     public Draft create(FileModel fileModel) {
-        String extension = FilenameUtils.getExtension(fileModel.getName()).toUpperCase();
-        switch (extension) {
+
+        switch (FileUtil.getExtension(fileModel.getName())) {
             case "XLSX": return createByXlsx(fileModel);
             case "XML": return createByXml(fileModel);
-            default: throw new UserException("file.extension.invalid");
+            default: throw new FileExtensionException();
         }
     }
 
     @SuppressWarnings("unused")
     private Draft createByXlsx(FileModel fileModel) {
-        throw new UserException("xlsx.draft.creation.not-supported");
+        throw new UserException(REFBOOK_IS_NOT_CREATED_FROM_XLSX_EXCEPTION_CODE);
     }
 
     private Draft createByXml(FileModel fileModel) {
+
         RefBook refBook;
         try (XmlCreateRefBookFileProcessor createRefBookFileProcessor = new XmlCreateRefBookFileProcessor(this)) {
             Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
             refBook = createRefBookFileProcessor.process(inputStreamSupplier);
         }
-        if (refBook == null)
-            throw new UserException("check.your.xml");
 
-        return draftService.create(refBook.getRefBookId(), fileModel);
+        if (refBook == null)
+            throw new UserException(REFBOOK_IS_NOT_CREATED_EXCEPTION_CODE);
+
+        try {
+            return draftService.create(refBook.getRefBookId(), fileModel);
+
+        } catch (Exception e) {
+            delete(refBook.getRefBookId());
+
+            throw e;
+        }
     }
 
     @Override
@@ -253,7 +267,7 @@ public class RefBookServiceImpl implements RefBookService {
         RefBookVersionEntity versionEntity = versionRepository.getOne(request.getVersionId());
         RefBookEntity refBookEntity = versionEntity.getRefBook();
         if (!refBookEntity.getCode().equals(request.getCode())) {
-            NamingUtils.checkCode(refBookEntity.getCode());
+            versionValidation.validateRefBookCode(request.getCode());
             if (refBookRepository.existsByCode((request.getCode())))
                 throw new UserException(new Message(REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE, request.getCode()));
 
@@ -333,23 +347,27 @@ public class RefBookServiceImpl implements RefBookService {
     @Override
     @SuppressWarnings("squid:S2259")
     public void changeData(RdmChangeDataRequest request) {
-        RefBookEntity refBook = refBookRepository.findByCode(request.getRefBookCode());
-        versionValidation.validateRefBookExists(refBook == null ? null : refBook.getId());
+
+        final String refBookCode = request.getRefBookCode();
+        versionValidation.validateRefBookCodeExists(refBookCode);
+
+        RefBookEntity refBook = refBookRepository.findByCode(refBookCode);
 
         refBookLockService.setRefBookUpdating(refBook.getId());
         try {
-            Integer draftId = draftService.getIdByRefBookCode(request.getRefBookCode());
+            Integer draftId = draftService.getIdByRefBookCode(refBookCode);
             if (draftId == null) {
-                RefBookVersionEntity mostRecentVersion = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(request.getRefBookCode(), RefBookVersionStatus.PUBLISHED);
-                Draft draft = draftService.createFromVersion(mostRecentVersion.getId());
+                RefBookVersionEntity lastPublishedEntity = versionRepository
+                        .findFirstByRefBookIdAndStatusOrderByFromDateDesc(refBook.getId(), RefBookVersionStatus.PUBLISHED);
+                Draft draft = draftService.createFromVersion(lastPublishedEntity.getId());
                 draftId = draft.getId();
             }
             if (draftId == null)
-                throw new UserException(new Message("draft.not.found", draftId));
+                throw new UserException(new Message(DRAFT_NOT_FOUND_EXCEPTION_CODE, draftId));
 
             draftService.updateData(draftId, request.getRowsToAddOrUpdate());
             draftService.deleteRows(draftId, request.getRowsToDelete());
-            publishService.publish(draftId, null, null, null, false);
+            publishService.publish(new PublishRequest(draftId));
 
         } finally {
             refBookLockService.deleteRefBookOperation(refBook.getId());
@@ -400,7 +418,7 @@ public class RefBookServiceImpl implements RefBookService {
         model.setHasUpdatedConflict(refBookModelData.getHasUpdatedConflict());
         model.setHasAlteredConflict(refBookModelData.getHasAlteredConflict());
         model.setHasStructureConflict(refBookModelData.getHasStructureConflict());
-        model.setLastHasDataConflict(refBookModelData.getLastHasDataConflict());
+        model.setLastHasConflict(refBookModelData.getLastHasConflict());
         model.setUpdating(false);
         model.setPublishing(false);
         if (entity.getRunningOp() != null) {
@@ -415,11 +433,9 @@ public class RefBookServiceImpl implements RefBookService {
     /** Проверка на наличие справочников, ссылающихся на указанный справочник. */
     private boolean hasReferrerVersions(String refBookCode) {
 
-        PageRequest pageRequest = PageRequest.of(0, 1);
-        Page<RefBookVersionEntity> entities = versionRepository.findReferrerVersions(refBookCode,
-                RefBookStatusType.ALL.name(), RefBookSourceType.ALL.name(), pageRequest);
-
-        return entities != null && !entities.getContent().isEmpty();
+        Boolean exists = versionRepository.existsReferrerVersions(refBookCode,
+                RefBookStatusType.ALL.name(), RefBookSourceType.ALL.name());
+        return Boolean.TRUE.equals(exists);
     }
 
     private boolean isRefBookRemovable(Integer refBookId) {

@@ -41,19 +41,21 @@ public class ConverterUtil {
     private ConverterUtil() {
     }
 
+    /** Возвращает список столбцов таблицы на основе структуры справочника. */
     public static List<Field> fields(Structure structure) {
         List<Field> fields = new ArrayList<>();
-        if (structure != null) {
-            Optional.ofNullable(structure.getAttributes()).ifPresent(s ->
-                    s.forEach(attribute -> fields.add(field(attribute)))
-            );
+        if (structure != null && !structure.isEmpty()) {
+            structure.getAttributes().forEach(attribute -> fields.add(field(attribute)));
         }
         return fields;
     }
 
+    /** Возвращает столбец таблицы на основе атрибута структуры справочника. */
     public static Field field(Structure.Attribute attribute) {
-        boolean isSearchable = Boolean.TRUE.equals(attribute.getIsPrimary()) && FieldType.STRING.equals(attribute.getType());
-        return isSearchable ? fieldFactory.createSearchField(attribute.getCode(), attribute.getType()) : fieldFactory.createField(attribute.getCode(), attribute.getType());
+        boolean isSearchable = attribute.hasIsPrimary() && FieldType.STRING.equals(attribute.getType());
+        return isSearchable
+                ? fieldFactory.createSearchField(attribute.getCode(), attribute.getType())
+                : fieldFactory.createField(attribute.getCode(), attribute.getType());
     }
 
     public static RowValue rowValue(Row row, Structure structure) {

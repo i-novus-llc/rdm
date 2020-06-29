@@ -30,9 +30,8 @@ public class ReferenceController {
     /**
      * Поиск списка значений справочника для ссылки.
      */
-    @SuppressWarnings("unused")
+    @SuppressWarnings("unused") // used in: reference.query.xml, see DataRecordPageProvider
     public Page<Reference> getList(ReferenceCriteria referenceCriteria) {
-
 
         Structure.Reference reference = versionService
                 .getStructure(referenceCriteria.getVersionId())

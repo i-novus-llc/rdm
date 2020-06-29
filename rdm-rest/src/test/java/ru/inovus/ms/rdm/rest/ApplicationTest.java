@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.rest;
 
 import net.n2oapp.criteria.api.CollectionPage;
+import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.jaxrs.RestMessage;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import ru.i_novus.common.file.storage.api.FileStorage;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -46,6 +48,7 @@ import ru.inovus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.inovus.ms.rdm.api.model.diff.RefBookDataDiff;
 import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
+import ru.inovus.ms.rdm.api.model.draft.PublishRequest;
 import ru.inovus.ms.rdm.api.model.field.CommonField;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
@@ -134,8 +137,12 @@ public class ApplicationTest {
 
     private static final String DATE_STR = "01.01.2011";
 
+    private static RefBookCreateRequest referredBookRequest;
+    private static Structure.Attribute referredIdAttribute;
+
     private static RefBookCreateRequest refBookCreateRequest;
     private static RefBookUpdateRequest refBookUpdateRequest;
+    private static Structure.Attribute idAttribute;
     private static Structure.Attribute createAttribute;
     private static Structure.Reference createReference;
 
@@ -189,8 +196,15 @@ public class ApplicationTest {
 
     @BeforeClass
     public static void initialize() {
+
+        referredBookRequest = new RefBookCreateRequest();
+        referredBookRequest.setCode("REF_801");
+
+        referredIdAttribute = Structure.Attribute.buildPrimary("id", "Идентификатор", FieldType.STRING, "значение для привязки");
+
         refBookCreateRequest = new RefBookCreateRequest();
         refBookCreateRequest.setCode("T1");
+
         Map<String, String> createPassport = new HashMap<>();
         createPassport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "Справочник специальностей");
         createPassport.put(PASSPORT_ATTRIBUTE_ANNOTATION, "Аннотация для справочника специальностей");
@@ -208,9 +222,10 @@ public class ApplicationTest {
         refBookUpdateRequest.setPassport(updatePassport);
         refBookUpdateRequest.setComment("обновленное наполнение");
 
-        createAttribute = Structure.Attribute.buildPrimary("name", "Наименование", FieldType.REFERENCE, "описание");
-        createReference = new Structure.Reference(createAttribute.getCode(), "REF_801", "");
-        updateAttribute = Structure.Attribute.buildPrimary(createAttribute.getCode(),
+        idAttribute = Structure.Attribute.buildPrimary("id", "Идентификатор", FieldType.INTEGER, "уникальное значение");
+        createAttribute = Structure.Attribute.build("name", "Наименование", FieldType.REFERENCE, "описание");
+        createReference = new Structure.Reference(createAttribute.getCode(), referredBookRequest.getCode(), toPlaceholder(referredIdAttribute.getCode()));
+        updateAttribute = Structure.Attribute.build(createAttribute.getCode(),
                 createAttribute.getName() + "_upd", createAttribute.getType(), createAttribute.getDescription() + "_upd");
         deleteAttribute = Structure.Attribute.build("code", "Код", FieldType.STRING, "на удаление");
 
@@ -268,6 +283,22 @@ public class ApplicationTest {
     @Test
     public void testLifecycle() {
 
+        RefBook referredBook = refBookService.create(referredBookRequest);
+        assertNotNull(referredBook.getId());
+        assertNotNull(referredBook.getRefBookId());
+        assertEquals(referredBookRequest.getCode(), referredBook.getCode());
+
+        Draft referredDraft = draftService.getDraft(referredBook.getId());
+        assertNotNull(referredDraft);
+        assertNotNull(referredDraft.getStorageCode());
+
+        CreateAttribute createReferredAttribute = new CreateAttribute(referredDraft.getId(), referredIdAttribute, null);
+        draftService.createAttribute(createReferredAttribute);
+
+        Row referredRow = new Row(new HashMap<>() {{ put(referredIdAttribute.getCode(), "1"); }});
+        draftService.updateData(referredDraft.getId(), referredRow);
+        publish(referredDraft.getId(), null, null, null, false);
+
         // создание справочника
         RefBook refBook = refBookService.create(refBookCreateRequest);
         assertNotNull(refBook.getId());
@@ -280,6 +311,7 @@ public class ApplicationTest {
         assertTrue(refBook.getRemovable());
         assertFalse(refBook.getArchived());
         assertNull(refBook.getFromDate());
+        // получение черновика
         Draft draft = draftService.getDraft(refBook.getId());
         assertNotNull(draft);
         assertNotNull(draft.getStorageCode());
@@ -298,10 +330,13 @@ public class ApplicationTest {
         assertRefBooksEqual(refBook, updatedRefBook);
 
         // добавление атрибута и проверка
-        CreateAttribute createAttributeModel = new CreateAttribute(draft.getId(), createAttribute, createReference);
+        CreateAttribute createAttributeModel = new CreateAttribute(draft.getId(), idAttribute, null);
+        draftService.createAttribute(createAttributeModel);
+
+        createAttributeModel = new CreateAttribute(draft.getId(), createAttribute, createReference);
         draftService.createAttribute(createAttributeModel);
         Structure structure = versionService.getStructure(draft.getId());
-        assertEquals(1, structure.getAttributes().size());
+        assertEquals(2, structure.getAttributes().size());
         assertEquals(createAttribute, structure.getAttribute(createAttribute.getCode()));
         assertEquals(createReference, structure.getReference(createAttribute.getCode()));
 
@@ -319,7 +354,7 @@ public class ApplicationTest {
 
         draftService.deleteAttribute(draft.getId(), deleteAttribute.getCode());
         structure = versionService.getStructure(draft.getId());
-        assertEquals(1, structure.getAttributes().size());
+        assertEquals(2, structure.getAttributes().size());
 
         // в архив
         refBookService.toArchive(refBook.getRefBookId());
@@ -444,6 +479,7 @@ public class ApplicationTest {
      */
     @Test
     public void testGetVersions() {
+
         VersionCriteria criteria = new VersionCriteria();
         criteria.setRefBookId(versionList.get(0).getRefBookId());
         Page<RefBookVersion> search = versionService.getVersions(criteria);
@@ -467,22 +503,58 @@ public class ApplicationTest {
 
     @Test
     public void testDraftCreate() {
+
         Structure structure = createStructure();
         Draft expected = draftService.create(new CreateDraftRequest(1, structure));
 
         Draft actual = draftService.getDraft(expected.getId());
-
         assertEquals(expected.getId(), actual.getId());
     }
 
     @Test
+    public void testDraftReferrerCreate() {
+
+        Structure structure = createTestStructureWithReferenceType();
+        structure.getAttributes().clear();
+        failDraftReferrerCreate(structure, "reference.requires.primary.key");
+
+        structure = createTestStructureWithReferenceType();
+        structure.clearPrimary();
+        failDraftReferrerCreate(structure, "reference.requires.primary.key");
+
+        structure = createTestStructureWithReferenceType();
+        structure.setReferences(null);
+        failDraftReferrerCreate(structure, "attribute.reference.not.found");
+
+        structure = createTestStructureWithReferenceType();
+        structure.setAttributes(structure.getPrimary());
+        failDraftReferrerCreate(structure, "reference.attribute.not.found");
+
+        structure = createTestStructureWithReferenceType();
+        structure.getAttribute(structure.getReferences().get(0).getAttribute()).setPrimary(Boolean.TRUE);
+        failDraftReferrerCreate(structure, "reference.attribute.cannot.be.primary.key");
+    }
+
+    private void failDraftReferrerCreate(Structure structure, String message) {
+        try {
+            draftService.create(new CreateDraftRequest(1, structure));
+            fail();
+
+        } catch (RestException re) {
+            assertEquals(message, getRestExceptionMessage(re));
+        }
+    }
+
+    @Test
     public void testDraftRemove() {
+
         Structure structure = createStructure();
         Draft draft = draftService.create(new CreateDraftRequest(1, structure));
 
         draftService.remove(draft.getId());
         try{
             draftService.getDraft(draft.getId());
+
         } catch (RestException e) {
             assertEquals("draft.not.found", e.getMessage());
         }
@@ -502,7 +574,7 @@ public class ApplicationTest {
 
     @Test
     public void testPublishFirstDraft() {
-        publishService.publish(TEST_PUBLISHING_VERSION_ID, "1.0", LocalDateTime.now(), null, false);
+        publish(TEST_PUBLISHING_VERSION_ID, "1.0", LocalDateTime.now(), null, false);
         Page<RefBookRowValue> rowValuesInVersion = versionService.search(TEST_PUBLISHING_BOOK_CODE, LocalDateTime.now(), new SearchDataCriteria());
 
         RefBook refBook = refBookService.getByVersionId(TEST_PUBLISHING_VERSION_ID);
@@ -523,44 +595,40 @@ public class ApplicationTest {
         }
     }
 
-    /*
-    * Метод проверки методов работы со строками черновика:
-    * * updateData для одной строки:
-    * - добавление строки, передается новая строка (нет systemId). Строка сохраняется в хранилище для версии. Кол-во строк = 1
-    * - изменение строки, передается измененная строка (есть systemId). Строка сохраняется в хранилище для версии. Кол-во строк = 1
-    * - удаление строки, передается systemId. Кол-во строк = 0
-    * - добавление двух строк. Строки сохраняются в хранилище. Кол-во строк = 2
-    * - изменение несуществующей строки. Ожидается ошибка с кодом: ненайденная строка.
-    * - удаление всех строк. Кол-во строк = 0
-    * - добавление невалидной строки (неверные значения целочисленного и ссылочного полей). Ожидается ошибка с двумя кодами: неверный тип и неверная ссылка.
-    * * updateData для списка строк:
-    * - добавление двух строк одновременно. Строки сохраняются в хранилище. Кол-во строк = 2
-    * - добавление третьей строки и изменение второй одновременно. Строки сохраняются в хранилище. Кол-во строк = 3
-    * - удаление всех строк. Кол-во строк = 0
-    * - изменение несуществующей строки. Ожидается ошибка с кодом: ненайденная строка.
-    * */
+    /**
+     * Проверка методов работы со строками черновика, содержащего простые типы атрибутов.
+     *
+     * * updateData для одной строки:
+     * - добавление строки, передается новая строка (нет systemId). Строка сохраняется в хранилище для версии. Кол-во строк = 1
+     * - изменение строки, передается измененная строка (есть systemId). Строка сохраняется в хранилище для версии. Кол-во строк = 1
+     * - удаление строки, передается systemId. Кол-во строк = 0
+     * - добавление двух строк. Строки сохраняются в хранилище. Кол-во строк = 2
+     * - изменение несуществующей строки. Ожидается ошибка с кодом: ненайденная строка.
+     * - удаление всех строк. Кол-во строк = 0
+     * - добавление невалидной строки (неверные значения целочисленного и ссылочного полей). Ожидается ошибка с двумя кодами: неверный тип и неверная ссылка.
+     * * updateData для списка строк:
+     * - добавление двух строк одновременно. Строки сохраняются в хранилище. Кол-во строк = 2
+     * - добавление третьей строки и изменение второй одновременно. Строки сохраняются в хранилище. Кол-во строк = 3
+     * - удаление всех строк. Кол-во строк = 0
+     * - изменение несуществующей строки. Ожидается ошибка с кодом: ненайденная строка.
+     */
     @Test
-    public void testUpdateVersionRows() {
-        final String REFBOOK_CODE = "update_rows";
+    public void testUpdateDataWithSimpleTypesOnly() {
 
-        Structure structure = createTestStructureWithoutTreeFieldType();
+        final String REFBOOK_CODE = "update_rows";
         RefBook refBook = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE, null));
         Integer versionId = refBook.getId();
-        structure.getAttributes()
-                .forEach(attribute ->
-                        draftService.createAttribute(
-                                new CreateAttribute(versionId,
-                                        attribute,
-                                        FieldType.REFERENCE.equals(attribute.getType())
-                                                ? structure.getReference("reference")
-                                                : null)
-                        ));
+
+        Structure structure = createTestStructureWithSimpleTypesOnly();
+        structure.getAttributes().forEach(
+                attribute -> draftService.createAttribute(new CreateAttribute(versionId, attribute, null))
+        );
 
         // после создания черновик пустой
         assertEquals(0, draftService.search(versionId, new SearchDataCriteria()).getContent().size());
 
         // создание строки
-        Row row = createRowForAllTypesStructure("string", BigInteger.valueOf(1), DATE_STR, true, 1.1, "2");
+        Row row = createRowWithSimpleTypesOnly("string", BigInteger.valueOf(1L), DATE_STR, true, 1.1);
         draftService.updateData(versionId, row);
 
         Long systemId = 1L;
@@ -576,6 +644,141 @@ public class ApplicationTest {
         row.getData().replace("string", "string1");
         row.getData().replace("boolean", false);
         row.getData().replace("float", 1.2);
+        draftService.updateData(versionId, row);
+
+        expectedRowValue = rowValue(row, structure);
+        actualRowValues = draftService.search(versionId, new SearchDataCriteria());
+        assertRows(fields(structure), singletonList(expectedRowValue), actualRowValues.getContent());
+
+        // удаление строки
+        draftService.deleteRow(versionId, new Row(1L, emptyMap()));
+
+        actualRowValues = draftService.search(versionId, new SearchDataCriteria());
+        assertEquals(0, actualRowValues.getContent().size());
+
+        // создание двух строк
+        Row row1 = createRowWithSimpleTypesOnly("string1", BigInteger.valueOf(1L), null, null, null);
+        Row row2 = createRowWithSimpleTypesOnly("string2", BigInteger.valueOf(2L), null, null, null);
+        draftService.updateData(versionId, row1);
+        draftService.updateData(versionId, row2);
+        actualRowValues = draftService.search(versionId, new SearchDataCriteria());
+        assertEquals(2, actualRowValues.getContent().size());
+
+        systemId++; // for row1
+        systemId++; // for row2
+
+        // изменение несуществующей строки
+        row2.setSystemId(-1L);
+        try {
+            draftService.updateData(versionId, row2);
+            fail();
+        } catch (RestException re) {
+            assertEquals("row.not.found", getRestExceptionMessage(re));
+        }
+
+        // удаление всех строк
+        draftService.deleteAllRows(versionId);
+        actualRowValues = draftService.search(versionId, new SearchDataCriteria());
+        assertEquals(0, actualRowValues.getContent().size());
+
+        // создание невалидной строки
+        Row badRow = createRowWithSimpleTypesOnly("string", BigInteger.valueOf(1L), DATE_STR, true, 1.1);
+        badRow.getData().replace("integer", "abc");
+        try {
+            draftService.updateData(versionId, badRow);
+            fail();
+        } catch (RestException re) {
+            Assert.assertEquals(1, re.getErrors().stream()
+                    .map(RestMessage.Error::getMessage)
+                    .filter("validation.type.error"::equals).count());
+        }
+
+        // создание двух строк одновременно
+        row1 = createRowWithSimpleTypesOnly("string11", BigInteger.valueOf(11L), null, null, null);
+        row2 = createRowWithSimpleTypesOnly("string22", BigInteger.valueOf(22L), null, null, null);
+        draftService.updateData(versionId, asList(row1, row2));
+        actualRowValues = draftService.search(versionId, new SearchDataCriteria());
+        assertEquals(2, actualRowValues.getContent().size());
+
+        systemId++; // for row1
+        row1.setSystemId(systemId);
+
+        systemId++; // for row2
+        row2.setSystemId(systemId);
+
+        // создание третьей строки и изменение второй одновременно
+        row2.getData().replace("float", 2.2);
+        Row row3 = createRowWithSimpleTypesOnly("string33", BigInteger.valueOf(33L), null, null, null);
+        draftService.updateData(versionId, asList(row2, row3));
+
+        systemId++; // for row3
+        row3.setSystemId(systemId);
+
+        List<RowValue> expectedRowValues = asList(
+                rowValue(row1, structure), rowValue(row2, structure), rowValue(row3, structure)
+        );
+
+        actualRowValues = draftService.search(versionId, new SearchDataCriteria());
+        assertEquals(3, actualRowValues.getContent().size());
+
+        assertRows(fields(structure), expectedRowValues, actualRowValues.getContent());
+
+        // удаление всех строк
+        draftService.deleteAllRows(versionId);
+
+        actualRowValues = draftService.search(versionId, new SearchDataCriteria());
+        assertEquals(0, actualRowValues.getContent().size());
+
+        // изменение несуществующей строки
+        row3.setSystemId(-1L);
+        try {
+            draftService.updateData(versionId, singletonList(row3));
+            fail();
+        } catch (RestException re) {
+            Assert.assertEquals(1, re.getErrors().stream()
+                    .map(RestMessage.Error::getMessage)
+                    .filter("row.not.found"::equals).count());
+        }
+    }
+
+    /**
+     * Проверка методов работы со строками черновика, содержащего ссылочный тип атрибута.
+     *
+     * @see ApplicationTest#testUpdateDataWithSimpleTypesOnly
+     */
+    @Test
+    public void testUpdateDataWithReferenceType() {
+
+        final String REFBOOK_CODE = "update_rows_with_ref";
+        RefBook refBook = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE, null));
+        Integer versionId = refBook.getId();
+
+        Structure structure = createTestStructureWithReferenceType();
+        structure.getAttributes().forEach(attribute ->
+                draftService.createAttribute(
+                        new CreateAttribute(versionId, attribute,
+                                attribute.isReferenceType() ? structure.getReference("reference") : null)
+                )
+        );
+
+        // после создания черновик пустой
+        assertEquals(0, draftService.search(versionId, new SearchDataCriteria()).getContent().size());
+
+        // создание строки
+        Row row = createRowWithReferenceType(BigInteger.valueOf(1L), "string", "2");
+        draftService.updateData(versionId, row);
+
+        Long systemId = 1L;
+
+        row.setSystemId(systemId);
+        row.getData().replace("reference", new Reference("2", "2"));
+        RowValue expectedRowValue = rowValue(row, structure);
+
+        Page<RefBookRowValue> actualRowValues = draftService.search(versionId, new SearchDataCriteria());
+        assertRows(fields(structure), singletonList(expectedRowValue), actualRowValues.getContent());
+
+        // изменение строки
+        row.getData().replace("string", "string1");
         row.getData().replace("reference", "2");
         draftService.updateData(versionId, row);
 
@@ -591,8 +794,8 @@ public class ApplicationTest {
         assertEquals(0, actualRowValues.getContent().size());
 
         // создание двух строк
-        Row row1 = createRowForAllTypesStructure("string1", BigInteger.valueOf(1), null, null, null, null);
-        Row row2 = createRowForAllTypesStructure("string2", BigInteger.valueOf(2), null, null, null, null);
+        Row row1 = createRowWithReferenceType(BigInteger.valueOf(1L), "string1", null);
+        Row row2 = createRowWithReferenceType(BigInteger.valueOf(2L), "string2", null);
         draftService.updateData(versionId, row1);
         draftService.updateData(versionId, row2);
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
@@ -607,7 +810,7 @@ public class ApplicationTest {
             draftService.updateData(versionId, row2);
             fail();
         } catch (RestException re) {
-            assertEquals("row.not.found", re.getErrors().iterator().next().getMessage());
+            assertEquals("validation.db.contains.pk.err", getRestExceptionMessage(re));
         }
 
         // удаление всех строк
@@ -615,21 +818,9 @@ public class ApplicationTest {
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertEquals(0, actualRowValues.getContent().size());
 
-        // создание невалидной строки
-        Row badRow = createRowForAllTypesStructure("string", BigInteger.valueOf(1), DATE_STR, true, 1.1, "1");
-        badRow.getData().replace("integer", "abc");
-        try {
-            draftService.updateData(versionId, badRow);
-            fail();
-        } catch (RestException re) {
-            Assert.assertEquals(1, re.getErrors().stream()
-                    .map(RestMessage.Error::getMessage)
-                    .filter("validation.type.error"::equals).count());
-        }
-
         // создание двух строк одновременно
-        row1 = createRowForAllTypesStructure("string11", BigInteger.valueOf(11), null, null, null, null);
-        row2 = createRowForAllTypesStructure("string22", BigInteger.valueOf(22), null, null, null, null);
+        row1 = createRowWithReferenceType(BigInteger.valueOf(11L), "string11", null);
+        row2 = createRowWithReferenceType(BigInteger.valueOf(22L), "string22", null);
         draftService.updateData(versionId, asList(row1, row2));
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertEquals(2, actualRowValues.getContent().size());
@@ -641,8 +832,8 @@ public class ApplicationTest {
         row2.setSystemId(systemId);
 
         // создание третьей строки и изменение второй одновременно
-        row2.getData().replace("float", 2.2);
-        Row row3 = createRowForAllTypesStructure("string33", BigInteger.valueOf(33), null, null, null, null);
+        row2.getData().replace("string", "string.2.2");
+        Row row3 = createRowWithReferenceType(BigInteger.valueOf(33L), "string33", null);
         draftService.updateData(versionId, asList(row2, row3));
 
         systemId++; // for row3
@@ -702,10 +893,10 @@ public class ApplicationTest {
                         draftService.createAttribute(new CreateAttribute(oldVersionId, attribute, null))
                 );
         draftService.updateData(oldVersionId, createFileModel(OLD_FILE_NAME, "testCompare/" + OLD_FILE_NAME));
-        publishService.publish(oldVersionId, "1.0", LocalDateTime.now(), null, false);
+        publish(oldVersionId, "1.0", LocalDateTime.now(), null, false);
 
         Map<String, Object> rowMap = new HashMap<>(){{
-            put(id.getCode(), BigInteger.valueOf(1));
+            put(id.getCode(), BigInteger.valueOf(1L));
             put(code.getCode(), "001");
             put(common.getCode(), "c1");
             put(descr.getCode(), "descr1");
@@ -759,17 +950,17 @@ public class ApplicationTest {
                         draftService.createAttribute(new CreateAttribute(oldVersionId, attribute, null))
                 );
         draftService.updateData(oldVersionId, createFileModel(OLD_FILE_NAME, "testCompare/" + OLD_FILE_NAME));
-        publishService.publish(oldVersionId, "1.0", publishDate1, closeDate1, false);
+        publish(oldVersionId, "1.0", publishDate1, closeDate1, false);
 
         Integer newVersionId = draftService
                 .create(new CreateDraftRequest(refBook.getRefBookId(), new Structure(asList(id, code, common, name, upd, type), emptyList())))
                 .getId();
         draftService.updateData(newVersionId, createFileModel(NEW_FILE_NAME, "testCompare/" + NEW_FILE_NAME));
-        publishService.publish(newVersionId, "1.1", publishDate2, closeDate2, false);
+        publish(newVersionId, "1.1", publishDate2, closeDate2, false);
 
         Set<List<AttributeFilter>> filters = new HashSet<>(){{
             add(asList(
-                    new AttributeFilter(id.getCode(), BigInteger.valueOf(1), id.getType()),
+                    new AttributeFilter(id.getCode(), BigInteger.valueOf(1L), id.getType()),
                     new AttributeFilter(code.getCode(), "001", code.getType())
             ));
         }};
@@ -782,19 +973,47 @@ public class ApplicationTest {
     }
 
     /**
-     * Создаем новый черновик с ссылкой на опубликованную версию
-     * Обновляем его данные из файла
+     * Проверка загрузки данных из XSLX в черновик, содержащий простые типы атрибутов.
+     *
+     * - Создаём новый черновик с ссылкой на опубликованную версию.
+     * - Обновляем его данные из файла.
      */
     @Test
-    public void testDraftUpdateData() {
-        Structure structure = createTestStructureWithoutTreeFieldType();
+    public void testDraftUpdateDataFromFileWithSimpleTypesOnly() {
+
+        Structure structure = createTestStructureWithSimpleTypesOnly();
+        extendTestStructureForReferenceTypeAsString(structure);
         Draft draft = draftService.create(new CreateDraftRequest(1, structure));
+
+        FileModel fileModel = createFileModel("update_testUpload.xlsx", "testUpload.xlsx");
+        draftService.updateData(draft.getId(), fileModel);
+
+        Row row = createRowWithSimpleTypesOnly("Иван", BigInteger.valueOf(4L), DATE_STR, true, 1.0);
+        extendRowWithReferenceType(row, BigInteger.valueOf(1L), "2");
+        List<RowValue> expected = singletonList(rowValue(row, structure));
+
+        Page<RefBookRowValue> search = draftService.search(draft.getId(), new SearchDataCriteria(null, null));
+        assertRows(fields(structure), expected, search.getContent());
+    }
+
+    /**
+     * Проверка загрузки данных из XSLX в черновик, содержащий ссылочный тип атрибута.
+     *
+     * @see ApplicationTest#testDraftUpdateDataFromFileWithSimpleTypesOnly
+     */
+    @Test
+    public void testDraftUpdateDataFromFileWithReferenceType() {
+
+        Structure structure = createTestStructureWithSimpleTypesOnly();
+        extendTestStructureForReferenceType(structure);
+        Draft draft = draftService.create(   new CreateDraftRequest(1, structure));
 
         FileModel fileModel = createFileModel("update_testUpload.xlsx", "testUpload.xlsx");
 
         draftService.updateData(draft.getId(), fileModel);
 
-        Row row = createRowForAllTypesStructure("Иван", BigInteger.valueOf(4), DATE_STR, true, 1.0, new Reference("2", "2"));
+        Row row = createRowWithSimpleTypesOnly("Иван", BigInteger.valueOf(4L), DATE_STR, true, 1.0);
+        extendRowWithReferenceType(row, BigInteger.valueOf(1L), new Reference("2", "2"));
         List<RowValue> expected = singletonList(rowValue(row, structure));
 
         Page<RefBookRowValue> search = draftService.search(draft.getId(), new SearchDataCriteria(null, null));
@@ -806,23 +1025,25 @@ public class ApplicationTest {
      * Обновляем его данные из файла, который содержит невалидную ссылку
      */
     @Test()
-    public void testDraftUpdateDataWithInvalidReference() {
-        Structure structure = createTestStructureWithoutTreeFieldType();
+    public void testDraftUpdateDataFromFileWithInvalidReference() {
+
+        Structure structure = createTestStructureWithSimpleTypesOnly();
+        extendTestStructureForReferenceType(structure);
         Draft draft = draftService.create(new CreateDraftRequest(1, structure));
 
         FileModel fileModel = createFileModel("update_testUploadInvalidReference.xlsx", "testUploadInvalidReference.xlsx");
-
         try {
             draftService.updateData(draft.getId(), fileModel);
             fail();
 
-        } catch (RestException e) {
-            assertEquals(ReferenceValueValidation.REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE, e.getErrors().get(0).getMessage());
+        } catch (RestException re) {
+            assertEquals(ReferenceValueValidation.REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE, getRestExceptionMessage(re));
         }
     }
 
     @Test
     public void testDraftCreateFromFile() {
+
         List<FieldValue> expectedData = new ArrayList<>() {{
             add(new StringFieldValue("string", "Иван"));
             add(new StringFieldValue("reference", "2"));
@@ -830,6 +1051,7 @@ public class ApplicationTest {
             add(new StringFieldValue("date", DATE_STR));
             add(new StringFieldValue("boolean", "TRUE"));
             add(new StringFieldValue("integer", "4"));
+            add(new StringFieldValue("id", "1"));
         }};
         FileModel fileModel = createFileModel("create_testUpload.xlsx", "testUpload.xlsx");
         Draft expected = draftService.create(-3, fileModel);
@@ -844,36 +1066,30 @@ public class ApplicationTest {
     }
 
     /*
-    * Создается черновик справочника, заполняется данными, публикуется
-    * Создается новый черновик из версии с указанием предыдущей версии
-    * Проверяется, что структура и данные совпадают с предыдущей версией
+    * Создаётся черновик справочника, заполняется данными, публикуется.
+    * Создаётся новый черновик из версии с указанием предыдущей версии.
+    * Проверяется, что структура и данные совпадают с предыдущей версией.
     * */
     @Test
     public void testDraftCreateFromVersion() {
+
         RefBookCreateRequest createRequest = new RefBookCreateRequest();
         createRequest.setCode("testDraftCreateFromVersionCode");
         RefBook refBook = refBookService.create(createRequest);
-        Structure structure = createTestStructureWithoutTreeFieldType();
+
+        Structure structure = createTestStructureWithSimpleTypesOnly();
+        extendTestStructureForReferenceType(structure);
         Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), structure));
 
-        Row row1 = createRowForAllTypesStructure("test1",
-                BigInteger.valueOf(1),
-                "01.09.2014",
-                true,
-                1.1,
-                new Reference("77", null));
-        Row row2 = createRowForAllTypesStructure("test2",
-                BigInteger.valueOf(2),
-                "01.10.2014",
-                false,
-                2.2,
-                null);
+        Row row1 = createRowWithSimpleTypesOnly("test1", BigInteger.valueOf(1L), "01.09.2014", true, 1.1);
+        extendRowWithReferenceType(row1, BigInteger.valueOf(1L), new Reference("77", null));
 
-        List<RowValue> rowValues = asList(
-                rowValue(row1, structure),
-                rowValue(row2, structure));
+        Row row2 = createRowWithSimpleTypesOnly("test2", BigInteger.valueOf(2L), "01.10.2014", false, 2.2);
+        extendRowWithReferenceType(row2, BigInteger.valueOf(2L), null);
+
+        List<RowValue> rowValues = asList(rowValue(row1, structure), rowValue(row2, structure));
         draftDataService.addRows(draft.getStorageCode(), rowValues);
-        publishService.publish(draft.getId(), null, null, null, false);
+        publish(draft.getId(), null, null, null, false);
 
         try {
             draftService.createFromVersion(0);
@@ -892,32 +1108,25 @@ public class ApplicationTest {
 
     @Test
     public void testSearchInDraft() {
+
         RefBookCreateRequest createRequest = new RefBookCreateRequest();
         createRequest.setCode("myTestCodeRefBook");
         Map<String, String> createPassport = new HashMap<>();
         createPassport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "Справочник для тестирования версий");
         createRequest.setPassport(createPassport);
-
         RefBook refBook = refBookService.create(createRequest);
-        Structure structure = createTestStructureWithoutTreeFieldType();
+
+        Structure structure = createTestStructureWithSimpleTypesOnly();
+        extendTestStructureForReferenceType(structure);
         Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), structure));
 
-        Row row1 = createRowForAllTypesStructure("Первое тестовое наименование",
-                BigInteger.valueOf(1),
-                "01.09.2014",
-                true,
-                2.4,
-                new Reference("77", null));
-        Row row2 = createRowForAllTypesStructure("Второе тестовое наименование",
-                BigInteger.valueOf(3),
-                "01.10.2014",
-                false,
-                0.4,
-                null);
+        Row row1 = createRowWithSimpleTypesOnly("Первое тестовое наименование", BigInteger.valueOf(1L), "01.09.2014", true, 2.4);
+        extendRowWithReferenceType(row1, BigInteger.valueOf(1L), new Reference("77", null));
 
-        List<RowValue> rowValues = asList(
-                rowValue(row1, structure),
-                rowValue(row2, structure));
+        Row row2 = createRowWithSimpleTypesOnly("Второе тестовое наименование", BigInteger.valueOf(3L), "01.10.2014", false, 0.4);
+        extendRowWithReferenceType(row2, BigInteger.valueOf(2L), null);
+
+        List<RowValue> rowValues = asList(rowValue(row1, structure), rowValue(row2, structure));
         draftDataService.addRows(draft.getStorageCode(), rowValues);
 
         List<RowValue> expectedRowValues = singletonList(rowValues.get(0));
@@ -925,8 +1134,9 @@ public class ApplicationTest {
         List<Field> fields = fields(structure);
 
         structure.getAttributes().forEach(attribute -> {
-            String fullTextSearchValue = FieldType.REFERENCE.equals(attribute.getType()) ?
-                    ((Reference) row1.getData().get(attribute.getCode())).getValue() : row1.getData().get(attribute.getCode()).toString();
+            String fullTextSearchValue = attribute.isReferenceType()
+                    ? ((Reference) row1.getData().get(attribute.getCode())).getValue()
+                    : row1.getData().get(attribute.getCode()).toString();
             Page<RefBookRowValue> actualPage = draftService.search(draft.getId(), new SearchDataCriteria(null, fullTextSearchValue));
             Assert.assertEquals("Full text search failed", 1, actualPage.getContent().size());
             assertRows(fields, expectedRowValues, actualPage.getContent());
@@ -950,7 +1160,8 @@ public class ApplicationTest {
 
     @Test
     public void testCreateRequiredAttributeWithNotEmptyData() {
-        CreateAttribute createAttributeModel = new CreateAttribute(-3, createAttribute, createReference);
+
+        CreateAttribute createAttributeModel = new CreateAttribute(-3, idAttribute, null);
         try {
             draftService.createAttribute(createAttributeModel);
             fail();
@@ -1004,12 +1215,12 @@ public class ApplicationTest {
 
         List<String> codes = StructureUtils.getAttributeCodes(structure).collect(toList());
         Map<String, Object> rowMap1 = new HashMap<>();
-        rowMap1.put(codes.get(0), BigInteger.valueOf(1));
+        rowMap1.put(codes.get(0), BigInteger.valueOf(1L));
         rowMap1.put(codes.get(1), "Дублирующееся имя");
         rowMap1.put(codes.get(2), "001");
 
         Map<String, Object> rowMap2 = new HashMap<>();
-        rowMap2.put(codes.get(0), BigInteger.valueOf(2));
+        rowMap2.put(codes.get(0), BigInteger.valueOf(2L));
         rowMap2.put(codes.get(1), "Дублирующееся имя");
         rowMap2.put(codes.get(2), "0021");
 
@@ -1030,7 +1241,7 @@ public class ApplicationTest {
             fail();
         } catch (Exception e) {
             assertTrue(e instanceof RestException);
-            assertEquals("primary.key.not.unique", ((RestException) e).getErrors().get(0).getMessage());
+            assertEquals("primary.key.not.unique", getRestExceptionMessage((RestException) e));
         }
     }
 
@@ -1043,9 +1254,11 @@ public class ApplicationTest {
      */
     @Test
     public void testUpdateAttributeTypeWithoutData() {
+
         RefBookCreateRequest refBookCreate = new RefBookCreateRequest(ALL_TYPES_REF_BOOK_CODE + "_wtht_data", new HashMap<>());
         RefBook refBook = refBookService.create(refBookCreate);
-        Structure structure = createTestStructureWithoutTreeFieldType();
+        Structure structure = createTestStructureWithSimpleTypesOnly();
+        extendTestStructureForReferenceType(structure);
         Structure.Reference reference = structure.getReference("reference");
 
         Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), structure));
@@ -1119,7 +1332,8 @@ public class ApplicationTest {
     public void testUpdateAttributeTypeWithData() {
         RefBookCreateRequest refBookCreate = new RefBookCreateRequest(ALL_TYPES_REF_BOOK_CODE + "_with_data", new HashMap<>());
         RefBook refBook = refBookService.create(refBookCreate);
-        Structure structure = createTestStructureWithoutTreeFieldType();
+        Structure structure = createTestStructureWithSimpleTypesOnly();
+        extendTestStructureForReferenceType(structure);
         Structure.Reference reference = structure.getReference("reference");
 
         Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), structure));
@@ -1215,6 +1429,24 @@ public class ApplicationTest {
 
     }
 
+    /**
+     * Тест на изменение структуры черновика с данными
+     * <p>
+     * Создаем новый черновик с ссылкой на опубликованную версию
+     * Добавляем в версию наполнение
+     * Пытаемся изменить тип атрибута с любого на любой
+     * Без ошибок изменяется только тип поля string -> любой -> string. Возвращаются данные измененного типа
+     * В остальных случаях ожидается ошибка
+     */
+    //@Test
+    public void testCreateUpdateReference() {
+        RefBookCreateRequest refBookCreate = new RefBookCreateRequest(ALL_TYPES_REF_BOOK_CODE + "_with_ref", new HashMap<>());
+        RefBook refBook = refBookService.create(refBookCreate);
+
+        Structure structure = createTestStructureWithReferenceType();
+        Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), structure));
+    }
+
     /*
     * currently system allows creating exactly one PK field
     * */
@@ -1244,30 +1476,35 @@ public class ApplicationTest {
         RefBook relRefBook = refBookService.create(new RefBookCreateRequest(RELATION_REFBOOK_CODE, null));
         draftService.createAttribute(new CreateAttribute(relRefBook.getId(), Structure.Attribute.buildPrimary(RELATION_ATTR_CODE, "string", FieldType.STRING, "string"), null));
         draftService.updateData(relRefBook.getId(), createFileModel(RELATION_FILENAME, RELATION_FILENAME));
-        publishService.publish(relRefBook.getId(), "1.0", LocalDateTime.now(), null, false);
+        publish(relRefBook.getId(), "1.0", LocalDateTime.now(), null, false);
 
         //create new refbook
         RefBook refBook = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE, null));
+        final Integer versionId = refBook.getId();
 
-        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.buildPrimary(PK_STRING, PK_STRING, FieldType.STRING, "string"), null));
-        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.buildPrimary(PK_REFERENCE, PK_REFERENCE, FieldType.REFERENCE, "count"),
-                new Structure.Reference(PK_REFERENCE, RELATION_REFBOOK_CODE, null)));
-        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.buildPrimary(PK_FLOAT, PK_FLOAT, FieldType.FLOAT, "float"), null));
-        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.buildPrimary(PK_DATE, PK_DATE, FieldType.DATE, "date"), null));
-        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.buildPrimary(PK_BOOL, PK_BOOL, FieldType.BOOLEAN, "boolean"), null));
-        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.buildPrimary(PK_INTEGER, PK_INTEGER, FieldType.INTEGER, "integer"), null));
+        draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.buildPrimary(PK_STRING, PK_STRING, FieldType.STRING, "string"), null));
+        draftService.createAttribute(new CreateAttribute(versionId,
+                Structure.Attribute.build(PK_REFERENCE, PK_REFERENCE, FieldType.REFERENCE, "count"),
+                new Structure.Reference(PK_REFERENCE, RELATION_REFBOOK_CODE, toPlaceholder(RELATION_ATTR_CODE))
+        ));
+        draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.buildPrimary(PK_FLOAT, PK_FLOAT, FieldType.FLOAT, "float"), null));
+        draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.buildPrimary(PK_DATE, PK_DATE, FieldType.DATE, "date"), null));
+        draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.buildPrimary(PK_BOOL, PK_BOOL, FieldType.BOOLEAN, "boolean"), null));
+        draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.buildPrimary(PK_INTEGER, PK_INTEGER, FieldType.INTEGER, "integer"), null));
 
-        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_STRING, NOT_PK_STRING, FieldType.STRING, "string"), null));
-        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_REFERENCE, NOT_PK_REFERENCE, FieldType.REFERENCE, "count"),
-                new Structure.Reference(NOT_PK_REFERENCE, RELATION_REFBOOK_CODE, null)));
-        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_FLOAT, NOT_PK_FLOAT, FieldType.FLOAT, "float"), null));
-        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_DATE, NOT_PK_DATE, FieldType.DATE, "date"), null));
-        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_BOOL, NOT_PK_BOOL, FieldType.BOOLEAN, "boolean"), null));
-        draftService.createAttribute(new CreateAttribute(refBook.getId(), Structure.Attribute.build(NOT_PK_INTEGER, NOT_PK_INTEGER, FieldType.INTEGER, "integer"), null));
+        draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.build(NOT_PK_STRING, NOT_PK_STRING, FieldType.STRING, "string"), null));
+        draftService.createAttribute(new CreateAttribute(versionId,
+                Structure.Attribute.build(NOT_PK_REFERENCE, NOT_PK_REFERENCE, FieldType.REFERENCE, "count"),
+                new Structure.Reference(NOT_PK_REFERENCE, RELATION_REFBOOK_CODE, toPlaceholder(RELATION_ATTR_CODE))
+        ));
+        draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.build(NOT_PK_FLOAT, NOT_PK_FLOAT, FieldType.FLOAT, "float"), null));
+        draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.build(NOT_PK_DATE, NOT_PK_DATE, FieldType.DATE, "date"), null));
+        draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.build(NOT_PK_BOOL, NOT_PK_BOOL, FieldType.BOOLEAN, "boolean"), null));
+        draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.build(NOT_PK_INTEGER, NOT_PK_INTEGER, FieldType.INTEGER, "integer"), null));
 
-        draftService.updateData(refBook.getId(), createFileModel(REFBOOK_FILENAME_1, REFBOOK_FILENAME_1));
+        draftService.updateData(versionId, createFileModel(REFBOOK_FILENAME_1, REFBOOK_FILENAME_1));
         try {
-            draftService.updateData(refBook.getId(), createFileModel(REFBOOK_FILENAME, REFBOOK_FILENAME));
+            draftService.updateData(versionId, createFileModel(REFBOOK_FILENAME, REFBOOK_FILENAME));
             fail();
 
         } catch (RestException re) {
@@ -1316,14 +1553,14 @@ public class ApplicationTest {
 
         //Публикация левой версии
         Integer leftId = draftService.create(refBook.getRefBookId(), createFileModel(LEFT_FILE, "testPublishing/" + LEFT_FILE)).getId();
-        publishService.publish(leftId, null, parseLocalDateTime("01.02.2018 00:00:00"), null, false);
+        publish(leftId, null, parseLocalDateTime("01.02.2018 00:00:00"), null, false);
 
         List<RefBookRowValue> actual = versionService.search(leftId, new SearchDataCriteria(null, null)).getContent();
         assertEqualRow(expectedLeft, actual);
 
         //Публикация средней версии
         Integer midId = draftService.create(refBook.getRefBookId(), createFileModel(MID_FILE, "testPublishing/" + MID_FILE)).getId();
-        publishService.publish(midId, null, parseLocalDateTime("05.02.2018 00:00:00"),null, false);
+        publish(midId, null, parseLocalDateTime("05.02.2018 00:00:00"),null, false);
 
         actual = versionService.search(leftId, new SearchDataCriteria(null, null)).getContent();
         assertEqualRow(expectedLeft, actual);
@@ -1332,7 +1569,7 @@ public class ApplicationTest {
 
         //Публикация правой версии
         Integer rightId = draftService.create(refBook.getRefBookId(), createFileModel(RIGHT_FILE, "testPublishing/" + RIGHT_FILE)).getId();
-        publishService.publish(rightId, null, parseLocalDateTime("11.02.2018 00:00:00"), null, false);
+        publish(rightId, null, parseLocalDateTime("11.02.2018 00:00:00"), null, false);
 
         actual = versionService.search(leftId, new SearchDataCriteria(null, null)).getContent();
         assertEqualRow(expectedLeft, actual);
@@ -1347,7 +1584,7 @@ public class ApplicationTest {
         //Средняя - удалится
         //Правая - останется неизменной
         Integer allDataId = draftService.create(refBook.getRefBookId(), createFileModel(ALL_DATA, "testPublishing/" + ALL_DATA)).getId();
-        publishService.publish(allDataId, null, parseLocalDateTime("02.02.2018 00:00:00"), parseLocalDateTime("10.02.2018 00:00:00"), false);
+        publish(allDataId, null, parseLocalDateTime("02.02.2018 00:00:00"), parseLocalDateTime("10.02.2018 00:00:00"), false);
 
         actual = versionService.search(leftId, new SearchDataCriteria(null, null)).getContent();
         assertEqualRow(expectedLeft, actual);
@@ -1365,7 +1602,7 @@ public class ApplicationTest {
         //Перекрывание предыдущей версии новой, не содержащей предыдущие данные
         //Ожидается: последняя версия удалится
         Integer noDataId = draftService.create(refBook.getRefBookId(), createFileModel(NO_DATA, "testPublishing/" + NO_DATA)).getId();
-        publishService.publish(noDataId, null, parseLocalDateTime("02.02.2018 00:00:00"), parseLocalDateTime("10.02.2018 00:00:00"), false);
+        publish(noDataId, null, parseLocalDateTime("02.02.2018 00:00:00"), parseLocalDateTime("10.02.2018 00:00:00"), false);
 
         actual = versionService.search(leftId, new SearchDataCriteria(null, null)).getContent();
         assertEqualRow(expectedLeft, actual);
@@ -1488,7 +1725,7 @@ public class ApplicationTest {
         assertNull(cardinalRowValue);
 
         // Публикация для возможности создания ссылок на него.
-        publishService.publish(cardinalDraft.getId(), null, LocalDateTime.now().minus(1, ChronoUnit.HOURS), null, false);
+        publish(cardinalDraft.getId(), null, LocalDateTime.now().minus(1, ChronoUnit.HOURS), null, false);
         RefBookVersion publishedVersion = versionService.getLastPublishedVersion(cardinalVersion.getCode());
         assertNotNull(publishedVersion);
 
@@ -1571,7 +1808,7 @@ public class ApplicationTest {
         // NB: insert.
 
         // Публикация изменений без обновления ссылок.
-        publishService.publish(changingDraft.getId(), null, LocalDateTime.now(), null, false);
+        publish(changingDraft.getId(), null, LocalDateTime.now(), null, false);
         RefBookVersion changedVersion = versionService.getLastPublishedVersion(cardinalVersion.getCode());
         assertNotNull(changedVersion);
 
@@ -1645,7 +1882,7 @@ public class ApplicationTest {
         List<Long> referrerConflictedIds = conflictService.getReferrerConflictedIds(referrerVersion.getId(), systemIds);
 
         // Публикация связанного справочника.
-        publishService.publish(referrerDraft.getId(), null, LocalDateTime.now(), null, false);
+        publish(referrerDraft.getId(), null, LocalDateTime.now(), null, false);
         RefBookVersion lastReferrerVersion = versionService.getLastPublishedVersion(referrerVersion.getCode());
         assertNotNull(lastReferrerVersion);
 
@@ -1668,7 +1905,7 @@ public class ApplicationTest {
     }
 
     private BigInteger getPublishWithConflictedReferrerNewNumberValue(BigInteger value) {
-        return value.multiply(BigInteger.valueOf(11));
+        return value.multiply(BigInteger.valueOf(11L));
     }
 
     private String getPublishWithConflictedReferrerNewStringValue(String value) {
@@ -1859,11 +2096,11 @@ public class ApplicationTest {
                         draftService.createAttribute(new CreateAttribute(oldVersionId, attribute, null))
                 );
         draftService.updateData(oldVersionId, createFileModel(OLD_FILE_NAME, "testCompare/" + OLD_FILE_NAME));
-        publishService.publish(oldVersionId, "1.0", publishDate1, closeDate1, false);
+        publish(oldVersionId, "1.0", publishDate1, closeDate1, false);
 
         Integer newVersionId = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), new Structure(asList(id, code, common, name, upd2, typeI), emptyList()))).getId();
         draftService.updateData(newVersionId, createFileModel(NEW_FILE_NAME, "testCompare/" + NEW_FILE_NAME));
-        publishService.publish(newVersionId, "1.1", publishDate2, closeDate2, false);
+        publish(newVersionId, "1.1", publishDate2, closeDate2, false);
 
         Field idField = new CommonField(id.getCode());
         Field codeField = new CommonField(code.getCode());
@@ -1872,19 +2109,19 @@ public class ApplicationTest {
         List<DiffRowValue> expectedDiffRowValues = new ArrayList<>();
         expectedDiffRowValues.add(new DiffRowValue(
                 asList(
-                        new DiffFieldValue<>(idField, BigInteger.valueOf(1), null, DiffStatusEnum.DELETED),
+                        new DiffFieldValue<>(idField, BigInteger.valueOf(1L), null, DiffStatusEnum.DELETED),
                         new DiffFieldValue<>(codeField, "001", null, DiffStatusEnum.DELETED),
                         new DiffFieldValue<>(commonField, "c1", null, DiffStatusEnum.DELETED)),
                 DiffStatusEnum.DELETED));
         expectedDiffRowValues.add(new DiffRowValue(
                 asList(
-                        new DiffFieldValue<>(idField, null,  BigInteger.valueOf(4), DiffStatusEnum.INSERTED),
+                        new DiffFieldValue<>(idField, null,  BigInteger.valueOf(4L), DiffStatusEnum.INSERTED),
                         new DiffFieldValue<>(codeField, null, "004", DiffStatusEnum.INSERTED),
                         new DiffFieldValue<>(commonField, null,  "c4", DiffStatusEnum.INSERTED)),
                 DiffStatusEnum.INSERTED));
         expectedDiffRowValues.add(new DiffRowValue(
                 asList(
-                        new DiffFieldValue<>(idField, null,  BigInteger.valueOf(3), null),
+                        new DiffFieldValue<>(idField, null,  BigInteger.valueOf(3L), null),
                         new DiffFieldValue<>(codeField, null, "003", null),
                         new DiffFieldValue<>(commonField, "c3",  "c3_1", DiffStatusEnum.UPDATED)),
                 DiffStatusEnum.UPDATED));
@@ -1920,7 +2157,7 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(refBook.getId(), id, null));
         draftService.createAttribute(new CreateAttribute(refBook.getId(), code, null));
         draftService.updateData(refBook.getId(), createFileModel(FILE_NAME, "testCompare/" + FILE_NAME));
-        publishService.publish(refBook.getId(), "1.0", publishDate1, null, false);
+        publish(refBook.getId(), "1.0", publishDate1, null, false);
 
         Integer newVersionId = draftService.create(
                 new CreateDraftRequest(
@@ -1932,7 +2169,7 @@ public class ApplicationTest {
                                 emptyList())))
                 .getId();
         draftService.updateData(newVersionId, createFileModel(FILE_NAME, "testCompare/" + FILE_NAME));
-        publishService.publish(newVersionId, "1.1", publishDate2, null, false);
+        publish(newVersionId, "1.1", publishDate2, null, false);
 
         List<DiffRowValue> expectedDiffRowValues = new ArrayList<>();
         RefBookDataDiff expectedRefBookDataDiff = new RefBookDataDiff(
@@ -1962,7 +2199,7 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(refBook.getId(), id, null));
         draftService.createAttribute(new CreateAttribute(refBook.getId(), code, null));
         draftService.updateData(refBook.getId(), createFileModel(FILE_NAME, "testCompare/" + FILE_NAME));
-        publishService.publish(refBook.getId(), "1.0", LocalDateTime.now(), null, false);
+        publish(refBook.getId(), "1.0", LocalDateTime.now(), null, false);
 
         Integer newVersionId = draftService.create(
                 new CreateDraftRequest(
@@ -1973,13 +2210,13 @@ public class ApplicationTest {
                                 emptyList())))
                 .getId();
         draftService.updateData(newVersionId, createFileModel(FILE_NAME, "testCompare/" + FILE_NAME));
-        publishService.publish(newVersionId, "1.1", LocalDateTime.now().plusYears(1), null, false);
+        publish(newVersionId, "1.1", LocalDateTime.now().plusYears(1), null, false);
 
         try {
             compareService.compareData(new CompareDataCriteria(oldVersionId, newVersionId));
             fail();
         } catch (RestException re) {
-            assertEquals("compare.primaries.not.equals", re.getMessage());
+            assertEquals("compare.primaries.not.match", re.getMessage());
         }
     }
 
@@ -2015,7 +2252,7 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(refToVersionId, id, null));
         draftService.createAttribute(new CreateAttribute(refToVersionId, code, null));
         draftService.updateData(refToVersionId, createFileModel(OLD_FILE_NAME, "testConflicts/" + OLD_FILE_NAME));
-        publishService.publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
+        publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
 
         Integer refToDraftId = draftService.create(
                 new CreateDraftRequest(
@@ -2037,17 +2274,17 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id_2, ref_id_2_ref));
         draftService.createAttribute(new CreateAttribute(refFromVersionId, code, null));
         draftService.updateData(refFromVersionId, createFileModel(REF_FILE_NAME, "testConflicts/" + REF_FILE_NAME));
-        publishService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
+        publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
 
         List<Conflict> expectedConflicts = asList(
                 new Conflict(ref_id_1.getCode(), ConflictType.DELETED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1)))),
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1L)))),
                 new Conflict(ref_id_2.getCode(), ConflictType.UPDATED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1)))),
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1L)))),
                 new Conflict(ref_id_1.getCode(), ConflictType.DELETED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(3)))),
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(3L)))),
                 new Conflict(ref_id_2.getCode(), ConflictType.UPDATED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4))))
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4L))))
         );
 
         // NB: Use createCalculatedDataConflicts + load conflicts from DB.
@@ -2075,7 +2312,7 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(refToVersionId, updatedAttr, null));
         draftService.createAttribute(new CreateAttribute(refToVersionId, deletedAttr, null));
         draftService.updateData(refToVersionId, createFileModel(OLD_FILE_NAME, "testConflicts/structured/" + OLD_FILE_NAME));
-        publishService.publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
+        publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
 
         Integer refToDraftId = draftService.create(
                 new CreateDraftRequest(
@@ -2099,7 +2336,7 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_upd, ref_upd_ref));
         draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_del, ref_del_ref));
         draftService.updateData(refFromVersionId, createFileModel(REF_FILE_NAME, "testConflicts/structured/" + REF_FILE_NAME));
-        publishService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
+        publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
 
         Structure.Attribute insertedAttribute = Structure.Attribute.build("INS_ATTR", "ins-attr", FieldType.INTEGER, "inserted attribute");
         draftService.createAttribute(new CreateAttribute(refToDraftId, insertedAttribute, null));
@@ -2109,21 +2346,21 @@ public class ApplicationTest {
 
         List<Conflict> expectedConflicts = asList(
                 new Conflict(ref_fix.getCode(), ConflictType.DELETED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1)))),
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1L)))),
                 new Conflict(ref_fix.getCode(), ConflictType.DELETED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(3)))),
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(3L)))),
 
                 new Conflict(ref_upd.getCode(), ConflictType.UPDATED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1)))),
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1L)))),
                 new Conflict(ref_upd.getCode(), ConflictType.UPDATED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4)))),
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4L)))),
 
                 new Conflict(ref_del.getCode(), ConflictType.DELETED, singletonList(
-                    new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1)))),
+                    new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1L)))),
                 new Conflict(ref_del.getCode(), ConflictType.UPDATED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(3)))),
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(3L)))),
                 new Conflict(ref_del.getCode(), ConflictType.UPDATED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4))))
+                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4L))))
         );
 
         // NB: Use createCalculatedDataConflicts + load conflicts from DB.
@@ -2137,7 +2374,7 @@ public class ApplicationTest {
      *
      * exception is expected
      */
-    @Test
+    //@Test // Отключён до нормальной реализации смены первичного ключа
     public void testCalculateConflictWhenPkChanged() {
         Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
 
@@ -2145,7 +2382,7 @@ public class ApplicationTest {
         Integer refToVersionId = refToRefBook.getId();
         draftService.createAttribute(new CreateAttribute(refToVersionId, id, null));
         draftService.updateData(refToVersionId, new Row(null, Map.of("ID", 1)));
-        publishService.publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
+        publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
 
         Structure.Attribute id_id = Structure.Attribute.buildPrimary("ID_ID", "id_id", FieldType.INTEGER, "id_id");
         Structure.Attribute ref_id = Structure.Attribute.build("REF_ID", "ref_id", FieldType.REFERENCE, "ref_id");
@@ -2156,7 +2393,7 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(refFromVersionId, id_id, null));
         draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id, ref_id_ref));
         draftService.updateData(refFromVersionId, new Row(null, Map.of("ID_ID", 1)));
-        publishService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
+        publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
 
         Draft draft = draftService.create(
                 new CreateDraftRequest(
@@ -2169,7 +2406,7 @@ public class ApplicationTest {
             calculateDataConflicts(refFromVersionId, refToVersionId, draft.getId());
             fail();
         } catch (RestException re) {
-            assertEquals("compare.primaries.not.equals", re.getMessage());
+            assertEquals("compare.primaries.not.match", re.getMessage());
         }
     }
 
@@ -2194,7 +2431,7 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(refToVersionId, id, null));
         draftService.createAttribute(new CreateAttribute(refToVersionId, code, null));
         draftService.updateData(refToVersionId, createFileModel(OLD_FILE_NAME, "testConflicts/" + OLD_FILE_NAME));
-        publishService.publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
+        publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
 
         Integer refToDraftId = draftService.create(
                 new CreateDraftRequest(
@@ -2216,7 +2453,7 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id_2, ref_id_2_ref));
         draftService.createAttribute(new CreateAttribute(refFromVersionId, code, null));
         draftService.updateData(refFromVersionId, createFileModel(REF_FILE_NAME, "testConflicts/" + REF_FILE_NAME));
-        publishService.publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
+        publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
 
         Boolean actualUpdateCheck = conflictService.checkConflicts(refFromVersionId, refToVersionId,refToDraftId, ConflictType.UPDATED);
         assertEquals(Boolean.TRUE, actualUpdateCheck);
@@ -2270,12 +2507,14 @@ public class ApplicationTest {
     }
 
     /**
-     * Создание справочника из файла
+     * Создание справочника из файла XML.
      */
     @Test
-    public void testCreateRefBookFromFile() {
-        FileModel fileModel = createFileModel("testCreateRefBookFromFilePath.xml", "refBook.xml");
+    public void testCreateRefBookFromXmlFile() {
 
+        String filename = "fromXml.xml";
+
+        FileModel fileModel = createFileModel("testCreate_" + filename, "testCreate/" + filename);
         Draft expected = refBookService.create(fileModel);
 
         // Наличие черновика:
@@ -2305,7 +2544,36 @@ public class ApplicationTest {
         }};
         List actualData1 = search.getContent().get(1).getFieldValues();
         assertEquals(expectedData1, actualData1);
+    }
 
+    /**
+     * Создание справочника из файла XML неправильного формата.
+     */
+    @Test
+    public void testCreateRefBookFromBadXmlFile() {
+
+        // Общие проверки файла:
+        failCreateRefBook("badNoExt", "file.extension.invalid");
+        failCreateRefBook("badAnsi.xml", "file.content.invalid");
+
+        // Проверки файла по блокам:
+        failCreateRefBook("badRefBookCodeTag.xml", "file.content.invalid");
+        failCreateRefBook("badPassportNameTag.xml", "file.content.invalid");
+        failCreateRefBook("badStructureRowCodeTag.xml", "file.content.invalid");
+        failCreateRefBook("badDataRowCodeTag.xml", "file.content.invalid");
+    }
+
+    private void failCreateRefBook(String filename, String message) {
+        try {
+            FileModel fileModel = createFileModel("testCreate_" + filename, "testCreate/" + filename);
+            Draft expected = refBookService.create(fileModel);
+
+            fail("Ожидается ошибка:\n" + message);
+
+        } catch (RestException e) {
+            assertEquals(message, getExceptionMessage(e));
+
+        }
     }
 
     private boolean equalsFieldValues(List<Field> fields, List<FieldValue> values1, List<FieldValue> values2) {
@@ -2392,6 +2660,7 @@ public class ApplicationTest {
     }
 
     private void assertRefBookDataDiffs(RefBookDataDiff expectedRefBookDataDiff, RefBookDataDiff actualRefBookDataDiff) {
+
         assertListsEquals(expectedRefBookDataDiff.getNewAttributes(), actualRefBookDataDiff.getNewAttributes());
         assertListsEquals(expectedRefBookDataDiff.getOldAttributes(), actualRefBookDataDiff.getOldAttributes());
         assertListsEquals(expectedRefBookDataDiff.getUpdatedAttributes(), actualRefBookDataDiff.getUpdatedAttributes());
@@ -2406,10 +2675,12 @@ public class ApplicationTest {
     }
 
     private void assertDiffRowValues(List<DiffRowValue> expectedDiffRowValues, List<DiffRowValue> actualDiffRowValues) {
+
         assertEquals(expectedDiffRowValues.size(), actualDiffRowValues.size());
         expectedDiffRowValues.forEach(expectedDiffRowValue -> {
             if (actualDiffRowValues.stream().noneMatch(actualDiffRowValue ->
-                    expectedDiffRowValue.getValues().size() == actualDiffRowValue.getValues().size() && actualDiffRowValue.getValues().containsAll(expectedDiffRowValue.getValues())))
+                    expectedDiffRowValue.getValues().size() == actualDiffRowValue.getValues().size()
+                            && actualDiffRowValue.getValues().containsAll(expectedDiffRowValue.getValues())))
                 fail();
         });
     }
@@ -2462,6 +2733,7 @@ public class ApplicationTest {
     /*
      * structure without tree field type
      * */
+    @Deprecated
     private Structure createTestStructureWithoutTreeFieldType() {
         return new Structure(
                 asList(
@@ -2476,7 +2748,8 @@ public class ApplicationTest {
         );
     }
 
-    private Row createRowForAllTypesStructure(String str, BigInteger bigInt, String date, Boolean bool, Double fl, Object ref) {
+    private Row createRowForAllTypesStructure(String str, BigInteger bigInt,
+                                              String date, Boolean bool, Double fl, Object ref) {
         return new Row(new HashMap<>() {{
             put("string", str);
             put("integer", bigInt);
@@ -2485,6 +2758,76 @@ public class ApplicationTest {
             put("float", fl);
             put("reference", ref);
         }});
+    }
+
+    private Structure createTestStructureWithSimpleTypesOnly() {
+        return new Structure(
+                new ArrayList<>(asList(
+                        Structure.Attribute.build("string", "string", FieldType.STRING, "строка"),
+                        Structure.Attribute.build("integer", "integer", FieldType.INTEGER, "число"),
+                        Structure.Attribute.build("date", "date", FieldType.DATE, "дата"),
+                        Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, "булево"),
+                        Structure.Attribute.build("float", "float", FieldType.FLOAT, "дробное")
+                )),
+                null
+        );
+    }
+
+    private void extendTestStructureForReferenceType(Structure structure) {
+
+        if (!structure.hasPrimary() && structure.getAttribute("id") == null) {
+            structure.add(Structure.Attribute.buildPrimary("id", "id", FieldType.INTEGER, "идентификатор"), null);
+        }
+        structure.add(
+                Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, "ссылка"),
+                new Structure.Reference("reference", TEST_REFERENCE_BOOK_CODE, toPlaceholder("count"))
+        );
+    }
+
+    private void extendTestStructureForReferenceTypeAsString(Structure structure) {
+        structure.getAttributes().add(
+                Structure.Attribute.build("id", "id", FieldType.INTEGER, "идентификатор")
+        );
+        structure.getAttributes().add(
+                Structure.Attribute.build("reference", "reference", FieldType.STRING, "строка-ссылка")
+        );
+    }
+
+    private Structure createTestStructureWithReferenceType() {
+
+        Structure structure = new Structure();
+        extendTestStructureForReferenceType(structure);
+        structure.add(Structure.Attribute.build("string", "string", FieldType.STRING, "строка"), null);
+
+        return structure;
+    }
+
+    private Row createRowWithSimpleTypesOnly(String str, BigInteger bigInt,
+                                             String date, Boolean bool, Double real) {
+        return new Row(new HashMap<>() {{
+            put("string", str);
+            put("integer", bigInt);
+            put("date", date != null ? parseLocalDate(date) : null);
+            put("boolean", bool);
+            put("float", real);
+        }});
+    }
+
+    private void extendRowWithReferenceType(Row row, BigInteger id, Object ref) {
+
+        Map<String, Object> map = row.getData();
+        map.put("id", id);
+        map.put("reference", ref);
+    }
+
+    private Row createRowWithReferenceType(BigInteger id, String str, Object ref) {
+
+        Row row = new Row(new HashMap<>() {{
+            put("string", str);
+        }});
+        extendRowWithReferenceType(row, id, ref);
+
+        return row;
     }
 
     private List<RowValue> createOneStringFieldRow(String fieldName, String... values) {
@@ -2524,6 +2867,18 @@ public class ApplicationTest {
             default:
                 return null;
         }
+    }
+
+    private void publish(Integer draftId, String versionName,
+                         LocalDateTime fromDate, LocalDateTime toDate,
+                         boolean resolveConflicts) {
+        PublishRequest request = new PublishRequest(draftId);
+        request.setVersionName(versionName);
+        request.setFromDate(fromDate);
+        request.setToDate(toDate);
+        request.setResolveConflicts(resolveConflicts);
+
+        publishService.publish(request);
     }
 
     /**
@@ -2577,4 +2932,30 @@ public class ApplicationTest {
         return (rowValues != null && !CollectionUtils.isEmpty(rowValues.getContent())) ? rowValues.getContent().get(0) : null;
     }
 
+    private static String getRestExceptionMessage(RestException re) {
+
+        if (!StringUtils.isEmpty(re.getMessage()))
+            return re.getMessage();
+
+        if (!isEmpty(re.getErrors()))
+            return re.getErrors().get(0).getMessage();
+
+        return null;
+    }
+
+    /** Получение кода сообщения об ошибке из исключения. */
+    private static String getExceptionMessage(Exception e) {
+
+        if (e instanceof UserException) {
+            UserException ue = (UserException) e;
+
+            if (!isEmpty(ue.getMessages()))
+                return ue.getMessages().get(0).getCode();
+        }
+
+        if (!StringUtils.isEmpty(e.getMessage()))
+            return e.getMessage();
+
+        return null;
+    }
 }

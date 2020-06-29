@@ -4,7 +4,7 @@
     <table query-id="refBook" route="/main">
         <pagination/>
         <rows>
-            <switch value-field-id="lastHasDataConflict">
+            <switch value-field-id="lastHasConflict">
                 <case value="true">bg-danger</case>
             </switch>
         </rows>
@@ -63,9 +63,9 @@
                 <text format="date DD.MM.YYYY"/>
             </column>
 <!--            вывод tooltip-сообщения пока не работает-->
-            <column text-field-id="lastHasDataConflict" label="" type="icon" tooltip-field-id="lastHasDataConflictMsg">
+            <column text-field-id="lastHasConflict" label="" type="icon" tooltip-field-id="lastHasConflictMsg">
                 <icon>
-                    <switch value-field-id="lastHasDataConflict">
+                    <switch value-field-id="lastHasConflict">
                         <case value="true">fa fa-question-circle-o</case>
                     </switch>
                 </icon>

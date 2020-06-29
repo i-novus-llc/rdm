@@ -2,7 +2,18 @@
 <simple-page xmlns="http://n2oapp.net/framework/config/schema/page-2.0" name="Публикация справочника">
     <form object-id="publish" default-values-query-id="publish">
 
+        <toolbar place="topLeft">
+            <button id="errorMessage" label="Публикация справочника невозможна"
+                    color="danger" enabling-condition="false" confirm="false"
+                    visibility-condition="hasErrorMessage"/>
+        </toolbar>
+
         <fields>
+            <output-text id="errorMessage" no-label="true">
+                <dependencies>
+                    <visibility>hasErrorMessage</visibility>
+                </dependencies>
+            </output-text>
 
             <output-text id="listCheckDeletedConflictReferrers"
                          label="Были удалены строки, на которые ссылались справочники системы:">
@@ -26,26 +37,32 @@
             </output-text>
 
             <output-text id="listCheckDisplayDamagedConflictReferrers"
-                         label="Была изменена структура справочника, публикация новой версии нарушит работу ссылок справочников системы:">
+                         label="Была изменена структура справочника, публикация новой версии нарушит работу ссылок справочников системы.">
                 <dependencies>
                     <visibility>hasCheckDisplayDamagedConflicts</visibility>
                 </dependencies>
             </output-text>
 
-                <output-text id="confirmPublish"
-                             label="Вы уверены, что хотите опубликовать этот справочник?"/>
+            <output-text id="confirmPublish"
+                         label="Вы уверены, что хотите опубликовать этот справочник?">
+                <dependencies>
+                    <visibility>!hasErrorMessage</visibility>
+                </dependencies>
+            </output-text>
 
         </fields>
 
         <toolbar place="bottomRight">
             <button id="publishDraft" label="Опубликовать"
                     visibility-condition="isPublishable">
-                <invoke operation-id="publishDraft" close-after-success="true" redirect-target="application" redirect-url="${rdm.context-path}/#/refBookList"/>
+                <invoke operation-id="publishDraft" close-after-success="true"
+                        redirect-target="application" redirect-url="${rdm.context-path}/#/refBookList"/>
             </button>
 
             <button id="publishAndRefresh" label="Опубликовать и обновить ссылки"
-                    visibility-condition="isPublishable &amp;&amp; (hasCheckUpdatedConflicts || hasCheckAlteredConflicts)" redirect-target="application"  redirect-url="${rdm.context-path}/#/refBookList">
-                <invoke operation-id="publishAndRefresh" close-after-success="true"/>
+                    visibility-condition="isPublishable &amp;&amp; (hasCheckUpdatedConflicts || hasCheckAlteredConflicts)">
+                <invoke operation-id="publishAndRefresh" close-after-success="true"
+                        redirect-target="application" redirect-url="${rdm.context-path}/#/refBookList"/>
             </button>
 
             <button id="cancel" label="Отмена">

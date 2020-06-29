@@ -5,6 +5,9 @@ import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.UpdatableDto;
 import ru.inovus.ms.rdm.api.util.TimeUtils;
 
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
 import static ru.inovus.ms.rdm.api.model.version.UpdateValue.of;
 
 public class UpdateAttribute extends UpdatableDto {
@@ -31,25 +34,21 @@ public class UpdateAttribute extends UpdatableDto {
 
         this.versionId = versionId;
 
-        //attribute fields
+        // attribute fields
         this.code = attribute.getCode();
-        if (attribute.getName() != null)
-            this.name = of(attribute.getName());
         this.type = attribute.getType();
-        if (attribute.getIsPrimary() != null)
-            this.isPrimary = of(attribute.getIsPrimary());
-        if (attribute.getDescription() != null)
-            setDescription(of(attribute.getDescription()));
 
-        //reference fields
+        setUpdateValueIfExists(attribute::getName, this::setName);
+        setUpdateValueIfExists(attribute::getIsPrimary, this::setIsPrimary);
+        setUpdateValueIfExists(attribute::getDescription, this::setDescription);
+
+        // reference fields
         if (reference == null)
             return;
-        if (reference.getAttribute() != null)
-            this.attribute = of(reference.getAttribute());
-        if (reference.getReferenceCode() != null)
-            this.referenceCode = of(reference.getReferenceCode());
-        if (reference.getDisplayExpression() != null)
-            this.displayExpression = of(reference.getDisplayExpression());
+
+        setUpdateValueIfExists(reference::getAttribute, this::setAttribute);
+        setUpdateValueIfExists(reference::getReferenceCode, this::setReferenceCode);
+        setUpdateValueIfExists(reference::getDisplayExpression, this::setDisplayExpression);
     }
 
     public Integer getVersionId() {
@@ -124,7 +123,65 @@ public class UpdateAttribute extends UpdatableDto {
         this.displayExpression = displayExpression;
     }
 
-    public Boolean isReferenceType() {
+    public boolean hasIsPrimary() {
+        return getIsPrimary() != null
+                && getIsPrimary().isPresent()
+                && Boolean.TRUE.equals(getIsPrimary().get());
+    }
+
+    public boolean isReferenceType() {
         return FieldType.REFERENCE.equals(getType());
+    }
+
+    public boolean isNullOrPresentReference() {
+        return isNullOrPresent(getAttribute())
+                && isNullOrPresent(getReferenceCode())
+                && isNullOrPresent(getDisplayExpression());
+    }
+
+    public boolean isNotNullAndPresentReference() {
+        return isNotNullAndPresent(getAttribute())
+                && isNotNullAndPresent(getReferenceCode())
+                && isNotNullAndPresent(getDisplayExpression());
+    }
+
+    public void fillAttribute(Structure.Attribute attribute) {
+
+        attribute.setType(getType());
+
+        setValueIfExists(this::getName, attribute::setName);
+        setValueIfExists(this::getDescription, attribute::setDescription);
+        setValueIfExists(this::getIsPrimary, attribute::setPrimary);
+    }
+
+    public void fillReference(Structure.Reference reference) {
+
+        setValueIfExists(this::getAttribute, reference::setAttribute);
+        setValueIfExists(this::getReferenceCode, reference::setReferenceCode);
+        setValueIfExists(this::getDisplayExpression, reference::setDisplayExpression);
+    }
+
+    private static <T> boolean isNotNullAndPresent(UpdateValue<T> value) {
+        return value != null && value.isPresent();
+    }
+
+    private static <T> boolean isNullOrPresent(UpdateValue<T> value) {
+        return value == null || value.isPresent();
+    }
+
+    private static <T> void setValueIfExists(Supplier<UpdateValue<T>> getter, Consumer<T> setter) {
+
+        UpdateValue<T> value = getter.get();
+        if (value != null) {
+            setter.accept(value.isPresent() ? value.get() : null);
+        }
+    }
+
+    public static <T> void setUpdateValueIfExists(Supplier<T> getter, Consumer<UpdateValue<T>> setter) {
+
+        T value = getter.get();
+        if (value != null) {
+            setter.accept(of(value));
+        }
     }
 }

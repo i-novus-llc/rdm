@@ -41,8 +41,8 @@ public final class RefBookConflictPredicates {
         return QRefBookConflictEntity.refBookConflictEntity.refRecordId.in(refRecordIds);
     }
 
-    public static BooleanExpression isRefFieldCode(String refFieldCode) {
-        return QRefBookConflictEntity.refBookConflictEntity.refFieldCode.eq(refFieldCode);
+    public static BooleanExpression isRefFieldCodeIn(List<String> refFieldCodes) {
+        return QRefBookConflictEntity.refBookConflictEntity.refFieldCode.in(refFieldCodes);
     }
 
     public static BooleanExpression isConflictType(ConflictType conflictType) {

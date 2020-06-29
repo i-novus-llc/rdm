@@ -9,10 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
-import ru.inovus.ms.rdm.api.service.DraftService;
-import ru.inovus.ms.rdm.api.service.FileStorageService;
-import ru.inovus.ms.rdm.api.service.PublishService;
-import ru.inovus.ms.rdm.api.service.RefBookService;
+import ru.inovus.ms.rdm.api.model.draft.PublishRequest;
+import ru.inovus.ms.rdm.api.service.*;
 import ru.inovus.ms.rdm.esnsi.api.ClassifierAttribute;
 import ru.inovus.ms.rdm.esnsi.api.GetClassifierStructureResponseType;
 import ru.inovus.ms.rdm.esnsi.file_gen.RdmXmlFileGenerator;
@@ -89,7 +87,7 @@ public class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
             }
         }
         jobDataMap.put(DRAFT_ID_KEY, draftId);
-        publishService.publish(draftId, null, null, null, false);
+        publishService.publish(new PublishRequest(draftId));
         esnsiLoadService.setClassifierRevisionAndLastUpdated(classifierCode, revision, Timestamp.valueOf(LocalDateTime.now(Clock.systemUTC())));
         return true;
     }

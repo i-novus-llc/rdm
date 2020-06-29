@@ -11,6 +11,8 @@ import java.util.function.Supplier;
 
 public abstract class CreateRefBookFileProcessor implements FileProcessor<RefBook> {
 
+    private static final String REFBOOK_IS_NOT_CREATED_EXCEPTION_CODE = "refbook.is.not.created";
+
     private RefBookService refBookService;
 
     public CreateRefBookFileProcessor(RefBookService refBookService) {
@@ -23,17 +25,23 @@ public abstract class CreateRefBookFileProcessor implements FileProcessor<RefBoo
 
     @Override
     public RefBook process(Supplier<InputStream> fileSource) {
+
+        RefBookCreateRequest refBookCreateRequest = null;
         try(InputStream inputStream = fileSource.get()) {
             setFile(inputStream);
-            RefBookCreateRequest refBookCreateRequest = getRefBookCreateRequest();
-            if (refBookCreateRequest == null) {
-                return null;
-            }
-            return refBookService.create(refBookCreateRequest);
+            refBookCreateRequest = getRefBookCreateRequest();
+
         } catch (UserException e) {
             throw e;
+
         } catch (Exception e) {
             throw new RdmException(e);
         }
+
+        if (refBookCreateRequest != null) {
+            return refBookService.create(refBookCreateRequest);
+        }
+
+        throw new UserException(REFBOOK_IS_NOT_CREATED_EXCEPTION_CODE);
     }
 }

@@ -20,6 +20,19 @@ public enum AuditAction {
         )
     ),
 
+    REFERRER_PUBLICATION(
+            "Публикация связанных справочников",
+            OBJ_NAME_REFBOOK,
+            OBJ_TYPE_REFBOOK,
+            GET_REFBOOK_ID_FROM_REFBOOK_VERSION_ENTITY,
+            refBookCtxExtract(
+                    REFBOOK_CODE_KEY,
+                    REFBOOK_NAME_KEY,
+                    REFBOOK_SHORT_NAME_KEY,
+                    REFBOOK_VERSION_KEY
+            )
+    ),
+
     UPLOAD_VERSION_FROM_FILE( // Создаем черновик и тут же в него заливаем данные
         "Загрузка черновика справочника",
         OBJ_NAME_REFBOOK,

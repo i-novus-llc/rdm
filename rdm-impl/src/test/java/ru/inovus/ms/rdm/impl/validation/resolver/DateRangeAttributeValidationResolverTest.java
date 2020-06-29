@@ -51,8 +51,9 @@ public class DateRangeAttributeValidationResolverTest {
             new DateRangeAttributeValidation().valueFromString(wrongEntityValue);
             fail();
         } catch (UserException e) {
-            assertEquals("check.your.date.format", e.getCode());
+            assertEquals("attribute.validation.date.range.invalid", e.getCode());
         }
+
         //из правильной строки
         DateRangeAttributeValidation validation = new DateRangeAttributeValidation().valueFromString(entityValue);
         assertEquals(min, validation.getMin());

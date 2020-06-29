@@ -12,11 +12,12 @@
                         </dependencies>
                     </output-text>
 
-                    <select id="version" label="Версия" query-id="versionList" label-field-id="version" cleanable="false">
+                    <select id="version" label="Версия" cleanable="false"
+                            query-id="versionList" label-field-id="version">
                         <pre-filters>
                             <eq field-id="refBookId" value="{refBookId}"/>
                         </pre-filters>
-<!--                        NB: Реализовать единую точку перехода в режим редактирования -->
+                        <!-- NB: Реализовать единую точку перехода в режим редактирования -->
                         <validations>
                             <condition id="refBookHasDraft" severity="warning"
                                        message="Справочник содержит неопубликованную версию">
@@ -32,13 +33,6 @@
 
                 <toolbar place="bottomLeft">
                     <sub-menu label="Действия">
-<!--                        <menu-item label="Скачать">-->
-<!--                            <show-modal page-id="downloadFile" upload="defaults">-->
-<!--                                <pre-filters>-->
-<!--                                    <eq field-id="versionId" value="{version.id}"/>-->
-<!--                                </pre-filters>-->
-<!--                            </show-modal>-->
-<!--                        </menu-item>-->
                         <menu-item label="Опубликовать"
                                    visibility-condition="version.status=='DRAFT' &amp;&amp; !version.hasConflict">
                             <show-modal page-id="publish" upload="defaults">
@@ -49,8 +43,6 @@
                         </menu-item>
                         <menu-item label="Обновить ссылки"
                                    visibility-condition="version.isLast &amp;&amp; version.hasRefreshedConflict">
-<!--                        <menu-item label="Обновить ссылки"-->
-<!--                                   visibility-condition="version.isLast &amp;&amp; (version.hasUpdatedConflict || version.hasAlteredConflict)">-->
                             <invoke operation-id="refreshReferrer"/>
                         </menu-item>
                         <menu-item label="Загрузить данные" visibility-condition="version.status=='DRAFT'">
@@ -85,22 +77,25 @@
         </region>
 
         <tabs place="single">
-            <form ref-id="passport" name="Паспорт" id="passport_form" depends-on="version_select"
+            <form ref-id="passport" name="Паспорт" id="passport_form"
+                  depends-on="version_select" fetch-on-init="true"
                   master-field-id="id" detail-field-id="version.id" object-id="refBook">
                 <toolbar place="bottomRight">
                     <!-- '.*_r$' паттерн названия кнопки, при котором обновляется виджет version_select -->
                     <!--см. RefreshTransformer-->
-                    <!--todo: сделать отдельную кнопку без рефшреша для редактирования черновика-->
-                    <button label="Изменить" id="edit_r">
+                    <!--to-do: сделать отдельную кнопку без рефреша для редактирования черновика-->
+                    <button label="Изменить" id="editPassport_r">
                         <invoke operation-id="edit" close-after-success="false" />
                     </button>
                 </toolbar>
             </form>
 
-            <table ref-id="structure" name="Структура" id="structure_table" depends-on="version_select"
-                   master-field-id="id" detail-field-id="versionId" upload="query">
+            <table ref-id="structure" name="Структура" id="structure_table"
+                   upload="query" depends-on="version_select" fetch-on-init="true"
+                   master-field-id="id" detail-field-id="versionId">
                 <toolbar place="bottomRight">
-                    <button label="Добавить" id="createAttribute_r" model="resolve" widget-id="version_select">
+                    <button label="Добавить" id="createAttribute_r"
+                            widget-id="version_select" model="resolve">
                         <show-modal page-id="attribute" submit-operation-id="create" upload="defaults">
                             <pre-filters>
                                 <eq field-id="versionId" value="{version.id}" ref-model="resolve"
@@ -116,17 +111,19 @@
                             </pre-filters>
                         </show-modal>
                     </button>
-                    <button label="Удалить" id="delete_r" color="danger" icon="fa fa-trash">
+                    <button label="Удалить" id="deleteAttribute_r" color="danger" icon="fa fa-trash">
                         <invoke operation-id="delete" close-after-success="false"/>
                     </button>
                 </toolbar>
             </table>
 
-            <table src="DataGrid" name="Данные" id="dataTable" query-id="data" depends-on="version_select"
+            <table src="DataGrid" name="Данные" id="dataTable"
+                   query-id="data" depends-on="version_select" fetch-on-init="true"
                    master-field-id="id" detail-field-id="versionId" object-id="data">
                 <toolbar place="topRight">
-                    <!--todo: сделать отдельные кнопки без рефшреша для редактирования черновика-->
-                    <button id="createRecord_r" label="Добавить строку" icon="fa fa-plus" model="resolve" widget-id="version_select">
+                    <!--to-do: сделать отдельные кнопки без рефреша для редактирования черновика-->
+                    <button id="createRecord_r" label="Добавить строку" icon="fa fa-plus"
+                            widget-id="version_select" model="resolve">
                         <show-modal page-id="dataRecordPage?{id}_create" upload="defaults" route="/create"
                                     submit-operation-id="create" refresh-widget-id="version_select"/>
                     </button>
@@ -149,7 +146,8 @@
                 </toolbar>
             </table>
 
-            <table src="DataGrid" name="Данные с конфликтами" id="dataTableWithConflicts" query-id="data" depends-on="version_select"
+            <table src="DataGrid" name="Данные с конфликтами" id="dataTableWithConflicts"
+                   query-id="data" depends-on="version_select" fetch-on-init="true"
                    master-field-id="id" detail-field-id="versionId" object-id="data">
                 <pre-filters>
                     <eq field-id="hasDataConflict" value="true"/>

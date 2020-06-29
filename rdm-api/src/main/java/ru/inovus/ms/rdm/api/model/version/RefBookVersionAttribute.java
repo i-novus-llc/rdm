@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.api.model.version;
 import ru.inovus.ms.rdm.api.model.Structure;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class RefBookVersionAttribute implements Serializable {
 
@@ -43,5 +44,16 @@ public class RefBookVersionAttribute implements Serializable {
 
     public void setReference(Structure.Reference reference) {
         this.reference = reference;
+    }
+
+    /* Полная проверка на атрибут-ссылку. */
+    public boolean hasReference() {
+        return attribute != null && attribute.isReferenceType() && reference != null;
+    }
+
+    /* Полная проверка на совпадение выражений для вычисления отображаемого ссылочного значения. */
+    public boolean equalsReferenceDisplayExpression(RefBookVersionAttribute o) {
+        return hasReference() && o != null && o.hasReference()
+                && Objects.equals(reference.getDisplayExpression(), o.reference.getDisplayExpression());
     }
 }

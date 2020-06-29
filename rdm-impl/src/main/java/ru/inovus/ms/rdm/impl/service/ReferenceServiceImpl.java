@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.impl.service;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -85,12 +86,14 @@ public class ReferenceServiceImpl implements ReferenceService {
             return;
 
         references.stream()
-                .filter(reference ->
-                        !conflictRepository.existsByReferrerVersionIdAndRefFieldCodeAndConflictType(referrerVersionId, reference.getAttribute(), ConflictType.DISPLAY_DAMAGED))
+                .filter(reference -> BooleanUtils.isNotTrue(
+                        conflictRepository.hasReferrerConflict(referrerVersionId, reference.getAttribute(),
+                                ConflictType.DISPLAY_DAMAGED, RefBookVersionStatus.PUBLISHED)
+                ))
                 .forEach(reference -> {
-            refreshReference(referrerEntity, reference, ConflictType.UPDATED);
-            refreshReference(referrerEntity, reference, ConflictType.ALTERED);
-        });
+                    refreshReference(referrerEntity, reference, ConflictType.UPDATED);
+                    refreshReference(referrerEntity, reference, ConflictType.ALTERED);
+                });
     }
 
     /**

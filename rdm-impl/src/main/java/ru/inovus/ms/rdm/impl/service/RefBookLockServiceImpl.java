@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.inovus.ms.rdm.api.enumeration.RefBookOperation;
 import ru.inovus.ms.rdm.api.exception.RdmException;
-import ru.inovus.ms.rdm.impl.entity.RefBookEntity;
 import ru.inovus.ms.rdm.impl.entity.RefBookOperationEntity;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.impl.repository.RefBookOperationRepository;
@@ -26,10 +25,7 @@ import java.nio.file.StandardOpenOption;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
@@ -74,7 +70,7 @@ public class RefBookLockServiceImpl implements RefBookLockService {
                             unreleasedLocks.remove(split[1]);
                     });
                 }
-                int released = operationRepository.deleteAllByLockId(unreleasedLocks);
+                int released = operationRepository.deleteAllByLockIdIn(unreleasedLocks);
                 logger.info("{} unreleased locks detected.", released);
                 clearWal();
             } catch (IOException e) {
@@ -115,8 +111,6 @@ public class RefBookLockServiceImpl implements RefBookLockService {
         if (LOCKS_COUNTER.get() == null) {
             validateRefBookNotBusyByRefBookId(refBookId);
             String lockId = UUID.randomUUID().toString();
-            RefBookEntity refBook = new RefBookEntity();
-            refBook.setId(refBookId);
             WRITE_WAL_LOCK.lock();
             try {
                 Files.write(WAL_PATH, (LOCK_ACQUIRED + " " + lockId + "\n").getBytes(), StandardOpenOption.APPEND);
@@ -126,7 +120,7 @@ public class RefBookLockServiceImpl implements RefBookLockService {
             } finally {
                 WRITE_WAL_LOCK.unlock();
             }
-            operationRepository.save(new RefBookOperationEntity(refBook, operation, lockId, DEFAULT_USER));
+            operationRepository.save(new RefBookOperationEntity(refBookId, operation, lockId, DEFAULT_USER));
             LOCKS_COUNTER.set(Pair.of(lockId, 1));
         } else {
             int locksAcquired = LOCKS_COUNTER.get().getSecond();
