@@ -13,6 +13,14 @@
                 <eq filter-id="id">id={id}</eq>
             </filters>
         </field>
+        <!-- used only in: unique filters -->
+        <field id="uuid" domain="string">
+            <select mapping="['id']"/>
+            <filters>
+                <eq filter-id="uuid" mapping="[0]" domain="string" normalize="T(java.util.UUID).fromString(#this)"/>
+            </filters>
+        </field>
+
         <field id="status" domain="string">
             <select/>
             <filters>
