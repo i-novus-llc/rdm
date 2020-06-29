@@ -95,9 +95,9 @@ public class ArchiveValidationTest {
         assertArchiveValidationError(() -> draftService.create(refBookId, new FileModel()));
         assertArchiveValidationError(() -> draftService.updateData(draftId, new FileModel()));
         assertArchiveValidationError(() -> draftService.remove(draftId));
-        assertArchiveValidationError(() -> draftService.createAttribute(new CreateAttribute(draftId, null, null)));
-        assertArchiveValidationError(() -> draftService.updateAttribute(new UpdateAttribute(draftId, new Structure.Attribute(), null)));
-        assertArchiveValidationError(() -> draftService.deleteAttribute(draftId, null));
+        assertArchiveValidationError(() -> draftService.createAttribute(new CreateAttribute(draftId, null, null), null));
+        assertArchiveValidationError(() -> draftService.updateAttribute(new UpdateAttribute(draftId, new Structure.Attribute(), null), null));
+        assertArchiveValidationError(() -> draftService.deleteAttribute(draftId, null, null));
 
         RefBookUpdateRequest updateRequest = new RefBookUpdateRequest();
         updateRequest.setVersionId(versionId);

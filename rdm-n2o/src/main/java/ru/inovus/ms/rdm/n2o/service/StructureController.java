@@ -86,6 +86,9 @@ public class StructureController {
     ReadAttribute getDefault(Integer versionId, Integer optLockValue) {
 
         ReadAttribute readAttribute = new ReadAttribute();
+        readAttribute.setVersionId(versionId);
+        readAttribute.setOptLockValue(optLockValue);
+
         enrichByRefBook(versionId, readAttribute);
 
         return readAttribute;
@@ -245,7 +248,7 @@ public class StructureController {
     public void createAttribute(Integer versionId, FormAttribute formAttribute, Integer optLockValue) {
 
         CreateAttribute attributeModel = getCreateAttribute(versionId, formAttribute);
-        draftService.createAttribute(attributeModel);
+        draftService.createAttribute(attributeModel, optLockValue);
         try {
             AttributeValidationRequest validationRequest = new AttributeValidationRequest();
             validationRequest.setNewAttribute(attributeModel);
@@ -254,7 +257,7 @@ public class StructureController {
             draftService.updateAttributeValidations(versionId, validationRequest);
 
         } catch (RestException re) {
-            draftService.deleteAttribute(versionId, formAttribute.getCode());
+            draftService.deleteAttribute(versionId, formAttribute.getCode(), null);
             throw re;
         }
     }
@@ -266,7 +269,7 @@ public class StructureController {
         Structure.Reference oldReference = oldStructure.getReference(formAttribute.getCode());
 
         UpdateAttribute attributeModel = getUpdateAttribute(versionId, formAttribute);
-        draftService.updateAttribute(attributeModel);
+        draftService.updateAttribute(attributeModel, optLockValue);
         try {
             AttributeValidationRequest validationRequest = new AttributeValidationRequest();
             validationRequest.setOldAttribute(getVersionAttribute(versionId, oldAttribute, oldReference));
@@ -276,7 +279,7 @@ public class StructureController {
             draftService.updateAttributeValidations(versionId, validationRequest);
 
         } catch (RestException re) {
-            draftService.updateAttribute(new UpdateAttribute(versionId, oldAttribute, oldReference));
+            draftService.updateAttribute(new UpdateAttribute(versionId, oldAttribute, oldReference), null);
             throw re;
         }
     }
@@ -284,7 +287,7 @@ public class StructureController {
     public void deleteAttribute(Integer versionId, String attributeCode, Integer optLockValue) {
 
         draftService.deleteAttributeValidation(versionId, attributeCode, null);
-        draftService.deleteAttribute(versionId, attributeCode);
+        draftService.deleteAttribute(versionId, attributeCode, optLockValue);
     }
 
     /** Заполнение валидаций атрибута из атрибута формы. */

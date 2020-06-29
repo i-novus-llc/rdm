@@ -424,14 +424,14 @@ public class DraftServiceTest {
         draftEntity.setStorageCode(draftTable);
 
         // -- Добавление первичного ключа для возможности добавления ссылочного атрибута
-        draftService.createAttribute(createIdAttribute);
+        draftService.createAttribute(createIdAttribute, null);
         Structure structure = versionService.getStructure(draftEntity.getId());
         assertTrue(structure.hasPrimary());
         assertEquals(createIdAttribute.getAttribute(), structure.getPrimary().get(0));
         assertEquals(createIdAttribute.getReference(), structure.getReference(createIdAttribute.getAttribute().getCode()));
 
         // -- Корректное добавление
-        draftService.createAttribute(createRefAttribute);
+        draftService.createAttribute(createRefAttribute, null);
 
         structure = versionService.getStructure(draftEntity.getId());
         assertEquals(2, structure.getAttributes().size());
@@ -452,13 +452,13 @@ public class DraftServiceTest {
         // -- Корректное изменение
         when(draftDataService.isUnique(eq(TEST_DRAFT_CODE), anyList())).thenReturn(true);
         UpdateAttribute updateRefAttribute = new UpdateAttribute(draftEntity.getId(), updateNameAttribute, nameReference);
-        draftService.updateAttribute(updateRefAttribute);
+        draftService.updateAttribute(updateRefAttribute, null);
         assertEquals(updateNameAttribute, structure.getAttribute(updateRefAttribute.getCode()));
         assertEquals(nameReference, structure.getReference(updateRefAttribute.getCode()));
 
         // -- Изменение значений полей Reference
         updateRefAttribute = new UpdateAttribute(draftEntity.getId(), updateNameAttribute, updateNameReference);
-        draftService.updateAttribute(updateRefAttribute);
+        draftService.updateAttribute(updateRefAttribute, null);
         assertEquals(updateNameReference, structure.getReference(updateRefAttribute.getCode()));
 
         // -- Передача null. Значение не должно измениться
@@ -466,7 +466,7 @@ public class DraftServiceTest {
         updateRefAttribute.setReferenceCode(null);
         // -- Изменение поля на null. Значение должно обновиться
         updateRefAttribute.setDescription(of(null));
-        draftService.updateAttribute(updateRefAttribute);
+        draftService.updateAttribute(updateRefAttribute, null);
         assertEquals(updateNameReference.getReferenceCode(), structure.getReference(updateRefAttribute.getCode()).getReferenceCode());
         assertNull(structure.getAttribute(updateRefAttribute.getCode()).getDescription());
 
@@ -488,7 +488,7 @@ public class DraftServiceTest {
         // -- Изменение со ссылочного на строковый. Ссылка должна удалиться из структуры
         updateNameAttribute.setType(FieldType.STRING);
         updateRefAttribute = new UpdateAttribute(draftEntity.getId(), updateNameAttribute, nullReference);
-        draftService.updateAttribute(updateRefAttribute);
+        draftService.updateAttribute(updateRefAttribute, null);
         assertNull(structure.getReference(updateRefAttribute.getCode()));
 
         // -- Изменение со строкового на ссылочный, не заполнены поля для ссылки. Должна быть ошибка
@@ -498,7 +498,7 @@ public class DraftServiceTest {
         // -- Изменение со ссылочного на строковый, все поля заполнены
         updateNameAttribute.setType(FieldType.REFERENCE);
         updateRefAttribute = new UpdateAttribute(draftEntity.getId(), updateNameAttribute, updateNameReference);
-        draftService.updateAttribute(updateRefAttribute);
+        draftService.updateAttribute(updateRefAttribute, null);
         assertEquals(updateNameAttribute, structure.getAttribute(updateRefAttribute.getCode()));
         assertEquals(updateNameReference, structure.getReference(updateRefAttribute.getCode()));
 
@@ -512,22 +512,22 @@ public class DraftServiceTest {
         failUpdateAttribute(updateRefAttribute, structure, updateRefCode, "reference.referred.attribute.not.found", NotFoundException.class);
         // -- Простановка выражения без полей
         updateRefAttribute.setDisplayExpression(of("text-only"));
-        draftService.updateAttribute(updateRefAttribute);
+        draftService.updateAttribute(updateRefAttribute, null);
         assertNotNull(structure.getReference(updateRefAttribute.getCode()));
         assertEquals("text-only", structure.getReference(updateRefAttribute.getCode()).getDisplayExpression());
         updateRefAttribute.setDisplayExpression(of(updateNameReference.getDisplayExpression()));
-        draftService.updateAttribute(updateRefAttribute);
+        draftService.updateAttribute(updateRefAttribute, null);
 
         // Изменение первичного атрибута
         UpdateAttribute updatePrimaryAttribute = new UpdateAttribute(draftEntity.getId(), updateIdAttribute, null);
-        draftService.updateAttribute(updatePrimaryAttribute);
+        draftService.updateAttribute(updatePrimaryAttribute, null);
         assertEquals(updateIdAttribute, structure.getAttribute(updatePrimaryAttribute.getCode()));
         assertEquals(1, structure.getPrimary().size());
         assertEquals(updateIdAttribute, structure.getPrimary().get(0));
 
         // Добавление нового первичного атрибута. Первичность предыдущего атрибута должна быть удалена
         CreateAttribute createPrimaryAttribute = new CreateAttribute(draftEntity.getId(), pkAttribute, nullReference);
-        draftService.createAttribute(createPrimaryAttribute);
+        draftService.createAttribute(createPrimaryAttribute, null);
 
         structure = versionService.getStructure(draftEntity.getId());
         List<Structure.Attribute> primaries = structure.getPrimary();
@@ -536,13 +536,13 @@ public class DraftServiceTest {
         assertFalse(primaries.contains(updateIdAttribute));
 
         // Удаление атрибута-ссылки для удаления первичного ключа
-        draftService.deleteAttribute(draftEntity.getId(), nameAttribute.getCode());
+        draftService.deleteAttribute(draftEntity.getId(), nameAttribute.getCode(), null);
 
         // Удаление первичности ключа. Не должно быть атрибутов - первичных ключей
         assertTrue(structure.hasPrimary());
         pkAttribute.setPrimary(false);
         updateRefAttribute = new UpdateAttribute(draftEntity.getId(), pkAttribute, nullReference);
-        draftService.updateAttribute(updateRefAttribute);
+        draftService.updateAttribute(updateRefAttribute, null);
         structure = versionService.getStructure(draftEntity.getId());
         assertFalse(structure.hasPrimary());
     }
@@ -623,7 +623,7 @@ public class DraftServiceTest {
         Structure.Attribute attribute = createAttribute.getAttribute();
         Structure.Reference reference = createAttribute.getReference();
         try {
-            draftService.createAttribute(createAttribute);
+            draftService.createAttribute(createAttribute, null);
             fail("Ожидается ошибка " + expectedExceptionClass.getSimpleName());
 
         } catch (Exception e) {
@@ -645,7 +645,7 @@ public class DraftServiceTest {
         Structure.Attribute oldAttribute = oldStructure.getAttribute(oldCode);
         Structure.Reference oldReference = oldStructure.getReference(oldCode);
         try {
-            draftService.updateAttribute(updateAttribute);
+            draftService.updateAttribute(updateAttribute, null);
             fail("Ожидается ошибка " + expectedExceptionClass.getSimpleName());
 
         } catch (Exception e) {
@@ -675,7 +675,7 @@ public class DraftServiceTest {
         Structure.Attribute attribute = oldStructure.getAttribute(attributeCode);
         Structure.Reference reference = oldStructure.getReference(attributeCode);
         try {
-            draftService.deleteAttribute(draftId, attributeCode);
+            draftService.deleteAttribute(draftId, attributeCode, null);
             fail("Ожидается ошибка " + expectedExceptionClass.getSimpleName());
 
         } catch (Exception e) {

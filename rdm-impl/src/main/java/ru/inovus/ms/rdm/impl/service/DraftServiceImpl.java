@@ -658,7 +658,7 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void createAttribute(CreateAttribute createAttribute) {
+    public void createAttribute(CreateAttribute createAttribute, Integer optLockValue) {
 
         versionValidation.validateDraft(createAttribute.getVersionId());
         refBookLockService.validateRefBookNotBusyByVersionId(createAttribute.getVersionId());
@@ -702,7 +702,7 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void updateAttribute(UpdateAttribute updateAttribute) {
+    public void updateAttribute(UpdateAttribute updateAttribute, Integer optLockValue) {
 
         versionValidation.validateDraft(updateAttribute.getVersionId());
         refBookLockService.validateRefBookNotBusyByVersionId(updateAttribute.getVersionId());
@@ -813,7 +813,7 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void deleteAttribute(Integer draftId, String attributeCode) {
+    public void deleteAttribute(Integer draftId, String attributeCode, Integer optLockValue) {
 
         versionValidation.validateDraft(draftId);
         refBookLockService.validateRefBookNotBusyByVersionId(draftId);

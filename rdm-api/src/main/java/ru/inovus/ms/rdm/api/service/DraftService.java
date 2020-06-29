@@ -174,7 +174,8 @@ public interface DraftService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void createAttribute(@ApiParam("Модель создаваемого атрибута") CreateAttribute createAttribute);
+    void createAttribute(@ApiParam("Модель создаваемого атрибута") CreateAttribute createAttribute,
+                         @ApiParam("Значение оптимистической блокировки") @QueryParam("optLockValue") Integer optLockValue);
 
     @PUT
     @Path("/attribute")
@@ -184,7 +185,8 @@ public interface DraftService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void updateAttribute(@ApiParam("Модель изменяемого атрибута") UpdateAttribute updateAttribute);
+    void updateAttribute(@ApiParam("Модель изменяемого атрибута") UpdateAttribute updateAttribute,
+                         @ApiParam("Значение оптимистической блокировки") @QueryParam("optLockValue") Integer optLockValue);
 
     @DELETE
     @Path("/{versionId}/attribute/{code}")
@@ -195,7 +197,8 @@ public interface DraftService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     void deleteAttribute(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
-                         @ApiParam("Код атрибута") @PathParam("code") String attributeCode);
+                         @ApiParam("Код атрибута") @PathParam("code") String attributeCode,
+                         @ApiParam("Значение оптимистической блокировки") @QueryParam("optLockValue") Integer optLockValue);
 
     @POST
     @Path("/{versionId}/attribute/{attribute}/validation")

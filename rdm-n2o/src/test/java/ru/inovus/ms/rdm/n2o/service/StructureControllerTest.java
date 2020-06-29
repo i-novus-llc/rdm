@@ -159,7 +159,7 @@ public class StructureControllerTest extends TestCase {
         FormAttribute formAttribute = createAllValidationAttribute();
         structureController.updateAttribute(versionId, formAttribute, null);
 
-        verify(draftService, times(1)).updateAttribute(updateAttributeArgumentCaptor.capture());
+        verify(draftService, times(1)).updateAttribute(updateAttributeArgumentCaptor.capture(), any());
         verify(draftService, times(1)).updateAttributeValidations(eq(versionId), validationRequestArgumentCaptor.capture());
 
         assertValidationListEquals(expectedValidations, validationRequestArgumentCaptor.getValue().getValidations());
@@ -182,7 +182,7 @@ public class StructureControllerTest extends TestCase {
         formAttribute.setReferenceCode(referenceCode);
         structureController.createAttribute(versionId, formAttribute, null);
 
-        verify(draftService, times(1)).createAttribute(createAttributeArgumentCaptor.capture());
+        verify(draftService, times(1)).createAttribute(createAttributeArgumentCaptor.capture(), any());
         verify(draftService, times(1)).updateAttributeValidations(eq(versionId), any(AttributeValidationRequest.class));
 
         CreateAttribute actual = createAttributeArgumentCaptor.getValue();

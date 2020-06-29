@@ -364,16 +364,16 @@ public class VersionValidationImpl implements VersionValidation {
     /**
      * Проверка кода справочника из ссылки.
      *
-     * @param code код справочника из ссылки
+     * @param referredCode код справочника из ссылки
      */
-    private void validateReferenceCode(String code) {
+    private void validateReferenceCode(String referredCode) {
 
-        RefBookVersionEntity version = versionRepository
-                .findFirstByRefBookCodeAndStatusOrderByFromDateDesc(code, RefBookVersionStatus.PUBLISHED);
-        if (version == null)
-            throw new UserException(new Message(REFERRED_BOOK_NOT_FOUND_EXCEPTION_CODE, code));
-        if (version.getStructure() == null)
-            throw new UserException(new Message(REFERRED_BOOK_STRUCTURE_NOT_FOUND_EXCEPTION_CODE, code));
+        validateRefBookCode(referredCode);
+
+        RefBookVersionEntity referredEntity = getReferredEntity(referredCode);
+
+        if (referredEntity.getStructure() == null) // Только проверка на наличие структуры!
+            throw new UserException(new Message(REFERRED_BOOK_STRUCTURE_NOT_FOUND_EXCEPTION_CODE, referredCode));
     }
 
     /**
