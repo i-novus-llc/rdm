@@ -12,7 +12,7 @@
                         </dependencies>
                     </output-text>
 
-                    <output-text id="optLockValue">
+                    <output-text id="optLockValue" visible="false">
                         <dependencies>
                             <set-value on="version">version.optLockValue</set-value>
                         </dependencies>
