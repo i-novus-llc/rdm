@@ -92,7 +92,7 @@
                     <!--см. RefreshTransformer-->
                     <!--to-do: сделать отдельную кнопку без рефреша для редактирования черновика-->
                     <button label="Изменить" id="editPassport_r">
-                        <invoke operation-id="edit" close-after-success="false" />
+                        <invoke operation-id="edit" close-after-success="false" refresh-widget-id="version_select"/>
                     </button>
                 </toolbar>
             </form>
