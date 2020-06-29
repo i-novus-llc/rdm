@@ -35,9 +35,6 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
     @Override
     public Page<AsyncOperationLogEntry> search(AsyncOperationLogEntryCriteria criteria) {
 
-        if (criteria.getSort() == null || criteria.getSort().isEmpty())
-            criteria.setOrders(List.of(AsyncOperationLogEntryEntity.DEFAULT_ORDER));
-
         Predicate predicate = toPredicate(criteria);
 
         Page<AsyncOperationLogEntryEntity> page = (predicate == null)
