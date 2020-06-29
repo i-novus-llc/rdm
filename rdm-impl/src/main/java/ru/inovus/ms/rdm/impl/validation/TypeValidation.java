@@ -66,13 +66,20 @@ public class TypeValidation extends ErrorAttributeHolderValidation {
 
         switch (type) {
             case STRING:
-            case TREE: return String.class;
-            case INTEGER: return BigInteger.class;
-            case FLOAT: return BigDecimal.class;
-            case DATE: return LocalDate.class;
-            case BOOLEAN: return Boolean.class;
-            case REFERENCE: return Reference.class;
-            default: throw new RdmException(String.format(ATTRIBUTE_TYPE_IS_INVALID, type.name(), attribute.getName()));
+            case TREE:
+                return String.class;
+            case INTEGER:
+                return BigInteger.class;
+            case FLOAT:
+                return BigDecimal.class;
+            case DATE:
+                return LocalDate.class;
+            case BOOLEAN:
+                return Boolean.class;
+            case REFERENCE:
+                return Reference.class;
+            default:
+                throw new RdmException(String.format(ATTRIBUTE_TYPE_IS_INVALID, type.name(), attribute.getName()));
         }
     }
 
