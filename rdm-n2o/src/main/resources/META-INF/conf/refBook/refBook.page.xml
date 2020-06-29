@@ -159,7 +159,13 @@
                         <invoke operation-id="delete" refresh-widget-id="version_select" route="/delete"/>
                     </button>
                     <button id="deleteAllRecords_r" label="Удалить все" color="danger" icon="fa fa-trash">
-                        <invoke operation-id="deleteAll" refresh-widget-id="version_select" route="/deleteAll"/>
+                        <show-modal page-id="dataDeleteAll" upload="query" route="/deleteAll"
+                                    submit-operation-id="deleteAll" refresh-widget-id="version_select">
+                            <pre-filters>
+                                <eq field-id="versionId" value="{version.id}" ref-model="resolve" ref-widget-id="version_select"/>
+                                <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve" ref-widget-id="version_select"/>
+                            </pre-filters>
+                        </show-modal>
                     </button>
                 </toolbar>
             </table>

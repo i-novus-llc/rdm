@@ -18,7 +18,7 @@
 
         <field id="versionId" domain="integer">
             <filters>
-                <eq filter-id="versionId" mapping="versionId" domain="string"/>
+                <eq filter-id="versionId" mapping="versionId" domain="integer"/>
             </filters>
         </field>
 
