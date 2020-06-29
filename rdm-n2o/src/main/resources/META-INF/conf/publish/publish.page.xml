@@ -2,44 +2,38 @@
 <simple-page xmlns="http://n2oapp.net/framework/config/schema/page-2.0" name="Публикация справочника">
     <form object-id="publish" default-values-query-id="publish">
 
-        <toolbar place="topLeft">
-            <button id="errorMessage" label="Публикация справочника невозможна"
-                    color="danger" enabling-condition="false" confirm="false"
-                    visibility-condition="hasErrorMessage"/>
-        </toolbar>
-
         <fields>
 <!--            <output-text id="version.version" label="Версия"/>-->
 <!--            <output-text id="version.optLockValue" label="Опт-блок-значение"/>-->
 
-            <output-text id="errorMessage" no-label="true">
+            <output-text id="errorMessage" class="alert alert-danger" no-label="true">
                 <dependencies>
                     <visibility>hasErrorMessage</visibility>
                 </dependencies>
             </output-text>
 
-            <output-text id="listCheckDeletedConflictReferrers"
+            <output-text id="listCheckDeletedConflictReferrers" label-class="alert alert-warning"
                          label="Были удалены строки, на которые ссылались справочники системы:">
                 <dependencies>
                     <visibility>hasCheckDeletedConflicts</visibility>
                 </dependencies>
             </output-text>
 
-            <output-text id="listCheckUpdatedConflictReferrers"
+            <output-text id="listCheckUpdatedConflictReferrers" label-class="alert alert-warning"
                          label="Были изменены строки, на которые ссылались справочники системы:">
                 <dependencies>
                     <visibility>hasCheckUpdatedConflicts</visibility>
                 </dependencies>
             </output-text>
 
-            <output-text id="listCheckAlteredConflictReferrers"
+            <output-text id="listCheckAlteredConflictReferrers" label-class="alert alert-warning"
                          label="Была изменена структура справочника, на который ссылаются справочники системы:">
                 <dependencies>
                     <visibility>hasCheckAlteredConflicts &amp;&amp; !hasCheckDisplayDamagedConflicts</visibility>
                 </dependencies>
             </output-text>
 
-            <output-text id="listCheckDisplayDamagedConflictReferrers"
+            <output-text id="listCheckDisplayDamagedConflictReferrers" label-class="alert alert-warning"
                          label="Была изменена структура справочника, публикация новой версии нарушит работу ссылок справочников системы.">
                 <dependencies>
                     <visibility>hasCheckDisplayDamagedConflicts</visibility>
