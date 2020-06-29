@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import ru.inovus.ms.rdm.api.model.AbstractCriteria;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.function.Function;
 
 public class PageIterator<T, C extends AbstractCriteria> implements Iterator<Page<? extends T>> {
@@ -33,7 +34,8 @@ public class PageIterator<T, C extends AbstractCriteria> implements Iterator<Pag
     public boolean hasNext() {
         criteria.setPageNumber(currentPage + 1);
         nextPage = pageSource.apply(criteria);
-        return !nextPage.isEmpty();
+        List<? extends T> content = nextPage.getContent();
+        return !content.isEmpty();
     }
 
     @Override
