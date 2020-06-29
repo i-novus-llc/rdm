@@ -41,9 +41,6 @@ public class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
     private RefBookService refBookService;
 
     @Autowired
-    private RefBookDataService refBookDataService;
-
-    @Autowired
     private DraftService draftService;
 
     @Autowired
@@ -74,7 +71,7 @@ public class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
         else {
             Integer id = checkForExistance();
             if (id == null)
-                draft = refBookDataService.create(fileModel);
+                draft = refBookService.create(fileModel);
             else
                 draft = draftService.create(id, fileModel);
         }

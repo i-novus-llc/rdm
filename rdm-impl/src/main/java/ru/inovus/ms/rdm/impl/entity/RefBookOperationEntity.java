@@ -10,14 +10,14 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "ref_book_operation", schema = "n2o_rdm_management")
 public class RefBookOperationEntity implements Serializable {
+
     @Id
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @OneToOne
-    @JoinColumn(name = "ref_book_id", nullable = false)
-    private RefBookEntity refBook;
+    @Column(name = "ref_book_id", nullable = false)
+    private Integer refBookId;
 
     @Column(name = "operation")
     @Enumerated(value = EnumType.STRING)
@@ -32,8 +32,9 @@ public class RefBookOperationEntity implements Serializable {
     @Column(name = "creation_date")
     private LocalDateTime creationDate;
 
-    public RefBookOperationEntity(RefBookEntity refBook, RefBookOperation operation, String lockId, String userName) {
-        this.refBook = refBook;
+    public RefBookOperationEntity(Integer refBookId, RefBookOperation operation, String lockId, String userName) {
+
+        this.refBookId = refBookId;
         this.operation = operation;
         this.lockId = lockId;
         this.userName = userName;
@@ -56,12 +57,12 @@ public class RefBookOperationEntity implements Serializable {
         this.id = id;
     }
 
-    public RefBookEntity getRefBook() {
-        return refBook;
+    public Integer getRefBookId() {
+        return refBookId;
     }
 
-    public void setRefBook(RefBookEntity refBook) {
-        this.refBook = refBook;
+    public void setRefBook(Integer refBookId) {
+        this.refBookId = refBookId;
     }
 
     public RefBookOperation getOperation() {
@@ -95,5 +96,4 @@ public class RefBookOperationEntity implements Serializable {
     public void setCreationDate(LocalDateTime creationDate) {
         this.creationDate = creationDate;
     }
-
 }
