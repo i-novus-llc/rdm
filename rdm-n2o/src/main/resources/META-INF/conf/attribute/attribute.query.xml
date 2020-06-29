@@ -41,6 +41,13 @@
             </filters>
         </field>
 
+        <field id="optLockValue" domain="integer">
+            <select/>
+            <filters>
+                <eq filter-id="optLockValue" mapping="optLockValue" domain="integer"/>
+            </filters>
+        </field>
+
         <field id="isReferrer" domain="boolean">
             <select/>
         </field>
