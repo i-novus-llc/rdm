@@ -11,42 +11,42 @@
         <fields>
             <output-text id="errorMessage" no-label="true">
                 <dependencies>
-                    <visibility reset="false">hasErrorMessage</visibility>
+                    <visibility>hasErrorMessage</visibility>
                 </dependencies>
             </output-text>
 
             <output-text id="listCheckDeletedConflictReferrers"
                          label="Были удалены строки, на которые ссылались справочники системы:">
                 <dependencies>
-                    <visibility reset="false">hasCheckDeletedConflicts</visibility>
+                    <visibility>hasCheckDeletedConflicts</visibility>
                 </dependencies>
             </output-text>
 
             <output-text id="listCheckUpdatedConflictReferrers"
                          label="Были изменены строки, на которые ссылались справочники системы:">
                 <dependencies>
-                    <visibility reset="false">hasCheckUpdatedConflicts</visibility>
+                    <visibility>hasCheckUpdatedConflicts</visibility>
                 </dependencies>
             </output-text>
 
             <output-text id="listCheckAlteredConflictReferrers"
                          label="Была изменена структура справочника, на который ссылаются справочники системы:">
                 <dependencies>
-                    <visibility reset="false">hasCheckAlteredConflicts &amp;&amp; !hasCheckDisplayDamagedConflicts</visibility>
+                    <visibility>hasCheckAlteredConflicts &amp;&amp; !hasCheckDisplayDamagedConflicts</visibility>
                 </dependencies>
             </output-text>
 
             <output-text id="listCheckDisplayDamagedConflictReferrers"
                          label="Была изменена структура справочника, публикация новой версии нарушит работу ссылок справочников системы.">
                 <dependencies>
-                    <visibility reset="false">hasCheckDisplayDamagedConflicts</visibility>
+                    <visibility>hasCheckDisplayDamagedConflicts</visibility>
                 </dependencies>
             </output-text>
 
             <output-text id="confirmPublish"
                          label="Вы уверены, что хотите опубликовать этот справочник?">
                 <dependencies>
-                    <visibility reset="false">!hasErrorMessage</visibility>
+                    <visibility>!hasErrorMessage</visibility>
                 </dependencies>
             </output-text>
 
