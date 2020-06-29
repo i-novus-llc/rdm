@@ -12,7 +12,8 @@
                         </dependencies>
                     </output-text>
 
-                    <select id="version" label="Версия" query-id="versionList" label-field-id="version" cleanable="false">
+                    <select id="version" label="Версия" cleanable="false"
+                            query-id="versionList" label-field-id="version">
                         <pre-filters>
                             <eq field-id="refBookId" value="{refBookId}"/>
                         </pre-filters>
@@ -76,7 +77,8 @@
         </region>
 
         <tabs place="single">
-            <form ref-id="passport" name="Паспорт" id="passport_form" depends-on="version_select"
+            <form ref-id="passport" name="Паспорт" id="passport_form"
+                  depends-on="version_select" fetch-on-init="true"
                   master-field-id="id" detail-field-id="version.id" object-id="refBook">
                 <toolbar place="bottomRight">
                     <!-- '.*_r$' паттерн названия кнопки, при котором обновляется виджет version_select -->
@@ -88,10 +90,12 @@
                 </toolbar>
             </form>
 
-            <table ref-id="structure" name="Структура" id="structure_table" depends-on="version_select"
-                   master-field-id="id" detail-field-id="versionId" upload="query" fetch-on-init="true">
+            <table ref-id="structure" name="Структура" id="structure_table"
+                   upload="query" depends-on="version_select" fetch-on-init="true"
+                   master-field-id="id" detail-field-id="versionId">
                 <toolbar place="bottomRight">
-                    <button label="Добавить" id="createAttribute_r" model="resolve" widget-id="version_select">
+                    <button label="Добавить" id="createAttribute_r"
+                            widget-id="version_select" model="resolve">
                         <show-modal page-id="attribute" submit-operation-id="create" upload="defaults">
                             <pre-filters>
                                 <eq field-id="versionId" value="{version.id}" ref-model="resolve"
@@ -113,11 +117,13 @@
                 </toolbar>
             </table>
 
-            <table src="DataGrid" name="Данные" id="dataTable" query-id="data" depends-on="version_select"
-                   master-field-id="id" detail-field-id="versionId" object-id="data" fetch-on-init="true">
+            <table src="DataGrid" name="Данные" id="dataTable"
+                   query-id="data" depends-on="version_select" fetch-on-init="true"
+                   master-field-id="id" detail-field-id="versionId" object-id="data">
                 <toolbar place="topRight">
                     <!--to-do: сделать отдельные кнопки без рефреша для редактирования черновика-->
-                    <button id="createRecord_r" label="Добавить строку" icon="fa fa-plus" model="resolve" widget-id="version_select">
+                    <button id="createRecord_r" label="Добавить строку" icon="fa fa-plus"
+                            widget-id="version_select" model="resolve">
                         <show-modal page-id="dataRecordPage?{id}_create" upload="defaults" route="/create"
                                     submit-operation-id="create" refresh-widget-id="version_select"/>
                     </button>
@@ -140,8 +146,9 @@
                 </toolbar>
             </table>
 
-            <table src="DataGrid" name="Данные с конфликтами" id="dataTableWithConflicts" query-id="data" depends-on="version_select"
-                   master-field-id="id" detail-field-id="versionId" object-id="data" fetch-on-init="true">
+            <table src="DataGrid" name="Данные с конфликтами" id="dataTableWithConflicts"
+                   query-id="data" depends-on="version_select" fetch-on-init="true"
+                   master-field-id="id" detail-field-id="versionId" object-id="data">
                 <pre-filters>
                     <eq field-id="hasDataConflict" value="true"/>
                 </pre-filters>

@@ -55,8 +55,8 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
         QAsyncOperationLogEntryEntity q = QAsyncOperationLogEntryEntity.asyncOperationLogEntryEntity;
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (criteria.getUuid() != null)
-            builder.and(q.uuid.eq(criteria.getUuid()));
+        if (criteria.getId() != null)
+            builder.and(q.uuid.eq(criteria.getId()));
 
         if (criteria.getOperation() != null)
             builder.and(q.operation.eq(criteria.getOperation()));
@@ -68,8 +68,8 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
     }
 
     @Override
-    public AsyncOperationLogEntry get(UUID uuid) {
-        return toModel(repository.findById(uuid).orElse(null));
+    public AsyncOperationLogEntry get(UUID id) {
+        return toModel(repository.findById(id).orElse(null));
     }
 
     @Override

@@ -115,7 +115,7 @@
             <row>
                 <checkbox id="required" label="Обязательный атрибут">
                     <dependencies>
-                        <visibility on="attrType,isPrimary">
+                        <visibility on="attrType,isPrimary" reset="false">
                             (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; (typeof isPrimary === 'undefined' || !isPrimary))
                         </visibility>
                         <set-value on="attrType,isPrimary">
@@ -131,7 +131,7 @@
 
                 <checkbox id="unique" label="Уникальный атрибут">
                     <dependencies>
-                        <visibility on="attrType,isPrimary">
+                        <visibility on="attrType,isPrimary" reset="false">
                             (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; (typeof isPrimary === 'undefined' || !isPrimary))
                         </visibility>
                         <set-value on="attrType,isPrimary">
@@ -149,7 +149,7 @@
             <row>
                 <input-text id="plainSize" domain="integer" label="Максимальная длина" min="1">
                     <dependencies>
-                        <visibility on="attrType">
+                        <visibility on="attrType" reset="false">
                             attrType.id == 'STRING' || attrType.id == 'INTEGER'
                         </visibility>
                         <set-value on="attrType">
@@ -162,7 +162,7 @@
 
                 <input-text id="regExp" domain="string" label="Регулярное выражение">
                     <dependencies>
-                        <visibility on="attrType">
+                        <visibility on="attrType" reset="false">
                             attrType.id == 'STRING'
                         </visibility>
                         <set-value on="attrType">
@@ -175,7 +175,7 @@
             <row>
                 <input-text id="intPartSize" domain="integer" label="Максимальная длина целой части" min="1">
                     <dependencies>
-                        <visibility on="attrType">
+                        <visibility on="attrType" reset="false">
                             attrType.id == 'FLOAT'
                         </visibility>
                         <set-value on="attrType">
@@ -186,7 +186,7 @@
 
                 <input-text id="fracPartSize" domain="integer" label="Максимальная длина дробной части" min="1">
                     <dependencies>
-                        <visibility on="attrType">
+                        <visibility on="attrType" reset="false">
                             attrType.id == 'FLOAT'
                         </visibility>
                         <set-value on="attrType">
@@ -199,7 +199,7 @@
             <row>
                 <input-text id="minInteger" domain="integer" label="Минимальное значение">
                     <dependencies>
-                        <visibility on="attrType">
+                        <visibility on="attrType" reset="false">
                             attrType.id == 'INTEGER'
                         </visibility>
                         <set-value on="attrType">
@@ -210,7 +210,7 @@
 
                 <input-text id="maxInteger" domain="integer" label="Максимальное значение">
                     <dependencies>
-                        <visibility on="attrType">
+                        <visibility on="attrType" reset="false">
                             attrType.id == 'INTEGER'
                         </visibility>
                         <set-value on="attrType">
@@ -222,7 +222,7 @@
             <row>
                 <input-text id="minFloat" domain="numeric" label="Минимальное значение">
                     <dependencies>
-                        <visibility on="attrType">
+                        <visibility on="attrType" reset="false">
                             attrType.id == 'FLOAT'
                         </visibility>
                         <set-value on="attrType">
@@ -233,7 +233,7 @@
 
                 <input-text id="maxFloat" domain="numeric" label="Максимальное значение">
                     <dependencies>
-                        <visibility on="attrType">
+                        <visibility on="attrType" reset="false">
                             attrType.id == 'FLOAT'
                         </visibility>
                         <set-value on="attrType">
@@ -243,9 +243,9 @@
                 </input-text>
             </row>
 
-            <date-interval id="dateInterval" label="Интервал значений">
+            <date-interval id="dateInterval" label="Интервал значений" date-format="DD.MM.YYYY">
                 <dependencies>
-                    <visibility on="attrType">
+                    <visibility on="attrType" reset="false">
                         attrType.id == 'DATE'
                     </visibility>
                     <set-value on="attrType">
