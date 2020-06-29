@@ -5,7 +5,6 @@ import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Primary;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +17,9 @@ import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.api.model.draft.PublishRequest;
 import ru.inovus.ms.rdm.api.model.draft.PublishResponse;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.api.service.*;
+import ru.inovus.ms.rdm.api.service.ConflictService;
+import ru.inovus.ms.rdm.api.service.VersionFileService;
+import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.TimeUtils;
 import ru.inovus.ms.rdm.api.util.VersionNumberStrategy;
 import ru.inovus.ms.rdm.api.validation.VersionPeriodPublishValidation;
@@ -37,7 +38,6 @@ import java.util.Set;
 import static java.util.Collections.singletonList;
 import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 
-@Primary
 @Service
 class BasePublishService {
 

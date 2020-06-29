@@ -609,8 +609,8 @@ public class ConflictServiceImpl implements ConflictService {
                 .collect(toList());
     }
 
-    private static RefBookRowValue getConflictedRefFromRowValue(List<RefBookRowValue> refFromRowValues,
-                                                                RefBookConflictEntity conflict) {
+    private RefBookRowValue getConflictedRefFromRowValue(List<RefBookRowValue> refFromRowValues,
+                                                         RefBookConflictEntity conflict) {
         return refFromRowValues.stream()
                 .filter(rowValue -> rowValue.getSystemId().equals(conflict.getRefRecordId()))
                 .findFirst().orElse(null);
@@ -934,7 +934,7 @@ public class ConflictServiceImpl implements ConflictService {
      * @param structureDiff различие в структурах версий
      * @return Наличие конфликта
      */
-    private static boolean isDisplayDamagedConflict(List<Structure.Reference> references, StructureDiff structureDiff) {
+    private boolean isDisplayDamagedConflict(List<Structure.Reference> references, StructureDiff structureDiff) {
 
         List<String> deletedCodes = getDeletedCodes(structureDiff);
         return !StringUtils.isEmpty(deletedCodes)
@@ -947,7 +947,7 @@ public class ConflictServiceImpl implements ConflictService {
      * @param structureDiff различие в структурах версий
      * @return Список кодов
      */
-    private static List<String> getDeletedCodes(StructureDiff structureDiff) {
+    private List<String> getDeletedCodes(StructureDiff structureDiff) {
         return structureDiff.getDeleted().stream()
                 .map(deleted -> deleted.getOldAttribute().getCode())
                 .collect(toList());
