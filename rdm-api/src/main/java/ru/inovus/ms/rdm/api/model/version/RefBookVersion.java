@@ -14,6 +14,9 @@ public class RefBookVersion {
     @ApiModelProperty("Идентификатор версии")
     private Integer id;
 
+    @ApiModelProperty("Значение оптимистической блокировки версии")
+    private Integer optLockValue;
+
     @ApiModelProperty("Идентификатор справочника")
     private Integer refBookId;
 
@@ -47,15 +50,15 @@ public class RefBookVersion {
     @ApiModelProperty("Дата последнего изменения")
     private LocalDateTime editDate;
 
-    @ApiModelProperty("Значение оптимистической блокировки версии")
-    private Integer optLockValue;
-
     public RefBookVersion() {
     }
 
     public RefBookVersion(RefBookVersion refBookVersion) {
+
         this.id = refBookVersion.getId();
+        this.optLockValue = refBookVersion.getOptLockValue();
         this.refBookId = refBookVersion.getRefBookId();
+
         this.code = refBookVersion.getCode();
         this.version = refBookVersion.getVersion();
         this.comment = refBookVersion.getComment();
@@ -69,7 +72,6 @@ public class RefBookVersion {
         this.structure = refBookVersion.getStructure();
 
         this.editDate = refBookVersion.getEditDate();
-        this.optLockValue = refBookVersion.getOptLockValue();
     }
 
     public Integer getId() {
@@ -78,6 +80,14 @@ public class RefBookVersion {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public Integer getOptLockValue() {
+        return optLockValue;
+    }
+
+    public void setOptLockValue(Integer optLockValue) {
+        this.optLockValue = optLockValue;
     }
 
     public Integer getRefBookId() {
@@ -166,14 +176,6 @@ public class RefBookVersion {
 
     public void setEditDate(LocalDateTime editDate) {
         this.editDate = editDate;
-    }
-
-    public Integer getOptLockValue() {
-        return optLockValue;
-    }
-
-    public void setOptLockValue(Integer optLockValue) {
-        this.optLockValue = optLockValue;
     }
 
     /**
