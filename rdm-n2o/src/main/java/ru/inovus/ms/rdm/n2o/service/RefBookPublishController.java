@@ -57,6 +57,13 @@ public class RefBookPublishController {
         this.messages = messages;
     }
 
+    /**
+     * Поиск черновика справочника для публикации.
+     *
+     * @param versionId    идентификатор версии
+     * @param optLockValue значение оптимистической блокировки
+     * @return Публикуемый черновик
+     */
     public UiRefBookPublish getDraft(Integer versionId, Integer optLockValue) {
 
         RefBook refBook = refBookService.getByVersionId(versionId);
