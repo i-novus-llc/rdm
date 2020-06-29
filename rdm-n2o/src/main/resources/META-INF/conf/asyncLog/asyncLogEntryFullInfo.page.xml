@@ -3,7 +3,7 @@
     <form query-id="asyncLog">
         <fields>
             <set field-label-location="left">
-                <output-text id="id" label="Идентификатор операции: " label-class="w-50"/>
+                <output-text id="uuid" label="Идентификатор операции: " label-class="w-50"/>
                 <output-text id="tsStart" label="Дата начала операции: " format="date DD.MM.YYYY HH:mm:ss" label-class="w-50"/>
                 <output-text id="tsEnd" label="Дата окончания операции: " format="date DD.MM.YYYY HH:mm:ss" label-class="w-50"/>
                 <output-text id="code" label="Код справочника: " label-class="w-50"/>

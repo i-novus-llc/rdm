@@ -179,10 +179,6 @@ public class ApplicationTest {
     private ReferenceService referenceService;
 
     @Autowired
-    @Qualifier("refBookDataServiceJaxRsProxyClient")
-    private RefBookDataService refBookDataService;
-
-    @Autowired
     private DataSource dataSource;
 
     @Autowired
@@ -1709,7 +1705,7 @@ public class ApplicationTest {
         // Загрузка из файла.
         FileModel cardinalFileModel = createFileModel(CARDINAL_FILE_NAME, REF_BOOK_FILE_FOLDER + CARDINAL_FILE_NAME);
         assertNotNull(cardinalFileModel);
-        Draft cardinalDraft = refBookDataService.create(cardinalFileModel);
+        Draft cardinalDraft = refBookService.create(cardinalFileModel);
 
         assertNotNull(cardinalDraft);
         RefBookVersion cardinalVersion = versionService.getById(cardinalDraft.getId());
@@ -1741,7 +1737,7 @@ public class ApplicationTest {
         // Загрузка из файла.
         FileModel referrerFileModel = createFileModel(REFERRER_FILE_NAME, REF_BOOK_FILE_FOLDER + REFERRER_FILE_NAME);
         assertNotNull(referrerFileModel);
-        Draft referrerDraft = refBookDataService.create(referrerFileModel);
+        Draft referrerDraft = refBookService.create(referrerFileModel);
         assertNotNull(referrerDraft);
         RefBookVersion referrerVersion = versionService.getById(referrerDraft.getId());
         assertNotNull(referrerVersion);
@@ -2523,7 +2519,7 @@ public class ApplicationTest {
         String filename = "fromXml.xml";
 
         FileModel fileModel = createFileModel("testCreate_" + filename, "testCreate/" + filename);
-        Draft expected = refBookDataService.create(fileModel);
+        Draft expected = refBookService.create(fileModel);
 
         // Наличие черновика:
         Draft actual = draftService.getDraft(expected.getId());
@@ -2574,7 +2570,7 @@ public class ApplicationTest {
     private void failCreateRefBook(String filename, String message) {
         try {
             FileModel fileModel = createFileModel("testCreate_" + filename, "testCreate/" + filename);
-            Draft expected = refBookDataService.create(fileModel);
+            Draft expected = refBookService.create(fileModel);
 
             fail("Ожидается ошибка:\n" + message);
 
