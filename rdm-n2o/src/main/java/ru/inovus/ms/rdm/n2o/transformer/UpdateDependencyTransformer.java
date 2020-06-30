@@ -56,8 +56,9 @@ public class UpdateDependencyTransformer
 
         List<AbstractButton> buttons = toolbar.get("topRight").get(0).getButtons();
         buttons.stream()
-                .filter(button -> button.getId().startsWith(BUTTON_PREFIX)
-                        && button.getId().endsWith(BUTTON_SUFFIX))
+                .filter(button ->
+                        button.getId().startsWith(BUTTON_PREFIX)
+                                && button.getId().endsWith(BUTTON_SUFFIX))
                 .forEach(button -> transformButton(tableId, button));
 
         return table;

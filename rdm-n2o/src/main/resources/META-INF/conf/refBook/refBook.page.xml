@@ -143,7 +143,6 @@
                             </pre-filters>
                         </show-modal>
                     </button>
-                    <!-- порядок кнопок в данном toolbar важен, так как эта кнопка изменяется в UpdateDependencyTransformer-->
                     <button id="updateRecord_r" label="Изменить строку" icon="fa fa-pencil"
                             widget-id="version_select" model="resolve">
                         <show-modal page-id="dataRecordPage?{id}_edit" upload="query" route="/update"

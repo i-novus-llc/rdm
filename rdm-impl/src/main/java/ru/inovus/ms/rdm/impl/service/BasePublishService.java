@@ -200,7 +200,7 @@ class BasePublishService {
 
         versionValidation.validateDraftNotArchived(draftEntity.getId());
 
-        if (draftEntity.getStructure() == null || draftEntity.getStructure().isEmpty())
+        if (draftEntity.hasEmptyStructure())
             throw new UserException(new Message(PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE, draftEntity.getRefBook().getCode()));
 
         if (!searchDataService.hasData(draftEntity.getStorageCode()))

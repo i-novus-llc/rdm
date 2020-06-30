@@ -373,7 +373,8 @@ public class Structure implements Serializable {
 
         /**
          * Выражение для вычисления отображаемого ссылочного значения.
-         * Поля справочника указываются через placeholder ${~}, например ${field}
+         * Поля справочника указываются через placeholder ${~},
+         * например ${field} или со значением по умолчанию ${field:default}.
          */
         @ApiModelProperty("Выражение для вычисления отображаемого ссылочного значения")
         private String displayExpression;

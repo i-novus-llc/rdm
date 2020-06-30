@@ -289,7 +289,7 @@ public class CreateDraftController {
         if (!version.isDraft())
             throw new UserException(new Message(VERSION_IS_NOT_DRAFT_EXCEPTION_CODE, versionId));
 
-        if (version.getStructure() == null || version.getStructure().isEmpty())
+        if (version.hasEmptyStructure())
             throw new UserException(new Message(VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE, versionId));
 
         draftService.updateData(versionId, fileModel);

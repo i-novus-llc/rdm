@@ -36,7 +36,7 @@ public interface DraftService {
     Draft create(CreateDraftRequest createDraftRequest);
 
     @POST
-    @ApiOperation("Создание нового черновика")
+    @ApiOperation("Создание нового черновика на основе версии")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Черновик создан"),
             @ApiResponse(code = 400, message = "Некорректный запрос"),

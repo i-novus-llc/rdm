@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity.stringPassportToValues;
 import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 
 @Primary
@@ -186,25 +187,28 @@ public class RefBookServiceImpl implements RefBookService {
         refBookEntity.setCategory(request.getCategory());
         refBookEntity = refBookRepository.save(refBookEntity);
 
-        RefBookVersionEntity refBookVersionEntity = new RefBookVersionEntity();
-        populateVersionFromPassport(refBookVersionEntity, request.getPassport());
-        refBookVersionEntity.setRefBook(refBookEntity);
-        refBookVersionEntity.setStatus(RefBookVersionStatus.DRAFT);
+        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
+        versionEntity.setRefBook(refBookEntity);
+        versionEntity.setStatus(RefBookVersionStatus.DRAFT);
+
+        if (request.getPassport() != null) {
+            versionEntity.setPassportValues(stringPassportToValues(request.getPassport(), false, versionEntity));
+        }
 
         String storageCode = draftDataService.createDraft(emptyList());
-        refBookVersionEntity.setStorageCode(storageCode);
+        versionEntity.setStorageCode(storageCode);
         Structure structure = new Structure();
         structure.setAttributes(emptyList());
         structure.setReferences(emptyList());
-        refBookVersionEntity.setStructure(structure);
+        versionEntity.setStructure(structure);
 
-        RefBookVersionEntity savedVersion = versionRepository.save(refBookVersionEntity);
-        RefBook refBook = refBookModel(savedVersion, false,
-            getSourceTypeVersion(savedVersion.getRefBook().getId(), RefBookSourceType.DRAFT),
-            getSourceTypeVersion(savedVersion.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED)
+        RefBookVersionEntity savedEntity = versionRepository.save(versionEntity);
+        RefBook refBook = refBookModel(savedEntity, false,
+            getSourceTypeVersion(savedEntity.getRefBook().getId(), RefBookSourceType.DRAFT),
+            getSourceTypeVersion(savedEntity.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED)
         );
 
-        auditLogService.addAction(AuditAction.CREATE_REF_BOOK, () -> savedVersion);
+        auditLogService.addAction(AuditAction.CREATE_REF_BOOK, () -> savedEntity);
 
         return refBook;
     }
@@ -434,19 +438,10 @@ public class RefBookServiceImpl implements RefBookService {
         return (where.getValue() != null) && !versionRepository.exists(where.getValue());
     }
 
-    private void populateVersionFromPassport(RefBookVersionEntity versionEntity, Map<String, String> passport) {
-        if (passport != null && versionEntity != null) {
-            versionEntity.setPassportValues(passport.entrySet().stream()
-                    .filter(e -> e.getValue() != null)
-                    .map(e -> new PassportValueEntity(new PassportAttributeEntity(e.getKey()), e.getValue(), versionEntity))
-                    .collect(toList()));
-        }
-    }
-
     private void updateVersionFromPassport(RefBookVersionEntity versionEntity, Map<String, String> newPassport) {
-        if (newPassport == null || versionEntity == null) {
+
+        if (newPassport == null || versionEntity == null)
             return;
-        }
 
         List<PassportValueEntity> newPassportValues = versionEntity.getPassportValues() != null ?
                 versionEntity.getPassportValues() : new ArrayList<>();
@@ -473,9 +468,7 @@ public class RefBookServiceImpl implements RefBookService {
                 .collect(Collectors.toSet());
         correctUpdatePassport.entrySet().removeAll(toUpdate);
 
-        newPassportValues.addAll(correctUpdatePassport.entrySet().stream()
-                .map(a -> new PassportValueEntity(new PassportAttributeEntity(a.getKey()), a.getValue(), versionEntity))
-                .collect(toList()));
+        newPassportValues.addAll(stringPassportToValues(correctUpdatePassport, true, versionEntity));
 
         versionEntity.setPassportValues(newPassportValues);
     }

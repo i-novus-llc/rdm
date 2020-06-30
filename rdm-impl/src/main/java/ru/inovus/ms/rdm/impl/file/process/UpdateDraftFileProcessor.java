@@ -56,6 +56,7 @@ public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
 
         if (passport != null && pair != null) {
             CreateDraftRequest request = new CreateDraftRequest(refBookId, pair.getFirst(), passport, pair.getSecond());
+            request.setReferrerValidationRequired(true);
             return draftService.create(request);
         }
 

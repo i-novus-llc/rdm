@@ -16,22 +16,30 @@ import static java.util.Collections.emptyMap;
 public class CreateDraftRequest implements Serializable {
 
     private Integer refBookId;
-    private Structure structure;
-    private Map<String, Object> passport; // NOSONAR
-    private Map<String, List<AttributeValidation>> fieldValidations; // NOSONAR
 
-    public CreateDraftRequest(Integer refBookId, Structure structure, Map<String, Object> passport, Map<String, List<AttributeValidation>> fieldValidations) {
+    private Structure structure;
+
+    private Map<String, Object> passport; // NOSONAR
+
+    private Map<String, List<AttributeValidation>> validations; // NOSONAR
+
+    private boolean referrerValidationRequired;
+
+    public CreateDraftRequest() {
+    }
+
+    public CreateDraftRequest(Integer refBookId, Structure structure, Map<String, Object> passport,
+                              Map<String, List<AttributeValidation>> validations) {
         this.refBookId = refBookId;
         this.structure = structure;
         this.passport = passport;
-        this.fieldValidations = fieldValidations;
+
+        this.validations = validations;
     }
 
     public CreateDraftRequest(Integer refBookId, Structure structure) {
         this(refBookId, structure, emptyMap(), emptyMap());
     }
-
-    public CreateDraftRequest() {}
 
     @ApiModelProperty(value = "Идентификатор справочника")
     public Integer getRefBookId() {
@@ -61,27 +69,42 @@ public class CreateDraftRequest implements Serializable {
     }
 
     @ApiModelProperty(value = "Пользовательские проверки")
-    public Map<String, List<AttributeValidation>> getFieldValidations() {
-        return fieldValidations;
+    public Map<String, List<AttributeValidation>> getValidations() {
+        return validations;
     }
 
-    public void setFieldValidations(Map<String, List<AttributeValidation>> fieldValidations) {
-        this.fieldValidations = fieldValidations;
+    public void setValidations(Map<String, List<AttributeValidation>> validations) {
+        this.validations = validations;
+    }
+
+    /**
+     * Требование дополнительной валидации для структуры ссылочного справочника.
+     * Дополнительная валидация необходима при создании черновика из файла.
+     */
+    public boolean getReferrerValidationRequired() {
+        return referrerValidationRequired;
+    }
+
+    public void setReferrerValidationRequired(boolean referrerValidationRequired) {
+        this.referrerValidationRequired = referrerValidationRequired;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         CreateDraftRequest that = (CreateDraftRequest) o;
         return Objects.equals(refBookId, that.refBookId) &&
                 Objects.equals(structure, that.structure) &&
                 Objects.equals(passport, that.passport) &&
-                Objects.equals(fieldValidations, that.fieldValidations);
+
+                Objects.equals(validations, that.validations) &&
+                Objects.equals(referrerValidationRequired, that.referrerValidationRequired);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(refBookId, structure, passport);
+        return Objects.hash(refBookId, structure, passport, validations, referrerValidationRequired);
     }
 }

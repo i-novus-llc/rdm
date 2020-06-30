@@ -11,8 +11,8 @@ import ru.inovus.ms.rdm.api.util.TimeUtils;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "ref_book_version", schema = "n2o_rdm_management")
@@ -199,6 +199,15 @@ public class RefBookVersionEntity implements Serializable {
     }
 
     /**
+     * Проверка отсутствия структуры.
+     *
+     * @return Результат проверки
+     */
+    public boolean hasEmptyStructure() {
+        return structure == null || structure.isEmpty();
+    }
+
+    /**
      * Формирование модели черновика.
      *
      * @return Модель черновика
@@ -214,6 +223,47 @@ public class RefBookVersionEntity implements Serializable {
      */
     public String getVersionNumber() {
         return isDraft() ? DRAFT_VERSION : getVersion();
+    }
+
+    /**
+     * Получение значения паспорта по атрибуту.
+     *
+     * @param passportAttribute паспортный атрибут
+     * @return Значение паспорта
+     */
+    public PassportValueEntity getPassportValue(PassportAttributeEntity passportAttribute) {
+
+        if (getPassportValues() == null)
+            return null;
+
+        return getPassportValues().stream()
+                .filter(value -> value.getAttribute().equals(passportAttribute))
+                .findFirst().orElse(null);
+    }
+
+    /**
+     * Преобразование паспорта справочника в набор строк.
+     *
+     * @return Паспорт справочника в виде набора строк
+     */
+    public Map<String, String> toPassport() {
+
+        if (getPassportValues() == null)
+            return null;
+
+        return getPassportValues().stream()
+                .filter(v -> v.getValue() != null)
+                .sorted((v1, v2) -> {
+                    if (v1.getAttribute().getPosition() == null || v2.getAttribute().getPosition() == null)
+                        return 0;
+
+                    return v1.getAttribute().getPosition() - v2.getAttribute().getPosition();
+                })
+                .collect(Collectors.toMap(
+                        v -> v.getAttribute().getCode(),
+                        PassportValueEntity::getValue,
+                        (e1, e2) -> e2,
+                        LinkedHashMap::new));
     }
 
     @PrePersist
@@ -274,5 +324,41 @@ public class RefBookVersionEntity implements Serializable {
         sb.append(", lastActionDate=").append(lastActionDate);
         sb.append('}');
         return sb.toString();
+    }
+
+    /**
+     * Преобразование набора строк в паспорт справочника.
+     *
+     * @param passport      набор значений-строк
+     * @param allValues     признак преобразования всех значений:
+     *                      если false, то преобразуются только не-null значения
+     * @param versionEntity версия, указываемая в паспортных данных
+     * @return Паспорт справочника
+     */
+    public static List<PassportValueEntity> stringPassportToValues(Map<String, String> passport,
+                                                                   boolean allValues,
+                                                                   RefBookVersionEntity versionEntity) {
+        return passport.entrySet().stream()
+                .filter(e -> allValues || e.getValue() != null)
+                .map(e -> new PassportValueEntity(new PassportAttributeEntity(e.getKey()), e.getValue(), versionEntity))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Преобразование набора значений в паспорт справочника.
+     *
+     * @param passport      набор значений
+     * @param allValues     признак преобразования всех значений:
+     *                      если false, то преобразуются только не-null значения
+     * @param versionEntity версия, указываемая в паспортных данных
+     * @return Паспорт справочника
+     */
+    public static List<PassportValueEntity> objectPassportToValues(Map<String, Object> passport,
+                                                                   boolean allValues,
+                                                                   RefBookVersionEntity versionEntity) {
+        return passport.entrySet().stream()
+                .filter(e -> allValues || e.getValue() != null)
+                .map(e -> new PassportValueEntity(new PassportAttributeEntity(e.getKey()), (String) e.getValue(), versionEntity))
+                .collect(Collectors.toList());
     }
 }
