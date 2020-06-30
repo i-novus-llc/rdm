@@ -41,6 +41,10 @@
             </filters>
         </field>
 
+        <field id="isReferrer" domain="boolean">
+            <select/>
+        </field>
+
         <field id="hasReferrer" domain="boolean">
             <select/>
         </field>
@@ -124,42 +128,52 @@
             <select/>
         </field>
 
+        <!-- Пользовательские проверки -->
+
         <field id="required">
             <select/>
         </field>
         <field id="unique">
             <select/>
         </field>
+
         <field id="plainSize">
             <select/>
         </field>
+
         <field id="intPartSize">
             <select/>
         </field>
         <field id="fracPartSize">
             <select/>
         </field>
+
         <field id="minInteger">
             <select/>
         </field>
         <field id="maxInteger">
             <select/>
         </field>
+
         <field id="minFloat">
             <select/>
         </field>
         <field id="maxFloat">
             <select/>
         </field>
+
         <field id="dateInterval.begin">
             <select mapping="minDate"/>
         </field>
         <field id="dateInterval.end">
             <select mapping="maxDate"/>
         </field>
+
         <field id="regExp">
             <select/>
         </field>
+
+        <!-- / Пользовательские проверки -->
 
     </fields>
 </query>
