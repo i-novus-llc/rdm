@@ -674,10 +674,11 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void createAttribute(CreateAttribute createAttribute, Integer optLockValue) {
 
-        versionValidation.validateDraft(createAttribute.getVersionId());
-        refBookLockService.validateRefBookNotBusyByVersionId(createAttribute.getVersionId());
+        final Integer draftId = createAttribute.getVersionId();
+        versionValidation.validateDraft(draftId);
+        refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
-        RefBookVersionEntity draftEntity = versionRepository.getOne(createAttribute.getVersionId());
+        RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
         Structure structure = draftEntity.getStructure();
         if (structure == null)
             structure = new Structure();
@@ -718,10 +719,11 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void updateAttribute(UpdateAttribute updateAttribute, Integer optLockValue) {
 
-        versionValidation.validateDraft(updateAttribute.getVersionId());
-        refBookLockService.validateRefBookNotBusyByVersionId(updateAttribute.getVersionId());
+        final Integer draftId = updateAttribute.getVersionId();
+        versionValidation.validateDraft(draftId);
+        refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
-        RefBookVersionEntity draftEntity = versionRepository.getOne(updateAttribute.getVersionId());
+        RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
         Structure structure = draftEntity.getStructure();
 
         Structure.Attribute oldAttribute = structure.getAttribute(updateAttribute.getCode());
@@ -763,7 +765,7 @@ public class DraftServiceImpl implements DraftService {
 
         // Валидации для старого типа удаляются отдельным вызовом updateAttributeValidations.
         if (Objects.equals(oldAttribute.getType(), updateAttribute.getType())) {
-            attributeValidationRepository.deleteByVersionIdAndAttribute(updateAttribute.getVersionId(), updateAttribute.getCode());
+            attributeValidationRepository.deleteByVersionIdAndAttribute(draftId, updateAttribute.getCode());
         }
 
         auditStructureEdit(draftEntity, "update_attribute", newAttribute);
