@@ -13,6 +13,11 @@ public class UiDraft extends Draft {
         this.refBookId = refBookId;
     }
 
+    public UiDraft(Draft draft, Integer refBookId) {
+        super(draft.getId(), null, draft.getOptLockValue());
+        this.refBookId = refBookId;
+    }
+
     public Integer getRefBookId() {
         return refBookId;
     }

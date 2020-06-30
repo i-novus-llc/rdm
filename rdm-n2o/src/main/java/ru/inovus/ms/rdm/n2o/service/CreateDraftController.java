@@ -71,14 +71,13 @@ public class CreateDraftController {
             return new UiDraft(versionId, refBookId, version.getOptLockValue());
         }
 
-        Integer draftId = draftService.getIdByRefBookCode(version.getCode());
-        if (draftId != null) {
-            Draft draft = draftService.getDraft(draftId);
-            return new UiDraft(draftId, refBookId, draft.getOptLockValue());
+        Draft draft = draftService.findDraft(version.getCode());
+        if (draft != null) {
+            return new UiDraft(draft, refBookId);
         }
 
         Draft newDraft = draftService.createFromVersion(versionId);
-        return new UiDraft(newDraft.getId(), refBookId, newDraft.getOptLockValue());
+        return new UiDraft(newDraft, refBookId);
     }
 
     public UiDraft editPassport(Integer versionId, UiPassport uiPassport, Integer optLockValue) {
