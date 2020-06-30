@@ -390,25 +390,25 @@ public class DraftServiceImpl implements DraftService {
     public void updateData(Integer draftId, List<Row> rows, Integer optLockValue) {
 
         versionValidation.validateDraft(draftId);
-        RefBookVersionEntity draftVersion = versionRepository.getOne(draftId);
+        RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
 
         List<Object> addedData = null;
-        List<RowDiff> rowDiffs = null;
-        refBookLockService.setRefBookUpdating(draftVersion.getRefBook().getId());
+        List<RowDiff> updateDiffData = null;
+        refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
         try {
-            versionValidation.validateOptLockValue(draftId, draftVersion.getOptLockValue(), optLockValue);
+            versionValidation.validateOptLockValue(draftId, draftEntity.getOptLockValue(), optLockValue);
 
-            rows = prepareRows(rows, draftVersion, true);
+            rows = prepareRows(rows, draftEntity, true);
             if (rows.isEmpty()) return;
 
-            List<RowValue> rowValues = rows.stream().map(row -> ConverterUtil.rowValue((row), draftVersion.getStructure())).collect(toList());
-            validateDataByStructure(draftVersion, rows);
+            List<RowValue> rowValues = rows.stream().map(row -> ConverterUtil.rowValue((row), draftEntity.getStructure())).collect(toList());
+            validateDataByStructure(draftEntity, rows);
 
             List<RowValue> addedRowValues = rowValues.stream().filter(rowValue -> rowValue.getSystemId() == null).collect(toList());
             if (!isEmpty(addedRowValues)) {
                 try {
-                    draftDataService.addRows(draftVersion.getStorageCode(), addedRowValues);
-                    draftVersion.setLastActionDate(TimeUtils.now());
+                    draftDataService.addRows(draftEntity.getStorageCode(), addedRowValues);
+                    draftEntity.setLastActionDate(TimeUtils.now());
 
                 } catch (RuntimeException e) {
                     ErrorUtil.rethrowError(e);
@@ -419,9 +419,9 @@ public class DraftServiceImpl implements DraftService {
 
             List<RowValue> updatedRowValues = rowValues.stream().filter(rowValue -> rowValue.getSystemId() != null).collect(toList());
             if (!isEmpty(updatedRowValues)) {
-                List<String> fields = StructureUtils.getAttributeCodes(draftVersion.getStructure()).collect(toList());
+                List<String> fields = StructureUtils.getAttributeCodes(draftEntity.getStructure()).collect(toList());
                 List<Object> systemIds = updatedRowValues.stream().map(RowValue::getSystemId).collect(toList());
-                List<RowValue> oldRowValues = searchDataService.findRows(draftVersion.getStorageCode(), fields, systemIds);
+                List<RowValue> oldRowValues = searchDataService.findRows(draftEntity.getStorageCode(), fields, systemIds);
 
                 List<Message> messages = systemIds.stream()
                         .filter(systemId -> !RowUtils.isSystemIdRowValue(systemId, oldRowValues))
@@ -429,17 +429,17 @@ public class DraftServiceImpl implements DraftService {
                         .collect(toList());
                 if (!isEmpty(messages)) throw new UserException(messages);
 
-                rowDiffs = oldRowValues.stream()
+                updateDiffData = oldRowValues.stream()
                         .map(oldRowValue -> {
                             RowValue newRowValue = RowUtils.getSystemIdRowValue(oldRowValue.getSystemId(), updatedRowValues);
                             return RowDiffUtils.getRowDiff(oldRowValue, newRowValue);
                         })
                         .collect(toList());
 
-                conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftVersion.getId(), RowUtils.toLongSystemIds(systemIds));
+                conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftEntity.getId(), RowUtils.toLongSystemIds(systemIds));
                 try {
-                    draftDataService.updateRows(draftVersion.getStorageCode(), updatedRowValues);
-                    draftVersion.setLastActionDate(TimeUtils.now());
+                    draftDataService.updateRows(draftEntity.getStorageCode(), updatedRowValues);
+                    draftEntity.setLastActionDate(TimeUtils.now());
 
                 } catch (RuntimeException e) {
                     ErrorUtil.rethrowError(e);
@@ -447,14 +447,17 @@ public class DraftServiceImpl implements DraftService {
             }
 
             if (!isEmpty(addedRowValues) || !isEmpty(updatedRowValues)) {
-                forceUpdateOptLockValue(draftVersion);
+                forceUpdateOptLockValue(draftEntity);
             }
 
         } finally {
-            refBookLockService.deleteRefBookOperation(draftVersion.getRefBook().getId());
+            refBookLockService.deleteRefBookOperation(draftEntity.getRefBook().getId());
         }
 
-        auditEditData(draftVersion, Map.of("create_rows", addedData == null ? "-" : addedData, "update_rows", rowDiffs == null ? "-" : rowDiffs));
+        auditEditData(draftEntity, Map.of(
+                "create_rows", addedData == null ? "-" : addedData,
+                "update_rows", updateDiffData == null ? "-" : updateDiffData
+        ));
     }
 
     @Override
@@ -598,18 +601,18 @@ public class DraftServiceImpl implements DraftService {
     public void updateData(Integer draftId, FileModel fileModel) {
 
         versionValidation.validateDraft(draftId);
-        RefBookVersionEntity draftVersion = versionRepository.findById(draftId).orElseThrow();
+        RefBookVersionEntity draftEntity = versionRepository.findById(draftId).orElseThrow();
 
-        Integer refBookId = draftVersion.getRefBook().getId();
+        Integer refBookId = draftEntity.getRefBook().getId();
         refBookLockService.setRefBookUpdating(refBookId);
         try {
-            updateDraftData(draftVersion, fileModel);
+            updateDraftData(draftEntity, fileModel);
 
         } finally {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
 
-        // Нельзя просто передать draftVersion, так как в аудите подтягиваются значения паспорта справочника
+        // Нельзя просто передать draftEntity, так как в аудите подтягиваются значения паспорта справочника
         // (а у них lazy-инициализация), поэтому нужна транзакция (которой в этом методе нет).
         auditLogService.addAction(AuditAction.UPLOAD_DATA, () -> versionRepository.findById(draftId).orElse(null));
     }
