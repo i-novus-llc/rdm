@@ -66,7 +66,7 @@ public interface DraftService {
     @Path("/update/{draftId}")
     void updateData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
                     @ApiParam("Запись черновика") Row row,
-                    @ApiParam("Значение оптимистической блокировки") @QueryParam("optLockValue") Integer optLockValue);
+                    @ApiParam("Значение оптимистической блокировки версии") @QueryParam("optLockValue") Integer optLockValue);
 
     @POST
     @ApiOperation("Добавление или изменение записей черновика")
@@ -78,7 +78,7 @@ public interface DraftService {
     @Path("/updateList/{draftId}")
     void updateData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
                     @ApiParam("Записи черновика") List<Row> rows,
-                    @ApiParam("Значение оптимистической блокировки") @QueryParam("optLockValue") Integer optLockValue);
+                    @ApiParam("Значение оптимистической блокировки версии") @QueryParam("optLockValue") Integer optLockValue);
 
     @DELETE
     @ApiOperation("Удаление записи черновика (либо по первичному ключу, либо по системному идентификатору)")
@@ -90,7 +90,7 @@ public interface DraftService {
     @Path("/deleteRow/{draftId}")
     void deleteRow(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
                    @ApiParam("Запись черновика") Row row,
-                   @ApiParam("Значение оптимистической блокировки") @QueryParam("optLockValue") Integer optLockValue);
+                   @ApiParam("Значение оптимистической блокировки версии") @QueryParam("optLockValue") Integer optLockValue);
 
     @DELETE
     @ApiOperation(value = "Удаление записей черновика (либо по первичному ключу, либо по системному идентификатору)")
@@ -102,7 +102,7 @@ public interface DraftService {
     @Path("/deleteRows/{draftId}")
     void deleteRows(@PathParam("draftId") Integer draftId,
                     @ApiParam("Записи черновика") List<Row> rows,
-                    @ApiParam("Значение оптимистической блокировки") @QueryParam("optLockValue") Integer optLockValue);
+                    @ApiParam("Значение оптимистической блокировки версии") @QueryParam("optLockValue") Integer optLockValue);
 
     @DELETE
     @ApiOperation("Удаление всех записей черновика")
@@ -113,7 +113,7 @@ public interface DraftService {
     })
     @Path("/deleteAll/{draftId}")
     void deleteAllRows(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
-                       @ApiParam("Значение оптимистической блокировки") @QueryParam("optLockValue") Integer optLockValue);
+                       @ApiParam("Значение оптимистической блокировки версии") @QueryParam("optLockValue") Integer optLockValue);
 
     @POST
     @ApiOperation("Обновление черновика из файла")
@@ -184,7 +184,7 @@ public interface DraftService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     void createAttribute(@ApiParam("Модель создаваемого атрибута") CreateAttribute createAttribute,
-                         @ApiParam("Значение оптимистической блокировки") @QueryParam("optLockValue") Integer optLockValue);
+                         @ApiParam("Значение оптимистической блокировки версии") @QueryParam("optLockValue") Integer optLockValue);
 
     @PUT
     @Path("/attribute")
@@ -195,7 +195,7 @@ public interface DraftService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     void updateAttribute(@ApiParam("Модель изменяемого атрибута") UpdateAttribute updateAttribute,
-                         @ApiParam("Значение оптимистической блокировки") @QueryParam("optLockValue") Integer optLockValue);
+                         @ApiParam("Значение оптимистической блокировки версии") @QueryParam("optLockValue") Integer optLockValue);
 
     @DELETE
     @Path("/{versionId}/attribute/{code}")
@@ -207,7 +207,7 @@ public interface DraftService {
     })
     void deleteAttribute(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
                          @ApiParam("Код атрибута") @PathParam("code") String attributeCode,
-                         @ApiParam("Значение оптимистической блокировки") @QueryParam("optLockValue") Integer optLockValue);
+                         @ApiParam("Значение оптимистической блокировки версии") @QueryParam("optLockValue") Integer optLockValue);
 
     @POST
     @Path("/{versionId}/attribute/{attribute}/validation")
