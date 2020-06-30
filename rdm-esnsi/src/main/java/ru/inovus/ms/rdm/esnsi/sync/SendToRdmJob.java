@@ -78,12 +78,12 @@ public class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
         if (draftId == -1) {
             draftId = draft == null ? -1 : draft.getId();
             if (draftId == -1) {
-                Integer draftIdByRefBookCode = draftService.getIdByRefBookCode(refBookCode);
-                if (draftIdByRefBookCode == null) {
+                Draft draftByRefBookCode = draftService.findDraft(refBookCode);
+                if (draftByRefBookCode == null) {
                     logger.warn("Unable to fetch draft from RDM. Publication of draft failed. If the draft is still contained in the RDM, publish it manually.");
                     return true;
                 } else
-                    draftId = draftIdByRefBookCode;
+                    draftId = draftByRefBookCode.getId();
             }
         }
         jobDataMap.put(DRAFT_ID_KEY, draftId);

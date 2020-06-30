@@ -51,7 +51,7 @@ public class RefBookServiceImpl implements RefBookService {
 
     private static final String REFBOOK_IS_NOT_CREATED_EXCEPTION_CODE = "refbook.is.not.created";
     private static final String REFBOOK_IS_NOT_CREATED_FROM_XLSX_EXCEPTION_CODE = "refbook.is.not.created.from.xlsx";
-    private static final String DRAFT_NOT_FOUND_EXCEPTION_CODE = "draft.not.found";
+    private static final String REFBOOK_DRAFT_NOT_FOUND_EXCEPTION_CODE = "refbook.draft.not.found";
 
     private RefBookRepository refBookRepository;
     private RefBookVersionRepository versionRepository;
@@ -351,16 +351,16 @@ public class RefBookServiceImpl implements RefBookService {
 
         refBookLockService.setRefBookUpdating(refBook.getId());
         try {
-            Integer draftId = draftService.getIdByRefBookCode(refBookCode);
-            if (draftId == null) {
+            Draft draft = draftService.findDraft(refBookCode);
+            if (draft == null) {
                 RefBookVersionEntity lastPublishedEntity = versionRepository
                         .findFirstByRefBookIdAndStatusOrderByFromDateDesc(refBook.getId(), RefBookVersionStatus.PUBLISHED);
-                Draft draft = draftService.createFromVersion(lastPublishedEntity.getId());
-                draftId = draft.getId();
+                draft = draftService.createFromVersion(lastPublishedEntity.getId());
+                if (draft == null)
+                    throw new UserException(new Message(REFBOOK_DRAFT_NOT_FOUND_EXCEPTION_CODE, refBook.getId()));
             }
-            if (draftId == null)
-                throw new UserException(new Message(DRAFT_NOT_FOUND_EXCEPTION_CODE, draftId));
 
+            Integer draftId = draft.getId();
             draftService.updateData(draftId, request.getRowsToAddOrUpdate(), null);
             draftService.deleteRows(draftId, request.getRowsToDelete(), null);
             publishService.publish(new PublishRequest(draftId, null));

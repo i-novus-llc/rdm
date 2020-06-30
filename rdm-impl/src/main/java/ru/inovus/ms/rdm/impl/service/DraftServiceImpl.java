@@ -664,6 +664,13 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
+    public Draft findDraft(String refBookCode) {
+
+        RefBookVersionEntity draftEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.DRAFT);
+        return draftEntity != null ? draftEntity.toDraft() : null;
+    }
+
+    @Override
     @Transactional
     public void createAttribute(CreateAttribute createAttribute, Integer optLockValue) {
 
@@ -978,12 +985,6 @@ public class DraftServiceImpl implements DraftService {
         return new ExportFile(
                 versionFileService.generate(versionModel, fileType, dataIterator),
                 fileNameGenerator.generateZipName(versionModel, fileType));
-    }
-
-    @Override
-    public Integer getIdByRefBookCode(String refBookCode) {
-        RefBookVersionEntity draftEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.DRAFT);
-        return draftEntity != null ? draftEntity.getId() : null;
     }
 
     private void auditStructureEdit(RefBookVersionEntity refBook, String action, Structure.Attribute attribute) {

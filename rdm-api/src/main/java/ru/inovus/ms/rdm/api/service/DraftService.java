@@ -166,6 +166,15 @@ public interface DraftService {
     })
     Draft getDraft(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId);
 
+    @GET
+    @Path("/refBook/{refBookCode}")
+    @ApiOperation(value = "Получение черновика по коду справочника", hidden = true)
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Черновик"),
+            @ApiResponse(code = 400, message = "Некорректный запрос")
+    })
+    Draft findDraft(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode);
+
     @POST
     @Path("/attribute")
     @ApiOperation("Добавление атрибута справочника")
@@ -255,13 +264,4 @@ public interface DraftService {
     })
     ExportFile getDraftFile(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
                             @ApiParam(value = "Тип файла", required = true, allowableValues = "XLSX, XML") @QueryParam("type") FileType fileType);
-
-    @GET
-    @Path("/getIdByRefBookCode/{refBookCode}")
-    @ApiOperation(value = "Идентификатор черновика по коду справочника", hidden = true)
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Идентификатор черновика")
-    })
-    Integer getIdByRefBookCode(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode);
-
 }
