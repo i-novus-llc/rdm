@@ -1,12 +1,11 @@
 package ru.inovus.ms.rdm.api.util;
 
 import org.apache.commons.text.StringSubstitutor;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
-import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.inovus.ms.rdm.api.exception.RdmException;
@@ -28,6 +27,8 @@ import static ru.i_novus.platform.datastorage.temporal.model.DataConstants.SYS_P
 
 public class FieldValueUtils {
 
+    private static final String PRIMARY_KEY_CODE_DELIMITER = ": ";
+
     private FieldValueUtils() {
     }
 
@@ -36,41 +37,65 @@ public class FieldValueUtils {
      *
      * @param displayExpression выражение для вычисления отображаемого значения
      * @param rowValue          запись со значениями подставляемых полей
+     * @param primaryKeyCodes   список кодов первичных ключей
      * @return Отображаемое значение
      */
-    public static String rowValueToDisplayValueWithPkLeading(String displayExpression, String pk, RowValue rowValue) {
-        return fieldValuesToDisplayValue(displayExpression, pk, ((LongRowValue)rowValue).getFieldValues());
+    public static String toDisplayValue(String displayExpression,
+                                        RowValue rowValue,
+                                        List<String> primaryKeyCodes) {
+        return toDisplayValue(displayExpression, ((LongRowValue)rowValue).getFieldValues(), primaryKeyCodes);
     }
 
     /**
      * Получение отображаемого значения.
      *
      * @param displayExpression выражение для вычисления отображаемого значения
-     * @param pk Первичный ключ
      * @param fieldValues       список значений подставляемых полей
+     * @param primaryKeyCodes   список кодов первичных ключей
      * @return Отображаемое значение
      */
-    private static String fieldValuesToDisplayValue(String displayExpression, String pk, List<FieldValue> fieldValues) {
-        Map<String, Object> map = new HashMap<>();
+    private static String toDisplayValue(String displayExpression,
+                                         List<FieldValue> fieldValues,
+                                         List<String> primaryKeyCodes) {
+
         Map<String, String> placeholders = new DisplayExpression(displayExpression).getPlaceholders();
-        String pkVal = null;
-        boolean pkInDisplayExpression = false;
-        for (FieldValue fieldValue : fieldValues) {
-            String defaultVal = placeholders.get(fieldValue.getField());
-            if (defaultVal != null) {
-                map.put(fieldValue.getField(), fieldValue.getValue() == null ? defaultVal : fieldValue.getValue());
-                if (fieldValue.getField().equals(pk))
-                    pkInDisplayExpression = true;
-            }
-            if (!pkInDisplayExpression && fieldValue.getField().equals(pk))
-                pkVal = fieldValue.getValue().toString();
+
+        Map<String, Object> map = new HashMap<>();
+        fieldValues.forEach(fieldValue ->
+                map.put(fieldValue.getField(), toDisplayValue(fieldValue, placeholders))
+        );
+
+        List<String> absentPlaceholders = placeholders.keySet().stream()
+                        .filter(placeholder -> Objects.isNull(map.get(placeholder)))
+                        .collect(toList());
+        absentPlaceholders.forEach(absent -> map.put(absent, ""));
+
+        String displayValue = createDisplayExpressionSubstitutor(map).replace(displayExpression);
+
+        if (!CollectionUtils.containsAny(placeholders.keySet(), primaryKeyCodes)) {
+
+            String primaryKeysValue = primaryKeyCodes.stream()
+                    .map(code -> String.valueOf(map.get(code)))
+                    .filter(value -> !StringUtils.isEmpty(value))
+                    .reduce("", (result, value) -> result + value + PRIMARY_KEY_CODE_DELIMITER);
+            displayValue = primaryKeysValue + displayValue;
         }
-        String display = new StringSubstitutor(map, DisplayExpression.PLACEHOLDER_START, DisplayExpression.PLACEHOLDER_END).replace(displayExpression);
-        return pkInDisplayExpression ? display : pkVal + ": " + display;
+
+        return displayValue;
+    }
+
+    /** Получение отображаемого значения из поля. */
+    private static String toDisplayValue(FieldValue fieldValue, Map<String, String> placeholders) {
+
+        if (fieldValue.getValue() != null)
+            return String.valueOf(fieldValue.getValue());
+
+        String value = placeholders.get(fieldValue.getField());
+        return (value != null) ? value : "";
     }
 
     /**
-     * Возвращает типизированное значение атрибута.
+     * Получение типизированного значения атрибута.
      *
      * @param fieldValue   значение атрибута
      * @param refFieldType тип атрибута, к которому приводится значение
@@ -84,7 +109,7 @@ public class FieldValueUtils {
     }
 
     /**
-     * Возвращает типизированное значение ссылки.
+     * Получение типизированного значения ссылки.
      *
      * <p>При приведении типа используется тип атрибута, НА который ссылаемся.</p>
      *
@@ -195,13 +220,15 @@ public class FieldValueUtils {
         diffFieldValues.forEach(fieldValue ->
                 map.put(fieldValue.getField().getName(), getDiffFieldValue(fieldValue, diffStatus))
         );
-        return new StringSubstitutor(map, DisplayExpression.PLACEHOLDER_START, DisplayExpression.PLACEHOLDER_END).replace(displayExpression);
+        return createDisplayExpressionSubstitutor(map).replace(displayExpression);
     }
 
-    public static boolean eq(Object v1, FieldValue v2) {
-        if (v1 instanceof Reference && v2.getValue() instanceof Reference)
-            return Objects.equals(((Reference) v1).getValue(), ((Reference) v2.getValue()).getValue());
-        return Objects.equals(v1, v2.getValue());
-    }
+    /** Создание объекта подстановки в выражение для вычисления отображаемого значения. */
+    public static StringSubstitutor createDisplayExpressionSubstitutor(Map<String, Object> map) {
 
+        StringSubstitutor substitutor = new StringSubstitutor(map,
+                DisplayExpression.PLACEHOLDER_START, DisplayExpression.PLACEHOLDER_END);
+        substitutor.setValueDelimiter(DisplayExpression.PLACEHOLDER_DEFAULT_DELIMITER);
+        return substitutor;
+    }
 }

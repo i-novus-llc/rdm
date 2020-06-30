@@ -282,9 +282,6 @@ public class VersionValidationImpl implements VersionValidation {
                 || CollectionUtils.isEmpty(structure.getReferences()))
             return;
 
-        if (structure.isEmpty() || !structure.hasPrimary())
-            throw new UserException(REFERENCE_STRUCTURE_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE);
-
         structure.getReferences().forEach(reference -> validateReference(reference, structure));
     }
 
@@ -342,7 +339,8 @@ public class VersionValidationImpl implements VersionValidation {
                 .findFirstByRefBookCodeAndStatusOrderByFromDateDesc(code, RefBookVersionStatus.PUBLISHED);
         if (version == null)
             throw new UserException(new Message(REFERRED_BOOK_NOT_FOUND_EXCEPTION_CODE, code));
-        if (version.getStructure() == null)
+
+        if (version.hasEmptyStructure())
             throw new UserException(new Message(REFERRED_BOOK_STRUCTURE_NOT_FOUND_EXCEPTION_CODE, code));
     }
 
@@ -405,6 +403,24 @@ public class VersionValidationImpl implements VersionValidation {
         if (hasReferrerVersions(refBookCode)) {
             validateReferredDraftStructure(refBookCode, draftStructure);
         }
+    }
+
+    /**
+     * Проверка структуры ссылочного справочника.
+     *
+     * @param structure структура справочника, который ссылается
+     */
+    @Override
+    public void validateReferrerStructure(Structure structure) {
+
+        if (structure == null
+                || CollectionUtils.isEmpty(structure.getReferences()))
+            return;
+
+        if (structure.isEmpty() || !structure.hasPrimary())
+            throw new UserException(REFERENCE_STRUCTURE_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE);
+
+        structure.getReferences().forEach(this::validateReferenceAbility);
     }
 
     /**

@@ -13,6 +13,7 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.api.exception.RdmException;
+import ru.inovus.ms.rdm.api.model.AbstractCriteria;
 import ru.inovus.ms.rdm.api.util.StringUtils;
 import ru.inovus.ms.rdm.sync.model.DataTypeEnum;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
@@ -374,7 +375,13 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
             }
             return map;
         });
-        return new PageImpl<>(result, new RestCriteria(offset / limit, limit, Sort.by(Sort.Order.asc(pk))), count);
+
+        RestCriteria dataCriteria = new AbstractCriteria();
+        dataCriteria.setPageNumber(offset / limit);
+        dataCriteria.setPageSize(limit);
+        dataCriteria.setOrders(Sort.by(Sort.Order.asc(pk)).get().collect(Collectors.toList()));
+
+        return new PageImpl<>(result, dataCriteria, count);
     }
 
     private int getInternalStateColumnIdx(ResultSetMetaData meta, String table) throws SQLException {

@@ -63,7 +63,7 @@ public class RefBookPublishController {
 
         UiRefBookPublish uiRefBookPublish = new UiRefBookPublish(refBook);
 
-        if (refBook.getStructure() == null || refBook.getStructure().isEmpty()) {
+        if (refBook.hasEmptyStructure()) {
             String message = messages.getMessage(PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE);
             uiRefBookPublish.setErrorMessage(message);
             return uiRefBookPublish;

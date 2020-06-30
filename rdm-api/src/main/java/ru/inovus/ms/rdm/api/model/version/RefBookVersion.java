@@ -169,4 +169,13 @@ public class RefBookVersion {
     public boolean isDraft() {
         return RefBookVersionStatus.DRAFT.equals(status);
     }
+
+    /**
+     * Проверка отсутствия структуры.
+     *
+     * @return Результат проверки
+     */
+    public boolean hasEmptyStructure() {
+        return structure == null || structure.isEmpty();
+    }
 }
