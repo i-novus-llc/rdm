@@ -68,6 +68,7 @@
                                         redirect-url-after-submit="${rdm.context-path}/main/:refBookId/edit">
                                 <pre-filters>
                                     <eq field-id="versionId" value="{version.id}"/>
+                                    <eq field-id="optLockValue" value="{optLockValue}"/>
                                 </pre-filters>
                             </show-modal>
                         </menu-item>

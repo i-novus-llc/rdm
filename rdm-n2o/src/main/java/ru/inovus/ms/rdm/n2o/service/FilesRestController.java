@@ -69,10 +69,12 @@ public class FilesRestController {
     }
 
     @CrossOrigin(origins = "*")
-    @GetMapping(value = "/{versionId}/{type}")
-    public ResponseEntity<Resource> downloadFile(@PathVariable Integer versionId, @PathVariable FileType type) {
+    @GetMapping(value = "/{versionId}/{type}/{optLockValue}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable Integer versionId,
+                                                 @PathVariable FileType type,
+                                                 @PathVariable Integer optLockValue) {
 
-        ExportFile versionFile = versionService.getVersionFile(versionId, type);
+        ExportFile versionFile = versionService.getVersionFile(versionId, type, optLockValue);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.MULTIPART_FORM_DATA)

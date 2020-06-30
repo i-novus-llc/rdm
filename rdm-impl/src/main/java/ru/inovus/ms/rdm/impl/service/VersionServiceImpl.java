@@ -32,6 +32,7 @@ import ru.inovus.ms.rdm.api.service.VersionFileService;
 import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
 import ru.inovus.ms.rdm.api.util.TimeUtils;
+import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.impl.entity.VersionFileEntity;
@@ -71,6 +72,7 @@ public class VersionServiceImpl implements VersionService {
     private VersionFileRepository versionFileRepository;
     private VersionFileService versionFileService;
 
+    private VersionValidation versionValidation;
     private AuditLogService auditLogService;
 
     @Autowired
@@ -78,8 +80,8 @@ public class VersionServiceImpl implements VersionService {
     public VersionServiceImpl(RefBookVersionRepository versionRepository,
                               SearchDataService searchDataService,
                               FileStorage fileStorage, FileNameGenerator fileNameGenerator,
-                              VersionFileRepository versionFileRepository,
-                              VersionFileService versionFileService,
+                              VersionFileRepository versionFileRepository, VersionFileService versionFileService,
+                              VersionValidation versionValidation,
                               AuditLogService auditLogService) {
         this.versionRepository = versionRepository;
 
@@ -91,6 +93,7 @@ public class VersionServiceImpl implements VersionService {
         this.versionFileRepository = versionFileRepository;
         this.versionFileService = versionFileService;
 
+        this.versionValidation = versionValidation;
         this.auditLogService = auditLogService;
     }
 
@@ -191,30 +194,6 @@ public class VersionServiceImpl implements VersionService {
 
     @Override
     @Transactional
-    public ExportFile getVersionFile(Integer versionId, FileType fileType) {
-        if (fileType == null)
-            return null;
-
-        RefBookVersionEntity versionEntity = getVersionOrThrow(versionId);
-        VersionFileEntity fileEntity = versionFileRepository.findByVersionIdAndType(versionId, fileType);
-
-        String path = (fileEntity != null) ? fileEntity.getPath() : null;
-        if (fileEntity == null || !fileStorage.isExistContent(fileEntity.getPath())) {
-            path = generateVersionFile(versionEntity, fileType);
-        }
-
-        ExportFile exportFile = new ExportFile(
-                fileStorage.getContent(path),
-                fileNameGenerator.generateZipName(ModelGenerator.versionModel(versionEntity), fileType)
-        );
-
-        auditLogService.addAction(AuditAction.DOWNLOAD, () -> versionEntity);
-
-        return exportFile;
-    }
-
-    @Override
-    @Transactional
     public ExistsData existsData(List<String> rowIds) {
         List<String> notExistent = new ArrayList<>();
         Map<Integer, List<String>> hashes = new HashMap<>();
@@ -276,6 +255,34 @@ public class VersionServiceImpl implements VersionService {
     private RefBookVersionEntity getVersionOrThrow(Integer versionId) {
         return versionRepository.findById(versionId)
                 .orElseThrow(() -> new NotFoundException(new Message(VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE, versionId)));
+    }
+
+    @Override
+    @Transactional
+    public ExportFile getVersionFile(Integer versionId, FileType fileType, Integer optLockValue) {
+
+        if (fileType == null)
+            return null;
+
+        RefBookVersionEntity versionEntity = getVersionOrThrow(versionId);
+        if (versionEntity.isDraft()) {
+            versionValidation.validateOptLockValue(versionId, versionEntity.getOptLockValue(), optLockValue);
+        }
+
+        VersionFileEntity fileEntity = versionFileRepository.findByVersionIdAndType(versionId, fileType);
+        String path = (fileEntity != null) ? fileEntity.getPath() : null;
+        if (fileEntity == null || !fileStorage.isExistContent(fileEntity.getPath())) {
+            path = generateVersionFile(versionEntity, fileType);
+        }
+
+        ExportFile exportFile = new ExportFile(
+                fileStorage.getContent(path),
+                fileNameGenerator.generateZipName(ModelGenerator.versionModel(versionEntity), fileType)
+        );
+
+        auditLogService.addAction(AuditAction.DOWNLOAD, () -> versionEntity);
+
+        return exportFile;
     }
 
     private String generateVersionFile(RefBookVersionEntity version, FileType fileType) {
