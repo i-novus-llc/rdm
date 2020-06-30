@@ -96,7 +96,7 @@
                 <toolbar place="bottomRight">
                     <button label="Добавить" id="createAttribute_r"
                             widget-id="version_select" model="resolve">
-                        <show-modal page-id="attribute" submit-operation-id="create" upload="defaults">
+                        <show-modal page-id="attribute" submit-operation-id="createAttribute" upload="defaults">
                             <pre-filters>
                                 <eq field-id="versionId" value="{version.id}" ref-model="resolve"
                                     ref-widget-id="version_select"/>
@@ -111,7 +111,8 @@
                             </pre-filters>
                         </show-modal>
                     </button>
-                    <button label="Удалить" id="deleteAttribute_r" color="danger" icon="fa fa-trash">
+                    <button label="Удалить" id="deleteAttribute_r" color="danger" icon="fa fa-trash"
+                            enabling-condition="!(isPrimary &amp;&amp; (isReferrer || hasReferrer))">
                         <invoke operation-id="delete" close-after-success="false"/>
                     </button>
                 </toolbar>
@@ -123,11 +124,11 @@
                 <toolbar place="topRight">
                     <!--to-do: сделать отдельные кнопки без рефреша для редактирования черновика-->
                     <button id="createRecord_r" label="Добавить строку" icon="fa fa-plus"
-                            widget-id="version_select" model="resolve">
+                            widget-id="version_select" model="resolve"
+                            enabling-condition="!version.isEmptyStructure">
                         <show-modal page-id="dataRecordPage?{id}_create" upload="defaults" route="/create"
                                     submit-operation-id="create" refresh-widget-id="version_select"/>
                     </button>
-                    <!-- порядок кнопок в данном toolbar важен, так как эта кнопка изменяется в UpdateDependencyTransformer-->
                     <button id="updateRecord_r" label="Изменить строку" icon="fa fa-pencil"
                             widget-id="version_select" model="resolve">
                         <show-modal page-id="dataRecordPage?{id}_edit" upload="query" route="/update"

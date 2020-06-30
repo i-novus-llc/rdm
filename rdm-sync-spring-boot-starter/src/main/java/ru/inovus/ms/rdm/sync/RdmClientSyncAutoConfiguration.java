@@ -25,6 +25,7 @@ import ru.inovus.ms.rdm.api.service.CompareService;
 import ru.inovus.ms.rdm.api.service.RefBookService;
 import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
+import ru.inovus.ms.rdm.sync.rest.LocalRdmDataService;
 import ru.inovus.ms.rdm.sync.rest.RdmSyncRest;
 import ru.inovus.ms.rdm.sync.service.*;
 import ru.inovus.ms.rdm.sync.service.change_data.*;
@@ -224,6 +225,11 @@ public class RdmClientSyncAutoConfiguration {
     @SuppressWarnings("squid:S2440")
     public RdmSyncJobContext rdmSyncJobContext(RdmSyncDao rdmSyncDao, RdmChangeDataClient rdmChangeDataClient, @Value("${rdm_sync.export_from_local.batch_size:100}") int exportToRdmBatchSize) {
         return new RdmSyncJobContext(rdmSyncDao, rdmChangeDataClient, exportToRdmBatchSize);
+    }
+
+    @Bean
+    public LocalRdmDataService localRdmDataService() {
+        return new LocalRdmDataServiceImpl();
     }
 
 }

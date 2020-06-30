@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.n2o.service;
 import com.google.common.collect.ImmutableSet;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
-import org.apache.cxf.common.util.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -29,10 +28,16 @@ import ru.inovus.ms.rdm.n2o.model.UiPassport;
 import java.util.*;
 
 import static java.util.Collections.*;
+import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 
 @Controller
 @SuppressWarnings("unused")
 public class CreateDraftController {
+
+    private static final String UPDATED_DATA_NOT_FOUND_IN_CURRENT_EXCEPTION_CODE = "updated.data.not.found.in.current";
+    private static final String UPDATED_DATA_NOT_FOUND_IN_DRAFT_EXCEPTION_CODE = "updated.data.not.found.in.draft";
+    private static final String DATA_ROW_IS_EMPTY_EXCEPTION_CODE = "data.row.is.empty";
+    private static final String DATA_ROW_PK_EXISTS_EXCEPTION_CODE = "data.row.pk.exists";
 
     private RefBookService refBookService;
     private VersionService versionService;
@@ -111,29 +116,56 @@ public class CreateDraftController {
 
     public UiDraft updateDataRecord(Integer versionId, Row row) {
 
+        validatePresent(row);
+
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
+        // Изменение записи в опубликованной версии:
         if (!Objects.equals(versionId, uiDraft.getId())) {
-            row.setSystemId(calculateNewSystemId(row.getSystemId(), versionId, uiDraft.getId()));
+            row.setSystemId(findNewSystemId(row.getSystemId(), versionId, uiDraft.getId()));
         }
-//      Значит была нажата кнопка "Добавить строку".
-//      Если добавят строку с существующим первичным ключом, ошибки не будет, строка просто обновится новыми данными.
-//      Поэтому надо самим проверить, есть ли уже такой первичный ключ в справочнике и если есть -- бросить ошибку.
-        if (row.getSystemId() == null) {
-            RefBookVersion refBookVersion = versionService.getById(uiDraft.getId());
-            List<Structure.Attribute> primary = refBookVersion.getStructure().getPrimary();
-            if (!primary.isEmpty()) {
-                List<AttributeFilter> primaryKeyValueFilters = RowUtils.getPrimaryKeyValueFilters(row, primary);
-                SearchDataCriteria searchDataCriteria = new SearchDataCriteria(Set.of(primaryKeyValueFilters), null);
-                searchDataCriteria.setPageSize(1);
-                searchDataCriteria.setPageNumber(1);
-                long n = versionService.search(uiDraft.getId(), searchDataCriteria).getTotalElements();
-                if (n > 0)
-                    throw new UserException("pk.is.already.exists");
-            }
-        }
+
+        validatePrimaryKeys(uiDraft.getId(), row);
+
         dataRecordController.updateData(uiDraft.getId(), row);
         return uiDraft;
+    }
+
+    /** Проверка на заполненность хотя бы одного поля в записи. */
+    private void validatePresent(Row row) {
+        if (RowUtils.isEmptyRow(row))
+            throw new UserException(DATA_ROW_IS_EMPTY_EXCEPTION_CODE);
+    }
+
+    /**
+     * Проверка добавляемой записи на уникальность по первичным ключам в таблице БД.
+     *
+     * @param versionId идентификатор версии-черновика
+     * @param row       проверяемая запись
+     */
+    private void validatePrimaryKeys(Integer versionId, Row row) {
+        if (row.getSystemId() != null)
+            return;
+
+        Structure structure = versionService.getStructure(versionId);
+        List<Structure.Attribute> primaries = structure.getPrimary();
+        if (primaries.isEmpty())
+            return;
+
+        List<AttributeFilter> primaryFilters = RowUtils.getPrimaryKeyValueFilters(row, primaries);
+        if (primaryFilters.isEmpty())
+            return;
+
+        SearchDataCriteria criteria = new SearchDataCriteria();
+        criteria.setPageSize(1);
+        criteria.setAttributeFilter(Set.of(primaryFilters));
+
+        Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
+        if (rowValues != null && !isEmpty(rowValues.getContent())) {
+            Message message = new Message(DATA_ROW_PK_EXISTS_EXCEPTION_CODE,
+                    RowUtils.toNamedValues(row.getData(), primaries));
+            throw new UserException(message);
+        }
     }
 
     public UiDraft deleteDataRecord(Integer versionId, Long systemId) {
@@ -141,8 +173,9 @@ public class CreateDraftController {
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
         if (!Objects.equals(versionId, uiDraft.getId())) {
-            systemId = calculateNewSystemId(systemId, versionId, uiDraft.getId());
+            systemId = findNewSystemId(systemId, versionId, uiDraft.getId());
         }
+
         draftService.deleteRow(uiDraft.getId(), new Row(systemId, emptyMap()));
         return uiDraft;
     }
@@ -154,7 +187,9 @@ public class CreateDraftController {
         return uiDraft;
     }
 
-    private Long calculateNewSystemId(Long oldSystemId, Integer oldVersionId, Integer newVersionId) {
+    /** Поиск идентификатора записи в черновике по старому идентификатору в текущей версии. */
+    private Long findNewSystemId(Long oldSystemId, Integer oldVersionId, Integer newVersionId) {
+
         if (oldSystemId == null) return null;
 
         SearchDataCriteria criteria = new SearchDataCriteria();
@@ -162,14 +197,16 @@ public class CreateDraftController {
         criteria.setAttributeFilter(singleton(singletonList(recordIdFilter)));
 
         Page<RefBookRowValue> oldRow = versionService.search(oldVersionId, criteria);
-        if (CollectionUtils.isEmpty(oldRow.getContent())) throw new NotFoundException("record not found");
+        if (isEmpty(oldRow.getContent()))
+            throw new NotFoundException(UPDATED_DATA_NOT_FOUND_IN_CURRENT_EXCEPTION_CODE);
         String hash = oldRow.getContent().get(0).getHash();
 
         AttributeFilter hashFilter = new AttributeFilter(DataConstants.SYS_HASH, hash, FieldType.STRING);
         final SearchDataCriteria hashCriteria = new SearchDataCriteria(ImmutableSet.of(singletonList(hashFilter)), null);
 
         final Page<RefBookRowValue> newRow = versionService.search(newVersionId, hashCriteria);
-        if (CollectionUtils.isEmpty(newRow.getContent())) throw new NotFoundException("record not found");
+        if (isEmpty(newRow.getContent()))
+            throw new NotFoundException(UPDATED_DATA_NOT_FOUND_IN_DRAFT_EXCEPTION_CODE);
         return newRow.getContent().get(0).getSystemId();
     }
 
@@ -201,12 +238,11 @@ public class CreateDraftController {
         if (!version.isDraft())
             throw new UserException(new Message("version.is.not.draft", versionId));
 
-        if (version.getStructure() == null || version.getStructure().isEmpty())
+        if (version.hasEmptyStructure())
             throw new UserException(new Message("version.has.not.structure", versionId));
 
         draftService.updateData(versionId, fileModel);
 
         return new UiDraft(versionId, version.getRefBookId());
     }
-
 }

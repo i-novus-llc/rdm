@@ -68,6 +68,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     private static final String NO_PRIMARY_KEY_FOUND                = "No primary key found in reference book with code %s.";
     private static final String MAPPING_OUT_OF_DATE                 = "Field %s was deleted in version %s. Update your mappings.";
     private static final String COMPOSITE_PK_NOT_SUPPORTED          = "RefBook %s has composite primary key. They are not implemented yet.";
+    private static final String MORE_THAN_ONE_REFBOOK_FOUND         = "Search for RefBook with code %s returned more than one element.";
 
     @Autowired
     private RefBookService refBookService;
@@ -210,7 +211,12 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         RefBookCriteria refBookCriteria = new RefBookCriteria();
         refBookCriteria.setSourceType(RefBookSourceType.LAST_PUBLISHED);
         refBookCriteria.setCodeExact(code);
-        RefBook last = refBookService.search(refBookCriteria).get().findAny().orElseThrow(() -> new IllegalArgumentException(format(NO_REFBOOK_FOUND, code)));
+        Page<RefBook> page = refBookService.search(refBookCriteria);
+        if (page.getContent().isEmpty())
+            throw new IllegalArgumentException(format(NO_REFBOOK_FOUND, code));
+        if (page.getContent().size() > 1)
+            throw new IllegalStateException(format(MORE_THAN_ONE_REFBOOK_FOUND, code));
+        RefBook last = page.getContent().iterator().next();
         if (last.getStructure().getPrimary().isEmpty())
             throw new IllegalStateException(format(NO_PRIMARY_KEY_FOUND, code));
         if (last.getStructure().getPrimary().size() > 1)

@@ -225,12 +225,9 @@ public class DraftServiceTest {
         when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(eq(REFBOOK_ID), eq(RefBookVersionStatus.PUBLISHED)))
                 .thenReturn(lastRefBookVersion);
 
-        RefBookEntity refBook = new RefBookEntity();
-        refBook.setId(REFBOOK_ID);
-        RefBookVersionEntity expectedRefBookVersion = createTestDraftVersionEntity();
+        RefBookVersionEntity expectedRefBookVersion = createTestDraftVersionEntity(REFBOOK_ID);
         expectedRefBookVersion.setId(null);
         expectedRefBookVersion.setStorageCode(TEST_DRAFT_CODE_NEW);
-        expectedRefBookVersion.setRefBook(refBook);
         expectedRefBookVersion.getRefBook().setCode(TEST_REF_BOOK);
         when(versionRepository.save(eq(expectedRefBookVersion))).thenReturn(expectedRefBookVersion);
 
@@ -241,24 +238,20 @@ public class DraftServiceTest {
 
     @Test
     public void testCreateDraftFromXlsFileWithDraft() {
-        RefBookVersionEntity testDraftVersion = createTestDraftVersionEntity();
-        RefBookEntity refBook = new RefBookEntity();
-        refBook.setId(REFBOOK_ID);
 
+        RefBookVersionEntity testDraftVersion = createTestDraftVersionEntity(REFBOOK_ID);
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(testDraftVersion);
 
-        RefBookVersionEntity expectedRefBookVersion = createTestDraftVersionEntity();
-        expectedRefBookVersion.setId(null);
+        RefBookVersionEntity expectedRefBookVersion = createTestDraftVersionEntity(testDraftVersion.getRefBook().getId());
+        expectedRefBookVersion.setId(testDraftVersion.getId());
         expectedRefBookVersion.setStorageCode(TEST_DRAFT_CODE_NEW);
-        expectedRefBookVersion.setRefBook(refBook);
+
         Structure structure = new Structure();
         setTestStructure(structure);
         expectedRefBookVersion.setStructure(structure);
 
-        draftService.create(REFBOOK_ID, createTestFileModel("/", "R002", "xlsx"));
+        draftService.create(testDraftVersion.getRefBook().getId(), createTestFileModel("/", "R002", "xlsx"));
 
-        verify(dropDataService).drop(eq(Collections.singleton(TEST_DRAFT_CODE)));
-        verify(versionRepository).deleteById(eq(testDraftVersion.getId()));
         verify(versionRepository).save(eq(expectedRefBookVersion));
     }
 
@@ -278,15 +271,14 @@ public class DraftServiceTest {
         when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(eq(REFBOOK_ID), eq(RefBookVersionStatus.PUBLISHED)))
                 .thenReturn(lastRefBookVersion);
 
-        RefBookEntity refBook = new RefBookEntity();
-        refBook.setId(REFBOOK_ID);
-        RefBookVersionEntity expectedRefBookVersion = createTestDraftVersionEntity();
+        RefBookVersionEntity expectedRefBookVersion = createTestDraftVersionEntity(REFBOOK_ID);
         expectedRefBookVersion.setId(null);
         expectedRefBookVersion.setStorageCode(TEST_DRAFT_CODE_NEW);
-        expectedRefBookVersion.setRefBook(refBook);
+
         Structure structure = new Structure();
         setTestStructure(structure);
         expectedRefBookVersion.setStructure(structure);
+
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(null).thenReturn(expectedRefBookVersion);
 
         draftService.create(REFBOOK_ID, createTestFileModel("/", "R002", "xlsx"));
@@ -296,11 +288,8 @@ public class DraftServiceTest {
 
     @Test
     public void testCreateDraftFromXmlFileWithDraft() {
-        RefBookEntity refBook = new RefBookEntity();
-        refBook.setId(REFBOOK_ID);
 
-        RefBookVersionEntity versionBefore = createTestDraftVersionEntity();
-        versionBefore.setRefBook(refBook);
+        RefBookVersionEntity versionBefore = createTestDraftVersionEntity(REFBOOK_ID);
 
         Integer draftId = 1;
         RefBookVersionEntity versionWithStructure = createTestDraftVersionWithPassport();
@@ -310,7 +299,7 @@ public class DraftServiceTest {
                 .thenReturn(createCopyOfVersion(versionBefore)).thenReturn(createCopyOfVersion(versionWithStructure));
 
         versionWithStructure.setStorageCode(TEST_DRAFT_CODE_NEW);
-        versionWithStructure.setRefBook(refBook);
+        versionWithStructure.setRefBook(versionBefore.getRefBook());
         versionWithStructure.setStructure(UploadFileTestData.createStructure()); // NB: reference
 
         RefBookVersionEntity referenceEntity = UploadFileTestData.createReferenceVersion();
@@ -342,9 +331,12 @@ public class DraftServiceTest {
     @Test
     public void testRemoveDraft() {
 
-        draftService.remove(1);
+        RefBookVersionEntity draftEntity = createTestDraftVersionEntity(REFBOOK_ID);
+        when(versionRepository.getOne(eq(draftEntity.getId()))).thenReturn(draftEntity);
 
-        verify(versionRepository).deleteById(eq(1));
+        draftService.remove(draftEntity.getId());
+
+        verify(versionRepository).deleteById(eq(draftEntity.getId()));
     }
 
     @Test
@@ -352,7 +344,6 @@ public class DraftServiceTest {
 
         RefBookVersionEntity draftEntity = createTestDraftVersionEntity();
         String draftTable = draftEntity.getStorageCode();
-        String draftTableWithData = draftTable + "_with_data";
         when(versionRepository.getOne(eq(draftEntity.getId()))).thenReturn(draftEntity);
         when(versionService.getStructure(eq(draftEntity.getId()))).thenReturn(draftEntity.getStructure());
 
@@ -360,10 +351,6 @@ public class DraftServiceTest {
         doCallRealMethod().when(versionValidation).validateReferenceAbility(any());
 
         doCallRealMethod().when(structureChangeValidator).validateCreateAttribute(any());
-        doCallRealMethod().when(structureChangeValidator).validateCreateAttributeStorage(any(), any(), eq(draftTableWithData));
-
-        when(searchDataService.hasData(eq(draftTableWithData))).thenReturn(true);
-
         doCallRealMethod().when(structureChangeValidator).validateUpdateAttribute(any(), any());
         doCallRealMethod().when(structureChangeValidator).validateUpdateAttributeStorage(any(), any(), any());
 
@@ -417,13 +404,8 @@ public class DraftServiceTest {
         failCreateAttribute(createRefAttribute, "reference.book.must.have.primary.key", UserException.class);
         nameAttribute.setPrimary(isRefPrimary);
 
-        // -- Добавление первичного ключа при наличии данных. Должна быть ошибка
-        CreateAttribute createIdAttribute = new CreateAttribute(draftEntity.getId(), idAttribute, null);
-        draftEntity.setStorageCode(draftTableWithData);
-        failCreateAttribute(createIdAttribute, "validation.required.err", UserException.class);
-        draftEntity.setStorageCode(draftTable);
-
         // -- Добавление первичного ключа для возможности добавления ссылочного атрибута
+        CreateAttribute createIdAttribute = new CreateAttribute(draftEntity.getId(), idAttribute, null);
         draftService.createAttribute(createIdAttribute);
         Structure structure = versionService.getStructure(draftEntity.getId());
         assertTrue(structure.hasPrimary());
@@ -545,6 +527,36 @@ public class DraftServiceTest {
         draftService.updateAttribute(updateRefAttribute);
         structure = versionService.getStructure(draftEntity.getId());
         assertFalse(structure.hasPrimary());
+    }
+
+    @Test
+    public void testChangeStructureWithData() {
+
+        RefBookVersionEntity draftEntity = createTestDraftVersionEntity();
+        String draftTable = draftEntity.getStorageCode();
+        String draftTableWithData = draftTable + "_with_data";
+        draftEntity.setStorageCode(draftTableWithData);
+
+        when(versionRepository.getOne(eq(draftEntity.getId()))).thenReturn(draftEntity);
+        when(versionService.getStructure(eq(draftEntity.getId()))).thenReturn(draftEntity.getStructure());
+
+        when(searchDataService.hasData(eq(draftTableWithData))).thenReturn(true);
+
+        doCallRealMethod().when(versionValidation).validateAttribute(any());
+
+        doCallRealMethod().when(structureChangeValidator).validateCreateAttribute(any());
+        doCallRealMethod().when(structureChangeValidator).validateCreateAttributeStorage(any(), any(), eq(draftTableWithData));
+
+        Structure.Attribute firstAttribute = Structure.Attribute.build("first", "Первый", FieldType.STRING, "описание first");
+        CreateAttribute createAttribute = new CreateAttribute(draftEntity.getId(), firstAttribute, null);
+        draftService.createAttribute(createAttribute);
+        Structure structure = versionService.getStructure(draftEntity.getId());
+        assertFalse(structure.isEmpty());
+
+        // -- Добавление первичного ключа при наличии данных. Должна быть ошибка
+        Structure.Attribute secondAttribute = Structure.Attribute.buildPrimary("second", "Второй", FieldType.INTEGER, "описание second");
+        createAttribute = new CreateAttribute(draftEntity.getId(), secondAttribute, null);
+        failCreateAttribute(createAttribute, "validation.required.pk.err", UserException.class);
     }
 
     @Test
@@ -693,6 +705,7 @@ public class DraftServiceTest {
     }
 
     private RefBookVersionEntity createTestDraftVersionEntity() {
+
         RefBookVersionEntity entity = new RefBookVersionEntity();
         entity.setId(1);
         entity.setStorageCode(TEST_DRAFT_CODE);
@@ -700,6 +713,17 @@ public class DraftServiceTest {
         entity.setStatus(RefBookVersionStatus.DRAFT);
         entity.setStructure(new Structure());
         entity.setPassportValues(createTestPassportValues(entity));
+
+        return entity;
+    }
+
+    private RefBookVersionEntity createTestDraftVersionEntity(int refBookId) {
+
+        RefBookVersionEntity entity = createTestDraftVersionEntity();
+
+        RefBookEntity refBook = new RefBookEntity();
+        refBook.setId(refBookId);
+        entity.setRefBook(refBook);
 
         return entity;
     }
