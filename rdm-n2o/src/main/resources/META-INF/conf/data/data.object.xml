@@ -13,6 +13,7 @@
                 <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
                       method="deleteDataRecord">
                     <spring/>
+
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
                         <argument type="primitive" name="sysRecordId" class="java.lang.Long"/>
@@ -33,6 +34,7 @@
                 <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
                       method="deleteAllDataRecords">
                     <spring/>
+
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
                         <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>

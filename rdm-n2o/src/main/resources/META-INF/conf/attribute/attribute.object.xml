@@ -8,6 +8,7 @@
                 <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
                       method="createAttribute">
                     <spring/>
+
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
                         <argument type="class" name="attribute" class="ru.inovus.ms.rdm.n2o.model.FormAttribute"/>
@@ -15,6 +16,7 @@
                     </arguments>
                 </java>
             </invocation>
+
             <in-parameters>
                 <param id="versionId" mapping="[0]" domain="integer"/>
                 <param id="code" mapping="[1].code" domain="string"/>
@@ -44,6 +46,7 @@
 
                 <param id="optLockValue" mapping="[2]" domain="integer" mapper="spel"/>
             </in-parameters>
+
             <validations white-list="checkCode,checkMinMaxInt"/>
         </operation>
 
@@ -53,6 +56,7 @@
                 <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
                       method="updateAttribute">
                     <spring/>
+
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
                         <argument type="class" name="attribute" class="ru.inovus.ms.rdm.n2o.model.FormAttribute"/>
@@ -60,6 +64,7 @@
                     </arguments>
                 </java>
             </invocation>
+
             <in-parameters>
                 <param id="versionId" mapping="[0]" domain="integer"/>
                 <param id="code" mapping="[1].code" domain="string"/>
@@ -89,6 +94,7 @@
 
                 <param id="optLockValue" mapping="[2]" domain="integer" mapper="spel"/>
             </in-parameters>
+
             <validations white-list="checkCode,checkMinMaxInt"/>
         </operation>
 
@@ -98,6 +104,7 @@
                 <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
                       method="deleteAttribute">
                     <spring/>
+
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
                         <argument type="primitive" name="attributeCode" class="java.lang.String"/>
@@ -105,6 +112,7 @@
                     </arguments>
                 </java>
             </invocation>
+
             <in-parameters>
                 <param id="versionId" mapping="[0]" domain="integer"/>
                 <param id="code" mapping="[1]" domain="string"/>
@@ -129,4 +137,5 @@
         </condition>
 
     </validations>
+
 </object>

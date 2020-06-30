@@ -18,13 +18,13 @@
             <out-parameters>
                 <param id="refBookId" mapping="['refBookId']" domain="integer"/>
             </out-parameters>
-
         </operation>
 
         <operation id="edit" submit-label="Изменить" success-text="Справочник успешно изменен">
             <invocation>
                 <java method="editPassport" class="ru.inovus.ms.rdm.n2o.service.CreateDraftController">
                     <spring/>
+
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
                         <argument type="class" name="uiPassport" class="ru.inovus.ms.rdm.n2o.model.UiPassport"/>
@@ -32,6 +32,7 @@
                     </arguments>
                 </java>
             </invocation>
+
             <in-parameters>
                 <param id="version.id" mapping="[0]" domain="integer" mapper="spel"/>
                 <param id="code" mapping="[1].code" domain="string" mapper="spel"/>
@@ -41,6 +42,7 @@
                 <param id="description" mapping="[1].description" domain="string" mapper="spel"/>
                 <param id="optLockValue" mapping="[2]" domain="integer" mapper="spel"/>
             </in-parameters>
+
             <out-parameters>
                 <param id="id" mapping="id" domain="integer"/>
             </out-parameters>
@@ -52,6 +54,7 @@
             <invocation>
                 <rest method="DELETE">${rdm.backend.path}/refBook?refBookId={refBookId}</rest>
             </invocation>
+
             <in-parameters>
                 <param id="refBookId" mapping="['refBookId']" domain="integer" mapper="spel"/>
             </in-parameters>
@@ -63,11 +66,13 @@
                 <java class="ru.inovus.ms.rdm.n2o.service.ConflictController"
                       method="refreshReferrer">
                     <spring/>
+
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
                     </arguments>
                 </java>
             </invocation>
+
             <in-parameters>
                 <param id="version.id" mapping="[0]" domain="integer" mapper="spel"/>
             </in-parameters>
@@ -78,15 +83,18 @@
                 <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
                       method="createFromFile">
                     <spring/>
+
                     <arguments>
                         <argument type="class" name="fileModel" class="ru.inovus.ms.rdm.api.model.FileModel"/>
                     </arguments>
                 </java>
             </invocation>
+
             <in-parameters>
                 <param id="file.path" mapping="[0].path" domain="string"/>
                 <param id="file.name" mapping="[0].name" domain="string"/>
             </in-parameters>
+
             <out-parameters>
                 <param id="refBookId" mapping="['refBookId']" domain="integer"/>
             </out-parameters>
@@ -98,17 +106,20 @@
                 <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
                       method="uploadFromFile">
                     <spring/>
+
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
                         <argument type="class" name="fileModel" class="ru.inovus.ms.rdm.api.model.FileModel"/>
                     </arguments>
                 </java>
             </invocation>
+
             <in-parameters>
                 <param id="versionId" mapping="[0]" domain="integer"/>
                 <param id="file.path" mapping="[1].path" domain="string"/>
                 <param id="file.name" mapping="[1].name" domain="string"/>
             </in-parameters>
+
             <out-parameters>
                 <param id="refBookId" mapping="refBookId" domain="integer"/>
             </out-parameters>
@@ -119,17 +130,20 @@
                 <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
                       method="uploadData">
                     <spring/>
+
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
                         <argument type="class" name="fileModel" class="ru.inovus.ms.rdm.api.model.FileModel"/>
                     </arguments>
                 </java>
             </invocation>
+
             <in-parameters>
                 <param id="versionId" mapping="[0]" domain="integer"/>
                 <param id="file.path" mapping="[1].path" domain="string"/>
                 <param id="file.name" mapping="[1].name" domain="string"/>
             </in-parameters>
+
             <out-parameters>
                 <param id="refBookId" mapping="refBookId" domain="integer"/>
             </out-parameters>
@@ -140,6 +154,7 @@
             <invocation>
                 <rest method="POST">${rdm.backend.path}/refBook/{refBookId}/toArchive</rest>
             </invocation>
+
             <in-parameters>
                 <param id="refBookId" mapping="['refBookId']" domain="integer" mapper="spel"/>
             </in-parameters>
@@ -150,11 +165,11 @@
             <invocation>
                 <rest method="POST">${rdm.backend.path}/refBook/{refBookId}/fromArchive</rest>
             </invocation>
+
             <in-parameters>
                 <param id="refBookId" mapping="['refBookId']" domain="integer" mapper="spel"/>
             </in-parameters>
         </operation>
-
     </operations>
 
 </object>
