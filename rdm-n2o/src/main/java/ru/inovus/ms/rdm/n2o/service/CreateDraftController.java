@@ -44,6 +44,10 @@ public class CreateDraftController {
     private static final String DATA_ROW_IS_EMPTY_EXCEPTION_CODE = "data.row.is.empty";
     private static final String DATA_ROW_PK_EXISTS_EXCEPTION_CODE = "data.row.pk.exists";
 
+    private static final String PASSPORT_REFBOOK_NAME = "name";
+    private static final String PASSPORT_REFBOOK_SHORT_NAME = "shortName";
+    private static final String PASSPORT_REFBOOK_DESCRIPTION = "description";
+
     private RefBookService refBookService;
     private VersionService versionService;
     private DraftService draftService;
@@ -98,13 +102,13 @@ public class CreateDraftController {
 
         final RefBookUpdateRequest request = new RefBookUpdateRequest();
         request.setVersionId(versionId);
+        request.setOptLockValue(optLockValue);
+
         request.setCode(uiPassport.getCode());
         request.setCategory(uiPassport.getCategory());
 
         Map<String, String> passport = toPassport(uiPassport);
         request.setPassport(passport);
-
-        request.setOptLockValue(optLockValue);
 
         return request;
     }
@@ -116,9 +120,9 @@ public class CreateDraftController {
 
         Map<String, String> passport = new HashMap<>();
 
-        passport.put("name", uiPassport.getName());
-        passport.put("shortName", uiPassport.getShortName());
-        passport.put("description", uiPassport.getDescription());
+        passport.put(PASSPORT_REFBOOK_NAME, uiPassport.getName());
+        passport.put(PASSPORT_REFBOOK_SHORT_NAME, uiPassport.getShortName());
+        passport.put(PASSPORT_REFBOOK_DESCRIPTION, uiPassport.getDescription());
 
         return passport;
     }
