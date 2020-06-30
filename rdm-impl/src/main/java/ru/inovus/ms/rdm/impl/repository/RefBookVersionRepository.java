@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.query.Param;
+import org.springframework.lang.NonNull;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
 
@@ -66,6 +67,10 @@ public interface RefBookVersionRepository extends
             "          order by lv.from_date desc \n" +
             "          limit 1 )\n" +
             "       ) \n";
+
+    boolean existsById(@NonNull Integer id);
+
+    boolean existsByIdAndStatus(@NonNull Integer id, RefBookVersionStatus status);
 
     RefBookVersionEntity findByStatusAndRefBookId(RefBookVersionStatus status, Integer refBookId);
 

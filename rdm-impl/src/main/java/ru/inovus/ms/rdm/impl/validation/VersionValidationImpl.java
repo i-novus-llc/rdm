@@ -164,7 +164,7 @@ public class VersionValidationImpl implements VersionValidation {
     public void validateVersionExists(Integer versionId) {
 
         if (versionId == null
-                || !versionRepository.exists(RefBookVersionPredicates.hasVersionId(versionId))) {
+                || !versionRepository.existsById(versionId)) {
             throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
         }
     }
@@ -178,7 +178,7 @@ public class VersionValidationImpl implements VersionValidation {
     public void validateDraftExists(Integer draftId) {
 
         if (draftId == null
-                || !versionRepository.exists(RefBookVersionPredicates.hasVersionId(draftId).and(RefBookVersionPredicates.isDraft()))) {
+                || !versionRepository.existsByIdAndStatus(draftId, RefBookVersionStatus.DRAFT)) {
             throw new NotFoundException(new Message(DRAFT_NOT_FOUND_EXCEPTION_CODE, draftId));
         }
     }
