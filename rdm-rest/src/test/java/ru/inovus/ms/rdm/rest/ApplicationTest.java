@@ -595,8 +595,9 @@ public class ApplicationTest {
         try {
             versionService.search(TEST_PUBLISHING_BOOK_CODE, LocalDateTime.now().minusDays(1), new SearchDataCriteria());
             fail();
+
         } catch (RestException e) {
-            assertEquals("actual.data.not.found", e.getMessage());
+            assertEquals("version.actual.on.date.not.found", e.getMessage());
         }
     }
 
