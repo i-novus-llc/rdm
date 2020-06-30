@@ -69,12 +69,14 @@
 
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
+                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
                     </arguments>
                 </java>
             </invocation>
 
             <in-parameters>
                 <param id="version.id" mapping="[0]" domain="integer" mapper="spel"/>
+                <param id="optLockValue" mapping="[1]" domain="integer" mapper="spel"/>
             </in-parameters>
         </operation>
 
