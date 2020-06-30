@@ -2,11 +2,13 @@ package ru.inovus.ms.rdm.impl.service;
 
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
+import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -61,6 +63,7 @@ public class VersionServiceImpl implements VersionService {
     private static final String VERSION_WITH_NUMBER_AND_CODE_NOT_FOUND_EXCEPTION_CODE = "version.with.number.and.code.not.found";
     private static final String VERSION_ACTUAL_ON_DATE_NOT_FOUND_EXCEPTION_CODE = "version.actual.on.date.not.found";
     private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
+    private static final String OPTIMISTIC_LOCK_ERROR_EXCEPTION_CODE = "optimistic.lock.error";
 
     private RefBookVersionRepository versionRepository;
 
@@ -315,5 +318,16 @@ public class VersionServiceImpl implements VersionService {
     private InputStream generateVersionFile(RefBookVersion versionModel, FileType fileType) {
         VersionDataIterator dataIterator = new VersionDataIterator(this, Collections.singletonList(versionModel.getId()));
         return versionFileService.generate(versionModel, fileType, dataIterator);
+    }
+
+    /** Принудительное обновление значения оптимистической блокировки версии. */
+    private void forceUpdateOptLockValue(RefBookVersionEntity versionEntity) {
+        try {
+            versionEntity.setLastActionDate(TimeUtils.now());
+            versionRepository.flush();
+
+        } catch (ObjectOptimisticLockingFailureException e) {
+            throw new UserException(OPTIMISTIC_LOCK_ERROR_EXCEPTION_CODE, e);
+        }
     }
 }

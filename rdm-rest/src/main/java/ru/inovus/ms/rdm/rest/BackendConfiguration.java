@@ -21,12 +21,14 @@ import ru.inovus.ms.rdm.api.provider.*;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
 import ru.inovus.ms.rdm.api.util.json.JsonUtil;
 import ru.inovus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
+import ru.inovus.ms.rdm.rest.provider.StaleStateExceptionMapper;
 import ru.inovus.ms.rdm.rest.util.SecurityContextUtils;
 
 import javax.annotation.PostConstruct;
 import javax.jms.ConnectionFactory;
 
 @Configuration
+@SuppressWarnings("unused")
 public class BackendConfiguration {
 
     @Autowired
@@ -90,8 +92,8 @@ public class BackendConfiguration {
 
     @Bean
     @ConditionalOnClass(Messages.class)
-    OptimisticLockExceptionMapper optimisticLockExceptionMapper(Messages messages) {
-        return new OptimisticLockExceptionMapper(messages);
+    StaleStateExceptionMapper staleStateExceptionMapper(Messages messages) {
+        return new StaleStateExceptionMapper(messages);
     }
 
     @Bean

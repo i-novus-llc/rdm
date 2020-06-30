@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.components.common.exception.CodifiedException;
@@ -66,6 +67,7 @@ public class DraftServiceImpl implements DraftService {
 
     private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
     public static final String FILE_CONTENT_INVALID_EXCEPTION_CODE = "file.content.invalid";
+    private static final String OPTIMISTIC_LOCK_ERROR_EXCEPTION_CODE = "optimistic.lock.error";
 
     private RefBookVersionRepository versionRepository;
     private RefBookConflictRepository conflictRepository;
@@ -411,6 +413,7 @@ public class DraftServiceImpl implements DraftService {
                 } catch (RuntimeException e) {
                     ErrorUtil.rethrowError(e);
                 }
+
                 addedData = addedRowValues.stream().map(RowValue::getFieldValues).collect(toList());
             }
 
@@ -442,6 +445,11 @@ public class DraftServiceImpl implements DraftService {
                     ErrorUtil.rethrowError(e);
                 }
             }
+
+            if (!isEmpty(addedRowValues) || !isEmpty(updatedRowValues)) {
+                forceUpdateOptLockValue(draftVersion);
+            }
+
         } finally {
             refBookLockService.deleteRefBookOperation(draftVersion.getRefBook().getId());
         }
@@ -474,7 +482,7 @@ public class DraftServiceImpl implements DraftService {
             if (!systemIds.isEmpty()) {
                 conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftEntity.getId(), RowUtils.toLongSystemIds(systemIds));
                 draftDataService.deleteRows(draftEntity.getStorageCode(), systemIds);
-                draftEntity.setLastActionDate(TimeUtils.now());
+                forceUpdateOptLockValue(draftEntity);
             }
         } finally {
             refBookLockService.deleteRefBookOperation(draftEntity.getRefBook().getId());
@@ -570,7 +578,7 @@ public class DraftServiceImpl implements DraftService {
             versionValidation.validateOptLockValue(draftId, draftEntity.getOptLockValue(), optLockValue);
 
             deleteDraftAllRows(draftEntity);
-            draftEntity.setLastActionDate(TimeUtils.now());
+            forceUpdateOptLockValue(draftEntity);
 
         } finally {
             refBookLockService.deleteRefBookOperation(draftEntity.getRefBook().getId());
@@ -711,6 +719,7 @@ public class DraftServiceImpl implements DraftService {
 
         structure.add(attribute, reference);
         draftEntity.setStructure(structure);
+        forceUpdateOptLockValue(draftEntity);
 
         auditStructureEdit(draftEntity, "create_attribute", attribute);
     }
@@ -767,6 +776,8 @@ public class DraftServiceImpl implements DraftService {
         if (Objects.equals(oldAttribute.getType(), updateAttribute.getType())) {
             attributeValidationRepository.deleteByVersionIdAndAttribute(draftId, updateAttribute.getCode());
         }
+
+        forceUpdateOptLockValue(draftEntity);
 
         auditStructureEdit(draftEntity, "update_attribute", newAttribute);
     }
@@ -850,6 +861,8 @@ public class DraftServiceImpl implements DraftService {
         structure.remove(attributeCode);
 
         attributeValidationRepository.deleteByVersionIdAndAttribute(draftId, attributeCode);
+
+        forceUpdateOptLockValue(draftEntity);
 
         auditStructureEdit(draftEntity, "delete_attribute", attribute);
     }
@@ -973,6 +986,17 @@ public class DraftServiceImpl implements DraftService {
             validator.append(iterator.next());
         }
         validator.process();
+    }
+
+    /** Принудительное обновление значения оптимистической блокировки версии. */
+    private void forceUpdateOptLockValue(RefBookVersionEntity draftEntity) {
+        try {
+            draftEntity.setLastActionDate(TimeUtils.now());
+            versionRepository.flush();
+
+        } catch (ObjectOptimisticLockingFailureException e) {
+            throw new UserException(OPTIMISTIC_LOCK_ERROR_EXCEPTION_CODE, e);
+        }
     }
 
     @Override

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -52,6 +53,7 @@ public class RefBookServiceImpl implements RefBookService {
     private static final String REFBOOK_IS_NOT_CREATED_EXCEPTION_CODE = "refbook.is.not.created";
     private static final String REFBOOK_IS_NOT_CREATED_FROM_XLSX_EXCEPTION_CODE = "refbook.is.not.created.from.xlsx";
     private static final String REFBOOK_DRAFT_NOT_FOUND_EXCEPTION_CODE = "refbook.draft.not.found";
+    private static final String OPTIMISTIC_LOCK_ERROR_EXCEPTION_CODE = "optimistic.lock.error";
 
     private RefBookRepository refBookRepository;
     private RefBookVersionRepository versionRepository;
@@ -275,7 +277,7 @@ public class RefBookServiceImpl implements RefBookService {
         updateVersionFromPassport(versionEntity, request.getPassport());
         versionEntity.setComment(request.getComment());
 
-        versionEntity.setLastActionDate(TimeUtils.now());
+        forceUpdateVersionOptLockValue(versionEntity);
 
         auditLogService.addAction(AuditAction.EDIT_PASSPORT, () -> versionEntity, Map.of("newPassport", request.getPassport()));
 
@@ -515,5 +517,16 @@ public class RefBookServiceImpl implements RefBookService {
         }
 
         return result;
+    }
+
+    /** Принудительное обновление значения оптимистической блокировки версии. */
+    private void forceUpdateVersionOptLockValue(RefBookVersionEntity versionEntity) {
+        try {
+            versionEntity.setLastActionDate(TimeUtils.now());
+            versionRepository.flush();
+
+        } catch (ObjectOptimisticLockingFailureException e) {
+            throw new UserException(OPTIMISTIC_LOCK_ERROR_EXCEPTION_CODE, e);
+        }
     }
 }
