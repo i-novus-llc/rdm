@@ -33,7 +33,7 @@ public class VersionValidationImpl implements VersionValidation {
     public static final String REFBOOK_NOT_FOUND_EXCEPTION_CODE = "refbook.not.found";
     public static final String REFBOOK_WITH_CODE_NOT_FOUND_EXCEPTION_CODE = "refbook.with.code.not.found";
     private static final String REFBOOK_WITH_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.with.code.already.exists";
-    private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
+    public static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
     public static final String DRAFT_NOT_FOUND_EXCEPTION_CODE = "draft.not.found";
     private static final String DRAFT_WAS_CHANGED_EXCEPTION_CODE = "draft.was.changed";
     public static final String REFBOOK_IS_ARCHIVED_EXCEPTION_CODE = "refbook.is.archived";

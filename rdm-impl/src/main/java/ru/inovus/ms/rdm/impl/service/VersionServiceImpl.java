@@ -43,6 +43,7 @@ import ru.inovus.ms.rdm.impl.repository.VersionFileRepository;
 import ru.inovus.ms.rdm.impl.util.ConverterUtil;
 import ru.inovus.ms.rdm.impl.util.ModelGenerator;
 import ru.inovus.ms.rdm.impl.validation.ReferenceValidation;
+import ru.inovus.ms.rdm.impl.validation.VersionValidationImpl;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,9 +58,9 @@ import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.hasVersio
 @Primary
 public class VersionServiceImpl implements VersionService {
 
+    private static final String VERSION_WITH_NUMBER_AND_CODE_NOT_FOUND_EXCEPTION_CODE = "version.with.number.and.code.not.found";
+    private static final String VERSION_ACTUAL_ON_DATE_NOT_FOUND_EXCEPTION_CODE = "version.actual.on.date.not.found";
     private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
-    private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
-    private static final String ACTUAL_DATA_NOT_FOUND = "actual.data.not.found";
 
     private RefBookVersionRepository versionRepository;
 
@@ -74,6 +75,7 @@ public class VersionServiceImpl implements VersionService {
     private AuditLogService auditLogService;
 
     @Autowired
+    @SuppressWarnings("squid:S00107")
     public VersionServiceImpl(RefBookVersionRepository versionRepository,
                               SearchDataService searchDataService,
                               FileStorage fileStorage, FileNameGenerator fileNameGenerator,
@@ -89,14 +91,14 @@ public class VersionServiceImpl implements VersionService {
 
         this.versionFileRepository = versionFileRepository;
         this.versionFileService = versionFileService;
+
         this.auditLogService = auditLogService;
     }
 
     @Override
     public Page<RefBookRowValue> search(Integer versionId, SearchDataCriteria criteria) {
-        RefBookVersionEntity version = versionRepository
-                .findById(versionId)
-                .orElseThrow(() -> new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId)));
+
+        RefBookVersionEntity version = getVersionOrThrow(versionId);
         return getRowValuesOfVersion(criteria, version);
     }
 
@@ -122,36 +124,40 @@ public class VersionServiceImpl implements VersionService {
     @Override
     @Transactional
     public RefBookVersion getById(Integer versionId) {
-        RefBookVersionEntity version = versionRepository
-                .findById(versionId)
-                .orElseThrow(() -> new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId)));
+
+        RefBookVersionEntity version = getVersionOrThrow(versionId);
         return ModelGenerator.versionModel(version);
     }
 
     @Override
     @Transactional
     public RefBookVersion getVersion(String version, String refBookCode) {
+
         RefBookVersionEntity versionEntity = versionRepository.findByVersionAndRefBookCode(version, refBookCode);
         if (versionEntity == null)
-            throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, version));
+            throw new NotFoundException(new Message(VERSION_WITH_NUMBER_AND_CODE_NOT_FOUND_EXCEPTION_CODE, version, refBookCode));
+
         return ModelGenerator.versionModel(versionEntity);
     }
 
     @Override
     @Transactional
     public RefBookVersion getLastPublishedVersion(String refBookCode) {
+
         RefBookVersionEntity versionEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.PUBLISHED);
         if (versionEntity == null)
             throw new NotFoundException(new Message(ReferenceValidation.LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE, refBookCode));
+
         return ModelGenerator.versionModel(versionEntity);
     }
 
     @Override
     public Page<RefBookRowValue> search(String refBookCode, LocalDateTime date, SearchDataCriteria criteria) {
+
         RefBookVersionEntity version = versionRepository.findActualOnDate(refBookCode, date);
-        if (version == null) {
-            throw new NotFoundException(new Message(ACTUAL_DATA_NOT_FOUND));
-        }
+        if (version == null)
+            throw new NotFoundException(new Message(VERSION_ACTUAL_ON_DATE_NOT_FOUND_EXCEPTION_CODE));
+
         return getRowValuesOfVersion(criteria, version);
     }
 
@@ -190,26 +196,22 @@ public class VersionServiceImpl implements VersionService {
         if (fileType == null)
             return null;
 
-        RefBookVersionEntity versionEntity = versionRepository
-                .findById(versionId)
-                .orElseThrow(() -> new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId)));
-
+        RefBookVersionEntity versionEntity = getVersionOrThrow(versionId);
         VersionFileEntity fileEntity = versionFileRepository.findByVersionIdAndType(versionId, fileType);
-        String path = null;
-        if (fileEntity != null)
-            path = fileEntity.getPath();
 
+        String path = (fileEntity != null) ? fileEntity.getPath() : null;
         if (fileEntity == null || !fileStorage.isExistContent(fileEntity.getPath())) {
             path = generateVersionFile(versionEntity, fileType);
         }
-        ExportFile ef = new ExportFile(
+
+        ExportFile exportFile = new ExportFile(
                 fileStorage.getContent(path),
-                fileNameGenerator.generateZipName(ModelGenerator.versionModel(versionEntity), fileType));
-        auditLogService.addAction(
-            AuditAction.DOWNLOAD,
-            () -> versionEntity
+                fileNameGenerator.generateZipName(ModelGenerator.versionModel(versionEntity), fileType)
         );
-        return ef;
+
+        auditLogService.addAction(AuditAction.DOWNLOAD, () -> versionEntity);
+
+        return exportFile;
     }
 
     @Override
@@ -252,9 +254,8 @@ public class VersionServiceImpl implements VersionService {
             throw new NotFoundException(new Message(ROW_NOT_FOUND_EXCEPTION_CODE, rowId));
 
         String[] split = rowId.split("\\$");
-        RefBookVersionEntity version = versionRepository
-                .findById(Integer.parseInt(split[1]))
-                .orElseThrow(() -> new NotFoundException(new Message(ROW_NOT_FOUND_EXCEPTION_CODE, rowId)));
+        final Integer versionId = Integer.parseInt(split[1]);
+        RefBookVersionEntity version = getVersionOrThrow(versionId);
 
         DataCriteria criteria = new DataCriteria(
                 version.getStorageCode(),
@@ -273,6 +274,10 @@ public class VersionServiceImpl implements VersionService {
         return new RefBookRowValue((LongRowValue) data.get(0), version.getId());
     }
 
+    private RefBookVersionEntity getVersionOrThrow(Integer versionId) {
+        return versionRepository.findById(versionId)
+                .orElseThrow(() -> new NotFoundException(new Message(VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE, versionId)));
+    }
 
     private String generateVersionFile(RefBookVersionEntity version, FileType fileType) {
 
