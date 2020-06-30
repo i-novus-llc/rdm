@@ -404,13 +404,8 @@ public class DraftServiceTest {
         failCreateAttribute(createRefAttribute, "reference.book.must.have.primary.key", UserException.class);
         nameAttribute.setPrimary(isRefPrimary);
 
-        // -- Добавление первичного ключа при наличии данных. Должна быть ошибка
-        CreateAttribute createIdAttribute = new CreateAttribute(draftEntity.getId(), idAttribute, null);
-        draftEntity.setStorageCode(draftTableWithData);
-        failCreateAttribute(createIdAttribute, "validation.required.err", UserException.class);
-        draftEntity.setStorageCode(draftTable);
-
         // -- Добавление первичного ключа для возможности добавления ссылочного атрибута
+        CreateAttribute createIdAttribute = new CreateAttribute(draftEntity.getId(), idAttribute, null);
         draftService.createAttribute(createIdAttribute, null);
         Structure structure = versionService.getStructure(draftEntity.getId());
         assertTrue(structure.hasPrimary());
@@ -554,7 +549,7 @@ public class DraftServiceTest {
 
         Structure.Attribute firstAttribute = Structure.Attribute.build("first", "Первый", FieldType.STRING, "описание first");
         CreateAttribute createAttribute = new CreateAttribute(draftEntity.getId(), firstAttribute, null);
-        draftService.createAttribute(createAttribute);
+        draftService.createAttribute(createAttribute, null);
         Structure structure = versionService.getStructure(draftEntity.getId());
         assertFalse(structure.isEmpty());
 
