@@ -28,6 +28,7 @@
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
                         <argument type="class" name="uiPassport" class="ru.inovus.ms.rdm.n2o.model.UiPassport"/>
+                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
                     </arguments>
                 </java>
             </invocation>
@@ -38,6 +39,7 @@
                 <param id="name" mapping="[1].name" domain="string" mapper="spel"/>
                 <param id="shortName" mapping="[1].shortName" domain="string" mapper="spel"/>
                 <param id="description" mapping="[1].description" domain="string" mapper="spel"/>
+                <param id="optLockValue" mapping="[2]" domain="integer" mapper="spel"/>
             </in-parameters>
             <out-parameters>
                 <param id="id" mapping="id" domain="integer"/>

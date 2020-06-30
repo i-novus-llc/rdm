@@ -81,34 +81,54 @@ public class CreateDraftController {
         return new UiDraft(newDraft.getId(), refBookId, newDraft.getOptLockValue());
     }
 
-    public UiDraft editPassport(Integer versionId, UiPassport uiPassport) {
+    public UiDraft editPassport(Integer versionId, UiPassport uiPassport, Integer optLockValue) {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
-        refBookService.update(toRefBookUpdateRequest(uiDraft.getId(), uiPassport));
+
+        if (isVersionDraft(versionId, uiDraft)) {
+            validateOptLockValue(uiDraft, optLockValue);
+        } else {
+            optLockValue = null;
+        }
+
+        refBookService.update(toRefBookUpdateRequest(uiDraft.getId(), uiPassport, optLockValue));
         return uiDraft;
     }
 
-    private RefBookUpdateRequest toRefBookUpdateRequest(Integer versionId, UiPassport uiPassport) {
+    private RefBookUpdateRequest toRefBookUpdateRequest(Integer versionId, UiPassport uiPassport, Integer optLockValue) {
 
-        final RefBookUpdateRequest refBookUpdateRequest = new RefBookUpdateRequest();
-        refBookUpdateRequest.setVersionId(versionId);
-        refBookUpdateRequest.setCode(uiPassport.getCode());
-        refBookUpdateRequest.setCategory(uiPassport.getCategory());
+        final RefBookUpdateRequest request = new RefBookUpdateRequest();
+        request.setVersionId(versionId);
+        request.setCode(uiPassport.getCode());
+        request.setCategory(uiPassport.getCategory());
+
+        Map<String, String> passport = toPassport(uiPassport);
+        request.setPassport(passport);
+
+        request.setOptLockValue(optLockValue);
+
+        return request;
+    }
+
+    private Map<String, String> toPassport(UiPassport uiPassport) {
+        
+        if (uiPassport == null)
+            return null;
 
         Map<String, String> passport = new HashMap<>();
+
         passport.put("name", uiPassport.getName());
         passport.put("shortName", uiPassport.getShortName());
         passport.put("description", uiPassport.getDescription());
-        refBookUpdateRequest.setPassport(passport);
 
-        return refBookUpdateRequest;
+        return passport;
     }
 
     public UiDraft createAttribute(Integer versionId, FormAttribute formAttribute, Integer optLockValue) {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (Objects.equals(versionId, uiDraft.getId())) {
+        if (isVersionDraft(versionId, uiDraft)) {
             validateOptLockValue(uiDraft, optLockValue);
         } else {
             optLockValue = null;
@@ -122,7 +142,7 @@ public class CreateDraftController {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (Objects.equals(versionId, uiDraft.getId())) {
+        if (isVersionDraft(versionId, uiDraft)) {
             validateOptLockValue(uiDraft, optLockValue);
         } else {
             optLockValue = null;
@@ -136,7 +156,7 @@ public class CreateDraftController {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (Objects.equals(versionId, uiDraft.getId())) {
+        if (isVersionDraft(versionId, uiDraft)) {
             validateOptLockValue(uiDraft, optLockValue);
         } else {
             optLockValue = null;
@@ -152,7 +172,7 @@ public class CreateDraftController {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (Objects.equals(versionId, uiDraft.getId())) {
+        if (isVersionDraft(versionId, uiDraft)) {
             validateOptLockValue(uiDraft, optLockValue);
         } else {
             // Изменение записи в опубликованной версии:
@@ -208,7 +228,7 @@ public class CreateDraftController {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (Objects.equals(versionId, uiDraft.getId())) {
+        if (isVersionDraft(versionId, uiDraft)) {
             validateOptLockValue(uiDraft, optLockValue);
         } else {
             optLockValue = null;
@@ -223,7 +243,7 @@ public class CreateDraftController {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (Objects.equals(versionId, uiDraft.getId())) {
+        if (isVersionDraft(versionId, uiDraft)) {
             validateOptLockValue(uiDraft, optLockValue);
         } else {
             optLockValue = null;
@@ -295,6 +315,10 @@ public class CreateDraftController {
         draftService.updateData(versionId, fileModel);
 
         return new UiDraft(versionId, version.getRefBookId(), version.getOptLockValue());
+    }
+
+    private boolean isVersionDraft(Integer versionId, UiDraft uiDraft) {
+        return Objects.equals(versionId, uiDraft.getId());
     }
 
     private void validateOptLockValue(UiDraft uiDraft, Integer optLockValue) {
