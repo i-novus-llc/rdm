@@ -30,6 +30,8 @@ import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
 @SuppressWarnings("unused")
 public class DataRecordPageProvider implements DynamicMetadataProvider {
 
+    private static final String CONTEXT_PARAM_SEPARATOR_REGEX = "_";
+
     private static final String FORM_PROVIDER_ID = "dataRecordPage";
     private static final String DATA_ACTION_CREATE = "create";
     private static final String DATA_ACTION_EDIT = "edit";
@@ -51,8 +53,10 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
     }
 
     /**
-     * @param context Параметры провайдера (ID версии и тип действия) в формате versionId_pageType,
-     *                где pageType - create (Создание записи) или edit (Редактирование записи)
+     * @param context параметры провайдера в формате versionId_pageType, где
+     *                  versionId - идентификатор версии справочника,
+     *                  pageType - тип действия:
+     *                      create (Добавление новой записи) или edit (Редактирование записи)
      */
     @Override
     @SuppressWarnings("unchecked")
@@ -64,23 +68,31 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         if (context.contains("{") || context.contains("}"))
             return singletonList(new N2oSimplePage());
 
-        String[] params = context.split("_");
+        String[] params = context.split(CONTEXT_PARAM_SEPARATOR_REGEX);
 
         Integer versionId = Integer.parseInt(params[0]);
         Structure structure = versionService.getStructure(versionId);
 
-        N2oSimplePage page = new N2oSimplePage();
+        N2oSimplePage page = createPage(context);
+        page.setWidget(createForm(versionId, structure));
+
         String dataAction = params[1];
-        N2oForm form = createForm(versionId, structure);
-        page.setWidget(form);
         page.setName(pageNames.get(dataAction));
-        page.setId(FORM_PROVIDER_ID + "?" + context);
+
         return singletonList(page);
     }
 
     @Override
     public Collection<Class<? extends SourceMetadata>> getMetadataClasses() {
         return singletonList(N2oPage.class);
+    }
+
+    private N2oSimplePage createPage(String context) {
+
+        N2oSimplePage page = new N2oSimplePage();
+        page.setId(FORM_PROVIDER_ID + "?" + context);
+
+        return page;
     }
 
     private N2oForm createForm(Integer versionId, Structure structure) {
