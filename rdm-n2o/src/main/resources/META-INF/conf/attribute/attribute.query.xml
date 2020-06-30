@@ -44,7 +44,7 @@
         <field id="optLockValue" domain="integer">
             <select/>
             <filters>
-                <eq filter-id="optLockValue" mapping="optLockValue" domain="integer"/>
+                <eq filter-id="optLockValue" mapping="optLockValue" domain="integer" default-value="0"/>
             </filters>
         </field>
 
