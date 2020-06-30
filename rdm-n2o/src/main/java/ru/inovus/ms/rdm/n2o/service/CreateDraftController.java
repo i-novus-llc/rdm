@@ -114,7 +114,7 @@ public class CreateDraftController {
     }
 
     private Map<String, String> toPassport(UiPassport uiPassport) {
-        
+
         if (uiPassport == null)
             return null;
 
@@ -303,7 +303,7 @@ public class CreateDraftController {
         return new UiDraft(versionId, version.getRefBookId(), draft.getOptLockValue());
     }
 
-    public UiDraft uploadData(Integer versionId, FileModel fileModel) {
+    public UiDraft uploadData(Integer versionId, FileModel fileModel, Integer optLockValue) {
 
         RefBookVersion version = versionService.getById(versionId);
         if (version == null)
@@ -315,7 +315,10 @@ public class CreateDraftController {
         if (version.hasEmptyStructure())
             throw new UserException(new Message(VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE, versionId));
 
-        draftService.updateData(versionId, fileModel);
+        if (optLockValue != null && !optLockValue.equals(version.getOptLockValue()))
+            throw new UserException(new Message(ACTION_DRAFT_WAS_CHANGED_EXCEPTION_CODE));
+
+        draftService.updateData(versionId, fileModel, optLockValue);
 
         return new UiDraft(versionId, version.getRefBookId(), version.getOptLockValue());
     }

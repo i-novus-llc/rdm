@@ -1,6 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <simple-page xmlns="http://n2oapp.net/framework/config/schema/page-2.0" name="Добавление данных из файла">
-    <form object-id="refBook" default-values-query-id="versionDefault">
+
+    <form object-id="refBook" default-values-query-id="fileDefault">
         <fields>
             <file-upload id="file" label="Файл с данными (xml, xlsx)" upload-url="files" label-field-id="name"/>
         </fields>

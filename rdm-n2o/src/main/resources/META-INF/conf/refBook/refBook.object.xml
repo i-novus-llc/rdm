@@ -134,6 +134,7 @@
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
                         <argument type="class" name="fileModel" class="ru.inovus.ms.rdm.api.model.FileModel"/>
+                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
                     </arguments>
                 </java>
             </invocation>
@@ -142,6 +143,7 @@
                 <param id="versionId" mapping="[0]" domain="integer"/>
                 <param id="file.path" mapping="[1].path" domain="string"/>
                 <param id="file.name" mapping="[1].name" domain="string"/>
+                <param id="optLockValue" mapping="[2]" domain="integer" mapper="spel"/>
             </in-parameters>
 
             <out-parameters>

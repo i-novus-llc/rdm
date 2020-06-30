@@ -125,7 +125,8 @@ public interface DraftService {
 
     @Path("/updateFromFile/{draftId}")
     void updateData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
-                    @ApiParam("Файл") FileModel fileModel);
+                    @ApiParam("Файл") FileModel fileModel,
+                    @ApiParam("Значение оптимистической блокировки версии") @QueryParam("optLockValue") Integer optLockValue);
 
     @GET
     @Path("/{draftId}/data")

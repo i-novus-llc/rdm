@@ -93,7 +93,7 @@ public class ArchiveValidationTest {
 
         assertArchiveValidationError(() -> draftService.create(new CreateDraftRequest(refBookId, new Structure(), null, Collections.emptyMap())));
         assertArchiveValidationError(() -> draftService.create(refBookId, new FileModel()));
-        assertArchiveValidationError(() -> draftService.updateData(draftId, new FileModel()));
+        assertArchiveValidationError(() -> draftService.updateData(draftId, new FileModel(), null));
         assertArchiveValidationError(() -> draftService.remove(draftId));
         assertArchiveValidationError(() -> draftService.createAttribute(new CreateAttribute(draftId, null, null), null));
         assertArchiveValidationError(() -> draftService.updateAttribute(new UpdateAttribute(draftId, new Structure.Attribute(), null), null));

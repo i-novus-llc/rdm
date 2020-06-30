@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import ru.i_novus.components.common.exception.CodifiedException;
 import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
@@ -90,6 +91,9 @@ public class DraftServiceImpl implements DraftService {
     private StructureChangeValidator structureChangeValidator;
 
     private AuditLogService auditLogService;
+
+    @Autowired
+    private TransactionTemplate transactionTemplate;
 
     private int errorCountLimit = 100;
 
@@ -598,7 +602,8 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
-    public void updateData(Integer draftId, FileModel fileModel) {
+    // @SuppressWarnings({"squid:S1166", "squid:S00108"})
+    public void updateData(Integer draftId, FileModel fileModel, Integer optLockValue) {
 
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftEntity = versionRepository.findById(draftId).orElseThrow();
@@ -606,7 +611,18 @@ public class DraftServiceImpl implements DraftService {
         Integer refBookId = draftEntity.getRefBook().getId();
         refBookLockService.setRefBookUpdating(refBookId);
         try {
+            versionValidation.validateOptLockValue(draftId, draftEntity.getOptLockValue(), optLockValue);
+
             updateDraftData(draftEntity, fileModel);
+
+            transactionTemplate.execute(status -> {
+                try {
+                    RefBookVersionEntity entity = versionRepository.getOne(draftId);
+                    forceUpdateOptLockValue(entity);
+                } catch (UserException ignored) {}
+
+                return status;
+            });
 
         } finally {
             refBookLockService.deleteRefBookOperation(refBookId);

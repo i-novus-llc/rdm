@@ -899,7 +899,7 @@ public class ApplicationTest {
                 .forEach(attribute ->
                         draftService.createAttribute(new CreateAttribute(oldVersionId, attribute, null), null)
                 );
-        draftService.updateData(oldVersionId, createFileModel(OLD_FILE_NAME, "testCompare/" + OLD_FILE_NAME));
+        draftService.updateData(oldVersionId, createFileModel(OLD_FILE_NAME, "testCompare/" + OLD_FILE_NAME), null);
         publish(oldVersionId, "1.0", LocalDateTime.now(), null, false);
 
         Map<String, Object> rowMap = new HashMap<>(){{
@@ -956,13 +956,13 @@ public class ApplicationTest {
                 .forEach(attribute ->
                         draftService.createAttribute(new CreateAttribute(oldVersionId, attribute, null), null)
                 );
-        draftService.updateData(oldVersionId, createFileModel(OLD_FILE_NAME, "testCompare/" + OLD_FILE_NAME));
+        draftService.updateData(oldVersionId, createFileModel(OLD_FILE_NAME, "testCompare/" + OLD_FILE_NAME), null);
         publish(oldVersionId, "1.0", publishDate1, closeDate1, false);
 
         Integer newVersionId = draftService
                 .create(new CreateDraftRequest(refBook.getRefBookId(), new Structure(asList(id, code, common, name, upd, type), emptyList())))
                 .getId();
-        draftService.updateData(newVersionId, createFileModel(NEW_FILE_NAME, "testCompare/" + NEW_FILE_NAME));
+        draftService.updateData(newVersionId, createFileModel(NEW_FILE_NAME, "testCompare/" + NEW_FILE_NAME), null);
         publish(newVersionId, "1.1", publishDate2, closeDate2, false);
 
         Set<List<AttributeFilter>> filters = new HashSet<>(){{
@@ -993,7 +993,7 @@ public class ApplicationTest {
         Draft draft = draftService.create(new CreateDraftRequest(1, structure));
 
         FileModel fileModel = createFileModel("update_testUpload.xlsx", "testUpload.xlsx");
-        draftService.updateData(draft.getId(), fileModel);
+        draftService.updateData(draft.getId(), fileModel, null);
 
         Row row = createRowWithSimpleTypesOnly("Иван", BigInteger.valueOf(4L), DATE_STR, true, 1.0);
         extendRowWithReferenceType(row, BigInteger.valueOf(1L), "2");
@@ -1017,7 +1017,7 @@ public class ApplicationTest {
 
         FileModel fileModel = createFileModel("update_testUpload.xlsx", "testUpload.xlsx");
 
-        draftService.updateData(draft.getId(), fileModel);
+        draftService.updateData(draft.getId(), fileModel, null);
 
         Row row = createRowWithSimpleTypesOnly("Иван", BigInteger.valueOf(4L), DATE_STR, true, 1.0);
         extendRowWithReferenceType(row, BigInteger.valueOf(1L), new Reference("2", "2"));
@@ -1040,7 +1040,7 @@ public class ApplicationTest {
 
         FileModel fileModel = createFileModel("update_testUploadInvalidReference.xlsx", "testUploadInvalidReference.xlsx");
         try {
-            draftService.updateData(draft.getId(), fileModel);
+            draftService.updateData(draft.getId(), fileModel, null);
             fail();
 
         } catch (RestException re) {
@@ -1344,7 +1344,7 @@ public class ApplicationTest {
         Structure.Reference reference = structure.getReference("reference");
 
         Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), structure));
-        draftService.updateData(draft.getId(), createFileModel("update_testUpdateStr.xlsx", "testUpload.xlsx"));
+        draftService.updateData(draft.getId(), createFileModel("update_testUpdateStr.xlsx", "testUpload.xlsx"), null);
 
         // string -> integer, boolean, reference, float и обратно. Ожидается ошибка, так как данные неприводимы к другому типу
         reference.setAttribute("string");
@@ -1482,7 +1482,7 @@ public class ApplicationTest {
         //create new refbook
         RefBook relRefBook = refBookService.create(new RefBookCreateRequest(RELATION_REFBOOK_CODE, null));
         draftService.createAttribute(new CreateAttribute(relRefBook.getId(), Structure.Attribute.buildPrimary(RELATION_ATTR_CODE, "string", FieldType.STRING, "string"), null), null);
-        draftService.updateData(relRefBook.getId(), createFileModel(RELATION_FILENAME, RELATION_FILENAME));
+        draftService.updateData(relRefBook.getId(), createFileModel(RELATION_FILENAME, RELATION_FILENAME), null);
         publish(relRefBook.getId(), "1.0", LocalDateTime.now(), null, false);
 
         //create new refbook
@@ -1509,9 +1509,9 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.build(NOT_PK_BOOL, NOT_PK_BOOL, FieldType.BOOLEAN, "boolean"), null), null);
         draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.build(NOT_PK_INTEGER, NOT_PK_INTEGER, FieldType.INTEGER, "integer"), null), null);
 
-        draftService.updateData(versionId, createFileModel(REFBOOK_FILENAME_1, REFBOOK_FILENAME_1));
+        draftService.updateData(versionId, createFileModel(REFBOOK_FILENAME_1, REFBOOK_FILENAME_1), null);
         try {
-            draftService.updateData(versionId, createFileModel(REFBOOK_FILENAME, REFBOOK_FILENAME));
+            draftService.updateData(versionId, createFileModel(REFBOOK_FILENAME, REFBOOK_FILENAME), null);
             fail();
 
         } catch (RestException re) {
@@ -2102,11 +2102,11 @@ public class ApplicationTest {
                 .forEach(attribute ->
                         draftService.createAttribute(new CreateAttribute(oldVersionId, attribute, null), null)
                 );
-        draftService.updateData(oldVersionId, createFileModel(OLD_FILE_NAME, "testCompare/" + OLD_FILE_NAME));
+        draftService.updateData(oldVersionId, createFileModel(OLD_FILE_NAME, "testCompare/" + OLD_FILE_NAME), null);
         publish(oldVersionId, "1.0", publishDate1, closeDate1, false);
 
         Integer newVersionId = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), new Structure(asList(id, code, common, name, upd2, typeI), emptyList()))).getId();
-        draftService.updateData(newVersionId, createFileModel(NEW_FILE_NAME, "testCompare/" + NEW_FILE_NAME));
+        draftService.updateData(newVersionId, createFileModel(NEW_FILE_NAME, "testCompare/" + NEW_FILE_NAME), null);
         publish(newVersionId, "1.1", publishDate2, closeDate2, false);
 
         Field idField = new CommonField(id.getCode());
@@ -2163,7 +2163,7 @@ public class ApplicationTest {
         Integer oldVersionId = refBook.getId();
         draftService.createAttribute(new CreateAttribute(refBook.getId(), id, null), null);
         draftService.createAttribute(new CreateAttribute(refBook.getId(), code, null), null);
-        draftService.updateData(refBook.getId(), createFileModel(FILE_NAME, "testCompare/" + FILE_NAME));
+        draftService.updateData(refBook.getId(), createFileModel(FILE_NAME, "testCompare/" + FILE_NAME), null);
         publish(refBook.getId(), "1.0", publishDate1, null, false);
 
         Integer newVersionId = draftService.create(
@@ -2175,7 +2175,7 @@ public class ApplicationTest {
                                 name),
                                 emptyList())))
                 .getId();
-        draftService.updateData(newVersionId, createFileModel(FILE_NAME, "testCompare/" + FILE_NAME));
+        draftService.updateData(newVersionId, createFileModel(FILE_NAME, "testCompare/" + FILE_NAME), null);
         publish(newVersionId, "1.1", publishDate2, null, false);
 
         List<DiffRowValue> expectedDiffRowValues = new ArrayList<>();
@@ -2205,7 +2205,7 @@ public class ApplicationTest {
         Integer oldVersionId = refBook.getId();
         draftService.createAttribute(new CreateAttribute(refBook.getId(), id, null), null);
         draftService.createAttribute(new CreateAttribute(refBook.getId(), code, null), null);
-        draftService.updateData(refBook.getId(), createFileModel(FILE_NAME, "testCompare/" + FILE_NAME));
+        draftService.updateData(refBook.getId(), createFileModel(FILE_NAME, "testCompare/" + FILE_NAME), null);
         publish(refBook.getId(), "1.0", LocalDateTime.now(), null, false);
 
         Integer newVersionId = draftService.create(
@@ -2216,7 +2216,7 @@ public class ApplicationTest {
                                 Structure.Attribute.buildPrimary("CODE", "code", FieldType.STRING, "code")),
                                 emptyList())))
                 .getId();
-        draftService.updateData(newVersionId, createFileModel(FILE_NAME, "testCompare/" + FILE_NAME));
+        draftService.updateData(newVersionId, createFileModel(FILE_NAME, "testCompare/" + FILE_NAME), null);
         publish(newVersionId, "1.1", LocalDateTime.now().plusYears(1), null, false);
 
         try {
@@ -2258,7 +2258,7 @@ public class ApplicationTest {
         Integer refToVersionId = refToRefBook.getId();
         draftService.createAttribute(new CreateAttribute(refToVersionId, id, null), null);
         draftService.createAttribute(new CreateAttribute(refToVersionId, code, null), null);
-        draftService.updateData(refToVersionId, createFileModel(OLD_FILE_NAME, "testConflicts/" + OLD_FILE_NAME));
+        draftService.updateData(refToVersionId, createFileModel(OLD_FILE_NAME, "testConflicts/" + OLD_FILE_NAME), null);
         publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
 
         Integer refToDraftId = draftService.create(
@@ -2266,7 +2266,7 @@ public class ApplicationTest {
                         refToRefBook.getRefBookId(),
                         structure))
                 .getId();
-        draftService.updateData(refToDraftId, createFileModel(NEW_FILE_NAME, "testConflicts/" + NEW_FILE_NAME));
+        draftService.updateData(refToDraftId, createFileModel(NEW_FILE_NAME, "testConflicts/" + NEW_FILE_NAME), null);
 
         Structure.Attribute id_id = Structure.Attribute.buildPrimary("ID_ID", "id_id", FieldType.INTEGER, "id_id");
         Structure.Attribute ref_id_1 = Structure.Attribute.build("REF_ID_1", "ref_id_1", FieldType.REFERENCE, "ref_id_1");
@@ -2280,7 +2280,7 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id_1, ref_id_1_ref), null);
         draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id_2, ref_id_2_ref), null);
         draftService.createAttribute(new CreateAttribute(refFromVersionId, code, null), null);
-        draftService.updateData(refFromVersionId, createFileModel(REF_FILE_NAME, "testConflicts/" + REF_FILE_NAME));
+        draftService.updateData(refFromVersionId, createFileModel(REF_FILE_NAME, "testConflicts/" + REF_FILE_NAME), null);
         publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
 
         List<Conflict> expectedConflicts = asList(
@@ -2318,7 +2318,7 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(refToVersionId, fixedAttr, null), null);
         draftService.createAttribute(new CreateAttribute(refToVersionId, updatedAttr, null), null);
         draftService.createAttribute(new CreateAttribute(refToVersionId, deletedAttr, null), null);
-        draftService.updateData(refToVersionId, createFileModel(OLD_FILE_NAME, "testConflicts/structured/" + OLD_FILE_NAME));
+        draftService.updateData(refToVersionId, createFileModel(OLD_FILE_NAME, "testConflicts/structured/" + OLD_FILE_NAME), null);
         publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
 
         Integer refToDraftId = draftService.create(
@@ -2326,7 +2326,7 @@ public class ApplicationTest {
                         refToRefBook.getRefBookId(),
                         structure))
                 .getId();
-        draftService.updateData(refToDraftId, createFileModel(NEW_FILE_NAME, "testConflicts/structured/" + NEW_FILE_NAME));
+        draftService.updateData(refToDraftId, createFileModel(NEW_FILE_NAME, "testConflicts/structured/" + NEW_FILE_NAME), null);
 
         Structure.Attribute id_id = Structure.Attribute.buildPrimary("ID_ID", "id_id", FieldType.INTEGER, "id_id");
         Structure.Attribute ref_fix = Structure.Attribute.build("REF_FIX", "ref_fix", FieldType.REFERENCE, "ref to fixed attr");
@@ -2342,7 +2342,7 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_fix, ref_fix_ref), null);
         draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_upd, ref_upd_ref), null);
         draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_del, ref_del_ref), null);
-        draftService.updateData(refFromVersionId, createFileModel(REF_FILE_NAME, "testConflicts/structured/" + REF_FILE_NAME));
+        draftService.updateData(refFromVersionId, createFileModel(REF_FILE_NAME, "testConflicts/structured/" + REF_FILE_NAME), null);
         publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
 
         Structure.Attribute insertedAttribute = Structure.Attribute.build("INS_ATTR", "ins-attr", FieldType.INTEGER, "inserted attribute");
@@ -2437,7 +2437,7 @@ public class ApplicationTest {
         Integer refToVersionId = refToRefBook.getId();
         draftService.createAttribute(new CreateAttribute(refToVersionId, id, null), null);
         draftService.createAttribute(new CreateAttribute(refToVersionId, code, null), null);
-        draftService.updateData(refToVersionId, createFileModel(OLD_FILE_NAME, "testConflicts/" + OLD_FILE_NAME));
+        draftService.updateData(refToVersionId, createFileModel(OLD_FILE_NAME, "testConflicts/" + OLD_FILE_NAME), null);
         publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
 
         Integer refToDraftId = draftService.create(
@@ -2445,7 +2445,7 @@ public class ApplicationTest {
                         refToRefBook.getRefBookId(),
                         structure))
                 .getId();
-        draftService.updateData(refToDraftId, createFileModel(NEW_FILE_NAME, "testConflicts/" + NEW_FILE_NAME));
+        draftService.updateData(refToDraftId, createFileModel(NEW_FILE_NAME, "testConflicts/" + NEW_FILE_NAME), null);
 
         Structure.Attribute id_id = Structure.Attribute.buildPrimary("ID_ID", "id_id", FieldType.INTEGER, "id_id");
         Structure.Attribute ref_id_1 = Structure.Attribute.build("REF_ID_1", "ref_id_1", FieldType.REFERENCE, "ref_id_1");
@@ -2459,7 +2459,7 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id_1, ref_id_1_ref), null);
         draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id_2, ref_id_2_ref), null);
         draftService.createAttribute(new CreateAttribute(refFromVersionId, code, null), null);
-        draftService.updateData(refFromVersionId, createFileModel(REF_FILE_NAME, "testConflicts/" + REF_FILE_NAME));
+        draftService.updateData(refFromVersionId, createFileModel(REF_FILE_NAME, "testConflicts/" + REF_FILE_NAME), null);
         publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
 
         Boolean actualUpdateCheck = conflictService.checkConflicts(refFromVersionId, refToVersionId,refToDraftId, ConflictType.UPDATED);
@@ -2578,7 +2578,7 @@ public class ApplicationTest {
             fail("Ожидается ошибка:\n" + message);
 
         } catch (RestException e) {
-            
+
             assertEquals(message, getExceptionMessage(e));
 
         }
