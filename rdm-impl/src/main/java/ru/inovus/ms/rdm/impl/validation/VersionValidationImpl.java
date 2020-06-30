@@ -365,8 +365,6 @@ public class VersionValidationImpl implements VersionValidation {
      */
     private void validateReferenceCode(String referredCode) {
 
-        validateRefBookCode(referredCode);
-
         RefBookVersionEntity referredEntity = getReferredEntity(referredCode);
 
         if (referredEntity.hasEmptyStructure()) // Только проверка на наличие структуры!
@@ -464,6 +462,8 @@ public class VersionValidationImpl implements VersionValidation {
 
     /** Получение версии справочника, на который указывает ссылка. */
     private RefBookVersionEntity getReferredEntity(String referredCode) {
+
+        validateRefBookCode(referredCode);
 
         RefBookVersionEntity referredEntity = versionRepository
                 .findFirstByRefBookCodeAndStatusOrderByFromDateDesc(referredCode, RefBookVersionStatus.PUBLISHED);
