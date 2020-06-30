@@ -33,15 +33,15 @@ class AsyncOperationQueueListener {
 
     private final PublishService publishService;
 
-    private final AsyncOperationLogEntryRepository logEntryRepository;
+    private final AsyncOperationLogEntryRepository asyncOperationLogEntryRepository;
 
     private final Messages messages;
 
     public AsyncOperationQueueListener(PublishService publishService,
-                                       AsyncOperationLogEntryRepository logEntryRepository,
+                                       AsyncOperationLogEntryRepository asyncOperationLogEntryRepository,
                                        Messages messages) {
         this.publishService = publishService;
-        this.logEntryRepository = logEntryRepository;
+        this.asyncOperationLogEntryRepository = asyncOperationLogEntryRepository;
         this.messages = messages;
     }
 
@@ -53,14 +53,14 @@ class AsyncOperationQueueListener {
         Object[] args = message.getArgs();
         logger.info("Message from internal async operation queue is received. Operation id: {}", uuid);
 
-        AsyncOperationLogEntryEntity logEntity = logEntryRepository.findByUuid(uuid);
+        AsyncOperationLogEntryEntity logEntity = asyncOperationLogEntryRepository.findByUuid(uuid);
         if (logEntity == null) {
             logEntity = forceSave(message);
         }
 
         setSecurityContext(message.getUserName());
         logEntity.setStatus(AsyncOperationStatus.IN_PROGRESS);
-        logEntity = logEntryRepository.save(logEntity);
+        logEntity = asyncOperationLogEntryRepository.save(logEntity);
 
         try {
             AsyncOperationLogEntryUtils.setResult(handle(operation, args), logEntity);
@@ -71,7 +71,7 @@ class AsyncOperationQueueListener {
             setErrorContext(e, logEntity);
             logEntity.setStatus(AsyncOperationStatus.ERROR);
         }
-        logEntryRepository.save(logEntity);
+        asyncOperationLogEntryRepository.save(logEntity);
 
         logger.info("Async operation with id {} is completed with status {}", logEntity.getUuid(), logEntity.getStatus());
     }
@@ -127,10 +127,10 @@ class AsyncOperationQueueListener {
         logger.warn("The log entity is not yet committed. Forcing save.");
 
         UUID uuid = message.getOperationId();
-        logEntryRepository.saveConflictFree(uuid, message.getCode(),
+        asyncOperationLogEntryRepository.saveConflictFree(uuid, message.getCode(),
                 message.getOperation().name(), message.getPayloadAsJson());
 
-        return logEntryRepository.findByUuid(uuid);
+        return asyncOperationLogEntryRepository.findByUuid(uuid);
     }
 
     private void setErrorContext(Exception error, AsyncOperationLogEntryEntity logEntity) {

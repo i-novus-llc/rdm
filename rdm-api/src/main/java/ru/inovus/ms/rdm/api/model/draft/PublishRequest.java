@@ -14,13 +14,16 @@ public class PublishRequest implements Serializable {
 
     @ApiModelProperty(value = "Идентификатор черновика")
     private Integer draftId;
+
     @ApiParam("Значение оптимистической блокировки версии")
     private Integer optLockValue;
 
     @ApiParam("Версия, под которой публикуется черновик")
     private String versionName;
+
     @ApiParam("Дата начала действия опубликованной версии")
     private LocalDateTime fromDate;
+
     @ApiParam("Дата окончания действия опубликованной версии")
     private LocalDateTime toDate;
 
