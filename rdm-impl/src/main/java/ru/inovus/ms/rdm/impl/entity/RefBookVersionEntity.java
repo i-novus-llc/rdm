@@ -287,12 +287,13 @@ public class RefBookVersionEntity implements Serializable {
         return Objects.equals(id, that.id) &&
                 Objects.equals(optLockValue, that.optLockValue) &&
                 Objects.equals(refBook, that.refBook) &&
+
                 Objects.equals(structure, that.structure) &&
                 Objects.equals(storageCode, that.storageCode) &&
                 Objects.equals(version, that.version) &&
                 Objects.equals(comment, that.comment) &&
-                Objects.equals(status, that.status) &&
 
+                Objects.equals(status, that.status) &&
                 Objects.equals(fromDate, that.fromDate) &&
                 Objects.equals(toDate, that.toDate) &&
                 Objects.equals(creationDate, that.creationDate) &&
@@ -302,8 +303,8 @@ public class RefBookVersionEntity implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(id, optLockValue, refBook,
-                structure, storageCode, version, comment, status,
-                fromDate, toDate, creationDate, lastActionDate);
+                structure, storageCode, version, comment,
+                status, fromDate, toDate, creationDate, lastActionDate);
     }
 
     @Override
@@ -312,12 +313,13 @@ public class RefBookVersionEntity implements Serializable {
         sb.append("id=").append(id);
         sb.append(", optLockValue=").append(optLockValue);
         sb.append(", refBook=").append(refBook);
+
         sb.append(", structure=").append(structure);
         sb.append(", storageCode='").append(storageCode).append('\'');
         sb.append(", version='").append(version).append('\'');
         sb.append(", comment='").append(comment).append('\'');
-        sb.append(", status=").append(status);
 
+        sb.append(", status=").append(status);
         sb.append(", fromDate=").append(fromDate);
         sb.append(", toDate=").append(toDate);
         sb.append(", creationDate=").append(creationDate);
