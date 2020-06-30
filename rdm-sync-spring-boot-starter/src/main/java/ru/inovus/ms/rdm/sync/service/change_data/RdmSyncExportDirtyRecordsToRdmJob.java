@@ -3,7 +3,7 @@ package ru.inovus.ms.rdm.sync.service.change_data;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
+import org.springframework.data.domain.Page;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.VersionMapping;
 import ru.inovus.ms.rdm.sync.service.RdmSyncDao;
@@ -24,7 +24,7 @@ public final class RdmSyncExportDirtyRecordsToRdmJob implements Job {
     public static final String NAME = "ExportDirtyRecordsToRdm";
 
     @Override
-    public void execute(JobExecutionContext context) throws JobExecutionException {
+    public void execute(JobExecutionContext context) {
         RdmSyncDao dao = RdmSyncJobContext.getDao();
         RdmChangeDataClient changeDataClient = RdmSyncJobContext.getRdmChangeDataClient();
         int limit = RdmSyncJobContext.getExportToRdmBatchSize();
@@ -35,17 +35,17 @@ public final class RdmSyncExportDirtyRecordsToRdmJob implements Job {
             List<FieldMapping> fieldMappings = dao.getFieldMapping(vm.getCode());
             String deletedKey = vm.getDeletedField();
             for (;;) {
-                List<HashMap<String, Object>> batch = dao.getRecordsOfState(table, limit, offset, RdmSyncLocalRowState.DIRTY);
-                if (batch.isEmpty())
+                Page<Map<String, Object>> dirtyBatch = dao.getData(table, vm.getPrimaryField(), limit, offset, RdmSyncLocalRowState.DIRTY, null);
+                if (dirtyBatch.getContent().isEmpty())
                     break;
                 List<HashMap<String, Object>> addUpdate = new ArrayList<>();
                 List<HashMap<String, Object>> delete = new ArrayList<>();
-                for (HashMap<String, Object> map : batch) {
+                for (Map<String, Object> map : dirtyBatch.getContent()) {
                     Boolean deletedVal = (Boolean) map.get(deletedKey);
                     if (deletedVal == null || !deletedVal)
-                        addUpdate.add(map);
+                        addUpdate.add((HashMap<String, Object>) map);
                     else
-                        delete.add(map);
+                        delete.add((HashMap<String, Object>) map);
                 }
                 addUpdate.add(INTERNAL_TAG);
                 changeDataClient.changeData(vm.getCode(), addUpdate, delete, record -> {
