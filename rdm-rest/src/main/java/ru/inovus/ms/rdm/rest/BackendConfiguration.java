@@ -89,6 +89,12 @@ public class BackendConfiguration {
     }
 
     @Bean
+    @ConditionalOnClass(Messages.class)
+    OptimisticLockExceptionMapper optimisticLockExceptionMapper(Messages messages) {
+        return new OptimisticLockExceptionMapper(messages);
+    }
+
+    @Bean
     @Primary
     @ConditionalOnClass(Messages.class)
     UserExceptionMapper userExceptionMapper(Messages messages) {
