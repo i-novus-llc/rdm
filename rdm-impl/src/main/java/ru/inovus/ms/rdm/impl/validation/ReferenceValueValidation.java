@@ -13,10 +13,10 @@ import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
 import ru.inovus.ms.rdm.api.exception.NotFoundException;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.Structure;
-import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.impl.util.ConverterUtil;
@@ -148,11 +148,12 @@ public class ReferenceValueValidation extends AppendRowValidation {
 
     private SearchDataCriteria createSearchCriteria(Structure.Reference reference, List<Row> rows, Structure.Attribute referredAttribute) {
 
-        Set<List<AttributeFilter>> attributeFilters = createSearchFilters(reference, rows, referredAttribute);
-
-        SearchDataCriteria criteria = new SearchDataCriteria(attributeFilters, null);
-        criteria.setPageNumber(0);
+        SearchDataCriteria criteria = new SearchDataCriteria();
         criteria.setPageSize(rows.size());
+
+        Set<List<AttributeFilter>> attributeFilters = createSearchFilters(reference, rows, referredAttribute);
+        criteria.setAttributeFilter(attributeFilters);
+
         return criteria;
     }
 
