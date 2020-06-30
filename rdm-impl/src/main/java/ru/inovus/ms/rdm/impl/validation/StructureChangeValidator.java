@@ -12,6 +12,7 @@ import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.version.CreateAttribute;
 import ru.inovus.ms.rdm.api.model.version.UpdateAttribute;
+import ru.inovus.ms.rdm.api.util.StructureUtils;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 
 import java.util.List;
@@ -50,12 +51,12 @@ public class StructureChangeValidator {
             throw new IllegalArgumentException(ATTRIBUTE_CREATE_ILLEGAL_VALUE_EXCEPTION_CODE);
 
         Structure.Reference reference = createAttribute.getReference();
-        boolean hasReference = reference != null && !reference.isNull();
+        boolean isReference = StructureUtils.isReference(reference);
 
-        if (newAttribute.isReferenceType() != hasReference)
+        if (newAttribute.isReferenceType() != isReference)
             throw new IllegalArgumentException(ATTRIBUTE_CREATE_ILLEGAL_VALUE_EXCEPTION_CODE);
 
-        if (hasReference && !newAttribute.getCode().equals(reference.getAttribute()))
+        if (isReference && !newAttribute.getCode().equals(reference.getAttribute()))
             throw new IllegalArgumentException(ATTRIBUTE_CREATE_ILLEGAL_VALUE_EXCEPTION_CODE);
     }
 

@@ -19,6 +19,7 @@ import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.service.VersionService;
+import ru.inovus.ms.rdm.api.util.StructureUtils;
 import ru.inovus.ms.rdm.impl.util.ConverterUtil;
 
 import java.util.*;
@@ -128,7 +129,7 @@ public class ReferenceValueValidation extends AppendRowValidation {
 
     private Map.Entry<String, List<RefBookRowValue>> getRefBookData(Structure.Reference reference, List<Row> rows) {
 
-        if (reference == null || reference.isNull())
+        if (!StructureUtils.isReference(reference))
             return null;
 
         RefBookVersion referredVersion = getReferredVersion(reference);
