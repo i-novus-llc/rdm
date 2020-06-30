@@ -36,7 +36,7 @@ import static ru.inovus.ms.rdm.api.util.TimeUtils.parseLocalDate;
 import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
 
 @Controller
-@SuppressWarnings("unused")
+@SuppressWarnings("unused") // used in: DataRecordQueryProvider
 public class DataRecordController {
 
     private static final String ACTION_DRAFT_WAS_CHANGED_EXCEPTION_CODE = "action.draft.was.changed";
@@ -75,7 +75,7 @@ public class DataRecordController {
         if (StringUtils.isEmpty(dataAction))
             throw new IllegalArgumentException("data action is not supported");
 
-        Map<String, Object> map = createRow(version, optLockValue, dataAction);
+        Map<String, Object> map = createRowMap(version, optLockValue, dataAction);
 
         switch (dataAction) {
             case DataRecordConstants.DATA_ACTION_CREATE: return getCreatedRow(version, map);
@@ -84,7 +84,8 @@ public class DataRecordController {
         }
     }
 
-    private Map<String, Object> createRow(RefBookVersion version, Integer optLockValue, String dataAction) {
+    /** Создание набора для заполнения. */
+    private Map<String, Object> createRowMap(RefBookVersion version, Integer optLockValue, String dataAction) {
 
         int atributeCount = version.getStructure().getAttributes().size();
         Map<String, Object> map = new HashMap<>(4 + atributeCount);
@@ -96,9 +97,12 @@ public class DataRecordController {
         return map;
     }
 
+    /** Заполнение набора для создания записи. */
     private Map<String, Object> getCreatedRow(RefBookVersion version, Map<String, Object> map) {
 
-        // sysRecordId is null
+        // sysRecordId == null, поэтому не указывается.
+
+        // Значения по умолчанию при создангии записи заполнять здесь.
 
         // Get default values from backend by versionService.searchDefaults(versionId) instead of:
         version.getStructure().getReferences().forEach(reference ->
@@ -108,6 +112,7 @@ public class DataRecordController {
         return map;
     }
 
+    /** Заполнение набора для изменения записи. */
     private Map<String, Object> getUpdatedRow(Integer versionId, Integer sysRecordId, Map<String, Object> map) {
 
         map.put(DataRecordConstants.FIELD_SYSTEM_ID, sysRecordId);
@@ -123,6 +128,7 @@ public class DataRecordController {
         return map;
     }
 
+    /** Получение записи из указанной версии справочника по системному идентификатору. */
     private List<RefBookRowValue> findRowValues(Integer versionId, Integer sysRecordId) {
 
         SearchDataCriteria criteria = new SearchDataCriteria();

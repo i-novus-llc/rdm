@@ -26,6 +26,10 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
 
+/**
+ * Провайдер для формирования объекта по выполнению операции
+ * создания/изменения записи из указанной версии справочника.
+ */
 @Service
 public class DataRecordObjectProvider implements DynamicMetadataProvider {
 

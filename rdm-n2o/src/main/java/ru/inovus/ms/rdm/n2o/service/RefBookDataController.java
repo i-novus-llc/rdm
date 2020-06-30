@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
@@ -48,6 +49,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Collections.*;
@@ -55,6 +57,7 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
+import static org.springframework.util.StringUtils.isEmpty;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
 import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.EXACT;
 import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.LIKE;
@@ -73,8 +76,10 @@ public class RefBookDataController {
 
     private static final String DATA_CONFLICTED_CELL_BG_COLOR = "#f8c8c6";
 
-    private static final String BOOL_REGEX_TRUE = "true|t|y|yes|yeah|д|да|истина|правда";
-    private static final String BOOL_REGEX_FALSE = "false|f|n|no|nah|н|нет|ложь|неправда";
+    private static final String BOOL_TRUE_REGEX = "true|t|y|yes|yeah|д|да|истина|правда";
+    private static final Pattern BOOL_TRUE_PATTERN = Pattern.compile(BOOL_TRUE_REGEX);
+    private static final String BOOL_FALSE_REGEX = "false|f|n|no|nah|н|нет|ложь|неправда";
+    private static final Pattern BOOL_FALSE_PATTERN = Pattern.compile(BOOL_FALSE_REGEX);
 
     private static Map<String, Object> dataConflictedCellOptions = getDataConflictedCellOptions();
 
@@ -187,33 +192,42 @@ public class RefBookDataController {
 
     private List<AttributeFilter> toAttributeFilters(DataCriteria criteria, Structure structure) {
 
-        List<AttributeFilter> filters = new ArrayList<>();
-        if (criteria.getFilter() == null)
-            return filters;
+        final Map<String, Serializable> filterMap = criteria.getFilter();
+
+        if (CollectionUtils.isEmpty(filterMap))
+            return new ArrayList<>();
 
         try {
-            criteria.getFilter().forEach((k, v) -> {
-                if (v == null) return;
+            return filterMap.entrySet().stream()
+                    .map(e -> toAttributeFilter(structure, e.getKey(), e.getValue()))
+                    .filter(Objects::nonNull)
+                    .collect(toList());
 
-                String attributeCode = RdmUiUtil.deletePrefix(k);
-                Structure.Attribute attribute = structure.getAttribute(attributeCode);
-                if (attribute == null)
-                    throw new IllegalArgumentException(DATA_FILTER_FIELD_NOT_FOUND_EXCEPTION_CODE);
-
-                AttributeFilter attributeFilter = new AttributeFilter(attributeCode, castFilterValue(attribute, v), attribute.getType());
-                attributeFilter.setSearchType(attribute.getType() == STRING ? LIKE : EXACT);
-                filters.add(attributeFilter);
-            });
         } catch (Exception e) {
             throw new UserException(DATA_FILTER_IS_INVALID_EXCEPTION_CODE, e);
         }
+    }
 
-        return filters;
+    private AttributeFilter toAttributeFilter(Structure structure, String filterName, Serializable filterValue) {
+
+        if (filterValue == null || isEmpty(filterName))
+            return null;
+
+        String attributeCode = RdmUiUtil.deletePrefix(filterName);
+        Structure.Attribute attribute = structure.getAttribute(attributeCode);
+        if (attribute == null || attribute.getType() == null)
+            throw new IllegalArgumentException(DATA_FILTER_FIELD_NOT_FOUND_EXCEPTION_CODE);
+
+        Serializable attributeValue = castFilterValue(attribute, filterValue);
+        if (attributeValue == null)
+            return null;
+
+        AttributeFilter attributeFilter = new AttributeFilter(attributeCode, castFilterValue(attribute, filterValue), attribute.getType());
+        attributeFilter.setSearchType(attribute.getType() == STRING ? LIKE : EXACT);
+        return attributeFilter;
     }
 
     private static Serializable castFilterValue(Structure.Attribute attribute, Serializable value) {
-        if (attribute == null || value == null)
-            return null;
 
         switch (attribute.getType()) {
             case INTEGER:
@@ -236,9 +250,13 @@ public class RefBookDataController {
     private static Serializable parseBoolean(String value) {
 
         String stringValue = value.toLowerCase();
-        if (stringValue.matches(BOOL_REGEX_TRUE))
+        if (isEmpty(stringValue))
+            return null;
+
+        if (BOOL_TRUE_PATTERN.matcher(stringValue).matches())
             return true;
-        if (stringValue.matches(BOOL_REGEX_FALSE))
+
+        if (BOOL_FALSE_PATTERN.matcher(stringValue).matches())
             return false;
 
         throw new IllegalArgumentException(DATA_FILTER_BOOL_IS_INVALID_EXCEPTION_CODE);

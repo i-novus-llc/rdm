@@ -245,14 +245,15 @@ public class CreateDraftController {
         Page<RefBookRowValue> oldRow = versionService.search(oldVersionId, criteria);
         if (isEmpty(oldRow.getContent()))
             throw new NotFoundException(UPDATED_DATA_NOT_FOUND_IN_CURRENT_EXCEPTION_CODE);
-        String hash = oldRow.getContent().get(0).getHash();
 
+        String hash = oldRow.getContent().get(0).getHash();
         AttributeFilter hashFilter = new AttributeFilter(DataConstants.SYS_HASH, hash, FieldType.STRING);
         final SearchDataCriteria hashCriteria = new SearchDataCriteria(ImmutableSet.of(singletonList(hashFilter)), null);
 
         final Page<RefBookRowValue> newRow = versionService.search(newVersionId, hashCriteria);
         if (isEmpty(newRow.getContent()))
             throw new NotFoundException(UPDATED_DATA_NOT_FOUND_IN_DRAFT_EXCEPTION_CODE);
+
         return newRow.getContent().get(0).getSystemId();
     }
 
