@@ -468,7 +468,7 @@ public class VersionValidationImpl implements VersionValidation {
         RefBookVersionEntity referredEntity = versionRepository
                 .findFirstByRefBookCodeAndStatusOrderByFromDateDesc(referredCode, RefBookVersionStatus.PUBLISHED);
         if (referredEntity == null)
-            throw new NotFoundException(new Message(REFBOOK_WITH_CODE_NOT_FOUND_EXCEPTION_CODE, referredCode));
+            throw new NotFoundException(new Message(REFERRED_BOOK_NOT_FOUND_EXCEPTION_CODE, referredCode));
 
         return referredEntity;
     }
