@@ -18,7 +18,6 @@ import ru.inovus.ms.rdm.impl.util.AsyncOperationLogEntryUtils;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static java.util.Collections.emptyList;
@@ -87,23 +86,12 @@ class AsyncOperationQueueListener {
 
     private Object handlePublication(Object[] args) {
 
-        PublishRequest request;
-
         Object arg = args[0];
         if (arg instanceof PublishRequest) {
-            request = (PublishRequest) arg;
-
-        } else {
-            request = new PublishRequest((Integer) arg, (Integer) args[1]);
-            request.setVersionName((String) args[2]);
-            request.setFromDate((LocalDateTime) args[3]);
-            request.setToDate((LocalDateTime) args[4]);
-            request.setResolveConflicts((boolean) args[5]);
+            publishService.publish((PublishRequest) arg);
         }
 
-        publishService.publish(request);
-
-        return null;
+        throw new IllegalArgumentException(String.format("Request for publication is not found in: %s", String.valueOf(arg)));
     }
 
     private void setSecurityContext(String user) {
