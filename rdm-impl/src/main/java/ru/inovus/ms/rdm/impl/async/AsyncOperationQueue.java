@@ -43,9 +43,14 @@ public class AsyncOperationQueue {
             jmsTemplate.convertAndSend(QUEUE_ID, message);
 
         } catch (Exception e) {
-            logger.error("Error while sending message to internal async operation queue.", e);
+            logError("Error while sending message to internal async operation queue.", e);
             throw new UserException("async.operation.queue.not.available", e);
         }
+
         return uuid;
+    }
+
+    private void logError(String message, Exception e) {
+        logger.error(message, e);
     }
 }
