@@ -6,7 +6,7 @@
                     color="warning" enabling-condition="false" confirm="false"/>
         </toolbar>
         <fields>
-            <file-upload id="file" label="Файл с данными (xml, xlsx)" upload-url="files" label-field-id="name"/>
+            <file-upload id="file" label="Файл с данными (xml, xlsx)" upload-url="/files" label-field-id="name"/>
         </fields>
     </form>
 </simple-page>
