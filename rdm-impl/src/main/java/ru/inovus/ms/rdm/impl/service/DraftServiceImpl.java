@@ -11,7 +11,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 import ru.i_novus.components.common.exception.CodifiedException;
 import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
@@ -70,8 +69,6 @@ public class DraftServiceImpl implements DraftService {
     public static final String FILE_CONTENT_INVALID_EXCEPTION_CODE = "file.content.invalid";
     private static final String OPTIMISTIC_LOCK_ERROR_EXCEPTION_CODE = "optimistic.lock.error";
 
-    private TransactionTemplate transactionTemplate;
-
     private RefBookVersionRepository versionRepository;
     private RefBookConflictRepository conflictRepository;
 
@@ -98,8 +95,7 @@ public class DraftServiceImpl implements DraftService {
 
     @Autowired
     @SuppressWarnings("squid:S00107")
-    public DraftServiceImpl(TransactionTemplate transactionTemplate,
-                            RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
+    public DraftServiceImpl(RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
                             DraftDataService draftDataService, DropDataService dropDataService, SearchDataService searchDataService,
                             RefBookLockService refBookLockService, VersionService versionService,
                             FileStorage fileStorage, FileNameGenerator fileNameGenerator,
@@ -108,7 +104,6 @@ public class DraftServiceImpl implements DraftService {
                             PassportValueRepository passportValueRepository,
                             AttributeValidationRepository attributeValidationRepository, StructureChangeValidator structureChangeValidator,
                             AuditLogService auditLogService) {
-        this.transactionTemplate = transactionTemplate;
         this.versionRepository = versionRepository;
         this.conflictRepository = conflictRepository;
 
@@ -607,18 +602,7 @@ public class DraftServiceImpl implements DraftService {
         refBookLockService.setRefBookUpdating(refBookId);
         try {
             updateDraftData(draftEntity, fileModel);
-
-            transactionTemplate.execute(status -> {
-                try {
-                    RefBookVersionEntity entity = versionRepository.getOne(draftId);
-                    forceUpdateOptLockValue(entity);
-
-                } catch (UserException ignored) {
-                    // Nothing to do.
-                }
-
-                return status;
-            });
+            forceUpdateOptLockValue(versionRepository.findById(draftId).orElse(null));
 
         } finally {
             refBookLockService.deleteRefBookOperation(refBookId);
@@ -1004,10 +988,14 @@ public class DraftServiceImpl implements DraftService {
     }
 
     /** Принудительное обновление значения оптимистической блокировки версии. */
-    private void forceUpdateOptLockValue(RefBookVersionEntity draftEntity) {
+    private void forceUpdateOptLockValue(RefBookVersionEntity entity) {
+
+        if (entity == null)
+            return;
+
         try {
-            draftEntity.setLastActionDate(TimeUtils.now());
-            versionRepository.flush();
+            entity.setLastActionDate(TimeUtils.now());
+            versionRepository.save(entity);
 
         } catch (ObjectOptimisticLockingFailureException e) {
             throw new UserException(OPTIMISTIC_LOCK_ERROR_EXCEPTION_CODE, e);
