@@ -14,6 +14,7 @@ import ru.inovus.ms.rdm.api.service.PublishService;
 import ru.inovus.ms.rdm.api.service.ReferenceService;
 import ru.inovus.ms.rdm.impl.async.AsyncOperationQueue;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
+import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
@@ -140,9 +141,18 @@ public class PublishServiceImpl implements PublishService {
      */
     private boolean publishReferrer(Integer versionId) {
         return tryRun(
-                () -> publish(new PublishRequest(versionId, null)),
+                () -> publishReferrerEntity(versionId),
                 LOG_ERROR_PUBLISHING_NONCONFLICT_REFERRERS
         );
+    }
+
+    private void publishReferrerEntity(Integer versionId) {
+
+        RefBookVersionEntity entity = versionRepository.findById(versionId).orElse(null);
+        if (entity == null)
+            return;
+
+        publish(new PublishRequest(versionId, entity.getOptLockValue()));
     }
 
     /**
