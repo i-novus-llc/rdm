@@ -6,6 +6,7 @@ import org.quartz.PersistJobDataAfterExecution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import ru.inovus.ms.rdm.api.exception.NotFoundException;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
@@ -36,6 +37,7 @@ public class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
     private static final String TEMP_FILE_PREFIX = "amatmpfiledeletemeplease_";
 
     private static final String DRAFT_ID_KEY = "draftId";
+    private static final int NONEXISTING_DRAFT_ID = -1;
 
     @Autowired
     private RefBookService refBookService;
@@ -55,39 +57,50 @@ public class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
 
     @Override
     boolean execute0(JobExecutionContext context) throws Exception {
+
         revision = jobDataMap.getInt(REVISION_KEY);
         GetClassifierStructureResponseType struct = esnsiLoadService.getClassifierStruct(classifierCode, revision);
         refBookCode = "ESNSI-" + struct.getClassifierDescriptor().getPublicId();
+
         fileName = checkFileExists();
         if (fileName == null) {
             fileName = createFile();
             jobDataMap.put(TEMP_FILE_PREFIX + fileName, true);
         }
         FileModel fileModel = uploadToFileStorage();
-        int draftId = -1;
+
         Draft draft = null;
-        if (jobDataMap.containsKey(DRAFT_ID_KEY))
-            draftId = jobDataMap.getInt(DRAFT_ID_KEY);
-        else {
-            Integer id = checkForExistance();
-            if (id == null)
+        if (jobDataMap.containsKey(DRAFT_ID_KEY)) {
+
+            int draftId = jobDataMap.getInt(DRAFT_ID_KEY);
+            try {
+                draft = draftService.getDraft(draftId);
+
+            } catch (NotFoundException e) {
+                logger.warn("Unable to find draft in RDM by id = {}.", draftId);
+                if (draftId != NONEXISTING_DRAFT_ID)
+                    return true;
+            }
+
+        } else {
+            Integer refBookId = checkForExistance();
+            if (refBookId == null)
                 draft = refBookService.create(fileModel);
             else
-                draft = draftService.create(id, fileModel);
+                draft = draftService.create(refBookId, fileModel);
         }
-        if (draftId == -1) {
-            draftId = draft == null ? -1 : draft.getId();
-            if (draftId == -1) {
-                Draft draftByRefBookCode = draftService.findDraft(refBookCode);
-                if (draftByRefBookCode == null) {
-                    logger.warn("Unable to fetch draft from RDM. Publication of draft failed. If the draft is still contained in the RDM, publish it manually.");
-                    return true;
-                } else
-                    draftId = draftByRefBookCode.getId();
+
+        if (draft == null) {
+            draft = draftService.findDraft(refBookCode);
+            if (draft == null) {
+                logger.warn("Unable to fetch draft from RDM. Publication of draft failed. If the draft is still contained in the RDM, publish it manually.");
+                return true;
             }
         }
-        jobDataMap.put(DRAFT_ID_KEY, draftId);
-        publishService.publish(new PublishRequest(draftId, null));
+        jobDataMap.put(DRAFT_ID_KEY, draft.getId());
+
+        publishService.publish(new PublishRequest(draft.getId(), draft.getOptLockValue()));
+
         esnsiLoadService.setClassifierRevisionAndLastUpdated(classifierCode, revision, Timestamp.valueOf(LocalDateTime.now(Clock.systemUTC())));
         return true;
     }
