@@ -364,9 +364,13 @@ public class RefBookServiceImpl implements RefBookService {
             }
 
             Integer draftId = draft.getId();
-            draftService.updateData(draftId, request.getRowsToAddOrUpdate(), null);
-            draftService.deleteRows(draftId, request.getRowsToDelete(), null);
-            publishService.publish(new PublishRequest(draftId, null));
+            draftService.updateData(draftId, request.getRowsToAddOrUpdate(), draft.getOptLockValue());
+
+            draft = draftService.getDraft(draftId);
+            draftService.deleteRows(draftId, request.getRowsToDelete(), draft.getOptLockValue());
+
+            draft = draftService.getDraft(draftId);
+            publishService.publish(new PublishRequest(draftId, draft.getOptLockValue()));
 
         } finally {
             refBookLockService.deleteRefBookOperation(refBook.getId());
