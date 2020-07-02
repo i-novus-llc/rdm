@@ -32,7 +32,6 @@ import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 
 import java.util.List;
-import java.util.Objects;
 
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -90,10 +89,6 @@ public class ReferenceServiceImpl implements ReferenceService {
         List<Structure.Reference> references = referrerEntity.getStructure().getReferences();
         if (isEmpty(references))
             return;
-
-        if (Objects.equals(referrerVersionId, referrerEntity.getId())) {
-            versionValidation.validateOptLockValue(referrerVersionId, referrerEntity.getOptLockValue(), optLockValue);
-        }
 
         references.stream()
                 .filter(reference -> BooleanUtils.isNotTrue(

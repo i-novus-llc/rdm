@@ -70,6 +70,8 @@ public class DraftServiceImpl implements DraftService {
     public static final String FILE_CONTENT_INVALID_EXCEPTION_CODE = "file.content.invalid";
     private static final String OPTIMISTIC_LOCK_ERROR_EXCEPTION_CODE = "optimistic.lock.error";
 
+    private TransactionTemplate transactionTemplate;
+
     private RefBookVersionRepository versionRepository;
     private RefBookConflictRepository conflictRepository;
 
@@ -92,14 +94,12 @@ public class DraftServiceImpl implements DraftService {
 
     private AuditLogService auditLogService;
 
-    @Autowired
-    private TransactionTemplate transactionTemplate;
-
     private int errorCountLimit = 100;
 
     @Autowired
     @SuppressWarnings("squid:S00107")
-    public DraftServiceImpl(RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
+    public DraftServiceImpl(TransactionTemplate transactionTemplate,
+                            RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
                             DraftDataService draftDataService, DropDataService dropDataService, SearchDataService searchDataService,
                             RefBookLockService refBookLockService, VersionService versionService,
                             FileStorage fileStorage, FileNameGenerator fileNameGenerator,
@@ -108,6 +108,7 @@ public class DraftServiceImpl implements DraftService {
                             PassportValueRepository passportValueRepository,
                             AttributeValidationRepository attributeValidationRepository, StructureChangeValidator structureChangeValidator,
                             AuditLogService auditLogService) {
+        this.transactionTemplate = transactionTemplate;
         this.versionRepository = versionRepository;
         this.conflictRepository = conflictRepository;
 
@@ -400,8 +401,6 @@ public class DraftServiceImpl implements DraftService {
         List<RowDiff> updateDiffData = null;
         refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
         try {
-            versionValidation.validateOptLockValue(draftId, draftEntity.getOptLockValue(), optLockValue);
-
             rows = prepareRows(rows, draftEntity, true);
             if (rows.isEmpty()) return;
 
@@ -480,8 +479,6 @@ public class DraftServiceImpl implements DraftService {
         List<Object> systemIds;
         refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
         try {
-            versionValidation.validateOptLockValue(draftId, draftEntity.getOptLockValue(), optLockValue);
-
             rows = prepareRows(rows, draftEntity, false);
             if (rows.isEmpty()) return;
 
@@ -582,8 +579,6 @@ public class DraftServiceImpl implements DraftService {
 
         refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
         try {
-            versionValidation.validateOptLockValue(draftId, draftEntity.getOptLockValue(), optLockValue);
-
             deleteDraftAllRows(draftEntity);
             forceUpdateOptLockValue(draftEntity);
 
@@ -611,15 +606,16 @@ public class DraftServiceImpl implements DraftService {
         Integer refBookId = draftEntity.getRefBook().getId();
         refBookLockService.setRefBookUpdating(refBookId);
         try {
-            versionValidation.validateOptLockValue(draftId, draftEntity.getOptLockValue(), optLockValue);
-
             updateDraftData(draftEntity, fileModel);
 
             transactionTemplate.execute(status -> {
                 try {
                     RefBookVersionEntity entity = versionRepository.getOne(draftId);
                     forceUpdateOptLockValue(entity);
-                } catch (UserException ignored) {}
+
+                } catch (UserException ignored) {
+                    // Nothing to do.
+                }
 
                 return status;
             });
