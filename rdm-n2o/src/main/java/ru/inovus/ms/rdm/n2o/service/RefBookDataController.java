@@ -145,9 +145,14 @@ public class RefBookDataController {
      * @return Версия справочника
      */
     @SuppressWarnings("unused") // used in: dataDeleteAll.query.xml
-    public RefBookVersion getVersion(Integer versionId) {
+    public RefBookVersion getVersion(Integer versionId, Integer optLockValue) {
 
-        return versionService.getById(versionId);
+        RefBookVersion version = versionService.getById(versionId);
+        if (optLockValue != null) {
+            version.setOptLockValue(optLockValue);
+        }
+
+        return version;
     }
 
     private Page<Long> getConflictedRowIds(DataCriteria criteria, int pageSize) {

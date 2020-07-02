@@ -56,6 +56,10 @@ public class StructureController {
             return new RestPage<>(new ArrayList<>(), Pageable.unpaged(), 0);
         }
 
+        if (criteria.getOptLockValue() != null) {
+            version.setOptLockValue(criteria.getOptLockValue());
+        }
+
         List<Structure.Attribute> attributes = version.getStructure().getAttributes();
         List<AttributeValidation> validations = draftService.getAttributeValidations(versionId, criteria.getCode());
 
