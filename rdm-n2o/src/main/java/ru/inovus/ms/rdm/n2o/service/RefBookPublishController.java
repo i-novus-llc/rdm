@@ -27,7 +27,6 @@ public class RefBookPublishController {
 
     private static final Logger logger = LoggerFactory.getLogger(RefBookPublishController.class);
 
-    private static final String PUBLISHING_DRAFT_WAS_CHANGED_EXCEPTION_CODE = "publishing.draft.was.changed";
     private static final String PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE = "publishing.draft.structure.not.found";
     private static final String PUBLISHING_DRAFT_DATA_NOT_FOUND_EXCEPTION_CODE = "publishing.draft.data.not.found";
 
@@ -70,7 +69,7 @@ public class RefBookPublishController {
 
         UiRefBookPublish uiRefBookPublish = new UiRefBookPublish(refBook);
 
-        String message = checkPublishedDraft(versionId, optLockValue);
+        String message = checkPublishedDraft(versionId);
         if (!StringUtils.isEmpty(message)) {
             uiRefBookPublish.setErrorMessage(message);
             return uiRefBookPublish;
@@ -88,12 +87,9 @@ public class RefBookPublishController {
     }
 
     /** Проверка публикуемого черновика перед открытием окна публикации. */
-    public String checkPublishedDraft(Integer versionId, Integer optLockValue) {
+    public String checkPublishedDraft(Integer versionId) {
 
         RefBook refBook = refBookService.getByVersionId(versionId);
-        if (optLockValue != null && !optLockValue.equals(refBook.getOptLockValue())) {
-            return messages.getMessage(PUBLISHING_DRAFT_WAS_CHANGED_EXCEPTION_CODE);
-        }
 
         if (refBook.getStructure() == null || refBook.getStructure().isEmpty()) {
             return messages.getMessage(PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE);

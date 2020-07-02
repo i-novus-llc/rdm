@@ -1,13 +1,12 @@
 package ru.inovus.ms.rdm.n2o.service;
 
-import net.n2oapp.platform.i18n.Message;
-import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.jaxrs.RestPage;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
@@ -36,8 +35,6 @@ import static ru.inovus.ms.rdm.api.model.version.UpdateAttribute.setUpdateValueI
 @SuppressWarnings("WeakerAccess")
 public class StructureController {
 
-    private static final String ACTION_DRAFT_WAS_CHANGED_EXCEPTION_CODE = "action.draft.was.changed";
-
     @Autowired
     private RefBookService refBookService;
 
@@ -55,25 +52,17 @@ public class StructureController {
 
         Integer versionId = criteria.getVersionId();
         RefBookVersion version = versionService.getById(criteria.getVersionId());
-
-        Integer optLockValue = criteria.getOptLockValue();
-        if (optLockValue == null) {
-            criteria.setOptLockValue(version.getOptLockValue());
-
-        } else // Проверка только при редактировании выбранного атрибута:
-        if (!StringUtils.isEmpty(criteria.getCode()) && !optLockValue.equals(version.getOptLockValue())) {
-            throw new UserException(new Message(ACTION_DRAFT_WAS_CHANGED_EXCEPTION_CODE));
+        if (version.hasEmptyStructure()) {
+            return new RestPage<>(new ArrayList<>(), Pageable.unpaged(), 0);
         }
 
+        List<Structure.Attribute> attributes = version.getStructure().getAttributes();
         List<AttributeValidation> validations = draftService.getAttributeValidations(versionId, criteria.getCode());
-
-        final Structure structure = version.getStructure() != null ? version.getStructure() : new Structure();
-        List<Structure.Attribute> attributes = structure.getAttributes();
 
         List<ReadAttribute> list;
         if (!isEmpty(attributes)) {
             list = toPageAttributes(attributes, criteria).stream()
-                    .map(attribute -> toReadAttribute(attribute, structure, criteria, validations))
+                    .map(attribute -> toReadAttribute(attribute, version, validations))
                     .collect(toList());
         } else {
             list = new ArrayList<>();
@@ -111,24 +100,26 @@ public class StructureController {
     }
 
     /** Преобразование атрибута в атрибут для отображения на форме. */
-    private ReadAttribute toReadAttribute(Structure.Attribute attribute, Structure structure,
-                                          AttributeCriteria criteria, List<AttributeValidation> validations) {
+    private ReadAttribute toReadAttribute(Structure.Attribute attribute, RefBookVersion version,
+                                          List<AttributeValidation> validations) {
 
-        Structure.Reference reference = attribute.isReferenceType() ? structure.getReference(attribute.getCode()) : null;
+        Structure.Reference reference = attribute.isReferenceType()
+                ? version.getStructure().getReference(attribute.getCode())
+                : null;
         ReadAttribute readAttribute = getReadAttribute(attribute, reference);
         enrichAtribute(readAttribute, getValidations(validations, attribute.getCode()));
 
-        readAttribute.setVersionId(criteria.getVersionId());
-        readAttribute.setOptLockValue(criteria.getOptLockValue());
+        readAttribute.setVersionId(version.getId());
+        readAttribute.setOptLockValue(version.getOptLockValue());
 
-        readAttribute.setIsReferrer(!CollectionUtils.isEmpty(structure.getReferences()));
+        readAttribute.setIsReferrer(!CollectionUtils.isEmpty(version.getStructure().getReferences()));
         readAttribute.setCodeExpression(DisplayExpression.toPlaceholder(attribute.getCode()));
 
         if (reference != null) {
             enrichReference(readAttribute, reference);
         }
 
-        enrichByRefBook(criteria.getVersionId(), readAttribute);
+        enrichByRefBook(version.getId(), readAttribute);
 
         return readAttribute;
     }

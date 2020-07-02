@@ -14,7 +14,6 @@ import net.n2oapp.framework.api.metadata.meta.control.StandardField;
 import net.n2oapp.framework.api.metadata.pipeline.CompilePipeline;
 import net.n2oapp.framework.config.compile.pipeline.N2oPipelineSupport;
 import net.n2oapp.framework.config.metadata.compile.context.WidgetContext;
-import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.jaxrs.RestPage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +65,6 @@ import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
 @Component
 public class RefBookDataController {
 
-    private static final String ACTION_DRAFT_WAS_CHANGED_EXCEPTION_CODE = "action.draft.was.changed";
     private static final String DATA_FILTER_IS_INVALID_EXCEPTION_CODE = "data.filter.is.invalid";
     private static final String DATA_FILTER_FIELD_NOT_FOUND_EXCEPTION_CODE = "data.filter.field.not.found";
     private static final String DATA_FILTER_BOOL_IS_INVALID_EXCEPTION_CODE = "data.filter.bool.is.invalid";
@@ -143,20 +141,13 @@ public class RefBookDataController {
     /**
      * Поиск версии справочника.
      *
-     * @param versionId    идентификатор версии справочника
-     * @param optLockValue значение оптимистической блокировки
+     * @param versionId идентификатор версии справочника
      * @return Версия справочника
      */
     @SuppressWarnings("unused") // used in: dataDeleteAll.query.xml
-    public RefBookVersion getVersion(Integer versionId, Integer optLockValue) {
+    public RefBookVersion getVersion(Integer versionId) {
 
-        RefBookVersion version = versionService.getById(versionId);
-
-        if (optLockValue != null && !optLockValue.equals(version.getOptLockValue())) {
-            throw new UserException(new Message(ACTION_DRAFT_WAS_CHANGED_EXCEPTION_CODE));
-        }
-
-        return version;
+        return versionService.getById(versionId);
     }
 
     private Page<Long> getConflictedRowIds(DataCriteria criteria, int pageSize) {

@@ -35,7 +35,6 @@ import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 @SuppressWarnings("unused")
 public class CreateDraftController {
 
-    private static final String ACTION_DRAFT_WAS_CHANGED_EXCEPTION_CODE = "action.draft.was.changed";
     private static final String VERSION_IS_NOT_DRAFT_EXCEPTION_CODE = "version.is.not.draft";
     private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
     private static final String VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE = "version.has.not.structure";
@@ -88,10 +87,8 @@ public class CreateDraftController {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (isVersionDraft(versionId, uiDraft)) {
-            validateOptLockValue(uiDraft, optLockValue);
-        } else {
-            optLockValue = null;
+        if (!isVersionDraft(versionId, uiDraft)) {
+            optLockValue = uiDraft.getOptLockValue();
         }
 
         refBookService.update(toRefBookUpdateRequest(uiDraft.getId(), uiPassport, optLockValue));
@@ -131,10 +128,8 @@ public class CreateDraftController {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (isVersionDraft(versionId, uiDraft)) {
-            validateOptLockValue(uiDraft, optLockValue);
-        } else {
-            optLockValue = null;
+        if (!isVersionDraft(versionId, uiDraft)) {
+            optLockValue = uiDraft.getOptLockValue();
         }
 
         structureController.createAttribute(uiDraft.getId(), formAttribute, optLockValue);
@@ -145,10 +140,8 @@ public class CreateDraftController {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (isVersionDraft(versionId, uiDraft)) {
-            validateOptLockValue(uiDraft, optLockValue);
-        } else {
-            optLockValue = null;
+        if (!isVersionDraft(versionId, uiDraft)) {
+            optLockValue = uiDraft.getOptLockValue();
         }
 
         structureController.updateAttribute(uiDraft.getId(), formAttribute, optLockValue);
@@ -159,10 +152,8 @@ public class CreateDraftController {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (isVersionDraft(versionId, uiDraft)) {
-            validateOptLockValue(uiDraft, optLockValue);
-        } else {
-            optLockValue = null;
+        if (!isVersionDraft(versionId, uiDraft)) {
+            optLockValue = uiDraft.getOptLockValue();
         }
 
         structureController.deleteAttribute(uiDraft.getId(), attributeCode, optLockValue);
@@ -175,11 +166,9 @@ public class CreateDraftController {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (isVersionDraft(versionId, uiDraft)) {
-            validateOptLockValue(uiDraft, optLockValue);
-        } else {
+        if (!isVersionDraft(versionId, uiDraft)) {
             // Изменение записи в опубликованной версии:
-            optLockValue = null; // Новый справочник, поэтому блокировки нет (см. также в других методах).
+            optLockValue = uiDraft.getOptLockValue(); // Новый справочник, поэтому блокировки нет (см. также в других методах).
             row.setSystemId(findNewSystemId(row.getSystemId(), versionId, uiDraft.getId()));
         }
 
@@ -231,10 +220,8 @@ public class CreateDraftController {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (isVersionDraft(versionId, uiDraft)) {
-            validateOptLockValue(uiDraft, optLockValue);
-        } else {
-            optLockValue = null;
+        if (!isVersionDraft(versionId, uiDraft)) {
+            optLockValue = uiDraft.getOptLockValue();
             sysRecordId = findNewSystemId(sysRecordId, versionId, uiDraft.getId());
         }
 
@@ -246,10 +233,8 @@ public class CreateDraftController {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (isVersionDraft(versionId, uiDraft)) {
-            validateOptLockValue(uiDraft, optLockValue);
-        } else {
-            optLockValue = null;
+        if (!isVersionDraft(versionId, uiDraft)) {
+            optLockValue = uiDraft.getOptLockValue();
         }
 
         draftService.deleteAllRows(uiDraft.getId(), optLockValue);
@@ -315,22 +300,13 @@ public class CreateDraftController {
         if (version.hasEmptyStructure())
             throw new UserException(new Message(VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE, versionId));
 
-        if (optLockValue != null && !optLockValue.equals(version.getOptLockValue()))
-            throw new UserException(new Message(ACTION_DRAFT_WAS_CHANGED_EXCEPTION_CODE));
-
         draftService.updateData(versionId, fileModel, optLockValue);
 
         return new UiDraft(versionId, version.getRefBookId(), version.getOptLockValue());
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean isVersionDraft(Integer versionId, UiDraft uiDraft) {
         return Objects.equals(versionId, uiDraft.getId());
-    }
-
-    private void validateOptLockValue(UiDraft uiDraft, Integer optLockValue) {
-
-        if (optLockValue != null && !optLockValue.equals(uiDraft.getOptLockValue())) {
-            throw new UserException(new Message(ACTION_DRAFT_WAS_CHANGED_EXCEPTION_CODE));
-        }
     }
 }

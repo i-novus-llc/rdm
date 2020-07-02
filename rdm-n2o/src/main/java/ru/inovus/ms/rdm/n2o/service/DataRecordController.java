@@ -1,8 +1,6 @@
 package ru.inovus.ms.rdm.n2o.service;
 
-import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.Messages;
-import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -39,8 +37,6 @@ import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
 @SuppressWarnings("unused") // used in: DataRecordQueryProvider
 public class DataRecordController {
 
-    private static final String ACTION_DRAFT_WAS_CHANGED_EXCEPTION_CODE = "action.draft.was.changed";
-
     private static final String CONFLICT_TEXT = "conflict.text";
     private static final String CONFLICT_TEXT_UPDATED = "conflict.text.updated";
     private static final String CONFLICT_TEXT_DELETED = "conflict.text.deleted";
@@ -69,9 +65,6 @@ public class DataRecordController {
     public Map<String, Object> getRow(Integer versionId, Integer sysRecordId, Integer optLockValue, String dataAction) {
 
         RefBookVersion version = versionService.getById(versionId);
-        if (optLockValue != null && !optLockValue.equals(version.getOptLockValue()))
-            throw new UserException(new Message(ACTION_DRAFT_WAS_CHANGED_EXCEPTION_CODE));
-
         if (StringUtils.isEmpty(dataAction))
             throw new IllegalArgumentException("data action is not supported");
 
