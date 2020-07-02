@@ -102,8 +102,8 @@ public class RefBookDataController {
         RefBookVersion version = versionService.getById(criteria.getVersionId());
         Structure structure = version.getStructure();
 
-        if (criteria.getOptLockValue() == null) {
-            criteria.setOptLockValue(version.getOptLockValue());
+        if (criteria.getOptLockValue() != null) {
+            version.setOptLockValue(criteria.getOptLockValue());
         }
 
         Page<Long> conflictedRowIdsPage = null;
@@ -123,7 +123,7 @@ public class RefBookDataController {
         SearchDataCriteria searchDataCriteria = toSearchDataCriteria(criteria, structure, conflictedRowIds);
 
         Page<RefBookRowValue> search = versionService.search(version.getId(), searchDataCriteria);
-        List<DataGridRow> result = getDataGridContent(criteria, structure, search.getContent());
+        List<DataGridRow> result = getDataGridContent(criteria, version, search.getContent());
 
         long total;
         if (criteria.isHasDataConflict())
@@ -262,11 +262,11 @@ public class RefBookDataController {
         return new Sort.Order(Direction.ASC.equals(sorting.getDirection()) ? ASC : DESC, sorting.getField());
     }
 
-    private List<DataGridRow> getDataGridContent(DataCriteria criteria, Structure structure,
+    private List<DataGridRow> getDataGridContent(DataCriteria criteria, RefBookVersion version,
                                                  List<RefBookRowValue> searchContent) {
 
-        DataGridRow dataGridHead = new DataGridRow(createHead(structure));
-        List<DataGridRow> dataGridRows = getDataGridRows(criteria, searchContent);
+        DataGridRow dataGridHead = new DataGridRow(createHead(version.getStructure()));
+        List<DataGridRow> dataGridRows = getDataGridRows(version, searchContent, criteria.isHasDataConflict());
 
         List<DataGridRow> resultRows = new ArrayList<>();
         resultRows.add(dataGridHead);
@@ -274,18 +274,18 @@ public class RefBookDataController {
         return resultRows;
     }
 
-    private List<DataGridRow> getDataGridRows(DataCriteria criteria,
-                                              List<RefBookRowValue> searchContent) {
+    private List<DataGridRow> getDataGridRows(RefBookVersion version,
+                                              List<RefBookRowValue> searchContent,
+                                              boolean allWithConflicts) {
 
-        boolean allWithConflicts = criteria.isHasDataConflict();
         List<Long> conflictedRowsIds = allWithConflicts
                 ? emptyList()
-                : conflictService.getReferrerConflictedIds(criteria.getVersionId(), getRowSystemIds(searchContent));
+                : conflictService.getReferrerConflictedIds(version.getId(), getRowSystemIds(searchContent));
 
         return searchContent.stream()
                 .map(rowValue -> {
                     boolean isDataConflict = allWithConflicts || conflictedRowsIds.contains(rowValue.getSystemId());
-                    return toDataGridRow(rowValue, criteria, isDataConflict);
+                    return toDataGridRow(rowValue, version, isDataConflict);
                 })
                 .collect(toList());
     }
@@ -296,7 +296,7 @@ public class RefBookDataController {
     }
 
     // NB: to-do: DataGridRowCriteria ?!
-    private DataGridRow toDataGridRow(RowValue rowValue, DataCriteria criteria, boolean isDataConflict) {
+    private DataGridRow toDataGridRow(RowValue rowValue, RefBookVersion version, boolean isDataConflict) {
 
         Map<String, Object> rowMap = new HashMap<>();
         LongRowValue longRowValue = (LongRowValue) rowValue;
@@ -307,8 +307,8 @@ public class RefBookDataController {
         );
 
         rowMap.put(DataRecordConstants.FIELD_SYSTEM_ID, String.valueOf(longRowValue.getSystemId()));
-        rowMap.put(DataRecordConstants.FIELD_VERSION_ID, String.valueOf(criteria.getVersionId()));
-        rowMap.put(DataRecordConstants.FIELD_OPT_LOCK_VALUE, String.valueOf(criteria.getOptLockValue()));
+        rowMap.put(DataRecordConstants.FIELD_VERSION_ID, String.valueOf(version.getId()));
+        rowMap.put(DataRecordConstants.FIELD_OPT_LOCK_VALUE, String.valueOf(version.getOptLockValue()));
 
         return new DataGridRow(longRowValue.getSystemId(), rowMap);
     }
