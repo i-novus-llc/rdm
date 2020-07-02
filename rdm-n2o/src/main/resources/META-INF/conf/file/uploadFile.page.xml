@@ -6,7 +6,12 @@
                     color="warning" enabling-condition="false" confirm="false"/>
         </toolbar>
         <fields>
+            <alert id="warning" no-label="true" color="danger">
+                Внимание: Все неопубликованные данные будут удалены.
+            </alert>
+
             <file-upload id="file" label="Файл с данными (xml, xlsx)" upload-url="/files" label-field-id="name"/>
         </fields>
     </form>
+
 </simple-page>
