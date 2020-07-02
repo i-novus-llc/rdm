@@ -129,6 +129,5 @@ public interface VersionService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     ExportFile getVersionFile(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
-                              @ApiParam(value = "Тип файла", required = true, allowableValues = "XLSX, XML") @QueryParam("type") FileType fileType,
-                              @ApiParam("Значение оптимистической блокировки версии") @QueryParam("optLockValue") Integer optLockValue);
+                              @ApiParam(value = "Тип файла", required = true, allowableValues = "XLSX, XML") @QueryParam("type") FileType fileType);
 }

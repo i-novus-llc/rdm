@@ -35,7 +35,6 @@ public class VersionValidationImpl implements VersionValidation {
     private static final String REFBOOK_WITH_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.with.code.already.exists";
     public static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
     public static final String DRAFT_NOT_FOUND_EXCEPTION_CODE = "draft.not.found";
-    private static final String DRAFT_WAS_CHANGED_EXCEPTION_CODE = "draft.was.changed";
     public static final String LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE = "last.published.not.found";
     public static final String REFBOOK_IS_ARCHIVED_EXCEPTION_CODE = "refbook.is.archived";
     private static final String VERSION_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "version.attribute.not.found";
@@ -207,21 +206,6 @@ public class VersionValidationImpl implements VersionValidation {
         if (versionId != null
                 && versionRepository.exists(RefBookVersionPredicates.hasVersionId(versionId).and(RefBookVersionPredicates.isArchived()))) {
             throw new UserException(new Message(REFBOOK_IS_ARCHIVED_EXCEPTION_CODE));
-        }
-    }
-
-    /**
-     * Проверка значения оптимистической блокировки черновика справочника.
-     *
-     * @param draftId        идентификатор черновика
-     * @param draftLockValue значение оптимистической блокировки черновика
-     * @param optLockValue   проверяемое значение оптимистической блокировки версии
-     */
-    public void validateOptLockValue(Integer draftId, Integer draftLockValue, Integer optLockValue) {
-
-        if (draftId != null && optLockValue != null
-                && !optLockValue.equals(draftLockValue)) {
-            throw new UserException(new Message(DRAFT_WAS_CHANGED_EXCEPTION_CODE, draftId));
         }
     }
 
