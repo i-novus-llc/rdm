@@ -396,6 +396,8 @@ public class DraftServiceImpl implements DraftService {
         List<RowDiff> updateDiffData = null;
         refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
         try {
+            versionValidation.validateOptLockValue(draftId, draftEntity.getOptLockValue(), optLockValue);
+
             rows = prepareRows(rows, draftEntity, true);
             if (rows.isEmpty()) return;
 
@@ -406,7 +408,6 @@ public class DraftServiceImpl implements DraftService {
             if (!isEmpty(addedRowValues)) {
                 try {
                     draftDataService.addRows(draftEntity.getStorageCode(), addedRowValues);
-                    draftEntity.setLastActionDate(TimeUtils.now());
 
                 } catch (RuntimeException e) {
                     ErrorUtil.rethrowError(e);
@@ -437,7 +438,6 @@ public class DraftServiceImpl implements DraftService {
                 conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftEntity.getId(), RowUtils.toLongSystemIds(systemIds));
                 try {
                     draftDataService.updateRows(draftEntity.getStorageCode(), updatedRowValues);
-                    draftEntity.setLastActionDate(TimeUtils.now());
 
                 } catch (RuntimeException e) {
                     ErrorUtil.rethrowError(e);
@@ -474,6 +474,8 @@ public class DraftServiceImpl implements DraftService {
         List<Object> systemIds;
         refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
         try {
+            versionValidation.validateOptLockValue(draftId, draftEntity.getOptLockValue(), optLockValue);
+
             rows = prepareRows(rows, draftEntity, false);
             if (rows.isEmpty()) return;
 
@@ -574,6 +576,8 @@ public class DraftServiceImpl implements DraftService {
 
         refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
         try {
+            versionValidation.validateOptLockValue(draftId, draftEntity.getOptLockValue(), optLockValue);
+
             deleteDraftAllRows(draftEntity);
             forceUpdateOptLockValue(draftEntity);
 
@@ -686,6 +690,8 @@ public class DraftServiceImpl implements DraftService {
         refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
+        versionValidation.validateOptLockValue(draftId, draftEntity.getOptLockValue(), optLockValue);
+
         Structure structure = draftEntity.getStructure();
         if (structure == null)
             structure = new Structure();
@@ -732,6 +738,8 @@ public class DraftServiceImpl implements DraftService {
         refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
+        versionValidation.validateOptLockValue(draftId, draftEntity.getOptLockValue(), optLockValue);
+
         Structure structure = draftEntity.getStructure();
 
         Structure.Attribute oldAttribute = structure.getAttribute(updateAttribute.getCode());
@@ -764,7 +772,6 @@ public class DraftServiceImpl implements DraftService {
 
         structure.update(oldAttribute, newAttribute);
         structure.update(oldReference, newReference);
-        draftEntity.setLastActionDate(TimeUtils.now());
 
         // Обновление значений ссылки только по необходимости:
         if (!StructureUtils.isDisplayExpressionEquals(oldReference, newReference)) {

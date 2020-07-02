@@ -24,6 +24,8 @@ public interface VersionValidation {
 
     void validateDraftExists(Integer draftId);
 
+    void validateOptLockValue(Integer draftId, Integer draftLockValue, Integer optLockValue);
+
     void validateDraftNotArchived(Integer draftId);
 
     void validateAttributeExists(Integer versionId, Structure structure, String attribute);
