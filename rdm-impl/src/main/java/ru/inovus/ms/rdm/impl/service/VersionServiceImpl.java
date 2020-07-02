@@ -95,6 +95,7 @@ public class VersionServiceImpl implements VersionService {
         this.versionFileService = versionFileService;
 
         this.versionValidation = versionValidation;
+
         this.auditLogService = auditLogService;
     }
 

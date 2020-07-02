@@ -218,6 +218,7 @@ public class VersionValidationImpl implements VersionValidation {
      * @param optLockValue   проверяемое значение оптимистической блокировки версии
      */
     public void validateOptLockValue(Integer draftId, Integer draftLockValue, Integer optLockValue) {
+
         if (draftId != null && optLockValue != null
                 && !optLockValue.equals(draftLockValue)) {
             throw new UserException(new Message(DRAFT_WAS_CHANGED_EXCEPTION_CODE, draftId));
