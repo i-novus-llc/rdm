@@ -1455,19 +1455,23 @@ public class ApplicationTest {
 
         RefBookCreateRequest refBookCreate = new RefBookCreateRequest("testOptLockValue", new HashMap<>());
         RefBook refBook = refBookService.create(refBookCreate);
+
         Structure structure = createTestStructureWithSimpleTypesOnly();
         extendTestStructureForReferenceType(structure);
         
         Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), structure));
         Integer draftId = draft.getId();
 
+        Draft actualDraft = draftService.getDraft(draftId);
+        assertEquals(Integer.valueOf(0), actualDraft.getOptLockValue());
+
         // Создание атрибута.
-        //draft = actualDraft;
+        draft = actualDraft;
         String optAttributeCode = "opt_attr";
         Structure.Attribute optAttribute = Structure.Attribute.build(optAttributeCode, "optAttr", FieldType.INTEGER, "opt-значение");
         draftService.createAttribute(new CreateAttribute(draft.getId(), optAttribute, null), draft.getOptLockValue());
 
-        Draft actualDraft = draftService.getDraft(draftId);
+        actualDraft = draftService.getDraft(draftId);
         assertNotEquals(draft.getOptLockValue(), actualDraft.getOptLockValue());
 
         // Изменение атрибута.
@@ -1488,7 +1492,8 @@ public class ApplicationTest {
 
         // Создание строки.
         draft = actualDraft;
-        Row row = createRowForAllTypesStructure("string", BigInteger.valueOf(1), DATE_STR, true, 1.1, null);
+        Row row = createRowWithSimpleTypesOnly("string", BigInteger.valueOf(1), DATE_STR, true, 1.1);
+        extendRowWithReferenceType(row, BigInteger.valueOf(1L), null);
         draftService.updateData(draftId, row, draft.getOptLockValue());
 
         actualDraft = draftService.getDraft(draftId);
@@ -2848,6 +2853,7 @@ public class ApplicationTest {
         );
     }
 
+    @Deprecated
     private Row createRowForAllTypesStructure(String str, BigInteger bigInt,
                                               String date, Boolean bool, Double fl, Object ref) {
         return new Row(new HashMap<>() {{
