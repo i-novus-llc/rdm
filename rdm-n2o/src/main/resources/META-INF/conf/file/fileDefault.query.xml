@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0">
 
-    <unique filters="id,optLockValue" result-mapping="#this">
+    <unique filters="id" result-mapping="#this">
         <java method="getVersion" class="ru.inovus.ms.rdm.n2o.service.VersionController">
             <spring/>
 
@@ -23,9 +23,6 @@
 
         <field id="optLockValue" domain="integer">
             <select/>
-            <filters>
-                <eq filter-id="optLockValue" mapping="optLockValue" domain="integer" default-value="0"/>
-            </filters>
         </field>
     </fields>
 

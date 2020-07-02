@@ -14,10 +14,6 @@ public class VersionCriteria extends AbstractCriteria {
     @QueryParam("id")
     private Integer id;
 
-    @ApiParam("Значение оптимистической блокировки версии")
-    @QueryParam("optLockValue")
-    private Integer optLockValue;
-
     @ApiParam("Идентификатор справочника")
     @QueryParam("refBookId")
     private Integer refBookId;
@@ -44,14 +40,6 @@ public class VersionCriteria extends AbstractCriteria {
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public Integer getOptLockValue() {
-        return optLockValue;
-    }
-
-    public void setOptLockValue(Integer optLockValue) {
-        this.optLockValue = optLockValue;
     }
 
     public Integer getRefBookId() {
