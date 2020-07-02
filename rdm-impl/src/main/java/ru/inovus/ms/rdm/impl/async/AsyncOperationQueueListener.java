@@ -94,11 +94,11 @@ class AsyncOperationQueueListener {
             request = (PublishRequest) arg;
 
         } else {
-            request = new PublishRequest((Integer) arg, null);
-            request.setVersionName((String) args[1]);
-            request.setFromDate((LocalDateTime) args[2]);
-            request.setToDate((LocalDateTime) args[3]);
-            request.setResolveConflicts((boolean) args[4]);
+            request = new PublishRequest((Integer) arg, (Integer) args[1]);
+            request.setVersionName((String) args[2]);
+            request.setFromDate((LocalDateTime) args[3]);
+            request.setToDate((LocalDateTime) args[4]);
+            request.setResolveConflicts((boolean) args[5]);
         }
 
         publishService.publish(request);
