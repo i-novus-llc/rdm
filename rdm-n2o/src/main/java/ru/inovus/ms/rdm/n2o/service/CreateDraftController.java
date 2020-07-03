@@ -299,7 +299,8 @@ public class CreateDraftController {
         if (version.hasEmptyStructure())
             throw new UserException(new Message(VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE, versionId));
 
-        draftService.updateData(versionId, fileModel, optLockValue);
+        UpdateFromFileRequest request = new UpdateFromFileRequest(versionId, optLockValue, fileModel);
+        draftService.updateFromFile(request);
 
         return new UiDraft(version);
     }

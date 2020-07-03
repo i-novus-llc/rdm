@@ -92,10 +92,8 @@ public interface DraftService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
 
-    @Path("/updateFromFile/{draftId}")
-    void updateData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
-                    @ApiParam("Файл") FileModel fileModel,
-                    @ApiParam("Значение оптимистической блокировки версии") @QueryParam("optLockValue") Integer optLockValue);
+    @Path("/updateFromFile")
+    void updateFromFile(UpdateFromFileRequest request);
 
     @GET
     @Path("/{draftId}/data")

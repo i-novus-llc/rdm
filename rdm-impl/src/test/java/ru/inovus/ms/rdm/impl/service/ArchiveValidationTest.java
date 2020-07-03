@@ -12,6 +12,7 @@ import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
+import ru.inovus.ms.rdm.api.model.refdata.UpdateFromFileRequest;
 import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.exception.NotFoundException;
 import ru.inovus.ms.rdm.impl.file.FileStorage;
@@ -93,7 +94,10 @@ public class ArchiveValidationTest {
 
         assertArchiveValidationError(() -> draftService.create(new CreateDraftRequest(refBookId, new Structure(), null, Collections.emptyMap())));
         assertArchiveValidationError(() -> draftService.create(refBookId, new FileModel()));
-        assertArchiveValidationError(() -> draftService.updateData(draftId, new FileModel(), null));
+
+        UpdateFromFileRequest request = new UpdateFromFileRequest(draftId, null, new FileModel());
+        assertArchiveValidationError(() -> draftService.updateFromFile(request));
+
         assertArchiveValidationError(() -> draftService.remove(draftId));
         assertArchiveValidationError(() -> draftService.createAttribute(new CreateAttribute(draftId, null, null), null));
         assertArchiveValidationError(() -> draftService.updateAttribute(new UpdateAttribute(draftId, new Structure.Attribute(), null), null));

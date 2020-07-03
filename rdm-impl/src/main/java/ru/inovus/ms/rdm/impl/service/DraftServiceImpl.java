@@ -145,7 +145,7 @@ public class DraftServiceImpl implements DraftService {
         Draft draft;
         refBookLockService.setRefBookUpdating(refBookId);
         try {
-            draft = updateDraftDataByFile(refBookId, fileModel);
+            draft = createFromFile(refBookId, fileModel);
 
         } finally {
             refBookLockService.deleteRefBookOperation(refBookId);
@@ -156,20 +156,20 @@ public class DraftServiceImpl implements DraftService {
         return draft;
     }
 
-    /** Обновление данных черновика справочника из файла. */
-    private Draft updateDraftDataByFile(Integer refBookId, FileModel fileModel) {
+    /** Создание и обновление данных черновика справочника из файла. */
+    private Draft createFromFile(Integer refBookId, FileModel fileModel) {
 
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
 
         switch (FileUtil.getExtension(fileModel.getName())) {
-            case "XLSX": return updateDraftDataByXlsx(refBookId, fileModel, inputStreamSupplier);
-            case "XML": return updateDraftDataByXml(refBookId, fileModel, inputStreamSupplier);
+            case "XLSX": return createFromXlsx(refBookId, fileModel, inputStreamSupplier);
+            case "XML": return createFromXml(refBookId, fileModel, inputStreamSupplier);
             default: throw new FileExtensionException();
         }
     }
 
-    private Draft updateDraftDataByXlsx(Integer refBookId, FileModel fileModel,
-                                        Supplier<InputStream> inputStreamSupplier) {
+    private Draft createFromXlsx(Integer refBookId, FileModel fileModel,
+                                 Supplier<InputStream> inputStreamSupplier) {
 
         String extension = FileUtil.getExtension(fileModel.getName());
         BiConsumer<String, Structure> saveDraftConsumer = getSaveDraftConsumer(refBookId);
@@ -179,18 +179,18 @@ public class DraftServiceImpl implements DraftService {
         return getDraftByRefBook(refBookId).toDraft();
     }
 
-    private Draft updateDraftDataByXml(Integer refBookId, FileModel fileModel,
-                                       Supplier<InputStream> inputStreamSupplier) {
+    private Draft createFromXml(Integer refBookId, FileModel fileModel,
+                                Supplier<InputStream> inputStreamSupplier) {
 
         try (XmlUpdateDraftFileProcessor xmlUpdateDraftFileProcessor = new XmlUpdateDraftFileProcessor(refBookId, this)) {
             Draft draft = xmlUpdateDraftFileProcessor.process(inputStreamSupplier);
-            updateDraftData(versionRepository.getOne(draft.getId()), fileModel);
+            updateDataFromFile(versionRepository.getOne(draft.getId()), fileModel);
             return draft;
         }
     }
 
     /** Обновление данных черновика из файла. */
-    private void updateDraftData(RefBookVersionEntity draft, FileModel fileModel) {
+    private void updateDataFromFile(RefBookVersionEntity draft, FileModel fileModel) {
 
         Structure structure = draft.getStructure();
 
@@ -614,16 +614,16 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
-    // @SuppressWarnings({"squid:S1166", "squid:S00108"})
-    public void updateData(Integer draftId, FileModel fileModel, Integer optLockValue) {
+    public void updateFromFile(UpdateFromFileRequest request) {
 
+        final Integer draftId = request.getDraftId();
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftEntity = versionRepository.findById(draftId).orElseThrow();
 
         Integer refBookId = draftEntity.getRefBook().getId();
         refBookLockService.setRefBookUpdating(refBookId);
         try {
-            updateDraftData(draftEntity, fileModel);
+            updateDataFromFile(draftEntity, request.getFileModel());
             forceUpdateOptLockValue(versionRepository.findById(draftId).orElse(null));
 
         } finally {
