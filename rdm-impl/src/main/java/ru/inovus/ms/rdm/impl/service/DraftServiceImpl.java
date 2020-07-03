@@ -474,7 +474,7 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void deleteRows(Integer draftId, List<Row> rows, Integer optLockValue) {
+    public void deleteData(Integer draftId, List<Row> rows, Integer optLockValue) {
 
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
@@ -577,7 +577,7 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void deleteAllRows(Integer draftId, Integer optLockValue) {
+    public void deleteAllData(Integer draftId, Integer optLockValue) {
 
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);

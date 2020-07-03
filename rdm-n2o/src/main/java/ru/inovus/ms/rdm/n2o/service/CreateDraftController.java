@@ -226,7 +226,7 @@ public class CreateDraftController {
         }
 
         List<Row> rows = singletonList(new Row(sysRecordId, emptyMap()));
-        draftService.deleteRows(uiDraft.getId(), rows, optLockValue);
+        draftService.deleteData(uiDraft.getId(), rows, optLockValue);
         return uiDraft;
     }
 
@@ -238,7 +238,7 @@ public class CreateDraftController {
             optLockValue = uiDraft.getOptLockValue();
         }
 
-        draftService.deleteAllRows(uiDraft.getId(), optLockValue);
+        draftService.deleteAllData(uiDraft.getId(), optLockValue);
         return uiDraft;
     }
 

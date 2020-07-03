@@ -72,7 +72,7 @@ public interface DraftService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/deleteRows/{draftId}")
-    void deleteRows(@PathParam("draftId") Integer draftId,
+    void deleteData(@PathParam("draftId") Integer draftId,
                     @ApiParam("Записи черновика") List<Row> rows,
                     @ApiParam("Значение оптимистической блокировки версии") @QueryParam("optLockValue") Integer optLockValue);
 
@@ -84,7 +84,7 @@ public interface DraftService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/deleteAll/{draftId}")
-    void deleteAllRows(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
+    void deleteAllData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
                        @ApiParam("Значение оптимистической блокировки версии") @QueryParam("optLockValue") Integer optLockValue);
 
     @POST

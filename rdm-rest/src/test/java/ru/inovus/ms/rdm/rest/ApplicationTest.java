@@ -681,7 +681,7 @@ public class ApplicationTest {
         }
 
         // удаление всех строк
-        draftService.deleteAllRows(versionId, null);
+        draftService.deleteAllData(versionId, null);
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertEquals(0, actualRowValues.getContent().size());
 
@@ -728,7 +728,7 @@ public class ApplicationTest {
         assertRows(fields(structure), expectedRowValues, actualRowValues.getContent());
 
         // удаление всех строк
-        draftService.deleteAllRows(versionId, null);
+        draftService.deleteAllData(versionId, null);
 
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertEquals(0, actualRowValues.getContent().size());
@@ -819,7 +819,7 @@ public class ApplicationTest {
         }
 
         // удаление всех строк
-        draftService.deleteAllRows(versionId, null);
+        draftService.deleteAllData(versionId, null);
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertEquals(0, actualRowValues.getContent().size());
 
@@ -857,7 +857,7 @@ public class ApplicationTest {
         assertRows(fields(structure), expectedRowValues, actualRowValues.getContent());
 
         // удаление всех строк
-        draftService.deleteAllRows(versionId, null);
+        draftService.deleteAllData(versionId, null);
 
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertEquals(0, actualRowValues.getContent().size());
@@ -3024,6 +3024,6 @@ public class ApplicationTest {
     }
 
     public void deleteRow(Integer draftId, Row row, Integer optLockValue) {
-        draftService.deleteRows(draftId, singletonList(row), optLockValue);
+        draftService.deleteData(draftId, singletonList(row), optLockValue);
     }
 }
