@@ -14,10 +14,9 @@
 
         <toolbar place="bottomRight">
             <button id="close" label="скачать">
-                <a href="${server.servlet.context-path}/files/:versionId/:fileType/:optLockValue" target="self">
+                <a href="${server.servlet.context-path}/files/:versionId/:fileType" target="self">
                     <path-param name="versionId" value="{versionId}"/>
                     <path-param name="fileType" value="{fileType.id}"/>
-                    <path-param name="optLockValue" value="{optLockValue}"/>
                 </a>
             </button>
         </toolbar>
