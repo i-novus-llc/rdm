@@ -392,7 +392,7 @@ public class DraftServiceImpl implements DraftService {
         List<RowDiff> updatedDiffData = null;
         refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
         try {
-            validateOptLockValue(draftEntity, request.getOptLockValue());
+            validateOptLockValue(draftEntity, request);
 
             List<Row> rows = prepareRows(request.getRows(), draftEntity, true);
             if (rows.isEmpty()) return;
@@ -1031,6 +1031,11 @@ public class DraftServiceImpl implements DraftService {
                 fileNameGenerator.generateZipName(versionModel, fileType));
     }
 
+    private void validateOptLockValue(RefBookVersionEntity entity, DraftChangeRequest request) {
+        versionValidation.validateOptLockValue(entity.getId(), entity.getOptLockValue(), request.getOptLockValue());
+    }
+
+    @Deprecated
     private void validateOptLockValue(RefBookVersionEntity entity, Integer optLockValue) {
         versionValidation.validateOptLockValue(entity.getId(), entity.getOptLockValue(), optLockValue);
     }

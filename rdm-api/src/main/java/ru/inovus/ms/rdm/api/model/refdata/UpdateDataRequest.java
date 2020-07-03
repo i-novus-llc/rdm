@@ -5,13 +5,12 @@ import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiParam;
 import ru.inovus.ms.rdm.api.util.json.JsonUtil;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
 @ApiModel(value = "Модель изменения записей черновика",
         description = "Набор входных параметров для изменения записей черновика")
-public class UpdateDataRequest implements Serializable {
+public class UpdateDataRequest implements DraftChangeRequest {
 
     @ApiModelProperty(value = "Идентификатор черновика")
     private Integer draftId;
@@ -19,7 +18,7 @@ public class UpdateDataRequest implements Serializable {
     @ApiParam("Значение оптимистической блокировки версии-черновика")
     private Integer optLockValue;
 
-    @ApiParam("Записи черновика")
+    @ApiParam("Добавляемые/обновляемые записи черновика")
     private List<Row> rows;
 
     public UpdateDataRequest() {
