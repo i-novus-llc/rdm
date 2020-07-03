@@ -92,6 +92,10 @@ public class RowUtils {
         return attribute.getName() + "\" - \"" + rowData.get(attribute.getCode());
     }
 
+    public static List<Object> toSystemIds(List<RowValue> rowValues) {
+        return rowValues.stream().map(RowValue::getSystemId).collect(toList());
+    }
+
     /** Преобразование списка systemIds из vds в список для rdm. */
     public static List<Long> toLongSystemIds(List<Object> systemIds) {
         return systemIds.stream().map(systemId -> (Long) systemId).collect(toList());

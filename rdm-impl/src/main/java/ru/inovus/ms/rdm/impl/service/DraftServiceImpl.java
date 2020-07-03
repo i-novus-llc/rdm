@@ -36,7 +36,9 @@ import ru.inovus.ms.rdm.api.model.version.*;
 import ru.inovus.ms.rdm.api.service.DraftService;
 import ru.inovus.ms.rdm.api.service.VersionFileService;
 import ru.inovus.ms.rdm.api.service.VersionService;
-import ru.inovus.ms.rdm.api.util.*;
+import ru.inovus.ms.rdm.api.util.FileNameGenerator;
+import ru.inovus.ms.rdm.api.util.RowUtils;
+import ru.inovus.ms.rdm.api.util.StructureUtils;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.*;
@@ -397,7 +399,7 @@ public class DraftServiceImpl implements DraftService {
             List<Row> rows = prepareRows(request.getRows(), draftEntity, true);
             if (rows.isEmpty()) return;
 
-            List<RowValue> rowValues = rows.stream().map(row -> ConverterUtil.rowValue((row), draftEntity.getStructure())).collect(toList());
+            List<RowValue> rowValues = rows.stream().map(row -> ConverterUtil.rowValue(row, draftEntity.getStructure())).collect(toList());
             validateDataByStructure(draftEntity, rows);
 
             List<RowValue> addedRowValues = rowValues.stream().filter(rowValue -> rowValue.getSystemId() == null).collect(toList());
@@ -442,7 +444,7 @@ public class DraftServiceImpl implements DraftService {
     private List<RowDiff> getUpdatedDiffData(RefBookVersionEntity entity, List<RowValue> updatedRowValues) {
 
         List<String> fields = StructureUtils.getAttributeCodes(entity.getStructure()).collect(toList());
-        List<Object> systemIds = updatedRowValues.stream().map(RowValue::getSystemId).collect(toList());
+        List<Object> systemIds = RowUtils.toSystemIds(updatedRowValues);
         List<RowValue> oldRowValues = searchDataService.findRows(entity.getStorageCode(), fields, systemIds);
 
         List<Message> messages = systemIds.stream()
@@ -461,7 +463,7 @@ public class DraftServiceImpl implements DraftService {
 
     private void updateRowValues(RefBookVersionEntity entity, List<RowValue> rowValues) {
 
-        List<Object> systemIds = rowValues.stream().map(RowValue::getSystemId).collect(toList());
+        List<Object> systemIds = RowUtils.toSystemIds(rowValues);
         conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(entity.getId(), toLongSystemIds(systemIds));
 
         try {
