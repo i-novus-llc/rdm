@@ -20,6 +20,7 @@ import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.model.draft.PublishRequest;
 import ru.inovus.ms.rdm.api.model.refbook.*;
+import ru.inovus.ms.rdm.api.model.refdata.DeleteDataRequest;
 import ru.inovus.ms.rdm.api.model.refdata.RdmChangeDataRequest;
 import ru.inovus.ms.rdm.api.model.refdata.UpdateDataRequest;
 import ru.inovus.ms.rdm.api.service.DraftService;
@@ -369,7 +370,7 @@ public class RefBookServiceImpl implements RefBookService {
             draftService.updateData(new UpdateDataRequest(draftId, draft.getOptLockValue(), request.getRowsToAddOrUpdate()));
 
             draft = draftService.getDraft(draftId);
-            draftService.deleteData(draftId, request.getRowsToDelete(), draft.getOptLockValue());
+            draftService.deleteData(new DeleteDataRequest(draftId, draft.getOptLockValue(), request.getRowsToDelete()));
 
             draft = draftService.getDraft(draftId);
             publishService.publish(new PublishRequest(draftId, draft.getOptLockValue()));

@@ -476,23 +476,24 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void deleteData(Integer draftId, List<Row> rows, Integer optLockValue) {
+    public void deleteData(DeleteDataRequest request) {
 
+        final Integer draftId = request.getDraftId();
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
 
         List<Object> systemIds;
         refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
         try {
-            validateOptLockValue(draftEntity, optLockValue);
+            validateOptLockValue(draftEntity, request);
 
-            rows = prepareRows(rows, draftEntity, false);
+            List<Row> rows = prepareRows(request.getRows(), draftEntity, false);
             if (rows.isEmpty()) return;
 
             systemIds = rows.stream().map(Row::getSystemId).filter(Objects::nonNull).collect(toList());
             if (!systemIds.isEmpty()) {
-                conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftEntity.getId(), toLongSystemIds(systemIds));
-                draftDataService.deleteRows(draftEntity.getStorageCode(), systemIds);
+                deleteRows(draftEntity, systemIds);
+
                 forceUpdateOptLockValue(draftEntity);
             }
         } finally {
@@ -500,6 +501,12 @@ public class DraftServiceImpl implements DraftService {
         }
 
         auditEditData(draftEntity, "delete_rows", systemIds);
+    }
+
+    private void deleteRows(RefBookVersionEntity entity, List<Object> systemIds) {
+
+        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(entity.getId(), toLongSystemIds(systemIds));
+        draftDataService.deleteRows(entity.getStorageCode(), systemIds);
     }
 
     /** Подготовка записей к добавлению/обновлению/удалению. */

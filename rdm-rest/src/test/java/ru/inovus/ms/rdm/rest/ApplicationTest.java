@@ -655,7 +655,7 @@ public class ApplicationTest {
         assertRows(fields(structure), singletonList(expectedRowValue), actualRowValues.getContent());
 
         // удаление строки
-        deleteRow(versionId, new Row(1L, emptyMap()), null);
+        deleteData(versionId, new Row(1L, emptyMap()), null);
 
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertEquals(0, actualRowValues.getContent().size());
@@ -793,7 +793,7 @@ public class ApplicationTest {
         assertRows(fields(structure), singletonList(expectedRowValue), actualRowValues.getContent());
 
         // удаление строки
-        deleteRow(versionId, new Row(1L, emptyMap()), null);
+        deleteData(versionId, new Row(1L, emptyMap()), null);
 
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertEquals(0, actualRowValues.getContent().size());
@@ -1511,7 +1511,7 @@ public class ApplicationTest {
 
         // Удаление строки.
         draft = actualDraft;
-        deleteRow(draftId, new Row(systemId, emptyMap()), draft.getOptLockValue());
+        deleteData(draftId, new Row(systemId, emptyMap()), draft.getOptLockValue());
 
         actualDraft = draftService.getDraft(draftId);
         assertNotEquals(draft.getOptLockValue(), actualDraft.getOptLockValue());
@@ -2053,7 +2053,7 @@ public class ApplicationTest {
         assertNotNull(rowValue);
         assertNotNull(rowValue.getSystemId());
 
-        deleteRow(draft.getId(), new Row(rowValue.getSystemId(), emptyMap()), null);
+        deleteData(draft.getId(), new Row(rowValue.getSystemId(), emptyMap()), null);
 
         rowValue = getVersionRowValue(draft.getId(), primary, primaryValue);
         assertNull(rowValue);
@@ -3015,7 +3015,8 @@ public class ApplicationTest {
     }
 
     private void updateData(Integer draftId, Row row, Integer optLockValue) {
-        updateData(draftId, singletonList(row), optLockValue);
+        UpdateDataRequest request = new UpdateDataRequest(draftId, optLockValue, row);
+        draftService.updateData(request);
     }
 
     private void updateData(Integer draftId, List<Row> rows, Integer optLockValue) {
@@ -3023,7 +3024,8 @@ public class ApplicationTest {
         draftService.updateData(request);
     }
 
-    public void deleteRow(Integer draftId, Row row, Integer optLockValue) {
-        draftService.deleteData(draftId, singletonList(row), optLockValue);
+    public void deleteData(Integer draftId, Row row, Integer optLockValue) {
+        DeleteDataRequest request = new DeleteDataRequest(draftId, optLockValue, row);
+        draftService.deleteData(request);
     }
 }

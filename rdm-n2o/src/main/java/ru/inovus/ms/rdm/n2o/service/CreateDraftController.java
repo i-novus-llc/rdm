@@ -13,9 +13,7 @@ import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
-import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
-import ru.inovus.ms.rdm.api.model.refdata.Row;
-import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.api.model.refdata.*;
 import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.service.DraftService;
@@ -225,8 +223,9 @@ public class CreateDraftController {
             sysRecordId = findNewSystemId(sysRecordId, versionId, uiDraft.getId());
         }
 
-        List<Row> rows = singletonList(new Row(sysRecordId, emptyMap()));
-        draftService.deleteData(uiDraft.getId(), rows, optLockValue);
+        Row row = new Row(sysRecordId, emptyMap());
+        DeleteDataRequest request = new DeleteDataRequest(uiDraft.getId(), optLockValue, row);
+        draftService.deleteData(request);
         return uiDraft;
     }
 

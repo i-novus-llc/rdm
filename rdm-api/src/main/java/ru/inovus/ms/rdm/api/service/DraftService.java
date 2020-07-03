@@ -61,7 +61,7 @@ public interface DraftService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    @Path("/update")
+    @Path("/updateData")
     void updateData(UpdateDataRequest request);
 
     @DELETE
@@ -71,10 +71,8 @@ public interface DraftService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    @Path("/deleteRows/{draftId}")
-    void deleteData(@PathParam("draftId") Integer draftId,
-                    @ApiParam("Записи черновика") List<Row> rows,
-                    @ApiParam("Значение оптимистической блокировки версии") @QueryParam("optLockValue") Integer optLockValue);
+    @Path("/deleteData")
+    void deleteData(DeleteDataRequest request);
 
     @DELETE
     @ApiOperation("Удаление всех записей черновика")
