@@ -117,6 +117,8 @@ class BasePublishService {
         if (RefBookVersionStatus.PUBLISHED.equals(draftEntity.getStatus()))
             return null;
 
+        versionValidation.validateOptLockValue(draftEntity.getId(), draftEntity.getOptLockValue(), request.getOptLockValue());
+
         validatePublishingDraft(draftEntity);
 
         Integer refBookId = draftEntity.getRefBook().getId();
@@ -149,6 +151,7 @@ class BasePublishService {
 
             resolveOverlappingPeriodsInFuture(fromDate, toDate, refBookId, draftEntity.getId());
 
+            draftEntity.refreshLastActionDate();
             versionRepository.save(draftEntity);
 
             result.setRefBookCode(draftEntity.getRefBook().getCode());
