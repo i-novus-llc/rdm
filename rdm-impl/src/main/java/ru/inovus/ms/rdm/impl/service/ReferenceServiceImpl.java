@@ -22,7 +22,6 @@ import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.service.DraftService;
 import ru.inovus.ms.rdm.api.service.ReferenceService;
 import ru.inovus.ms.rdm.api.util.PageIterator;
-import ru.inovus.ms.rdm.api.util.TimeUtils;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
@@ -214,8 +213,8 @@ public class ReferenceServiceImpl implements ReferenceService {
     /** Принудительное обновление значения оптимистической блокировки версии. */
     private void forceUpdateOptLockValue(RefBookVersionEntity versionEntity) {
         try {
-            versionEntity.setLastActionDate(TimeUtils.now());
-            versionRepository.flush();
+            versionEntity.refreshLastActionDate();
+            versionRepository.save(versionEntity);
 
         } catch (ObjectOptimisticLockingFailureException e) {
             throw new UserException(OPTIMISTIC_LOCK_ERROR_EXCEPTION_CODE, e);

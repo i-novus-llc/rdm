@@ -226,6 +226,10 @@ public class RefBookVersionEntity implements Serializable {
         return isDraft() ? DRAFT_VERSION : getVersion();
     }
 
+    public void refreshLastActionDate() {
+        setLastActionDate(TimeUtils.now());
+    }
+
     /**
      * Получение значения паспорта по атрибуту.
      *

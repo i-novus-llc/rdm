@@ -1009,7 +1009,7 @@ public class DraftServiceImpl implements DraftService {
             return;
 
         try {
-            entity.setLastActionDate(TimeUtils.now());
+            entity.refreshLastActionDate();
             versionRepository.save(entity);
 
         } catch (ObjectOptimisticLockingFailureException e) {
