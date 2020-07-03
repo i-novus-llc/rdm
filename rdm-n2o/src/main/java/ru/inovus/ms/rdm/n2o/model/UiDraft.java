@@ -1,11 +1,14 @@
 package ru.inovus.ms.rdm.n2o.model;
 
 import ru.inovus.ms.rdm.api.model.draft.Draft;
+import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 
 import java.util.Objects;
 
+/** Модель черновика для отображения. */
 public class UiDraft extends Draft {
 
+    /** Идентификатор справочника. */
     private Integer refBookId;
 
     public UiDraft(Integer id, Integer refBookId, Integer optLockValue) {
@@ -13,9 +16,12 @@ public class UiDraft extends Draft {
         this.refBookId = refBookId;
     }
 
+    public UiDraft(RefBookVersion version) {
+        this(version.getId(), version.getRefBookId(), version.getOptLockValue());
+    }
+
     public UiDraft(Draft draft, Integer refBookId) {
-        super(draft.getId(), null, draft.getOptLockValue());
-        this.refBookId = refBookId;
+        this(draft.getId(), refBookId, draft.getOptLockValue());
     }
 
     public Integer getRefBookId() {

@@ -47,6 +47,10 @@ public class Draft {
         this.optLockValue = optLockValue;
     }
 
+    public boolean isVersionDraft(Integer versionId) {
+        return Objects.equals(getId(), versionId);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

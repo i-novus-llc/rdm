@@ -69,7 +69,7 @@ public class CreateDraftController {
         final Integer refBookId = version.getRefBookId();
 
         if (version.isDraft()) {
-            return new UiDraft(versionId, refBookId, version.getOptLockValue());
+            return new UiDraft(version);
         }
 
         Draft draft = draftService.findDraft(version.getCode());
@@ -85,7 +85,7 @@ public class CreateDraftController {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (!isVersionDraft(versionId, uiDraft)) {
+        if (!uiDraft.isVersionDraft(versionId)) {
             optLockValue = uiDraft.getOptLockValue();
         }
 
@@ -126,7 +126,7 @@ public class CreateDraftController {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (!isVersionDraft(versionId, uiDraft)) {
+        if (!uiDraft.isVersionDraft(versionId)) {
             optLockValue = uiDraft.getOptLockValue();
         }
 
@@ -138,7 +138,7 @@ public class CreateDraftController {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (!isVersionDraft(versionId, uiDraft)) {
+        if (!uiDraft.isVersionDraft(versionId)) {
             optLockValue = uiDraft.getOptLockValue();
         }
 
@@ -150,7 +150,7 @@ public class CreateDraftController {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (!isVersionDraft(versionId, uiDraft)) {
+        if (!uiDraft.isVersionDraft(versionId)) {
             optLockValue = uiDraft.getOptLockValue();
         }
 
@@ -164,7 +164,7 @@ public class CreateDraftController {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (!isVersionDraft(versionId, uiDraft)) {
+        if (!uiDraft.isVersionDraft(versionId)) {
             // Изменение записи в опубликованной версии:
             optLockValue = uiDraft.getOptLockValue(); // Новый справочник, поэтому блокировки нет (см. также в других методах).
             row.setSystemId(findNewSystemId(row.getSystemId(), versionId, uiDraft.getId()));
@@ -218,7 +218,7 @@ public class CreateDraftController {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (!isVersionDraft(versionId, uiDraft)) {
+        if (!uiDraft.isVersionDraft(versionId)) {
             optLockValue = uiDraft.getOptLockValue();
             sysRecordId = findNewSystemId(sysRecordId, versionId, uiDraft.getId());
         }
@@ -233,7 +233,7 @@ public class CreateDraftController {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (!isVersionDraft(versionId, uiDraft)) {
+        if (!uiDraft.isVersionDraft(versionId)) {
             optLockValue = uiDraft.getOptLockValue();
         }
 
@@ -271,7 +271,7 @@ public class CreateDraftController {
         Integer versionId = refBookService.create(fileModel).getId();
         RefBookVersion version = versionService.getById(versionId);
 
-        return new UiDraft(versionId, version.getRefBookId(), version.getOptLockValue());
+        return new UiDraft(version);
     }
 
     public UiDraft uploadFromFile(Integer versionId, FileModel fileModel) {
@@ -284,9 +284,7 @@ public class CreateDraftController {
             throw new UserException(new Message(VERSION_IS_NOT_DRAFT_EXCEPTION_CODE, versionId));
 
         Draft draft = draftService.create(version.getRefBookId(), fileModel);
-        versionId = draft.getId();
-
-        return new UiDraft(versionId, version.getRefBookId(), draft.getOptLockValue());
+        return new UiDraft(draft, version.getRefBookId());
     }
 
     public UiDraft uploadData(Integer versionId, FileModel fileModel, Integer optLockValue) {
@@ -303,11 +301,6 @@ public class CreateDraftController {
 
         draftService.updateData(versionId, fileModel, optLockValue);
 
-        return new UiDraft(versionId, version.getRefBookId(), version.getOptLockValue());
-    }
-
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean isVersionDraft(Integer versionId, UiDraft uiDraft) {
-        return Objects.equals(versionId, uiDraft.getId());
+        return new UiDraft(version);
     }
 }
