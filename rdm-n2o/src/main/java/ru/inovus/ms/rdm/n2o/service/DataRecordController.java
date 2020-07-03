@@ -218,6 +218,6 @@ public class DataRecordController {
                 .filter(e -> e.getValue() instanceof Date)
                 .forEach(e -> e.setValue(parseLocalDate(e.getValue())));
 
-        draftService.updateData(draftId, row, optLockValue);
+        draftService.updateData(draftId, singletonList(row), optLockValue);
     }
 }

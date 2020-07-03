@@ -381,12 +381,6 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void updateData(Integer draftId, Row row, Integer optLockValue) {
-        updateData(draftId, singletonList(row), optLockValue);
-    }
-
-    @Override
-    @Transactional
     public void updateData(Integer draftId, List<Row> rows, Integer optLockValue) {
 
         versionValidation.validateDraft(draftId);
@@ -456,12 +450,6 @@ public class DraftServiceImpl implements DraftService {
                 "create_rows", addedData == null ? "-" : addedData,
                 "update_rows", updateDiffData == null ? "-" : updateDiffData
         ));
-    }
-
-    @Override
-    @Transactional
-    public void deleteRow(Integer draftId, Row row, Integer optLockValue) {
-        deleteRows(draftId, singletonList(row), optLockValue);
     }
 
     @Override

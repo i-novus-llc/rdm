@@ -57,18 +57,6 @@ public interface DraftService {
                  @ApiParam("Файл") FileModel fileModel);
 
     @POST
-    @ApiOperation("Добавление или изменение записи черновика")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Черновик обновлен"),
-            @ApiResponse(code = 400, message = "Некорректный запрос"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    @Path("/update/{draftId}")
-    void updateData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
-                    @ApiParam("Запись черновика") Row row,
-                    @ApiParam("Значение оптимистической блокировки версии") @QueryParam("optLockValue") Integer optLockValue);
-
-    @POST
     @ApiOperation("Добавление или изменение записей черновика")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Черновик обновлен"),
@@ -79,18 +67,6 @@ public interface DraftService {
     void updateData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
                     @ApiParam("Записи черновика") List<Row> rows,
                     @ApiParam("Значение оптимистической блокировки версии") @QueryParam("optLockValue") Integer optLockValue);
-
-    @DELETE
-    @ApiOperation("Удаление записи черновика (либо по первичному ключу, либо по системному идентификатору)")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Черновик обновлен"),
-            @ApiResponse(code = 400, message = "Некорректный запрос"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    @Path("/deleteRow/{draftId}")
-    void deleteRow(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
-                   @ApiParam("Запись черновика") Row row,
-                   @ApiParam("Значение оптимистической блокировки версии") @QueryParam("optLockValue") Integer optLockValue);
 
     @DELETE
     @ApiOperation(value = "Удаление записей черновика (либо по первичному ключу, либо по системному идентификатору)")

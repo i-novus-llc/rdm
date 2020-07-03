@@ -225,7 +225,8 @@ public class CreateDraftController {
             sysRecordId = findNewSystemId(sysRecordId, versionId, uiDraft.getId());
         }
 
-        draftService.deleteRow(uiDraft.getId(), new Row(sysRecordId, emptyMap()), optLockValue);
+        List<Row> rows = singletonList(new Row(sysRecordId, emptyMap()));
+        draftService.deleteRows(uiDraft.getId(), rows, optLockValue);
         return uiDraft;
     }
 

@@ -296,7 +296,7 @@ public class ApplicationTest {
         draftService.createAttribute(createReferredAttribute, null);
 
         Row referredRow = new Row(new HashMap<>() {{ put(referredIdAttribute.getCode(), "1"); }});
-        draftService.updateData(referredDraft.getId(), referredRow, null);
+        updateData(referredDraft.getId(), referredRow, null);
         publish(referredDraft.getId(), null, null, null, false);
 
         // создание справочника
@@ -635,7 +635,7 @@ public class ApplicationTest {
 
         // создание строки
         Row row = createRowWithSimpleTypesOnly("string", BigInteger.valueOf(1L), DATE_STR, true, 1.1);
-        draftService.updateData(versionId, row, null);
+        updateData(versionId, row, null);
 
         Long systemId = 1L;
 
@@ -650,14 +650,14 @@ public class ApplicationTest {
         row.getData().replace("string", "string1");
         row.getData().replace("boolean", false);
         row.getData().replace("float", 1.2);
-        draftService.updateData(versionId, row, null);
+        updateData(versionId, row, null);
 
         expectedRowValue = rowValue(row, structure);
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertRows(fields(structure), singletonList(expectedRowValue), actualRowValues.getContent());
 
         // удаление строки
-        draftService.deleteRow(versionId, new Row(1L, emptyMap()), null);
+        deleteRow(versionId, new Row(1L, emptyMap()), null);
 
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertEquals(0, actualRowValues.getContent().size());
@@ -665,8 +665,8 @@ public class ApplicationTest {
         // создание двух строк
         Row row1 = createRowWithSimpleTypesOnly("string1", BigInteger.valueOf(1L), null, null, null);
         Row row2 = createRowWithSimpleTypesOnly("string2", BigInteger.valueOf(2L), null, null, null);
-        draftService.updateData(versionId, row1, null);
-        draftService.updateData(versionId, row2, null);
+        updateData(versionId, row1, null);
+        updateData(versionId, row2, null);
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertEquals(2, actualRowValues.getContent().size());
 
@@ -676,7 +676,7 @@ public class ApplicationTest {
         // изменение несуществующей строки
         row2.setSystemId(-1L);
         try {
-            draftService.updateData(versionId, row2, null);
+            updateData(versionId, row2, null);
             fail();
         } catch (RestException re) {
             assertEquals("row.not.found", getRestExceptionMessage(re));
@@ -691,7 +691,7 @@ public class ApplicationTest {
         Row badRow = createRowWithSimpleTypesOnly("string", BigInteger.valueOf(1L), DATE_STR, true, 1.1);
         badRow.getData().replace("integer", "abc");
         try {
-            draftService.updateData(versionId, badRow, null);
+            updateData(versionId, badRow, null);
             fail();
         } catch (RestException re) {
             Assert.assertEquals(1, re.getErrors().stream()
@@ -738,7 +738,7 @@ public class ApplicationTest {
         // изменение несуществующей строки
         row3.setSystemId(-1L);
         try {
-            draftService.updateData(versionId, row3, null);
+            updateData(versionId, row3, null);
             fail();
         } catch (RestException re) {
             Assert.assertEquals(1, re.getErrors().stream()
@@ -773,7 +773,7 @@ public class ApplicationTest {
 
         // создание строки
         Row row = createRowWithReferenceType(BigInteger.valueOf(1L), "string", "2");
-        draftService.updateData(versionId, row, null);
+        updateData(versionId, row, null);
 
         Long systemId = 1L;
 
@@ -787,7 +787,7 @@ public class ApplicationTest {
         // изменение строки
         row.getData().replace("string", "string1");
         row.getData().replace("reference", "2");
-        draftService.updateData(versionId, row, null);
+        updateData(versionId, row, null);
 
         row.getData().replace("reference", new Reference("2", "2"));
         expectedRowValue = rowValue(row, structure);
@@ -795,7 +795,7 @@ public class ApplicationTest {
         assertRows(fields(structure), singletonList(expectedRowValue), actualRowValues.getContent());
 
         // удаление строки
-        draftService.deleteRow(versionId, new Row(1L, emptyMap()), null);
+        deleteRow(versionId, new Row(1L, emptyMap()), null);
 
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertEquals(0, actualRowValues.getContent().size());
@@ -803,8 +803,8 @@ public class ApplicationTest {
         // создание двух строк
         Row row1 = createRowWithReferenceType(BigInteger.valueOf(1L), "string1", null);
         Row row2 = createRowWithReferenceType(BigInteger.valueOf(2L), "string2", null);
-        draftService.updateData(versionId, row1, null);
-        draftService.updateData(versionId, row2, null);
+        updateData(versionId, row1, null);
+        updateData(versionId, row2, null);
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertEquals(2, actualRowValues.getContent().size());
 
@@ -814,7 +814,7 @@ public class ApplicationTest {
         // изменение несуществующей строки
         row2.setSystemId(-1L);
         try {
-            draftService.updateData(versionId, row2, null);
+            updateData(versionId, row2, null);
             fail();
         } catch (RestException re) {
             assertEquals("validation.db.contains.pk.err", getRestExceptionMessage(re));
@@ -868,7 +868,7 @@ public class ApplicationTest {
         row3.setSystemId(-1L);
         row3.getData().replace("reference", null);
         try {
-            draftService.updateData(versionId, row3, null);
+            updateData(versionId, row3, null);
             fail();
         } catch (RestException re) {
             Assert.assertEquals(1, re.getErrors().stream()
@@ -1494,7 +1494,7 @@ public class ApplicationTest {
         draft = actualDraft;
         Row row = createRowWithSimpleTypesOnly("string", BigInteger.valueOf(1), DATE_STR, true, 1.1);
         extendRowWithReferenceType(row, BigInteger.valueOf(1L), null);
-        draftService.updateData(draftId, row, draft.getOptLockValue());
+        updateData(draftId, row, draft.getOptLockValue());
 
         actualDraft = draftService.getDraft(draftId);
         assertNotEquals(draft.getOptLockValue(), actualDraft.getOptLockValue());
@@ -1506,14 +1506,14 @@ public class ApplicationTest {
         row.getData().replace("string", "string1");
         row.getData().replace("boolean", false);
         row.getData().replace("float", 1.2);
-        draftService.updateData(draftId, row, draft.getOptLockValue());
+        updateData(draftId, row, draft.getOptLockValue());
 
         actualDraft = draftService.getDraft(draftId);
         assertNotEquals(draft.getOptLockValue(), actualDraft.getOptLockValue());
 
         // Удаление строки.
         draft = actualDraft;
-        draftService.deleteRow(draftId, new Row(systemId, emptyMap()), draft.getOptLockValue());
+        deleteRow(draftId, new Row(systemId, emptyMap()), draft.getOptLockValue());
 
         actualDraft = draftService.getDraft(draftId);
         assertNotEquals(draft.getOptLockValue(), actualDraft.getOptLockValue());
@@ -1531,24 +1531,6 @@ public class ApplicationTest {
 
         actualDraft = draftService.getDraft(draftId);
         assertNotEquals(draft.getOptLockValue(), actualDraft.getOptLockValue());
-    }
-
-    /**
-     * Тест на изменение структуры черновика с данными
-     * <p>
-     * Создаем новый черновик с ссылкой на опубликованную версию
-     * Добавляем в версию наполнение
-     * Пытаемся изменить тип атрибута с любого на любой
-     * Без ошибок изменяется только тип поля string -> любой -> string. Возвращаются данные измененного типа
-     * В остальных случаях ожидается ошибка
-     */
-    //@Test
-    public void testCreateUpdateReference() {
-        RefBookCreateRequest refBookCreate = new RefBookCreateRequest(ALL_TYPES_REF_BOOK_CODE + "_with_ref", new HashMap<>());
-        RefBook refBook = refBookService.create(refBookCreate);
-
-        Structure structure = createTestStructureWithReferenceType();
-        Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), structure));
     }
 
     /*
@@ -2073,7 +2055,7 @@ public class ApplicationTest {
         assertNotNull(rowValue);
         assertNotNull(rowValue.getSystemId());
 
-        draftService.deleteRow(draft.getId(), new Row(rowValue.getSystemId(), emptyMap()), null);
+        deleteRow(draft.getId(), new Row(rowValue.getSystemId(), emptyMap()), null);
 
         rowValue = getVersionRowValue(draft.getId(), primary, primaryValue);
         assertNull(rowValue);
@@ -2485,7 +2467,7 @@ public class ApplicationTest {
         RefBook refToRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_to_diff_pk", null));
         Integer refToVersionId = refToRefBook.getId();
         draftService.createAttribute(new CreateAttribute(refToVersionId, id, null), null);
-        draftService.updateData(refToVersionId, new Row(null, Map.of("ID", 1)), null);
+        updateData(refToVersionId, new Row(null, Map.of("ID", 1)), null);
         publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
 
         Structure.Attribute id_id = Structure.Attribute.buildPrimary("ID_ID", "id_id", FieldType.INTEGER, "id_id");
@@ -2496,7 +2478,7 @@ public class ApplicationTest {
         Integer refFromVersionId = refFromRefBook.getId();
         draftService.createAttribute(new CreateAttribute(refFromVersionId, id_id, null), null);
         draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id, ref_id_ref), null);
-        draftService.updateData(refFromVersionId, new Row(null, Map.of("ID_ID", 1)), null);
+        updateData(refFromVersionId, new Row(null, Map.of("ID_ID", 1)), null);
         publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
 
         Draft draft = draftService.create(
@@ -2835,37 +2817,6 @@ public class ApplicationTest {
         return structure;
     }
 
-    /*
-     * structure without tree field type
-     * */
-    @Deprecated
-    private Structure createTestStructureWithoutTreeFieldType() {
-        return new Structure(
-                asList(
-                        Structure.Attribute.build("string", "string", FieldType.STRING, "строка"),
-                        Structure.Attribute.build("integer", "integer", FieldType.INTEGER, "число"),
-                        Structure.Attribute.build("date", "date", FieldType.DATE, "дата"),
-                        Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, "булево"),
-                        Structure.Attribute.build("float", "float", FieldType.FLOAT, "дробное"),
-                        Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, "ссылка")
-                ),
-                singletonList(new Structure.Reference("reference", TEST_REFERENCE_BOOK_CODE, toPlaceholder("count")))
-        );
-    }
-
-    @Deprecated
-    private Row createRowForAllTypesStructure(String str, BigInteger bigInt,
-                                              String date, Boolean bool, Double fl, Object ref) {
-        return new Row(new HashMap<>() {{
-            put("string", str);
-            put("integer", bigInt);
-            put("date", date != null ? parseLocalDate(date) : null);
-            put("boolean", bool);
-            put("float", fl);
-            put("reference", ref);
-        }});
-    }
-
     private Structure createTestStructureWithSimpleTypesOnly() {
         return new Structure(
                 new ArrayList<>(asList(
@@ -3063,5 +3014,13 @@ public class ApplicationTest {
             return e.getMessage();
 
         return null;
+    }
+
+    private void updateData(Integer draftId, Row row, Integer optLockValue) {
+        draftService.updateData(draftId, singletonList(row), optLockValue);
+    }
+
+    public void deleteRow(Integer draftId, Row row, Integer optLockValue) {
+        draftService.deleteRows(draftId, singletonList(row), optLockValue);
     }
 }
