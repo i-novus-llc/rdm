@@ -27,8 +27,9 @@ public class RefBookVersionEntity implements Serializable {
     private Integer id;
 
     @Version
-    @Column(name = "opt_lock_value")
-    private Integer optLockValue = 0;
+    @Column(name = "opt_lock_value", nullable = false)
+    @SuppressWarnings("unused")
+    private Integer optLockValue;
 
     @ManyToOne
     @JoinColumn(name = "ref_book_id", nullable = false)
