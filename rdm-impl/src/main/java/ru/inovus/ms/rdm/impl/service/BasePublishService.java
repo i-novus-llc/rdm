@@ -117,8 +117,6 @@ class BasePublishService {
         if (RefBookVersionStatus.PUBLISHED.equals(draftEntity.getStatus()))
             return null;
 
-        versionValidation.validateOptLockValue(draftEntity.getId(), draftEntity.getOptLockValue(), request.getOptLockValue());
-
         validatePublishingDraft(draftEntity);
 
         Integer refBookId = draftEntity.getRefBook().getId();
@@ -126,6 +124,8 @@ class BasePublishService {
 
         refBookLockService.setRefBookPublishing(refBookId);
         try {
+            versionValidation.validateOptLockValue(draftEntity.getId(), draftEntity.getOptLockValue(), request.getOptLockValue());
+
             String versionName = getNextVersionNumberOrElseThrow(request.getVersionName(), refBookId);
 
             LocalDateTime fromDate = request.getFromDate();
