@@ -5,10 +5,13 @@ import java.util.Objects;
 /** Модель черновика. */
 public class Draft {
 
+    /** Идентификатор черновика. */
     private Integer id;
 
+    /** storage_code. */
     private String storageCode;
 
+    /** Значение оптимистической блокировки версии-черновика. */
     private Integer optLockValue;
 
     public Draft(Integer id, String storageCode, Integer optLockValue) {
