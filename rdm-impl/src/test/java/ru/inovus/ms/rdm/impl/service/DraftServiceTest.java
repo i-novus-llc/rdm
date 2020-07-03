@@ -29,9 +29,7 @@ import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
-import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
-import ru.inovus.ms.rdm.api.model.refdata.Row;
-import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.api.model.refdata.*;
 import ru.inovus.ms.rdm.api.model.version.CreateAttribute;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.model.version.UpdateAttribute;
@@ -623,7 +621,7 @@ public class DraftServiceTest {
         Map<String, Object> map = new HashMap<>();
         map.put(primaryCode, primaryValue);
         map.put(notPrimaryCode, notPrimaryUpdatedValue);
-        draftService.updateData(draft.getId(), singletonList(new Row(null, map)), null);
+        draftService.updateData(new UpdateDataRequest(draft.getId(), null, new Row(null, map)));
 
         verify(draftDataService, times(1)).updateRows(anyString(), any());
     }

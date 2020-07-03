@@ -11,9 +11,7 @@ import ru.inovus.ms.rdm.api.enumeration.ConflictType;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.conflict.RefBookConflict;
 import ru.inovus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
-import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
-import ru.inovus.ms.rdm.api.model.refdata.Row;
-import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.api.model.refdata.*;
 import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.service.ConflictService;
@@ -218,6 +216,7 @@ public class DataRecordController {
                 .filter(e -> e.getValue() instanceof Date)
                 .forEach(e -> e.setValue(parseLocalDate(e.getValue())));
 
-        draftService.updateData(draftId, singletonList(row), optLockValue);
+        UpdateDataRequest request = new UpdateDataRequest(draftId, optLockValue, singletonList(row));
+        draftService.updateData(request);
     }
 }

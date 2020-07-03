@@ -16,6 +16,7 @@ import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
+import ru.inovus.ms.rdm.api.model.refdata.UpdateDataRequest;
 import ru.inovus.ms.rdm.api.model.validation.*;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersionAttribute;
 import ru.inovus.ms.rdm.api.service.DraftService;
@@ -73,33 +74,39 @@ public class CustomValidationTest {
         RefBook refBook = refBookService.create(new RefBookCreateRequest(REF_BOOK_NAME, null));
         Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), createStructure()));
 
-        //добавление проверки
-        draftService.addAttributeValidation(draft.getId(), INTEGER_ATTR, new IntRangeAttributeValidation(
-                valueOf(-5),
-                valueOf(4)));
-        //правильная строка
-        List<Row> rows = singletonList(
-                new Row(of(
+        // Добавление проверки
+        draftService.addAttributeValidation(draft.getId(), INTEGER_ATTR,
+                new IntRangeAttributeValidation(
+                        valueOf(-5),
+                        valueOf(4)
+                ));
+
+        // Правильная строка
+        Row validRow = new Row(of(
                         STRING_ATTR, "test1",
                         INTEGER_ATTR, 3)
-                )
-        );
-        draftService.updateData(draft.getId(), rows, null);
-        //неправильная строка
+                );
+        draftService.updateData(new UpdateDataRequest(draft.getId(), null, validRow));
+
+        // Неправильная строка
         Row testRow = new Row(of(
                 STRING_ATTR, "test1",
-                INTEGER_ATTR, 6));
+                INTEGER_ATTR, 6)
+        );
+        UpdateDataRequest request = new UpdateDataRequest(draft.getId(), null, testRow);
         try {
-            draftService.updateData(draft.getId(), singletonList(testRow), null);
+            draftService.updateData(request);
             fail();
+
         } catch (RestException e) {
             assertEquals(INT_RANGE_EXCEPTION_CODE, e.getErrors().get(0).getMessage());
         }
 
-        //удаление проверки
+        // Удаление проверки
         draftService.deleteAttributeValidation(draft.getId(), INTEGER_ATTR, AttributeValidationType.INT_RANGE);
-        //ввод той же строки после удаления
-        draftService.updateData(draft.getId(), singletonList(testRow), null);
+
+        // Ввод той же строки после удаления
+        draftService.updateData(request);
     }
 
     /**

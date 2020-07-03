@@ -7,9 +7,7 @@ import ru.inovus.ms.rdm.api.model.ExportFile;
 import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
-import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
-import ru.inovus.ms.rdm.api.model.refdata.Row;
-import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.api.model.refdata.*;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidation;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidationRequest;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidationType;
@@ -63,10 +61,8 @@ public interface DraftService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    @Path("/updateList/{draftId}")
-    void updateData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
-                    @ApiParam("Записи черновика") List<Row> rows,
-                    @ApiParam("Значение оптимистической блокировки версии") @QueryParam("optLockValue") Integer optLockValue);
+    @Path("/update")
+    void updateData(UpdateDataRequest request);
 
     @DELETE
     @ApiOperation(value = "Удаление записей черновика (либо по первичному ключу, либо по системному идентификатору)")

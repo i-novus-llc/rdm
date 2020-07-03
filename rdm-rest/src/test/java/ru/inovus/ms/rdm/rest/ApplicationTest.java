@@ -54,9 +54,7 @@ import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
-import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
-import ru.inovus.ms.rdm.api.model.refdata.Row;
-import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.api.model.refdata.*;
 import ru.inovus.ms.rdm.api.model.version.*;
 import ru.inovus.ms.rdm.api.service.*;
 import ru.inovus.ms.rdm.api.util.FieldValueUtils;
@@ -702,7 +700,7 @@ public class ApplicationTest {
         // создание двух строк одновременно
         row1 = createRowWithSimpleTypesOnly("string11", BigInteger.valueOf(11L), null, null, null);
         row2 = createRowWithSimpleTypesOnly("string22", BigInteger.valueOf(22L), null, null, null);
-        draftService.updateData(versionId, asList(row1, row2), null);
+        updateData(versionId, asList(row1, row2), null);
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertEquals(2, actualRowValues.getContent().size());
 
@@ -715,7 +713,7 @@ public class ApplicationTest {
         // создание третьей строки и изменение второй одновременно
         row2.getData().replace("float", 2.2);
         Row row3 = createRowWithSimpleTypesOnly("string33", BigInteger.valueOf(33L), null, null, null);
-        draftService.updateData(versionId, asList(row2, row3), null);
+        updateData(versionId, asList(row2, row3), null);
 
         systemId++; // for row3
         row3.setSystemId(systemId);
@@ -828,7 +826,7 @@ public class ApplicationTest {
         // создание двух строк одновременно
         row1 = createRowWithReferenceType(BigInteger.valueOf(11L), "string11", null);
         row2 = createRowWithReferenceType(BigInteger.valueOf(22L), "string22", null);
-        draftService.updateData(versionId, asList(row1, row2), null);
+        updateData(versionId, asList(row1, row2), null);
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertEquals(2, actualRowValues.getContent().size());
 
@@ -841,7 +839,7 @@ public class ApplicationTest {
         // создание третьей строки и изменение второй одновременно
         row2.getData().replace("string", "string.2.2");
         Row row3 = createRowWithReferenceType(BigInteger.valueOf(33L), "string33", null);
-        draftService.updateData(versionId, asList(row2, row3), null);
+        updateData(versionId, asList(row2, row3), null);
 
         systemId++; // for row3
         row3.setSystemId(systemId);
@@ -2652,7 +2650,7 @@ public class ApplicationTest {
     private void failCreateRefBook(String filename, String message) {
         try {
             FileModel fileModel = createFileModel("testCreate_" + filename, "testCreate/" + filename);
-            Draft expected = refBookService.create(fileModel);
+            refBookService.create(fileModel);
 
             fail("Ожидается ошибка:\n" + message);
 
@@ -3017,7 +3015,12 @@ public class ApplicationTest {
     }
 
     private void updateData(Integer draftId, Row row, Integer optLockValue) {
-        draftService.updateData(draftId, singletonList(row), optLockValue);
+        updateData(draftId, singletonList(row), optLockValue);
+    }
+
+    private void updateData(Integer draftId, List<Row> rows, Integer optLockValue) {
+        UpdateDataRequest request = new UpdateDataRequest(draftId, optLockValue, rows);
+        draftService.updateData(request);
     }
 
     public void deleteRow(Integer draftId, Row row, Integer optLockValue) {

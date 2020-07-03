@@ -59,6 +59,7 @@ import java.util.function.Supplier;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+import static ru.inovus.ms.rdm.api.util.RowUtils.toLongSystemIds;
 import static ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity.objectPassportToValues;
 
 @Primary
@@ -381,18 +382,19 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void updateData(Integer draftId, List<Row> rows, Integer optLockValue) {
+    public void updateData(UpdateDataRequest request) {
 
+        final Integer draftId = request.getDraftId();
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
 
         List<Object> addedData = null;
-        List<RowDiff> updateDiffData = null;
+        List<RowDiff> updatedDiffData = null;
         refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
         try {
-            versionValidation.validateOptLockValue(draftId, draftEntity.getOptLockValue(), optLockValue);
+            validateOptLockValue(draftEntity, request.getOptLockValue());
 
-            rows = prepareRows(rows, draftEntity, true);
+            List<Row> rows = prepareRows(request.getRows(), draftEntity, true);
             if (rows.isEmpty()) return;
 
             List<RowValue> rowValues = rows.stream().map(row -> ConverterUtil.rowValue((row), draftEntity.getStructure())).collect(toList());
@@ -400,42 +402,14 @@ public class DraftServiceImpl implements DraftService {
 
             List<RowValue> addedRowValues = rowValues.stream().filter(rowValue -> rowValue.getSystemId() == null).collect(toList());
             if (!isEmpty(addedRowValues)) {
-                try {
-                    draftDataService.addRows(draftEntity.getStorageCode(), addedRowValues);
-
-                } catch (RuntimeException e) {
-                    ErrorUtil.rethrowError(e);
-                }
-
-                addedData = addedRowValues.stream().map(RowValue::getFieldValues).collect(toList());
+                addRowValues(draftEntity, addedRowValues);
+                addedData = getAddedData(rowValues);
             }
 
             List<RowValue> updatedRowValues = rowValues.stream().filter(rowValue -> rowValue.getSystemId() != null).collect(toList());
             if (!isEmpty(updatedRowValues)) {
-                List<String> fields = StructureUtils.getAttributeCodes(draftEntity.getStructure()).collect(toList());
-                List<Object> systemIds = updatedRowValues.stream().map(RowValue::getSystemId).collect(toList());
-                List<RowValue> oldRowValues = searchDataService.findRows(draftEntity.getStorageCode(), fields, systemIds);
-
-                List<Message> messages = systemIds.stream()
-                        .filter(systemId -> !RowUtils.isSystemIdRowValue(systemId, oldRowValues))
-                        .map(systemId -> new Message(ROW_NOT_FOUND_EXCEPTION_CODE, systemId))
-                        .collect(toList());
-                if (!isEmpty(messages)) throw new UserException(messages);
-
-                updateDiffData = oldRowValues.stream()
-                        .map(oldRowValue -> {
-                            RowValue newRowValue = RowUtils.getSystemIdRowValue(oldRowValue.getSystemId(), updatedRowValues);
-                            return RowDiffUtils.getRowDiff(oldRowValue, newRowValue);
-                        })
-                        .collect(toList());
-
-                conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftEntity.getId(), RowUtils.toLongSystemIds(systemIds));
-                try {
-                    draftDataService.updateRows(draftEntity.getStorageCode(), updatedRowValues);
-
-                } catch (RuntimeException e) {
-                    ErrorUtil.rethrowError(e);
-                }
+                updatedDiffData = getUpdatedDiffData(draftEntity, updatedRowValues);
+                updateRowValues(draftEntity, updatedRowValues);
             }
 
             if (!isEmpty(addedRowValues) || !isEmpty(updatedRowValues)) {
@@ -447,9 +421,55 @@ public class DraftServiceImpl implements DraftService {
         }
 
         auditEditData(draftEntity, Map.of(
-                "create_rows", addedData == null ? "-" : addedData,
-                "update_rows", updateDiffData == null ? "-" : updateDiffData
+                "create_rows", isEmpty(addedData) ? "-" : addedData,
+                "update_rows", isEmpty(updatedDiffData) ? "-" : updatedDiffData
         ));
+    }
+
+    private List<Object> getAddedData(List<RowValue> rowValues) {
+        return rowValues.stream().map(RowValue::getFieldValues).collect(toList());
+    }
+
+    private void addRowValues(RefBookVersionEntity entity, List<RowValue> rowValues) {
+        try {
+            draftDataService.addRows(entity.getStorageCode(), rowValues);
+
+        } catch (RuntimeException e) {
+            ErrorUtil.rethrowError(e);
+        }
+    }
+
+    private List<RowDiff> getUpdatedDiffData(RefBookVersionEntity entity, List<RowValue> updatedRowValues) {
+
+        List<String> fields = StructureUtils.getAttributeCodes(entity.getStructure()).collect(toList());
+        List<Object> systemIds = updatedRowValues.stream().map(RowValue::getSystemId).collect(toList());
+        List<RowValue> oldRowValues = searchDataService.findRows(entity.getStorageCode(), fields, systemIds);
+
+        List<Message> messages = systemIds.stream()
+                .filter(systemId -> !RowUtils.isSystemIdRowValue(systemId, oldRowValues))
+                .map(systemId -> new Message(ROW_NOT_FOUND_EXCEPTION_CODE, systemId))
+                .collect(toList());
+        if (!isEmpty(messages)) throw new UserException(messages);
+
+        return oldRowValues.stream()
+                .map(oldRowValue -> {
+                    RowValue newRowValue = RowUtils.getSystemIdRowValue(oldRowValue.getSystemId(), updatedRowValues);
+                    return RowDiffUtils.getRowDiff(oldRowValue, newRowValue);
+                })
+                .collect(toList());
+    }
+
+    private void updateRowValues(RefBookVersionEntity entity, List<RowValue> rowValues) {
+
+        List<Object> systemIds = rowValues.stream().map(RowValue::getSystemId).collect(toList());
+        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(entity.getId(), toLongSystemIds(systemIds));
+
+        try {
+            draftDataService.updateRows(entity.getStorageCode(), rowValues);
+
+        } catch (RuntimeException e) {
+            ErrorUtil.rethrowError(e);
+        }
     }
 
     @Override
@@ -462,14 +482,14 @@ public class DraftServiceImpl implements DraftService {
         List<Object> systemIds;
         refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
         try {
-            versionValidation.validateOptLockValue(draftId, draftEntity.getOptLockValue(), optLockValue);
+            validateOptLockValue(draftEntity, optLockValue);
 
             rows = prepareRows(rows, draftEntity, false);
             if (rows.isEmpty()) return;
 
             systemIds = rows.stream().map(Row::getSystemId).filter(Objects::nonNull).collect(toList());
             if (!systemIds.isEmpty()) {
-                conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftEntity.getId(), RowUtils.toLongSystemIds(systemIds));
+                conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(draftEntity.getId(), toLongSystemIds(systemIds));
                 draftDataService.deleteRows(draftEntity.getStorageCode(), systemIds);
                 forceUpdateOptLockValue(draftEntity);
             }
@@ -564,7 +584,7 @@ public class DraftServiceImpl implements DraftService {
 
         refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
         try {
-            versionValidation.validateOptLockValue(draftId, draftEntity.getOptLockValue(), optLockValue);
+            validateOptLockValue(draftEntity, optLockValue);
 
             deleteDraftAllRows(draftEntity);
             forceUpdateOptLockValue(draftEntity);
@@ -678,7 +698,7 @@ public class DraftServiceImpl implements DraftService {
         refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
-        versionValidation.validateOptLockValue(draftId, draftEntity.getOptLockValue(), optLockValue);
+        validateOptLockValue(draftEntity, optLockValue);
 
         Structure structure = draftEntity.getStructure();
         if (structure == null)
@@ -726,7 +746,7 @@ public class DraftServiceImpl implements DraftService {
         refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
-        versionValidation.validateOptLockValue(draftId, draftEntity.getOptLockValue(), optLockValue);
+        validateOptLockValue(draftEntity, optLockValue);
 
         Structure structure = draftEntity.getStructure();
 
@@ -1009,6 +1029,10 @@ public class DraftServiceImpl implements DraftService {
         return new ExportFile(
                 versionFileService.generate(versionModel, fileType, dataIterator),
                 fileNameGenerator.generateZipName(versionModel, fileType));
+    }
+
+    private void validateOptLockValue(RefBookVersionEntity entity, Integer optLockValue) {
+        versionValidation.validateOptLockValue(entity.getId(), entity.getOptLockValue(), optLockValue);
     }
 
     private void auditStructureEdit(RefBookVersionEntity refBook, String action, Structure.Attribute attribute) {
