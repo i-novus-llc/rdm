@@ -6,20 +6,14 @@ import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.jaxrs.RestMessage;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
 import net.n2oapp.platform.test.autoconfigure.EnableEmbeddedPg;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -33,27 +27,18 @@ import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
-import ru.inovus.ms.rdm.api.enumeration.ConflictType;
-import ru.inovus.ms.rdm.api.enumeration.FileType;
-import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
-import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
+import ru.inovus.ms.rdm.api.enumeration.*;
 import ru.inovus.ms.rdm.api.model.ExportFile;
 import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.compare.CompareDataCriteria;
-import ru.inovus.ms.rdm.api.model.conflict.CalculateConflictCriteria;
-import ru.inovus.ms.rdm.api.model.conflict.Conflict;
-import ru.inovus.ms.rdm.api.model.conflict.RefBookConflict;
-import ru.inovus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
+import ru.inovus.ms.rdm.api.model.conflict.*;
 import ru.inovus.ms.rdm.api.model.diff.RefBookDataDiff;
 import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.model.draft.PublishRequest;
 import ru.inovus.ms.rdm.api.model.field.CommonField;
-import ru.inovus.ms.rdm.api.model.refbook.RefBook;
-import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
-import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
-import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
+import ru.inovus.ms.rdm.api.model.refbook.*;
 import ru.inovus.ms.rdm.api.model.refdata.*;
 import ru.inovus.ms.rdm.api.model.version.*;
 import ru.inovus.ms.rdm.api.service.*;
@@ -681,7 +666,7 @@ public class ApplicationTest {
         }
 
         // удаление всех строк
-        draftService.deleteAllData(versionId, null);
+        deleteAllData(versionId, null);
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertEquals(0, actualRowValues.getContent().size());
 
@@ -728,7 +713,7 @@ public class ApplicationTest {
         assertRows(fields(structure), expectedRowValues, actualRowValues.getContent());
 
         // удаление всех строк
-        draftService.deleteAllData(versionId, null);
+        deleteAllData(versionId, null);
 
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertEquals(0, actualRowValues.getContent().size());
@@ -819,7 +804,7 @@ public class ApplicationTest {
         }
 
         // удаление всех строк
-        draftService.deleteAllData(versionId, null);
+        deleteAllData(versionId, null);
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertEquals(0, actualRowValues.getContent().size());
 
@@ -857,7 +842,7 @@ public class ApplicationTest {
         assertRows(fields(structure), expectedRowValues, actualRowValues.getContent());
 
         // удаление всех строк
-        draftService.deleteAllData(versionId, null);
+        deleteAllData(versionId, null);
 
         actualRowValues = draftService.search(versionId, new SearchDataCriteria());
         assertEquals(0, actualRowValues.getContent().size());
@@ -3027,5 +3012,10 @@ public class ApplicationTest {
     public void deleteData(Integer draftId, Row row, Integer optLockValue) {
         DeleteDataRequest request = new DeleteDataRequest(draftId, optLockValue, row);
         draftService.deleteData(request);
+    }
+
+    public void deleteAllData(Integer draftId, Integer optLockValue) {
+        DeleteAllDataRequest request = new DeleteAllDataRequest(draftId, optLockValue);
+        draftService.deleteAllData(request);
     }
 }

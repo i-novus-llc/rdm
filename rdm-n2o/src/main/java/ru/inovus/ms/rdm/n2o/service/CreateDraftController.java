@@ -237,7 +237,8 @@ public class CreateDraftController {
             optLockValue = uiDraft.getOptLockValue();
         }
 
-        draftService.deleteAllData(uiDraft.getId(), optLockValue);
+        DeleteAllDataRequest request = new DeleteAllDataRequest(uiDraft.getId(), optLockValue);
+        draftService.deleteAllData(request);
         return uiDraft;
     }
 

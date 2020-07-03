@@ -586,14 +586,15 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void deleteAllData(Integer draftId, Integer optLockValue) {
+    public void deleteAllData(DeleteAllDataRequest request) {
 
+        final Integer draftId = request.getDraftId();
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
 
         refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
         try {
-            validateOptLockValue(draftEntity, optLockValue);
+            validateOptLockValue(draftEntity, request);
 
             deleteDraftAllRows(draftEntity);
             forceUpdateOptLockValue(draftEntity);

@@ -81,9 +81,8 @@ public interface DraftService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    @Path("/deleteAll/{draftId}")
-    void deleteAllData(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
-                       @ApiParam("Значение оптимистической блокировки версии") @QueryParam("optLockValue") Integer optLockValue);
+    @Path("/deleteAllData")
+    void deleteAllData(DeleteAllDataRequest request);
 
     @POST
     @ApiOperation("Обновление черновика из файла")
