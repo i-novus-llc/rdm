@@ -6,7 +6,9 @@ import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.jaxrs.RestMessage;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
 import net.n2oapp.platform.test.autoconfigure.EnableEmbeddedPg;
-import org.apache.cxf.jaxrs.ext.multipart.*;
+import org.apache.cxf.jaxrs.ext.multipart.Attachment;
+import org.apache.cxf.jaxrs.ext.multipart.InputStreamDataSource;
+import org.apache.cxf.jaxrs.ext.multipart.MultipartBody;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
@@ -3058,7 +3060,7 @@ public class ApplicationTest {
             fail();
 
         } catch (UserException e) {
-            assertEquals("code.not-valid", e.getCode());
+            assertTrue(e.getCode().contains("attribute.code.is.invalid"));
 
         } catch (Exception e) {
             fail();

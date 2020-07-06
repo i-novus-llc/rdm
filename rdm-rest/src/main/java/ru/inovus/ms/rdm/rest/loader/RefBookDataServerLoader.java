@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import ru.inovus.ms.rdm.api.exception.NotFoundException;
 import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
+import ru.inovus.ms.rdm.api.model.draft.PublishRequest;
 import ru.inovus.ms.rdm.api.service.PublishService;
 import ru.inovus.ms.rdm.api.service.RefBookService;
 
@@ -21,7 +22,7 @@ public class RefBookDataServerLoader implements ServerLoader<FileModel> {
 
     private static final Logger logger = LoggerFactory.getLogger(RefBookDataServerLoader.class);
 
-    private static final String REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.already.exists";
+    private static final String REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.with.code.already.exists";
     public static final String LOG_REF_BOOK_IS_ALREADY_EXISTS = "RefBook '{}' is already exists";
     public static final String LOG_SKIP_CREATE_REF_BOOK = "Skip create RefBook from file '{}'";
     public static final String LOG_ERROR_CREATING_AND_PUBLISHING_REF_BOOK = "Error creating and publishing refBook from file '{}'";
@@ -64,12 +65,14 @@ public class RefBookDataServerLoader implements ServerLoader<FileModel> {
         }
     }
 
+    @SuppressWarnings("java:S2139")
     private void createAndPublishRefBook(FileModel fileModel) {
 
         logger.info("Start data loading from file '{}'", fileModel.getName());
         try {
             Draft draft = refBookService.create(fileModel);
-            publishService.publish(draft.getId(), null, null, null, false);
+            PublishRequest request = new PublishRequest(null);
+            publishService.publish(draft.getId(), request);
 
             logger.info("Finish data loading from file '{}'", fileModel.getName());
 
