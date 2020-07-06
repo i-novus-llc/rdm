@@ -11,9 +11,6 @@ import java.util.List;
         description = "Набор входных параметров для изменения записей черновика")
 public class UpdateDataRequest implements DraftChangeRequest {
 
-    @ApiModelProperty("Идентификатор версии-черновика")
-    private Integer versionId;
-
     @ApiModelProperty("Значение оптимистической блокировки версии-черновика")
     private Integer optLockValue;
 
@@ -23,24 +20,13 @@ public class UpdateDataRequest implements DraftChangeRequest {
     public UpdateDataRequest() {
     }
 
-    public UpdateDataRequest(Integer versionId, Integer optLockValue, List<Row> rows) {
-        this.versionId = versionId;
+    public UpdateDataRequest(Integer optLockValue, List<Row> rows) {
         this.optLockValue = optLockValue;
         this.rows = rows;
     }
 
-    public UpdateDataRequest(Integer versionId, Integer optLockValue, Row row) {
-        this(versionId, optLockValue, Collections.singletonList(row));
-    }
-
-    @Override
-    public Integer getVersionId() {
-        return versionId;
-    }
-
-    @Override
-    public void setVersionId(Integer draftId) {
-        this.versionId = draftId;
+    public UpdateDataRequest(Integer optLockValue, Row row) {
+        this(optLockValue, Collections.singletonList(row));
     }
 
     @Override

@@ -18,9 +18,6 @@ import static ru.inovus.ms.rdm.api.model.version.UpdateValue.of;
         description = "Набор входных параметров для изменения атрибута черновика")
 public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeRequest  {
 
-    @ApiModelProperty("Идентификатор версии")
-    private Integer versionId;
-
     @ApiModelProperty("Значение оптимистической блокировки версии-черновика")
     private Integer optLockValue;
 
@@ -52,14 +49,12 @@ public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeR
 
     public UpdateAttributeRequest(){}
 
-    public UpdateAttributeRequest(Integer versionId,
-                                  Integer optLockValue,
+    public UpdateAttributeRequest(Integer optLockValue,
                                   Structure.Attribute attribute,
                                   Structure.Reference reference) {
 
         setLastActionDate(TimeUtils.nowZoned());
 
-        this.versionId = versionId;
         this.optLockValue = optLockValue;
 
         // Поля Structure.Attribute:
@@ -77,16 +72,6 @@ public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeR
         setUpdateValueIfExists(reference::getAttribute, this::setAttribute);
         setUpdateValueIfExists(reference::getReferenceCode, this::setReferenceCode);
         setUpdateValueIfExists(reference::getDisplayExpression, this::setDisplayExpression);
-    }
-
-    @Override
-    public Integer getVersionId() {
-        return versionId;
-    }
-
-    @Override
-    public void setVersionId(Integer versionId) {
-        this.versionId = versionId;
     }
 
     @Override

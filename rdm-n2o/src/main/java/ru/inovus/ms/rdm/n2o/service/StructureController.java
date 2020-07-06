@@ -242,8 +242,8 @@ public class StructureController {
 
     public void createAttribute(Integer versionId, Integer optLockValue, FormAttribute formAttribute) {
 
-        CreateAttributeRequest attributeRequest = getCreateAttributeRequest(versionId, optLockValue, formAttribute);
-        draftService.createAttribute(attributeRequest);
+        CreateAttributeRequest attributeRequest = getCreateAttributeRequest(optLockValue, formAttribute);
+        draftService.createAttribute(versionId, attributeRequest);
         try {
             AttributeValidationRequest validationRequest = new AttributeValidationRequest();
             validationRequest.setNewAttribute(attributeRequest);
@@ -252,8 +252,8 @@ public class StructureController {
             draftService.updateAttributeValidations(versionId, validationRequest);
 
         } catch (RestException re) {
-            DeleteAttributeRequest rollbackRequest = new DeleteAttributeRequest(versionId, null, formAttribute.getCode());
-            draftService.deleteAttribute(rollbackRequest);
+            DeleteAttributeRequest rollbackRequest = new DeleteAttributeRequest(null, formAttribute.getCode());
+            draftService.deleteAttribute(versionId, rollbackRequest);
             throw re;
         }
     }
@@ -264,19 +264,19 @@ public class StructureController {
         Structure.Attribute oldAttribute = oldStructure.getAttribute(formAttribute.getCode());
         Structure.Reference oldReference = oldStructure.getReference(formAttribute.getCode());
 
-        UpdateAttributeRequest attributeRequest = getUpdateAttributeRequest(versionId, optLockValue, formAttribute);
-        draftService.updateAttribute(attributeRequest);
+        UpdateAttributeRequest attributeRequest = getUpdateAttributeRequest(optLockValue, formAttribute);
+        draftService.updateAttribute(versionId, attributeRequest);
         try {
             AttributeValidationRequest validationRequest = new AttributeValidationRequest();
             validationRequest.setOldAttribute(getVersionAttribute(versionId, oldAttribute, oldReference));
-            validationRequest.setNewAttribute(getCreateAttributeRequest(versionId, optLockValue, formAttribute));
+            validationRequest.setNewAttribute(getCreateAttributeRequest(optLockValue, formAttribute));
             validationRequest.setValidations(createValidations(formAttribute));
 
             draftService.updateAttributeValidations(versionId, validationRequest);
 
         } catch (RestException re) {
-            UpdateAttributeRequest rollbackRequest = new UpdateAttributeRequest(versionId, optLockValue, oldAttribute, oldReference);
-            draftService.updateAttribute(rollbackRequest);
+            UpdateAttributeRequest rollbackRequest = new UpdateAttributeRequest(optLockValue, oldAttribute, oldReference);
+            draftService.updateAttribute(versionId, rollbackRequest);
             throw re;
         }
     }
@@ -285,8 +285,8 @@ public class StructureController {
 
         draftService.deleteAttributeValidation(versionId, attributeCode, null);
 
-        DeleteAttributeRequest request = new DeleteAttributeRequest(versionId, optLockValue, attributeCode);
-        draftService.deleteAttribute(request);
+        DeleteAttributeRequest request = new DeleteAttributeRequest(optLockValue, attributeCode);
+        draftService.deleteAttribute(versionId, request);
     }
 
     /** Заполнение валидаций атрибута из атрибута формы. */
@@ -352,10 +352,9 @@ public class StructureController {
     }
 
     /** Получение атрибута для добавления из атрибута формы. */
-    private CreateAttributeRequest getCreateAttributeRequest(Integer versionId,
-                                                             Integer optLockValue,
+    private CreateAttributeRequest getCreateAttributeRequest(Integer optLockValue,
                                                              FormAttribute formAttribute) {
-        return new CreateAttributeRequest(versionId, optLockValue,
+        return new CreateAttributeRequest(optLockValue,
                 buildAttribute(formAttribute), buildReference(formAttribute)
         );
     }
@@ -379,14 +378,12 @@ public class StructureController {
     }
 
     /** Получение атрибута для изменения из атрибута формы. */
-    private UpdateAttributeRequest getUpdateAttributeRequest(Integer versionId,
-                                                             Integer optLockValue,
+    private UpdateAttributeRequest getUpdateAttributeRequest(Integer optLockValue,
                                                              FormAttribute formAttribute) {
 
         UpdateAttributeRequest attribute = new UpdateAttributeRequest();
         attribute.setLastActionDate(TimeUtils.nowZoned());
 
-        attribute.setVersionId(versionId);
         attribute.setOptLockValue(optLockValue);
 
         // attribute fields:

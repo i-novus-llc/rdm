@@ -227,8 +227,8 @@ public class CreateDraftController {
         }
 
         Row row = new Row(sysRecordId, emptyMap());
-        DeleteDataRequest request = new DeleteDataRequest(uiDraft.getId(), optLockValue, row);
-        draftService.deleteData(request);
+        DeleteDataRequest request = new DeleteDataRequest(optLockValue, row);
+        draftService.deleteData(uiDraft.getId(), request);
         return uiDraft;
     }
 
@@ -240,8 +240,8 @@ public class CreateDraftController {
             optLockValue = uiDraft.getOptLockValue();
         }
 
-        DeleteAllDataRequest request = new DeleteAllDataRequest(uiDraft.getId(), optLockValue);
-        draftService.deleteAllData(request);
+        DeleteAllDataRequest request = new DeleteAllDataRequest(optLockValue);
+        draftService.deleteAllData(uiDraft.getId(), request);
         return uiDraft;
     }
 
@@ -302,8 +302,8 @@ public class CreateDraftController {
         if (version.hasEmptyStructure())
             throw new UserException(new Message(VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE, versionId));
 
-        UpdateFromFileRequest request = new UpdateFromFileRequest(versionId, optLockValue, fileModel);
-        draftService.updateFromFile(request);
+        UpdateFromFileRequest request = new UpdateFromFileRequest(optLockValue, fileModel);
+        draftService.updateFromFile(versionId, request);
 
         return new UiDraft(version);
     }

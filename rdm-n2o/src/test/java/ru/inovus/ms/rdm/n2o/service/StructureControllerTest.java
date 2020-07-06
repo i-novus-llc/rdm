@@ -153,7 +153,7 @@ public class StructureControllerTest extends TestCase {
         FormAttribute formAttribute = createAllValidationAttribute();
         structureController.updateAttribute(versionId, null, formAttribute);
 
-        verify(draftService, times(1)).updateAttribute(updateAttributeArgumentCaptor.capture());
+        verify(draftService, times(1)).updateAttribute(eq(versionId), updateAttributeArgumentCaptor.capture());
         verify(draftService, times(1)).updateAttributeValidations(eq(versionId), validationRequestArgumentCaptor.capture());
 
         assertValidationListEquals(expectedValidations, validationRequestArgumentCaptor.getValue().getValidations());
@@ -176,7 +176,7 @@ public class StructureControllerTest extends TestCase {
         formAttribute.setReferenceCode(referenceCode);
         structureController.createAttribute(versionId, null, formAttribute);
 
-        verify(draftService, times(1)).createAttribute(createAttributeArgumentCaptor.capture());
+        verify(draftService, times(1)).createAttribute(eq(versionId), createAttributeArgumentCaptor.capture());
         verify(draftService, times(1)).updateAttributeValidations(eq(versionId), any(AttributeValidationRequest.class));
 
         CreateAttributeRequest actual = createAttributeArgumentCaptor.getValue();
@@ -315,6 +315,7 @@ public class StructureControllerTest extends TestCase {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private RefBookVersion createVersion(Integer versionId, Structure structure) {
         RefBookVersion version = new RefBookVersion();
         version.setId(versionId);

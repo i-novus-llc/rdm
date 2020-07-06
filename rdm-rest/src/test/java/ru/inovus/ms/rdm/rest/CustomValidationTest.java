@@ -70,12 +70,15 @@ public class CustomValidationTest {
      */
     @Test
     public void testAddDeleteValidation() {
+
         String REF_BOOK_NAME = "CustomValidationTest";
         RefBook refBook = refBookService.create(new RefBookCreateRequest(REF_BOOK_NAME, null));
+
         Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), createStructure()));
+        final Integer draftId = draft.getId();
 
         // Добавление проверки
-        draftService.addAttributeValidation(draft.getId(), INTEGER_ATTR,
+        draftService.addAttributeValidation(draftId, INTEGER_ATTR,
                 new IntRangeAttributeValidation(
                         valueOf(-5),
                         valueOf(4)
@@ -86,16 +89,16 @@ public class CustomValidationTest {
                         STRING_ATTR, "test1",
                         INTEGER_ATTR, 3)
                 );
-        draftService.updateData(new UpdateDataRequest(draft.getId(), null, validRow));
+        draftService.updateData(draftId, new UpdateDataRequest(null, validRow));
 
         // Неправильная строка
         Row testRow = new Row(of(
                 STRING_ATTR, "test1",
                 INTEGER_ATTR, 6)
         );
-        UpdateDataRequest request = new UpdateDataRequest(draft.getId(), null, testRow);
+        UpdateDataRequest request = new UpdateDataRequest(null, testRow);
         try {
-            draftService.updateData(request);
+            draftService.updateData(draftId, request);
             fail();
 
         } catch (RestException e) {
@@ -103,10 +106,10 @@ public class CustomValidationTest {
         }
 
         // Удаление проверки
-        draftService.deleteAttributeValidation(draft.getId(), INTEGER_ATTR, AttributeValidationType.INT_RANGE);
+        draftService.deleteAttributeValidation(draftId, INTEGER_ATTR, AttributeValidationType.INT_RANGE);
 
         // Ввод той же строки после удаления
-        draftService.updateData(request);
+        draftService.updateData(draftId, request);
     }
 
     /**

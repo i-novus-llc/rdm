@@ -9,9 +9,6 @@ import ru.inovus.ms.rdm.api.util.json.JsonUtil;
         description = "Набор входных параметров для изменения записей черновика из файла")
 public class UpdateFromFileRequest implements DraftChangeRequest {
 
-    @ApiModelProperty("Идентификатор версии-черновика")
-    private Integer versionId;
-
     @ApiModelProperty("Значение оптимистической блокировки версии-черновика")
     private Integer optLockValue;
 
@@ -21,20 +18,9 @@ public class UpdateFromFileRequest implements DraftChangeRequest {
     public UpdateFromFileRequest() {
     }
 
-    public UpdateFromFileRequest(Integer versionId, Integer optLockValue, FileModel fileModel) {
-        this.versionId = versionId;
+    public UpdateFromFileRequest(Integer optLockValue, FileModel fileModel) {
         this.optLockValue = optLockValue;
         this.fileModel = fileModel;
-    }
-
-    @Override
-    public Integer getVersionId() {
-        return versionId;
-    }
-
-    @Override
-    public void setVersionId(Integer draftId) {
-        this.versionId = draftId;
     }
 
     @Override

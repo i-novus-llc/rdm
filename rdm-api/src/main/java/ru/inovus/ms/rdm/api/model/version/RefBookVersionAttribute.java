@@ -2,18 +2,15 @@ package ru.inovus.ms.rdm.api.model.version;
 
 import io.swagger.annotations.ApiModelProperty;
 import ru.inovus.ms.rdm.api.model.Structure;
-import ru.inovus.ms.rdm.api.model.refdata.DraftChangeRequest;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /** Модель атрибута версии справочника. */
-public class RefBookVersionAttribute implements DraftChangeRequest {
+public class RefBookVersionAttribute implements Serializable {
 
     @ApiModelProperty("Идентификатор версии")
     private Integer versionId;
-
-    @ApiModelProperty("Значение оптимистической блокировки версии")
-    private Integer optLockValue;
 
     @ApiModelProperty("Атрибут версии")
     private Structure.Attribute attribute;
@@ -32,32 +29,12 @@ public class RefBookVersionAttribute implements DraftChangeRequest {
         this.reference = reference;
     }
 
-    public RefBookVersionAttribute(Integer versionId,
-                                  Integer optLockValue,
-                                  Structure.Attribute attribute,
-                                  Structure.Reference reference) {
-        this(versionId, attribute, reference);
-        this.optLockValue = optLockValue;
-    }
-
-    @Override
     public Integer getVersionId() {
         return versionId;
     }
 
-    @Override
     public void setVersionId(Integer versionId) {
         this.versionId = versionId;
-    }
-
-    @Override
-    public Integer getOptLockValue() {
-        return optLockValue;
-    }
-
-    @Override
-    public void setOptLockValue(Integer optLockValue) {
-        this.optLockValue = optLockValue;
     }
 
     public Structure.Attribute getAttribute() {

@@ -71,10 +71,10 @@ public class StructureChangeValidator {
             throw new UserException(new Message(VALIDATION_REQUIRED_PK_ERR_EXCEPTION_CODE, newAttribute.getName()));
     }
 
-    public void validateUpdateAttribute(UpdateAttributeRequest request, Structure.Attribute oldAttribute) {
+    public void validateUpdateAttribute(Integer draftId, UpdateAttributeRequest request, Structure.Attribute oldAttribute) {
 
         if (oldAttribute == null
-                || request.getVersionId() == null
+                || draftId == null
                 || StringUtils.isEmpty(request.getCode())
                 || request.getType() == null)
             throw new IllegalArgumentException(ATTRIBUTE_UPDATE_ILLEGAL_VALUE_EXCEPTION_CODE);
@@ -88,7 +88,7 @@ public class StructureChangeValidator {
             throw new IllegalArgumentException(ATTRIBUTE_UPDATE_ILLEGAL_VALUE_EXCEPTION_CODE);
     }
 
-    public void validateUpdateAttributeStorage(UpdateAttributeRequest request,
+    public void validateUpdateAttributeStorage(Integer draftId, UpdateAttributeRequest request,
                                                Structure.Attribute oldAttribute, String storageCode) {
 
         if (request.hasIsPrimary()) {
@@ -108,7 +108,7 @@ public class StructureChangeValidator {
             throw new UserException(new Message(ATTRIBUTE_TYPE_INCOMPATIBLE_WITH_DATA_EXCEPTION_CODE, oldAttribute.getName()));
 
         if (request.isReferenceType() && !oldAttribute.isReferenceType()) {
-            validateReferenceValues(request);
+            validateReferenceValues(draftId, request);
         }
     }
 
@@ -124,7 +124,7 @@ public class StructureChangeValidator {
             throw new UserException(errorMessages);
     }
 
-    private void validateReferenceValues(UpdateAttributeRequest request) {
+    private void validateReferenceValues(Integer draftId, UpdateAttributeRequest request) {
 
         Structure.Reference reference = new Structure.Reference(
                 request.getAttribute().get(),
@@ -133,10 +133,7 @@ public class StructureChangeValidator {
         );
 
         List<Message> errorMessages = new ReferenceValidation(
-                searchDataService,
-                versionRepository,
-                reference,
-                request.getVersionId()
+                searchDataService, versionRepository, reference, draftId
         ).validate();
 
         if (!CollectionUtils.isEmpty(errorMessages))
@@ -144,6 +141,7 @@ public class StructureChangeValidator {
     }
 
     private boolean isCompatibleTypes(FieldType realDataType, FieldType newDataType) {
+
         return realDataType.equals(newDataType)
                 || STRING.equals(realDataType) || STRING.equals(newDataType);
     }

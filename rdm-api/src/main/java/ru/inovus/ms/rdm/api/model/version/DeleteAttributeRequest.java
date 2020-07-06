@@ -9,9 +9,6 @@ import ru.inovus.ms.rdm.api.util.json.JsonUtil;
         description = "Набор входных параметров для удаления атрибута черновика")
 public class DeleteAttributeRequest implements DraftChangeRequest {
 
-    @ApiModelProperty("Идентификатор версии-черновика")
-    private Integer versionId;
-
     @ApiModelProperty("Значение оптимистической блокировки версии-черновика")
     private Integer optLockValue;
 
@@ -21,21 +18,10 @@ public class DeleteAttributeRequest implements DraftChangeRequest {
     public DeleteAttributeRequest() {
     }
 
-    public DeleteAttributeRequest(Integer versionId, Integer optLockValue, String attributeCode) {
-        this.versionId = versionId;
+    public DeleteAttributeRequest(Integer optLockValue, String attributeCode) {
         this.optLockValue = optLockValue;
 
         this.attributeCode = attributeCode;
-    }
-
-    @Override
-    public Integer getVersionId() {
-        return versionId;
-    }
-
-    @Override
-    public void setVersionId(Integer draftId) {
-        this.versionId = draftId;
     }
 
     @Override

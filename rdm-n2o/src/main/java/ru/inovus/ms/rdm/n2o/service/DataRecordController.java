@@ -216,7 +216,7 @@ public class DataRecordController {
                 .filter(e -> e.getValue() instanceof Date)
                 .forEach(e -> e.setValue(parseLocalDate(e.getValue())));
 
-        UpdateDataRequest request = new UpdateDataRequest(draftId, optLockValue, singletonList(row));
-        draftService.updateData(request);
+        UpdateDataRequest request = new UpdateDataRequest(optLockValue, singletonList(row));
+        draftService.updateData(draftId, request);
     }
 }

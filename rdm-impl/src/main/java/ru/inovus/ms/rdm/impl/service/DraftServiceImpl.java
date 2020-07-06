@@ -384,9 +384,8 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void updateData(UpdateDataRequest request) {
+    public void updateData(Integer draftId, UpdateDataRequest request) {
 
-        final Integer draftId = request.getVersionId();
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
 
@@ -476,9 +475,8 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void deleteData(DeleteDataRequest request) {
+    public void deleteData(Integer draftId, DeleteDataRequest request) {
 
-        final Integer draftId = request.getVersionId();
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
 
@@ -586,9 +584,8 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void deleteAllData(DeleteAllDataRequest request) {
+    public void deleteAllData(Integer draftId, DeleteAllDataRequest request) {
 
-        final Integer draftId = request.getVersionId();
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
 
@@ -614,9 +611,8 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
-    public void updateFromFile(UpdateFromFileRequest request) {
+    public void updateFromFile(Integer draftId, UpdateFromFileRequest request) {
 
-        final Integer draftId = request.getVersionId();
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftEntity = versionRepository.findById(draftId).orElseThrow();
 
@@ -701,9 +697,8 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void createAttribute(CreateAttributeRequest request) {
+    public void createAttribute(Integer draftId, CreateAttributeRequest request) {
 
-        final Integer draftId = request.getVersionId();
         versionValidation.validateDraft(draftId);
         refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
@@ -749,9 +744,8 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void updateAttribute(UpdateAttributeRequest request) {
+    public void updateAttribute(Integer draftId, UpdateAttributeRequest request) {
 
-        final Integer draftId = request.getVersionId();
         versionValidation.validateDraft(draftId);
         refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
@@ -761,7 +755,7 @@ public class DraftServiceImpl implements DraftService {
         Structure structure = draftEntity.getStructure();
 
         Structure.Attribute oldAttribute = structure.getAttribute(request.getCode());
-        structureChangeValidator.validateUpdateAttribute(request, oldAttribute);
+        structureChangeValidator.validateUpdateAttribute(draftId, request, oldAttribute);
 
         Structure.Attribute newAttribute = Structure.Attribute.build(oldAttribute);
         request.fillAttribute(newAttribute);
@@ -775,7 +769,7 @@ public class DraftServiceImpl implements DraftService {
             validateNewReference(newAttribute, newReference, structure, draftEntity.getRefBook().getCode());
         }
 
-        structureChangeValidator.validateUpdateAttributeStorage(request, oldAttribute, draftEntity.getStorageCode());
+        structureChangeValidator.validateUpdateAttributeStorage(draftId, request, oldAttribute, draftEntity.getStorageCode());
 
         try {
             draftDataService.updateField(draftEntity.getStorageCode(), ConverterUtil.field(newAttribute));
@@ -864,9 +858,8 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void deleteAttribute(DeleteAttributeRequest request) {
+    public void deleteAttribute(Integer draftId, DeleteAttributeRequest request) {
 
-        final Integer draftId = request.getVersionId();
         versionValidation.validateDraft(draftId);
         refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
@@ -904,16 +897,16 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void addAttributeValidation(Integer versionId, String attribute, AttributeValidation attributeValidation) {
+    public void addAttributeValidation(Integer draftId, String attribute, AttributeValidation attributeValidation) {
 
-        versionValidation.validateDraftAttributeExists(versionId, attribute);
+        versionValidation.validateDraftAttributeExists(draftId, attribute);
 
-        RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
+        RefBookVersionEntity versionEntity = versionRepository.getOne(draftId);
         AttributeValidationEntity validationEntity = new AttributeValidationEntity(versionEntity, attribute,
                 attributeValidation.getType(), attributeValidation.valuesToString());
         validateVersionData(versionEntity, false, singletonList(validationEntity));
 
-        deleteAttributeValidation(versionId, attribute, attributeValidation.getType());
+        deleteAttributeValidation(draftId, attribute, attributeValidation.getType());
         attributeValidationRepository.save(validationEntity);
     }
 
@@ -948,11 +941,11 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void updateAttributeValidations(Integer versionId, AttributeValidationRequest request) {
+    public void updateAttributeValidations(Integer draftId, AttributeValidationRequest request) {
 
-        versionValidation.validateDraftExists(versionId);
+        versionValidation.validateDraftExists(draftId);
 
-        RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
+        RefBookVersionEntity versionEntity = versionRepository.getOne(draftId);
         updateAttributeValidations(versionEntity, request.getOldAttribute(), request.getNewAttribute(), request.getValidations());
     }
 
