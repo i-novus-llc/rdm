@@ -27,20 +27,20 @@
 
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
-                        <argument type="class" name="uiPassport" class="ru.inovus.ms.rdm.n2o.model.UiPassport"/>
                         <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
+                        <argument type="class" name="uiPassport" class="ru.inovus.ms.rdm.n2o.model.UiPassport"/>
                     </arguments>
                 </java>
             </invocation>
 
             <in-parameters>
                 <param id="version.id" mapping="[0]" domain="integer" mapper="spel"/>
-                <param id="code" mapping="[1].code" domain="string" mapper="spel"/>
-                <param id="category.id" mapping="[1].category" domain="string" mapper="spel"/>
-                <param id="name" mapping="[1].name" domain="string" mapper="spel"/>
-                <param id="shortName" mapping="[1].shortName" domain="string" mapper="spel"/>
-                <param id="description" mapping="[1].description" domain="string" mapper="spel"/>
-                <param id="optLockValue" mapping="[2]" domain="integer" mapper="spel"/>
+                <param id="optLockValue" mapping="[1]" domain="integer" mapper="spel"/>
+                <param id="code" mapping="[2].code" domain="string" mapper="spel"/>
+                <param id="category.id" mapping="[2].category" domain="string" mapper="spel"/>
+                <param id="name" mapping="[2].name" domain="string" mapper="spel"/>
+                <param id="shortName" mapping="[2].shortName" domain="string" mapper="spel"/>
+                <param id="description" mapping="[2].description" domain="string" mapper="spel"/>
             </in-parameters>
 
             <out-parameters>

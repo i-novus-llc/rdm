@@ -81,7 +81,7 @@ public class CreateDraftController {
         return new UiDraft(newDraft, refBookId);
     }
 
-    public UiDraft editPassport(Integer versionId, UiPassport uiPassport, Integer optLockValue) {
+    public UiDraft editPassport(Integer versionId, Integer optLockValue, UiPassport uiPassport) {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
@@ -89,11 +89,13 @@ public class CreateDraftController {
             optLockValue = uiDraft.getOptLockValue();
         }
 
-        refBookService.update(toRefBookUpdateRequest(uiDraft.getId(), uiPassport, optLockValue));
+        refBookService.update(toRefBookUpdateRequest(uiDraft.getId(), optLockValue, uiPassport));
         return uiDraft;
     }
 
-    private RefBookUpdateRequest toRefBookUpdateRequest(Integer versionId, UiPassport uiPassport, Integer optLockValue) {
+    private RefBookUpdateRequest toRefBookUpdateRequest(Integer versionId,
+                                                        Integer optLockValue,
+                                                        UiPassport uiPassport) {
 
         final RefBookUpdateRequest request = new RefBookUpdateRequest();
         request.setVersionId(versionId);
@@ -164,9 +166,10 @@ public class CreateDraftController {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
+        // Изменение записи в опубликованной версии:
         if (!uiDraft.isVersionDraft(versionId)) {
-            // Изменение записи в опубликованной версии:
-            optLockValue = uiDraft.getOptLockValue(); // Новый справочник, поэтому блокировки нет (см. также в других методах).
+            // Новый справочник, поэтому блокировки нет (см. также в других методах):
+            optLockValue = uiDraft.getOptLockValue();
             row.setSystemId(findNewSystemId(row.getSystemId(), versionId, uiDraft.getId()));
         }
 
