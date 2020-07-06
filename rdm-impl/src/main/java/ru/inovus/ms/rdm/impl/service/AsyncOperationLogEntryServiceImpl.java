@@ -52,6 +52,8 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
      */
     private static Predicate toPredicate(AsyncOperationLogEntryCriteria criteria) {
 
+        criteria.setPageNumber(Math.max(-1, criteria.getPageNumber() - 1));
+
         QAsyncOperationLogEntryEntity q = QAsyncOperationLogEntryEntity.asyncOperationLogEntryEntity;
         BooleanBuilder builder = new BooleanBuilder();
 
