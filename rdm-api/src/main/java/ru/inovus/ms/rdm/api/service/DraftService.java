@@ -50,7 +50,7 @@ public interface DraftService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    @Path("/createByFile/{refBookId}")
+    @Path("/createFromFile/{refBookId}")
     Draft create(@ApiParam("Идентификатор справочника") @PathParam("refBookId") Integer refBookId,
                  @ApiParam("Файл") FileModel fileModel);
 
@@ -61,7 +61,7 @@ public interface DraftService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    @Path("/updateData")
+    @Path("/data")
     void updateData(UpdateDataRequest request);
 
     @DELETE
@@ -71,7 +71,7 @@ public interface DraftService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    @Path("/deleteData")
+    @Path("/data")
     void deleteData(DeleteDataRequest request);
 
     @DELETE
@@ -81,7 +81,7 @@ public interface DraftService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    @Path("/deleteAllData")
+    @Path("/allData")
     void deleteAllData(DeleteAllDataRequest request);
 
     @POST
@@ -91,7 +91,6 @@ public interface DraftService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-
     @Path("/updateFromFile")
     void updateFromFile(UpdateFromFileRequest request);
 

@@ -82,7 +82,7 @@ public interface RefBookService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    @Path("/createByFile")
+    @Path("/createFromFile")
     Draft create(@ApiParam("Файл") FileModel fileModel);
 
     @PUT
