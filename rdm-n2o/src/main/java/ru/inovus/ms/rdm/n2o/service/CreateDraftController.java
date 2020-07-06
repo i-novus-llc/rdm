@@ -214,7 +214,7 @@ public class CreateDraftController {
         }
     }
 
-    public UiDraft deleteDataRecord(Integer versionId, Long sysRecordId, Integer optLockValue) {
+    public UiDraft deleteDataRecord(Integer versionId, Integer optLockValue, Long sysRecordId) {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
