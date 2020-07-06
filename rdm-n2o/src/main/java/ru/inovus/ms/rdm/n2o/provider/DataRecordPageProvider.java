@@ -26,19 +26,21 @@ import java.util.Map;
 import static java.util.Collections.singletonList;
 import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
 
+/**
+ * Провайдер для формирования страницы по отображению данных
+ * по создаваемой/изменяемой записи из указанной версии справочника.
+ */
 @Service
 @SuppressWarnings("unused")
 public class DataRecordPageProvider implements DynamicMetadataProvider {
 
     private static final String CONTEXT_PARAM_SEPARATOR_REGEX = "_";
 
-    private static final String FORM_PROVIDER_ID = "dataRecordPage";
-    private static final String DATA_ACTION_CREATE = "create";
-    private static final String DATA_ACTION_EDIT = "edit";
+    private static final String PAGE_PROVIDER_ID = "dataRecordPage";
 
     private static final Map<String, String> pageNames = Map.of(
-            DATA_ACTION_CREATE, "Добавление новой записи",
-            DATA_ACTION_EDIT, "Редактирование записи"
+            DataRecordConstants.DATA_ACTION_CREATE, "Добавление новой записи",
+            DataRecordConstants.DATA_ACTION_EDIT, "Редактирование записи"
     );
 
     @Autowired
@@ -49,7 +51,7 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
      */
     @Override
     public String getCode() {
-        return FORM_PROVIDER_ID;
+        return PAGE_PROVIDER_ID;
     }
 
     /**
@@ -90,7 +92,7 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
     private N2oSimplePage createPage(String context) {
 
         N2oSimplePage page = new N2oSimplePage();
-        page.setId(FORM_PROVIDER_ID + "?" + context);
+        page.setId(PAGE_PROVIDER_ID + "?" + context);
 
         return page;
     }
@@ -179,10 +181,10 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         referenceField.setId(codeWithPrefix);
         referenceField.setLabel(attribute.getName());
 
-        referenceField.setQueryId("reference");
+        referenceField.setQueryId(DataRecordConstants.REFERENCE_QUERY_ID);
         // NB: value-field-id is deprecated:
-        referenceField.setValueFieldId(DataRecordQueryProvider.REFERENCE_VALUE);
-        referenceField.setLabelFieldId(DataRecordQueryProvider.REFERENCE_DISPLAY_VALUE);
+        referenceField.setValueFieldId(DataRecordConstants.REFERENCE_VALUE);
+        referenceField.setLabelFieldId(DataRecordConstants.REFERENCE_DISPLAY_VALUE);
         referenceField.setDomain(N2oDomain.STRING);
 
         N2oPreFilter versionFilter = new N2oPreFilter();

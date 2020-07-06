@@ -2,8 +2,10 @@ package ru.inovus.ms.rdm.impl.entity;
 
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
+import ru.inovus.ms.rdm.api.enumeration.RefBookOperation;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.util.TimeUtils;
 
 import javax.persistence.*;
@@ -24,9 +26,18 @@ public class RefBookVersionEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Version
+    @Column(name = "opt_lock_value", nullable = false)
+    @SuppressWarnings("unused")
+    private Integer optLockValue;
+
     @ManyToOne
     @JoinColumn(name = "ref_book_id", nullable = false)
     private RefBookEntity refBook;
+
+    @ManyToOne
+    @JoinColumn(name = "ref_book_id", referencedColumnName = "ref_book_id", insertable = false, updatable = false)
+    private RefBookOperationEntity refBookOperation;
 
     @Column(name = "structure", columnDefinition = "json")
     @Type(type = "structure")
@@ -60,10 +71,6 @@ public class RefBookVersionEntity implements Serializable {
     @OneToMany(mappedBy="version", cascade = CascadeType.ALL)
     private List<PassportValueEntity> passportValues;
 
-    @ManyToOne
-    @JoinColumn(name = "ref_book_id", referencedColumnName = "ref_book_id", insertable = false, updatable = false)
-    private RefBookOperationEntity runningOp;
-
     public Integer getId() {
         return id;
     }
@@ -72,12 +79,24 @@ public class RefBookVersionEntity implements Serializable {
         this.id = id;
     }
 
+    public Integer getOptLockValue() {
+        return optLockValue;
+    }
+
     public RefBookEntity getRefBook() {
         return refBook;
     }
 
     public void setRefBook(RefBookEntity refBook) {
         this.refBook = refBook;
+    }
+
+    public RefBookOperationEntity getRefBookOperation() {
+        return refBookOperation;
+    }
+
+    public void setRefBookOperation(RefBookOperationEntity refBookOperation) {
+        this.refBookOperation = refBookOperation;
     }
 
     public Structure getStructure() {
@@ -161,12 +180,14 @@ public class RefBookVersionEntity implements Serializable {
         this.passportValues = passportValues;
     }
 
-    public RefBookOperationEntity getRunningOp() {
-        return runningOp;
-    }
-
-    public void setRunningOp(RefBookOperationEntity runningOp) {
-        this.runningOp = runningOp;
+    /**
+     * Проверка на операцию, выполняемую над справочником.
+     *
+     * @param operation операция
+     * @return Результат проверки
+     */
+    public boolean isOperation(RefBookOperation operation) {
+        return refBookOperation != null && operation.equals(refBookOperation.getOperation());
     }
 
     /**
@@ -188,12 +209,25 @@ public class RefBookVersionEntity implements Serializable {
     }
 
     /**
+     * Формирование модели черновика.
+     *
+     * @return Модель черновика
+     */
+    public Draft toDraft() {
+        return new Draft(getId(), getStorageCode(), getOptLockValue());
+    }
+
+    /**
      * Получение номера версии.
      *
      * @return Номер версии
      */
     public String getVersionNumber() {
         return isDraft() ? DRAFT_VERSION : getVersion();
+    }
+
+    public void refreshLastActionDate() {
+        setLastActionDate(TimeUtils.now());
     }
 
     /**
@@ -256,11 +290,14 @@ public class RefBookVersionEntity implements Serializable {
 
         RefBookVersionEntity that = (RefBookVersionEntity) o;
         return Objects.equals(id, that.id) &&
+                Objects.equals(optLockValue, that.optLockValue) &&
                 Objects.equals(refBook, that.refBook) &&
+
                 Objects.equals(structure, that.structure) &&
                 Objects.equals(storageCode, that.storageCode) &&
                 Objects.equals(version, that.version) &&
                 Objects.equals(comment, that.comment) &&
+
                 Objects.equals(status, that.status) &&
                 Objects.equals(fromDate, that.fromDate) &&
                 Objects.equals(toDate, that.toDate) &&
@@ -270,18 +307,23 @@ public class RefBookVersionEntity implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, refBook, structure, storageCode, version, comment, status, fromDate, toDate, creationDate, lastActionDate);
+        return Objects.hash(id, optLockValue, refBook,
+                structure, storageCode, version, comment,
+                status, fromDate, toDate, creationDate, lastActionDate);
     }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("RefBookVersionEntity{");
         sb.append("id=").append(id);
+        sb.append(", optLockValue=").append(optLockValue);
         sb.append(", refBook=").append(refBook);
+
         sb.append(", structure=").append(structure);
         sb.append(", storageCode='").append(storageCode).append('\'');
         sb.append(", version='").append(version).append('\'');
         sb.append(", comment='").append(comment).append('\'');
+
         sb.append(", status=").append(status);
         sb.append(", fromDate=").append(fromDate);
         sb.append(", toDate=").append(toDate);

@@ -22,6 +22,10 @@ import static java.util.Collections.singletonList;
 import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addFieldProperty;
 import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
 
+/**
+ * Провайдер для формирования запроса на получение данных
+ * по конкретной записи из указанной версии справочника.
+ */
 @Service
 public class DataRecordQueryProvider implements DynamicMetadataProvider {
 
@@ -29,12 +33,6 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
 
     private static final String CONTROLLER_CLASS_NAME = DataRecordController.class.getName();
     private static final String CONTROLLER_METHOD = "getRow";
-
-    static final String VERSION_ID_NAME = "versionId";
-    static final String SYS_RECORD_ID_NAME = "sysRecordId";
-
-    public static final String REFERENCE_VALUE = "value";
-    public static final String REFERENCE_DISPLAY_VALUE = "displayValue";
 
     @Autowired
     private VersionService versionService;
@@ -80,18 +78,26 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
         provider.setMethod(CONTROLLER_METHOD);
         provider.setSpringProvider(new SpringProvider());
 
-        Argument versionId = new Argument();
-        versionId.setType(Argument.Type.PRIMITIVE);
-        versionId.setName(VERSION_ID_NAME);
+        Argument versionIdArgument = new Argument();
+        versionIdArgument.setType(Argument.Type.PRIMITIVE);
+        versionIdArgument.setName(DataRecordConstants.FIELD_VERSION_ID);
 
-        Argument sysRecordId = new Argument();
-        sysRecordId.setType(Argument.Type.PRIMITIVE);
-        sysRecordId.setName(SYS_RECORD_ID_NAME);
+        Argument sysRecordIdArgument = new Argument();
+        sysRecordIdArgument.setType(Argument.Type.PRIMITIVE);
+        sysRecordIdArgument.setName(DataRecordConstants.FIELD_SYS_RECORD_ID);
 
-        provider.setArguments(new Argument[]{ versionId, sysRecordId });
+        Argument optLockValueArgument = new Argument();
+        optLockValueArgument.setType(Argument.Type.PRIMITIVE);
+        optLockValueArgument.setName(DataRecordConstants.FIELD_OPT_LOCK_VALUE);
+
+        Argument dataActionArgument = new Argument();
+        dataActionArgument.setType(Argument.Type.PRIMITIVE);
+        dataActionArgument.setName(DataRecordConstants.FIELD_DATA_ACTION);
+
+        provider.setArguments(new Argument[]{ versionIdArgument, sysRecordIdArgument, optLockValueArgument, dataActionArgument });
 
         N2oQuery.Selection selection = new N2oQuery.Selection(N2oQuery.Selection.Type.list);
-        selection.setFilters(VERSION_ID_NAME + "," + SYS_RECORD_ID_NAME);
+        selection.setFilters(DataRecordConstants.FIELD_FILTERS);
         selection.setResultMapping("#this");
         selection.setInvocation(provider);
         return selection;
@@ -100,27 +106,46 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
     private N2oQuery.Field[] createQueryFields(Integer versionId, Structure structure) {
 
         N2oQuery.Field versionIdField = new N2oQuery.Field();
-        versionIdField.setId(VERSION_ID_NAME);
+        versionIdField.setId(DataRecordConstants.FIELD_VERSION_ID);
         N2oQuery.Filter versionIdFilter = new N2oQuery.Filter();
         versionIdFilter.setType(FilterType.eq);
-        versionIdFilter.setFilterField(VERSION_ID_NAME);
+        versionIdFilter.setFilterField(DataRecordConstants.FIELD_VERSION_ID);
         versionIdFilter.setMapping("[0]");
         versionIdFilter.setDomain(N2oDomain.INTEGER);
         versionIdFilter.setDefaultValue(String.valueOf(versionId));
         versionIdField.setFilterList(new N2oQuery.Filter[]{ versionIdFilter });
 
-        N2oQuery.Field recordIdField = new N2oQuery.Field();
-        recordIdField.setId("id");
-        recordIdField.setSelectMapping("['id']");
-        N2oQuery.Filter recordIdFilter = new N2oQuery.Filter();
-        recordIdFilter.setType(FilterType.eq);
-        recordIdFilter.setFilterField(SYS_RECORD_ID_NAME);
-        recordIdFilter.setMapping("[1]");
-        recordIdFilter.setDomain(N2oDomain.INTEGER);
-        recordIdField.setFilterList(new N2oQuery.Filter[]{ recordIdFilter });
+        N2oQuery.Field sysRecordIdField = new N2oQuery.Field();
+        sysRecordIdField.setId(DataRecordConstants.FIELD_SYSTEM_ID);
+        sysRecordIdField.setSelectMapping("['" + DataRecordConstants.FIELD_SYSTEM_ID + "']");
+        N2oQuery.Filter sysRecordIdFilter = new N2oQuery.Filter();
+        sysRecordIdFilter.setType(FilterType.eq);
+        sysRecordIdFilter.setFilterField(DataRecordConstants.FIELD_SYS_RECORD_ID);
+        sysRecordIdFilter.setMapping("[1]");
+        sysRecordIdFilter.setDomain(N2oDomain.INTEGER);
+        sysRecordIdField.setFilterList(new N2oQuery.Filter[]{ sysRecordIdFilter });
+
+        N2oQuery.Field optLockValueField = new N2oQuery.Field();
+        optLockValueField.setId(DataRecordConstants.FIELD_OPT_LOCK_VALUE);
+        N2oQuery.Filter optLockValueFilter = new N2oQuery.Filter();
+        optLockValueFilter.setType(FilterType.eq);
+        optLockValueFilter.setFilterField(DataRecordConstants.FIELD_OPT_LOCK_VALUE);
+        optLockValueFilter.setMapping("[2]");
+        optLockValueFilter.setDomain(N2oDomain.INTEGER);
+        optLockValueFilter.setDefaultValue(String.valueOf(DataRecordConstants.DEFAULT_OPT_LOCK_VALUE));
+        optLockValueField.setFilterList(new N2oQuery.Filter[]{ optLockValueFilter });
+
+        N2oQuery.Field dataActionField = new N2oQuery.Field();
+        dataActionField.setId(DataRecordConstants.FIELD_DATA_ACTION);
+        N2oQuery.Filter dataActionFilter = new N2oQuery.Filter();
+        dataActionFilter.setType(FilterType.eq);
+        dataActionFilter.setFilterField(DataRecordConstants.FIELD_DATA_ACTION);
+        dataActionFilter.setMapping("[3]");
+        dataActionFilter.setDomain(N2oDomain.STRING);
+        dataActionField.setFilterList(new N2oQuery.Filter[]{ dataActionFilter });
 
         return Stream.concat(
-                Stream.of(versionIdField, recordIdField),
+                Stream.of(versionIdField, sysRecordIdField, optLockValueField, dataActionField),
                 createDynamicFields(structure).stream())
                 .toArray(N2oQuery.Field[]::new);
     }
@@ -144,7 +169,7 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
                     break;
 
                 default:
-                    throw new IllegalArgumentException("attribute type not supported");
+                    throw new IllegalArgumentException("attribute type is not supported");
             }
         }
         return list;
@@ -169,13 +194,13 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
         final String attributeMapping = getAttributeMapping(codeWithPrefix);
 
         N2oQuery.Field valueField = new N2oQuery.Field();
-        valueField.setId(addFieldProperty(codeWithPrefix, REFERENCE_VALUE));
-        valueField.setSelectMapping(addFieldProperty(attributeMapping, REFERENCE_VALUE));
+        valueField.setId(addFieldProperty(codeWithPrefix, DataRecordConstants.REFERENCE_VALUE));
+        valueField.setSelectMapping(addFieldProperty(attributeMapping, DataRecordConstants.REFERENCE_VALUE));
         valueField.setDomain(N2oDomain.STRING);
 
         N2oQuery.Field displayValueField = new N2oQuery.Field();
-        displayValueField.setId(addFieldProperty(codeWithPrefix, REFERENCE_DISPLAY_VALUE));
-        displayValueField.setSelectMapping(addFieldProperty(attributeMapping, REFERENCE_DISPLAY_VALUE));
+        displayValueField.setId(addFieldProperty(codeWithPrefix, DataRecordConstants.REFERENCE_DISPLAY_VALUE));
+        displayValueField.setSelectMapping(addFieldProperty(attributeMapping, DataRecordConstants.REFERENCE_DISPLAY_VALUE));
         displayValueField.setDomain(N2oDomain.STRING);
 
         return List.of(valueField, displayValueField);

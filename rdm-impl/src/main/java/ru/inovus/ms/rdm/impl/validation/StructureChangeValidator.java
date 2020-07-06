@@ -10,8 +10,9 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.inovus.ms.rdm.api.model.Structure;
-import ru.inovus.ms.rdm.api.model.version.CreateAttribute;
-import ru.inovus.ms.rdm.api.model.version.UpdateAttribute;
+import ru.inovus.ms.rdm.api.model.version.CreateAttributeRequest;
+import ru.inovus.ms.rdm.api.model.version.UpdateAttributeRequest;
+import ru.inovus.ms.rdm.api.util.StructureUtils;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 
 import java.util.List;
@@ -41,21 +42,21 @@ public class StructureChangeValidator {
         this.versionRepository = versionRepository;
     }
 
-    public void validateCreateAttribute(CreateAttribute createAttribute) {
+    public void validateCreateAttribute(CreateAttributeRequest request) {
 
-        Structure.Attribute newAttribute = createAttribute.getAttribute();
+        Structure.Attribute newAttribute = request.getAttribute();
         if (newAttribute == null
                 || StringUtils.isEmpty(newAttribute.getCode())
                 || newAttribute.getType() == null)
             throw new IllegalArgumentException(ATTRIBUTE_CREATE_ILLEGAL_VALUE_EXCEPTION_CODE);
 
-        Structure.Reference reference = createAttribute.getReference();
-        boolean hasReference = reference != null && !reference.isNull();
+        Structure.Reference reference = request.getReference();
+        boolean isReference = StructureUtils.isReference(reference);
 
-        if (newAttribute.isReferenceType() != hasReference)
+        if (newAttribute.isReferenceType() != isReference)
             throw new IllegalArgumentException(ATTRIBUTE_CREATE_ILLEGAL_VALUE_EXCEPTION_CODE);
 
-        if (hasReference && !newAttribute.getCode().equals(reference.getAttribute()))
+        if (isReference && !newAttribute.getCode().equals(reference.getAttribute()))
             throw new IllegalArgumentException(ATTRIBUTE_CREATE_ILLEGAL_VALUE_EXCEPTION_CODE);
     }
 
@@ -70,72 +71,69 @@ public class StructureChangeValidator {
             throw new UserException(new Message(VALIDATION_REQUIRED_PK_ERR_EXCEPTION_CODE, newAttribute.getName()));
     }
 
-    public void validateUpdateAttribute(UpdateAttribute updateAttribute, Structure.Attribute oldAttribute) {
+    public void validateUpdateAttribute(Integer draftId, UpdateAttributeRequest request, Structure.Attribute oldAttribute) {
 
         if (oldAttribute == null
-                || updateAttribute.getVersionId() == null
-                || StringUtils.isEmpty(updateAttribute.getCode())
-                || updateAttribute.getType() == null)
+                || draftId == null
+                || StringUtils.isEmpty(request.getCode())
+                || request.getType() == null)
             throw new IllegalArgumentException(ATTRIBUTE_UPDATE_ILLEGAL_VALUE_EXCEPTION_CODE);
 
-        if (!updateAttribute.isReferenceType())
+        if (!request.isReferenceType())
             return;
 
-        if ((oldAttribute.isReferenceType() && !updateAttribute.isNullOrPresentReference())
-                || (!oldAttribute.isReferenceType() && !updateAttribute.isNotNullAndPresentReference())
-                || !updateAttribute.getCode().equals(updateAttribute.getAttribute().get()))
+        if ((oldAttribute.isReferenceType() && !request.isNullOrPresentReference())
+                || (!oldAttribute.isReferenceType() && !request.isNotNullAndPresentReference())
+                || !request.getCode().equals(request.getAttribute().get()))
             throw new IllegalArgumentException(ATTRIBUTE_UPDATE_ILLEGAL_VALUE_EXCEPTION_CODE);
     }
 
-    public void validateUpdateAttributeStorage(UpdateAttribute updateAttribute,
+    public void validateUpdateAttributeStorage(Integer draftId, UpdateAttributeRequest request,
                                                Structure.Attribute oldAttribute, String storageCode) {
 
-        if (updateAttribute.hasIsPrimary()) {
+        if (request.hasIsPrimary()) {
             // Проверка отсутствия пустых значений в поле при установке первичного ключа
-            if (draftDataService.isFieldContainEmptyValues(storageCode, updateAttribute.getCode())) {
+            if (draftDataService.isFieldContainEmptyValues(storageCode, request.getCode())) {
                 throw new UserException(new Message(ATTRIBUTE_PRIMARY_INCOMPATIBLE_WITH_DATA_EXCEPTION_CODE, oldAttribute.getName()));
             }
 
-            validatePrimaryKeyUnique(storageCode, updateAttribute);
+            validatePrimaryKeyUnique(storageCode, request);
         }
 
         // Если столбец для поля пустой, то проверка с учётом наличия данных не нужна
-        if (!draftDataService.isFieldNotEmpty(storageCode, updateAttribute.getCode()))
+        if (!draftDataService.isFieldNotEmpty(storageCode, request.getCode()))
             return;
 
-        if (!isCompatibleTypes(oldAttribute.getType(), updateAttribute.getType()))
+        if (!isCompatibleTypes(oldAttribute.getType(), request.getType()))
             throw new UserException(new Message(ATTRIBUTE_TYPE_INCOMPATIBLE_WITH_DATA_EXCEPTION_CODE, oldAttribute.getName()));
 
-        if (updateAttribute.isReferenceType() && !oldAttribute.isReferenceType()) {
-            validateReferenceValues(updateAttribute);
+        if (request.isReferenceType() && !oldAttribute.isReferenceType()) {
+            validateReferenceValues(draftId, request);
         }
     }
 
-    private void validatePrimaryKeyUnique(String storageCode, UpdateAttribute updateAttribute) {
+    private void validatePrimaryKeyUnique(String storageCode, UpdateAttributeRequest request) {
 
         List<Message> errorMessages = new PrimaryKeyUniqueValidation(
                 draftDataService,
                 storageCode,
-                singletonList(updateAttribute.getCode())
+                singletonList(request.getCode())
         ).validate();
 
         if (!CollectionUtils.isEmpty(errorMessages))
             throw new UserException(errorMessages);
     }
 
-    private void validateReferenceValues(UpdateAttribute updateAttribute) {
+    private void validateReferenceValues(Integer draftId, UpdateAttributeRequest request) {
 
         Structure.Reference reference = new Structure.Reference(
-                updateAttribute.getAttribute().get(),
-                updateAttribute.getReferenceCode().get(),
-                updateAttribute.getDisplayExpression().get()
+                request.getAttribute().get(),
+                request.getReferenceCode().get(),
+                request.getDisplayExpression().get()
         );
 
         List<Message> errorMessages = new ReferenceValidation(
-                searchDataService,
-                versionRepository,
-                reference,
-                updateAttribute.getVersionId()
+                searchDataService, versionRepository, reference, draftId
         ).validate();
 
         if (!CollectionUtils.isEmpty(errorMessages))
@@ -143,6 +141,7 @@ public class StructureChangeValidator {
     }
 
     private boolean isCompatibleTypes(FieldType realDataType, FieldType newDataType) {
+
         return realDataType.equals(newDataType)
                 || STRING.equals(realDataType) || STRING.equals(newDataType);
     }

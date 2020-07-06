@@ -80,6 +80,10 @@
             <select mapping="hasUpdatedConflict || hasAlteredConflict"/>
         </field>
 
+        <field id="version.optLockValue" domain="integer">
+            <select mapping="optLockValue"/>
+        </field>
+
         <!--Хак, для обновления detail виджетов, если в master нет изменений после рефреша-->
         <field id="now" domain="string">
             <select mapping="new java.util.Date()"/>

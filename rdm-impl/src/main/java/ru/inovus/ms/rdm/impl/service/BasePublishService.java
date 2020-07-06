@@ -108,13 +108,12 @@ class BasePublishService {
      * @return результат публикации
      */
     @Transactional
-    public PublishResponse publish(PublishRequest request) {
+    public PublishResponse publish(Integer draftId, PublishRequest request) {
 
         PublishResponse result = new PublishResponse();
 
-        Integer draftId = request.getDraftId();
         RefBookVersionEntity draftEntity = getVersionOrElseThrow(draftId);
-        if (draftEntity.getStatus() == RefBookVersionStatus.PUBLISHED)
+        if (RefBookVersionStatus.PUBLISHED.equals(draftEntity.getStatus()))
             return null;
 
         validatePublishingDraft(draftEntity);
@@ -124,6 +123,8 @@ class BasePublishService {
 
         refBookLockService.setRefBookPublishing(refBookId);
         try {
+            versionValidation.validateOptLockValue(draftEntity.getId(), draftEntity.getOptLockValue(), request.getOptLockValue());
+
             String versionName = getNextVersionNumberOrElseThrow(request.getVersionName(), refBookId);
 
             LocalDateTime fromDate = request.getFromDate();
@@ -149,6 +150,7 @@ class BasePublishService {
 
             resolveOverlappingPeriodsInFuture(fromDate, toDate, refBookId, draftEntity.getId());
 
+            draftEntity.refreshLastActionDate();
             versionRepository.save(draftEntity);
 
             result.setRefBookCode(draftEntity.getRefBook().getCode());
@@ -234,7 +236,6 @@ class BasePublishService {
     /** Корректировка времён в версиях справочника с перекрывающимся периодом времени. */
     private void resolveOverlappingPeriodsInFuture(LocalDateTime fromDate, LocalDateTime toDate,
                                                    Integer refBookId, Integer draftId) {
-
         if (toDate == null)
             toDate = MAX_TIMESTAMP;
 

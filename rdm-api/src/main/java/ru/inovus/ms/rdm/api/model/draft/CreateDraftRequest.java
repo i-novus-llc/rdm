@@ -12,17 +12,23 @@ import java.util.Objects;
 
 import static java.util.Collections.emptyMap;
 
-@ApiModel(value = "Модель создания черновика", description = "Набор данных для создания черновика")
+@ApiModel(value = "Модель создания черновика",
+        description = "Набор данных для создания черновика")
 public class CreateDraftRequest implements Serializable {
 
+    @ApiModelProperty("Идентификатор справочника")
     private Integer refBookId;
 
+    @ApiModelProperty("Структура черновика")
     private Structure structure;
 
+    @ApiModelProperty("Паспорт")
     private Map<String, Object> passport; // NOSONAR
 
+    @ApiModelProperty("Пользовательские проверки")
     private Map<String, List<AttributeValidation>> validations; // NOSONAR
 
+    @ApiModelProperty(value = "Необходимость валидации ссылок", hidden = true)
     private boolean referrerValidationRequired;
 
     public CreateDraftRequest() {
@@ -41,7 +47,6 @@ public class CreateDraftRequest implements Serializable {
         this(refBookId, structure, emptyMap(), emptyMap());
     }
 
-    @ApiModelProperty(value = "Идентификатор справочника")
     public Integer getRefBookId() {
         return refBookId;
     }
@@ -50,7 +55,6 @@ public class CreateDraftRequest implements Serializable {
         this.refBookId = refBookId;
     }
 
-    @ApiModelProperty(value = "Структура черновика")
     public Structure getStructure() {
         return structure;
     }
@@ -59,7 +63,6 @@ public class CreateDraftRequest implements Serializable {
         this.structure = structure;
     }
 
-    @ApiModelProperty(value = "Паспорт")
     public Map<String, Object> getPassport() {
         return passport;
     }
@@ -68,7 +71,6 @@ public class CreateDraftRequest implements Serializable {
         this.passport = passport;
     }
 
-    @ApiModelProperty(value = "Пользовательские проверки")
     public Map<String, List<AttributeValidation>> getValidations() {
         return validations;
     }
@@ -105,6 +107,7 @@ public class CreateDraftRequest implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(refBookId, structure, passport, validations, referrerValidationRequired);
+        return Objects.hash(refBookId, structure, passport,
+                validations, referrerValidationRequired);
     }
 }

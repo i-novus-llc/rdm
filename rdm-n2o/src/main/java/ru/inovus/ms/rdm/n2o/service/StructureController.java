@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
@@ -26,8 +27,9 @@ import ru.inovus.ms.rdm.n2o.model.ReadAttribute;
 import java.util.*;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.springframework.util.StringUtils.isEmpty;
-import static ru.inovus.ms.rdm.api.model.version.UpdateAttribute.setUpdateValueIfExists;
+import static ru.inovus.ms.rdm.api.model.version.UpdateAttributeRequest.setUpdateValueIfExists;
 
 @Controller
 @SuppressWarnings("WeakerAccess")
@@ -35,10 +37,13 @@ public class StructureController {
 
     @Autowired
     private RefBookService refBookService;
+
     @Autowired
     private VersionService versionService;
+
     @Autowired
     private DraftService draftService;
+
     @Autowired
     private ConflictService conflictService;
 
@@ -46,22 +51,37 @@ public class StructureController {
     RestPage<ReadAttribute> getPage(AttributeCriteria criteria) {
 
         Integer versionId = criteria.getVersionId();
-        Structure structure = versionService.getStructure(versionId);
+        RefBookVersion version = versionService.getById(criteria.getVersionId());
+        if (version.hasEmptyStructure()) {
+            return new RestPage<>(new ArrayList<>(), Pageable.unpaged(), 0);
+        }
 
+        if (criteria.getOptLockValue() != null) {
+            version.setOptLockValue(criteria.getOptLockValue());
+        }
+
+        List<Structure.Attribute> attributes = version.getStructure().getAttributes();
         List<AttributeValidation> validations = draftService.getAttributeValidations(versionId, criteria.getCode());
 
-        List<Structure.Attribute> attributes = (structure != null) ? structure.getAttributes() : new ArrayList<>();
-        List<ReadAttribute> list = toPageAttributes(attributes, criteria).stream()
-                .map(attribute -> toReadAttribute(attribute, structure, versionId, validations))
-                .collect(toList());
+        List<ReadAttribute> list;
+        if (!isEmpty(attributes)) {
+            list = toPageAttributes(attributes, criteria).stream()
+                    .map(attribute -> toReadAttribute(attribute, version, validations))
+                    .collect(toList());
+        } else {
+            list = new ArrayList<>();
+        }
 
         return new RestPage<>(list, PageRequest.of(criteria.getPage(), criteria.getSize()), attributes.size());
     }
 
     // used in: attributeDefault.query.xml
-    ReadAttribute getDefault(Integer versionId) {
+    ReadAttribute getDefault(Integer versionId, Integer optLockValue) {
 
         ReadAttribute readAttribute = new ReadAttribute();
+        readAttribute.setVersionId(versionId);
+        readAttribute.setOptLockValue(optLockValue);
+
         enrichByRefBook(versionId, readAttribute);
 
         return readAttribute;
@@ -78,27 +98,32 @@ public class StructureController {
 
     /** Проверка на соответствие атрибута критерию поиска. */
     private boolean isCriteriaAttribute(Structure.Attribute attribute, AttributeCriteria criteria) {
+
         return (isEmpty(criteria.getCode()) || criteria.getCode().equals(attribute.getCode()))
-                && (isEmpty(criteria.getName()) || StringUtils.containsIgnoreCase(attribute.getName(), criteria.getName()));
+                && (isEmpty(criteria.getName()) || containsIgnoreCase(attribute.getName(), criteria.getName()));
     }
 
     /** Преобразование атрибута в атрибут для отображения на форме. */
-    private ReadAttribute toReadAttribute(Structure.Attribute attribute, Structure structure,
-                                          Integer versionId, List<AttributeValidation> validations) {
+    private ReadAttribute toReadAttribute(Structure.Attribute attribute, RefBookVersion version,
+                                          List<AttributeValidation> validations) {
 
-        Structure.Reference reference = attribute.isReferenceType() ? structure.getReference(attribute.getCode()) : null;
+        Structure.Reference reference = attribute.isReferenceType()
+                ? version.getStructure().getReference(attribute.getCode())
+                : null;
         ReadAttribute readAttribute = getReadAttribute(attribute, reference);
         enrichAtribute(readAttribute, getValidations(validations, attribute.getCode()));
 
-        readAttribute.setVersionId(versionId);
-        readAttribute.setIsReferrer(!CollectionUtils.isEmpty(structure.getReferences()));
+        readAttribute.setVersionId(version.getId());
+        readAttribute.setOptLockValue(version.getOptLockValue());
+
+        readAttribute.setIsReferrer(!CollectionUtils.isEmpty(version.getStructure().getReferences()));
         readAttribute.setCodeExpression(DisplayExpression.toPlaceholder(attribute.getCode()));
 
         if (reference != null) {
             enrichReference(readAttribute, reference);
         }
 
-        enrichByRefBook(versionId, readAttribute);
+        enrichByRefBook(version.getId(), readAttribute);
 
         return readAttribute;
     }
@@ -215,49 +240,53 @@ public class StructureController {
         return conflicts != null && !CollectionUtils.isEmpty(conflicts.getContent());
     }
 
-    public void createAttribute(Integer versionId, FormAttribute formAttribute) {
+    public void createAttribute(Integer versionId, Integer optLockValue, FormAttribute formAttribute) {
 
-        CreateAttribute attributeModel = getCreateAttribute(versionId, formAttribute);
-        draftService.createAttribute(attributeModel);
+        CreateAttributeRequest attributeRequest = getCreateAttributeRequest(optLockValue, formAttribute);
+        draftService.createAttribute(versionId, attributeRequest);
         try {
             AttributeValidationRequest validationRequest = new AttributeValidationRequest();
-            validationRequest.setNewAttribute(attributeModel);
+            validationRequest.setNewAttribute(attributeRequest);
             validationRequest.setValidations(createValidations(formAttribute));
 
             draftService.updateAttributeValidations(versionId, validationRequest);
 
         } catch (RestException re) {
-            draftService.deleteAttribute(versionId, formAttribute.getCode());
+            DeleteAttributeRequest rollbackRequest = new DeleteAttributeRequest(null, formAttribute.getCode());
+            draftService.deleteAttribute(versionId, rollbackRequest);
             throw re;
         }
     }
 
-    public void updateAttribute(Integer versionId, FormAttribute formAttribute) {
+    public void updateAttribute(Integer versionId, Integer optLockValue, FormAttribute formAttribute) {
 
         Structure oldStructure = versionService.getStructure(versionId);
         Structure.Attribute oldAttribute = oldStructure.getAttribute(formAttribute.getCode());
         Structure.Reference oldReference = oldStructure.getReference(formAttribute.getCode());
 
-        UpdateAttribute attributeModel = getUpdateAttribute(versionId, formAttribute);
-        draftService.updateAttribute(attributeModel);
+        UpdateAttributeRequest attributeRequest = getUpdateAttributeRequest(optLockValue, formAttribute);
+        draftService.updateAttribute(versionId, attributeRequest);
         try {
             AttributeValidationRequest validationRequest = new AttributeValidationRequest();
             validationRequest.setOldAttribute(getVersionAttribute(versionId, oldAttribute, oldReference));
-            validationRequest.setNewAttribute(getCreateAttribute(versionId, formAttribute));
+            validationRequest.setNewAttribute(getCreateAttributeRequest(optLockValue, formAttribute));
             validationRequest.setValidations(createValidations(formAttribute));
 
             draftService.updateAttributeValidations(versionId, validationRequest);
 
         } catch (RestException re) {
-            draftService.updateAttribute(new UpdateAttribute(versionId, oldAttribute, oldReference));
+            UpdateAttributeRequest rollbackRequest = new UpdateAttributeRequest(optLockValue, oldAttribute, oldReference);
+            draftService.updateAttribute(versionId, rollbackRequest);
             throw re;
         }
     }
 
-    public void deleteAttribute(Integer versionId, String attributeCode) {
+    public void deleteAttribute(Integer versionId, Integer optLockValue, String attributeCode) {
 
         draftService.deleteAttributeValidation(versionId, attributeCode, null);
-        draftService.deleteAttribute(versionId, attributeCode);
+
+        DeleteAttributeRequest request = new DeleteAttributeRequest(optLockValue, attributeCode);
+        draftService.deleteAttribute(versionId, request);
     }
 
     /** Заполнение валидаций атрибута из атрибута формы. */
@@ -297,7 +326,8 @@ public class StructureController {
     }
 
     /** Получение атрибута для отображения на форме из конкретного атрибута (+ ссылки). */
-    private ReadAttribute getReadAttribute(Structure.Attribute attribute, Structure.Reference reference) {
+    private ReadAttribute getReadAttribute(Structure.Attribute attribute,
+                                           Structure.Reference reference) {
 
         ReadAttribute readAttribute = new ReadAttribute();
         readAttribute.setCode(attribute.getCode());
@@ -322,11 +352,15 @@ public class StructureController {
     }
 
     /** Получение атрибута для добавления из атрибута формы. */
-    private CreateAttribute getCreateAttribute(Integer versionId, FormAttribute formAttribute) {
-        return new CreateAttribute(versionId, buildAttribute(formAttribute), buildReference(formAttribute));
+    private CreateAttributeRequest getCreateAttributeRequest(Integer optLockValue,
+                                                             FormAttribute formAttribute) {
+        return new CreateAttributeRequest(optLockValue,
+                buildAttribute(formAttribute), buildReference(formAttribute)
+        );
     }
 
     private Structure.Attribute buildAttribute(FormAttribute request) {
+
         if (request.hasIsPrimary())
             return Structure.Attribute.buildPrimary(request.getCode(),
                     request.getName(), request.getType(), request.getDescription());
@@ -337,27 +371,30 @@ public class StructureController {
     }
 
     private Structure.Reference buildReference(FormAttribute request) {
+
         return new Structure.Reference(request.getCode(),
                 request.getReferenceCode(),
                 request.getDisplayExpression());
     }
 
     /** Получение атрибута для изменения из атрибута формы. */
-    private UpdateAttribute getUpdateAttribute(Integer versionId, FormAttribute formAttribute) {
+    private UpdateAttributeRequest getUpdateAttributeRequest(Integer optLockValue,
+                                                             FormAttribute formAttribute) {
 
-        UpdateAttribute attribute = new UpdateAttribute();
+        UpdateAttributeRequest attribute = new UpdateAttributeRequest();
         attribute.setLastActionDate(TimeUtils.nowZoned());
-        attribute.setVersionId(versionId);
 
-        // attribute fields
+        attribute.setOptLockValue(optLockValue);
+
+        // attribute fields:
         attribute.setCode(formAttribute.getCode());
         attribute.setType(formAttribute.getType());
+        attribute.setDescription(formAttribute.getDescription());
 
         setUpdateValueIfExists(formAttribute::getName, attribute::setName);
         setUpdateValueIfExists(formAttribute::getIsPrimary, attribute::setIsPrimary);
-        setUpdateValueIfExists(formAttribute::getDescription, attribute::setDescription);
 
-        // reference fields
+        // reference fields:
         setUpdateValueIfExists(formAttribute::getCode, attribute::setAttribute);
         setUpdateValueIfExists(formAttribute::getReferenceCode, attribute::setReferenceCode);
         setUpdateValueIfExists(formAttribute::getDisplayExpression, attribute::setDisplayExpression);

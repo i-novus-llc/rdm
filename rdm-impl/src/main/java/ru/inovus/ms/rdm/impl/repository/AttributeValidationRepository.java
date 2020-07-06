@@ -8,10 +8,12 @@ import java.util.List;
 
 public interface AttributeValidationRepository extends
         JpaRepository<AttributeValidationEntity, Integer> {
+
     List<AttributeValidationEntity> findAllByVersionIdAndAttributeAndType(Integer versionId, String attribute, AttributeValidationType type);
 
     List<AttributeValidationEntity> findAllByVersionIdAndAttribute(Integer versionId, String attribute);
 
     List<AttributeValidationEntity> findAllByVersionId(Integer versionId);
 
+    void deleteByVersionIdAndAttribute(Integer versionId, String attribute);
 }

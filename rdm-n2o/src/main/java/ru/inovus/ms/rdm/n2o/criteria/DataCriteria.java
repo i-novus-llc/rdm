@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.n2o.criteria;
 import net.n2oapp.criteria.api.Criteria;
 import net.n2oapp.criteria.api.Direction;
 import net.n2oapp.criteria.api.Sorting;
+import org.apache.commons.lang3.BooleanUtils;
 import ru.inovus.ms.rdm.n2o.util.RdmUiUtil;
 
 import java.io.Serializable;
@@ -18,15 +19,27 @@ import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.deletePrefix;
 @SuppressWarnings("unused")
 public class DataCriteria extends Criteria {
 
+    /** Идентификатор версии справочника. */
     private Integer versionId;
+
+    /** Значение оптимистической блокировки версии. */
+    private Integer optLockValue;
+
+    /** Фильтр по атрибутам: код = значение. */
     private Map<String, Serializable> filter;
+
+    /** Наличие конфликта данных. */
     private Boolean hasDataConflict;
 
     public DataCriteria() {
     }
 
-    public DataCriteria(Integer versionId, Map<String, Serializable> filter, Boolean hasDataConflict) {
+    public DataCriteria(Integer versionId, Integer optLockValue,
+                        Map<String, Serializable> filter, Boolean hasDataConflict) {
+
         this.versionId = versionId;
+        this.optLockValue = optLockValue;
+
         this.filter = filter;
         this.hasDataConflict = hasDataConflict;
     }
@@ -37,6 +50,14 @@ public class DataCriteria extends Criteria {
 
     public void setVersionId(Integer versionId) {
         this.versionId = versionId;
+    }
+
+    public Integer getOptLockValue() {
+        return optLockValue;
+    }
+
+    public void setOptLockValue(Integer optLockValue) {
+        this.optLockValue = optLockValue;
     }
 
     public Map<String, Serializable> getFilter() {
@@ -63,10 +84,14 @@ public class DataCriteria extends Criteria {
 
     public void setSorting(Map<String, String> sorting) {
         if (sorting == null) return;
+
         sorting.entrySet().stream().findFirst().ifPresent(e -> {
             Direction direction = e.getValue() == null || "ASC".equalsIgnoreCase(e.getValue()) ? Direction.ASC : Direction.DESC;
             setSorting(new Sorting(RdmUiUtil.deletePrefix(e.getKey()), direction));
         });
+    }
 
+    public boolean isHasDataConflict() {
+        return BooleanUtils.isTrue(hasDataConflict);
     }
 }

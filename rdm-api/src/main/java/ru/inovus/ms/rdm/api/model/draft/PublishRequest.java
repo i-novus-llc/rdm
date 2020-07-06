@@ -2,42 +2,43 @@ package ru.inovus.ms.rdm.api.model.draft;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import io.swagger.annotations.ApiParam;
+import ru.inovus.ms.rdm.api.model.refdata.DraftChangeRequest;
 import ru.inovus.ms.rdm.api.util.json.JsonUtil;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @ApiModel(value = "Модель публикации черновика",
         description = "Набор входных параметров для публикации черновика")
-public class PublishRequest implements Serializable {
+public class PublishRequest implements DraftChangeRequest {
 
-    @ApiModelProperty(value = "Идентификатор черновика")
-    private Integer draftId;
+    @ApiModelProperty("Значение оптимистической блокировки версии")
+    private Integer optLockValue;
 
-    @ApiParam("Версия, под которой публикуется черновик")
+    @ApiModelProperty("Версия, под которой публикуется черновик")
     private String versionName;
-    @ApiParam("Дата начала действия опубликованной версии")
+
+    @ApiModelProperty("Дата начала действия опубликованной версии")
     private LocalDateTime fromDate;
-    @ApiParam("Дата окончания действия опубликованной версии")
+
+    @ApiModelProperty("Дата окончания действия опубликованной версии")
     private LocalDateTime toDate;
 
-    @ApiParam("Признак разрешения конфликтов")
+    @ApiModelProperty("Признак разрешения конфликтов")
     private boolean resolveConflicts;
 
     public PublishRequest() {
     }
 
-    public PublishRequest(Integer draftId) {
-        this.draftId = draftId;
+    public PublishRequest(Integer optLockValue) {
+        this.optLockValue = optLockValue;
     }
 
-    public Integer getDraftId() {
-        return draftId;
+    public Integer getOptLockValue() {
+        return optLockValue;
     }
 
-    public void setDraftId(Integer draftId) {
-        this.draftId = draftId;
+    public void setOptLockValue(Integer optLockValue) {
+        this.optLockValue = optLockValue;
     }
 
     public String getVersionName() {

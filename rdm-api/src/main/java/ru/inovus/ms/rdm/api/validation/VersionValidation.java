@@ -18,9 +18,13 @@ public interface VersionValidation {
 
     void validateRefBookCodeExists(String refBookCode);
 
+    void validateRefBookCodeNotExists(String refBookCode);
+
     void validateVersionExists(Integer versionId);
 
     void validateDraftExists(Integer draftId);
+
+    void validateOptLockValue(Integer draftId, Integer draftLockValue, Integer optLockValue);
 
     void validateDraftNotArchived(Integer draftId);
 

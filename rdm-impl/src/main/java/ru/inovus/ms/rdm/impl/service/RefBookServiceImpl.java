@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -19,7 +20,9 @@ import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.model.draft.PublishRequest;
 import ru.inovus.ms.rdm.api.model.refbook.*;
+import ru.inovus.ms.rdm.api.model.refdata.DeleteDataRequest;
 import ru.inovus.ms.rdm.api.model.refdata.RdmChangeDataRequest;
+import ru.inovus.ms.rdm.api.model.refdata.UpdateDataRequest;
 import ru.inovus.ms.rdm.api.service.DraftService;
 import ru.inovus.ms.rdm.api.service.PublishService;
 import ru.inovus.ms.rdm.api.service.RefBookService;
@@ -50,8 +53,8 @@ public class RefBookServiceImpl implements RefBookService {
 
     private static final String REFBOOK_IS_NOT_CREATED_EXCEPTION_CODE = "refbook.is.not.created";
     private static final String REFBOOK_IS_NOT_CREATED_FROM_XLSX_EXCEPTION_CODE = "refbook.is.not.created.from.xlsx";
-    private static final String REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.already.exists";
-    private static final String DRAFT_NOT_FOUND_EXCEPTION_CODE = "draft.not.found";
+    private static final String REFBOOK_DRAFT_NOT_FOUND_EXCEPTION_CODE = "refbook.draft.not.found";
+    private static final String OPTIMISTIC_LOCK_ERROR_EXCEPTION_CODE = "optimistic.lock.error";
 
     private RefBookRepository refBookRepository;
     private RefBookVersionRepository versionRepository;
@@ -169,23 +172,21 @@ public class RefBookServiceImpl implements RefBookService {
     public Integer getId(String refBookCode) {
 
         versionValidation.validateRefBookCodeExists(refBookCode);
-
-        final RefBookEntity refBookEntity = refBookRepository.findByCode(refBookCode);
-        return refBookEntity.getId();
+        return refBookRepository.findByCode(refBookCode).getId();
     }
 
     @Override
     @Transactional
     public RefBook create(RefBookCreateRequest request) {
 
-        versionValidation.validateRefBookCode(request.getCode());
-        if (refBookRepository.existsByCode(request.getCode()))
-            throw new UserException(new Message(REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE, request.getCode()));
+        final String newCode = request.getCode();
+        versionValidation.validateRefBookCode(newCode);
+        versionValidation.validateRefBookCodeNotExists(newCode);
 
         RefBookEntity refBookEntity = new RefBookEntity();
+        refBookEntity.setCode(newCode);
         refBookEntity.setArchived(Boolean.FALSE);
         refBookEntity.setRemovable(Boolean.TRUE);
-        refBookEntity.setCode(request.getCode());
         refBookEntity.setCategory(request.getCategory());
         refBookEntity = refBookRepository.save(refBookEntity);
 
@@ -256,21 +257,28 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional
     public RefBook update(RefBookUpdateRequest request) {
 
-        versionValidation.validateVersion(request.getVersionId());
-        refBookLockService.validateRefBookNotBusyByVersionId(request.getVersionId());
+        final Integer versionId = request.getVersionId();
+        versionValidation.validateVersion(versionId);
+        refBookLockService.validateRefBookNotBusyByVersionId(versionId);
 
-        RefBookVersionEntity versionEntity = versionRepository.getOne(request.getVersionId());
+        RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
+        versionValidation.validateOptLockValue(versionId, versionEntity.getOptLockValue(), request.getOptLockValue());
+
         RefBookEntity refBookEntity = versionEntity.getRefBook();
-        if (!refBookEntity.getCode().equals(request.getCode())) {
-            versionValidation.validateRefBookCode(request.getCode());
-            if (refBookRepository.existsByCode((request.getCode())))
-                throw new UserException(new Message(REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE, request.getCode()));
 
-            refBookEntity.setCode(request.getCode());
+        final String newCode = request.getCode();
+        if (!refBookEntity.getCode().equals(newCode)) {
+            versionValidation.validateRefBookCode(newCode);
+            versionValidation.validateRefBookCodeNotExists(newCode);
+
+            refBookEntity.setCode(newCode);
         }
+
         refBookEntity.setCategory(request.getCategory());
         updateVersionFromPassport(versionEntity, request.getPassport());
         versionEntity.setComment(request.getComment());
+
+        forceUpdateVersionOptLockValue(versionEntity);
 
         auditLogService.addAction(AuditAction.EDIT_PASSPORT, () -> versionEntity, Map.of("newPassport", request.getPassport()));
 
@@ -345,24 +353,27 @@ public class RefBookServiceImpl implements RefBookService {
 
         final String refBookCode = request.getRefBookCode();
         versionValidation.validateRefBookCodeExists(refBookCode);
-
         RefBookEntity refBook = refBookRepository.findByCode(refBookCode);
 
         refBookLockService.setRefBookUpdating(refBook.getId());
         try {
-            Integer draftId = draftService.getIdByRefBookCode(refBookCode);
-            if (draftId == null) {
+            Draft draft = draftService.findDraft(refBookCode);
+            if (draft == null) {
                 RefBookVersionEntity lastPublishedEntity = versionRepository
                         .findFirstByRefBookIdAndStatusOrderByFromDateDesc(refBook.getId(), RefBookVersionStatus.PUBLISHED);
-                Draft draft = draftService.createFromVersion(lastPublishedEntity.getId());
-                draftId = draft.getId();
+                draft = draftService.createFromVersion(lastPublishedEntity.getId());
+                if (draft == null)
+                    throw new UserException(new Message(REFBOOK_DRAFT_NOT_FOUND_EXCEPTION_CODE, refBook.getId()));
             }
-            if (draftId == null)
-                throw new UserException(new Message(DRAFT_NOT_FOUND_EXCEPTION_CODE, draftId));
 
-            draftService.updateData(draftId, request.getRowsToAddOrUpdate());
-            draftService.deleteRows(draftId, request.getRowsToDelete());
-            publishService.publish(new PublishRequest(draftId));
+            Integer draftId = draft.getId();
+            draftService.updateData(draftId, new UpdateDataRequest(draft.getOptLockValue(), request.getRowsToAddOrUpdate()));
+
+            draft = draftService.getDraft(draftId);
+            draftService.deleteData(draftId, new DeleteDataRequest(draft.getOptLockValue(), request.getRowsToDelete()));
+
+            draft = draftService.getDraft(draftId);
+            publishService.publish(draftId, new PublishRequest(draft.getOptLockValue()));
 
         } finally {
             refBookLockService.deleteRefBookOperation(refBook.getId());
@@ -415,14 +426,9 @@ public class RefBookServiceImpl implements RefBookService {
         model.setHasStructureConflict(refBookModelData.getHasStructureConflict());
         model.setLastHasConflict(refBookModelData.getLastHasConflict());
 
-        model.setUpdating(false);
-        model.setPublishing(false);
-        if (entity.getRunningOp() != null) {
-            if (entity.getRunningOp().getOperation() == RefBookOperation.PUBLISHING)
-                model.setPublishing(true);
-            else
-                model.setUpdating(true);
-        }
+        // Use refBookModelData to get RefBookOperation instead of:
+        model.setUpdating(entity.isOperation(RefBookOperation.UPDATING));
+        model.setPublishing(entity.isOperation(RefBookOperation.PUBLISHING));
 
         return model;
     }
@@ -516,5 +522,16 @@ public class RefBookServiceImpl implements RefBookService {
         }
 
         return result;
+    }
+
+    /** Принудительное обновление значения оптимистической блокировки версии. */
+    private void forceUpdateVersionOptLockValue(RefBookVersionEntity versionEntity) {
+        try {
+            versionEntity.refreshLastActionDate();
+            versionRepository.save(versionEntity);
+
+        } catch (ObjectOptimisticLockingFailureException e) {
+            throw new UserException(OPTIMISTIC_LOCK_ERROR_EXCEPTION_CODE, e);
+        }
     }
 }

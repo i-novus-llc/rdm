@@ -27,6 +27,10 @@
             </filters>
         </field>
 
+        <field id="optLockValue" domain="integer">
+            <select/>
+        </field>
+
         <field id="refBookId" domain="integer">
             <select/>
             <filters>

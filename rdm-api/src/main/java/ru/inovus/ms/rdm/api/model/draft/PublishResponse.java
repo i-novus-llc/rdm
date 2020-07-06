@@ -2,7 +2,6 @@ package ru.inovus.ms.rdm.api.model.draft;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import io.swagger.annotations.ApiParam;
 import ru.inovus.ms.rdm.api.util.json.JsonUtil;
 
 import java.io.Serializable;
@@ -11,13 +10,13 @@ import java.io.Serializable;
         description = "Набор выходных параметров публикации черновика")
 public class PublishResponse implements Serializable {
 
-    @ApiParam("Код опубликованного справочника")
+    @ApiModelProperty("Код опубликованного справочника")
     private String refBookCode;
 
-    @ApiModelProperty(value = "Идентификатор опубликованной версии")
+    @ApiModelProperty("Идентификатор опубликованной версии")
     private Integer newId;
 
-    @ApiModelProperty(value = "Идентификатор предыдущего опубликованной версии")
+    @ApiModelProperty("Идентификатор предыдущей опубликованной версии")
     private Integer oldId;
 
     public String getRefBookCode() {

@@ -14,8 +14,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Обновить master (version_select) виджет вместо detail виджетов
- * Для того чтобы был переход на черновик после изменения версии
+ * Обновление master-виджета (version_select) вместо detail-виджета.
+ * Это необходимо для того, чтобы был переход на черновик после изменения версии.
  */
 @Component
 public class RefreshTransformer

@@ -5,14 +5,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import ru.inovus.ms.rdm.api.enumeration.ConflictType;
 import ru.inovus.ms.rdm.api.model.draft.PublishRequest;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.api.service.ConflictService;
-import ru.inovus.ms.rdm.api.service.DraftService;
-import ru.inovus.ms.rdm.api.service.PublishService;
-import ru.inovus.ms.rdm.api.service.RefBookService;
+import ru.inovus.ms.rdm.api.service.*;
 import ru.inovus.ms.rdm.n2o.model.UiRefBookPublish;
 
 import java.util.Map;
@@ -36,6 +34,7 @@ public class RefBookPublishController {
 
     private static final String PASSPORT_ATTRIBUTE_NAME = "name";
     private static final String REFERRER_NAME_SEPARATOR = ", ";
+    private static final String REFERRER_NAME_LIST_END = ".";
 
     private RefBookService refBookService;
     private DraftService draftService;
@@ -57,20 +56,21 @@ public class RefBookPublishController {
         this.messages = messages;
     }
 
-    public UiRefBookPublish getByVersionId(Integer versionId) {
+    /**
+     * Поиск черновика справочника для публикации.
+     *
+     * @param versionId    идентификатор версии
+     * @param optLockValue значение оптимистической блокировки
+     * @return Публикуемый черновик
+     */
+    public UiRefBookPublish getDraft(Integer versionId, Integer optLockValue) {
 
         RefBook refBook = refBookService.getByVersionId(versionId);
 
         UiRefBookPublish uiRefBookPublish = new UiRefBookPublish(refBook);
 
-        if (refBook.hasEmptyStructure()) {
-            String message = messages.getMessage(PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE);
-            uiRefBookPublish.setErrorMessage(message);
-            return uiRefBookPublish;
-        }
-
-        if (!Boolean.TRUE.equals(draftService.hasData(versionId))) {
-            String message = messages.getMessage(PUBLISHING_DRAFT_DATA_NOT_FOUND_EXCEPTION_CODE);
+        String message = checkPublishedDraft(versionId);
+        if (!StringUtils.isEmpty(message)) {
             uiRefBookPublish.setErrorMessage(message);
             return uiRefBookPublish;
         }
@@ -86,15 +86,31 @@ public class RefBookPublishController {
         return uiRefBookPublish;
     }
 
+    /** Проверка публикуемого черновика перед открытием окна публикации. */
+    public String checkPublishedDraft(Integer versionId) {
+
+        RefBook refBook = refBookService.getByVersionId(versionId);
+
+        if (refBook.getStructure() == null || refBook.getStructure().isEmpty()) {
+            return messages.getMessage(PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE);
+        }
+
+        if (!Boolean.TRUE.equals(draftService.hasData(versionId))) {
+            return messages.getMessage(PUBLISHING_DRAFT_DATA_NOT_FOUND_EXCEPTION_CODE);
+        }
+
+        return null;
+    }
+
     /**
      * Публикация черновика справочника.
      *
      * @param draftId идентификатор черновика
      */
-    public UUID publishDraft(Integer draftId) {
+    public UUID publishDraft(Integer draftId, Integer optLockValue) {
 
-        PublishRequest request = new PublishRequest(draftId);
-        return publishService.publishAsync(request);
+        PublishRequest request = new PublishRequest(optLockValue);
+        return publishService.publishAsync(draftId, request);
     }
 
     /**
@@ -102,11 +118,11 @@ public class RefBookPublishController {
      *
      * @param draftId идентификатор черновика
      */
-    public UUID publishAndRefresh(Integer draftId) {
+    public UUID publishAndRefresh(Integer draftId, Integer optLockValue) {
 
-        PublishRequest request = new PublishRequest(draftId);
+        PublishRequest request = new PublishRequest(optLockValue);
         request.setResolveConflicts(true);
-        return publishService.publishAsync(request);
+        return publishService.publishAsync(draftId, request);
     }
 
     /**
@@ -129,13 +145,15 @@ public class RefBookPublishController {
      *
      * @param versionId    идентификатор версии справочника
      * @param conflictType тип конфликта
-     * @return Названия справочников (через запятую)
+     * @return Названия справочников (через запятую и с точкой в конце)
      */
     private String getConflictTypeReferrerNames(Integer versionId, ConflictType conflictType) {
 
-        return conflictService.getConflictingReferrers(versionId, conflictType).stream()
+        String result = conflictService.getConflictingReferrers(versionId, conflictType).stream()
                 .map(this::getReferrerDisplayName)
                 .collect(Collectors.joining(REFERRER_NAME_SEPARATOR));
+
+        return StringUtils.isEmpty(result) ? "" : result + REFERRER_NAME_LIST_END;
     }
 
     /**

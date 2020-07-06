@@ -358,14 +358,13 @@ public class Structure implements Serializable {
         public String toString() {
             return JsonUtil.getAsJson(this);
         }
-
     }
 
     @ApiModel("Ссылка на запись справочника")
     public static class Reference implements Serializable {
 
-        /** Поле, которое ссылается. */
-        @ApiModelProperty("Поле, которое ссылается")
+        /** Код атрибута, который ссылается. */
+        @ApiModelProperty("Код атрибута, который ссылается")
         private String attribute;
 
         /** Код справочника, на который ссылаются. */
@@ -471,7 +470,6 @@ public class Structure implements Serializable {
         public String toString() {
             return JsonUtil.getAsJson(this);
         }
-
     }
 
     public boolean storageEquals(Structure that) {

@@ -70,7 +70,8 @@ public class FilesRestController {
 
     @CrossOrigin(origins = "*")
     @GetMapping(value = "/{versionId}/{type}")
-    public ResponseEntity<Resource> downloadFile(@PathVariable Integer versionId, @PathVariable FileType type) {
+    public ResponseEntity<Resource> downloadFile(@PathVariable Integer versionId,
+                                                 @PathVariable FileType type) {
 
         ExportFile versionFile = versionService.getVersionFile(versionId, type);
 

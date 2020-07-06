@@ -1,14 +1,13 @@
 package ru.inovus.ms.rdm.impl.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.querydsl.core.types.Predicate;
 import net.n2oapp.platform.i18n.UserException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
+import org.mockito.*;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -29,6 +28,7 @@ import ru.inovus.ms.rdm.api.service.VersionFileService;
 import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
 import ru.inovus.ms.rdm.api.util.VersionNumberStrategy;
+import ru.inovus.ms.rdm.api.util.json.JsonUtil;
 import ru.inovus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.entity.PassportAttributeEntity;
@@ -63,6 +63,8 @@ public class BasePublishServiceTest {
     private static final String TEST_DRAFT_CODE_NEW = "test_draft_code_new";
     private static final String TEST_REF_BOOK = "test_ref_book";
     private static final int REFBOOK_ID = 2;
+
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
     private BasePublishService basePublishService;
@@ -121,6 +123,9 @@ public class BasePublishServiceTest {
 
     @Before
     public void setUp() {
+
+        JsonUtil.jsonMapper = objectMapper;
+
         reset(draftDataService, fileNameGenerator, fileGeneratorFactory);
         when(draftDataService.applyDraft(any(), any(), any(), any())).thenReturn(TEST_STORAGE_CODE);
         when(searchDataService.hasData(any())).thenReturn(true);
@@ -185,7 +190,12 @@ public class BasePublishServiceTest {
         assertEquals("1.1", draftVersionEntity.getVersion());
 
         verify(draftDataService).applyDraft(isNull(), eq(expectedDraftStorageCode), eq(now), any());
-        verify(versionRepository).save(eq(expectedVersionEntity));
+
+        ArgumentCaptor<RefBookVersionEntity> savedCaptor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
+        verify(versionRepository).save(savedCaptor.capture());
+        expectedVersionEntity.setLastActionDate(savedCaptor.getValue().getLastActionDate());
+        Assert.assertEquals(expectedVersionEntity, savedCaptor.getValue());
+
         verify(versionFileService, times(2)).save(eq(draftVersion), any(FileType.class), eq(null));
         //verify(fileStorage, times(2)).saveContent(any(InputStream.class), anyString());
         reset(versionRepository);
@@ -222,7 +232,12 @@ public class BasePublishServiceTest {
 
         verify(draftDataService)
                 .applyDraft(eq(versionEntity.getStorageCode()), eq(expectedDraftStorageCode), eq(now), any());
-        verify(versionRepository).save(eq(expectedVersionEntity));
+
+        ArgumentCaptor<RefBookVersionEntity> savedCaptor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
+        verify(versionRepository).save(savedCaptor.capture());
+        expectedVersionEntity.setLastActionDate(savedCaptor.getValue().getLastActionDate());
+        Assert.assertEquals(expectedVersionEntity, savedCaptor.getValue());
+
         reset(versionRepository);
     }
 
@@ -329,12 +344,12 @@ public class BasePublishServiceTest {
     private void publish(Integer draftId, String versionName,
                          LocalDateTime fromDate, LocalDateTime toDate,
                          boolean resolveConflicts) {
-        PublishRequest request = new PublishRequest(draftId);
+        PublishRequest request = new PublishRequest(null);
         request.setVersionName(versionName);
         request.setFromDate(fromDate);
         request.setToDate(toDate);
         request.setResolveConflicts(resolveConflicts);
 
-        basePublishService.publish(request);
+        basePublishService.publish(draftId, request);
     }
 }
