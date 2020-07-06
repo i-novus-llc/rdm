@@ -1,48 +1,76 @@
 package ru.inovus.ms.rdm.api.model.version;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.UpdatableDto;
+import ru.inovus.ms.rdm.api.model.refdata.DraftChangeRequest;
 import ru.inovus.ms.rdm.api.util.TimeUtils;
 
+import java.io.Serializable;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static ru.inovus.ms.rdm.api.model.version.UpdateValue.of;
 
-public class UpdateAttribute extends UpdatableDto {
+@ApiModel(value = "Модель изменения атрибута черновика",
+        description = "Набор входных параметров для изменения записей черновика")
+public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeRequest  {
 
+    @ApiModelProperty("Идентификатор версии")
     private Integer versionId;
 
-    // поля Structure.Attribute
+    @ApiModelProperty("Значение оптимистической блокировки версии-черновика")
+    private Integer optLockValue;
+
+    // Поля Structure.Attribute:
+    @ApiModelProperty("Код атрибута")
     private String code;
 
-    private UpdateValue<String> name;
+    @ApiModelProperty("Наименование атрибута")
+    private UpdateValue<String> name; // NOSONAR
+
+    @ApiModelProperty("Тип атрибута")
     private FieldType type;
-    private UpdateValue<Boolean> isPrimary;
-    private UpdateValue<String> description;
 
-    // поля Structure.Reference
-    private UpdateValue<String> attribute;
-    private UpdateValue<String> referenceCode;
-    private UpdateValue<String> displayExpression;
+    @ApiModelProperty("Признак первичного атрибута")
+    private UpdateValue<Boolean> isPrimary; // NOSONAR
 
-    public UpdateAttribute(){}
+    @ApiModelProperty("Описание атрибута")
+    private String description;
 
-    public UpdateAttribute(Integer versionId, Structure.Attribute attribute, Structure.Reference reference) {
+    // Поля Structure.Reference:
+    @ApiModelProperty("Код атрибута, который ссылается")
+    private UpdateValue<String> attribute; // NOSONAR
+
+    @ApiModelProperty("Код справочника, на который ссылаются")
+    private UpdateValue<String> referenceCode; // NOSONAR
+
+    @ApiModelProperty("Выражение для вычисления отображаемого ссылочного значения")
+    private UpdateValue<String> displayExpression; // NOSONAR
+
+    public UpdateAttributeRequest(){}
+
+    public UpdateAttributeRequest(Integer versionId,
+                                  Integer optLockValue,
+                                  Structure.Attribute attribute,
+                                  Structure.Reference reference) {
+
         setLastActionDate(TimeUtils.nowZoned());
 
         this.versionId = versionId;
+        this.optLockValue = optLockValue;
 
-        // attribute fields
+        // Поля Structure.Attribute:
         this.code = attribute.getCode();
         this.type = attribute.getType();
+        this.description = attribute.getDescription();
 
         setUpdateValueIfExists(attribute::getName, this::setName);
         setUpdateValueIfExists(attribute::getIsPrimary, this::setIsPrimary);
-        setUpdateValueIfExists(attribute::getDescription, this::setDescription);
 
-        // reference fields
+        // Поля Structure.Reference:
         if (reference == null)
             return;
 
@@ -51,12 +79,24 @@ public class UpdateAttribute extends UpdatableDto {
         setUpdateValueIfExists(reference::getDisplayExpression, this::setDisplayExpression);
     }
 
+    @Override
     public Integer getVersionId() {
         return versionId;
     }
 
+    @Override
     public void setVersionId(Integer versionId) {
         this.versionId = versionId;
+    }
+
+    @Override
+    public Integer getOptLockValue() {
+        return optLockValue;
+    }
+
+    @Override
+    public void setOptLockValue(Integer optLockValue) {
+        this.optLockValue = optLockValue;
     }
 
     public String getCode() {
@@ -91,11 +131,11 @@ public class UpdateAttribute extends UpdatableDto {
         this.isPrimary = isPrimary;
     }
 
-    public UpdateValue<String> getDescription() {
+    public String getDescription() {
         return description;
     }
 
-    public void setDescription(UpdateValue<String> description) {
+    public void setDescription(String description) {
         this.description = description;
     }
 
@@ -148,9 +188,9 @@ public class UpdateAttribute extends UpdatableDto {
     public void fillAttribute(Structure.Attribute attribute) {
 
         attribute.setType(getType());
+        attribute.setDescription(this.getDescription());
 
         setValueIfExists(this::getName, attribute::setName);
-        setValueIfExists(this::getDescription, attribute::setDescription);
         setValueIfExists(this::getIsPrimary, attribute::setPrimary);
     }
 
@@ -161,24 +201,24 @@ public class UpdateAttribute extends UpdatableDto {
         setValueIfExists(this::getDisplayExpression, reference::setDisplayExpression);
     }
 
-    private static <T> boolean isNotNullAndPresent(UpdateValue<T> value) {
+    private static <T extends Serializable> boolean isNotNullAndPresent(UpdateValue<T> value) {
         return value != null && value.isPresent();
     }
 
-    private static <T> boolean isNullOrPresent(UpdateValue<T> value) {
+    private static <T extends Serializable> boolean isNullOrPresent(UpdateValue<T> value) {
         return value == null || value.isPresent();
     }
 
-    private static <T> void setValueIfExists(Supplier<UpdateValue<T>> getter, Consumer<T> setter) {
-
+    private static <T extends Serializable> void setValueIfExists(Supplier<UpdateValue<T>> getter,
+                                                                  Consumer<T> setter) {
         UpdateValue<T> value = getter.get();
         if (value != null) {
             setter.accept(value.isPresent() ? value.get() : null);
         }
     }
 
-    public static <T> void setUpdateValueIfExists(Supplier<T> getter, Consumer<UpdateValue<T>> setter) {
-
+    public static <T extends Serializable> void setUpdateValueIfExists(Supplier<T> getter,
+                                                                       Consumer<UpdateValue<T>> setter) {
         T value = getter.get();
         if (value != null) {
             setter.accept(of(value));

@@ -16,7 +16,7 @@ import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
 import ru.inovus.ms.rdm.api.model.refdata.UpdateFromFileRequest;
 import ru.inovus.ms.rdm.api.model.version.CreateAttributeRequest;
-import ru.inovus.ms.rdm.api.model.version.UpdateAttribute;
+import ru.inovus.ms.rdm.api.model.version.UpdateAttributeRequest;
 import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
 import ru.inovus.ms.rdm.api.util.VersionNumberStrategy;
@@ -96,7 +96,7 @@ public class ArchiveValidationTest {
 
         assertArchiveValidationError(() -> draftService.remove(draftId));
         assertArchiveValidationError(() -> draftService.createAttribute(new CreateAttributeRequest(draftId, null, null, null)));
-        assertArchiveValidationError(() -> draftService.updateAttribute(new UpdateAttribute(draftId, new Structure.Attribute(), null), null));
+        assertArchiveValidationError(() -> draftService.updateAttribute(new UpdateAttributeRequest(draftId, null, new Structure.Attribute(), null)));
         assertArchiveValidationError(() -> draftService.deleteAttribute(draftId, null, null));
 
         RefBookUpdateRequest updateRequest = new RefBookUpdateRequest();

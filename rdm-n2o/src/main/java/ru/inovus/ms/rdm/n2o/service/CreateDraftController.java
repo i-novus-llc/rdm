@@ -134,7 +134,7 @@ public class CreateDraftController {
         return uiDraft;
     }
 
-    public UiDraft updateAttribute(Integer versionId, FormAttribute formAttribute, Integer optLockValue) {
+    public UiDraft updateAttribute(Integer versionId, Integer optLockValue, FormAttribute formAttribute) {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
@@ -142,11 +142,11 @@ public class CreateDraftController {
             optLockValue = uiDraft.getOptLockValue();
         }
 
-        structureController.updateAttribute(uiDraft.getId(), formAttribute, optLockValue);
+        structureController.updateAttribute(uiDraft.getId(), optLockValue, formAttribute);
         return uiDraft;
     }
 
-    public UiDraft deleteAttribute(Integer versionId, String attributeCode, Integer optLockValue) {
+    public UiDraft deleteAttribute(Integer versionId, Integer optLockValue, String attributeCode) {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
@@ -154,7 +154,7 @@ public class CreateDraftController {
             optLockValue = uiDraft.getOptLockValue();
         }
 
-        structureController.deleteAttribute(uiDraft.getId(), attributeCode, optLockValue);
+        structureController.deleteAttribute(uiDraft.getId(), optLockValue, attributeCode);
         return uiDraft;
     }
 

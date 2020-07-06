@@ -29,7 +29,7 @@ import java.util.*;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.springframework.util.StringUtils.isEmpty;
-import static ru.inovus.ms.rdm.api.model.version.UpdateAttribute.setUpdateValueIfExists;
+import static ru.inovus.ms.rdm.api.model.version.UpdateAttributeRequest.setUpdateValueIfExists;
 
 @Controller
 @SuppressWarnings("WeakerAccess")
@@ -257,14 +257,14 @@ public class StructureController {
         }
     }
 
-    public void updateAttribute(Integer versionId, FormAttribute formAttribute, Integer optLockValue) {
+    public void updateAttribute(Integer versionId, Integer optLockValue, FormAttribute formAttribute) {
 
         Structure oldStructure = versionService.getStructure(versionId);
         Structure.Attribute oldAttribute = oldStructure.getAttribute(formAttribute.getCode());
         Structure.Reference oldReference = oldStructure.getReference(formAttribute.getCode());
 
-        UpdateAttribute attributeModel = getUpdateAttribute(versionId, formAttribute);
-        draftService.updateAttribute(attributeModel, optLockValue);
+        UpdateAttributeRequest attributeRequest = getUpdateAttributeRequest(versionId, optLockValue, formAttribute);
+        draftService.updateAttribute(attributeRequest);
         try {
             AttributeValidationRequest validationRequest = new AttributeValidationRequest();
             validationRequest.setOldAttribute(getVersionAttribute(versionId, oldAttribute, oldReference));
@@ -274,12 +274,13 @@ public class StructureController {
             draftService.updateAttributeValidations(versionId, validationRequest);
 
         } catch (RestException re) {
-            draftService.updateAttribute(new UpdateAttribute(versionId, oldAttribute, oldReference), null);
+            UpdateAttributeRequest rollbackRequest = new UpdateAttributeRequest(versionId, optLockValue, oldAttribute, oldReference);
+            draftService.updateAttribute(rollbackRequest);
             throw re;
         }
     }
 
-    public void deleteAttribute(Integer versionId, String attributeCode, Integer optLockValue) {
+    public void deleteAttribute(Integer versionId, Integer optLockValue, String attributeCode) {
 
         draftService.deleteAttributeValidation(versionId, attributeCode, null);
         draftService.deleteAttribute(versionId, attributeCode, optLockValue);
@@ -375,19 +376,23 @@ public class StructureController {
     }
 
     /** Получение атрибута для изменения из атрибута формы. */
-    private UpdateAttribute getUpdateAttribute(Integer versionId, FormAttribute formAttribute) {
+    private UpdateAttributeRequest getUpdateAttributeRequest(Integer versionId,
+                                                             Integer optLockValue,
+                                                             FormAttribute formAttribute) {
 
-        UpdateAttribute attribute = new UpdateAttribute();
+        UpdateAttributeRequest attribute = new UpdateAttributeRequest();
         attribute.setLastActionDate(TimeUtils.nowZoned());
+
         attribute.setVersionId(versionId);
+        attribute.setOptLockValue(optLockValue);
 
         // attribute fields:
         attribute.setCode(formAttribute.getCode());
         attribute.setType(formAttribute.getType());
+        attribute.setDescription(formAttribute.getDescription());
 
         setUpdateValueIfExists(formAttribute::getName, attribute::setName);
         setUpdateValueIfExists(formAttribute::getIsPrimary, attribute::setIsPrimary);
-        setUpdateValueIfExists(formAttribute::getDescription, attribute::setDescription);
 
         // reference fields:
         setUpdateValueIfExists(formAttribute::getCode, attribute::setAttribute);

@@ -13,7 +13,7 @@ import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.validation.*;
 import ru.inovus.ms.rdm.api.model.version.CreateAttributeRequest;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.api.model.version.UpdateAttribute;
+import ru.inovus.ms.rdm.api.model.version.UpdateAttributeRequest;
 import ru.inovus.ms.rdm.api.service.*;
 import ru.inovus.ms.rdm.n2o.model.AttributeCriteria;
 import ru.inovus.ms.rdm.n2o.model.FormAttribute;
@@ -57,7 +57,7 @@ public class StructureControllerTest extends TestCase {
     @Captor
     ArgumentCaptor<AttributeValidationRequest> validationRequestArgumentCaptor;
     @Captor
-    ArgumentCaptor<UpdateAttribute> updateAttributeArgumentCaptor;
+    ArgumentCaptor<UpdateAttributeRequest> updateAttributeArgumentCaptor;
     @Captor
     ArgumentCaptor<CreateAttributeRequest> createAttributeArgumentCaptor;
 
@@ -151,9 +151,9 @@ public class StructureControllerTest extends TestCase {
         when(versionService.getStructure(eq(versionId))).thenReturn(structure);
 
         FormAttribute formAttribute = createAllValidationAttribute();
-        structureController.updateAttribute(versionId, formAttribute, null);
+        structureController.updateAttribute(versionId, null, formAttribute);
 
-        verify(draftService, times(1)).updateAttribute(updateAttributeArgumentCaptor.capture(), any());
+        verify(draftService, times(1)).updateAttribute(updateAttributeArgumentCaptor.capture());
         verify(draftService, times(1)).updateAttributeValidations(eq(versionId), validationRequestArgumentCaptor.capture());
 
         assertValidationListEquals(expectedValidations, validationRequestArgumentCaptor.getValue().getValidations());

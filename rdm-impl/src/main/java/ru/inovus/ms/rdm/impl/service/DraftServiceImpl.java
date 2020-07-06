@@ -749,33 +749,33 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void updateAttribute(UpdateAttribute updateAttribute, Integer optLockValue) {
+    public void updateAttribute(UpdateAttributeRequest request) {
 
-        final Integer draftId = updateAttribute.getVersionId();
+        final Integer draftId = request.getVersionId();
         versionValidation.validateDraft(draftId);
         refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
-        validateOptLockValue(draftEntity, optLockValue);
+        validateOptLockValue(draftEntity, request);
 
         Structure structure = draftEntity.getStructure();
 
-        Structure.Attribute oldAttribute = structure.getAttribute(updateAttribute.getCode());
-        structureChangeValidator.validateUpdateAttribute(updateAttribute, oldAttribute);
+        Structure.Attribute oldAttribute = structure.getAttribute(request.getCode());
+        structureChangeValidator.validateUpdateAttribute(request, oldAttribute);
 
         Structure.Attribute newAttribute = Structure.Attribute.build(oldAttribute);
-        updateAttribute.fillAttribute(newAttribute);
+        request.fillAttribute(newAttribute);
         validateNewAttribute(newAttribute, structure, draftEntity.getRefBook().getCode());
 
         Structure.Reference oldReference = structure.getReference(oldAttribute.getCode());
         Structure.Reference newReference = null;
         if (newAttribute.isReferenceType()) {
             newReference = Structure.Reference.build(oldReference);
-            updateAttribute.fillReference(newReference);
+            request.fillReference(newReference);
             validateNewReference(newAttribute, newReference, structure, draftEntity.getRefBook().getCode());
         }
 
-        structureChangeValidator.validateUpdateAttributeStorage(updateAttribute, oldAttribute, draftEntity.getStorageCode());
+        structureChangeValidator.validateUpdateAttributeStorage(request, oldAttribute, draftEntity.getStorageCode());
 
         try {
             draftDataService.updateField(draftEntity.getStorageCode(), ConverterUtil.field(newAttribute));
@@ -797,8 +797,8 @@ public class DraftServiceImpl implements DraftService {
         }
 
         // Валидации для старого типа удаляются отдельным вызовом updateAttributeValidations.
-        if (Objects.equals(oldAttribute.getType(), updateAttribute.getType())) {
-            attributeValidationRepository.deleteByVersionIdAndAttribute(draftId, updateAttribute.getCode());
+        if (Objects.equals(oldAttribute.getType(), request.getType())) {
+            attributeValidationRepository.deleteByVersionIdAndAttribute(draftId, request.getCode());
         }
 
         forceUpdateOptLockValue(draftEntity);
@@ -870,8 +870,9 @@ public class DraftServiceImpl implements DraftService {
         refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
-        Structure structure = draftEntity.getStructure();
+        validateOptLockValue(draftEntity, optLockValue);
 
+        Structure structure = draftEntity.getStructure();
         Structure.Attribute attribute = structure.getAttribute(attributeCode);
         validateOldAttribute(attribute, structure, draftEntity.getRefBook().getCode());
 

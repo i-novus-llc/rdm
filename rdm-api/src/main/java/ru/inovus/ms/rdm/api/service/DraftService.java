@@ -12,7 +12,7 @@ import ru.inovus.ms.rdm.api.model.validation.AttributeValidation;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidationRequest;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidationType;
 import ru.inovus.ms.rdm.api.model.version.CreateAttributeRequest;
-import ru.inovus.ms.rdm.api.model.version.UpdateAttribute;
+import ru.inovus.ms.rdm.api.model.version.UpdateAttributeRequest;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -161,8 +161,7 @@ public interface DraftService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void updateAttribute(@ApiParam("Модель изменяемого атрибута") UpdateAttribute updateAttribute,
-                         @ApiParam("Значение оптимистической блокировки версии") @QueryParam("optLockValue") Integer optLockValue);
+    void updateAttribute(@ApiParam("Модель изменяемого атрибута") UpdateAttributeRequest request);
 
     @DELETE
     @Path("/{versionId}/attribute/{code}")
