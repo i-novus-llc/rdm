@@ -13,7 +13,7 @@
         <field id="id" domain="string">
             <select mapping="['id']"/>
             <filters>
-                <eq filter-id="id">id={id}</eq>
+                <eq filter-id="id" normalize="T(ru.inovus.ms.rdm.api.util.StringUtils).toUuid(#this)">id={id}</eq>
             </filters>
         </field>
 
