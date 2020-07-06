@@ -11,34 +11,34 @@ import java.util.List;
         description = "Набор входных параметров для изменения записей черновика")
 public class UpdateDataRequest implements DraftChangeRequest {
 
-    @ApiModelProperty("Идентификатор черновика")
-    private Integer draftId;
+    @ApiModelProperty("Идентификатор версии-черновика")
+    private Integer versionId;
 
     @ApiModelProperty("Значение оптимистической блокировки версии-черновика")
     private Integer optLockValue;
 
-    @ApiModelProperty("Добавляемые/обновляемые записи черновика")
+    @ApiModelProperty("Добавляемые/обновляемые записи версии-черновика")
     private List<Row> rows;
 
     public UpdateDataRequest() {
     }
 
-    public UpdateDataRequest(Integer draftId, Integer optLockValue, List<Row> rows) {
-        this.draftId = draftId;
+    public UpdateDataRequest(Integer versionId, Integer optLockValue, List<Row> rows) {
+        this.versionId = versionId;
         this.optLockValue = optLockValue;
         this.rows = rows;
     }
 
-    public UpdateDataRequest(Integer draftId, Integer optLockValue, Row row) {
-        this(draftId, optLockValue, Collections.singletonList(row));
+    public UpdateDataRequest(Integer versionId, Integer optLockValue, Row row) {
+        this(versionId, optLockValue, Collections.singletonList(row));
     }
 
-    public Integer getDraftId() {
-        return draftId;
+    public Integer getVersionId() {
+        return versionId;
     }
 
-    public void setDraftId(Integer draftId) {
-        this.draftId = draftId;
+    public void setVersionId(Integer draftId) {
+        this.versionId = draftId;
     }
 
     public Integer getOptLockValue() {

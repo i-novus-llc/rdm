@@ -8,8 +8,8 @@ import ru.inovus.ms.rdm.api.util.json.JsonUtil;
         description = "Набор входных параметров для всех записей черновика")
 public class DeleteAllDataRequest implements DraftChangeRequest {
 
-    @ApiModelProperty("Идентификатор черновика")
-    private Integer draftId;
+    @ApiModelProperty("Идентификатор версии-черновика")
+    private Integer versionId;
 
     @ApiModelProperty("Значение оптимистической блокировки версии-черновика")
     private Integer optLockValue;
@@ -17,17 +17,17 @@ public class DeleteAllDataRequest implements DraftChangeRequest {
     public DeleteAllDataRequest() {
     }
 
-    public DeleteAllDataRequest(Integer draftId, Integer optLockValue) {
-        this.draftId = draftId;
+    public DeleteAllDataRequest(Integer versionId, Integer optLockValue) {
+        this.versionId = versionId;
         this.optLockValue = optLockValue;
     }
 
-    public Integer getDraftId() {
-        return draftId;
+    public Integer getVersionId() {
+        return versionId;
     }
 
-    public void setDraftId(Integer draftId) {
-        this.draftId = draftId;
+    public void setVersionId(Integer draftId) {
+        this.versionId = draftId;
     }
 
     public Integer getOptLockValue() {

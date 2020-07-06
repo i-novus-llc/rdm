@@ -386,7 +386,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void updateData(UpdateDataRequest request) {
 
-        final Integer draftId = request.getDraftId();
+        final Integer draftId = request.getVersionId();
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
 
@@ -478,7 +478,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void deleteData(DeleteDataRequest request) {
 
-        final Integer draftId = request.getDraftId();
+        final Integer draftId = request.getVersionId();
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
 
@@ -588,7 +588,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void deleteAllData(DeleteAllDataRequest request) {
 
-        final Integer draftId = request.getDraftId();
+        final Integer draftId = request.getVersionId();
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
 
@@ -616,7 +616,7 @@ public class DraftServiceImpl implements DraftService {
     @Override
     public void updateFromFile(UpdateFromFileRequest request) {
 
-        final Integer draftId = request.getDraftId();
+        final Integer draftId = request.getVersionId();
         versionValidation.validateDraft(draftId);
         RefBookVersionEntity draftEntity = versionRepository.findById(draftId).orElseThrow();
 

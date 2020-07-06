@@ -11,34 +11,34 @@ import java.util.List;
         description = "Набор входных параметров для удаления записей черновика")
 public class DeleteDataRequest implements DraftChangeRequest {
 
-    @ApiModelProperty("Идентификатор черновика")
-    private Integer draftId;
+    @ApiModelProperty("Идентификатор версии-черновика")
+    private Integer versionId;
 
     @ApiModelProperty("Значение оптимистической блокировки версии-черновика")
     private Integer optLockValue;
 
-    @ApiModelProperty("Записи черновика")
+    @ApiModelProperty("Удаляемые записи версии-черновика")
     private List<Row> rows;
 
     public DeleteDataRequest() {
     }
 
-    public DeleteDataRequest(Integer draftId, Integer optLockValue, List<Row> rows) {
-        this.draftId = draftId;
+    public DeleteDataRequest(Integer versionId, Integer optLockValue, List<Row> rows) {
+        this.versionId = versionId;
         this.optLockValue = optLockValue;
         this.rows = rows;
     }
 
-    public DeleteDataRequest(Integer draftId, Integer optLockValue, Row row) {
-        this(draftId, optLockValue, Collections.singletonList(row));
+    public DeleteDataRequest(Integer versionId, Integer optLockValue, Row row) {
+        this(versionId, optLockValue, Collections.singletonList(row));
     }
 
-    public Integer getDraftId() {
-        return draftId;
+    public Integer getVersionId() {
+        return versionId;
     }
 
-    public void setDraftId(Integer draftId) {
-        this.draftId = draftId;
+    public void setVersionId(Integer draftId) {
+        this.versionId = draftId;
     }
 
     public Integer getOptLockValue() {
