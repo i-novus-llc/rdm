@@ -2,17 +2,14 @@ package ru.inovus.ms.rdm.api.model.draft;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import ru.inovus.ms.rdm.api.model.refdata.DraftChangeRequest;
 import ru.inovus.ms.rdm.api.util.json.JsonUtil;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @ApiModel(value = "Модель публикации черновика",
         description = "Набор входных параметров для публикации черновика")
-public class PublishRequest implements Serializable {
-
-    @ApiModelProperty("Идентификатор черновика")
-    private Integer draftId;
+public class PublishRequest implements DraftChangeRequest {
 
     @ApiModelProperty("Значение оптимистической блокировки версии")
     private Integer optLockValue;
@@ -32,17 +29,8 @@ public class PublishRequest implements Serializable {
     public PublishRequest() {
     }
 
-    public PublishRequest(Integer draftId, Integer optLockValue) {
-        this.draftId = draftId;
+    public PublishRequest(Integer optLockValue) {
         this.optLockValue = optLockValue;
-    }
-
-    public Integer getDraftId() {
-        return draftId;
-    }
-
-    public void setDraftId(Integer draftId) {
-        this.draftId = draftId;
     }
 
     public Integer getOptLockValue() {

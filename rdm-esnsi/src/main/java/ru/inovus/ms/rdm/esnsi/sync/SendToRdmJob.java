@@ -99,7 +99,7 @@ public class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
         }
         jobDataMap.put(DRAFT_ID_KEY, draft.getId());
 
-        publishService.publish(new PublishRequest(draft.getId(), draft.getOptLockValue()));
+        publishService.publish(draft.getId(), new PublishRequest(draft.getOptLockValue()));
 
         esnsiLoadService.setClassifierRevisionAndLastUpdated(classifierCode, revision, Timestamp.valueOf(LocalDateTime.now(Clock.systemUTC())));
         return true;

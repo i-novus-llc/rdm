@@ -64,9 +64,9 @@ public class PublishServiceImpl implements PublishService {
      * @param request параметры публикации
      */
     @Override
-    public void publish(PublishRequest request) {
+    public void publish(Integer draftId, PublishRequest request) {
 
-        PublishResponse response = basePublishService.publish(request);
+        PublishResponse response = basePublishService.publish(draftId, request);
         if (response == null)
             return;
 
@@ -80,10 +80,10 @@ public class PublishServiceImpl implements PublishService {
 
     @Override
     @Transactional
-    public UUID publishAsync(PublishRequest request) {
+    public UUID publishAsync(Integer draftId, PublishRequest request) {
 
-        String code = versionRepository.getOne(request.getDraftId()).getRefBook().getCode();
-        return queue.add(AsyncOperation.PUBLICATION, code, new Object[] { request });
+        String code = versionRepository.getOne(draftId).getRefBook().getCode();
+        return queue.add(AsyncOperation.PUBLICATION, code, new Object[] { draftId, request });
     }
 
     /**
@@ -152,7 +152,7 @@ public class PublishServiceImpl implements PublishService {
         if (entity == null)
             return;
 
-        publish(new PublishRequest(versionId, entity.getOptLockValue()));
+        publish(versionId, new PublishRequest(entity.getOptLockValue()));
     }
 
     /**

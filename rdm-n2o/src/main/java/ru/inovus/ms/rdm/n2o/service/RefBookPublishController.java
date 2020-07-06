@@ -109,8 +109,8 @@ public class RefBookPublishController {
      */
     public UUID publishDraft(Integer draftId, Integer optLockValue) {
 
-        PublishRequest request = new PublishRequest(draftId, optLockValue);
-        return publishService.publishAsync(request);
+        PublishRequest request = new PublishRequest(optLockValue);
+        return publishService.publishAsync(draftId, request);
     }
 
     /**
@@ -120,9 +120,9 @@ public class RefBookPublishController {
      */
     public UUID publishAndRefresh(Integer draftId, Integer optLockValue) {
 
-        PublishRequest request = new PublishRequest(draftId, optLockValue);
+        PublishRequest request = new PublishRequest(optLockValue);
         request.setResolveConflicts(true);
-        return publishService.publishAsync(request);
+        return publishService.publishAsync(draftId, request);
     }
 
     /**

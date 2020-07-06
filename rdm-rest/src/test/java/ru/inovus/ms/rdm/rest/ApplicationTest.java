@@ -2949,13 +2949,13 @@ public class ApplicationTest {
     private void publish(Integer draftId, String versionName,
                          LocalDateTime fromDate, LocalDateTime toDate,
                          boolean resolveConflicts) {
-        PublishRequest request = new PublishRequest(draftId, null);
+        PublishRequest request = new PublishRequest(null);
         request.setVersionName(versionName);
         request.setFromDate(fromDate);
         request.setToDate(toDate);
         request.setResolveConflicts(resolveConflicts);
 
-        publishService.publish(request);
+        publishService.publish(draftId, request);
     }
 
     /**

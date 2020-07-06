@@ -108,11 +108,10 @@ class BasePublishService {
      * @return результат публикации
      */
     @Transactional
-    public PublishResponse publish(PublishRequest request) {
+    public PublishResponse publish(Integer draftId, PublishRequest request) {
 
         PublishResponse result = new PublishResponse();
 
-        Integer draftId = request.getDraftId();
         RefBookVersionEntity draftEntity = getVersionOrElseThrow(draftId);
         if (RefBookVersionStatus.PUBLISHED.equals(draftEntity.getStatus()))
             return null;

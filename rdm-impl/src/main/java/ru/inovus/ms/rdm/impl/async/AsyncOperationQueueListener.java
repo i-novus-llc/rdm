@@ -86,12 +86,14 @@ class AsyncOperationQueueListener {
 
     private Object handlePublication(Object[] args) {
 
-        Object arg = args[0];
-        if (arg instanceof PublishRequest) {
-            publishService.publish((PublishRequest) arg);
+        Integer draftId = (Integer) args[0];
+
+        Object request = args[1];
+        if (request instanceof PublishRequest) {
+            publishService.publish(draftId, (PublishRequest) request);
         }
 
-        throw new IllegalArgumentException(String.format("Request for publication is not found in: %s", String.valueOf(arg)));
+        throw new IllegalArgumentException(String.format("Request for publication is not found in: %s = %s", draftId, request));
     }
 
     private void setSecurityContext(String user) {

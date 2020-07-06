@@ -373,7 +373,7 @@ public class RefBookServiceImpl implements RefBookService {
             draftService.deleteData(draftId, new DeleteDataRequest(draft.getOptLockValue(), request.getRowsToDelete()));
 
             draft = draftService.getDraft(draftId);
-            publishService.publish(new PublishRequest(draftId, draft.getOptLockValue()));
+            publishService.publish(draftId, new PublishRequest(draft.getOptLockValue()));
 
         } finally {
             refBookLockService.deleteRefBookOperation(refBook.getId());
