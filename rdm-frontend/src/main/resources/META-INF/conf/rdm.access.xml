@@ -3,6 +3,8 @@
     <permit-all>
         <page-access page-id="refBookList"/>
         <page-access page-id="refBookView"/>
+        <page-access page-id="asyncLog"/>
+        <page-access page-id="asyncLogEntryFullInfo"/>
 
         <object-access object-id="refBook"/>
         <object-access object-id="refBookStatusList"/>
@@ -54,6 +56,7 @@
         <object-access object-id="versionList" remove-filters="onlyPublished"/>
         <object-access object-id="attribute" operations="*"/>
         <object-access object-id="data" operations="*"/>
+        <object-access object-id="publish" operations="*"/>
 
     </permission>
 

@@ -1,19 +1,21 @@
 package ru.inovus.ms.rdm.n2o.service;
 
 import net.n2oapp.platform.i18n.Messages;
+import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.jaxrs.RestPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.CollectionUtils;
+import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
+import ru.inovus.ms.rdm.api.model.refbook.RefBook;
+import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.api.service.RefBookService;
+import ru.inovus.ms.rdm.api.util.RdmPermission;
 import ru.inovus.ms.rdm.n2o.criteria.RefBookStatusCriteria;
 import ru.inovus.ms.rdm.n2o.model.RefBookStatus;
 import ru.inovus.ms.rdm.n2o.model.UiRefBookStatus;
-import ru.inovus.ms.rdm.api.model.refbook.RefBook;
-import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
-import ru.inovus.ms.rdm.api.util.RdmPermission;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,9 +71,27 @@ public class RefBookController {
      */
     @SuppressWarnings("unused") // used in: refBookVersion.query.xml
     public RefBook searchLastVersion(RefBookCriteria criteria) {
-
         Page<RefBook> refBooks = refBookService.searchVersions(permitCriteria(criteria));
-        return (refBooks != null && !CollectionUtils.isEmpty(refBooks.getContent())) ? refBooks.getContent().get(0) : null;
+        if (refBooks == null || CollectionUtils.isEmpty(refBooks.getContent()))
+            throw new UserException("refbook.not.found");
+        return refBooks.getContent().get(0);
+    }
+
+    /**
+     * Поиск справочников, на которые можно ссылаться.
+     * Обёртка над сервисным методом для учёта ограничений.
+     *
+     * @param criteria критерий поиска
+     * @return Список справочников
+     */
+    @SuppressWarnings("unused") // used in: referenceRefBook.query.xml
+    public Page<RefBook> searchReferenceRefBooks(RefBookCriteria criteria) {
+
+        criteria.setHasPublished(true);
+        criteria.setExcludeDraft(true);
+        criteria.setSourceType(RefBookSourceType.LAST_PUBLISHED);
+
+        return refBookService.search(permitCriteria(criteria));
     }
 
     /**

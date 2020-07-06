@@ -30,3 +30,12 @@ buildNumber.properties
 ~$*.*
 **/package-lock.json
 
+/rdm-frontend/rdm-react/node/node_modules/
+/rdm-frontend/rdm-react/node/
+/rdm_log/
+/rdm-n2o/rdm-react/node/
+/rdm-n2o/rdm-react/node_modules/
+/rdm-n2o/rdm-react/packages/rdm-frontend/node_modules/
+/rdm-n2o/rdm-react/packages/rdm-frontend/build/
+/rdm-n2o/rdm-react/packages/n2o-config-rdm/node_modules/
+/rdm-rest/rdm_log/

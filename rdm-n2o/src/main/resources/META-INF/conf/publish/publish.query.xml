@@ -1,12 +1,13 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="publish">
 
-    <unique filters="version.id" result-mapping="#this">
+    <unique filters="version.id,version.optLockValue" result-mapping="#this">
         <java class="ru.inovus.ms.rdm.n2o.service.RefBookPublishController"
-              method="getByVersionId">
+              method="getDraft">
             <spring/>
             <arguments>
-                <argument type="primitive"/>
+                <argument type="primitive" name="versionId" class="java.lang.Integer"/>
+                <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
             </arguments>
         </java>
     </unique>
@@ -87,6 +88,13 @@
         </field>
         <!-- / Checking conflicts -->
 
+        <field id="hasErrorMessage" domain="boolean">
+            <select mapping="errorMessage?.length() > 0"/>
+        </field>
+        <field id="errorMessage" domain="string">
+            <select/>
+        </field>
+
         <!-- Existing conflicts -->
         <field id="hasDataConflict" domain="boolean">
             <select/>
@@ -105,12 +113,20 @@
             <select/>
         </field>
 
+        <field id="version.optLockValue" domain="integer">
+            <select mapping="optLockValue"/>
+            <filters>
+                <eq filter-id="version.optLockValue" mapping="[1]" domain="integer" default-value="0"/>
+            </filters>
+        </field>
+
         <field id="isPublishable" domain="boolean">
             <select mapping="
-                (!archived) and
-                (status?.toString()=='DRAFT') and
-                (!hasDataConflict) and
-                (!hasStructureConflict)
+                !archived and
+                (status?.toString() == 'DRAFT') and
+                !hasDataConflict and
+                !hasStructureConflict and
+                !(errorMessage?.length() > 0)
                 "/>
         </field>
 

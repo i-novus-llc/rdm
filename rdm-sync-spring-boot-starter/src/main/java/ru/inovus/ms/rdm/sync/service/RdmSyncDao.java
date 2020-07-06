@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.sync.service;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.util.Pair;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
 import ru.inovus.ms.rdm.sync.model.Log;
@@ -7,9 +8,9 @@ import ru.inovus.ms.rdm.sync.model.VersionMapping;
 import ru.inovus.ms.rdm.sync.model.loader.XmlMappingField;
 import ru.inovus.ms.rdm.sync.model.loader.XmlMappingRefBook;
 
+import javax.ws.rs.core.MultivaluedMap;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -100,7 +101,7 @@ public interface RdmSyncDao {
 
     void insertFieldMapping(String code, List<XmlMappingField> fieldMappings);
 
-    boolean lockRefbookForUpdate(String code);
+    boolean lockRefBookForUpdate(String code, boolean blocking);
 
     void addInternalLocalRowStateUpdateTrigger(String schema, String table);
     void createOrReplaceLocalRowStateUpdateFunction();
@@ -108,8 +109,11 @@ public interface RdmSyncDao {
     void disableInternalLocalRowStateUpdateTrigger(String table);
     void enableInternalLocalRowStateUpdateTrigger(String table);
 
-    List<HashMap<String, Object>> getRecordsOfState(String table, int limit, int offset, RdmSyncLocalRowState state);
-    <T> boolean setLocalRecordsState(String table, String pk, List<? extends T> pvs, RdmSyncLocalRowState expectedState, RdmSyncLocalRowState state);
+    Page<Map<String, Object>> getData(String table, String pk, int limit, int offset, RdmSyncLocalRowState state, MultivaluedMap<String, Object> filters);
+    <T> boolean setLocalRecordsState(String table, String pk, List<? extends T> primaryValues, RdmSyncLocalRowState expectedState, RdmSyncLocalRowState state);
     RdmSyncLocalRowState getLocalRowState(String table, String pk, Object pv);
+
+    void createSchemaIfNotExists(String schema);
+    void createRefBookTableIfNotExists(String schema, String table, List<FieldMapping> fieldMappings, String isDeletedFieldName);
 
 }

@@ -1,20 +1,17 @@
 package ru.inovus.ms.rdm.impl.service;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
-import ru.inovus.ms.rdm.api.async.AsyncOperation;
-import ru.inovus.ms.rdm.api.async.AsyncOperationLogEntry;
-import ru.inovus.ms.rdm.api.async.AsyncOperationLogEntryCriteria;
-import ru.inovus.ms.rdm.api.async.AsyncOperationStatus;
+import ru.inovus.ms.rdm.api.async.*;
 import ru.inovus.ms.rdm.api.service.AsyncOperationLogEntryService;
 import ru.inovus.ms.rdm.impl.entity.AsyncOperationLogEntryEntity;
 import ru.inovus.ms.rdm.impl.entity.QAsyncOperationLogEntryEntity;
 import ru.inovus.ms.rdm.impl.repository.AsyncOperationLogEntryRepository;
-import ru.inovus.ms.rdm.impl.util.AsyncOperationLogEntryUtils;
 
 import java.util.List;
 import java.util.UUID;
@@ -23,58 +20,83 @@ import java.util.UUID;
 @Primary
 public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntryService {
 
+    private static final List<AsyncOperation> ASYNC_OPERATION_LIST = List.of(AsyncOperation.values());
+    private static final List<AsyncOperationStatus> ASYNC_OPERATION_STATUS_LIST = List.of(AsyncOperationStatus.values());
+
     @Autowired
     private AsyncOperationLogEntryRepository repository;
 
+    /**
+     * Поиск записей по критерию поиска.
+     *
+     * @param criteria критерий поиска
+     * @return Страница записей
+     */
     @Override
     public Page<AsyncOperationLogEntry> search(AsyncOperationLogEntryCriteria criteria) {
-        criteria.setPageNumber(Math.max(0, criteria.getPageNumber() - 1));
+
+        Predicate predicate = toPredicate(criteria);
+
+        Page<AsyncOperationLogEntryEntity> page = (predicate == null)
+                ? repository.findAll(criteria)
+                : repository.findAll(predicate, criteria);
+
+        return page.map(this::toModel);
+    }
+
+    /**
+     * Формирование предиката на основе критерия поиска.
+     *
+     * @param criteria критерий поиска
+     * @return Предикат для запроса поиска
+     */
+    private static Predicate toPredicate(AsyncOperationLogEntryCriteria criteria) {
+
         QAsyncOperationLogEntryEntity q = QAsyncOperationLogEntryEntity.asyncOperationLogEntryEntity;
-        if (criteria.getSort() == null)
-            criteria.setOrders(List.of(AsyncOperationLogEntryEntity.DEFAULT_ORDER));
         BooleanBuilder builder = new BooleanBuilder();
-        if (criteria.getUuid() != null)
-            builder.and(q.uuid.eq(criteria.getUuid()));
+
+        if (criteria.getId() != null)
+            builder.and(q.uuid.eq(criteria.getId()));
+
         if (criteria.getOperation() != null)
             builder.and(q.operation.eq(criteria.getOperation()));
+
         if (criteria.getStatus() != null)
             builder.and(q.status.eq(criteria.getStatus()));
-        Page<AsyncOperationLogEntryEntity> page;
-        if (builder.getValue() == null)
-            page = repository.findAll(criteria);
-        else
-            page = repository.findAll(builder.getValue(), criteria);
-        return page.map(this::map);
+
+        return builder.getValue();
     }
 
     @Override
-    public AsyncOperationLogEntry get(UUID uuid) {
-        return map(repository.findById(uuid).orElse(null));
+    public AsyncOperationLogEntry get(UUID id) {
+        return toModel(repository.findById(id).orElse(null));
     }
 
     @Override
     public Page<AsyncOperation> getOpTypes() {
-        return new PageImpl<>(List.of(AsyncOperation.values()));
+        return new PageImpl<>(ASYNC_OPERATION_LIST);
     }
 
     @Override
     public Page<AsyncOperationStatus> getStatuses() {
-        return new PageImpl<>(List.of(AsyncOperationStatus.values()));
+        return new PageImpl<>(ASYNC_OPERATION_STATUS_LIST);
     }
 
-    private AsyncOperationLogEntry map(AsyncOperationLogEntryEntity entity) {
+    private AsyncOperationLogEntry toModel(AsyncOperationLogEntryEntity entity) {
         if (entity == null)
             return null;
+
         AsyncOperationLogEntry logEntry = new AsyncOperationLogEntry();
-        logEntry.setUuid(entity.getUuid());
+        logEntry.setId(entity.getUuid());
+        logEntry.setCode(entity.getCode());
         logEntry.setError(entity.getError());
         logEntry.setOperation(entity.getOperation());
-        logEntry.setPayload(AsyncOperationLogEntryUtils.getPayload(entity));
+        logEntry.setPayload(entity.getPayload());
         logEntry.setStatus(entity.getStatus());
         logEntry.setTsStart(entity.getTsStart());
         logEntry.setTsEnd(entity.getTsEnd());
-        logEntry.setResult(AsyncOperationLogEntryUtils.getResult(entity.getOperation().getResultClass(), entity));
+        logEntry.setResult(entity.getResult());
+        logEntry.setStackTrace(entity.getStackTrace());
         return logEntry;
     }
-
 }

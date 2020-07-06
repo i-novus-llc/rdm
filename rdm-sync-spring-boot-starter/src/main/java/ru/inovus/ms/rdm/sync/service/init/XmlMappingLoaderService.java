@@ -10,7 +10,6 @@ import ru.inovus.ms.rdm.sync.model.loader.XmlMapping;
 import ru.inovus.ms.rdm.sync.model.loader.XmlMappingRefBook;
 import ru.inovus.ms.rdm.sync.service.RdmSyncDao;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.IOException;
@@ -26,28 +25,26 @@ class XmlMappingLoaderService {
 
     @Transactional
     public void load() {
-        try {
-            if (lockService.tryLock()) {
-                try (InputStream io = RdmSyncInitializer.class.getResourceAsStream("/rdm-mapping.xml")) {
-                    if (io == null) {
-                        logger.info("rdm-mapping.xml not found, xml mapping loader skipped");
-                        return;
-                    }
-                    JAXBContext jaxbContext = JAXBContext.newInstance(XmlMapping.class);
+        try (InputStream io = RdmSyncInitializer.class.getResourceAsStream("/rdm-mapping.xml")) {
+            if (io == null) {
+                logger.info("rdm-mapping.xml not found, xml mapping loader skipped");
+                return;
+            }
 
-                    Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-                    XmlMapping mapping = (XmlMapping) jaxbUnmarshaller.unmarshal(io);
+            Unmarshaller jaxbUnmarshaller = XmlMapping.JAXB_CONTEXT.createUnmarshaller();
+            XmlMapping mapping = (XmlMapping) jaxbUnmarshaller.unmarshal(io);
+            if (lockService.tryLock()) {
+                try  {
                     logger.info("loading ...");
                     mapping.getRefbooks().forEach(this::load);
                     logger.info("xml mapping was loaded");
-
-                } catch (IOException | JAXBException e) {
-                    logger.error("xml mapping load error ", e);
-                    throw new RdmException(e);
+                } finally {
+                    logger.info("Lock successfully released.");
                 }
             }
-        } finally {
-            logger.info("Lock successfully released.");
+        } catch (IOException | JAXBException e) {
+            logger.error("xml mapping load error ", e);
+            throw new RdmException(e);
         }
     }
 

@@ -8,8 +8,10 @@ import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiParam;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.inovus.ms.rdm.api.util.json.JsonUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -17,10 +19,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.text.StringEscapeUtils.escapeJson;
-import static org.springframework.util.CollectionUtils.isEmpty;
 
 @ApiModel("Структура")
 @JsonPropertyOrder({"references", "attributes"})
@@ -40,12 +39,12 @@ public class Structure implements Serializable {
     }
 
     public Structure(List<Attribute> attributes, List<Reference> references) {
-        this.attributes = attributes == null ? new ArrayList<>(0) : attributes;
-        this.references = references == null ? new ArrayList<>(0) : references;
+        this.attributes = getOrCreateList(attributes);
+        this.references = getOrCreateList(references);
     }
 
-    public Structure(Structure other) {
-        this(other.getAttributes(), other.getReferences());
+    public Structure(Structure structure) {
+        this(structure.getAttributes(), structure.getReferences());
     }
 
     @JsonGetter
@@ -54,7 +53,7 @@ public class Structure implements Serializable {
     }
 
     public void setAttributes(List<Attribute> attributes) {
-        this.attributes = attributes;
+        this.attributes = getOrCreateList(attributes);
     }
 
     @JsonGetter
@@ -63,34 +62,37 @@ public class Structure implements Serializable {
     }
 
     public void setReferences(List<Reference> references) {
-        this.references = references;
+        this.references = getOrCreateList(references);
     }
 
     public Attribute getAttribute(String code) {
-        if (isEmpty(attributes)) {
+
+        if (CollectionUtils.isEmpty(attributes))
             return null;
-        }
+
         return attributes.stream()
                 .filter(attribute -> attribute.getCode().equals(code))
                 .findAny().orElse(null);
     }
 
     public Reference getReference(String attributeCode) {
-        if (isEmpty(references)) {
+
+        if (CollectionUtils.isEmpty(references))
             return null;
-        }
+
         return references.stream()
                 .filter(reference -> reference.getAttribute().equals(attributeCode))
                 .findAny().orElse(null);
     }
 
     public void clearPrimary() {
-        if (isEmpty(attributes)) {
+
+        if (CollectionUtils.isEmpty(attributes))
             return;
-        }
+
         attributes.forEach(a -> {
-            if (a.getIsPrimary())
-                a.setPrimary(false);
+            if (a.hasIsPrimary())
+                a.setPrimary(Boolean.FALSE);
         });
     }
 
@@ -102,15 +104,90 @@ public class Structure implements Serializable {
     }
 
     /**
+     * Проверка наличия первичного ключа.
+     *
+     * @return {@code true}, если есть хотя бы один первичный ключ, иначе - {@code false}.
+     */
+    public boolean hasPrimary() {
+        return attributes.stream().anyMatch(attribute -> attribute.isPrimary);
+    }
+
+    /**
+     * Проверка наличия структуры.
+     *
+     * @return {@code true}, если есть хотя бы один атрибут, иначе - {@code false}.
+     */
+    @JsonIgnore
+    public boolean isEmpty() {
+        return CollectionUtils.isEmpty(attributes);
+    }
+
+    public void add(Attribute attribute, Reference reference) {
+
+        if (attribute == null)
+            return;
+
+        if (getAttributes() == null)
+            setAttributes(getOrCreateList(null));
+
+        getAttributes().add(attribute);
+
+        if (reference == null)
+            return;
+
+        if (getReferences() == null)
+            setReferences(getOrCreateList(null));
+
+        getReferences().add(reference);
+    }
+
+    public void update(Attribute oldAttribute, Attribute newAttribute) {
+
+        if (oldAttribute == null || newAttribute == null)
+            return;
+
+        int index = getAttributes().indexOf(oldAttribute);
+        getAttributes().set(index, newAttribute);
+    }
+
+    public void update(Reference oldReference, Reference newReference) {
+
+        if (newReference != null) {
+            if (oldReference != null) {
+                int index = getReferences().indexOf(oldReference);
+                getReferences().set(index, newReference);
+
+            } else {
+                getReferences().add(newReference);
+
+            }
+
+        } else if (oldReference != null) {
+            getReferences().remove(oldReference);
+        }
+    }
+
+    public void remove(String attributeCode) {
+
+        Attribute attribute = getAttribute(attributeCode);
+
+        if (attribute.isReferenceType())
+            getReferences().remove(getReference(attributeCode));
+
+        getAttributes().remove(attribute);
+    }
+
+    /**
      * Получение всех ссылок на справочник с указанным кодом.
      *
      * @param referenceCode код справочника, на который ссылаются
      * @return Список ссылок
      */
     public List<Reference> getRefCodeReferences(String referenceCode) {
-        if (isEmpty(references)) {
+
+        if (CollectionUtils.isEmpty(references))
             return emptyList();
-        }
+
         return references.stream()
                 .filter(reference -> reference.getReferenceCode().equals(referenceCode))
                 .collect(toList());
@@ -123,12 +200,17 @@ public class Structure implements Serializable {
      * @return Список атрибутов
      */
     public List<Attribute> getRefCodeAttributes(String referenceCode) {
-        if (isEmpty(attributes)) {
+
+        if (CollectionUtils.isEmpty(attributes))
             return emptyList();
-        }
+
         return getRefCodeReferences(referenceCode).stream()
                 .map(ref -> getAttribute(ref.getAttribute()))
                 .collect(toList());
+    }
+
+    private static <T> List<T> getOrCreateList(List<T> list) {
+        return list == null ? new ArrayList<>(0) : list;
     }
 
     @ApiModel("Атрибут справочника")
@@ -154,9 +236,27 @@ public class Structure implements Serializable {
         @ApiModelProperty("Описание атрибута")
         private String description;
 
+        public Attribute() {
+        }
+
+        public Attribute(Attribute attribute) {
+            this.code = attribute.code;
+            this.name = attribute.name;
+            this.type = attribute.type;
+            this.isPrimary = attribute.isPrimary;
+            this.description = attribute.description;
+        }
+
+        public static Attribute build(Attribute attribute) {
+            if (attribute != null)
+                return new Attribute(attribute);
+
+            return new Attribute();
+        }
+
         public static Attribute buildPrimary(String code, String name, FieldType type, String description) {
             Attribute attribute = new Attribute();
-            attribute.setPrimary(true);
+            attribute.setPrimary(Boolean.TRUE);
             attribute.setCode(code);
             attribute.setName(name);
             attribute.setType(type);
@@ -166,7 +266,7 @@ public class Structure implements Serializable {
 
         public static Attribute build(String code, String name, FieldType type, String description) {
             Attribute attribute = new Attribute();
-            attribute.setPrimary(false);
+            attribute.setPrimary(Boolean.FALSE);
             attribute.setCode(code);
             attribute.setName(name);
             attribute.setType(type);
@@ -219,14 +319,20 @@ public class Structure implements Serializable {
             this.description = description;
         }
 
-        public boolean storageEquals(Attribute that) {
-            return Objects.equals(code, that.code) &&
-                    Objects.equals(name, that.name) &&
-                    Objects.equals(type, that.type);
+        public boolean hasIsPrimary() {
+            return isPrimary != null && isPrimary;
         }
 
-        public Boolean isReferenceType() {
+        @JsonIgnore
+        public boolean isReferenceType() {
             return FieldType.REFERENCE.equals(getType());
+        }
+
+        /** Сравнение атрибутов только по полям, связанным с хранением данных. */
+        public boolean storageEquals(Attribute that) {
+            return (that != null) &&
+                    Objects.equals(code, that.code) &&
+                    Objects.equals(type, that.type);
         }
 
         @Override
@@ -250,22 +356,15 @@ public class Structure implements Serializable {
 
         @Override
         public String toString() {
-            StringBuilder sb = new StringBuilder("{");
-            sb.append("\"code\": \"").append(escapeJson(code)).append("\"").append(", ");
-            sb.append("\"name\": \"").append(escapeJson(name)).append("\"").append(", ");
-            sb.append("\"type\": \"").append(type.name()).append("\"").append(", ");
-            sb.append("\"isPrimary\": ").append(isPrimary).append(", ");
-            sb.append("\"description\": \"").append(escapeJson(description)).append("\"");
-            return sb.append("}").toString();
+            return JsonUtil.getAsJson(this);
         }
-
     }
 
     @ApiModel("Ссылка на запись справочника")
     public static class Reference implements Serializable {
 
-        /** Поле, которое ссылается. */
-        @ApiModelProperty("Поле, которое ссылается")
+        /** Код атрибута, который ссылается. */
+        @ApiModelProperty("Код атрибута, который ссылается")
         private String attribute;
 
         /** Код справочника, на который ссылаются. */
@@ -274,7 +373,8 @@ public class Structure implements Serializable {
 
         /**
          * Выражение для вычисления отображаемого ссылочного значения.
-         * Поля справочника указываются через placeholder ${~}, например ${field}
+         * Поля справочника указываются через placeholder ${~},
+         * например ${field} или со значением по умолчанию ${field:default}.
          */
         @ApiModelProperty("Выражение для вычисления отображаемого ссылочного значения")
         private String displayExpression;
@@ -282,10 +382,21 @@ public class Structure implements Serializable {
         public Reference() {
         }
 
+        public Reference(Reference reference) {
+            this(reference.attribute, reference.referenceCode, reference.displayExpression);
+        }
+
         public Reference(String attribute, String referenceCode, String displayExpression) {
             this.attribute = attribute;
             this.referenceCode = referenceCode;
             this.displayExpression = displayExpression;
+        }
+
+        public static Reference build(Reference reference) {
+            if (reference != null)
+                return new Reference(reference);
+
+            return new Reference();
         }
 
         @JsonGetter
@@ -322,11 +433,12 @@ public class Structure implements Serializable {
          * @param referenceStructure структура версии справочника, на который ссылаются
          * @return Атрибут версии справочника
          */
-        public Structure.Attribute findReferenceAttribute(Structure referenceStructure) {
+        public Attribute findReferenceAttribute(Structure referenceStructure) {
 
-            List<Structure.Attribute> primaryAttributes = referenceStructure.getPrimary();
-            if (isEmpty(primaryAttributes))
+            List<Attribute> primaryAttributes = referenceStructure.getPrimary();
+            if (CollectionUtils.isEmpty(primaryAttributes))
                 throw new UserException(new Message(PRIMARY_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE));
+
             if (primaryAttributes.size() > 1)
                 throw new UserException(new Message(PRIMARY_ATTRIBUTE_IS_MULTIPLE_EXCEPTION_CODE));
 
@@ -356,19 +468,14 @@ public class Structure implements Serializable {
 
         @Override
         public String toString() {
-            StringBuilder sb = new StringBuilder("{");
-            sb.append("\"attribute\": \"").append(escapeJson(attribute)).append("\"").append(", ");
-            sb.append("\"referenceCode\": \"").append(escapeJson(referenceCode)).append("\"").append(", ");
-            sb.append("\"displayExpression\": \"").append(escapeJson(displayExpression)).append("\"");
-            return sb.append("}").toString();
+            return JsonUtil.getAsJson(this);
         }
-
     }
 
     public boolean storageEquals(Structure that) {
         List<Attribute> others = that.getAttributes();
-        return isEmpty(attributes)
-                ? isEmpty(others)
+        return CollectionUtils.isEmpty(attributes)
+                ? CollectionUtils.isEmpty(others)
                 : attributes.size() == others.size()
                 && attributes.stream().noneMatch(attribute -> others.stream().noneMatch(attribute::storageEquals));
     }
@@ -390,12 +497,6 @@ public class Structure implements Serializable {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("{");
-        sb.append("\"attributes\": [");
-        sb.append(attributes == null || attributes.isEmpty() ? "" : attributes.stream().map(Attribute::toString).collect(joining(", ")));
-        sb.append("], \"references\": [");
-        sb.append(references == null || references.isEmpty() ? "" : references.stream().map(Reference::toString).collect(joining(", ")));
-        return sb.append("]}").toString();
+        return JsonUtil.getAsJson(this);
     }
-
 }

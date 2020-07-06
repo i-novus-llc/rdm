@@ -40,6 +40,10 @@
             </filters>
         </field>
 
+        <field id="optLockValue" domain="integer">
+            <select/>
+        </field>
+
         <field id="version.version" domain="string">
             <select mapping="
                 (archived ? 'В архиве: ' : '') +
@@ -181,7 +185,7 @@
             <select mapping="hasUpdatedConflict || hasAlteredConflict"/>
         </field>
 
-        <field id="lastHasDataConflict" domain="boolean">
+        <field id="lastHasConflict" domain="boolean">
             <select/>
         </field>
 
@@ -193,9 +197,9 @@
             <select/>
         </field>
 
-        <field id="lastHasDataConflictMsg" domain="string">
+        <field id="lastHasConflictMsg" domain="string">
             <select mapping="
-                (lastHasDataConflict ? 'В опубликованной версии справочника есть ссылки на неактуальные данные' : '')
+                (lastHasConflict ? 'В опубликованной версии справочника есть ссылки на неактуальные данные' : '')
                 "/>
         </field>
 

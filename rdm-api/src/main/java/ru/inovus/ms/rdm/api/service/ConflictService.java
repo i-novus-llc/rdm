@@ -63,17 +63,6 @@ public interface ConflictService {
     Page<RefBookConflict> search(@BeanParam RefBookConflictCriteria criteria);
 
     @GET
-    @Path("/dataConflict/{refFromId}-{refFieldCode}")
-    @ApiOperation("Поиск конфликта по ссылаемой версии, названию атрибута и идентификатору строки")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Успех"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    RefBookConflict findDataConflict(@ApiParam("Идентификатор версии, которая ссылается") @PathParam("refFromId") Integer refFromId,
-                                     @ApiParam("Атрибут версии, которая ссылается") @PathParam("refFieldCode") String refFieldCode,
-                                     @ApiParam("Строка-конфликт версии, которая ссылается") @QueryParam("rowSystemId") Long rowSystemId);
-
-    @GET
     @Path("/rows/count")
     @ApiOperation("Получение количества конфликтных строк по параметрам критерия")
     @ApiImplicitParams(@ApiImplicitParam(name = "sort", value = "Параметры сортировки", required = false, allowMultiple = true,

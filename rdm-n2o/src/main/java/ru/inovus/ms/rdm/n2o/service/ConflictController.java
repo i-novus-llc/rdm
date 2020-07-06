@@ -18,9 +18,10 @@ public class ConflictController {
      * Обновление ссылок версии справочника по первичным ключам.
      *
      * @param referrerVersionId идентификатор версии справочника, который ссылается
+     * @param optLockValue      значение оптимистической блокировки версии
      */
     @SuppressWarnings("unused")
-    void refreshReferrer(Integer referrerVersionId) {
-        referenceService.refreshReferrer(referrerVersionId);
+    void refreshReferrer(Integer referrerVersionId, Integer optLockValue) {
+        referenceService.refreshReferrer(referrerVersionId, optLockValue);
     }
 }

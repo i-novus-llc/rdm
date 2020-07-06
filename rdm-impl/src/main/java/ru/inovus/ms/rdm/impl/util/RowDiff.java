@@ -45,7 +45,7 @@ public class RowDiff {
         public static <T> CellDiff<T> of(T oldValue, T newValue) {
 
             if (Objects.equals(oldValue, newValue))
-                throw new IllegalArgumentException("Values are equal. Zero diff.");
+                return null;
 
             return new CellDiff<>(oldValue, newValue);
         }

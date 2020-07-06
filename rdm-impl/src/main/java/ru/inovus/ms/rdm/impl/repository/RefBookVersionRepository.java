@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.query.Param;
+import org.springframework.lang.NonNull;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
 
@@ -41,11 +42,11 @@ public interface RefBookVersionRepository extends
     String WHERE_REF_BOOK_STATUS = "   and ( \n" +
             "       (:refBookStatus = 'ALL') or \n" +
             "       exists( \n" +
-            "       select 1 \n" +
-            "         from n2o_rdm_management.ref_book b \n" +
-            "        where b.id = bv.ref_book_id \n" +
-            "          and ((:refBookStatus = 'USED' and not b.archived) or \n" +
-            "               (:refBookStatus = 'ARCHIVED' and b.archived)) )\n" +
+            "         select 1 \n" +
+            "           from n2o_rdm_management.ref_book b \n" +
+            "          where b.id = bv.ref_book_id \n" +
+            "            and ((:refBookStatus = 'USED' and not b.archived) or \n" +
+            "                 (:refBookStatus = 'ARCHIVED' and b.archived)) )\n" +
             "       ) \n";
 
     String WHERE_REF_BOOK_SOURCE = "   and ( \n" +
@@ -58,14 +59,18 @@ public interface RefBookVersionRepository extends
             "       (:refBookSource != 'LAST_PUBLISHED' or \n" +
             "        (:refBookSource = 'LAST_PUBLISHED' and bv.status = 'PUBLISHED')) and \n" +
             "       bv.id = ( \n" +
-            "       select lv.id \n" +
-            "         from n2o_rdm_management.ref_book_version lv \n" +
-            "        where lv.ref_book_id = bv.ref_book_id \n" +
-            "          and ( (:refBookSource = 'LAST_VERSION') or \n" +
-            "                (:refBookSource = 'LAST_PUBLISHED' and lv.status = bv.status) ) \n" +
-            "        order by lv.from_date desc \n" +
-            "        limit 1 )\n" +
+            "         select lv.id \n" +
+            "           from n2o_rdm_management.ref_book_version lv \n" +
+            "          where lv.ref_book_id = bv.ref_book_id \n" +
+            "            and ( (:refBookSource = 'LAST_VERSION') or \n" +
+            "                  (:refBookSource = 'LAST_PUBLISHED' and lv.status = bv.status) ) \n" +
+            "          order by lv.from_date desc \n" +
+            "          limit 1 )\n" +
             "       ) \n";
+
+    boolean existsById(@NonNull Integer id);
+
+    boolean existsByIdAndStatus(@NonNull Integer id, RefBookVersionStatus status);
 
     RefBookVersionEntity findByStatusAndRefBookId(RefBookVersionStatus status, Integer refBookId);
 
@@ -78,6 +83,8 @@ public interface RefBookVersionRepository extends
     @Query("select v from RefBookVersionEntity v where v.refBook.code = ?1 and v.fromDate <= ?2 and (v.toDate > ?2 or v.toDate is null)")
     RefBookVersionEntity findActualOnDate(String refBookCode, LocalDateTime date);
 
+    RefBookVersionEntity findFirstByRefBookIdAndStatusOrderByFromDateDesc(Integer refBookCode, RefBookVersionStatus status);
+
     RefBookVersionEntity findFirstByRefBookCodeAndStatusOrderByFromDateDesc(String refBookCode, RefBookVersionStatus status);
 
     @Query(nativeQuery = true,
@@ -86,4 +93,12 @@ public interface RefBookVersionRepository extends
                                                     @Param("refBookStatus") String refBookStatus,
                                                     @Param("refBookSource") String refBookSource,
                                                     Pageable pageable);
+
+    @Query(nativeQuery = true,
+            value = "select exists( \n" +
+                    FIND_REFERRER_VERSIONS + WHERE_REF_BOOK_STATUS + WHERE_REF_BOOK_SOURCE +
+                    ") \n")
+    Boolean existsReferrerVersions(@Param("refBookCode") String refBookCode,
+                                   @Param("refBookStatus") String refBookStatus,
+                                   @Param("refBookSource") String refBookSource);
 }

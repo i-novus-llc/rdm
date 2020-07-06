@@ -27,6 +27,10 @@
             </filters>
         </field>
 
+        <field id="optLockValue" domain="integer">
+            <select/>
+        </field>
+
         <field id="refBookId" domain="integer">
             <select/>
             <filters>
@@ -64,6 +68,10 @@
 
         <field id="archived" domain="boolean">
             <select/>
+        </field>
+
+        <field id="isEmptyStructure" domain="boolean">
+            <select mapping="structure == null || structure.isEmpty()"/>
         </field>
 
         <field id="excludeDraft" domain="boolean">

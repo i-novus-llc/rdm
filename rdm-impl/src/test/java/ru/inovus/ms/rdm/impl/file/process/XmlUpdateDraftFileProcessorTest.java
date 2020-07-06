@@ -38,13 +38,17 @@ public class XmlUpdateDraftFileProcessorTest {
 
     @Test
     public void testProcess() {
-        CreateDraftRequest expected = new CreateDraftRequest(TEST_REF_BOOK_ID, UploadFileTestData.createStructure(), UploadFileTestData.createPassport(), Map.of(
-            "string", List.of(new PlainSizeAttributeValidation(40), new RegExpAttributeValidation("[а-яА-я]*")),
-            "integer", List.of(new IntRangeAttributeValidation(BigInteger.ONE, BigInteger.TEN), new UniqueAttributeValidation()),
-            "date", List.of(new DateRangeAttributeValidation(LocalDate.of(2019, 02, 01), LocalDate.of(2019, 02, 02))),
-            "boolean", List.of(new RequiredAttributeValidation()),
-            "float", List.of(new FloatSizeAttributeValidation(2, 2), new FloatRangeAttributeValidation(BigDecimal.valueOf(2.43), BigDecimal.valueOf(10.12)))
-        ));
+        CreateDraftRequest expected = new CreateDraftRequest(TEST_REF_BOOK_ID,
+                UploadFileTestData.createStructure(), UploadFileTestData.createPassport(),
+                Map.of(
+                        "string", List.of(new PlainSizeAttributeValidation(40), new RegExpAttributeValidation("[а-яА-я]*")),
+                        "integer", List.of(new IntRangeAttributeValidation(BigInteger.ONE, BigInteger.TEN), new UniqueAttributeValidation()),
+                        "date", List.of(new DateRangeAttributeValidation(LocalDate.of(2019, 02, 01), LocalDate.of(2019, 02, 02))),
+                        "boolean", List.of(new RequiredAttributeValidation()),
+                        "float", List.of(new FloatSizeAttributeValidation(2, 2), new FloatRangeAttributeValidation(BigDecimal.valueOf(2.43), BigDecimal.valueOf(10.12)))
+                )
+        );
+        expected.setReferrerValidationRequired(true);
 
         try(XmlUpdateDraftFileProcessor fileProcessor = new XmlUpdateDraftFileProcessor(TEST_REF_BOOK_ID, draftService)) {
             fileProcessor.process(() -> getClass().getResourceAsStream(XML_FILE));

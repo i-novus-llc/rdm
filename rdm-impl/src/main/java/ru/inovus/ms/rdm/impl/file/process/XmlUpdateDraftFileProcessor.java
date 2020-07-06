@@ -2,6 +2,7 @@ package ru.inovus.ms.rdm.impl.file.process;
 
 import org.springframework.data.util.Pair;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.inovus.ms.rdm.api.exception.FileContentException;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidation;
 import ru.inovus.ms.rdm.api.service.DraftService;
@@ -15,6 +16,8 @@ import java.io.InputStream;
 import java.util.*;
 
 import static java.util.Collections.singletonList;
+import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.closeEventReader;
+import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.createEventReader;
 
 public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implements Closeable {
 
@@ -37,15 +40,7 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
 
     @Override
     protected void setFile(InputStream inputStream) {
-        try {
-            FACTORY.setProperty(XMLInputFactory.IS_COALESCING, true);
-            XMLEventReader simpleReader = FACTORY.createXMLEventReader(inputStream);
-            reader = FACTORY.createFilteredReader(simpleReader,
-                    event ->
-                            !(event.isCharacters() && event.asCharacters().isWhiteSpace()));
-        } catch (XMLStreamException e) {
-            XmlParseUtils.throwXmlReadError(e);
-        }
+        reader = createEventReader(inputStream, FACTORY);
     }
 
     @Override
@@ -70,14 +65,14 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
                 XmlParseUtils.parseValues(reader, passport, PASSPORT_TAG_NAME);
             }
         } catch (XMLStreamException e) {
-            XmlParseUtils.throwXmlReadError(e);
+            throw new FileContentException(e);
         }
         passportProcessed = true;
         return passport;
-
     }
 
-    private void parseStructureAndValidations(Structure structure, Map<String, List<AttributeValidation>> validations) throws XMLStreamException {
+    private void parseStructureAndValidations(Structure structure,
+                                              Map<String, List<AttributeValidation>> validations) throws XMLStreamException {
         reader.nextEvent();
         while (!XmlParseUtils.isEndElementWithName(reader.peek(), STRUCTURE_TAG_NAME) &&
                 !XmlParseUtils.isStartElementWithName(reader.peek(), PASSPORT_TAG_NAME, DATA_TAG_NAME)) {
@@ -105,6 +100,7 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
                     structure.getReferences().add(structureReference);
                 }
             }
+
             Object obj = attribute.get("validation");
             if (obj == null)
                 continue;
@@ -118,11 +114,13 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
         }
     }
 
-    private void groupValidationsByCode(String code, List<Map<String, Object>> list, Map<String, List<AttributeValidation>> validations) {
+    private void groupValidationsByCode(String code, List<Map<String, Object>> list,
+                                        Map<String, List<AttributeValidation>> validations) {
         for (Map<String, Object> map : list) {
             AttributeValidation validation = AttributeValidation.of((String) map.get("type"), (String) map.get("value"));
             if (!validations.containsKey(code))
                 validations.put(code, new ArrayList<>());
+
             validations.get(code).add(validation);
         }
     }
@@ -141,7 +139,7 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
                         XmlParseUtils.isStartElementWithName(reader.peek(), PASSPORT_TAG_NAME, DATA_TAG_NAME))
                     return null;
 
-                Structure structure = new Structure(new ArrayList<>(), new ArrayList<>());
+                Structure structure = new Structure();
                 Map<String, List<AttributeValidation>> validations = new HashMap<>();
                 parseStructureAndValidations(structure, validations);
 
@@ -150,22 +148,14 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
                 return Pair.of(structure, validations);
 
             } catch (XMLStreamException e) {
-                XmlParseUtils.throwXmlReadError(e);
+                throw new FileContentException(e);
             }
-
         }
         return null;
     }
 
-
     @Override
     public void close() {
-        if (reader != null) {
-            try {
-                reader.close();
-            } catch (XMLStreamException e) {
-                XmlParseUtils.throwXmlReadError(e);
-            }
-        }
+        closeEventReader(reader);
     }
 }

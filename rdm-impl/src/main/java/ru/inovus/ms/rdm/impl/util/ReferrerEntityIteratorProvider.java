@@ -3,10 +3,11 @@ package ru.inovus.ms.rdm.impl.util;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookStatusType;
 import ru.inovus.ms.rdm.api.model.version.ReferrerVersionCriteria;
+import ru.inovus.ms.rdm.api.util.PageIterator;
+import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 
 import java.util.List;

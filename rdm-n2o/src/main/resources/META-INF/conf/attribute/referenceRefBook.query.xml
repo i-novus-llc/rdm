@@ -1,0 +1,74 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="refBook">
+
+    <list result-mapping="['content']" count-mapping="['totalElements']">
+        <java class="ru.inovus.ms.rdm.n2o.service.RefBookController"
+              method="searchReferenceRefBooks">
+            <spring/>
+            <arguments>
+                <argument type="criteria" class="ru.inovus.ms.rdm.n2o.criteria.RefBookCriteriaDateAndStatus"/>
+            </arguments>
+        </java>
+    </list>
+
+    <fields>
+        <field id="id" domain="integer">
+            <select mapping="refBookId"/>
+            <filters>
+                <eq filter-id="id" mapping="refBookId"/>
+            </filters>
+        </field>
+
+        <field id="refBookId" domain="integer">
+            <select mapping="refBookId"/>
+        </field>
+
+        <field id="version.id" domain="integer">
+            <select mapping="id"/>
+            <filters>
+                <eq filter-id="versionId" mapping="versionId"/>
+            </filters>
+        </field>
+
+        <field id="code" domain="string">
+            <select/>
+            <filters>
+                <eq filter-id="code" mapping="code"/>
+            </filters>
+            <sorting/>
+        </field>
+
+        <field id="excludeByVersionId" domain="integer">
+            <filters>
+                <eq filter-id="excludeByVersionId" mapping="excludeByVersionId"/>
+            </filters>
+        </field>
+
+        <field id="hasPublished" domain="boolean">
+            <select mapping="lastPublishedVersionId != null"/>
+            <filters>
+                <eq filter-id="hasPublished" mapping="hasPublished"/>
+            </filters>
+        </field>
+
+        <field id="hasPrimaryAttribute" domain="boolean">
+            <select/>
+        </field>
+
+        <field id="editDate" domain="date">
+            <select/>
+        </field>
+
+        <field id="displayCode" domain="string">
+            <select mapping="
+                    code +
+                    (lastPublishedVersion != null ? ' (' + lastPublishedVersion + ')' : '') +
+                    (passport['name'] != null ? ' [' + passport['name'] + ']' : '')
+                "/>
+            <filters>
+                <eq filter-id="displayCode" mapping="displayCode"/>
+            </filters>
+        </field>
+
+    </fields>
+</query>

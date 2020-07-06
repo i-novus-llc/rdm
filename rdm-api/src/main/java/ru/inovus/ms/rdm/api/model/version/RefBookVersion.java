@@ -14,17 +14,20 @@ public class RefBookVersion {
     @ApiModelProperty("Идентификатор версии")
     private Integer id;
 
+    @ApiModelProperty("Значение оптимистической блокировки версии")
+    private Integer optLockValue;
+
     @ApiModelProperty("Идентификатор справочника")
     private Integer refBookId;
 
     @ApiModelProperty("Код справочника")
     private String code;
 
-    @ApiModelProperty("Комментарий к версии")
-    private String comment;
-
     @ApiModelProperty("Версия")
     private String version;
+
+    @ApiModelProperty("Комментарий к версии")
+    private String comment;
 
     @ApiModelProperty("Дата публикации")
     private LocalDateTime fromDate;
@@ -51,17 +54,23 @@ public class RefBookVersion {
     }
 
     public RefBookVersion(RefBookVersion refBookVersion) {
+
         this.id = refBookVersion.getId();
+        this.optLockValue = refBookVersion.getOptLockValue();
         this.refBookId = refBookVersion.getRefBookId();
+
         this.code = refBookVersion.getCode();
-        this.comment = refBookVersion.getComment();
         this.version = refBookVersion.getVersion();
+        this.comment = refBookVersion.getComment();
+
         this.fromDate = refBookVersion.getFromDate();
         this.toDate = refBookVersion.getToDate();
         this.status = refBookVersion.getStatus();
         this.archived = refBookVersion.getArchived();
+
         this.passport = refBookVersion.getPassport();
         this.structure = refBookVersion.getStructure();
+
         this.editDate = refBookVersion.getEditDate();
     }
 
@@ -71,6 +80,14 @@ public class RefBookVersion {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public Integer getOptLockValue() {
+        return optLockValue;
+    }
+
+    public void setOptLockValue(Integer optLockValue) {
+        this.optLockValue = optLockValue;
     }
 
     public Integer getRefBookId() {
@@ -89,20 +106,20 @@ public class RefBookVersion {
         this.code = code;
     }
 
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
-
     public String getVersion() {
         return version;
     }
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 
     public LocalDateTime getFromDate() {
@@ -168,5 +185,14 @@ public class RefBookVersion {
      */
     public boolean isDraft() {
         return RefBookVersionStatus.DRAFT.equals(status);
+    }
+
+    /**
+     * Проверка отсутствия структуры.
+     *
+     * @return Результат проверки
+     */
+    public boolean hasEmptyStructure() {
+        return structure == null || structure.isEmpty();
     }
 }

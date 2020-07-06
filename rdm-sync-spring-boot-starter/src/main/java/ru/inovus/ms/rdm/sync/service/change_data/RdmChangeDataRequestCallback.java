@@ -51,17 +51,23 @@ public abstract class RdmChangeDataRequestCallback {
     protected abstract <T extends Serializable> void onError0(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete, Exception ex);
 
     private <T extends Serializable> void casState(String refBookCode, List<? extends T> addUpdate, RdmSyncLocalRowState state) {
+
         VersionMapping vm = dao.getVersionMapping(refBookCode);
-        if (vm != null) {
-            String pk = vm.getPrimaryField();
-            String table = vm.getTable();
-            List<Object> pks = RdmSyncChangeDataUtils.extractSnakeCaseKey(pk, addUpdate);
-            dao.disableInternalLocalRowStateUpdateTrigger(vm.getTable());
+        if (vm == null)
+            return;
+
+        String pk = vm.getPrimaryField();
+        String table = vm.getTable();
+        List<Object> pks = RdmSyncChangeDataUtils.extractSnakeCaseKey(pk, addUpdate);
+
+        dao.disableInternalLocalRowStateUpdateTrigger(vm.getTable());
+        try {
             boolean stateChanged = dao.setLocalRecordsState(table, pk, pks, RdmSyncLocalRowState.PENDING, state);
             if (!stateChanged) {
                 logger.info("State change did not pass. Skipping callback on {}.", refBookCode);
                 throw new RdmException();
             }
+        } finally {
             dao.enableInternalLocalRowStateUpdateTrigger(vm.getTable());
         }
     }
@@ -79,7 +85,5 @@ public abstract class RdmChangeDataRequestCallback {
         public <T extends Serializable> void onError0(String refBookCode, List<? extends T> addUpdate, List<? extends T> delete, Exception ex) {
             logger.error("Error occurred while pulling data into RDM into refBook with code {}. Payload:\nAttempt to add/update objects: {},\nAttempt to delete objects: {}", refBookCode, addUpdate, delete, ex);
         }
-
     }
-
 }

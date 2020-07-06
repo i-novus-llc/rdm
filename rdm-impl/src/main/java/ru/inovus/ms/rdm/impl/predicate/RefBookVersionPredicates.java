@@ -40,6 +40,10 @@ public final class RefBookVersionPredicates {
         return QRefBookVersionEntity.refBookVersionEntity.refBook.id.in(refBookIds);
     }
 
+    public static BooleanExpression isCodeContains(String code) {
+        return QRefBookVersionEntity.refBookVersionEntity.refBook.code.containsIgnoreCase(code.trim());
+    }
+
     public static BooleanExpression isCodeEquals(String code) {
         return QRefBookVersionEntity.refBookVersionEntity.refBook.code.eq(code.trim());
     }

@@ -103,17 +103,6 @@ public interface VersionService {
     Structure getStructure(@ApiParam("Идентификатор версии") @QueryParam("versionId") Integer versionId);
 
     @GET
-    @Path("/{versionId}/getFile")
-    @Produces("application/zip")
-    @ApiOperation("Выгрузка версии")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Успех"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    ExportFile getVersionFile(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
-                              @ApiParam(value = "Тип файла", required = true, allowableValues = "XLSX, XML") @QueryParam("type") FileType fileType);
-
-    @GET
     @ApiOperation("Информация о существовании записей в системе")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
@@ -130,4 +119,15 @@ public interface VersionService {
     })
     @Path("/row/{rowId}")
     RefBookRowValue getRow(@ApiParam("Идентификатор записи") @PathParam("rowId") String rowId);
+
+    @GET
+    @Path("/{versionId}/getFile")
+    @Produces("application/zip")
+    @ApiOperation("Выгрузка версии")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    ExportFile getVersionFile(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
+                              @ApiParam(value = "Тип файла", required = true, allowableValues = "XLSX, XML") @QueryParam("type") FileType fileType);
 }

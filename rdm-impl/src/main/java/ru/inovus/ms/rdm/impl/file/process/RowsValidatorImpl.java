@@ -101,13 +101,12 @@ public class RowsValidatorImpl implements RowsValidator {
 
     private void validateRowStructure(Row row) {
 
-        List<Structure.Attribute> attributes = structure.getAttributes();
-        if (attributes == null)
+        if (structure.isEmpty())
             return;
 
-        boolean structOk = structFields.containsAll(row.getData().keySet());
-        if (!structOk)
-            throw new UserException("structure.does-not-match");
+        if (!structFields.containsAll(row.getData().keySet())) {
+            throw new UserException("loaded.structure.not.match");
+        }
     }
 
     @Override

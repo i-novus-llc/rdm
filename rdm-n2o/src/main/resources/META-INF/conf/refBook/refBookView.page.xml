@@ -18,6 +18,7 @@
                         </pre-filters>
                     </select>
                 </fields>
+
                 <toolbar place="bottomLeft">
                     <button label="Скачать">
                         <show-modal page-id="downloadFile" upload="defaults">
@@ -29,14 +30,22 @@
                 </toolbar>
             </form>
         </region>
+
         <tabs place="single">
-            <form ref-id="passportView" name="Паспорт" id="passport_form" depends-on="version_select"
+            <form ref-id="passportView" name="Паспорт" id="passport_form"
+                  depends-on="version_select" fetch-on-init="true"
                   master-field-id="id" detail-field-id="version.id" object-id="refBook"/>
-            <table ref-id="structure" name="Структура" id="structure_table" depends-on="version_select"
+
+            <table ref-id="structure" name="Структура" id="structure_table"
+                   depends-on="version_select" fetch-on-init="true"
                    master-field-id="id" detail-field-id="versionId" upload="query"/>
-            <table src="DataGrid" name="Данные" id="dataTable" query-id="data" depends-on="version_select"
+
+            <table src="DataGrid" name="Данные" id="dataTable"
+                   query-id="data" depends-on="version_select" fetch-on-init="true"
                    master-field-id="id" detail-field-id="versionId" object-id="data"/>
-            <table src="DataGrid" name="Данные с конфликтами" id="dataTableWithConflicts" query-id="data" depends-on="version_select"
+
+            <table src="DataGrid" name="Данные с конфликтами" id="dataTableWithConflicts"
+                   query-id="data" depends-on="version_select" fetch-on-init="true"
                    master-field-id="id" detail-field-id="versionId" object-id="data">
                 <pre-filters>
                     <eq field-id="hasDataConflict" value="true"/>

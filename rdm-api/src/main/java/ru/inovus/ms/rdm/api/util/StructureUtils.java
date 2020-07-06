@@ -19,9 +19,27 @@ public class StructureUtils {
     private StructureUtils() {
     }
 
+    /** Проверка на наличие атрибута-ссылки. */
+    public static boolean isReference(Structure.Reference reference) {
+        return Objects.nonNull(reference) && !reference.isNull();
+    }
+
     /** Получение кодов атрибутов структуры. */
     public static Stream<String> getAttributeCodes(Structure structure) {
         return structure.getAttributes().stream().map(Structure.Attribute::getCode);
+    }
+
+    /** Получение кодов атрибутов-ссылок структуры. */
+    public static Stream<String> getReferenceAttributeCodes(Structure structure) {
+        return structure.getReferences().stream().map(Structure.Reference::getAttribute);
+    }
+
+    /** Сравнение displayExpression двух ссылок. */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public static boolean isDisplayExpressionEquals(Structure.Reference reference1,
+                                                    Structure.Reference reference2) {
+        return reference1 != null && reference2 != null
+                && Objects.equals(reference1.getDisplayExpression(), reference2.getDisplayExpression());
     }
 
     /**
@@ -38,6 +56,23 @@ public class StructureUtils {
 
         DisplayExpression expression = new DisplayExpression(displayExpression);
         return CollectionUtils.containsAny(expression.getPlaceholders().keySet(), placeholders);
+    }
+
+    /**
+     * Проверка полей выражения на отсутствие в структуре.
+     *
+     * @param displayExpression выражение для вычисления отображаемого значения
+     * @param structure         структура версии, на которую ссылаются
+     * @return Признак отсутствия
+     */
+    public static boolean hasAbsentPlaceholder(String displayExpression, Structure structure) {
+
+        if (isEmpty(displayExpression))
+            return false;
+
+        DisplayExpression expression = new DisplayExpression(displayExpression);
+        return expression.getPlaceholders().keySet().stream()
+                .anyMatch(placeholder -> Objects.isNull(structure.getAttribute(placeholder)));
     }
 
     /**

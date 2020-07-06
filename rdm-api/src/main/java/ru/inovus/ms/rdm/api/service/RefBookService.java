@@ -20,7 +20,7 @@ import javax.ws.rs.core.MediaType;
 public interface RefBookService {
 
     @GET
-    @ApiOperation(value = "Поиск справочников по параметрам критерия", hidden = true)
+    @ApiOperation(value = "Поиск справочников по параметрам критерия")
     @ApiImplicitParams(@ApiImplicitParam(name = "sort", value = "Параметры сортировки",
             required = false, allowMultiple = true, paramType = "query", dataType = "string"))
     @ApiResponses({
@@ -82,7 +82,7 @@ public interface RefBookService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    @Path("/createByFile")
+    @Path("/createFromFile")
     Draft create(@ApiParam("Файл") FileModel fileModel);
 
     @PUT

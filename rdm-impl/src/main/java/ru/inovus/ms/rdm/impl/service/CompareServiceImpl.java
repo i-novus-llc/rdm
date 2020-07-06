@@ -16,38 +16,31 @@ import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.CompareDataService;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
+import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.compare.*;
+import ru.inovus.ms.rdm.api.model.diff.*;
+import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
+import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.api.model.version.PassportAttribute;
 import ru.inovus.ms.rdm.api.service.CompareService;
 import ru.inovus.ms.rdm.api.service.VersionService;
+import ru.inovus.ms.rdm.api.validation.VersionValidation;
 import ru.inovus.ms.rdm.impl.entity.PassportAttributeEntity;
 import ru.inovus.ms.rdm.impl.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.inovus.ms.rdm.api.model.Structure;
-import ru.inovus.ms.rdm.api.model.compare.ComparableField;
-import ru.inovus.ms.rdm.api.model.compare.ComparableFieldValue;
-import ru.inovus.ms.rdm.api.model.compare.ComparableRow;
-import ru.inovus.ms.rdm.api.model.compare.CompareCriteria;
-import ru.inovus.ms.rdm.api.model.diff.DiffRowValuePage;
-import ru.inovus.ms.rdm.api.model.diff.RefBookDataDiff;
-import ru.inovus.ms.rdm.api.model.diff.StructureDiff;
-import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
-import ru.inovus.ms.rdm.api.model.version.PassportAttribute;
-import ru.inovus.ms.rdm.api.model.diff.PassportAttributeDiff;
-import ru.inovus.ms.rdm.api.model.diff.PassportDiff;
-import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
-import ru.inovus.ms.rdm.impl.util.ConverterUtil;
 import ru.inovus.ms.rdm.impl.repository.PassportAttributeRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.inovus.ms.rdm.api.validation.VersionValidation;
+import ru.inovus.ms.rdm.impl.util.ConverterUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.inovus.ms.rdm.api.util.ComparableUtils.*;
-import static ru.inovus.ms.rdm.impl.util.ConverterUtil.getFieldSearchCriteriaList;
 
 @Service
 @Primary
@@ -55,6 +48,7 @@ public class CompareServiceImpl implements CompareService {
 
     private static final String COMPARE_OLD_PRIMARIES_NOT_FOUND_EXCEPTION_CODE = "compare.old.primaries.not.found";
     private static final String COMPARE_NEW_PRIMARIES_NOT_FOUND_EXCEPTION_CODE = "compare.new.primaries.not.found";
+    private static final String COMPARE_PRIMARIES_NOT_MATCH_EXCEPTION_CODE = "compare.primaries.not.match";
     private static final String COMPARE_PRIMARIES_NOT_EQUALS_EXCEPTION_CODE = "compare.primaries.not.equals";
 
     private CompareDataService compareDataService;
@@ -90,8 +84,8 @@ public class CompareServiceImpl implements CompareService {
         List<PassportAttributeDiff> passportAttributeDiffList = new ArrayList<>();
 
         passportAttributes.forEach(passportAttribute -> {
-            PassportValueEntity oldPassportValue = oldVersion.getPassportValues().stream().filter(passportValue -> passportValue.getAttribute().equals(passportAttribute)).findFirst().orElse(null);
-            PassportValueEntity newPassportValue = newVersion.getPassportValues().stream().filter(passportValue -> passportValue.getAttribute().equals(passportAttribute)).findFirst().orElse(null);
+            PassportValueEntity oldPassportValue = oldVersion.getPassportValue(passportAttribute);
+            PassportValueEntity newPassportValue = newVersion.getPassportValue(passportAttribute);
 
             if (!equalValues(oldPassportValue, newPassportValue)) {
                 PassportAttributeDiff passportAttributeDiff = new PassportAttributeDiff(
@@ -152,12 +146,12 @@ public class CompareServiceImpl implements CompareService {
 
         RefBookVersionEntity oldVersion = versionRepository.getOne(criteria.getOldVersionId());
         RefBookVersionEntity newVersion = versionRepository.getOne(criteria.getNewVersionId());
+        validatePrimariesEquality(oldVersion, newVersion);
+
+        CompareDataCriteria compareDataCriteria = createVdsCompareDataCriteria(oldVersion, newVersion, criteria);
 
         Structure oldStructure = oldVersion.getStructure();
         Structure newStructure = newVersion.getStructure();
-        validatePrimariesEquality(oldStructure.getPrimary(), newStructure.getPrimary());
-
-        CompareDataCriteria compareDataCriteria = createVdsCompareDataCriteria(oldVersion, newVersion, criteria);
 
         List<String> newAttributes = new ArrayList<>();
         List<String> oldAttributes = new ArrayList<>();
@@ -167,7 +161,7 @@ public class CompareServiceImpl implements CompareService {
             Structure.Attribute oldAttribute = oldStructure.getAttribute(newAttribute.getCode());
             if (oldAttribute == null)
                 newAttributes.add(newAttribute.getCode());
-            else if (!oldAttribute.storageEquals(newAttribute))
+            else if (!attributeEquals(oldAttribute, newAttribute))
                 updatedAttributes.add(newAttribute.getCode());
         });
 
@@ -206,15 +200,22 @@ public class CompareServiceImpl implements CompareService {
         return new RestPage<>(comparableRows, criteria, newData.getTotalElements() + refBookDataDiffDeleted.getRows().getTotalElements());
     }
 
-    private List<Field> getCommonFields(Structure structure1, Structure structure2) {
-        return structure2.getAttributes()
-                .stream()
+    private List<Field> getCommonFields(Structure oldStructure, Structure newStructure) {
+
+        return newStructure.getAttributes().stream()
                 .filter(newAttribute -> {
-                    Structure.Attribute oldAttribute = structure1.getAttribute(newAttribute.getCode());
-                    return (oldAttribute != null && oldAttribute.storageEquals(newAttribute));
+                    Structure.Attribute oldAttribute = oldStructure.getAttribute(newAttribute.getCode());
+                    return attributeEquals(oldAttribute, newAttribute);
                 })
                 .map(attribute -> fieldFactory.createField(attribute.getCode(), attribute.getType()))
                 .collect(toList());
+    }
+
+    /** Сравнение атрибутов только по полям, связанным с изменением атрибута. */
+    private boolean attributeEquals(Structure.Attribute oldAttribute, Structure.Attribute newAttribute) {
+        return oldAttribute != null
+                && oldAttribute.storageEquals(newAttribute)
+                && Objects.equals(oldAttribute.getName(), newAttribute.getName());
     }
 
     private boolean equalValues(PassportValueEntity oldPassportValue, PassportValueEntity newPassportValue) {
@@ -338,17 +339,27 @@ public class CompareServiceImpl implements CompareService {
         }
     }
 
-    private void validatePrimariesEquality(List<Structure.Attribute> oldPrimaries, List<Structure.Attribute> newPrimaries) {
+    /** Проверка первичных ключей версий на совпадение. */
+    private void validatePrimariesEquality(RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion) {
 
+        List<Structure.Attribute> oldPrimaries = oldVersion.getStructure().getPrimary();
         if (isEmpty(oldPrimaries))
-            throw new UserException(new Message(COMPARE_OLD_PRIMARIES_NOT_FOUND_EXCEPTION_CODE));
+            throw new UserException(new Message(COMPARE_OLD_PRIMARIES_NOT_FOUND_EXCEPTION_CODE, oldVersion.getRefBook().getCode(), oldVersion.getVersion()));
 
+        List<Structure.Attribute> newPrimaries = newVersion.getStructure().getPrimary();
         if (isEmpty(newPrimaries))
-            throw new UserException(new Message(COMPARE_NEW_PRIMARIES_NOT_FOUND_EXCEPTION_CODE));
+            throw new UserException(new Message(COMPARE_NEW_PRIMARIES_NOT_FOUND_EXCEPTION_CODE, newVersion.getRefBook().getCode(), newVersion.getVersion()));
 
-        if (oldPrimaries.size() != newPrimaries.size()
-                || oldPrimaries.stream().anyMatch(oldPrimary -> newPrimaries.stream().noneMatch(newPrimary -> newPrimary.equals(oldPrimary))))
-            throw new UserException(new Message(COMPARE_PRIMARIES_NOT_EQUALS_EXCEPTION_CODE));
+        if (!versionValidation.equalsPrimaries(oldPrimaries, newPrimaries)) {
+            if (newVersion.getRefBook().getCode().equals(oldVersion.getRefBook().getCode())) {
+                throw new UserException(new Message(COMPARE_PRIMARIES_NOT_MATCH_EXCEPTION_CODE,
+                        oldVersion.getRefBook().getCode(), oldVersion.getVersionNumber(), newVersion.getVersionNumber()));
+            } else {
+                throw new UserException(new Message(COMPARE_PRIMARIES_NOT_EQUALS_EXCEPTION_CODE,
+                        oldVersion.getRefBook().getCode(), oldVersion.getVersionNumber(),
+                        newVersion.getRefBook().getCode(), newVersion.getVersionNumber()));
+            }
+        }
     }
 
     /**
