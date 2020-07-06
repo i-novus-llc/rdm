@@ -363,8 +363,8 @@ public class Structure implements Serializable {
     @ApiModel("Ссылка на запись справочника")
     public static class Reference implements Serializable {
 
-        /** Поле, которое ссылается. */
-        @ApiModelProperty("Поле, которое ссылается")
+        /** Код атрибута, который ссылается. */
+        @ApiModelProperty("Код атрибута, который ссылается")
         private String attribute;
 
         /** Код справочника, на который ссылаются. */
