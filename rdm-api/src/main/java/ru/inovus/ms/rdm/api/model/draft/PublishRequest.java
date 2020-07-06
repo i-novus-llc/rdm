@@ -2,7 +2,6 @@ package ru.inovus.ms.rdm.api.model.draft;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import io.swagger.annotations.ApiParam;
 import ru.inovus.ms.rdm.api.util.json.JsonUtil;
 
 import java.io.Serializable;
@@ -12,22 +11,22 @@ import java.time.LocalDateTime;
         description = "Набор входных параметров для публикации черновика")
 public class PublishRequest implements Serializable {
 
-    @ApiModelProperty(value = "Идентификатор черновика")
+    @ApiModelProperty("Идентификатор черновика")
     private Integer draftId;
 
-    @ApiParam("Значение оптимистической блокировки версии")
+    @ApiModelProperty("Значение оптимистической блокировки версии")
     private Integer optLockValue;
 
-    @ApiParam("Версия, под которой публикуется черновик")
+    @ApiModelProperty("Версия, под которой публикуется черновик")
     private String versionName;
 
-    @ApiParam("Дата начала действия опубликованной версии")
+    @ApiModelProperty("Дата начала действия опубликованной версии")
     private LocalDateTime fromDate;
 
-    @ApiParam("Дата окончания действия опубликованной версии")
+    @ApiModelProperty("Дата окончания действия опубликованной версии")
     private LocalDateTime toDate;
 
-    @ApiParam("Признак разрешения конфликтов")
+    @ApiModelProperty("Признак разрешения конфликтов")
     private boolean resolveConflicts;
 
     public PublishRequest() {

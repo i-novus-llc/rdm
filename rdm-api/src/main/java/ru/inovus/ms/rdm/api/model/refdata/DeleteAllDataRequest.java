@@ -2,17 +2,16 @@ package ru.inovus.ms.rdm.api.model.refdata;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import io.swagger.annotations.ApiParam;
 import ru.inovus.ms.rdm.api.util.json.JsonUtil;
 
 @ApiModel(value = "Модель удаления всех записей черновика",
         description = "Набор входных параметров для всех записей черновика")
 public class DeleteAllDataRequest implements DraftChangeRequest {
 
-    @ApiModelProperty(value = "Идентификатор черновика")
+    @ApiModelProperty("Идентификатор черновика")
     private Integer draftId;
 
-    @ApiParam("Значение оптимистической блокировки версии-черновика")
+    @ApiModelProperty("Значение оптимистической блокировки версии-черновика")
     private Integer optLockValue;
 
     public DeleteAllDataRequest() {

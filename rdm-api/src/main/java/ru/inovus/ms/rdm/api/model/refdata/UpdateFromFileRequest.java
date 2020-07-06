@@ -2,7 +2,6 @@ package ru.inovus.ms.rdm.api.model.refdata;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import io.swagger.annotations.ApiParam;
 import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.util.json.JsonUtil;
 
@@ -10,13 +9,13 @@ import ru.inovus.ms.rdm.api.util.json.JsonUtil;
         description = "Набор входных параметров для изменения записей черновика из файла")
 public class UpdateFromFileRequest implements DraftChangeRequest {
 
-    @ApiModelProperty(value = "Идентификатор черновика")
+    @ApiModelProperty("Идентификатор черновика")
     private Integer draftId;
 
-    @ApiParam("Значение оптимистической блокировки версии-черновика")
+    @ApiModelProperty("Значение оптимистической блокировки версии-черновика")
     private Integer optLockValue;
 
-    @ApiParam("Файл")
+    @ApiModelProperty("Файл")
     private FileModel fileModel;
 
     public UpdateFromFileRequest() {

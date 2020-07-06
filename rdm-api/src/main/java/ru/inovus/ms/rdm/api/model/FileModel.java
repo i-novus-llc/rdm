@@ -1,17 +1,21 @@
 package ru.inovus.ms.rdm.api.model;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import ru.inovus.ms.rdm.api.util.json.JsonUtil;
 
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Objects;
 
+@ApiModel(value = "Модель сохранённого файла",
+        description = "Набор входных параметров для сохранённого файла")
 public class FileModel implements Serializable {
 
-    /** Полный путь к файлу. */
+    @ApiModelProperty("Полный путь к файлу")
     private String path;
 
-    /** Название файла. */
+    @ApiModelProperty("Наименование файла")
     private String name;
 
     public FileModel() {
