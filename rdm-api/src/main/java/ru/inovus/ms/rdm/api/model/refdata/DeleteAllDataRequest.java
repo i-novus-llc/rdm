@@ -5,7 +5,7 @@ import io.swagger.annotations.ApiModelProperty;
 import ru.inovus.ms.rdm.api.util.json.JsonUtil;
 
 @ApiModel(value = "Модель удаления всех записей черновика",
-        description = "Набор входных параметров для всех записей черновика")
+        description = "Набор входных параметров для удаления всех записей черновика")
 public class DeleteAllDataRequest implements DraftChangeRequest {
 
     @ApiModelProperty("Идентификатор версии-черновика")

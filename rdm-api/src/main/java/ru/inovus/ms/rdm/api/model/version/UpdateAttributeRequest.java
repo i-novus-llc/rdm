@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 import static ru.inovus.ms.rdm.api.model.version.UpdateValue.of;
 
 @ApiModel(value = "Модель изменения атрибута черновика",
-        description = "Набор входных параметров для изменения записей черновика")
+        description = "Набор входных параметров для изменения атрибута черновика")
 public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeRequest  {
 
     @ApiModelProperty("Идентификатор версии")

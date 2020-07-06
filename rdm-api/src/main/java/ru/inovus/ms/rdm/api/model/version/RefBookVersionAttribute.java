@@ -12,7 +12,7 @@ public class RefBookVersionAttribute implements DraftChangeRequest {
     @ApiModelProperty("Идентификатор версии")
     private Integer versionId;
 
-    @ApiModelProperty("Значение оптимистической блокировки версии-черновика")
+    @ApiModelProperty("Значение оптимистической блокировки версии")
     private Integer optLockValue;
 
     @ApiModelProperty("Атрибут версии")

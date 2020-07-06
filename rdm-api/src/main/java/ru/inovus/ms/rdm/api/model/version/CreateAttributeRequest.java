@@ -4,7 +4,7 @@ import io.swagger.annotations.ApiModel;
 import ru.inovus.ms.rdm.api.model.Structure;
 
 @ApiModel(value = "Модель создания атрибута черновика",
-        description = "Набор входных параметров для создания записей черновика")
+        description = "Набор входных параметров для создания атрибута черновика")
 public class CreateAttributeRequest extends RefBookVersionAttribute {
 
     @SuppressWarnings("unused")
