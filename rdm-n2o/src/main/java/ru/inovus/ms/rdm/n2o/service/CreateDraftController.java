@@ -122,7 +122,7 @@ public class CreateDraftController {
         return passport;
     }
 
-    public UiDraft createAttribute(Integer versionId, FormAttribute formAttribute, Integer optLockValue) {
+    public UiDraft createAttribute(Integer versionId, Integer optLockValue, FormAttribute formAttribute) {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
@@ -130,7 +130,7 @@ public class CreateDraftController {
             optLockValue = uiDraft.getOptLockValue();
         }
 
-        structureController.createAttribute(uiDraft.getId(), formAttribute, optLockValue);
+        structureController.createAttribute(uiDraft.getId(), optLockValue, formAttribute);
         return uiDraft;
     }
 

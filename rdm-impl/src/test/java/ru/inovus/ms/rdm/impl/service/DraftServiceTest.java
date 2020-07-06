@@ -30,7 +30,7 @@ import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.model.refdata.*;
-import ru.inovus.ms.rdm.api.model.version.CreateAttribute;
+import ru.inovus.ms.rdm.api.model.version.CreateAttributeRequest;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.model.version.UpdateAttribute;
 import ru.inovus.ms.rdm.api.service.VersionService;
@@ -361,25 +361,25 @@ public class DraftServiceTest {
         when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(referredEntity1.getRefBook().getCode()), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(referredEntity1);
 
         // -- Добавление атрибута null. Должна быть ошибка
-        CreateAttribute createRefAttribute = new CreateAttribute(draftEntity.getId(), null, null);
+        CreateAttributeRequest createRefAttribute = new CreateAttributeRequest(draftEntity.getId(), null, null, null);
         failCreateAttribute(createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
 
         // -- Добавление ссылочного атрибута без ссылки. Должна быть ошибка
-        createRefAttribute = new CreateAttribute(draftEntity.getId(), nameAttribute, null);
+        createRefAttribute = new CreateAttributeRequest(draftEntity.getId(), null, nameAttribute, null);
         failCreateAttribute(createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
 
         // -- Добавление ссылки без ссылочного атрибута. Должна быть ошибка
-        createRefAttribute = new CreateAttribute(draftEntity.getId(), idAttribute, nameReference);
+        createRefAttribute = new CreateAttributeRequest(draftEntity.getId(), null, idAttribute, nameReference);
         failCreateAttribute(createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
 
         // -- Добавление атрибута с неверным кодом. Должна быть ошибка
-        createRefAttribute = new CreateAttribute(draftEntity.getId(), idAttribute, null);
+        createRefAttribute = new CreateAttributeRequest(draftEntity.getId(), null, idAttribute, null);
         String idCode = idAttribute.getCode();
         idAttribute.setCode("Код");
         failCreateAttribute(createRefAttribute, "attribute.code.is.invalid", UserException.class);
         idAttribute.setCode(idCode);
 
-        createRefAttribute = new CreateAttribute(draftEntity.getId(), nameAttribute, nameReference);
+        createRefAttribute = new CreateAttributeRequest(draftEntity.getId(), null, nameAttribute, nameReference);
 
         // -- Добавление атрибута с кодом null. Должна быть ошибка
         String nameCode = nameAttribute.getCode();
@@ -403,15 +403,15 @@ public class DraftServiceTest {
         nameAttribute.setPrimary(isRefPrimary);
 
         // -- Добавление первичного ключа для возможности добавления ссылочного атрибута
-        CreateAttribute createIdAttribute = new CreateAttribute(draftEntity.getId(), idAttribute, null);
-        draftService.createAttribute(createIdAttribute, null);
+        CreateAttributeRequest createIdAttribute = new CreateAttributeRequest(draftEntity.getId(), null, idAttribute, null);
+        draftService.createAttribute(createIdAttribute);
         Structure structure = versionService.getStructure(draftEntity.getId());
         assertTrue(structure.hasPrimary());
         assertEquals(createIdAttribute.getAttribute(), structure.getPrimary().get(0));
         assertEquals(createIdAttribute.getReference(), structure.getReference(createIdAttribute.getAttribute().getCode()));
 
         // -- Корректное добавление
-        draftService.createAttribute(createRefAttribute, null);
+        draftService.createAttribute(createRefAttribute);
 
         structure = versionService.getStructure(draftEntity.getId());
         assertEquals(2, structure.getAttributes().size());
@@ -506,8 +506,8 @@ public class DraftServiceTest {
         assertEquals(updateIdAttribute, structure.getPrimary().get(0));
 
         // Добавление нового первичного атрибута. Первичность предыдущего атрибута должна быть удалена
-        CreateAttribute createPrimaryAttribute = new CreateAttribute(draftEntity.getId(), pkAttribute, nullReference);
-        draftService.createAttribute(createPrimaryAttribute, null);
+        CreateAttributeRequest createPrimaryAttribute = new CreateAttributeRequest(draftEntity.getId(), null, pkAttribute, nullReference);
+        draftService.createAttribute(createPrimaryAttribute);
 
         structure = versionService.getStructure(draftEntity.getId());
         List<Structure.Attribute> primaries = structure.getPrimary();
@@ -546,15 +546,15 @@ public class DraftServiceTest {
         doCallRealMethod().when(structureChangeValidator).validateCreateAttributeStorage(any(), any(), eq(draftTableWithData));
 
         Structure.Attribute firstAttribute = Structure.Attribute.build("first", "Первый", FieldType.STRING, "описание first");
-        CreateAttribute createAttribute = new CreateAttribute(draftEntity.getId(), firstAttribute, null);
-        draftService.createAttribute(createAttribute, null);
+        CreateAttributeRequest createAttributeRequest = new CreateAttributeRequest(draftEntity.getId(), null, firstAttribute, null);
+        draftService.createAttribute(createAttributeRequest);
         Structure structure = versionService.getStructure(draftEntity.getId());
         assertFalse(structure.isEmpty());
 
         // -- Добавление первичного ключа при наличии данных. Должна быть ошибка
         Structure.Attribute secondAttribute = Structure.Attribute.buildPrimary("second", "Второй", FieldType.INTEGER, "описание second");
-        createAttribute = new CreateAttribute(draftEntity.getId(), secondAttribute, null);
-        failCreateAttribute(createAttribute, "validation.required.pk.err", UserException.class);
+        createAttributeRequest = new CreateAttributeRequest(draftEntity.getId(), null, secondAttribute, null);
+        failCreateAttribute(createAttributeRequest, "validation.required.pk.err", UserException.class);
     }
 
     @Test
@@ -626,21 +626,21 @@ public class DraftServiceTest {
         verify(draftDataService, times(1)).updateRows(anyString(), any());
     }
 
-    private void failCreateAttribute(CreateAttribute createAttribute,
+    private void failCreateAttribute(CreateAttributeRequest request,
                                      String message,
                                      Class expectedExceptionClass) {
 
-        Structure.Attribute attribute = createAttribute.getAttribute();
-        Structure.Reference reference = createAttribute.getReference();
+        Structure.Attribute attribute = request.getAttribute();
+        Structure.Reference reference = request.getReference();
         try {
-            draftService.createAttribute(createAttribute, null);
+            draftService.createAttribute(request);
             fail("Ожидается ошибка " + expectedExceptionClass.getSimpleName());
 
         } catch (Exception e) {
             assertEquals(expectedExceptionClass, e.getClass());
             assertEquals(message, getExceptionMessage(e));
 
-            Structure newStructure = versionService.getStructure(createAttribute.getVersionId());
+            Structure newStructure = versionService.getStructure(request.getVersionId());
             assertNull("Атрибут не должен добавиться", attribute == null ? null : newStructure.getAttribute(attribute.getCode()));
             assertNull("Ссылка не должна добавиться", reference == null ? null : newStructure.getReference(reference.getAttribute()));
         }

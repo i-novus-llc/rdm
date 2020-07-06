@@ -11,7 +11,7 @@ import ru.inovus.ms.rdm.api.model.refdata.*;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidation;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidationRequest;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidationType;
-import ru.inovus.ms.rdm.api.model.version.CreateAttribute;
+import ru.inovus.ms.rdm.api.model.version.CreateAttributeRequest;
 import ru.inovus.ms.rdm.api.model.version.UpdateAttribute;
 
 import javax.ws.rs.*;
@@ -151,8 +151,7 @@ public interface DraftService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void createAttribute(@ApiParam("Модель создаваемого атрибута") CreateAttribute createAttribute,
-                         @ApiParam("Значение оптимистической блокировки версии") @QueryParam("optLockValue") Integer optLockValue);
+    void createAttribute(@ApiParam("Модель создаваемого атрибута") CreateAttributeRequest request);
 
     @PUT
     @Path("/attribute")

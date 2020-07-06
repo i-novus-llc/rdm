@@ -701,25 +701,25 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void createAttribute(CreateAttribute createAttribute, Integer optLockValue) {
+    public void createAttribute(CreateAttributeRequest request) {
 
-        final Integer draftId = createAttribute.getVersionId();
+        final Integer draftId = request.getVersionId();
         versionValidation.validateDraft(draftId);
         refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
-        validateOptLockValue(draftEntity, optLockValue);
+        validateOptLockValue(draftEntity, request);
 
         Structure structure = draftEntity.getStructure();
         if (structure == null)
             structure = new Structure();
 
-        structureChangeValidator.validateCreateAttribute(createAttribute);
+        structureChangeValidator.validateCreateAttribute(request);
 
-        Structure.Attribute attribute = createAttribute.getAttribute();
+        Structure.Attribute attribute = request.getAttribute();
         validateNewAttribute(attribute, structure, draftEntity.getRefBook().getCode());
 
-        Structure.Reference reference = createAttribute.getReference();
+        Structure.Reference reference = request.getReference();
         if (reference != null && reference.isNull())
             reference = null;
 

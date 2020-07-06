@@ -5,25 +5,19 @@ import net.n2oapp.platform.jaxrs.RestPage;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.validation.*;
-import ru.inovus.ms.rdm.api.service.ConflictService;
-import ru.inovus.ms.rdm.api.service.DraftService;
-import ru.inovus.ms.rdm.api.service.RefBookService;
-import ru.inovus.ms.rdm.api.service.VersionService;
+import ru.inovus.ms.rdm.api.model.version.CreateAttributeRequest;
+import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.api.model.version.UpdateAttribute;
+import ru.inovus.ms.rdm.api.service.*;
 import ru.inovus.ms.rdm.n2o.model.AttributeCriteria;
 import ru.inovus.ms.rdm.n2o.model.FormAttribute;
 import ru.inovus.ms.rdm.n2o.model.ReadAttribute;
-import ru.inovus.ms.rdm.api.model.Structure;
-import ru.inovus.ms.rdm.api.model.version.CreateAttribute;
-import ru.inovus.ms.rdm.api.model.version.UpdateAttribute;
-import ru.inovus.ms.rdm.api.model.refbook.RefBook;
-import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -65,7 +59,7 @@ public class StructureControllerTest extends TestCase {
     @Captor
     ArgumentCaptor<UpdateAttribute> updateAttributeArgumentCaptor;
     @Captor
-    ArgumentCaptor<CreateAttribute> createAttributeArgumentCaptor;
+    ArgumentCaptor<CreateAttributeRequest> createAttributeArgumentCaptor;
 
     private final int refBookId = -2;
     private final int versionId = 15;
@@ -180,12 +174,12 @@ public class StructureControllerTest extends TestCase {
         formAttribute.setType(FieldType.REFERENCE);
         formAttribute.setDisplayExpression(referenceDisplayExpression);
         formAttribute.setReferenceCode(referenceCode);
-        structureController.createAttribute(versionId, formAttribute, null);
+        structureController.createAttribute(versionId, null, formAttribute);
 
-        verify(draftService, times(1)).createAttribute(createAttributeArgumentCaptor.capture(), any());
+        verify(draftService, times(1)).createAttribute(createAttributeArgumentCaptor.capture());
         verify(draftService, times(1)).updateAttributeValidations(eq(versionId), any(AttributeValidationRequest.class));
 
-        CreateAttribute actual = createAttributeArgumentCaptor.getValue();
+        CreateAttributeRequest actual = createAttributeArgumentCaptor.getValue();
         assertEquals(testCode, actual.getAttribute().getCode());
         assertEquals(testName, actual.getAttribute().getName());
         assertEquals(testDescription, actual.getAttribute().getDescription());

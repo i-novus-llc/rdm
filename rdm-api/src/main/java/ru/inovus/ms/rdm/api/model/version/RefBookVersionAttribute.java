@@ -1,22 +1,29 @@
 package ru.inovus.ms.rdm.api.model.version;
 
+import io.swagger.annotations.ApiModelProperty;
 import ru.inovus.ms.rdm.api.model.Structure;
 
 import java.io.Serializable;
 import java.util.Objects;
 
+/** Модель атрибута версии справочника. */
 public class RefBookVersionAttribute implements Serializable {
 
+    @ApiModelProperty("Идентификатор версии")
     private Integer versionId;
 
+    @ApiModelProperty("Атрибут версии")
     private Structure.Attribute attribute;
 
+    @ApiModelProperty("Атрибут-ссылка версии")
     private Structure.Reference reference;
 
     @SuppressWarnings("WeakerAccess")
     public RefBookVersionAttribute() {}
 
-    public RefBookVersionAttribute(Integer versionId, Structure.Attribute attribute, Structure.Reference reference) {
+    public RefBookVersionAttribute(Integer versionId,
+                                   Structure.Attribute attribute,
+                                   Structure.Reference reference) {
         this.versionId = versionId;
         this.attribute = attribute;
         this.reference = reference;

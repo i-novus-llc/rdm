@@ -275,8 +275,8 @@ public class ApplicationTest {
         assertNotNull(referredDraft);
         assertNotNull(referredDraft.getStorageCode());
 
-        CreateAttribute createReferredAttribute = new CreateAttribute(referredDraft.getId(), referredIdAttribute, null);
-        draftService.createAttribute(createReferredAttribute, null);
+        CreateAttributeRequest createReferredAttribute = new CreateAttributeRequest(referredDraft.getId(), null, referredIdAttribute, null);
+        draftService.createAttribute(createReferredAttribute);
 
         Row referredRow = new Row(new HashMap<>() {{ put(referredIdAttribute.getCode(), "1"); }});
         updateData(referredDraft.getId(), referredRow, null);
@@ -313,11 +313,11 @@ public class ApplicationTest {
         assertRefBooksEqual(refBook, updatedRefBook);
 
         // добавление атрибута и проверка
-        CreateAttribute createAttributeModel = new CreateAttribute(draft.getId(), idAttribute, null);
-        draftService.createAttribute(createAttributeModel, null);
+        CreateAttributeRequest createAttributeRequest = new CreateAttributeRequest(draft.getId(), null, idAttribute, null);
+        draftService.createAttribute(createAttributeRequest);
 
-        createAttributeModel = new CreateAttribute(draft.getId(), createAttribute, createReference);
-        draftService.createAttribute(createAttributeModel, null);
+        createAttributeRequest = new CreateAttributeRequest(draft.getId(), null, createAttribute, createReference);
+        draftService.createAttribute(createAttributeRequest);
         Structure structure = versionService.getStructure(draft.getId());
         assertEquals(2, structure.getAttributes().size());
         assertEquals(createAttribute, structure.getAttribute(createAttribute.getCode()));
@@ -331,9 +331,9 @@ public class ApplicationTest {
         assertEquals(createReference, structure.getReference(updateAttributeModel.getCode()));
 
         // удаление атрибута и проверка
-        createAttributeModel.setAttribute(deleteAttribute);
-        createAttributeModel.setReference(new Structure.Reference(null, null, null));
-        draftService.createAttribute(createAttributeModel, null);
+        createAttributeRequest.setAttribute(deleteAttribute);
+        createAttributeRequest.setReference(new Structure.Reference(null, null, null));
+        draftService.createAttribute(createAttributeRequest);
 
         draftService.deleteAttribute(draft.getId(), deleteAttribute.getCode(), null);
         structure = versionService.getStructure(draft.getId());
@@ -610,7 +610,7 @@ public class ApplicationTest {
 
         Structure structure = createTestStructureWithSimpleTypesOnly();
         structure.getAttributes().forEach(
-                attribute -> draftService.createAttribute(new CreateAttribute(versionId, attribute, null), null)
+                attribute -> draftService.createAttribute(new CreateAttributeRequest(versionId, null, attribute, null))
         );
 
         // после создания черновик пустой
@@ -745,9 +745,8 @@ public class ApplicationTest {
         Structure structure = createTestStructureWithReferenceType();
         structure.getAttributes().forEach(attribute ->
                 draftService.createAttribute(
-                        new CreateAttribute(versionId, attribute,
-                                attribute.isReferenceType() ? structure.getReference("reference") : null),
-                        null
+                        new CreateAttributeRequest(versionId, null, attribute,
+                                attribute.isReferenceType() ? structure.getReference("reference") : null)
                 )
         );
 
@@ -880,7 +879,7 @@ public class ApplicationTest {
         Integer oldVersionId = refBook.getId();
         structure.getAttributes()
                 .forEach(attribute ->
-                        draftService.createAttribute(new CreateAttribute(oldVersionId, attribute, null), null)
+                        draftService.createAttribute(new CreateAttributeRequest(oldVersionId, null, attribute, null))
                 );
         updateFromFile(oldVersionId, null, OLD_FILE_NAME, "testCompare/" + OLD_FILE_NAME);
         publish(oldVersionId, "1.0", LocalDateTime.now(), null, false);
@@ -937,7 +936,7 @@ public class ApplicationTest {
         Integer oldVersionId = refBook.getId();
         structure.getAttributes()
                 .forEach(attribute ->
-                        draftService.createAttribute(new CreateAttribute(oldVersionId, attribute, null), null)
+                        draftService.createAttribute(new CreateAttributeRequest(oldVersionId, null, attribute, null))
                 );
         updateFromFile(oldVersionId, null, OLD_FILE_NAME, "testCompare/" + OLD_FILE_NAME);
         publish(oldVersionId, "1.0", publishDate1, closeDate1, false);
@@ -1147,9 +1146,9 @@ public class ApplicationTest {
     @Test
     public void testCreateRequiredAttributeWithNotEmptyData() {
 
-        CreateAttribute createAttributeModel = new CreateAttribute(-3, idAttribute, null);
+        CreateAttributeRequest request = new CreateAttributeRequest(-3, null, idAttribute, null);
         try {
-            draftService.createAttribute(createAttributeModel, null);
+            draftService.createAttribute(request);
             fail();
         } catch (Exception e) {
             assertEquals("validation.required.pk.err", e.getMessage());
@@ -1450,7 +1449,7 @@ public class ApplicationTest {
         draft = actualDraft;
         String optAttributeCode = "opt_attr";
         Structure.Attribute optAttribute = Structure.Attribute.build(optAttributeCode, "optAttr", FieldType.INTEGER, "opt-значение");
-        draftService.createAttribute(new CreateAttribute(draft.getId(), optAttribute, null), draft.getOptLockValue());
+        draftService.createAttribute(new CreateAttributeRequest(draft.getId(), draft.getOptLockValue(), optAttribute, null));
 
         actualDraft = draftService.getDraft(draftId);
         assertNotEquals(draft.getOptLockValue(), actualDraft.getOptLockValue());
@@ -1540,7 +1539,7 @@ public class ApplicationTest {
 
         //create new refbook
         RefBook relRefBook = refBookService.create(new RefBookCreateRequest(RELATION_REFBOOK_CODE, null));
-        draftService.createAttribute(new CreateAttribute(relRefBook.getId(), Structure.Attribute.buildPrimary(RELATION_ATTR_CODE, "string", FieldType.STRING, "string"), null), null);
+        draftService.createAttribute(new CreateAttributeRequest(relRefBook.getId(), null, Structure.Attribute.buildPrimary(RELATION_ATTR_CODE, "string", FieldType.STRING, "string"), null));
         updateFromFile(relRefBook.getId(), null, RELATION_FILENAME, RELATION_FILENAME);
         publish(relRefBook.getId(), "1.0", LocalDateTime.now(), null, false);
 
@@ -1548,25 +1547,45 @@ public class ApplicationTest {
         RefBook refBook = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE, null));
         final Integer versionId = refBook.getId();
 
-        draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.buildPrimary(PK_STRING, PK_STRING, FieldType.STRING, "string"), null), null);
-        draftService.createAttribute(new CreateAttribute(versionId,
+        draftService.createAttribute(new CreateAttributeRequest(versionId, null,
+                Structure.Attribute.buildPrimary(PK_STRING, PK_STRING, FieldType.STRING, "string"), null
+        ));
+        draftService.createAttribute(new CreateAttributeRequest(versionId, null,
                 Structure.Attribute.build(PK_REFERENCE, PK_REFERENCE, FieldType.REFERENCE, "count"),
                 new Structure.Reference(PK_REFERENCE, RELATION_REFBOOK_CODE, toPlaceholder(RELATION_ATTR_CODE))
-        ), null);
-        draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.buildPrimary(PK_FLOAT, PK_FLOAT, FieldType.FLOAT, "float"), null), null);
-        draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.buildPrimary(PK_DATE, PK_DATE, FieldType.DATE, "date"), null), null);
-        draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.buildPrimary(PK_BOOL, PK_BOOL, FieldType.BOOLEAN, "boolean"), null), null);
-        draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.buildPrimary(PK_INTEGER, PK_INTEGER, FieldType.INTEGER, "integer"), null), null);
+        ));
+        draftService.createAttribute(new CreateAttributeRequest(versionId, null,
+                Structure.Attribute.buildPrimary(PK_FLOAT, PK_FLOAT, FieldType.FLOAT, "float"), null
+        ));
+        draftService.createAttribute(new CreateAttributeRequest(versionId, null,
+                Structure.Attribute.buildPrimary(PK_DATE, PK_DATE, FieldType.DATE, "date"), null
+        ));
+        draftService.createAttribute(new CreateAttributeRequest(versionId, null,
+                Structure.Attribute.buildPrimary(PK_BOOL, PK_BOOL, FieldType.BOOLEAN, "boolean"), null
+        ));
+        draftService.createAttribute(new CreateAttributeRequest(versionId, null,
+                Structure.Attribute.buildPrimary(PK_INTEGER, PK_INTEGER, FieldType.INTEGER, "integer"), null
+        ));
 
-        draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.build(NOT_PK_STRING, NOT_PK_STRING, FieldType.STRING, "string"), null), null);
-        draftService.createAttribute(new CreateAttribute(versionId,
+        draftService.createAttribute(new CreateAttributeRequest(versionId, null,
+                Structure.Attribute.build(NOT_PK_STRING, NOT_PK_STRING, FieldType.STRING, "string"), null
+        ));
+        draftService.createAttribute(new CreateAttributeRequest(versionId, null,
                 Structure.Attribute.build(NOT_PK_REFERENCE, NOT_PK_REFERENCE, FieldType.REFERENCE, "count"),
                 new Structure.Reference(NOT_PK_REFERENCE, RELATION_REFBOOK_CODE, toPlaceholder(RELATION_ATTR_CODE))
-        ), null);
-        draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.build(NOT_PK_FLOAT, NOT_PK_FLOAT, FieldType.FLOAT, "float"), null), null);
-        draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.build(NOT_PK_DATE, NOT_PK_DATE, FieldType.DATE, "date"), null), null);
-        draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.build(NOT_PK_BOOL, NOT_PK_BOOL, FieldType.BOOLEAN, "boolean"), null), null);
-        draftService.createAttribute(new CreateAttribute(versionId, Structure.Attribute.build(NOT_PK_INTEGER, NOT_PK_INTEGER, FieldType.INTEGER, "integer"), null), null);
+        ));
+        draftService.createAttribute(new CreateAttributeRequest(versionId, null,
+                Structure.Attribute.build(NOT_PK_FLOAT, NOT_PK_FLOAT, FieldType.FLOAT, "float"), null
+        ));
+        draftService.createAttribute(new CreateAttributeRequest(versionId, null,
+                Structure.Attribute.build(NOT_PK_DATE, NOT_PK_DATE, FieldType.DATE, "date"), null
+        ));
+        draftService.createAttribute(new CreateAttributeRequest(versionId, null,
+                Structure.Attribute.build(NOT_PK_BOOL, NOT_PK_BOOL, FieldType.BOOLEAN, "boolean"), null
+        ));
+        draftService.createAttribute(new CreateAttributeRequest(versionId, null,
+                Structure.Attribute.build(NOT_PK_INTEGER, NOT_PK_INTEGER, FieldType.INTEGER, "integer"), null
+        ));
 
         updateFromFile(versionId, null, REFBOOK_FILENAME_1, REFBOOK_FILENAME_1);
         try {
@@ -2159,7 +2178,7 @@ public class ApplicationTest {
         Integer oldVersionId = refBook.getId();
         asList(id, code, common, descr, upd1, typeS)
                 .forEach(attribute ->
-                        draftService.createAttribute(new CreateAttribute(oldVersionId, attribute, null), null)
+                        draftService.createAttribute(new CreateAttributeRequest(oldVersionId, null, attribute, null))
                 );
         updateFromFile(oldVersionId, null, OLD_FILE_NAME, "testCompare/" + OLD_FILE_NAME);
         publish(oldVersionId, "1.0", publishDate1, closeDate1, false);
@@ -2220,8 +2239,8 @@ public class ApplicationTest {
 
         RefBook refBook = refBookService.create(new RefBookCreateRequest(COMPARABLE_REF_BOOK_CODE + "_no_diff", null));
         Integer oldVersionId = refBook.getId();
-        draftService.createAttribute(new CreateAttribute(refBook.getId(), id, null), null);
-        draftService.createAttribute(new CreateAttribute(refBook.getId(), code, null), null);
+        draftService.createAttribute(new CreateAttributeRequest(refBook.getId(), null, id, null));
+        draftService.createAttribute(new CreateAttributeRequest(refBook.getId(), null, code, null));
 
         updateFromFile(refBook.getId(), null, FILE_NAME, "testCompare/" + FILE_NAME);
         publish(refBook.getId(), "1.0", publishDate1, null, false);
@@ -2263,8 +2282,8 @@ public class ApplicationTest {
 
         RefBook refBook = refBookService.create(new RefBookCreateRequest(COMPARABLE_REF_BOOK_CODE + "_diff_pk", null));
         Integer oldVersionId = refBook.getId();
-        draftService.createAttribute(new CreateAttribute(refBook.getId(), id, null), null);
-        draftService.createAttribute(new CreateAttribute(refBook.getId(), code, null), null);
+        draftService.createAttribute(new CreateAttributeRequest(refBook.getId(), null, id, null));
+        draftService.createAttribute(new CreateAttributeRequest(refBook.getId(), null, code, null));
 
         updateFromFile(refBook.getId(), null, FILE_NAME, "testCompare/" + FILE_NAME);
         publish(refBook.getId(), "1.0", LocalDateTime.now(), null, false);
@@ -2317,8 +2336,8 @@ public class ApplicationTest {
 
         RefBook refToRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_to_confl", null));
         Integer refToVersionId = refToRefBook.getId();
-        draftService.createAttribute(new CreateAttribute(refToVersionId, id, null), null);
-        draftService.createAttribute(new CreateAttribute(refToVersionId, code, null), null);
+        draftService.createAttribute(new CreateAttributeRequest(refToVersionId, null, id, null));
+        draftService.createAttribute(new CreateAttributeRequest(refToVersionId, null, code, null));
 
         updateFromFile(refToVersionId, null, OLD_FILE_NAME, "testConflicts/" + OLD_FILE_NAME);
         publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
@@ -2338,10 +2357,10 @@ public class ApplicationTest {
 
         RefBook refFromRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_from_confl", null));
         Integer refFromVersionId = refFromRefBook.getId();
-        draftService.createAttribute(new CreateAttribute(refFromVersionId, id_id, null), null);
-        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id_1, ref_id_1_ref), null);
-        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id_2, ref_id_2_ref), null);
-        draftService.createAttribute(new CreateAttribute(refFromVersionId, code, null), null);
+        draftService.createAttribute(new CreateAttributeRequest(refFromVersionId, null, id_id, null));
+        draftService.createAttribute(new CreateAttributeRequest(refFromVersionId, null, ref_id_1, ref_id_1_ref));
+        draftService.createAttribute(new CreateAttributeRequest(refFromVersionId, null, ref_id_2, ref_id_2_ref));
+        draftService.createAttribute(new CreateAttributeRequest(refFromVersionId, null, code, null));
 
         updateFromFile(refFromVersionId, null, REF_FILE_NAME, "testConflicts/" + REF_FILE_NAME);
         publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
@@ -2377,10 +2396,10 @@ public class ApplicationTest {
 
         RefBook refToRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_to_struc", null));
         Integer refToVersionId = refToRefBook.getId();
-        draftService.createAttribute(new CreateAttribute(refToVersionId, id, null), null);
-        draftService.createAttribute(new CreateAttribute(refToVersionId, fixedAttr, null), null);
-        draftService.createAttribute(new CreateAttribute(refToVersionId, updatedAttr, null), null);
-        draftService.createAttribute(new CreateAttribute(refToVersionId, deletedAttr, null), null);
+        draftService.createAttribute(new CreateAttributeRequest(refToVersionId, null, id, null));
+        draftService.createAttribute(new CreateAttributeRequest(refToVersionId, null, fixedAttr, null));
+        draftService.createAttribute(new CreateAttributeRequest(refToVersionId, null, updatedAttr, null));
+        draftService.createAttribute(new CreateAttributeRequest(refToVersionId, null, deletedAttr, null));
 
         updateFromFile(refToVersionId, null, OLD_FILE_NAME, "testConflicts/structured/" + OLD_FILE_NAME);
         publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
@@ -2402,16 +2421,16 @@ public class ApplicationTest {
 
         RefBook refFromRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_from_struc", null));
         Integer refFromVersionId = refFromRefBook.getId();
-        draftService.createAttribute(new CreateAttribute(refFromVersionId, id_id, null), null);
-        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_fix, ref_fix_ref), null);
-        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_upd, ref_upd_ref), null);
-        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_del, ref_del_ref), null);
+        draftService.createAttribute(new CreateAttributeRequest(refFromVersionId, null, id_id, null));
+        draftService.createAttribute(new CreateAttributeRequest(refFromVersionId, null, ref_fix, ref_fix_ref));
+        draftService.createAttribute(new CreateAttributeRequest(refFromVersionId, null, ref_upd, ref_upd_ref));
+        draftService.createAttribute(new CreateAttributeRequest(refFromVersionId, null, ref_del, ref_del_ref));
 
         updateFromFile(refFromVersionId, null, REF_FILE_NAME, "testConflicts/structured/" + REF_FILE_NAME);
         publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
 
         Structure.Attribute insertedAttribute = Structure.Attribute.build("INS_ATTR", "ins-attr", FieldType.INTEGER, "inserted attribute");
-        draftService.createAttribute(new CreateAttribute(refToDraftId, insertedAttribute, null), null);
+        draftService.createAttribute(new CreateAttributeRequest(refToDraftId, null, insertedAttribute, null));
         Structure.Attribute updatedAttribute = Structure.Attribute.build("UPD_ATTR", "upd-attr", FieldType.INTEGER, "updated attribute");
         draftService.updateAttribute(new UpdateAttribute(refToDraftId, updatedAttribute, null), null);
         draftService.deleteAttribute(refToDraftId, deletedAttr.getCode(), null);
@@ -2452,7 +2471,7 @@ public class ApplicationTest {
 
         RefBook refToRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_to_diff_pk", null));
         Integer refToVersionId = refToRefBook.getId();
-        draftService.createAttribute(new CreateAttribute(refToVersionId, id, null), null);
+        draftService.createAttribute(new CreateAttributeRequest(refToVersionId, null, id, null));
         updateData(refToVersionId, new Row(null, Map.of("ID", 1)), null);
         publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
 
@@ -2462,8 +2481,8 @@ public class ApplicationTest {
 
         RefBook refFromRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_from_diff_pk", null));
         Integer refFromVersionId = refFromRefBook.getId();
-        draftService.createAttribute(new CreateAttribute(refFromVersionId, id_id, null), null);
-        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id, ref_id_ref), null);
+        draftService.createAttribute(new CreateAttributeRequest(refFromVersionId, null, id_id, null));
+        draftService.createAttribute(new CreateAttributeRequest(refFromVersionId, null, ref_id, ref_id_ref));
         updateData(refFromVersionId, new Row(null, Map.of("ID_ID", 1)), null);
         publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
 
@@ -2500,8 +2519,8 @@ public class ApplicationTest {
 
         RefBook refToRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_to_confl_chk", null));
         Integer refToVersionId = refToRefBook.getId();
-        draftService.createAttribute(new CreateAttribute(refToVersionId, id, null), null);
-        draftService.createAttribute(new CreateAttribute(refToVersionId, code, null), null);
+        draftService.createAttribute(new CreateAttributeRequest(refToVersionId, null, id, null));
+        draftService.createAttribute(new CreateAttributeRequest(refToVersionId, null, code, null));
 
         updateFromFile(refToVersionId, null, OLD_FILE_NAME, "testConflicts/" + OLD_FILE_NAME);
         publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
@@ -2521,10 +2540,10 @@ public class ApplicationTest {
 
         RefBook refFromRefBook = refBookService.create(new RefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_from_confl_chk", null));
         Integer refFromVersionId = refFromRefBook.getId();
-        draftService.createAttribute(new CreateAttribute(refFromVersionId, id_id, null), null);
-        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id_1, ref_id_1_ref), null);
-        draftService.createAttribute(new CreateAttribute(refFromVersionId, ref_id_2, ref_id_2_ref), null);
-        draftService.createAttribute(new CreateAttribute(refFromVersionId, code, null), null);
+        draftService.createAttribute(new CreateAttributeRequest(refFromVersionId, null, id_id, null));
+        draftService.createAttribute(new CreateAttributeRequest(refFromVersionId, null, ref_id_1, ref_id_1_ref));
+        draftService.createAttribute(new CreateAttributeRequest(refFromVersionId, null, ref_id_2, ref_id_2_ref));
+        draftService.createAttribute(new CreateAttributeRequest(refFromVersionId, null, code, null));
 
         updateFromFile(refFromVersionId, null, REF_FILE_NAME, "testConflicts/" + REF_FILE_NAME);
         publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);

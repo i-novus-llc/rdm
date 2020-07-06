@@ -240,13 +240,13 @@ public class StructureController {
         return conflicts != null && !CollectionUtils.isEmpty(conflicts.getContent());
     }
 
-    public void createAttribute(Integer versionId, FormAttribute formAttribute, Integer optLockValue) {
+    public void createAttribute(Integer versionId, Integer optLockValue, FormAttribute formAttribute) {
 
-        CreateAttribute attributeModel = getCreateAttribute(versionId, formAttribute);
-        draftService.createAttribute(attributeModel, optLockValue);
+        CreateAttributeRequest attributeRequest = getCreateAttributeRequest(versionId, optLockValue, formAttribute);
+        draftService.createAttribute(attributeRequest);
         try {
             AttributeValidationRequest validationRequest = new AttributeValidationRequest();
-            validationRequest.setNewAttribute(attributeModel);
+            validationRequest.setNewAttribute(attributeRequest);
             validationRequest.setValidations(createValidations(formAttribute));
 
             draftService.updateAttributeValidations(versionId, validationRequest);
@@ -268,7 +268,7 @@ public class StructureController {
         try {
             AttributeValidationRequest validationRequest = new AttributeValidationRequest();
             validationRequest.setOldAttribute(getVersionAttribute(versionId, oldAttribute, oldReference));
-            validationRequest.setNewAttribute(getCreateAttribute(versionId, formAttribute));
+            validationRequest.setNewAttribute(getCreateAttributeRequest(versionId, optLockValue, formAttribute));
             validationRequest.setValidations(createValidations(formAttribute));
 
             draftService.updateAttributeValidations(versionId, validationRequest);
@@ -322,7 +322,8 @@ public class StructureController {
     }
 
     /** Получение атрибута для отображения на форме из конкретного атрибута (+ ссылки). */
-    private ReadAttribute getReadAttribute(Structure.Attribute attribute, Structure.Reference reference) {
+    private ReadAttribute getReadAttribute(Structure.Attribute attribute,
+                                           Structure.Reference reference) {
 
         ReadAttribute readAttribute = new ReadAttribute();
         readAttribute.setCode(attribute.getCode());
@@ -347,8 +348,12 @@ public class StructureController {
     }
 
     /** Получение атрибута для добавления из атрибута формы. */
-    private CreateAttribute getCreateAttribute(Integer versionId, FormAttribute formAttribute) {
-        return new CreateAttribute(versionId, buildAttribute(formAttribute), buildReference(formAttribute));
+    private CreateAttributeRequest getCreateAttributeRequest(Integer versionId,
+                                                             Integer optLockValue,
+                                                             FormAttribute formAttribute) {
+        return new CreateAttributeRequest(versionId, optLockValue,
+                buildAttribute(formAttribute), buildReference(formAttribute)
+        );
     }
 
     private Structure.Attribute buildAttribute(FormAttribute request) {
