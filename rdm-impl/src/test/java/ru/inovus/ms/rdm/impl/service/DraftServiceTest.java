@@ -30,9 +30,7 @@ import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.model.refdata.*;
-import ru.inovus.ms.rdm.api.model.version.CreateAttributeRequest;
-import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.api.model.version.UpdateAttributeRequest;
+import ru.inovus.ms.rdm.api.model.version.*;
 import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.FieldValueUtils;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
@@ -516,7 +514,8 @@ public class DraftServiceTest {
         assertFalse(primaries.contains(updateIdAttribute));
 
         // Удаление атрибута-ссылки для удаления первичного ключа
-        draftService.deleteAttribute(draftEntity.getId(), nameAttribute.getCode(), null);
+        DeleteAttributeRequest deleteAttributeRequest = new DeleteAttributeRequest(draftEntity.getId(), null, nameAttribute.getCode());
+        draftService.deleteAttribute(deleteAttributeRequest);
 
         // Удаление первичности ключа. Не должно быть атрибутов - первичных ключей
         assertTrue(structure.hasPrimary());
@@ -684,8 +683,9 @@ public class DraftServiceTest {
 
         Structure.Attribute attribute = oldStructure.getAttribute(attributeCode);
         Structure.Reference reference = oldStructure.getReference(attributeCode);
+        DeleteAttributeRequest request = new DeleteAttributeRequest(draftId, null, attributeCode);
         try {
-            draftService.deleteAttribute(draftId, attributeCode, null);
+            draftService.deleteAttribute(request);
             fail("Ожидается ошибка " + expectedExceptionClass.getSimpleName());
 
         } catch (Exception e) {

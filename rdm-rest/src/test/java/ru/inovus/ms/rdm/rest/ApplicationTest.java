@@ -335,7 +335,8 @@ public class ApplicationTest {
         createAttributeRequest.setReference(new Structure.Reference(null, null, null));
         draftService.createAttribute(createAttributeRequest);
 
-        draftService.deleteAttribute(draft.getId(), deleteAttribute.getCode(), null);
+        DeleteAttributeRequest deleteAttributeRequest = new DeleteAttributeRequest(draft.getId(), null, deleteAttribute.getCode());
+        draftService.deleteAttribute(deleteAttributeRequest);
         structure = versionService.getStructure(draft.getId());
         assertEquals(2, structure.getAttributes().size());
 
@@ -1465,7 +1466,7 @@ public class ApplicationTest {
 
         // Удаление атрибута.
         draft = actualDraft;
-        draftService.deleteAttribute(draftId, optAttributeCode, draft.getOptLockValue());
+        draftService.deleteAttribute(new DeleteAttributeRequest(draftId, draft.getOptLockValue(), optAttributeCode));
 
         actualDraft = draftService.getDraft(draftId);
         assertNotEquals(draft.getOptLockValue(), actualDraft.getOptLockValue());
@@ -2433,7 +2434,7 @@ public class ApplicationTest {
         draftService.createAttribute(new CreateAttributeRequest(refToDraftId, null, insertedAttribute, null));
         Structure.Attribute updatedAttribute = Structure.Attribute.build("UPD_ATTR", "upd-attr", FieldType.INTEGER, "updated attribute");
         draftService.updateAttribute(new UpdateAttributeRequest(refToDraftId, null, updatedAttribute, null));
-        draftService.deleteAttribute(refToDraftId, deletedAttr.getCode(), null);
+        draftService.deleteAttribute(new DeleteAttributeRequest(refToDraftId, null, deletedAttr.getCode()));
 
         List<Conflict> expectedConflicts = asList(
                 new Conflict(ref_fix.getCode(), ConflictType.DELETED, singletonList(

@@ -864,15 +864,18 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public void deleteAttribute(Integer draftId, String attributeCode, Integer optLockValue) {
+    public void deleteAttribute(DeleteAttributeRequest request) {
 
+        final Integer draftId = request.getVersionId();
         versionValidation.validateDraft(draftId);
         refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
-        validateOptLockValue(draftEntity, optLockValue);
+        validateOptLockValue(draftEntity, request);
 
         Structure structure = draftEntity.getStructure();
+        final String attributeCode = request.getAttributeCode();
+
         Structure.Attribute attribute = structure.getAttribute(attributeCode);
         validateOldAttribute(attribute, structure, draftEntity.getRefBook().getCode());
 
@@ -1044,11 +1047,6 @@ public class DraftServiceImpl implements DraftService {
 
     private void validateOptLockValue(RefBookVersionEntity entity, DraftChangeRequest request) {
         versionValidation.validateOptLockValue(entity.getId(), entity.getOptLockValue(), request.getOptLockValue());
-    }
-
-    @Deprecated
-    private void validateOptLockValue(RefBookVersionEntity entity, Integer optLockValue) {
-        versionValidation.validateOptLockValue(entity.getId(), entity.getOptLockValue(), optLockValue);
     }
 
     private void auditStructureEdit(RefBookVersionEntity refBook, String action, Structure.Attribute attribute) {

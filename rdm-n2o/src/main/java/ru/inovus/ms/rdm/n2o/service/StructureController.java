@@ -252,7 +252,8 @@ public class StructureController {
             draftService.updateAttributeValidations(versionId, validationRequest);
 
         } catch (RestException re) {
-            draftService.deleteAttribute(versionId, formAttribute.getCode(), null);
+            DeleteAttributeRequest rollbackRequest = new DeleteAttributeRequest(versionId, null, formAttribute.getCode());
+            draftService.deleteAttribute(rollbackRequest);
             throw re;
         }
     }
@@ -283,7 +284,9 @@ public class StructureController {
     public void deleteAttribute(Integer versionId, Integer optLockValue, String attributeCode) {
 
         draftService.deleteAttributeValidation(versionId, attributeCode, null);
-        draftService.deleteAttribute(versionId, attributeCode, optLockValue);
+
+        DeleteAttributeRequest request = new DeleteAttributeRequest(versionId, optLockValue, attributeCode);
+        draftService.deleteAttribute(request);
     }
 
     /** Заполнение валидаций атрибута из атрибута формы. */

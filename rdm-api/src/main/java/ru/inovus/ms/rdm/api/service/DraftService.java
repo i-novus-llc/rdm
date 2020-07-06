@@ -12,6 +12,7 @@ import ru.inovus.ms.rdm.api.model.validation.AttributeValidation;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidationRequest;
 import ru.inovus.ms.rdm.api.model.validation.AttributeValidationType;
 import ru.inovus.ms.rdm.api.model.version.CreateAttributeRequest;
+import ru.inovus.ms.rdm.api.model.version.DeleteAttributeRequest;
 import ru.inovus.ms.rdm.api.model.version.UpdateAttributeRequest;
 
 import javax.ws.rs.*;
@@ -163,16 +164,14 @@ public interface DraftService {
     void updateAttribute(@ApiParam("Модель изменяемого атрибута") UpdateAttributeRequest request);
 
     @DELETE
-    @Path("/{versionId}/attribute/{code}")
+    @Path("/attribute")
     @ApiOperation("Удаление атрибута справочника")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void deleteAttribute(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
-                         @ApiParam("Код атрибута") @PathParam("code") String attributeCode,
-                         @ApiParam("Значение оптимистической блокировки версии") @QueryParam("optLockValue") Integer optLockValue);
+    void deleteAttribute(DeleteAttributeRequest request);
 
     @POST
     @Path("/{versionId}/attribute/{attribute}/validation")
