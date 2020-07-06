@@ -27,18 +27,22 @@ public class UpdateFromFileRequest implements DraftChangeRequest {
         this.fileModel = fileModel;
     }
 
+    @Override
     public Integer getVersionId() {
         return versionId;
     }
 
+    @Override
     public void setVersionId(Integer draftId) {
         this.versionId = draftId;
     }
 
+    @Override
     public Integer getOptLockValue() {
         return optLockValue;
     }
 
+    @Override
     public void setOptLockValue(Integer optLockValue) {
         this.optLockValue = optLockValue;
     }
