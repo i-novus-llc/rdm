@@ -1,12 +1,23 @@
 package ru.inovus.ms.rdm.api.model.draft;
 
+import java.util.Objects;
+
+/** Модель черновика. */
 public class Draft {
+
+    /** Идентификатор черновика. */
     private Integer id;
+
+    /** storage_code. */
     private String storageCode;
 
-    public Draft(Integer id, String storageCode) {
+    /** Значение оптимистической блокировки версии-черновика. */
+    private Integer optLockValue;
+
+    public Draft(Integer id, String storageCode, Integer optLockValue) {
         this.id = id;
         this.storageCode = storageCode;
+        this.optLockValue = optLockValue;
     }
 
     public Draft() {
@@ -28,21 +39,31 @@ public class Draft {
         this.storageCode = storageCode;
     }
 
+    public Integer getOptLockValue() {
+        return optLockValue;
+    }
+
+    public void setOptLockValue(Integer optLockValue) {
+        this.optLockValue = optLockValue;
+    }
+
+    public boolean isVersionDraft(Integer versionId) {
+        return Objects.equals(getId(), versionId);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Draft draft = (Draft) o;
-
-        if (id != null ? !id.equals(draft.id) : draft.id != null) return false;
-        return storageCode != null ? storageCode.equals(draft.storageCode) : draft.storageCode == null;
+        Draft that = (Draft) o;
+        return Objects.equals(id, that.id) &&
+                Objects.equals(storageCode, that.storageCode) &&
+                Objects.equals(optLockValue, that.optLockValue);
     }
 
     @Override
     public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + (storageCode != null ? storageCode.hashCode() : 0);
-        return result;
+        return Objects.hash(id, storageCode, optLockValue);
     }
 }

@@ -25,7 +25,6 @@ import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
-// Использовать VersionValidation без интерфейса как ReferenceValidation
 // Выделить RefBookValidation с refbookRepository.
 public class VersionValidationImpl implements VersionValidation {
 
@@ -33,8 +32,11 @@ public class VersionValidationImpl implements VersionValidation {
     public static final String REFBOOK_CODE_IS_INVALID_EXCEPTION_CODE = "refbook.code.is.invalid";
     public static final String REFBOOK_NOT_FOUND_EXCEPTION_CODE = "refbook.not.found";
     public static final String REFBOOK_WITH_CODE_NOT_FOUND_EXCEPTION_CODE = "refbook.with.code.not.found";
-    private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
+    private static final String REFBOOK_WITH_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.with.code.already.exists";
+    public static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
     public static final String DRAFT_NOT_FOUND_EXCEPTION_CODE = "draft.not.found";
+    private static final String DRAFT_WAS_CHANGED_EXCEPTION_CODE = "draft.was.changed";
+    public static final String LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE = "last.published.not.found";
     public static final String REFBOOK_IS_ARCHIVED_EXCEPTION_CODE = "refbook.is.archived";
     private static final String VERSION_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "version.attribute.not.found";
     private static final String DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "draft.attribute.not.found";
@@ -50,18 +52,19 @@ public class VersionValidationImpl implements VersionValidation {
     private static final String REFERENCE_REFERRED_ATTRIBUTES_NOT_FOUND_EXCEPTION_CODE = "reference.referred.attributes.not.found";
     private static final String REFERRED_BOOK_NOT_FOUND_EXCEPTION_CODE = "referred.book.not.found";
     private static final String REFERRED_BOOK_STRUCTURE_NOT_FOUND_EXCEPTION_CODE = "referred.book.structure.not.found";
-    private static final String REFERRED_BOOK_MUST_HAVE_ONLY_ONE_PRIMARY_KEY_EXCEPTION_CODE = "referred.book.must.have.only.one.primary.key";
+    private static final String REFERRED_BOOK_HAS_NO_PRIMARY_EXCEPTION_CODE = "referred.book.has.no.primary";
+    private static final String REFERRED_BOOK_HAS_MORE_PRIMARIES_EXCEPTION_CODE = "referred.book.has.more.primaries";
     private static final String REFERRED_DRAFT_PRIMARIES_NOT_MATCH_EXCEPTION_CODE = "referred.draft.primaries.not.match";
 
     private static final Pattern CODE_PATTERN = Pattern.compile("[A-Za-z][0-9A-Za-z\\-._]{0,49}");
 
-    private RefBookRepository refbookRepository;
+    private RefBookRepository refBookRepository;
     private RefBookVersionRepository versionRepository;
 
     @Autowired
-    public VersionValidationImpl(RefBookRepository refbookRepository,
+    public VersionValidationImpl(RefBookRepository refBookRepository,
                                  RefBookVersionRepository versionRepository) {
-        this.refbookRepository = refbookRepository;
+        this.refBookRepository = refBookRepository;
         this.versionRepository = versionRepository;
     }
 
@@ -101,14 +104,14 @@ public class VersionValidationImpl implements VersionValidation {
     /**
      * Проверка кода справочника.
      *
-     * @param code код справочника
+     * @param refBookCode код справочника
      */
     @Override
-    public void validateRefBookCode(String code) {
+    public void validateRefBookCode(String refBookCode) {
 
-        if (!isValidCode(code)) {
+        if (!isValidCode(refBookCode)) {
             throw new UserException(List.of(
-                    new Message(REFBOOK_CODE_IS_INVALID_EXCEPTION_CODE, code),
+                    new Message(REFBOOK_CODE_IS_INVALID_EXCEPTION_CODE, refBookCode),
                     new Message(CODE_IS_INVALID_EXCEPTION_CODE)
             ));
         }
@@ -121,13 +124,13 @@ public class VersionValidationImpl implements VersionValidation {
      */
     @Override
     public void validateRefBookExists(Integer refBookId) {
-        if (refBookId == null || !refbookRepository.existsById(refBookId)) {
+        if (refBookId == null || !refBookRepository.existsById(refBookId)) {
             throw new NotFoundException(new Message(REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
         }
     }
 
     /**
-     * Проверка существования справочника по коду.
+     * Проверка наличия справочника с указанным кодом.
      *
      * @param refBookCode код справочника
      */
@@ -135,9 +138,22 @@ public class VersionValidationImpl implements VersionValidation {
     public void validateRefBookCodeExists(String refBookCode) {
 
         if (StringUtils.isEmpty(refBookCode)
-                || !refbookRepository.existsByCode(refBookCode)) {
+                || !refBookRepository.existsByCode(refBookCode)) {
             throw new NotFoundException(new Message(REFBOOK_WITH_CODE_NOT_FOUND_EXCEPTION_CODE, refBookCode));
         }
+    }
+
+    /**
+     * Проверка отсутствия справочника с указанным кодом.
+     *
+     * @param refBookCode код справочника
+     */
+    @Override
+    public void validateRefBookCodeNotExists(String refBookCode) {
+
+        if (StringUtils.isEmpty(refBookCode)
+                        || refBookRepository.existsByCode(refBookCode))
+            throw new UserException(new Message(REFBOOK_WITH_ALREADY_EXISTS_EXCEPTION_CODE, refBookCode));
     }
 
     /**
@@ -149,7 +165,7 @@ public class VersionValidationImpl implements VersionValidation {
     public void validateVersionExists(Integer versionId) {
 
         if (versionId == null
-                || !versionRepository.exists(RefBookVersionPredicates.hasVersionId(versionId))) {
+                || !versionRepository.existsById(versionId)) {
             throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
         }
     }
@@ -163,8 +179,23 @@ public class VersionValidationImpl implements VersionValidation {
     public void validateDraftExists(Integer draftId) {
 
         if (draftId == null
-                || !versionRepository.exists(RefBookVersionPredicates.hasVersionId(draftId).and(RefBookVersionPredicates.isDraft()))) {
+                || !versionRepository.existsByIdAndStatus(draftId, RefBookVersionStatus.DRAFT)) {
             throw new NotFoundException(new Message(DRAFT_NOT_FOUND_EXCEPTION_CODE, draftId));
+        }
+    }
+
+    /**
+     * Проверка значения оптимистической блокировки черновика справочника.
+     *
+     * @param draftId        идентификатор черновика
+     * @param draftLockValue значение оптимистической блокировки черновика
+     * @param optLockValue   проверяемое значение оптимистической блокировки версии
+     */
+    public void validateOptLockValue(Integer draftId, Integer draftLockValue, Integer optLockValue) {
+
+        if (draftId != null && optLockValue != null
+                && !optLockValue.equals(draftLockValue)) {
+            throw new UserException(new Message(DRAFT_WAS_CHANGED_EXCEPTION_CODE, draftId));
         }
     }
 
@@ -282,9 +313,6 @@ public class VersionValidationImpl implements VersionValidation {
                 || CollectionUtils.isEmpty(structure.getReferences()))
             return;
 
-        if (structure.isEmpty() || !structure.hasPrimary())
-            throw new UserException(REFERENCE_STRUCTURE_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE);
-
         structure.getReferences().forEach(reference -> validateReference(reference, structure));
     }
 
@@ -334,16 +362,14 @@ public class VersionValidationImpl implements VersionValidation {
     /**
      * Проверка кода справочника из ссылки.
      *
-     * @param code код справочника из ссылки
+     * @param referredCode код справочника из ссылки
      */
-    private void validateReferenceCode(String code) {
+    private void validateReferenceCode(String referredCode) {
 
-        RefBookVersionEntity version = versionRepository
-                .findFirstByRefBookCodeAndStatusOrderByFromDateDesc(code, RefBookVersionStatus.PUBLISHED);
-        if (version == null)
-            throw new UserException(new Message(REFERRED_BOOK_NOT_FOUND_EXCEPTION_CODE, code));
-        if (version.getStructure() == null)
-            throw new UserException(new Message(REFERRED_BOOK_STRUCTURE_NOT_FOUND_EXCEPTION_CODE, code));
+        RefBookVersionEntity referredEntity = getReferredEntity(referredCode);
+
+        if (referredEntity.hasEmptyStructure()) // Только проверка на наличие структуры!
+            throw new UserException(new Message(REFERRED_BOOK_STRUCTURE_NOT_FOUND_EXCEPTION_CODE, referredCode));
     }
 
     /**
@@ -357,13 +383,8 @@ public class VersionValidationImpl implements VersionValidation {
         if (StringUtils.isEmpty(reference.getDisplayExpression()))
             throw new UserException(new Message(REFERENCE_DISPLAY_EXPRESSION_IS_EMPTY_EXCEPTION_CODE, reference.getAttribute()));
 
-        RefBookVersionEntity referredEntity = versionRepository
-                .findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
-        if (referredEntity == null)
-            throw new NotFoundException(new Message(REFBOOK_WITH_CODE_NOT_FOUND_EXCEPTION_CODE, reference.getReferenceCode()));
-
-        if (referredEntity.getStructure().getPrimary().size() != 1)
-            throw new UserException(new Message(REFERRED_BOOK_MUST_HAVE_ONLY_ONE_PRIMARY_KEY_EXCEPTION_CODE, reference.getReferenceCode()));
+        RefBookVersionEntity referredEntity = getReferredEntity(reference.getReferenceCode());
+        validateReferredStructure(referredEntity.getStructure(), referredEntity.getRefBook().getCode());
 
         validateReferenceDisplayExpression(reference, referredEntity.getStructure());
     }
@@ -408,6 +429,24 @@ public class VersionValidationImpl implements VersionValidation {
     }
 
     /**
+     * Проверка структуры ссылочного справочника.
+     *
+     * @param structure структура справочника, который ссылается
+     */
+    @Override
+    public void validateReferrerStructure(Structure structure) {
+
+        if (structure == null
+                || CollectionUtils.isEmpty(structure.getReferences()))
+            return;
+
+        if (structure.isEmpty() || !structure.hasPrimary())
+            throw new UserException(REFERENCE_STRUCTURE_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE);
+
+        structure.getReferences().forEach(this::validateReferenceAbility);
+    }
+
+    /**
      * Проверка структуры черновика справочника, на который ссылаются.
      *
      * @param referredCode   код справочника, на который ссылаются
@@ -415,19 +454,43 @@ public class VersionValidationImpl implements VersionValidation {
      */
     private void validateReferredDraftStructure(String referredCode, Structure draftStructure) {
 
-        RefBookVersionEntity referredEntity = versionRepository
-                .findFirstByRefBookCodeAndStatusOrderByFromDateDesc(referredCode, RefBookVersionStatus.PUBLISHED);
-        if (referredEntity == null)
-            throw new NotFoundException(new Message(REFBOOK_WITH_CODE_NOT_FOUND_EXCEPTION_CODE, referredCode));
-
-        if (draftStructure == null)
-            throw new UserException(new Message(REFERRED_BOOK_STRUCTURE_NOT_FOUND_EXCEPTION_CODE, referredCode));
-
-        if (draftStructure.getPrimary().size() != 1)
-            throw new UserException(new Message(REFERRED_BOOK_MUST_HAVE_ONLY_ONE_PRIMARY_KEY_EXCEPTION_CODE, referredCode));
+        RefBookVersionEntity referredEntity = getReferredEntity(referredCode);
+        validateReferredStructure(draftStructure, referredCode);
 
         if (!equalsPrimaries(referredEntity.getStructure().getPrimary(), draftStructure.getPrimary()))
             throw new UserException(new Message(REFERRED_DRAFT_PRIMARIES_NOT_MATCH_EXCEPTION_CODE, referredCode, referredEntity.getVersion()));
+    }
+
+    /** Получение версии справочника, на который указывает ссылка. */
+    private RefBookVersionEntity getReferredEntity(String referredCode) {
+
+        validateRefBookCode(referredCode);
+
+        RefBookVersionEntity referredEntity = versionRepository
+                .findFirstByRefBookCodeAndStatusOrderByFromDateDesc(referredCode, RefBookVersionStatus.PUBLISHED);
+        if (referredEntity == null)
+            throw new NotFoundException(new Message(REFERRED_BOOK_NOT_FOUND_EXCEPTION_CODE, referredCode));
+
+        return referredEntity;
+    }
+
+    /**
+     * Проверка структуры версии справочника, на который ссылаются.
+     *
+     * @param structure    проверяемая структура
+     * @param referredCode код этого справочника
+     */
+    private void validateReferredStructure(Structure structure, String referredCode) {
+
+        if (structure == null)
+            throw new UserException(new Message(REFERRED_BOOK_STRUCTURE_NOT_FOUND_EXCEPTION_CODE, referredCode));
+
+        int primaryCount = structure.getPrimary().size();
+        if (primaryCount == 0)
+            throw new UserException(new Message(REFERRED_BOOK_HAS_NO_PRIMARY_EXCEPTION_CODE, referredCode));
+        else
+        if (primaryCount > 1)
+            throw new UserException(new Message(REFERRED_BOOK_HAS_MORE_PRIMARIES_EXCEPTION_CODE, referredCode));
     }
 
     /** Проверка на наличие справочников, ссылающихся на указанный справочник. */

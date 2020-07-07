@@ -9,15 +9,16 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriter
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.refdata.Row;
+import ru.inovus.ms.rdm.api.util.RowUtils;
 import ru.inovus.ms.rdm.impl.util.ConverterUtil;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.*;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 /**
@@ -116,10 +117,10 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
     }
 
     private boolean isCorrectType(Map<Structure.Attribute, Object> primaryKeyMap) {
+
         return primaryKeyMap.keySet().stream()
                 .allMatch(attribute ->
-                        TypeValidation.checkType(attribute.getType(), attribute.getCode(),
-                                primaryKeyMap.get(attribute)) == null
+                        TypeValidation.validateType(attribute, primaryKeyMap.get(attribute)) == null
                 );
     }
 
@@ -142,17 +143,7 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
     }
 
     private Message createMessage(Map<String, Object> rowData) {
-        return new Message(DB_CONTAINS_PK_ERROR_CODE, primaryKeysToString(rowData));
-    }
-
-    private String primaryKeysToString(Map<String, Object> rowData) {
-        return primaryKeys.stream()
-                .map(primaryKey -> primaryKeyToString(primaryKey, rowData))
-                .collect(Collectors.joining("\", \""));
-    }
-
-    private String primaryKeyToString(Structure.Attribute primaryKey, Map<String, Object> rowData) {
-        return primaryKey.getName() + "\" - \"" + rowData.get(primaryKey.getCode());
+        return new Message(DB_CONTAINS_PK_ERROR_CODE, RowUtils.toNamedValues(rowData, primaryKeys));
     }
 
     /**

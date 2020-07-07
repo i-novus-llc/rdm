@@ -3,7 +3,6 @@ package ru.inovus.ms.rdm.n2o.service;
 import com.google.common.collect.ImmutableSet;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
-import org.apache.cxf.common.util.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -12,10 +11,9 @@ import ru.i_novus.platform.datastorage.temporal.model.DataConstants;
 import ru.inovus.ms.rdm.api.exception.NotFoundException;
 import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
-import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
-import ru.inovus.ms.rdm.api.model.refdata.Row;
-import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.inovus.ms.rdm.api.model.refdata.*;
 import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.service.DraftService;
@@ -29,10 +27,23 @@ import ru.inovus.ms.rdm.n2o.model.UiPassport;
 import java.util.*;
 
 import static java.util.Collections.*;
+import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 
 @Controller
 @SuppressWarnings("unused")
 public class CreateDraftController {
+
+    private static final String VERSION_IS_NOT_DRAFT_EXCEPTION_CODE = "version.is.not.draft";
+    private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
+    private static final String VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE = "version.has.not.structure";
+    private static final String UPDATED_DATA_NOT_FOUND_IN_CURRENT_EXCEPTION_CODE = "updated.data.not.found.in.current";
+    private static final String UPDATED_DATA_NOT_FOUND_IN_DRAFT_EXCEPTION_CODE = "updated.data.not.found.in.draft";
+    private static final String DATA_ROW_IS_EMPTY_EXCEPTION_CODE = "data.row.is.empty";
+    private static final String DATA_ROW_PK_EXISTS_EXCEPTION_CODE = "data.row.pk.exists";
+
+    private static final String PASSPORT_REFBOOK_NAME = "name";
+    private static final String PASSPORT_REFBOOK_SHORT_NAME = "shortName";
+    private static final String PASSPORT_REFBOOK_DESCRIPTION = "description";
 
     private RefBookService refBookService;
     private VersionService versionService;
@@ -53,108 +64,190 @@ public class CreateDraftController {
     }
 
     private UiDraft getOrCreateDraft(Integer versionId) {
+
         final RefBookVersion version = versionService.getById(versionId);
-        if (version.isDraft())
-            return new UiDraft(versionId, version.getRefBookId());
-        else {
-            Integer draftId = draftService.getIdByRefBookCode(version.getCode());
-            if (draftId == null)
-                return new UiDraft(draftService.createFromVersion(versionId).getId(), version.getRefBookId());
-            else
-                return new UiDraft(draftId, version.getRefBookId());
+        final Integer refBookId = version.getRefBookId();
+
+        if (version.isDraft()) {
+            return new UiDraft(version);
         }
+
+        Draft draft = draftService.findDraft(version.getCode());
+        if (draft != null) {
+            return new UiDraft(draft, refBookId);
+        }
+
+        Draft newDraft = draftService.createFromVersion(versionId);
+        return new UiDraft(newDraft, refBookId);
     }
 
-    public UiDraft editPassport(Integer versionId, UiPassport uiPassport) {
+    public UiDraft editPassport(Integer versionId, Integer optLockValue, UiPassport uiPassport) {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
-        refBookService.update(toRefBookUpdateRequest(uiDraft.getId(), uiPassport));
+
+        if (!uiDraft.isVersionDraft(versionId)) {
+            optLockValue = uiDraft.getOptLockValue();
+        }
+
+        refBookService.update(toRefBookUpdateRequest(uiDraft.getId(), optLockValue, uiPassport));
         return uiDraft;
     }
 
-    private RefBookUpdateRequest toRefBookUpdateRequest(Integer versionId, UiPassport uiPassport) {
+    private RefBookUpdateRequest toRefBookUpdateRequest(Integer versionId,
+                                                        Integer optLockValue,
+                                                        UiPassport uiPassport) {
 
-        final RefBookUpdateRequest refBookUpdateRequest = new RefBookUpdateRequest();
-        refBookUpdateRequest.setVersionId(versionId);
-        refBookUpdateRequest.setCode(uiPassport.getCode());
-        refBookUpdateRequest.setCategory(uiPassport.getCategory());
+        final RefBookUpdateRequest request = new RefBookUpdateRequest();
+        request.setVersionId(versionId);
+        request.setOptLockValue(optLockValue);
+
+        request.setCode(uiPassport.getCode());
+        request.setCategory(uiPassport.getCategory());
+
+        Map<String, String> passport = toPassport(uiPassport);
+        request.setPassport(passport);
+
+        return request;
+    }
+
+    private Map<String, String> toPassport(UiPassport uiPassport) {
+
+        if (uiPassport == null)
+            return null;
 
         Map<String, String> passport = new HashMap<>();
-        passport.put("name", uiPassport.getName());
-        passport.put("shortName", uiPassport.getShortName());
-        passport.put("description", uiPassport.getDescription());
-        refBookUpdateRequest.setPassport(passport);
 
-        return refBookUpdateRequest;
+        passport.put(PASSPORT_REFBOOK_NAME, uiPassport.getName());
+        passport.put(PASSPORT_REFBOOK_SHORT_NAME, uiPassport.getShortName());
+        passport.put(PASSPORT_REFBOOK_DESCRIPTION, uiPassport.getDescription());
+
+        return passport;
     }
 
-    public UiDraft createAttribute(Integer versionId, FormAttribute formAttribute) {
-
-        final UiDraft uiDraft = getOrCreateDraft(versionId);
-        structureController.createAttribute(uiDraft.getId(), formAttribute);
-        return uiDraft;
-    }
-
-    public UiDraft updateAttribute(Integer versionId, FormAttribute formAttribute) {
-
-        final UiDraft uiDraft = getOrCreateDraft(versionId);
-        structureController.updateAttribute(uiDraft.getId(), formAttribute);
-        return uiDraft;
-    }
-
-    public UiDraft deleteAttribute(Integer versionId, String attributeCode) {
-
-        final UiDraft uiDraft = getOrCreateDraft(versionId);
-        structureController.deleteAttribute(uiDraft.getId(), attributeCode);
-        return uiDraft;
-    }
-
-    public UiDraft updateDataRecord(Integer versionId, Row row) {
+    public UiDraft createAttribute(Integer versionId, Integer optLockValue, FormAttribute formAttribute) {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (!Objects.equals(versionId, uiDraft.getId())) {
-            row.setSystemId(calculateNewSystemId(row.getSystemId(), versionId, uiDraft.getId()));
+        if (!uiDraft.isVersionDraft(versionId)) {
+            optLockValue = uiDraft.getOptLockValue();
         }
-//      Значит была нажата кнопка "Добавить строку".
-//      Если добавят строку с существующим первичным ключом, ошибки не будет, строка просто обновится новыми данными.
-//      Поэтому надо самим проверить, есть ли уже такой первичный ключ в справочнике и если есть -- бросить ошибку.
-        if (row.getSystemId() == null) {
-            RefBookVersion refBookVersion = versionService.getById(uiDraft.getId());
-            List<Structure.Attribute> primary = refBookVersion.getStructure().getPrimary();
-            if (!primary.isEmpty()) {
-                List<AttributeFilter> primaryKeyValueFilters = RowUtils.getPrimaryKeyValueFilters(row, primary);
-                SearchDataCriteria searchDataCriteria = new SearchDataCriteria(Set.of(primaryKeyValueFilters), null);
-                searchDataCriteria.setPageSize(1);
-                searchDataCriteria.setPageNumber(1);
-                long n = versionService.search(uiDraft.getId(), searchDataCriteria).getTotalElements();
-                if (n > 0)
-                    throw new UserException("pk.is.already.exists");
-            }
-        }
-        dataRecordController.updateData(uiDraft.getId(), row);
+
+        structureController.createAttribute(uiDraft.getId(), optLockValue, formAttribute);
         return uiDraft;
     }
 
-    public UiDraft deleteDataRecord(Integer versionId, Long systemId) {
+    public UiDraft updateAttribute(Integer versionId, Integer optLockValue, FormAttribute formAttribute) {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (!Objects.equals(versionId, uiDraft.getId())) {
-            systemId = calculateNewSystemId(systemId, versionId, uiDraft.getId());
+        if (!uiDraft.isVersionDraft(versionId)) {
+            optLockValue = uiDraft.getOptLockValue();
         }
-        draftService.deleteRow(uiDraft.getId(), new Row(systemId, emptyMap()));
+
+        structureController.updateAttribute(uiDraft.getId(), optLockValue, formAttribute);
         return uiDraft;
     }
 
-    public UiDraft deleteAllDataRecords(Integer versionId) {
+    public UiDraft deleteAttribute(Integer versionId, Integer optLockValue, String attributeCode) {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
-        draftService.deleteAllRows(uiDraft.getId());
+
+        if (!uiDraft.isVersionDraft(versionId)) {
+            optLockValue = uiDraft.getOptLockValue();
+        }
+
+        structureController.deleteAttribute(uiDraft.getId(), optLockValue, attributeCode);
         return uiDraft;
     }
 
-    private Long calculateNewSystemId(Long oldSystemId, Integer oldVersionId, Integer newVersionId) {
+    public UiDraft updateDataRecord(Integer versionId, Row row, Integer optLockValue) {
+
+        validatePresent(row);
+
+        final UiDraft uiDraft = getOrCreateDraft(versionId);
+
+        // Изменение записи в опубликованной версии:
+        if (!uiDraft.isVersionDraft(versionId)) {
+            // Новый справочник, поэтому блокировки нет (см. также в других методах):
+            optLockValue = uiDraft.getOptLockValue();
+            row.setSystemId(findNewSystemId(row.getSystemId(), versionId, uiDraft.getId()));
+        }
+
+        validatePrimaryKeys(uiDraft.getId(), row);
+
+        dataRecordController.updateData(uiDraft.getId(), row, optLockValue);
+        return uiDraft;
+    }
+
+    /** Проверка на заполненность хотя бы одного поля в записи. */
+    private void validatePresent(Row row) {
+        if (RowUtils.isEmptyRow(row))
+            throw new UserException(DATA_ROW_IS_EMPTY_EXCEPTION_CODE);
+    }
+
+    /**
+     * Проверка добавляемой записи на уникальность по первичным ключам в таблице БД.
+     *
+     * @param versionId идентификатор версии-черновика
+     * @param row       проверяемая запись
+     */
+    private void validatePrimaryKeys(Integer versionId, Row row) {
+
+        if (row.getSystemId() != null)
+            return;
+
+        Structure structure = versionService.getStructure(versionId);
+        List<Structure.Attribute> primaries = structure.getPrimary();
+        if (primaries.isEmpty())
+            return;
+
+        List<AttributeFilter> primaryFilters = RowUtils.getPrimaryKeyValueFilters(row, primaries);
+        if (primaryFilters.isEmpty())
+            return;
+
+        SearchDataCriteria criteria = new SearchDataCriteria();
+        criteria.setPageSize(1);
+        criteria.setAttributeFilter(Set.of(primaryFilters));
+
+        Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
+        if (rowValues != null && !isEmpty(rowValues.getContent())) {
+            Message message = new Message(DATA_ROW_PK_EXISTS_EXCEPTION_CODE,
+                    RowUtils.toNamedValues(row.getData(), primaries));
+            throw new UserException(message);
+        }
+    }
+
+    public UiDraft deleteDataRecord(Integer versionId, Integer optLockValue, Long sysRecordId) {
+
+        final UiDraft uiDraft = getOrCreateDraft(versionId);
+
+        if (!uiDraft.isVersionDraft(versionId)) {
+            optLockValue = uiDraft.getOptLockValue();
+            sysRecordId = findNewSystemId(sysRecordId, versionId, uiDraft.getId());
+        }
+
+        Row row = new Row(sysRecordId, emptyMap());
+        DeleteDataRequest request = new DeleteDataRequest(optLockValue, row);
+        draftService.deleteData(uiDraft.getId(), request);
+        return uiDraft;
+    }
+
+    public UiDraft deleteAllDataRecords(Integer versionId, Integer optLockValue) {
+
+        final UiDraft uiDraft = getOrCreateDraft(versionId);
+
+        if (!uiDraft.isVersionDraft(versionId)) {
+            optLockValue = uiDraft.getOptLockValue();
+        }
+
+        DeleteAllDataRequest request = new DeleteAllDataRequest(optLockValue);
+        draftService.deleteAllData(uiDraft.getId(), request);
+        return uiDraft;
+    }
+
+    /** Поиск идентификатора записи в черновике по старому идентификатору в текущей версии. */
+    private Long findNewSystemId(Long oldSystemId, Integer oldVersionId, Integer newVersionId) {
+
         if (oldSystemId == null) return null;
 
         SearchDataCriteria criteria = new SearchDataCriteria();
@@ -162,14 +255,17 @@ public class CreateDraftController {
         criteria.setAttributeFilter(singleton(singletonList(recordIdFilter)));
 
         Page<RefBookRowValue> oldRow = versionService.search(oldVersionId, criteria);
-        if (CollectionUtils.isEmpty(oldRow.getContent())) throw new NotFoundException("record not found");
-        String hash = oldRow.getContent().get(0).getHash();
+        if (isEmpty(oldRow.getContent()))
+            throw new NotFoundException(UPDATED_DATA_NOT_FOUND_IN_CURRENT_EXCEPTION_CODE);
 
+        String hash = oldRow.getContent().get(0).getHash();
         AttributeFilter hashFilter = new AttributeFilter(DataConstants.SYS_HASH, hash, FieldType.STRING);
         final SearchDataCriteria hashCriteria = new SearchDataCriteria(ImmutableSet.of(singletonList(hashFilter)), null);
 
         final Page<RefBookRowValue> newRow = versionService.search(newVersionId, hashCriteria);
-        if (CollectionUtils.isEmpty(newRow.getContent())) throw new NotFoundException("record not found");
+        if (isEmpty(newRow.getContent()))
+            throw new NotFoundException(UPDATED_DATA_NOT_FOUND_IN_DRAFT_EXCEPTION_CODE);
+
         return newRow.getContent().get(0).getSystemId();
     }
 
@@ -178,35 +274,37 @@ public class CreateDraftController {
         Integer versionId = refBookService.create(fileModel).getId();
         RefBookVersion version = versionService.getById(versionId);
 
-        return new UiDraft(versionId, version.getRefBookId());
+        return new UiDraft(version);
     }
 
     public UiDraft uploadFromFile(Integer versionId, FileModel fileModel) {
 
         RefBookVersion version = versionService.getById(versionId);
         if (version == null)
-            throw new UserException(new Message("version.not.found", versionId));
+            throw new UserException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
 
-        versionId = draftService.create(version.getRefBookId(), fileModel).getId();
+        if (!version.isDraft())
+            throw new UserException(new Message(VERSION_IS_NOT_DRAFT_EXCEPTION_CODE, versionId));
 
-        return new UiDraft(versionId, version.getRefBookId());
+        Draft draft = draftService.create(version.getRefBookId(), fileModel);
+        return new UiDraft(draft, version.getRefBookId());
     }
 
-    public UiDraft uploadData(Integer versionId, FileModel fileModel) {
+    public UiDraft uploadData(Integer versionId, FileModel fileModel, Integer optLockValue) {
 
         RefBookVersion version = versionService.getById(versionId);
         if (version == null)
-            throw new UserException(new Message("version.not.found", versionId));
+            throw new UserException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
 
         if (!version.isDraft())
-            throw new UserException(new Message("version.is.not.draft", versionId));
+            throw new UserException(new Message(VERSION_IS_NOT_DRAFT_EXCEPTION_CODE, versionId));
 
-        if (version.getStructure() == null || version.getStructure().isEmpty())
-            throw new UserException(new Message("version.has.not.structure", versionId));
+        if (version.hasEmptyStructure())
+            throw new UserException(new Message(VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE, versionId));
 
-        draftService.updateData(versionId, fileModel);
+        UpdateFromFileRequest request = new UpdateFromFileRequest(optLockValue, fileModel);
+        draftService.updateFromFile(versionId, request);
 
-        return new UiDraft(versionId, version.getRefBookId());
+        return new UiDraft(version);
     }
-
 }

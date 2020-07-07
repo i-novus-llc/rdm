@@ -14,6 +14,7 @@ import ru.inovus.ms.rdm.api.service.PublishService;
 import ru.inovus.ms.rdm.api.service.ReferenceService;
 import ru.inovus.ms.rdm.impl.async.AsyncOperationQueue;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
+import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
@@ -63,9 +64,9 @@ public class PublishServiceImpl implements PublishService {
      * @param request параметры публикации
      */
     @Override
-    public void publish(PublishRequest request) {
+    public void publish(Integer draftId, PublishRequest request) {
 
-        PublishResponse response = basePublishService.publish(request);
+        PublishResponse response = basePublishService.publish(draftId, request);
         if (response == null)
             return;
 
@@ -79,10 +80,10 @@ public class PublishServiceImpl implements PublishService {
 
     @Override
     @Transactional
-    public UUID publishAsync(PublishRequest request) {
+    public UUID publishAsync(Integer draftId, PublishRequest request) {
 
-        String code = versionRepository.getOne(request.getDraftId()).getRefBook().getCode();
-        return queue.add(AsyncOperation.PUBLICATION, code, new Object[] { request });
+        String code = versionRepository.getOne(draftId).getRefBook().getCode();
+        return queue.add(AsyncOperation.PUBLICATION, code, new Object[] { draftId, request });
     }
 
     /**
@@ -140,9 +141,18 @@ public class PublishServiceImpl implements PublishService {
      */
     private boolean publishReferrer(Integer versionId) {
         return tryRun(
-                () -> publish(new PublishRequest(versionId)),
+                () -> publishReferrerEntity(versionId),
                 LOG_ERROR_PUBLISHING_NONCONFLICT_REFERRERS
         );
+    }
+
+    private void publishReferrerEntity(Integer versionId) {
+
+        RefBookVersionEntity entity = versionRepository.findById(versionId).orElse(null);
+        if (entity == null)
+            return;
+
+        publish(versionId, new PublishRequest(entity.getOptLockValue()));
     }
 
     /**

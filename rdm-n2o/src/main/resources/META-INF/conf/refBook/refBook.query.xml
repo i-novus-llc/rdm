@@ -40,6 +40,10 @@
             </filters>
         </field>
 
+        <field id="optLockValue" domain="integer">
+            <select/>
+        </field>
+
         <field id="version.version" domain="string">
             <select mapping="
                 (archived ? 'В архиве: ' : '') +

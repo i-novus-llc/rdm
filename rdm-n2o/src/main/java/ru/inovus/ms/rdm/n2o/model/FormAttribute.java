@@ -1,42 +1,58 @@
 package ru.inovus.ms.rdm.n2o.model;
 
-
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 
+/** Модель атрибута для UI. */
 public class FormAttribute {
 
+    // attribute:
+    /** Код атрибута. */
     private String code;
 
+    /** Наименование атрибута. */
     private String name;
 
+    /** Тип атрибута. */
     private FieldType type;
 
+    /** Признак первичного атрибута. */
     private Boolean isPrimary;
 
+    /** Описание атрибута. */
     private String description;
 
+    // reference:
+    /** Код справочника, на который ссылаются. */
     private String referenceCode;
 
+    /** Выражение для вычисления отображаемого ссылочного значения. */
     private String displayExpression;
 
-    //Настраиваемые проверки
+    // Пользовательские проверки
     private Boolean required;
     private Boolean unique;
+
     private Integer plainSize;
+
     private Integer intPartSize;
     private Integer fracPartSize;
+
     private BigInteger minInteger;
     private BigInteger maxInteger;
+
     private BigDecimal minFloat;
     private BigDecimal maxFloat;
+
     private LocalDate minDate;
     private LocalDate maxDate;
+
     private String regExp;
 
+    // / Пользовательские проверки
 
     public String getCode() {
         return code;
@@ -93,6 +109,8 @@ public class FormAttribute {
     public void setDisplayExpression(String displayExpression) {
         this.displayExpression = displayExpression;
     }
+
+    // Пользовательские проверки
 
     public Boolean getRequired() {
         return required;
@@ -190,7 +208,13 @@ public class FormAttribute {
         this.regExp = regExp;
     }
 
+    // / Пользовательские проверки
+
     public boolean hasIsPrimary() {
         return getIsPrimary() != null && getIsPrimary();
+    }
+
+    public boolean isReferenceType() {
+        return FieldType.REFERENCE.equals(getType());
     }
 }

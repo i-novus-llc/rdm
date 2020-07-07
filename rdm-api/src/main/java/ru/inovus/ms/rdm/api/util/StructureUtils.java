@@ -19,9 +19,19 @@ public class StructureUtils {
     private StructureUtils() {
     }
 
+    /** Проверка на наличие атрибута-ссылки. */
+    public static boolean isReference(Structure.Reference reference) {
+        return Objects.nonNull(reference) && !reference.isNull();
+    }
+
     /** Получение кодов атрибутов структуры. */
     public static Stream<String> getAttributeCodes(Structure structure) {
         return structure.getAttributes().stream().map(Structure.Attribute::getCode);
+    }
+
+    /** Получение кодов атрибутов-ссылок структуры. */
+    public static Stream<String> getReferenceAttributeCodes(Structure structure) {
+        return structure.getReferences().stream().map(Structure.Reference::getAttribute);
     }
 
     /** Сравнение displayExpression двух ссылок. */

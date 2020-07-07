@@ -1,22 +1,40 @@
 package ru.inovus.ms.rdm.n2o.model;
 
-
+/** Модель атрибута для передачи в UI. */
 public class ReadAttribute extends FormAttribute {
 
-    // refBook
+    // refBook:
+    /** Идентификатор версии справочника. */
     private Integer versionId;
+
+    /** Значение оптимистической блокировки версии. */
+    private Integer optLockValue;
+
+    /** Признак связанного справочника (т.е. сам - ссылающийся). */
+    private Boolean isReferrer;
+
+    /** Наличие связанного справочника (т.е. ссылающегося на данный). */
     private Boolean hasReferrer;
 
-    // attribute
+    // attribute:
+    /** Строка подстановки кода атрибута в displayExpression ссылки. */
     private String codeExpression;
 
-    // reference
+    // reference:
+    /** Идентификатор справочника, на который ссылаются. */
     private Integer referenceRefBookId;
+
+    /** Тип отображения dipslayExpression ссылки: 1 - выбор одного атрибута, 2 - строка-значение. */
     private Integer displayType;
+
+    /** Код отображаемого атрибута при displayType = 1. */
     private String displayAttribute;
+
+    /** Наименование отображаемого атрибута при displayType = 1. */
     private String displayAttributeName;
 
-    // conflict
+    // conflict:
+    /** Наличие конфликта структуры (для подсветки). */
     private Boolean hasStructureConflict;
 
     public Integer getVersionId() {
@@ -25,6 +43,22 @@ public class ReadAttribute extends FormAttribute {
 
     public void setVersionId(Integer versionId) {
         this.versionId = versionId;
+    }
+
+    public Integer getOptLockValue() {
+        return optLockValue;
+    }
+
+    public void setOptLockValue(Integer optLockValue) {
+        this.optLockValue = optLockValue;
+    }
+
+    public Boolean getIsReferrer() {
+        return isReferrer;
+    }
+
+    public void setIsReferrer(Boolean isReferrer) {
+        this.isReferrer = isReferrer;
     }
 
     public Boolean getHasReferrer() {

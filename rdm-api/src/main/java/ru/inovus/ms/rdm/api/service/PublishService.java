@@ -21,7 +21,8 @@ public interface PublishService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void publish(PublishRequest request);
+    void publish(@ApiParam("Идентификатор публикуемого черновика") @PathParam("draftId") Integer draftId,
+                 PublishRequest request);
 
     @POST
     @Path("/async/{draftId}")
@@ -29,5 +30,6 @@ public interface PublishService {
     @ApiResponses({
         @ApiResponse(code = 200, message = "Запрос поставлен в очередь")
     })
-    UUID publishAsync(PublishRequest request);
+    UUID publishAsync(@ApiParam("Идентификатор публикуемого черновика") @PathParam("draftId") Integer draftId,
+                      PublishRequest request);
 }

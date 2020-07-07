@@ -18,7 +18,6 @@ import ru.inovus.ms.rdm.impl.util.AsyncOperationLogEntryUtils;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static java.util.Collections.emptyList;
@@ -37,7 +36,9 @@ class AsyncOperationQueueListener {
 
     private final Messages messages;
 
-    public AsyncOperationQueueListener(PublishService publishService, AsyncOperationLogEntryRepository asyncOperationLogEntryRepository, Messages messages) {
+    public AsyncOperationQueueListener(PublishService publishService,
+                                       AsyncOperationLogEntryRepository asyncOperationLogEntryRepository,
+                                       Messages messages) {
         this.publishService = publishService;
         this.asyncOperationLogEntryRepository = asyncOperationLogEntryRepository;
         this.messages = messages;
@@ -52,8 +53,9 @@ class AsyncOperationQueueListener {
         logger.info("Message from internal async operation queue is received. Operation id: {}", uuid);
 
         AsyncOperationLogEntryEntity logEntity = asyncOperationLogEntryRepository.findByUuid(uuid);
-        if (logEntity == null)
+        if (logEntity == null) {
             logEntity = forceSave(message);
+        }
 
         setSecurityContext(message.getUserName());
         logEntity.setStatus(AsyncOperationStatus.IN_PROGRESS);
@@ -84,26 +86,18 @@ class AsyncOperationQueueListener {
 
     private Object handlePublication(Object[] args) {
 
-        PublishRequest request;
+        Integer draftId = (Integer) args[0];
 
-        Object arg = args[0];
-        if (arg instanceof PublishRequest) {
-            request = (PublishRequest) arg;
-
-        } else {
-            request = new PublishRequest((Integer) arg);
-            request.setVersionName((String) args[1]);
-            request.setFromDate((LocalDateTime) args[2]);
-            request.setToDate((LocalDateTime) args[3]);
-            request.setResolveConflicts((boolean) args[4]);
+        Object request = args[1];
+        if (request instanceof PublishRequest) {
+            publishService.publish(draftId, (PublishRequest) request);
         }
 
-        publishService.publish(request);
-
-        return null;
+        throw new IllegalArgumentException(String.format("Request for publication is not found in: %s = %s", draftId, request));
     }
 
     private void setSecurityContext(String user) {
+
         SecurityContextHolder.getContext()
                 .setAuthentication(new AbstractAuthenticationToken(emptyList()) {
                     @Override
@@ -119,11 +113,13 @@ class AsyncOperationQueueListener {
     }
 
     private AsyncOperationLogEntryEntity forceSave(AsyncOperationMessage message) {
-        logger.warn("The entity is not yet committed. Forcing save.");
+
+        logger.warn("The log entity is not yet committed. Forcing save.");
 
         UUID uuid = message.getOperationId();
         asyncOperationLogEntryRepository.saveConflictFree(uuid, message.getCode(),
                 message.getOperation().name(), message.getPayloadAsJson());
+
         return asyncOperationLogEntryRepository.findByUuid(uuid);
     }
 
@@ -141,6 +137,7 @@ class AsyncOperationQueueListener {
     }
 
     private String getErrorMsg(Exception error) {
+
         if (error instanceof UserException) {
             UserException ue = (UserException) error;
             if (ue.getMessage() != null)

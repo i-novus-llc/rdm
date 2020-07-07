@@ -19,6 +19,7 @@ import ru.inovus.ms.rdm.impl.file.export.FileGenerator;
 import ru.inovus.ms.rdm.impl.file.export.PassportPdfFileGenerator;
 import ru.inovus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
 import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
+import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.repository.VersionFileRepository;
 
 import java.io.IOException;
@@ -29,6 +30,7 @@ import java.util.Iterator;
 @Service
 public class VersionFileServiceImpl implements VersionFileService {
 
+    private RefBookVersionRepository versionRepository;
     private VersionFileRepository versionFileRepository;
 
     private FileStorage fileStorage;
@@ -42,11 +44,13 @@ public class VersionFileServiceImpl implements VersionFileService {
 
     @Autowired
     @SuppressWarnings("squid:S00107")
-    public VersionFileServiceImpl(VersionFileRepository versionFileRepository,
+    public VersionFileServiceImpl(RefBookVersionRepository versionRepository,
+                                  VersionFileRepository versionFileRepository,
                                   FileStorage fileStorage,
                                   FileNameGenerator fileNameGenerator,
                                   PerRowFileGeneratorFactory fileGeneratorFactory,
                                   PassportValueRepository passportValueRepository) {
+        this.versionRepository = versionRepository;
         this.versionFileRepository = versionFileRepository;
 
         this.fileStorage = fileStorage;
@@ -96,8 +100,7 @@ public class VersionFileServiceImpl implements VersionFileService {
         try (InputStream inputStream = is) {
             if (inputStream == null) return;
 
-            RefBookVersionEntity versionEntity = new RefBookVersionEntity();
-            versionEntity.setId(version.getId());
+            RefBookVersionEntity versionEntity = versionRepository.getOne(version.getId());
 
             versionFileRepository.save(new VersionFileEntity(versionEntity, fileType,
                     fileStorage.saveContent(inputStream, fileNameGenerator.generateZipName(version, fileType))));

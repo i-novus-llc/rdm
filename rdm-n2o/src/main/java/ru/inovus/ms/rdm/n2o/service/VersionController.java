@@ -2,9 +2,9 @@ package ru.inovus.ms.rdm.n2o.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.api.model.version.VersionCriteria;
+import ru.inovus.ms.rdm.api.service.VersionService;
 
 @Controller
 public class VersionController {

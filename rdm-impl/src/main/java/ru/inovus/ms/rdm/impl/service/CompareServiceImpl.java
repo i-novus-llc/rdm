@@ -17,10 +17,7 @@ import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.CompareDataService;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.inovus.ms.rdm.api.model.Structure;
-import ru.inovus.ms.rdm.api.model.compare.ComparableField;
-import ru.inovus.ms.rdm.api.model.compare.ComparableFieldValue;
-import ru.inovus.ms.rdm.api.model.compare.ComparableRow;
-import ru.inovus.ms.rdm.api.model.compare.CompareCriteria;
+import ru.inovus.ms.rdm.api.model.compare.*;
 import ru.inovus.ms.rdm.api.model.diff.*;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.api.model.refdata.SearchDataCriteria;
@@ -87,8 +84,8 @@ public class CompareServiceImpl implements CompareService {
         List<PassportAttributeDiff> passportAttributeDiffList = new ArrayList<>();
 
         passportAttributes.forEach(passportAttribute -> {
-            PassportValueEntity oldPassportValue = oldVersion.getPassportValues().stream().filter(passportValue -> passportValue.getAttribute().equals(passportAttribute)).findFirst().orElse(null);
-            PassportValueEntity newPassportValue = newVersion.getPassportValues().stream().filter(passportValue -> passportValue.getAttribute().equals(passportAttribute)).findFirst().orElse(null);
+            PassportValueEntity oldPassportValue = oldVersion.getPassportValue(passportAttribute);
+            PassportValueEntity newPassportValue = newVersion.getPassportValue(passportAttribute);
 
             if (!equalValues(oldPassportValue, newPassportValue)) {
                 PassportAttributeDiff passportAttributeDiff = new PassportAttributeDiff(

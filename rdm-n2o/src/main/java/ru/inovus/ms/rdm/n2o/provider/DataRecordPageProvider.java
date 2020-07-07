@@ -26,17 +26,21 @@ import java.util.Map;
 import static java.util.Collections.singletonList;
 import static ru.inovus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
 
+/**
+ * Провайдер для формирования страницы по отображению данных
+ * по создаваемой/изменяемой записи из указанной версии справочника.
+ */
 @Service
 @SuppressWarnings("unused")
 public class DataRecordPageProvider implements DynamicMetadataProvider {
 
-    private static final String FORM_PROVIDER_ID = "dataRecordPage";
-    private static final String DATA_ACTION_CREATE = "create";
-    private static final String DATA_ACTION_EDIT = "edit";
+    private static final String CONTEXT_PARAM_SEPARATOR_REGEX = "_";
+
+    private static final String PAGE_PROVIDER_ID = "dataRecordPage";
 
     private static final Map<String, String> pageNames = Map.of(
-            DATA_ACTION_CREATE, "Добавление новой записи",
-            DATA_ACTION_EDIT, "Редактирование записи"
+            DataRecordConstants.DATA_ACTION_CREATE, "Добавление новой записи",
+            DataRecordConstants.DATA_ACTION_EDIT, "Редактирование записи"
     );
 
     @Autowired
@@ -47,12 +51,14 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
      */
     @Override
     public String getCode() {
-        return FORM_PROVIDER_ID;
+        return PAGE_PROVIDER_ID;
     }
 
     /**
-     * @param context Параметры провайдера (ID версии и тип действия) в формате versionId_pageType,
-     *                где pageType - create (Создание записи) или edit (Редактирование записи)
+     * @param context параметры провайдера в формате versionId_pageType, где
+     *                  versionId - идентификатор версии справочника,
+     *                  pageType - тип действия:
+     *                      create (Добавление новой записи) или edit (Редактирование записи)
      */
     @Override
     @SuppressWarnings("unchecked")
@@ -64,23 +70,31 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         if (context.contains("{") || context.contains("}"))
             return singletonList(new N2oSimplePage());
 
-        String[] params = context.split("_");
+        String[] params = context.split(CONTEXT_PARAM_SEPARATOR_REGEX);
 
         Integer versionId = Integer.parseInt(params[0]);
         Structure structure = versionService.getStructure(versionId);
 
-        N2oSimplePage page = new N2oSimplePage();
+        N2oSimplePage page = createPage(context);
+        page.setWidget(createForm(versionId, structure));
+
         String dataAction = params[1];
-        N2oForm form = createForm(versionId, structure);
-        page.setWidget(form);
         page.setName(pageNames.get(dataAction));
-        page.setId(FORM_PROVIDER_ID + "?" + context);
+
         return singletonList(page);
     }
 
     @Override
     public Collection<Class<? extends SourceMetadata>> getMetadataClasses() {
         return singletonList(N2oPage.class);
+    }
+
+    private N2oSimplePage createPage(String context) {
+
+        N2oSimplePage page = new N2oSimplePage();
+        page.setId(PAGE_PROVIDER_ID + "?" + context);
+
+        return page;
     }
 
     private N2oForm createForm(Integer versionId, Structure structure) {
@@ -103,12 +117,19 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         List<N2oField> list = new ArrayList<>();
         for (Structure.Attribute attribute : structure.getAttributes()) {
 
+            N2oStandardField n2oField;
             if (attribute.isReferenceType()) {
-                list.add(createReferenceField(versionId, attribute));
+                n2oField = createReferenceField(versionId, attribute);
 
             } else {
-                list.add(createField(attribute));
+                n2oField = createField(attribute);
             }
+
+            if (attribute.hasIsPrimary()) {
+                n2oField.setRequired(true);
+            }
+
+            list.add(n2oField);
         }
         return list;
     }
@@ -160,10 +181,10 @@ public class DataRecordPageProvider implements DynamicMetadataProvider {
         referenceField.setId(codeWithPrefix);
         referenceField.setLabel(attribute.getName());
 
-        referenceField.setQueryId("reference");
+        referenceField.setQueryId(DataRecordConstants.REFERENCE_QUERY_ID);
         // NB: value-field-id is deprecated:
-        referenceField.setValueFieldId(DataRecordQueryProvider.REFERENCE_VALUE);
-        referenceField.setLabelFieldId(DataRecordQueryProvider.REFERENCE_DISPLAY_VALUE);
+        referenceField.setValueFieldId(DataRecordConstants.REFERENCE_VALUE);
+        referenceField.setLabelFieldId(DataRecordConstants.REFERENCE_DISPLAY_VALUE);
         referenceField.setDomain(N2oDomain.STRING);
 
         N2oPreFilter versionFilter = new N2oPreFilter();

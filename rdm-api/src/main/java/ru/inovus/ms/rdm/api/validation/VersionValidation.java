@@ -18,9 +18,13 @@ public interface VersionValidation {
 
     void validateRefBookCodeExists(String refBookCode);
 
+    void validateRefBookCodeNotExists(String refBookCode);
+
     void validateVersionExists(Integer versionId);
 
     void validateDraftExists(Integer draftId);
+
+    void validateOptLockValue(Integer draftId, Integer draftLockValue, Integer optLockValue);
 
     void validateDraftNotArchived(Integer draftId);
 
@@ -35,6 +39,8 @@ public interface VersionValidation {
     void validateReferenceAbility(Structure.Reference reference);
 
     void validateDraftStructure(String refBookCode, Structure draftStructure);
+
+    void validateReferrerStructure(Structure structure);
 
     boolean equalsPrimaries(List<Structure.Attribute> primaries1,
                             List<Structure.Attribute> primaries2);

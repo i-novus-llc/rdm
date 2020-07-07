@@ -1,11 +1,13 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <simple-page xmlns="http://n2oapp.net/framework/config/schema/page-2.0" name="Структура">
-    <form default-values-query-id="versionDefault" query-id="attribute" object-id="attribute">
+    <form default-values-query-id="attributeDefault" query-id="attribute" object-id="attribute">
         <fields>
             <row>
                 <input-text id="code" label="Код" required="true">
                     <dependencies>
-                        <enabling>typeof id == 'undefined'</enabling>
+                        <enabling>
+                            (typeof id == 'undefined' || id == null)
+                        </enabling>
                     </dependencies>
                 </input-text>
 
@@ -15,8 +17,12 @@
             <row>
                 <checkbox id="isPrimary" label="Первичный ключ">
                     <dependencies>
+                        <set-value on="attrType">
+                            if (attrType != null &amp;&amp; attrType.id == 'BOOLEAN' &amp;&amp; attrType.id == 'REFERENCE') return null;
+                        </set-value>
                         <enabling on="attrType,hasReferrer">
-                            (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; (typeof hasReferrer == 'undefined' || !hasReferrer))
+                            (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; attrType.id != 'REFERENCE'
+                                &amp;&amp; (typeof hasReferrer == 'undefined' || !hasReferrer))
                         </enabling>
                     </dependencies>
                 </checkbox>
@@ -36,7 +42,7 @@
             <input-select id="referenceRefBook" label="Выбор справочника"
                           query-id="referenceRefBook" label-field-id="displayCode">
                 <dependencies>
-                    <visibility on="attrType" reset="false">
+                    <visibility on="attrType">
                         attrType.id == 'REFERENCE'
                     </visibility>
                     <set-value on="attrType">
@@ -66,7 +72,7 @@
                 <input-select id="displayAttribute" label="Отображаемый атрибут"
                               query-id="attribute" label-field-id="name">
                     <dependencies>
-                        <visibility on="attrType,referenceRefBook" reset="false">
+                        <visibility on="attrType,referenceRefBook">
                             (attrType.id == 'REFERENCE' &amp;&amp; referenceRefBook != null)
                         </visibility>
                         <set-value on="attrType">
@@ -79,20 +85,20 @@
                     <validations>
                         <condition id="hasAttribute" severity="danger"
                                    message="Атрибут не выбран">
-                            displayAttribute != null || displayExpression != null
+                            (displayAttribute != null || displayExpression != null)
                         </condition>
                     </validations>
                 </input-select>
 
                 <input-text id="displayExpression" label="Отображаемое поле">
                     <dependencies>
-                        <visibility on="attrType,referenceRefBook" reset="false">
+                        <visibility on="attrType,referenceRefBook">
                             (attrType.id == 'REFERENCE' &amp;&amp; referenceRefBook != null)
                         </visibility>
                         <set-value on="attrType,displayAttribute">
                             if (attrType.id != 'REFERENCE') return null;
 
-                            if (displayAttribute.codeExpression != null)
+                            if (displayAttribute != null &amp;&amp; displayAttribute.codeExpression != null)
                                 return displayAttribute.codeExpression;
                         </set-value>
                         <requiring on="attrType">
@@ -115,8 +121,9 @@
             <row>
                 <checkbox id="required" label="Обязательный атрибут">
                     <dependencies>
-                        <visibility on="attrType,isPrimary" reset="false">
-                            (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; (typeof isPrimary === 'undefined' || !isPrimary))
+                        <visibility on="attrType,isPrimary">
+                            (attrType != null &amp;&amp; attrType.id != 'BOOLEAN'
+                                &amp;&amp; (typeof isPrimary === 'undefined' || !isPrimary))
                         </visibility>
                         <set-value on="attrType,isPrimary">
                             if (isPrimary)
@@ -131,8 +138,9 @@
 
                 <checkbox id="unique" label="Уникальный атрибут">
                     <dependencies>
-                        <visibility on="attrType,isPrimary" reset="false">
-                            (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; (typeof isPrimary === 'undefined' || !isPrimary))
+                        <visibility on="attrType,isPrimary">
+                            (attrType != null &amp;&amp; attrType.id != 'BOOLEAN'
+                                &amp;&amp; (typeof isPrimary === 'undefined' || !isPrimary))
                         </visibility>
                         <set-value on="attrType,isPrimary">
                             if (isPrimary)
@@ -149,7 +157,7 @@
             <row>
                 <input-text id="plainSize" domain="integer" label="Максимальная длина" min="1">
                     <dependencies>
-                        <visibility on="attrType" reset="false">
+                        <visibility on="attrType">
                             attrType.id == 'STRING' || attrType.id == 'INTEGER'
                         </visibility>
                         <set-value on="attrType">
@@ -162,7 +170,7 @@
 
                 <input-text id="regExp" domain="string" label="Регулярное выражение">
                     <dependencies>
-                        <visibility on="attrType" reset="false">
+                        <visibility on="attrType">
                             attrType.id == 'STRING'
                         </visibility>
                         <set-value on="attrType">
@@ -175,7 +183,7 @@
             <row>
                 <input-text id="intPartSize" domain="integer" label="Максимальная длина целой части" min="1">
                     <dependencies>
-                        <visibility on="attrType" reset="false">
+                        <visibility on="attrType">
                             attrType.id == 'FLOAT'
                         </visibility>
                         <set-value on="attrType">
@@ -186,7 +194,7 @@
 
                 <input-text id="fracPartSize" domain="integer" label="Максимальная длина дробной части" min="1">
                     <dependencies>
-                        <visibility on="attrType" reset="false">
+                        <visibility on="attrType">
                             attrType.id == 'FLOAT'
                         </visibility>
                         <set-value on="attrType">
@@ -199,7 +207,7 @@
             <row>
                 <input-text id="minInteger" domain="integer" label="Минимальное значение">
                     <dependencies>
-                        <visibility on="attrType" reset="false">
+                        <visibility on="attrType">
                             attrType.id == 'INTEGER'
                         </visibility>
                         <set-value on="attrType">
@@ -210,7 +218,7 @@
 
                 <input-text id="maxInteger" domain="integer" label="Максимальное значение">
                     <dependencies>
-                        <visibility on="attrType" reset="false">
+                        <visibility on="attrType">
                             attrType.id == 'INTEGER'
                         </visibility>
                         <set-value on="attrType">
@@ -222,7 +230,7 @@
             <row>
                 <input-text id="minFloat" domain="numeric" label="Минимальное значение">
                     <dependencies>
-                        <visibility on="attrType" reset="false">
+                        <visibility on="attrType">
                             attrType.id == 'FLOAT'
                         </visibility>
                         <set-value on="attrType">
@@ -233,7 +241,7 @@
 
                 <input-text id="maxFloat" domain="numeric" label="Максимальное значение">
                     <dependencies>
-                        <visibility on="attrType" reset="false">
+                        <visibility on="attrType">
                             attrType.id == 'FLOAT'
                         </visibility>
                         <set-value on="attrType">
@@ -245,7 +253,7 @@
 
             <date-interval id="dateInterval" label="Интервал значений" date-format="DD.MM.YYYY">
                 <dependencies>
-                    <visibility on="attrType" reset="false">
+                    <visibility on="attrType">
                         attrType.id == 'DATE'
                     </visibility>
                     <set-value on="attrType">
