@@ -18,6 +18,7 @@ public class ModelGenerator {
         model.setId(entity.getId());
         model.setRefBookId(entity.getRefBook().getId());
         model.setCode(entity.getRefBook().getCode());
+        model.setCategory(entity.getRefBook().getCategory());
         model.setVersion(entity.getVersion());
         model.setComment(entity.getComment());
 

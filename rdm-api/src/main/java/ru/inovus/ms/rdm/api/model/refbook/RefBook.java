@@ -15,9 +15,6 @@ public class RefBook extends RefBookVersion {
     @ApiModelProperty("Признак возможности удаления")
     private Boolean removable;
 
-    @ApiModelProperty("Категория")
-    private String category;
-
     @ApiModelProperty("Идентификатор черновика")
     private Integer draftVersionId;
 
@@ -94,14 +91,6 @@ public class RefBook extends RefBookVersion {
 
     public void setRemovable(Boolean removable) {
         this.removable = removable;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
     }
 
     public Integer getDraftVersionId() {
