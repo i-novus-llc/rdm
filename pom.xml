@@ -65,9 +65,6 @@
     <modules>
         <module>rdm-api</module>
         <module>rdm-sync-spring-boot-starter</module>
-        <module>rdm-n2o</module>
-        <module>rdm-esnsi</module>
-        <module>rdm-loader-client</module>
     </modules>
 
     <distributionManagement>
@@ -234,6 +231,7 @@
                 <module>rdm-frontend</module>
                 <module>rdm-n2o</module>
                 <module>rdm-esnsi</module>
+                <module>rdm-loader-client</module>
             </modules>
         </profile>
         <profile>
