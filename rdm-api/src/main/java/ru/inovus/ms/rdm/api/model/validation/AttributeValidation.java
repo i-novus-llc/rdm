@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.swagger.annotations.ApiModelProperty;
 
+import java.util.Objects;
+
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = RequiredAttributeValidation.class, name = "REQUIRED"),
@@ -63,4 +65,30 @@ public abstract class AttributeValidation {
      * @throws IllegalArgumentException если некорректный формат
      */
     public abstract AttributeValidation valueFromString(String value);
+
+    public static AttributeValidation of(String stype, String val) {
+        return ofTypeWithAttr(stype, val, null);
+    }
+
+    public static AttributeValidation ofTypeWithAttr(String stype, String val, String attr) {
+        AttributeValidationType type = AttributeValidationType.valueOf(stype.toUpperCase());
+        AttributeValidation validation = type.getValidationInstance().valueFromString(val);
+        validation.setAttribute(attr);
+        return validation;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AttributeValidation that = (AttributeValidation) o;
+        return Objects.equals(versionId, that.versionId) &&
+                Objects.equals(attribute, that.attribute) &&
+                type == that.type;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(versionId, attribute, type);
+    }
 }

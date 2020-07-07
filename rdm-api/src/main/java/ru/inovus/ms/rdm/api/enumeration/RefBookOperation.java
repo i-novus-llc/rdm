@@ -2,8 +2,8 @@ package ru.inovus.ms.rdm.api.enumeration;
 
 public enum RefBookOperation {
 
-    PUBLISHING  ("Публикуется"),
-    UPLOADING   ("Загружается");
+    PUBLISHING("Публикуется"),
+    UPDATING("Обновляется");
 
     private String name;
 

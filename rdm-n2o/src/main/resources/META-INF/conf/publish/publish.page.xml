@@ -4,51 +4,62 @@
 
         <fields>
 <!--            <output-text id="version.version" label="Версия"/>-->
+<!--            <output-text id="version.optLockValue" label="Опт-блок-значение"/>-->
 
-            <output-text id="listCheckDeletedConflictReferrers"
+            <output-text id="errorMessage" class="alert alert-danger" no-label="true">
+                <dependencies>
+                    <visibility>hasErrorMessage</visibility>
+                </dependencies>
+            </output-text>
+
+            <output-text id="listCheckDeletedConflictReferrers" label-class="alert alert-warning"
                          label="Были удалены строки, на которые ссылались справочники системы:">
                 <dependencies>
                     <visibility>hasCheckDeletedConflicts</visibility>
                 </dependencies>
             </output-text>
 
-            <output-text id="listCheckUpdatedConflictReferrers"
+            <output-text id="listCheckUpdatedConflictReferrers" label-class="alert alert-warning"
                          label="Были изменены строки, на которые ссылались справочники системы:">
                 <dependencies>
                     <visibility>hasCheckUpdatedConflicts</visibility>
                 </dependencies>
             </output-text>
 
-            <output-text id="listCheckAlteredConflictReferrers"
+            <output-text id="listCheckAlteredConflictReferrers" label-class="alert alert-warning"
                          label="Была изменена структура справочника, на который ссылаются справочники системы:">
                 <dependencies>
                     <visibility>hasCheckAlteredConflicts &amp;&amp; !hasCheckDisplayDamagedConflicts</visibility>
                 </dependencies>
             </output-text>
 
-            <output-text id="listCheckDisplayDamagedConflictReferrers"
-                         label="Была изменена структура справочника, публикация новой версии нарушит работу ссылок справочников системы:">
+            <output-text id="listCheckDisplayDamagedConflictReferrers" label-class="alert alert-warning"
+                         label="Была изменена структура справочника, публикация новой версии нарушит работу ссылок справочников системы.">
                 <dependencies>
                     <visibility>hasCheckDisplayDamagedConflicts</visibility>
                 </dependencies>
             </output-text>
 
-<!--            <line collapsible="false">-->
-                <output-text id="confirmPublish"
-                             label="Вы уверены, что хотите опубликовать этот справочник?"/>
-<!--            </line>-->
+            <output-text id="confirmPublish"
+                         label="Вы уверены, что хотите опубликовать этот справочник?">
+                <dependencies>
+                    <visibility>!hasErrorMessage</visibility>
+                </dependencies>
+            </output-text>
 
         </fields>
 
         <toolbar place="bottomRight">
             <button id="publishDraft" label="Опубликовать"
                     visibility-condition="isPublishable">
-                <invoke operation-id="publishDraft" close-after-success="true"/>
+                <invoke operation-id="publishDraft" close-after-success="true"
+                        redirect-target="application" redirect-url="${rdm.context-path}/#/refBookList"/>
             </button>
 
             <button id="publishAndRefresh" label="Опубликовать и обновить ссылки"
                     visibility-condition="isPublishable &amp;&amp; (hasCheckUpdatedConflicts || hasCheckAlteredConflicts)">
-                <invoke operation-id="publishAndRefresh" close-after-success="true"/>
+                <invoke operation-id="publishAndRefresh" close-after-success="true"
+                        redirect-target="application" redirect-url="${rdm.context-path}/#/refBookList"/>
             </button>
 
             <button id="cancel" label="Отмена">

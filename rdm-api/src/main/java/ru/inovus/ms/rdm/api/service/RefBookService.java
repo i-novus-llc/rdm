@@ -2,10 +2,13 @@ package ru.inovus.ms.rdm.api.service;
 
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
+import ru.inovus.ms.rdm.api.model.FileModel;
+import ru.inovus.ms.rdm.api.model.draft.Draft;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
+import ru.inovus.ms.rdm.api.model.refdata.RdmChangeDataRequest;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -17,7 +20,7 @@ import javax.ws.rs.core.MediaType;
 public interface RefBookService {
 
     @GET
-    @ApiOperation(value = "Поиск справочников по параметрам критерия", hidden = true)
+    @ApiOperation(value = "Поиск справочников по параметрам критерия")
     @ApiImplicitParams(@ApiImplicitParam(name = "sort", value = "Параметры сортировки",
             required = false, allowMultiple = true, paramType = "query", dataType = "string"))
     @ApiResponses({
@@ -72,6 +75,16 @@ public interface RefBookService {
     })
     RefBook create(RefBookCreateRequest refBookCreateRequest);
 
+    @POST
+    @ApiOperation(value = "Создание нового справочника и черновика из файла", hidden = true)
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Справочник и черновик созданы"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    @Path("/createFromFile")
+    Draft create(@ApiParam("Файл") FileModel fileModel);
+
     @PUT
     @ApiOperation(value = "Изменение метаданных справочника", hidden = true)
     @ApiResponses({
@@ -107,4 +120,10 @@ public interface RefBookService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     void fromArchive(@ApiParam("Идентификатор справочника") @PathParam("refBookId") int refBookId);
+
+    @POST
+    @Path("/changeData")
+    @ApiOperation(value = "Добавить данные в черновик справочника и тут же опубликовать. Если черновика нет -- он будет создан, если есть -- данные отредактируются в существующем.", hidden = true)
+    void changeData(RdmChangeDataRequest request);
+
 }

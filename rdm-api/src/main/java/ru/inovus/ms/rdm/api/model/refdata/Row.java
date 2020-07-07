@@ -1,13 +1,13 @@
 package ru.inovus.ms.rdm.api.model.refdata;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
-public class Row {
+public class Row implements Serializable {
 
     private Long systemId;
-
-    private Map<String, Object> data;
+    private Map<String, Object> data; // NOSONAR
 
     public Row() {}
 
@@ -40,8 +40,9 @@ public class Row {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Row row = (Row) o;
-        return Objects.equals(data, row.data);
+
+        Row that = (Row) o;
+        return Objects.equals(data, that.data);
     }
 
     @Override

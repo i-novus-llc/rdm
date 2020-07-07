@@ -9,7 +9,7 @@ import { makeGetFilterModelSelector } from 'n2o-framework/lib/selectors/models';
 import { PREFIXES } from 'n2o-framework/lib/constants/models';
 import columnHOC from 'n2o-framework/lib/components/widgets/Table/withColumn';
 import TableCell from 'n2o-framework/lib/components/widgets/Table/TableCell';
-import factoryResolver from 'n2o-framework/lib/utils/factoryResolver';
+import factoryResolver from 'n2o-framework/lib/core/factory/factoryResolver';
 
 import { map, get, isEqual, omit, isObject, isEmpty, isNil } from 'lodash';
 

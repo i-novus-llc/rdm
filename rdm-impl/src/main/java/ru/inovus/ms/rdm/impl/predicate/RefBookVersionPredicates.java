@@ -3,11 +3,11 @@ package ru.inovus.ms.rdm.impl.predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
-import ru.inovus.ms.rdm.impl.entity.QPassportValueEntity;
-import ru.inovus.ms.rdm.impl.entity.QRefBookVersionEntity;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.inovus.ms.rdm.api.exception.RdmException;
+import ru.inovus.ms.rdm.impl.entity.QPassportValueEntity;
+import ru.inovus.ms.rdm.impl.entity.QRefBookVersionEntity;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -42,6 +42,10 @@ public final class RefBookVersionPredicates {
 
     public static BooleanExpression isCodeContains(String code) {
         return QRefBookVersionEntity.refBookVersionEntity.refBook.code.containsIgnoreCase(code.trim());
+    }
+
+    public static BooleanExpression isCodeEquals(String code) {
+        return QRefBookVersionEntity.refBookVersionEntity.refBook.code.eq(code.trim());
     }
 
     public static BooleanExpression isMaxFromDateEqOrAfter(LocalDateTime dateTime) {

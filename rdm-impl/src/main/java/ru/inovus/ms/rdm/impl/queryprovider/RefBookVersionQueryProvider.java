@@ -13,17 +13,16 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import ru.inovus.ms.rdm.impl.entity.QPassportValueEntity;
-import ru.inovus.ms.rdm.impl.entity.QRefBookVersionEntity;
-import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.inovus.ms.rdm.api.model.version.VersionCriteria;
+import ru.inovus.ms.rdm.impl.entity.QPassportValueEntity;
+import ru.inovus.ms.rdm.impl.entity.QRefBookVersionEntity;
+import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.impl.predicate.PassportPredicateProducer;
 import ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates;
 
 import javax.persistence.EntityManager;
-
 import java.util.List;
 import java.util.Objects;
 
@@ -110,6 +109,8 @@ public class RefBookVersionQueryProvider {
 
         if (!isEmpty(criteria.getCode()))
             where.and(RefBookVersionPredicates.isCodeContains(criteria.getCode()));
+        else if (!isEmpty(criteria.getCodeExact()))
+            where.and(RefBookVersionPredicates.isCodeEquals(criteria.getCodeExact()));
 
         if (nonNull(criteria.getVersionId()))
             where.and(RefBookVersionPredicates.refBookHasVersion(criteria.getVersionId()));

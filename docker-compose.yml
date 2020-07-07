@@ -36,6 +36,8 @@ services:
     ports:
     - "8080"
     deploy:
+      restart_policy:
+        max_attempts: 3
       resources:
         limits:
           memory: 500M
@@ -57,6 +59,8 @@ services:
     ports:
     - "8080"
     deploy:
+      restart_policy:
+        max_attempts: 3
       resources:
         limits:
           memory: 700M
@@ -84,6 +88,8 @@ services:
     ports:
     - "8080"
     deploy:
+      restart_policy:
+        max_attempts: 3
       resources:
         limits:
           memory: 500M
@@ -102,6 +108,8 @@ services:
     ports:
     - "8080"
     deploy:
+      restart_policy:
+        max_attempts: 3
       resources:
         limits:
           memory: 700M
@@ -117,12 +125,15 @@ services:
       SPRING_DATASOURCE_USERNAME: rdm
       SPRING_DATASOURCE_PASSWORD: rdm
       JAVA_OPTS: -Xmx200m
+      ESNSI_SYNC_DISABLE_MSG_FETCHER: "true" # Только чтобы отдебажиться
     depends_on:
       - db
     restart: on-failure
     ports:
       - "8080"
     deploy:
+      restart_policy:
+        max_attempts: 3
       resources:
         limits:
           memory: 500M

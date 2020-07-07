@@ -4,7 +4,7 @@
     <table query-id="refBook" route="/main">
         <pagination/>
         <rows>
-            <switch value-field-id="lastHasDataConflict">
+            <switch value-field-id="lastHasConflict">
                 <case value="true">bg-danger</case>
             </switch>
         </rows>
@@ -12,7 +12,7 @@
             <row>
                 <input-text id="name" label="Название справочника"/>
                 <input-text id="code" label="Код справочника"/>
-                <date-interval id="lastPublishedVersionFromDateInterval" label="Дата последней публикации"/>
+                <date-interval id="lastPublishedVersionFromDateInterval" label="Дата последней публикации" date-format="DD.MM.YYYY"/>
                 <input-select id="category" label="Категория" query-id="category" label-field-id="id"/>
                 <input-select id="status" label="Статус"
                               query-id="refBookStatusList" label-field-id="name" search="false"
@@ -33,7 +33,7 @@
                     <show-modal page-id="createFromFile" page-name="Создание справочника из файла" upload="defaults"
                                 submit-operation-id="createFromFile"
                                 redirect-url-after-submit="${rdm.context-path}/main/:refBookId/edit"
-                                redirect-target-after-submit="self">
+                                redirect-target="application">
                     </show-modal>
                 </menu-item>
             </sub-menu>
@@ -63,9 +63,9 @@
                 <text format="date DD.MM.YYYY"/>
             </column>
 <!--            вывод tooltip-сообщения пока не работает-->
-            <column text-field-id="lastHasDataConflict" label="" type="icon" tooltip-field-id="lastHasDataConflictMsg">
+            <column text-field-id="lastHasConflict" label="" type="icon" tooltip-field-id="lastHasConflictMsg">
                 <icon>
-                    <switch value-field-id="lastHasDataConflict">
+                    <switch value-field-id="lastHasConflict">
                         <case value="true">fa fa-question-circle-o</case>
                     </switch>
                 </icon>

@@ -1,8 +1,8 @@
 package ru.inovus.ms.rdm.rest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.platform.i18n.Messages;
 import net.n2oapp.platform.jaxrs.LocalDateTimeISOParameterConverter;
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,7 +11,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.jms.connection.CachingConnectionFactory;
+import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
 import ru.i_novus.ms.audit.client.SourceApplicationAccessor;
 import ru.i_novus.ms.audit.client.UserAccessor;
@@ -19,12 +19,16 @@ import ru.i_novus.ms.audit.client.model.User;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.inovus.ms.rdm.api.provider.*;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
+import ru.inovus.ms.rdm.api.util.json.JsonUtil;
 import ru.inovus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
+import ru.inovus.ms.rdm.rest.provider.StaleStateExceptionMapper;
 import ru.inovus.ms.rdm.rest.util.SecurityContextUtils;
 
+import javax.annotation.PostConstruct;
 import javax.jms.ConnectionFactory;
 
 @Configuration
+@SuppressWarnings("unused")
 public class BackendConfiguration {
 
     @Autowired
@@ -32,6 +36,10 @@ public class BackendConfiguration {
 
     @Value("${spring.activemq.broker-url}")
     private String brokerUrl;
+
+    @Autowired
+    @Qualifier("cxfObjectMapper")
+    private ObjectMapper objectMapper;
 
     @Bean
     MskUtcLocalDateTimeParamConverter mskUtcLocalDateTimeParamConverter() {
@@ -83,6 +91,12 @@ public class BackendConfiguration {
     }
 
     @Bean
+    @ConditionalOnClass(Messages.class)
+    StaleStateExceptionMapper staleStateExceptionMapper(Messages messages) {
+        return new StaleStateExceptionMapper(messages);
+    }
+
+    @Bean
     @Primary
     @ConditionalOnClass(Messages.class)
     UserExceptionMapper userExceptionMapper(Messages messages) {
@@ -90,20 +104,29 @@ public class BackendConfiguration {
     }
 
     @Bean
+    @Qualifier("topicJmsTemplate")
     @ConditionalOnProperty(name = "rdm.enable.publish.topic", havingValue = "true")
-    public ConnectionFactory activeMQConnectionFactory() {
-        ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory();
-        activeMQConnectionFactory.setBrokerURL(brokerUrl);
-        return new CachingConnectionFactory(activeMQConnectionFactory);
+    public JmsTemplate topicJmsTemplate(ConnectionFactory connectionFactory) {
+        JmsTemplate jmsTemplate = new JmsTemplate(connectionFactory);
+        jmsTemplate.setPubSubDomain(true);
+        jmsTemplate.setExplicitQosEnabled(true);
+        long oneHour = 60 * 60000L;
+        jmsTemplate.setTimeToLive(oneHour);
+        return jmsTemplate;
     }
 
     @Bean
-    @Qualifier("topicJmsTemplate")
-    @ConditionalOnProperty(name = "rdm.enable.publish.topic", havingValue = "true")
-    public JmsTemplate topicJmsTemplate() {
-        JmsTemplate jmsTemplate = new JmsTemplate(activeMQConnectionFactory());
-        jmsTemplate.setPubSubDomain(true);
-        return jmsTemplate;
+    @Qualifier("queueJmsTemplate")
+    public JmsTemplate queueJmsTemplate(ConnectionFactory connectionFactory) {
+        return new JmsTemplate(connectionFactory);
+    }
+
+    @Bean
+    public DefaultJmsListenerContainerFactory internalAsyncOperationContainerFactory(ConnectionFactory connectionFactory) {
+        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory);
+        factory.setSessionTransacted(true);
+        return factory;
     }
 
     @Bean
@@ -115,6 +138,11 @@ public class BackendConfiguration {
     @Value("${rdm.audit.application.name}")
     public SourceApplicationAccessor applicationAccessor(String appName) {
         return () -> appName;
+    }
+
+    @PostConstruct
+    public void setUpObjectMapper() {
+        JsonUtil.jsonMapper = objectMapper;
     }
 
 }

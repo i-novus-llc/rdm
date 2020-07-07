@@ -1,9 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <nav xmlns="http://n2oapp.net/framework/config/schema/menu-2.0">
-    <sub-menu label="Реестр справочников">
-        <page page-id="refBookList" label="Перечень НСИ"/>
-    </sub-menu>
-    <sub-menu label="Администрирование">
-        <a href="${rdm.user.admin.url}" label="Настройка доступа"/>
-    </sub-menu>
+    <page page-id="refBookList" label="Реестр справочников"/>
+    <page page-id="asyncLog" label="Журнал операций"/>
 </nav>

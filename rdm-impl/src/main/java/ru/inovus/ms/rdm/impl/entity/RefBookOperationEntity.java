@@ -3,27 +3,28 @@ package ru.inovus.ms.rdm.impl.entity;
 import ru.inovus.ms.rdm.api.enumeration.RefBookOperation;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.time.Clock;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "ref_book_operation", schema = "n2o_rdm_management")
-public class RefBookOperationEntity {
+public class RefBookOperationEntity implements Serializable {
+
     @Id
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @OneToOne
-    @JoinColumn(name = "ref_book_id", nullable = false)
-    private RefBookEntity refBook;
+    @Column(name = "ref_book_id", nullable = false)
+    private Integer refBookId;
 
     @Column(name = "operation")
     @Enumerated(value = EnumType.STRING)
     private RefBookOperation operation;
 
-    @Column(name = "instance_id")
-    private String instanceId;
+    @Column(name = "lock_id")
+    private String lockId;
 
     @Column(name = "user_name")
     private String userName;
@@ -31,10 +32,11 @@ public class RefBookOperationEntity {
     @Column(name = "creation_date")
     private LocalDateTime creationDate;
 
-    public RefBookOperationEntity(RefBookEntity refBook, RefBookOperation operation, String instanceId, String userName) {
-        this.refBook = refBook;
+    public RefBookOperationEntity(Integer refBookId, RefBookOperation operation, String lockId, String userName) {
+
+        this.refBookId = refBookId;
         this.operation = operation;
-        this.instanceId = instanceId;
+        this.lockId = lockId;
         this.userName = userName;
     }
 
@@ -55,12 +57,12 @@ public class RefBookOperationEntity {
         this.id = id;
     }
 
-    public RefBookEntity getRefBook() {
-        return refBook;
+    public Integer getRefBookId() {
+        return refBookId;
     }
 
-    public void setRefBook(RefBookEntity refBook) {
-        this.refBook = refBook;
+    public void setRefBook(Integer refBookId) {
+        this.refBookId = refBookId;
     }
 
     public RefBookOperation getOperation() {
@@ -71,12 +73,12 @@ public class RefBookOperationEntity {
         this.operation = operation;
     }
 
-    public String getInstanceId() {
-        return instanceId;
+    public String getLockId() {
+        return lockId;
     }
 
-    public void setInstanceId(String instanceId) {
-        this.instanceId = instanceId;
+    public void setLockId(String lockId) {
+        this.lockId = lockId;
     }
 
     public String getUserName() {
@@ -94,5 +96,4 @@ public class RefBookOperationEntity {
     public void setCreationDate(LocalDateTime creationDate) {
         this.creationDate = creationDate;
     }
-
 }

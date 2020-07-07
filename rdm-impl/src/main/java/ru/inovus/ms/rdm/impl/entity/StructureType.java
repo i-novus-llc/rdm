@@ -1,7 +1,6 @@
 package ru.inovus.ms.rdm.impl.entity;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.SerializationUtils;
@@ -23,9 +22,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class StructureType implements UserType {
+import static ru.inovus.ms.rdm.api.util.json.JsonUtil.jsonMapper;
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+public class StructureType implements UserType {
 
     @Override
     public int[] sqlTypes() {
@@ -33,7 +32,7 @@ public class StructureType implements UserType {
     }
 
     @Override
-    public Class returnedClass() {
+    public Class<? extends Structure> returnedClass() {
         return Structure.class;
     }
 
@@ -55,7 +54,7 @@ public class StructureType implements UserType {
         }
 
         try {
-            JsonNode attributesJson = MAPPER.readTree(cellContent).get("attributes");
+            JsonNode attributesJson = jsonMapper.readTree(cellContent).get("attributes");
             return jsonToStructure(attributesJson);
         } catch (IOException e) {
             throw new PersistenceException(e);
@@ -102,7 +101,7 @@ public class StructureType implements UserType {
         }
         try {
             ObjectNode structure = valueToJson(value);
-            st.setObject(index, MAPPER.writeValueAsString(structure), Types.OTHER);
+            st.setObject(index, jsonMapper.writeValueAsString(structure), Types.OTHER);
         } catch (IOException ex) {
             throw new PersistenceException("Failed to convert Invoice to String: " + ex.getMessage(), ex);
         }
@@ -110,15 +109,15 @@ public class StructureType implements UserType {
 
     private ObjectNode valueToJson(Object value) {
         Structure structure = (Structure) value;
-        ArrayNode attributesJson = MAPPER.createArrayNode();
+        ArrayNode attributesJson = jsonMapper.createArrayNode();
         structure.getAttributes().forEach(attribute -> attributesJson.add(createAttributeJson(attribute, structure)));
-        ObjectNode jsonStructure = MAPPER.createObjectNode();
+        ObjectNode jsonStructure = jsonMapper.createObjectNode();
         jsonStructure.set("attributes", attributesJson);
         return jsonStructure;
     }
 
     private ObjectNode createAttributeJson(Structure.Attribute attribute, Structure structure) {
-        ObjectNode attributeJson = MAPPER.createObjectNode();
+        ObjectNode attributeJson = jsonMapper.createObjectNode();
         attributeJson.put("code", attribute.getCode());
         attributeJson.put("name", attribute.getName());
         attributeJson.put("type", attribute.getType().name());

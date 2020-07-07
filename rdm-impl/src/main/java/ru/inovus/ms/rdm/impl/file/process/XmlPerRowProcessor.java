@@ -1,26 +1,24 @@
 package ru.inovus.ms.rdm.impl.file.process;
 
-import net.n2oapp.platform.i18n.UserException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import ru.inovus.ms.rdm.impl.file.RowMapper;
+import ru.inovus.ms.rdm.api.exception.FileContentException;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
+import ru.inovus.ms.rdm.impl.util.mappers.RowMapper;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
 import java.io.InputStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
-import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.isStartElementWithName;
-import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.parseValues;
+import static ru.inovus.ms.rdm.impl.file.process.XmlParseUtils.*;
 
 public class XmlPerRowProcessor extends FilePerRowProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(XmlPerRowProcessor.class);
-
-    private static final String XML_READ_ERROR_MESSAGE = "cannot read XML";
+    public static final String FILE_CONTENT_INVALID_EXCEPTION_CODE = "file.content.invalid";
 
     private static final String DATA_TAG_NAME = "data";
     private static final String ROW_TAG_NAME = "row";
@@ -29,23 +27,13 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
 
     private XMLEventReader reader;
 
-
     XmlPerRowProcessor(RowMapper rowMapper, RowsProcessor rowsProcessor) {
         super(rowMapper, rowsProcessor);
     }
 
     @Override
     protected void setFile(InputStream inputStream) {
-
-        try {
-            FACTORY.setProperty(XMLInputFactory.IS_COALESCING, true);
-            XMLEventReader simpleReader = FACTORY.createXMLEventReader(inputStream);
-            reader = FACTORY.createFilteredReader(simpleReader,
-                    event ->
-                            !(event.isCharacters() && event.asCharacters().isWhiteSpace()));
-        } catch (XMLStreamException e) {
-            throwXmlReadError(e);
-        }
+        reader = createEventReader(inputStream, FACTORY);
     }
 
     // check if next tag is <row>. Will move to next tag if meets <data> tag
@@ -68,17 +56,17 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
                 return false;
             }
             reader.nextEvent();
+
             return isStartElementWithName(reader.peek(), ROW_TAG_NAME);
+
         } catch (XMLStreamException e) {
-            throwXmlReadError(e);
+            throw new FileContentException(e);
         }
-        return false;
     }
 
     @Override
     public Row next() {
-        Map<String, String> rowValues = new LinkedHashMap<>();
-
+        Map<String, Object> rowValues = new LinkedHashMap<>();
         try {
             reader.nextTag();
             if (isStartElementWithName(reader.peek(), DATA_TAG_NAME)) {
@@ -87,8 +75,8 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
             parseValues(reader, rowValues, ROW_TAG_NAME);
 
         } catch (XMLStreamException e) {
-            logger.error(XML_READ_ERROR_MESSAGE, e);
-            throw new NoSuchElementException(XML_READ_ERROR_MESSAGE);
+            // by contract of this method:
+            throw new NoSuchElementException(FILE_CONTENT_INVALID_EXCEPTION_CODE);
         }
 
         return new Row(new HashMap<>(rowValues));
@@ -96,18 +84,6 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
 
     @Override
     public void close() {
-        if (reader != null) {
-            try {
-                reader.close();
-            } catch (XMLStreamException e) {
-                throwXmlReadError(e);
-            }
-        }
+        closeEventReader(reader);
     }
-
-    private void throwXmlReadError(Exception e) {
-        logger.error(XML_READ_ERROR_MESSAGE, e);
-        throw new UserException(XML_READ_ERROR_MESSAGE);
-    }
-
 }

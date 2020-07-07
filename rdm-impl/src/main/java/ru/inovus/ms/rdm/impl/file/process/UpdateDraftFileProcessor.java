@@ -1,20 +1,22 @@
 package ru.inovus.ms.rdm.impl.file.process;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.n2oapp.platform.i18n.UserException;
+import org.springframework.data.util.Pair;
+import ru.inovus.ms.rdm.api.exception.FileContentException;
+import ru.inovus.ms.rdm.api.exception.FileProcessingException;
+import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.api.model.draft.Draft;
-import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.validation.AttributeValidation;
 import ru.inovus.ms.rdm.api.service.DraftService;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
 public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
-
-    private static final Logger logger = LoggerFactory.getLogger(UpdateDraftFileProcessor.class);
 
     private Integer refBookId;
 
@@ -27,22 +29,37 @@ public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
 
     protected abstract void setFile(InputStream inputStream);
 
-    public abstract Map<String, String> getPassport();
+    public abstract Map<String, Object> getPassport();
 
-    protected abstract Structure getStructure();
+    protected abstract Pair<Structure, Map<String, List<AttributeValidation>>> getStructureAndValidations();
 
     @Override
     public Draft process(Supplier<InputStream> fileSource) {
+
+        Map<String, Object> passport = null;
+        Pair<Structure, Map<String, List<AttributeValidation>>> pair = null;
+
         try(InputStream inputStream = fileSource.get()) {
             setFile(inputStream);
-
-            Map<String, String> passport = getPassport();
-            Structure structure = getStructure();
-            return draftService.create(new CreateDraftRequest(refBookId, structure, passport));
+            passport = getPassport();
+            pair = getStructureAndValidations();
 
         }  catch (IOException e) {
-            logger.error("cannot get inputStream", e);
+            throw new FileContentException(e);
+
+        } catch (UserException e) {
+            throw e;
+
+        } catch (Exception e) {
+            throw new FileProcessingException(e);
         }
+
+        if (passport != null && pair != null) {
+            CreateDraftRequest request = new CreateDraftRequest(refBookId, pair.getFirst(), passport, pair.getSecond());
+            request.setReferrerValidationRequired(true);
+            return draftService.create(request);
+        }
+
         return null;
     }
 }

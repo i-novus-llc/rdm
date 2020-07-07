@@ -1,7 +1,6 @@
 package ru.inovus.ms.rdm.impl.file.process;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.n2oapp.platform.i18n.UserException;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.refbook.RefBook;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
@@ -12,7 +11,7 @@ import java.util.function.Supplier;
 
 public abstract class CreateRefBookFileProcessor implements FileProcessor<RefBook> {
 
-    private static final Logger logger = LoggerFactory.getLogger(CreateRefBookFileProcessor.class);
+    private static final String REFBOOK_IS_NOT_CREATED_EXCEPTION_CODE = "refbook.is.not.created";
 
     private RefBookService refBookService;
 
@@ -26,17 +25,23 @@ public abstract class CreateRefBookFileProcessor implements FileProcessor<RefBoo
 
     @Override
     public RefBook process(Supplier<InputStream> fileSource) {
+
+        RefBookCreateRequest refBookCreateRequest = null;
         try(InputStream inputStream = fileSource.get()) {
             setFile(inputStream);
-            RefBookCreateRequest refBookCreateRequest = getRefBookCreateRequest();
-            if (refBookCreateRequest == null) {
-                return null;
-            }
-            return refBookService.create(refBookCreateRequest);
+            refBookCreateRequest = getRefBookCreateRequest();
+
+        } catch (UserException e) {
+            throw e;
+
         } catch (Exception e) {
-            logger.error("cannot process file", e);
             throw new RdmException(e);
         }
 
+        if (refBookCreateRequest != null) {
+            return refBookService.create(refBookCreateRequest);
+        }
+
+        throw new UserException(REFBOOK_IS_NOT_CREATED_EXCEPTION_CODE);
     }
 }

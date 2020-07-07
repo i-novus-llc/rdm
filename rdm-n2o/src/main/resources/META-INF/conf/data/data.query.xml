@@ -18,7 +18,13 @@
 
         <field id="versionId" domain="integer">
             <filters>
-                <eq filter-id="versionId" mapping="versionId" domain="string"/>
+                <eq filter-id="versionId" mapping="versionId" domain="integer"/>
+            </filters>
+        </field>
+
+        <field id="optLockValue" domain="integer">
+            <filters>
+                <eq filter-id="optLockValue" mapping="optLockValue" domain="integer"/>
             </filters>
         </field>
 

@@ -4,6 +4,7 @@ import net.n2oapp.criteria.api.Direction;
 import net.n2oapp.criteria.api.Sorting;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.data.domain.Sort;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
@@ -14,12 +15,12 @@ import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.*;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.service.FieldFactoryImpl;
-import ru.inovus.ms.rdm.api.util.TimeUtils;
 import ru.inovus.ms.rdm.api.exception.RdmException;
-import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
+import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.api.model.refdata.Row;
-import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
+import ru.inovus.ms.rdm.api.util.TimeUtils;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -40,18 +41,21 @@ public class ConverterUtil {
     private ConverterUtil() {
     }
 
+    /** Возвращает список столбцов таблицы на основе структуры справочника. */
     public static List<Field> fields(Structure structure) {
         List<Field> fields = new ArrayList<>();
-        if (structure != null) {
-            Optional.ofNullable(structure.getAttributes()).ifPresent(s ->
-                    s.forEach(attribute -> fields.add(field(attribute)))
-            );
+        if (structure != null && !structure.isEmpty()) {
+            structure.getAttributes().forEach(attribute -> fields.add(field(attribute)));
         }
         return fields;
     }
 
+    /** Возвращает столбец таблицы на основе атрибута структуры справочника. */
     public static Field field(Structure.Attribute attribute) {
-        return fieldFactory.createSearchField(attribute.getCode(), attribute.getType());
+        boolean isSearchable = attribute.hasIsPrimary() && FieldType.STRING.equals(attribute.getType());
+        return isSearchable
+                ? fieldFactory.createSearchField(attribute.getCode(), attribute.getType())
+                : fieldFactory.createField(attribute.getCode(), attribute.getType());
     }
 
     public static RowValue rowValue(Row row, Structure structure) {
@@ -77,8 +81,9 @@ public class ConverterUtil {
     public static Set<List<FieldSearchCriteria>> getFieldSearchCriteriaList(Set<List<AttributeFilter>> attributeFilters) {
         if (Objects.isNull(attributeFilters))
             return emptySet();
-        return attributeFilters.stream().map(attrFiltersList ->
-                attrFiltersList.stream().map(attrFilter ->
+
+        return attributeFilters.stream().map(attrFilterList ->
+                attrFilterList.stream().map(attrFilter ->
                         new FieldSearchCriteria(
                                 fieldFactory.createField(attrFilter.getAttributeName(), attrFilter.getFieldType()),
                                 attrFilter.getSearchType(),
@@ -89,12 +94,16 @@ public class ConverterUtil {
     public static Set<List<FieldSearchCriteria>> getFieldSearchCriteriaList(Map<String, String> filters, Structure structure) {
         if (isEmpty(filters))
             return emptySet();
+
         return singleton(filters.entrySet().stream()
                 .map(e -> {
                     Structure.Attribute attribute = structure.getAttribute(e.getKey());
                     if (attribute == null) return null;
+
                     Field field = field(attribute);
-                    return new FieldSearchCriteria(field, SearchTypeEnum.LIKE, singletonList(toSearchType(field, e.getValue())));
+                    return new FieldSearchCriteria(field, SearchTypeEnum.LIKE,
+                            singletonList(toSearchValue(field, e.getValue()))
+                    );
                 }).collect(toList()));
     }
 
@@ -152,14 +161,14 @@ public class ConverterUtil {
             throw new RdmException("invalid field type");
     }
 
-    public static Object toSearchType(Object value) {
+    public static Object toSearchValue(Object value) {
         if (value instanceof Reference) {
             return ((Reference) value).getValue();
         }
         return value;
     }
 
-    public static Object toSearchType(Field field, String value) {
+    public static Object toSearchValue(Field field, String value) {
         try {
             if (field instanceof BooleanField) {
                 return Boolean.valueOf(value);

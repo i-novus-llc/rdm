@@ -1,23 +1,10 @@
 <access xmlns="http://n2oapp.net/framework/config/schema/access-2.0">
 
-<!--    <authenticated>-->
-<!--        <page-access page-id="refBookList"/>-->
-<!--        <page-access page-id="refBookView"/>-->
-<!--        <page-access page-id="downloadFile"/>-->
-
-<!--    </authenticated>-->
-
-<!--    <anonymous>-->
-<!--        <page-access page-id="refBookList"/>-->
-<!--        <page-access page-id="refBookView"/>-->
-<!--        <page-access page-id="downloadFile"/>-->
-
-<!--    </anonymous>-->
-
     <permit-all>
         <page-access page-id="refBookList"/>
         <page-access page-id="refBookView"/>
-<!--        <page-access page-id="downloadFile"/>-->
+        <page-access page-id="asyncLog"/>
+        <page-access page-id="asyncLogEntryFullInfo"/>
 
         <object-access object-id="refBook"/>
         <object-access object-id="refBookStatusList"/>
@@ -49,7 +36,7 @@
 
     </permit-all>
 
-    <permission id="nsi.edit" name="Добавление/редактирование справочников">
+    <permission id="rdm.edit" name="Добавление/редактирование справочников">
         <page-access page-id="refBook"/>
         <page-access page-id="attribute"/>
         <page-access page-id="createRefBook"/>
@@ -69,10 +56,11 @@
         <object-access object-id="versionList" remove-filters="onlyPublished"/>
         <object-access object-id="attribute" operations="*"/>
         <object-access object-id="data" operations="*"/>
+        <object-access object-id="publish" operations="*"/>
 
     </permission>
 
-    <permission id="nsi.archive" name="Архивирование справочников">
+    <permission id="rdm.archive" name="Архивирование справочников">
         <object-access object-id="refBook"
                        remove-filters="nonArchived,onlyPublished,oncePublished"
                        operations="toArchive,fromArchive"
@@ -81,19 +69,9 @@
 
     </permission>
 
-    <permission id="nsi.download" name="Выгрузка справочников">
+    <permission id="rdm.download" name="Выгрузка справочников">
         <page-access page-id="downloadFile"/>
 
     </permission>
-
-    <permission id="audit">
-        <page-access page-id="audit"/>
-
-    </permission>
-
-    <role id="admin">
-        <url-access pattern="${rdm.user.admin.url}"/>
-
-    </role>
 
 </access>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { compose, withHandlers } from 'recompose';
 import dependency from 'n2o-framework/lib/core/dependency';
-import TablePagination from "n2o-framework/lib/components/widgets/Table/TablePagination";
+import DataGridPagination from "./DataGridPagination";
 import StandardWidget from 'n2o-framework/lib/components/widgets/StandardWidget';
 import DataGridContainer from "./DataGridContainer";
 
@@ -20,7 +20,7 @@ function DataGridWidget({
                 disabled={disabled}
                 widgetId={widgetId}
                 actions={actions}
-                bottomLeft={paging && <TablePagination widgetId={widgetId} />}
+                bottomLeft={paging && <DataGridPagination widgetId={widgetId} />}
             >
                 <DataGridContainer {...getWidgetProps()} />
             </StandardWidget>

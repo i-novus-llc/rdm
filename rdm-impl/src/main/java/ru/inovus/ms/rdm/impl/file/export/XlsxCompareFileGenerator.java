@@ -1,9 +1,8 @@
 package ru.inovus.ms.rdm.impl.file.export;
 
 import net.n2oapp.platform.i18n.UserException;
-import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
@@ -12,33 +11,32 @@ import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.model.DataConstants;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.inovus.ms.rdm.impl.entity.PassportAttributeEntity;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.compare.ComparableRow;
 import ru.inovus.ms.rdm.api.model.compare.CompareDataCriteria;
+import ru.inovus.ms.rdm.api.model.diff.PassportDiff;
 import ru.inovus.ms.rdm.api.model.diff.RefBookDataDiff;
 import ru.inovus.ms.rdm.api.model.diff.StructureDiff;
-import ru.inovus.ms.rdm.api.model.diff.PassportDiff;
 import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.impl.repository.PassportAttributeRepository;
 import ru.inovus.ms.rdm.api.service.CompareService;
 import ru.inovus.ms.rdm.api.service.VersionService;
-import ru.inovus.ms.rdm.impl.util.PageIterator;
+import ru.inovus.ms.rdm.api.util.PageIterator;
+import ru.inovus.ms.rdm.api.util.StructureUtils;
+import ru.inovus.ms.rdm.impl.entity.PassportAttributeEntity;
+import ru.inovus.ms.rdm.impl.repository.PassportAttributeRepository;
 
 import java.awt.Color;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.*;
 import java.util.List;
-import java.util.function.Function;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -288,8 +286,7 @@ class XlsxCompareFileGenerator implements FileGenerator {
         CompareDataCriteria compareCriteria = new CompareDataCriteria(oldVersion.getId(), newVersion.getId());
         compareCriteria.setOrders(singletonList(new Sort.Order(Sort.Direction.ASC, DataConstants.SYS_PRIMARY_COLUMN)));
 
-        Function<CompareDataCriteria, Page<ComparableRow>> pageSource = compareService::getCommonComparableRows;
-        PageIterator<ComparableRow, CompareDataCriteria> pageIterator = new PageIterator<>(pageSource, compareCriteria);
+        PageIterator<ComparableRow, CompareDataCriteria> pageIterator = new PageIterator<>(compareService::getCommonComparableRows, compareCriteria);
         pageIterator.forEachRemaining(page ->
                 page.getContent().stream()
                         .map(comparableRow -> {
@@ -318,9 +315,7 @@ class XlsxCompareFileGenerator implements FileGenerator {
         Map<String, String> allAttributes = new HashMap<>();
         Stream.concat(oldVersion.getStructure().getAttributes().stream(), newVersion.getStructure().getAttributes().stream())
                 .forEach(a -> allAttributes.put(a.getCode(), a.getName()));
-        Stream.concat(
-                newVersion.getStructure().getAttributes().stream().map(Structure.Attribute::getCode),
-                deletedColumns.stream())
+        Stream.concat(StructureUtils.getAttributeCodes(newVersion.getStructure()), deletedColumns.stream())
                 .peek(attribute -> dataColumnIndexes.put(attribute, dataColumnIndexes.size()))
                 .forEach(attribute -> {
                     Cell cell = headRow.createCell(dataColumnIndexes.get(attribute));

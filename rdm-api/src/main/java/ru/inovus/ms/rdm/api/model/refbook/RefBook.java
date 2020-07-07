@@ -49,7 +49,13 @@ public class RefBook extends RefBookVersion {
     private Boolean hasStructureConflict;
 
     @ApiModelProperty("Наличие конфликта в последней опубликованной версии")
-    private Boolean lastHasDataConflict;
+    private Boolean lastHasConflict;
+
+    @ApiModelProperty("Публикуется ли данный справочник в данный момент")
+    private Boolean publishing;
+
+    @ApiModelProperty("Обновляется ли данный справочник в данный момент")
+    private Boolean updating;
 
     public RefBook() {
     }
@@ -76,7 +82,7 @@ public class RefBook extends RefBookVersion {
         this.hasAlteredConflict = refBook.getHasAlteredConflict();
         this.hasStructureConflict = refBook.getHasStructureConflict();
 
-        this.lastHasDataConflict = refBook.getLastHasDataConflict();
+        this.lastHasConflict = refBook.getLastHasConflict();
     }
 
     public Boolean getRemovable() {
@@ -175,11 +181,27 @@ public class RefBook extends RefBookVersion {
         this.hasStructureConflict = hasStructureConflict;
     }
 
-    public Boolean getLastHasDataConflict() {
-        return lastHasDataConflict;
+    public Boolean getLastHasConflict() {
+        return lastHasConflict;
     }
 
-    public void setLastHasDataConflict(Boolean lastHasDataConflict) {
-        this.lastHasDataConflict = lastHasDataConflict;
+    public void setLastHasConflict(Boolean lastHasConflict) {
+        this.lastHasConflict = lastHasConflict;
+    }
+
+    public Boolean getPublishing() {
+        return publishing;
+    }
+
+    public void setPublishing(Boolean publishing) {
+        this.publishing = publishing;
+    }
+
+    public Boolean getUpdating() {
+        return updating;
+    }
+
+    public void setUpdating(Boolean updating) {
+        this.updating = updating;
     }
 }

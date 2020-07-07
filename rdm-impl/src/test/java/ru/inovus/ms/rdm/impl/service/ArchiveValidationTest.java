@@ -8,33 +8,33 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
-import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
-import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.inovus.ms.rdm.api.service.VersionService;
+import ru.i_novus.platform.datastorage.temporal.service.*;
 import ru.inovus.ms.rdm.api.exception.NotFoundException;
-import ru.inovus.ms.rdm.impl.file.FileStorage;
 import ru.inovus.ms.rdm.api.model.FileModel;
 import ru.inovus.ms.rdm.api.model.Structure;
-import ru.inovus.ms.rdm.api.model.version.CreateAttribute;
-import ru.inovus.ms.rdm.api.model.version.UpdateAttribute;
 import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.inovus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
-import ru.inovus.ms.rdm.impl.service.DraftServiceImpl;
-import ru.inovus.ms.rdm.impl.service.RefBookServiceImpl;
-import ru.inovus.ms.rdm.impl.repository.RefBookRepository;
-import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.inovus.ms.rdm.impl.repository.VersionFileRepository;
+import ru.inovus.ms.rdm.api.model.refdata.UpdateFromFileRequest;
+import ru.inovus.ms.rdm.api.model.version.CreateAttributeRequest;
+import ru.inovus.ms.rdm.api.model.version.DeleteAttributeRequest;
+import ru.inovus.ms.rdm.api.model.version.UpdateAttributeRequest;
+import ru.inovus.ms.rdm.api.service.VersionService;
 import ru.inovus.ms.rdm.api.util.FileNameGenerator;
 import ru.inovus.ms.rdm.api.util.VersionNumberStrategy;
 import ru.inovus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.inovus.ms.rdm.api.validation.VersionValidation;
+import ru.inovus.ms.rdm.impl.file.FileStorage;
+import ru.inovus.ms.rdm.impl.repository.RefBookRepository;
+import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.inovus.ms.rdm.impl.repository.VersionFileRepository;
 import ru.inovus.ms.rdm.impl.validation.VersionValidationImpl;
+
+import java.util.Collections;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ArchiveValidationTest {
@@ -89,13 +89,16 @@ public class ArchiveValidationTest {
     @Test
     public void testArchiveValidation() {
 
-        assertArchiveValidationError(() -> draftService.create(new CreateDraftRequest(refBookId, new Structure(), null)));
+        assertArchiveValidationError(() -> draftService.create(new CreateDraftRequest(refBookId, new Structure(), null, Collections.emptyMap())));
         assertArchiveValidationError(() -> draftService.create(refBookId, new FileModel()));
-        assertArchiveValidationError(() -> draftService.updateData(draftId, new FileModel()));
+
+        UpdateFromFileRequest request = new UpdateFromFileRequest(null, new FileModel());
+        assertArchiveValidationError(() -> draftService.updateFromFile(draftId, request));
+
         assertArchiveValidationError(() -> draftService.remove(draftId));
-        assertArchiveValidationError(() -> draftService.createAttribute(new CreateAttribute(draftId, null, null)));
-        assertArchiveValidationError(() -> draftService.updateAttribute(new UpdateAttribute(draftId, new Structure.Attribute(), null)));
-        assertArchiveValidationError(() -> draftService.deleteAttribute(draftId, null));
+        assertArchiveValidationError(() -> draftService.updateAttribute(draftId, new UpdateAttributeRequest(null, new Structure.Attribute(), null)));
+        assertArchiveValidationError(() -> draftService.deleteAttribute(draftId, new DeleteAttributeRequest(null, null)));
+        assertArchiveValidationError(() -> draftService.createAttribute(draftId, new CreateAttributeRequest(null, null, null)));
 
         RefBookUpdateRequest updateRequest = new RefBookUpdateRequest();
         updateRequest.setVersionId(versionId);

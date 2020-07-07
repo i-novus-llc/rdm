@@ -8,12 +8,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
-import ru.inovus.ms.rdm.api.model.refdata.Row;
 import ru.inovus.ms.rdm.api.model.Structure;
-import ru.inovus.ms.rdm.impl.file.NonStrictOnTypeRowMapper;
+import ru.inovus.ms.rdm.api.model.refdata.Row;
+import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.inovus.ms.rdm.impl.util.mappers.NonStrictOnTypeRowMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

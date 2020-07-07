@@ -40,6 +40,10 @@
             </filters>
         </field>
 
+        <field id="optLockValue" domain="integer">
+            <select/>
+        </field>
+
         <field id="version.version" domain="string">
             <select mapping="
                 (archived ? 'В архиве: ' : '') +
@@ -142,7 +146,7 @@
         </field>
 
         <field id="lastPublishedVersionFromDate" domain="date">
-            <select mapping="lastPublishedVersionFromDate"/>
+            <select/>
             <filters>
                 <more filter-id="lastPublishedVersionFromDateInterval.begin" mapping="fromDateBegin"/>
                 <less filter-id="lastPublishedVersionFromDateInterval.end" mapping="fromDateEnd"/>
@@ -181,13 +185,21 @@
             <select mapping="hasUpdatedConflict || hasAlteredConflict"/>
         </field>
 
-        <field id="lastHasDataConflict" domain="boolean">
+        <field id="lastHasConflict" domain="boolean">
             <select/>
         </field>
 
-        <field id="lastHasDataConflictMsg" domain="string">
+        <field id="publishing" domain="boolean">
+            <select/>
+        </field>
+
+        <field id="updating" domain="boolean">
+            <select/>
+        </field>
+
+        <field id="lastHasConflictMsg" domain="string">
             <select mapping="
-                (lastHasDataConflict ? 'В опубликованной версии справочника есть ссылки на неактуальные данные' : '')
+                (lastHasConflict ? 'В опубликованной версии справочника есть ссылки на неактуальные данные' : '')
                 "/>
         </field>
 
@@ -197,14 +209,7 @@
         </field>
 
         <field id="displayVersion" domain="string">
-            <select mapping="
-                (archived ? 'В архиве: ' : '') +
-                (status?.toString() != 'DRAFT' ?
-                 version :
-                 'Новая (изм. ' +
-                    editDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy')) +
-                    ')')
-                "/>
+            <select mapping="(publishing ? 'Публикуется' : updating ? 'Обновляется' : (archived ? 'В архиве: ' : '') + (status?.toString() != 'DRAFT' ? version : 'Новая (изм. ' + editDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy')) +')'))"/>
         </field>
 
         <field id="displayCode" domain="string">

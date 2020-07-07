@@ -1,275 +1,177 @@
 package ru.inovus.ms.rdm.impl.service;
 
-import net.n2oapp.platform.i18n.Message;
-import net.n2oapp.platform.i18n.UserException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
-import org.springframework.data.domain.Page;
-import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
-import ru.inovus.ms.rdm.api.enumeration.FileType;
+import ru.inovus.ms.rdm.api.async.AsyncOperation;
 import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
-import ru.inovus.ms.rdm.api.enumeration.RefBookVersionStatus;
-import ru.inovus.ms.rdm.api.model.conflict.RefBookConflict;
-import ru.inovus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
-import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
-import ru.inovus.ms.rdm.api.service.*;
-import ru.inovus.ms.rdm.api.util.TimeUtils;
-import ru.inovus.ms.rdm.api.util.VersionNumberStrategy;
-import ru.inovus.ms.rdm.api.validation.VersionPeriodPublishValidation;
-import ru.inovus.ms.rdm.api.validation.VersionValidation;
+import ru.inovus.ms.rdm.api.model.draft.PublishRequest;
+import ru.inovus.ms.rdm.api.model.draft.PublishResponse;
+import ru.inovus.ms.rdm.api.service.PublishService;
+import ru.inovus.ms.rdm.api.service.ReferenceService;
+import ru.inovus.ms.rdm.impl.async.AsyncOperationQueue;
 import ru.inovus.ms.rdm.impl.audit.AuditAction;
 import ru.inovus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.inovus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
-import ru.inovus.ms.rdm.impl.file.export.VersionDataIterator;
+import ru.inovus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.inovus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.inovus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
-
-import static java.util.Collections.singletonList;
-import static ru.inovus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Primary
 @Service
 public class PublishServiceImpl implements PublishService {
 
-    private static final String INVALID_VERSION_NAME_EXCEPTION_CODE = "invalid.version.name";
-    private static final String INVALID_VERSION_PERIOD_EXCEPTION_CODE = "invalid.version.period";
+    private static final Logger logger = LoggerFactory.getLogger(PublishServiceImpl.class);
+
+    private static final String LOG_ERROR_REFRESHING_CONFLICTING_REFERRERS = "Error refreshing conflicting referrers";
+    private static final String LOG_ERROR_PUBLISHING_NONCONFLICT_REFERRERS = "Error publishing nonconflict referrers";
 
     private RefBookVersionRepository versionRepository;
+    private RefBookConflictRepository conflictRepository;
 
-    private DraftDataService draftDataService;
-    private DropDataService dropDataService;
-
-    private RefBookLockService refBookLockService;
-    private VersionService versionService;
-    private ConflictService conflictService;
+    private BasePublishService basePublishService;
     private ReferenceService referenceService;
-
-    private VersionFileService versionFileService;
-    private VersionNumberStrategy versionNumberStrategy;
-
-    private VersionValidation versionValidation;
-    private VersionPeriodPublishValidation versionPeriodPublishValidation;
 
     private AuditLogService auditLogService;
 
-    private JmsTemplate jmsTemplate;
-
-    @Value("${rdm.publish.topic:publish_topic}")
-    private String publishTopic;
-
-    @Value("${rdm.enable.publish.topic:false}")
-    private boolean enablePublishTopic;
+    @Autowired
+    private AsyncOperationQueue queue;
 
     @Autowired
     @SuppressWarnings("squid:S00107")
     public PublishServiceImpl(RefBookVersionRepository versionRepository,
-                              DraftDataService draftDataService, DropDataService dropDataService,
-                              RefBookLockService refBookLockService, VersionService versionService,
-                              ConflictService conflictService, ReferenceService referenceService,
-                              VersionFileService versionFileService, VersionNumberStrategy versionNumberStrategy,
-                              VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation,
-                              AuditLogService auditLogService, @Qualifier("topicJmsTemplate") @Autowired(required = false) JmsTemplate jmsTemplate) {
+                              RefBookConflictRepository conflictRepository,
+                              BasePublishService basePublishService,
+                              ReferenceService referenceService,
+                              AuditLogService auditLogService) {
         this.versionRepository = versionRepository;
+        this.conflictRepository = conflictRepository;
 
-        this.draftDataService = draftDataService;
-        this.dropDataService = dropDataService;
-
-        this.refBookLockService = refBookLockService;
-        this.versionService = versionService;
-        this.conflictService = conflictService;
+        this.basePublishService = basePublishService;
         this.referenceService = referenceService;
 
-        this.versionFileService = versionFileService;
-        this.versionNumberStrategy = versionNumberStrategy;
-
-        this.versionValidation = versionValidation;
-        this.versionPeriodPublishValidation = versionPeriodPublishValidation;
         this.auditLogService = auditLogService;
-        this.jmsTemplate = jmsTemplate;
     }
 
     /**
-     * Публикация черновика справочника.
+     * Публикация справочника.
      *
-     * @param draftId          идентификатор черновика справочника
-     * @param versionName      версия, под которой публикуется черновик
-     *                         (если не указано, используется встроенная нумерация)
-     * @param fromDate         дата начала действия опубликованной версии
-     * @param toDate           дата окончания действия опубликованной версии
-     * @param resolveConflicts признак разрешения конфликтов
+     * @param request параметры публикации
      */
     @Override
+    public void publish(Integer draftId, PublishRequest request) {
+
+        PublishResponse response = basePublishService.publish(draftId, request);
+        if (response == null)
+            return;
+
+        if (request.getResolveConflicts()) {
+            if (!refreshConflictingReferrers(response))
+                return;
+
+            publishNonConflictReferrers(response);
+        }
+    }
+
+    @Override
     @Transactional
-    // NB: Use PublishCriteria, required for publishNonConflictReferrers.
-    public void publish(Integer draftId, String versionName,
-                        LocalDateTime fromDate, LocalDateTime toDate,
-                        boolean resolveConflicts) {
+    public UUID publishAsync(Integer draftId, PublishRequest request) {
 
-        versionValidation.validateDraft(draftId);
-
-        RefBookVersionEntity draftEntity = versionRepository.findById(draftId).orElseThrow();
-        Integer refBookId = draftEntity.getRefBook().getId();
-
-        refBookLockService.setRefBookPublishing(refBookId);
-        try {
-            if (versionName == null) {
-                versionName = versionNumberStrategy.next(refBookId);
-
-            } else if (!versionNumberStrategy.check(versionName, refBookId)) {
-                throw new UserException(new Message(INVALID_VERSION_NAME_EXCEPTION_CODE, versionName));
-            }
-
-            if (fromDate == null) fromDate = TimeUtils.now();
-            if (toDate != null && fromDate.isAfter(toDate))
-                throw new UserException(INVALID_VERSION_PERIOD_EXCEPTION_CODE);
-
-            versionPeriodPublishValidation.validate(fromDate, toDate, refBookId);
-
-            RefBookVersionEntity lastPublishedEntity = getLastPublishedVersionEntity(draftEntity);
-            String lastStorageCode = lastPublishedEntity != null ? lastPublishedEntity.getStorageCode() : null;
-            String newStorageCode = draftDataService.applyDraft(lastStorageCode, draftEntity.getStorageCode(), fromDate, toDate);
-
-            Set<String> droppedDataStorages = new HashSet<>();
-            droppedDataStorages.add(draftEntity.getStorageCode());
-
-            draftEntity.setStorageCode(newStorageCode);
-            draftEntity.setVersion(versionName);
-            draftEntity.setStatus(RefBookVersionStatus.PUBLISHED);
-            draftEntity.setFromDate(fromDate);
-            draftEntity.setToDate(toDate);
-
-            resolveOverlappingPeriodsInFuture(fromDate, toDate, refBookId, draftEntity.getId());
-
-            versionRepository.save(draftEntity);
-
-            if (lastPublishedEntity != null && lastStorageCode != null
-                    && draftEntity.getStructure().storageEquals(lastPublishedEntity.getStructure())) {
-                droppedDataStorages.add(lastStorageCode);
-
-                versionRepository.findByStorageCode(lastStorageCode).stream()
-                        .peek(entity -> entity.setStorageCode(newStorageCode))
-                        .forEach(versionRepository::save);
-            }
-            dropDataService.drop(droppedDataStorages);
-
-            saveDraftToFiles(draftId);
-
-            // NB: Конфликты могут быть только при наличии
-            // ссылочных атрибутов со значениями для ранее опубликованной версии.
-            if (lastPublishedEntity != null) {
-                conflictService.discoverConflicts(lastPublishedEntity.getId(), draftId);
-                processDiscoveredConflicts(lastPublishedEntity, draftId, resolveConflicts);
-            }
-
-        } finally {
-            refBookLockService.deleteRefBookOperation(refBookId);
-        }
-        auditLogService.addAction(
-            AuditAction.PUBLICATION,
-            () -> draftEntity
-        );
-        if (enablePublishTopic)
-            jmsTemplate.convertAndSend(publishTopic, draftEntity.getRefBook().getCode());
-    }
-
-    private RefBookVersionEntity getLastPublishedVersionEntity(RefBookVersionEntity draftVersion) {
-        return versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(draftVersion.getRefBook().getCode(), RefBookVersionStatus.PUBLISHED);
-    }
-
-    private void resolveOverlappingPeriodsInFuture(LocalDateTime fromDate, LocalDateTime toDate,
-                                                   Integer refBookId, Integer draftId) {
-
-        if (toDate == null)
-            toDate = MAX_TIMESTAMP;
-
-        Iterable<RefBookVersionEntity> entities = versionRepository.findAll(
-                hasOverlappingPeriods(fromDate, toDate)
-                        .and(isVersionOfRefBook(refBookId))
-                        .and(isPublished())
-                        // NB: Exclude error "deleted instance passed to merge".
-                        .and(hasVersionId(draftId).not())
-        );
-
-        entities.forEach(entity -> {
-            if (fromDate.isAfter(entity.getFromDate())) {
-                entity.setToDate(fromDate);
-                versionRepository.save(entity);
-            } else {
-                versionRepository.deleteById(entity.getId());
-            }
-        });
-    }
-
-    private void saveDraftToFiles(Integer draftId) {
-
-        RefBookVersion draftVersion = versionService.getById(draftId);
-
-        for (FileType fileType : PerRowFileGeneratorFactory.getAvailableTypes()) {
-            VersionDataIterator dataIterator = new VersionDataIterator(versionService, singletonList(draftVersion.getId()));
-            versionFileService.save(draftVersion, fileType,
-                    versionFileService.generate(draftVersion, fileType, dataIterator));
-        }
-    }
-
-    private void processDiscoveredConflicts(RefBookVersionEntity oldVersion, Integer newVersionId, boolean resolveConflicts) {
-
-        // NB: Старые конфликты не удаляются.
-
-        if (resolveConflicts) {
-            resolveReferrerConflicts(oldVersion.getRefBook().getCode());
-            publishNonConflictReferrers(oldVersion.getRefBook().getCode(), newVersionId);
-        }
+        String code = versionRepository.getOne(draftId).getRefBook().getCode();
+        return queue.add(AsyncOperation.PUBLICATION, code, new Object[] { draftId, request });
     }
 
     /**
-     * Обработка разрешаемых конфликтов.
+     * Разрешение конфликтов у связанных справочников.
      *
-     * @param refBookCode код справочника, на который ссылаются
+     * @param response результат публикации справочника, на который ссылаются
+     * @return Признак успешности
      */
-    private void resolveReferrerConflicts(String refBookCode) {
-        referenceService.refreshLastReferrers(refBookCode);
+    private boolean refreshConflictingReferrers(PublishResponse response) {
+        return tryRun(
+                () -> referenceService.refreshLastReferrers(response.getRefBookCode()),
+                LOG_ERROR_REFRESHING_CONFLICTING_REFERRERS
+        );
     }
 
     /**
-     * Публикация бесконфликтных справочников, который ссылаются на указанный справочник.
+     * Публикация бесконфликтных связанных справочников.
      *
-     * @param refBookCode        код справочника, на который ссылаются
-     * @param publishedVersionId идентификатор версии справочника
+     * @param response результат публикации справочника, на который ссылаются
      */
-    private void publishNonConflictReferrers(String refBookCode, Integer publishedVersionId) {
+    private void publishNonConflictReferrers(PublishResponse response) {
+
+        final String refBookCode = response.getRefBookCode();
+        final Integer publishedVersionId = response.getNewId();
+
+        AtomicBoolean isOk = new AtomicBoolean(true);
 
         new ReferrerEntityIteratorProvider(versionRepository, refBookCode, RefBookSourceType.DRAFT)
-                .iterate().forEachRemaining(referrers ->
-            referrers.forEach(referrer -> {
-                if (notExistsConflict(referrer.getId(), publishedVersionId))
-                    publish(referrer.getId(), null, null, null, false);
-            })
-        );
+                .iterate().forEachRemaining(referrers -> {
+            Boolean isOkRemaining = referrers.stream()
+                    .filter(referrer ->
+                            !conflictRepository.existsByReferrerVersionIdAndPublishedVersionId(
+                                    referrer.getId(), publishedVersionId)
+                    )
+                    .map(referrer -> publishReferrer(referrer.getId()))
+                    .reduce(true, (result, value) -> result && value);
+
+            if (!Boolean.TRUE.equals(isOkRemaining)) {
+                isOk.compareAndSet(true, false);
+            }
+        });
+
+        if (isOk.get()) {
+            auditLogService.addAction(AuditAction.REFERRER_PUBLICATION,
+                    () -> versionRepository.getOne(publishedVersionId)
+            );
+        }
     }
 
     /**
-     * Проверка на отсутствие конфликтов версий справочников.
+     * Публикация связанного справочника.
      *
-     * @param referrerVersionId  идентификатор версии, которая ссылается
-     * @param publishedVersionId идентификатор версии, на которую ссылаются
-     * @return Отсутствие конфликта
+     * @param versionId идентификатор версии связанного справочника
+     * @return Признак успешности
      */
-    private boolean notExistsConflict(Integer referrerVersionId, Integer publishedVersionId) {
+    private boolean publishReferrer(Integer versionId) {
+        return tryRun(
+                () -> publishReferrerEntity(versionId),
+                LOG_ERROR_PUBLISHING_NONCONFLICT_REFERRERS
+        );
+    }
 
-        RefBookConflictCriteria criteria = new RefBookConflictCriteria(referrerVersionId, publishedVersionId);
-        criteria.setPageSize(1);
+    private void publishReferrerEntity(Integer versionId) {
 
-        Page<RefBookConflict> conflicts = conflictService.search(criteria);
-        return conflicts.getContent().isEmpty();
+        RefBookVersionEntity entity = versionRepository.findById(versionId).orElse(null);
+        if (entity == null)
+            return;
+
+        publish(versionId, new PublishRequest(entity.getOptLockValue()));
+    }
+
+    /**
+     * Запуск действия на выполнение с перехватом ошибок.
+     *
+     * @param action     действие
+     * @param logMessage сообщение для лога при ошибке
+     * @return Признак успешности выполнения действия
+     */
+    private static boolean tryRun(Runnable action, String logMessage) {
+        try {
+            action.run();
+
+            return true;
+
+        } catch (Exception e) {
+            logger.error(logMessage, e);
+
+            return false;
+        }
     }
 }

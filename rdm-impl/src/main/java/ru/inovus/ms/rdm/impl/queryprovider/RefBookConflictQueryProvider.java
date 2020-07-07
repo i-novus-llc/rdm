@@ -147,8 +147,8 @@ public class RefBookConflictQueryProvider {
         if (!isEmpty(criteria.getRefRecordIds()))
             where.and(RefBookConflictPredicates.isRefRecordIdIn(criteria.getRefRecordIds()));
 
-        if (nonNull(criteria.getRefFieldCode()))
-            where.and(RefBookConflictPredicates.isRefFieldCode(criteria.getRefFieldCode()));
+        if (!isEmpty(criteria.getRefFieldCodes()))
+            where.and(RefBookConflictPredicates.isRefFieldCodeIn(criteria.getRefFieldCodes()));
 
         if (nonNull(criteria.getConflictType()))
             where.and(RefBookConflictPredicates.isConflictType(criteria.getConflictType()));
@@ -257,7 +257,7 @@ public class RefBookConflictQueryProvider {
             where.andNot(RefBookConflictPredicates.isPublishedVersionId(criteria.getExcludedPublishedVersionId()));
 
         if (nonNull(criteria.getRefFieldCode()))
-            where.and(RefBookConflictPredicates.isRefFieldCode(criteria.getRefFieldCode()));
+            where.and(RefBookConflictPredicates.isRefFieldCodeIn(List.of(criteria.getRefFieldCode())));
 
         if (nonNull(criteria.getConflictType()))
             where.and(RefBookConflictPredicates.isConflictType(criteria.getConflictType()));

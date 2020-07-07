@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.sync;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -14,6 +15,7 @@ import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
+import ru.inovus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.compare.CompareDataCriteria;
 import ru.inovus.ms.rdm.api.model.diff.RefBookDataDiff;
@@ -72,6 +74,11 @@ public class RdmSyncRestTest {
     @Mock
     private PublishService publishService;
 
+    @Before
+    public void setUp() {
+        rdmSyncRest.setSelf(rdmSyncRest);
+    }
+
     /**
      * Кейс: Обновление справочника в первый раз, версия в маппинге не указана. В таблице клиента уже есть запись с id=1, из НСИ приходят записи с id=1,2.
      * Ожидаемый результат: Запись с id=1 обновится, с id=2 вставится, в маппинге проставится дата и номер версии.
@@ -89,14 +96,15 @@ public class RdmSyncRestTest {
         when(dao.getFieldMapping(versionMapping.getCode())).thenReturn(fieldMappings);
         when(dao.getDataIds(versionMapping.getTable(), primaryFieldMapping)).thenReturn(singletonList(BigInteger.valueOf(1L)));
         when(refBookService.search(any(RefBookCriteria.class))).thenReturn(new PageImpl<>(singletonList(firstVersion), PageRequest.of(0, 10), 1L));
-        when(versionService.search(eq(versionMapping.getCode()), any(SearchDataCriteria.class))).thenReturn(data);
+        when(versionService.search(eq(versionMapping.getCode()), argThat(searchDataCriteria -> searchDataCriteria.getPageNumber() == 0))).thenReturn(data);
+        when(versionService.search(eq(versionMapping.getCode()), argThat(searchDataCriteria -> searchDataCriteria.getPageNumber() > 0))).thenReturn(Page.empty());
         when(mappingService.map(FieldType.INTEGER, DataTypeEnum.INTEGER, data.getContent().get(0).getFieldValues().get(0).getValue())).thenReturn(BigInteger.valueOf(1L));
         when(mappingService.map(FieldType.STRING, DataTypeEnum.VARCHAR, data.getContent().get(0).getFieldValues().get(1).getValue())).thenReturn("London");
         when(mappingService.map(FieldType.INTEGER, DataTypeEnum.INTEGER, data.getContent().get(1).getFieldValues().get(0).getValue())).thenReturn(BigInteger.valueOf(2L));
         when(mappingService.map(FieldType.STRING, DataTypeEnum.VARCHAR, data.getContent().get(1).getFieldValues().get(1).getValue())).thenReturn("Moscow");
         rdmSyncRest.update(versionMapping.getCode());
-        verify(dao).updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), dataMap.get(0));
-        verify(dao).insertRow(versionMapping.getTable(), dataMap.get(1));
+        verify(dao).updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), dataMap.get(0), true);
+        verify(dao).insertRow(versionMapping.getTable(), dataMap.get(1), true);
         verify(dao).updateVersionMapping(versionMapping.getId(), firstVersion.getLastPublishedVersion(), firstVersion.getLastPublishedVersionFromDate());
     }
 
@@ -117,7 +125,8 @@ public class RdmSyncRestTest {
         when(dao.getVersionMapping(versionMapping.getCode())).thenReturn(versionMapping);
         when(dao.getFieldMapping(versionMapping.getCode())).thenReturn(fieldMappings);
         when(versionService.getVersion(versionMapping.getVersion(), versionMapping.getCode())).thenReturn(firstVersion);
-        when(compareService.compareData(any(CompareDataCriteria.class))).thenReturn(diff);
+        when(compareService.compareData(argThat(compareDataCriteria -> compareDataCriteria != null && compareDataCriteria.getPageNumber() == 0))).thenReturn(diff);
+        when(compareService.compareData(argThat(compareDataCriteria -> compareDataCriteria != null && compareDataCriteria.getPageNumber() > 0))).thenReturn(new RefBookDataDiff(Page.empty(), emptyList(), emptyList(), emptyList()));
         when(refBookService.search(any(RefBookCriteria.class))).thenReturn(new PageImpl<>(singletonList(secondVersion), PageRequest.of(0, 10), 1L));
         when(mappingService.map(FieldType.INTEGER, DataTypeEnum.INTEGER, data.getContent().get(0).getFieldValues().get(0).getValue())).thenReturn(BigInteger.valueOf(1L));
         when(mappingService.map(FieldType.STRING, DataTypeEnum.VARCHAR, data.getContent().get(0).getFieldValues().get(1).getValue())).thenReturn("London");
@@ -126,8 +135,8 @@ public class RdmSyncRestTest {
         when(compareService.compareStructures(anyInt(), anyInt())).thenReturn(new StructureDiff(Collections.emptyList(), Collections.emptyList(), Collections.emptyList()));
 
         rdmSyncRest.update(versionMapping.getCode());
-        verify(dao).markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), BigInteger.valueOf(1L), true);
-        verify(dao).insertRow(versionMapping.getTable(), dataMap.get(1));
+        verify(dao).markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), BigInteger.valueOf(1L), true, true);
+        verify(dao).insertRow(versionMapping.getTable(), dataMap.get(1), true);
         verify(dao).updateVersionMapping(versionMapping.getId(), secondVersion.getLastPublishedVersion(), secondVersion.getLastPublishedVersionFromDate());
     }
 
@@ -147,15 +156,16 @@ public class RdmSyncRestTest {
         when(dao.getVersionMapping(versionMapping.getCode())).thenReturn(versionMapping);
         when(dao.getFieldMapping(versionMapping.getCode())).thenReturn(fieldMappings);
         when(versionService.getVersion(versionMapping.getVersion(), versionMapping.getCode())).thenReturn(oldVersion);
-        when(compareService.compareData(any(CompareDataCriteria.class))).thenReturn(diff);
+        when(compareService.compareData(argThat(compareDataCriteria -> compareDataCriteria != null && compareDataCriteria.getPageNumber() == 0))).thenReturn(diff);
+        when(compareService.compareData(argThat(compareDataCriteria -> compareDataCriteria != null && compareDataCriteria.getPageNumber() > 0))).thenReturn(new RefBookDataDiff(Page.empty(), emptyList(), emptyList(), emptyList()));
         when(refBookService.search(any(RefBookCriteria.class))).thenReturn(new PageImpl<>(singletonList(newVersion), PageRequest.of(0, 10), 1L));
         when(mappingService.map(FieldType.INTEGER, DataTypeEnum.INTEGER, data.getContent().get(0).getFieldValues().get(0).getValue())).thenReturn(BigInteger.valueOf(1L));
         when(mappingService.map(FieldType.STRING, DataTypeEnum.VARCHAR, data.getContent().get(0).getFieldValues().get(1).getValue())).thenReturn("London");
         when(dao.isIdExists(versionMapping.getTable(), versionMapping.getPrimaryField(), BigInteger.ONE)).thenReturn(true);
         when(compareService.compareStructures(any(Integer.class), any(Integer.class))).thenReturn(new StructureDiff(Collections.emptyList(), Collections.emptyList(), Collections.emptyList()));
         rdmSyncRest.update(versionMapping.getCode());
-        verify(dao).markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), BigInteger.valueOf(1L), false);
-        verify(dao).updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), dataMap.get(2));
+        verify(dao).markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), BigInteger.valueOf(1L), false, true);
+        verify(dao).updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), dataMap.get(2), true);
         verify(dao).updateVersionMapping(versionMapping.getId(), newVersion.getLastPublishedVersion(), newVersion.getLastPublishedVersionFromDate());
     }
 
@@ -195,11 +205,12 @@ public class RdmSyncRestTest {
         ), createSearchDataCriteria(), 2);
         when(dao.getVersionMapping(code)).thenReturn(vm);
         when(dao.getFieldMapping(code)).thenReturn(fm);
-        when(refBookService.search(any(RefBookCriteria.class))).thenReturn(new PageImpl<>(singletonList(lastPublished), PageRequest.of(0, 10), 1L));
-        when(versionService.search(eq(lastPublished.getCode()), any(SearchDataCriteria.class))).thenReturn(lastPublishedVersionPage);
+        when(refBookService.search(argThat(refBookCriteria -> refBookCriteria.getCodeExact().equals(code) && refBookCriteria.getSourceType() == RefBookSourceType.LAST_PUBLISHED))).thenReturn(new PageImpl<>(singletonList(lastPublished), PageRequest.of(0, 10), 1L));
+        when(versionService.search(eq(lastPublished.getCode()), argThat(searchDataCriteria -> searchDataCriteria.getPageNumber() == 0))).thenReturn(lastPublishedVersionPage);
+        when(versionService.search(eq(lastPublished.getCode()), argThat(searchDataCriteria -> searchDataCriteria.getPageNumber() > 0))).thenReturn(Page.empty());
         rdmSyncRest.update(code);
-        verify(dao, times(1)).insertRow(eq(table), eq(row1version1));
-        verify(dao, times(1)).insertRow(eq(table), eq(row2version1));
+        verify(dao, times(1)).insertRow(eq(table), eq(row1version1), eq(true));
+        verify(dao, times(1)).insertRow(eq(table), eq(row2version1), eq(true));
         clearInvocations(dao);
 //      sync1 прошел успешно, выходит новая версия с новой структурой, однако у нас старые маппинги
         prev = new RefBook(lastPublished);
@@ -225,7 +236,8 @@ public class RdmSyncRestTest {
                 new RefBookRowValue(1L, List.of(new StringFieldValue(primaryField, (String) row1version1.get(primaryField)), new StringFieldValue(addedField, (String) row1version1.get(addedField))), null),
                 new RefBookRowValue(2L, List.of(new StringFieldValue(primaryField, (String) row2version1.get(primaryField)), new StringFieldValue(addedField, (String) row2version1.get(addedField))), null)
         ), createSearchDataCriteria(), 2);
-        when(versionService.search(eq(lastPublished.getCode()), any(SearchDataCriteria.class))).thenReturn(lastPublishedVersionPage);
+        when(versionService.search(eq(lastPublished.getCode()), argThat(searchDataCriteria -> searchDataCriteria.getPageNumber() == 0))).thenReturn(lastPublishedVersionPage);
+        when(versionService.search(eq(lastPublished.getCode()), argThat(searchDataCriteria -> searchDataCriteria.getPageNumber() > 0))).thenReturn(Page.empty());
         when(compareService.compareStructures(anyInt(), anyInt())).thenReturn( // Структура изменилась. Добавилось поле.
             new StructureDiff(
                 singletonList(
@@ -240,9 +252,9 @@ public class RdmSyncRestTest {
         );
         rdmSyncRest.update(code);
 
-        verify(dao, never()).insertRow(eq(table), anyMap());
-        verify(dao, never()).updateRow(eq(table), eq(primaryField), eq(deletedField), eq(row1version1));
-        verify(dao, never()).updateRow(eq(table), eq(primaryField), eq(deletedField), eq(row2version1));
+        verify(dao, never()).insertRow(eq(table), anyMap(), eq(true));
+        verify(dao, never()).updateRow(eq(table), eq(primaryField), eq(row1version1), eq(true));
+        verify(dao, never()).updateRow(eq(table), eq(primaryField), eq(row2version1), eq(true));
         clearInvocations(dao);
 //      sync2 прошел успешно, однако мы пропустили добавленное поле, хотя разница по структуре и по данным была ненулевой
         vm.setLastSync(sync2.atDate(date));
@@ -251,13 +263,14 @@ public class RdmSyncRestTest {
         fm.add(new FieldMapping(addedField, "varchar", addedField)); // обновили маппинги
         vm.setMappingLastUpdated(mappingChanged.atDate(date));
         rdmSyncRest.update(code);
-        verify(dao, times(1)).updateRow(eq(table), eq(primaryField), eq(deletedField), eq(row1version1));
-        verify(dao, times(1)).updateRow(eq(table), eq(primaryField), eq(deletedField), eq(row2version1));
+        verify(dao, times(1)).updateRow(eq(table), eq(primaryField), eq(row1version1), eq(true));
+        verify(dao, times(1)).updateRow(eq(table), eq(primaryField), eq(row2version1), eq(true));
     }
 
     private RefBook createFirstRdmVersion() {
         RefBook refBook = new RefBook();
         refBook.setId(1);
+        refBook.setCode("TEST");
         refBook.setLastPublishedVersion("1.0");
         refBook.setLastPublishedVersionFromDate(LocalDateTime.of(2019, Month.FEBRUARY, 26, 10, 0));
         Structure.Attribute idAttribute = Structure.Attribute.build("id", null, FieldType.INTEGER, null);
@@ -270,6 +283,7 @@ public class RdmSyncRestTest {
     private RefBook createSecondRdmVersion() {
         RefBook refBook = new RefBook();
         refBook.setId(2);
+        refBook.setCode("TEST");
         refBook.setLastPublishedVersion("1.1");
         refBook.setLastPublishedVersionFromDate(LocalDateTime.of(2019, Month.FEBRUARY, 27, 10, 0));
         Structure.Attribute idAttribute = Structure.Attribute.build("id", null, FieldType.INTEGER, null);
@@ -282,6 +296,7 @@ public class RdmSyncRestTest {
     private RefBook createThirdRdmVersion() {
         RefBook refBook = new RefBook();
         refBook.setId(3);
+        refBook.setCode("TEST");
         refBook.setLastPublishedVersion("1.2");
         refBook.setLastPublishedVersionFromDate(LocalDateTime.of(2019, Month.MARCH, 7, 10, 0));
         Structure.Attribute idAttribute = Structure.Attribute.build("id", null, FieldType.INTEGER, null);

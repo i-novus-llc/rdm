@@ -10,11 +10,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Created by znurgaliev on 14.08.2018.
+ * Проверка на обязательность по первичным ключам.
  */
 public class PkRequiredValidation extends ErrorAttributeHolderValidation {
 
-    public static final String REQUIRED_ERROR_CODE = "validation.required.err";
+    public static final String VALIDATION_REQUIRED_PK_ERR_EXCEPTION_CODE = "validation.required.pk.err";
 
     private Map<String, Object> row;
 
@@ -34,16 +34,16 @@ public class PkRequiredValidation extends ErrorAttributeHolderValidation {
     public List<Message> validate() {
         List<Structure.Attribute> primaries = structure.getPrimary();
         return structure.getAttributes().stream()
-                .filter(attribute -> getErrorAttributes() == null || !getErrorAttributes().contains(attribute.getCode()))
+                .filter(attribute -> !isErrorAttribute(attribute.getCode()))
                 .filter(primaries::contains)
-                .filter(this::isPKBlank)
+                .filter(this::isPrimaryEmpty)
                 .peek(this::addErrorAttribute)
-                .map(attribute -> new Message(REQUIRED_ERROR_CODE, attribute.getName()))
+                .map(attribute -> new Message(VALIDATION_REQUIRED_PK_ERR_EXCEPTION_CODE, attribute.getName()))
                 .collect(Collectors.toList());
     }
 
-    private boolean isPKBlank(Structure.Attribute pK){
-        Object value = row.get(pK.getCode());
+    private boolean isPrimaryEmpty(Structure.Attribute primaryKey){
+        Object value = row.get(primaryKey.getCode());
         return value == null || "".equals(String.valueOf(value).trim());
     }
 

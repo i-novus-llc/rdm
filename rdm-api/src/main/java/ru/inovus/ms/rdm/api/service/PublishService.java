@@ -1,28 +1,35 @@
 package ru.inovus.ms.rdm.api.service;
 
 import io.swagger.annotations.*;
+import ru.inovus.ms.rdm.api.model.draft.PublishRequest;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Path("/publish")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Api(value = "Методы публикации", hidden = true)
+@Api(value = "Методы публикации справочника", hidden = true)
 public interface PublishService {
 
     @POST
     @Path("/{draftId}")
-    @ApiOperation("Публикация черновика")
+    @ApiOperation("Публикация справочника")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Черновик опубликован"),
+            @ApiResponse(code = 200, message = "Справочник опубликован"),
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void publish(@ApiParam("Идентификатор черновика") @PathParam("draftId") Integer draftId,
-                 @ApiParam("Версия") @QueryParam("version") String version,
-                 @ApiParam("Дата начала действия версии") @QueryParam("fromDate") LocalDateTime fromDate,
-                 @ApiParam("Дата окончания действия версии") @QueryParam("toDate") LocalDateTime toDate,
-                 @ApiParam("Обработка разрешаемых конфликтов") @DefaultValue("false") @QueryParam("resolveConflicts") boolean resolveConflicts);
+    void publish(@ApiParam("Идентификатор публикуемого черновика") @PathParam("draftId") Integer draftId,
+                 PublishRequest request);
+
+    @POST
+    @Path("/async/{draftId}")
+    @ApiOperation("Запрос на публикацию справочника")
+    @ApiResponses({
+        @ApiResponse(code = 200, message = "Запрос поставлен в очередь")
+    })
+    UUID publishAsync(@ApiParam("Идентификатор публикуемого черновика") @PathParam("draftId") Integer draftId,
+                      PublishRequest request);
 }

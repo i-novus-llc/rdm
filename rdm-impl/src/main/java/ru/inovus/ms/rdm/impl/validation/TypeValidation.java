@@ -9,14 +9,16 @@ import ru.inovus.ms.rdm.api.model.Structure;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class TypeValidation extends ErrorAttributeHolderValidation {
 
     private static final String VALIDATION_TYPE_EXCEPTION_CODE = "validation.type.error";
+    private static final String ATTRIBUTE_TYPE_NOT_FOUND = "Type of attribute \"%1$s\" not found";
+    private static final String ATTRIBUTE_TYPE_IS_INVALID = "Invalid type %1$s of attribute \"%2$s\"";
 
     private Map<String, Object> row;
 
@@ -29,44 +31,63 @@ public class TypeValidation extends ErrorAttributeHolderValidation {
 
     @Override
     public List<Message> validate() {
-        List<Message> messages = new ArrayList<>();
-        row.entrySet().stream()
-                .filter(entry -> getErrorAttributes() == null || !getErrorAttributes().contains(entry.getKey()))
-                .forEach(entry -> {
-                    Structure.Attribute attribute = structure.getAttribute(entry.getKey());
-                    if (attribute != null)
-                        Optional.ofNullable(checkType(attribute.getType(), entry.getKey(), entry.getValue())).ifPresent(message -> {
-                            messages.add(message);
-                            addErrorAttribute(entry.getKey());
-                        });
-                });
-        return messages;
+        return row.entrySet().stream()
+                .filter(entry -> !isErrorAttribute(entry.getKey()))
+                .map(this::validate)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
-    public static Message checkType(FieldType type, String name, Object value) {
+    private Message validate(Map.Entry<String, Object> entry) {
+
+        Structure.Attribute attribute = structure.getAttribute(entry.getKey());
+        if (attribute == null)
+            return null;
+
+        Message message = validateType(attribute, entry.getValue());
+        if (message == null)
+            return null;
+
+        addErrorAttribute(entry.getKey());
+
+        return message;
+    }
+
+    public static Message validateType(Structure.Attribute attribute, Object value) {
+
+        return validateInstance(attribute.getCode(), value, toClass(attribute));
+    }
+
+    private static Class toClass(Structure.Attribute attribute) {
+
+        FieldType type = attribute.getType();
+        if (type == null)
+            throw new RdmException(String.format(ATTRIBUTE_TYPE_NOT_FOUND, attribute.getName()));
+
         switch (type) {
             case STRING:
             case TREE:
-                return checkInstance(name, value, String.class);
+                return String.class;
             case INTEGER:
-                return checkInstance(name, value, BigInteger.class);
+                return BigInteger.class;
             case FLOAT:
-                return checkInstance(name, value, BigDecimal.class);
+                return BigDecimal.class;
             case DATE:
-                return checkInstance(name, value, LocalDate.class);
+                return LocalDate.class;
             case BOOLEAN:
-                return checkInstance(name, value, Boolean.class);
+                return Boolean.class;
             case REFERENCE:
-                return checkInstance(name, value, Reference.class);
+                return Reference.class;
             default:
-                throw new RdmException("invalid type: " + type);
+                throw new RdmException(String.format(ATTRIBUTE_TYPE_IS_INVALID, type.name(), attribute.getName()));
         }
     }
 
-    private static Message checkInstance(String name, Object value, Class cls) {
-        if (value != null && !(cls.isInstance(value))) {
-            return new Message(VALIDATION_TYPE_EXCEPTION_CODE, name, value);
-        }
-        return null;
+    private static Message validateInstance(String name, Object value, Class clazz) {
+
+        if (value == null || clazz.isInstance(value))
+            return null;
+
+        return new Message(VALIDATION_TYPE_EXCEPTION_CODE, name, value);
     }
 }

@@ -24,30 +24,30 @@ public class RowDiff {
 
     public static class CellDiff<T> {
 
-        private final T oldVal;
-        private final T newVal;
+        private final T oldValue;
+        private final T newValue;
 
-        private CellDiff(T oldVal, T newVal) {
-            this.oldVal = oldVal;
-            this.newVal = newVal;
+        private CellDiff(T oldValue, T newValue) {
+            this.oldValue = oldValue;
+            this.newValue = newValue;
         }
 
         @JsonGetter
-        public T getOldVal() {
-            return oldVal;
+        public T getOldValue() {
+            return oldValue;
         }
 
         @JsonGetter
-        public T getNewVal() {
-            return newVal;
+        public T getNewValue() {
+            return newValue;
         }
 
-        public static <T> CellDiff<T> of(T oldVal, T newVal) {
-            if (Objects.equals(oldVal, newVal))
-                throw new IllegalArgumentException("Values are equal. Zero diff.");
-            return new CellDiff<>(oldVal, newVal);
-        }
+        public static <T> CellDiff<T> of(T oldValue, T newValue) {
 
+            if (Objects.equals(oldValue, newValue))
+                return null;
+
+            return new CellDiff<>(oldValue, newValue);
+        }
     }
-
 }

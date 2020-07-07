@@ -1,28 +1,33 @@
 package ru.inovus.ms.rdm.api.util;
 
 import org.apache.commons.text.StringSubstitutor;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
-import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.*;
+import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.api.model.Structure;
 import ru.inovus.ms.rdm.api.model.compare.ComparableFieldValue;
 import ru.inovus.ms.rdm.api.model.field.ReferenceFilterValue;
 import ru.inovus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static ru.i_novus.platform.datastorage.temporal.model.DataConstants.*;
+import static ru.i_novus.platform.datastorage.temporal.model.DataConstants.SYS_PRIMARY_COLUMN;
 
 public class FieldValueUtils {
+
+    private static final String PRIMARY_KEY_CODE_DELIMITER = ": ";
 
     private FieldValueUtils() {
     }
@@ -32,10 +37,13 @@ public class FieldValueUtils {
      *
      * @param displayExpression выражение для вычисления отображаемого значения
      * @param rowValue          запись со значениями подставляемых полей
+     * @param primaryKeyCodes   список кодов первичных ключей
      * @return Отображаемое значение
      */
-    public static String rowValueToDisplayValue(String displayExpression, RowValue rowValue) {
-        return fieldValuesToDisplayValue(displayExpression, ((LongRowValue)rowValue).getFieldValues());
+    public static String toDisplayValue(String displayExpression,
+                                        RowValue rowValue,
+                                        List<String> primaryKeyCodes) {
+        return toDisplayValue(displayExpression, ((LongRowValue)rowValue).getFieldValues(), primaryKeyCodes);
     }
 
     /**
@@ -43,16 +51,51 @@ public class FieldValueUtils {
      *
      * @param displayExpression выражение для вычисления отображаемого значения
      * @param fieldValues       список значений подставляемых полей
+     * @param primaryKeyCodes   список кодов первичных ключей
      * @return Отображаемое значение
      */
-    private static String fieldValuesToDisplayValue(String displayExpression, List<FieldValue> fieldValues) {
+    private static String toDisplayValue(String displayExpression,
+                                         List<FieldValue> fieldValues,
+                                         List<String> primaryKeyCodes) {
+
+        Map<String, String> placeholders = new DisplayExpression(displayExpression).getPlaceholders();
+
         Map<String, Object> map = new HashMap<>();
-        fieldValues.forEach(fieldValue -> map.put(fieldValue.getField(), fieldValue.getValue()));
-        return new StringSubstitutor(map, DisplayExpression.PLACEHOLDER_START, DisplayExpression.PLACEHOLDER_END).replace(displayExpression);
+        fieldValues.forEach(fieldValue ->
+                map.put(fieldValue.getField(), toDisplayValue(fieldValue, placeholders))
+        );
+
+        List<String> absentPlaceholders = placeholders.keySet().stream()
+                        .filter(placeholder -> Objects.isNull(map.get(placeholder)))
+                        .collect(toList());
+        absentPlaceholders.forEach(absent -> map.put(absent, ""));
+
+        String displayValue = createDisplayExpressionSubstitutor(map).replace(displayExpression);
+
+        if (!CollectionUtils.containsAny(placeholders.keySet(), primaryKeyCodes)) {
+
+            String primaryKeysValue = primaryKeyCodes.stream()
+                    .map(code -> String.valueOf(map.get(code)))
+                    .filter(value -> !StringUtils.isEmpty(value))
+                    .reduce("", (result, value) -> result + value + PRIMARY_KEY_CODE_DELIMITER);
+            displayValue = primaryKeysValue + displayValue;
+        }
+
+        return displayValue;
+    }
+
+    /** Получение отображаемого значения из поля. */
+    private static String toDisplayValue(FieldValue fieldValue, Map<String, String> placeholders) {
+
+        if (fieldValue.getValue() != null)
+            return String.valueOf(fieldValue.getValue());
+
+        String value = placeholders.get(fieldValue.getField());
+        return (value != null) ? value : "";
     }
 
     /**
-     * Возвращает типизированное значение атрибута.
+     * Получение типизированного значения атрибута.
      *
      * @param fieldValue   значение атрибута
      * @param refFieldType тип атрибута, к которому приводится значение
@@ -66,7 +109,7 @@ public class FieldValueUtils {
     }
 
     /**
-     * Возвращает типизированное значение ссылки.
+     * Получение типизированного значения ссылки.
      *
      * <p>При приведении типа используется тип атрибута, НА который ссылаемся.</p>
      *
@@ -150,6 +193,19 @@ public class FieldValueUtils {
         return DiffStatusEnum.DELETED.equals(status) ? fieldValue.getOldValue() : fieldValue.getNewValue();
     }
 
+    public static FieldValue getFieldValueFromFieldType(Object value, String fieldCode, FieldType fieldType) {
+        switch (fieldType) {
+            case STRING: return new StringFieldValue(fieldCode, (String) value);
+            case INTEGER: return new IntegerFieldValue(fieldCode, (BigInteger) value);
+            case REFERENCE: return new ReferenceFieldValue(fieldCode, (Reference) value);
+            case FLOAT: return new FloatFieldValue(fieldCode, (BigDecimal) value);
+            case BOOLEAN: return new BooleanFieldValue(fieldCode, (Boolean) value);
+            case DATE: return new DateFieldValue(fieldCode, (LocalDate) value);
+            case TREE: return new TreeFieldValue(fieldCode, (String) value);
+            default: throw new RdmException("Unexpected field type: " + fieldType);
+        }
+    }
+
     /**
      * Получение отображаемого значения.
      *
@@ -164,6 +220,15 @@ public class FieldValueUtils {
         diffFieldValues.forEach(fieldValue ->
                 map.put(fieldValue.getField().getName(), getDiffFieldValue(fieldValue, diffStatus))
         );
-        return new StringSubstitutor(map, DisplayExpression.PLACEHOLDER_START, DisplayExpression.PLACEHOLDER_END).replace(displayExpression);
+        return createDisplayExpressionSubstitutor(map).replace(displayExpression);
+    }
+
+    /** Создание объекта подстановки в выражение для вычисления отображаемого значения. */
+    public static StringSubstitutor createDisplayExpressionSubstitutor(Map<String, Object> map) {
+
+        StringSubstitutor substitutor = new StringSubstitutor(map,
+                DisplayExpression.PLACEHOLDER_START, DisplayExpression.PLACEHOLDER_END);
+        substitutor.setValueDelimiter(DisplayExpression.PLACEHOLDER_DEFAULT_DELIMITER);
+        return substitutor;
     }
 }

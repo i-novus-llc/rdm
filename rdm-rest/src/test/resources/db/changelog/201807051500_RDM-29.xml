@@ -104,10 +104,10 @@
         </sql>
     </changeSet>
 
-    <changeSet id="201807051500_RDM-29_7.1" author="znurgaliev" dbms="postgresql">
+    <changeSet id="201807051500_RDM-29_7.1.1" author="znurgaliev" dbms="postgresql">
         <comment>Добавление справочника со статусом черновик</comment>
         <sql>
-            INSERT INTO n2o_rdm_management.ref_book(id, code, removable) VALUES (-2, 'test_ref_book_for_draft', TRUE);
+            INSERT INTO n2o_rdm_management.ref_book(id, code, removable) VALUES (-2, 'test_ref_book_for_draft2', TRUE);
 
             INSERT INTO n2o_rdm_management.ref_book_version(id, storage_code, ref_book_id, full_name, short_name,
             version, status, structure)
