@@ -72,21 +72,20 @@ public class VersionFileServiceImpl implements VersionFileService {
 
     @Override
     @Transactional
-    public InputStream generate(RefBookVersion versionModel, FileType fileType, Iterator<Row> rowIterator) {
+    public InputStream generate(RefBookVersion version, FileType fileType, Iterator<Row> rowIterator) {
         try (FileGenerator fileGenerator = fileGeneratorFactory
-                .getFileGenerator(rowIterator, versionModel, fileType);
+                .getFileGenerator(rowIterator, version, fileType);
              Archiver archiver = new Archiver()) {
 
             if (includePassport) {
                 try (FileGenerator passportFileGenerator =
-                             new PassportPdfFileGenerator(passportValueRepository, versionModel.getId(),
-                                     passportFileHead, versionModel.getCode())) {
-                    archiver.addEntry(passportFileGenerator, fileNameGenerator.generateName(versionModel, FileType.PDF));
+                             new PassportPdfFileGenerator(passportValueRepository, version, passportFileHead)) {
+                    archiver.addEntry(passportFileGenerator, fileNameGenerator.generateName(version, FileType.PDF));
                 }
             }
 
             return archiver
-                    .addEntry(fileGenerator, fileNameGenerator.generateName(versionModel, fileType))
+                    .addEntry(fileGenerator, fileNameGenerator.generateName(version, fileType))
                     .getArchive();
 
         } catch (IOException e) {
