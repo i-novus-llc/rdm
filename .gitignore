@@ -1,0 +1,42 @@
+### JetBrains
+
+.idea/
+*.iml
+*.ipr
+
+## Plugin-specific files:
+
+# IntelliJ
+out/
+
+# mpeltonen/sbt-idea plugin
+.idea_modules/
+
+### Maven template
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+
+# Avoid ignoring Maven wrapper jar file (.jar files are usually ignored)
+!/.mvn/wrapper/maven-wrapper.jar
+
+
+*.dbs.bak
+~$*.*
+**/package-lock.json
+
+/rdm-frontend/rdm-react/node/node_modules/
+/rdm-frontend/rdm-react/node/
+/rdm_log/
+/rdm-n2o/rdm-react/node/
+/rdm-n2o/rdm-react/node_modules/
+/rdm-n2o/rdm-react/packages/rdm-frontend/node_modules/
+/rdm-n2o/rdm-react/packages/rdm-frontend/build/
+/rdm-n2o/rdm-react/packages/n2o-config-rdm/node_modules/
+/rdm-rest/rdm_log/

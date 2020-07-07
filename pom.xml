@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>ru.inovus.ms.rdm</groupId>
+    <artifactId>rdm</artifactId>
+    <version>2.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <parent>
+        <groupId>net.n2oapp.platform</groupId>
+        <artifactId>n2o-platform-parent</artifactId>
+        <version>3.0.0</version>
+    </parent>
+
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <encoding>UTF-8</encoding>
+        <apache.poi.version>3.17</apache.poi.version>
+        <filestorage.version>2.2</filestorage.version>
+        <vds.version>2.23</vds.version>
+        <n2o.version>7.5.7</n2o.version>
+        <itext.version>5.5.9</itext.version>
+        <commons.text.version>1.6</commons.text.version>
+        <xmlunit.version>1.6</xmlunit.version>
+        <lombok.version>1.18.4</lombok.version>
+        <jaxws.version>2.3.2</jaxws.version>
+        <jaxrs-api.version>2.1.1</jaxrs-api.version>
+        <cxf.version>3.2.7</cxf.version>
+        <swagger-annotations.version>1.5.21</swagger-annotations.version>
+        <javax.activation.version>1.1.1</javax.activation.version>
+        <security.admin.version>4.3</security.admin.version>
+        <security.oauth2.autoconfigure.version>2.1.1.RELEASE</security.oauth2.autoconfigure.version>
+        <internal.repository.releases>https://maven.i-novus.ru/libs-release-local</internal.repository.releases>
+        <internal.repository.shapshots>https://maven.i-novus.ru/libs-snapshot-local</internal.repository.shapshots>
+        <internal.repository.id>i-novus-central</internal.repository.id>
+        <swagger.version>3.23.0</swagger.version>
+        <audit.version>2.3.2</audit.version>
+    </properties>
+
+    <name>rdm</name>
+
+    <scm>
+        <connection>scm:git:https://git.i-novus.ru/microservices/rdm.git</connection>
+        <url>https://git.i-novus.ru/microservices/rdm</url>
+        <developerConnection>scm:git:https://git.i-novus.ru/microservices/rdm.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <organization>
+        <name>I-Novus LLC</name>
+        <url>https://i-novus.ru/</url>
+    </organization>
+
+
+    <modules>
+        <module>rdm-api</module>
+        <module>rdm-sync-spring-boot-starter</module>
+    </modules>
+
+    <distributionManagement>
+        <repository>
+            <id>${internal.repository.id}</id>
+            <name>${internal.repository.id}</name>
+            <url>${internal.repository.releases}</url>
+        </repository>
+        <snapshotRepository>
+            <id>${internal.repository.id}</id>
+            <name>${internal.repository.id}</name>
+            <url>${internal.repository.shapshots}</url>
+            <uniqueVersion>true</uniqueVersion>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>ru.inovus.ms.rdm</groupId>
+                <artifactId>rdm-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.inovus.ms.rdm</groupId>
+                <artifactId>rdm-impl</artifactId>
+                <version>${project.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.inovus.ms.rdm</groupId>
+                <artifactId>rdm-n2o</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.i-novus.components</groupId>
+                <artifactId>versioned-data-storage-api</artifactId>
+                <version>${vds.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.i-novus.components</groupId>
+                <artifactId>versioned-data-storage-spring-adapter</artifactId>
+                <version>${vds.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-core</artifactId>
+                <version>5.2.12.Final</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi</artifactId>
+                <version>${apache.poi.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${apache.poi.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.i-novus.common</groupId>
+                <artifactId>fs-file-storage</artifactId>
+                <version>${filestorage.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.monitorjbl</groupId>
+                <artifactId>xlsx-streamer</artifactId>
+                <version>1.2.1</version>
+            </dependency>
+
+            <dependency>
+                <groupId>net.n2oapp.framework</groupId>
+                <artifactId>n2o-spring-boot-starter</artifactId>
+                <version>${n2o.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.itextpdf</groupId>
+                <artifactId>itextpdf</artifactId>
+                <version>${itext.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.itextpdf.tool</groupId>
+                <artifactId>xmlworker</artifactId>
+                <version>${itext.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>xmlunit</groupId>
+                <artifactId>xmlunit</artifactId>
+                <version>${xmlunit.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>net.n2oapp.framework.security</groupId>
+                <artifactId>security-admin-rest-client</artifactId>
+                <version>${security.admin.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>net.n2oapp.framework.security</groupId>
+                <artifactId>security-auth-oauth2</artifactId>
+                <version>${security.admin.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.security.oauth.boot</groupId>
+                <artifactId>spring-security-oauth2-autoconfigure</artifactId>
+                <version>${security.oauth2.autoconfigure.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>net.n2oapp.framework.security</groupId>
+                <artifactId>security-auth-oauth2-gateway</artifactId>
+                <version>${security.admin.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.xml.ws</groupId>
+                <artifactId>rt</artifactId>
+                <version>${jaxws.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.activation</groupId>
+                <artifactId>activation</artifactId>
+                <version>${javax.activation.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-text</artifactId>
+                <version>${commons.text.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.i-novus.ms.audit</groupId>
+                <artifactId>audit-client-spring-boot-starter</artifactId>
+                <version>${audit.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <profiles>
+        <profile>
+            <id>build-all-modules</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>rdm-rest</module>
+                <module>rdm-impl</module>
+                <module>rdm-frontend</module>
+                <module>rdm-n2o</module>
+                <module>rdm-esnsi</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>release</id>
+            <activation>
+                <property>
+                    <name>release</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.7</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                            <stagingProgressTimeoutMinutes>10</stagingProgressTimeoutMinutes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <dependencies>
+        <dependency>
+            <groupId>javax.interceptor</groupId>
+            <artifactId>javax.interceptor-api</artifactId>
+            <version>1.2</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <useSystemClassLoader>false</useSystemClassLoader>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
