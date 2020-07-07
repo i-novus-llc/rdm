@@ -38,6 +38,9 @@ public class StringUtils {
     /** Преобразование строки в UUID. */
     public static UUID toUuid(String s) {
 
+        if (!isEmpty(s))
+            s = s.trim();
+
         if (isEmpty(s))
             return null;
 

@@ -1,18 +1,22 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" name="Типы операций">
+
     <list count-mapping="[totalElements]" result-mapping="[content]">
         <rest method="GET" filters-separator="&amp;">${rdm.backend.path}/asynclog?{filters}&amp;page={page}</rest>
     </list>
+
     <unique>
         <rest method="GET">${rdm.backend.path}/asynclog/entry/{id}</rest>
     </unique>
+
     <fields>
         <field id="id" domain="string">
             <select mapping="['id']"/>
             <filters>
-                <eq filter-id="id">id={id}</eq>
+                <eq filter-id="id" normalize="T(ru.inovus.ms.rdm.api.util.StringUtils).toUuid(#this)">id={id}</eq>
             </filters>
         </field>
+
         <!-- used only in: unique filters -->
         <field id="uuid" domain="string">
             <select mapping="['id']"/>
@@ -49,7 +53,13 @@
             <select mapping="['code']"/>
         </field>
         <field id="error" domain="string">
-            <select/>
+            <select mapping="['error']"/>
+        </field>
+        <field id="payload" domain="object">
+            <select mapping="['payload']"/>
+        </field>
+        <field id="result" domain="object">
+            <select mapping="['result']"/>
         </field>
     </fields>
 </query>

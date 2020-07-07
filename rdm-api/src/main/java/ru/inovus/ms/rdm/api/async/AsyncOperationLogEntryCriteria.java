@@ -11,7 +11,7 @@ public class AsyncOperationLogEntryCriteria extends AbstractCriteria {
 
     public static final Sort.Order DEFAULT_ORDER = Sort.Order.desc("tsStart");
 
-    @QueryParam("uuid")
+    @QueryParam("id")
     private UUID id;
 
     @QueryParam("operation")
