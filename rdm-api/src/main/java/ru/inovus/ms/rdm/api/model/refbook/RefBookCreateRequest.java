@@ -16,15 +16,10 @@ public class RefBookCreateRequest {
     public RefBookCreateRequest() {
     }
 
-    public RefBookCreateRequest(String code, Map<String, String> passport) {
+    public RefBookCreateRequest(String code, String category, Map<String, String> passport) {
         this.code = code;
-        this.passport = passport;
-    }
-
-    public RefBookCreateRequest(String code, Map<String, String> passport, String category) {
-        this.code = code;
-        this.passport = passport;
         this.category = category;
+        this.passport = passport;
     }
 
     public String getCode() {
