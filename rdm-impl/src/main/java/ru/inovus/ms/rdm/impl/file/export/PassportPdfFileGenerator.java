@@ -1,6 +1,8 @@
 package ru.inovus.ms.rdm.impl.file.export;
 
 import com.itextpdf.text.DocumentException;
+import org.springframework.util.StringUtils;
+import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
 import ru.inovus.ms.rdm.impl.entity.PassportValueEntity;
 import ru.inovus.ms.rdm.api.exception.RdmException;
 import ru.inovus.ms.rdm.impl.repository.PassportValueRepository;
@@ -16,29 +18,38 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class PassportPdfFileGenerator implements FileGenerator {
 
-    private PassportValueRepository passportValueRepository;
-    private Integer versionId;
-    private String head;
-    private String code;
+    private static final String VERSION_CODE_NAME = "Код справочника";
+    private static final String VERSION_CATEGORY_NAME = "Категория справочника";
 
-    public PassportPdfFileGenerator(PassportValueRepository passportValueRepository, Integer versionId,
-                                    String head, String code) {
+    private PassportValueRepository passportValueRepository;
+
+    /** Версия справочника. */
+    private RefBookVersion version;
+
+    /** Заголовок. */
+    private String head;
+
+    public PassportPdfFileGenerator(PassportValueRepository passportValueRepository,
+                                    RefBookVersion version, String head) {
         this.passportValueRepository = passportValueRepository;
-        this.versionId = versionId;
+
+        this.version = version;
         this.head = head;
-        this.code = code;
     }
 
     @Override
     public void generate(OutputStream outputStream) {
 
-
-        List<PassportValueEntity> values = passportValueRepository.findAllByVersionIdOrderByAttributePosition(versionId);
+        List<PassportValueEntity> values = passportValueRepository
+                .findAllByVersionIdOrderByAttributePosition(version.getId());
         if (isEmpty(values)) return;
 
         Map<String, String> passportToWrite = new LinkedHashMap<>();
 
-        passportToWrite.put("Код справочника", code);
+        passportToWrite.put(VERSION_CODE_NAME, version.getCode());
+        if (!StringUtils.isEmpty(version.getCategory()))
+            passportToWrite.put(VERSION_CATEGORY_NAME, version.getCategory());
+
         for (PassportValueEntity value : values) {
             passportToWrite.put(value.getAttribute().getName(), String.valueOf(value.getValue()));
         }
@@ -51,14 +62,14 @@ public class PassportPdfFileGenerator implements FileGenerator {
         PdfCreatorUtil pdfCreatorUtil = new PdfCreatorUtil();
         try {
             pdfCreatorUtil.writeDocument(outputStream, passportToWrite, paragraph);
+
         } catch (DocumentException | IOException e) {
             throw new RdmException(e);
         }
-
     }
 
     @Override
     public void close() throws IOException {
-        //not close for generator
+        // No close for generator
     }
 }
