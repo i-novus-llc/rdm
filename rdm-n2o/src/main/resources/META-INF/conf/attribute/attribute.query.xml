@@ -2,18 +2,19 @@
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" name="Атрибут">
 
     <list result-mapping="['content']" count-mapping="['totalElements']">
-        <java method="getPage" class="ru.inovus.ms.rdm.service.StructureController">
+        <java method="getPage" class="ru.inovus.ms.rdm.n2o.service.StructureController">
             <spring/>
             <arguments>
-                <argument type="criteria" class="ru.inovus.ms.rdm.model.AttributeCriteria" name="criteria"/>
+                <argument type="criteria" class="ru.inovus.ms.rdm.n2o.model.AttributeCriteria" name="criteria"/>
             </arguments>
         </java>
     </list>
+
     <unique result-mapping="['content'][0]" filters="versionId,code">
-        <java method="getPage" class="ru.inovus.ms.rdm.service.StructureController">
+        <java method="getPage" class="ru.inovus.ms.rdm.n2o.service.StructureController">
             <spring/>
             <arguments>
-                <argument type="criteria" class="ru.inovus.ms.rdm.model.AttributeCriteria" name="criteria"/>
+                <argument type="criteria" class="ru.inovus.ms.rdm.n2o.model.AttributeCriteria" name="criteria"/>
             </arguments>
         </java>
     </unique>
@@ -40,12 +41,26 @@
             </filters>
         </field>
 
-        <field id="referenceRefBook.id" domain="integer">
-            <select mapping="referenceRefBookId"/>
+        <field id="optLockValue" domain="integer">
+            <select/>
+            <filters>
+                <eq filter-id="optLockValue" mapping="optLockValue" domain="integer"/>
+            </filters>
+        </field>
+
+        <field id="isReferrer" domain="boolean">
+            <select/>
+        </field>
+
+        <field id="hasReferrer" domain="boolean">
+            <select/>
         </field>
 
         <field id="name" domain="string" name="Наименование">
             <select/>
+            <filters>
+                <eq filter-id="name" mapping="name"/>
+            </filters>
         </field>
 
         <field id="attrType.id" domain="string" name="Тип данных">
@@ -58,44 +73,69 @@
                              type.name()=='FLOAT'?'Дробный':
                              type.name()=='DATE'?'Дата':
                              type.name()=='BOOLEAN'?'Логический':
-                             type.name()=='REFERENCE'?'Ссылочный':null"/>
+                             type.name()=='REFERENCE'?'Ссылочный':
+                             null"/>
         </field>
 
         <field id="description" domain="string">
             <select/>
         </field>
 
-        <field id="isPrimary" domain="boolean">
-            <select/>
-        </field>
-
-        <field id="referenceVersion.id" domain="integer">
-            <select mapping="referenceVersion"/>
-        </field>
-
-        <field id="referenceAttribute.code" domain="string">
-            <select mapping="referenceAttribute"/>
-        </field>
-
-        <field id="referenceAttribute.name" domain="string">
-            <select mapping="referenceAttributeName"/>
-        </field>
-
-        <!--<field id="referenceDisplayAttribute.code" domain="string">-->
-        <!--<select mapping="referenceDisplayAttribute"/>-->
-        <!--</field>-->
-
-        <!--<field id="referenceDisplayAttribute.name" domain="string">-->
-        <!--<select mapping="referenceDisplayAttributeName"/>-->
-        <!--</field>-->
-
         <field id="keyAttribute" name="Ключевой атрибут" domain="string">
             <select mapping="isPrimary ? 'Первичный ключ' : null"/>
         </field>
 
-        <field id="isReference" name="Ссылочное поле" domain="boolean">
+        <field id="isReference" name="Ссылка" domain="boolean">
             <select mapping="type?.name()?.equals('REFERENCE')"/>
         </field>
+
+        <field id="referenceData" name="Отображаемое поле" domain="string">
+            <select mapping="type?.name()?.equals('REFERENCE') ? referenceCode + ': ' + (displayExpression?:'') : ''"/>
+        </field>
+
+        <field id="referenceRefBook.id" domain="integer">
+            <select mapping="referenceRefBookId"/>
+        </field>
+
+        <field id="referenceRefBook.code" domain="string">
+            <select mapping="referenceCode"/>
+        </field>
+
+        <field id="codeExpression" domain="string">
+            <select/>
+        </field>
+
+        <field id="referenceCode" domain="string">
+            <select/>
+        </field>
+
+        <field id="displayAttribute.id" domain="string">
+            <select mapping="displayAttribute"/>
+        </field>
+
+        <field id="displayAttribute.name" domain="string">
+            <select mapping="displayAttributeName?:''"/>
+        </field>
+
+        <field id="displayExpression" domain="string">
+            <select/>
+        </field>
+
+        <field id="hasStructureConflict" domain="boolean">
+            <select/>
+        </field>
+
+        <field id="hasStructureConflictMsg" domain="string">
+            <select mapping="
+                (hasStructureConflict?:false ? 'Выражение для вычисления отображаемого значения содержит ошибочные поля для подстановки' : '')
+                "/>
+        </field>
+
+        <field id="isPrimary" domain="boolean">
+            <select/>
+        </field>
+
+        <!-- Пользовательские проверки -->
 
         <field id="required">
             <select/>
@@ -103,36 +143,44 @@
         <field id="unique">
             <select/>
         </field>
+
         <field id="plainSize">
             <select/>
         </field>
+
         <field id="intPartSize">
             <select/>
         </field>
         <field id="fracPartSize">
             <select/>
         </field>
+
         <field id="minInteger">
             <select/>
         </field>
         <field id="maxInteger">
             <select/>
         </field>
+
         <field id="minFloat">
             <select/>
         </field>
         <field id="maxFloat">
             <select/>
         </field>
+
         <field id="dateInterval.begin">
             <select mapping="minDate"/>
         </field>
         <field id="dateInterval.end">
             <select mapping="maxDate"/>
         </field>
+
         <field id="regExp">
             <select/>
         </field>
+
+        <!-- / Пользовательские проверки -->
 
     </fields>
 </query>

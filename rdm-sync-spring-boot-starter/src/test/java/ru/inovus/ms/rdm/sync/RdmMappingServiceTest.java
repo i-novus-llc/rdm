@@ -40,21 +40,21 @@ public class RdmMappingServiceTest {
             rdmMappingService.map(FieldType.INTEGER, BOOLEAN, 1);
             fail("Ожидается ClassCastException");
         } catch (ClassCastException e) {
-            assertEquals("Ошибка при попытке преобразовать тип INTEGER в BOOLEAN значение: 1", e.getMessage());
+            assertEquals("Error while casting INTEGER to BOOLEAN. Value: 1", e.getMessage());
         }
 
         try {
             rdmMappingService.map(FieldType.INTEGER, DATE, 1);
             fail("Ожидается ClassCastException");
         } catch (ClassCastException e) {
-            assertEquals("Ошибка при попытке преобразовать тип INTEGER в DATE значение: 1", e.getMessage());
+            assertEquals("Error while casting INTEGER to DATE. Value: 1", e.getMessage());
         }
 
         try {
             rdmMappingService.map(FieldType.INTEGER, JSONB, 1);
             fail("Ожидается ClassCastException");
         } catch (ClassCastException e) {
-            assertEquals("Ошибка при попытке преобразовать тип INTEGER в JSONB значение: 1", e.getMessage());
+            assertEquals("Error while casting INTEGER to JSONB. Value: 1", e.getMessage());
         }
     }
 
@@ -79,7 +79,7 @@ public class RdmMappingServiceTest {
             rdmMappingService.map(FieldType.STRING, JSONB, "1");
             fail("Ожидается ClassCastException");
         } catch (ClassCastException e) {
-            assertEquals("Ошибка при попытке преобразовать тип STRING в JSONB значение: 1", e.getMessage());
+            assertEquals("Error while casting STRING to JSONB. Value: 1", e.getMessage());
         }
     }
 
@@ -95,8 +95,14 @@ public class RdmMappingServiceTest {
             rdmMappingService.map(FieldType.BOOLEAN, DATE, true);
             fail("Ожидается ClassCastException");
         } catch (ClassCastException e) {
-            assertEquals("Ошибка при попытке преобразовать тип BOOLEAN в DATE значение: true", e.getMessage());
+            assertEquals("Error while casting BOOLEAN to DATE. Value: true", e.getMessage());
         }
+//      В рдм поле типа boolean. Значение не присутстствует. Необходимо, чтобы они смаппились на
+//      дефолтный false.
+        result = rdmMappingService.map(FieldType.BOOLEAN, VARCHAR, null);
+        assertEquals("false", result);
+        result = rdmMappingService.map(FieldType.BOOLEAN, BOOLEAN, null);
+        assertEquals(false, result);
     }
 
     @Test
@@ -113,7 +119,7 @@ public class RdmMappingServiceTest {
             rdmMappingService.map(FieldType.DATE, INTEGER, date);
             fail("Ожидается ClassCastException");
         } catch (ClassCastException e) {
-            assertEquals("Ошибка при попытке преобразовать тип DATE в INTEGER значение: 2007-10-15", e.getMessage());
+            assertEquals("Error while casting DATE to INTEGER. Value: 2007-10-15", e.getMessage());
         }
     }
 
@@ -127,7 +133,7 @@ public class RdmMappingServiceTest {
             rdmMappingService.map(FieldType.INTEGER, JSONB, 1);
             fail("Ожидается ClassCastException");
         } catch (ClassCastException e) {
-            assertEquals("Ошибка при попытке преобразовать тип INTEGER в JSONB значение: 1", e.getMessage());
+            assertEquals("Error while casting INTEGER to JSONB. Value: 1", e.getMessage());
         }
     }
 }

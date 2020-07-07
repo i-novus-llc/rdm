@@ -2,96 +2,121 @@
 <object xmlns="http://n2oapp.net/framework/config/schema/object-3.0" name="Атрибут">
 
     <operations>
-        <operation id="create" submit-label="Сохранить" name="Добавление атрибута" success-text="Атрибут сохранен">
+        <operation id="createAttribute" name="Добавление атрибута"
+                   submit-label="Сохранить" success-text="Атрибут сохранен">
             <invocation>
-                <java class="ru.inovus.ms.rdm.service.CreateDraftController"
+                <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
                       method="createAttribute">
                     <spring/>
+
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
-                        <argument type="class" name="attribute" class="ru.inovus.ms.rdm.model.Attribute"/>
+                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
+                        <argument type="class" name="attribute" class="ru.inovus.ms.rdm.n2o.model.FormAttribute"/>
                     </arguments>
                 </java>
             </invocation>
-            <in-parameters>
 
+            <in-parameters>
                 <param id="versionId" mapping="[0]" domain="integer"/>
-                <param id="code" mapping="[1].code" domain="string"/>
-                <param id="name" mapping="[1].name" domain="string"/>
-                <param id="attrType.id" mapping="[1].type" domain="string"/>
-                <param id="isPrimary" mapping="[1].isPrimary" domain="boolean"/>
-                <param id="description" mapping="[1].description" domain="string"/>
-                <!--<param id="referenceVersion.id" mapping="[1].referenceVersion"/>-->
-                <!--<param id="referenceAttribute.code" mapping="[1].referenceAttribute"/>-->
-                <!--<param id="referenceDisplayAttribute.code" mapping="[1].referenceDisplayAttribute"/>-->
-                <param id="required" mapping="[1].required" domain="boolean"/>
-                <param id="unique" mapping="[1].unique" domain="boolean"/>
-                <param id="plainSize" mapping="[1].plainSize" domain="integer"/>
-                <param id="intPartSize" mapping="[1].intPartSize" domain="integer"/>
-                <param id="fracPartSize" mapping="[1].fracPartSize" domain="integer"/>
-                <param id="minInteger" mapping="[1].minInteger" domain="integer"/>
-                <param id="maxInteger" mapping="[1].maxInteger" domain="integer"/>
-                <param id="minFloat" mapping="[1].minFloat" domain="numeric"/>
-                <param id="maxFloat" mapping="[1].maxFloat" domain="numeric"/>
-                <param id="dateInterval.begin"  mapping="[1].minDate" domain="date"/>
-                <param id="dateInterval.end"  mapping="[1].maxDate" domain="date"/>
-                <param id="regExp" mapping="[1].regExp" domain="string"/>
+                <param id="optLockValue" mapping="[1]" domain="integer" mapper="spel"/>
+
+                <param id="code" mapping="[2].code" domain="string"/>
+                <param id="name" mapping="[2].name" domain="string"/>
+                <param id="attrType.id" mapping="[2].type" domain="string"/>
+                <param id="isPrimary" mapping="[2].isPrimary" domain="boolean"/>
+                <param id="description" mapping="[2].description" domain="string"/>
+                <param id="referenceRefBook.code" mapping="[2].referenceCode" domain="string"/>
+                <param id="displayExpression" mapping="[2].displayExpression"/>
+
+                <!-- Пользовательские проверки -->
+                <param id="required" mapping="[2].required" domain="boolean"/>
+                <param id="unique" mapping="[2].unique" domain="boolean"/>
+                <param id="plainSize" mapping="[2].plainSize" domain="integer"/>
+                <param id="intPartSize" mapping="[2].intPartSize" domain="integer"/>
+                <param id="fracPartSize" mapping="[2].fracPartSize" domain="integer"/>
+                <param id="minInteger" mapping="[2].minInteger" domain="integer"/>
+                <param id="maxInteger" mapping="[2].maxInteger" domain="integer"/>
+                <param id="minFloat" mapping="[2].minFloat" domain="numeric"/>
+                <param id="maxFloat" mapping="[2].maxFloat" domain="numeric"/>
+                <param id="dateInterval.begin" mapping="[2].minDate" domain="date"
+                       normalize="T(ru.inovus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)"/>
+                <param id="dateInterval.end" mapping="[2].maxDate" domain="date"
+                       normalize="T(ru.inovus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)"/>
+                <param id="regExp" mapping="[2].regExp" domain="string"/>
+                <!-- / Пользовательские проверки -->
             </in-parameters>
+
             <validations white-list="checkCode,checkMinMaxInt"/>
         </operation>
 
-        <operation id="updateAttribute" submit-label="Сохранить" name="Изменение атрибута" success-text="Атрибут изменен">
+        <operation id="updateAttribute" name="Изменение атрибута"
+                   submit-label="Сохранить" success-text="Атрибут изменен">
             <invocation>
-                <java class="ru.inovus.ms.rdm.service.CreateDraftController"
+                <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
                       method="updateAttribute">
                     <spring/>
+
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
-                        <argument type="class" name="attribute" class="ru.inovus.ms.rdm.model.Attribute"/>
+                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
+                        <argument type="class" name="attribute" class="ru.inovus.ms.rdm.n2o.model.FormAttribute"/>
                     </arguments>
                 </java>
             </invocation>
+
             <in-parameters>
                 <param id="versionId" mapping="[0]" domain="integer"/>
-                <param id="code" mapping="[1].code" domain="string"/>
-                <param id="name" mapping="[1].name" domain="string"/>
-                <param id="attrType.id" mapping="[1].type" domain="string"/>
-                <param id="isPrimary" mapping="[1].isPrimary" domain="boolean"/>
-                <param id="description" mapping="[1].description" domain="string"/>
-                <!--<param id="referenceVersion.id" mapping="[1].referenceVersion"/>-->
-                <!--<param id="referenceAttribute.code" mapping="[1].referenceAttribute"/>-->
-                <!--<param id="referenceDisplayAttribute.code" mapping="[1].referenceDisplayAttribute"/>-->
-                <param id="required" mapping="[1].required" domain="boolean"/>
-                <param id="unique" mapping="[1].unique" domain="boolean"/>
-                <param id="plainSize" mapping="[1].plainSize" domain="integer"/>
-                <param id="intPartSize" mapping="[1].intPartSize" domain="integer"/>
-                <param id="fracPartSize" mapping="[1].fracPartSize" domain="integer"/>
-                <param id="minInteger" mapping="[1].minInteger" domain="integer"/>
-                <param id="maxInteger" mapping="[1].maxInteger" domain="integer"/>
-                <param id="minFloat" mapping="[1].minFloat" domain="numeric"/>
-                <param id="maxFloat" mapping="[1].maxFloat" domain="numeric"/>
-                <param id="dateInterval.begin"  mapping="[1].minDate" domain="date"/>
-                <param id="dateInterval.end"  mapping="[1].maxDate" domain="date"/>
-                <param id="regExp" mapping="[1].regExp" domain="string"/>
+                <param id="optLockValue" mapping="[1]" domain="integer" mapper="spel"/>
+
+                <param id="code" mapping="[2].code" domain="string"/>
+                <param id="name" mapping="[2].name" domain="string"/>
+                <param id="attrType.id" mapping="[2].type" domain="string"/>
+                <param id="isPrimary" mapping="[2].isPrimary" domain="boolean"/>
+                <param id="description" mapping="[2].description" domain="string"/>
+                <param id="referenceRefBook.code" mapping="[2].referenceCode" domain="string"/>
+                <param id="displayExpression" mapping="[2].displayExpression"/>
+
+                <!-- Пользовательские проверки -->
+                <param id="required" mapping="[2].required" domain="boolean"/>
+                <param id="unique" mapping="[2].unique" domain="boolean"/>
+                <param id="plainSize" mapping="[2].plainSize" domain="integer"/>
+                <param id="intPartSize" mapping="[2].intPartSize" domain="integer"/>
+                <param id="fracPartSize" mapping="[2].fracPartSize" domain="integer"/>
+                <param id="minInteger" mapping="[2].minInteger" domain="integer"/>
+                <param id="maxInteger" mapping="[2].maxInteger" domain="integer"/>
+                <param id="minFloat" mapping="[2].minFloat" domain="numeric"/>
+                <param id="maxFloat" mapping="[2].maxFloat" domain="numeric"/>
+                <param id="dateInterval.begin" mapping="[2].minDate" domain="date"
+                       normalize="T(ru.inovus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)"/>
+                <param id="dateInterval.end" mapping="[2].maxDate" domain="date"
+                       normalize="T(ru.inovus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)"/>
+                <param id="regExp" mapping="[2].regExp" domain="string"/>
+                <!-- / Пользовательские проверки -->
             </in-parameters>
+
             <validations white-list="checkCode,checkMinMaxInt"/>
         </operation>
 
         <operation id="delete" name="Удаление атрибута" success-text="Атрибут удален"
                    confirm="true" confirm-text="Вы действительно хотите удалить атрибут справочника?">
             <invocation>
-                <java class="ru.inovus.ms.rdm.service.CreateDraftController"
+                <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
                       method="deleteAttribute">
                     <spring/>
+
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
+                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
                         <argument type="primitive" name="attributeCode" class="java.lang.String"/>
                     </arguments>
                 </java>
             </invocation>
+
             <in-parameters>
-                <param id="versionId" mapping="[0]" domain="integer"/>
-                <param id="code" mapping="[1]" domain="string"/>
+                <param id="versionId" mapping="[0]" domain="integer" mapper="spel"/>
+                <param id="optLockValue" mapping="[1]" domain="integer" mapper="spel"/>
+                <param id="code" mapping="[2]" domain="string" mapper="spel"/>
             </in-parameters>
         </operation>
     </operations>
@@ -105,11 +130,12 @@
 
         <condition field-id="maxInteger" id="checkMinMaxInt" severity="danger"
                    server-moment="before-operation"
-                   message="Максимальное значение должно быть больше минимального" >
+                   message="Максимальное значение должно быть больше минимального">
             typeof maxInteger == 'undefined' || maxInteger == null || maxInteger == '' ||
             typeof maxInteger == 'undefined' || maxInteger == null || maxInteger == '' ||
             maxInteger > minInteger
         </condition>
 
     </validations>
+
 </object>

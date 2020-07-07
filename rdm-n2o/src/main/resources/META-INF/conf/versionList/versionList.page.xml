@@ -56,11 +56,11 @@
 
                         <!--todo page-->
                         <wgt:menu-item id="create" label="Добавить" context="false">
-                            <wgt:event>
-                                <wgt:open-page page-id="blank" refresh-after-submit="true"
-                                               master-field-id="refBookId" detail-field-id="refBookId"
-                                               page-name="Создание черновика"/>
-                            </wgt:event>
+<!--                            <wgt:event>-->
+<!--                                <wgt:open-page page-id="blank" refresh-after-submit="true"-->
+<!--                                               master-field-id="refBookId" detail-field-id="refBookId"-->
+<!--                                               page-name="Создание черновика"/>-->
+<!--                            </wgt:event>-->
                             <wgt:conditions>
                                 <wgt:enabling-condition>
                                     <wgt:expression>!archived</wgt:expression>

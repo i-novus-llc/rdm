@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="refBook">
+
+    <list result-mapping="['content']" count-mapping="['totalElements']">
+        <java method="getList" class="ru.inovus.ms.rdm.n2o.service.ReferenceController">
+            <spring/>
+            <arguments>
+                <argument type="criteria" class="ru.inovus.ms.rdm.n2o.criteria.ReferenceCriteria" name="referenceCriteria"/>
+            </arguments>
+        </java>
+    </list>
+
+    <fields>
+        <field id="id">
+            <select mapping="value"/>
+        </field>
+
+        <field id="value" domain="string">
+            <select/>
+            <filters>
+                <eq filter-id="value" mapping="value" domain="string"/>
+            </filters>
+        </field>
+
+        <field id="displayValue" domain="string">
+            <select/>
+            <filters>
+                <eq filter-id="displayValue" mapping="displayValue" domain="string"/>
+            </filters>
+        </field>
+
+        <field id="versionId" domain="integer">
+            <filters>
+                <eq filter-id="versionId" mapping="versionId" domain="integer"/>
+            </filters>
+        </field>
+
+        <field id="reference" domain="string">
+            <filters>
+                <eq filter-id="reference" mapping="reference" domain="string"/>
+            </filters>
+        </field>
+
+    </fields>
+</query>

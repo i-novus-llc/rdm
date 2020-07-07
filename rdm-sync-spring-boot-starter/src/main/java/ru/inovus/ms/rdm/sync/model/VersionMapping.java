@@ -21,4 +21,11 @@ public class VersionMapping {
     private String table;
     private String primaryField;
     private String deletedField;
+    private LocalDateTime mappingLastUpdated;
+    private LocalDateTime lastSync;
+
+    public boolean changed() {
+        return mappingLastUpdated.isAfter(lastSync);
+    }
+
 }

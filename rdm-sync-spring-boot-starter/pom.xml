@@ -1,28 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-    <groupId>ru.inovus.ms.rdm</groupId>
+    <parent>
+        <groupId>ru.inovus.ms.rdm</groupId>
+        <artifactId>rdm</artifactId>
+        <version>2.0-SNAPSHOT</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
     <artifactId>rdm-sync-spring-boot-starter</artifactId>
-    <version>1.27-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <parent>
-        <groupId>net.n2oapp.platform</groupId>
-        <artifactId>n2o-platform-parent</artifactId>
-        <version>2.1</version>
-        <relativePath />
-    </parent>
-    <modelVersion>4.0.0</modelVersion>
-
     <properties>
-        <rdm.version>1.27-SNAPSHOT</rdm.version>
+        <jaxb.api.version>2.3.1</jaxb.api.version>
+
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>ru.inovus.ms.rdm</groupId>
             <artifactId>rdm-api</artifactId>
-            <version>${rdm.version}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -71,9 +69,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.liquibase</groupId>
+            <groupId>ru.i-novus.components</groupId>
             <artifactId>liquibase-core</artifactId>
-            <version>3.6.2.inovus</version>
         </dependency>
 
         <dependency>
@@ -82,6 +79,35 @@
             <scope>compile</scope>
         </dependency>
 
+
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-core</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-impl</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jms</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax.jms</groupId>
+            <artifactId>javax.jms-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-quartz</artifactId>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 
     <build>

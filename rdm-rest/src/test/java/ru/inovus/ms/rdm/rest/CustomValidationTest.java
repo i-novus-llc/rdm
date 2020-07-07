@@ -10,10 +10,17 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
-import ru.inovus.ms.rdm.model.*;
-import ru.inovus.ms.rdm.model.validation.*;
-import ru.inovus.ms.rdm.service.api.DraftService;
-import ru.inovus.ms.rdm.service.api.RefBookService;
+import ru.inovus.ms.rdm.api.model.Structure;
+import ru.inovus.ms.rdm.api.model.draft.CreateDraftRequest;
+import ru.inovus.ms.rdm.api.model.draft.Draft;
+import ru.inovus.ms.rdm.api.model.refbook.RefBook;
+import ru.inovus.ms.rdm.api.model.refbook.RefBookCreateRequest;
+import ru.inovus.ms.rdm.api.model.refdata.Row;
+import ru.inovus.ms.rdm.api.model.refdata.UpdateDataRequest;
+import ru.inovus.ms.rdm.api.model.validation.*;
+import ru.inovus.ms.rdm.api.model.version.RefBookVersionAttribute;
+import ru.inovus.ms.rdm.api.service.DraftService;
+import ru.inovus.ms.rdm.api.service.RefBookService;
 
 import java.util.Iterator;
 import java.util.List;
@@ -22,12 +29,12 @@ import static com.google.common.collect.ImmutableMap.of;
 import static java.math.BigInteger.valueOf;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.*;
-import static ru.inovus.ms.rdm.model.Structure.Attribute.build;
-import static ru.inovus.ms.rdm.model.validation.AttributeValidationType.*;
-import static ru.inovus.ms.rdm.model.validation.AttributeValidationType.REG_EXP;
-import static ru.inovus.ms.rdm.validation.resolver.IntRangeAttributeValidationResolver.INT_RANGE_EXCEPTION_CODE;
+import static ru.inovus.ms.rdm.api.model.Structure.Attribute.build;
+import static ru.inovus.ms.rdm.api.model.validation.AttributeValidationType.*;
+import static ru.inovus.ms.rdm.impl.validation.resolver.IntRangeAttributeValidationResolver.INT_RANGE_EXCEPTION_CODE;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
@@ -35,10 +42,11 @@ import static ru.inovus.ms.rdm.validation.resolver.IntRangeAttributeValidationRe
         webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
         properties = {
                 "cxf.jaxrs.client.classes-scan=true",
-                "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.service.api",
+                "cxf.jaxrs.client.classes-scan-packages=ru.inovus.ms.rdm.api.service",
                 "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
                 "fileStorage.root=src/test/resources/rdm/temp",
-                "i18n.global.enabled=false"
+                "i18n.global.enabled=false",
+                "rdm.audit.disabledActions=all"
         })
 @DefinePort
 @EnableEmbeddedPg
@@ -62,33 +70,46 @@ public class CustomValidationTest {
      */
     @Test
     public void testAddDeleteValidation() {
+
         String REF_BOOK_NAME = "CustomValidationTest";
         RefBook refBook = refBookService.create(new RefBookCreateRequest(REF_BOOK_NAME, null));
-        Draft draft = draftService.create(refBook.getRefBookId(), createStructure());
 
-        //добавление проверки
-        draftService.addAttributeValidation(draft.getId(), INTEGER_ATTR, new IntRangeAttributeValidation(
-                valueOf(-5),
-                valueOf(4)));
-        //правильная строка
-        draftService.updateData(draft.getId(), new Row(of(
-                STRING_ATTR, "test1",
-                INTEGER_ATTR, 3)));
-        //неправильная строка
+        Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), createStructure()));
+        final Integer draftId = draft.getId();
+
+        // Добавление проверки
+        draftService.addAttributeValidation(draftId, INTEGER_ATTR,
+                new IntRangeAttributeValidation(
+                        valueOf(-5),
+                        valueOf(4)
+                ));
+
+        // Правильная строка
+        Row validRow = new Row(of(
+                        STRING_ATTR, "test1",
+                        INTEGER_ATTR, 3)
+                );
+        draftService.updateData(draftId, new UpdateDataRequest(null, validRow));
+
+        // Неправильная строка
         Row testRow = new Row(of(
                 STRING_ATTR, "test1",
-                INTEGER_ATTR, 6));
+                INTEGER_ATTR, 6)
+        );
+        UpdateDataRequest request = new UpdateDataRequest(null, testRow);
         try {
-            draftService.updateData(draft.getId(), testRow);
+            draftService.updateData(draftId, request);
             fail();
+
         } catch (RestException e) {
             assertEquals(INT_RANGE_EXCEPTION_CODE, e.getErrors().get(0).getMessage());
         }
 
-        //удаление проверки
-        draftService.deleteAttributeValidation(draft.getId(), INTEGER_ATTR, AttributeValidationType.INT_RANGE);
-        //ввод той же строки после удаления
-        draftService.updateData(draft.getId(), testRow);
+        // Удаление проверки
+        draftService.deleteAttributeValidation(draftId, INTEGER_ATTR, AttributeValidationType.INT_RANGE);
+
+        // Ввод той же строки после удаления
+        draftService.updateData(draftId, request);
     }
 
     /**
@@ -99,10 +120,14 @@ public class CustomValidationTest {
     public void testUpdateValidation() {
         String REF_BOOK_NAME = "CustomValidationUpdateTest";
         RefBook refBook = refBookService.create(new RefBookCreateRequest(REF_BOOK_NAME, null));
-        Draft draft = draftService.create(refBook.getRefBookId(), createStructure());
+        Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), createStructure()));
+
+        RefBookVersionAttribute versionAttribute = new RefBookVersionAttribute(draft.getId(), new Structure.Attribute(), new Structure.Reference());
+        versionAttribute.getAttribute().setCode(INTEGER_ATTR);
+
         //добавление проверки на обязательность
         RequiredAttributeValidation expectedRequired = new RequiredAttributeValidation();
-        draftService.updateAttributeValidations(draft.getId(), INTEGER_ATTR, singletonList(expectedRequired));
+        draftService.updateAttributeValidations(draft.getId(), new AttributeValidationRequest(null, versionAttribute, singletonList(expectedRequired)));
         expectedRequired.setVersionId(draft.getId());
         expectedRequired.setAttribute(INTEGER_ATTR);
 
@@ -110,11 +135,10 @@ public class CustomValidationTest {
         assertEquals(1, actual.size());
         assertValidationEquals(expectedRequired, actual.get(0));
 
-
         //обновление проверки
         List<AttributeValidation> expectedValidations =
                 asList(new PlainSizeAttributeValidation(5), new IntRangeAttributeValidation(valueOf(-5), valueOf(4)));
-        draftService.updateAttributeValidations(draft.getId(), INTEGER_ATTR, expectedValidations);
+        draftService.updateAttributeValidations(draft.getId(), new AttributeValidationRequest(null, versionAttribute, expectedValidations));
 
         for (AttributeValidation expectedValidation : expectedValidations) {
             expectedValidation.setVersionId(draft.getId());

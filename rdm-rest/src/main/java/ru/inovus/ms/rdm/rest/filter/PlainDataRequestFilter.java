@@ -1,15 +1,17 @@
 package ru.inovus.ms.rdm.rest.filter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.cxf.jaxrs.impl.ContainerRequestContextImpl;
 import org.apache.cxf.message.Message;
 import org.springframework.stereotype.Component;
+import ru.inovus.ms.rdm.api.util.json.JsonUtil;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.ext.Provider;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -42,7 +44,7 @@ public class PlainDataRequestFilter implements ContainerRequestFilter {
 
             if (!isEmpty(plainAttributeFilter)) {
                 String s = (String) message.get(Message.QUERY_STRING);
-                s += "&" + PLAIN_FILTER_QUERY_PARAM + "=" + new ObjectMapper().writeValueAsString(plainAttributeFilter);
+                s += "&" + PLAIN_FILTER_QUERY_PARAM + "=" + URLEncoder.encode(JsonUtil.jsonMapper.writeValueAsString(plainAttributeFilter), StandardCharsets.UTF_8);
                 message.put(Message.QUERY_STRING, s);
             }
         }

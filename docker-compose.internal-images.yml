@@ -2,7 +2,10 @@ version: "3.6"
 
 services:
   backend:
-    image: 538721144237.dkr.ecr.eu-west-1.amazonaws.com/rdm/backend:${TAG}
+    image: ${DOCKER_REGISTRY}/rdm/backend:${TAG}
 
   frontend:
-    image: 538721144237.dkr.ecr.eu-west-1.amazonaws.com/rdm/frontend:${TAG}
+    image: ${DOCKER_REGISTRY}/rdm/frontend:${TAG}
+
+  esnsi:
+    image: ${DOCKER_REGISTRY}/rdm/esnsi:${TAG}

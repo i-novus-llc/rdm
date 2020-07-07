@@ -18,13 +18,16 @@ import java.util.Date;
  * @since 21.02.2019
  */
 public class RdmMappingServiceImpl implements RdmMappingService {
+
     private static final String DATE_FORMAT = "yyyy-MM-dd";
 
     @Override
     public Object map(FieldType rdmType, DataTypeEnum clientType, Object value) {
+
         if (value == null) {
-            return null;
+            return FieldType.BOOLEAN.equals(rdmType) ? mapBoolean(clientType, value) : null;
         }
+
         Object result = null;
         switch (rdmType) {
             case STRING:
@@ -42,6 +45,7 @@ public class RdmMappingServiceImpl implements RdmMappingService {
             case REFERENCE:
                 return mapReference(clientType, value);
         }
+
         return result;
     }
 
@@ -102,6 +106,8 @@ public class RdmMappingServiceImpl implements RdmMappingService {
     }
 
     private Object mapBoolean(DataTypeEnum clientType, Object value) {
+        if (value == null)
+            value = "false";
         if (clientType.equals(DataTypeEnum.VARCHAR)) {
             return value.toString();
         } else if (clientType.equals(DataTypeEnum.BOOLEAN)) {
@@ -122,11 +128,16 @@ public class RdmMappingServiceImpl implements RdmMappingService {
     }
 
     private Object mapReference(DataTypeEnum clientType, Object value) {
-        if (!(value instanceof Reference)){
-            throw new ClassCastException(getClassCastError(FieldType.REFERENCE, clientType, value));
+        String refValue;
+        Reference reference = null;
+        if (value instanceof Reference) {
+            reference = (Reference) value;
+            refValue = reference.getValue();
+        } else {
+            if (value == null)
+                return null;
+            refValue = value.toString();
         }
-        Reference reference = (Reference)value;
-        String refValue = reference.getValue();
         switch (clientType) {
             case VARCHAR:
                 return refValue;
@@ -140,14 +151,14 @@ public class RdmMappingServiceImpl implements RdmMappingService {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
                 return LocalDate.parse(refValue, formatter);
             case JSONB:
-                return reference;
+                return reference == null ? refValue : reference;
             default:
                 throw new ClassCastException(getClassCastError(FieldType.REFERENCE, clientType, value));
         }
     }
 
     private String getClassCastError(FieldType rdmType, DataTypeEnum clientType, Object value) {
-        return String.format("Ошибка при попытке преобразовать тип %s в %s значение: %s", rdmType, clientType, value);
+        return String.format("Error while casting %s to %s. Value: %s", rdmType, clientType, value);
     }
 
 }

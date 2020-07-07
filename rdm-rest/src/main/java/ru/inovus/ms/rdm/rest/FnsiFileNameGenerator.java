@@ -1,9 +1,8 @@
 package ru.inovus.ms.rdm.rest;
 
-import ru.inovus.ms.rdm.enumeration.FileType;
-import ru.inovus.ms.rdm.enumeration.RefBookVersionStatus;
-import ru.inovus.ms.rdm.model.RefBookVersion;
-import ru.inovus.ms.rdm.util.FileNameGenerator;
+import ru.inovus.ms.rdm.api.enumeration.FileType;
+import ru.inovus.ms.rdm.api.model.version.RefBookVersion;
+import ru.inovus.ms.rdm.api.util.FileNameGenerator;
 
 import java.util.Optional;
 
@@ -18,7 +17,7 @@ public class FnsiFileNameGenerator implements FileNameGenerator {
     public String generateName(RefBookVersion version, FileType fileType) {
         String value = Optional.ofNullable(version.getPassport().get(PREFIX_PASSPORT_ATTRIBUTE)).orElse("");
         return value + "_" +
-                (RefBookVersionStatus.DRAFT.equals(version.getStatus()) ? "0.0" : version.getVersion()) +
+                (version.isDraft() ? "0.0" : version.getVersion()) +
                 "." + fileType.name().toLowerCase();
     }
 
@@ -26,7 +25,7 @@ public class FnsiFileNameGenerator implements FileNameGenerator {
     public String generateZipName(RefBookVersion version, FileType fileType) {
         String value = Optional.ofNullable(version.getPassport().get(PREFIX_PASSPORT_ATTRIBUTE)).orElse("");
         return value + "_" +
-                (RefBookVersionStatus.DRAFT.equals(version.getStatus()) ? "0.0" : version.getVersion()) +
+                (version.isDraft() ? "0.0" : version.getVersion()) +
                 "_" + fileType.name() + ".zip";
     }
 }

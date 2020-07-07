@@ -4,27 +4,25 @@
 
     <groupId>ru.inovus.ms.rdm</groupId>
     <artifactId>rdm</artifactId>
-    <version>1.27-SNAPSHOT</version>
+    <version>2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
         <groupId>net.n2oapp.platform</groupId>
         <artifactId>n2o-platform-parent</artifactId>
-        <version>1.6.1-SNAPSHOT</version>
-        <relativePath />
+        <version>3.0.0</version>
     </parent>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <encoding>UTF-8</encoding>
-        <liquibase.version>3.6.3-SNAPSHOT</liquibase.version>
         <apache.poi.version>3.17</apache.poi.version>
-        <filestorage.version>2.1-SNAPSHOT</filestorage.version>
-        <vds.version>2.3-SNAPSHOT</vds.version>
-        <n2o.version>7.1.5</n2o.version>
-        <selenium.version>3.8.1</selenium.version>
+        <filestorage.version>2.2</filestorage.version>
+        <vds.version>2.23</vds.version>
+        <n2o.version>7.5.7</n2o.version>
         <itext.version>5.5.9</itext.version>
+        <commons.text.version>1.6</commons.text.version>
         <xmlunit.version>1.6</xmlunit.version>
         <lombok.version>1.18.4</lombok.version>
         <jaxws.version>2.3.2</jaxws.version>
@@ -32,10 +30,13 @@
         <cxf.version>3.2.7</cxf.version>
         <swagger-annotations.version>1.5.21</swagger-annotations.version>
         <javax.activation.version>1.1.1</javax.activation.version>
-        <security.admin.version>3.0-SNAPSHOT</security.admin.version>
+        <security.admin.version>4.3</security.admin.version>
+        <security.oauth2.autoconfigure.version>2.1.1.RELEASE</security.oauth2.autoconfigure.version>
         <internal.repository.releases>https://maven.i-novus.ru/libs-release-local</internal.repository.releases>
         <internal.repository.shapshots>https://maven.i-novus.ru/libs-snapshot-local</internal.repository.shapshots>
         <internal.repository.id>i-novus-central</internal.repository.id>
+        <swagger.version>3.23.0</swagger.version>
+        <audit.version>2.3.2</audit.version>
     </properties>
 
     <scm>
@@ -45,15 +46,14 @@
         <tag>HEAD</tag>
     </scm>
 
-
     <modules>
         <module>rdm-api</module>
         <module>rdm-rest</module>
         <module>rdm-impl</module>
-        <module>rdm-n2o</module>
-        <module>rdm-fnsi-impl</module>
-        <module>rdm-fnsi-n2o</module>
+        <module>rdm-frontend</module>
         <module>rdm-sync-spring-boot-starter</module>
+        <module>rdm-n2o</module>
+        <module>rdm-esnsi</module>
     </modules>
 
     <distributionManagement>
@@ -69,7 +69,6 @@
             <uniqueVersion>true</uniqueVersion>
         </snapshotRepository>
     </distributionManagement>
-
 
     <dependencyManagement>
         <dependencies>
@@ -88,27 +87,18 @@
 
             <dependency>
                 <groupId>ru.inovus.ms.rdm</groupId>
-                <artifactId>rdm-fnsi-impl</artifactId>
+                <artifactId>rdm-n2o</artifactId>
                 <version>${project.version}</version>
-                <scope>runtime</scope>
             </dependency>
 
             <dependency>
-                <groupId>ru.inovus.ms.rdm</groupId>
-                <artifactId>rdm-fnsi-n2o</artifactId>
-                <version>${project.version}</version>
-                <scope>runtime</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>ru.i-novus.platform</groupId>
+                <groupId>ru.i-novus.components</groupId>
                 <artifactId>versioned-data-storage-api</artifactId>
                 <version>${vds.version}</version>
             </dependency>
 
-
             <dependency>
-                <groupId>ru.i-novus.platform</groupId>
+                <groupId>ru.i-novus.components</groupId>
                 <artifactId>versioned-data-storage-spring-adapter</artifactId>
                 <version>${vds.version}</version>
             </dependency>
@@ -117,13 +107,6 @@
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-core</artifactId>
                 <version>5.2.12.Final</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.opentable.components</groupId>
-                <artifactId>otj-pg-embedded</artifactId>
-                <version>0.12.6</version>
-                <scope>test</scope>
             </dependency>
 
             <dependency>
@@ -153,12 +136,6 @@
             <dependency>
                 <groupId>net.n2oapp.framework</groupId>
                 <artifactId>n2o-spring-boot-starter</artifactId>
-                <version>${n2o.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>net.n2oapp.framework</groupId>
-                <artifactId>n2o-web</artifactId>
                 <version>${n2o.version}</version>
             </dependency>
 
@@ -194,17 +171,15 @@
             </dependency>
 
             <dependency>
-                <groupId>net.n2oapp.framework.security</groupId>
-                <artifactId>security-auth-simple</artifactId>
-                <version>${security.admin.version}</version>
+                <groupId>org.springframework.security.oauth.boot</groupId>
+                <artifactId>spring-security-oauth2-autoconfigure</artifactId>
+                <version>${security.oauth2.autoconfigure.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-consul-dependencies</artifactId>
-                <version>1.3.0.RELEASE</version>
-                <type>pom</type>
-                <scope>import</scope>
+                <groupId>net.n2oapp.framework.security</groupId>
+                <artifactId>security-auth-oauth2-gateway</artifactId>
+                <version>${security.admin.version}</version>
             </dependency>
 
             <dependency>
@@ -219,6 +194,17 @@
                 <version>${javax.activation.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-text</artifactId>
+                <version>${commons.text.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.i-novus.ms.audit</groupId>
+                <artifactId>audit-client-spring-boot-starter</artifactId>
+                <version>${audit.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
