@@ -3,6 +3,7 @@ package ru.inovus.ms.rdm.api.model.refdata;
 import java.io.Serializable;
 import java.util.List;
 
+@SuppressWarnings("squid:S1948")
 public class RdmChangeDataRequest implements Serializable {
 
 //  Выставляем systemId, если он известен. Если нет -- система попытается найти systemId по первичному ключу.

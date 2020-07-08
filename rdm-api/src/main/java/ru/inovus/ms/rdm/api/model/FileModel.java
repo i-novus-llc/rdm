@@ -1,21 +1,9 @@
 package ru.inovus.ms.rdm.api.model;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import ru.inovus.ms.rdm.api.util.json.JsonUtil;
-
-import java.io.Serializable;
 import java.util.Calendar;
-import java.util.Objects;
 
-@ApiModel(value = "Модель сохранённого файла",
-        description = "Набор входных параметров для сохранённого файла")
-public class FileModel implements Serializable {
-
-    @ApiModelProperty("Полный путь к файлу")
+public class FileModel {
     private String path;
-
-    @ApiModelProperty("Наименование файла")
     private String name;
 
     public FileModel() {
@@ -43,10 +31,8 @@ public class FileModel implements Serializable {
     }
 
     public String generateFullPath() {
-
         Calendar calendar = Calendar.getInstance();
         String separator = "/";
-
         return new StringBuilder()
                 .append(calendar.get(Calendar.YEAR)).append(separator)
                 .append(calendar.get(Calendar.MONTH) + 1).append(separator)
@@ -58,23 +44,4 @@ public class FileModel implements Serializable {
                 .toString();
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        FileModel that = (FileModel) o;
-        return Objects.equals(path, that.path) &&
-                Objects.equals(name, that.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(path, name);
-    }
-
-    @Override
-    public String toString() {
-        return JsonUtil.getAsJson(this);
-    }
 }

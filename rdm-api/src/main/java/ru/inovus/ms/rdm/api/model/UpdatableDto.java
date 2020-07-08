@@ -1,10 +1,8 @@
 package ru.inovus.ms.rdm.api.model;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/** Модель изменения данных для передачи. */
-public class UpdatableDto implements Serializable {
+public class UpdatableDto {
 
     private LocalDateTime lastActionDate;
 

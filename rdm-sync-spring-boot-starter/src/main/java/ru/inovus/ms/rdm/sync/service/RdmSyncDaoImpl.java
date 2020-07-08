@@ -1,19 +1,14 @@
 package ru.inovus.ms.rdm.sync.service;
 
-import net.n2oapp.platform.jaxrs.RestCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.CannotAcquireLockException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.util.Pair;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.inovus.ms.rdm.api.exception.RdmException;
-import ru.inovus.ms.rdm.api.model.AbstractCriteria;
 import ru.inovus.ms.rdm.api.util.StringUtils;
 import ru.inovus.ms.rdm.sync.model.DataTypeEnum;
 import ru.inovus.ms.rdm.sync.model.FieldMapping;
@@ -22,7 +17,6 @@ import ru.inovus.ms.rdm.sync.model.VersionMapping;
 import ru.inovus.ms.rdm.sync.model.loader.XmlMappingField;
 import ru.inovus.ms.rdm.sync.model.loader.XmlMappingRefBook;
 
-import javax.ws.rs.core.MultivaluedMap;
 import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -31,12 +25,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static java.util.stream.Collectors.joining;
 import static ru.inovus.ms.rdm.api.util.StringUtils.addDoubleQuotes;
-import static ru.inovus.ms.rdm.api.util.StringUtils.addSingleQuotes;
-import static ru.inovus.ms.rdm.sync.service.RdmSyncLocalRowState.*;
+import static ru.inovus.ms.rdm.sync.service.RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN;
 
 /**
  * @author lgalimova
@@ -127,8 +120,8 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         String[] split = schemaTable.split("\\.");
         String schema = split[0];
         String table = split[1];
-        String query = "SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = :schema AND table_name = :table AND column_name != :internal_local_row_state_column";
-        List<Pair<String, String>> list = jdbcTemplate.query(query, Map.of("schema", schema, "table", table, "internal_local_row_state_column", RDM_SYNC_INTERNAL_STATE_COLUMN), (rs, rowNum) -> Pair.of(rs.getString(1), rs.getString(2)));
+        String q = "SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = :schema AND table_name = :table AND column_name != :internal_local_row_state_column";
+        List<Pair<String, String>> list = jdbcTemplate.query(q, Map.of("schema", schema, "table", table, "internal_local_row_state_column", RdmSyncLocalRowState.RDM_SYNC_INTERNAL_STATE_COLUMN), (rs, rowNum) -> Pair.of(rs.getString(1), rs.getString(2)));
         if (list.isEmpty())
             throw new RdmException("No table '" + table + "' in schema '" + schema + "'.");
         return list;
@@ -162,7 +155,7 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
 
     @Override
     public void insertRow(String table, Map<String, Object> row, boolean markSynced) {
-        String keys = row.keySet().stream().map(StringUtils::addDoubleQuotes).collect(joining(","));
+        String keys = row.keySet().stream().map(StringUtils::addDoubleQuotes).collect(Collectors.joining(","));
         List<String> values = new ArrayList<>();
         List<Object> data = new ArrayList<>();
         for (Map.Entry<String, Object> entry : row.entrySet()) {
@@ -173,10 +166,6 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
                 data.add(entry.getValue());
             }
         }
-        if (markSynced) {
-            keys += ", " + addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN);
-            values.add(addSingleQuotes(SYNCED.name()));
-        }
         jdbcTemplate.getJdbcTemplate().update(
             format("insert into %s (%s) values(%s)", table, keys, String.join(",", values)),
             data.toArray()
@@ -184,40 +173,86 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     }
 
     @Override
-    public void updateRow(String table, String primaryField, Map<String, Object> row, boolean markSynced) {
-        if (markSynced)
-            row.put(RDM_SYNC_INTERNAL_STATE_COLUMN, SYNCED.name());
-        executeUpdate(table, row, primaryField);
+    public void updateInAppendMode(String table, String primaryField, String isDeletedField, Map<String, Object> row) {
+        Integer duplicateId = findDuplicateId(table, primaryField, row);
+        if (duplicateId == null) {
+            Object primaryValue = row.get(primaryField);
+            markDeleted(table, primaryField, isDeletedField, primaryValue, true, true);
+            insertRow(table, row, true);
+        } else
+            unmarkDeleted(table, isDeletedField, duplicateId);
+    }
+
+    private void unmarkDeleted(String table, String isDeletedField, Integer duplicateId) {
+        jdbcTemplate.update(
+            format(
+                "UPDATE %s SET %s = FALSE WHERE id = :id",
+                table,
+                addDoubleQuotes(isDeletedField)
+            ),
+            Map.of("id", duplicateId)
+        );
+    }
+
+    private Integer findDuplicateId(String table, String primaryField, Map<String, Object> row) {
+        final int numNonPrimaryFields = row.size() - 1;
+        Object primaryValue = row.get(primaryField);
+        String fields = Stream.concat(Stream.of("id"), row.keySet().stream()).filter(field -> !field.equals(primaryField)).map(StringUtils::addDoubleQuotes).collect(Collectors.joining(", "));
+        return jdbcTemplate.getJdbcTemplate().query(format("SELECT %s FROM %s WHERE %s = ?", fields, table, addDoubleQuotes(primaryField)), new Object[]{primaryValue}, resultSet -> {
+            try (resultSet) {
+                while (resultSet.next()) {
+                    boolean eq = true;
+                    for (int i = 1; i < numNonPrimaryFields + 1; i++) {
+                        String colName = resultSet.getMetaData().getColumnName(i + 1);
+                        Object colValue = resultSet.getObject(i + 1);
+                        if (!Objects.equals(row.get(colName), colValue)) {
+                            eq = false;
+                            break;
+                        }
+                    }
+                    if (eq)
+                        return resultSet.getInt(1);
+                }
+            }
+            return null;
+        });
+    }
+
+    @Override
+    public void updateRow(String table, String primaryField, String isDeletedField, Map<String, Object> row, boolean markSynced) {
+        List<String> keys = new ArrayList<>();
+        List<Object> data = new ArrayList<>();
+        for (Map.Entry<String, Object> entry : row.entrySet()) {
+            String field = entry.getKey();
+            if (entry.getValue() == null) {
+                keys.add(addDoubleQuotes(field) + " = null");
+            } else {
+                keys.add(addDoubleQuotes(field) + " = ?");
+                data.add(entry.getValue());
+            }
+        }
+        data.add(row.get(primaryField));
+        jdbcTemplate.getJdbcTemplate().update(
+            format("update %s set %s where %s=?",table, String.join(",", keys), addDoubleQuotes(primaryField)),
+            data.toArray()
+        );
     }
 
     @Override
     public void markDeleted(String table, String primaryField, String isDeletedField, Object primaryValue, boolean deleted, boolean markSynced) {
-        Map<String, Object> args = markSynced ?
-                Map.of(primaryField, primaryValue, isDeletedField, deleted, RDM_SYNC_INTERNAL_STATE_COLUMN, SYNCED.name()) :
-                Map.of(primaryField, primaryValue, isDeletedField, deleted);
-        executeUpdate(table, args, primaryField);
+        jdbcTemplate.getJdbcTemplate().update(
+            format("update %s set %s=? where %s=?", table, addDoubleQuotes(isDeletedField), addDoubleQuotes(primaryField)),
+            deleted,
+            primaryValue
+        );
     }
 
     @Override
     public void markDeleted(String table, String isDeletedField, boolean deleted, boolean markSynced) {
-        Map<String, Object> args = markSynced ?
-            Map.of(isDeletedField, deleted, RDM_SYNC_INTERNAL_STATE_COLUMN, SYNCED.name()) :
-            Map.of(isDeletedField, deleted);
-        executeUpdate(table, args, null);
-    }
-
-    private void executeUpdate(String table, Map<String, Object> args, String primaryField) {
-        String query = "UPDATE %s SET %s";
-        if (primaryField != null)
-            query += " WHERE %s = :%s";
-        String formattedQuery = format(
-            query,
-            table,
-            args.keySet().stream().filter(field -> !field.equals(primaryField)).map(field -> addDoubleQuotes(field) + " = :" + field).collect(joining(", ")),
-            addDoubleQuotes(primaryField),
-            primaryField
+        jdbcTemplate.getJdbcTemplate().update(
+            format("update %s set %s=?", table, addDoubleQuotes(isDeletedField)),
+            deleted
         );
-        jdbcTemplate.update(formattedQuery, args);
     }
 
     @Override
@@ -284,12 +319,9 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     }
 
     @Override
-    public boolean lockRefBookForUpdate(String code, boolean blocking) {
+    public boolean lockRefbookForUpdate(String code) {
         try {
-            String q = "SELECT 1 FROM rdm_sync.version WHERE code = :code FOR UPDATE ";
-            if (!blocking)
-                q += "NOWAIT";
-            jdbcTemplate.queryForObject(q, Map.of("code", code), Integer.class);
+            jdbcTemplate.queryForObject("SELECT 1 FROM rdm_sync.version WHERE code = :code FOR UPDATE NOWAIT", Map.of("code", code), Integer.class);
             logger.info("Lock for refbook {} successfully acquired.", code);
             return true;
         } catch (CannotAcquireLockException ex) {
@@ -304,15 +336,15 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         String schemaTable = schema + "." + table;
         boolean exists = jdbcTemplate.queryForObject("SELECT EXISTS(SELECT 1 FROM pg_trigger WHERE NOT tgisinternal AND tgname = :tgname)", Map.of("tgname", triggerName), Boolean.class);
         if (!exists) {
-            String query = format("CREATE TRIGGER %s BEFORE INSERT OR UPDATE ON %s FOR EACH ROW EXECUTE PROCEDURE %s;", triggerName, schemaTable, INTERNAL_FUNCTION);
-            jdbcTemplate.getJdbcTemplate().execute(query);
+            String q = format("CREATE TRIGGER %s BEFORE INSERT OR UPDATE ON %s FOR EACH ROW EXECUTE PROCEDURE %s;", triggerName, schemaTable, INTERNAL_FUNCTION);
+            jdbcTemplate.getJdbcTemplate().execute(q);
         }
     }
 
     @Override
     public void createOrReplaceLocalRowStateUpdateFunction() {
-        String query = format(LOCAL_ROW_STATE_UPDATE_FUNC, INTERNAL_FUNCTION, RDM_SYNC_INTERNAL_STATE_COLUMN, DIRTY);
-        jdbcTemplate.getJdbcTemplate().execute(query);
+        String q = format(LOCAL_ROW_STATE_UPDATE_FUNC, INTERNAL_FUNCTION, RDM_SYNC_INTERNAL_STATE_COLUMN, RdmSyncLocalRowState.DIRTY);
+        jdbcTemplate.getJdbcTemplate().execute(q);
     }
 
     @Override
@@ -320,54 +352,42 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
         String schemaTable = schema + "." + table;
         boolean exists = jdbcTemplate.queryForObject("SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema = :schema AND table_name = :table AND column_name = :internal_state_column)", Map.of("schema", schema, "table", table, "internal_state_column", RDM_SYNC_INTERNAL_STATE_COLUMN), Boolean.class);
         if (!exists) {
-            String query = format("ALTER TABLE %s ADD COLUMN %s VARCHAR NOT NULL DEFAULT '%s'", schemaTable, RDM_SYNC_INTERNAL_STATE_COLUMN, DIRTY);
-            jdbcTemplate.getJdbcTemplate().execute(query);
-            query = format("CREATE INDEX ON %s (%s)", schemaTable, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN));
-            jdbcTemplate.getJdbcTemplate().execute(query);
-            int n = jdbcTemplate.update(format("UPDATE %s SET %s = :synced", schemaTable, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN)), Map.of("synced", SYNCED.name()));
+            String q = format("ALTER TABLE %s ADD COLUMN %s VARCHAR NOT NULL DEFAULT '%s'", schemaTable, RDM_SYNC_INTERNAL_STATE_COLUMN, RdmSyncLocalRowState.DIRTY);
+            jdbcTemplate.getJdbcTemplate().execute(q);
+            q = format("CREATE INDEX ON %s (%s)", schemaTable, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN));
+            jdbcTemplate.getJdbcTemplate().execute(q);
+            int n = jdbcTemplate.update(format("UPDATE %s SET %s = :synced", schemaTable, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN)), Map.of("synced", RdmSyncLocalRowState.SYNCED.name()));
             if (n != 0)
-                logger.info("{} records updated internal state to {} in table {}", n, SYNCED, schemaTable);
+                logger.info("{} records updated internal state to {} in table {}", n, RdmSyncLocalRowState.SYNCED, schemaTable);
         }
     }
 
     @Override
     public void disableInternalLocalRowStateUpdateTrigger(String table) {
         String[] split = table.split("\\.");
-        String query = format("ALTER TABLE %s DISABLE TRIGGER %s", table, getInternalLocalStateUpdateTriggerName(split[0], split[1]));
-        jdbcTemplate.getJdbcTemplate().execute(query);
+        String q = format("ALTER TABLE %s DISABLE TRIGGER %s", table, getInternalLocalStateUpdateTriggerName(split[0], split[1]));
+        jdbcTemplate.getJdbcTemplate().execute(q);
     }
 
     @Override
     public void enableInternalLocalRowStateUpdateTrigger(String table) {
         String[] split = table.split("\\.");
-        String query = format("ALTER TABLE %s ENABLE TRIGGER %s", table, getInternalLocalStateUpdateTriggerName(split[0], split[1]));
-        jdbcTemplate.getJdbcTemplate().execute(query);
+        String q = format("ALTER TABLE %s ENABLE TRIGGER %s", table, getInternalLocalStateUpdateTriggerName(split[0], split[1]));
+        jdbcTemplate.getJdbcTemplate().execute(q);
     }
 
     @Override
-    public Page<Map<String, Object>> getData(String table, String pk, int limit, int offset, RdmSyncLocalRowState state, MultivaluedMap<String, Object> filters) {
-        String query = format("FROM %s WHERE %s = :state ", table, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN));
-        Map<String, Object> args = new HashMap<>();
-        args.put("state", state.name());
-        if (filters != null) {
-            query += filters.entrySet().stream().
-                peek(entry -> args.put(entry.getKey(), entry.getValue())).
-                map(entry -> "AND " + addDoubleQuotes(entry.getKey()) + " IN (:" + entry.getKey() + ")").
-                collect(joining(" "));
-        }
-        int count = jdbcTemplate.queryForObject("SELECT COUNT(*) " + query, args, Integer.class);
-        if (count == 0)
-            return Page.empty();
-        query += format(" ORDER BY %s LIMIT %d OFFSET %d", addDoubleQuotes(pk), limit, offset);
-        var wrap = new Object() {
-            int internalStateColumnIndex = -1;
+    public List<HashMap<String, Object>> getRecordsOfState(String table, int limit, int offset, RdmSyncLocalRowState state) {
+        String q = format("SELECT * FROM %s WHERE %s = :state LIMIT %d OFFSET %d", table, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), limit, offset);
+        var v = new Object() {
+            int n = -1;
         };
-        List<Map<String, Object>> result = jdbcTemplate.query("SELECT * " + query, args, (rs, rowNum) -> {
-            Map<String, Object> map = new HashMap<>();
-            if (wrap.internalStateColumnIndex == -1)
-                wrap.internalStateColumnIndex = getInternalStateColumnIdx(rs.getMetaData(), table);
+        return jdbcTemplate.query(q, Map.of("state", state.name()), (rs, rowNum) -> {
+            HashMap<String, Object> map = new HashMap<>();
+            if (v.n == -1)
+                v.n = getInternalStateColumnIdx(rs.getMetaData(), table);
             for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
-                if (i != wrap.internalStateColumnIndex) {
+                if (i != v.n) {
                     Object val = rs.getObject(i);
                     String key = rs.getMetaData().getColumnName(i);
                     map.put(key, val);
@@ -375,13 +395,6 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
             }
             return map;
         });
-
-        RestCriteria dataCriteria = new AbstractCriteria();
-        dataCriteria.setPageNumber(offset / limit);
-        dataCriteria.setPageSize(limit);
-        dataCriteria.setOrders(Sort.by(Sort.Order.asc(pk)).get().collect(Collectors.toList()));
-
-        return new PageImpl<>(result, dataCriteria, count);
     }
 
     private int getInternalStateColumnIdx(ResultSetMetaData meta, String table) throws SQLException {
@@ -394,38 +407,25 @@ public class RdmSyncDaoImpl implements RdmSyncDao {
     }
 
     @Override
-    public <T> boolean setLocalRecordsState(String table, String pk, List<? extends T> primaryValues, RdmSyncLocalRowState expectedState, RdmSyncLocalRowState toState) {
-        if (primaryValues.isEmpty())
+    public <T> boolean setLocalRecordsState(String table, String pk, List<? extends T> pvs, RdmSyncLocalRowState expectedState, RdmSyncLocalRowState toState) {
+        if (pvs.isEmpty())
             return false;
-        String query = format("SELECT COUNT(*) FROM %s WHERE %s IN (:primaryValues)", table, addDoubleQuotes(pk));
-        int count = jdbcTemplate.queryForObject(query, Map.of("primaryValues", primaryValues), Integer.class);
+        String q = format("SELECT COUNT(*) FROM %s WHERE %s IN (:pvs)", table, addDoubleQuotes(pk));
+        int count = jdbcTemplate.queryForObject(q, Map.of("pvs", pvs), Integer.class);
         if (count == 0)
             return false;
-        query = format("UPDATE %1$s SET %2$s = :toState WHERE %3$s IN (:primaryValues) AND %2$s = :expectedState", table, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), addDoubleQuotes(pk));
-        int numUpdatedRecords = jdbcTemplate.update(query, Map.of("toState", toState.name(), "primaryValues", primaryValues, "expectedState", expectedState.name()));
-        return numUpdatedRecords == count;
+        q = format("UPDATE %1$s SET %2$s = :toState WHERE %3$s IN (:pvs) AND %2$s = :expectedState", table, addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), addDoubleQuotes(pk));
+        int n = jdbcTemplate.update(q, Map.of("toState", toState.name(), "pvs", pvs, "expectedState", expectedState.name()));
+        return n == count;
     }
 
     @Override
     public RdmSyncLocalRowState getLocalRowState(String table, String pk, Object pv) {
-        String query = format("SELECT %s FROM %s WHERE %s = :pv", addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), table, addDoubleQuotes(pk));
-        List<String> list = jdbcTemplate.query(query, Map.of("pv", pv), (rs, rowNum) -> rs.getString(1));
+        String q = format("SELECT %s FROM %s WHERE %s = :pv", addDoubleQuotes(RDM_SYNC_INTERNAL_STATE_COLUMN), table, addDoubleQuotes(pk));
+        List<String> list = jdbcTemplate.query(q, Map.of("pv", pv), (rs, rowNum) -> rs.getString(1));
         if (list.size() > 1)
             throw new RdmException("Cannot identify record by " + pk);
         return list.stream().findAny().map(RdmSyncLocalRowState::valueOf).orElse(null);
-    }
-
-    @Override
-    public void createSchemaIfNotExists(String schema) {
-        jdbcTemplate.getJdbcTemplate().execute(String.format("CREATE SCHEMA IF NOT EXISTS %s", schema));
-    }
-
-    @Override
-    public void createRefBookTableIfNotExists(String schema, String table, List<FieldMapping> fieldMappings, String isDeletedFieldName) {
-        String q = String.format("CREATE TABLE IF NOT EXISTS %s.%s (", schema, table);
-        q += fieldMappings.stream().map(fm -> String.format("%s %s", fm.getSysField(), fm.getSysDataType())).collect(Collectors.joining(", "));
-        q += String.format(", %s BOOLEAN)", isDeletedFieldName);
-        jdbcTemplate.getJdbcTemplate().execute(q);
     }
 
     private static String getInternalLocalStateUpdateTriggerName(String schema, String table) {

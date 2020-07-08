@@ -17,19 +17,15 @@ public class RefBookCriteria extends AbstractCriteria {
     @QueryParam("refBookId")
     private List<Integer> refBookIds;
 
-    @ApiParam("Код справочника (по вхождению без учета регистра)")
+    @ApiParam("Код справочника")
     @QueryParam("code")
     private String code;
-
-    @ApiParam("Код справочника (по точному совпадению с учетом регистра). Будет использован только в случае, если не задан поиск по вхождению без учета регистра.")
-    @QueryParam("codeExact")
-    private String codeExact;
 
     @ApiParam("Версия справочника")
     @QueryParam("versionId")
     private Integer versionId;
 
-    @ApiParam(value = "Версия для исключения справочника", hidden = true)
+    @ApiParam("Версия для исключения справочника")
     @QueryParam("excludeByVersionId")
     private Integer excludeByVersionId;
 
@@ -53,7 +49,7 @@ public class RefBookCriteria extends AbstractCriteria {
     @QueryParam("isArchived")
     private boolean isArchived;
 
-    @ApiParam(value = "Не в архиве", hidden = true)
+    @ApiParam("Не в архиве")
     @QueryParam("nonArchived")
     private boolean nonArchived;
 
@@ -65,7 +61,7 @@ public class RefBookCriteria extends AbstractCriteria {
     @QueryParam("hasPublished")
     private boolean hasPublished;
 
-    @ApiParam(value = "Получение версий справочников", hidden = true)
+    @ApiParam("Получение версий справочников")
     @QueryParam("includeVersions")
     private boolean includeVersions;
 
@@ -77,11 +73,11 @@ public class RefBookCriteria extends AbstractCriteria {
     @QueryParam("hasPrimaryAttribute")
     private boolean hasPrimaryAttribute;
 
-    @ApiParam(value = "Отображаемый код справочника", hidden = true)
+    @ApiParam("Отображаемый код справочника")
     @QueryParam("displayCode")
     private String displayCode;
 
-    @ApiParam(value = "Паспорт справочника", hidden = true)
+    @ApiParam("Паспорт справочника")
     @QueryParam("passport")
     private Map<String, String> passport;
 
@@ -99,14 +95,6 @@ public class RefBookCriteria extends AbstractCriteria {
 
     public void setCode(String code) {
         this.code = code;
-    }
-
-    public String getCodeExact() {
-        return codeExact;
-    }
-
-    public void setCodeExact(String codeExact) {
-        this.codeExact = codeExact;
     }
 
     public Integer getVersionId() {

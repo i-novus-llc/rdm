@@ -12,9 +12,7 @@ import ru.inovus.ms.rdm.api.model.version.AttributeFilter;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
@@ -25,22 +23,17 @@ public class RowUtils {
     private RowUtils() {
     }
 
-    /** Проверка строки данных на отсутствие значений. */
+    /** Проверка строки данных на наличие значений. */
     public static boolean isEmptyRow(Row row) {
         return row == null
                 || row.getData().values().stream().allMatch(ObjectUtils::isEmpty);
     }
 
-    /**
-     * Сравнение значения из разных записей.
-     *
-     * @param newDataValue  значение из Row::getData::get
-     * @param oldFieldValue значение из RefBookRowValue::getFieldValue
-     * @return Признак успешности проверки
-     */
+    /** Сравнение значения из Row::getData::get и из RefBookRowValue::getFieldValue. */
     public static boolean equalsValues(Object newDataValue, FieldValue<?> oldFieldValue) {
 
-        if ((newDataValue == null) != (oldFieldValue == null))
+        if ((newDataValue != null && oldFieldValue == null)
+                || (newDataValue == null && oldFieldValue != null))
             return false;
 
         if (newDataValue == null)
@@ -49,51 +42,21 @@ public class RowUtils {
         Object oldDataValue = oldFieldValue.getValue();
         if (newDataValue instanceof Reference
                 && oldDataValue instanceof Reference
-                && !Objects.equals(((Reference) newDataValue).getValue(), ((Reference) oldDataValue).getValue()))
+                && !Objects.equals(((Reference) newDataValue).getValue(),  ((Reference) oldDataValue).getValue()))
             return false;
 
         return Objects.equals(newDataValue, oldDataValue);
     }
 
-    /**
-     * Сравнение значений по атрибутам.
-     *
-     * @param newRow      новая запись
-     * @param oldRowValue старая запись
-     * @param attributes  список атрибутов
-     * @return Признак успешности проверки
-     */
-    public static boolean equalsValuesByAttributes(Row newRow, RefBookRowValue oldRowValue,
-                                                   List<Structure.Attribute> attributes) {
+    /** Сравнение значений из Row и из RefBookRowValue по атрибутам. */
+    public static boolean equalsValuesByAttributes(Row newRow, RefBookRowValue oldRowValue, List<Structure.Attribute> attributes) {
         return attributes.stream()
                 .allMatch(attribute -> {
                     Object newDataValue = newRow.getData().get(attribute.getCode());
                     @SuppressWarnings("unchecked")
                     FieldValue<Serializable> oldFieldValue = oldRowValue.getFieldValue(attribute.getCode());
-                    return equalsValues(newDataValue, oldFieldValue);
+                    return RowUtils.equalsValues(newDataValue, oldFieldValue);
                 });
-    }
-
-    /**
-     * Преобразование значений атрибутов с их наименованиями в строку.
-     *
-     * @param rowData    запись
-     * @param attributes список атрибутов
-     * @return Результат преобразования
-     */
-    public static String toNamedValues(Map<String, Object> rowData,
-                                       List<Structure.Attribute> attributes) {
-        return attributes.stream()
-                .map(attribute -> toNamedValue(rowData, attribute))
-                .collect(Collectors.joining("\", \""));
-    }
-
-    private static String toNamedValue(Map<String, Object> rowData, Structure.Attribute attribute) {
-        return attribute.getName() + "\" - \"" + rowData.get(attribute.getCode());
-    }
-
-    public static List<Object> toSystemIds(List<RowValue> rowValues) {
-        return rowValues.stream().map(RowValue::getSystemId).collect(toList());
     }
 
     /** Преобразование списка systemIds из vds в список для rdm. */
@@ -119,15 +82,8 @@ public class RowUtils {
                 && rowValues.stream().anyMatch(rowValue -> isSystemIdRowValue(systemId, rowValue));
     }
 
-    /**
-     * Создание фильтров по точному совпадению значений первичных ключей.
-     *
-     * @param row       запись со значениями
-     * @param primaries первичные ключи
-     * @return Список фильтров
-     */
-    public static List<AttributeFilter> getPrimaryKeyValueFilters(Row row, List<Structure.Attribute> primaries) {
-        return primaries.stream()
+    public static List<AttributeFilter> getPrimaryKeyValueFilters(Row row, List<Structure.Attribute> primaryKeys) {
+        return primaryKeys.stream()
                 .map(key -> {
                     Object value = row.getData().get(key.getCode());
                     if (value == null)

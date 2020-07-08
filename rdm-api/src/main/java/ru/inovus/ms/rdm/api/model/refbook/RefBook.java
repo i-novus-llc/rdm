@@ -15,6 +15,9 @@ public class RefBook extends RefBookVersion {
     @ApiModelProperty("Признак возможности удаления")
     private Boolean removable;
 
+    @ApiModelProperty("Категория")
+    private String category;
+
     @ApiModelProperty("Идентификатор черновика")
     private Integer draftVersionId;
 
@@ -49,13 +52,7 @@ public class RefBook extends RefBookVersion {
     private Boolean hasStructureConflict;
 
     @ApiModelProperty("Наличие конфликта в последней опубликованной версии")
-    private Boolean lastHasConflict;
-
-    @ApiModelProperty("Публикуется ли данный справочник в данный момент")
-    private Boolean publishing;
-
-    @ApiModelProperty("Обновляется ли данный справочник в данный момент")
-    private Boolean updating;
+    private Boolean lastHasDataConflict;
 
     public RefBook() {
     }
@@ -82,7 +79,7 @@ public class RefBook extends RefBookVersion {
         this.hasAlteredConflict = refBook.getHasAlteredConflict();
         this.hasStructureConflict = refBook.getHasStructureConflict();
 
-        this.lastHasConflict = refBook.getLastHasConflict();
+        this.lastHasDataConflict = refBook.getLastHasDataConflict();
     }
 
     public Boolean getRemovable() {
@@ -91,6 +88,14 @@ public class RefBook extends RefBookVersion {
 
     public void setRemovable(Boolean removable) {
         this.removable = removable;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public Integer getDraftVersionId() {
@@ -181,27 +186,11 @@ public class RefBook extends RefBookVersion {
         this.hasStructureConflict = hasStructureConflict;
     }
 
-    public Boolean getLastHasConflict() {
-        return lastHasConflict;
+    public Boolean getLastHasDataConflict() {
+        return lastHasDataConflict;
     }
 
-    public void setLastHasConflict(Boolean lastHasConflict) {
-        this.lastHasConflict = lastHasConflict;
-    }
-
-    public Boolean getPublishing() {
-        return publishing;
-    }
-
-    public void setPublishing(Boolean publishing) {
-        this.publishing = publishing;
-    }
-
-    public Boolean getUpdating() {
-        return updating;
-    }
-
-    public void setUpdating(Boolean updating) {
-        this.updating = updating;
+    public void setLastHasDataConflict(Boolean lastHasDataConflict) {
+        this.lastHasDataConflict = lastHasDataConflict;
     }
 }

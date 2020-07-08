@@ -2,9 +2,7 @@ package ru.inovus.ms.rdm.api.model.version;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import java.io.Serializable;
-
-public class UpdateValue<T extends Serializable> implements Serializable {
+public class UpdateValue<T> {
 
     private final T value;
 
@@ -28,11 +26,11 @@ public class UpdateValue<T extends Serializable> implements Serializable {
     /**
      * Returns an {@code UpdateValue} with the specified present value.
      *
-     * @param <T>   the class of the value
+     * @param <T> the class of the value
      * @param value the value to be present, which must be non-null
      * @return an {@code UpdateValue} with the value present
      */
-    public static <T extends Serializable> UpdateValue<T> of(T value) {
+    public static <T> UpdateValue<T> of(T value) {
         return new UpdateValue<>(value);
     }
 

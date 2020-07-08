@@ -41,9 +41,9 @@ public class RefBookConflictCriteria extends AbstractCriteria {
     @QueryParam("refRecordIds")
     List<Long> refRecordIds;
 
-    @ApiParam("Названия полей-ссылок с конфликтами по отображаемому значению")
-    @QueryParam("refFieldCodes")
-    private List<String> refFieldCodes;
+    @ApiParam("Название поля-ссылки с конфликтом по отображаемому значению")
+    @QueryParam("refFieldCode")
+    private String refFieldCode;
 
     @ApiParam("Тип конфликта")
     @QueryParam("conflictType")
@@ -66,16 +66,10 @@ public class RefBookConflictCriteria extends AbstractCriteria {
         this.publishedVersionId = publishedVersionId;
     }
 
-    public RefBookConflictCriteria(Integer referrerVersionId, Integer publishedVersionId,
-                                   String refFieldCode, ConflictType conflictType) {
-        this(referrerVersionId, publishedVersionId, List.of(refFieldCode), conflictType);
-    }
-
-    public RefBookConflictCriteria(Integer referrerVersionId, Integer publishedVersionId,
-                                   List<String> refFieldCodes, ConflictType conflictType) {
+    public RefBookConflictCriteria(Integer referrerVersionId, Integer publishedVersionId, String refFieldCode, ConflictType conflictType) {
         this.referrerVersionId = referrerVersionId;
         this.publishedVersionId = publishedVersionId;
-        this.refFieldCodes = refFieldCodes;
+        this.refFieldCode = refFieldCode;
         this.conflictType = conflictType;
     }
 
@@ -135,12 +129,12 @@ public class RefBookConflictCriteria extends AbstractCriteria {
         this.refRecordIds = refRecordIds;
     }
 
-    public List<String> getRefFieldCodes() {
-        return refFieldCodes;
+    public String getRefFieldCode() {
+        return refFieldCode;
     }
 
-    public void setRefFieldCodes(List<String> refFieldCodes) {
-        this.refFieldCodes = refFieldCodes;
+    public void setRefFieldCode(String refFieldCode) {
+        this.refFieldCode = refFieldCode;
     }
 
     public ConflictType getConflictType() {

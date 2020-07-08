@@ -4,13 +4,8 @@ import java.util.Map;
 
 public class RefBookCreateRequest {
 
-    /** Код справочника. */
     private String code;
-
-    /** Категория справочника. */
     private String category;
-
-    /** Паспорт справочника. */
     private Map<String, String> passport;
 
     public RefBookCreateRequest() {

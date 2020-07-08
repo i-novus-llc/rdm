@@ -1,10 +1,6 @@
 package ru.inovus.ms.rdm.api.model;
 
 import net.n2oapp.platform.jaxrs.RestCriteria;
-import org.springframework.data.domain.Sort;
-
-import java.util.Collections;
-import java.util.List;
 
 public class AbstractCriteria extends RestCriteria {
 
@@ -14,11 +10,6 @@ public class AbstractCriteria extends RestCriteria {
 
     public AbstractCriteria() {
         super(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
-    }
-
-    @Override
-    protected List<Sort.Order> getDefaultOrders() {
-        return Collections.emptyList();
     }
 
     public void noPagination() {

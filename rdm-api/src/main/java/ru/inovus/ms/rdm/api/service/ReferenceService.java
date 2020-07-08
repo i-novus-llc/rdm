@@ -18,8 +18,7 @@ public interface ReferenceService {
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void refreshReferrer(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer referrerVersionId,
-                         @ApiParam("Значение оптимистической блокировки версии") @QueryParam("optLockValue") Integer optLockValue);
+    void refreshReferrer(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer referrerVersionId);
 
     @POST
     @Path("/refresh/{refBookCode}")

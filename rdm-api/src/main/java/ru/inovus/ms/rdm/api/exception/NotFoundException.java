@@ -7,7 +7,7 @@ import java.util.List;
 
 public class NotFoundException extends UserException {
 
-    private static final Message DEFAULT_EXCEPTION = new Message("resource.not.found");
+    private static final Message NOT_FOUND_EXCEPTION = new Message("resource.not.found");
 
     public NotFoundException(Message message) {
         super(message);
@@ -30,11 +30,11 @@ public class NotFoundException extends UserException {
     }
 
     public NotFoundException() {
-        super(DEFAULT_EXCEPTION);
+        super(NOT_FOUND_EXCEPTION);
     }
 
     public NotFoundException(Throwable cause) {
-        super(DEFAULT_EXCEPTION, cause);
+        super(NOT_FOUND_EXCEPTION, cause);
     }
 
 }

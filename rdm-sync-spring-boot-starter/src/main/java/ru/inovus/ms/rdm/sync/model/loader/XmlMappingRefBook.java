@@ -1,7 +1,6 @@
 package ru.inovus.ms.rdm.sync.model.loader;
 
 import lombok.EqualsAndHashCode;
-import ru.inovus.ms.rdm.sync.model.VersionMapping;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
@@ -79,15 +78,4 @@ public class XmlMappingRefBook {
     public void setSysTable(String sysTable) {
         this.sysTable = sysTable;
     }
-
-    public static XmlMappingRefBook createBy(VersionMapping vm) {
-        XmlMappingRefBook xmlMappingRefBook = new XmlMappingRefBook();
-        xmlMappingRefBook.setCode(vm.getCode());
-        xmlMappingRefBook.setMappingVersion(-1);
-        xmlMappingRefBook.setUniqueSysField(vm.getPrimaryField());
-        xmlMappingRefBook.setDeletedField(vm.getDeletedField());
-        xmlMappingRefBook.setSysTable(vm.getTable());
-        return xmlMappingRefBook;
-    }
-
 }
