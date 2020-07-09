@@ -1,0 +1,1 @@
+[rdm-sync-spring-boot-starter manual](rdm-sync-spring-boot-starter/README.md)
