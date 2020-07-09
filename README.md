@@ -1,1 +1,1 @@
-[rdm-sync-spring-boot-starter manual](rdm-sync-spring-boot-starter/README.md)
+[Синхронизация с НСИ](rdm-sync-spring-boot-starter/README.md)
