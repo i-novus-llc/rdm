@@ -2,7 +2,7 @@
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0">
 
     <unique filters="versionId,optLockValue" result-mapping="#this">
-        <java class="ru.inovus.ms.rdm.n2o.service.RefBookDataController"
+        <java class="ru.i_novus.ms.rdm.n2o.service.RefBookDataController"
               method="getVersion">
             <spring/>
             <arguments>

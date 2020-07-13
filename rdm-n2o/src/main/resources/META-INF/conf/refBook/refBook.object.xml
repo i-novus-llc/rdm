@@ -22,13 +22,13 @@
 
         <operation id="edit" submit-label="Изменить" success-text="Справочник успешно изменен">
             <invocation>
-                <java method="editPassport" class="ru.inovus.ms.rdm.n2o.service.CreateDraftController">
+                <java method="editPassport" class="ru.i_novus.ms.rdm.n2o.service.CreateDraftController">
                     <spring/>
 
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
                         <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
-                        <argument type="class" name="uiPassport" class="ru.inovus.ms.rdm.n2o.model.UiPassport"/>
+                        <argument type="class" name="uiPassport" class="ru.i_novus.ms.rdm.n2o.model.UiPassport"/>
                     </arguments>
                 </java>
             </invocation>
@@ -63,7 +63,7 @@
         <operation id="refreshReferrer" submit-label="Обновить ссылки" success-text="Обновлены ссылки по первичным ключам"
                    confirm="true" confirm-text="Вы уверены, что хотите обновить ссылки?">
             <invocation>
-                <java class="ru.inovus.ms.rdm.n2o.service.ConflictController"
+                <java class="ru.i_novus.ms.rdm.n2o.service.ConflictController"
                       method="refreshReferrer">
                     <spring/>
 
@@ -82,12 +82,12 @@
 
         <operation id="createFromFile" submit-label="Создать из файла" success-text="Справочник успешно сохранен">
             <invocation>
-                <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
+                <java class="ru.i_novus.ms.rdm.n2o.service.CreateDraftController"
                       method="createFromFile">
                     <spring/>
 
                     <arguments>
-                        <argument type="class" name="fileModel" class="ru.inovus.ms.rdm.api.model.FileModel"/>
+                        <argument type="class" name="fileModel" class="ru.i_novus.ms.rdm.api.model.FileModel"/>
                     </arguments>
                 </java>
             </invocation>
@@ -105,13 +105,13 @@
         <operation id="uploadFromFile" submit-label="Загрузить из файла" success-text="Файл загружен"
                    confirm="true" confirm-text="Вы уверены, что хотите загрузить справочник?">
             <invocation>
-                <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
+                <java class="ru.i_novus.ms.rdm.n2o.service.CreateDraftController"
                       method="uploadFromFile">
                     <spring/>
 
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
-                        <argument type="class" name="fileModel" class="ru.inovus.ms.rdm.api.model.FileModel"/>
+                        <argument type="class" name="fileModel" class="ru.i_novus.ms.rdm.api.model.FileModel"/>
                     </arguments>
                 </java>
             </invocation>
@@ -129,13 +129,13 @@
 
         <operation id="uploadData" submit-label="Загрузить данные" success-text="Данные загружены">
             <invocation>
-                <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
+                <java class="ru.i_novus.ms.rdm.n2o.service.CreateDraftController"
                       method="uploadData">
                     <spring/>
 
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
-                        <argument type="class" name="fileModel" class="ru.inovus.ms.rdm.api.model.FileModel"/>
+                        <argument type="class" name="fileModel" class="ru.i_novus.ms.rdm.api.model.FileModel"/>
                         <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
                     </arguments>
                 </java>
