@@ -32,9 +32,6 @@
         <javax.activation.version>1.1.1</javax.activation.version>
         <security.admin.version>4.3</security.admin.version>
         <security.oauth2.autoconfigure.version>2.1.1.RELEASE</security.oauth2.autoconfigure.version>
-        <internal.repository.releases>https://maven.i-novus.ru/libs-release-local</internal.repository.releases>
-        <internal.repository.shapshots>https://maven.i-novus.ru/libs-snapshot-local</internal.repository.shapshots>
-        <internal.repository.id>i-novus-central</internal.repository.id>
         <swagger.version>3.23.0</swagger.version>
         <audit.version>2.3.2</audit.version>
     </properties>
@@ -66,20 +63,6 @@
         <module>rdm-api</module>
         <module>rdm-sync-spring-boot-starter</module>
     </modules>
-
-    <distributionManagement>
-        <repository>
-            <id>${internal.repository.id}</id>
-            <name>${internal.repository.id}</name>
-            <url>${internal.repository.releases}</url>
-        </repository>
-        <snapshotRepository>
-            <id>${internal.repository.id}</id>
-            <name>${internal.repository.id}</name>
-            <url>${internal.repository.shapshots}</url>
-            <uniqueVersion>true</uniqueVersion>
-        </snapshotRepository>
-    </distributionManagement>
 
     <dependencyManagement>
         <dependencies>
