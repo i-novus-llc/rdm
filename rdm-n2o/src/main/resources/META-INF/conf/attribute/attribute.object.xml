@@ -5,14 +5,14 @@
         <operation id="createAttribute" name="Добавление атрибута"
                    submit-label="Сохранить" success-text="Атрибут сохранен">
             <invocation>
-                <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
+                <java class="ru.i_novus.ms.rdm.n2o.service.CreateDraftController"
                       method="createAttribute">
                     <spring/>
 
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
                         <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
-                        <argument type="class" name="attribute" class="ru.inovus.ms.rdm.n2o.model.FormAttribute"/>
+                        <argument type="class" name="attribute" class="ru.i_novus.ms.rdm.n2o.model.FormAttribute"/>
                     </arguments>
                 </java>
             </invocation>
@@ -40,9 +40,9 @@
                 <param id="minFloat" mapping="[2].minFloat" domain="numeric"/>
                 <param id="maxFloat" mapping="[2].maxFloat" domain="numeric"/>
                 <param id="dateInterval.begin" mapping="[2].minDate" domain="date"
-                       normalize="T(ru.inovus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)"/>
+                       normalize="T(ru.i_novus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)"/>
                 <param id="dateInterval.end" mapping="[2].maxDate" domain="date"
-                       normalize="T(ru.inovus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)"/>
+                       normalize="T(ru.i_novus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)"/>
                 <param id="regExp" mapping="[2].regExp" domain="string"/>
                 <!-- / Пользовательские проверки -->
             </in-parameters>
@@ -53,14 +53,14 @@
         <operation id="updateAttribute" name="Изменение атрибута"
                    submit-label="Сохранить" success-text="Атрибут изменен">
             <invocation>
-                <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
+                <java class="ru.i_novus.ms.rdm.n2o.service.CreateDraftController"
                       method="updateAttribute">
                     <spring/>
 
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
                         <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
-                        <argument type="class" name="attribute" class="ru.inovus.ms.rdm.n2o.model.FormAttribute"/>
+                        <argument type="class" name="attribute" class="ru.i_novus.ms.rdm.n2o.model.FormAttribute"/>
                     </arguments>
                 </java>
             </invocation>
@@ -88,9 +88,9 @@
                 <param id="minFloat" mapping="[2].minFloat" domain="numeric"/>
                 <param id="maxFloat" mapping="[2].maxFloat" domain="numeric"/>
                 <param id="dateInterval.begin" mapping="[2].minDate" domain="date"
-                       normalize="T(ru.inovus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)"/>
+                       normalize="T(ru.i_novus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)"/>
                 <param id="dateInterval.end" mapping="[2].maxDate" domain="date"
-                       normalize="T(ru.inovus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)"/>
+                       normalize="T(ru.i_novus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)"/>
                 <param id="regExp" mapping="[2].regExp" domain="string"/>
                 <!-- / Пользовательские проверки -->
             </in-parameters>
@@ -101,7 +101,7 @@
         <operation id="delete" name="Удаление атрибута" success-text="Атрибут удален"
                    confirm="true" confirm-text="Вы действительно хотите удалить атрибут справочника?">
             <invocation>
-                <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
+                <java class="ru.i_novus.ms.rdm.n2o.service.CreateDraftController"
                       method="deleteAttribute">
                     <spring/>
 

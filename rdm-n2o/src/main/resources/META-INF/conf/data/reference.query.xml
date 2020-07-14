@@ -2,10 +2,10 @@
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="refBook">
 
     <list result-mapping="['content']" count-mapping="['totalElements']">
-        <java method="getList" class="ru.inovus.ms.rdm.n2o.service.ReferenceController">
+        <java method="getList" class="ru.i_novus.ms.rdm.n2o.service.ReferenceController">
             <spring/>
             <arguments>
-                <argument type="criteria" class="ru.inovus.ms.rdm.n2o.criteria.ReferenceCriteria" name="referenceCriteria"/>
+                <argument type="criteria" class="ru.i_novus.ms.rdm.n2o.criteria.ReferenceCriteria" name="referenceCriteria"/>
             </arguments>
         </java>
     </list>

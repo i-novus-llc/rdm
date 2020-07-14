@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.ui.test;
+package ru.i_novus.ms.rdm.ui.test;
 
 
 import com.codeborne.selenide.Condition;
