@@ -2,7 +2,7 @@
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="publish">
 
     <unique filters="version.id,version.optLockValue" result-mapping="#this">
-        <java class="ru.inovus.ms.rdm.n2o.service.RefBookPublishController"
+        <java class="ru.i_novus.ms.rdm.n2o.service.RefBookPublishController"
               method="getDraft">
             <spring/>
             <arguments>

@@ -2,21 +2,21 @@
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="refBook">
 
     <list result-mapping="['content']" count-mapping="['totalElements']">
-        <java class="ru.inovus.ms.rdm.api.service.RefBookService"
+        <java class="ru.i_novus.ms.rdm.api.service.RefBookService"
               method="search">
             <spring bean="refBookServiceJaxRsProxyClient"/>
             <arguments>
-                <argument type="criteria" class="ru.inovus.ms.rdm.n2o.criteria.RefBookCriteriaDateAndStatus"/>
+                <argument type="criteria" class="ru.i_novus.ms.rdm.n2o.criteria.RefBookCriteriaDateAndStatus"/>
             </arguments>
         </java>
     </list>
 
     <unique filters="versionId,excludeDraft" result-mapping="#this">
-        <java class="ru.inovus.ms.rdm.n2o.service.RefBookController"
+        <java class="ru.i_novus.ms.rdm.n2o.service.RefBookController"
               method="searchRefBook">
             <spring/>
             <arguments>
-                <argument type="criteria" class="ru.inovus.ms.rdm.n2o.criteria.RefBookCriteriaDateAndStatus"/>
+                <argument type="criteria" class="ru.i_novus.ms.rdm.n2o.criteria.RefBookCriteriaDateAndStatus"/>
             </arguments>
         </java>
     </unique>
