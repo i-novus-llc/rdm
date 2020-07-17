@@ -15,6 +15,7 @@
         <backend.default.path>http://localhost:8080/rdm/api</backend.default.path>
         <frontend.default.port>8081</frontend.default.port>
         <config.server.enable>false</config.server.enable>
+        <jacoco.skip>false</jacoco.skip>
     </properties>
 
     <dependencies>
