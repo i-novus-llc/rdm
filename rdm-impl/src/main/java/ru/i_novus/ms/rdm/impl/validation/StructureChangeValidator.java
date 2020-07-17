@@ -25,7 +25,9 @@ import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
 public class StructureChangeValidator {
 
     private static final String ATTRIBUTE_CREATE_ILLEGAL_VALUE_EXCEPTION_CODE = "attribute.create.illegal.value";
+    private static final String ATTRIBUTE_CREATE_ILLEGAL_REFERENCE_VALUE_EXCEPTION_CODE = "attribute.create.illegal.reference.value";
     private static final String ATTRIBUTE_UPDATE_ILLEGAL_VALUE_EXCEPTION_CODE = "attribute.update.illegal.value";
+    private static final String ATTRIBUTE_UPDATE_ILLEGAL_REFERENCE_VALUE_EXCEPTION_CODE = "attribute.update.illegal.reference.value";
 
     private static final String VALIDATION_REQUIRED_PK_ERR_EXCEPTION_CODE = "validation.required.pk.err";
     private static final String ATTRIBUTE_PRIMARY_INCOMPATIBLE_WITH_DATA_EXCEPTION_CODE = "attribute.primary.incompatible.with.data";
@@ -57,7 +59,7 @@ public class StructureChangeValidator {
             throw new IllegalArgumentException(ATTRIBUTE_CREATE_ILLEGAL_VALUE_EXCEPTION_CODE);
 
         if (isReference && !newAttribute.getCode().equals(reference.getAttribute()))
-            throw new IllegalArgumentException(ATTRIBUTE_CREATE_ILLEGAL_VALUE_EXCEPTION_CODE);
+            throw new IllegalArgumentException(ATTRIBUTE_CREATE_ILLEGAL_REFERENCE_VALUE_EXCEPTION_CODE);
     }
 
     public void validateCreateAttributeStorage(Structure.Attribute newAttribute,
@@ -85,7 +87,7 @@ public class StructureChangeValidator {
         if ((oldAttribute.isReferenceType() && !request.isNullOrPresentReference())
                 || (!oldAttribute.isReferenceType() && !request.isNotNullAndPresentReference())
                 || !request.getCode().equals(request.getAttribute().get()))
-            throw new IllegalArgumentException(ATTRIBUTE_UPDATE_ILLEGAL_VALUE_EXCEPTION_CODE);
+            throw new IllegalArgumentException(ATTRIBUTE_UPDATE_ILLEGAL_REFERENCE_VALUE_EXCEPTION_CODE);
     }
 
     public void validateUpdateAttributeStorage(Integer draftId, UpdateAttributeRequest request,
