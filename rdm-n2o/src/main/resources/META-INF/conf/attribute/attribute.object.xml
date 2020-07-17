@@ -47,7 +47,7 @@
                 <!-- / Пользовательские проверки -->
             </in-parameters>
 
-            <validations white-list="checkCode,checkMinMaxInt"/>
+            <validations white-list="checkMinMaxInt"/>
         </operation>
 
         <operation id="updateAttribute" name="Изменение атрибута"
@@ -95,7 +95,7 @@
                 <!-- / Пользовательские проверки -->
             </in-parameters>
 
-            <validations white-list="checkCode,checkMinMaxInt"/>
+            <validations white-list="checkMinMaxInt"/>
         </operation>
 
         <operation id="delete" name="Удаление атрибута" success-text="Атрибут удален"
@@ -122,12 +122,6 @@
     </operations>
 
     <validations>
-        <condition id="checkCode" severity="danger"
-                   server-moment="before-operation"
-                   message="Код атрибута должен содержать только латинские символы и цифры и начинаться с символа">
-            typeof code == 'undefined' || code == null || code == '' || /^[a-zA-Z][a-zA-Z0-9_]*$/.test(code)
-        </condition>
-
         <condition field-id="maxInteger" id="checkMinMaxInt" severity="danger"
                    server-moment="before-operation"
                    message="Максимальное значение должно быть больше минимального">
