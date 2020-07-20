@@ -7,10 +7,8 @@ import net.n2oapp.framework.api.metadata.dataprovider.SpringProvider;
 import net.n2oapp.framework.api.metadata.global.dao.N2oQuery;
 import net.n2oapp.framework.api.metadata.global.dao.invocation.model.Argument;
 import net.n2oapp.framework.api.register.DynamicMetadataProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.n2o.service.DataRecordController;
 
 import java.util.ArrayList;
@@ -18,6 +16,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static ru.i_novus.ms.rdm.n2o.util.RdmUiUtil.addFieldProperty;
 import static ru.i_novus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
@@ -27,15 +26,12 @@ import static ru.i_novus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
  * по конкретной записи из указанной версии справочника.
  */
 @Service
-public class DataRecordQueryProvider implements DynamicMetadataProvider {
+public class DataRecordQueryProvider extends DataRecordBaseProvider implements DynamicMetadataProvider {
 
     static final String QUERY_PROVIDER_ID = "dataRecordQuery";
 
     private static final String CONTROLLER_CLASS_NAME = DataRecordController.class.getName();
     private static final String CONTROLLER_METHOD = "getRow";
-
-    @Autowired
-    private VersionService versionService;
 
     @Override
     public String getCode() {
@@ -51,7 +47,7 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
     public List<? extends SourceMetadata> read(String context) {
 
         Integer versionId = Integer.parseInt(context);
-        Structure structure = versionService.getStructure(versionId);
+        Structure structure = getStructureOrNull(versionId);
 
         return singletonList(createQuery(versionId, structure));
     }
@@ -151,6 +147,10 @@ public class DataRecordQueryProvider implements DynamicMetadataProvider {
     }
 
     private List<N2oQuery.Field> createDynamicFields(Structure structure) {
+
+        if (isEmptyStructure(structure)) {
+            return emptyList();
+        }
 
         List<N2oQuery.Field> list = new ArrayList<>();
         for (Structure.Attribute attribute : structure.getAttributes()) {
