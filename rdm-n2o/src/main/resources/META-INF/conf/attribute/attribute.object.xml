@@ -98,7 +98,7 @@
             <validations white-list="checkCode,checkMinMaxInt"/>
         </operation>
 
-        <operation id="delete" name="Удаление атрибута" success-text="Атрибут удален"
+        <operation id="deleteAttribute" name="Удаление атрибута" success-text="Атрибут удален"
                    confirm="true" confirm-text="Вы действительно хотите удалить атрибут справочника?">
             <invocation>
                 <java class="ru.i_novus.ms.rdm.n2o.service.CreateDraftController"

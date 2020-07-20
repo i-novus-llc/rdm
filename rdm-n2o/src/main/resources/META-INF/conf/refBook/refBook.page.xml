@@ -122,7 +122,7 @@
                     </button>
                     <button label="Удалить" id="deleteAttribute_r" color="danger" icon="fa fa-trash"
                             enabling-condition="!(isPrimary &amp;&amp; (isReferrer || hasReferrer))">
-                        <invoke operation-id="delete" close-after-success="false" refresh-widget-id="version_select"/>
+                        <invoke operation-id="deleteAttribute" close-after-success="false" refresh-widget-id="version_select"/>
                     </button>
                 </toolbar>
             </table>
