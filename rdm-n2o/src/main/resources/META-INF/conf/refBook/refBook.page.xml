@@ -144,6 +144,7 @@
                             </pre-filters>
                         </show-modal>
                     </button>
+
                     <button id="updateRecord_r" label="Изменить строку" icon="fa fa-pencil"
                             widget-id="version_select" model="resolve">
                         <show-modal page-id="dataRecordPage?{id}_edit" upload="query" route="/update"
@@ -155,12 +156,14 @@
                             </pre-filters>
                         </show-modal>
                     </button>
+
                     <button id="deleteRecord_r" label="Удалить строку" color="danger" icon="fa fa-trash">
-                        <invoke operation-id="delete" refresh-widget-id="version_select" route="/delete"/>
+                        <invoke operation-id="deleteRecord" refresh-widget-id="version_select" route="/delete"/>
                     </button>
+
                     <button id="deleteAllRecords_r" label="Удалить все" color="danger" icon="fa fa-trash">
                         <show-modal page-id="dataDeleteAll" upload="query" route="/deleteAll"
-                                    submit-operation-id="deleteAll" refresh-widget-id="version_select">
+                                    submit-operation-id="deleteAllRecords" refresh-widget-id="version_select">
                             <pre-filters>
                                 <eq field-id="versionId" value="{version.id}" ref-model="resolve" ref-widget-id="version_select"/>
                                 <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve" ref-widget-id="version_select"/>
@@ -176,6 +179,7 @@
                 <pre-filters>
                     <eq field-id="hasDataConflict" value="true"/>
                 </pre-filters>
+
                 <toolbar place="topRight">
                     <button id="updateConflictedRecord_r" label="Изменить строку" icon="fa fa-pencil"
                             widget-id="version_select" model="resolve">
@@ -188,8 +192,9 @@
                             </pre-filters>
                         </show-modal>
                     </button>
+
                     <button id="deleteConflictedRecord_r" label="Удалить строку" color="danger" icon="fa fa-trash">
-                        <invoke operation-id="delete" refresh-widget-id="version_select" route="/delete"/>
+                        <invoke operation-id="deleteRecord" refresh-widget-id="version_select" route="/delete"/>
                     </button>
                 </toolbar>
             </table>
