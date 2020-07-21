@@ -15,14 +15,13 @@ import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
 import ru.i_novus.ms.audit.client.SourceApplicationAccessor;
 import ru.i_novus.ms.audit.client.UserAccessor;
-import ru.i_novus.ms.audit.client.model.User;
-import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.ms.rdm.api.provider.*;
 import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
 import ru.i_novus.ms.rdm.rest.provider.StaleStateExceptionMapper;
 import ru.i_novus.ms.rdm.rest.util.SecurityContextUtils;
+import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 
 import javax.annotation.PostConstruct;
 import javax.jms.ConnectionFactory;
@@ -129,9 +128,13 @@ public class BackendConfiguration {
         return factory;
     }
 
+    private static ru.i_novus.ms.audit.client.model.User createAuditUser(String id, String name) {
+        return new ru.i_novus.ms.audit.client.model.User(id != null ? id : name, name);
+    }
+
     @Bean
     public UserAccessor userAccessor() {
-        return () -> new User(null, SecurityContextUtils.getUserName());
+        return () -> createAuditUser(SecurityContextUtils.getUserId(), SecurityContextUtils.getUserName());
     }
 
     @Bean
@@ -142,7 +145,6 @@ public class BackendConfiguration {
 
     @PostConstruct
     public void setUpObjectMapper() {
-        JsonUtil.jsonMapper = objectMapper;
+        JsonUtil.jsonMapper = objectMapper; // NOSONAR
     }
-
 }
