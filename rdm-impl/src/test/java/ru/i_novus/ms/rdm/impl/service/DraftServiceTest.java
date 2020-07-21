@@ -139,6 +139,7 @@ public class DraftServiceTest {
     private static Structure.Attribute pkAttribute;
 
     private static Structure.Reference nameReference;
+    private static Structure.Reference badNameReference;
     private static Structure.Reference updateNameReference;
     private static Structure.Reference nullReference;
 
@@ -153,6 +154,7 @@ public class DraftServiceTest {
         pkAttribute = Structure.Attribute.buildPrimary(nameAttribute.getCode() + PK_SUFFIX, nameAttribute.getName() + PK_SUFFIX, FieldType.STRING, nameAttribute.getDescription() + PK_SUFFIX);
 
         nameReference = new Structure.Reference(nameAttribute.getCode(), "REF_801", toPlaceholder(idAttribute.getCode()));
+        badNameReference = new Structure.Reference("bad_" + nameAttribute.getCode(), "REF_801", toPlaceholder(idAttribute.getCode()));
         updateNameReference = new Structure.Reference(nameAttribute.getCode(), "REF_802", toPlaceholder(codeAttribute.getCode()));
         nullReference = new Structure.Reference(null, null, null);
     }
@@ -346,7 +348,7 @@ public class DraftServiceTest {
         doCallRealMethod().when(versionValidation).validateAttribute(any());
         doCallRealMethod().when(versionValidation).validateReferenceAbility(any());
 
-        doCallRealMethod().when(structureChangeValidator).validateCreateAttribute(any());
+        doCallRealMethod().when(structureChangeValidator).validateCreateAttribute(any(), any());
         doCallRealMethod().when(structureChangeValidator).validateUpdateAttribute(eq(draftId), any(), any());
         doCallRealMethod().when(structureChangeValidator).validateUpdateAttributeStorage(eq(draftId), any(), any(), any());
 
@@ -366,9 +368,13 @@ public class DraftServiceTest {
         createRefAttribute = new CreateAttributeRequest(null, nameAttribute, null);
         failCreateAttribute(draftId, createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
 
-        // -- Добавление ссылки без ссылочного атрибута. Должна быть ошибка
+        // -- Добавление обычного атрибута со ссылкой. Должна быть ошибка
         createRefAttribute = new CreateAttributeRequest(null, idAttribute, nameReference);
         failCreateAttribute(draftId, createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
+
+        // -- Добавление ссылочного атрибута с неверной привязкой к ссылке. Должна быть ошибка
+        createRefAttribute = new CreateAttributeRequest(null, nameAttribute, badNameReference);
+        failCreateAttribute(draftId, createRefAttribute, "attribute.create.illegal.reference.value", IllegalArgumentException.class);
 
         // -- Добавление атрибута с неверным кодом. Должна быть ошибка
         createRefAttribute = new CreateAttributeRequest(null, idAttribute, null);
@@ -407,6 +413,9 @@ public class DraftServiceTest {
         assertTrue(structure.hasPrimary());
         assertEquals(createIdAttribute.getAttribute(), structure.getPrimary().get(0));
         assertEquals(createIdAttribute.getReference(), structure.getReference(createIdAttribute.getAttribute().getCode()));
+
+        // -- Добавление атрибута с существующим кодом. Должна быть ошибка
+        failCreateAttribute(draftId, createIdAttribute, "attribute.with.code.already.exists", UserException.class);
 
         // -- Корректное добавление
         draftService.createAttribute(draftId, createRefAttribute);
@@ -460,7 +469,7 @@ public class DraftServiceTest {
 
         // -- Изменение кода ссылки на null. Должна быть ошибка (случай Reference -> Reference)
         updateRefAttribute.setReferenceCode(of(null));
-        failUpdateAttribute(draftId, updateRefAttribute, structure, updateRefCode, "attribute.update.illegal.value", IllegalArgumentException.class);
+        failUpdateAttribute(draftId, updateRefAttribute, structure, updateRefCode, "attribute.update.illegal.reference.value", IllegalArgumentException.class);
 
         // Изменение типа атрибута
         // -- Изменение со ссылочного на строковый. Ссылка должна удалиться из структуры
@@ -471,7 +480,7 @@ public class DraftServiceTest {
 
         // -- Изменение со строкового на ссылочный, не заполнены поля для ссылки. Должна быть ошибка
         updateRefAttribute.setType(FieldType.REFERENCE);
-        failUpdateAttribute(draftId, updateRefAttribute, structure, updateRefCode, "attribute.update.illegal.value", IllegalArgumentException.class);
+        failUpdateAttribute(draftId, updateRefAttribute, structure, updateRefCode, "attribute.update.illegal.reference.value", IllegalArgumentException.class);
 
         // -- Изменение со ссылочного на строковый, все поля заполнены
         updateNameAttribute.setType(FieldType.REFERENCE);
@@ -542,7 +551,7 @@ public class DraftServiceTest {
 
         doCallRealMethod().when(versionValidation).validateAttribute(any());
 
-        doCallRealMethod().when(structureChangeValidator).validateCreateAttribute(any());
+        doCallRealMethod().when(structureChangeValidator).validateCreateAttribute(any(), any());
         doCallRealMethod().when(structureChangeValidator).validateCreateAttributeStorage(any(), any(), eq(draftTableWithData));
 
         Structure.Attribute firstAttribute = Structure.Attribute.build("first", "Первый", FieldType.STRING, "описание first");
@@ -641,9 +650,11 @@ public class DraftServiceTest {
             assertEquals(expectedExceptionClass, e.getClass());
             assertEquals(message, getExceptionMessage(e));
 
-            Structure newStructure = versionService.getStructure(draftId);
-            assertNull("Атрибут не должен добавиться", attribute == null ? null : newStructure.getAttribute(attribute.getCode()));
-            assertNull("Ссылка не должна добавиться", reference == null ? null : newStructure.getReference(reference.getAttribute()));
+            if (!"attribute.with.code.already.exists".equals(message)) {
+                Structure newStructure = versionService.getStructure(draftId);
+                assertNull("Атрибут не должен добавиться", attribute == null ? null : newStructure.getAttribute(attribute.getCode()));
+                assertNull("Ссылка не должна добавиться", reference == null ? null : newStructure.getReference(reference.getAttribute()));
+            }
         }
     }
 
