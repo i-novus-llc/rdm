@@ -79,7 +79,7 @@ public class RefBookDataController {
     private static final String BOOL_FALSE_REGEX = "false|f|n|no|nah|н|нет|ложь|неправда";
     private static final Pattern BOOL_FALSE_PATTERN = Pattern.compile(BOOL_FALSE_REGEX);
 
-    private static Map<String, Object> dataConflictedCellOptions = getDataConflictedCellOptions();
+    private static final Map<String, Object> dataConflictedCellOptions = getDataConflictedCellOptions();
 
     @Autowired
     private MetadataEnvironment env;
@@ -109,7 +109,7 @@ public class RefBookDataController {
         Page<Long> conflictedRowIdsPage = null;
         if (criteria.isHasDataConflict()) {
 
-            long conflictsCount = conflictService.countConflictedRowIds(toRefBookDataConflictCriteria(criteria));
+            long conflictsCount = conflictService.countConflictedRowIds(toConflictCriteria(criteria));
             if (conflictsCount == 0)
                 return new RestPage<>(emptyList(), new SearchDataCriteria(), 0);
 
@@ -157,12 +157,12 @@ public class RefBookDataController {
 
     private Page<Long> getConflictedRowIds(DataCriteria criteria, int pageSize) {
 
-        RefBookConflictCriteria refBookConflictCriteria = toRefBookDataConflictCriteria(criteria);
-        refBookConflictCriteria.setPageSize(pageSize);
-        return conflictService.searchConflictedRowIds(refBookConflictCriteria);
+        RefBookConflictCriteria conflictCriteria = toConflictCriteria(criteria);
+        conflictCriteria.setPageSize(pageSize);
+        return conflictService.searchConflictedRowIds(conflictCriteria);
     }
 
-    private RefBookConflictCriteria toRefBookDataConflictCriteria(DataCriteria criteria) {
+    private RefBookConflictCriteria toConflictCriteria(DataCriteria criteria) {
 
         RefBookConflictCriteria conflictCriteria = new RefBookConflictCriteria();
         conflictCriteria.setPageSize(criteria.getSize());
@@ -172,7 +172,8 @@ public class RefBookDataController {
         return conflictCriteria;
     }
 
-    private SearchDataCriteria toSearchDataCriteria(DataCriteria criteria, Structure structure, List<Long> conflictedRowIds) {
+    private SearchDataCriteria toSearchDataCriteria(DataCriteria criteria, Structure structure,
+                                                    List<Long> conflictedRowIds) {
 
         List<AttributeFilter> filters = toAttributeFilters(criteria, structure);
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPage() - 1, criteria.getSize(), singleton(filters));
@@ -296,7 +297,7 @@ public class RefBookDataController {
     }
 
     // NB: to-do: DataGridRowCriteria ?!
-    private DataGridRow toDataGridRow(RowValue rowValue, RefBookVersion version, boolean isDataConflict) {
+    private DataGridRow toDataGridRow(RowValue<?> rowValue, RefBookVersion version, boolean isDataConflict) {
 
         Map<String, Object> rowMap = new HashMap<>();
         LongRowValue longRowValue = (LongRowValue) rowValue;
@@ -324,7 +325,7 @@ public class RefBookDataController {
         return cellOptions;
     }
 
-    private Object fieldValueToCell(FieldValue fieldValue, boolean isDataConflict) {
+    private Object fieldValueToCell(FieldValue<?> fieldValue, boolean isDataConflict) {
 
         String stringValue = fieldValueToString(fieldValue);
 
@@ -334,7 +335,7 @@ public class RefBookDataController {
         return stringValue;
     }
 
-    private String fieldValueToString(FieldValue fieldValue) {
+    private String fieldValueToString(FieldValue<?> fieldValue) {
 
         Optional<Object> valueOptional = ofNullable(fieldValue).map(FieldValue::getValue);
 
@@ -372,7 +373,7 @@ public class RefBookDataController {
 
         CompilePipeline pipeline = N2oPipelineSupport.compilePipeline(env);
         CompileContext<?, ?> ctx = new WidgetContext("");
-        StandardField field = pipeline.compile().get(n2oField, ctx);
+        StandardField<?> field = pipeline.compile().get(n2oField, ctx);
 
         return new DataGridColumn(addPrefix(attribute.getCode()), attribute.getName(),
                 true, true, true, field.getControl());
