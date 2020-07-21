@@ -709,7 +709,7 @@ public class DraftServiceImpl implements DraftService {
         if (structure == null)
             structure = new Structure();
 
-        structureChangeValidator.validateCreateAttribute(request);
+        structureChangeValidator.validateCreateAttribute(request, structure);
 
         Structure.Attribute attribute = request.getAttribute();
         validateNewAttribute(attribute, structure, draftEntity.getRefBook().getCode());
