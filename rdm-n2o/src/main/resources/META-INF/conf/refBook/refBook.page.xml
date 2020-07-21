@@ -23,6 +23,7 @@
                         <pre-filters>
                             <eq field-id="refBookId" value="{refBookId}"/>
                         </pre-filters>
+
                         <!-- NB: Реализовать единую точку перехода в режим редактирования -->
                         <validations>
                             <condition id="refBookHasDraft" severity="warning"
@@ -44,7 +45,7 @@
                             <show-modal page-id="publish" upload="defaults">
                                 <pre-filters>
                                     <eq field-id="version.id" value="{version.id}"/>
-                                    <eq field-id="version.optLockValue" value="{version.optLockValue}"/>
+                                    <eq field-id="version.optLockValue" value="{optLockValue}"/>
                                 </pre-filters>
                             </show-modal>
                         </menu-item>
@@ -52,6 +53,7 @@
                                    visibility-condition="version.isLast &amp;&amp; version.hasRefreshedConflict">
                             <invoke operation-id="refreshReferrer"/>
                         </menu-item>
+
                         <menu-item label="Загрузить данные" visibility-condition="version.status=='DRAFT'">
                             <show-modal page-id="uploadData" submit-operation-id="uploadData" upload="defaults"
                                         redirect-target="application"
@@ -70,6 +72,7 @@
                                 </pre-filters>
                             </show-modal>
                         </menu-item>
+
                         <menu-item label="Скачать">
                             <show-modal page-id="downloadFile" upload="defaults">
                                 <pre-filters>
