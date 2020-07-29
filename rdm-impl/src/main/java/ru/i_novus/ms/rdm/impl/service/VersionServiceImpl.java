@@ -185,7 +185,9 @@ public class VersionServiceImpl implements VersionService {
     @Override
     @Transactional
     public Structure getStructure(Integer versionId) {
-        return versionRepository.getOne(versionId).getStructure();
+        
+        RefBookVersionEntity entity = getVersionOrThrow(versionId);
+        return entity.getStructure();
     }
 
     @Override

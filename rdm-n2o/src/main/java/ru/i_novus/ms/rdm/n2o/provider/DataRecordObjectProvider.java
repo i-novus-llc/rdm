@@ -10,11 +10,9 @@ import net.n2oapp.framework.api.metadata.global.dao.object.N2oObject;
 import net.n2oapp.framework.api.metadata.global.dao.validation.N2oConstraint;
 import net.n2oapp.framework.api.metadata.global.dao.validation.N2oValidation;
 import net.n2oapp.framework.api.register.DynamicMetadataProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
-import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.n2o.service.CreateDraftController;
 import ru.i_novus.ms.rdm.n2o.service.DataRecordController;
 
@@ -22,6 +20,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static ru.i_novus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
@@ -31,7 +30,7 @@ import static ru.i_novus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
  * создания/изменения записи из указанной версии справочника.
  */
 @Service
-public class DataRecordObjectProvider implements DynamicMetadataProvider {
+public class DataRecordObjectProvider extends DataRecordBaseProvider implements DynamicMetadataProvider {
 
     static final String OBJECT_PROVIDER_ID = "dataRecordObject";
 
@@ -42,9 +41,6 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
     private static final String CONFLICT_VALIDATION_CLASS_NAME = DataRecordController.class.getName();
     private static final String CONFLICT_VALIDATION_CLASS_METHOD = "getDataConflicts";
     private static final String CONFLICT_TEXT_RESULT = "conflictText";
-
-    @Autowired
-    private VersionService versionService;
 
     @Override
     public String getCode() {
@@ -60,7 +56,7 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
     public List<? extends SourceMetadata> read(String context) {
 
         Integer versionId = Integer.parseInt(context);
-        Structure structure = versionService.getStructure(versionId);
+        Structure structure = getStructureOrNull(versionId);
 
         return singletonList(createObject(versionId, structure));
     }
@@ -172,6 +168,10 @@ public class DataRecordObjectProvider implements DynamicMetadataProvider {
     }
 
     private List<N2oObject.Parameter> createDynamicParams(Structure structure) {
+
+        if (isEmptyStructure(structure)) {
+            return emptyList();
+        }
 
         return structure.getAttributes().stream().map(this::createParam).collect(toList());
     }
