@@ -23,9 +23,11 @@ import java.util.List;
 @Controller
 public class RefBookController {
 
-    private static final String REF_BOOK_STATUS_ARCHIVED = "refbook.status.archived";
-    private static final String REF_BOOK_STATUS_HAS_DRAFT = "refbook.status.has_draft";
-    private static final String REF_BOOK_STATUS_PUBLISHED = "refbook.status.published";
+    private static final String REFBOOK_NOT_FOUND_EXCEPTION_CODE = "refbook.not.found";
+
+    private static final String REFBOOK_STATUS_ARCHIVED = "refbook.status.archived";
+    private static final String REFBOOK_STATUS_HAS_DRAFT = "refbook.status.has_draft";
+    private static final String REFBOOK_STATUS_PUBLISHED = "refbook.status.published";
 
     private Messages messages;
 
@@ -55,7 +57,7 @@ public class RefBookController {
 
         RefBook refBook = refBookService.getByVersionId(permitCriteria(criteria).getVersionId());
         if (refBook == null)
-            return null;
+            throw new UserException(REFBOOK_NOT_FOUND_EXCEPTION_CODE);
 
         if (criteria.getExcludeDraft())
             refBook.setDraftVersionId(null);
@@ -71,9 +73,12 @@ public class RefBookController {
      */
     @SuppressWarnings("unused") // used in: refBookVersion.query.xml
     public RefBook searchLastVersion(RefBookCriteria criteria) {
+
         Page<RefBook> refBooks = refBookService.searchVersions(permitCriteria(criteria));
+
         if (refBooks == null || CollectionUtils.isEmpty(refBooks.getContent()))
-            throw new UserException("refbook.not.found");
+            throw new UserException(REFBOOK_NOT_FOUND_EXCEPTION_CODE);
+
         return refBooks.getContent().get(0);
     }
 
@@ -111,13 +116,13 @@ public class RefBookController {
     public Page<UiRefBookStatus> getStatusList(RefBookStatusCriteria criteria) {
 
         List<UiRefBookStatus> list = new ArrayList<>();
-        list.add(getRefBookStatus(RefBookStatus.PUBLISHED, REF_BOOK_STATUS_PUBLISHED));
+        list.add(getRefBookStatus(RefBookStatus.PUBLISHED, REFBOOK_STATUS_PUBLISHED));
 
         if (!criteria.getExcludeDraft())
-            list.add(getRefBookStatus(RefBookStatus.HAS_DRAFT, REF_BOOK_STATUS_HAS_DRAFT));
+            list.add(getRefBookStatus(RefBookStatus.HAS_DRAFT, REFBOOK_STATUS_HAS_DRAFT));
 
         if (!criteria.getNonArchived())
-            list.add(getRefBookStatus(RefBookStatus.ARCHIVED, REF_BOOK_STATUS_ARCHIVED));
+            list.add(getRefBookStatus(RefBookStatus.ARCHIVED, REFBOOK_STATUS_ARCHIVED));
 
         return new RestPage<>(list, Pageable.unpaged(), list.size());
     }
