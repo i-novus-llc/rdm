@@ -20,6 +20,7 @@
         <apache.poi.version>3.17</apache.poi.version>
         <filestorage.version>2.2</filestorage.version>
         <vds.version>3.00-SNAPSHOT</vds.version>
+        <l10n.vds.version>1.00-SNAPSHOT</l10n.vds.version>
         <n2o.version>7.7.6</n2o.version>
         <itext.version>5.5.9</itext.version>
         <commons.text.version>1.6</commons.text.version>
@@ -83,6 +84,12 @@
                 <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-n2o</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.i-novus.components</groupId>
+                <artifactId>l10n-versioned-data-storage-pg-impl</artifactId>
+                <version>${l10n.vds.version}</version>
             </dependency>
 
             <dependency>

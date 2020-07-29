@@ -13,7 +13,19 @@
     <properties>
         <maven.deploy.skip>true</maven.deploy.skip>
         <jacoco.skip>false</jacoco.skip>
+
+        <vds.config>ru.i_novus.platform.versioned_data_storage.config.VersionedDataStorageConfig</vds.config>
     </properties>
+
+    <profiles>
+        <profile>
+            <id>l10n</id>
+            <properties>
+                <vds.config>ru.i_novus.platform.l10n.versioned_data_storage.config.L10nVersionedDataStorageConfig
+                </vds.config>
+            </properties>
+        </profile>
+    </profiles>
 
     <dependencies>
 
@@ -104,6 +116,11 @@
         </dependency>
 
         <dependency>
+            <groupId>ru.i-novus.components</groupId>
+            <artifactId>l10n-versioned-data-storage-pg-impl</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.monitorjbl</groupId>
             <artifactId>xlsx-streamer</artifactId>
         </dependency>
@@ -170,6 +187,30 @@
                         <version>${querydsl.version}</version>
                     </dependency>
                 </dependencies>
+            </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/src/main/resources</directory>
+                                    <filtering>true</filtering>
+                                    <includes>
+                                        <include>*.xml</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
