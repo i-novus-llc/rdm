@@ -128,13 +128,13 @@ public class BackendConfiguration {
         return factory;
     }
 
-    private static ru.i_novus.ms.audit.client.model.User createAuditUser(String id, String name) {
-        return new ru.i_novus.ms.audit.client.model.User(id != null ? id : name, name);
-    }
-
     @Bean
     public UserAccessor userAccessor() {
         return () -> createAuditUser(SecurityContextUtils.getUserId(), SecurityContextUtils.getUserName());
+    }
+
+    private ru.i_novus.ms.audit.client.model.User createAuditUser(String id, String name) {
+        return new ru.i_novus.ms.audit.client.model.User(id != null ? id : name, name);
     }
 
     @Bean
