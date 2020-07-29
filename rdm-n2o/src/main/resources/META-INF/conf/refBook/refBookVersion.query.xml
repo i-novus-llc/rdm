@@ -2,11 +2,11 @@
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="refBook">
 
     <unique filters="refBookId" result-mapping="#this">
-        <java class="ru.inovus.ms.rdm.n2o.service.RefBookController"
+        <java class="ru.i_novus.ms.rdm.n2o.service.RefBookController"
               method="searchLastVersion">
             <spring/>
             <arguments>
-                <argument type="criteria" class="ru.inovus.ms.rdm.n2o.criteria.RefBookCriteriaDateAndStatus"/>
+                <argument type="criteria" class="ru.i_novus.ms.rdm.n2o.criteria.RefBookCriteriaDateAndStatus"/>
             </arguments>
         </java>
     </unique>
@@ -14,6 +14,10 @@
     <fields>
         <field id="id" domain="integer">
             <select mapping="id"/>
+        </field>
+
+        <field id="optLockValue" domain="integer">
+            <select mapping="optLockValue"/>
         </field>
 
         <field id="refBookId" domain="integer">
@@ -78,10 +82,6 @@
 
         <field id="version.hasRefreshedConflict" domain="boolean">
             <select mapping="hasUpdatedConflict || hasAlteredConflict"/>
-        </field>
-
-        <field id="version.optLockValue" domain="integer">
-            <select mapping="optLockValue"/>
         </field>
 
         <!--Хак, для обновления detail виджетов, если в master нет изменений после рефреша-->

@@ -7,10 +7,10 @@
     </fields>
 
     <operations>
-        <operation id="delete" submit-label="Удалить" success-text="Запись успешно удалена"
+        <operation id="deleteRecord" submit-label="Удалить" success-text="Запись успешно удалена"
                    confirm="true" confirm-text="Вы точно хотите удалить запись?">
             <invocation>
-                <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
+                <java class="ru.i_novus.ms.rdm.n2o.service.CreateDraftController"
                       method="deleteDataRecord">
                     <spring/>
 
@@ -29,9 +29,10 @@
             </in-parameters>
         </operation>
 
-        <operation id="deleteAll" submit-label="Удалить все" success-text="Все записи успешно удалены" confirm="false">
+        <operation id="deleteAllRecords" submit-label="Удалить все" success-text="Все записи успешно удалены"
+                   confirm="false">
             <invocation>
-                <java class="ru.inovus.ms.rdm.n2o.service.CreateDraftController"
+                <java class="ru.i_novus.ms.rdm.n2o.service.CreateDraftController"
                       method="deleteAllDataRecords">
                     <spring/>
 

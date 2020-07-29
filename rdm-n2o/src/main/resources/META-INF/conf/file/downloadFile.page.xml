@@ -13,13 +13,18 @@
         </fields>
 
         <toolbar place="bottomRight">
-            <button id="close" label="скачать">
+            <button id="download" label="Скачать">
                 <a href="${server.servlet.context-path}/files/:versionId/:fileType" target="self">
                     <path-param name="versionId" value="{versionId}"/>
                     <path-param name="fileType" value="{fileType.id}"/>
                 </a>
             </button>
+
+            <button id="close" label="Закрыть">
+                <close/>
+            </button>
         </toolbar>
+
     </form>
 
 </simple-page>

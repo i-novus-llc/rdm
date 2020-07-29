@@ -11,7 +11,7 @@
        http://www.springframework.org/schema/data/jpa/spring-jpa.xsd" >
 
     <bean class="ru.i_novus.platform.versioned_data_storage.config.VersionedDataStorageConfig"/>
-    <context:component-scan base-package="ru.inovus.ms.rdm"/>
-    <jpa:repositories base-package="ru.inovus.ms.rdm.impl.repository"/>
+    <context:component-scan base-package="ru.i_novus.ms.rdm"/>
+    <jpa:repositories base-package="ru.i_novus.ms.rdm.impl.repository"/>
 
 </beans>
