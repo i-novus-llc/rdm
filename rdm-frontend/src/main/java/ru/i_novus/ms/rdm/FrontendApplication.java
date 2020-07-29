@@ -7,10 +7,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import ru.i_novus.ms.audit.client.UserAccessor;
 import ru.i_novus.ms.rdm.n2o.RdmWebConfiguration;
+
+import static ru.i_novus.ms.rdm.SecurityContextUtils.DEFAULT_USER_ID;
+import static ru.i_novus.ms.rdm.SecurityContextUtils.DEFAULT_USER_NAME;
 
 @SpringBootApplication (scanBasePackageClasses = { FrontendApplication.class, AdminRestClientConfiguration.class })
 @Import({ RdmWebConfiguration.class })
@@ -24,16 +25,16 @@ public class FrontendApplication {
     @Bean
     public UserAccessor auditUser() {
         return () -> {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication == null) {
-                return null;
-            }
-            User user = (User) authentication.getPrincipal();
-            return new ru.i_novus.ms.audit.client.model.User(null, user.getUsername());
+            User user = SecurityContextUtils.getPrincipal();
+            return (user == null)
+                    ? createAuditUser(DEFAULT_USER_ID, DEFAULT_USER_NAME)
+                    : createAuditUser(user.getEmail(), user.getUsername());
         };
     }
 
-
+    private ru.i_novus.ms.audit.client.model.User createAuditUser(String id, String name) {
+        return new ru.i_novus.ms.audit.client.model.User(id != null ? id : name, name);
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(FrontendApplication.class, args);
