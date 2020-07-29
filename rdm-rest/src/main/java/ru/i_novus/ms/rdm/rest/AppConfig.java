@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.rest;
+package ru.i_novus.ms.rdm.rest;
 
 import net.n2oapp.platform.loader.server.ServerLoader;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -7,12 +7,12 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
-import ru.inovus.ms.rdm.rest.loader.RefBookDataServerLoaderRunner;
+import ru.i_novus.ms.rdm.rest.loader.RefBookDataServerLoaderRunner;
 
 import java.util.List;
 
 @Configuration
-@ComponentScan({"ru.inovus.ms.rdm.rest", "net.n2oapp.platform.loader.server"})
+@ComponentScan({"ru.i_novus.ms.rdm.rest", "net.n2oapp.platform.loader.server"})
 @SuppressWarnings("unused")
 public class AppConfig {
 

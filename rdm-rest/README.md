@@ -22,7 +22,7 @@ REST-запрос доступен по пути
 import net.n2oapp.platform.loader.autoconfigure.ClientLoaderConfigurer;
 import net.n2oapp.platform.loader.client.ClientLoaderRunner;
 import org.springframework.context.annotation.Configuration;
-import ru.inovus.ms.rdm.loader.client.RefBookDataClientLoader;
+import ru.i_novus.ms.rdm.loader.client.RefBookDataClientLoader;
 
 /**
  * Настройщик загрузчиков файлов справочников RDM.

@@ -1,8 +1,8 @@
-package ru.inovus.ms.rdm.loader.client;
+package ru.i_novus.ms.rdm.loader.client;
 
 import net.n2oapp.platform.loader.client.ClientLoader;
 import net.n2oapp.platform.loader.client.RestClientLoader;
-import org.springframework.core.io.*;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -11,7 +11,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestOperations;
 
 @Component
-public class RefBookDataClientLoader extends RestClientLoader<MultiValueMap<String, Object>> implements ClientLoader {
+public class RefBookDataClientLoader
+        extends RestClientLoader<MultiValueMap<String, Object>> implements ClientLoader {
 
     public RefBookDataClientLoader(RestOperations restTemplate) {
         super(restTemplate);

@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.rest.loader;
+package ru.i_novus.ms.rdm.rest.loader;
 
 import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.loader.server.ServerLoader;
@@ -6,12 +6,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.inovus.ms.rdm.api.exception.NotFoundException;
-import ru.inovus.ms.rdm.api.model.FileModel;
-import ru.inovus.ms.rdm.api.model.draft.Draft;
-import ru.inovus.ms.rdm.api.model.draft.PublishRequest;
-import ru.inovus.ms.rdm.api.service.PublishService;
-import ru.inovus.ms.rdm.api.service.RefBookService;
+import ru.i_novus.ms.rdm.api.exception.NotFoundException;
+import ru.i_novus.ms.rdm.api.model.FileModel;
+import ru.i_novus.ms.rdm.api.model.draft.Draft;
+import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
+import ru.i_novus.ms.rdm.api.service.PublishService;
+import ru.i_novus.ms.rdm.api.service.RefBookService;
 
 import java.util.List;
 
