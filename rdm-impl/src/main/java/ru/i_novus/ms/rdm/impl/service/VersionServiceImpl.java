@@ -165,13 +165,16 @@ public class VersionServiceImpl implements VersionService {
     }
 
     private Page<RefBookRowValue> getRowValuesOfVersion(SearchDataCriteria criteria, RefBookVersionEntity version) {
+
         List<Field> fields = ConverterUtil.fields(version.getStructure());
         Set<List<FieldSearchCriteria>> fieldSearchCriteriaList = new HashSet<>();
         fieldSearchCriteriaList.addAll(ConverterUtil.getFieldSearchCriteriaList(criteria.getAttributeFilter()));
         fieldSearchCriteriaList.addAll(ConverterUtil.getFieldSearchCriteriaList(criteria.getPlainAttributeFilter(), version.getStructure()));
 
         DataCriteria dataCriteria = new DataCriteria(version.getStorageCode(), version.getFromDate(), version.getToDate(),
-                fields, fieldSearchCriteriaList, criteria.getCommonFilter(), criteria.getRowSystemIds());
+                fields, fieldSearchCriteriaList, criteria.getCommonFilter());
+        dataCriteria.setSystemIds(criteria.getRowSystemIds());
+
         dataCriteria.setPage(criteria.getPageNumber() + 1);
         dataCriteria.setSize(criteria.getPageSize());
         Optional.ofNullable(criteria.getSort()).ifPresent(sort -> dataCriteria.setSortings(ConverterUtil.sortings(sort)));
@@ -237,9 +240,9 @@ public class VersionServiceImpl implements VersionService {
                 version.getStorageCode(),
                 version.getFromDate(),
                 version.getToDate(),
-                ConverterUtil.fields(version.getStructure()),
-                singletonList(split[0])
-        );
+                ConverterUtil.fields(version.getStructure()));
+        dataCriteria.setHashList(singletonList(split[0]));
+
         List<RowValue> data = searchDataService.getData(dataCriteria);
         if (CollectionUtils.isEmpty(data))
             throw new NotFoundException(new Message(ROW_NOT_FOUND_EXCEPTION_CODE, rowId));

@@ -6,8 +6,6 @@ import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.DataConstants;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.Structure;
@@ -23,11 +21,14 @@ import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.n2o.model.FormAttribute;
 import ru.i_novus.ms.rdm.n2o.model.UiDraft;
 import ru.i_novus.ms.rdm.n2o.model.UiPassport;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.util.*;
 
 import static java.util.Collections.*;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+import static ru.i_novus.platform.datastorage.temporal.model.StorageConstants.SYS_HASH;
+import static ru.i_novus.platform.datastorage.temporal.model.StorageConstants.SYS_PRIMARY_COLUMN;
 
 @Controller
 @SuppressWarnings("unused")
@@ -251,7 +252,7 @@ public class CreateDraftController {
         if (oldSystemId == null) return null;
 
         SearchDataCriteria criteria = new SearchDataCriteria();
-        AttributeFilter recordIdFilter = new AttributeFilter(DataConstants.SYS_PRIMARY_COLUMN, oldSystemId.intValue(), FieldType.INTEGER);
+        AttributeFilter recordIdFilter = new AttributeFilter(SYS_PRIMARY_COLUMN, oldSystemId.intValue(), FieldType.INTEGER);
         criteria.setAttributeFilter(singleton(singletonList(recordIdFilter)));
 
         Page<RefBookRowValue> oldRow = versionService.search(oldVersionId, criteria);
@@ -259,7 +260,7 @@ public class CreateDraftController {
             throw new NotFoundException(UPDATED_DATA_NOT_FOUND_IN_CURRENT_EXCEPTION_CODE);
 
         String hash = oldRow.getContent().get(0).getHash();
-        AttributeFilter hashFilter = new AttributeFilter(DataConstants.SYS_HASH, hash, FieldType.STRING);
+        AttributeFilter hashFilter = new AttributeFilter(SYS_HASH, hash, FieldType.STRING);
         final SearchDataCriteria hashCriteria = new SearchDataCriteria(ImmutableSet.of(singletonList(hashFilter)), null);
 
         final Page<RefBookRowValue> newRow = versionService.search(newVersionId, hashCriteria);

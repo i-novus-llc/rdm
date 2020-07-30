@@ -8,26 +8,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
-import ru.i_novus.platform.datastorage.temporal.model.DataConstants;
-import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
-import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
-import ru.i_novus.ms.rdm.api.model.conflict.CalculateConflictCriteria;
-import ru.i_novus.ms.rdm.api.model.conflict.DeleteRefBookConflictCriteria;
-import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflict;
-import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
+import ru.i_novus.ms.rdm.api.model.conflict.*;
 import ru.i_novus.ms.rdm.api.model.diff.StructureDiff;
 import ru.i_novus.ms.rdm.api.model.field.ReferenceFilterValue;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
@@ -46,6 +32,13 @@ import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
+import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
+import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
+import ru.i_novus.platform.datastorage.temporal.model.value.*;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
 import java.util.*;
 
@@ -63,6 +56,7 @@ import static ru.i_novus.ms.rdm.api.util.StructureUtils.containsAnyPlaceholder;
 import static ru.i_novus.ms.rdm.api.util.StructureUtils.hasAbsentPlaceholder;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.field;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.fields;
+import static ru.i_novus.platform.datastorage.temporal.model.StorageConstants.SYS_PRIMARY_COLUMN;
 
 @Primary
 @Service
@@ -75,7 +69,7 @@ public class ConflictServiceImpl implements ConflictService {
     private static final List<ConflictType> ALTERED_RECALCULATING_CONFLICT_TYPES = singletonList(ConflictType.DELETED);
 
     static final List<Sort.Order> SORT_VERSION_DATA = singletonList(
-            new Sort.Order(Sort.Direction.ASC, DataConstants.SYS_PRIMARY_COLUMN)
+            new Sort.Order(Sort.Direction.ASC, SYS_PRIMARY_COLUMN)
     );
 
     private RefBookVersionRepository versionRepository;

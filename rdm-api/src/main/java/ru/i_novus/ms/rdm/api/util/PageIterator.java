@@ -22,9 +22,10 @@ public class PageIterator<T, C extends AbstractCriteria> implements Iterator<Pag
     }
 
     public PageIterator(Function<? super C, Page<? extends T>> pageSource, C criteria, boolean defaultSortProvied) {
-        if (!defaultSortProvied && criteria.getSort() == null) {
+
+        if (!defaultSortProvied && criteria.getSort() == null)
             throw new IllegalArgumentException("You must either ensure that default sort is provided by pageSource or set some sorting in your criteria.");
-        }
+
         this.pageSource = pageSource;
         this.criteria = criteria;
         currentPage = criteria.getPageNumber() - 1;

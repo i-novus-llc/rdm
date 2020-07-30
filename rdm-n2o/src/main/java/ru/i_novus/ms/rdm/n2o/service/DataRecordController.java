@@ -31,7 +31,7 @@ import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.api.util.TimeUtils.parseLocalDate;
 import static ru.i_novus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
-import static ru.i_novus.platform.datastorage.temporal.model.DataConstants.SYS_PRIMARY_COLUMN;
+import static ru.i_novus.platform.datastorage.temporal.model.StorageConstants.SYS_PRIMARY_COLUMN;
 
 @Controller
 @SuppressWarnings("unused") // used in: DataRecordQueryProvider

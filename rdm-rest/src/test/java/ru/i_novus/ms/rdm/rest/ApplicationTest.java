@@ -18,15 +18,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import ru.i_novus.common.file.storage.api.FileStorage;
-import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.*;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
-import ru.i_novus.platform.datastorage.temporal.model.value.*;
-import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 import ru.i_novus.ms.rdm.api.enumeration.*;
 import ru.i_novus.ms.rdm.api.model.ExportFile;
 import ru.i_novus.ms.rdm.api.model.FileModel;
@@ -45,6 +36,15 @@ import ru.i_novus.ms.rdm.api.service.*;
 import ru.i_novus.ms.rdm.api.util.FieldValueUtils;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
 import ru.i_novus.ms.rdm.impl.validation.ReferenceValueValidation;
+import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.*;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
+import ru.i_novus.platform.datastorage.temporal.model.value.*;
+import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
+import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -67,12 +67,12 @@ import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.junit.Assert.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static ru.i_novus.platform.datastorage.temporal.model.DataConstants.SYS_PRIMARY_COLUMN;
-import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 import static ru.i_novus.ms.rdm.api.util.TimeUtils.parseLocalDate;
 import static ru.i_novus.ms.rdm.api.util.TimeUtils.parseLocalDateTime;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.fields;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.rowValue;
+import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
+import static ru.i_novus.platform.datastorage.temporal.model.StorageConstants.SYS_PRIMARY_COLUMN;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
@@ -2975,7 +2975,7 @@ public class ApplicationTest {
     private List<RefBookRowValue> getVersionAllRowContent(Integer versionId, String storageCode,
                                                           Structure structure,
                                                           LocalDateTime bdate, LocalDateTime edate) {
-        DataCriteria criteria = new DataCriteria(storageCode, bdate, edate, fields(structure), null);
+        DataCriteria criteria = new DataCriteria(storageCode, bdate, edate, fields(structure));
         criteria.setPage(0);
         criteria.setSize(0);
 
