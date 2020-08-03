@@ -11,7 +11,6 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.datastorage.temporal.service.StorageCodeService;
@@ -24,6 +23,7 @@ import java.util.Optional;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 
 @RunWith(MockitoJUnitRunner.class)
 public class VersionServiceTest {
@@ -55,7 +55,7 @@ public class VersionServiceTest {
         versionService.search(1, searchDataCriteria);
 
         DataCriteria dataCriteria = new DataCriteria(TEST_STORAGE_CODE, testVersion.getFromDate(), testVersion.getToDate(), new ArrayList<>(),
-                ConverterUtil.getFieldSearchCriteriaList(searchDataCriteria.getAttributeFilter()), searchDataCriteria.getCommonFilter());
+                toFieldSearchCriterias(searchDataCriteria.getAttributeFilter()), searchDataCriteria.getCommonFilter());
         verify(searchDataService).getPagedData(eq(dataCriteria));
     }
 

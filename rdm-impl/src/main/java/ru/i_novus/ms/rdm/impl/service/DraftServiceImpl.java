@@ -12,13 +12,6 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.components.common.exception.CodifiedException;
-import ru.i_novus.platform.datastorage.temporal.model.*;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
-import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -51,6 +44,13 @@ import ru.i_novus.ms.rdm.impl.util.mappers.*;
 import ru.i_novus.ms.rdm.impl.validation.StructureChangeValidator;
 import ru.i_novus.ms.rdm.impl.validation.TypeValidation;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
+import ru.i_novus.platform.datastorage.temporal.model.*;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -63,6 +63,7 @@ import static java.util.stream.Collectors.*;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.api.util.RowUtils.toLongSystemIds;
 import static ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity.objectPassportToValues;
+import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 
 @Primary
 @Service
@@ -642,7 +643,7 @@ public class DraftServiceImpl implements DraftService {
         List<Field> fields = ConverterUtil.fields(draft.getStructure());
 
         DataCriteria dataCriteria = new DataCriteria(storageCode, null, null,
-                fields, ConverterUtil.getFieldSearchCriteriaList(criteria.getAttributeFilter()), criteria.getCommonFilter());
+                fields, toFieldSearchCriterias(criteria.getAttributeFilter()), criteria.getCommonFilter());
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
         return new RowValuePage(pagedData).map(rv -> new RefBookRowValue((LongRowValue) rv, draft.getId()));
     }

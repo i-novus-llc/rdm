@@ -56,6 +56,7 @@ import java.util.*;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.hasVersionId;
+import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 
 @Service
 @Primary
@@ -174,8 +175,8 @@ public class VersionServiceImpl implements VersionService {
 
         List<Field> fields = ConverterUtil.fields(version.getStructure());
         Set<List<FieldSearchCriteria>> fieldSearchCriteriaList = new HashSet<>();
-        fieldSearchCriteriaList.addAll(ConverterUtil.getFieldSearchCriteriaList(criteria.getAttributeFilter()));
-        fieldSearchCriteriaList.addAll(ConverterUtil.getFieldSearchCriteriaList(criteria.getPlainAttributeFilter(), version.getStructure()));
+        fieldSearchCriteriaList.addAll(toFieldSearchCriterias(criteria.getAttributeFilter()));
+        fieldSearchCriteriaList.addAll(toFieldSearchCriterias(criteria.getPlainAttributeFilter(), version.getStructure()));
 
         StorageCodeCriteria codeCriteria = new L10nStorageCodeCriteria(version.getStorageCode(), LocaleContextHelper.getLocale());
         String storageCode = storageCodeService.toStorageCode(codeCriteria);

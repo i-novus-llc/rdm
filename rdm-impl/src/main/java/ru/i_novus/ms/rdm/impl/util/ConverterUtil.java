@@ -76,7 +76,7 @@ public class ConverterUtil {
         return sortings;
     }
 
-    public static Set<List<FieldSearchCriteria>> getFieldSearchCriteriaList(Set<List<AttributeFilter>> attributeFilters) {
+    public static Set<List<FieldSearchCriteria>> toFieldSearchCriterias(Set<List<AttributeFilter>> attributeFilters) {
 
         if (isEmpty(attributeFilters))
             return emptySet();
@@ -90,7 +90,7 @@ public class ConverterUtil {
         ).collect(toSet());
     }
 
-    public static Set<List<FieldSearchCriteria>> getFieldSearchCriteriaList(Map<String, String> filters, Structure structure) {
+    public static Set<List<FieldSearchCriteria>> toFieldSearchCriterias(Map<String, String> filters, Structure structure) {
 
         if (isEmpty(filters))
             return emptySet();

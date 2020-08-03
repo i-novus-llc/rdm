@@ -8,14 +8,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
-import ru.i_novus.platform.datastorage.temporal.model.DataDifference;
-import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.i_novus.platform.datastorage.temporal.service.CompareDataService;
-import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.*;
 import ru.i_novus.ms.rdm.api.model.diff.*;
@@ -30,7 +22,14 @@ import ru.i_novus.ms.rdm.impl.entity.PassportValueEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.PassportAttributeRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
+import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
+import ru.i_novus.platform.datastorage.temporal.model.DataDifference;
+import ru.i_novus.platform.datastorage.temporal.model.Field;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.i_novus.platform.datastorage.temporal.service.CompareDataService;
+import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +40,7 @@ import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.api.util.ComparableUtils.*;
+import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 
 @Service
 @Primary
@@ -240,7 +240,7 @@ public class CompareServiceImpl implements CompareService {
                 .collect(Collectors.toList()));
         compareDataCriteria.setFields(getCommonFields(oldVersion.getStructure(), newVersion.getStructure()));
 
-        compareDataCriteria.setPrimaryFieldsFilters(ConverterUtil.getFieldSearchCriteriaList(rdmCriteria.getPrimaryAttributesFilters()));
+        compareDataCriteria.setPrimaryFieldsFilters(toFieldSearchCriterias(rdmCriteria.getPrimaryAttributesFilters()));
         compareDataCriteria.setCountOnly(rdmCriteria.getCountOnly() != null && rdmCriteria.getCountOnly());
         compareDataCriteria.setStatus(rdmCriteria.getDiffStatus());
         compareDataCriteria.setPage(rdmCriteria.getPageNumber() + 1);
