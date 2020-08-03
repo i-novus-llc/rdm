@@ -38,6 +38,7 @@ import ru.i_novus.ms.rdm.impl.entity.*;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.file.export.VersionDataIterator;
 import ru.i_novus.ms.rdm.impl.file.process.*;
+import ru.i_novus.ms.rdm.impl.l10n.LocaleContextHelper;
 import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.util.*;
 import ru.i_novus.ms.rdm.impl.util.mappers.*;
@@ -46,11 +47,12 @@ import ru.i_novus.ms.rdm.impl.validation.TypeValidation;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageCodeCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
-import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
+import ru.i_novus.platform.datastorage.temporal.service.*;
+import ru.i_novus.platform.l10n.versioned_data_storage.model.criteria.L10nStorageCodeCriteria;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -76,6 +78,7 @@ public class DraftServiceImpl implements DraftService {
     private RefBookVersionRepository versionRepository;
     private RefBookConflictRepository conflictRepository;
 
+    private StorageCodeService storageCodeService;
     private DraftDataService draftDataService;
     private DropDataService dropDataService;
     private SearchDataService searchDataService;
@@ -100,7 +103,8 @@ public class DraftServiceImpl implements DraftService {
     @Autowired
     @SuppressWarnings("squid:S00107")
     public DraftServiceImpl(RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
-                            DraftDataService draftDataService, DropDataService dropDataService, SearchDataService searchDataService,
+                            StorageCodeService storageCodeService, DraftDataService draftDataService,
+                            DropDataService dropDataService, SearchDataService searchDataService,
                             RefBookLockService refBookLockService, VersionService versionService,
                             FileStorage fileStorage, FileNameGenerator fileNameGenerator,
                             VersionFileService versionFileService,
@@ -111,6 +115,7 @@ public class DraftServiceImpl implements DraftService {
         this.versionRepository = versionRepository;
         this.conflictRepository = conflictRepository;
 
+        this.storageCodeService = storageCodeService;
         this.draftDataService = draftDataService;
         this.dropDataService = dropDataService;
         this.searchDataService = searchDataService;
@@ -639,11 +644,17 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateDraftExists(draftId);
 
         RefBookVersionEntity draft = versionRepository.getOne(draftId);
-        String storageCode = draft.getStorageCode();
         List<Field> fields = ConverterUtil.fields(draft.getStructure());
 
+        Set<List<FieldSearchCriteria>> fieldSearchCriterias = new HashSet<>();
+        fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getAttributeFilter()));
+        fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getPlainAttributeFilter(), draft.getStructure()));
+
+        StorageCodeCriteria codeCriteria = new L10nStorageCodeCriteria(draft.getStorageCode(), LocaleContextHelper.getLocale());
+        String storageCode = storageCodeService.toStorageCode(codeCriteria);
+
         DataCriteria dataCriteria = new DataCriteria(storageCode, null, null,
-                fields, toFieldSearchCriterias(criteria.getAttributeFilter()), criteria.getCommonFilter());
+                fields, fieldSearchCriterias, criteria.getCommonFilter());
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
         return new RowValuePage(pagedData).map(rv -> new RefBookRowValue((LongRowValue) rv, draft.getId()));
     }

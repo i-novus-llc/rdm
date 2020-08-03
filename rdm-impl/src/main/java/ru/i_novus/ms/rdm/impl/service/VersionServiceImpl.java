@@ -174,15 +174,16 @@ public class VersionServiceImpl implements VersionService {
     private Page<RefBookRowValue> getRowValuesOfVersion(SearchDataCriteria criteria, RefBookVersionEntity version) {
 
         List<Field> fields = ConverterUtil.fields(version.getStructure());
-        Set<List<FieldSearchCriteria>> fieldSearchCriteriaList = new HashSet<>();
-        fieldSearchCriteriaList.addAll(toFieldSearchCriterias(criteria.getAttributeFilter()));
-        fieldSearchCriteriaList.addAll(toFieldSearchCriterias(criteria.getPlainAttributeFilter(), version.getStructure()));
+
+        Set<List<FieldSearchCriteria>> fieldSearchCriterias = new HashSet<>();
+        fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getAttributeFilter()));
+        fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getPlainAttributeFilter(), version.getStructure()));
 
         StorageCodeCriteria codeCriteria = new L10nStorageCodeCriteria(version.getStorageCode(), LocaleContextHelper.getLocale());
         String storageCode = storageCodeService.toStorageCode(codeCriteria);
 
         DataCriteria dataCriteria = new DataCriteria(storageCode, version.getFromDate(), version.getToDate(),
-                fields, fieldSearchCriteriaList, criteria.getCommonFilter());
+                fields, fieldSearchCriterias, criteria.getCommonFilter());
         dataCriteria.setSystemIds(criteria.getRowSystemIds());
 
         dataCriteria.setPage(criteria.getPageNumber() + 1);
