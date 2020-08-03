@@ -179,8 +179,7 @@ public class VersionServiceImpl implements VersionService {
         fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getAttributeFilter()));
         fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getPlainAttributeFilter(), version.getStructure()));
 
-        StorageCodeCriteria codeCriteria = new L10nStorageCodeCriteria(version.getStorageCode(), LocaleContextHelper.getLocale());
-        String storageCode = storageCodeService.toStorageCode(codeCriteria);
+        String storageCode = toLocaleStorageCode(version.getStorageCode(), criteria.getLocaleCode());
 
         DataCriteria dataCriteria = new DataCriteria(storageCode, version.getFromDate(), version.getToDate(),
                 fields, fieldSearchCriterias, criteria.getCommonFilter());
@@ -324,5 +323,12 @@ public class VersionServiceImpl implements VersionService {
     private InputStream generateVersionFile(RefBookVersion versionModel, FileType fileType) {
         VersionDataIterator dataIterator = new VersionDataIterator(this, Collections.singletonList(versionModel.getId()));
         return versionFileService.generate(versionModel, fileType, dataIterator);
+    }
+
+    private String toLocaleStorageCode(String storageCode, String localeCode) {
+
+        LocaleContextHelper.setLocale(localeCode);
+        StorageCodeCriteria codeCriteria = new L10nStorageCodeCriteria(storageCode, LocaleContextHelper.getLocale());
+        return storageCodeService.toStorageCode(codeCriteria);
     }
 }

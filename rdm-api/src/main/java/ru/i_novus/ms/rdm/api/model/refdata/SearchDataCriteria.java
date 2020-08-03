@@ -1,21 +1,22 @@
 package ru.i_novus.ms.rdm.api.model.refdata;
 
 import io.swagger.annotations.ApiParam;
-import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.model.AbstractCriteria;
+import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 
 import javax.ws.rs.QueryParam;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Критерий поиска данных справочника.
  */
 public class SearchDataCriteria extends AbstractCriteria {
 
-    @ApiParam("Множество фильтров по отдельным полям")
+    @ApiParam("Код локали")
+    @QueryParam("localeCode")
+    private String localeCode;
+
+    @ApiParam("Множество списков фильтров по отдельным полям")
     @QueryParam("attributeFilter")
     private Set<List<AttributeFilter>> attributeFilter;
 
@@ -51,12 +52,12 @@ public class SearchDataCriteria extends AbstractCriteria {
         this.setPageSize(pageSize);
     }
 
-    public Map<String, String> getPlainAttributeFilter() {
-        return plainAttributeFilter;
+    public String getLocaleCode() {
+        return localeCode;
     }
 
-    public void setPlainAttributeFilter(Map<String, String> plainAttributeFilter) {
-        this.plainAttributeFilter = plainAttributeFilter;
+    public void setLocaleCode(String localeCode) {
+        this.localeCode = localeCode;
     }
 
     public Set<List<AttributeFilter>> getAttributeFilter() {
@@ -65,6 +66,14 @@ public class SearchDataCriteria extends AbstractCriteria {
 
     public void setAttributeFilter(Set<List<AttributeFilter>> attributeFilter) {
         this.attributeFilter = attributeFilter;
+    }
+
+    public Map<String, String> getPlainAttributeFilter() {
+        return plainAttributeFilter;
+    }
+
+    public void setPlainAttributeFilter(Map<String, String> plainAttributeFilter) {
+        this.plainAttributeFilter = plainAttributeFilter;
     }
 
     public List<Long> getRowSystemIds() {

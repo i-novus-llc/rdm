@@ -17,16 +17,29 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public class DataCriteria extends Criteria {
 
-    /** Идентификатор версии справочника. */
+    /**
+     * Идентификатор версии справочника.
+     */
     private Integer versionId;
 
-    /** Значение оптимистической блокировки версии. */
+    /**
+     * Значение оптимистической блокировки версии.
+     */
     private Integer optLockValue;
 
-    /** Фильтр по атрибутам: код = значение. */
+    /**
+     * Код локали.
+     */
+    private String localeCode;
+
+    /**
+     * Фильтр по атрибутам: код = значение.
+     */
     private Map<String, Serializable> filter;
 
-    /** Наличие конфликта данных. */
+    /**
+     * Наличие конфликта данных.
+     */
     private Boolean hasDataConflict;
 
     public DataCriteria() {
@@ -56,6 +69,14 @@ public class DataCriteria extends Criteria {
 
     public void setOptLockValue(Integer optLockValue) {
         this.optLockValue = optLockValue;
+    }
+
+    public String getLocaleCode() {
+        return localeCode;
+    }
+
+    public void setLocaleCode(String localeCode) {
+        this.localeCode = localeCode;
     }
 
     public Map<String, Serializable> getFilter() {

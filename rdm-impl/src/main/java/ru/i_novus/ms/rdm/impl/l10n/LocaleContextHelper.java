@@ -7,6 +7,8 @@ import java.util.Locale;
 
 public class LocaleContextHelper {
 
+    private static final Locale EMPTY_LOCALE = new Locale("");
+
     private LocaleContextHelper() {
         throw new UnsupportedOperationException();
 
@@ -16,8 +18,14 @@ public class LocaleContextHelper {
 
         LocaleContext context = LocaleContextHolder.getLocaleContext();
         if (context == null)
-            return new Locale("");
+            return EMPTY_LOCALE;
 
         return context.getLocale();
+    }
+
+    public static void setLocale(String code) {
+
+        Locale locale = code != null ? new Locale(code) : EMPTY_LOCALE;
+        LocaleContextHolder.setLocale(locale);
     }
 }

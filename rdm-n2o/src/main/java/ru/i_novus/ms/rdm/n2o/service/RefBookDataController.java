@@ -21,12 +21,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.i_novus.platform.datastorage.temporal.model.value.DateFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
@@ -42,6 +36,12 @@ import ru.i_novus.ms.rdm.n2o.model.DataGridColumn;
 import ru.i_novus.ms.rdm.n2o.provider.DataRecordConstants;
 import ru.i_novus.ms.rdm.n2o.provider.N2oDomain;
 import ru.i_novus.ms.rdm.n2o.util.RdmUiUtil;
+import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.value.DateFieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -57,10 +57,10 @@ import static java.util.stream.Collectors.toList;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.util.StringUtils.isEmpty;
+import static ru.i_novus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
 import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.EXACT;
 import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.LIKE;
-import static ru.i_novus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
 
 @Component
 public class RefBookDataController {
@@ -79,7 +79,8 @@ public class RefBookDataController {
     private static final String BOOL_FALSE_REGEX = "false|f|n|no|nah|н|нет|ложь|неправда";
     private static final Pattern BOOL_FALSE_PATTERN = Pattern.compile(BOOL_FALSE_REGEX);
 
-    private static final Map<String, Object> dataConflictedCellOptions = getDataConflictedCellOptions();
+    private static final SearchDataCriteria EMPTY_SEARCH_DATA_CRITERIA = new SearchDataCriteria();
+    private static final Map<String, Object> DATA_CONFLICTED_CELL_OPTIONS = getDataConflictedCellOptions();
 
     @Autowired
     private MetadataEnvironment env;
@@ -111,9 +112,9 @@ public class RefBookDataController {
 
             long conflictsCount = conflictService.countConflictedRowIds(toConflictCriteria(criteria));
             if (conflictsCount == 0)
-                return new RestPage<>(emptyList(), new SearchDataCriteria(), 0);
+                return new RestPage<>(emptyList(), EMPTY_SEARCH_DATA_CRITERIA, 0);
 
-            long dataCount = versionService.search(version.getId(), new SearchDataCriteria()).getTotalElements();
+            long dataCount = versionService.search(version.getId(), EMPTY_SEARCH_DATA_CRITERIA).getTotalElements();
             if (conflictsCount != dataCount) {
                 conflictedRowIdsPage = getConflictedRowIds(criteria, (int) conflictsCount);
             }
@@ -177,6 +178,7 @@ public class RefBookDataController {
 
         List<AttributeFilter> filters = toAttributeFilters(criteria, structure);
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPage() - 1, criteria.getSize(), singleton(filters));
+        searchDataCriteria.setLocaleCode(criteria.getLocaleCode());
 
         List<Sort.Order> orders = criteria.getSorting() == null ? emptyList() : singletonList(toSortOrder(criteria.getSorting()));
         searchDataCriteria.setOrders(orders);
@@ -267,7 +269,7 @@ public class RefBookDataController {
                                                  List<RefBookRowValue> searchContent) {
 
         DataGridRow dataGridHead = new DataGridRow(createHead(version.getStructure()));
-        List<DataGridRow> dataGridRows = getDataGridRows(version, searchContent, criteria.isHasDataConflict());
+        List<DataGridRow> dataGridRows = getDataGridRows(version, searchContent, criteria);
 
         List<DataGridRow> resultRows = new ArrayList<>();
         resultRows.add(dataGridHead);
@@ -277,16 +279,17 @@ public class RefBookDataController {
 
     private List<DataGridRow> getDataGridRows(RefBookVersion version,
                                               List<RefBookRowValue> searchContent,
-                                              boolean allWithConflicts) {
+                                              DataCriteria criteria) {
 
-        List<Long> conflictedRowsIds = allWithConflicts
+        List<Long> conflictedRowsIds = criteria.isHasDataConflict()
                 ? emptyList()
                 : conflictService.getReferrerConflictedIds(version.getId(), getRowSystemIds(searchContent));
 
         return searchContent.stream()
                 .map(rowValue -> {
-                    boolean isDataConflict = allWithConflicts || conflictedRowsIds.contains(rowValue.getSystemId());
-                    return toDataGridRow(rowValue, version, isDataConflict);
+                    boolean isDataConflict = criteria.isHasDataConflict() ||
+                            conflictedRowsIds.contains(rowValue.getSystemId());
+                    return toDataGridRow(rowValue, version, criteria, isDataConflict);
                 })
                 .collect(toList());
     }
@@ -297,7 +300,8 @@ public class RefBookDataController {
     }
 
     // NB: to-do: DataGridRowCriteria ?!
-    private DataGridRow toDataGridRow(RowValue<?> rowValue, RefBookVersion version, boolean isDataConflict) {
+    private DataGridRow toDataGridRow(RowValue<?> rowValue, RefBookVersion version,
+                                      DataCriteria criteria, boolean isDataConflict) {
 
         Map<String, Object> rowMap = new HashMap<>();
         LongRowValue longRowValue = (LongRowValue) rowValue;
@@ -310,6 +314,7 @@ public class RefBookDataController {
         rowMap.put(DataRecordConstants.FIELD_SYSTEM_ID, String.valueOf(longRowValue.getSystemId()));
         rowMap.put(DataRecordConstants.FIELD_VERSION_ID, String.valueOf(version.getId()));
         rowMap.put(DataRecordConstants.FIELD_OPT_LOCK_VALUE, String.valueOf(version.getOptLockValue()));
+        rowMap.put(DataRecordConstants.FIELD_LOCALE_CODE, String.valueOf(criteria.getLocaleCode()));
 
         return new DataGridRow(longRowValue.getSystemId(), rowMap);
     }
@@ -330,7 +335,7 @@ public class RefBookDataController {
         String stringValue = fieldValueToString(fieldValue);
 
         if (isDataConflict)
-            return new DataGridCell(stringValue, dataConflictedCellOptions);
+            return new DataGridCell(stringValue, DATA_CONFLICTED_CELL_OPTIONS);
 
         return stringValue;
     }

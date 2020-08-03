@@ -28,6 +28,12 @@
             </filters>
         </field>
 
+        <field id="localeCode" domain="string">
+            <filters>
+                <eq filter-id="localeCode" mapping="localeCode" domain="string"/>
+            </filters>
+        </field>
+
         <field id="columns">
             <select/>
         </field>
