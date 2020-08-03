@@ -44,6 +44,7 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
+import ru.i_novus.platform.datastorage.temporal.service.StorageCodeService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 
 import javax.sql.DataSource;
@@ -170,6 +171,9 @@ public class ApplicationTest {
 
     @Autowired
     private FileStorage fileStorage;
+
+    @Autowired
+    private StorageCodeService storageCodeService;
 
     @Autowired
     private DraftDataService draftDataService;
