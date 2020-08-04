@@ -13,8 +13,7 @@
                             </dependencies>
                         </output-text>
 
-                        <output-text id="optLockValue">
-                            <!--                        <output-text id="optLockValue" visible="false">-->
+                        <output-text id="optLockValue" visible="false">
                             <dependencies>
                                 <set-value on="version">version.optLockValue</set-value>
                             </dependencies>
@@ -41,11 +40,11 @@
                             </validations>
                         </select>
 
-                        <select id="localeCode" no-label="true">
-                            <dependencies>
-                                <visibility on="optLockValue">optLockValue != null &amp;&amp; optLockValue &gt; 0
-                                </visibility>
-                            </dependencies>
+                        <select id="localeCode" no-label="true" visible="false">
+                            <!--<dependencies>-->
+                            <!--    <visibility>return #{l10n.support}</visibility>-->
+                            <!--</dependencies>-->
+
                             <options>
                                 <option id="ru" name="Русский (по умолчанию)"/>
                                 <option id="en" name="Английский"/>
