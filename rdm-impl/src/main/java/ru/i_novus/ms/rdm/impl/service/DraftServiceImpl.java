@@ -650,8 +650,7 @@ public class DraftServiceImpl implements DraftService {
         fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getAttributeFilter()));
         fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getPlainAttributeFilter(), draft.getStructure()));
 
-        StorageCodeCriteria codeCriteria = new L10nStorageCodeCriteria(draft.getStorageCode(), LocaleContextHelper.getLocale());
-        String storageCode = storageCodeService.toStorageCode(codeCriteria);
+        String storageCode = toLocaleStorageCode(draft.getStorageCode(), criteria.getLocaleCode());
 
         DataCriteria dataCriteria = new DataCriteria(storageCode, null, null,
                 fields, fieldSearchCriterias, criteria.getCommonFilter());
@@ -1052,6 +1051,13 @@ public class DraftServiceImpl implements DraftService {
 
     private void validateOptLockValue(RefBookVersionEntity entity, DraftChangeRequest request) {
         versionValidation.validateOptLockValue(entity.getId(), entity.getOptLockValue(), request.getOptLockValue());
+    }
+
+    private String toLocaleStorageCode(String storageCode, String localeCode) {
+
+        LocaleContextHelper.setLocale(localeCode);
+        StorageCodeCriteria codeCriteria = new L10nStorageCodeCriteria(storageCode, LocaleContextHelper.getLocale());
+        return storageCodeService.toStorageCode(codeCriteria);
     }
 
     private void auditStructureEdit(RefBookVersionEntity refBook, String action, Structure.Attribute attribute) {
