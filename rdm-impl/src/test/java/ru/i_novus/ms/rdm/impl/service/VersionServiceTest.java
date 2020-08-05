@@ -50,12 +50,12 @@ public class VersionServiceTest {
         when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>());
 
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
-        searchDataCriteria.setAttributeFilter(new HashSet<>());
+        searchDataCriteria.setAttributeFilters(new HashSet<>());
         searchDataCriteria.setCommonFilter("commonFilter");
         versionService.search(1, searchDataCriteria);
 
         DataCriteria dataCriteria = new DataCriteria(TEST_STORAGE_CODE, testVersion.getFromDate(), testVersion.getToDate(), new ArrayList<>(),
-                toFieldSearchCriterias(searchDataCriteria.getAttributeFilter()), searchDataCriteria.getCommonFilter());
+                toFieldSearchCriterias(searchDataCriteria.getAttributeFilters()), searchDataCriteria.getCommonFilter());
         verify(searchDataService).getPagedData(eq(dataCriteria));
     }
 

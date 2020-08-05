@@ -562,7 +562,7 @@ public class DraftServiceImpl implements DraftService {
                 .filter(row -> row.getSystemId() == null)
                 .map(row -> RowUtils.getPrimaryKeyValueFilters(row, primaries))
                 .flatMap(Collection::stream).collect(toList());
-        criteria.setAttributeFilter(Set.of(filters));
+        criteria.addAttributeFilterList(filters);
 
         Page<RefBookRowValue> rowValues = versionService.search(draftVersion.getId(), criteria);
         if (rowValues == null || isEmpty(rowValues.getContent()))
@@ -647,8 +647,8 @@ public class DraftServiceImpl implements DraftService {
         List<Field> fields = ConverterUtil.fields(draft.getStructure());
 
         Set<List<FieldSearchCriteria>> fieldSearchCriterias = new HashSet<>();
-        fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getAttributeFilter()));
-        fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getPlainAttributeFilter(), draft.getStructure()));
+        fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getAttributeFilters()));
+        fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getPlainAttributeFilters(), draft.getStructure()));
 
         String storageCode = toLocaleStorageCode(draft.getStorageCode(), criteria.getLocaleCode());
 

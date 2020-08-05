@@ -51,7 +51,8 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static java.time.format.DateTimeFormatter.ofPattern;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.data.domain.Sort.Direction.ASC;
@@ -177,8 +178,9 @@ public class RefBookDataController {
                                                     List<Long> conflictedRowIds) {
 
         List<AttributeFilter> filters = toAttributeFilters(criteria, structure);
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPage() - 1, criteria.getSize(), singleton(filters));
+        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPage() - 1, criteria.getSize());
         searchDataCriteria.setLocaleCode(criteria.getLocaleCode());
+        searchDataCriteria.addAttributeFilterList(filters);
 
         List<Sort.Order> orders = criteria.getSorting() == null ? emptyList() : singletonList(toSortOrder(criteria.getSorting()));
         searchDataCriteria.setOrders(orders);

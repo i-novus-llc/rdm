@@ -185,7 +185,8 @@ public class CompareServiceImpl implements CompareService {
         Structure newStructure = versionService.getStructure(criteria.getNewVersionId());
         Structure oldStructure = versionService.getStructure(criteria.getOldVersionId());
 
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize(), criteria.getPrimaryAttributesFilters());
+        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize());
+        searchDataCriteria.setAttributeFilters(criteria.getPrimaryAttributesFilters());
         Page<RefBookRowValue> newData = versionService.search(criteria.getNewVersionId(), searchDataCriteria);
 
         RefBookDataDiff refBookDataDiff = compareData(createVdsCompareDataCriteria(criteria, newData, newStructure));
@@ -270,21 +271,23 @@ public class CompareServiceImpl implements CompareService {
 
         boolean hasUpdOrDelAttr = !isEmpty(refBookDataDiff.getUpdatedAttributes()) || !isEmpty(refBookDataDiff.getOldAttributes());
 
-        SearchDataCriteria oldSearchDataCriteria = hasUpdOrDelAttr
-                ? new SearchDataCriteria(0, criteria.getPageSize(), createPrimaryAttributesFilters(newData, newStructure))
-                : null;
+        Page<RefBookRowValue> oldData = null;
+        if (hasUpdOrDelAttr) {
+            SearchDataCriteria oldSearchDataCriteria = new SearchDataCriteria();
+            oldSearchDataCriteria.setPageSize(criteria.getPageSize());
+            oldSearchDataCriteria.setAttributeFilters(createPrimaryAttributesFilters(newData, newStructure));
 
-        Page<RefBookRowValue> oldData = hasUpdOrDelAttr
-                ? versionService.search(criteria.getOldVersionId(), oldSearchDataCriteria)
-                : null;
+            oldData = versionService.search(criteria.getOldVersionId(), oldSearchDataCriteria);
+        }
 
+        final List<RefBookRowValue> oldContent = oldData != null ? oldData.getContent() : null;
         newData.getContent()
                 .forEach(newRowValue -> {
                     ComparableRow comparableRow = new ComparableRow();
                     DiffRowValue diffRowValue = findDiffRowValue(newStructure.getPrimary(), newRowValue,
                             refBookDataDiff.getRows().getContent());
-                    RowValue oldRowValue = oldData != null
-                            ? findRowValue(newStructure.getPrimary(), newRowValue, oldData.getContent())
+                    RowValue oldRowValue = oldContent != null
+                            ? findRowValue(newStructure.getPrimary(), newRowValue, oldContent)
                             : null;
 
                     comparableRow.setStatus(diffRowValue != null ? diffRowValue.getStatus() : null);
@@ -309,13 +312,19 @@ public class CompareServiceImpl implements CompareService {
                                 RefBookDataDiff refBookDataDiffDeleted, Structure oldStructure,
                                 CompareCriteria criteria, int totalNewCount) {
         if (comparableRows.size() < criteria.getPageSize()) {
+
             int skipPageCount = criteria.getPageNumber() - totalNewCount / criteria.getPageSize();
             long newDataOnLastPageCount = totalNewCount % criteria.getPageSize();
             long skipDeletedRowsCount = criteria.getPageSize() * skipPageCount - newDataOnLastPageCount;
+
             long pageSize = skipDeletedRowsCount + criteria.getPageSize();
             if (pageSize <= 0)
                 return;
-            SearchDataCriteria delSearchDataCriteria = new SearchDataCriteria(0, (int) pageSize, createPrimaryAttributesFilters(refBookDataDiffDeleted, oldStructure));
+
+            SearchDataCriteria delSearchDataCriteria = new SearchDataCriteria();
+            delSearchDataCriteria.setPageSize((int) pageSize);
+            delSearchDataCriteria.setAttributeFilters(createPrimaryAttributesFilters(refBookDataDiffDeleted, oldStructure));
+
             Page<RefBookRowValue> delData = versionService.search(criteria.getOldVersionId(), delSearchDataCriteria);
             delData.getContent()
                     .stream()

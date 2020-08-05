@@ -18,11 +18,11 @@ public class SearchDataCriteria extends AbstractCriteria {
 
     @ApiParam("Множество списков фильтров по отдельным полям")
     @QueryParam("attributeFilter")
-    private Set<List<AttributeFilter>> attributeFilter;
+    private Set<List<AttributeFilter>> attributeFilters;
 
     @ApiParam("Простые фильтры по полям")
     @QueryParam("plainAttributeFilter")
-    private Map<String, String> plainAttributeFilter;
+    private Map<String, String> plainAttributeFilters;
 
     @ApiParam("Системные идентификаторы строк")
     @QueryParam("rowSystemIds")
@@ -35,21 +35,9 @@ public class SearchDataCriteria extends AbstractCriteria {
     public SearchDataCriteria() {
     }
 
-    public SearchDataCriteria(Set<List<AttributeFilter>> attributeFilter, String commonFilter) {
-        this.attributeFilter = attributeFilter;
-        this.commonFilter = commonFilter;
-    }
+    public SearchDataCriteria(int pageNumber, int pageSize) {
 
-    public SearchDataCriteria(Set<List<AttributeFilter>> attributeFilter, Map<String, String> plainAttributeFilter, String commonFilter) {
-        this.attributeFilter = attributeFilter;
-        this.plainAttributeFilter = plainAttributeFilter;
-        this.commonFilter = commonFilter;
-    }
-
-    public SearchDataCriteria(int pageNumber, int pageSize, Set<List<AttributeFilter>> attributeFilter) {
-        this(attributeFilter, null);
-        this.setPageNumber(pageNumber);
-        this.setPageSize(pageSize);
+        super(pageNumber, pageSize);
     }
 
     public String getLocaleCode() {
@@ -60,20 +48,20 @@ public class SearchDataCriteria extends AbstractCriteria {
         this.localeCode = localeCode;
     }
 
-    public Set<List<AttributeFilter>> getAttributeFilter() {
-        return attributeFilter;
+    public Set<List<AttributeFilter>> getAttributeFilters() {
+        return attributeFilters;
     }
 
-    public void setAttributeFilter(Set<List<AttributeFilter>> attributeFilter) {
-        this.attributeFilter = attributeFilter;
+    public void setAttributeFilters(Set<List<AttributeFilter>> attributeFilters) {
+        this.attributeFilters = attributeFilters;
     }
 
-    public Map<String, String> getPlainAttributeFilter() {
-        return plainAttributeFilter;
+    public Map<String, String> getPlainAttributeFilters() {
+        return plainAttributeFilters;
     }
 
-    public void setPlainAttributeFilter(Map<String, String> plainAttributeFilter) {
-        this.plainAttributeFilter = plainAttributeFilter;
+    public void setPlainAttributeFilters(Map<String, String> plainAttributeFilters) {
+        this.plainAttributeFilters = plainAttributeFilters;
     }
 
     public List<Long> getRowSystemIds() {
@@ -92,6 +80,15 @@ public class SearchDataCriteria extends AbstractCriteria {
         this.commonFilter = commonFilter;
     }
 
+    public void addAttributeFilterList(List<AttributeFilter> attributeFilterList) {
+
+        if (this.attributeFilters == null) {
+            this.attributeFilters = new HashSet<>();
+        }
+
+        this.attributeFilters.add(attributeFilterList);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -99,14 +96,14 @@ public class SearchDataCriteria extends AbstractCriteria {
 
         SearchDataCriteria that = (SearchDataCriteria) o;
 
-        if (!Objects.equals(attributeFilter, that.attributeFilter))
+        if (!Objects.equals(attributeFilters, that.attributeFilters))
             return false;
         return Objects.equals(commonFilter, that.commonFilter);
     }
 
     @Override
     public int hashCode() {
-        int result = attributeFilter != null ? attributeFilter.hashCode() : 0;
+        int result = attributeFilters != null ? attributeFilters.hashCode() : 0;
         result = 31 * result + (commonFilter != null ? commonFilter.hashCode() : 0);
         return result;
     }

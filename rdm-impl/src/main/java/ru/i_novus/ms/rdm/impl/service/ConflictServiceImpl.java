@@ -537,8 +537,9 @@ public class ConflictServiceImpl implements ConflictService {
         if (versionId == null || isEmpty(systemIds))
             return emptyList();
 
-        SearchDataCriteria criteria = new SearchDataCriteria(toSystemIdFilters(systemIds), null);
+        SearchDataCriteria criteria = new SearchDataCriteria();
         criteria.setPageSize(RefBookConflictQueryProvider.REF_BOOK_CONFLICT_PAGE_SIZE);
+        criteria.setRowSystemIds(systemIds);
 
         Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
         return (rowValues != null && !isEmpty(rowValues.getContent())) ? rowValues.getContent() : emptyList();
@@ -555,8 +556,8 @@ public class ConflictServiceImpl implements ConflictService {
     private List<DiffRowValue> getRefToDiffRowValues(Integer oldVersionId, Integer newVersionId, List<ReferenceFilterValue> filterValues) {
 
         CompareDataCriteria criteria = new CompareDataCriteria(oldVersionId, newVersionId);
-        criteria.setPrimaryAttributesFilters(toAttributeFilters(filterValues));
         criteria.setPageSize(RefBookConflictQueryProvider.REF_BOOK_CONFLICT_PAGE_SIZE);
+        criteria.setPrimaryAttributesFilters(toAttributeFilters(filterValues));
 
         return compareService.compareData(criteria).getRows().getContent();
     }
@@ -787,8 +788,9 @@ public class ConflictServiceImpl implements ConflictService {
         if (versionId == null || isEmpty(filterValues))
             return emptyList();
 
-        SearchDataCriteria criteria = new SearchDataCriteria(toAttributeFilters(filterValues), null);
+        SearchDataCriteria criteria = new SearchDataCriteria();
         criteria.setPageSize(REF_BOOK_VERSION_DATA_PAGE_SIZE);
+        criteria.setAttributeFilters(toAttributeFilters(filterValues));
 
         Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
         return (rowValues != null && !isEmpty(rowValues.getContent())) ? rowValues.getContent() : emptyList();

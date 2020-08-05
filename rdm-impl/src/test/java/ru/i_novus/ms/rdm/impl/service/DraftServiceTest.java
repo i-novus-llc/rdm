@@ -4,25 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.criteria.api.Criteria;
 import net.n2oapp.platform.i18n.UserException;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.mockito.*;
 import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.util.StringUtils;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
-import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
-import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
-import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.FileModel;
@@ -36,10 +24,7 @@ import ru.i_novus.ms.rdm.api.util.FieldValueUtils;
 import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.api.validation.VersionPeriodPublishValidation;
-import ru.i_novus.ms.rdm.impl.entity.PassportAttributeEntity;
-import ru.i_novus.ms.rdm.impl.entity.PassportValueEntity;
-import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
-import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.entity.*;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.file.MockFileStorage;
 import ru.i_novus.ms.rdm.impl.file.UploadFileTestData;
@@ -48,6 +33,12 @@ import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.validation.StructureChangeValidator;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
+import ru.i_novus.platform.datastorage.temporal.service.*;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -63,8 +54,8 @@ import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 import static ru.i_novus.ms.rdm.api.model.version.UpdateValue.of;
+import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DraftServiceTest {
@@ -604,13 +595,15 @@ public class DraftServiceTest {
         PageImpl<RefBookRowValue> dataPage = new PageImpl<>(List.of(row));
         CollectionPage<RowValue> pagedData = new CollectionPage<>();
         pagedData.init(1, List.of(row));
-        when(versionService.search(eq(draft.getId()), ArgumentMatchers.argThat(searchDataCriteria -> !searchDataCriteria.getAttributeFilter().isEmpty()))).thenReturn(dataPage);
+        when(versionService.search(eq(draft.getId()), ArgumentMatchers.argThat(searchDataCriteria -> !searchDataCriteria.getAttributeFilters().isEmpty())))
+                .thenReturn(dataPage);
 
         if (primaryType == FieldType.REFERENCE) {
             RefBookVersionEntity refToRefBookVersionEntity = new RefBookVersionEntity();
             refToRefBookVersionEntity.setId(1234567890);
             refToRefBookVersionEntity.setStructure(new Structure(singletonList(Structure.Attribute.buildPrimary("-", "-", FieldType.STRING, "-")), emptyList()));
-            when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq("REF_TO_CODE"), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(refToRefBookVersionEntity);
+            when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq("REF_TO_CODE"), eq(RefBookVersionStatus.PUBLISHED)))
+                    .thenReturn(refToRefBookVersionEntity);
             RefBookVersion refToRefBookVersion = new RefBookVersion();
             refToRefBookVersion.setId(refToRefBookVersionEntity.getId());
             refToRefBookVersion.setCode("REF_TO_CODE");

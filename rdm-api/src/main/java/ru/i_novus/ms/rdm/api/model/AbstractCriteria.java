@@ -16,6 +16,10 @@ public class AbstractCriteria extends RestCriteria {
         super(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
     }
 
+    public AbstractCriteria(int pageNumber, int pageSize) {
+        super(pageNumber, pageSize);
+    }
+
     @Override
     protected List<Sort.Order> getDefaultOrders() {
         return Collections.emptyList();

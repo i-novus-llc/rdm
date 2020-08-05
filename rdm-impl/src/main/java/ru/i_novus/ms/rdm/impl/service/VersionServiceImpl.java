@@ -176,8 +176,8 @@ public class VersionServiceImpl implements VersionService {
         List<Field> fields = ConverterUtil.fields(version.getStructure());
 
         Set<List<FieldSearchCriteria>> fieldSearchCriterias = new HashSet<>();
-        fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getAttributeFilter()));
-        fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getPlainAttributeFilter(), version.getStructure()));
+        fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getAttributeFilters()));
+        fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getPlainAttributeFilters(), version.getStructure()));
 
         String storageCode = toLocaleStorageCode(version.getStorageCode(), criteria.getLocaleCode());
 

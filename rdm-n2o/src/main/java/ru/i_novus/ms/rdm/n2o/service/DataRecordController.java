@@ -128,7 +128,7 @@ public class DataRecordController {
 
         SearchDataCriteria criteria = new SearchDataCriteria();
         AttributeFilter recordIdFilter = new AttributeFilter(SYS_PRIMARY_COLUMN, sysRecordId, FieldType.INTEGER);
-        criteria.setAttributeFilter(singleton(singletonList(recordIdFilter)));
+        criteria.addAttributeFilterList(singletonList(recordIdFilter));
 
         Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
         return !isEmpty(rowValues.getContent()) ? rowValues.getContent() : emptyList();
