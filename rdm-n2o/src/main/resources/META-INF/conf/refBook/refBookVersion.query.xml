@@ -16,6 +16,10 @@
             <select mapping="id"/>
         </field>
 
+        <field id="optLockValue" domain="integer">
+            <select mapping="optLockValue"/>
+        </field>
+
         <field id="refBookId" domain="integer">
             <select mapping="refBookId"/>
             <filters>
@@ -78,10 +82,6 @@
 
         <field id="version.hasRefreshedConflict" domain="boolean">
             <select mapping="hasUpdatedConflict || hasAlteredConflict"/>
-        </field>
-
-        <field id="version.optLockValue" domain="integer">
-            <select mapping="optLockValue"/>
         </field>
 
         <!--Хак, для обновления detail виджетов, если в master нет изменений после рефреша-->

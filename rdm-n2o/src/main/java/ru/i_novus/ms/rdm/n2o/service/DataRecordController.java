@@ -1,12 +1,12 @@
 package ru.i_novus.ms.rdm.n2o.service;
 
 import net.n2oapp.platform.i18n.Messages;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflict;
@@ -19,6 +19,8 @@ import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
 import ru.i_novus.ms.rdm.n2o.provider.DataRecordConstants;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -27,13 +29,15 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static ru.i_novus.platform.datastorage.temporal.model.DataConstants.SYS_PRIMARY_COLUMN;
 import static ru.i_novus.ms.rdm.api.util.TimeUtils.parseLocalDate;
 import static ru.i_novus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
+import static ru.i_novus.platform.datastorage.temporal.model.DataConstants.SYS_PRIMARY_COLUMN;
 
 @Controller
 @SuppressWarnings("unused") // used in: DataRecordQueryProvider
 public class DataRecordController {
+
+    private static final Logger logger = LoggerFactory.getLogger(DataRecordController.class);
 
     private static final String CONFLICT_TEXT = "conflict.text";
     private static final String CONFLICT_TEXT_UPDATED = "conflict.text.updated";
@@ -139,8 +143,8 @@ public class DataRecordController {
      */
     public String getDataConflicts(Integer referrerVersionId, Long sysRecordId) {
 
-        final Structure structure = versionService.getStructure(referrerVersionId);
-        if (isEmpty(structure.getReferences()))
+        final Structure structure = getStructureOrNull(referrerVersionId);
+        if (structure == null || isEmpty(structure.getReferences()))
             return null;
 
         List<String> refFieldCodes = StructureUtils.getReferenceAttributeCodes(structure).collect(toList());
@@ -152,6 +156,17 @@ public class DataRecordController {
                 .map(conflict -> getConflictText(conflict.getConflictType(),
                         () -> getConflictRefFieldName(conflict, structure)))
                 .collect(joining(" \n"));
+    }
+
+    private Structure getStructureOrNull(Integer versionId) {
+        try {
+            return versionService.getStructure(versionId);
+
+        } catch (Exception e) {
+            logger.error("Structure is not received for data", e);
+
+            return null;
+        }
     }
 
     /**
