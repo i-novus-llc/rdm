@@ -221,6 +221,7 @@
                 <module>rdm-frontend</module>
                 <module>rdm-n2o</module>
                 <module>rdm-esnsi</module>
+                <module>rdm-l10n</module>
             </modules>
         </profile>
         <profile>
