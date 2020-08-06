@@ -31,7 +31,6 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.entity.VersionFileEntity;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.file.export.VersionDataIterator;
-import ru.i_novus.ms.rdm.impl.l10n.LocaleContextHelper;
 import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
@@ -198,7 +197,7 @@ public class VersionServiceImpl implements VersionService {
     @Override
     @Transactional
     public Structure getStructure(Integer versionId) {
-        
+
         RefBookVersionEntity entity = getVersionOrThrow(versionId);
         return entity.getStructure();
     }
@@ -321,6 +320,7 @@ public class VersionServiceImpl implements VersionService {
     }
 
     private InputStream generateVersionFile(RefBookVersion versionModel, FileType fileType) {
+
         VersionDataIterator dataIterator = new VersionDataIterator(this, Collections.singletonList(versionModel.getId()));
         return versionFileService.generate(versionModel, fileType, dataIterator);
     }

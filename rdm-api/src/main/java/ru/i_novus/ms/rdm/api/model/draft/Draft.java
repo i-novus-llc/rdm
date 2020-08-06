@@ -2,13 +2,17 @@ package ru.i_novus.ms.rdm.api.model.draft;
 
 import java.util.Objects;
 
-/** Модель черновика. */
+/**
+ * Модель черновика.
+ */
 public class Draft {
 
     /** Идентификатор черновика. */
     private Integer id;
 
-    /** storage_code. */
+    /**
+     * Код хранилища.
+     */
     private String storageCode;
 
     /** Значение оптимистической блокировки версии-черновика. */

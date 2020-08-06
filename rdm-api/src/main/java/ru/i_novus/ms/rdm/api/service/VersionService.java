@@ -94,7 +94,7 @@ public interface VersionService {
                                  @BeanParam SearchDataCriteria criteria);
 
     @GET
-    @Path("/structure")
+    @Path("/{versionId}/structure")
     @ApiOperation("Получение структуры версии справочника")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Структура версии справочника"),
