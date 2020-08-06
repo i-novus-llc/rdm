@@ -205,6 +205,14 @@ public class VersionServiceImpl implements VersionService {
 
     @Override
     @Transactional
+    public String getStorageCode(Integer versionId) {
+
+        RefBookVersionEntity entity = getVersionOrThrow(versionId);
+        return entity.getStorageCode();
+    }
+
+    @Override
+    @Transactional
     public ExistsData existsData(List<String> rowIds) {
         List<String> notExistent = new ArrayList<>();
         Map<Integer, List<String>> hashes = new HashMap<>();

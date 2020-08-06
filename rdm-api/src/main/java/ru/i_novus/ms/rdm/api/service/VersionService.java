@@ -100,7 +100,16 @@ public interface VersionService {
             @ApiResponse(code = 200, message = "Структура версии справочника"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Structure getStructure(@ApiParam("Идентификатор версии") @QueryParam("versionId") Integer versionId);
+    Structure getStructure(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId);
+
+    @GET
+    @Path("/{versionId}/storageCode")
+    @ApiOperation("Получение кода хранилища версии справочника")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Код хранилища версии справочника"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    String getStorageCode(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId);
 
     @GET
     @ApiOperation("Информация о существовании записей в системе")
