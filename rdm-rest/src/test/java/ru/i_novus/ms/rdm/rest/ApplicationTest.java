@@ -375,7 +375,7 @@ public class ApplicationTest {
 
         // поиск по идентификатору справочника
         RefBookCriteria refBookCriteria = new RefBookCriteria();
-        refBookCriteria.setRefBookIds(singletonList(500));
+        refBookCriteria.setRefBookIds(singletonList(REF_BOOK_ID));
         Page<RefBook> search = refBookService.search(refBookCriteria);
         assertEquals(1, search.getTotalElements());
 
