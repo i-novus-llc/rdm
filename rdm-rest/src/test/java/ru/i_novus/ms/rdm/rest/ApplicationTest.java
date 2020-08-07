@@ -3067,17 +3067,17 @@ public class ApplicationTest {
         draftService.updateData(draftId, request);
     }
 
-    public void deleteData(Integer draftId, Row row, Integer optLockValue) {
+    private void deleteData(Integer draftId, Row row, Integer optLockValue) {
         DeleteDataRequest request = new DeleteDataRequest(optLockValue, row);
         draftService.deleteData(draftId, request);
     }
 
-    public void deleteAllData(Integer draftId, Integer optLockValue) {
+    private void deleteAllData(Integer draftId, Integer optLockValue) {
         DeleteAllDataRequest request = new DeleteAllDataRequest(optLockValue);
         draftService.deleteAllData(draftId, request);
     }
 
-    public void updateFromFile(Integer draftId, Integer optLockValue, String filePath, String fileName) {
+    private void updateFromFile(Integer draftId, Integer optLockValue, String filePath, String fileName) {
         FileModel fileModel = createFileModel(filePath, fileName);
         UpdateFromFileRequest request = new UpdateFromFileRequest(optLockValue, fileModel);
         draftService.updateFromFile(draftId, request);
