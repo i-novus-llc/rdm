@@ -2,14 +2,21 @@ package ru.i_novus.ms.rdm.l10n.impl.service;
 
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
+import org.apache.cxf.common.util.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.service.VersionService;
+import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
 import ru.i_novus.ms.rdm.l10n.api.service.L10nVersionService;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.l10n.versioned_data_storage.pg_impl.dao.L10nDataDao;
 import ru.i_novus.platform.l10n.versioned_data_storage.pg_impl.service.L10nStorageCodeService;
 
+import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 import static org.springframework.util.StringUtils.isEmpty;
 import static ru.i_novus.platform.datastorage.temporal.util.StorageUtils.*;
 
@@ -43,10 +50,7 @@ public class L10nVersionServiceImpl implements L10nVersionService {
         if (isEmpty(localeCode))
             throw new IllegalArgumentException(LOCALE_CODE_NOT_FOUND_EXCEPTION_CODE);
 
-        String schemaName = storageCodeService.toSchemaName(localeCode);
-        if (isDefaultSchema(schemaName) || !isValidSchemaName(schemaName))
-            throw new UserException(new Message(LOCALE_CODE_IS_INVALID_EXCEPTION_CODE, localeCode));
-
+        String schemaName = toSchemaName(localeCode);
         if (!draftDataService.schemaExists(schemaName)) {
             draftDataService.createSchema(schemaName);
         }
@@ -70,8 +74,29 @@ public class L10nVersionServiceImpl implements L10nVersionService {
     @Override
     public void localizeData(Integer versionId, LocalizeDataRequest request) {
 
-        localizeTable(versionId, request.getLocaleCode());
+        String localeCode = request.getLocaleCode();
+        localizeTable(versionId, localeCode);
 
         // Замена записей на локализованные.
+        String schemaName = toSchemaName(localeCode);
+
+        Structure structure = versionService.getStructure(versionId);
+        List<RowValue> updatedRowValues = request.getRows().stream()
+                .map(row -> ConverterUtil.rowValue(row, structure))
+                .filter(rowValue -> rowValue.getSystemId() != null)
+                .collect(toList());
+        if (CollectionUtils.isEmpty(updatedRowValues))
+            return;
+
+        draftDataService.updateRows(schemaName, updatedRowValues);
+    }
+
+    private String toSchemaName(String localeCode) {
+
+        String schemaName = storageCodeService.toSchemaName(localeCode);
+        if (isDefaultSchema(schemaName) || !isValidSchemaName(schemaName))
+            throw new UserException(new Message(LOCALE_CODE_IS_INVALID_EXCEPTION_CODE, localeCode));
+
+        return schemaName;
     }
 }
