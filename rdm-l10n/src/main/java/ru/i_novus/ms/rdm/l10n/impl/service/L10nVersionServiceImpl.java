@@ -38,9 +38,8 @@ public class L10nVersionServiceImpl implements L10nVersionService {
     }
 
     @Override
-    public void localizeData(Integer versionId, LocalizeDataRequest request) {
+    public void localizeTable(Integer versionId, String localeCode) {
 
-        String localeCode = request.getLocaleCode();
         if (isEmpty(localeCode))
             throw new IllegalArgumentException(LOCALE_CODE_NOT_FOUND_EXCEPTION_CODE);
 
@@ -57,9 +56,21 @@ public class L10nVersionServiceImpl implements L10nVersionService {
             throw new IllegalArgumentException(STORAGE_CODE_NOT_FOUND_EXCEPTION_CODE);
 
         String targetCode = toStorageCode(schemaName, sourceCode);
-        if (!draftDataService.storageExists(sourceCode)) {
-            dataDao.createLocalizedTable(sourceCode, targetCode);
-        }
+        if (draftDataService.storageExists(sourceCode))
+            return;
+
+        dataDao.createLocalizedTable(sourceCode, targetCode);
+
+        // Копирование всех колонок записей, FTS обновлён по триггеру.
+        draftDataService.copyAllData(sourceCode, targetCode);
+
+        dataDao.alterLocalizedTable(targetCode);
+    }
+
+    @Override
+    public void localizeData(Integer versionId, LocalizeDataRequest request) {
+
+        localizeTable(versionId, request.getLocaleCode());
 
         // Замена записей на локализованные.
     }
