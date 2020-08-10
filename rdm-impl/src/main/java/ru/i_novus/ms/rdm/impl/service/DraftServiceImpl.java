@@ -654,6 +654,11 @@ public class DraftServiceImpl implements DraftService {
 
         DataCriteria dataCriteria = new DataCriteria(storageCode, null, null,
                 fields, fieldSearchCriterias, criteria.getCommonFilter());
+
+        dataCriteria.setPage(criteria.getPageNumber() + 1);
+        dataCriteria.setSize(criteria.getPageSize());
+        Optional.ofNullable(criteria.getSort()).ifPresent(sort -> dataCriteria.setSortings(ConverterUtil.sortings(sort)));
+
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
         return new RowValuePage(pagedData).map(rv -> new RefBookRowValue((LongRowValue) rv, draft.getId()));
     }
