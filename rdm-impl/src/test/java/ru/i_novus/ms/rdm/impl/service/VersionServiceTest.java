@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.impl.service;
 
 import net.n2oapp.criteria.api.CollectionPage;
+import net.n2oapp.criteria.api.Criteria;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -16,9 +17,7 @@ import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.datastorage.temporal.service.StorageCodeService;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Optional;
+import java.util.*;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
@@ -44,10 +43,12 @@ public class VersionServiceTest {
 
     @Test
     public void testSearchVersion() {
+
         RefBookVersionEntity testVersion = createTestVersion();
+
         when(versionRepository.findById(anyInt())).thenReturn(Optional.of(testVersion));
         when(storageCodeService.toStorageCode(any())).thenReturn(TEST_STORAGE_CODE);
-        when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>());
+        when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>(0, Collections.emptyList(), new Criteria()));
 
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
         searchDataCriteria.setAttributeFilters(new HashSet<>());

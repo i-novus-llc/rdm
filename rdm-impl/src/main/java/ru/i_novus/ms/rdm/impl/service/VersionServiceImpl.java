@@ -190,9 +190,7 @@ public class VersionServiceImpl implements VersionService {
         Optional.ofNullable(criteria.getSort()).ifPresent(sort -> dataCriteria.setSortings(ConverterUtil.sortings(sort)));
 
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
-        return pagedData.getCollection() != null
-                ? new RowValuePage(pagedData).map(rv -> new RefBookRowValue((LongRowValue) rv, version.getId()))
-                : null;
+        return new RowValuePage(pagedData).map(rv -> new RefBookRowValue((LongRowValue) rv, version.getId()));
     }
 
     @Override
