@@ -9,7 +9,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
@@ -55,6 +54,7 @@ import java.util.*;
 
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
+import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.hasVersionId;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 
@@ -262,7 +262,7 @@ public class VersionServiceImpl implements VersionService {
         dataCriteria.setHashList(singletonList(split[0]));
 
         List<RowValue> data = searchDataService.getData(dataCriteria);
-        if (CollectionUtils.isEmpty(data))
+        if (isEmpty(data))
             throw new NotFoundException(new Message(ROW_NOT_FOUND_EXCEPTION_CODE, rowId));
 
         if (data.size() > 1)

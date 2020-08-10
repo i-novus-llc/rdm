@@ -2,6 +2,10 @@ package ru.i_novus.ms.rdm.impl.validation;
 
 import net.n2oapp.platform.i18n.Message;
 import org.apache.commons.collections4.MapUtils;
+import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.model.refdata.Row;
+import ru.i_novus.ms.rdm.api.util.RowUtils;
+import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
@@ -9,10 +13,6 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriter
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.model.refdata.Row;
-import ru.i_novus.ms.rdm.api.util.RowUtils;
-import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 
 import java.util.*;
 
@@ -91,7 +91,7 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
 
         DataCriteria criteria = createCriteria(rows);
         Collection<RowValue> rowValues = searchDataService.getPagedData(criteria).getCollection();
-        return rowValues.stream().map(this::toPrimaryRowValue).collect(toList());
+        return !isEmpty(rowValues) ? rowValues.stream().map(this::toPrimaryRowValue).collect(toList()) : emptyList();
     }
 
     private DataCriteria createCriteria(List<Row> rows) {
