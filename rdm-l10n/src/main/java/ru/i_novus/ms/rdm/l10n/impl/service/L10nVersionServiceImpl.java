@@ -65,10 +65,8 @@ public class L10nVersionServiceImpl implements L10nVersionService {
 
         dataDao.createLocalizedTable(sourceCode, targetCode);
 
-        // Копирование всех колонок записей, FTS обновлён по триггеру.
+        // Копирование всех колонок записей, FTS обновляется по триггеру.
         draftDataService.copyAllData(sourceCode, targetCode);
-
-        dataDao.alterLocalizedTable(targetCode);
     }
 
     @Override
