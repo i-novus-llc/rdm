@@ -60,10 +60,9 @@ public class L10nVersionServiceImpl implements L10nVersionService {
             throw new IllegalArgumentException(STORAGE_CODE_NOT_FOUND_EXCEPTION_CODE);
 
         String targetCode = toStorageCode(schemaName, sourceCode);
-        if (draftDataService.storageExists(sourceCode))
-            return;
-
-        dataDao.createLocalizedTable(sourceCode, targetCode);
+        if (!draftDataService.storageExists(sourceCode)) {
+            dataDao.createLocalizedTable(sourceCode, targetCode);
+        }
 
         // Копирование всех колонок записей, FTS обновляется по триггеру.
         draftDataService.copyAllData(sourceCode, targetCode);
