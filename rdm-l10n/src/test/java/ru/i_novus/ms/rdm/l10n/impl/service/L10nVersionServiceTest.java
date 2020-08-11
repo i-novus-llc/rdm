@@ -7,8 +7,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
-import ru.i_novus.ms.rdm.api.service.DraftService;
-import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -51,11 +49,7 @@ public class L10nVersionServiceTest {
     private DraftDataService draftDataService;
 
     @Mock
-    private RefBookService refBookService;
-    @Mock
     private VersionService versionService;
-    @Mock
-    private DraftService draftService;
 
     @Test
     public void testLocalizeData() {
