@@ -38,9 +38,7 @@ import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageCodeCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.datastorage.temporal.service.StorageCodeService;
@@ -181,11 +179,11 @@ public class VersionServiceImpl implements VersionService {
 
         String storageCode = toLocaleStorageCode(version.getStorageCode(), criteria.getLocaleCode());
 
-        DataCriteria dataCriteria = new DataCriteria(storageCode, version.getFromDate(), version.getToDate(),
+        StorageDataCriteria dataCriteria = new StorageDataCriteria(storageCode, version.getFromDate(), version.getToDate(),
                 fields, fieldSearchCriterias, criteria.getCommonFilter());
         dataCriteria.setSystemIds(criteria.getRowSystemIds());
 
-        dataCriteria.setPage(criteria.getPageNumber() + 1);
+        dataCriteria.setPage(criteria.getPageNumber() + DataCriteria.PAGE_SHIFT);
         dataCriteria.setSize(criteria.getPageSize());
         Optional.ofNullable(criteria.getSort()).ifPresent(sort -> dataCriteria.setSortings(ConverterUtil.sortings(sort)));
 
@@ -252,7 +250,7 @@ public class VersionServiceImpl implements VersionService {
         final Integer versionId = Integer.parseInt(split[1]);
         RefBookVersionEntity version = getVersionOrThrow(versionId);
 
-        DataCriteria dataCriteria = new DataCriteria(
+        StorageDataCriteria dataCriteria = new StorageDataCriteria(
                 version.getStorageCode(),
                 version.getFromDate(),
                 version.getToDate(),

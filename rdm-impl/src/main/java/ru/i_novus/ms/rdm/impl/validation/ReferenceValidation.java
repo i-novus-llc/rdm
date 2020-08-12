@@ -13,9 +13,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
@@ -64,6 +62,7 @@ public class ReferenceValidation implements RdmValidation {
     @Override
     @Transactional(readOnly = true)
     public List<Message> validate() {
+
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
         Structure.Attribute draftAttribute = draftEntity.getStructure().getAttribute(reference.getAttribute());
         Field draftField = field(draftAttribute);
@@ -93,9 +92,9 @@ public class ReferenceValidation implements RdmValidation {
                     .collect(toList());
         }
 
-        DataCriteria draftDataCriteria = new DataCriteria(draftEntity.getStorageCode(), null, null,
+        StorageDataCriteria draftDataCriteria = new StorageDataCriteria(draftEntity.getStorageCode(), null, null,
                 singletonList(draftField), emptySet(), null);
-        draftDataCriteria.setPage(1);
+        draftDataCriteria.setPage(DataCriteria.MIN_PAGE);
         draftDataCriteria.setSize(bufSize);
 
         // Значения, не приводимые к типу атрибута, на который ссылаемся,
@@ -109,7 +108,7 @@ public class ReferenceValidation implements RdmValidation {
     }
 
     // NB: Странный рекурсивный проход по страницам.
-    private void validateData(DataCriteria draftDataCriteria, List<String> incorrectValues,
+    private void validateData(StorageDataCriteria draftDataCriteria, List<String> incorrectValues,
                               RefBookVersionEntity referredEntity, Field referredField) {
         CollectionPage<RowValue> draftRowValues = searchDataService.getPagedData(draftDataCriteria);
         // Значения, которые приведены к типу атрибута из ссылки
@@ -124,16 +123,15 @@ public class ReferenceValidation implements RdmValidation {
 
             } catch (NumberFormatException | DateTimeParseException | RdmException e) {
                 incorrectValues.add(value);
-                logger.error("Can not parse value " + value, e);
+                logger.error(String.format("Can not parse value %s", value), e);
             }
         });
 
         if (!isEmpty(castedValues)) {
             FieldSearchCriteria refFieldSearchCriteria = new FieldSearchCriteria(referredField, SearchTypeEnum.EXACT, castedValues);
-            DataCriteria referredDataCriteria =
-                    new DataCriteria(referredEntity.getStorageCode(),
-                            referredEntity.getFromDate(), referredEntity.getToDate(),
-                            singletonList(referredField), singletonList(refFieldSearchCriteria), null);
+            StorageDataCriteria referredDataCriteria = new StorageDataCriteria(referredEntity.getStorageCode(),
+                    referredEntity.getFromDate(), referredEntity.getToDate(),
+                    singletonList(referredField), singletonList(refFieldSearchCriteria), null);
             CollectionPage<RowValue> refRowValuePage = searchDataService.getPagedData(referredDataCriteria);
             Collection<RowValue> refRowValues = (refRowValuePage.getCollection() != null) ? refRowValuePage.getCollection() : emptyList();
 

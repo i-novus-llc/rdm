@@ -11,7 +11,7 @@ import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-import ru.i_novus.platform.l10n.versioned_data_storage.pg_impl.service.L10nStorageCodeService;
+import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nStorageCodeService;
 
 import java.math.BigInteger;
 import java.util.HashMap;

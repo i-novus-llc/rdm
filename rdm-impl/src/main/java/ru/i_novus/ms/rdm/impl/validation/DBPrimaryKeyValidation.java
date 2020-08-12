@@ -8,9 +8,7 @@ import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
@@ -89,23 +87,23 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
         if (isEmpty(primaryKeyMaps))
             return emptyList();
 
-        DataCriteria criteria = createCriteria(rows);
+        StorageDataCriteria criteria = createCriteria(rows);
         Collection<RowValue> rowValues = searchDataService.getPagedData(criteria).getCollection();
         return !isEmpty(rowValues) ? rowValues.stream().map(this::toPrimaryRowValue).collect(toList()) : emptyList();
     }
 
-    private DataCriteria createCriteria(List<Row> rows) {
+    private StorageDataCriteria createCriteria(List<Row> rows) {
 
         List<Field> fields = primaryKeys.stream().map(ConverterUtil::field).collect(toList());
-        Set<List<FieldSearchCriteria>> filters = primaryKeyMaps.stream()
+        Set<List<FieldSearchCriteria>> fieldFilters = primaryKeyMaps.stream()
                 .filter(this::isCorrectType)
                 .map(entry -> entry.entrySet().stream()
                         .map(this::toFieldSearchCriteria)
                         .collect(toList())
                 ).collect(toSet());
 
-        DataCriteria criteria = new DataCriteria(storageCode, null, null, fields, filters, null);
-        criteria.setPage(1);
+        StorageDataCriteria criteria = new StorageDataCriteria(storageCode, null, null, fields, fieldFilters, null);
+        criteria.setPage(DataCriteria.MIN_PAGE);
         criteria.setSize(calculateCriteriaSize(rows));
         return criteria;
     }

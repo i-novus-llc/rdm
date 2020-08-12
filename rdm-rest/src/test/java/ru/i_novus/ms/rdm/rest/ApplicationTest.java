@@ -41,6 +41,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
@@ -2991,9 +2992,9 @@ public class ApplicationTest {
     private List<RefBookRowValue> getVersionAllRowContent(Integer versionId, String storageCode,
                                                           Structure structure,
                                                           LocalDateTime bdate, LocalDateTime edate) {
-        DataCriteria criteria = new DataCriteria(storageCode, bdate, edate, fields(structure));
-        criteria.setPage(0);
-        criteria.setSize(0);
+        StorageDataCriteria criteria = new StorageDataCriteria(storageCode, bdate, edate, fields(structure));
+        criteria.setPage(DataCriteria.NO_PAGINATION_PAGE);
+        criteria.setSize(DataCriteria.NO_PAGINATION_SIZE);
 
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(criteria);
         if (pagedData.getCollection() == null)

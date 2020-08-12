@@ -34,9 +34,7 @@ import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
@@ -347,7 +345,7 @@ public class ConflictServiceImpl implements ConflictService {
 
         List<RefBookRowValue> refFromRowValues = getSystemRowValues(refFromEntity.getId(), refFromSystemIds);
         List<ReferenceFilterValue> filterValues = toFilterValues(refFromEntity, oldRefToEntity, conflicts, refFromRowValues);
-        List<DiffRowValue> diffRowValues = getRefToDiffRowValues(oldRefToEntity.getId(), newRefToEntity.getId(), filterValues);
+        List<DiffRowValue> diffRowValues = toDiffRowValues(oldRefToEntity.getId(), newRefToEntity.getId(), filterValues);
 
         List<RefBookConflictEntity> filteredConflicts = conflicts.stream()
                 // Если структура не изменена, то для перевычисления нужны все конфликты.
@@ -380,7 +378,7 @@ public class ConflictServiceImpl implements ConflictService {
         return conflicts.stream()
                 .filter(conflict -> ConflictUtils.getDataConflictTypes().contains(conflict.getConflictType()))
                 .map(conflict -> {
-                    RefBookRowValue refFromRowValue = getConflictedRefFromRowValue(refFromRowValues, conflict);
+                    RefBookRowValue refFromRowValue = findConflictedValue(refFromRowValues, conflict);
                     if (refFromRowValue == null)
                         return null;
 
@@ -510,13 +508,13 @@ public class ConflictServiceImpl implements ConflictService {
      */
     private List<RefBookRowValue> getConflictedRowContent(RefBookVersionEntity refFromEntity, List<DiffRowValue> diffRowValues,
                                                           List<Structure.Attribute> refToPrimaries, List<Structure.Attribute> refFromAttributes) {
-        Set<List<FieldSearchCriteria>> filters = createFiltersForDiffRowValues(diffRowValues, refToPrimaries, refFromAttributes);
-        DataCriteria criteria = new DataCriteria(refFromEntity.getStorageCode(),
+        Set<List<FieldSearchCriteria>> filters = createDiffRowValuesFilters(diffRowValues, refToPrimaries, refFromAttributes);
+        StorageDataCriteria criteria = new StorageDataCriteria(refFromEntity.getStorageCode(),
                 refFromEntity.getFromDate(), refFromEntity.getToDate(),
                 fields(refFromEntity.getStructure()), filters, null);
         // NB: Get all required rows because filters.size() <= REF_BOOK_DIFF_CONFLICT_PAGE_SIZE.
-        criteria.setPage(0);
-        criteria.setSize(0);
+        criteria.setPage(DataCriteria.NO_PAGINATION_PAGE);
+        criteria.setSize(DataCriteria.NO_PAGINATION_PAGE);
 
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(criteria);
         if (pagedData.getCollection() == null)
@@ -553,7 +551,7 @@ public class ConflictServiceImpl implements ConflictService {
      * @param filterValues значения ссылочных полей
      * @return Список различий
      */
-    private List<DiffRowValue> getRefToDiffRowValues(Integer oldVersionId, Integer newVersionId, List<ReferenceFilterValue> filterValues) {
+    private List<DiffRowValue> toDiffRowValues(Integer oldVersionId, Integer newVersionId, List<ReferenceFilterValue> filterValues) {
 
         CompareDataCriteria criteria = new CompareDataCriteria(oldVersionId, newVersionId);
         criteria.setPageSize(RefBookConflictQueryProvider.REF_BOOK_CONFLICT_PAGE_SIZE);
@@ -591,7 +589,7 @@ public class ConflictServiceImpl implements ConflictService {
         return conflicts.stream()
                 .filter(conflict -> Objects.nonNull(conflict.getRefRecordId()))
                 .map(conflict -> {
-                    RefBookRowValue refFromRowValue = getConflictedRefFromRowValue(refFromRowValues, conflict);
+                    RefBookRowValue refFromRowValue = findConflictedValue(refFromRowValues, conflict);
                     if (refFromRowValue == null)
                         return null;
 
@@ -604,8 +602,8 @@ public class ConflictServiceImpl implements ConflictService {
                 .collect(toList());
     }
 
-    private RefBookRowValue getConflictedRefFromRowValue(List<RefBookRowValue> refFromRowValues,
-                                                         RefBookConflictEntity conflict) {
+    private RefBookRowValue findConflictedValue(List<RefBookRowValue> refFromRowValues, RefBookConflictEntity conflict) {
+
         return refFromRowValues.stream()
                 .filter(rowValue -> rowValue.getSystemId().equals(conflict.getRefRecordId()))
                 .findFirst().orElse(null);
@@ -619,9 +617,9 @@ public class ConflictServiceImpl implements ConflictService {
      * @param refFromAttributes ссылочные атрибуты версии, которая ссылается
      * @return Множество списков фильтров
      */
-    private Set<List<FieldSearchCriteria>> createFiltersForDiffRowValues(List<DiffRowValue> diffRowValues,
-                                                                         List<Structure.Attribute> refToPrimaries,
-                                                                         List<Structure.Attribute> refFromAttributes) {
+    private Set<List<FieldSearchCriteria>> createDiffRowValuesFilters(List<DiffRowValue> diffRowValues,
+                                                                      List<Structure.Attribute> refToPrimaries,
+                                                                      List<Structure.Attribute> refFromAttributes) {
         return diffRowValues.stream()
                 .flatMap(diff -> {
                     DiffFieldValue diffFieldValue = diff.getDiffFieldValue(refToPrimaries.get(0).getCode());

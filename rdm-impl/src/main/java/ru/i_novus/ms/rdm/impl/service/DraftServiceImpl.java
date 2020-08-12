@@ -45,9 +45,7 @@ import ru.i_novus.ms.rdm.impl.validation.StructureChangeValidator;
 import ru.i_novus.ms.rdm.impl.validation.TypeValidation;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 import ru.i_novus.platform.datastorage.temporal.model.*;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageCodeCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.*;
@@ -652,10 +650,10 @@ public class DraftServiceImpl implements DraftService {
 
         String storageCode = toLocaleStorageCode(draft.getStorageCode(), criteria.getLocaleCode());
 
-        DataCriteria dataCriteria = new DataCriteria(storageCode, null, null,
+        StorageDataCriteria dataCriteria = new StorageDataCriteria(storageCode, null, null,
                 fields, fieldSearchCriterias, criteria.getCommonFilter());
 
-        dataCriteria.setPage(criteria.getPageNumber() + 1);
+        dataCriteria.setPage(criteria.getPageNumber() + DataCriteria.PAGE_SHIFT);
         dataCriteria.setSize(criteria.getPageSize());
         Optional.ofNullable(criteria.getSort()).ifPresent(sort -> dataCriteria.setSortings(ConverterUtil.sortings(sort)));
 
