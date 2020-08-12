@@ -231,7 +231,7 @@ public class VersionServiceImpl implements VersionService {
 
         for (Map.Entry<Integer, List<String>> entry : hashes.entrySet()) {
             RefBookVersionEntity versionEntity = versionRepository.getOne(entry.getKey());
-            notExistent.addAll(searchDataService.getNotExists(
+            notExistent.addAll(searchDataService.findNonExistentHashes(
                     versionEntity.getStorageCode(),
                     versionEntity.getFromDate(),
                     versionEntity.getToDate(),
