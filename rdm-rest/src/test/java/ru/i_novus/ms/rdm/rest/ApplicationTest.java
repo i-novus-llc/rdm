@@ -2033,7 +2033,7 @@ public class ApplicationTest {
         BigInteger newTypedValue = getPublishWithConflictedReferrerNewNumberValue(typedFieldValue.getValue());
         typedFieldValue.setValue(newTypedValue);
 
-        draftDataService.updateRow(draft.getStorageCode(), rowValue);
+        draftDataService.updateRows(draft.getStorageCode(), singletonList(rowValue));
 
         rowValue = getVersionRowValue(draft.getId(), primary, primaryValue);
         assertNotNull(rowValue);
@@ -2059,7 +2059,7 @@ public class ApplicationTest {
         String newTypedValue = getPublishWithConflictedReferrerNewStringValue(typedFieldValue.getValue());
         typedFieldValue.setValue(newTypedValue);
 
-        draftDataService.updateRow(draft.getStorageCode(), rowValue);
+        draftDataService.updateRows(draft.getStorageCode(), singletonList(rowValue));
 
         rowValue = getVersionRowValue(draft.getId(), primary, primaryValue);
         assertNotNull(rowValue);
