@@ -10,15 +10,15 @@ import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
 import ru.i_novus.ms.rdm.l10n.api.service.L10nVersionService;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nDraftDataService;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nStorageCodeService;
-import ru.i_novus.platform.l10n.versioned_data_storage.pg_impl.dao.L10nDataDao;
 
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.StringUtils.isEmpty;
-import static ru.i_novus.platform.datastorage.temporal.util.StorageUtils.*;
+import static ru.i_novus.platform.datastorage.temporal.util.StorageUtils.isDefaultSchema;
+import static ru.i_novus.platform.datastorage.temporal.util.StorageUtils.isValidSchemaName;
 
 public class L10nVersionServiceImpl implements L10nVersionService {
 
@@ -26,18 +26,16 @@ public class L10nVersionServiceImpl implements L10nVersionService {
     private static final String LOCALE_CODE_IS_INVALID_EXCEPTION_CODE = "locale.code.is.invalid";
     private static final String STORAGE_CODE_NOT_FOUND_EXCEPTION_CODE = "storage.code.not.found";
 
-    private L10nDataDao dataDao;
     private L10nStorageCodeService storageCodeService;
-    private DraftDataService draftDataService;
+    private L10nDraftDataService draftDataService;
 
     private VersionService versionService;
 
     @Autowired
-    public L10nVersionServiceImpl(L10nDataDao dataDao,
-                                  L10nStorageCodeService storageCodeService, DraftDataService draftDataService,
+    public L10nVersionServiceImpl(L10nStorageCodeService storageCodeService,
+                                  L10nDraftDataService draftDataService,
                                   VersionService versionService) {
 
-        this.dataDao = dataDao;
         this.storageCodeService = storageCodeService;
         this.draftDataService = draftDataService;
 
@@ -59,13 +57,7 @@ public class L10nVersionServiceImpl implements L10nVersionService {
         if (isEmpty(sourceCode))
             throw new IllegalArgumentException(STORAGE_CODE_NOT_FOUND_EXCEPTION_CODE);
 
-        String targetCode = toStorageCode(schemaName, sourceCode);
-        if (!draftDataService.storageExists(sourceCode)) {
-            dataDao.createLocalizedTable(sourceCode, targetCode);
-        }
-
-        // Копирование всех колонок записей, FTS обновляется по триггеру.
-        draftDataService.copyAllData(sourceCode, targetCode);
+        draftDataService.localizeTable(sourceCode, schemaName);
     }
 
     @Override
