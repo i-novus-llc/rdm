@@ -23,7 +23,6 @@ import java.util.*;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static ru.i_novus.platform.datastorage.temporal.model.StorageConstants.SYS_PRIMARY_COLUMN;
 
 public class FieldValueUtils {
 
@@ -153,19 +152,6 @@ public class FieldValueUtils {
     public static boolean isFieldValueRow(String field, Object value, List<RefBookRowValue> rowValues) {
         return rowValues.stream()
                 .anyMatch(rowValue -> Objects.equals(rowValue.getFieldValue(field).getValue(), value));
-    }
-
-    /**
-     * Получение множества фильтров атрибута по системным идентификаторам.
-     *
-     * @param systemIds системные идентификаторы
-     * @return Множество фильтров
-     */
-    public static Set<List<AttributeFilter>> toSystemIdFilters(List<Long> systemIds) {
-        return systemIds.stream()
-                .map(systemId -> new AttributeFilter(SYS_PRIMARY_COLUMN, BigInteger.valueOf(systemId), FieldType.INTEGER))
-                .map(Collections::singletonList)
-                .collect(toSet());
     }
 
     /**
