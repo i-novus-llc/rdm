@@ -52,6 +52,7 @@ import java.util.*;
 
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.hasVersionId;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
@@ -210,6 +211,7 @@ public class VersionServiceImpl implements VersionService {
     @Override
     @Transactional
     public ExistsData existsData(List<String> rowIds) {
+
         List<String> notExistent = new ArrayList<>();
         Map<Integer, List<String>> hashes = new HashMap<>();
 
@@ -225,18 +227,23 @@ public class VersionServiceImpl implements VersionService {
             } else {
                 if (hashes.containsKey(versionId))
                     hashes.get(versionId).add(split[0]);
-                else hashes.put(versionId, new ArrayList<>(singleton(split[0])));
+                else
+                    hashes.put(versionId, new ArrayList<>(singleton(split[0])));
             }
         }
 
         for (Map.Entry<Integer, List<String>> entry : hashes.entrySet()) {
-            RefBookVersionEntity versionEntity = versionRepository.getOne(entry.getKey());
-            notExistent.addAll(searchDataService.findNonExistentHashes(
-                    versionEntity.getStorageCode(),
-                    versionEntity.getFromDate(),
-                    versionEntity.getToDate(),
-                    entry.getValue()));
+            Integer versionId = entry.getKey();
+            RefBookVersionEntity entity = versionRepository.getOne(versionId);
+
+            List<String> versionHashes = new ArrayList<>(entry.getValue());
+            List<String> existentHashes = searchDataService.findExistentHashes(entity.getStorageCode(),
+                    entity.getFromDate(), entity.getToDate(), versionHashes);
+
+            versionHashes.removeAll(existentHashes);
+            notExistent.addAll(versionHashes.stream().map(hash -> hash + "$" + versionId).collect(toList()));
         }
+
         return new ExistsData(notExistent.isEmpty(), notExistent);
     }
 
