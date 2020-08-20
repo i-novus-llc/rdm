@@ -35,6 +35,7 @@ import ru.i_novus.ms.rdm.api.model.version.*;
 import ru.i_novus.ms.rdm.api.service.*;
 import ru.i_novus.ms.rdm.api.util.FieldValueUtils;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
+import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.validation.ReferenceValueValidation;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -1074,7 +1075,7 @@ public class ApplicationTest {
 
         Structure structure = createTestStructureWithSimpleTypesOnly();
         extendTestStructureForReferenceType(structure);
-        Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), structure));
+        Draft draft1 = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), structure));
 
         Row row1 = createRowWithSimpleTypesOnly("test1", BigInteger.valueOf(1L), "01.09.2014", true, 1.1);
         extendRowWithReferenceType(row1, BigInteger.valueOf(1L), new Reference("77", null));
@@ -1082,9 +1083,9 @@ public class ApplicationTest {
         Row row2 = createRowWithSimpleTypesOnly("test2", BigInteger.valueOf(2L), "01.10.2014", false, 2.2);
         extendRowWithReferenceType(row2, BigInteger.valueOf(2L), null);
 
-        List<RowValue> rowValues = asList(rowValue(row1, structure), rowValue(row2, structure));
-        draftDataService.addRows(draft.getStorageCode(), rowValues);
-        publish(draft.getId(), null, null, null, false);
+        List<RowValue> expectedRowValues2 = asList(rowValue(row1, structure), rowValue(row2, structure));
+        draftDataService.addRows(draft1.getStorageCode(), expectedRowValues2);
+        publish(draft1.getId(), null, null, null, false);
 
         try {
             draftService.createFromVersion(0);
@@ -1093,12 +1094,37 @@ public class ApplicationTest {
             assertEquals("version.not.found", e.getMessage());
         }
 
-        Draft draftFromVersion = draftService.createFromVersion(draft.getId());
+        Draft draft2 = draftService.createFromVersion(draft1.getId());
 
-        Assert.assertTrue(versionService.getStructure(draft.getId()).storageEquals(versionService.getStructure(draftFromVersion.getId())));
-        assertRows(fields(versionService.getStructure(draft.getId())),
-                rowValues,
-                draftService.search(draftFromVersion.getId(), new SearchDataCriteria()).getContent());
+        Structure draft1Structure = versionService.getStructure(draft1.getId());
+        Structure draft2Structure = versionService.getStructure(draft2.getId());
+        Assert.assertTrue(draft1Structure.storageEquals(draft2Structure));
+
+        List<Field> draft1Fields = fields(draft1Structure);
+        List<RefBookRowValue> rowValues2 = draftService.search(draft2.getId(), new SearchDataCriteria()).getContent();
+        assertRows(draft1Fields, expectedRowValues2, rowValues2);
+
+        RefBookRowValue deletedRowValue = rowValues2.stream()
+                .filter(rowValue -> BigInteger.valueOf(2L).equals(rowValue.getFieldValue("integer").getValue()))
+                .findFirst().orElse(null);
+        assertNotNull(deletedRowValue);
+        DeleteDataRequest deleteDataRequest = new DeleteDataRequest(null, ConverterUtil.toRow(deletedRowValue));
+        draftService.deleteData(draft2.getId(), deleteDataRequest);
+
+        Row row3 = createRowWithSimpleTypesOnly("test3", BigInteger.valueOf(3L), "01.11.2014", false, 3.3);
+        extendRowWithReferenceType(row3, BigInteger.valueOf(3L), null);
+        List<RowValue> expectedRowValues3 = new ArrayList<>(2);
+        expectedRowValues3.add(rowValue(row3, structure));
+
+        draftDataService.addRows(draft2.getStorageCode(), expectedRowValues3);
+        publish(draft2.getId(), null, null, null, false);
+
+        expectedRowValues3.add(rowValue(row1, structure));
+
+        Draft draft3 = draftService.createFromVersion(draft2.getId());
+
+        List<RefBookRowValue> rowValues3 = draftService.search(draft3.getId(), new SearchDataCriteria()).getContent();
+        assertRows(draft1Fields, expectedRowValues3, rowValues3);
     }
 
     @Test

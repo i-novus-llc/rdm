@@ -39,8 +39,11 @@ public class ConverterUtil {
         throw new UnsupportedOperationException();
     }
 
-    /** Возвращает список столбцов таблицы на основе структуры справочника. */
+    /**
+     * Получение списка полей на основе структуры справочника.
+     */
     public static List<Field> fields(Structure structure) {
+
         List<Field> fields = new ArrayList<>();
         if (structure != null && !structure.isEmpty()) {
             structure.getAttributes().forEach(attribute -> fields.add(field(attribute)));
@@ -48,7 +51,7 @@ public class ConverterUtil {
         return fields;
     }
 
-    /** Возвращает столбец таблицы на основе атрибута структуры справочника. */
+    /** Получение поля на основе атрибута структуры справочника. */
     public static Field field(Structure.Attribute attribute) {
         boolean isSearchable = attribute.hasIsPrimary() && FieldType.STRING.equals(attribute.getType());
         return isSearchable
@@ -57,11 +60,19 @@ public class ConverterUtil {
     }
 
     public static RowValue rowValue(Row row, Structure structure) {
-        List<Field> fields = ConverterUtil.fields(structure);
+
+        List<Field> fields = fields(structure);
         return new LongRowValue(row.getSystemId(),
-                fields.stream()
-                        .map(field -> field.valueOf(row.getData().get(field.getName())))
-                        .collect(toList()));
+                fields.stream().map(field -> toFieldValue(row, field)).collect(toList())
+        );
+    }
+
+    /**
+     * Получение значения поля на основе записи справочника и самого поля.
+     */
+    private static FieldValue toFieldValue(Row row, Field field) {
+
+        return field.valueOf(row.getData().get(field.getName()));
     }
 
     public static Date date(LocalDateTime date) {
@@ -69,6 +80,7 @@ public class ConverterUtil {
     }
 
     public static List<Sorting> sortings(Sort sort) {
+
         List<Sorting> sortings = new ArrayList<>();
         for (Sort.Order order : sort) {
             sortings.add(new Sorting(order.getProperty(), Direction.valueOf(order.getDirection().name())));
