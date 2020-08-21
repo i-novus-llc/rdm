@@ -10,10 +10,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationHandler;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationStatusEnum;
-import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
 import ru.i_novus.ms.rdm.impl.entity.AsyncOperationLogEntryEntity;
 import ru.i_novus.ms.rdm.impl.repository.AsyncOperationLogEntryRepository;
-import ru.i_novus.ms.rdm.impl.util.AsyncOperationLogEntryUtils;
 
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -54,14 +52,11 @@ class AsyncOperationQueueListener {
     @JmsListener(destination = QUEUE_ID, containerFactory = "internalAsyncOperationContainerFactory")
     public void onMessage(AsyncOperationMessage message) {
 
-        UUID operationId = message.getOperationId();
-        AsyncOperationTypeEnum operationType = message.getOperationType();
-
         if (logger.isInfoEnabled()) {
             logger.info(LOG_OPERATION_FROM_QUEUE_IS_RECEIVED, toOperationLogText(message));
         }
 
-        AsyncOperationLogEntryEntity logEntity = repository.findByUuid(operationId);
+        AsyncOperationLogEntryEntity logEntity = repository.findByUuid(message.getOperationId());
         if (logEntity == null) {
             logEntity = forceSave(message);
         }
@@ -71,7 +66,7 @@ class AsyncOperationQueueListener {
         logEntity = repository.save(logEntity);
 
         try {
-            AsyncOperationLogEntryUtils.setResult(handle(message), logEntity);
+            logEntity.setSerializableResult(handle(message));
             logEntity.setStatus(AsyncOperationStatusEnum.DONE);
 
         } catch (Exception e) {

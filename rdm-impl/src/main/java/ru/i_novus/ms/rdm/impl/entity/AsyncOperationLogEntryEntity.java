@@ -1,11 +1,15 @@
 package ru.i_novus.ms.rdm.impl.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationStatusEnum;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import static ru.i_novus.ms.rdm.api.util.json.JsonUtil.getAsJson;
 
 /**
  * Асинхронная операция: Сущность.
@@ -125,5 +129,12 @@ public class AsyncOperationLogEntryEntity {
 
     public void setStackTrace(String stackTrace) {
         this.stackTrace = stackTrace;
+    }
+
+    @JsonIgnore
+    public void setSerializableResult(Serializable result) {
+
+        String jsonResult = (result == null) ? null : getAsJson(result);
+        setResult(jsonResult);
     }
 }

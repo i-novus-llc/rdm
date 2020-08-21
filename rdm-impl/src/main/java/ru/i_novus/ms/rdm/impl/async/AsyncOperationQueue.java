@@ -38,9 +38,14 @@ public class AsyncOperationQueue {
     @Transactional
     public UUID add(AsyncOperationTypeEnum operationType, String code, Serializable[] args) {
 
-        final UUID operationId = newOperationId();
-        AsyncOperationMessage message = new AsyncOperationMessage(operationId, operationType, code, args, userAccessor.get());
-        repository.saveWithoutConflict(operationId, operationType.name(), code, message.getPayloadAsJson());
+        final AsyncOperationMessage message = save(operationType, code, args);
+        return message.getOperationId();
+    }
+
+    @Transactional
+    public UUID send(AsyncOperationTypeEnum operationType, String code, Serializable[] args) {
+
+        final AsyncOperationMessage message = save(operationType, code, args);
 
         logger.info("Sending message to internal async operation queue. Message: {}", message);
         try {
@@ -51,7 +56,17 @@ public class AsyncOperationQueue {
             throw new UserException("async.operation.queue.not.available");
         }
 
-        return operationId;
+        return message.getOperationId();
+    }
+
+    private AsyncOperationMessage save(AsyncOperationTypeEnum operationType, String code, Serializable[] args) {
+
+        final UUID operationId = newOperationId();
+
+        AsyncOperationMessage message = new AsyncOperationMessage(operationId, operationType, code, args, userAccessor.get());
+        repository.saveWithoutConflict(operationId, operationType.name(), code, message.getPayloadAsJson());
+
+        return message;
     }
 
     private UUID newOperationId() {

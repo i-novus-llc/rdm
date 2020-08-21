@@ -84,7 +84,7 @@ public class PublishServiceImpl implements PublishService {
     public UUID publishAsync(Integer draftId, PublishRequest request) {
 
         String code = versionRepository.getOne(draftId).getRefBook().getCode();
-        return queue.add(AsyncOperationTypeEnum.PUBLICATION, code, new Serializable[]{draftId, request});
+        return queue.send(AsyncOperationTypeEnum.PUBLICATION, code, new Serializable[]{draftId, request});
     }
 
     /**
