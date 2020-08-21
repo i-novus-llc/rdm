@@ -5,15 +5,25 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
 
     <changeSet id="202005032208_RDM-432" author="Ikarimullin" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="async_log_entry" schemaName="n2o_rdm_management"/>
+            <not>
+                <columnExists columnName="stacktrace" tableName="async_log_entry" schemaName="n2o_rdm_management"/>
+            </not>
+        </preConditions>
         <sql splitStatements="false">
-
-            ALTER TABLE
-                n2o_rdm_management.async_log_entry
-            ADD COLUMN
-                stacktrace VARCHAR;
-
+            ALTER TABLE n2o_rdm_management.async_log_entry ADD COLUMN stacktrace VARCHAR;
         </sql>
+    </changeSet>
 
+    <changeSet id="202008210845_RDM-432" author="arahmatullin" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="async_log_entry" schemaName="n2o_rdm_management"/>
+            <columnExists columnName="payload" tableName="async_log_entry" schemaName="n2o_rdm_management"/>
+        </preConditions>
+        <sql>
+            COMMENT ON COLUMN n2o_rdm_management.async_log_entry.stacktrace IS 'Трассировка стека в случае ошибки';
+        </sql>
     </changeSet>
 
 </databaseChangeLog>
