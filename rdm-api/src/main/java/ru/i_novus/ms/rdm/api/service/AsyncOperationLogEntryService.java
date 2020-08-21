@@ -4,10 +4,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.data.domain.Page;
-import ru.i_novus.ms.rdm.api.async.AsyncOperation;
-import ru.i_novus.ms.rdm.api.async.AsyncOperationLogEntry;
-import ru.i_novus.ms.rdm.api.async.AsyncOperationLogEntryCriteria;
-import ru.i_novus.ms.rdm.api.async.AsyncOperationStatus;
+import ru.i_novus.ms.rdm.api.async.*;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -29,13 +26,12 @@ public interface AsyncOperationLogEntryService {
     AsyncOperationLogEntry get(@ApiParam("Идентификатор операции") @PathParam("id") UUID id);
 
     @GET
-    @Path("/opTypes")
+    @Path("/types")
     @ApiOperation("Получение возможных типов асинхронных операций")
-    Page<AsyncOperation> getOpTypes();
+    Page<AsyncOperationTypeEnum> getOperationTypes();
 
     @GET
     @Path("/statuses")
-    @ApiOperation("Получение типов реализованных асинхронных операций")
-    Page<AsyncOperationStatus> getStatuses();
-
+    @ApiOperation("Получение возможных статусов асинхронных операций")
+    Page<AsyncOperationStatusEnum> getOperationStatuses();
 }

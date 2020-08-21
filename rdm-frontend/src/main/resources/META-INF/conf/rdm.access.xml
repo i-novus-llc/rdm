@@ -3,8 +3,8 @@
     <permit-all>
         <page-access page-id="refBookList"/>
         <page-access page-id="refBookView"/>
-        <page-access page-id="asyncLog"/>
-        <page-access page-id="asyncLogEntryFullInfo"/>
+        <page-access page-id="asyncLogList"/>
+        <page-access page-id="asyncLogView"/>
 
         <object-access object-id="refBook"/>
         <object-access object-id="refBookStatusList"/>

@@ -9,9 +9,6 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
-import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
@@ -29,6 +26,9 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
 import ru.i_novus.ms.rdm.impl.file.export.VersionDataIterator;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -119,16 +119,18 @@ class BasePublishService {
         validatePublishingDraft(draftEntity);
 
         Integer refBookId = draftEntity.getRefBook().getId();
+        String oldStorageCode = draftEntity.getStorageCode();
         String newStorageCode = null;
 
         refBookLockService.setRefBookPublishing(refBookId);
         try {
             versionValidation.validateOptLockValue(draftEntity.getId(), draftEntity.getOptLockValue(), request.getOptLockValue());
 
-            String versionName = getNextVersionNumberOrElseThrow(request.getVersionName(), refBookId);
+            String versionName = nextVersionNumberOrThrow(request.getVersionName(), refBookId);
 
             LocalDateTime fromDate = request.getFromDate();
             if (fromDate == null) fromDate = TimeUtils.now();
+
             LocalDateTime toDate = request.getToDate();
             if (toDate != null && fromDate.isAfter(toDate))
                 throw new UserException(INVALID_VERSION_PERIOD_EXCEPTION_CODE);
@@ -137,7 +139,7 @@ class BasePublishService {
 
             RefBookVersionEntity lastPublishedEntity = getLastPublishedVersionEntity(draftEntity);
             String lastStorageCode = lastPublishedEntity != null ? lastPublishedEntity.getStorageCode() : null;
-            newStorageCode = draftDataService.applyDraft(lastStorageCode, draftEntity.getStorageCode(), fromDate, toDate);
+            newStorageCode = draftDataService.applyDraft(lastStorageCode, oldStorageCode, fromDate, toDate);
 
             Set<String> droppedDataStorages = new HashSet<>();
             droppedDataStorages.add(draftEntity.getStorageCode());
@@ -209,7 +211,7 @@ class BasePublishService {
             throw new UserException(new Message(PUBLISHING_DRAFT_DATA_NOT_FOUND_EXCEPTION_CODE, draftEntity.getRefBook().getCode()));
     }
 
-    public String getNextVersionNumberOrElseThrow(String version, Integer refBookId) {
+    public String nextVersionNumberOrThrow(String version, Integer refBookId) {
 
         if (version == null)
             return versionNumberStrategy.next(refBookId);
