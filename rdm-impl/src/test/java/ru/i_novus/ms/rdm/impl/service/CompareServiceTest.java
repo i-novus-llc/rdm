@@ -778,13 +778,14 @@ public class CompareServiceTest {
     }
 
     private ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria createVdsDeletedCompareDataCriteria(Integer oldId, Integer newId) {
-        ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria compareDataCriteria = new ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria();
-        compareDataCriteria.setStorageCode("storage" + oldId);
-        compareDataCriteria.setNewStorageCode("storage" + newId);
+
+        ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria compareDataCriteria = new ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria("storage" + oldId, "storage" + newId);
+
         compareDataCriteria.setCountOnly(false);
         compareDataCriteria.setStatus(DiffStatusEnum.DELETED);
         compareDataCriteria.setPage(1);
         compareDataCriteria.setSize(10);
+
         return compareDataCriteria;
     }
 

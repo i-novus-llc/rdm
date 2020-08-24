@@ -228,24 +228,26 @@ public class CompareServiceImpl implements CompareService {
 
     private CompareDataCriteria createVdsCompareDataCriteria(RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion,
                                                              ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria rdmCriteria) {
-        CompareDataCriteria compareDataCriteria = new CompareDataCriteria();
-        compareDataCriteria.setStorageCode(oldVersion.getStorageCode());
-        compareDataCriteria.setNewStorageCode(newVersion.getStorageCode());
-        compareDataCriteria.setOldPublishDate(oldVersion.getFromDate());
-        compareDataCriteria.setOldCloseDate(oldVersion.getToDate());
-        compareDataCriteria.setNewPublishDate(newVersion.getFromDate());
-        compareDataCriteria.setNewCloseDate(newVersion.getToDate());
+
+        CompareDataCriteria compareDataCriteria = new CompareDataCriteria(oldVersion.getStorageCode(), newVersion.getStorageCode());
+
+        compareDataCriteria.setFields(getCommonFields(oldVersion.getStructure(), newVersion.getStructure()));
         compareDataCriteria.setPrimaryFields(newVersion.getStructure().getPrimary()
                 .stream()
                 .map(Structure.Attribute::getCode)
                 .collect(Collectors.toList()));
-        compareDataCriteria.setFields(getCommonFields(oldVersion.getStructure(), newVersion.getStructure()));
-
         compareDataCriteria.setPrimaryFieldsFilters(toFieldSearchCriterias(rdmCriteria.getPrimaryAttributesFilters()));
+
+        compareDataCriteria.setOldPublishDate(oldVersion.getFromDate());
+        compareDataCriteria.setOldCloseDate(oldVersion.getToDate());
+        compareDataCriteria.setNewPublishDate(newVersion.getFromDate());
+        compareDataCriteria.setNewCloseDate(newVersion.getToDate());
+
         compareDataCriteria.setCountOnly(rdmCriteria.getCountOnly() != null && rdmCriteria.getCountOnly());
         compareDataCriteria.setStatus(rdmCriteria.getDiffStatus());
         compareDataCriteria.setPage(rdmCriteria.getPageNumber() + 1);
         compareDataCriteria.setSize(rdmCriteria.getPageSize());
+
         return compareDataCriteria;
     }
 
