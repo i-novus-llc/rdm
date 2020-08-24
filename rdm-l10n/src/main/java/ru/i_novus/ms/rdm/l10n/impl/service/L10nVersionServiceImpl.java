@@ -20,6 +20,7 @@ import static org.springframework.util.StringUtils.isEmpty;
 import static ru.i_novus.platform.datastorage.temporal.util.StorageUtils.isDefaultSchema;
 import static ru.i_novus.platform.datastorage.temporal.util.StorageUtils.isValidSchemaName;
 
+@SuppressWarnings("java:S3740")
 public class L10nVersionServiceImpl implements L10nVersionService {
 
     private static final String LOCALE_CODE_NOT_FOUND_EXCEPTION_CODE = "locale.code.not.found";
@@ -43,21 +44,26 @@ public class L10nVersionServiceImpl implements L10nVersionService {
     }
 
     @Override
-    public void localizeTable(Integer versionId, String localeCode) {
+    public String localizeTable(Integer versionId, String localeCode) {
 
         if (isEmpty(localeCode))
             throw new IllegalArgumentException(LOCALE_CODE_NOT_FOUND_EXCEPTION_CODE);
 
-        String schemaName = toSchemaName(localeCode);
-        if (!draftDataService.schemaExists(schemaName)) {
-            draftDataService.createSchema(schemaName);
+        String targetSchemaName = toSchemaName(localeCode);
+        if (!draftDataService.schemaExists(targetSchemaName)) {
+            draftDataService.createSchema(targetSchemaName);
         }
 
-        String sourceCode = versionService.getStorageCode(versionId);
-        if (isEmpty(sourceCode))
+        String sourceTableName = versionService.getStorageCode(versionId);
+        if (isEmpty(sourceTableName))
             throw new IllegalArgumentException(STORAGE_CODE_NOT_FOUND_EXCEPTION_CODE);
 
-        draftDataService.createLocalizedTable(sourceCode, schemaName);
+        String targetCode = draftDataService.createLocalizedTable(sourceTableName, targetSchemaName);
+
+        // Копирование всех колонок записей, FTS обновляется по триггеру.
+        draftDataService.copyAllData(sourceTableName, targetCode);
+
+        return targetCode;
     }
 
     @Override

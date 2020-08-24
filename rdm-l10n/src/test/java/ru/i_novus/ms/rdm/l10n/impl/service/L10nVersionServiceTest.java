@@ -25,6 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static ru.i_novus.platform.datastorage.temporal.util.StorageUtils.toStorageCode;
 
 @RunWith(MockitoJUnitRunner.class)
 public class L10nVersionServiceTest {
@@ -57,6 +58,10 @@ public class L10nVersionServiceTest {
         when(draftDataService.schemaExists(eq(TEST_SCHEMA_NAME))).thenReturn(true);
         when(versionService.getStorageCode(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(TEST_STORAGE_NAME);
 
+        String testStorageCode = toStorageCode(TEST_SCHEMA_NAME, TEST_STORAGE_NAME);
+        when(draftDataService.createLocalizedTable(eq(TEST_STORAGE_NAME), eq(TEST_SCHEMA_NAME)))
+                .thenReturn(testStorageCode);
+
         Structure structure = createStructure();
         when(versionService.getStructure(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(structure);
 
@@ -66,7 +71,8 @@ public class L10nVersionServiceTest {
         LocalizeDataRequest request = new LocalizeDataRequest(null, TEST_LOCALE_CODE, rows);
         l10nVersionService.localizeData(TEST_REFBOOK_VERSION_ID, request);
 
-        verify(draftDataService).localizeTable(eq(TEST_STORAGE_NAME), eq(TEST_SCHEMA_NAME));
+        verify(draftDataService).createLocalizedTable(eq(TEST_STORAGE_NAME), eq(TEST_SCHEMA_NAME));
+        verify(draftDataService).copyAllData(eq(TEST_STORAGE_NAME), eq(testStorageCode));
         verify(draftDataService).updateRows(eq(TEST_SCHEMA_NAME), any());
     }
 
