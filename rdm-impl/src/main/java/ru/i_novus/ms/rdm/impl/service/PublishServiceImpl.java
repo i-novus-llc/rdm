@@ -40,8 +40,7 @@ public class PublishServiceImpl implements PublishService {
 
     private AuditLogService auditLogService;
 
-    @Autowired
-    private AsyncOperationQueue queue;
+    private AsyncOperationQueue asyncQueue;
 
     @Autowired
     @SuppressWarnings("squid:S00107")
@@ -49,7 +48,8 @@ public class PublishServiceImpl implements PublishService {
                               RefBookConflictRepository conflictRepository,
                               BasePublishService basePublishService,
                               ReferenceService referenceService,
-                              AuditLogService auditLogService) {
+                              AuditLogService auditLogService,
+                              AsyncOperationQueue asyncQueue) {
         this.versionRepository = versionRepository;
         this.conflictRepository = conflictRepository;
 
@@ -57,6 +57,7 @@ public class PublishServiceImpl implements PublishService {
         this.referenceService = referenceService;
 
         this.auditLogService = auditLogService;
+        this.asyncQueue = asyncQueue;
     }
 
     /**
@@ -84,7 +85,7 @@ public class PublishServiceImpl implements PublishService {
     public UUID publishAsync(Integer draftId, PublishRequest request) {
 
         String code = versionRepository.getOne(draftId).getRefBook().getCode();
-        return queue.send(AsyncOperationTypeEnum.PUBLICATION, code, new Serializable[]{draftId, request});
+        return asyncQueue.send(AsyncOperationTypeEnum.PUBLICATION, code, new Serializable[]{draftId, request});
     }
 
     /**

@@ -67,8 +67,7 @@ class BasePublishService {
 
     private AuditLogService auditLogService;
 
-    @Autowired
-    private AsyncOperationQueue queue;
+    private AsyncOperationQueue asyncQueue;
 
     private JmsTemplate jmsTemplate;
 
@@ -85,7 +84,8 @@ class BasePublishService {
                               RefBookLockService refBookLockService, VersionService versionService, ConflictService conflictService,
                               VersionFileService versionFileService, VersionNumberStrategy versionNumberStrategy,
                               VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation,
-                              AuditLogService auditLogService, @Qualifier("topicJmsTemplate") @Autowired(required = false) JmsTemplate jmsTemplate) {
+                              AuditLogService auditLogService, AsyncOperationQueue asyncQueue,
+                              @Qualifier("topicJmsTemplate") @Autowired(required = false) JmsTemplate jmsTemplate) {
         this.versionRepository = versionRepository;
 
         this.draftDataService = draftDataService;
@@ -103,6 +103,7 @@ class BasePublishService {
         this.versionPeriodPublishValidation = versionPeriodPublishValidation;
 
         this.auditLogService = auditLogService;
+        this.asyncQueue = asyncQueue;
         this.jmsTemplate = jmsTemplate;
     }
 
@@ -284,6 +285,6 @@ class BasePublishService {
     private UUID postPublish(String code, PostPublishRequest request) {
 
         // to-do: Отвязать от l10n, например, сделать POST_PUBLICATION.
-        return queue.send(AsyncOperationTypeEnum.L10N_PUBLICATION, code, new Serializable[]{request});
+        return asyncQueue.send(AsyncOperationTypeEnum.L10N_PUBLICATION, code, new Serializable[]{request});
     }
 }
