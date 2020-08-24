@@ -57,7 +57,7 @@ public class L10nVersionServiceImpl implements L10nVersionService {
         if (isEmpty(sourceCode))
             throw new IllegalArgumentException(STORAGE_CODE_NOT_FOUND_EXCEPTION_CODE);
 
-        draftDataService.localizeTable(sourceCode, schemaName);
+        draftDataService.createLocalizedTable(sourceCode, schemaName);
     }
 
     @Override
