@@ -44,6 +44,7 @@ import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 
 @Service
 @Primary
+@SuppressWarnings("java:S3740")
 public class CompareServiceImpl implements CompareService {
 
     private static final String COMPARE_OLD_PRIMARIES_NOT_FOUND_EXCEPTION_CODE = "compare.old.primaries.not.found";
@@ -189,16 +190,16 @@ public class CompareServiceImpl implements CompareService {
         searchDataCriteria.setAttributeFilters(criteria.getPrimaryAttributesFilters());
         Page<RefBookRowValue> newData = versionService.search(criteria.getNewVersionId(), searchDataCriteria);
 
-        RefBookDataDiff refBookDataDiff = compareData(createVdsCompareDataCriteria(criteria, newData, newStructure));
-        RefBookDataDiff refBookDataDiffDeleted = compareData(createRdmCompareDataCriteriaDeleted(criteria));
+        RefBookDataDiff dataDiff = compareData(createVdsCompareDataCriteria(criteria, newData, newStructure));
+        RefBookDataDiff deletedDiff = compareData(createVdsDeletedDataCriteria(criteria));
 
-        List<ComparableField> comparableFields = createCommonComparableFieldsList(refBookDataDiff, newStructure, oldStructure);
+        List<ComparableField> comparableFields = createCommonComparableFieldsList(dataDiff, newStructure, oldStructure);
         List<ComparableRow> comparableRows = new ArrayList<>();
 
-        addNewVersionRows(comparableRows, comparableFields, newData, refBookDataDiff, newStructure, criteria);
-        addDeletedRows(comparableRows, comparableFields, refBookDataDiffDeleted, oldStructure, criteria, (int) newData.getTotalElements());
+        addNewVersionRows(comparableRows, comparableFields, newData, dataDiff, newStructure, criteria);
+        addDeletedRows(comparableRows, comparableFields, deletedDiff, oldStructure, criteria, (int) newData.getTotalElements());
 
-        return new RestPage<>(comparableRows, criteria, newData.getTotalElements() + refBookDataDiffDeleted.getRows().getTotalElements());
+        return new RestPage<>(comparableRows, criteria, newData.getTotalElements() + deletedDiff.getRows().getTotalElements());
     }
 
     private List<Field> getCommonFields(Structure oldStructure, Structure newStructure) {
@@ -252,17 +253,20 @@ public class CompareServiceImpl implements CompareService {
     }
 
     private ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria createVdsCompareDataCriteria(CompareCriteria criteria, Page<? extends RowValue> data, Structure structure) {
-        ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria rdmCriteria = new ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria(criteria);
-        rdmCriteria.setPrimaryAttributesFilters(createPrimaryAttributesFilters(data, structure));
-        return rdmCriteria;
+
+        ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria vdsCriteria = new ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria(criteria);
+        vdsCriteria.setPrimaryAttributesFilters(createPrimaryAttributesFilters(data, structure));
+        return vdsCriteria;
     }
 
-    private ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria createRdmCompareDataCriteriaDeleted(CompareCriteria criteria) {
-        ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria deletedRdmCriteria = new ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria(criteria);
-        deletedRdmCriteria.setPrimaryAttributesFilters(emptySet());
-        deletedRdmCriteria.setDiffStatus(DiffStatusEnum.DELETED);
-        deletedRdmCriteria.setCountOnly(false);
-        return deletedRdmCriteria;
+    private ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria createVdsDeletedDataCriteria(CompareCriteria criteria) {
+
+        ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria vdsCriteria = new ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria(criteria);
+        vdsCriteria.setPrimaryAttributesFilters(emptySet());
+        vdsCriteria.setDiffStatus(DiffStatusEnum.DELETED);
+        vdsCriteria.setCountOnly(false);
+
+        return vdsCriteria;
     }
 
     private void addNewVersionRows(List<ComparableRow> comparableRows, List<ComparableField> comparableFields,
@@ -311,7 +315,7 @@ public class CompareServiceImpl implements CompareService {
     }
 
     private void addDeletedRows(List<ComparableRow> comparableRows, List<ComparableField> comparableFields,
-                                RefBookDataDiff refBookDataDiffDeleted, Structure oldStructure,
+                                RefBookDataDiff deletedDiff, Structure oldStructure,
                                 CompareCriteria criteria, int totalNewCount) {
         if (comparableRows.size() < criteria.getPageSize()) {
 
@@ -325,7 +329,7 @@ public class CompareServiceImpl implements CompareService {
 
             SearchDataCriteria delSearchDataCriteria = new SearchDataCriteria();
             delSearchDataCriteria.setPageSize((int) pageSize);
-            delSearchDataCriteria.setAttributeFilters(createPrimaryAttributesFilters(refBookDataDiffDeleted, oldStructure));
+            delSearchDataCriteria.setAttributeFilters(createPrimaryAttributesFilters(deletedDiff, oldStructure));
 
             Page<RefBookRowValue> delData = versionService.search(criteria.getOldVersionId(), delSearchDataCriteria);
             delData.getContent()
