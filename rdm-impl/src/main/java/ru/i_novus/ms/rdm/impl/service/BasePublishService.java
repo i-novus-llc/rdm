@@ -9,8 +9,10 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
+import ru.i_novus.ms.rdm.api.model.draft.PostPublishRequest;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
 import ru.i_novus.ms.rdm.api.model.draft.PublishResponse;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
@@ -21,6 +23,7 @@ import ru.i_novus.ms.rdm.api.util.TimeUtils;
 import ru.i_novus.ms.rdm.api.util.VersionNumberStrategy;
 import ru.i_novus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
+import ru.i_novus.ms.rdm.impl.async.AsyncOperationQueue;
 import ru.i_novus.ms.rdm.impl.audit.AuditAction;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
@@ -30,10 +33,9 @@ import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.Collections.singletonList;
 import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
@@ -64,6 +66,9 @@ class BasePublishService {
     private VersionPeriodPublishValidation versionPeriodPublishValidation;
 
     private AuditLogService auditLogService;
+
+    @Autowired
+    private AsyncOperationQueue queue;
 
     private JmsTemplate jmsTemplate;
 
@@ -112,7 +117,7 @@ class BasePublishService {
 
         PublishResponse result = new PublishResponse();
 
-        RefBookVersionEntity draftEntity = getVersionOrElseThrow(draftId);
+        RefBookVersionEntity draftEntity = getVersionOrThrow(draftId);
         if (RefBookVersionStatus.PUBLISHED.equals(draftEntity.getStatus()))
             return null;
 
@@ -175,6 +180,9 @@ class BasePublishService {
 
             saveVersionToFiles(draftId);
 
+            PostPublishRequest postRequest = new PostPublishRequest(lastStorageCode, oldStorageCode, newStorageCode, fromDate, toDate);
+            postPublish(draftEntity.getRefBook().getCode(), postRequest);
+
         } catch (Exception e) {
             if (!StringUtils.isEmpty(newStorageCode)) {
                 dropDataService.drop(newStorageCode);
@@ -187,13 +195,14 @@ class BasePublishService {
         }
 
         auditLogService.addAction(AuditAction.PUBLICATION, () -> draftEntity);
-        if (enablePublishTopic)
+        if (enablePublishTopic) {
             jmsTemplate.convertAndSend(publishTopic, draftEntity.getRefBook().getCode());
+        }
 
         return result;
     }
 
-    private RefBookVersionEntity getVersionOrElseThrow(Integer versionId) {
+    private RefBookVersionEntity getVersionOrThrow(Integer versionId) {
 
         Optional<RefBookVersionEntity> draftEntityOptional = versionRepository.findById(versionId);
         return draftEntityOptional.orElseThrow(() -> new UserException(new Message(DRAFT_NOT_FOUND_EXCEPTION_CODE, versionId)));
@@ -223,7 +232,9 @@ class BasePublishService {
     }
 
     private RefBookVersionEntity getLastPublishedVersionEntity(RefBookVersionEntity draftVersion) {
-        return versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(draftVersion.getRefBook().getId(), RefBookVersionStatus.PUBLISHED);
+
+        final Integer id = draftVersion.getRefBook().getId();
+        return versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(id, RefBookVersionStatus.PUBLISHED);
     }
 
     /** Замена старого кода хранилища на новый в версиях справочника. */
@@ -267,5 +278,12 @@ class BasePublishService {
             VersionDataIterator dataIterator = new VersionDataIterator(versionService, singletonList(draftVersion.getId()));
             versionFileService.save(draftVersion, fileType, versionFileService.generate(draftVersion, fileType, dataIterator));
         }
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
+    private UUID postPublish(String code, PostPublishRequest request) {
+
+        // to-do: Отвязать от l10n, например, сделать POST_PUBLICATION.
+        return queue.send(AsyncOperationTypeEnum.L10N_PUBLICATION, code, new Serializable[]{request});
     }
 }
