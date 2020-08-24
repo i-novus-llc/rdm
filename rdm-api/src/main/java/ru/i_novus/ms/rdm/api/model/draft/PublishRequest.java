@@ -27,6 +27,7 @@ public class PublishRequest implements DraftChangeRequest {
     private boolean resolveConflicts;
 
     public PublishRequest() {
+        // Nothing to do.
     }
 
     public PublishRequest(Integer optLockValue) {

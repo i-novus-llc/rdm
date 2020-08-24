@@ -19,6 +19,10 @@ public class PublishResponse implements Serializable {
     @ApiModelProperty("Идентификатор предыдущей опубликованной версии")
     private Integer oldId;
 
+    public PublishResponse() {
+        // Nothing to do.
+    }
+
     public String getRefBookCode() {
         return refBookCode;
     }
