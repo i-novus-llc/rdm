@@ -47,12 +47,11 @@ import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageCodeCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.i_novus.platform.datastorage.temporal.service.*;
-import ru.i_novus.platform.l10n.versioned_data_storage.model.criteria.L10nStorageCodeCriteria;
-import ru.i_novus.platform.l10n.versioned_data_storage.util.LocaleContextHelper;
+import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -78,7 +77,6 @@ public class DraftServiceImpl implements DraftService {
     private RefBookVersionRepository versionRepository;
     private RefBookConflictRepository conflictRepository;
 
-    private StorageCodeService storageCodeService;
     private DraftDataService draftDataService;
     private DropDataService dropDataService;
     private SearchDataService searchDataService;
@@ -103,8 +101,7 @@ public class DraftServiceImpl implements DraftService {
     @Autowired
     @SuppressWarnings("squid:S00107")
     public DraftServiceImpl(RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
-                            StorageCodeService storageCodeService, DraftDataService draftDataService,
-                            DropDataService dropDataService, SearchDataService searchDataService,
+                            DraftDataService draftDataService, DropDataService dropDataService, SearchDataService searchDataService,
                             RefBookLockService refBookLockService, VersionService versionService,
                             FileStorage fileStorage, FileNameGenerator fileNameGenerator,
                             VersionFileService versionFileService,
@@ -115,7 +112,6 @@ public class DraftServiceImpl implements DraftService {
         this.versionRepository = versionRepository;
         this.conflictRepository = conflictRepository;
 
-        this.storageCodeService = storageCodeService;
         this.draftDataService = draftDataService;
         this.dropDataService = dropDataService;
         this.searchDataService = searchDataService;
@@ -1058,11 +1054,9 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateOptLockValue(entity.getId(), entity.getOptLockValue(), request.getOptLockValue());
     }
 
-    private String toLocaleStorageCode(String storageCode, String localeCode) {
-
-        LocaleContextHelper.setLocale(localeCode);
-        StorageCodeCriteria codeCriteria = new L10nStorageCodeCriteria(storageCode, LocaleContextHelper.getLocale());
-        return storageCodeService.toStorageCode(codeCriteria);
+    @SuppressWarnings("UnusedParameter")
+    protected String toLocaleStorageCode(String storageCode, String localeCode) {
+        return storageCode;
     }
 
     private void auditStructureEdit(RefBookVersionEntity refBook, String action, Structure.Attribute attribute) {

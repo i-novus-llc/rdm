@@ -29,9 +29,9 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
+import static ru.i_novus.ms.rdm.api.util.FieldValueUtils.SYS_PRIMARY_COLUMN;
 import static ru.i_novus.ms.rdm.api.util.TimeUtils.parseLocalDate;
 import static ru.i_novus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
-import static ru.i_novus.platform.datastorage.temporal.model.StorageConstants.SYS_PRIMARY_COLUMN;
 
 @Controller
 @SuppressWarnings("unused") // used in: DataRecordQueryProvider
@@ -123,7 +123,9 @@ public class DataRecordController {
         return map;
     }
 
-    /** Получение записи из указанной версии справочника по системному идентификатору. */
+    /**
+     * Получение записи из указанной версии справочника по системному иентификатору.
+     */
     private List<RefBookRowValue> findRowValues(Integer versionId, Integer sysRecordId) {
 
         SearchDataCriteria criteria = new SearchDataCriteria();
