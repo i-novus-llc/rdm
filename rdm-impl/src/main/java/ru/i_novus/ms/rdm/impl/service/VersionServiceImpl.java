@@ -31,7 +31,6 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.entity.VersionFileEntity;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.file.export.VersionDataIterator;
-import ru.i_novus.ms.rdm.impl.l10n.LocaleContextHelper;
 import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
@@ -42,11 +41,8 @@ import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageCodeCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.i_novus.platform.datastorage.temporal.service.StorageCodeService;
-import ru.i_novus.platform.l10n.versioned_data_storage.model.criteria.L10nStorageCodeCriteria;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -68,7 +64,6 @@ public class VersionServiceImpl implements VersionService {
 
     private RefBookVersionRepository versionRepository;
 
-    private StorageCodeService storageCodeService;
     private SearchDataService searchDataService;
 
     private FileStorage fileStorage;
@@ -82,13 +77,12 @@ public class VersionServiceImpl implements VersionService {
     @Autowired
     @SuppressWarnings("squid:S00107")
     public VersionServiceImpl(RefBookVersionRepository versionRepository,
-                              StorageCodeService storageCodeService, SearchDataService searchDataService,
+                              SearchDataService searchDataService,
                               FileStorage fileStorage, FileNameGenerator fileNameGenerator,
                               VersionFileRepository versionFileRepository, VersionFileService versionFileService,
                               AuditLogService auditLogService) {
         this.versionRepository = versionRepository;
 
-        this.storageCodeService = storageCodeService;
         this.searchDataService = searchDataService;
 
         this.fileStorage = fileStorage;
@@ -325,10 +319,8 @@ public class VersionServiceImpl implements VersionService {
         return versionFileService.generate(versionModel, fileType, dataIterator);
     }
 
-    private String toLocaleStorageCode(String storageCode, String localeCode) {
-
-        LocaleContextHelper.setLocale(localeCode);
-        StorageCodeCriteria codeCriteria = new L10nStorageCodeCriteria(storageCode, LocaleContextHelper.getLocale());
-        return storageCodeService.toStorageCode(codeCriteria);
+    @SuppressWarnings("UnusedParameter")
+    protected String toLocaleStorageCode(String storageCode, String localeCode) {
+        return storageCode;
     }
 }
