@@ -1,6 +1,6 @@
 {
   "name": "n2o-config-rdm",
-  "version": "1.0.3",
+  "version": "2.0.1",
   "description": "N2O конфигурация для проекта RDM",
   "author": "emamoshin",
   "license": "MIT",
@@ -20,7 +20,7 @@
     "clean:es": "rimraf dist/es"
   },
   "peerDependencies": {
-    "n2o": "^7.0.0",
+    "n2o-framework": "^7.7.0",
     "prop-types": "^15.5.4",
     "react": "^16.0.0",
     "react-dom": "^16.0.0"
@@ -28,8 +28,8 @@
   "dependencies": {
     "classnames": "^2.2.6",
     "lodash": "^4.17.15",
-    "n2o-auth": "~7.5.1",
-    "n2o-framework": "~7.5.1",
+    "n2o-auth": "~7.7.8",
+    "n2o-framework": "~7.7.8",
     "react": "^16.8.6",
     "react-autosize-textarea": "^6.0.0",
     "react-avatar": "^3.5.0",

@@ -1,12 +1,13 @@
 {
   "name": "rdm-frontend",
-  "version": "1.0.1",
+  "version": "2.0.1",
   "private": true,
   "homepage": ".",
   "dependencies": {
     "http-proxy-middleware": "^0.20.0",
-    "n2o-config-rdm": "1.0.3",
-    "n2o-framework": "~7.5.1",
+    "n2o-auth": "^7.7.8",
+    "n2o-config-rdm": "2.0.1",
+    "n2o-framework": "~7.7.8",
     "react": "^16.8.6",
     "react-dom": "^16.8.6"
   },
