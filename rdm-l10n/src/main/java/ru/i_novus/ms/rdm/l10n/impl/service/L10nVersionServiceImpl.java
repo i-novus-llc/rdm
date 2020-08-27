@@ -9,17 +9,18 @@ import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
 import ru.i_novus.ms.rdm.l10n.api.service.L10nVersionService;
+import ru.i_novus.ms.rdm.l10n.api.service.StorageCodeService;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.l10n.versioned_data_storage.pg_impl.dao.L10nDataDao;
-import ru.i_novus.platform.l10n.versioned_data_storage.pg_impl.service.L10nStorageCodeService;
 
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.StringUtils.isEmpty;
-import static ru.i_novus.platform.datastorage.temporal.util.StorageUtils.*;
+import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.*;
 
+@SuppressWarnings("java:S3740")
 public class L10nVersionServiceImpl implements L10nVersionService {
 
     private static final String LOCALE_CODE_NOT_FOUND_EXCEPTION_CODE = "locale.code.not.found";
@@ -27,19 +28,22 @@ public class L10nVersionServiceImpl implements L10nVersionService {
     private static final String STORAGE_CODE_NOT_FOUND_EXCEPTION_CODE = "storage.code.not.found";
 
     private L10nDataDao dataDao;
-    private L10nStorageCodeService storageCodeService;
     private DraftDataService draftDataService;
+
+    private StorageCodeService storageCodeService;
 
     private VersionService versionService;
 
     @Autowired
     public L10nVersionServiceImpl(L10nDataDao dataDao,
-                                  L10nStorageCodeService storageCodeService, DraftDataService draftDataService,
+                                  DraftDataService draftDataService,
+                                  StorageCodeService storageCodeService,
                                   VersionService versionService) {
 
         this.dataDao = dataDao;
-        this.storageCodeService = storageCodeService;
         this.draftDataService = draftDataService;
+
+        this.storageCodeService = storageCodeService;
 
         this.versionService = versionService;
     }
