@@ -9,9 +9,9 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
-import ru.i_novus.ms.rdm.l10n.api.service.StorageCodeService;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nDraftDataService;
+import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nStorageCodeService;
 
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -25,7 +25,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.toStorageCode;
 
 @RunWith(MockitoJUnitRunner.class)
 public class L10nVersionServiceTest {
@@ -47,7 +46,7 @@ public class L10nVersionServiceTest {
     private L10nDraftDataService draftDataService;
 
     @Mock
-    private StorageCodeService storageCodeService;
+    private L10nStorageCodeService storageCodeService;
 
     @Mock
     private VersionService versionService;
@@ -55,7 +54,7 @@ public class L10nVersionServiceTest {
     @Test
     public void testLocalizeData() {
 
-        when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(TEST_SCHEMA_NAME);
+        when(storageCodeService.toLocaleSchema(eq(TEST_LOCALE_CODE))).thenReturn(TEST_SCHEMA_NAME);
         when(draftDataService.schemaExists(eq(TEST_SCHEMA_NAME))).thenReturn(true);
         when(versionService.getStorageCode(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(TEST_STORAGE_NAME);
 
