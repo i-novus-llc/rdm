@@ -66,7 +66,7 @@ public class L10nVersionServiceTest {
         LocalizeDataRequest request = new LocalizeDataRequest(null, TEST_LOCALE_CODE, rows);
         l10nVersionService.localizeData(TEST_REFBOOK_VERSION_ID, request);
 
-        verify(draftDataService).localizeTable(eq(TEST_STORAGE_NAME), eq(TEST_SCHEMA_NAME));
+        verify(draftDataService).createLocalizedTable(eq(TEST_STORAGE_NAME), eq(TEST_SCHEMA_NAME));
         verify(draftDataService).updateRows(eq(TEST_SCHEMA_NAME), any());
     }
 
