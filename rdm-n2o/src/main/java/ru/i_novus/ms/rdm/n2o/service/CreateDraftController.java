@@ -29,8 +29,8 @@ import java.util.Map;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
-import static ru.i_novus.platform.datastorage.temporal.model.StorageConstants.SYS_HASH;
-import static ru.i_novus.platform.datastorage.temporal.model.StorageConstants.SYS_PRIMARY_COLUMN;
+import static ru.i_novus.ms.rdm.api.util.FieldValueUtils.SYS_HASH;
+import static ru.i_novus.ms.rdm.api.util.FieldValueUtils.SYS_PRIMARY_COLUMN;
 
 @Controller
 @SuppressWarnings("unused")

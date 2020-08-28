@@ -13,19 +13,12 @@
     <properties>
         <maven.deploy.skip>true</maven.deploy.skip>
         <jacoco.skip>false</jacoco.skip>
-
-        <vds.config>
-            ru.i_novus.platform.versioned_data_storage.config.VersionedDataStorageConfig
-        </vds.config>
     </properties>
 
     <profiles>
         <profile>
             <id>l10n</id>
             <properties>
-                <vds.config>
-                    ru.i_novus.platform.l10n.versioned_data_storage.config.L10nVersionedDataStorageConfig
-                </vds.config>
             </properties>
         </profile>
     </profiles>

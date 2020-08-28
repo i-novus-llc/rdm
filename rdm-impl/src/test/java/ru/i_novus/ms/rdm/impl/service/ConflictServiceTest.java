@@ -6,20 +6,9 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.data.domain.*;
-import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.*;
-import ru.i_novus.platform.datastorage.temporal.model.value.*;
-import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-import ru.i_novus.platform.versioned_data_storage.pg_impl.model.IntegerField;
-import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
-import ru.i_novus.ms.rdm.api.service.CompareService;
-import ru.i_novus.ms.rdm.api.service.DraftService;
-import ru.i_novus.ms.rdm.api.service.VersionService;
-import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
-import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
-import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
@@ -27,9 +16,24 @@ import ru.i_novus.ms.rdm.api.model.diff.RefBookDataDiff;
 import ru.i_novus.ms.rdm.api.model.diff.StructureDiff;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.i_novus.ms.rdm.api.service.CompareService;
+import ru.i_novus.ms.rdm.api.service.DraftService;
+import ru.i_novus.ms.rdm.api.service.VersionService;
+import ru.i_novus.ms.rdm.api.validation.VersionValidation;
+import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.i_novus.ms.rdm.api.validation.VersionValidation;
+import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
+import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.value.*;
+import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.i_novus.platform.versioned_data_storage.pg_impl.model.IntegerField;
+import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -39,11 +43,14 @@ import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.*;
 import static java.util.Arrays.asList;
-import static java.util.Collections.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static ru.i_novus.ms.rdm.api.util.FieldValueUtils.getSortByPrimary;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ConflictServiceTest {
@@ -244,10 +251,10 @@ public class ConflictServiceTest {
      * @param newVersionEntity      новая версия, на которую будут ссылаться
      * @param referrerReferences    ссылки версии, которая ссылается
      */
-    public List<RefBookConflictEntity> calculateDamagedConflicts(RefBookVersionEntity referrerVersionEntity,
-                                                                 RefBookVersionEntity oldVersionEntity,
-                                                                 RefBookVersionEntity newVersionEntity,
-                                                                 List<Structure.Reference> referrerReferences) {
+    private List<RefBookConflictEntity> calculateDamagedConflicts(RefBookVersionEntity referrerVersionEntity,
+                                                                  RefBookVersionEntity oldVersionEntity,
+                                                                  RefBookVersionEntity newVersionEntity,
+                                                                  List<Structure.Reference> referrerReferences) {
         StructureDiff structureDiff = compareService.compareStructures(oldVersionEntity.getId(), newVersionEntity.getId());
 
         return conflictService.calculateDisplayDamagedConflicts(referrerVersionEntity, newVersionEntity, referrerReferences, structureDiff);
@@ -295,14 +302,14 @@ public class ConflictServiceTest {
      * @param newVersionEntity      новая версия, на которую будут ссылаться
      * @param referrerReferences    ссылки версии, которая ссылается
      */
-    public List<RefBookConflictEntity> calculateAlteredConflicts(RefBookVersionEntity referrerVersionEntity,
-                                                                 RefBookVersionEntity oldVersionEntity,
-                                                                 RefBookVersionEntity newVersionEntity,
-                                                                 List<Structure.Reference> referrerReferences) {
+    private List<RefBookConflictEntity> calculateAlteredConflicts(RefBookVersionEntity referrerVersionEntity,
+                                                                  RefBookVersionEntity oldVersionEntity,
+                                                                  RefBookVersionEntity newVersionEntity,
+                                                                  List<Structure.Reference> referrerReferences) {
         List<RefBookConflictEntity> list = new ArrayList<>();
 
         SearchDataCriteria criteria = new SearchDataCriteria();
-        criteria.setOrders(ConflictServiceImpl.SORT_VERSION_DATA);
+        criteria.setOrders(getSortByPrimary());
         criteria.setPageSize(ConflictServiceImpl.REF_BOOK_VERSION_DATA_PAGE_SIZE);
 
         Page<RefBookRowValue> rowValues = versionService.search(referrerVersionEntity.getId(), criteria);

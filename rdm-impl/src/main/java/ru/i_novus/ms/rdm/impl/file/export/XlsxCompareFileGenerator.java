@@ -11,7 +11,6 @@ import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Sort;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.ComparableRow;
@@ -39,8 +38,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Collections.singletonList;
-import static ru.i_novus.platform.datastorage.temporal.model.StorageConstants.SYS_PRIMARY_COLUMN;
+import static ru.i_novus.ms.rdm.api.util.FieldValueUtils.getSortByPrimary;
 
 /**
  * Created by znurgaliev on 26.09.2018.
@@ -284,7 +282,7 @@ class XlsxCompareFileGenerator implements FileGenerator {
         sheet.trackAllColumnsForAutoSizing();
 
         CompareDataCriteria compareCriteria = new CompareDataCriteria(oldVersion.getId(), newVersion.getId());
-        compareCriteria.setOrders(singletonList(new Sort.Order(Sort.Direction.ASC, SYS_PRIMARY_COLUMN)));
+        compareCriteria.setOrders(getSortByPrimary());
 
         PageIterator<ComparableRow, CompareDataCriteria> pageIterator = new PageIterator<>(compareService::getCommonComparableRows, compareCriteria);
         pageIterator.forEachRemaining(page ->

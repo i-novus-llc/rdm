@@ -46,7 +46,6 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriter
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.i_novus.platform.datastorage.temporal.service.StorageCodeService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 
 import javax.sql.DataSource;
@@ -70,6 +69,7 @@ import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.junit.Assert.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
+import static ru.i_novus.ms.rdm.api.util.FieldValueUtils.SYS_PRIMARY_COLUMN;
 import static ru.i_novus.ms.rdm.api.util.TimeUtils.parseLocalDate;
 import static ru.i_novus.ms.rdm.api.util.TimeUtils.parseLocalDateTime;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.fields;
@@ -172,9 +172,6 @@ public class ApplicationTest {
 
     @Autowired
     private FileStorage fileStorage;
-
-    @Autowired
-    private StorageCodeService storageCodeService;
 
     @Autowired
     private DraftDataService draftDataService;

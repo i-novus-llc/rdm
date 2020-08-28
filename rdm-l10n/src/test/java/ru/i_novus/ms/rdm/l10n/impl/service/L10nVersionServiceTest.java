@@ -9,9 +9,9 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
+import ru.i_novus.ms.rdm.l10n.api.service.StorageCodeService;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nDraftDataService;
-import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nStorageCodeService;
+import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -25,6 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.toStorageCode;
 
 @RunWith(MockitoJUnitRunner.class)
 public class L10nVersionServiceTest {
@@ -43,9 +44,10 @@ public class L10nVersionServiceTest {
     private L10nVersionServiceImpl l10nVersionService;
 
     @Mock
-    private L10nStorageCodeService storageCodeService;
-    @Mock
     private L10nDraftDataService draftDataService;
+
+    @Mock
+    private StorageCodeService storageCodeService;
 
     @Mock
     private VersionService versionService;
