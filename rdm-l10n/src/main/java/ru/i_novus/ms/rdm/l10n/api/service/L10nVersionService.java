@@ -20,8 +20,8 @@ public interface L10nVersionService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/{versionId}/locale/{localeCode}")
-    void localizeTable(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
-                       @ApiParam("Код локали") @PathParam("localeCode") String localeCode);
+    String localizeTable(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
+                         @ApiParam("Код локали") @PathParam("localeCode") String localeCode);
 
     @POST
     @ApiOperation("Локализация записей версии")

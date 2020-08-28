@@ -25,6 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.toStorageCode;
 
 @RunWith(MockitoJUnitRunner.class)
 public class L10nVersionServiceTest {
@@ -57,6 +58,10 @@ public class L10nVersionServiceTest {
         when(storageCodeService.toLocaleSchema(eq(TEST_LOCALE_CODE))).thenReturn(TEST_SCHEMA_NAME);
         when(versionService.getStorageCode(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(TEST_STORAGE_NAME);
 
+        String testStorageCode = toStorageCode(TEST_SCHEMA_NAME, TEST_STORAGE_NAME);
+        when(draftDataService.createLocalizedTable(eq(TEST_STORAGE_NAME), eq(TEST_SCHEMA_NAME)))
+                .thenReturn(testStorageCode);
+
         Structure structure = createStructure();
         when(versionService.getStructure(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(structure);
 
@@ -67,6 +72,7 @@ public class L10nVersionServiceTest {
         l10nVersionService.localizeData(TEST_REFBOOK_VERSION_ID, request);
 
         verify(draftDataService).createLocalizedTable(eq(TEST_STORAGE_NAME), eq(TEST_SCHEMA_NAME));
+        verify(draftDataService).copyAllData(eq(TEST_STORAGE_NAME), eq(testStorageCode));
         verify(draftDataService).updateRows(eq(TEST_SCHEMA_NAME), any());
     }
 
