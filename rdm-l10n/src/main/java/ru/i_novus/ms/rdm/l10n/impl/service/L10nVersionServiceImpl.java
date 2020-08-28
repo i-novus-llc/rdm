@@ -49,15 +49,11 @@ public class L10nVersionServiceImpl implements L10nVersionService {
         if (isEmpty(localeCode))
             throw new IllegalArgumentException(LOCALE_CODE_NOT_FOUND_EXCEPTION_CODE);
 
-        String schemaName = toSchemaName(localeCode);
-        if (!draftDataService.schemaExists(schemaName)) {
-            draftDataService.createSchema(schemaName);
-        }
-
         String sourceCode = versionService.getStorageCode(versionId);
         if (isEmpty(sourceCode))
             throw new IllegalArgumentException(STORAGE_CODE_NOT_FOUND_EXCEPTION_CODE);
 
+        String schemaName = toSchemaName(localeCode);
         draftDataService.localizeTable(sourceCode, schemaName);
     }
 
@@ -67,9 +63,6 @@ public class L10nVersionServiceImpl implements L10nVersionService {
         String localeCode = request.getLocaleCode();
         localizeTable(versionId, localeCode);
 
-        // Замена записей на локализованные.
-        String schemaName = toSchemaName(localeCode);
-
         Structure structure = versionService.getStructure(versionId);
         List<RowValue> updatedRowValues = request.getRows().stream()
                 .map(row -> ConverterUtil.rowValue(row, structure))
@@ -78,6 +71,7 @@ public class L10nVersionServiceImpl implements L10nVersionService {
         if (CollectionUtils.isEmpty(updatedRowValues))
             return;
 
+        String schemaName = toSchemaName(localeCode);
         draftDataService.updateRows(schemaName, updatedRowValues);
     }
 

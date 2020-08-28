@@ -55,7 +55,6 @@ public class L10nVersionServiceTest {
     public void testLocalizeData() {
 
         when(storageCodeService.toLocaleSchema(eq(TEST_LOCALE_CODE))).thenReturn(TEST_SCHEMA_NAME);
-        when(draftDataService.schemaExists(eq(TEST_SCHEMA_NAME))).thenReturn(true);
         when(versionService.getStorageCode(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(TEST_STORAGE_NAME);
 
         Structure structure = createStructure();
