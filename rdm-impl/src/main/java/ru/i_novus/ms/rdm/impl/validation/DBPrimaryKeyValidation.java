@@ -103,7 +103,7 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
                 ).collect(toSet());
 
         StorageDataCriteria criteria = new StorageDataCriteria(storageCode, null, null, fields, fieldFilters, null);
-        criteria.setPage(DataCriteria.MIN_PAGE);
+        criteria.setPage(BaseDataCriteria.MIN_PAGE);
         criteria.setSize(calculateCriteriaSize(rows));
         return criteria;
     }

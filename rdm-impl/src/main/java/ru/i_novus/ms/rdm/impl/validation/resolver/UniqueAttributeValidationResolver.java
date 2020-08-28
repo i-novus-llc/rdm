@@ -65,7 +65,7 @@ public class UniqueAttributeValidationResolver implements AttributeValidationRes
 
         StorageDataCriteria criteria = new StorageDataCriteria(storageCode, null, null,
                 singletonList(field), singletonList(fieldSearchCriteria), null);
-        criteria.setPage(DataCriteria.MIN_PAGE);
+        criteria.setPage(BaseDataCriteria.MIN_PAGE);
         criteria.setSize(value.getSystemId() != null ? 2 : 1);
         return criteria;
     }

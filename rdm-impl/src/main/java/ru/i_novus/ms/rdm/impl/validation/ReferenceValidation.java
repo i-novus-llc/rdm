@@ -94,7 +94,7 @@ public class ReferenceValidation implements RdmValidation {
 
         StorageDataCriteria draftDataCriteria = new StorageDataCriteria(draftEntity.getStorageCode(), null, null,
                 singletonList(draftField), emptySet(), null);
-        draftDataCriteria.setPage(DataCriteria.MIN_PAGE);
+        draftDataCriteria.setPage(BaseDataCriteria.MIN_PAGE);
         draftDataCriteria.setSize(bufSize);
 
         // Значения, не приводимые к типу атрибута, на который ссылаемся,

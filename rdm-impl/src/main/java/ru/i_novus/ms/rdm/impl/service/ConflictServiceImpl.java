@@ -507,8 +507,8 @@ public class ConflictServiceImpl implements ConflictService {
                 refFromEntity.getFromDate(), refFromEntity.getToDate(),
                 fields(refFromEntity.getStructure()), filters, null);
         // NB: Get all required rows because filters.size() <= REF_BOOK_DIFF_CONFLICT_PAGE_SIZE.
-        criteria.setPage(DataCriteria.NO_PAGINATION_PAGE);
-        criteria.setSize(DataCriteria.NO_PAGINATION_PAGE);
+        criteria.setPage(BaseDataCriteria.NO_PAGINATION_PAGE);
+        criteria.setSize(BaseDataCriteria.NO_PAGINATION_PAGE);
 
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(criteria);
         if (pagedData.getCollection() == null)
