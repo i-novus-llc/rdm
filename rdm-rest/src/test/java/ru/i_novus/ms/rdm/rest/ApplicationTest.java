@@ -50,9 +50,7 @@ import ru.i_novus.platform.datastorage.temporal.service.StorageCodeService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 
 import javax.sql.DataSource;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -902,8 +900,8 @@ public class ApplicationTest {
         }};
         Set<List<AttributeFilter>> filters = new HashSet<>() {{
             add(asList(
-                    new AttributeFilter(id.getCode(), rowMap.get(id.getCode()), id.getType()),
-                    new AttributeFilter(code.getCode(), rowMap.get(code.getCode()), code.getType())
+                    new AttributeFilter(id.getCode(), (Serializable) rowMap.get(id.getCode()), id.getType()),
+                    new AttributeFilter(code.getCode(), (Serializable) rowMap.get(code.getCode()), code.getType())
             ));
         }};
 
@@ -1168,8 +1166,9 @@ public class ApplicationTest {
 
         List<AttributeFilter> attributeFilters = new ArrayList<>();
         structure.getAttributes().forEach(attribute -> {
-            Object searchValue = FieldType.REFERENCE.equals(attribute.getType()) ?
-                    ((Reference) row1.getData().get(attribute.getCode())).getValue() : row1.getData().get(attribute.getCode());
+            Serializable searchValue = FieldType.REFERENCE.equals(attribute.getType())
+                    ? ((Reference) row1.getData().get(attribute.getCode())).getValue()
+                    : (Serializable) row1.getData().get(attribute.getCode());
             attributeFilters.add(new AttributeFilter(attribute.getCode(), searchValue, attribute.getType()));
         });
 
@@ -3039,7 +3038,7 @@ public class ApplicationTest {
      * @param attributeValue значение атрибута
      * @return Одна запись или null
      */
-    private RefBookRowValue getVersionRowValue(Integer versionId, Structure.Attribute attribute, Object attributeValue) {
+    private RefBookRowValue getVersionRowValue(Integer versionId, Structure.Attribute attribute, Serializable attributeValue) {
 
         if (versionId == null || attribute == null || attributeValue == null)
             return null;

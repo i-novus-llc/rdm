@@ -22,6 +22,7 @@ import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
 
+import java.io.Serializable;
 import java.util.*;
 
 import static java.util.Collections.*;
@@ -166,7 +167,7 @@ public class ReferenceValueValidation extends AppendRowValidation {
                 .distinct().collect(toList());
 
         Field referredField = field(referredAttribute);
-        List<Object> referredValues = referenceValues.stream()
+        List<Serializable> referredValues = referenceValues.stream()
                 .map(referenceValue -> castReferenceValue(referredField, referenceValue))
                 .filter(Objects::nonNull)
                 .collect(toList());
@@ -195,7 +196,7 @@ public class ReferenceValueValidation extends AppendRowValidation {
         }
     }
 
-    private AttributeFilter toAttributeFilter(Structure.Attribute referredAttribute, Object referredValue) {
+    private AttributeFilter toAttributeFilter(Structure.Attribute referredAttribute, Serializable referredValue) {
         return new AttributeFilter(referredAttribute.getCode(), referredValue, referredAttribute.getType(), SearchTypeEnum.EXACT);
     }
 

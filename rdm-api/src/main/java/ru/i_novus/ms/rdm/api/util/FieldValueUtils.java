@@ -15,6 +15,7 @@ import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -100,7 +101,7 @@ public class FieldValueUtils {
      * @param refFieldType тип атрибута, к которому приводится значение
      * @return Типизированное значение атрибута
      */
-    public static Object castFieldValue(FieldValue fieldValue, FieldType refFieldType) {
+    public static Serializable castFieldValue(FieldValue fieldValue, FieldType refFieldType) {
         if (fieldValue instanceof ReferenceFieldValue) {
             return castRefValue((Reference) (fieldValue.getValue()), refFieldType);
         }
@@ -116,7 +117,7 @@ public class FieldValueUtils {
      * @param refFieldType тип атрибута, на который ссылаемся
      * @return Типизированное значение ссылочного атрибута
      */
-    private static Object castRefValue(Reference value, FieldType refFieldType) {
+    private static Serializable castRefValue(Reference value, FieldType refFieldType) {
         if (refFieldType == FieldType.INTEGER) {
             return value.getValue() != null ? new BigInteger(value.getValue()) : null;
         }
@@ -163,15 +164,17 @@ public class FieldValueUtils {
     public static Set<List<AttributeFilter>> toAttributeFilters(List<ReferenceFilterValue> filterValues) {
         return filterValues.stream()
                 .map(value -> {
-                    Object attributeValue = castFieldValue(value.getReferenceValue(), value.getAttribute().getType());
+                    Serializable attributeValue = castFieldValue(value.getReferenceValue(), value.getAttribute().getType());
                     return new AttributeFilter(value.getAttribute().getCode(), attributeValue, value.getAttribute().getType(), SearchTypeEnum.EXACT);
                 })
                 .map(Collections::singletonList)
                 .collect(toSet());
     }
 
-    public static Object getDiffFieldValue(DiffFieldValue fieldValue, DiffStatusEnum status) {
-        return DiffStatusEnum.DELETED.equals(status) ? fieldValue.getOldValue() : fieldValue.getNewValue();
+    public static Serializable getDiffFieldValue(DiffFieldValue fieldValue, DiffStatusEnum status) {
+        return DiffStatusEnum.DELETED.equals(status)
+                ? (Serializable) fieldValue.getOldValue()
+                : (Serializable) fieldValue.getNewValue();
     }
 
     @SuppressWarnings("WeakerAccess")
@@ -181,7 +184,8 @@ public class FieldValueUtils {
 
     public static FieldValue getFieldValueFromFieldType(Object value, String fieldCode, FieldType fieldType) {
         switch (fieldType) {
-            case STRING: return new StringFieldValue(fieldCode, (String) value);
+            case STRING:
+                return new StringFieldValue(fieldCode, (String) value);
             case INTEGER: return new IntegerFieldValue(fieldCode, (BigInteger) value);
             case REFERENCE: return new ReferenceFieldValue(fieldCode, (Reference) value);
             case FLOAT: return new FloatFieldValue(fieldCode, (BigDecimal) value);
