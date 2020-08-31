@@ -25,7 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static ru.i_novus.platform.datastorage.temporal.util.StorageUtils.toStorageCode;
+import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.toStorageCode;
 
 @RunWith(MockitoJUnitRunner.class)
 public class L10nVersionServiceTest {
@@ -44,9 +44,10 @@ public class L10nVersionServiceTest {
     private L10nVersionServiceImpl l10nVersionService;
 
     @Mock
-    private L10nStorageCodeService storageCodeService;
-    @Mock
     private L10nDraftDataService draftDataService;
+
+    @Mock
+    private L10nStorageCodeService storageCodeService;
 
     @Mock
     private VersionService versionService;
@@ -54,8 +55,7 @@ public class L10nVersionServiceTest {
     @Test
     public void testLocalizeData() {
 
-        when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(TEST_SCHEMA_NAME);
-        when(draftDataService.schemaExists(eq(TEST_SCHEMA_NAME))).thenReturn(true);
+        when(storageCodeService.toLocaleSchema(eq(TEST_LOCALE_CODE))).thenReturn(TEST_SCHEMA_NAME);
         when(versionService.getStorageCode(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(TEST_STORAGE_NAME);
 
         String testStorageCode = toStorageCode(TEST_SCHEMA_NAME, TEST_STORAGE_NAME);

@@ -17,8 +17,8 @@ import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.StringUtils.isEmpty;
-import static ru.i_novus.platform.datastorage.temporal.util.StorageUtils.isDefaultSchema;
-import static ru.i_novus.platform.datastorage.temporal.util.StorageUtils.isValidSchemaName;
+import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.isDefaultSchema;
+import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.isValidSchemaName;
 
 @SuppressWarnings("java:S3740")
 public class L10nVersionServiceImpl implements L10nVersionService {
@@ -27,18 +27,18 @@ public class L10nVersionServiceImpl implements L10nVersionService {
     private static final String LOCALE_CODE_IS_INVALID_EXCEPTION_CODE = "locale.code.is.invalid";
     private static final String STORAGE_CODE_NOT_FOUND_EXCEPTION_CODE = "storage.code.not.found";
 
-    private L10nStorageCodeService storageCodeService;
     private L10nDraftDataService draftDataService;
+    private L10nStorageCodeService storageCodeService;
 
     private VersionService versionService;
 
     @Autowired
-    public L10nVersionServiceImpl(L10nStorageCodeService storageCodeService,
-                                  L10nDraftDataService draftDataService,
+    public L10nVersionServiceImpl(L10nDraftDataService draftDataService,
+                                  L10nStorageCodeService storageCodeService,
                                   VersionService versionService) {
 
-        this.storageCodeService = storageCodeService;
         this.draftDataService = draftDataService;
+        this.storageCodeService = storageCodeService;
 
         this.versionService = versionService;
     }
@@ -49,15 +49,11 @@ public class L10nVersionServiceImpl implements L10nVersionService {
         if (isEmpty(localeCode))
             throw new IllegalArgumentException(LOCALE_CODE_NOT_FOUND_EXCEPTION_CODE);
 
-        String targetSchemaName = toSchemaName(localeCode);
-        if (!draftDataService.schemaExists(targetSchemaName)) {
-            draftDataService.createSchema(targetSchemaName);
-        }
-
         String sourceTableName = versionService.getStorageCode(versionId);
         if (isEmpty(sourceTableName))
             throw new IllegalArgumentException(STORAGE_CODE_NOT_FOUND_EXCEPTION_CODE);
 
+        String targetSchemaName = toSchemaName(localeCode);
         String targetCode = draftDataService.createLocalizedTable(sourceTableName, targetSchemaName);
 
         // Копирование всех колонок записей, FTS обновляется по триггеру.
@@ -72,9 +68,6 @@ public class L10nVersionServiceImpl implements L10nVersionService {
         String localeCode = request.getLocaleCode();
         localizeTable(versionId, localeCode);
 
-        // Замена записей на локализованные.
-        String schemaName = toSchemaName(localeCode);
-
         Structure structure = versionService.getStructure(versionId);
         List<RowValue> updatedRowValues = request.getRows().stream()
                 .map(row -> ConverterUtil.rowValue(row, structure))
@@ -83,12 +76,13 @@ public class L10nVersionServiceImpl implements L10nVersionService {
         if (CollectionUtils.isEmpty(updatedRowValues))
             return;
 
+        String schemaName = toSchemaName(localeCode);
         draftDataService.updateRows(schemaName, updatedRowValues);
     }
 
     private String toSchemaName(String localeCode) {
 
-        String schemaName = storageCodeService.toSchemaName(localeCode);
+        String schemaName = storageCodeService.toLocaleSchema(localeCode);
         if (isDefaultSchema(schemaName) || !isValidSchemaName(schemaName))
             throw new UserException(new Message(LOCALE_CODE_IS_INVALID_EXCEPTION_CODE, localeCode));
 

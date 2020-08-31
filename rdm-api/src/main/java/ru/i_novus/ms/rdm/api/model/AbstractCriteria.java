@@ -13,7 +13,7 @@ public class AbstractCriteria extends RestCriteria {
     private static final int NO_PAGINATION_SIZE = Integer.MAX_VALUE;
 
     public AbstractCriteria() {
-        super(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
+        this(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
     }
 
     public AbstractCriteria(int pageNumber, int pageSize) {

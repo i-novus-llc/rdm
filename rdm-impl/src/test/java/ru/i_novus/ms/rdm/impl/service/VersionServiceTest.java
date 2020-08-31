@@ -14,7 +14,6 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.i_novus.platform.datastorage.temporal.service.StorageCodeService;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -36,9 +35,6 @@ public class VersionServiceTest {
     private RefBookVersionRepository versionRepository;
 
     @Mock
-    private StorageCodeService storageCodeService;
-
-    @Mock
     private SearchDataService searchDataService;
 
     @Test
@@ -47,7 +43,6 @@ public class VersionServiceTest {
         RefBookVersionEntity testVersion = createTestVersion();
 
         when(versionRepository.findById(anyInt())).thenReturn(Optional.of(testVersion));
-        when(storageCodeService.toStorageCode(any())).thenReturn(TEST_STORAGE_CODE);
         when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>(0, Collections.emptyList(), new Criteria()));
 
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria();

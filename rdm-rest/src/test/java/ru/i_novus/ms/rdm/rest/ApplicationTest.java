@@ -40,13 +40,12 @@ import ru.i_novus.ms.rdm.impl.validation.ReferenceValueValidation;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.*;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.BaseDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.i_novus.platform.datastorage.temporal.service.StorageCodeService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 
 import javax.sql.DataSource;
@@ -170,9 +169,6 @@ public class ApplicationTest {
 
     @Autowired
     private FileStorage fileStorage;
-
-    @Autowired
-    private StorageCodeService storageCodeService;
 
     @Autowired
     private DraftDataService draftDataService;
@@ -3018,8 +3014,8 @@ public class ApplicationTest {
                                                           Structure structure,
                                                           LocalDateTime bdate, LocalDateTime edate) {
         StorageDataCriteria criteria = new StorageDataCriteria(storageCode, bdate, edate, fields(structure));
-        criteria.setPage(DataCriteria.NO_PAGINATION_PAGE);
-        criteria.setSize(DataCriteria.NO_PAGINATION_SIZE);
+        criteria.setPage(BaseDataCriteria.NO_PAGINATION_PAGE);
+        criteria.setSize(BaseDataCriteria.NO_PAGINATION_SIZE);
 
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(criteria);
         if (pagedData.getCollection() == null)
