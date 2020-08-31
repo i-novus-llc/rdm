@@ -19,8 +19,8 @@
         <encoding>UTF-8</encoding>
         <apache.poi.version>3.17</apache.poi.version>
         <filestorage.version>2.2</filestorage.version>
-        <vds.version>3.0-SNAPSHOT</vds.version>
-        <l10n.vds.version>1.0-SNAPSHOT</l10n.vds.version>
+        <vds.version>3.2-SNAPSHOT</vds.version>
+        <l10n.vds.version>3.0-SNAPSHOT</l10n.vds.version>
         <n2o.version>7.7.9</n2o.version>
         <itext.version>5.5.9</itext.version>
         <commons.text.version>1.6</commons.text.version>
