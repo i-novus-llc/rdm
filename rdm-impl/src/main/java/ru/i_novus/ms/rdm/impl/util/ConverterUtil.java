@@ -19,6 +19,7 @@ import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.*;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.service.FieldFactoryImpl;
 
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -166,7 +167,7 @@ public class ConverterUtil {
         return fieldValue.getValue();
     }
 
-    public static Object castReferenceValue(Field field, String value) {
+    public static Serializable castReferenceValue(Field field, String value) {
 
         if (field instanceof BooleanField) {
             return Boolean.valueOf(value);
