@@ -1,14 +1,15 @@
 package ru.i_novus.ms.rdm.impl.validation;
 
 import net.n2oapp.platform.i18n.Message;
-import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.validation.*;
 import ru.i_novus.ms.rdm.api.model.version.UniqueAttributeValue;
 import ru.i_novus.ms.rdm.impl.entity.AttributeValidationEntity;
 import ru.i_novus.ms.rdm.impl.validation.resolver.*;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -86,7 +87,7 @@ public class AttributeCustomValidation extends AppendRowValidation {
                     for (AttributeValidationResolver resolver : e.getValue()) {
                         Object attributeValue =
                                 resolver instanceof UniqueAttributeValidationResolver
-                                        ? new UniqueAttributeValue(systemId, rowData.get(e.getKey()))
+                                        ? new UniqueAttributeValue(systemId, (Serializable) rowData.get(e.getKey()))
                                         : rowData.get(e.getKey());
                         @SuppressWarnings("unchecked")
                         Message message = resolver.resolve(attributeValue);

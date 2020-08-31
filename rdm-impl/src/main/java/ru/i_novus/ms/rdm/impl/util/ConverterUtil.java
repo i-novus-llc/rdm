@@ -197,7 +197,7 @@ public class ConverterUtil {
         throw new RdmException("invalid field type");
     }
 
-    public static Object toSearchValue(Object value) {
+    public static Serializable toSearchValue(Serializable value) {
 
         if (value instanceof Reference) {
             return ((Reference) value).getValue();
@@ -206,7 +206,7 @@ public class ConverterUtil {
         return value;
     }
 
-    public static Object toSearchValue(Field field, String value) {
+    public static Serializable toSearchValue(Field field, String value) {
         try {
             if (field instanceof BooleanField) {
                 return Boolean.valueOf(value);

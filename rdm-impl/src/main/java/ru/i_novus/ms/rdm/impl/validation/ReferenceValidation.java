@@ -17,6 +17,7 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
+import java.io.Serializable;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 
@@ -112,11 +113,11 @@ public class ReferenceValidation implements RdmValidation {
                               RefBookVersionEntity referredEntity, Field referredField) {
         CollectionPage<RowValue> draftRowValues = searchDataService.getPagedData(draftDataCriteria);
         // Значения, которые приведены к типу атрибута из ссылки
-        List<Object> castedValues = new ArrayList<>();
+        List<Serializable> castedValues = new ArrayList<>();
 
         (draftRowValues.getCollection()).forEach(rowValue -> {
             String value = String.valueOf(rowValue.getFieldValue(reference.getAttribute()).getValue());
-            Object castedValue;
+            Serializable castedValue;
             try {
                 castedValue = ConverterUtil.castReferenceValue(referredField, value);
                 castedValues.add(castedValue);

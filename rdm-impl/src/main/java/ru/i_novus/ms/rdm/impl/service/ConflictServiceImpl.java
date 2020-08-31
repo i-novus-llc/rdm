@@ -37,6 +37,7 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
+import java.io.Serializable;
 import java.util.*;
 
 import static java.util.Arrays.asList;
@@ -617,7 +618,7 @@ public class ConflictServiceImpl implements ConflictService {
         return diffRowValues.stream()
                 .flatMap(diff -> {
                     DiffFieldValue diffFieldValue = diff.getDiffFieldValue(refToPrimaries.get(0).getCode());
-                    Object value = getDiffFieldValue(diffFieldValue, diff.getStatus());
+                    Serializable value = getDiffFieldValue(diffFieldValue, diff.getStatus());
 
                     return refFromAttributes.stream()
                             .map(attribute ->
