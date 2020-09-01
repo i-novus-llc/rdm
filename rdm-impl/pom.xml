@@ -15,14 +15,6 @@
         <jacoco.skip>false</jacoco.skip>
     </properties>
 
-    <profiles>
-        <profile>
-            <id>l10n</id>
-            <properties>
-            </properties>
-        </profile>
-    </profiles>
-
     <dependencies>
 
         <dependency>
@@ -112,11 +104,6 @@
         </dependency>
 
         <dependency>
-            <groupId>ru.i-novus.components</groupId>
-            <artifactId>l10n-versioned-data-storage-pg-impl</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>com.monitorjbl</groupId>
             <artifactId>xlsx-streamer</artifactId>
         </dependency>
@@ -203,5 +190,21 @@
             </resource>
         </resources>
     </build>
+
+    <profiles>
+        <profile>
+            <id>l10n</id>
+            <dependencies>
+                <!--<dependency>-->
+                <!--    <groupId>ru.i-novus.components</groupId>-->
+                <!--    <artifactId>l10n-versioned-data-storage-pg-impl</artifactId>-->
+                <!--</dependency>-->
+                <dependency>
+                    <groupId>ru.i-novus.ms.rdm</groupId>
+                    <artifactId>rdm-l10n</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
 </project>

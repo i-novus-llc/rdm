@@ -16,6 +16,9 @@
         <frontend.default.port>8081</frontend.default.port>
         <config.server.enable>false</config.server.enable>
         <maven.deploy.skip>true</maven.deploy.skip>
+        <jacoco.skip>false</jacoco.skip>
+
+        <rdm.l10n.support>false</rdm.l10n.support>
     </properties>
 
     <dependencies>
@@ -123,6 +126,8 @@
     </dependencies>
 
     <build>
+        <finalName>rdm</finalName>
+
         <resources>
             <resource>
                 <directory>rdm-react/packages/rdm-frontend/build</directory>
@@ -133,8 +138,6 @@
                 <filtering>true</filtering>
             </resource>
         </resources>
-
-        <finalName>rdm</finalName>
 
         <pluginManagement>
             <plugins>
@@ -265,6 +268,18 @@
                 <dependency>
                     <groupId>org.springframework.cloud</groupId>
                     <artifactId>spring-cloud-sleuth-zipkin</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>l10n</id>
+            <properties>
+                <rdm.l10n.support>true</rdm.l10n.support>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>ru.i-novus.ms.rdm</groupId>
+                    <artifactId>rdm-l10n</artifactId>
                 </dependency>
             </dependencies>
         </profile>
