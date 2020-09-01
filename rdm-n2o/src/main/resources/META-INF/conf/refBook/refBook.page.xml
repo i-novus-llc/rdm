@@ -40,10 +40,10 @@
                             </validations>
                         </select>
 
-                        <select id="localeCode" no-label="true" visible="false">
-                            <!--<dependencies>-->
-                            <!--    <visibility>return #{l10n.support}</visibility>-->
-                            <!--</dependencies>-->
+                        <select id="localeCode" no-label="true" cleanable="false">
+                            <dependencies>
+                                <visibility>return ${rdm.l10n.support}</visibility>
+                            </dependencies>
 
                             <options>
                                 <option id="ru" name="Русский (по умолчанию)"/>

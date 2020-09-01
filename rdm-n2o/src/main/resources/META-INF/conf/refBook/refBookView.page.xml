@@ -12,11 +12,25 @@
                         </dependencies>
                     </output-text>
 
-                    <select id="version" label="Версия" query-id="versionList" label-field-id="version" cleanable="false">
-                        <pre-filters>
-                            <eq field-id="refBookId" value="{refBookId}"/>
-                        </pre-filters>
-                    </select>
+                    <row>
+                        <select id="version" label="Версия" query-id="versionList" label-field-id="version"
+                                cleanable="false">
+                            <pre-filters>
+                                <eq field-id="refBookId" value="{refBookId}"/>
+                            </pre-filters>
+                        </select>
+
+                        <select id="localeCode" no-label="true">
+                            <dependencies>
+                                <visibility>return ${rdm.l10n.support}</visibility>
+                            </dependencies>
+
+                            <options>
+                                <option id="ru" name="Русский (по умолчанию)"/>
+                                <option id="en" name="Английский"/>
+                            </options>
+                        </select>
+                    </row>
                 </fields>
 
                 <toolbar place="bottomLeft">
@@ -42,7 +56,12 @@
 
             <table src="DataGrid" name="Данные" id="dataTable"
                    query-id="data" depends-on="version_select" fetch-on-init="true"
-                   master-field-id="id" detail-field-id="versionId" object-id="data"/>
+                   master-field-id="id" detail-field-id="versionId" object-id="data">
+                <pre-filters>
+                    <eq field-id="localeCode" value="{localeCode.id}" ref-model="resolve"
+                        ref-widget-id="version_select"/>
+                </pre-filters>
+            </table>
 
             <table src="DataGrid" name="Данные с конфликтами" id="dataTableWithConflicts"
                    query-id="data" depends-on="version_select" fetch-on-init="true"
