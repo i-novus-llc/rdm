@@ -20,7 +20,7 @@
         <apache.poi.version>3.17</apache.poi.version>
         <filestorage.version>2.2</filestorage.version>
         <vds.version>3.2-SNAPSHOT</vds.version>
-        <l10n.vds.version>3.0-SNAPSHOT</l10n.vds.version>
+        <l10n.vds.version>3.2-SNAPSHOT</l10n.vds.version>
         <n2o.version>7.7.9</n2o.version>
         <itext.version>5.5.9</itext.version>
         <commons.text.version>1.6</commons.text.version>
@@ -59,11 +59,18 @@
         <url>https://i-novus.ru/</url>
     </organization>
 
-
     <modules>
         <module>rdm-api</module>
         <module>rdm-sync-spring-boot-starter</module>
     </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>javax.interceptor</groupId>
+            <artifactId>javax.interceptor-api</artifactId>
+            <version>1.2</version>
+        </dependency>
+    </dependencies>
 
     <dependencyManagement>
         <dependencies>
@@ -209,6 +216,18 @@
         </dependencies>
     </dependencyManagement>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <useSystemClassLoader>false</useSystemClassLoader>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
     <profiles>
         <profile>
             <id>build-all-modules</id>
@@ -224,6 +243,7 @@
                 <module>rdm-l10n</module>
             </modules>
         </profile>
+
         <profile>
             <id>release</id>
             <activation>
@@ -272,23 +292,4 @@
         </profile>
     </profiles>
 
-    <dependencies>
-        <dependency>
-            <groupId>javax.interceptor</groupId>
-            <artifactId>javax.interceptor-api</artifactId>
-            <version>1.2</version>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <useSystemClassLoader>false</useSystemClassLoader>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>
