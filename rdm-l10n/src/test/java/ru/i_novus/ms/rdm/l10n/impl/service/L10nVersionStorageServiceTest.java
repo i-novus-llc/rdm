@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.toStorageCode;
 
 @RunWith(MockitoJUnitRunner.class)
-public class L10nVersionServiceTest {
+public class L10nVersionStorageServiceTest {
 
     private static final int TEST_REFBOOK_VERSION_ID = -10;
     private static final String TEST_REFBOOK_CODE = "L10N_TEST";
@@ -41,7 +41,7 @@ public class L10nVersionServiceTest {
     private static final String ATTRIBUTE_TEXT_CODE = "text";
 
     @InjectMocks
-    private L10nVersionServiceImpl l10nVersionService;
+    private L10nVersionStorageServiceImpl versionStorageService;
 
     @Mock
     private L10nDraftDataService draftDataService;
@@ -55,8 +55,14 @@ public class L10nVersionServiceTest {
     @Test
     public void testLocalizeData() {
 
+        //Structure structure = createStructure();
+        //RefBookVersionEntity versionEntity = new RefBookVersionEntity();
+        //versionEntity.setStructure(structure);
+        //versionEntity.setStorageCode(TEST_STORAGE_NAME);
+
         when(storageCodeService.toLocaleSchema(eq(TEST_LOCALE_CODE))).thenReturn(TEST_SCHEMA_NAME);
         when(versionService.getStorageCode(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(TEST_STORAGE_NAME);
+        //when(versionRepository.findById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(Optional.of(versionEntity));
 
         String testStorageCode = toStorageCode(TEST_SCHEMA_NAME, TEST_STORAGE_NAME);
         when(draftDataService.createLocalizedTable(eq(TEST_STORAGE_NAME), eq(TEST_SCHEMA_NAME)))
@@ -69,7 +75,7 @@ public class L10nVersionServiceTest {
         List<Row> rows = IntStream.range(0, rowCount - 1).mapToObj(this::createRow).collect(toList());
 
         LocalizeDataRequest request = new LocalizeDataRequest(null, TEST_LOCALE_CODE, rows);
-        l10nVersionService.localizeData(TEST_REFBOOK_VERSION_ID, request);
+        versionStorageService.localizeData(TEST_REFBOOK_VERSION_ID, request);
 
         verify(draftDataService).createLocalizedTable(eq(TEST_STORAGE_NAME), eq(TEST_SCHEMA_NAME));
         verify(draftDataService).copyAllData(eq(TEST_STORAGE_NAME), eq(testStorageCode));

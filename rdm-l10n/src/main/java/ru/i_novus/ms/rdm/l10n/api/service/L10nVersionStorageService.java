@@ -10,7 +10,7 @@ import javax.ws.rs.core.MediaType;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Api(value = "Методы локализации версии", hidden = true)
-public interface L10nVersionService {
+public interface L10nVersionStorageService {
 
     @POST
     @ApiOperation("Создание копии таблицы версии для локализации записей")
