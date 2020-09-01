@@ -56,8 +56,8 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.hasVersionId;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 
-@Service
 @Primary
+@Service
 public class VersionServiceImpl implements VersionService {
 
     private static final String VERSION_WITH_NUMBER_AND_CODE_NOT_FOUND_EXCEPTION_CODE = "version.with.number.and.code.not.found";
