@@ -21,7 +21,7 @@
         </field>
 
         <field id="localeCode.id" domain="string">
-            <select mapping="'ru'"/>
+            <select mapping="'rus'"/>
         </field>
 
         <field id="localeCode.name" domain="string">
