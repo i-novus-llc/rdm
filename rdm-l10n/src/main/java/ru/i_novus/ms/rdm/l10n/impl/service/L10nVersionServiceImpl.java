@@ -1,7 +1,6 @@
 package ru.i_novus.ms.rdm.l10n.impl.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.service.VersionFileService;
@@ -18,7 +17,6 @@ import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 @SuppressWarnings("java:S3740")
 @Primary
 @Service
-@Qualifier("VersionServiceImpl")
 public class L10nVersionServiceImpl extends VersionServiceImpl implements VersionService {
 
     private L10nVersionStorageService versionStorageService;
@@ -38,5 +36,11 @@ public class L10nVersionServiceImpl extends VersionServiceImpl implements Versio
                 auditLogService);
 
         this.versionStorageService = versionStorageService;
+    }
+
+    @Override
+    protected String toLocaleStorageCode(String storageCode, String localeCode) {
+
+        return versionStorageService.getLocaleStorageCode(storageCode, localeCode);
     }
 }
