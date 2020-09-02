@@ -141,20 +141,6 @@
         </profile>
 
         <profile>
-            <id>fnsi</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>ru.i-novus.ms.rdm</groupId>
-                    <artifactId>rdm-fnsi-impl</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-
-        <profile>
             <id>external-tracing-tool</id>
             <activation>
                 <activeByDefault>false</activeByDefault>

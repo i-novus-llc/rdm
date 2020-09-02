@@ -247,19 +247,6 @@
             </build>
         </profile>
         <profile>
-            <id>fnsi</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>ru.i-novus.ms.rdm</groupId>
-                    <artifactId>rdm-fnsi-n2o</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-        <profile>
             <id>external-tracing-tool</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
