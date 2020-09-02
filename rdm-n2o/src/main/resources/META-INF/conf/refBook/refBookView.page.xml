@@ -26,8 +26,8 @@
                             </dependencies>
 
                             <options>
-                                <option id="ru" name="Русский (по умолчанию)"/>
-                                <option id="en" name="Английский"/>
+                                <option id="rus" name="Русский (по умолчанию)"/>
+                                <option id="eng" name="Английский"/>
                             </options>
                         </select>
                     </row>
