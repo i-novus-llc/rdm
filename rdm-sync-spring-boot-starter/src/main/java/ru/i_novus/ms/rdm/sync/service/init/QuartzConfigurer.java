@@ -65,7 +65,8 @@ class QuartzConfigurer {
                         logger.warn("Trigger {} is not CronTrigger instance. Leave it as it is.", exportToRdmTriggerKey);
                 }
             } else {
-                scheduler.deleteJob(exportToRdmJobKey);
+                if (scheduler.checkExists(exportToRdmJobKey))
+                    scheduler.deleteJob(exportToRdmJobKey);
             }
         } catch (SchedulerException e) {
             logger.error("Cannot schedule {} job. All records in the {} state will remain in it.", RdmSyncExportDirtyRecordsToRdmJob.NAME, RdmSyncLocalRowState.DIRTY, e);
