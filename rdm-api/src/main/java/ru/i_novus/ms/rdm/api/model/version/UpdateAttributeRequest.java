@@ -2,11 +2,11 @@ package ru.i_novus.ms.rdm.api.model.version;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.UpdatableDto;
 import ru.i_novus.ms.rdm.api.model.refdata.DraftChangeRequest;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.io.Serializable;
 import java.util.function.Consumer;
@@ -158,13 +158,13 @@ public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeR
         return FieldType.REFERENCE.equals(getType());
     }
 
-    public boolean isNullOrPresentReference() {
+    public boolean isReferenceUpdating() {
         return isNullOrPresent(getAttribute())
                 && isNullOrPresent(getReferenceCode())
                 && isNullOrPresent(getDisplayExpression());
     }
 
-    public boolean isNotNullAndPresentReference() {
+    public boolean isReferenceFilling() {
         return isNotNullAndPresent(getAttribute())
                 && isNotNullAndPresent(getReferenceCode())
                 && isNotNullAndPresent(getDisplayExpression());
