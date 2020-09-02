@@ -159,13 +159,10 @@
                 <activeByDefault>false</activeByDefault>
             </activation>
             <dependencies>
-                <!--<dependency>-->
-                <!--    <groupId>ru.i-novus.components</groupId>-->
-                <!--    <artifactId>l10n-versioned-data-storage-pg-impl</artifactId>-->
-                <!--</dependency>-->
                 <dependency>
                     <groupId>ru.i-novus.ms.rdm</groupId>
                     <artifactId>rdm-l10n</artifactId>
+                    <version>${project.version}</version>
                 </dependency>
             </dependencies>
         </profile>

@@ -191,20 +191,4 @@
         </resources>
     </build>
 
-    <profiles>
-        <profile>
-            <id>l10n</id>
-            <dependencies>
-                <!--<dependency>-->
-                <!--    <groupId>ru.i-novus.components</groupId>-->
-                <!--    <artifactId>l10n-versioned-data-storage-pg-impl</artifactId>-->
-                <!--</dependency>-->
-                <dependency>
-                    <groupId>ru.i-novus.ms.rdm</groupId>
-                    <artifactId>rdm-l10n</artifactId>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
-
 </project>
