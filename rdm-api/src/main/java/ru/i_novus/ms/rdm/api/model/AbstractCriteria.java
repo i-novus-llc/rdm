@@ -6,6 +6,8 @@ import org.springframework.data.domain.Sort;
 import java.util.Collections;
 import java.util.List;
 
+import static java.util.stream.Collectors.toList;
+
 public class AbstractCriteria extends RestCriteria {
 
     private static final int DEFAULT_PAGE_NUMBER = 0;
@@ -28,5 +30,9 @@ public class AbstractCriteria extends RestCriteria {
     public void noPagination() {
         setPageSize(NO_PAGINATION_SIZE);
         setPageNumber(DEFAULT_PAGE_NUMBER);
+    }
+
+    public List<Sort.Order> getOrders() {
+        return getSort().get().collect(toList());
     }
 }
