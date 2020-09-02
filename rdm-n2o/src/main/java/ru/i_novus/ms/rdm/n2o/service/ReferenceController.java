@@ -9,7 +9,7 @@ import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
-import ru.i_novus.ms.rdm.api.service.VersionService;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.n2o.criteria.ReferenceCriteria;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
@@ -28,7 +28,7 @@ import static ru.i_novus.ms.rdm.api.util.StructureUtils.hasAbsentPlaceholder;
 public class ReferenceController {
 
     @Autowired
-    private VersionService versionService;
+    private VersionRestService versionService;
 
     /**
      * Поиск списка значений справочника для ссылки.

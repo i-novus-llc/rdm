@@ -14,9 +14,9 @@ import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.i_novus.ms.rdm.api.model.refdata.*;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.service.DraftService;
-import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
 import ru.i_novus.ms.rdm.n2o.provider.DataRecordConstants;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -48,7 +48,7 @@ public class DataRecordController {
     Messages messages;
 
     @Autowired
-    private VersionService versionService;
+    private VersionRestService versionService;
 
     @Autowired
     private DraftService draftService;

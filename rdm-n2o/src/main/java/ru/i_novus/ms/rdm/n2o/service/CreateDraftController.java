@@ -13,9 +13,9 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.*;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
-import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.n2o.model.FormAttribute;
 import ru.i_novus.ms.rdm.n2o.model.UiDraft;
@@ -49,14 +49,14 @@ public class CreateDraftController {
     private static final String PASSPORT_REFBOOK_DESCRIPTION = "description";
 
     private RefBookService refBookService;
-    private VersionService versionService;
+    private VersionRestService versionService;
     private DraftService draftService;
 
     private StructureController structureController;
     private DataRecordController dataRecordController;
 
     @Autowired
-    public CreateDraftController(RefBookService refBookService, VersionService versionService, DraftService draftService,
+    public CreateDraftController(RefBookService refBookService, VersionRestService versionService, DraftService draftService,
                                  StructureController structureController, DataRecordController dataRecordController) {
         this.refBookService = refBookService;
         this.versionService = versionService;

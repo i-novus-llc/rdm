@@ -10,8 +10,8 @@ import ru.i_novus.ms.rdm.api.model.compare.ComparableRow;
 import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.CompareService;
-import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.ComparableUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 
@@ -25,8 +25,9 @@ public class CompareDataController {
 
     @Autowired
     CompareService compareService;
+
     @Autowired
-    VersionService versionService;
+    VersionRestService versionService;
 
     public Page<ComparableRow> getOldWithDiff(CompareDataCriteria criteria) {
         return getComparableRowsPage(criteria.getOldVersionId(), criteria, DiffStatusEnum.DELETED);

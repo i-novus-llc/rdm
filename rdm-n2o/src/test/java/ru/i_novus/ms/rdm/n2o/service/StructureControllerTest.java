@@ -7,17 +7,20 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
 import org.mockito.junit.MockitoJUnitRunner;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.api.model.validation.*;
 import ru.i_novus.ms.rdm.api.model.version.CreateAttributeRequest;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.model.version.UpdateAttributeRequest;
-import ru.i_novus.ms.rdm.api.service.*;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
+import ru.i_novus.ms.rdm.api.service.ConflictService;
+import ru.i_novus.ms.rdm.api.service.DraftService;
+import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.n2o.model.AttributeCriteria;
 import ru.i_novus.ms.rdm.n2o.model.FormAttribute;
 import ru.i_novus.ms.rdm.n2o.model.ReadAttribute;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -32,9 +35,9 @@ import static java.util.stream.Stream.of;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.*;
-import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 import static ru.i_novus.ms.rdm.api.model.Structure.Attribute.build;
 import static ru.i_novus.ms.rdm.api.model.validation.AttributeValidationType.*;
+import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 
 /**
  * Тестирование работы с атрибутами
@@ -48,7 +51,7 @@ public class StructureControllerTest extends TestCase {
     @Mock
     private RefBookService refBookService;
     @Mock
-    private VersionService versionService;
+    private VersionRestService versionService;
     @Mock
     private DraftService draftService;
     @Mock

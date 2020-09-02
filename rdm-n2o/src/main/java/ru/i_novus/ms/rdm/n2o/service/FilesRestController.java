@@ -17,8 +17,8 @@ import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.exception.FileExtensionException;
 import ru.i_novus.ms.rdm.api.model.ExportFile;
 import ru.i_novus.ms.rdm.api.model.FileModel;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.FileStorageService;
-import ru.i_novus.ms.rdm.api.service.VersionService;
 
 import java.io.IOException;
 
@@ -31,15 +31,17 @@ public class FilesRestController {
 
     private final FileStorageService fileStorageService;
 
-    private final VersionService versionService;
+    private final VersionRestService versionService;
 
     @Value("${rdm.max-file-size-mb:55}")
     private int maxFileSizeMb;
 
     @Autowired
     public FilesRestController(FileStorageService fileStorageService,
-                               VersionService versionService) {
+                               VersionRestService versionService) {
+
         this.fileStorageService = fileStorageService;
+
         this.versionService = versionService;
     }
 

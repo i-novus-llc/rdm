@@ -7,7 +7,7 @@ import org.springframework.stereotype.Controller;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
-import ru.i_novus.ms.rdm.api.service.VersionService;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.n2o.criteria.CategoryCriteria;
 import ru.i_novus.ms.rdm.n2o.model.Category;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -26,7 +26,7 @@ public class CategoryController {
     private static final String CATEGORY_NAME_FIELD_CODE = "name";
 
     @Autowired
-    VersionService versionService;
+    VersionRestService versionService;
 
     /**
      * Поиск списка категорий из справочника категорий (находится по коду)
