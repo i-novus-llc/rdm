@@ -32,6 +32,7 @@ import ru.i_novus.ms.rdm.api.model.field.CommonField;
 import ru.i_novus.ms.rdm.api.model.refbook.*;
 import ru.i_novus.ms.rdm.api.model.refdata.*;
 import ru.i_novus.ms.rdm.api.model.version.*;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.*;
 import ru.i_novus.ms.rdm.api.util.FieldValueUtils;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
@@ -79,7 +80,7 @@ import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.t
         webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
         properties = {
                 "cxf.jaxrs.client.classes-scan=true",
-                "cxf.jaxrs.client.classes-scan-packages=ru.i_novus.ms.rdm.api.service",
+                "cxf.jaxrs.client.classes-scan-packages=ru.i_novus.ms.rdm.api.rest, ru.i_novus.ms.rdm.api.service",
                 "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
                 "fileStorage.root=src/test/resources/rdm/temp",
                 "i18n.global.enabled=false",
@@ -137,8 +138,8 @@ public class ApplicationTest {
     private RefBookService refBookService;
 
     @Autowired
-    @Qualifier("versionServiceJaxRsProxyClient")
-    private VersionService versionService;
+    @Qualifier("versionRestServiceJaxRsProxyClient")
+    private VersionRestService versionService;
 
     @Autowired
     @Qualifier("draftServiceJaxRsProxyClient")

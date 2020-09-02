@@ -3,7 +3,6 @@ package ru.i_novus.ms.rdm.impl.service;
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -56,7 +55,6 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.hasVersionId;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 
-@Primary
 @Service
 public class VersionServiceImpl implements VersionService {
 
@@ -103,12 +101,6 @@ public class VersionServiceImpl implements VersionService {
         return getRowValuesOfVersion(criteria, version);
     }
 
-    /**
-     * Получение списка версий справочника по параметрам критерия.
-     *
-     * @param criteria критерий поиска
-     * @return Список версий справочника
-     */
     @Override
     @Transactional
     public Page<RefBookVersion> getVersions(VersionCriteria criteria) {
@@ -222,10 +214,11 @@ public class VersionServiceImpl implements VersionService {
             if (!versionRepository.exists(hasVersionId(versionId))) {
                 notExistent.add(rowId);
             } else {
+                String hash = split[0];
                 if (hashes.containsKey(versionId))
-                    hashes.get(versionId).add(split[0]);
+                    hashes.get(versionId).add(hash);
                 else
-                    hashes.put(versionId, new ArrayList<>(singleton(split[0])));
+                    hashes.put(versionId, new ArrayList<>(singleton(hash)));
             }
         }
 
