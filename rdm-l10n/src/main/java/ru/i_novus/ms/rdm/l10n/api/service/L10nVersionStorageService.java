@@ -15,7 +15,7 @@ public interface L10nVersionStorageService {
     @POST
     @ApiOperation("Создание копии таблицы версии для локализации записей")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Локализация обновлена"),
+            @ApiResponse(code = 200, message = "Код локализованной таблицы"),
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
@@ -26,11 +26,21 @@ public interface L10nVersionStorageService {
     @POST
     @ApiOperation("Локализация записей версии")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Локализация обновлена"),
+            @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/{versionId}/data")
     void localizeData(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
                       @ApiParam("Модель локализации данных") LocalizeDataRequest request);
+
+    @GET
+    @ApiOperation("Получение кода хранилища с учётом локали")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Код хранилища с учётом локали"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    @Path("/storage/code/{storageCode}/{localeCode}")
+    String getLocaleStorageCode(String storageCode, String localeCode);
 }

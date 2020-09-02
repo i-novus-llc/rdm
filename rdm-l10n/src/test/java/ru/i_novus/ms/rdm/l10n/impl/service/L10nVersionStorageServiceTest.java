@@ -7,20 +7,20 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
-import ru.i_novus.ms.rdm.api.service.VersionService;
+import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nDraftDataService;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nStorageCodeService;
 
 import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -50,26 +50,21 @@ public class L10nVersionStorageServiceTest {
     private L10nStorageCodeService storageCodeService;
 
     @Mock
-    private VersionService versionService;
+    private RefBookVersionRepository versionRepository;
 
     @Test
     public void testLocalizeData() {
 
-        //Structure structure = createStructure();
-        //RefBookVersionEntity versionEntity = new RefBookVersionEntity();
-        //versionEntity.setStructure(structure);
-        //versionEntity.setStorageCode(TEST_STORAGE_NAME);
+        Structure structure = createStructure();
+        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
+        versionEntity.setStructure(structure);
+        versionEntity.setStorageCode(TEST_STORAGE_NAME);
 
-        when(storageCodeService.toLocaleSchema(eq(TEST_LOCALE_CODE))).thenReturn(TEST_SCHEMA_NAME);
-        when(versionService.getStorageCode(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(TEST_STORAGE_NAME);
-        //when(versionRepository.findById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(Optional.of(versionEntity));
+        when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(TEST_SCHEMA_NAME);
+        when(versionRepository.findById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(Optional.of(versionEntity));
 
         String testStorageCode = toStorageCode(TEST_SCHEMA_NAME, TEST_STORAGE_NAME);
-        when(draftDataService.createLocalizedTable(eq(TEST_STORAGE_NAME), eq(TEST_SCHEMA_NAME)))
-                .thenReturn(testStorageCode);
-
-        Structure structure = createStructure();
-        when(versionService.getStructure(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(structure);
+        when(draftDataService.createLocalizedTable(eq(TEST_STORAGE_NAME), eq(TEST_SCHEMA_NAME))).thenReturn(testStorageCode);
 
         final int rowCount = 10;
         List<Row> rows = IntStream.range(0, rowCount - 1).mapToObj(this::createRow).collect(toList());
@@ -80,6 +75,16 @@ public class L10nVersionStorageServiceTest {
         verify(draftDataService).createLocalizedTable(eq(TEST_STORAGE_NAME), eq(TEST_SCHEMA_NAME));
         verify(draftDataService).copyAllData(eq(TEST_STORAGE_NAME), eq(testStorageCode));
         verify(draftDataService).updateRows(eq(TEST_SCHEMA_NAME), any());
+    }
+
+    @Test
+    public void testGetLocaleStorageCode() {
+
+        String testStorageCode = toStorageCode(TEST_SCHEMA_NAME, TEST_STORAGE_NAME);
+        when(storageCodeService.toStorageCode(eq(TEST_STORAGE_NAME), eq(TEST_LOCALE_CODE))).thenReturn(testStorageCode);
+
+        String localeStorageCode = versionStorageService.getLocaleStorageCode(TEST_STORAGE_NAME, TEST_LOCALE_CODE);
+        assertEquals(testStorageCode, localeStorageCode);
     }
 
     private Structure createStructure() {
