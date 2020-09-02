@@ -56,6 +56,7 @@ import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.hasVersi
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 
 @Service
+@SuppressWarnings("java:S3740")
 public class VersionServiceImpl implements VersionService {
 
     private static final String VERSION_WITH_NUMBER_AND_CODE_NOT_FOUND_EXCEPTION_CODE = "version.with.number.and.code.not.found";
@@ -327,6 +328,13 @@ public class VersionServiceImpl implements VersionService {
         return versionFileService.generate(versionModel, fileType, dataIterator);
     }
 
+    /**
+     * Преобразование кода хранилища с учётом локали.
+     *
+     * @param storageCode исходный код хранилища
+     * @param localeCode  код локали
+     * @return Код хранилища с учётом локали
+     */
     @SuppressWarnings("UnusedParameter")
     protected String toLocaleStorageCode(String storageCode, String localeCode) {
         return storageCode;
