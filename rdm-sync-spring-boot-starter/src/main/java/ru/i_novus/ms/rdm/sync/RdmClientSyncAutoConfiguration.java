@@ -193,7 +193,7 @@ public class RdmClientSyncAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(value = "rdm_sync.change_data_mode", havingValue = "sync", matchIfMissing = true)
+    @ConditionalOnProperty(value = "rdm_sync.change_data_mode", havingValue = "sync")
     public RdmChangeDataClient syncRdmChangeDataClient() {
         return new SyncRdmChangeDataClient();
     }
