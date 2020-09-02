@@ -20,11 +20,12 @@ import java.util.List;
 
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static ru.i_novus.ms.rdm.api.util.FieldValueUtils.toDisplayValue;
 import static ru.i_novus.ms.rdm.api.util.StructureUtils.hasAbsentPlaceholder;
 
 @Controller
+@SuppressWarnings("java:S3740")
 public class ReferenceController {
 
     @Autowired

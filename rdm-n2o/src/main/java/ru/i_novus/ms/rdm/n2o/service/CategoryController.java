@@ -17,9 +17,10 @@ import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Controller
+@SuppressWarnings("java:S3740")
 public class CategoryController {
 
     private static final String CATEGORY_REFBOOK_CODE = "CAT";
