@@ -15,9 +15,9 @@ import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.api.model.validation.*;
 import ru.i_novus.ms.rdm.api.model.version.*;
+import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.ConflictService;
-import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.util.ConflictUtils;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
@@ -45,7 +45,7 @@ public class StructureController {
     private VersionRestService versionService;
 
     @Autowired
-    private DraftService draftService;
+    private DraftRestService draftService;
 
     @Autowired
     private ConflictService conflictService;

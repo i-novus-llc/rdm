@@ -13,8 +13,8 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.*;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
+import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
-import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.n2o.model.FormAttribute;
@@ -50,13 +50,14 @@ public class CreateDraftController {
 
     private RefBookService refBookService;
     private VersionRestService versionService;
-    private DraftService draftService;
+    private DraftRestService draftService;
 
     private StructureController structureController;
     private DataRecordController dataRecordController;
 
     @Autowired
-    public CreateDraftController(RefBookService refBookService, VersionRestService versionService, DraftService draftService,
+    public CreateDraftController(RefBookService refBookService,
+                                 VersionRestService versionService, DraftRestService draftService,
                                  StructureController structureController, DataRecordController dataRecordController) {
         this.refBookService = refBookService;
         this.versionService = versionService;

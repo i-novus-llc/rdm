@@ -13,9 +13,9 @@ import ru.i_novus.ms.rdm.api.model.validation.*;
 import ru.i_novus.ms.rdm.api.model.version.CreateAttributeRequest;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.model.version.UpdateAttributeRequest;
+import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.ConflictService;
-import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.n2o.model.AttributeCriteria;
 import ru.i_novus.ms.rdm.n2o.model.FormAttribute;
@@ -53,7 +53,7 @@ public class StructureControllerTest extends TestCase {
     @Mock
     private VersionRestService versionService;
     @Mock
-    private DraftService draftService;
+    private DraftRestService draftService;
     @Mock
     private ConflictService conflictService;
 
