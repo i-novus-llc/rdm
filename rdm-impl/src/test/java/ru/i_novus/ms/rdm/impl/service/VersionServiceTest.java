@@ -12,6 +12,7 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.BaseDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
@@ -52,6 +53,9 @@ public class VersionServiceTest {
 
         StorageDataCriteria dataCriteria = new StorageDataCriteria(TEST_STORAGE_CODE, testVersion.getFromDate(), testVersion.getToDate(),
                 new ArrayList<>(), toFieldSearchCriterias(searchDataCriteria.getAttributeFilters()), searchDataCriteria.getCommonFilter());
+        dataCriteria.setPage(searchDataCriteria.getPageNumber() + BaseDataCriteria.PAGE_SHIFT);
+        dataCriteria.setSize(searchDataCriteria.getPageSize());
+
         verify(searchDataService).getPagedData(eq(dataCriteria));
     }
 
