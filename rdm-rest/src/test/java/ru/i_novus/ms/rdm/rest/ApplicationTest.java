@@ -32,6 +32,7 @@ import ru.i_novus.ms.rdm.api.model.field.CommonField;
 import ru.i_novus.ms.rdm.api.model.refbook.*;
 import ru.i_novus.ms.rdm.api.model.refdata.*;
 import ru.i_novus.ms.rdm.api.model.version.*;
+import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.*;
 import ru.i_novus.ms.rdm.api.util.FieldValueUtils;
@@ -142,8 +143,8 @@ public class ApplicationTest {
     private VersionRestService versionService;
 
     @Autowired
-    @Qualifier("draftServiceJaxRsProxyClient")
-    private DraftService draftService;
+    @Qualifier("draftRestServiceJaxRsProxyClient")
+    private DraftRestService draftService;
 
     @Autowired
     @Qualifier("publishServiceJaxRsProxyClient")
@@ -2514,7 +2515,8 @@ public class ApplicationTest {
      * exception is expected
      */
     //@Test // Отключён до нормальной реализации смены первичного ключа
-    public void testCalculateConflictWhenPkChanged() {
+    //public
+    private void testCalculateConflictWhenPkChanged() {
         Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
 
         RefBook refToRefBook = refBookService.create(createRefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_to_diff_pk"));

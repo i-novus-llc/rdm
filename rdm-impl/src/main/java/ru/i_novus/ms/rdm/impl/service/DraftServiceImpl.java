@@ -6,7 +6,6 @@ import net.n2oapp.platform.i18n.UserException;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
@@ -67,8 +66,8 @@ import static ru.i_novus.ms.rdm.api.util.RowUtils.toLongSystemIds;
 import static ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity.objectPassportToValues;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 
-@Primary
 @Service
+@SuppressWarnings("java:S3740")
 public class DraftServiceImpl implements DraftService {
 
     private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
@@ -272,9 +271,9 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public Draft create(CreateDraftRequest createDraftRequest) {
+    public Draft create(CreateDraftRequest request) {
 
-        final Integer refBookId = createDraftRequest.getRefBookId();
+        final Integer refBookId = request.getRefBookId();
         versionValidation.validateRefBook(refBookId);
 
         RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
@@ -283,15 +282,15 @@ public class DraftServiceImpl implements DraftService {
             throw new NotFoundException(new Message(VersionValidationImpl.REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
 
         List<PassportValueEntity> passportValues = null;
-        if (createDraftRequest.getPassport() != null) {
-            passportValues = objectPassportToValues(createDraftRequest.getPassport(), true, null);
+        if (request.getPassport() != null) {
+            passportValues = objectPassportToValues(request.getPassport(), true, null);
         }
 
-        final Structure structure = createDraftRequest.getStructure();
+        final Structure structure = request.getStructure();
         final String refBookCode = (draftVersion != null ? draftVersion : lastRefBookVersion).getRefBook().getCode();
 
         versionValidation.validateDraftStructure(refBookCode, structure);
-        if (createDraftRequest.getReferrerValidationRequired())
+        if (request.getReferrerValidationRequired())
             versionValidation.validateReferrerStructure(structure);
 
         List<Field> fields = ConverterUtil.fields(structure);
@@ -308,7 +307,7 @@ public class DraftServiceImpl implements DraftService {
         }
 
         RefBookVersionEntity savedDraftVersion = versionRepository.save(draftVersion);
-        addValidations(createDraftRequest.getValidations(), savedDraftVersion);
+        addValidations(request.getValidations(), savedDraftVersion);
 
         return savedDraftVersion.toDraft();
     }
@@ -685,8 +684,10 @@ public class DraftServiceImpl implements DraftService {
         removeDraft(draftVersion);
     }
 
-    /** Удаление черновика. */
-    public void removeDraft(RefBookVersionEntity draftVersion) {
+    /**
+     * Удаление черновика.
+     */
+    private void removeDraft(RefBookVersionEntity draftVersion) {
 
         dropDataService.drop(singleton(draftVersion.getStorageCode()));
         conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draftVersion.getId());
