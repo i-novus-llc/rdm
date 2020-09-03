@@ -10,13 +10,7 @@ import java.util.List;
 
 @ApiModel(value = "Модель локализации записей версии",
         description = "Набор входных параметров для локализации записей версии")
-public class LocalizeDataRequest implements DraftChangeRequest {
-
-    @ApiModelProperty("Значение оптимистической блокировки версии")
-    private Integer optLockValue;
-
-    @ApiModelProperty("Код локали")
-    private String localeCode;
+public class LocalizeDataRequest extends LocalizeTableRequest implements DraftChangeRequest {
 
     @ApiModelProperty("Локализуемые записи версии")
     private List<Row> rows;
@@ -26,27 +20,9 @@ public class LocalizeDataRequest implements DraftChangeRequest {
 
     public LocalizeDataRequest(Integer optLockValue, String localeCode, List<Row> rows) {
 
-        this.optLockValue = optLockValue;
-        this.localeCode = localeCode;
+        super(optLockValue, localeCode);
+
         this.rows = rows;
-    }
-
-    public String getLocaleCode() {
-        return localeCode;
-    }
-
-    public void setLocaleCode(String localeCode) {
-        this.localeCode = localeCode;
-    }
-
-    @Override
-    public Integer getOptLockValue() {
-        return optLockValue;
-    }
-
-    @Override
-    public void setOptLockValue(Integer optLockValue) {
-        this.optLockValue = optLockValue;
     }
 
     public List<Row> getRows() {

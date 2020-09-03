@@ -7,17 +7,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.model.refdata.DraftChangeRequest;
+import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
+import ru.i_novus.ms.rdm.l10n.api.model.LocalizeTableRequest;
 import ru.i_novus.ms.rdm.l10n.api.service.L10nVersionStorageService;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nDraftDataService;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nStorageCodeService;
 
-import java.util.List;
+import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.StringUtils.isEmpty;
@@ -37,30 +40,43 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
     private L10nStorageCodeService storageCodeService;
 
     private RefBookVersionRepository versionRepository;
+    private VersionValidation versionValidation;
 
     @Autowired
     public L10nVersionStorageServiceImpl(L10nDraftDataService draftDataService,
                                          L10nStorageCodeService storageCodeService,
-                                         RefBookVersionRepository versionRepository) {
+                                         RefBookVersionRepository versionRepository,
+                                         VersionValidation versionValidation) {
 
         this.draftDataService = draftDataService;
         this.storageCodeService = storageCodeService;
 
         this.versionRepository = versionRepository;
+        this.versionValidation = versionValidation;
     }
 
     @Override
-    public String localizeTable(Integer versionId, String localeCode) {
+    public String localizeTable(Integer versionId, LocalizeTableRequest request) {
 
-        if (isEmpty(localeCode))
+        if (isEmpty(request.getLocaleCode()))
             throw new IllegalArgumentException(LOCALE_CODE_NOT_FOUND_EXCEPTION_CODE);
 
         RefBookVersionEntity versionEntity = getVersionOrThrow(versionId);
+        validateOptLockValue(versionEntity, request);
+
+        return localizeTable(versionEntity, request);
+    }
+
+    /**
+     * Создание копии таблицы версии для локализации записей.
+     */
+    private String localizeTable(RefBookVersionEntity versionEntity, LocalizeTableRequest request) {
+
         String sourceTableName = versionEntity.getStorageCode();
         if (isEmpty(sourceTableName))
             throw new IllegalArgumentException(STORAGE_CODE_NOT_FOUND_EXCEPTION_CODE);
 
-        String targetSchemaName = toValidSchemaName(localeCode);
+        String targetSchemaName = toValidSchemaName(request.getLocaleCode());
         String targetCode = draftDataService.createLocalizedTable(sourceTableName, targetSchemaName);
 
         // Копирование всех колонок записей, FTS обновляется по триггеру.
@@ -72,10 +88,14 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
     @Override
     public void localizeData(Integer versionId, LocalizeDataRequest request) {
 
-        String localeCode = request.getLocaleCode();
-        localizeTable(versionId, localeCode);
+        if (isEmpty(request.getLocaleCode()))
+            throw new IllegalArgumentException(LOCALE_CODE_NOT_FOUND_EXCEPTION_CODE);
 
         RefBookVersionEntity versionEntity = getVersionOrThrow(versionId);
+        validateOptLockValue(versionEntity, request);
+
+        localizeTable(versionEntity, request);
+
         Structure structure = versionEntity.getStructure();
         List<RowValue> updatedRowValues = request.getRows().stream()
                 .map(row -> ConverterUtil.rowValue(row, structure))
@@ -84,7 +104,7 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
         if (CollectionUtils.isEmpty(updatedRowValues))
             return;
 
-        String schemaName = toValidSchemaName(localeCode);
+        String schemaName = toValidSchemaName(request.getLocaleCode());
         draftDataService.updateRows(schemaName, updatedRowValues);
     }
 
@@ -109,5 +129,9 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
     private RefBookVersionEntity getVersionOrThrow(Integer versionId) {
         return versionRepository.findById(versionId)
                 .orElseThrow(() -> new NotFoundException(new Message(VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE, versionId)));
+    }
+
+    private void validateOptLockValue(RefBookVersionEntity entity, DraftChangeRequest request) {
+        versionValidation.validateOptLockValue(entity.getId(), entity.getOptLockValue(), request.getOptLockValue());
     }
 }
