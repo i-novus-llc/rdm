@@ -6,7 +6,6 @@ import ru.i_novus.ms.rdm.api.model.refdata.DraftChangeRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
-import java.util.Collections;
 import java.util.List;
 
 @ApiModel(value = "Модель локализации записей версии",
@@ -30,11 +29,6 @@ public class LocalizeDataRequest implements DraftChangeRequest {
         this.optLockValue = optLockValue;
         this.localeCode = localeCode;
         this.rows = rows;
-    }
-
-    public LocalizeDataRequest(Integer optLockValue, String localeCode, Row row) {
-
-        this(optLockValue, localeCode, Collections.singletonList(row));
     }
 
     public String getLocaleCode() {
