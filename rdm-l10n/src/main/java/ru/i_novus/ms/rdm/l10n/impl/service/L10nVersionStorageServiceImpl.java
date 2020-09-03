@@ -13,12 +13,16 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
+import ru.i_novus.ms.rdm.l10n.api.model.L10nVersionLocale;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeTableRequest;
 import ru.i_novus.ms.rdm.l10n.api.service.L10nVersionStorageService;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nDraftDataService;
+import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nLocaleInfoService;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nStorageCodeService;
+import ru.i_novus.platform.l10n.versioned_data_storage.model.L10nLocaleInfo;
+import ru.i_novus.platform.l10n.versioned_data_storage.model.criteria.L10nLocaleCriteria;
 
 import java.util.*;
 
@@ -37,6 +41,7 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
     private static final String STORAGE_CODE_NOT_FOUND_EXCEPTION_CODE = "storage.code.not.found";
 
     private L10nDraftDataService draftDataService;
+    private L10nLocaleInfoService localeInfoService;
     private L10nStorageCodeService storageCodeService;
 
     private RefBookVersionRepository versionRepository;
@@ -44,11 +49,13 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
 
     @Autowired
     public L10nVersionStorageServiceImpl(L10nDraftDataService draftDataService,
+                                         L10nLocaleInfoService localeInfoService,
                                          L10nStorageCodeService storageCodeService,
                                          RefBookVersionRepository versionRepository,
                                          VersionValidation versionValidation) {
 
         this.draftDataService = draftDataService;
+        this.localeInfoService = localeInfoService;
         this.storageCodeService = storageCodeService;
 
         this.versionRepository = versionRepository;
@@ -106,6 +113,53 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
 
         String schemaName = toValidSchemaName(request.getLocaleCode());
         draftDataService.updateRows(schemaName, updatedRowValues);
+    }
+
+    public List<L10nVersionLocale> getVersionLocales(Integer versionId) {
+
+        RefBookVersionEntity versionEntity = getVersionOrThrow(versionId);
+
+        List<L10nLocaleInfo> localeInfos = getLocaleInfos();
+        List<String> localeCodes = localeInfos.stream().map(L10nLocaleInfo::getCode).collect(toList());
+
+        Map<String, String> localeSchemas = storageCodeService.toSchemaNames(localeCodes);
+        List<String> schemaNames = new ArrayList<>(localeSchemas.values());
+        List<String> tableSchemaNames = draftDataService.getExistedTableSchemaNames(schemaNames, versionEntity.getStorageCode());
+
+        return localeSchemas.entrySet().stream()
+                .filter(e -> tableSchemaNames.contains(e.getValue()))
+                .map(e -> toVersionLocale(versionId, findLocaleInfo(e.getKey(), localeInfos)))
+                .filter(Objects::nonNull)
+                .collect(toList());
+    }
+
+    private List<L10nLocaleInfo> getLocaleInfos() {
+
+        L10nLocaleCriteria criteria = new L10nLocaleCriteria();
+        criteria.makeUnpaged();
+
+        return localeInfoService.search(criteria);
+    }
+
+    private L10nLocaleInfo findLocaleInfo(String localeCode, List<L10nLocaleInfo> localeInfos) {
+
+        return localeInfos.stream()
+                .filter(info -> localeCode.equals(info.getCode()))
+                .findFirst().orElse(null);
+    }
+
+    private L10nVersionLocale toVersionLocale(Integer versionId, L10nLocaleInfo info) {
+
+        if (info == null)
+            return null;
+
+        L10nVersionLocale model = new L10nVersionLocale();
+        model.setVersionId(versionId);
+        model.setLocaleCode(info.getCode());
+        model.setLocaleName(info.getName());
+        model.setLocaleSelfName(info.getSelfName());
+
+        return model;
     }
 
     @Override

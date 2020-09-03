@@ -1,11 +1,13 @@
 package ru.i_novus.ms.rdm.l10n.api.service;
 
 import io.swagger.annotations.*;
+import ru.i_novus.ms.rdm.l10n.api.model.L10nVersionLocale;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeTableRequest;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.util.List;
 
 @Path("/l10n")
 @Produces(MediaType.APPLICATION_JSON)
@@ -34,6 +36,16 @@ public interface L10nVersionStorageService {
     @Path("/{versionId}/data")
     void localizeData(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
                       @ApiParam("Модель локализации данных") LocalizeDataRequest request);
+
+    @GET
+    @ApiOperation("Получение списка локалей версии")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Список локалей версии"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    @Path("/{versionId}/locale")
+    List<L10nVersionLocale> getVersionLocales(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId);
 
     @GET
     @ApiOperation("Получение кода хранилища с учётом локали")
