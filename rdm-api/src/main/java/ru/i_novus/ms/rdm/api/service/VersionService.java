@@ -12,6 +12,9 @@ import ru.i_novus.ms.rdm.api.model.version.VersionCriteria;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Версия справочника: Сервис.
+ */
 public interface VersionService {
 
     /**

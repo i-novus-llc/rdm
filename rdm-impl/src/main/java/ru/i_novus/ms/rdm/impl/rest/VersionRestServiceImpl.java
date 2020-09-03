@@ -26,9 +26,7 @@ public class VersionRestServiceImpl implements VersionRestService {
     private VersionService versionService;
 
     @Autowired
-    @SuppressWarnings("squid:S00107")
     public VersionRestServiceImpl(VersionService versionService) {
-
         this.versionService = versionService;
     }
 

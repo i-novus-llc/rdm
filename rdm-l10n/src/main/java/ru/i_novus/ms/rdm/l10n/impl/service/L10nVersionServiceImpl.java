@@ -14,9 +14,9 @@ import ru.i_novus.ms.rdm.impl.service.VersionServiceImpl;
 import ru.i_novus.ms.rdm.l10n.api.service.L10nVersionStorageService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
-@SuppressWarnings("java:S3740")
 @Primary
 @Service
+@SuppressWarnings("java:S3740")
 public class L10nVersionServiceImpl extends VersionServiceImpl implements VersionService {
 
     private L10nVersionStorageService versionStorageService;
