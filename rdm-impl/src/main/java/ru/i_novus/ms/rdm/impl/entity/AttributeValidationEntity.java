@@ -81,11 +81,13 @@ public class AttributeValidationEntity {
         this.value = value;
     }
 
-    public AttributeValidation attributeValidationModel() {
-        AttributeValidation validationModel = this.getType().getValidationInstance();
-        validationModel.valueFromString(this.getValue());
-        validationModel.setVersionId(this.getVersion().getId());
-        validationModel.setAttribute(this.getAttribute());
-        return validationModel;
+    public AttributeValidation toModel() {
+
+        AttributeValidation model = this.getType().getValidationInstance();
+        model.valueFromString(this.getValue());
+        model.setVersionId(this.getVersion().getId());
+        model.setAttribute(this.getAttribute());
+
+        return model;
     }
 }

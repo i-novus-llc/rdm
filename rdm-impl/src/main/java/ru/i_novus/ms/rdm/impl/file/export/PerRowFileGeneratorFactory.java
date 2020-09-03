@@ -4,13 +4,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import ru.i_novus.ms.rdm.impl.entity.AttributeValidationEntity;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
-import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
-import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.model.validation.AttributeValidation;
+import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
+import ru.i_novus.ms.rdm.impl.entity.AttributeValidationEntity;
 import ru.i_novus.ms.rdm.impl.repository.AttributeValidationRepository;
 
 import java.util.Iterator;
@@ -50,7 +50,7 @@ public class PerRowFileGeneratorFactory {
             }
             final List<AttributeValidation> attributeValidations = attributeValidationRepository
                     .findAllByVersionId(version.getId()).stream()
-                    .map(AttributeValidationEntity::attributeValidationModel)
+                    .map(AttributeValidationEntity::toModel)
                     .collect(Collectors.toList());
             return new XmlFileGenerator(rowIterator, version, attributeToReferenceMap, attributeValidations);
         }

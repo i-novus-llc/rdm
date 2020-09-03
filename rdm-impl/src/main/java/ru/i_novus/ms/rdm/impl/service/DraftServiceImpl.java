@@ -949,7 +949,7 @@ public class DraftServiceImpl implements DraftService {
         List<AttributeValidationEntity> validationEntities = (attribute == null)
                 ? attributeValidationRepository.findAllByVersionId(draftId)
                 : attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attribute);
-        return validationEntities.stream().map(AttributeValidationEntity::attributeValidationModel).collect(toList());
+        return validationEntities.stream().map(AttributeValidationEntity::toModel).collect(toList());
     }
 
     @Override
