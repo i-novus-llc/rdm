@@ -33,7 +33,9 @@ import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
@@ -508,8 +510,7 @@ public class ConflictServiceImpl implements ConflictService {
                 refFromEntity.getFromDate(), refFromEntity.getToDate(),
                 fields(refFromEntity.getStructure()), filters, null);
         // NB: Get all required rows because filters.size() <= REF_BOOK_DIFF_CONFLICT_PAGE_SIZE.
-        criteria.setPage(BaseDataCriteria.NO_PAGINATION_PAGE);
-        criteria.setSize(BaseDataCriteria.NO_PAGINATION_PAGE);
+        criteria.makeUnpaged();
 
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(criteria);
         if (pagedData.getCollection() == null)

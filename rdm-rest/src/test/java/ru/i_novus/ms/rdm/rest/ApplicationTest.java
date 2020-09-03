@@ -42,7 +42,6 @@ import ru.i_novus.ms.rdm.impl.validation.ReferenceValueValidation;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.*;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.BaseDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
@@ -3017,8 +3016,7 @@ public class ApplicationTest {
                                                           Structure structure,
                                                           LocalDateTime bdate, LocalDateTime edate) {
         StorageDataCriteria criteria = new StorageDataCriteria(storageCode, bdate, edate, fields(structure));
-        criteria.setPage(BaseDataCriteria.NO_PAGINATION_PAGE);
-        criteria.setSize(BaseDataCriteria.NO_PAGINATION_SIZE);
+        criteria.makeUnpaged();
 
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(criteria);
         if (pagedData.getCollection() == null)
