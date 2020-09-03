@@ -91,7 +91,7 @@ public class RefBookPublishController {
 
         RefBook refBook = refBookService.getByVersionId(versionId);
 
-        if (refBook.getStructure() == null || refBook.getStructure().isEmpty()) {
+        if (refBook.hasEmptyStructure()) {
             return messages.getMessage(PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE);
         }
 
