@@ -50,7 +50,10 @@ public class L10nVersionStorageServiceTest {
 
     private static final int TEST_REFBOOK_VERSION_ID = -10;
     private static final String TEST_REFBOOK_CODE = "L10N_TEST";
+
     private static final String TEST_LOCALE_CODE = "test";
+    private static final L10nLocaleInfo TEST_LOCALE_INFO = new L10nLocaleInfo(TEST_LOCALE_CODE, "Тест", null);
+
     private static final String TEST_SCHEMA_NAME = L10nConstants.SCHEMA_NAME_PREFIX + TEST_LOCALE_CODE;
     private static final String TEST_STORAGE_NAME = TEST_REFBOOK_CODE + "_storage";
     private static final String DEFAULT_SCHEMA_NAME = StorageConstants.DATA_SCHEMA_NAME;
@@ -59,6 +62,12 @@ public class L10nVersionStorageServiceTest {
     private static final String ATTRIBUTE_ID_CODE = "id";
     private static final String ATTRIBUTE_NAME_CODE = "name";
     private static final String ATTRIBUTE_TEXT_CODE = "text";
+
+    private static final List<L10nLocaleInfo> LOCALE_INFOS = List.of(
+            new L10nLocaleInfo("rus", "Русский (по умолчанию)", null),
+            new L10nLocaleInfo("eng", "Английский", "English"),
+            new L10nLocaleInfo("jap", "Японский", "日本語")
+    );
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -187,19 +196,14 @@ public class L10nVersionStorageServiceTest {
     }
 
     @Test
-    public void testGetVersionLocales() {
+    public void testSearchVersionLocales() {
 
         RefBookVersionEntity versionEntity = createVersionEntity();
         when(versionRepository.findById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(Optional.of(versionEntity));
 
-        List<L10nLocaleInfo> localeInfos = List.of(
-                new L10nLocaleInfo("rus", "Русский (по умолчанию)", null),
-                new L10nLocaleInfo("eng", "Английский", "English"),
-                new L10nLocaleInfo("jap", "Японский", "日本語")
-        );
-        when(localeInfoService.search(any())).thenReturn(localeInfos);
+        when(localeInfoService.search(any())).thenReturn(LOCALE_INFOS);
 
-        List<String> localeCodes = localeInfos.stream().map(L10nLocaleInfo::getCode).collect(toList());
+        List<String> localeCodes = LOCALE_INFOS.stream().map(L10nLocaleInfo::getCode).collect(toList());
         Map<String, String> localeSchemas = localeCodes.stream().collect(toMap(identity(), this::toSchemaName));
         when(storageCodeService.toSchemaNames(eq(localeCodes))).thenReturn(localeSchemas);
 
@@ -209,15 +213,31 @@ public class L10nVersionStorageServiceTest {
                 .collect(toList());
         when(draftDataService.getExistedTableSchemaNames(any(), eq(TEST_STORAGE_NAME))).thenReturn(existedSchemaNames);
 
-        List<L10nLocaleInfo> expectedLocaleInfos = localeInfos.stream()
+        List<L10nLocaleInfo> expectedLocaleInfos = LOCALE_INFOS.stream()
                 .filter(info -> existedSchemaNames.contains(toSchemaName(info.getCode())))
                 .collect(toList());
-        List<L10nVersionLocale> actualVersionLocales = versionStorageService.getVersionLocales(TEST_REFBOOK_VERSION_ID);
+        List<L10nVersionLocale> actualVersionLocales = versionStorageService.searchVersionLocales(TEST_REFBOOK_VERSION_ID);
         assertEquals(expectedLocaleInfos.size(), actualVersionLocales.size());
 
         IntStream.range(0, expectedLocaleInfos.size()).forEach(index ->
-            assertLocales(expectedLocaleInfos.get(index), actualVersionLocales.get(index))
+                assertLocales(expectedLocaleInfos.get(index), actualVersionLocales.get(index))
         );
+    }
+
+    @Test
+    public void testGetVersionLocale() {
+
+        RefBookVersionEntity versionEntity = createVersionEntity();
+        when(versionRepository.findById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(Optional.of(versionEntity));
+
+        when(localeInfoService.find(eq(TEST_LOCALE_CODE))).thenReturn(TEST_LOCALE_INFO);
+        when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(TEST_SCHEMA_NAME);
+
+        List<String> existedSchemaNames = List.of(TEST_SCHEMA_NAME);
+        when(draftDataService.getExistedTableSchemaNames(any(), eq(TEST_STORAGE_NAME))).thenReturn(existedSchemaNames);
+
+        L10nVersionLocale actualVersionLocale = versionStorageService.getVersionLocale(TEST_REFBOOK_VERSION_ID, TEST_LOCALE_CODE);
+        assertLocales(TEST_LOCALE_INFO, actualVersionLocale);
     }
 
     private String toSchemaName(String localeCode) {

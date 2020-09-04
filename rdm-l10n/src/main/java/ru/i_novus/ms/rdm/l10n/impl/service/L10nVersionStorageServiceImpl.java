@@ -2,9 +2,10 @@ package ru.i_novus.ms.rdm.l10n.impl.service;
 
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
-import org.apache.cxf.common.util.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.DraftChangeRequest;
@@ -28,8 +29,10 @@ import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.StringUtils.isEmpty;
-import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.*;
+import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.isDefaultSchema;
+import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.isValidSchemaName;
 
+@Primary
 @Service
 @SuppressWarnings("java:S3740")
 public class L10nVersionStorageServiceImpl implements L10nVersionStorageService {
@@ -113,11 +116,14 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
         return targetCode;
     }
 
-    public List<L10nVersionLocale> getVersionLocales(Integer versionId) {
+    @Override
+    public List<L10nVersionLocale> searchVersionLocales(Integer versionId) {
 
         RefBookVersionEntity versionEntity = getVersionOrThrow(versionId);
 
-        List<L10nLocaleInfo> localeInfos = getLocaleInfos();
+        L10nLocaleCriteria criteria = new L10nLocaleCriteria();
+        criteria.makeUnpaged();
+        List<L10nLocaleInfo> localeInfos = localeInfoService.search(criteria);
         List<String> localeCodes = localeInfos.stream().map(L10nLocaleInfo::getCode).collect(toList());
 
         Map<String, String> localeSchemas = storageCodeService.toSchemaNames(localeCodes);
@@ -131,12 +137,19 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
                 .collect(toList());
     }
 
-    private List<L10nLocaleInfo> getLocaleInfos() {
+    @Override
+    public L10nVersionLocale getVersionLocale(Integer versionId, String localeCode) {
 
-        L10nLocaleCriteria criteria = new L10nLocaleCriteria();
-        criteria.makeUnpaged();
+        RefBookVersionEntity versionEntity = getVersionOrThrow(versionId);
 
-        return localeInfoService.search(criteria);
+        L10nLocaleInfo localeInfo = localeInfoService.find(localeCode);
+
+        String localeSchema = storageCodeService.toSchemaName(localeCode);
+        List<String> tableSchemaNames = draftDataService.getExistedTableSchemaNames(List.of(localeSchema), versionEntity.getStorageCode());
+        if (CollectionUtils.isEmpty(tableSchemaNames))
+            throw new UserException(new Message(LOCALE_CODE_IS_DEFAULT_EXCEPTION_CODE, localeCode));
+
+        return toVersionLocale(versionId, localeInfo);
     }
 
     private L10nLocaleInfo findLocaleInfo(String localeCode, List<L10nLocaleInfo> localeInfos) {
