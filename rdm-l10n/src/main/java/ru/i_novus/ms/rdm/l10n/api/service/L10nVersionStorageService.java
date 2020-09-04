@@ -55,5 +55,6 @@ public interface L10nVersionStorageService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/storage/code/{storageCode}/{localeCode}")
-    String getLocaleStorageCode(String storageCode, String localeCode);
+    String getLocaleStorageCode(@ApiParam("Код хранилища") @PathParam("localeCode") String storageCode,
+                                @ApiParam("Код локали") @PathParam("localeCode") String localeCode);
 }
