@@ -28,8 +28,7 @@ import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.StringUtils.isEmpty;
-import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.isDefaultSchema;
-import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.isValidSchemaName;
+import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.*;
 
 @Service
 @SuppressWarnings("java:S3740")
@@ -74,6 +73,28 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
         return localizeTable(versionEntity, request);
     }
 
+    @Override
+    public void localizeData(Integer versionId, LocalizeDataRequest request) {
+
+        if (isEmpty(request.getLocaleCode()))
+            throw new IllegalArgumentException(LOCALE_CODE_NOT_FOUND_EXCEPTION_CODE);
+
+        RefBookVersionEntity versionEntity = getVersionOrThrow(versionId);
+        validateOptLockValue(versionEntity, request);
+
+        String targetCode = localizeTable(versionEntity, request);
+
+        Structure structure = versionEntity.getStructure();
+        List<RowValue> updatedRowValues = request.getRows().stream()
+                .map(row -> ConverterUtil.rowValue(row, structure))
+                .filter(rowValue -> rowValue.getSystemId() != null)
+                .collect(toList());
+        if (CollectionUtils.isEmpty(updatedRowValues))
+            return;
+
+        draftDataService.updateRows(targetCode, updatedRowValues);
+    }
+
     /**
      * Создание копии таблицы версии для локализации записей.
      */
@@ -90,29 +111,6 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
         draftDataService.copyAllData(sourceTableName, targetCode);
 
         return targetCode;
-    }
-
-    @Override
-    public void localizeData(Integer versionId, LocalizeDataRequest request) {
-
-        if (isEmpty(request.getLocaleCode()))
-            throw new IllegalArgumentException(LOCALE_CODE_NOT_FOUND_EXCEPTION_CODE);
-
-        RefBookVersionEntity versionEntity = getVersionOrThrow(versionId);
-        validateOptLockValue(versionEntity, request);
-
-        localizeTable(versionEntity, request);
-
-        Structure structure = versionEntity.getStructure();
-        List<RowValue> updatedRowValues = request.getRows().stream()
-                .map(row -> ConverterUtil.rowValue(row, structure))
-                .filter(rowValue -> rowValue.getSystemId() != null)
-                .collect(toList());
-        if (CollectionUtils.isEmpty(updatedRowValues))
-            return;
-
-        String schemaName = toValidSchemaName(request.getLocaleCode());
-        draftDataService.updateRows(schemaName, updatedRowValues);
     }
 
     public List<L10nVersionLocale> getVersionLocales(Integer versionId) {
@@ -186,6 +184,7 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
     }
 
     private void validateOptLockValue(RefBookVersionEntity entity, DraftChangeRequest request) {
+
         versionValidation.validateOptLockValue(entity.getId(), entity.getOptLockValue(), request.getOptLockValue());
     }
 }

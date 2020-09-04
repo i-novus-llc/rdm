@@ -1,22 +1,32 @@
 package ru.i_novus.ms.rdm.l10n.impl.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import net.n2oapp.platform.i18n.UserException;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
+import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
+import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 import ru.i_novus.ms.rdm.l10n.api.model.L10nVersionLocale;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
+import ru.i_novus.ms.rdm.l10n.api.model.LocalizeTableRequest;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nDraftDataService;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nLocaleInfoService;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nStorageCodeService;
 import ru.i_novus.platform.l10n.versioned_data_storage.model.L10nConstants;
 import ru.i_novus.platform.l10n.versioned_data_storage.model.L10nLocaleInfo;
+import ru.i_novus.platform.versioned_data_storage.pg_impl.dao.StorageConstants;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -32,6 +42,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.util.StringUtils.isEmpty;
+import static ru.i_novus.ms.rdm.l10n.impl.utils.L10nRefBookTestUtils.*;
 import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.toStorageCode;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -42,10 +53,14 @@ public class L10nVersionStorageServiceTest {
     private static final String TEST_LOCALE_CODE = "test";
     private static final String TEST_SCHEMA_NAME = L10nConstants.SCHEMA_NAME_PREFIX + TEST_LOCALE_CODE;
     private static final String TEST_STORAGE_NAME = TEST_REFBOOK_CODE + "_storage";
+    private static final String DEFAULT_SCHEMA_NAME = StorageConstants.DATA_SCHEMA_NAME;
+    private static final String BAD_SCHEMA_NAME = "#bad-schema^name";
 
     private static final String ATTRIBUTE_ID_CODE = "id";
     private static final String ATTRIBUTE_NAME_CODE = "name";
     private static final String ATTRIBUTE_TEXT_CODE = "text";
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
     private L10nVersionStorageServiceImpl versionStorageService;
@@ -62,18 +77,51 @@ public class L10nVersionStorageServiceTest {
     @Mock
     private RefBookVersionRepository versionRepository;
 
+    @Mock
+    private VersionValidation versionValidation;
+
+    @Before
+    public void setUp() {
+
+        JsonUtil.jsonMapper = objectMapper;
+    }
+
+    @Test
+    public void testLocalizeTable() {
+
+        RefBookVersionEntity versionEntity = createVersionEntity();
+        when(versionRepository.findById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(Optional.of(versionEntity));
+
+        String schemaName = TEST_SCHEMA_NAME;
+        when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(schemaName);
+        String testStorageCode = toStorageCode(schemaName, TEST_STORAGE_NAME);
+        when(draftDataService.createLocalizedTable(eq(TEST_STORAGE_NAME), eq(schemaName))).thenReturn(testStorageCode);
+
+        LocalizeTableRequest request = new LocalizeTableRequest(versionEntity.getOptLockValue(), TEST_LOCALE_CODE);
+        versionStorageService.localizeTable(TEST_REFBOOK_VERSION_ID, request);
+
+        verify(draftDataService).createLocalizedTable(eq(TEST_STORAGE_NAME), eq(schemaName));
+        verify(draftDataService).copyAllData(eq(TEST_STORAGE_NAME), eq(testStorageCode));
+
+        LocalizeTableRequest sameRequest = new LocalizeTableRequest();
+        sameRequest.setOptLockValue(versionEntity.getOptLockValue());
+        sameRequest.setLocaleCode(TEST_LOCALE_CODE);
+
+        assertEquals(request.toString(), sameRequest.toString());
+        assertEquals(request.getOptLockValue(), sameRequest.getOptLockValue());
+        assertEquals(request.getLocaleCode(), sameRequest.getLocaleCode());
+    }
+
     @Test
     public void testLocalizeData() {
 
-        Structure structure = createStructure();
-        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
-        versionEntity.setStructure(structure);
-        versionEntity.setStorageCode(TEST_STORAGE_NAME);
+        RefBookVersionEntity versionEntity = createVersionEntity();
         when(versionRepository.findById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(Optional.of(versionEntity));
 
-        when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(TEST_SCHEMA_NAME);
-        String testStorageCode = toStorageCode(TEST_SCHEMA_NAME, TEST_STORAGE_NAME);
-        when(draftDataService.createLocalizedTable(eq(TEST_STORAGE_NAME), eq(TEST_SCHEMA_NAME))).thenReturn(testStorageCode);
+        String schemaName = TEST_SCHEMA_NAME;
+        when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(schemaName);
+        String testStorageCode = toStorageCode(schemaName, TEST_STORAGE_NAME);
+        when(draftDataService.createLocalizedTable(eq(TEST_STORAGE_NAME), eq(schemaName))).thenReturn(testStorageCode);
 
         final int rowCount = 10;
         List<Row> rows = IntStream.range(0, rowCount - 1).mapToObj(this::createRow).collect(toList());
@@ -81,19 +129,67 @@ public class L10nVersionStorageServiceTest {
         LocalizeDataRequest request = new LocalizeDataRequest(null, TEST_LOCALE_CODE, rows);
         versionStorageService.localizeData(TEST_REFBOOK_VERSION_ID, request);
 
-        verify(draftDataService).createLocalizedTable(eq(TEST_STORAGE_NAME), eq(TEST_SCHEMA_NAME));
+        verify(draftDataService).createLocalizedTable(eq(TEST_STORAGE_NAME), eq(schemaName));
         verify(draftDataService).copyAllData(eq(TEST_STORAGE_NAME), eq(testStorageCode));
-        verify(draftDataService).updateRows(eq(TEST_SCHEMA_NAME), any());
+        verify(draftDataService).updateRows(eq(testStorageCode), any());
+
+        LocalizeDataRequest sameRequest = new LocalizeDataRequest();
+        sameRequest.setOptLockValue(versionEntity.getOptLockValue());
+        sameRequest.setLocaleCode(TEST_LOCALE_CODE);
+        sameRequest.setRows(rows);
+
+        assertEquals(request.toString(), sameRequest.toString());
+        assertEquals(request.getOptLockValue(), sameRequest.getOptLockValue());
+        assertEquals(request.getLocaleCode(), sameRequest.getLocaleCode());
+        assertEquals(request.getRows(), sameRequest.getRows());
+    }
+
+    @Test
+    public void testLocalizeTableVersionFailed() {
+
+        when(versionRepository.findById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(Optional.empty());
+
+        LocalizeTableRequest request = new LocalizeTableRequest(null, TEST_LOCALE_CODE);
+        try {
+            versionStorageService.localizeTable(TEST_REFBOOK_VERSION_ID, request);
+            fail(getFailedMessage(NotFoundException.class));
+
+        } catch (UserException e) {
+            assertEquals(NotFoundException.class, e.getClass());
+            assertEquals(VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE, getExceptionMessage(e));
+        }
+    }
+
+    @Test
+    public void testLocalizeTableFailed() {
+
+        failLocalizeTableToSchema(null, "locale.code.is.default", UserException.class);
+        failLocalizeTableToSchema(DEFAULT_SCHEMA_NAME, "locale.code.is.default", UserException.class);
+        failLocalizeTableToSchema(BAD_SCHEMA_NAME, "locale.code.is.invalid", UserException.class);
+    }
+
+    private void failLocalizeTableToSchema(String schemaName, String message, Class expectedExceptionClass) {
+
+        RefBookVersionEntity versionEntity = createVersionEntity();
+        when(versionRepository.findById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(Optional.of(versionEntity));
+
+        when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(schemaName);
+
+        LocalizeTableRequest request = new LocalizeTableRequest(versionEntity.getOptLockValue(), TEST_LOCALE_CODE);
+        try {
+            versionStorageService.localizeTable(TEST_REFBOOK_VERSION_ID, request);
+            fail(getFailedMessage(expectedExceptionClass));
+
+        } catch (UserException e) {
+            assertEquals(expectedExceptionClass, e.getClass());
+            assertEquals(message, getExceptionMessage(e));
+        }
     }
 
     @Test
     public void testGetVersionLocales() {
 
-        Structure structure = createStructure();
-        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
-        versionEntity.setStructure(structure);
-        versionEntity.setStorageCode(TEST_STORAGE_NAME);
-
+        RefBookVersionEntity versionEntity = createVersionEntity();
         when(versionRepository.findById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(Optional.of(versionEntity));
 
         List<L10nLocaleInfo> localeInfos = List.of(
@@ -119,28 +215,31 @@ public class L10nVersionStorageServiceTest {
         List<L10nVersionLocale> actualVersionLocales = versionStorageService.getVersionLocales(TEST_REFBOOK_VERSION_ID);
         assertEquals(expectedLocaleInfos.size(), actualVersionLocales.size());
 
-        IntStream.range(0, expectedLocaleInfos.size()).forEach(index -> {
-            L10nLocaleInfo localeInfo = expectedLocaleInfos.get(index);
-            L10nVersionLocale versionLocale = actualVersionLocales.get(index);
-
-            assertEquals(Integer.valueOf(TEST_REFBOOK_VERSION_ID), versionLocale.getVersionId());
-            assertEquals(localeInfo.getCode(), versionLocale.getLocaleCode());
-            assertEquals(localeInfo.getName(), versionLocale.getLocaleName());
-            assertEquals(localeInfo.getSelfName(), versionLocale.getLocaleSelfName());
-
-            String fullName = versionLocale.getLocaleFullName();
-            assertNotNull(fullName);
-
-            if (isEmpty(versionLocale.getLocaleSelfName())) {
-                assertEquals(versionLocale.getLocaleName(), fullName);
-            } else {
-                assertNotEquals(versionLocale.getLocaleName(), fullName);
-            }
-        });
+        IntStream.range(0, expectedLocaleInfos.size()).forEach(index ->
+            assertLocales(expectedLocaleInfos.get(index), actualVersionLocales.get(index))
+        );
     }
 
     private String toSchemaName(String localeCode) {
         return L10nConstants.SCHEMA_NAME_PREFIX + localeCode;
+    }
+
+    private void assertLocales(L10nLocaleInfo localeInfo, L10nVersionLocale versionLocale) {
+
+        assertObjects(Assert::assertNotEquals, localeInfo, versionLocale);
+        assertEquals(Integer.valueOf(TEST_REFBOOK_VERSION_ID), versionLocale.getVersionId());
+        assertEquals(localeInfo.getCode(), versionLocale.getLocaleCode());
+        assertEquals(localeInfo.getName(), versionLocale.getLocaleName());
+        assertEquals(localeInfo.getSelfName(), versionLocale.getLocaleSelfName());
+
+        String fullName = versionLocale.getLocaleFullName();
+        assertNotNull(fullName);
+
+        if (isEmpty(versionLocale.getLocaleSelfName())) {
+            assertEquals(versionLocale.getLocaleName(), fullName);
+        } else {
+            assertNotEquals(versionLocale.getLocaleName(), fullName);
+        }
     }
 
     @Test
@@ -153,7 +252,19 @@ public class L10nVersionStorageServiceTest {
         assertEquals(testStorageCode, localeStorageCode);
     }
 
+    private RefBookVersionEntity createVersionEntity() {
+
+        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
+        versionEntity.setStorageCode(TEST_STORAGE_NAME);
+
+        Structure structure = createStructure();
+        versionEntity.setStructure(structure);
+
+        return versionEntity;
+    }
+
     private Structure createStructure() {
+
         return new Structure(asList(
                 Structure.Attribute.buildPrimary(ATTRIBUTE_ID_CODE, "Идентификатор", FieldType.INTEGER, null),
                 Structure.Attribute.build(ATTRIBUTE_NAME_CODE, "Наименование", FieldType.STRING, null),
