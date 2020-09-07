@@ -36,12 +36,12 @@ import static java.util.Arrays.asList;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.util.StringUtils.isEmpty;
 import static ru.i_novus.ms.rdm.l10n.impl.utils.L10nRefBookTestUtils.*;
 import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.toStorageCode;
 
@@ -216,7 +216,8 @@ public class L10nVersionStorageServiceTest {
         List<L10nLocaleInfo> expectedLocaleInfos = LOCALE_INFOS.stream()
                 .filter(info -> existedSchemaNames.contains(toSchemaName(info.getCode())))
                 .collect(toList());
-        List<L10nVersionLocale> actualVersionLocales = versionStorageService.searchVersionLocales(TEST_REFBOOK_VERSION_ID);
+        List<L10nVersionLocale> actualVersionLocales = versionStorageService
+                .searchVersionLocales(TEST_REFBOOK_VERSION_ID).getContent();
         assertEquals(expectedLocaleInfos.size(), actualVersionLocales.size());
 
         IntStream.range(0, expectedLocaleInfos.size()).forEach(index ->
@@ -251,15 +252,6 @@ public class L10nVersionStorageServiceTest {
         assertEquals(localeInfo.getCode(), versionLocale.getLocaleCode());
         assertEquals(localeInfo.getName(), versionLocale.getLocaleName());
         assertEquals(localeInfo.getSelfName(), versionLocale.getLocaleSelfName());
-
-        String fullName = versionLocale.getLocaleFullName();
-        assertNotNull(fullName);
-
-        if (isEmpty(versionLocale.getLocaleSelfName())) {
-            assertEquals(versionLocale.getLocaleName(), fullName);
-        } else {
-            assertNotEquals(versionLocale.getLocaleName(), fullName);
-        }
     }
 
     @Test

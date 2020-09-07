@@ -1,13 +1,13 @@
 package ru.i_novus.ms.rdm.l10n.api.service;
 
 import io.swagger.annotations.*;
+import org.springframework.data.domain.Page;
 import ru.i_novus.ms.rdm.l10n.api.model.L10nVersionLocale;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeTableRequest;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.util.List;
 
 @Path("/l10n")
 @Produces(MediaType.APPLICATION_JSON)
@@ -45,7 +45,7 @@ public interface L10nVersionStorageService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/{versionId}/locale")
-    List<L10nVersionLocale> searchVersionLocales(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId);
+    Page<L10nVersionLocale> searchVersionLocales(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId);
 
     @GET
     @ApiOperation("Получение локали версии по коду")

@@ -4,6 +4,9 @@ import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
@@ -117,7 +120,7 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
     }
 
     @Override
-    public List<L10nVersionLocale> searchVersionLocales(Integer versionId) {
+    public Page<L10nVersionLocale> searchVersionLocales(Integer versionId) {
 
         RefBookVersionEntity versionEntity = getVersionOrThrow(versionId);
 
@@ -130,11 +133,13 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
         List<String> schemaNames = new ArrayList<>(localeSchemas.values());
         List<String> tableSchemaNames = draftDataService.getExistedTableSchemaNames(schemaNames, versionEntity.getStorageCode());
 
-        return localeSchemas.entrySet().stream()
+        List<L10nVersionLocale> list = localeSchemas.entrySet().stream()
                 .filter(e -> tableSchemaNames.contains(e.getValue()))
                 .map(e -> toVersionLocale(versionId, findLocaleInfo(e.getKey(), localeInfos)))
                 .filter(Objects::nonNull)
                 .collect(toList());
+
+        return new PageImpl<>(list, Pageable.unpaged(), list.size());
     }
 
     @Override
