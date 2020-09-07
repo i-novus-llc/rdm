@@ -3,8 +3,6 @@ package ru.i_novus.ms.rdm.l10n.api.model;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
-import static org.springframework.util.StringUtils.isEmpty;
-
 @ApiModel("Сведения о локали для версии")
 public class L10nVersionLocale {
 
@@ -54,9 +52,5 @@ public class L10nVersionLocale {
 
     public void setLocaleSelfName(String localeSelfName) {
         this.localeSelfName = localeSelfName;
-    }
-
-    public String getLocaleFullName() {
-        return isEmpty(localeSelfName) ? localeName : String.format("%s (%s)", localeName, localeSelfName);
     }
 }
