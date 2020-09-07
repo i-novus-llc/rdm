@@ -21,11 +21,11 @@
         </field>
 
         <field id="localeCode.id" domain="string">
-            <select mapping="'rus'"/>
+            <select mapping="''"/>
         </field>
 
         <field id="localeCode.name" domain="string">
-            <select mapping="'Русский (по умолчанию)'"/>
+            <select mapping="''"/>
         </field>
 
         <field id="refBookId" domain="integer">

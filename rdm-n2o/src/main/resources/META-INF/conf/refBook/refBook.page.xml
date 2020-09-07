@@ -40,7 +40,7 @@
                             </validations>
                         </select>
 
-                        <select id="localeCode" no-label="true" cleanable="false"
+                        <select id="localeCode" no-label="true" depends-on="version_select"
                                 query-id="versionLocaleList" label-field-id="name">
                             <pre-filters>
                                 <eq field-id="versionId" value="{version.id}"/>
@@ -48,6 +48,7 @@
 
                             <dependencies>
                                 <visibility>return ${rdm.l10n.support}</visibility>
+                                <set-value on="version">version.localeCode.id</set-value>
                             </dependencies>
                         </select>
                     </row>
@@ -151,8 +152,7 @@
                 <pre-filters>
                     <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve"
                         ref-widget-id="version_select"/>
-                    <eq field-id="localeCode" value="{localeCode.id}" ref-model="resolve"
-                        ref-widget-id="version_select"/>
+                    <eq field-id="localeCode" value=""/>
                 </pre-filters>
 
                 <toolbar place="topRight">
@@ -190,12 +190,25 @@
                         <show-modal page-id="dataDeleteAll" upload="query" route="/deleteAll"
                                     submit-operation-id="deleteAllRecords" refresh-widget-id="version_select">
                             <pre-filters>
-                                <eq field-id="versionId" value="{version.id}" ref-model="resolve" ref-widget-id="version_select"/>
-                                <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve" ref-widget-id="version_select"/>
+                                <eq field-id="versionId" value="{version.id}" ref-model="resolve"
+                                    ref-widget-id="version_select"/>
+                                <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve"
+                                    ref-widget-id="version_select"/>
                             </pre-filters>
                         </show-modal>
                     </button>
                 </toolbar>
+            </table>
+
+            <table src="DataGrid" name="Переведённые данные" id="dataTableWithLocales"
+                   query-id="data" depends-on="version_select" fetch-on-init="true"
+                   master-field-id="id" detail-field-id="versionId" object-id="data">
+                <pre-filters>
+                    <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve"
+                        ref-widget-id="version_select"/>
+                    <eq field-id="localeCode" value="{localeCode.id}" ref-model="resolve"
+                        ref-widget-id="version_select"/>
+                </pre-filters>
             </table>
 
             <table src="DataGrid" name="Данные с конфликтами" id="dataTableWithConflicts"

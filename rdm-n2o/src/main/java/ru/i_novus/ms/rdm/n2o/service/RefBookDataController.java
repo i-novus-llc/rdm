@@ -124,14 +124,14 @@ public class RefBookDataController {
         List<Long> conflictedRowIds = (conflictedRowIdsPage == null) ? emptyList() : conflictedRowIdsPage.getContent();
         SearchDataCriteria searchDataCriteria = toSearchDataCriteria(criteria, structure, conflictedRowIds);
 
-        Page<RefBookRowValue> search = versionService.search(version.getId(), searchDataCriteria);
-        List<DataGridRow> result = getDataGridContent(criteria, version, search.getContent());
+        Page<RefBookRowValue> rowValues = versionService.search(version.getId(), searchDataCriteria);
+        List<DataGridRow> result = getDataGridContent(criteria, version, rowValues.getContent());
 
         long total;
         if (criteria.isHasDataConflict())
             total = (conflictedRowIdsPage == null) ? 0 : conflictedRowIdsPage.getTotalElements();
         else
-            total = search.getTotalElements();
+            total = rowValues.getTotalElements();
 
         // NB: (костыль)
         // Прибавляется 1 к количеству элементов
@@ -271,7 +271,7 @@ public class RefBookDataController {
                                                  List<RefBookRowValue> searchContent) {
 
         DataGridRow dataGridHead = new DataGridRow(createHead(version.getStructure()));
-        List<DataGridRow> dataGridRows = getDataGridRows(version, searchContent, criteria);
+        List<DataGridRow> dataGridRows = getDataGridRows(criteria, version, searchContent);
 
         List<DataGridRow> resultRows = new ArrayList<>();
         resultRows.add(dataGridHead);
@@ -279,11 +279,10 @@ public class RefBookDataController {
         return resultRows;
     }
 
-    private List<DataGridRow> getDataGridRows(RefBookVersion version,
-                                              List<RefBookRowValue> searchContent,
-                                              DataCriteria criteria) {
+    private List<DataGridRow> getDataGridRows(DataCriteria criteria, RefBookVersion version,
+                                              List<RefBookRowValue> searchContent) {
 
-        List<Long> conflictedRowsIds = criteria.isHasDataConflict()
+        List<Long> conflictedRowsIds = criteria.isHasDataConflict() || (criteria.getLocaleCode() != null)
                 ? emptyList()
                 : conflictService.getReferrerConflictedIds(version.getId(), getRowSystemIds(searchContent));
 

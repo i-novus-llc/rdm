@@ -111,6 +111,7 @@ public class DataCriteria extends Criteria {
     }
 
     public boolean isHasDataConflict() {
-        return BooleanUtils.isTrue(hasDataConflict);
+
+        return BooleanUtils.isTrue(hasDataConflict) && (localeCode == null);
     }
 }

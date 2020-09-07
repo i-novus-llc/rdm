@@ -31,6 +31,14 @@
             <select/>
         </field>
 
+        <field id="localeCode.id" domain="string">
+            <select mapping="''"/>
+        </field>
+
+        <field id="localeCode.name" domain="string">
+            <select mapping="''"/>
+        </field>
+
         <field id="refBookId" domain="integer">
             <select/>
             <filters>

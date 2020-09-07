@@ -27,6 +27,7 @@ import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nLocaleInf
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nStorageCodeService;
 import ru.i_novus.platform.l10n.versioned_data_storage.model.L10nLocaleInfo;
 import ru.i_novus.platform.l10n.versioned_data_storage.model.criteria.L10nLocaleCriteria;
+import ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils;
 
 import java.util.*;
 
@@ -134,6 +135,7 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
         List<String> tableSchemaNames = draftDataService.getExistedTableSchemaNames(schemaNames, versionEntity.getStorageCode());
 
         List<L10nVersionLocale> list = localeSchemas.entrySet().stream()
+                .filter(e -> !StorageUtils.isDefaultSchema(e.getValue()))
                 .filter(e -> tableSchemaNames.contains(e.getValue()))
                 .map(e -> toVersionLocale(versionId, findLocaleInfo(e.getKey(), localeInfos)))
                 .filter(Objects::nonNull)
