@@ -1656,6 +1656,7 @@ public class ApplicationTest {
      */
     @Test
     public void testPublicationAllCases() {
+
         final String REF_BOOK_CODE = "testPublishAllCases";
         final String FIELD_NAME = "testFieldString";
         final String LEFT_FILE = "testPublishLeftIntersection.xlsx";
@@ -1672,7 +1673,7 @@ public class ApplicationTest {
 
         RefBook refBook = refBookService.create(createRefBookCreateRequest(REF_BOOK_CODE));
 
-        //Наличие черновика после создания справочника
+        // Наличие черновика после создания справочника
         RefBookCriteria criteria = new RefBookCriteria();
         criteria.setCode(REF_BOOK_CODE);
         criteria.setSourceType(RefBookSourceType.DRAFT);
@@ -1680,14 +1681,14 @@ public class ApplicationTest {
         Page<RefBook> refBookPage = refBookService.searchVersions(criteria);
         assertEquals(1L, refBookPage.getContent().size());
 
-        //Публикация левой версии
+        // Публикация левой версии
         Integer leftId = draftService.create(refBook.getRefBookId(), createFileModel(LEFT_FILE, "testPublishing/" + LEFT_FILE)).getId();
         publish(leftId, null, parseLocalDateTime("01.02.2018 00:00:00"), null, false);
 
         List<RefBookRowValue> actual = versionService.search(leftId, new SearchDataCriteria()).getContent();
         assertEqualRow(expectedLeft, actual);
 
-        //Публикация средней версии
+        // Публикация средней версии
         Integer midId = draftService.create(refBook.getRefBookId(), createFileModel(MID_FILE, "testPublishing/" + MID_FILE)).getId();
         publish(midId, null, parseLocalDateTime("05.02.2018 00:00:00"),null, false);
 
@@ -1696,7 +1697,7 @@ public class ApplicationTest {
         actual = versionService.search(midId, new SearchDataCriteria()).getContent();
         assertEqualRow(expectedMid, actual);
 
-        //Публикация правой версии
+        // Публикация правой версии
         Integer rightId = draftService.create(refBook.getRefBookId(), createFileModel(RIGHT_FILE, "testPublishing/" + RIGHT_FILE)).getId();
         publish(rightId, null, parseLocalDateTime("11.02.2018 00:00:00"), null, false);
 
@@ -1707,11 +1708,11 @@ public class ApplicationTest {
         actual = versionService.search(rightId, new SearchDataCriteria()).getContent();
         assertEqualRow(expectedRight, actual);
 
-        //Перекрывание конца левой и целиком средней версии новой, содержащей все прошлые данные
-        //Ожидается:
-        //Левая - правая гранится сместится влево до левой границы новой
-        //Средняя - удалится
-        //Правая - останется неизменной
+        // Перекрывание конца левой и целиком средней версии новой, содержащей все прошлые данные
+        // Ожидается:
+        // Левая - правая граница сместится влево до левой границы новой
+        // Средняя - удалится
+        // Правая - останется неизменной
         Integer allDataId = draftService.create(refBook.getRefBookId(), createFileModel(ALL_DATA, "testPublishing/" + ALL_DATA)).getId();
         publish(allDataId, null, parseLocalDateTime("02.02.2018 00:00:00"), parseLocalDateTime("10.02.2018 00:00:00"), false);
 
@@ -1729,7 +1730,7 @@ public class ApplicationTest {
         assertEqualRow(expectedAllData, actual);
 
         //Перекрывание предыдущей версии новой, не содержащей предыдущие данные
-        //Ожидается: последняя версия удалится
+        // Ожидается: последняя версия удалится
         Integer noDataId = draftService.create(refBook.getRefBookId(), createFileModel(NO_DATA, "testPublishing/" + NO_DATA)).getId();
         publish(noDataId, null, parseLocalDateTime("02.02.2018 00:00:00"), parseLocalDateTime("10.02.2018 00:00:00"), false);
 
