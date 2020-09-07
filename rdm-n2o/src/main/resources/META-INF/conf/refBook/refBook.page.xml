@@ -40,15 +40,15 @@
                             </validations>
                         </select>
 
-                        <select id="localeCode" no-label="true" cleanable="false">
+                        <select id="localeCode" no-label="true" cleanable="false"
+                                query-id="versionLocaleList" label-field-id="name">
+                            <pre-filters>
+                                <eq field-id="versionId" value="{version.id}"/>
+                            </pre-filters>
+
                             <dependencies>
                                 <visibility>return ${rdm.l10n.support}</visibility>
                             </dependencies>
-
-                            <options>
-                                <option id="rus" name="Русский (по умолчанию)"/>
-                                <option id="eng" name="Английский"/>
-                            </options>
                         </select>
                     </row>
                 </fields>
