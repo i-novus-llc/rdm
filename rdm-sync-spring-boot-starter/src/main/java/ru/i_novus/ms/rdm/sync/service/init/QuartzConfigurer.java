@@ -29,6 +29,8 @@ class QuartzConfigurer {
     @Value("${rdm_sync.export_from_local.cron:0/5 * * * * ?}")
     private String exportToRdmJobScanIntervalCron;
 
+    @Value("${rdm_sync.change_data_mode}")
+    private String changeDataMode;
 
     @Transactional
     public void setupJobs() {
@@ -38,28 +40,33 @@ class QuartzConfigurer {
         try {
             if (!scheduler.getMetaData().isJobStoreClustered())
                 logger.warn("Scheduler configured in non clustered mode. There may be concurrency issues.");
-            TriggerKey exportToRdmTriggerKey = TriggerKey.triggerKey(RdmSyncExportDirtyRecordsToRdmJob.NAME, group);
-            Trigger exportToRdmExistingTrigger = scheduler.getTrigger(exportToRdmTriggerKey);
-            JobDetail exportToRdmJob = newJob(RdmSyncExportDirtyRecordsToRdmJob.class).
-                    withIdentity(RdmSyncExportDirtyRecordsToRdmJob.NAME, group).
-                    build();
-            Trigger exportToRdmTrigger = newTrigger().
-                    withIdentity(RdmSyncExportDirtyRecordsToRdmJob.NAME, group).
-                    forJob(exportToRdmJob).
-                    withSchedule(CronScheduleBuilder.cronSchedule(exportToRdmJobScanIntervalCron)).
-                    build();
-            if (exportToRdmExistingTrigger == null) {
-                scheduler.scheduleJob(exportToRdmJob, exportToRdmTrigger);
-            } else {
-                if (exportToRdmExistingTrigger instanceof CronTrigger) {
-                    CronTrigger ct = (CronTrigger) exportToRdmExistingTrigger;
-                    if (!ct.getCronExpression().equals(exportToRdmJobScanIntervalCron)) {
-                        scheduler.unscheduleJob(exportToRdmTriggerKey);
-                        scheduler.scheduleJob(exportToRdmJob, exportToRdmTrigger);
+            JobKey exportToRdmJobKey = JobKey.jobKey(group, RdmSyncExportDirtyRecordsToRdmJob.NAME);
+            if (changeDataMode != null) {
+                TriggerKey exportToRdmTriggerKey = TriggerKey.triggerKey(exportToRdmJobKey.getName(), exportToRdmJobKey.getGroup());
+                Trigger exportToRdmExistingTrigger = scheduler.getTrigger(exportToRdmTriggerKey);
+                JobDetail exportToRdmJob = newJob(RdmSyncExportDirtyRecordsToRdmJob.class).
+                        withIdentity(exportToRdmJobKey).
+                        build();
+                Trigger exportToRdmTrigger = newTrigger().
+                        withIdentity(exportToRdmTriggerKey).
+                        forJob(exportToRdmJob).
+                        withSchedule(CronScheduleBuilder.cronSchedule(exportToRdmJobScanIntervalCron)).
+                        build();
+                if (exportToRdmExistingTrigger == null) {
+                    scheduler.scheduleJob(exportToRdmJob, exportToRdmTrigger);
+                } else {
+                    if (exportToRdmExistingTrigger instanceof CronTrigger) {
+                        CronTrigger ct = (CronTrigger) exportToRdmExistingTrigger;
+                        if (!ct.getCronExpression().equals(exportToRdmJobScanIntervalCron)) {
+                            scheduler.rescheduleJob(exportToRdmTriggerKey, exportToRdmTrigger);
+                        } else
+                            logger.info("Trigger's {} expression not changed.", exportToRdmTriggerKey);
                     } else
-                        logger.info("Trigger's {} expression not changed.", exportToRdmTriggerKey);
-                } else
-                    logger.warn("Trigger {} is not CronTrigger instance. Leave it as it is.", exportToRdmTriggerKey);
+                        logger.warn("Trigger {} is not CronTrigger instance. Leave it as it is.", exportToRdmTriggerKey);
+                }
+            } else {
+                if (scheduler.checkExists(exportToRdmJobKey))
+                    scheduler.deleteJob(exportToRdmJobKey);
             }
         } catch (SchedulerException e) {
             logger.error("Cannot schedule {} job. All records in the {} state will remain in it.", RdmSyncExportDirtyRecordsToRdmJob.NAME, RdmSyncLocalRowState.DIRTY, e);
