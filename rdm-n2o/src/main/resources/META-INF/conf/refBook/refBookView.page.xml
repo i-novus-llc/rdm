@@ -65,7 +65,8 @@
 
             <table src="DataGrid" name="Переведённые данные" id="dataTableWithLocales"
                    query-id="data" depends-on="version_select" fetch-on-init="true"
-                   master-field-id="id" detail-field-id="versionId" object-id="data">
+                   master-field-id="id" detail-field-id="versionId" object-id="data"
+                   visible="{${rdm.l10n.support}}">
                 <pre-filters>
                     <eq field-id="localeCode" value="{localeCode.id}" ref-model="resolve"
                         ref-widget-id="version_select"/>
