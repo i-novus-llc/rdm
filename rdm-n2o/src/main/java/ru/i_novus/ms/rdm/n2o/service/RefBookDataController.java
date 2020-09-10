@@ -374,14 +374,14 @@ public class RefBookDataController {
 
     private DataGridColumn toDataColumn(Structure.Attribute attribute) {
 
+        final String codeWithPrefix = addPrefix(attribute.getCode());
+
         N2oField n2oField = toN2oField(attribute);
-        n2oField.setId(addPrefix(attribute.getCode()));
+        n2oField.setId(codeWithPrefix);
 
-        CompilePipeline pipeline = N2oPipelineSupport.compilePipeline(env);
-        CompileContext<?, ?> ctx = new WidgetContext("");
-        StandardField<?> field = pipeline.compile().get(n2oField, ctx);
+        StandardField<?> field = toStandardField(n2oField);
 
-        return new DataGridColumn(addPrefix(attribute.getCode()), attribute.getName(),
+        return new DataGridColumn(codeWithPrefix, attribute.getName(),
                 true, true, true, field.getControl());
     }
 
@@ -417,9 +417,16 @@ public class RefBookDataController {
         }
     }
 
+    private StandardField<?> toStandardField(N2oField n2oField) {
+
+        CompilePipeline pipeline = N2oPipelineSupport.compilePipeline(env);
+        CompileContext<?, ?> ctx = new WidgetContext("");
+        return pipeline.compile().get(n2oField, ctx);
+    }
+
     @SuppressWarnings("unchecked")
     private static Map<String, String>[] getBooleanValues() {
-        return new Map[] {
+        return new Map[]{
                 ImmutableMap.of(BOOL_FIELD_ID, "true", BOOL_FIELD_NAME, "ИСТИНА"),
                 ImmutableMap.of(BOOL_FIELD_ID, "false", BOOL_FIELD_NAME, "ЛОЖЬ")
         };
