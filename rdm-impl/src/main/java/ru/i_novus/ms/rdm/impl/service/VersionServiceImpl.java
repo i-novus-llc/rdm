@@ -99,7 +99,7 @@ public class VersionServiceImpl implements VersionService {
     public Page<RefBookRowValue> search(Integer versionId, SearchDataCriteria criteria) {
 
         RefBookVersionEntity version = getVersionOrThrow(versionId);
-        return getRowValuesOfVersion(criteria, version);
+        return getRowValuesOfVersion(version, criteria);
     }
 
     @Override
@@ -152,7 +152,7 @@ public class VersionServiceImpl implements VersionService {
         if (version == null)
             throw new NotFoundException(new Message(VERSION_ACTUAL_ON_DATE_NOT_FOUND_EXCEPTION_CODE));
 
-        return getRowValuesOfVersion(criteria, version);
+        return getRowValuesOfVersion(version, criteria);
     }
 
     @Override
@@ -160,9 +160,9 @@ public class VersionServiceImpl implements VersionService {
         return search(refBookCode, TimeUtils.now(), criteria);
     }
 
-    private Page<RefBookRowValue> getRowValuesOfVersion(SearchDataCriteria criteria, RefBookVersionEntity version) {
+    private Page<RefBookRowValue> getRowValuesOfVersion(RefBookVersionEntity version, SearchDataCriteria criteria) {
 
-        List<Field> fields = ConverterUtil.fields(version.getStructure());
+        List<Field> fields = makeOutputFields(version, criteria.getLocaleCode());
 
         Set<List<FieldSearchCriteria>> fieldSearchCriterias = new HashSet<>();
         fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getAttributeFilters()));
@@ -327,6 +327,19 @@ public class VersionServiceImpl implements VersionService {
 
         VersionDataIterator dataIterator = new VersionDataIterator(this, Collections.singletonList(versionModel.getId()));
         return versionFileService.generate(versionModel, fileType, dataIterator);
+    }
+
+    /**
+     * Формирование списка полей, выводимых в результате запроса данных в хранилище версии.
+     *
+     * @param version    версия справочника
+     * @param localeCode код локали
+     * @return Список выводимых полей
+     */
+    @SuppressWarnings("UnusedParameter")
+    protected List<Field> makeOutputFields(RefBookVersionEntity version, String localeCode) {
+
+        return ConverterUtil.fields(version.getStructure());
     }
 
     /**
