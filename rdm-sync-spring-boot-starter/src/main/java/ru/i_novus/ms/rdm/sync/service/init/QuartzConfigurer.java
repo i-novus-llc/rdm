@@ -29,7 +29,7 @@ class QuartzConfigurer {
     @Value("${rdm_sync.export_from_local.cron:0/5 * * * * ?}")
     private String exportToRdmJobScanIntervalCron;
 
-    @Value("${rdm_sync.change_data_mode}")
+    @Value("${rdm_sync.change_data_mode:null}")
     private String changeDataMode;
 
     @Transactional
