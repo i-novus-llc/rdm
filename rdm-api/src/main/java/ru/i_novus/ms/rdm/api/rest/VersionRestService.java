@@ -3,13 +3,13 @@ package ru.i_novus.ms.rdm.api.rest;
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
+import ru.i_novus.ms.rdm.api.model.ExistsData;
 import ru.i_novus.ms.rdm.api.model.ExportFile;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.model.version.VersionCriteria;
-import ru.i_novus.ms.rdm.api.service.ExistsData;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
