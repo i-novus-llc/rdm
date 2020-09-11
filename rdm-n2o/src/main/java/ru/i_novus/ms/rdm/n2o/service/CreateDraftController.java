@@ -20,7 +20,6 @@ import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.n2o.model.FormAttribute;
 import ru.i_novus.ms.rdm.n2o.model.UiDraft;
 import ru.i_novus.ms.rdm.n2o.model.UiPassport;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.util.HashMap;
 import java.util.List;
@@ -29,8 +28,6 @@ import java.util.Map;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
-import static ru.i_novus.ms.rdm.api.util.FieldValueUtils.SYS_HASH;
-import static ru.i_novus.ms.rdm.api.util.FieldValueUtils.SYS_PRIMARY_COLUMN;
 
 @Controller
 @SuppressWarnings("unused")
@@ -255,17 +252,15 @@ public class CreateDraftController {
         if (oldSystemId == null) return null;
 
         SearchDataCriteria criteria = new SearchDataCriteria();
-        AttributeFilter recordIdFilter = new AttributeFilter(SYS_PRIMARY_COLUMN, oldSystemId.intValue(), FieldType.INTEGER);
-        criteria.addAttributeFilterList(singletonList(recordIdFilter));
+        criteria.setRowSystemIds(singletonList(oldSystemId));
 
         Page<RefBookRowValue> oldRow = versionService.search(oldVersionId, criteria);
         if (isEmpty(oldRow.getContent()))
             throw new NotFoundException(UPDATED_DATA_NOT_FOUND_IN_CURRENT_EXCEPTION_CODE);
 
-        String hash = oldRow.getContent().get(0).getHash();
-        AttributeFilter hashFilter = new AttributeFilter(SYS_HASH, hash, FieldType.STRING);
         SearchDataCriteria hashCriteria = new SearchDataCriteria();
-        hashCriteria.addAttributeFilterList(singletonList(hashFilter));
+        String hash = oldRow.getContent().get(0).getHash();
+        hashCriteria.setRowHashList(singletonList(hash));
 
         final Page<RefBookRowValue> newRow = versionService.search(newVersionId, hashCriteria);
         if (isEmpty(newRow.getContent()))

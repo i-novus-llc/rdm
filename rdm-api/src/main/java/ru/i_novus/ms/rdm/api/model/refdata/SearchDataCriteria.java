@@ -24,13 +24,17 @@ public class SearchDataCriteria extends AbstractCriteria {
     @QueryParam("plainAttributeFilter")
     private Map<String, String> plainAttributeFilters;
 
-    @ApiParam("Системные идентификаторы строк")
-    @QueryParam("rowSystemIds")
-    private List<Long> rowSystemIds;
-
     @ApiParam("Фильтр по всем полям")
     @QueryParam("commonFilter")
     private String commonFilter;
+
+    @ApiParam("Хеши строк")
+    @QueryParam("rowHashList")
+    private List<String> rowHashList;
+
+    @ApiParam("Системные идентификаторы строк")
+    @QueryParam("rowSystemIds")
+    private List<Long> rowSystemIds;
 
     public SearchDataCriteria() {
     }
@@ -64,20 +68,28 @@ public class SearchDataCriteria extends AbstractCriteria {
         this.plainAttributeFilters = plainAttributeFilters;
     }
 
-    public List<Long> getRowSystemIds() {
-        return rowSystemIds;
-    }
-
-    public void setRowSystemIds(List<Long> rowSystemIds) {
-        this.rowSystemIds = rowSystemIds;
-    }
-
     public String getCommonFilter() {
         return commonFilter;
     }
 
     public void setCommonFilter(String commonFilter) {
         this.commonFilter = commonFilter;
+    }
+
+    public List<String> getRowHashList() {
+        return rowHashList;
+    }
+
+    public void setRowHashList(List<String> rowHashList) {
+        this.rowHashList = rowHashList;
+    }
+
+    public List<Long> getRowSystemIds() {
+        return rowSystemIds;
+    }
+
+    public void setRowSystemIds(List<Long> rowSystemIds) {
+        this.rowSystemIds = rowSystemIds;
     }
 
     public void addAttributeFilterList(List<AttributeFilter> attributeFilterList) {

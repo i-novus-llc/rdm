@@ -27,10 +27,10 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
+@SuppressWarnings("java:S3740")
 public class FieldValueUtils {
 
     public static final String SYS_PRIMARY_COLUMN = "SYS_RECORDID"; // from StorageConstants
-    public static final String SYS_HASH = "SYS_HASH"; // from StorageConstants
 
     public static final List<Sort.Order> SORT_BY_PRIMARY = singletonList(
             new Sort.Order(Sort.Direction.ASC, SYS_PRIMARY_COLUMN)
@@ -80,8 +80,8 @@ public class FieldValueUtils {
         );
 
         List<String> absentPlaceholders = placeholders.keySet().stream()
-                        .filter(placeholder -> Objects.isNull(map.get(placeholder)))
-                        .collect(toList());
+                .filter(placeholder -> Objects.isNull(map.get(placeholder)))
+                .collect(toList());
         absentPlaceholders.forEach(absent -> map.put(absent, ""));
 
         String displayValue = createDisplayExpressionSubstitutor(map).replace(displayExpression);
@@ -196,17 +196,24 @@ public class FieldValueUtils {
         return DiffStatusEnum.DELETED.equals(status) ? fieldValue.getOldValue() : fieldValue.getNewValue();
     }
 
-    public static FieldValue getFieldValueFromFieldType(Object value, String fieldCode, FieldType fieldType) {
+    public static FieldValue toFieldValueByType(Object value, String fieldCode, FieldType fieldType) {
         switch (fieldType) {
             case STRING:
                 return new StringFieldValue(fieldCode, (String) value);
-            case INTEGER: return new IntegerFieldValue(fieldCode, (BigInteger) value);
-            case REFERENCE: return new ReferenceFieldValue(fieldCode, (Reference) value);
-            case FLOAT: return new FloatFieldValue(fieldCode, (BigDecimal) value);
-            case BOOLEAN: return new BooleanFieldValue(fieldCode, (Boolean) value);
-            case DATE: return new DateFieldValue(fieldCode, (LocalDate) value);
-            case TREE: return new TreeFieldValue(fieldCode, (String) value);
-            default: throw new RdmException("Unexpected field type: " + fieldType);
+            case INTEGER:
+                return new IntegerFieldValue(fieldCode, (BigInteger) value);
+            case REFERENCE:
+                return new ReferenceFieldValue(fieldCode, (Reference) value);
+            case FLOAT:
+                return new FloatFieldValue(fieldCode, (BigDecimal) value);
+            case BOOLEAN:
+                return new BooleanFieldValue(fieldCode, (Boolean) value);
+            case DATE:
+                return new DateFieldValue(fieldCode, (LocalDate) value);
+            case TREE:
+                return new TreeFieldValue(fieldCode, (String) value);
+            default:
+                throw new RdmException("Unexpected field type: " + fieldType);
         }
     }
 

@@ -12,14 +12,12 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflict;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.i_novus.ms.rdm.api.model.refdata.*;
-import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
 import ru.i_novus.ms.rdm.n2o.provider.DataRecordConstants;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 
 import java.util.*;
@@ -29,7 +27,6 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static ru.i_novus.ms.rdm.api.util.FieldValueUtils.SYS_PRIMARY_COLUMN;
 import static ru.i_novus.ms.rdm.api.util.TimeUtils.parseLocalDate;
 import static ru.i_novus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
 
@@ -129,8 +126,7 @@ public class DataRecordController {
     private List<RefBookRowValue> findRowValues(Integer versionId, Integer sysRecordId) {
 
         SearchDataCriteria criteria = new SearchDataCriteria();
-        AttributeFilter recordIdFilter = new AttributeFilter(SYS_PRIMARY_COLUMN, sysRecordId, FieldType.INTEGER);
-        criteria.addAttributeFilterList(singletonList(recordIdFilter));
+        criteria.setRowSystemIds(singletonList(sysRecordId.longValue()));
 
         Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
         return !isEmpty(rowValues.getContent()) ? rowValues.getContent() : emptyList();

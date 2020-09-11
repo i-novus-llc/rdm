@@ -588,7 +588,7 @@ public class DraftServiceTest {
         RefBookRowValue row = new RefBookRowValue();
         row.setSystemId(systemId);
         row.setFieldValues(List.of(
-                FieldValueUtils.getFieldValueFromFieldType(primaryValue, primaryCode, primaryType),
+                FieldValueUtils.toFieldValueByType(primaryValue, primaryCode, primaryType),
                 new IntegerFieldValue(notPrimaryCode, notPrimaryInitValue))
         );
 

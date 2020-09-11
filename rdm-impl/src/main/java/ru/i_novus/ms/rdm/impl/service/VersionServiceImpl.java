@@ -172,6 +172,7 @@ public class VersionServiceImpl implements VersionService {
 
         StorageDataCriteria dataCriteria = new StorageDataCriteria(storageCode, version.getFromDate(), version.getToDate(),
                 fields, fieldSearchCriterias, criteria.getCommonFilter());
+        dataCriteria.setHashList(criteria.getRowHashList());
         dataCriteria.setSystemIds(criteria.getRowSystemIds());
 
         dataCriteria.setPage(criteria.getPageNumber() + BaseDataCriteria.PAGE_SHIFT);
