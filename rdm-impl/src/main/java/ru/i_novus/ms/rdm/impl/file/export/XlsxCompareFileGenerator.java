@@ -38,8 +38,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static ru.i_novus.ms.rdm.api.util.FieldValueUtils.getSortByPrimary;
-
 /**
  * Created by znurgaliev on 26.09.2018.
  */
@@ -282,9 +280,8 @@ class XlsxCompareFileGenerator implements FileGenerator {
         sheet.trackAllColumnsForAutoSizing();
 
         CompareDataCriteria compareCriteria = new CompareDataCriteria(oldVersion.getId(), newVersion.getId());
-        compareCriteria.setOrders(getSortByPrimary());
 
-        PageIterator<ComparableRow, CompareDataCriteria> pageIterator = new PageIterator<>(compareService::getCommonComparableRows, compareCriteria);
+        PageIterator<ComparableRow, CompareDataCriteria> pageIterator = new PageIterator<>(compareService::getCommonComparableRows, compareCriteria, true);
         pageIterator.forEachRemaining(page ->
                 page.getContent().stream()
                         .map(comparableRow -> {

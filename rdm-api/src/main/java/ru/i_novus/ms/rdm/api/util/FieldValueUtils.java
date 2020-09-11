@@ -1,7 +1,6 @@
 package ru.i_novus.ms.rdm.api.util;
 
 import org.apache.commons.text.StringSubstitutor;
-import org.springframework.data.domain.Sort;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
@@ -23,27 +22,16 @@ import java.time.LocalDate;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 @SuppressWarnings("java:S3740")
 public class FieldValueUtils {
 
-    public static final String SYS_PRIMARY_COLUMN = "SYS_RECORDID"; // from StorageConstants
-
-    public static final List<Sort.Order> SORT_BY_PRIMARY = singletonList(
-            new Sort.Order(Sort.Direction.ASC, SYS_PRIMARY_COLUMN)
-    );
-
-    private static final String PRIMARY_KEY_CODE_DELIMITER = ": ";
+    private static final String PRIMARY_KEY_VALUE_DISPLAY_DELIMITER = ": ";
 
     private FieldValueUtils() {
         throw new UnsupportedOperationException();
-    }
-
-    public static List<Sort.Order> getSortByPrimary() {
-        return SORT_BY_PRIMARY;
     }
 
     /**
@@ -91,7 +79,7 @@ public class FieldValueUtils {
             String primaryKeysValue = primaryKeyCodes.stream()
                     .map(code -> String.valueOf(map.get(code)))
                     .filter(value -> !StringUtils.isEmpty(value))
-                    .reduce("", (result, value) -> result + value + PRIMARY_KEY_CODE_DELIMITER);
+                    .reduce("", (result, value) -> result + value + PRIMARY_KEY_VALUE_DISPLAY_DELIMITER);
             displayValue = primaryKeysValue + displayValue;
         }
 

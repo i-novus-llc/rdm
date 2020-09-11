@@ -50,7 +50,6 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static ru.i_novus.ms.rdm.api.util.FieldValueUtils.getSortByPrimary;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ConflictServiceTest {
@@ -217,9 +216,9 @@ public class ConflictServiceTest {
         return versionEntity;
     }
 
-    @Test
-    public void testCalculateDataConflicts() {
-    }
+    //@Test
+    //public void testCalculateDataConflicts() {
+    //}
 
     @Test
     public void testCalculateDamagedConflicts() {
@@ -309,7 +308,6 @@ public class ConflictServiceTest {
         List<RefBookConflictEntity> list = new ArrayList<>();
 
         SearchDataCriteria criteria = new SearchDataCriteria();
-        criteria.setOrders(getSortByPrimary());
         criteria.setPageSize(ConflictServiceImpl.REF_BOOK_VERSION_DATA_PAGE_SIZE);
 
         Page<RefBookRowValue> rowValues = versionService.search(referrerVersionEntity.getId(), criteria);
