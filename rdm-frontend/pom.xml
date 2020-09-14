@@ -224,6 +224,7 @@
                 </plugins>
             </build>
         </profile>
+
         <profile>
             <id>production</id>
             <properties>
@@ -246,6 +247,7 @@
                 </plugins>
             </build>
         </profile>
+
         <profile>
             <id>external-tracing-tool</id>
             <activation>
@@ -258,6 +260,7 @@
                 </dependency>
             </dependencies>
         </profile>
+
         <profile>
             <id>l10n</id>
             <properties>
