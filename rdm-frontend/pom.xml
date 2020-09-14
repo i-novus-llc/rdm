@@ -30,6 +30,11 @@
 
         <dependency>
             <groupId>ru.i-novus.ms.rdm</groupId>
+            <artifactId>rdm-n2o-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.i-novus.ms.rdm</groupId>
             <artifactId>rdm-n2o</artifactId>
         </dependency>
 

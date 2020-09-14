@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.n2o.util;
+package ru.i_novus.ms.rdm.n2o.api.util;
 
 public class RdmUiUtil {
 

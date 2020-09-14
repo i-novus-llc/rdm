@@ -31,11 +31,12 @@ import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.util.ConflictUtils;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
-import ru.i_novus.ms.rdm.n2o.criteria.DataCriteria;
+import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
+import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataService;
+import ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil;
 import ru.i_novus.ms.rdm.n2o.model.DataGridColumn;
 import ru.i_novus.ms.rdm.n2o.provider.DataRecordConstants;
 import ru.i_novus.ms.rdm.n2o.provider.N2oDomain;
-import ru.i_novus.ms.rdm.n2o.util.RdmUiUtil;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
@@ -58,7 +59,7 @@ import static java.util.stream.Collectors.toList;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.util.StringUtils.isEmpty;
-import static ru.i_novus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
+import static ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil.addPrefix;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
 import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.EXACT;
 import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.LIKE;
@@ -91,6 +92,9 @@ public class RefBookDataController {
 
     @Autowired
     private ConflictService conflictService;
+
+    @Autowired
+    private RefBookDataService refBookDataService;
 
     /**
      * Поиск записей версии справочника по критерию.
@@ -270,7 +274,8 @@ public class RefBookDataController {
     private List<DataGridRow> getDataGridContent(DataCriteria criteria, RefBookVersion version,
                                                  List<RefBookRowValue> searchContent) {
 
-        DataGridRow dataGridHead = new DataGridRow(createHead(version.getStructure()));
+        Structure dataStructure = refBookDataService.getDataStructure(version.getId(), criteria);
+        DataGridRow dataGridHead = new DataGridRow(createHead(dataStructure));
         List<DataGridRow> dataGridRows = getDataGridRows(criteria, version, searchContent);
 
         List<DataGridRow> resultRows = new ArrayList<>();

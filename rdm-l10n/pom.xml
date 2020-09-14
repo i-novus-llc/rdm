@@ -24,6 +24,11 @@
 
         <dependency>
             <groupId>ru.i-novus.ms.rdm</groupId>
+            <artifactId>rdm-n2o-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.i-novus.ms.rdm</groupId>
             <artifactId>rdm-impl</artifactId>
             <scope>compile</scope>
         </dependency>

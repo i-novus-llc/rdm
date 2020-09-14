@@ -6,7 +6,7 @@
               method="getList">
             <spring/>
             <arguments>
-                <argument type="criteria" name="criteria" class="ru.i_novus.ms.rdm.n2o.criteria.DataCriteria"/>
+                <argument type="criteria" name="criteria" class="ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria"/>
             </arguments>
         </java>
     </list>

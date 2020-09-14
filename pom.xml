@@ -95,6 +95,12 @@
 
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
+                <artifactId>rdm-n2o-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-n2o</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -243,6 +249,7 @@
             <modules>
                 <module>rdm-impl</module>
                 <module>rdm-l10n</module>
+                <module>rdm-n2o-api</module>
                 <module>rdm-rest</module>
                 <module>rdm-n2o</module>
                 <module>rdm-frontend</module>

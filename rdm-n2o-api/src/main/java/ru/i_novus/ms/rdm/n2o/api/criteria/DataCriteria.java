@@ -1,10 +1,10 @@
-package ru.i_novus.ms.rdm.n2o.criteria;
+package ru.i_novus.ms.rdm.n2o.api.criteria;
 
 import net.n2oapp.criteria.api.Criteria;
 import net.n2oapp.criteria.api.Direction;
 import net.n2oapp.criteria.api.Sorting;
 import org.apache.commons.lang3.BooleanUtils;
-import ru.i_novus.ms.rdm.n2o.util.RdmUiUtil;
+import ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil;
 
 import java.io.Serializable;
 import java.util.Map;
