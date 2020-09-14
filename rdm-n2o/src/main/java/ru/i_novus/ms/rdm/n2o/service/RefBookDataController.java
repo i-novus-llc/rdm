@@ -276,7 +276,9 @@ public class RefBookDataController {
 
         Structure dataStructure = refBookDataService.getDataStructure(version.getId(), criteria);
         DataGridRow dataGridHead = new DataGridRow(createHead(dataStructure));
-        List<DataGridRow> dataGridRows = getDataGridRows(criteria, version, searchContent);
+
+        List<RefBookRowValue> dataContent = refBookDataService.getDataContent(searchContent, criteria);
+        List<DataGridRow> dataGridRows = getDataGridRows(criteria, version, dataContent);
 
         List<DataGridRow> resultRows = new ArrayList<>();
         resultRows.add(dataGridHead);
