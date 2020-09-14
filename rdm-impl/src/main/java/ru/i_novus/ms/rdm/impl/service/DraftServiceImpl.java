@@ -101,13 +101,15 @@ public class DraftServiceImpl implements DraftService {
     @Autowired
     @SuppressWarnings("squid:S00107")
     public DraftServiceImpl(RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
-                            DraftDataService draftDataService, DropDataService dropDataService, SearchDataService searchDataService,
+                            DraftDataService draftDataService, DropDataService dropDataService,
+                            SearchDataService searchDataService,
                             RefBookLockService refBookLockService, VersionService versionService,
                             FileStorage fileStorage, FileNameGenerator fileNameGenerator,
                             VersionFileService versionFileService,
                             VersionValidation versionValidation,
                             PassportValueRepository passportValueRepository,
-                            AttributeValidationRepository attributeValidationRepository, StructureChangeValidator structureChangeValidator,
+                            AttributeValidationRepository attributeValidationRepository,
+                            StructureChangeValidator structureChangeValidator,
                             AuditLogService auditLogService) {
         this.versionRepository = versionRepository;
         this.conflictRepository = conflictRepository;
@@ -640,7 +642,12 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateDraftExists(draftId);
 
         RefBookVersionEntity draft = versionRepository.getOne(draftId);
-        List<Field> fields = ConverterUtil.fields(draft.getStructure());
+        return getRowValuesOfDraft(draft, criteria);
+    }
+
+    private Page<RefBookRowValue> getRowValuesOfDraft(RefBookVersionEntity draft, SearchDataCriteria criteria) {
+
+        List<Field> fields = makeOutputFields(draft, criteria.getLocaleCode());
 
         Set<List<FieldSearchCriteria>> fieldSearchCriterias = new HashSet<>();
         fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getAttributeFilters()));
@@ -1056,6 +1063,26 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateOptLockValue(entity.getId(), entity.getOptLockValue(), request.getOptLockValue());
     }
 
+    /**
+     * Формирование списка полей, выводимых в результате запроса данных в хранилище версии.
+     *
+     * @param version    версия справочника
+     * @param localeCode код локали
+     * @return Список выводимых полей
+     */
+    @SuppressWarnings("UnusedParameter")
+    protected List<Field> makeOutputFields(RefBookVersionEntity version, String localeCode) {
+
+        return ConverterUtil.fields(version.getStructure());
+    }
+
+    /**
+     * Преобразование кода хранилища с учётом локали.
+     *
+     * @param storageCode исходный код хранилища
+     * @param localeCode  код локали
+     * @return Код хранилища с учётом локали
+     */
     @SuppressWarnings("UnusedParameter")
     protected String toLocaleStorageCode(String storageCode, String localeCode) {
         return storageCode;
