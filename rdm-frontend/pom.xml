@@ -19,6 +19,7 @@
         <jacoco.skip>false</jacoco.skip>
 
         <rdm.l10n.support>false</rdm.l10n.support>
+        <rdm.l10n.messages/>
     </properties>
 
     <dependencies>
@@ -270,6 +271,7 @@
             <id>l10n</id>
             <properties>
                 <rdm.l10n.support>true</rdm.l10n.support>
+                <rdm.l10n.messages>,messages.rdm_n2o_l10n</rdm.l10n.messages>
             </properties>
             <dependencies>
                 <dependency>
