@@ -12,6 +12,7 @@ import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataService;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.BooleanFieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
 
 import java.util.List;
 
@@ -46,7 +47,7 @@ public class L10nRefBookDataServiceImpl implements RefBookDataService {
     public Structure getDataStructure(Integer versionId, DataCriteria criteria) {
 
         Structure structure = versionService.getStructure(versionId);
-        if (criteria.getLocaleCode() == null)
+        if (criteria == null || criteria.getLocaleCode() == null)
             return structure;
 
         return toL10nDataStructure(structure);
@@ -69,7 +70,7 @@ public class L10nRefBookDataServiceImpl implements RefBookDataService {
     @Override
     public List<RefBookRowValue> getDataContent(List<RefBookRowValue> searchContent, DataCriteria criteria) {
 
-        if (criteria.getLocaleCode() == null || isEmpty(searchContent))
+        if (criteria == null || criteria.getLocaleCode() == null || isEmpty(searchContent))
             return searchContent;
 
         return toL10nDataContent(searchContent);
@@ -90,11 +91,11 @@ public class L10nRefBookDataServiceImpl implements RefBookDataService {
         return rowValue;
     }
 
-    @SuppressWarnings("unchecked")
     private FieldValue toL10nDataFieldValue(FieldValue fieldValue) {
 
         if (SYS_LOCALIZED.equals(fieldValue.getField()) && fieldValue instanceof BooleanFieldValue) {
-            fieldValue.setValue(localizedToString(((BooleanFieldValue) fieldValue).getValue()));
+            Boolean value = ((BooleanFieldValue) fieldValue).getValue();
+            return new StringFieldValue(SYS_LOCALIZED, localizedToString(value));
         }
         return fieldValue;
     }
