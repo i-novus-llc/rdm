@@ -42,9 +42,6 @@ public class DataRecordController {
     private static final String CONFLICT_TEXT_ALTERED = "conflict.text.altered";
 
     @Autowired
-    Messages messages;
-
-    @Autowired
     private VersionRestService versionService;
 
     @Autowired
@@ -52,6 +49,9 @@ public class DataRecordController {
 
     @Autowired
     private ConflictService conflictService;
+
+    @Autowired
+    private Messages messages;
 
     /**
      * Получение записи версии справочника для создания/редактирования.
