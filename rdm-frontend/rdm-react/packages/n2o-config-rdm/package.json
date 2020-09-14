@@ -20,7 +20,7 @@
     "clean:es": "rimraf dist/es"
   },
   "peerDependencies": {
-    "n2o-framework": "^7.7.0",
+    "n2o-framework": "~7.7.8",
     "prop-types": "^15.5.4",
     "react": "^16.0.0",
     "react-dom": "^16.0.0"
