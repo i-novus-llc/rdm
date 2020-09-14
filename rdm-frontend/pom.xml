@@ -271,6 +271,13 @@
             <properties>
                 <rdm.l10n.support>true</rdm.l10n.support>
             </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>ru.i-novus.ms.rdm</groupId>
+                    <artifactId>rdm-n2o-l10n</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
         </profile>
     </profiles>
 

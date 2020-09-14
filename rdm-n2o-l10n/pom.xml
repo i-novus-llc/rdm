@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>rdm-n2o</artifactId>
+    <artifactId>rdm-n2o-l10n</artifactId>
 
     <parent>
         <groupId>ru.i-novus.ms.rdm</groupId>
@@ -63,21 +63,5 @@
         </dependency>
 
     </dependencies>
-
-    <profiles>
-        <profile>
-            <id>l10n</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>ru.i-novus.ms.rdm</groupId>
-                    <artifactId>rdm-n2o-l10n</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
 
 </project>
