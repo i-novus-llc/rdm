@@ -249,10 +249,7 @@ public class Structure implements Serializable {
         }
 
         public static Attribute build(Attribute attribute) {
-            if (attribute != null)
-                return new Attribute(attribute);
-
-            return new Attribute();
+            return (attribute != null) ? new Attribute(attribute) : new Attribute();
         }
 
         public static Attribute buildPrimary(String code, String name, FieldType type, String description) {
@@ -394,10 +391,7 @@ public class Structure implements Serializable {
         }
 
         public static Reference build(Reference reference) {
-            if (reference != null)
-                return new Reference(reference);
-
-            return new Reference();
+            return (reference != null) ? new Reference(reference) : new Reference();
         }
 
         @JsonGetter
