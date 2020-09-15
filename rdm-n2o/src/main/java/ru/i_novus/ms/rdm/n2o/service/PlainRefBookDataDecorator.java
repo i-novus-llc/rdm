@@ -6,18 +6,18 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
-import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataService;
+import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataDecorator;
 
 import java.util.List;
 
 @Service
 @SuppressWarnings("UnusedParameter")
-public class RefBookDataServiceImpl implements RefBookDataService {
+public class PlainRefBookDataDecorator implements RefBookDataDecorator {
 
     private VersionRestService versionService;
 
     @Autowired
-    public RefBookDataServiceImpl(VersionRestService versionService) {
+    public PlainRefBookDataDecorator(VersionRestService versionService) {
 
         this.versionService = versionService;
     }

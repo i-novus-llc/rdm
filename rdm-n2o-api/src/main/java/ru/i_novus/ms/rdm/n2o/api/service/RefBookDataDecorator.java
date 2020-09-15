@@ -12,8 +12,8 @@ import java.util.List;
 @Path("/refBookData")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Api(value = "Методы работы с данными справочника", hidden = true)
-public interface RefBookDataService {
+@Api(value = "Декоратор работы с данными справочника", hidden = true)
+public interface RefBookDataDecorator {
 
     @GET
     @Path("/{versionId}/structure")

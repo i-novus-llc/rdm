@@ -32,7 +32,7 @@ import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.util.ConflictUtils;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
-import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataService;
+import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataDecorator;
 import ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil;
 import ru.i_novus.ms.rdm.n2o.model.DataGridColumn;
 import ru.i_novus.ms.rdm.n2o.provider.DataRecordConstants;
@@ -94,7 +94,7 @@ public class RefBookDataController {
     private ConflictService conflictService;
 
     @Autowired
-    private RefBookDataService refBookDataService;
+    private RefBookDataDecorator refBookDataDecorator;
 
     /**
      * Поиск записей версии справочника по критерию.
@@ -274,10 +274,10 @@ public class RefBookDataController {
     private List<DataGridRow> getDataGridContent(DataCriteria criteria, RefBookVersion version,
                                                  List<RefBookRowValue> searchContent) {
 
-        Structure dataStructure = refBookDataService.getDataStructure(version.getId(), criteria);
+        Structure dataStructure = refBookDataDecorator.getDataStructure(version.getId(), criteria);
         DataGridRow dataGridHead = new DataGridRow(createHead(dataStructure));
 
-        List<RefBookRowValue> dataContent = refBookDataService.getDataContent(searchContent, criteria);
+        List<RefBookRowValue> dataContent = refBookDataDecorator.getDataContent(searchContent, criteria);
         List<DataGridRow> dataGridRows = getDataGridRows(criteria, version, dataContent);
 
         List<DataGridRow> resultRows = new ArrayList<>();

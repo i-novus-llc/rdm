@@ -8,7 +8,7 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
-import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataService;
+import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataDecorator;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.BooleanFieldValue;
@@ -22,7 +22,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 @Primary
 @Service
 @SuppressWarnings("java:S3740")
-public class L10nRefBookDataServiceImpl implements RefBookDataService {
+public class L10nRefBookDataDecorator implements RefBookDataDecorator {
 
     public static final String SYS_LOCALIZED = "SYS_LOCALIZED"; // from l10n-vds L10nConstants
 
@@ -36,8 +36,8 @@ public class L10nRefBookDataServiceImpl implements RefBookDataService {
     private Messages messages;
 
     @Autowired
-    public L10nRefBookDataServiceImpl(VersionRestService versionService,
-                                      Messages messages) {
+    public L10nRefBookDataDecorator(VersionRestService versionService,
+                                    Messages messages) {
         this.versionService = versionService;
 
         this.messages = messages;
