@@ -43,6 +43,7 @@ public class DataCriteria extends Criteria {
     private Boolean hasDataConflict;
 
     public DataCriteria() {
+        // Nothing to do.
     }
 
     public DataCriteria(Integer versionId, Integer optLockValue,
