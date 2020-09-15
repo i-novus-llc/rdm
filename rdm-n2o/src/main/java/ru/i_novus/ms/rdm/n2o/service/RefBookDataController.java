@@ -4,16 +4,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableMap;
 import net.n2oapp.criteria.api.Direction;
 import net.n2oapp.criteria.api.Sorting;
-import net.n2oapp.framework.api.MetadataEnvironment;
-import net.n2oapp.framework.api.metadata.compile.CompileContext;
 import net.n2oapp.framework.api.metadata.control.N2oField;
 import net.n2oapp.framework.api.metadata.control.list.N2oInputSelect;
 import net.n2oapp.framework.api.metadata.control.plain.N2oDatePicker;
 import net.n2oapp.framework.api.metadata.control.plain.N2oInputText;
+import net.n2oapp.framework.api.metadata.meta.control.Control;
 import net.n2oapp.framework.api.metadata.meta.control.StandardField;
-import net.n2oapp.framework.api.metadata.pipeline.CompilePipeline;
-import net.n2oapp.framework.config.compile.pipeline.N2oPipelineSupport;
-import net.n2oapp.framework.config.metadata.compile.context.WidgetContext;
 import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.jaxrs.RestPage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,7 +81,7 @@ public class RefBookDataController {
     private static final Map<String, Object> DATA_CONFLICTED_CELL_OPTIONS = getDataConflictedCellOptions();
 
     @Autowired
-    private MetadataEnvironment env;
+    private DataFieldFilterProvider dataFieldFilterProvider;
 
     @Autowired
     private VersionRestService versionService;
@@ -386,10 +382,10 @@ public class RefBookDataController {
         N2oField n2oField = toN2oField(attribute);
         n2oField.setId(codeWithPrefix);
 
-        StandardField<?> field = toStandardField(n2oField);
+        StandardField<Control> filterField = dataFieldFilterProvider.toFilterField(n2oField);
 
         return new DataGridColumn(codeWithPrefix, attribute.getName(),
-                true, true, true, field.getControl());
+                true, true, true, filterField.getControl());
     }
 
     private N2oField toN2oField(Structure.Attribute attribute) {
@@ -422,13 +418,6 @@ public class RefBookDataController {
             default:
                 return new N2oInputText();
         }
-    }
-
-    private StandardField<?> toStandardField(N2oField n2oField) {
-
-        CompilePipeline pipeline = N2oPipelineSupport.compilePipeline(env);
-        CompileContext<?, ?> ctx = new WidgetContext("");
-        return pipeline.compile().get(n2oField, ctx);
     }
 
     @SuppressWarnings("unchecked")
