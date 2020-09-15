@@ -77,7 +77,7 @@ public class RefBookDataController {
     private static final String BOOL_FALSE_REGEX = "false|f|n|no|nah|н|нет|ложь|неправда";
     private static final Pattern BOOL_FALSE_PATTERN = Pattern.compile(BOOL_FALSE_REGEX);
 
-    private static final SearchDataCriteria EMPTY_SEARCH_DATA_CRITERIA = new SearchDataCriteria();
+    static final SearchDataCriteria EMPTY_SEARCH_DATA_CRITERIA = new SearchDataCriteria(0, 1);
     private static final Map<String, Object> DATA_CONFLICTED_CELL_OPTIONS = getDataConflictedCellOptions();
 
     @Autowired
@@ -106,6 +106,10 @@ public class RefBookDataController {
 
         if (criteria.getOptLockValue() != null) {
             version.setOptLockValue(criteria.getOptLockValue());
+        }
+
+        if (criteria.getLocaleCode() != null) {
+            criteria.setHasDataConflict(false);
         }
 
         Page<Long> conflictedRowIdsPage = null;
@@ -167,7 +171,6 @@ public class RefBookDataController {
     private RefBookConflictCriteria toConflictCriteria(DataCriteria criteria) {
 
         RefBookConflictCriteria conflictCriteria = new RefBookConflictCriteria();
-        conflictCriteria.setPageSize(criteria.getSize());
         conflictCriteria.setReferrerVersionId(criteria.getVersionId());
         conflictCriteria.setConflictTypes(ConflictUtils.getDataConflictTypes());
         conflictCriteria.setIsLastPublishedVersion(true);
@@ -177,9 +180,10 @@ public class RefBookDataController {
     private SearchDataCriteria toSearchDataCriteria(DataCriteria criteria, Structure structure,
                                                     List<Long> conflictedRowIds) {
 
-        List<AttributeFilter> filters = toAttributeFilters(criteria, structure);
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPage() - 1, criteria.getSize());
         searchDataCriteria.setLocaleCode(criteria.getLocaleCode());
+
+        List<AttributeFilter> filters = toAttributeFilters(criteria, structure);
         searchDataCriteria.addAttributeFilterList(filters);
 
         List<Sort.Order> orders = criteria.getSorting() == null ? emptyList() : singletonList(toSortOrder(criteria.getSorting()));
