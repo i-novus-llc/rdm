@@ -12,7 +12,10 @@
             </not>
         </preConditions>
         <sql splitStatements="false">
-            ALTER TABLE n2o_rdm_management.async_log_entry ADD COLUMN stacktrace VARCHAR;
+            ALTER TABLE
+                n2o_rdm_management.async_log_entry
+            ADD COLUMN
+                stacktrace VARCHAR;
         </sql>
     </changeSet>
 

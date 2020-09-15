@@ -47,7 +47,7 @@
             CREATE TRIGGER
                 update_ts_utc_trigger
             BEFORE UPDATE ON
-            n2o_rdm_management.async_log_entry
+                n2o_rdm_management.async_log_entry
             FOR EACH ROW EXECUTE PROCEDURE
             update_ts_utc();
 
