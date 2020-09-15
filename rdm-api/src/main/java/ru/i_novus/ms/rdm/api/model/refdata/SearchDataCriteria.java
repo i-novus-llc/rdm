@@ -37,6 +37,7 @@ public class SearchDataCriteria extends AbstractCriteria {
     private List<Long> rowSystemIds;
 
     public SearchDataCriteria() {
+        // Nothing to do.
     }
 
     public SearchDataCriteria(int pageNumber, int pageSize) {
@@ -105,18 +106,21 @@ public class SearchDataCriteria extends AbstractCriteria {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
 
         SearchDataCriteria that = (SearchDataCriteria) o;
+        return Objects.equals(localeCode, that.localeCode) &&
+                Objects.equals(attributeFilters, that.attributeFilters) &&
+                Objects.equals(plainAttributeFilters, that.plainAttributeFilters) &&
 
-        if (!Objects.equals(attributeFilters, that.attributeFilters))
-            return false;
-        return Objects.equals(commonFilter, that.commonFilter);
+                Objects.equals(commonFilter, that.commonFilter) &&
+                Objects.equals(rowHashList, that.rowHashList) &&
+                Objects.equals(rowSystemIds, that.rowSystemIds);
     }
 
     @Override
     public int hashCode() {
-        int result = attributeFilters != null ? attributeFilters.hashCode() : 0;
-        result = 31 * result + (commonFilter != null ? commonFilter.hashCode() : 0);
-        return result;
+        return Objects.hash(super.hashCode(), localeCode, attributeFilters, plainAttributeFilters,
+                commonFilter, rowHashList, rowSystemIds);
     }
 }

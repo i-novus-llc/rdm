@@ -5,6 +5,7 @@ import org.springframework.data.domain.Sort;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static java.util.stream.Collectors.toList;
 
@@ -34,5 +35,21 @@ public class AbstractCriteria extends RestCriteria {
 
     public List<Sort.Order> getOrders() {
         return getSort().get().collect(toList());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AbstractCriteria that = (AbstractCriteria) o;
+        return Objects.equals(getPageNumber(), that.getPageNumber()) &&
+                Objects.equals(getPageSize(), that.getPageSize()) &&
+                Objects.equals(getSort(), that.getSort());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), getPageNumber(), getPageSize(), getSort());
     }
 }
