@@ -76,7 +76,7 @@ public class RefBookDataDecoratorTest {
 
         List<RefBookRowValue> rowValues = new ArrayList<>(rowValueCount);
 
-        LongStream.range(0, rowValueCount).forEach(systemId -> {
+        LongStream.range(1, rowValueCount + 1).forEach(systemId -> {
             LongRowValue longRowValue = new LongRowValue(systemId, asList(
                     new IntegerFieldValue(ATTRIBUTE_ID_CODE, BigInteger.valueOf(systemId)),
                     new StringFieldValue(ATTRIBUTE_NAME_CODE, "name_" + systemId),
