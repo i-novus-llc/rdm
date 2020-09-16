@@ -17,6 +17,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.UnaryOperator;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
@@ -44,8 +45,8 @@ public class Structure implements Serializable {
     }
 
     public Structure(Structure structure) {
-        this.attributes = new ArrayList<>(structure.attributes);
-        this.references = new ArrayList<>(structure.references);
+        this.attributes = copyList(structure.attributes, Attribute::new);
+        this.references = copyList(structure.references, Reference::new);
     }
 
     @JsonGetter
@@ -215,6 +216,14 @@ public class Structure implements Serializable {
 
     private static <T> List<T> getOrCreateList(List<T> list) {
         return list == null ? new ArrayList<>(0) : list;
+    }
+
+    private static <T> List<T> copyList(List<T> values, UnaryOperator<T> copy) {
+
+        if (CollectionUtils.isEmpty(values))
+            return new ArrayList<>(0);
+
+        return values.stream().map(copy).collect(toList());
     }
 
     public boolean storageEquals(Structure that) {
@@ -388,16 +397,17 @@ public class Structure implements Serializable {
             if (o == null || getClass() != o.getClass()) return false;
 
             Attribute that = (Attribute) o;
-            return Objects.equals(isPrimary, that.isPrimary) &&
-                    Objects.equals(code, that.code) &&
+            return Objects.equals(code, that.code) &&
                     Objects.equals(name, that.name) &&
                     Objects.equals(type, that.type) &&
+                    Objects.equals(isPrimary, that.isPrimary) &&
+                    Objects.equals(localizable, that.localizable) &&
                     Objects.equals(description, that.description);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(code, name, type, isPrimary);
+            return Objects.hash(code, name, type, isPrimary, localizable, description);
         }
 
         @Override
