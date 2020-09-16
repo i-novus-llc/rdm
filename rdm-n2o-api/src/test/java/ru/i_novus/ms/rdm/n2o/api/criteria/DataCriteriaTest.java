@@ -39,6 +39,9 @@ public class DataCriteriaTest {
         DataCriteria cloneCriteria = new DataCriteria(newCriteria);
         assertObjects(Assert::assertEquals, newCriteria, cloneCriteria);
 
+        cloneCriteria = cloneCriteria(newCriteria);
+        assertObjects(Assert::assertEquals, newCriteria, cloneCriteria);
+
         DataCriteria copyCriteria = copyCriteria(newCriteria);
         assertObjects(Assert::assertEquals, newCriteria, copyCriteria);
     }
@@ -50,6 +53,15 @@ public class DataCriteriaTest {
         result.setVersionId(TEST_REFBOOK_VERSION_ID);
         result.setOptLockValue(TEST_OPT_LOCK_VALUE);
         result.setLocaleCode("test");
+
+        return result;
+    }
+
+    private DataCriteria cloneCriteria(DataCriteria criteria) {
+
+        DataCriteria result = new DataCriteria(criteria.getVersionId(), criteria.getOptLockValue(),
+                criteria.getFilter(), criteria.getHasDataConflict());
+        criteria.setLocaleCode(criteria.getLocaleCode());
 
         return result;
     }
